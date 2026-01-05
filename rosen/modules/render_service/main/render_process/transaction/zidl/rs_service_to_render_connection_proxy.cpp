@@ -1710,5 +1710,28 @@ void RSServiceToRenderConnectionProxy::OnScreenBacklightChanged(ScreenId screenI
         ROSEN_LOGE("RSServiceToRenderConnectionProxy sendrequest failed, error is %{public}d", err);
     }
 }
+
+void RSServiceToRenderConnectionProxy::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy failed to get descriptor");
+        return;
+    }
+    if (!data.WriteUInt64Vector({globalBlackList.begin(), globalBlackList.end()})) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy:%{public}s WriteUInt64Vector globalBlackList err.", __func__);
+        return;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::ON_GLOBAL_BLACKLIST_CHANGED);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy sendrequest failed, error is %{public}d", err);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

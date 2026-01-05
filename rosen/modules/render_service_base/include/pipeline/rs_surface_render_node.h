@@ -657,10 +657,7 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
-    void UpdateScreenSpecialLayerInfoByOnTreeStateChange();
-    void UpdateScreenSpecialLayerInfoByTypeChange(ScreenId screenId, uint32_t type, bool isSpecialLayer);
     void SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer);
-    void ClearScreenSpecialLayerRecord(ScreenId screenId);
     void UpdateVirtualScreenWhiteListInfo();
 
     // get whether it is a security/skip layer itself

@@ -446,8 +446,6 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Lev
             auto addScreen = instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
             STEP_ASSERT_GE(addScreen, 0);
         }
-
-
         STEP("2. set the refreshrate mode") {
             auto setMode2 = instance.SetRefreshRateMode(modeToSet);
             STEP_ASSERT_EQ(setMode2, 0);

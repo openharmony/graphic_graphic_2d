@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,8 +29,9 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
-static inline sptr<RSConnectToRenderProcessProxy> rsConn_ = nullptr;
+sptr<RSConnectToRenderProcessProxy> g_rsConn = nullptr;
 }
+
 class RSConnectToRenderProcessProxyTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -45,7 +46,7 @@ void RSConnectToRenderProcessProxyTest::SetUpTestCase()
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     sptr<IRemoteObject> impl = nullptr;
-    rsConn_ = sptr<RSConnectToRenderProcessProxy>::MakeSptr(impl);
+    g_rsConn = sptr<RSConnectToRenderProcessProxy>::MakeSptr(impl);
 }
 void RSConnectToRenderProcessProxyTest::TearDownTestCase() {}
 void RSConnectToRenderProcessProxyTest::SetUp() {}
@@ -60,7 +61,7 @@ void RSConnectToRenderProcessProxyTest::TearDown() {}
 HWTEST_F(RSConnectToRenderProcessProxyTest, CreateRenderConnectionTest, TestSize.Level1)
 {
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    rsConn_->CreateRenderConnection(token);
-    ASSERT_TRUE(rsConn_);
+    g_rsConn->CreateRenderConnection(token);
+    ASSERT_TRUE(g_rsConn);
 }
 } // namespace OHOS::Rosen

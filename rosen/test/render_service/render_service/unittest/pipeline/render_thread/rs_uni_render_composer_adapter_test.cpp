@@ -80,7 +80,7 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
     auto output = std::make_shared<HdiOutput>(screenId_);
     auto property = sptr<RSScreenProperty>();
     renderComposerManager->OnScreenConnected(output, property);
-    auto client = std::make_shared<RSRenderComposerClient>(false,
+    auto client = std::make_shared<RSRenderComposerClient>(
         renderComposerManager->rsComposerConnectionMap_[screenId_], rsVsyncManagerAgent);
     composerAdapter_->Init(info, offsetX, offsetY, client);
 }

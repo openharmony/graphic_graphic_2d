@@ -28,9 +28,10 @@ class RSRenderCurveAnimation;
 
 class RSC_EXPORT RSCurveAnimation : public RSPropertyAnimation {
 public:
-    RSCurveAnimation(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& byValue);
-    RSCurveAnimation(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
-        const std::shared_ptr<RSPropertyBase>& endValue);
+    RSCurveAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPropertyBase>& byValue);
+    RSCurveAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue);
     virtual ~RSCurveAnimation() = default;
 
     void SetTimingCurve(const RSAnimationTimingCurve& timingCurve);

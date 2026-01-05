@@ -473,5 +473,10 @@ void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(ScreenId i
 {
     renderService_.renderProcessManager_->OnScreenBacklightChanged(id, level);
 }
+
+void RSRenderService::ScreenManagerListener::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
+{
+    renderService_.renderProcessManager_->OnGlobalBlacklistChanged(globalBlackList);
+}
 } // namespace Rosen
 } // namespace OHOS

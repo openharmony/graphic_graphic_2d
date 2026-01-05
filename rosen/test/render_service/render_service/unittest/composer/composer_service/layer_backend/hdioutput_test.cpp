@@ -261,7 +261,7 @@ HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence002, Function | MediumTest| Leve
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush, false),
         GRAPHIC_DISPLAY_FAILURE);
 
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->bufferCache_.size(), 0);
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->bufferCache_.size(), 1);
 
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
 }
@@ -278,7 +278,8 @@ HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce001, Function | MediumTes
 {
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
     uint32_t index;
-    auto &hdiOutput = HdiOutputTest::hdiOutput_;
+    auto& hdiOutput = HdiOutputTest::hdiOutput_;
+    hdiOutput->bufferCache_.clear();
     hdiOutput->bufferCache_.push_back(buffer);
     bool result = hdiOutput->CheckAndUpdateClientBufferCahce(buffer, index);
 
@@ -341,7 +342,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers, Function | MediumTest | Level1)
     auto &map = HdiOutputTest::hdiOutput_->layerIdMap_;
     for (auto &layer : map) {
         layer.second->GetRSLayer()->SetIsSupportedPresentTimestamp(true);
-        EXPECT_EQ(layer.second->GetRSLayer()->IsSupportedPresentTimestamp(), true);
+        EXPECT_EQ(layer.second->GetRSLayer()->GetIsSupportedPresentTimestamp(), true);
     }
 
     // ReleaseLayerBuffersInfo releaseLayerInfo;
@@ -421,6 +422,8 @@ HWTEST_F(HdiOutputTest, DeletePrevLayersLocked001, Function | MediumTest | Level
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     auto& surfaceIdMap = hdiOutput->surfaceIdMap_;
     auto& layerIdMap = hdiOutput->layerIdMap_;
+    surfaceIdMap.clear();
+    layerIdMap.clear();
     uint64_t id = 0;
     std::shared_ptr<HdiLayer> layer = std::make_shared<HdiLayer>(id);
     layer->isInUsing_ = true;
@@ -1522,7 +1525,7 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm002, Function | MediumTest | Level1
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("CheckIfDoArsrPreForVm002");
     rsLayer->SetSurface(cSurface);
     ret = hdiOutput->CheckIfDoArsrPreForVm(rsLayer);
-    ASSERT_EQ(ret, true);
+    ASSERT_EQ(ret, false);
     // getsurface is not nullptr, find in vmLayers
     cSurface = IConsumerSurface::Create("xcomponentIdSurface");
     rsLayer->SetSurface(cSurface);

@@ -25,7 +25,9 @@ namespace OHOS {
 namespace Rosen {
 static constexpr int NUMBER_FOR_HALF = 2;
 
-RSPropertyAnimation::RSPropertyAnimation(std::shared_ptr<RSPropertyBase> property) : property_(property)
+RSPropertyAnimation::RSPropertyAnimation(
+    const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property)
+    : RSAnimation(rsUIContext), property_(property)
 {
     InitAdditiveMode();
 }

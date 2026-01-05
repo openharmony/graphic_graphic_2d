@@ -119,7 +119,7 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest, Function | SmallTest | L
 
     GraphicTransformType type2 = GRAPHIC_ROTATE_NONE;
     layer->SetTransform(type2);
-    EXPECT_EQ(layer->GetTransformType(), type2);
+    EXPECT_EQ(layer->GetTransform(), type2);
 
     GraphicCompositionType type3 = GRAPHIC_COMPOSITION_CLIENT;
     layer->SetCompositionType(type3);
@@ -236,7 +236,7 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest3, Function | SmallTest | 
     EXPECT_EQ(layer->GetPresentTimestamp().type, GRAPHIC_DISPLAY_PTS_DELAY);
 
     layer->SetIsSupportedPresentTimestamp(false);
-    EXPECT_EQ(layer->IsSupportedPresentTimestamp(), false);
+    EXPECT_EQ(layer->GetIsSupportedPresentTimestamp(), false);
 
     layer->SetSdrNit(200);
     EXPECT_EQ(layer->GetSdrNit(), 200);
@@ -282,7 +282,7 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest4, Function | SmallTest | 
     EXPECT_EQ(layer->GetNeedBilinearInterpolation(), true);
 
     layer->SetIsMaskLayer(false);
-    EXPECT_EQ(layer->IsMaskLayer(), false);
+    EXPECT_EQ(layer->GetIsMaskLayer(), false);
 
     layer->SetNodeId(100);
     EXPECT_EQ(layer->GetNodeId(), 100);

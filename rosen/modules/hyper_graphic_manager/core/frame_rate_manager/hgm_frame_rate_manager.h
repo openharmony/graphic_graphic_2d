@@ -134,7 +134,7 @@ public:
 
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
-    void SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback);
+    void SetForceUpdateCallback(std::function<void(bool)> forceUpdateCallback);
     void Init(sptr<VSyncController> rsController, sptr<VSyncController> appController,
         sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appDistributor);
     void SetTimeoutParamsFromConfig(const std::shared_ptr<PolicyConfigData>& configData);
@@ -147,7 +147,7 @@ public:
     HgmIdleDetector& GetIdleDetector() { return idleDetector_; }
 
     // only called by RSMainThread
-    void UpdateSurfaceTime(const std::string& surfaceName, pid_t pid, UIFWKType uiFwkType);
+    void UpdateSurfaceTime(const std::vector<std::tuple<std::string, pid_t>>& surfaceData);
 
     void SetSchedulerPreferredFps(uint32_t schedulePreferredFps);
     void SetIsNeedUpdateAppOffset(bool isNeedUpdateAppOffset) { isNeedUpdateAppOffset_ = isNeedUpdateAppOffset; }
@@ -253,7 +253,7 @@ private:
     std::vector<uint32_t> ancoLowBrightVec_;
     std::vector<uint32_t> stylusVec_;
 
-    std::function<void(bool, bool)> forceUpdateCallback_ = nullptr;
+    std::function<void(bool)> forceUpdateCallback_ = nullptr;
     HgmSimpleTimer rsFrameRateTimer_;
 
     std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;

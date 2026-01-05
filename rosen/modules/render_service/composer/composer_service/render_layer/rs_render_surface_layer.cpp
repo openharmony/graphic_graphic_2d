@@ -39,17 +39,15 @@ static std::unordered_map<RSLayerCmdType, RSLayerCmdHandler> cmdHandlers_ = {
 
 RSRenderSurfaceLayer::RSRenderSurfaceLayer()
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::RSRenderSurfaceLayer id: %" PRIu64 ", name: %s",
-        rsLayerId_, surfaceName_.c_str());
-    RS_LOGI("Constructing RSRenderSurfaceLayer, id: %{public}" PRIu64 ", name: %{public}s",
-        rsLayerId_, surfaceName_.c_str());
+    RS_TRACE_NAME_FMT("Constructing RSRenderSurfaceLayer");
+    RS_LOGD("Constructing RSRenderSurfaceLayer");
 }
 
 RSRenderSurfaceLayer::~RSRenderSurfaceLayer()
 {
     RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::~RSRenderSurfaceLayer id: %" PRIu64 ", name: %s",
         rsLayerId_, surfaceName_.c_str());
-    RS_LOGI("Destructing RSRenderSurfaceLayer, id: %{public}" PRIu64 ", surface name: %{public}s",
+    RS_LOGD("Destructing RSRenderSurfaceLayer, id: %{public}" PRIu64 ", surface name: %{public}s",
         rsLayerId_, surfaceName_.c_str());
 }
 
@@ -98,7 +96,7 @@ void RSRenderSurfaceLayer::SetTransform(GraphicTransformType type)
     transformType_ = type;
 }
 
-GraphicTransformType RSRenderSurfaceLayer::GetTransformType() const
+GraphicTransformType RSRenderSurfaceLayer::GetTransform() const
 {
     return transformType_;
 }
@@ -253,7 +251,7 @@ const GraphicHDRMetaDataSet& RSRenderSurfaceLayer::GetMetaDataSet() const
     return metaDataSet_;
 }
 
-void RSRenderSurfaceLayer::SetMatrix(GraphicMatrix matrix)
+void RSRenderSurfaceLayer::SetMatrix(const GraphicMatrix& matrix)
 {
     matrix_ = matrix;
 }
@@ -325,12 +323,12 @@ uint32_t RSRenderSurfaceLayer::GetTunnelLayerProperty() const
 
 void RSRenderSurfaceLayer::SetIsSupportedPresentTimestamp(bool isSupported)
 {
-    IsSupportedPresentTimestamp_ = isSupported;
+    isSupportedPresentTimestamp_ = isSupported;
 }
 
-bool RSRenderSurfaceLayer::IsSupportedPresentTimestamp() const
+bool RSRenderSurfaceLayer::GetIsSupportedPresentTimestamp() const
 {
-    return IsSupportedPresentTimestamp_;
+    return isSupportedPresentTimestamp_;
 }
 
 void RSRenderSurfaceLayer::SetPresentTimestamp(const GraphicPresentTimestamp& timestamp)
@@ -448,7 +446,7 @@ void RSRenderSurfaceLayer::SetIsMaskLayer(bool isMaskLayer)
     isMaskLayer_ = isMaskLayer;
 }
 
-bool RSRenderSurfaceLayer::IsMaskLayer() const
+bool RSRenderSurfaceLayer::GetIsMaskLayer() const
 {
     return isMaskLayer_;
 }
@@ -463,7 +461,7 @@ inline uint64_t RSRenderSurfaceLayer::GetNodeId() const
     return nodeId_;
 }
 
-void RSRenderSurfaceLayer::SetAncoFlags(const uint32_t ancoFlags)
+void RSRenderSurfaceLayer::SetAncoFlags(uint32_t ancoFlags)
 {
     ancoFlags_ = ancoFlags;
 }
@@ -492,12 +490,13 @@ LayerMask RSRenderSurfaceLayer::GetLayerMaskInfo() const
 
 void RSRenderSurfaceLayer::SetSurface(const sptr<IConsumerSurface>& surface)
 {
-    (void)surface;
+    // only used for separate rendering
+    cSurface_ = surface;
 }
 
 sptr<IConsumerSurface> RSRenderSurfaceLayer::GetSurface() const
 {
-    return nullptr;
+    return cSurface_;
 }
 
 void RSRenderSurfaceLayer::SetSurfaceUniqueId(uint64_t uniqueId)
@@ -620,6 +619,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
 {
     rsLayerId_ = rsLayer->GetRSLayerId();
     zOrder_ = rsLayer->GetZorder();
+    layerType_ = rsLayer->GetType();
     layerRect_ = rsLayer->GetLayerSize();
     boundRect_ = rsLayer->GetBoundSize();
     visibleRegions_ = rsLayer->GetVisibleRegions();
@@ -628,12 +628,15 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     matrix_ = rsLayer->GetMatrix();
     gravity_ = rsLayer->GetGravity();
     layerAlpha_ = rsLayer->GetAlpha();
-    transformType_ = rsLayer->GetTransformType();
+    transformType_ = rsLayer->GetTransform();
     compositionType_ = rsLayer->GetCompositionType();
     blendType_ = rsLayer->GetBlendType();
     colorTransformMatrix_ = rsLayer->GetColorTransform();
     colorSpace_ = rsLayer->GetColorDataSpace();
     layerColor_ = rsLayer->GetLayerColor();
+    backgroundColor_ = rsLayer->GetBackgroundColor();
+    drmCornerRadiusInfo_ = rsLayer->GetCornerRadiusInfoForDRM();
+    isUniRender_ = rsLayer->GetUniRenderFlag();
     metaData_ = rsLayer->GetMetaData();
     metaDataSet_ = rsLayer->GetMetaDataSet();
     tunnelHandle_ = rsLayer->GetTunnelHandle();
@@ -654,7 +657,14 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     needBilinearInterpolation_ = rsLayer->GetNeedBilinearInterpolation();
     tunnelLayerId_ = rsLayer->GetTunnelLayerId();
     tunnelLayerProperty_ = rsLayer->GetTunnelLayerProperty();
+    isSupportedPresentTimestamp_ = rsLayer->GetIsSupportedPresentTimestamp();
+    presentTimestamp_ = rsLayer->GetPresentTimestamp();
+    windowsName_ = rsLayer->GetWindowsName();
     ancoFlags_ = rsLayer->GetAncoFlags();
+    isMaskLayer_ = rsLayer->GetIsMaskLayer();
+    nodeId_ = rsLayer->GetNodeId();
+    cSurface_ = rsLayer->GetSurface();
+    layerMask_ = rsLayer->GetLayerMaskInfo();
     cycleBuffersNum_ = rsLayer->GetCycleBuffersNum();
     surfaceName_ = rsLayer->GetSurfaceName();
     solidColorLayerProperty_ = rsLayer->GetSolidColorLayerProperty();
@@ -677,9 +687,9 @@ void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerC
     if (it != cmdHandlers_.end()) {
         it->second(rsRenderLayer, property);
     } else {
-        ROSEN_LOGE("RSRenderSurfaceLayer::UpdateRSLayerCmd type err");
+        ROSEN_LOGE("RSRenderSurfaceLayer::UpdateRSLayerCmd type err:%{public}d", static_cast<int32_t>(type));
     }
-    ROSEN_LOGD("RSRenderSurfaceLayer::UpdateRSLayerCmd type:%{}d", static_cast<int32_t>(type));
+    ROSEN_LOGD("RSRenderSurfaceLayer::UpdateRSLayerCmd type:%{public}d", static_cast<int32_t>(type));
 }
 } // namespace Rosen
 } // namespace OHOS

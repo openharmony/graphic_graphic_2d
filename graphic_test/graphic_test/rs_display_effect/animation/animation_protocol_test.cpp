@@ -15,6 +15,7 @@
 
 #include "point_custom_modifier_test.h"
 #include "rs_graphic_test.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -42,12 +43,11 @@ private:
     }
 };
 
-std::shared_ptr<RSUIContext> GetRSUIContext()
+static std::shared_ptr<RSUIContext> GetRSUIContext()
 {
     static std::shared_ptr<RSUIContext> rsUIContext = nullptr;
     if (rsUIContext == nullptr) {
-        sptr<IRemoteObject> remoteObject = nullptr;
-        rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+        rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     }
     return rsUIContext;
 }

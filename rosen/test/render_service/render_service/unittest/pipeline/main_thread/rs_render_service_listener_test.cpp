@@ -104,8 +104,8 @@ HWTEST_F(RSRenderServiceListenerTest, OnCleanCache001, TestSize.Level1)
 HWTEST_F(RSRenderServiceListenerTest, ForceRefresh001, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(node);
-    rsListener = std::make_shared<RSRenderServiceListener>(node);
+    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(node, nullptr);
+    rsListener = std::make_shared<RSRenderServiceListener>(node, nullptr);
 
     ASSERT_FALSE(node->IsLayerTop());
     ASSERT_FALSE(node->IsTopLayerForceRefresh());

@@ -267,7 +267,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
     }
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
-    RSUniRenderThread::Instance().OnDrawStart();
+    RSUniRenderThread::BufferManagerGuard bufferGuard;
     if (surfaceNodeDrawable_) {
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
         RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
@@ -307,7 +307,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false), acquireFence);
-    RSUniRenderThread::Instance().OnDrawEnd(acquireFence);
+    bufferGuard.SetAcquireFence(acquireFence);
     if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
         RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
     }

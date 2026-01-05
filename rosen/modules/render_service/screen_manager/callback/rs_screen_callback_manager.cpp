@@ -130,18 +130,23 @@ void RSScreenCallbackManager::NotifyVBlankIdle(ScreenId id, uint64_t ns)
     }
 }
 
-void RSScreenCallbackManager::NotifyVirtualScreenPresenceChanged(ScreenId id, bool connected,
-    ScreenId associatedScreenId, sptr<RSScreenProperty> property)
+void RSScreenCallbackManager::NotifyVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId,
+    sptr<RSScreenProperty> property)
 {
     if (!coreListener_) {
         RS_LOGI("%{public}s: coreListener is nullptr", __func__);
         return;
     }
-    if (connected) {
-        coreListener_->OnVirtualScreenConnected(id, associatedScreenId, property);
-    } else {
-        coreListener_->OnVirtualScreenDisconnected(id);
+    coreListener_->OnVirtualScreenConnected(id, associatedScreenId, property);
+}
+
+void RSScreenCallbackManager::NotifyVirtualScreenDisconnected(ScreenId id)
+{
+    if (!coreListener_) {
+        RS_LOGI("%{public}s: coreListener is nullptr", __func__);
+        return;
     }
+    coreListener_->OnVirtualScreenDisconnected(id);
 }
 
 void RSScreenCallbackManager::NotifyActiveScreenIdChanged(ScreenId activeScreenId)
@@ -160,6 +165,15 @@ void RSScreenCallbackManager::NotifyScreenBacklightChanged(ScreenId id, uint32_t
         return;
     }
     coreListener_->OnScreenBacklightChanged(id, level);
+}
+
+void RSScreenCallbackManager::NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
+{
+    if (!coreListener_) {
+        RS_LOGE("%{public}s: coreListener is nullptr", __func__);
+        return;
+    }
+    coreListener_->OnGlobalBlacklistChanged(globalBlackList);
 }
 
 sptr<IRemoteObject> RSScreenCallbackManager::GetClientToRenderConnection(ScreenId id) const

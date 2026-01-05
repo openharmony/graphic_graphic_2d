@@ -32,6 +32,7 @@ public:
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds) override;
     void SetScreenBacklight(uint32_t level) override;
     void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override;
+    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override;
 
 private:
     bool FillParcelWithTransactionData(std::unique_ptr<RSLayerTransactionData>& transactionData,

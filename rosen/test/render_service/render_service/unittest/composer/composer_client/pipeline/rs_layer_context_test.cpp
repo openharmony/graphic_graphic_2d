@@ -121,8 +121,28 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
     EXPECT_EQ(client->GetUnExecuteTaskNum(), 0u);
 
     context->rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
+    EXPECT_FALSE(context->CommitLayers(composerInfo));
+    auto rsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
+    auto composerConnection = sptr<RSRenderToComposerConnection>::MakeSptr(
+        "composer_conn", 0, renderComposerAgent);
+    context->rsLayerTransactionHandler_->SetRSComposerConnectionProxy(composerConnection);
+    EXPECT_FALSE(context->CommitLayers(composerInfo));
+    context->rsLayerTransactionHandler_->rsLayerTransactionData_ = std::make_unique<RSLayerTransactionData>();
+    class FakeLayerParcel : public RSLayerParcel {
+    public:
+        uint16_t GetRSLayerParcelType() const override { return 0; }
+        RSLayerId GetRSLayerId() const override { return 0; }
+        bool Marshalling(OHOS::MessageParcel& /*parcel*/) const override { return true; }
+        void ApplyRSLayerCmd(std::shared_ptr<RSRenderComposerContext> /*context*/) override {}
+    };
+    auto parcel = std::make_shared<FakeLayerParcel>();
+    std::shared_ptr<RSLayerParcel> baseParcel = std::static_pointer_cast<RSLayerParcel>(parcel);
+    context->rsLayerTransactionHandler_->AddRSLayerParcel(baseParcel, 0);
     EXPECT_TRUE(context->CommitLayers(composerInfo));
     EXPECT_EQ(client->GetUnExecuteTaskNum(), 0u);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    rsRenderComposer->uniRenderEngine_ = nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

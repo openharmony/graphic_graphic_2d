@@ -79,7 +79,7 @@ bool Init(const uint8_t* data, size_t size)
 
 void InitScreenManger()
 {
-    screenManager_->Init();
+    screenManager_->Init(nullptr);
 }
 
 void GetActiveScreenId()
@@ -94,26 +94,6 @@ void SetVirtualScreenRefreshRate()
     uint32_t maxRefreshRate = GetData<uint32_t>();
     uint32_t actualRefreshRate = GetData<uint32_t>();
     screenManager_->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
-}
-
-void PostForceRefreshTask()
-{
-    screenManager_->PostForceRefreshTask();
-}
-
-void RemoveForceRefreshTask()
-{
-    screenManager_->RemoveForceRefreshTask();
-}
-
-void TrySimpleProcessHotPlugEvents()
-{
-    screenManager_->TrySimpleProcessHotPlugEvents();
-}
-
-void ProcessScreenHotPlugEvents()
-{
-    screenManager_->ProcessScreenHotPlugEvents();
 }
 
 void GetVirtualScreenResolution()
@@ -224,18 +204,6 @@ void SetVirtualScreenSecurityExemptionList()
     screenManager_->SetVirtualScreenSecurityExemptionList(screenId, securityExemptionList);
 }
 
-void GetVirtualScreenSecurityExemptionList()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    screenManager_->GetVirtualScreenSecurityExemptionList(screenId);
-}
-
-void GetScreenSecurityMask()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    screenManager_->GetScreenSecurityMask(screenId);
-}
-
 void SetMirrorScreenVisibleRect()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
@@ -244,29 +212,11 @@ void SetMirrorScreenVisibleRect()
     screenManager_->SetMirrorScreenVisibleRect(screenId, mainScreenRect, supportRotation);
 }
 
-void GetMirrorScreenVisibleRect()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    screenManager_->GetMirrorScreenVisibleRect(screenId);
-}
-
 void SetCastScreenEnableSkipWindow()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
     bool enable = GetData<bool>();
     screenManager_->SetCastScreenEnableSkipWindow(screenId, enable);
-}
-
-void GetVirtualScreenBlackList()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    screenManager_->GetVirtualScreenBlackList(screenId);
-}
-
-void GetVirtualScreenTypeBlackList()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    screenManager_->GetVirtualScreenTypeBlackList(screenId);
 }
 
 void RemoveVirtualScreen()
@@ -320,12 +270,6 @@ void SetScreenPowerStatus()
     screenManager_->SetScreenPowerStatus(screenId, status);
 }
 
-void IsScreenPoweringOff()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    screenManager_->IsScreenPoweringOff(screenId);
-}
-
 void SetVirtualMirrorScreenCanvasRotation()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
@@ -338,12 +282,6 @@ void SetVirtualMirrorScreenScaleMode()
     ScreenId screenId = GetData<Rosen::ScreenId>();
     ScreenScaleMode scaleMode = static_cast<ScreenScaleMode>(GetData<uint8_t>() % SCREEN_SCALE_MODE_SIZE);
     screenManager_->SetVirtualMirrorScreenScaleMode(screenId, scaleMode);
-}
-
-void ReleaseScreenDmaBuffer()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    screenManager_->ReleaseScreenDmaBuffer(screenId);
 }
 
 void GetScreenData()
@@ -395,33 +333,6 @@ void DisplayDump()
 {
     std::string dumpString(STRING_LEN, GetData<char>());
     screenManager_->DisplayDump(dumpString);
-}
-
-void SurfaceDump()
-{
-    std::string dumpString(STRING_LEN, GetData<char>());
-    screenManager_->SurfaceDump(dumpString);
-}
-
-void FpsDump()
-{
-    std::string dumpString(STRING_LEN, GetData<char>());
-    std::string arg(STRING_LEN, GetData<char>());
-    screenManager_->FpsDump(dumpString, arg);
-}
-
-void ClearFpsDump()
-{
-    std::string dumpString(STRING_LEN, GetData<char>());
-    std::string arg(STRING_LEN, GetData<char>());
-    screenManager_->ClearFpsDump(dumpString, arg);
-}
-
-void HitchsDump()
-{
-    std::string dumpString(STRING_LEN, GetData<char>());
-    std::string arg(STRING_LEN, GetData<char>());
-    screenManager_->HitchsDump(dumpString, arg);
 }
 
 void SetScreenConstraint()
@@ -566,17 +477,10 @@ void DisablePowerOffRenderControl()
     screenManager_->DisablePowerOffRenderControl(screenId);
 }
 
-void SetScreenHasProtectedLayer()
-{
-    uint32_t screenId = GetData<uint32_t>();
-    bool hasProtectedLayer = GetData<bool>();
-    screenManager_->SetScreenHasProtectedLayer(screenId, hasProtectedLayer);
-}
-
 void IsVisibleRectSupportRotation()
 {
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    screenManager_->IsVisibleRectSupportRotation(screenId);
+    // ScreenId screenId = GetData<Rosen::ScreenId>();
+    // screenManager_->IsVisibleRectSupportRotation(screenId);
 }
    
 } // namespace Rosen
@@ -593,10 +497,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::InitScreenManger,
         OHOS::Rosen::GetActiveScreenId,
         OHOS::Rosen::SetVirtualScreenRefreshRate,
-        OHOS::Rosen::PostForceRefreshTask,
-        OHOS::Rosen::RemoveForceRefreshTask,
-        OHOS::Rosen::TrySimpleProcessHotPlugEvents,
-        OHOS::Rosen::ProcessScreenHotPlugEvents,
         OHOS::Rosen::GetVirtualScreenResolution,
         OHOS::Rosen::GetScreenActiveMode,
         OHOS::Rosen::GetScreenSupportedModes,
@@ -611,13 +511,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::AddVirtualScreenBlackList,
         OHOS::Rosen::RemoveVirtualScreenBlackList,
         OHOS::Rosen::SetVirtualScreenSecurityExemptionList,
-        OHOS::Rosen::GetVirtualScreenSecurityExemptionList,
-        OHOS::Rosen::GetScreenSecurityMask,
         OHOS::Rosen::SetMirrorScreenVisibleRect,
-        OHOS::Rosen::GetMirrorScreenVisibleRect,
         OHOS::Rosen::SetCastScreenEnableSkipWindow,
-        OHOS::Rosen::GetVirtualScreenBlackList,
-        OHOS::Rosen::GetVirtualScreenTypeBlackList,
         OHOS::Rosen::RemoveVirtualScreen,
         OHOS::Rosen::SetScreenActiveMode,
         OHOS::Rosen::SetScreenActiveRect,
@@ -625,10 +520,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::SetVirtualScreenResolution,
         OHOS::Rosen::SetRogScreenResolution,
         OHOS::Rosen::SetScreenPowerStatus,
-        OHOS::Rosen::IsScreenPoweringOff,
         OHOS::Rosen::SetVirtualMirrorScreenCanvasRotation,
         OHOS::Rosen::SetVirtualMirrorScreenScaleMode,
-        OHOS::Rosen::ReleaseScreenDmaBuffer,
         OHOS::Rosen::GetScreenData,
         OHOS::Rosen::ResizeVirtualScreen,
         OHOS::Rosen::GetScreenBacklight,
@@ -637,10 +530,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::GetScaleMode,
         OHOS::Rosen::GetProducerSurface,
         OHOS::Rosen::DisplayDump,
-        OHOS::Rosen::SurfaceDump,       
-        OHOS::Rosen::FpsDump,
-        OHOS::Rosen::ClearFpsDump,
-        OHOS::Rosen::HitchsDump,
         OHOS::Rosen::SetScreenConstraint,
         OHOS::Rosen::GetScreenSupportedColorGamuts,
         OHOS::Rosen::GetScreenColorGamut,
@@ -660,7 +549,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::SetScreenColorSpace,
         OHOS::Rosen::GetScreenSupportedColorSpaces,
         OHOS::Rosen::DisablePowerOffRenderControl,
-        OHOS::Rosen::SetScreenHasProtectedLayer,
         OHOS::Rosen::IsVisibleRectSupportRotation,
         OHOS::Rosen::SetVirtualScreenAutoRotation
     };

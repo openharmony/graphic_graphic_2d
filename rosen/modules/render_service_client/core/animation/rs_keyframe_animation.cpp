@@ -27,7 +27,9 @@ static constexpr int DURATION_VALUE_INDEX = 2;
 
 namespace OHOS {
 namespace Rosen {
-RSKeyframeAnimation::RSKeyframeAnimation(std::shared_ptr<RSPropertyBase> property) : RSPropertyAnimation(property)
+RSKeyframeAnimation::RSKeyframeAnimation(
+    const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property)
+    : RSPropertyAnimation(rsUIContext, property)
 {}
 
 void RSKeyframeAnimation::AddKeyFrame(float fraction, const std::shared_ptr<RSPropertyBase>& value,

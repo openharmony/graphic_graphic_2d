@@ -44,6 +44,7 @@ public:
     void HitchsDump(std::string& dumpString, std::string& layerArg);
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
+    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
 
 private:
     std::shared_ptr<RSRenderComposer> rsRenderComposer_;

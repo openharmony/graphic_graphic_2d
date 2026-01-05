@@ -178,6 +178,15 @@ void RSUniRenderVirtualProcessor::CancelCurrentFrame()
     }
 }
 
+sptr<SyncFence> RSUniRenderVirtualProcessor::GetFrameAcquireFence()
+{
+    if (!renderFrame_) {
+        RS_LOGE("RSUniRenderVirtualProcessor::GetFrameAcquireFence renderFrame_ is null");
+        return SyncFence::InvalidFence();
+    }
+    return renderFrame_->GetAcquireFence();
+}
+
 bool RSUniRenderVirtualProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable)
 {
     if (!RSProcessor::UpdateMirrorInfo(displayDrawable)) {
@@ -487,23 +496,6 @@ void RSUniRenderVirtualProcessor::MergeMirrorFenceToHardwareEnabledDrawables()
     }
 }
 
-void RSUniRenderVirtualProcessor::SetVirtualScreenFenceToRenderThread()
-{
-    if (renderFrame_ == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s renderFrame_ null!", __func__);
-        return;
-    }
-    auto acquireFence = renderFrame_->GetAcquireFence();
-    if (!acquireFence || !acquireFence->IsValid()) {
-        acquireFence = SyncFence::InvalidFence();
-    }
-    RSUniRenderThread::Instance().OnDrawEnd(acquireFence);
-    RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: screen: %" PRIu64 " fence set to render thread!",
-            __func__, virtualScreenId_);
-    RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: screen: %{public}" PRIu64 " fence set to render thread!",
-        __func__, virtualScreenId_);
-}
-
 void RSUniRenderVirtualProcessor::PostProcess()
 {
     if (renderFrame_ == nullptr || renderEngine_ == nullptr) {
@@ -517,7 +509,6 @@ void RSUniRenderVirtualProcessor::PostProcess()
     if (isMirror_) {
         MergeMirrorFenceToHardwareEnabledDrawables();
     }
-    SetVirtualScreenFenceToRenderThread();
     RS_LOGD("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
 }

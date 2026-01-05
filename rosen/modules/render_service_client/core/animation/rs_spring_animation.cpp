@@ -27,16 +27,18 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSpringAnimation::RSSpringAnimation(std::shared_ptr<RSPropertyBase> property,
-    const std::shared_ptr<RSPropertyBase>& byValue) : RSPropertyAnimation(property)
+RSSpringAnimation::RSSpringAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+    std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& byValue)
+    : RSPropertyAnimation(rsUIContext, property)
 {
     isDelta_ = true;
     byValue_ = byValue;
 }
 
-RSSpringAnimation::RSSpringAnimation(std::shared_ptr<RSPropertyBase> property,
-    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue)
-    : RSPropertyAnimation(property)
+RSSpringAnimation::RSSpringAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+    std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
+    const std::shared_ptr<RSPropertyBase>& endValue)
+    : RSPropertyAnimation(rsUIContext, property)
 {
     isDelta_ = false;
     startValue_ = startValue;

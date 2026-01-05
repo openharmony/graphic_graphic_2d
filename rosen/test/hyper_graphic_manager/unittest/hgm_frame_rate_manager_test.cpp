@@ -391,9 +391,9 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, true);
 
     frameRateMgr.voterTouchEffective_ = true;
-    std::string surfaceName = "surface0";
     size_t oldSize = frameRateMgr.surfaceData_.size();
-    frameRateMgr.UpdateSurfaceTime(surfaceName, pid, UIFWKType::FROM_UNKNOWN);
+    std::vector<std::tuple<std::string, pid_t>> surfaceData = { {"surface0", pid} };
+    frameRateMgr.UpdateSurfaceTime(surfaceData);
     EXPECT_GE(frameRateMgr.surfaceData_.size(), oldSize);
 }
 
@@ -627,7 +627,7 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level0)
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset0);
     sptr<VSyncDistributor> appDistributor = new VSyncDistributor(appController, "connection");
     frameRateMgr.Init(rsController, appController, vsyncGenerator, appDistributor);
-    frameRateMgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
+    frameRateMgr.forceUpdateCallback_ = [](bool forceUpdate) {};
     auto& touchManager = frameRateMgr.GetTouchManager();
     touchManager.ChangeState(TouchState::DOWN_STATE);
     touchManager.ChangeState(TouchState::UP_STATE);
@@ -1004,7 +1004,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     frameRateMgr->forceUpdateCallback_ = nullptr;
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
-    frameRateMgr->forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
+    frameRateMgr->forceUpdateCallback_ = [](bool forceUpdate) {};
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     EXPECT_EQ(frameRateMgr->isNeedUpdateAppOffset_, false);
     hgmCore.lowRateToHighQuickSwitch_.store(true);
@@ -1541,7 +1541,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckForceUpdateCallback, Function | SmallTest
     mgr.CheckForceUpdateCallback(OLED_60_HZ);
     EXPECT_EQ(mgr.needForceUpdateUniRender_, true);
 
-    mgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) {};
+    mgr.forceUpdateCallback_ = [](bool forceUpdate) {};
     mgr.CheckForceUpdateCallback(OLED_60_HZ);
     mgr.CheckForceUpdateCallback(OLED_120_HZ);
 
@@ -1731,7 +1731,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckRefreshRateChange, Function | SmallTest |
     HgmFrameRateManager mgr;
     auto& hgmCore = HgmCore::Instance();
     mgr.CheckRefreshRateChange(false, false, 120, true);
-    mgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) {};
+    mgr.forceUpdateCallback_ = [](bool forceUpdate) {};
     mgr.CheckRefreshRateChange(false, false, 120, true);
     mgr.CheckRefreshRateChange(false, false, 120, false);
     EXPECT_EQ(mgr.isNeedUpdateAppOffset_, false);

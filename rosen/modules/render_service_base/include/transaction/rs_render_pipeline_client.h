@@ -33,9 +33,6 @@
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
-#endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "ipc_callbacks/rs_icanvas_surface_buffer_callback.h"
 #endif
@@ -73,9 +70,6 @@ namespace Rosen {
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
 using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
 using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-using PointerLuminanceChangeCallback = std::function<void(int32_t)>;
-#endif
 using BufferAvailableCallback = std::function<void()>;
 using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;

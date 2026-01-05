@@ -26,9 +26,10 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
-static inline sptr<RSRenderProcessManagerAgent> rsManager_ = nullptr;
-static inline sptr<RSRenderProcessManagerAgent> rsManager1_ = nullptr;
+sptr<RSRenderProcessManagerAgent> g_rsManager = nullptr;
+sptr<RSRenderProcessManagerAgent> g_rsManager1 = nullptr;
 }
+
 class RSRenderProcessManagerAgentTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -42,8 +43,8 @@ void RSRenderProcessManagerAgentTest::SetUpTestCase()
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    rsManager_ = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
-    rsManager1_ = sptr<RSRenderProcessManagerAgent>::MakeSptr(nullptr);
+    g_rsManager = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
+    g_rsManager1 = sptr<RSRenderProcessManagerAgent>::MakeSptr(nullptr);
 }
 
 void RSRenderProcessManagerAgentTest::TearDownTestCase() {}
@@ -59,10 +60,10 @@ void RSRenderProcessManagerAgentTest::TearDown() {}
 HWTEST_F(RSRenderProcessManagerAgentTest, GetServiceToRenderConnTest, TestSize.Level1)
 {
     ScreenId screenId = 1;
-    rsManager_->GetServiceToRenderConn(screenId);
-    rsManager_->GetServiceToRenderConns();
-    ASSERT_EQ(rsManager1_->GetServiceToRenderConn(screenId), nullptr);
-    ASSERT_TRUE(rsManager1_->GetServiceToRenderConns().empty());
-    ASSERT_TRUE(rsManager_);
+    g_rsManager->GetServiceToRenderConn(screenId);
+    g_rsManager->GetServiceToRenderConns();
+    ASSERT_EQ(g_rsManager1->GetServiceToRenderConn(screenId), nullptr);
+    ASSERT_TRUE(g_rsManager1->GetServiceToRenderConns().empty());
+    ASSERT_TRUE(g_rsManager);
 }
 } // namespace OHOS::Rosen

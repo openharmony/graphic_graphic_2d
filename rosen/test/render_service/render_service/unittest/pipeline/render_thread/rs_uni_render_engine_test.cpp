@@ -167,15 +167,14 @@ HWTEST_F(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
         canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
     }
     ASSERT_NE(canvas, nullptr);
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     BufferDrawParam param;
     param.useCPU = false;
     if (RSSystemProperties::IsUseVulkan()) {
         param.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     }
-    uniRenderEngine->DrawHdiLayerWithParams(*canvas, layer, param);
+    uniRenderEngine->DrawHdiLayerWithParams(*canvas, param);
 
     param.useCPU = true;
-    uniRenderEngine->DrawHdiLayerWithParams(*canvas, layer, param);
+    uniRenderEngine->DrawHdiLayerWithParams(*canvas, param);
 }
 } // namespace OHOS::Rosen

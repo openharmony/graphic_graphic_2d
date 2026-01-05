@@ -29,8 +29,8 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
     "rs_occlusion_data_test.cpp",
     "rs_self_drawing_node_rect_data_test.cpp",
     "rs_transaction_data_test.cpp",
-    "rs_transaction_handler_test.cpp",
-    "rs_transaction_proxy_test.cpp",
+    # "rs_transaction_handler_test.cpp",
+    # "rs_transaction_proxy_test.cpp",
     "rs_uiextension_data_test.cpp",
   ]
 

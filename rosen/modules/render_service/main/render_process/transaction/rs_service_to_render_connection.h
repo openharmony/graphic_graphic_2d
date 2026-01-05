@@ -17,7 +17,8 @@
 #define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_RS_SERVICE_TO_RENDER_CONNECTION_H
 
 #include "render_server/rs_render_service_agent.h"
-#include "rs_render_pipeline_agent.h"
+#include "core/rs_render_pipeline_agent.h"
+
 #include "zidl/rs_service_to_render_connection_stub.h"
 
 namespace OHOS {
@@ -35,6 +36,7 @@ public:
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
     void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
     void OnScreenBacklightChanged(ScreenId screenId, uint32_t level) override;
+    void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
     
     // Partial Render
     int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback) override;

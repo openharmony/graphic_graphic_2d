@@ -166,6 +166,13 @@ private:
     void SetCulledNodesToCanvas(RSPaintFilterCanvas* canvas, const RSSurfaceRenderParams* surfaceParams);
     NodeId GetWhiteListPersistentId(const RSSurfaceRenderParams& surfaceParam, const RSPaintFilterCanvas& canvas);
 
+    bool IsSelfDrawingType() const
+    {
+        return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
+                surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
+                surfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE;
+    }
+
 #ifdef SUBTREE_PARALLEL_ENABLE
     bool QuickGetDrawState(RSPaintFilterCanvas* rscanvas, Drawing::Region& curSurfaceDrawRegion,
         RSSurfaceRenderParams* surfaceParams);

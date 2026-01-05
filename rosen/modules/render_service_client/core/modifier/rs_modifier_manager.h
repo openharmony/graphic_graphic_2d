@@ -57,7 +57,7 @@ public:
     /**
      * @brief Constructor for RSModifierManager.
      */
-    RSModifierManager() = default;
+    RSModifierManager(pid_t tid = gettid()) : tid_(tid) {}
 
     /**
      * @brief Destructor for RSModifierManager.
@@ -188,6 +188,8 @@ public:
 
     void MoveModifier(std::shared_ptr<RSModifierManager> dstModifierManager, NodeId nodeId);
 
+    pid_t GetTid() const { return tid_; }
+
 private:
     /**
      * @brief Callback invoked when a animation has finished.
@@ -211,6 +213,7 @@ private:
     RSAnimationRateDecider rateDecider_;
     FrameRateGetFunc frameRateGetFunc_;
     bool hasFirstFrameAnimation_ = false;
+    pid_t tid_ { 0 };
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderDisplaySync>> displaySyncs_;
     bool isDisplaySyncEnabled_ = false;

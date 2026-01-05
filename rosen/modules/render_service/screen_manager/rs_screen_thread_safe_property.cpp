@@ -60,7 +60,6 @@ sptr<RSScreenProperty> RSScreenThreadSafeProperty::Clone() const
     cloned->isSupportRotation_ = property_->isSupportRotation_;
     cloned->whiteList_ = property_->whiteList_;
     cloned->blackList_ = property_->blackList_;
-    cloned->globalBlackList_ = property_->globalBlackList_;
     cloned->typeBlackList_ = property_->typeBlackList_;
     cloned->securityExemptionList_ = property_->securityExemptionList_;
     cloned->securityMask_ = property_->securityMask_;
@@ -266,26 +265,6 @@ void RSScreenThreadSafeProperty::SetWhiteList(const std::unordered_set<uint64_t>
 {
     UniqueLock lock(propertyMutex_);
     property_->whiteList_ = whiteList;
-}
-
-void RSScreenThreadSafeProperty::SetGlobalBlackList(const std::unordered_set<uint64_t>& globalBlackList)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->globalBlackList_ = globalBlackList;
-}
-
-void RSScreenThreadSafeProperty::AddGlobalBlackList(const std::vector<uint64_t>& globalBlackList)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->globalBlackList_.insert(globalBlackList.cbegin(), globalBlackList.cend());
-}
-
-void RSScreenThreadSafeProperty::RemoveGlobalBlackList(const std::vector<uint64_t>& globalBlackList)
-{
-    UniqueLock lock(propertyMutex_);
-    for (const auto& id : globalBlackList) {
-        property_->globalBlackList_.erase(id);
-    }
 }
 
 void RSScreenThreadSafeProperty::SetBlackList(const std::unordered_set<uint64_t>& blackList)
@@ -589,12 +568,6 @@ std::unordered_set<uint64_t> RSScreenThreadSafeProperty::GetBlackList() const
 {
     SharedLock lock(propertyMutex_);
     return property_->blackList_;
-}
-
-std::unordered_set<uint64_t> RSScreenThreadSafeProperty::GetGlobalBlackList() const
-{
-    SharedLock lock(propertyMutex_);
-    return property_->globalBlackList_;
 }
 
 std::unordered_set<uint8_t> RSScreenThreadSafeProperty::GetTypeBlackList() const

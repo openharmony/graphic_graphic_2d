@@ -135,7 +135,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         }
 #endif
         RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s", layer->GetSurfaceName().c_str());
-        DrawHdiLayerWithParams(canvas, layer, params);
+        DrawHdiLayerWithParams(canvas, params);
         // Dfx for redraw region
         auto dstRect = layer->GetLayerSize();
         if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
@@ -200,8 +200,7 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const R
     canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
 }
 
-void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
-    BufferDrawParam& params)
+void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderEngine::DrawHdiLayerWithParams: matrix=[%{public}.2f, %{public}.2f, "
         "%{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f]",
@@ -212,7 +211,6 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, cons
         params.matrix.Get(Drawing::Matrix::PERSP_2));
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
-        RegisterDeleteBufferListener(layer->GetSurface(), !RSSystemProperties::GetVKImageUseEnabled());
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);

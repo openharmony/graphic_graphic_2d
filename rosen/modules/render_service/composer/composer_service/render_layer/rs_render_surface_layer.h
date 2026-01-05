@@ -48,7 +48,7 @@ public:
     void SetType(const GraphicLayerType layerType) override;
     GraphicLayerType GetType() const override;
     void SetTransform(GraphicTransformType type) override;
-    GraphicTransformType GetTransformType() const override;
+    GraphicTransformType GetTransform() const override;
     void SetCompositionType(GraphicCompositionType type) override;
     GraphicCompositionType GetCompositionType() const override;
     void SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions) override;
@@ -79,7 +79,7 @@ public:
     const std::vector<GraphicHDRMetaData>& GetMetaData() const override;
     void SetMetaDataSet(const GraphicHDRMetaDataSet& metaDataSet) override;
     const GraphicHDRMetaDataSet& GetMetaDataSet() const override;
-    void SetMatrix(GraphicMatrix matrix) override;
+    void SetMatrix(const GraphicMatrix& matrix) override;
     const GraphicMatrix& GetMatrix() const override;
     void SetGravity(int32_t gravity) override;
     int32_t GetGravity() const override;
@@ -94,7 +94,7 @@ public:
     void SetTunnelLayerProperty(uint32_t tunnelLayerProperty) override;
     uint32_t GetTunnelLayerProperty() const override;
     void SetIsSupportedPresentTimestamp(bool isSupported) override;
-    bool IsSupportedPresentTimestamp() const override;
+    bool GetIsSupportedPresentTimestamp() const override;
     void SetPresentTimestamp(const GraphicPresentTimestamp& timestamp) override;
     const GraphicPresentTimestamp& GetPresentTimestamp() const override;
     void SetSdrNit(float sdrNit) override;
@@ -118,10 +118,10 @@ public:
     void SetNeedBilinearInterpolation(bool need) override;
     bool GetNeedBilinearInterpolation() const override;
     void SetIsMaskLayer(bool isMaskLayer) override;
-    bool IsMaskLayer() const override;
+    bool GetIsMaskLayer() const override;
     void SetNodeId(uint64_t nodeId) override;
     uint64_t GetNodeId() const override;
-    void SetAncoFlags(const uint32_t ancoFlags) override;
+    void SetAncoFlags(uint32_t ancoFlags) override;
     uint32_t GetAncoFlags() const override;
     bool IsAncoNative() const override;
     void SetLayerMaskInfo(LayerMask mask) override;
@@ -195,13 +195,11 @@ private:
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     std::vector<std::string> windowsName_;
     bool tunnelHandleChange_ = false;
-    bool IsSupportedPresentTimestamp_ = false;
+    bool isSupportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
     sptr<SurfaceBuffer> pbuffer_ = nullptr;
-    std::map<uint64_t, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>> bufferOwnerCounts_;
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_;
     bool preMulti_ = false;
     bool needBilinearInterpolation_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
@@ -227,6 +225,7 @@ private:
     bool useDeviceOffline_ = false;
     bool ignoreAlpha_ = false;
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
+    sptr<IConsumerSurface> cSurface_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

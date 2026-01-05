@@ -61,7 +61,7 @@ typedef enum {
 
 typedef enum {
     SURFACE_FPS_DEFAULT,
-    SURFACE_FPS_UPDATE,
+    SURFACE_FPS_ADD,
     SURFACE_FPS_REMOVE,
 } SurfaceFpsOpType;
 
@@ -88,7 +88,7 @@ struct PipelineParam {
         SurfaceFpsOpList = std::vector<SurfaceFpsOp>();
     }
 
-    uint32_t GetSurfaceFpsOpNum() {
+    uint32_t GetSurfaceFpsOpNum() const {
         return (SurfaceFpsOpNum < SurfaceFpsOpList.size()) ? SurfaceFpsOpNum : SurfaceFpsOpList.size();
     }
 };

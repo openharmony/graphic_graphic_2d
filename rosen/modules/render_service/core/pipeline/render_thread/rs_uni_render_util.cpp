@@ -76,7 +76,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr float GAMMA2_2 = 2.2f;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
@@ -407,10 +406,9 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
     return allSurfaceVisibleDirtyRegion;
 }
 
-void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
-    const sptr<IConsumerSurface>& surface, RectF& localBounds)
+void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer, RectF& localBounds)
 {
-    if (buffer == nullptr || surface == nullptr) {
+    if (buffer == nullptr) {
         RS_LOGE("buffer or surface is nullptr");
         return;
     }
@@ -450,16 +448,13 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
                 params.srcRect.GetLeft() + params.srcRect.GetWidth(),
                 params.srcRect.GetTop() + halfdh + newHeight);
     }
-    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleFit name:%{public}s,"
-        " dstRect [%{public}f %{public}f %{public}f %{public}f]",
-        surface->GetName().c_str(), params.dstRect.GetLeft(), params.dstRect.GetTop(),
-        params.dstRect.GetWidth(), params.dstRect.GetHeight());
+    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleFit dstRect [%{public}f %{public}f %{public}f %{public}f]",
+        params.dstRect.GetLeft(), params.dstRect.GetTop(), params.dstRect.GetWidth(), params.dstRect.GetHeight());
 }
 
-void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
-    const sptr<IConsumerSurface>& surface, RectF& localBounds)
+void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer, RectF& localBounds)
 {
-    if (buffer == nullptr || surface == nullptr) {
+    if (buffer == nullptr) {
         return;
     }
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
@@ -502,10 +497,8 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
                 params.srcRect.GetLeft() + params.srcRect.GetWidth(),
                 params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
     }
-    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown name:%{public}s,"
-        " srcRect [%{public}f %{public}f %{public}f %{public}f]",
-        surface->GetName().c_str(), params.srcRect.GetLeft(), params.srcRect.GetTop(),
-        params.srcRect.GetWidth(), params.srcRect.GetHeight());
+    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown name: srcRect [%{public}f %{public}f %{public}f %{public}f]",
+        params.srcRect.GetLeft(), params.srcRect.GetTop(), params.srcRect.GetWidth(), params.srcRect.GetHeight());
 }
 
 void RSUniRenderUtil::SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer)
@@ -612,9 +605,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode): Scaling mode is %{public}d", scalingMode);
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        SrcRectScaleDown(params, buffer, consumer, localBounds);
+        SrcRectScaleDown(params, buffer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-        SrcRectScaleFit(params, buffer, consumer, localBounds);
+        SrcRectScaleFit(params, buffer, localBounds);
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode): Parameters creation completed");
@@ -700,9 +693,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
         { buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), buffer->GetFormat() }, params.srcRect);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        SrcRectScaleDown(params, buffer, consumer, localBounds);
+        SrcRectScaleDown(params, buffer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-        SrcRectScaleFit(params, buffer, consumer, localBounds);
+        SrcRectScaleFit(params, buffer, localBounds);
     }
     RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderUtil::CreateBufferDrawParam(DrawableV2::RSSurfaceRenderNodeDrawable):"
         " Parameters creation completed");
@@ -851,7 +844,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     }
     // rotation degree anti-clockwise
     int nodeRotation = rotationFixed ? 0 : RSUniRenderUtil::GetRotationFromMatrix(params.matrix);
-    auto layerTransform = layer->GetTransformType();
+    auto layerTransform = layer->GetTransform();
     // calculate clockwise rotation degree excluded rotation in total matrix
     int realRotation = (nodeRotation +
         RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(layerTransform))) % 360;
@@ -875,18 +868,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
         // if rotation fixed, no need to calculate scaling mode, it is contained in dstRect
         return params;
     }
-    const auto& surface = layer->GetSurface();
-    if (surface == nullptr) {
-        RS_LOGE("buffer or surface is nullptr");
-        return params;
-    }
     RSAncoManager::UpdateCropRectForAnco(layer->GetAncoFlags(), layer->GetAncoSrcRect(),
         { buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), buffer->GetFormat() }, params.srcRect);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        SrcRectScaleDown(params, buffer, surface, localBounds);
+        SrcRectScaleDown(params, buffer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-        SrcRectScaleFit(params, buffer, surface, localBounds);
+        SrcRectScaleFit(params, buffer, localBounds);
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderUtil::CreateLayerBufferDrawParam(RSLayerPtr): Parameters creation completed");

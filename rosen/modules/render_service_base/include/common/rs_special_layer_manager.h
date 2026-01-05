@@ -33,7 +33,7 @@ constexpr uint32_t VIRTUALSCREEN_IS_SPECIAL = 0X7;  //contain security、skip、
 constexpr uint32_t VIRTUALSCREEN_HAS_SPECIAL = 0X1C00;  //contain security、skip、protected layer
 constexpr uint32_t SNAPSHOT_IS_SPECIAL = 0XF;   //contain security、skip、protected、snapshotskip layer
 constexpr uint32_t SNAPSHOT_HAS_SPECIAL = 0X3C00;   //contain security、skip、protected、snapshotskip layer
-constexpr uint32_t MAX_IDS_SIZE = 1024;
+constexpr size_t MAX_SPECIAL_LAYER_NUM = 1024;
 
 enum SpecialLayerType : uint32_t {
     NONE = 0,
@@ -77,8 +77,6 @@ public:
     void RemoveIdsWithScreen(uint64_t screenId, uint32_t type, NodeId id);
 
     const std::unordered_set<uint64_t> FindScreenHasType(uint32_t type) const;
-    void ClearAllScreenSpecialLayer();
-    void ClearScreenSpecialLayer(uint64_t screenId);
     void ClearScreenSpecialLayer();
     void ClearSpecialLayerIds();
 
@@ -93,6 +91,23 @@ private:
     std::map<uint64_t, uint32_t> screenSpecialLayer_;
     // <ScreenId, <SpecialLayerType, std::set<NodeId>>>
     std::map<uint64_t, std::map<uint32_t, std::set<NodeId>>> screenSpecialLayerIds_;
+};
+
+class RSB_EXPORT ScreenSpecialLayerInfo {
+public :
+    static void Update(SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds);
+    static void ClearByScreenId(ScreenId screenId);
+    static void ClearEmptyInfo();
+    static std::unordered_set<ScreenId> QueryEnableScreen(
+        SpecialLayerType type, std::pair<NodeId, LeashPersistentId> id);
+    static bool ExistEnableScreen(SpecialLayerType type);
+
+    static void SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList);
+    static const std::unordered_set<NodeId>& GetGlobalBlackList();
+private :
+    static std::unordered_map<SpecialLayerType,
+        std::unordered_map<NodeId, std::unordered_set<ScreenId>>> screenSpecialLayerInfoByNode_;
+    static std::unordered_set<NodeId> globalBlackList_;
 };
 
 class AutoSpecialLayerStateRecover {

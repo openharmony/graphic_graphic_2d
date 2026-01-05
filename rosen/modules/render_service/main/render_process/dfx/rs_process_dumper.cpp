@@ -287,6 +287,10 @@ void RSProcessDumper::RegisterBufferFuncs()
         // todo : 分离渲染适配
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            RS_TRACE_NAME("RSProcessDumper dump current frame buffer in UniRenderThread");
+            RS_LOGD("dump current frame buffer in UniRenderThread");
+            RSUniRenderThread::Instance().DumpCurrentFrameLayers();
+        } else {
 // #ifdef RS_ENABLE_GPU
 //             RSHardwareThread::Instance().ScheduleTask([this]() {
 //                 RS_TRACE_NAME("RSRenderService dump current frame buffer in HardwareThread");
@@ -294,10 +298,6 @@ void RSProcessDumper::RegisterBufferFuncs()
 //                 return screenManager_->DumpCurrentFrameLayers();
 //             }).wait();
 // #endif
-        } else {
-            RS_TRACE_NAME("RSProcessDumper dump current frame buffer in UniRenderThread");
-            RS_LOGD("dump current frame buffer in UniRenderThread");
-            RSUniRenderThread::Instance().DumpCurrentFrameLayers();
         }
     };
 

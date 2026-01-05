@@ -62,7 +62,7 @@ public:
     void SetType(const GraphicLayerType layerType) override { layerType_ = layerType; }
     GraphicLayerType GetType() const override { return layerType_; }
     void SetTransform(GraphicTransformType type) override { transform_ = type; }
-    GraphicTransformType GetTransformType() const override { return transform_; }
+    GraphicTransformType GetTransform() const override { return transform_; }
     void SetCompositionType(GraphicCompositionType type) override { compType_ = type; }
     GraphicCompositionType GetCompositionType() const override { return compType_; }
     void SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions) override
@@ -95,7 +95,7 @@ public:
     const std::vector<GraphicHDRMetaData>& GetMetaData() const override { return metaData_; }
     void SetMetaDataSet(const GraphicHDRMetaDataSet& metaDataSet) override { metaDataSet_ = metaDataSet; }
     const GraphicHDRMetaDataSet& GetMetaDataSet() const override { return metaDataSet_; }
-    void SetMatrix(GraphicMatrix matrix) override { matrix_ = matrix; }
+    void SetMatrix(const GraphicMatrix& matrix) override { matrix_ = matrix; }
     const GraphicMatrix& GetMatrix() const override { return matrix_; }
     void SetGravity(int32_t gravity) override { gravity_ = gravity; }
     int32_t GetGravity() const override { return gravity_; }
@@ -111,7 +111,7 @@ public:
     { tunnelLayerProperty_ = tunnelLayerProperty; }
     uint32_t GetTunnelLayerProperty() const override { return tunnelLayerProperty_; }
     void SetIsSupportedPresentTimestamp(bool isSupported) override { supportedPresentTimestamp_ = isSupported; }
-    bool IsSupportedPresentTimestamp() const override { return supportedPresentTimestamp_; }
+    bool GetIsSupportedPresentTimestamp() const override { return supportedPresentTimestamp_; }
     void SetPresentTimestamp(const GraphicPresentTimestamp &timestamp) override { presentTimestamp_ = timestamp; }
     const GraphicPresentTimestamp &GetPresentTimestamp() const override { return presentTimestamp_; }
     void SetSdrNit(float sdrNit) override { sdrNit_ = sdrNit; }
@@ -136,7 +136,7 @@ public:
     void SetNeedBilinearInterpolation(bool need) override { needBilinear_ = need; }
     bool GetNeedBilinearInterpolation() const override { return needBilinear_; }
     void SetIsMaskLayer(bool isMaskLayer) override { isMaskLayer_ = isMaskLayer; }
-    bool IsMaskLayer() const override { return isMaskLayer_; }
+    bool GetIsMaskLayer() const override { return isMaskLayer_; }
     void SetIgnoreAlpha(bool ignoreAlpha) override { ignoreAlpha_ = ignoreAlpha; }
     bool GetIgnoreAlpha() const override { return ignoreAlpha_; }
     void SetNodeId(uint64_t nodeId) override { nodeId_ = nodeId; }

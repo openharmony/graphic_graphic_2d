@@ -21,9 +21,6 @@
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
-#endif
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
@@ -141,24 +138,6 @@ public:
 private:
     HgmRefreshRateUpdateCallback cb_;
 };
-
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-class CustomPointerLuminanceChangeCallback : public RSPointerLuminanceChangeCallbackStub {
-public:
-    explicit CustomPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback) : cb_(callback) {}
-    ~CustomPointerLuminanceChangeCallback() override {};
- 
-    void OnPointerLuminanceChanged(int32_t brightness) override
-    {
-        if (cb_ != nullptr) {
-            cb_(brightness);
-        }
-    }
- 
-private:
-    PointerLuminanceChangeCallback cb_;
-};
-#endif
 
 class CustomFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub {
 public:

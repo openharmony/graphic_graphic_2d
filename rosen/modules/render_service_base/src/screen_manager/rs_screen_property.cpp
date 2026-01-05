@@ -191,21 +191,6 @@ const std::unordered_set<NodeType>& RSScreenProperty::GetTypeBlackList() const
     return typeBlackList_;
 }
 
-const std::unordered_set<NodeId>& RSScreenProperty::GetGlobalBlackList() const
-{
-    return globalBlackList_;
-}
-
-std::unordered_set<NodeId> RSScreenProperty::GetMergeBlackList() const
-{
-    if (!skipWindow_) {
-        return blackList_;
-    }
-    std::unordered_set<NodeId> blackList = blackList_;
-    blackList.insert(globalBlackList_.begin(), globalBlackList_.end());
-    return blackList;
-}
-
 const std::vector<NodeId>& RSScreenProperty::GetSecurityExemptionList() const
 {
     return securityExemptionList_;

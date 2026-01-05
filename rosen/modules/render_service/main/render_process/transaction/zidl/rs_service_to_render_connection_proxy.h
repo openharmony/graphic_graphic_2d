@@ -35,6 +35,7 @@ public:
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
     void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
     void OnScreenBacklightChanged(ScreenId screenId, uint32_t level) override;
+    void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
 
     // Partial Render
     int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback) override;

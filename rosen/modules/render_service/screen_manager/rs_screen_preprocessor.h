@@ -20,10 +20,6 @@
 #include <vector>
 #include <event_handler.h>
 #include <hdi_backend.h>
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-#include <sensor_agent.h>
-#include <sensor_agent_type.h>
-#endif
 
 #include "callback/rs_screen_callback_manager.h"
 
@@ -47,6 +43,9 @@ public:
     static void OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void* data);
 
     bool Init() noexcept;
+    void NotifyVirtualScreenConnected(ScreenId newId, ScreenId associatedScreenId, sptr<RSScreenProperty> property);
+    void NotifyVirtualScreenDisconnected(ScreenId id);
+    void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
 private:
     void OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bool connected);
     void OnRefreshEvent(ScreenId id);
@@ -56,15 +55,6 @@ private:
 
     void ConfigureScreenConnected(std::shared_ptr<HdiOutput>& output);
     void ConfigureScreenDisconnected(std::shared_ptr<HdiOutput>& output);
-
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    void InitFoldSensor();
-    void RegisterSensorCallback();
-    void UnRegisterSensorCallback();
-    static void OnBootComplete(const char* key, const char* value, void *context);
-    void OnBootCompleteEvent();
-    void HandlePostureData(const SensorEvent* const event);
-#endif
 
     void ProcessScreenHotPlugEvents();
     void ScheduleTask(std::function<void()> task);
@@ -77,11 +67,6 @@ private:
     std::map<ScreenId, ScreenHotPlugEvent> pendingHotPlugEvents_;
     mutable std::mutex hotPlugMutex_;
     bool isFoldScreenFlag_ = false;
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    SensorUser sensorUser_;
-    bool hasRegisterSensorCallback_ = false;
-    mutable std::mutex registerSensorMutex_;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

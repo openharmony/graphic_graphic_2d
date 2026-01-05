@@ -564,11 +564,6 @@ private:
     bool IsResidentProcess(pid_t pid) const;
     uint32_t GetForceCommitReason() const;
 
-    void ClearScreenSpecialLayerRecord(ScreenId screenId);
-    void UpdateScreenSpecialLayer(const RSScreenProperty& newProperty, const RSScreenProperty& oldProperty = {});
-    void SetScreenSpecialLayerStatus(
-        ScreenId screenId, std::unordered_map<SpecialLayerType, std::unordered_set<NodeId>>& screenSpecialLayerInfos);
-
     // used for informing hgm the bundle name of SurfaceRenderNodes
     void InformHgmNodeInfo();
     void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
