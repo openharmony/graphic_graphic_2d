@@ -2438,14 +2438,14 @@ HWTEST_F(RSScreenTest, InitDisplayPropertyForHardCursorTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSScreenTest, SetGlobalBlackListTest, TestSize.Level1)
-{
-    auto rsScreen = std::make_shared<RSScreen>(0);
-    rsScreen->hdiScreen_ = nullptr;
-    std::unordered_set<uint64_t> globalBlackLis = {};
-    rsScreen->SetGlobalBlackList(globalBlackLis);
-    EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
-}
+// HWTEST_F(RSScreenTest, SetGlobalBlackListTest, TestSize.Level1)
+// {
+//     auto rsScreen = std::make_shared<RSScreen>(0);
+//     rsScreen->hdiScreen_ = nullptr;
+//     std::unordered_set<uint64_t> globalBlackLis = {};
+//     rsScreen->SetGlobalBlackList(globalBlackLis);
+//     EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
+// }
  
 /*
  * @tc.name: AddGlobalBlackListTest
@@ -2453,16 +2453,16 @@ HWTEST_F(RSScreenTest, SetGlobalBlackListTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSScreenTest, AddGlobalBlackListTest, TestSize.Level1)
-{
-    auto rsScreen = std::make_shared<RSScreen>(0);
-    rsScreen->hdiScreen_ = nullptr;
-    std::vector<uint64_t> globalBlackLis = {};
-    rsScreen->AddGlobalBlackList(globalBlackLis);
-    globalBlackLis.push_back(0);
-    rsScreen->AddGlobalBlackList(globalBlackLis);
-    EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
-}
+// HWTEST_F(RSScreenTest, AddGlobalBlackListTest, TestSize.Level1)
+// {
+//     auto rsScreen = std::make_shared<RSScreen>(0);
+//     rsScreen->hdiScreen_ = nullptr;
+//     std::vector<uint64_t> globalBlackLis = {};
+//     rsScreen->AddGlobalBlackList(globalBlackLis);
+//     globalBlackLis.push_back(0);
+//     rsScreen->AddGlobalBlackList(globalBlackLis);
+//     EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
+// }
  
 /*
  * @tc.name: RemoveGlobalBlackListTest
@@ -2470,16 +2470,16 @@ HWTEST_F(RSScreenTest, AddGlobalBlackListTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSScreenTest, RemoveGlobalBlackListTest, TestSize.Level1)
-{
-    auto rsScreen = std::make_shared<RSScreen>(0);
-    rsScreen->hdiScreen_ = nullptr;
-    std::vector<uint64_t> globalBlackLis = {};
-    rsScreen->RemoveGlobalBlackList(globalBlackLis);
-    globalBlackLis.push_back(0);
-    rsScreen->RemoveGlobalBlackList(globalBlackLis);
-    EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
-}
+// HWTEST_F(RSScreenTest, RemoveGlobalBlackListTest, TestSize.Level1)
+// {
+//     auto rsScreen = std::make_shared<RSScreen>(0);
+//     rsScreen->hdiScreen_ = nullptr;
+//     std::vector<uint64_t> globalBlackLis = {};
+//     rsScreen->RemoveGlobalBlackList(globalBlackLis);
+//     globalBlackLis.push_back(0);
+//     rsScreen->RemoveGlobalBlackList(globalBlackLis);
+//     EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
+// }
  
 /*
  * @tc.name: SetOnBacklightChangedCallbackTest

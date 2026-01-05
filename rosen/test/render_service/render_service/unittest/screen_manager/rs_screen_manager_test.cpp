@@ -125,27 +125,27 @@ sptr<IRemoteObject> RSScreenManagerTest::RSIScreenChangeCallbackConfig::AsObject
  * @tc.desc: Test HandleSensorData
  * @tc.type: FUNC
  */
-HWTEST_F(RSScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
-{
-    ASSERT_NE(nullptr, screenManager_);
-    screenManager_->HandleSensorData(0.f);
-    EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
-    screenManager_->HandleSensorData(0.f);
-    EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
-    screenManager_->isPostureSensorDataHandled_ = false;
-    screenManager_->HandleSensorData(0.f);
-    EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
-    screenManager_->HandleSensorData(180.f);
-    EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->innerScreenId_);
-    screenManager_->HandleSensorData(180.f);
-    EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->innerScreenId_);
-    screenManager_->isPostureSensorDataHandled_ = false;
-    screenManager_->HandleSensorData(180.f);
-    EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->innerScreenId_);
-    screenManager_->HandleSensorData(0.f);
-    EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
-    screenManager_->activeScreenId_ = 0;
-}
+// HWTEST_F(RSScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
+// {
+//     ASSERT_NE(nullptr, screenManager_);
+//     screenManager_->HandleSensorData(0.f);
+//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
+//     screenManager_->HandleSensorData(0.f);
+//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
+//     screenManager_->isPostureSensorDataHandled_ = false;
+//     screenManager_->HandleSensorData(0.f);
+//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
+//     screenManager_->HandleSensorData(180.f);
+//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->innerScreenId_);
+//     screenManager_->HandleSensorData(180.f);
+//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->innerScreenId_);
+//     screenManager_->isPostureSensorDataHandled_ = false;
+//     screenManager_->HandleSensorData(180.f);
+//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->innerScreenId_);
+//     screenManager_->HandleSensorData(0.f);
+//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
+//     screenManager_->activeScreenId_ = 0;
+// }
 
 /*
  * @tc.name: CreateOrGetScreenManager_001

@@ -1499,7 +1499,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenGamutMapTest004, TestSize
 HWTEST_F(RSClientToServiceConnectionStubTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level2)
 {
     sptr<RSClientToServiceConnectionStub> connectionStub =
-        new RSClientToServiceConnection(0, wptr<RSRenderService>(&renderService_), renderServiceAgent_, renderProcessManagerAgent_,
+        new RSClientToServiceConnection(0, renderServiceAgent_, renderProcessManagerAgent_,
             screenManagerAgent_, token_->AsObject(), nullptr);
     ASSERT_NE(connectionStub, nullptr);
 
@@ -1706,12 +1706,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest00
     data.WriteInt32Vector(pidList);
     sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
-    auto mainThread = connection->mainThread_;
-    connection->mainThread_ = nullptr;
+    // auto mainThread = connection->mainThread_;
+    // connection->mainThread_ = nullptr;
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_NONE);
 
-    connection->mainThread_ = mainThread;
+    // connection->mainThread_ = mainThread;
 }
 
 /**
@@ -1732,12 +1732,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest00
     data.WriteInt32Vector(pidList);
     sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
-    auto mainThread = connection->mainThread_;
-    connection->mainThread_ = nullptr;
+    // auto mainThread = connection->mainThread_;
+    // connection->mainThread_ = nullptr;
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_NONE);
 
-    connection->mainThread_ = mainThread;
+    // connection->mainThread_ = mainThread;
 }
 
 /**

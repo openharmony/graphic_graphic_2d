@@ -96,13 +96,13 @@ void SetUp(FuzzedDataProvider& fdp)
     std::string tag = enableForAll ? "ENABLED_FOR_ALL" : "DISABLED";
     WriteUnirenderConfig(tag);
     RSUniRenderJudgement::InitUniRenderConfig();
-    g_toServiceConnection->mainThread_ = g_mainThread;
+    // g_toServiceConnection->mainThread_ = g_mainThread;
 }
 
 void TearDown()
 {
     WriteUnirenderConfig(g_originTag);
-    g_toServiceConnection->mainThread_ = nullptr;
+    // g_toServiceConnection->mainThread_ = nullptr;
 }
 
 /* Fuzzer test GetPixelFormat */
