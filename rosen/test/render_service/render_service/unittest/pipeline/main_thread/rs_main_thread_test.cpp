@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
@@ -271,6 +272,7 @@ HWTEST_F(RSMainThreadTest, SetAnimationOcclusionInfo001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    bool& isAnimationOcclusion = RSUniDirtyOcclusionUtil::GetIsAnimationOcclusionRef().first;
     auto enable = DirtyRegionParam::IsAnimationOcclusionEnable();
     DirtyRegionParam::SetAnimationOcclusionEnable(true);
     ASSERT_TRUE(DirtyRegionParam::IsAnimationOcclusionEnable());
@@ -278,31 +280,31 @@ HWTEST_F(RSMainThreadTest, SetAnimationOcclusionInfo001, TestSize.Level1)
     system::SetParameter("rosen.graphic.animation.occlusion.enabled", "1");
     string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
     mainThread->SetAnimationOcclusionInfo(sceneId, false);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
     sceneId = "LAUNCHER_APP_LAUNCH_FROM_DOCK";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
     mainThread->SetAnimationOcclusionInfo(sceneId, false);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
     sceneId = "LAUNCHER_APP_SWIPE_TO_HOME";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
     mainThread->SetAnimationOcclusionInfo(sceneId, false);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
     sceneId = "UNKNOWN";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
 
     system::SetParameter("rosen.graphic.animation.occlusion.enabled", "0");
     sceneId = "LAUNCHER_APP_SWIPE_TO_HOME";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
     DirtyRegionParam::SetAnimationOcclusionEnable(false);
     ASSERT_FALSE(DirtyRegionParam::IsAnimationOcclusionEnable());
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
 
     DirtyRegionParam::SetAnimationOcclusionEnable(enable);
     system::SetParameter("rosen.graphic.animation.occlusion.enabled", ret);
@@ -4042,6 +4044,7 @@ HWTEST_F(RSMainThreadTest, CheckSystemSceneStatus003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    bool& isAnimationOcclusion = RSUniDirtyOcclusionUtil::GetIsAnimationOcclusionRef().first;
     auto enable = DirtyRegionParam::IsAnimationOcclusionEnable();
     DirtyRegionParam::SetAnimationOcclusionEnable(true);
     ASSERT_TRUE(DirtyRegionParam::IsAnimationOcclusionEnable());
@@ -4049,20 +4052,20 @@ HWTEST_F(RSMainThreadTest, CheckSystemSceneStatus003, TestSize.Level1)
     system::SetParameter("rosen.graphic.animation.occlusion.enabled", "1");
     string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
     sleep(1);
     mainThread->CheckSystemSceneStatus();
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
 
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
     mainThread->CheckSystemSceneStatus();
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
 
     mainThread->SetAnimationOcclusionInfo(sceneId, false);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
     mainThread->CheckSystemSceneStatus();
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
 
     DirtyRegionParam::SetAnimationOcclusionEnable(enable);
     system::SetParameter("rosen.graphic.animation.occlusion.enabled", ret);

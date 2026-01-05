@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,12 +55,12 @@
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/lpp/lpp_video_handler.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
-#include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -2654,9 +2654,10 @@ void RSMainThread::CheckSystemSceneStatus()
             break;
         }
     }
-    if (isAnimationOcclusion_.first == true &&
-        curTime - static_cast<uint64_t>(isAnimationOcclusion_.second) > MAX_SYSTEM_SCENE_STATUS_TIME) {
-        isAnimationOcclusion_.first = false;
+    auto& isAnimationOcclusion = RSUniDirtyOcclusionUtil::GetIsAnimationOcclusionRef();
+    if (isAnimationOcclusion.first == true &&
+        curTime - static_cast<uint64_t>(isAnimationOcclusion.second) > MAX_SYSTEM_SCENE_STATUS_TIME) {
+        isAnimationOcclusion.first = false;
     }
 }
 
@@ -3652,24 +3653,7 @@ bool RSMainThread::SurfaceOcclusionCallBackIfOnTreeStateChanged()
 
 void RSMainThread::SetAnimationOcclusionInfo(const std::string& sceneId, bool isStart)
 {
-    if (!DirtyRegionParam::IsAnimationOcclusionEnable() || !RSSystemProperties::GetAnimationOcclusionEnabled()) {
-        return;
-    }
-    int64_t curTime = static_cast<int64_t>(
-        std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-    auto id = RSUifirstFrameRateControl::Instance().GetSceneId(sceneId);
-    switch (id) {
-        // currently, occlusion is only enabled in these three animation scenes
-        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
-        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
-        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
-            isAnimationOcclusion_.first = isStart;
-            isAnimationOcclusion_.second = curTime;
-            break;
-        default:
-            break;
-    }
+    RSUniDirtyOcclusionUtil::SetAnimationOcclusionInfo(sceneId, isStart);
 }
 
 void RSMainThread::SendCommands()

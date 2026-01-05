@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -75,6 +75,7 @@ group("unittest") {
   if (graphic_2d_feature_rs_enable_uni_render) {
     deps += [
       ":RSUniDirtyComputeUtilTest",
+      ":RSUniDirtyOcclusionUtilTest",
       ":RSUniHwcPrevalidateUtilTest",
       ":RSUniHwcPrevalidateUtilTest1",
     ]
@@ -1080,6 +1081,41 @@ ohos_unittest("RSSpecialLayerUtilsTest") {
 ohos_unittest("RSUniDirtyComputeUtilTest") {
   module_out_path = module_output_path
   sources = [ "dirty/rs_uni_dirty_compute_util_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+}
+
+## Build RSUniDirtyOcclusionUtilTest
+ohos_unittest("RSUniDirtyOcclusionUtilTest") {
+  module_out_path = module_output_path
+  sources = [
+    "dirty/rs_uni_dirty_occlusion_util_test.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
