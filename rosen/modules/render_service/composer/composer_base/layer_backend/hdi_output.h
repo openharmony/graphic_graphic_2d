@@ -109,7 +109,6 @@ public:
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
 
     void SetActiveRectSwitchStatus(bool flag);
-
     void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
         const sptr<SyncFence>& previousReleaseFence);
 
