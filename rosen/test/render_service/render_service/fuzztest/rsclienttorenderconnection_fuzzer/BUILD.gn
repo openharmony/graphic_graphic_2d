@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,9 +18,9 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
+ohos_fuzztest("RSClientToRenderConnectionFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service/fuzztest/rsrenderserviceconnectionstub_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service/fuzztest/rsclienttorenderconnection_fuzzer"
 
   include_dirs = [
     "../../../../../rosen/modules/platform/ipc_core",
@@ -40,12 +40,12 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/render_layer",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/pipeline",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/transaction",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_client/pipeline",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/connection",
   ]
 
   deps = [
@@ -55,7 +55,6 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "$graphic_2d_root/utils:socketpair",
   ]
 
   external_deps = [
@@ -87,11 +86,17 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
-  sources = [ "rsrenderserviceconnectionstub_fuzzer.cpp" ]
+  sources = [ "rsclienttorenderconnection_fuzzer.cpp" ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
+  }
+
+  if (tp_feature_enable) {
+    defines += tp_defines
   }
 }
 
@@ -101,7 +106,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":RSRenderServiceConnectionStubFuzzTest",
+    ":RSClientToRenderConnectionFuzzTest",
   ]
 }
 ###############################################################################

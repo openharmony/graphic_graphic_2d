@@ -67,7 +67,6 @@ const uint8_t DO_SET_VIRTUAL_SCREEN_STATUS = 12;
 const uint8_t DO_SET_VIRTUAL_SCREEN_TYPE_BLACK_LIST = 13;
 const uint8_t TARGET_SIZE = 14;
 
-sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -88,19 +87,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -116,29 +102,15 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-namespace Mock {
-void CreateVirtualScreenStubbing(ScreenId screenId)
-{
-    uint32_t width = GetData<uint32_t>();
-    uint32_t height = GetData<uint32_t>();
-    int32_t flags = GetData<int32_t>();
-    std::string name = GetData<std::string>();
-    // Random name of IBufferProducer is not necessary
-    sptr<IBufferProducer> bp = IConsumerSurface::Create("DisplayNode")->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-
-    CONN->CreateVirtualScreen(name, width, height, pSurface, screenId, flags);
-}
-} // namespace Mock
-
 void DoCreateVirtualScreen()
 {
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
-    sptr<IBufferProducer> bufferProducer = IConsumerSurface::Create()->GetProducer();
-    if (!bufferProducer) {
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FuzzTest");
+    sptr<IBufferProducer> bufferProducer_ = cSurface->GetProducer();
+    if (!bufferProducer_) {
         return;
     }
 
@@ -158,7 +130,7 @@ void DoCreateVirtualScreen()
     dataParcel.WriteUint32(width);
     dataParcel.WriteUint32(height);
     dataParcel.WriteBool(useSurface);
-    dataParcel.WriteRemoteObject(bufferProducer->AsObject());
+    dataParcel.WriteRemoteObject(bufferProducer_->AsObject());
     dataParcel.WriteUint64(mirrorId);
     dataParcel.WriteInt32(flags);
     dataParcel.WriteUInt64Vector(whiteList);

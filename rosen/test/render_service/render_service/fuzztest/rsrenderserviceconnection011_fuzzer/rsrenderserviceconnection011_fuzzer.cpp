@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+* Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,7 @@
 #include "platform/ohos/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -50,7 +51,6 @@ sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncContr
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToServiceConnection(
     g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 namespace {
-sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -71,19 +71,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -97,20 +84,22 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-namespace Mock {
-void CreateVirtualScreenStubbing(ScreenId screenId)
-{
-    uint32_t width = GetData<uint32_t>();
-    uint32_t height = GetData<uint32_t>();
-    int32_t flags = GetData<int32_t>();
-    std::string name = GetData<std::string>();
-    // Random name of IBufferProducer is not necessary
-    sptr<IBufferProducer> bp = IConsumerSurface::Create("DisplayNode")->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+class CustomTestFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
+public:
+    explicit CustomTestFirstFrameCommitCallback(const FirstFrameCommitCallback &callback) : cb_(callback)
+    {}
+    ~CustomTestFirstFrameCommitCallback() override{};
 
-    CONN->CreateVirtualScreen(name, width, height, pSurface, screenId, flags);
-}
-} // namespace Mock
+    void OnFirstFrameCommit(uint64_t screenId, int64_t timestamp) override
+    {
+        if (cb_ != nullptr) {
+            cb_(screenId, timestamp);
+        }
+    }
+
+private:
+    FirstFrameCommitCallback cb_;
+};
 
 void DoRegisterFirstFrameCommitCallback()
 {
@@ -118,11 +107,16 @@ void DoRegisterFirstFrameCommitCallback()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIFirstFrameCommitCallback> rsIFirstFrameCommitCallback =
-        iface_cast<RSIFirstFrameCommitCallback>(remoteObject);
- 
+
+    uint64_t screenId = GetData<uint64_t>();
+    int64_t timestamp = GetData<int64_t>();
+    auto callback = [&screenId, &timestamp](uint64_t screenId_, int64_t timestamp_) {
+        screenId = screenId_;
+        timestamp = timestamp_;
+    };
+    sptr<CustomTestFirstFrameCommitCallback> rsIFirstFrameCommitCallback =
+        new CustomTestFirstFrameCommitCallback(callback);
+
     bool readRemoteObject = GetData<bool>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteBool(readRemoteObject);
