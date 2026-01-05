@@ -319,11 +319,11 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     for (int i = 0; i < cornerRadius.size(); i++) {
         auto radiusTestNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
             { nodePosX + nodeOffsetX, nodePosY + nodeOffsetY * i, nodeSize, nodeSize });
-            radiusTestNode->SetCornerRadius(cornerRadius[i]);
-            radiusTestNode->SetCornerApplyType(RSCornerApplyType::OFFSCREEN);
-            radiusTestNode->SetBackgroundBlurRadius(100.0f);
-            GetRootNode()->AddChild(radiusTestNode);
-            RegisterNode(radiusTestNode);
+        radiusTestNode->SetCornerRadius(cornerRadius[i]);
+        radiusTestNode->SetCornerApplyType(RSCornerApplyType::OFFSCREEN);
+        radiusTestNode->SetBackgroundBlurRadius(100.0f);
+        GetRootNode()->AddChild(radiusTestNode);
+        RegisterNode(radiusTestNode);
     }
 }
 
@@ -385,9 +385,9 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     RegisterNode(backgroundTestNode);
 
     const std::vector<Vector4f> cornerRadius = {
-    Vector4f{ 100.0f, 100.0f, 100.0f, 100.0f },
-    Vector4f{ 100.0f, 50.0f, 100.0f, 50.0f },
-    Vector4f{ 100.0f, 75.0f, 50.0f, 25.0f }
+        Vector4f{ 100.0f, 100.0f, 100.0f, 100.0f },
+        Vector4f{ 100.0f, 50.0f, 100.0f, 50.0f },
+        Vector4f{ 100.0f, 75.0f, 50.0f, 25.0f }
     };
 
     for (int i = 0; i < cornerRadius.size(); i++) {
@@ -428,10 +428,10 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     RegisterNode(backgroundTestNode);
 
     const std::vector<Vector4f> cornerRadius = {
-    Vector4f{ 100.0f, 100.0f, 100.0f, 100.0f },
-    Vector4f{ 101.0f, 102.0f, 103.0f, 104.0f },
-    Vector4f{ 100.1f, 100.2f, 100.3f, 100.4f },
-    Vector4f{ 100.6f, 100.7f, 100.8f, 100.9f }
+        Vector4f{ 100.0f, 100.0f, 100.0f, 100.0f },
+        Vector4f{ 101.0f, 102.0f, 103.0f, 104.0f },
+        Vector4f{ 100.1f, 100.2f, 100.3f, 100.4f },
+        Vector4f{ 100.6f, 100.7f, 100.8f, 100.9f }
     };
 
     for (int i = 0; i < cornerRadius.size(); i++) {
