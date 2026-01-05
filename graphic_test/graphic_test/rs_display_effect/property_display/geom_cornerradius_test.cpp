@@ -385,9 +385,9 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     RegisterNode(backgroundTestNode);
 
     const std::vector<Vector4f> cornerRadius = {
-    Vector4f{100.0f, 100.0f, 100.0f, 100.0f},
-    Vector4f{100.0f, 50.0f, 100.0f, 50.0f},
-    Vector4f{100.0f, 75.0f, 50.0f, 25.0f}
+    Vector4f{ 100.0f, 100.0f, 100.0f, 100.0f },
+    Vector4f{ 100.0f, 50.0f, 100.0f, 50.0f },
+    Vector4f{ 100.0f, 75.0f, 50.0f, 25.0f }
     };
 
     for (int i = 0; i < cornerRadius.size(); i++) {
