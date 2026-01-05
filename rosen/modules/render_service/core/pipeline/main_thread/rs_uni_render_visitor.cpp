@@ -1755,20 +1755,6 @@ void RSUniRenderVisitor::CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
 {
-    if (RSSystemParameters::GetOcclusionCallBackToWMSDebugType()) {
-        allDstCurVisVec_.clear();
-        const auto& curAllSurfaces = curScreenNode_->GetAllMainAndLeashSurfaces();
-        for (const auto& surfacePtr : curAllSurfaces) {
-            if (surfacePtr == nullptr) {
-                continue;
-            }
-            const auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(*surfacePtr);
-            if (surfaceNode.IsMainWindowType()) {
-                allDstCurVisVec_.emplace_back(std::make_pair(surfacePtr->GetId(),
-                    WINDOW_LAYER_INFO_TYPE::ALL_VISIBLE));
-            }
-        }
-    }
     if (allDstCurVisVec_ != allLastVisVec_) {
         RSMainThread::Instance()->SurfaceOcclusionChangeCallback(allDstCurVisVec_);
         HILOG_COMM_INFO("OcclusionInfo %{public}s", VisibleDataToString(allDstCurVisVec_).c_str());

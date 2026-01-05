@@ -197,7 +197,9 @@ void RSOcclusionHandler::DumpSubTreeOcclusionInfo(const RSRenderNode& node)
     }
     auto ocNode = it->second;
     bool isNodeCulled = culledNodes_.count(ocNode->GetId()) > 0;
-    RS_TRACE_NAME_FMT("%s isNodeCulled %d", ocNode->GetOcclusionNodeInfoString().c_str(), isNodeCulled);
+    bool isSubtreeCulled = culledEntireSubtree_.count(ocNode->GetId()) > 0;
+    RS_TRACE_NAME_FMT("%s isNodeCulled %d isSubtreeCulled %d",
+        ocNode->GetOcclusionNodeInfoString().c_str(), isNodeCulled, isSubtreeCulled);
     for (const auto& child : *sortChildren) {
         DumpSubTreeOcclusionInfo(*child);
     }

@@ -19,12 +19,15 @@
 
 #include "property/rs_properties.h"
 
+#include "system/rs_system_parameters.h"
+
 namespace OHOS {
 namespace Rosen {
 class OcclusionNode;
 class RSB_EXPORT RSOcclusionHandler : public std::enable_shared_from_this<RSOcclusionHandler> {
 public:
-    RSOcclusionHandler(NodeId id) : rootNodeId_(id) {}
+    RSOcclusionHandler(NodeId id)
+        : debugLevel_(RSSystemParameters::GetOcclusionCullingDebugLevel()), rootNodeId_(id) {}
 
     NodeId GetRootNodeId() const
     {

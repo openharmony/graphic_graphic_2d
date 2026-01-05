@@ -1025,4 +1025,46 @@ HWTEST_F(RSOcclusionNodeTest, CalculateNodeAllBounds, TestSize.Level1)
     EXPECT_EQ(firstChild->clipOuterRect_, firstChild->outerRect_);
 }
 
+/*
+ * @tc.name: UpdateCoverageInfoTest001
+ * @tc.desc: Test UpdateCoverageInfo with filter node
+ * @tc.type: FUNC
+ * @tc.require: issue21473
+ */
+HWTEST_F(RSOcclusionNodeTest, UpdateCoverageInfoTest001, TestSize.Level1)
+{
+    const RectI16 srcRect{10, 10, 100, 100};
+    const RectI16 clipRectThatNotIntersectSrcRect{200, 200, 100, 100};
+    const RectI16 clipRectThatInssideOfSrcRect{20, 20, 50, 50};
+    const RectI16 clipRectThatIntersectSrcRect{30, 0, 100, 100};
+    const RectI16 clipRectThatContainSrcRect{0, 0, 200, 200};
+
+    std::shared_ptr<OcclusionNode> occlusionNode =
+        std::make_shared<OcclusionNode>(firstNodeId, RSRenderNodeType::CANVAS_NODE);
+    occlusionNode->isBgOpaque_ = false;
+    OcclusionCoverageInfo globalCoverage;
+    OcclusionCoverageInfo selfCoverage;
+
+    occlusionNode->needFilter_ = false;
+    globalCoverage.rect_ = srcRect;
+    occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
+    EXPECT_EQ(globalCoverage.rect_, srcRect);
+
+    occlusionNode->needFilter_ = true;
+    occlusionNode->outerRect_ = clipRectThatNotIntersectSrcRect;
+    occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
+    EXPECT_EQ(globalCoverage.rect_, srcRect);
+
+    occlusionNode->outerRect_ = clipRectThatInssideOfSrcRect;
+    occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
+    EXPECT_EQ(globalCoverage.rect_, srcRect);
+
+    occlusionNode->outerRect_ = clipRectThatIntersectSrcRect;
+    occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
+    EXPECT_EQ(globalCoverage.rect_, RectI16(10, 10, 20, 100));
+
+    occlusionNode->outerRect_ = clipRectThatContainSrcRect;
+    occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
+    EXPECT_EQ(globalCoverage.rect_.IsEmpty(), true);
+}
 } // namespace OHOS::Rosen
