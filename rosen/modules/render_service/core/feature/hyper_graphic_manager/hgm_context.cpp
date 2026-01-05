@@ -116,7 +116,7 @@ void HgmContext::HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info)
 
     HgmEnergyConsumptionPolicy::Instance().HandleEnergyCommonData(info->energyCommonData);
     frameRateLinkerMap_.UnregisterFrameRateLinker(info->frameRateLinkerDestroyIds);
-    frameRateLinkerMap_.UpdateFrameRateLinker(info->frameRateLinkerUpdateInfoMap);
+    frameRateLinkerMap_.UpdateFrameRateLinkers(info->frameRateLinkerUpdateInfoMap);
 
     RSVsyncRateReduceManager::TransformNodeToLinkersRateMap(info->vRateMap, info->isNeedRefreshVRate,
         appVSyncDistributor_);
