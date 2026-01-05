@@ -109,7 +109,7 @@ public:
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
 
     void SetActiveRectSwitchStatus(bool flag);
-    void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& layerInfo,
+    void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
         const sptr<SyncFence>& previousReleaseFence);
 
     void SetMaskLayer(const std::shared_ptr<HdiLayer>& maskLayer) { maskLayer_ = maskLayer; }
@@ -196,7 +196,6 @@ private:
 
     bool isActiveRectSwitching_ = false;
     void DirtyRegions(uint32_t solidLayerCount, const std::shared_ptr<RSLayer>& rsLayer);
-
     OnPrepareCompleteFunc onPrepareCompleteCb_ = nullptr;
     void* onPrepareCompleteCbData_ = nullptr;
     bool screenPowerOnChanged_ = false;
