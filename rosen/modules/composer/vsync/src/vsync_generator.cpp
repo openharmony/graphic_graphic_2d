@@ -68,6 +68,9 @@ constexpr int64_t REMAINING_TIME_THRESHOLD_LARGER = 500000; // 500000ns == 0.5ms
 constexpr int64_t ONE_SECOND_FOR_CALCUTE_FREQUENCY = 1000000000; // 1000000000ns == 1s
 constexpr uint32_t MAX_LISTENERS_AMOUNT = 2;
 constexpr uint32_t MAX_ADAPTIVE_PERIOD = 2;
+constexpr uint32_t BLOCK_ADAPTIVE_SYNC_COUNT = 1;
+constexpr uint32_t LAST_VSYNC_TIME_THRESHOLD = 2;
+constexpr int64_t VSYNC_RS_OFFSET_FOR_AS = 1620000; // 2.7ms * 0.6 == 1.62ms
 
 // minimum ratio of dvsync thread
 constexpr double DVSYNC_PERIOD_MIN_INTERVAL = 0.6;
@@ -697,6 +700,10 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, referenceTime);
         if (t - SystemTime() < ERROR_THRESHOLD) {
+            if (listeners_[i].isRS_) {
+                lastVsyncRsInterval_ = t - listeners_[i].lastTime_;
+                lastVsyncRsTime_ = t;
+            }
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
         }
@@ -735,12 +742,12 @@ VsyncError VSyncGenerator::UpdatePeriodLocked(int64_t period)
 VsyncError VSyncGenerator::UpdateReferenceTimeLocked(int64_t referenceTime)
 {
     if ((pendingVsyncMode_ == VSYNC_MODE_LTPO) || (vsyncMode_ == VSYNC_MODE_LTPO)) {
-        referenceTime_ = referenceTime - referenceTimeOffsetPulseNum_ * pulse_;
+        referenceTime_ = isAdaptive_ ? referenceTime : referenceTime - referenceTimeOffsetPulseNum_ * pulse_;
     } else {
         referenceTime_ = referenceTime;
     }
-    RS_TRACE_NAME_FMT("UpdateReferenceTimeLocked realReferenceTime:%" PRId64 ", pulse:%" PRId64,
-        referenceTime_, pulse_);
+    RS_TRACE_NAME_FMT("UpdateReferenceTimeLocked realReferenceTime:%" PRId64 ", pulse:%" PRId64 ", isAdaptive: %d",
+        referenceTime_, pulse_, isAdaptive_);
     return VSYNC_ERROR_OK;
 }
 
@@ -786,12 +793,11 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
     return VSYNC_ERROR_OK;
 }
 
-bool VSyncGenerator::NeedPreexecuteAndUpdateTs(
-    int64_t& timestamp, int64_t& period, int64_t& offset, int64_t lastVsyncTime)
+bool VSyncGenerator::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime)
 {
     std::lock_guard<std::mutex> locker(mutex_);
     int64_t now = SystemTime();
-    offset = (now - lastVsyncTime) % period_;
+    int64_t offset = (now - lastVsyncTime) % period_;
     if (period_ - offset > PERIOD_CHECK_THRESHOLD) {
         timestamp = now;
         period = period_;
@@ -802,8 +808,26 @@ bool VSyncGenerator::NeedPreexecuteAndUpdateTs(
     return false;
 }
 
-VsyncError VSyncGenerator::AddListener(
-    const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, bool isRS, bool isUrgent)
+void VSyncGenerator::SetAdaptive(bool isAdaptive)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    isAdaptive_ = isAdaptive;
+}
+
+bool VSyncGenerator::IsNeedAdaptiveAfterUpdateMode()
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    int64_t now = SystemTime();
+    bool needAS = std::abs(lastVsyncRsInterval_ - period_) < VSYNC_RS_OFFSET_FOR_AS ||
+                  now - lastVsyncRsTime_ > static_cast<int64_t>(BLOCK_ADAPTIVE_SYNC_COUNT) * period_;
+    if (!needAS) {
+        RS_TRACE_NAME_FMT("block AS, lastVsyncRsInterval: %" PRId64 ", period: %" PRId64 ", lastVsyncTime: "
+            "%" PRId64 ", now: %" PRId64, lastVsyncRsInterval_, period_, lastVsyncRsTime_, now);
+    }
+    return needAS;
+}
+
+VsyncError VSyncGenerator::AddListener(const sptr<Callback>& cb, bool isRS, bool isUrgent, int64_t lastVsyncTime)
 {
     ScopedBytrace func("AddListener");
     std::lock_guard<std::mutex> locker(mutex_);
@@ -820,7 +844,10 @@ VsyncError VSyncGenerator::AddListener(
     Listener listener;
     listener.phase_ = cb->GetPhaseOffset();
     listener.callback_ = cb;
-    listener.lastTime_ = isUrgent ? SystemTime() : SystemTime() - period_ + phase_;
+    int64_t now = SystemTime();
+    listener.lastTime_ = isUrgent ?
+        (now - lastVsyncTime < static_cast<int64_t>(LAST_VSYNC_TIME_THRESHOLD) * period_ ? lastVsyncTime : now) :
+        now - period_ + phase_;
     listener.isRS_ = isRS;
 
     listeners_.push_back(listener);

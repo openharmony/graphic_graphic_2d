@@ -14,6 +14,7 @@
  */
 
 #include "vsync_sampler.h"
+#include "vsync_generator.h"
 
 #include <gtest/gtest.h>
 
@@ -24,6 +25,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t SAMPLER_NUMBER = 6;
+constexpr int64_t PERIOD_FOR_120 = 8333333;
 
 static int64_t SystemTime()
 {
@@ -62,6 +64,8 @@ void VSyncSamplerTest::Reset()
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->numSamples_ = 0;
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->modeUpdated_ = false;
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = true;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->frameCount_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->diffSum_ = 0;
 }
 
 namespace {
@@ -124,6 +128,68 @@ HWTEST_F(VSyncSamplerTest, AddSample003, Function | MediumTest| Level3)
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(2000000), true);
     Reset();
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = false;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->lastAdaptiveTime_ = 0;
+}
+
+/*
+* Function: AddSampleForAS
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddSample
+ */
+HWTEST_F(VSyncSamplerTest, AddSampleForAS, Function | MediumTest| Level3)
+{
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = true;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->lastAdaptiveTime_ = SystemTime();
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = true;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->numSamples_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->frameCount_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->diffSum_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->period_ = PERIOD_FOR_120;
+
+    auto generator = CreateVSyncGenerator();
+    static_cast<impl::VSyncGenerator*>(generator.GetRefPtr())->pulse_ = 2700000;
+    static_cast<impl::VSyncGenerator*>(generator.GetRefPtr())->period_ = PERIOD_FOR_120;
+    for (int i = 0; i < 8; i++) {
+        VSyncSamplerTest::vsyncSampler->AddSample(18000000 + PERIOD_FOR_120 * i);
+    }
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->frameCount_, 8);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->diffSum_, 0);
+
+    for (int i = 8; i < 15; i++) {
+        VSyncSamplerTest::vsyncSampler->AddSample(18000000 + PERIOD_FOR_120 * i);
+    }
+    ASSERT_EQ(static_cast<impl::VSyncGenerator*>(generator.GetRefPtr())->referenceTime_,
+        18000000 + PERIOD_FOR_120 * 14);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->frameCount_, 0);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->diffSum_, 0);
+
+    VSyncSamplerTest::vsyncSampler->AddSample(18000000 + PERIOD_FOR_120 * 15 + 2700000);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->frameCount_, 1);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->diffSum_, 2700000);
+
+    for (int i = 1; i < 360; i++) {
+        VSyncSamplerTest::vsyncSampler->AddSample(18000000 + PERIOD_FOR_120 * (15 + i) + 2700000);
+    }
+    ASSERT_EQ(static_cast<impl::VSyncGenerator*>(generator.GetRefPtr())->referenceTime_,
+        20700000 + PERIOD_FOR_120 * 374);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->frameCount_, 0);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->diffSum_, 0);
+
+    static_cast<impl::VSyncGenerator*>(generator.GetRefPtr())->pulse_ = 0;
+    VSyncSamplerTest::vsyncSampler->AddSample(18000000 + PERIOD_FOR_120 * 375 + 5400000);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->frameCount_, 1);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->diffSum_, 0);
+
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = false;
+    VSyncSamplerTest::vsyncSampler->AddSample(18000000 + PERIOD_FOR_120 * 376 + 8100000);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->frameCount_, 1);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->diffSum_, 0);
+
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = false;
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(18000000 + PERIOD_FOR_120 * 377 + 8100000), true);
+    Reset();
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->lastAdaptiveTime_ = 0;
 }
 

@@ -191,15 +191,12 @@ int32_t HdiScreen::SetScreenBacklight(uint32_t level) const
 int32_t HdiScreen::SetScreenVsyncEnabled(bool enabled) const
 {
     CHECK_DEVICE_NULL(device_);
-    int32_t ret = device_->SetScreenVsyncEnabled(screenId_, enabled);
+    auto sampler = CreateVSyncSampler();
+    int32_t ret = device_->SetScreenVsyncEnabled(screenId_, (enabled || sampler->GetAdaptive()));
     if (ret != HDF_SUCCESS) {
         HLOGE("SetScreenVsyncEnabled Failed, screenId:%{public}u, enabled:%{public}d, ret:%{public}d",
             screenId_, enabled, ret);
         RS_TRACE_NAME_FMT("SetScreenVsyncEnabled Failed, screenId:%u, enabled:%d, ret:%d", screenId_, enabled, ret);
-    }
-    auto sampler = CreateVSyncSampler();
-    if (sampler == nullptr) {
-        return ret;
     }
     if (ret == HDF_SUCCESS) {
         sampler->SetHardwareVSyncStatus(enabled);

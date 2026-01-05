@@ -61,7 +61,7 @@ public:
     virtual ~VSyncGenerator() noexcept = default;
     virtual VsyncError UpdateMode(int64_t period, int64_t phase, int64_t referenceTime) = 0;
     virtual VsyncError AddListener(
-        const sptr<Callback>& cb, bool isRS = false, bool isUrgent = false) = 0;
+        const sptr<Callback>& cb, bool isRS = false, bool isUrgent = false, int64_t lastVsyncTime = 0) = 0;
     virtual VsyncError RemoveListener(const sptr<Callback>& cb) = 0;
     virtual VsyncError ChangePhaseOffset(const sptr<Callback>& cb, int64_t offset) = 0;
     virtual bool IsEnable() = 0;
@@ -97,8 +97,9 @@ public:
     virtual bool IsUiDvsyncOn() = 0;
     // End of DVSync
     virtual bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) = 0;
-    virtual bool NeedPreexecuteAndUpdateTs(
-        int64_t& timestamp, int64_t& period, int64_t& offset, int64_t lastVsyncTime) = 0;
+    virtual void SetAdaptive(bool isAdaptive) = 0;
+    virtual bool IsNeedAdaptiveAfterUpdateMode() = 0;
+    virtual bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -116,8 +117,8 @@ public:
     VSyncGenerator(const VSyncGenerator &) = delete;
     VSyncGenerator &operator=(const VSyncGenerator &) = delete;
     VsyncError UpdateMode(int64_t period, int64_t phase, int64_t referenceTime) override;
-    VsyncError AddListener(
-        const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, bool isRS, bool isUrgent) override;
+    VsyncError AddListener(const sptr<Callback>& cb,
+        bool isRS, bool isUrgent, int64_t lastVsyncTime) override;
     VsyncError RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError ChangePhaseOffset(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, int64_t offset) override;
     bool IsEnable() override;
@@ -154,8 +155,9 @@ public:
     bool IsUiDvsyncOn() override;
     // End of DVSync
     bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) override;
-    bool NeedPreexecuteAndUpdateTs(
-        int64_t& timestamp, int64_t& period, int64_t& offset, int64_t lastVsyncTime) override;
+    void SetAdaptive(bool isAdaptive) override;
+    bool IsNeedAdaptiveAfterUpdateMode() override;
+    bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) override;
 private:
     friend class OHOS::Rosen::VSyncGenerator;
 
@@ -204,6 +206,8 @@ private:
     int64_t phase_ = 0;
     int64_t referenceTime_ = 0;
     int64_t wakeupDelay_ = 0;
+    int64_t lastVsyncRsTime_ = 0;
+    int64_t lastVsyncRsInterval_ = 0;
 
     std::vector<Listener> listeners_;
 
@@ -248,6 +252,7 @@ private:
     uint32_t vsyncMaxRefreshRate_ = 360; // default max TE
     int64_t vsyncOffset_ = 0;
     int64_t nextTimeStamp_ = 0;
+    bool isAdaptive_ = false;
     // Start of DVSync
     int64_t ComputeDVSyncListenerNextVSyncTimeStamp(const Listener &listener, int64_t now,
         int64_t referenceTime, int64_t period);
