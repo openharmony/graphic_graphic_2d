@@ -195,6 +195,7 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
     if (ffrtQueue_) {
         ffrt::task_attr taskAttr;
         taskAttr.qos(FFRT_QOS_INHERIT);
+        taskAttr.delay(VIDEO_VOTE_DELAYS_TIME);
         taskHandler_ = ffrtQueue_->submit_h(initTask, taskAttr);
     }
 }
