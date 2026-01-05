@@ -95,10 +95,7 @@ public:
     
     void ApplyAnimationSpeedMultiplier(float multiplier = 1.0f);
 
-    pid_t GetTid()
-    {
-        return tid_;
-    }
+    pid_t GetTid() const { return tid_; }
 
 private:
     void EndImplicitAnimation();

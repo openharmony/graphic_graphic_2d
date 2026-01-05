@@ -184,7 +184,7 @@ RSImplicitKeyframeAnimationParam::RSImplicitKeyframeAnimationParam(
 
 std::shared_ptr<RSAnimation> RSImplicitKeyframeAnimationParam::CreateAnimation(
     const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
-    const bool& isCreateDurationKeyframe, const int& startDuration, const std::shared_ptr<RSPropertyBase>& startValue,
+    const bool isCreateDurationKeyframe, const int startDuration, const std::shared_ptr<RSPropertyBase>& startValue,
     const std::shared_ptr<RSPropertyBase>& endValue) const
 {
     auto keyFrameAnimation = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);

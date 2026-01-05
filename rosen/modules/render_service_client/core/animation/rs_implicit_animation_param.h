@@ -102,7 +102,7 @@ public:
     ~RSImplicitKeyframeAnimationParam() override = default;
 
     std::shared_ptr<RSAnimation> CreateAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
-        std::shared_ptr<RSPropertyBase> property, const bool& isCreateDurationKeyframe, const int& startDuration,
+        std::shared_ptr<RSPropertyBase> property, const bool isCreateDurationKeyframe, const int startDuration,
         const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
 
     void AddKeyframe(std::shared_ptr<RSAnimation>& animation, const std::shared_ptr<RSPropertyBase>& startValue,

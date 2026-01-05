@@ -43,7 +43,7 @@ const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
     } else {
         if (!rsImplicitAnimators_.empty()) {
             RS_LOGI_LIMIT("RSUIContext::GetRSImplicitAnimator, Too many threads are using the same animator "
-                "createTid:%{public}" PRIu32 ",useTid:%{public}" PRIu32 "",
+                "createTid:%{public}" PRIu32 ", useTid:%{public}" PRIu32,
                 rsImplicitAnimators_.begin()->second->GetTid(), gettid());
         }
         auto rsImplicitAnimator = std::make_shared<RSImplicitAnimator>();
@@ -60,7 +60,7 @@ const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
     }
     if (rsModifierManager_->GetTid() != gettid()) {
         RS_LOGI_LIMIT("RSUIContext::GetRSModifierManager, Too many threads are using the same animator "
-            "createTid:%{public}" PRIu32 ",useTid:%{public}" PRIu32 "", rsModifierManager_->GetTid(), gettid());
+            "createTid:%{public}" PRIu32 ", useTid:%{public}" PRIu32, rsModifierManager_->GetTid(), gettid());
     }
     return rsModifierManager_;
 }

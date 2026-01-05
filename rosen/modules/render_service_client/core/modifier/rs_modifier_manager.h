@@ -188,10 +188,7 @@ public:
 
     void MoveModifier(std::shared_ptr<RSModifierManager> dstModifierManager, NodeId nodeId);
 
-    pid_t GetTid()
-    {
-        return tid_;
-    }
+    pid_t GetTid() const { return tid_; }
 
 private:
     /**

@@ -1254,9 +1254,6 @@ std::shared_ptr<RSAnimation> RSSymbolAnimation::KeyframeAlphaSymbolAnimation(con
     }
     // initial the alpha status
     auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(rsNode->GetRSUIContext(), alphaPropertyStages_[0]);
-    if (keyframeAnimation == nullptr) {
-        return nullptr;
-    }
     keyframeAnimation->SetStartDelay(oneStageParas.delay);
     keyframeAnimation->SetDuration(duration);
     RSAnimationTimingCurve timingCurve;
