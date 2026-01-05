@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "animation/rs_keyframe_animation.h"
+#include "ui/rs_ui_context_manager.h"
 #include <sys/types.h>
 #include <unistd.h>
 #ifdef ROSEN_OHOS
@@ -46,7 +47,8 @@ void RSKeyframeAnimationTest::TearDown() {}
 HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, Level1)
 {
     auto value = std::make_shared<RSProperty<float>>();
-    RSKeyframeAnimation rsKeyframeAnimation(value);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    RSKeyframeAnimation rsKeyframeAnimation(rsUIContext, value);
     RSAnimationTimingCurve timingCurve;
     rsKeyframeAnimation.AddKeyFrame(1.f, value, timingCurve);
     ASSERT_NE(value, nullptr);

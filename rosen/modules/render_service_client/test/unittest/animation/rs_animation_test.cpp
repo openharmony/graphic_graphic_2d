@@ -404,8 +404,7 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
     animation->OnReverse();
     animation->OnSetFraction(0.5);
 
-    auto propAnimation = std::make_shared<RSPropertyAnimation>(nullptr);
-    auto propId = propAnimation->GetPropertyId();
+    auto propAnimation = std::make_shared<RSPropertyAnimation>(rsUIContext, nullptr);
     EXPECT_TRUE(propId == 0);
     propAnimation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
     propAnimation->property_ = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
