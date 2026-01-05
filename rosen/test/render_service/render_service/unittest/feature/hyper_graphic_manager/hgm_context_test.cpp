@@ -16,11 +16,15 @@
 #include "gtest/gtest.h"
 
 #include "feature/hyper_graphic_manager/hgm_context.h"
+#include "render_server/rs_render_service.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+RSRenderService renderService;
+}
 
 class HgmContextTest : public testing::Test {
 public:
@@ -30,9 +34,38 @@ public:
     void TearDown() override;
 };
 
-void HgmContextTest::SetUpTestCase() {}
+void HgmContextTest::SetUpTestCase()
+{
+    OHOS::system::SetParameter("bootevent.samgr.ready", "false");
+    renderService.Init();
+}
 void HgmContextTest::TearDownTestCase() {}
 void HgmContextTest::SetUp() {}
 void HgmContextTest::TearDown() {}
+
+/**
+ * @tc.name: HgmContextCreateTest
+ * @tc.desc: test HgmContext.HgmContext
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, HgmContextInitTest, TestSize.Level1)
+{
+    renderService.HgmInit();
+    ASSERT_NE(renderService.hgmContext_, nullptr);
+    const auto& hgmContext = renderService.GetHgmContext();
+    ASSERT_NE(hgmContext->rsFrameRateLinker_, nullptr);
+    auto frameRateManager = hgmContext->frameRateManager_;
+    ASSERT_NE(frameRateManager->forceUpdateCallback_, nullptr);
+    ASSERT_NE(frameRateManager->hgmConfigUpdateCallback_, nullptr);
+    ASSERT_NE(frameRateManager->adaptiveVsyncUpdateCallback_, nullptr);
+    frameRateManager->forceUpdateCallback_(true);
+    frameRateManager->adaptiveVsyncUpdateCallback_(true, "test");
+    auto& hgmCore = HgmCore::Instance();
+    frameRateManager->hgmConfigUpdateCallback_(std::make_shared<RPHgmConfigData>(),
+        hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
+    ASSERT_NE(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::ADAPTIVE_VSYNC), true)
+    ASSERT_NE(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::HGM_CONFIG_DATA), true)
+}
 } // namespace OHOS::Rosen
 
