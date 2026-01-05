@@ -20,6 +20,7 @@
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_motion_path_option.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -375,7 +376,10 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
     RSAnimationTimingProtocol timingProtocol;
     auto timingCurve = RSAnimationTimingCurve::SPRING;
     sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = std::make_shared<RSUIContext>(1, remoteObject);
+    // auto rsUIContext = std::make_shared<RSUIContext>(1, remoteObject);
+    auto rsUIDirector = OHOS::Rosen::RSUIDirector::Create();
+    rsUIDirector->Init(false, false);
+    auto rsUIContext = rsUIDirector->GetRSUIContext();
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     std::shared_ptr<RSCanvasNode> node = nullptr;

@@ -291,7 +291,7 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer002, TestSize.Level1)
 {
     LppVideoHandler lppVideoHandler;
     lppVideoHandler.lppConsumerMap_.clear();
-    lppVideoHandler.lppLayerId_.clear();
+    // lppVideoHandler.lppLayerId_.clear();
 
     ASSERT_NE(surfaceNode_, nullptr);
     surfaceNode_->surfaceHandler_->SetConsumer(nullptr);

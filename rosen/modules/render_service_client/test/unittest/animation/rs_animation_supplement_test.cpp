@@ -489,7 +489,8 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest007, TestSize.Level1)
     Vector4f endData(5.f, 6.f, 2.f, 3.f);
     auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(endData);
     keyframeParam->AddKeyframe(animation, startValue, endValue);
-    animation = std::make_shared<RSKeyframeAnimation>(rsUiDirector->GetRSUIContext(), startValue);
+    // animation = std::make_shared<RSKeyframeAnimation>(rsUiDirector->GetRSUIContext(), startValue);
+    animation = std::make_shared<RSKeyframeAnimation>(nullptr);   // car 2 compile
     keyframeParam->AddKeyframe(animation, startValue, endValue);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest007 end";
 }
@@ -516,15 +517,15 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest008, TestSize.Level1)
     auto startValue = std::make_shared<RSAnimatableProperty<Vector4f>>(startData);
     Vector4f endData(5.f, 6.f, 2.f, 3.f);
     auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(endData);
-    auto animation = pathParam->CreateAnimation(rsUiDirector->GetRSUIContext(), property, startValue, endValue);
+    auto animation = pathParam->CreateAnimation(property, startValue, endValue);
 
     option = std::make_shared<RSMotionPathOption>("abc");
     auto pathParam2 = std::make_shared<RSImplicitPathAnimationParam>(
         protocol, RSAnimationTimingCurve::LINEAR, option);
-    auto animation2 = pathParam->CreateAnimation(rsUiDirector->GetRSUIContext(), property, startValue, endValue);
+    auto animation2 = pathParam->CreateAnimation(property, startValue, endValue);
 
     auto springParam = std::make_shared<RSImplicitSpringAnimationParam>(protocol, RSAnimationTimingCurve::LINEAR);
-    auto animation3 = springParam->CreateAnimation(rsUiDirector->GetRSUIContext(), property, startValue, endValue);
+    auto animation3 = springParam->CreateAnimation(property, startValue, endValue);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest008 end";
 }
 

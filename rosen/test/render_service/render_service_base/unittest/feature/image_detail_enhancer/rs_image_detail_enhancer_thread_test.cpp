@@ -33,7 +33,7 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 using namespace Drawing;
 
-static RSImageDetailEnhanceParams params = { true, 500, 3000, 0.5f, 5.0f };
+// static RSImageDetailEnhanceParams params = { true, 500, 3000, 0.5f, 5.0f };  car 2 compile
 static RSImageDetailEnhanceAlgoParams slrParams = {
     true,
     {{ 0.0f, 0.5f, 0.3f }},

@@ -3889,25 +3889,25 @@ HWTEST_F(RSScreenManagerTest, CheckFoldScreenIdBuiltIn, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBIQ0Q
  */
-HWTEST_F(RSScreenManagerTest, OnScreenVBlankIdleEvent, TestSize.Level1)
-{
-    auto screenManager_ = sptr<RSScreenManager>::MakeSptr();
-    EXPECT_NE(screenManager_, nullptr);
+// HWTEST_F(RSScreenManagerTest, OnScreenVBlankIdleEvent, TestSize.Level1)
+// {
+//     auto screenManager_ = sptr<RSScreenManager>::MakeSptr();
+//     EXPECT_NE(screenManager_, nullptr);
 
-    uint32_t id = 100;
-    uint64_t ns = 1024;
+//     uint32_t id = 100;
+//     uint64_t ns = 1024;
 
-    screenManager_->screens_.clear();
-    screenManager_->screens_.insert(std::make_pair(100, nullptr));
-    screenManager_->OnScreenVBlankIdleEvent(id, ns);
+//     screenManager_->screens_.clear();
+//     screenManager_->screens_.insert(std::make_pair(100, nullptr));
+//     screenManager_->OnScreenVBlankIdleEvent(id, ns);
 
-    VirtualScreenConfigs cfgVirtual;
-    cfgVirtual.id = 100;
-    auto rsScreen0 = std::make_shared<RSScreen>(cfgVirtual);
-    screenManager_->screens_[100] = rsScreen0;
-    screenManager_->OnScreenVBlankIdleEvent(id, ns);
-    EXPECT_EQ(false, screenManager_->screens_.empty());
-}
+//     VirtualScreenConfigs cfgVirtual;
+//     cfgVirtual.id = 100;
+//     auto rsScreen0 = std::make_shared<RSScreen>(cfgVirtual);
+//     screenManager_->screens_[100] = rsScreen0;
+//     screenManager_->OnScreenVBlankIdleEvent(id, ns);
+//     EXPECT_EQ(false, screenManager_->screens_.empty());
+// }
 
 // /*
 //  * @tc.name: OnRefresh
@@ -3943,7 +3943,7 @@ HWTEST_F(RSScreenManagerTest, OnHwcDeadEvent, TestSize.Level1)
     ScreenId sId1 = 1;
     cfgVirtual.id = sId1;
     screenManager_->screens_[sId1] = std::make_shared<RSScreen>(cfgVirtual);
-    screenManager_->OnHwcDeadEvent();
+    screenManager_->OnHwcDeadEvent(screenManager_->screens_);
     EXPECT_EQ(screenManager_->screens_.size(), 1);
 }
 

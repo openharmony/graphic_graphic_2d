@@ -83,7 +83,7 @@ void RSUniRenderProcessorTest::SetUpTestCase()
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
     rsRenderComposerManager = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     rsRenderComposerManager->OnScreenConnected(output, nullptr);
-    screen = std::make_unique<OHOS::Rosen::RSScreen>(output);
+    screen = std::make_unique<OHOS::Rosen::RSScreen>(screenId_);
     auto screenManager = sptr<RSScreenManager>::MakeSptr();
     screenManager->screens_.insert(std::make_pair(0, std::move(screen)));
 

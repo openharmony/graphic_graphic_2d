@@ -3338,7 +3338,7 @@ HWTEST_F(RSCanvasNodeTest, SetBoundsChangedCallbackTest, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(false);
     ASSERT_TRUE(canvasNode != nullptr);
-    canvasNode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas>) {});
+    canvasNode->DrawOnNode(ModifierNG::RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas>) {});
     ASSERT_FALSE(canvasNode->recordingUpdated_);
     canvasNode->SetHDRPresent(true);
     canvasNode->SetBoundsChangedCallback([](const Rosen::Vector4f& vector4f) {});
@@ -3367,7 +3367,7 @@ HWTEST_F(RSCanvasNodeTest, CreateRenderNodeForTextureExportSwitch, TestSize.Leve
 HWTEST_F(RSCanvasNodeTest, DrawOnNode, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    RSModifierType type = RSModifierType::INVALID;
+    ModifierNG::RSModifierType type = ModifierNG::RSModifierType::INVALID;
     DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
@@ -3533,13 +3533,13 @@ HWTEST_F(RSCanvasNodeTest, DrawOnNode001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
-    canvasNode->DrawOnNode(RSModifierType::INVALID, func);
+    canvasNode->DrawOnNode(ModifierNG::RSModifierType::INVALID, func);
     EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
 
     canvasNode->BeginRecording(200, 300);
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
-    canvasNode->DrawOnNode(RSModifierType::INVALID, func);
+    canvasNode->DrawOnNode(ModifierNG::RSModifierType::INVALID, func);
     EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
     EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);

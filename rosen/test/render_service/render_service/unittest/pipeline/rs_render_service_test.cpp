@@ -50,7 +50,7 @@ sptr<RSRenderService> GetAndInitRenderService()
     }
     if (renderService->mainThread_) {
         renderService->mainThread_->handler_ =
-            std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(true););
+            std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(true));
     }
     return renderService;
 }

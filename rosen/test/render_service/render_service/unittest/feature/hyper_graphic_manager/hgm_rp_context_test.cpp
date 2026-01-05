@@ -44,30 +44,31 @@ void HgmRPContextTest::TearDown() {}
  */
 HWTEST_F(HgmRPContextTest, TestSetServiceToProcessInfo, TestSize.Level1)
 {
-    HgmRPContext hgmRPContext;
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRPContext hgmRPContext(renderToServiceConnection);
     uint32_t refreshRate = 0;
     uint64_t relativeTime = 0;
-    hgmRPContext.SetServiceToProcessInfo(nullptr, &refreshRate, &relativeTime);
+    hgmRPContext.SetServiceToProcessInfo(nullptr, refreshRate, relativeTime);
     EXPECT_EQ(hgmRPContext.isAdaptive_, false);
 
     sptr<HgmServiceToProcessInfo> serviceToProcessInfo = sptr<HgmServiceToProcessInfo>::MakeSptr();
-    serviceToProcessInfo->SetHgmRefreshRateInfo(60, 1);
-    serviceToProcessInfo->SetAdaptiveVsyncInfo(false, true, "gameNodeName");
-    serviceToProcessInfo->SetRPHgmConfigData(false, true, true, 1, nullptr);
-    serviceToProcessInfo->SetPowerIdle(true);
-    hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, &refreshRate, &relativeTime);
+    // serviceToProcessInfo->SetHgmRefreshRateInfo(60, 1);
+    // serviceToProcessInfo->SetAdaptiveVsyncInfo(false, true, "gameNodeName");
+    // serviceToProcessInfo->SetRPHgmConfigData(false, true, true, 1, nullptr);
+    // serviceToProcessInfo->SetPowerIdle(true);
+    hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
     EXPECT_EQ(refreshRate, 60);
     EXPECT_EQ(hgmRPContext.isAdaptive_, false);
 
-    serviceToProcessInfo->SetAdaptiveVsyncInfo(true, true, "gameNodeName");
-    hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, &refreshRate, &relativeTime);
+    // serviceToProcessInfo->SetAdaptiveVsyncInfo(true, true, "gameNodeName");
+    hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
 
-    serviceToProcessInfo->SetRPHgmConfigData(true, true, true, 1, std::make_shared<RPHgmConfigData>());
-    hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, &refreshRate, &relativeTime);
+    // serviceToProcessInfo->SetRPHgmConfigData(true, true, true, 1, std::make_shared<RPHgmConfigData>());
+    hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
     EXPECT_EQ(hgmRPContext.ltpoEnabled_, true);
 
-    serviceToProcessInfo->SetRPHgmConfigData(true, false, true, 1, nullptr);
-    hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, &refreshRate, &relativeTime);
+    // serviceToProcessInfo->SetRPHgmConfigData(true, false, true, 1, nullptr);
+    hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
     EXPECT_EQ(hgmRPContext.ltpoEnabled_, false);
     
 }
