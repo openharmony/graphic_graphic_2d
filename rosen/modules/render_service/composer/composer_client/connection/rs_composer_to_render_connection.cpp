@@ -31,9 +31,6 @@ int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInf
     if (releaseLayerBuffersCB_ != nullptr) {
         releaseLayerBuffersCB_(releaseLayerInfo);
     }
-    if (notifyScreenNodeBufferReleasedCB_ != nullptr) {
-        notifyScreenNodeBufferReleasedCB_(releaseLayerInfo.screenId);
-    }
     // 游戏大脑 打桩获取SwapBufferTime
     if (FrameReport::GetInstance().HasGameScene()) {
         RS_LOGD("[game_accelerate_schedule] RSComposerToRenderConnection lastSwapBufferTime %{public}" PRId64,
@@ -41,11 +38,6 @@ int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInf
         FrameReport::GetInstance().SetLastSwapBufferTime(releaseLayerInfo.lastSwapBufferTime);
     }
     return COMPOSITOR_ERROR_OK;
-}
-
-void RSComposerToRenderConnection::RegisterNotifyScreenNodeBufferReleasedCB(NotifyScreenNodeBufferReleasedCB callback)
-{
-    notifyScreenNodeBufferReleasedCB_ = callback;
 }
 
 void RSComposerToRenderConnection::RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback)

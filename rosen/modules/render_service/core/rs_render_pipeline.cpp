@@ -158,8 +158,6 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
     }
     std::shared_ptr<RSRenderComposerClient> composerClient = nullptr;
     if (!rsScreenProperty->IsVirtual()) {
-        composerToRenderConn->RegisterNotifyScreenNodeBufferReleasedCB(
-            std::bind(&RSUniRenderThread::NotifyScreenNodeBufferReleased, uniRenderThread_, std::placeholders::_1));
         composerToRenderConn->RegisterReleaseLayerBuffersCB(
             std::bind(&RSUniRenderThread::ReleaseLayerBuffers, uniRenderThread_, std::placeholders::_1));
         composerClient = RSRenderComposerClient::Create(renderToComposerConn, composerToRenderConn,

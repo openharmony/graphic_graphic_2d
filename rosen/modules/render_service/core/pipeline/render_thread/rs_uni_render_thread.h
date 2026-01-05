@@ -72,7 +72,6 @@ public:
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
 
     void UnRegisterCond(ScreenId curScreenId);
-    void NotifyScreenNodeBufferReleased(ScreenId curScreenId);
     void ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo);
     bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);
 
@@ -330,6 +329,7 @@ private:
     void Inittcache();
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
+    void NotifyScreenNodeBufferReleased(ScreenId curScreenId);
 
     std::atomic_bool isPostedReclaimMemoryTask_ = false;
     // Those variable is used to manage memory.

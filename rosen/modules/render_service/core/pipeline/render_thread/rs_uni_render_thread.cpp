@@ -605,6 +605,7 @@ void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLaye
     });
     composerClient->ReleaseLayerBuffers(curScreenId, releaseLayerInfo.timestampVec,
         releaseLayerInfo.releaseBufferFenceVec);
+    NotifyScreenNodeBufferReleased(curScreenId);
 }
 
 void RSUniRenderThread::PerfForBlurIfNeeded()

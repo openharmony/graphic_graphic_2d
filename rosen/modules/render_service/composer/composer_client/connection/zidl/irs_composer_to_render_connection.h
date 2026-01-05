@@ -45,7 +45,6 @@ public:
 
     virtual int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo) = 0;
     virtual int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds) = 0;
-    virtual void RegisterNotifyScreenNodeBufferReleasedCB(NotifyScreenNodeBufferReleasedCB callback) = 0;
     virtual void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) = 0;
 
 protected:
