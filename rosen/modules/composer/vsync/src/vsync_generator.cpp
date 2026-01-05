@@ -419,9 +419,9 @@ void VSyncGenerator::ComputeDVSyncListenerTimeStamp(const Listener& listener, in
     if (dvsyncPeriodRecord_ != 0 && listener.callback_ != nullptr) {
         t = ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, occurDvsyncReferenceTime_, dvsyncPeriodRecord_);
         nextVSyncTime = t < nextVSyncTime? t : nextVSyncTime;
-        RS_TRACE_NAME_FMT("DVSync::UiDVSync ComputeNextVSyncTimeStamp t:%" PRId64 ", dvsyncPeriod:%" PRId64 ""
-            ", dvsyncReferenceTime:%" PRId64 ", now:%" PRId64 ", lastTime:%" PRId64 ", phase:%" PRId64 ""
-            ",wakeupDelay:%" PRId64 ",phaseRecord:%" PRId64,  t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_,
+        RS_TRACE_NAME_FMT("DVSync::UiDVSync ComputeNextVSyncTimeStamp t:%" PRId64 ", dvsyncPeriod:%" PRId64
+            ", dvsyncReferenceTime:%" PRId64 ", now:%" PRId64 ", lastTime:%" PRId64 ", phase:%" PRId64
+            ",wakeupDelay:%" PRId64 ",phaseRecord:%" PRId64, t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_,
             now, listener.lastTime_, listener.phase_, wakeupDelay_, phaseRecord_);
     }
 #endif
@@ -472,9 +472,9 @@ int64_t VSyncGenerator::CollectDVSyncListener(const Listener &listener, int64_t 
 #if defined(RS_ENABLE_DVSYNC_2)
             DVSync::Instance().SetToCurrentPeriod();
 #endif
-            RS_TRACE_NAME_FMT("DVSync::UiDVSync CollectDVSyncListener t:%" PRId64 ", dvsyncPeriod:%" PRId64 ""
-                ", dvsyncReferenceTime:%" PRId64 ", now:%" PRId64 ", lastTime:%" PRId64 ", phase:%" PRId64 ""
-                ",wakeupDelay:%" PRId64 ",phaseRecord:%" PRId64,  t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_,
+            RS_TRACE_NAME_FMT("DVSync::UiDVSync CollectDVSyncListener t:%" PRId64 ", dvsyncPeriod:%" PRId64
+                ", dvsyncReferenceTime:%" PRId64 ", now:%" PRId64 ", lastTime:%" PRId64 ", phase:%" PRId64
+                ",wakeupDelay:%" PRId64 ",phaseRecord:%" PRId64, t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_,
                 now, listener.lastTime_, listener.phase_, wakeupDelay_, phaseRecord_);
         }
     }
