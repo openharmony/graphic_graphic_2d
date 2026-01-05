@@ -601,7 +601,7 @@ void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLaye
     composerClient->RegistOnReleaseLayerBuffersCB([this](
         std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec) {
-        OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec);
+        bufferManager_.OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec);
     });
     composerClient->ReleaseLayerBuffers(curScreenId, releaseLayerInfo.timestampVec,
         releaseLayerInfo.releaseBufferFenceVec);
