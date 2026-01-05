@@ -226,19 +226,6 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
     return true;
 }
 
-std::string GetBundleName(pid_t pid)
-{
-    std::string bundleName;
-    static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
-    if (appMgrClient == nullptr) {
-        RS_LOGE("GetBundleName get appMgrClient fail");
-        return bundleName;
-    }
-    int32_t uid = 0;
-    appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
-    return bundleName;
-}
-
 bool IsValidCallingPid(pid_t pid, pid_t callingPid)
 {
     return (callingPid == getpid()) || (callingPid == pid);

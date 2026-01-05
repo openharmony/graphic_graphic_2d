@@ -276,7 +276,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
         OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
 
     OHOS::Rosen::g_toServiceConnectionStub = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid,
-        nullptr, nullptr, nullptr, screenManagerAgent_, OHOS::Rosen::g_token->AsObject(), nullptr);
+        nullptr, nullptr, screenManagerAgent_, OHOS::Rosen::g_token->AsObject(), nullptr);
     OHOS::Rosen::g_toRenderConnectionStub = new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, 
         renderPipelineAgent_, OHOS::Rosen::g_token->AsObject());
 #ifdef RS_ENABLE_VK

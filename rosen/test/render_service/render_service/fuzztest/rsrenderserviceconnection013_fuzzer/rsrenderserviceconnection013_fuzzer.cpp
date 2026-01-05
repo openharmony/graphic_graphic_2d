@@ -100,7 +100,7 @@ int Initialize()
 
     g_toServiceConnection =
         new RSClientToServiceConnection(g_pid, renderServiceAgent_,
-            renderProcessManagerAgent_, g_mainThread, screenManagerAgent_, g_token->AsObject(), appVSyncDistributor);
+            renderProcessManagerAgent_, screenManagerAgent_, g_token->AsObject(), appVSyncDistributor);
     g_toServiceConnectionStub = g_toServiceConnection;
 #ifdef RS_ENABLE_VK
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");

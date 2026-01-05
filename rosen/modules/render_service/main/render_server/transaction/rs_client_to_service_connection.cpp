@@ -111,14 +111,12 @@ RSClientToServiceConnection::RSClientToServiceConnection(
     pid_t remotePid,
     sptr<RSRenderServiceAgent> renderServiceAgent,
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
-    RSMainThread* mainThread,
     sptr<RSScreenManagerAgent> screenManagerAgent,
     sptr<IRemoteObject> token,
     sptr<VSyncDistributor> distributor)
     : remotePid_(remotePid),
       renderServiceAgent_(renderServiceAgent),
       renderProcessManagerAgent_(renderProcessManagerAgent),
-      mainThread_(mainThread),
       screenManagerAgent_(screenManagerAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
@@ -132,9 +130,6 @@ RSClientToServiceConnection::RSClientToServiceConnection(
         RS_LOGE("RSClientToServiceConnection: renderServiceAgent_ is nullptr");
     } else {
         hgmContext_ = renderServiceAgent_->GetHgmContext();
-    }
-    if (mainThread_ == nullptr) {
-        RS_LOGW("RSClientToServiceConnection: mainThread_ is nullptr");
     }
     if (!screenManagerAgent_) {
         RS_LOGW("RSClientToServiceConnection: screenManagerAgent_ is nullptr");
@@ -164,22 +159,6 @@ void RSClientToServiceConnection::CleanVirtualScreens() noexcept
     screenManagerAgent_->SetScreenChangeCallback(nullptr);
 }
 
-void RSClientToServiceConnection::CleanRenderNodes() noexcept
-{
-    if (mainThread_ == nullptr) {
-        return;
-    }
-    auto& context = mainThread_->GetContext();
-    auto& nodeMap = context.GetMutableNodeMap();
-    MemoryTrack::Instance().RemovePidRecord(remotePid_);
-
-    RS_PROFILER_KILL_PID(remotePid_);
-    nodeMap.FilterNodeByPid(remotePid_);
-    RS_PROFILER_KILL_PID_END();
-
-    RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
-}
-
 void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
 {
     {
@@ -188,13 +167,12 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             return;
         }
     }
-    if (!mainThread_) {
+    if (!renderServiceAgent_) {
         return;
     }
     RS_LOGD("CleanAll() start.");
     RS_TRACE_NAME("RSClientToServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid_));
-    RsCommandVerifyHelper::GetInstance().RemoveCntWithPid(remotePid_);
-    mainThread_->ScheduleTask(
+    renderServiceAgent_->ScheduleTask(
         [weakThis = wptr<RSClientToServiceConnection>(this)]() {
             sptr<RSClientToServiceConnection> connection = weakThis.promote();
             if (!connection) {
@@ -203,80 +181,16 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             RS_TRACE_NAME_FMT("CleanVirtualScreens %d", connection->remotePid_);
             connection->CleanVirtualScreens();
         }).wait();
-    mainThread_->ScheduleTask(
-        [weakThis = wptr<RSClientToServiceConnection>(this)]() {
-            sptr<RSClientToServiceConnection> connection = weakThis.promote();
-            if (!connection) {
-                return;
-            }
-            RS_TRACE_NAME_FMT("CleanRenderNodes %d", connection->remotePid_);
-            connection->CleanRenderNodes();
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-            connection->CleanCanvasCallbacksAndPendingBuffer();
-#endif
-        }).wait();
-    mainThread_->ScheduleTask(
-        [weakThis = wptr<RSClientToServiceConnection>(this)]() {
-            sptr<RSClientToServiceConnection> connection = weakThis.promote();
-            if (connection == nullptr || connection->mainThread_ == nullptr) {
-                return;
-            }
-            RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", connection->remotePid_);
-            connection->mainThread_->ClearTransactionDataPidInfo(connection->remotePid_);
-            if (connection->mainThread_->IsRequestedNextVSync()) {
-                connection->mainThread_->SetDirtyFlag();
-            }
-        }).wait();
-    mainThread_->ScheduleTask(
-        [weakThis = wptr<RSClientToServiceConnection>(this)]() {
-            sptr<RSClientToServiceConnection> connection = weakThis.promote();
-            if (connection == nullptr || connection->mainThread_ == nullptr) {
-                return;
-            }
-            RS_TRACE_NAME_FMT("UnRegisterCallback %d", connection->remotePid_);
-            connection->mainThread_->UnRegisterOcclusionChangeCallback(connection->remotePid_);
-            connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
-            connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
-        }).wait();
-
-    mainThread_->ScheduleTask(
-        [weakThis = wptr<RSClientToServiceConnection>(this)]() {
-            sptr<RSClientToServiceConnection> connection = weakThis.promote();
-            if (connection == nullptr || connection->mainThread_ == nullptr) {
-                return;
-            }
-            connection->mainThread_->ClearSurfaceWatermark(connection->remotePid_);
-        }).wait();
-    if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
-        mainThread_->ScheduleTask(
-            [weakThis = wptr<RSClientToServiceConnection>(this)]() {
-                sptr<RSClientToServiceConnection> connection = weakThis.promote();
-                if (connection == nullptr) {
-                    return;
-                }
-                auto &monitor = SelfDrawingNodeMonitor::GetInstance();
-                monitor.UnRegisterRectChangeCallback(connection->remotePid_);
-            }).wait();
-    }
-
-    CleanBrightnessInfoChangeCallbacks();
-
-    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
 
     if (hgmContext_ != nullptr) {
         hgmContext_->CleanAllWhenServiceConnectionDie(remotePid_);
     }
 
-    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
     {
         std::lock_guard<std::mutex> lock(mutex_);
         cleanDone_ = true;
     }
 
-    {
-        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
-        pidToBundleName_.clear();
-    }
     if (toDelete) {
         auto token = iface_cast<RSIConnectionToken>(GetToken());
         renderServiceAgent_->RemoveToken(token);
@@ -320,32 +234,16 @@ RSClientToServiceConnection::RSApplicationRenderThreadDeathRecipient::RSApplicat
 void RSClientToServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemoteDied(
     const wptr<IRemoteObject>& token)
 {
-    auto tokenSptr = token.promote();
-    if (tokenSptr == nullptr) {
-        RS_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: can't promote remote object.");
-        return;
-    }
-
-    auto rsConn = conn_.promote();
-    if (rsConn == nullptr) {
-        RS_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: "
-            "RSClientToServiceConnection was dead, do nothing.");
-        return;
-    }
-
-    RS_LOGD("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: Unregister.");
-    auto app = iface_cast<IApplicationAgent>(tokenSptr);
-    rsConn->UnRegisterApplicationAgent(app);
 }
 
 ErrCode RSClientToServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    return ERR_OK; // ??? todo
+    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
-    return ERR_OK; // ??? todo
+    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnection::GetUniRenderEnabled(bool& enable)
@@ -703,20 +601,6 @@ int32_t RSClientToServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBri
     return ret;
 }
 
-void RSClientToServiceConnection::CleanBrightnessInfoChangeCallbacks()
-{
-    SetBrightnessInfoChangeCallback(nullptr);
-}
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-void RSClientToServiceConnection::CleanCanvasCallbacksAndPendingBuffer() noexcept
-{
-    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
-    bufferCache.RegisterCanvasCallback(remotePid_, nullptr);
-    bufferCache.ClearPendingBufferByPid(remotePid_);
-}
-#endif
-
 uint32_t RSClientToServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     if (!screenManagerAgent_) {
@@ -976,14 +860,6 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
         renderServiceAgent_->ScheduleTask(
             [=]() { screenManagerAgent_->SetScreenPowerStatus(id, status); }).wait();
     }
-}
-
-void RSClientToServiceConnection::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
-{
-    auto captureTask = [app]() -> void {
-        RSMainThread::Instance()->UnRegisterApplicationAgent(app);
-    };
-    RSMainThread::Instance()->ScheduleTask(captureTask).wait();
 }
 
 RSVirtualScreenResolution RSClientToServiceConnection::GetVirtualScreenResolution(ScreenId id)
@@ -2373,29 +2249,5 @@ bool RSClientToServiceConnection::ProfilerIsSecureScreen()
 #endif
 }
 
-std::string RSClientToServiceConnection::GetBundleName(pid_t pid)
-{
-    std::lock_guard<std::mutex> lock(pidToBundleMutex_);
-    if (auto it = pidToBundleName_.find(pid); it != pidToBundleName_.end()) {
-        return it->second;
-    }
-
-    static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
-    if (appMgrClient == nullptr) {
-        RS_LOGE("GetBundleName get appMgrClient fail.");
-        return {};
-    }
-
-    std::string bundleName{};
-    int32_t uid{0};
-    int32_t ret = appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
-    if ((ret != ERR_OK) || bundleName.empty()) {
-        RS_LOGE("GetBundleName failed, ret=%{public}d.", ret);
-        return {};
-    }
-
-    pidToBundleName_.emplace(pid, bundleName);
-    return bundleName;
-}
 } // namespace Rosen
 } // namespace OHOS
