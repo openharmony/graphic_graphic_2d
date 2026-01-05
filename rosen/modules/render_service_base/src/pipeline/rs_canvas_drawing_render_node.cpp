@@ -788,6 +788,20 @@ const std::map<ModifierNG::RSModifierType, ModifierCmdList>& RSCanvasDrawingRend
     return drawCmdListsNG_;
 }
 
+void RSCanvasDrawingRenderNode::OnSync()
+{
+    RSRenderNode::OnSync();
+    ClearResource();
+}
+
+void RSCanvasDrawingRenderNode::AccumulateLastDirtyTypes()
+{
+    if (GetLastFrameSync() || !RSUniRenderJudgement::IsUniRender() || GetIsTextureExportNode()) {
+        return;
+    }
+    AccumulateDirtyTypes();
+}
+
 void RSCanvasDrawingRenderNode::ClearResource()
 {
     if (RSUniRenderJudgement::IsUniRender() && !GetIsTextureExportNode()) {

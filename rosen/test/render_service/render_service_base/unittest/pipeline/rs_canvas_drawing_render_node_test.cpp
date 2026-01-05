@@ -1142,4 +1142,40 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest007, TestSize.Level
     EXPECT_EQ(outTest1, ret);
     std::cout << outTest1 << std::endl;
 }
+
+/**
+ * @tc.name: AccumulateLastDirtyTypesTest
+ * @tc.desc: Test AccumulateLastDirtyTypes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, AccumulateLastDirtyTypesTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId_ + 1);
+    node->lastFrameSynced_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    node->isTextureExportNode_ = false;
+    node->dirtyTypesNG_.reset();
+    node->curDirtyTypesNG_.reset();
+    node->curDirtyTypesNG_.set(2, true);
+    node->AccumulateLastDirtyTypes();
+    EXPECT_TRUE(node->dirtyTypesNG_.test(1));
+    node->dirtyTypesNG_.reset();
+    node->curDirtyTypesNG_.reset();
+    node->curDirtyTypesNG_.set(2, true);
+    node->lastFrameSynced_ = true;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    node->isTextureExportNode_ = false;
+    node->AccumulateLastDirtyTypes();
+    EXPECT_FALSE(node->dirtyTypesNG_.test(1));
+    node->lastFrameSynced_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+    node->isTextureExportNode_ = false;
+    node->AccumulateLastDirtyTypes();
+    EXPECT_FALSE(node->dirtyTypesNG_.test(1));
+    node->lastFrameSynced_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    node->isTextureExportNode_ = true;
+    node->AccumulateLastDirtyTypes();
+    EXPECT_FALSE(node->dirtyTypesNG_.test(1));
+}
 } // namespace OHOS::Rosen
