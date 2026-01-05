@@ -4884,4 +4884,51 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList006, TestSize.Level2)
         screenManager->screens_.erase(mirrorId2);
     }
 }
+
+/*
+ * @tc.name: AddVirtualScreenWhiteList002
+ * @tc.desc: check if whitelist change after AddVirtualScreenWhiteList
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSScreenManagerTest, AddVirtualScreenWhiteList002, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    auto screenId =
+        screenManager->CreateVirtualScreen("virtual0", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, nullptr);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    NodeId nodeId = 0;
+    ASSERT_EQ(screenManager->AddVirtualScreenWhiteList(screenId, {++nodeId}), ERR_OK);
+    ASSERT_EQ(screenManager->AddVirtualScreenWhiteList(screenId, {nodeId}), ERR_OK);
+
+    // restore
+    screenManager->RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenWhiteList001
+ * @tc.desc: check if whitelist change after RemoveVirtualScreenWhiteList
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenWhiteList001, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    auto screenId =
+        screenManager->CreateVirtualScreen("virtual0", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, nullptr);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    NodeId nodeId = 0;
+    ASSERT_EQ(screenManager->AddVirtualScreenWhiteList(screenId, {nodeId}), ERR_OK);
+    ASSERT_EQ(screenManager->RemoveVirtualScreenWhiteList(screenId, {nodeId++}), ERR_OK);
+    ASSERT_EQ(screenManager->RemoveVirtualScreenWhiteList(screenId, {nodeId}), ERR_OK);
+
+    // restore
+    screenManager->RemoveVirtualScreen(screenId);
+}
 } // namespace OHOS::Rosen

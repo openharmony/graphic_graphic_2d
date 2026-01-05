@@ -1196,9 +1196,14 @@ int32_t RSScreenManager::AddVirtualScreenWhiteList(ScreenId id, const std::vecto
         return INVALID_ARGUMENTS;
     }
 
+    auto oldWhiteList = virtualScreen->GetWhiteList();
     virtualScreen->AddWhiteList(whiteList);
+    auto newWhiteList = virtualScreen->GetWhiteList();
+    if (oldWhiteList != newWhiteList) {
+        virtualScreen->SetWhiteListChange(true);
+    }
     RSSpecialLayerUtils::DumpScreenSpecialLayer(
-        __func__, SpecialLayerType::IS_WHITE_LIST, id, virtualScreen->GetWhiteList());
+        __func__, SpecialLayerType::IS_WHITE_LIST, id, newWhiteList);
     return SUCCESS;
 }
 
@@ -1215,9 +1220,14 @@ int32_t RSScreenManager::RemoveVirtualScreenWhiteList(ScreenId id, const std::ve
         return SCREEN_TYPE_ERROR;
     }
 
+    auto oldWhiteList = virtualScreen->GetWhiteList();
     virtualScreen->RemoveWhiteList(whiteList);
+    auto newWhiteList = virtualScreen->GetWhiteList();
+    if (oldWhiteList != newWhiteList) {
+        virtualScreen->SetWhiteListChange(true);
+    }
     RSSpecialLayerUtils::DumpScreenSpecialLayer(
-        __func__, SpecialLayerType::IS_WHITE_LIST, id, virtualScreen->GetWhiteList());
+        __func__, SpecialLayerType::IS_WHITE_LIST, id, newWhiteList);
     return SUCCESS;
 }
 
@@ -1583,7 +1593,8 @@ bool RSScreenManager::CheckVirtualScreenStatusChanged(ScreenId id)
     if (!screen->IsVirtual()) {
         return false;
     }
-    return screen->GetAndResetPSurfaceChange() || screen->GetAndResetVirtualScreenPlay();
+    return screen->GetAndResetPSurfaceChange() || screen->GetAndResetVirtualScreenPlay() ||
+        screen->GetAndResetWhiteListChange();
 }
 
 void RSScreenManager::RemoveVirtualScreen(ScreenId id)

@@ -1712,6 +1712,18 @@ int32_t RSScreen::SetScreenLinearMatrix(const std::vector<float> &matrix)
     return StatusCode::SUCCESS;
 }
 
+// only used in virtual screen
+bool RSScreen::GetAndResetWhiteListChange()
+{
+    bool expected = true;
+    return whiteListChange_.compare_exchange_strong(expected, false);
+}
+
+void RSScreen::SetWhiteListChange(bool whiteListChange)
+{
+    whiteListChange_ = whiteListChange;
+}
+
 bool RSScreen::GetAndResetPSurfaceChange()
 {
     bool expected = true;
