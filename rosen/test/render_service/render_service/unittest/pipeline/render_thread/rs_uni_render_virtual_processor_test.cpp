@@ -1026,11 +1026,11 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetRoiRegionToCodec002, TestSize.Level
 
 /**
  * @tc.name: UpdateMirrorInfo001
- * @tc.desc: test UpdateMirrorInfo
+ * @tc.desc: Test UpdateMirrorInfo
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, UpdateMirrorInfo001, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, UpdateMirrorInfo001, TestSize.Level1)
 {
     NodeId displayNodeId = 1;
     RSDisplayNodeConfig displayConfig;
@@ -1040,9 +1040,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, UpdateMirrorInfo001, TestSize.Level2)
 
     auto displayDrawable = static_cast<RSLogicalDisplayRenderNodeDrawable*>(displayNode->renderDrawable_.get());
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderProcessor>(processor);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     auto result1 = virtualProcessor->UpdateMirrorInfo(*displayDrawable);
-    ASSERT_EQ(result1, false);
+    ASSERT_EQ(result1, true);
 
     displayDrawable->renderParams_ = nullptr;
     auto result2 = virtualProcessor->UpdateMirrorInfo(*displayDrawable);
@@ -1075,7 +1075,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, UpdateMirrorInfo002, TestSize.Level2)
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     auto result = virtualProcessor->UpdateMirrorInfo(*drawable);
-    ASSERT_EQ(result, true);
+    ASSERT_EQ(result, false);
 }
 
 /**
