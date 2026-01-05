@@ -44,7 +44,7 @@ public:
         auto effectNode = RSEffectNode::Create();
         effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
-        std::shared_ptr<Rosen::RSFilter> backFilter = Rosen::RSFilter::CreateMaterialFilter(blurRadius, 1, 1, 0,
+        std::shared_ptr<Rosen::RSFilter> backFilter = Rosen::RSFilter::CreateMaterialFilter(BLUR_RADIUS, 1, 1, 0,
             BLUR_COLOR_MODE::DEFAULT, true);
         effectNode->SetBackgroundFilter(backFilter);
         effectNode->SetClipToBounds(true);
