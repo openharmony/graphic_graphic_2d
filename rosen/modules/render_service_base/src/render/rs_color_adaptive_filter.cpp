@@ -49,8 +49,8 @@ void RSColorAdaptiveFilter::DrawImageRect(Drawing::Canvas& canvas, const std::sh
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
     auto effectBuilder = GetEffectBuilder();
-    if (!effectBuilder) {
-        ROSEN_LOGE("RSColorAdaptiveFilter::DrawImageRect effectBuilder is null");
+    if (!image || !effectBuilder) {
+        ROSEN_LOGE("RSColorAdaptiveFilter::DrawImageRect image or effectBuilder is null");
         return;
     }
     effectBuilder->SetChild("img", Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,

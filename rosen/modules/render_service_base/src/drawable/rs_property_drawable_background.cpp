@@ -614,7 +614,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter != nullptr) {
         const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-        RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
+        RSPropertyDrawableUtils::ApplySDFShapeToFilter(node.GetRenderProperties(),
             drawingFilter, node.GetId());
         RecordFilterInfos(rsFilter);
         needSync_ = true;
@@ -973,7 +973,7 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(node.GetRenderProperties(),
         drawingFilter, node.GetId());
     stagingEmptyShape_ = node.GetRenderProperties().GetSDFShape() &&
         node.GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE;

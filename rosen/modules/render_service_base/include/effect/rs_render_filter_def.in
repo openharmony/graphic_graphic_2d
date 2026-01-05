@@ -213,5 +213,6 @@ DECLARE_FILTER(SDFEdgeLight, SDF_EDGE_LIGHT,
     ADD_PROPERTY_TAG(SDFEdgeLight, InnerBorderBloomWidth),
     ADD_PROPERTY_TAG(SDFEdgeLight, OuterBorderBloomWidth),
     ADD_PROPERTY_TAG(SDFEdgeLight, SDFImage),
-    ADD_PROPERTY_TAG(SDFEdgeLight, LightMask)
+    ADD_PROPERTY_TAG(SDFEdgeLight, LightMask),
+    ADD_PROPERTY_TAG(SDFEdgeLight, SDFShape)
 );

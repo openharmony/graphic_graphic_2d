@@ -980,7 +980,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter001, test
     RSProperties properties;
     NodeId id = 1;
     std::shared_ptr<RSDrawingFilter> drawingFilter;
-    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(properties, drawingFilter, id);
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     EXPECT_EQ(drawingFilter, nullptr);
 }
 
@@ -995,7 +995,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter002, test
     RSProperties properties;
     NodeId id = 1;
     auto drawingFilter = std::make_shared<RSDrawingFilter>();
-    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(properties, drawingFilter, id);
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter(), nullptr);
 }
 
@@ -1013,7 +1013,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter003, test
     auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
     auto drawingFilter = std::make_shared<RSDrawingFilter>();
     drawingFilter->SetNGRenderFilter(renderFilter);
-    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(properties, drawingFilter, id);
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_NE(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::FROSTED_GLASS);
 }
@@ -1036,7 +1036,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter004, test
     auto drawingFilter = std::make_shared<RSDrawingFilter>();
     drawingFilter->SetNGRenderFilter(renderFilter);
 
-    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(properties, drawingFilter, id);
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::FROSTED_GLASS);
     const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(
@@ -1062,7 +1062,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter005, test
     auto drawingFilter = std::make_shared<RSDrawingFilter>();
     drawingFilter->SetNGRenderFilter(renderFilter);
 
-    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(properties, drawingFilter, id);
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::FROSTED_GLASS);
     const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(
@@ -1092,7 +1092,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter006, test
     auto drawingFilter = std::make_shared<RSDrawingFilter>();
     drawingFilter->SetNGRenderFilter(renderFilter);
 
-    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(properties, drawingFilter, id);
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::FROSTED_GLASS);
     const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(
@@ -1125,7 +1125,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter007, test
     auto drawingFilter = std::make_shared<RSDrawingFilter>();
     drawingFilter->SetNGRenderFilter(renderFilter);
 
-    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(properties, drawingFilter, id);
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::FROSTED_GLASS);
     const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(
@@ -1134,6 +1134,67 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter007, test
         filterFromDrawingFilter->Getter<FrostedGlassShapeRenderTag>()->stagingValue_);
     auto rrectFromShape = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
     EXPECT_TRUE(rrectFromShape.IsNearEqual(RRect(RectT<float>(0.0f, 0.0f, 100.0f, 100.0f), 0.0f, 0.0f)));
+}
+
+/**
+ * @tc.name: ApplySDFShapeToFilter008
+ * @tc.desc: SDF_EDGE_LIGHT filter with sdfShape test
+ * @tc.type: FUNC
+ * @tc.require: issue190
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFilter008, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    auto sdfRRectShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    properties.SetSDFShape(sdfRRectShape);
+    NodeId id = 1;
+
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::SDF_EDGE_LIGHT);
+    ASSERT_NE(renderFilter, nullptr);
+    const auto& filter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(renderFilter);
+    EXPECT_EQ(filter->Getter<SDFEdgeLightSDFShapeRenderTag>()->stagingValue_, nullptr);
+
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
+
+    ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
+    EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::SDF_EDGE_LIGHT);
+    const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(
+        drawingFilter->GetNGRenderFilter());
+    EXPECT_NE(filterFromDrawingFilter->Getter<SDFEdgeLightSDFShapeRenderTag>()->stagingValue_, nullptr);
+}
+
+/**
+ * @tc.name: ApplySDFShapeToFilter009
+ * @tc.desc: SDF_EDGE_LIGHT filter without sdfShape test (early return)
+ * @tc.type: FUNC
+ * @tc.require: issue190
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFilter009, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetSDFShape(), nullptr);
+    NodeId id = 1;
+
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::SDF_EDGE_LIGHT);
+    ASSERT_NE(renderFilter, nullptr);
+    const auto& filter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(renderFilter);
+    EXPECT_EQ(filter->Getter<SDFEdgeLightSDFShapeRenderTag>()->stagingValue_, nullptr);
+
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+
+    // Should return early without setting shape
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
+
+    ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
+    EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::SDF_EDGE_LIGHT);
+    const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(
+        drawingFilter->GetNGRenderFilter());
+    // Shape should still be null since we returned early
+    EXPECT_EQ(filterFromDrawingFilter->Getter<SDFEdgeLightSDFShapeRenderTag>()->stagingValue_, nullptr);
 }
 
 /**

@@ -382,6 +382,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, InnerBorderBloomWidth, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, OuterBorderBloomWidth, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFEdgeLight, SDFImage, std::shared_ptr<Media::PixelMap>);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFEdgeLight, LightMask, MASK_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFEdgeLight, SDFShape, std::shared_ptr<RSNGRenderShapeBase>);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint0, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint1, Vector2f);

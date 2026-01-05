@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "effect/rs_render_property_tag.h"
 #include "effect/rs_render_shape_base.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_color_picker_def.h"
@@ -1712,20 +1713,35 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSPropertyDrawableUtils::GetAbsRectBy
     return {absImageRect, absDrawRect};
 }
 
-void RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(const RSProperties& properties,
+void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properties,
     const std::shared_ptr<RSDrawingFilter>& drawingFilter, NodeId nodeId)
 {
     if (!drawingFilter) {
         return;
     }
     const auto& renderFilter = drawingFilter->GetNGRenderFilter();
-    if (!renderFilter || renderFilter->GetType() != RSNGEffectType::FROSTED_GLASS) {
+    if (!renderFilter) {
+        return;
+    }
+    // refactor if more SDF-based filters are added
+    if (renderFilter->GetType() == RSNGEffectType::SDF_EDGE_LIGHT) {
+        const auto& filter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(renderFilter);
+        auto sdfShape = properties.GetSDFShape();
+        if (sdfShape) {
+            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, use sdfShape, node %{public}" PRIu64,
+                nodeId);
+            filter->Setter<SDFEdgeLightSDFShapeRenderTag>(sdfShape);
+            drawingFilter->SetNGRenderFilter(filter);
+        }
+        return;
+    }
+    if (renderFilter->GetType() != RSNGEffectType::FROSTED_GLASS) {
         return;
     }
     const auto& filter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
     auto sdfShape = properties.GetSDFShape();
     if (sdfShape) {
-        ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter, use sdfShape, node %{public}" PRIu64,
+        ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, use sdfShape, node %{public}" PRIu64,
             nodeId);
         filter->Setter<FrostedGlassShapeRenderTag>(sdfShape);
         drawingFilter->SetNGRenderFilter(filter);
@@ -1734,7 +1750,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(const RSProperti
     auto sdfRRect = properties.GetRRectForSDF();
     auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
         RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
-    ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter, rrect %{public}s, node %{public}" PRIu64,
+    ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, rrect %{public}s, node %{public}" PRIu64,
         sdfRRect.ToString().c_str(), nodeId);
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape);
