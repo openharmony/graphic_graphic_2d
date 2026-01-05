@@ -127,6 +127,7 @@ rs_framework_sources = [
 rs_func_feature_sources = [
   "rs_func_feature/color_space_and_hdr/color_space_test.cpp",
   "rs_func_feature/component_capture/demo.cpp",
+  "rs_func_feature/multi_instance/demo.cpp",
   "rs_func_feature/multi_screen/logical_display_node_test.cpp",
   "rs_func_feature/multi_screen/create_pixel_map_with_transform_test.cpp",
   "rs_func_feature/multi_screen/create_pixel_map_without_transform_test.cpp",
