@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025 Huawei Device Co., Ltd.
+* Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -391,8 +391,6 @@ void DoUnregisterSurfaceBufferCallback()
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK);
     toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
-
-
 
 void DoSetWindowContainer()
 {
