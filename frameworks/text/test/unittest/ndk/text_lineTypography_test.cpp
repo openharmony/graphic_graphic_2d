@@ -326,18 +326,10 @@ HWTEST_F(NdkLineTypographyTest, CreateLineTest010, TestSize.Level0)
     EXPECT_EQ(line2, nullptr);
     EXPECT_EQ(OH_Drawing_TextLineGetGlyphCount(line2), 0L);
     OH_Drawing_DestroyTextLine(line2);
-    OH_Drawing_DestroyLineTypography(lineTypography);
-}
 
-/*
- * @tc.name: CreateLineTest011
- * @tc.desc: testing for the OH_Drawing_LineTypographyCreateLine with nullptr input
- * @tc.type: FUNC
- */
-HWTEST_F(NdkLineTypographyTest, CreateLineTest011, TestSize.Level0)
-{
-    auto line = OH_Drawing_LineTypographyCreateLine(nullptr, 0, 1);
-    EXPECT_EQ(line, nullptr);
+    auto line3 = OH_Drawing_LineTypographyCreateLine(nullptr, 0, 1);
+    EXPECT_EQ(line3, nullptr);
+    OH_Drawing_DestroyTextLine(line3);
     OH_Drawing_DestroyLineTypography(lineTypography);
 }
 

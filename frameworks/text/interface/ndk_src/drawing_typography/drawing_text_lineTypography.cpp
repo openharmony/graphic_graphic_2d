@@ -58,7 +58,7 @@ OH_Drawing_TextLine* OH_Drawing_LineTypographyCreateLine(OH_Drawing_LineTypograp
                                                          size_t startIndex, size_t count)
 {
     if (lineTypograph == nullptr) {
-        TEXT_LOGE("Null lineTypograph");
+        TEXT_LOGE("Null line typograph");
         return nullptr;
     }
     LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypograph);
