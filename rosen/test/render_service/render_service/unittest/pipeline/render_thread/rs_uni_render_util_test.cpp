@@ -22,6 +22,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/mock/mock_meta_data_helper.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_test_util.h"
 #include "pixel_map.h"
@@ -759,6 +760,40 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam003, TestSize.Level2)
 }
 
 /*
+ * @tc.name: CreateBufferDrawParam004
+ * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam004, TestSize.Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    auto fence = surfaceNode->GetRSSurfaceHandler()->GetAcquireFence();
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(buffer, fence, forceCPU);
+    ASSERT_NE(params.buffer, nullptr);
+}
+
+/*
+ * @tc.name: CreateBufferDrawParam005
+ * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam005, TestSize.Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = nullptr;
+    auto fence = surfaceNode->GetRSSurfaceHandler()->GetAcquireFence();
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(buffer, fence, forceCPU);
+    ASSERT_EQ(params.buffer, nullptr);
+}
+
+/*
  * @tc.name: DealWithRotationAndGravityForRotationFixed
  * @tc.desc: test DealWithRotationAndGravityForRotationFixed
  * @tc.type: FUNC
@@ -1342,6 +1377,168 @@ HWTEST_F(RSUniRenderUtilTest, GetYawFromQuaternionTest, TestSize.Level1)
     q[2] = std::sin(yaw / 2.f);
     q[3] = std::cos(yaw / 2.f);
     ASSERT_TRUE(ROSEN_EQ(angle, RSUniRenderUtil::GetYawFromQuaternion(q), 0.001f));
+}
+
+/**
+ * @tc.name: SwitchColorFilter
+ * @tc.desc: Test SwitchColorFilter
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSUniRenderUtilTest, SwitchColorFilter, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSUniRenderUtil::SwitchColorFilter(canvas);
+    ASSERT_FALSE(RSUniRenderThread::Instance().GetRenderEngine());
+
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    RSUniRenderUtil::SwitchColorFilter(canvas);
+
+    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
+    RSUniRenderUtil::SwitchColorFilter(canvas);
+    RSUniRenderUtil::SwitchColorFilter(canvas, 0.6, true);
+
+    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
+    RSUniRenderUtil::SwitchColorFilter(canvas);
+    RSUniRenderUtil::SwitchColorFilter(canvas, 0.6, true);
+
+    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::DALTONIZATION_NORMAL_MODE;
+    RSUniRenderUtil::SwitchColorFilter(canvas);
+    RSUniRenderUtil::SwitchColorFilter(canvas, 0.6, true);
+
+    ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: SwitchColorFilterWithP3
+ * @tc.desc: Test SwitchColorFilterWithP3
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSUniRenderUtilTest, SwitchColorFilterWithP3, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surface = std::make_shared<Drawing::Surface>();
+
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bitmap.Build(10, 10, bitmapFormat);
+    surface->Bind(bitmap);
+    canvas.surface_ = surface.get();
+
+    ASSERT_FALSE(RSUniRenderThread::Instance().GetRenderEngine());
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
+    RSUniRenderUtil::SwitchColorFilterWithP3(canvas, colorFilterMode);
+    RSUniRenderUtil::SwitchColorFilterWithP3(canvas, colorFilterMode, 0.6);
+    ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: AdjustZOrderAndDrawSurfaceNode
+ * @tc.desc: Test AdjustZOrderAndDrawSurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSUniRenderUtilTest, AdjustZOrderAndDrawSurfaceNode, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    if (RSUniRenderThread::Instance().uniRenderEngine_ == nullptr) {
+        RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    }
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> drawables;
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    paintFilterCanvas.canvas_ = drawingCanvas.get();
+    paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    auto rscanvas = static_cast<Drawing::Canvas*>(&paintFilterCanvas);
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
+    ASSERT_TRUE(drawables.empty());
+
+    std::shared_ptr<RSRenderNodeDrawableAdapter> firstAdapter = nullptr;
+    std::shared_ptr<RSRenderNodeDrawableAdapter> secondAdapter = nullptr;
+    drawables.push_back(firstAdapter);
+    drawables.push_back(secondAdapter);
+    RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
+    ASSERT_TRUE(!firstAdapter);
+    ASSERT_TRUE(!secondAdapter);
+    drawables.clear();
+
+    NodeId id = 1;
+    auto rsSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(rsSurfaceNode);
+    ASSERT_TRUE(drawableAdapter->GetRenderParams());
+    id = 2;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawable = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_TRUE(drawable->GetRenderParams());
+    drawables.push_back(drawableAdapter);
+    drawables.push_back(drawable);
+    RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
+    ASSERT_TRUE(drawable->GetRenderParams());
+    rscanvas->RemoveAll();
+    RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
+}
+
+/**
+ * @tc.name: CollectHardwareEnabledNodesByDisplayNodeId001
+ * @tc.desc: Test CollectHardwareEnabledNodesByDisplayNodeId001
+ * @tc.type: FUNC
+ * @tc.require: #IBDJVI
+ */
+HWTEST_F(RSUniRenderUtilTest, CollectHardwareEnabledNodesByDisplayNodeId001, TestSize.Level1)
+{
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(nullptr);
+    EXPECT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
+    std::unique_ptr<RSRenderThreadParams> uniParamUnique = std::make_unique<RSRenderThreadParams>();
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(uniParamUnique));
+    EXPECT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
+    NodeId nodeId = 0;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> enabledNode;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> toEnabledNode;
+    RSUniRenderUtil::CollectHardwareEnabledNodesByDisplayNodeId(enabledNode, toEnabledNode, nodeId);
+    ASSERT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.size(), 0);
+
+    NodeId id = 1;
+    auto renderNode = std::make_shared<RSRenderNode>(id);
+    auto drawablePtr = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
+    EXPECT_NE(drawablePtr, nullptr);
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardCursorDrawableVec_.emplace_back(id, 0, drawablePtr);
+
+    RSUniRenderThread::Instance().GetCaptureParam().isSnapshot_ = false;
+    RSUniRenderUtil::CollectHardwareEnabledNodesByDisplayNodeId(enabledNode, toEnabledNode, nodeId);
+    ASSERT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardCursorDrawableVec_.size(), 1);
+
+    RSUniRenderUtil::CollectHardwareEnabledNodesByDisplayNodeId(enabledNode, toEnabledNode, nodeId);
+    ASSERT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardCursorDrawableVec_.size(), 1);
+}
+
+/**
+ * @tc.name: CollectHardwareEnabledNodesByDisplayNodeId002
+ * @tc.desc: Test CollectHardwareEnabledNodesByDisplayNodeId002
+ * @tc.type: FUNC
+ * @tc.require: #IBDJVI
+ */
+HWTEST_F(RSUniRenderUtilTest, CollectHardwareEnabledNodesByDisplayNodeId002, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> enabledNode;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> toEnabledNode;
+    auto params = std::make_unique<RSRenderThreadParams>();
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_NE(renderNode, nullptr);
+    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    drawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
+    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_tuple(10, 20, drawable));
+
+    RSUniRenderUtil::CollectHardwareEnabledNodesByDisplayNodeId(enabledNode, toEnabledNode, nodeId);
 }
 
 /**

@@ -521,7 +521,7 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam001, TestSize.Level1)
     ASSERT_NE(screenParams, nullptr);
     screenParams->SetHDRPresent(true);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-    ASSERT_NE(surfaceParams, nullptr);
+    EXPECT_NE(surfaceParams, nullptr);
     surfaceParams->SetHDRPresent(true);
 
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
@@ -556,8 +556,8 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam002, TestSize.Level1)
     auto screenParams = static_cast<RSScreenRenderParams*>(displayNode->GetRenderParams().get());
     screenParams->SetHDRPresent(true);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-    ASSERT_NE(surfaceParams, nullptr);
-    ASSERT_NE(surfaceParams->GetAncestorScreenNode().lock(), nullptr);
+    EXPECT_NE(surfaceParams, nullptr);
+    EXPECT_NE(surfaceParams->GetAncestorScreenNode().lock(), nullptr);
     surfaceParams->SetHDRPresent(false);
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
@@ -591,9 +591,9 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam003, TestSize.Level1)
     auto screenParams = static_cast<RSScreenRenderParams*>(displayNode->GetRenderParams().get());
     screenParams->SetHDRPresent(true);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-    ASSERT_NE(surfaceParams, nullptr);
+    EXPECT_NE(surfaceParams, nullptr);
     surfaceParams->SetHDRPresent(false);
-    bool isAdaptiveColorGamutEnabled = ColorGamutParam::IsAdaptiveColorGamutEnabled();
+    bool isAdaptiveColorGamutEnable = ColorGamutParam::IsAdaptiveColorGamutEnabled();
     ColorGamutParam::SetAdaptiveColorGamutEnable(true);
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
@@ -602,12 +602,12 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam003, TestSize.Level1)
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    ColorGamutParam::SetAdaptiveColorGamutEnable(isAdaptiveColorGamutEnabled);
+    ColorGamutParam::SetAdaptiveColorGamutEnable(isAdaptiveColorGamutEnable);
 }
 
 /**
  * @tc.name: SyncHDRDisplayParam004
- * @tc.desc: Test SyncHDRDisplayParam with isNeedFP16 and IsAdaptiveColorGamutEnabled are true
+ * @tc.desc: Test SyncHDRDisplayParam with isNeedFP16 and IsAdaptiveColorGamutEnabled is true
  * @tc.type: FUNC
  */
 HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam004, TestSize.Level1)
@@ -629,10 +629,10 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam004, TestSize.Level1)
     ASSERT_NE(screenParams, nullptr);
     screenParams->SetHDRPresent(true);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-    ASSERT_NE(surfaceParams, nullptr);
+    EXPECT_NE(surfaceParams, nullptr);
     surfaceParams->SetHDRPresent(true);
 
-    bool isAdaptiveColorGamutEnabled = ColorGamutParam::IsAdaptiveColorGamutEnabled();
+    bool isAdaptiveColorGamutEnable = ColorGamutParam::IsAdaptiveColorGamutEnabled();
     ColorGamutParam::SetAdaptiveColorGamutEnable(true);
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
@@ -641,7 +641,7 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam004, TestSize.Level1)
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    ColorGamutParam::SetAdaptiveColorGamutEnable(isAdaptiveColorGamutEnabled);
+    ColorGamutParam::SetAdaptiveColorGamutEnable(isAdaptiveColorGamutEnable);
 }
 
 /**
