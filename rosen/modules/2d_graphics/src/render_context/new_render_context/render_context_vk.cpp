@@ -25,7 +25,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 RenderContextVK::~RenderContextVK()
 {
     AbandonContext();
@@ -40,7 +39,7 @@ bool RenderContextVK::AbandonContext()
 {
     if (drGPUContext_ == nullptr) {
         LOGD("grContext is nullptr.");
-        return true;
+        return false;
     }
     drGPUContext_->FlushAndSubmit(true);
     drGPUContext_->PurgeUnlockAndSafeCacheGpuResources();
@@ -55,10 +54,6 @@ bool RenderContextVK::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
     }
     if (drawingContext == nullptr) {
         drawingContext = RsVulkanContext::GetSingleton(cacheDir_).CreateDrawingContext();
-        if (drawingContext == nullptr) {
-            LOGE("Fail to create vulkan GPUContext");
-            return false;
-        }
     }
     std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
     drGPUContext_ = std::move(drGPUContext);
