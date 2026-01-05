@@ -39,7 +39,7 @@ constexpr int GRAPH_NUM = 3;
 constexpr int MAX_RELEASE_FRAME_NUM = 5;
 constexpr float RATIO_CHANGE_TH = 0.02f;
 constexpr uint32_t RS_HARDWARE_THREAD_TASK_NUM = 2;
-constexpr uint32_t RS_WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
+constexpr uint32_t RS_WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 500s;
 }
 
 RSHeteroHDRManager& RSHeteroHDRManager::Instance()
