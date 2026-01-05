@@ -53,6 +53,7 @@
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/rs_pointer_window_manager.h"
+#include "rs_profiler.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -63,8 +64,8 @@
 #include "system/rs_system_parameters.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
-
-
+#include "pipeline/rs_render_node_gc.h"
+#include "app_mgr_client.h"
 #undef LOG_TAG
 #define LOG_TAG "RSRenderPipelineAgent"
 
@@ -109,6 +110,55 @@ ErrCode RSRenderPipelineAgent::CommitTransaction(pid_t callingPid, bool isTokenT
     return ERR_OK;
 }
 
+void RSRenderPipelineAgent::CleanBrightnessInfoChangeCallbacks(pid_t remotePid) noexcept
+{
+    if (rsRenderPipeline_ == nullptr || rsRenderPipeline_->GetMainThread() == nullptr) {
+        return;
+    }
+    auto& context = rsRenderPipeline_->GetMainThread()->GetContext();
+    context.SetBrightnessInfoChangeCallback(remotePid, nullptr);
+}
+
+void RSRenderPipelineAgent::CleanRenderNodes(pid_t remotePid) noexcept
+{
+    if (rsRenderPipeline_ == nullptr || rsRenderPipeline_->GetMainThread() == nullptr) {
+        RS_LOGW("RSRenderPipelineAgent::CleanRenderNode: rsRenderPipeline_ or mainThread is null!");
+    }
+    auto& context = rsRenderPipeline_->GetMainThread()->GetContext();
+    auto& nodeMap = context.GetMutableNodeMap();
+    MemoryTrack::Instance().RemovePidRecord(remotePid);
+
+    RS_PROFILER_KILL_PID(remotePid);
+    nodeMap.FilterNodeByPid(remotePid);
+    RS_PROFILER_KILL_PID_END();
+
+    RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+}
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSRenderPipelineAgent::CleanCanvasCallbacksAndPendingBuffer(pid_t remotePid) noexcept
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.RegisterCanvasCallback(remotePid, nullptr);
+    bufferCache.ClearPendingBufferByPid(remotePid);
+}
+#endif
+
+void RSRenderPipelineAgent::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::UnRegisterApplicationAgent rsRenderPipeline_ or  is null!");
+        return;
+    }
+
+    rsRenderPipeline_->ScheduleMainThreadTask([mainThread = rsRenderPipeline_->GetMainThread(), app]() {
+        if (mainThread == nullptr) {
+            RS_LOGE("RSRenderPipelineAgent::UnRegisterApplicationAgent mainThread or is null!");
+            return;
+        }
+        mainThread->UnRegisterApplicationAgent(app);
+    }).wait();
+}
 
 ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
@@ -1583,31 +1633,34 @@ ErrCode RSRenderPipelineAgent::RepaintEverything()
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::CleanResources(pid_t pid)
+void RSRenderPipelineAgent::CleanAll(pid_t pid)
 {
     if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
+        return;
     }
     RS_LOGD("CleanAll() start.");
-    RS_TRACE_NAME("RSRenderPipelineAgent::CleanResources begin, remotePid: " + std::to_string(pid));
+    RS_TRACE_NAME("RSRenderPipelineAgent::CleanAll begin, remotePid: " + std::to_string(pid));
     RsCommandVerifyHelper::GetInstance().RemoveCntWithPid(pid);
     rsRenderPipeline_->ScheduleMainThreadTask(
-        [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
-            RS_TRACE_NAME_FMT("CleanRenderNodes %d", pid);
-            if (mainThread == nullptr) {
+        [weakThis = wptr<RSRenderPipelineAgent>(this), pid] () -> void {
+            sptr<RSRenderPipelineAgent> agent = weakThis.promote();
+            if (agent == nullptr || agent->rsRenderPipeline_ == nullptr) {
+                RS_LOGW("rsRenderPipelineAgent or rsRenderPipeline_ is nullptr!");
                 return;
             }
-            auto& context = mainThread->GetContext();
-            auto& nodeMap = context.GetMutableNodeMap();
-            context.SetBrightnessInfoChangeCallback(pid, nullptr);
-            MemoryTrack::Instance().RemovePidRecord(pid);
-
-            nodeMap.FilterNodeByPid(pid);
+            weakThis->CleanRenderNodes(pid);
+            weakThis->CleanBrightnessInfoChangeCallbacks(pid);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+            weakThis->CleanCanvasCallbacksAndPendingBuffer();
+#endif
         }).wait();
     rsRenderPipeline_->ScheduleMainThreadTask(
         [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
             RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", pid);
             mainThread->ClearTransactionDataPidInfo(pid);
+            if (mainThread->IsRequestedNextVSync()) {
+                mainThread->SetDirtyFlag();
+            }
         }).wait();
     rsRenderPipeline_->ScheduleMainThreadTask(
         [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
@@ -1639,7 +1692,11 @@ ErrCode RSRenderPipelineAgent::CleanResources(pid_t pid)
     }
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
-    return ERR_OK;
+    {
+        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+        pidToBundleName_.clear();
+    }
+    return;
 }
 
 ErrCode RSRenderPipelineAgent::SetColorFollow(const std::string& nodeIdStr, bool isColorFollow)
@@ -1907,5 +1964,32 @@ void RSRenderPipelineAgent::ClearSurfaceWatermark(pid_t pid,
     };
     rsRenderPipeline_->PostMainThreadTask(task);
 }
+
+std::string RSRenderPipelineAgent::GetBundleName(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+    if (auto it = pidToBundleName_.find(pid); it != pidToBundleName_.end()) {
+        return it->second;
+    }
+
+    static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
+    if (appMgrClient == nullptr) {
+        RS_LOGE("GetBundleName get appMgrClient fail.");
+        return {};
+    }
+
+    std::string bundleName{};
+    int32_t uid{0};
+    int32_t ret = appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
+    if ((ret != ERR_OK) || bundleName.empty()) {
+        RS_LOGE("GetBundleName failed, ret=%{public}d.", ret);
+        return {};
+    }
+
+    pidToBundleName_.emplace(pid, bundleName);
+    return bundleName;
+}
+
+
 } // namespace Rosen
 } // namespace OHOS

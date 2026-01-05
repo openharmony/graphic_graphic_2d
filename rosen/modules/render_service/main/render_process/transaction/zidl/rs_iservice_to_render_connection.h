@@ -115,7 +115,6 @@ public:
     // Others
     virtual ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) = 0;
     virtual ErrCode RepaintEverything() = 0;
-    virtual ErrCode CleanResources(pid_t pid) = 0;
     virtual ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) = 0;
     virtual ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect& srcRect,
         std::shared_ptr<Media::PixelMap>& pixelMap) = 0;

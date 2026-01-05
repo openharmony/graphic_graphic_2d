@@ -3883,11 +3883,10 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes010, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, CreateVirtualScreen, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        nullptr, screenManagerAgent_, token->AsObject(), nullptr);
 
     std::string name("name");
     uint32_t width = 1;
@@ -3916,11 +3915,10 @@ HWTEST_F(RSMainThreadTest, CreateVirtualScreen, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        nullptr, screenManagerAgent_, token->AsObject(), nullptr);
 
     ScreenId id = 100;
     std::vector<uint64_t> blackList = {};
@@ -3940,11 +3938,10 @@ HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        nullptr, screenManagerAgent_, token->AsObject(), nullptr);
 
     ScreenId id = 100;
     std::vector<uint64_t> blackList = {};

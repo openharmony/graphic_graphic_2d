@@ -164,12 +164,6 @@ void RSServiceToRenderConnection::HandleHwcEvent(uint32_t deviceId, uint32_t eve
     renderPipelineAgent_->NotifyHwcEventToRender(deviceId, eventId, eventData);
 }
 
-ErrCode RSServiceToRenderConnection::CleanResources(pid_t pid)
-{
-    RS_TRACE_NAME_FMT("RSServiceToRenderConnection::CleanResources pid is %d", pid);
-    return renderPipelineAgent_->CleanResources(pid);
-}
-
 ErrCode RSServiceToRenderConnection::RepaintEverything()
 {
     ErrCode errCode = renderPipelineAgent_->RepaintEverything();

@@ -126,7 +126,7 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
 
     connectionStub_ =
         new RSClientToServiceConnection(0, renderServiceAgent_,
-            renderProcessManagerAgent_, mainThread_, screenManagerAgent_, token_->AsObject(), nullptr);
+            renderProcessManagerAgent_, screenManagerAgent_, token_->AsObject(), nullptr);
 }
 
 void RSClientToServiceConnectionStubTest::TearDownTestCase()
@@ -1499,7 +1499,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenGamutMapTest004, TestSize
 HWTEST_F(RSClientToServiceConnectionStubTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level2)
 {
     sptr<RSClientToServiceConnectionStub> connectionStub =
-        new RSClientToServiceConnection(0, renderServiceAgent_, renderProcessManagerAgent_, mainThread_,
+        new RSClientToServiceConnection(0, wptr<RSRenderService>(&renderService_), renderServiceAgent_, renderProcessManagerAgent_,
             screenManagerAgent_, token_->AsObject(), nullptr);
     ASSERT_NE(connectionStub, nullptr);
 
