@@ -14,7 +14,7 @@
  */
 
 #include "rs_frame_rate_vote.h"
-
+//
 #include <algorithm>
 
 #include "hgm_core.h"
