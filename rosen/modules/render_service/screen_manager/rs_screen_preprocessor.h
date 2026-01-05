@@ -32,9 +32,9 @@ struct ScreenHotPlugEvent {
 };
 class RSScreenPreprocessor {
 public:
-    RSScreenPreprocessor(wptr<RSScreenManager> screenManager, std::shared_ptr<RSScreenCallbackManager> callbackMgr,
+    RSScreenPreprocessor(RSScreenManager& screenManager, RSScreenCallbackManager& callbackMgr,
         std::shared_ptr<AppExecFwk::EventHandler> handler, bool isFoldScreen);
-    ~RSScreenPreprocessor() = default;
+    ~RSScreenPreprocessor() {};
 
     static void OnHotPlug(std::shared_ptr<HdiOutput>& output, bool connected, void* data);
     static void OnRefresh(ScreenId id, void* data);
@@ -61,8 +61,8 @@ private:
 
     std::atomic<bool> isHwcDead_ = false;
     HdiBackend* composer_ = nullptr;
-    wptr<RSScreenManager> screenManager_;
-    std::weak_ptr<RSScreenCallbackManager> callbackMgrWeak_;
+    RSScreenManager& screenManager_;
+    RSScreenCallbackManager& callbackMgr_;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
     std::map<ScreenId, ScreenHotPlugEvent> pendingHotPlugEvents_;
     mutable std::mutex hotPlugMutex_;

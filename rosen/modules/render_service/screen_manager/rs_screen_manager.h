@@ -43,7 +43,7 @@
 #include <screen_manager/rs_screen_info.h>
 #include <screen_manager/rs_screen_property.h>
 #include "rs_screen_preprocessor.h"
-#include "product_feature/fold/rs_fold_screen_manager.h"
+#include "product_feature/fold/rs_foldable_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -250,15 +250,15 @@ private:
     std::atomic<bool> isScreenSwitching_ = false;
 
     bool isFoldScreenFlag_ = false;
-    std::unique_ptr<RSFoldScreenManager> foldScreenManager_;
+    std::unique_ptr<RSFoldableScreenManager> foldableScreenManager_;
     struct FoldScreenStatus {
         bool isConnected;
         bool isPowerOn;
     };
     std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
 
-    const std::shared_ptr<RSScreenCallbackManager> callbackMgr_ = std::make_shared<RSScreenCallbackManager>();
-    std::shared_ptr<RSScreenPreprocessor> preprocessor_;
+    const std::unique_ptr<RSScreenCallbackManager> callbackMgr_ = std::make_unique<RSScreenCallbackManager>();
+    std::unique_ptr<RSScreenPreprocessor> preprocessor_;
 
     friend class RSScreenPreprocessor;
 };

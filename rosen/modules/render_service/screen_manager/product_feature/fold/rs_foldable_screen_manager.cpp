@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -74,9 +74,7 @@ void RSFoldableScreenManager::HandleSensorData(float angle)
         }
         if (activeScreenId_ != externalScreenId_) {
             activeScreenId_ = externalScreenId_;
-            if (auto screenPreprocessor = screenPreprocessor_.lock()) {
-                screenPreprocessor->NotifyActiveScreenIdChanged(activeScreenId_);
-            }
+            screenPreprocessor_.NotifyActiveScreenIdChanged(activeScreenId_);
         }
     } else {
         if (activeScreenId_ != innerScreenId_ || !isPostureSensorDataHandled_) {
@@ -84,9 +82,7 @@ void RSFoldableScreenManager::HandleSensorData(float angle)
         }
         if (activeScreenId_ != innerScreenId_) {
             activeScreenId_ = innerScreenId_;
-            if (auto screenPreprocessor = screenPreprocessor_.lock()) {
-                screenPreprocessor->NotifyActiveScreenIdChanged(activeScreenId_);
-            }
+            screenPreprocessor_.NotifyActiveScreenIdChanged(activeScreenId_);
         }
     }
     isPostureSensorDataHandled_ = true;
@@ -120,7 +116,8 @@ ScreenId RSFoldableScreenManager::GetActiveScreenId()
 {
     std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
     if (isPostureSensorDataHandled_) {
-        RS_LOGW("%{public}s: activeScreenId: %{public}" PRIu64, __func__, activeScreenId_);
+        RS_LOGW("%{public}s: posture sensor data has been handled, activeScreenId: %{public}" PRIu64, __func__,
+                activeScreenId_);
         return activeScreenId_;
     }
     activeScreenIdAssignedCV_.wait_until(lock, std::chrono::system_clock::now() +
