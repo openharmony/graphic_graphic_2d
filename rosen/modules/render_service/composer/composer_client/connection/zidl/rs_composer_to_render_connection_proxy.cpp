@@ -31,7 +31,7 @@ namespace Rosen {
 RSComposerToRenderConnectionProxy::RSComposerToRenderConnectionProxy(const sptr<IRemoteObject>& impl) :
     IRemoteProxy<IRSComposerToRenderConnection>(impl) {}
 
-int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffersInfo &releaseLayerInfo)
+int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo)
 {
     MessageParcel data;
     MessageParcel reply;

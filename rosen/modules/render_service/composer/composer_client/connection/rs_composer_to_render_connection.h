@@ -25,8 +25,14 @@ class RSComposerToRenderConnection : public RSComposerToRenderConnectionStub {
 public:
     RSComposerToRenderConnection() noexcept = default;
     ~RSComposerToRenderConnection() noexcept = default;
-    int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo &releaseLayerInfo) override;
-    int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t> &lppNodeIds) override;
+    int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo) override;
+    int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds) override;
+    void RegisterNotifyScreenNodeBufferReleasedCB(NotifyScreenNodeBufferReleasedCB callback) override;
+    void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) override;
+
+private:
+    NotifyScreenNodeBufferReleasedCB notifyScreenNodeBufferReleasedCB_;
+    ReleaseLayerBuffersCB releaseLayerBuffersCB_;
 };
 } // namespace Rosen
 } // namespace OHOS

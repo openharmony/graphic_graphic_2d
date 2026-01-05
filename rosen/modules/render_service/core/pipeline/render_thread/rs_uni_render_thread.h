@@ -73,6 +73,7 @@ public:
 
     void UnRegisterCond(ScreenId curScreenId);
     void NotifyScreenNodeBufferReleased(ScreenId curScreenId);
+    void ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo);
     bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
