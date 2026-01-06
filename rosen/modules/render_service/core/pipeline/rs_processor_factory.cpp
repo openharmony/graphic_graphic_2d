@@ -30,9 +30,17 @@ std::shared_ptr<RSProcessor> RSProcessorFactory::CreateProcessor(CompositeType t
         case CompositeType::SOFTWARE_COMPOSITE:
             return std::make_shared<RSVirtualScreenProcessor>();
         case CompositeType::HARDWARE_COMPOSITE:
-            return std::make_shared<RSPhysicalScreenProcessor>();
+            if (composerClient == nullptr) {
+                RS_LOGE("CreateProcessor client is nullptr");
+                return nullptr;
+            }
+            return std::make_shared<RSPhysicalScreenProcessor>(composerClient);
 #ifdef RS_ENABLE_GPU
         case CompositeType::UNI_RENDER_COMPOSITE:
+            if (composerClient == nullptr) {
+                RS_LOGE("CreateProcessor client is nullptr");
+                return nullptr;
+            }
             return std::make_shared<RSUniRenderProcessor>(composerClient);
 #endif
         case CompositeType::UNI_RENDER_MIRROR_COMPOSITE:

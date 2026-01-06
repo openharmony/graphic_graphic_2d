@@ -26,11 +26,11 @@ constexpr uint32_t WAIT_FOR_COMPOSER_THREAD_TASK_TIMEOUT = 3000;
 RSRenderComposerClient::RSRenderComposerClient(
     const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
     const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
-    : rsVsyncManagerAgent_(rsVsyncManagerAgent)
 {
     rsComposerContext_ = std::make_shared<RSComposerContext>();
     rsComposerContext_->SetRenderComposerClientConnection(renderToComposerConn);
     renderToComposerConn_ = renderToComposerConn;
+    rsVsyncManagerAgent_ = rsVsyncManagerAgent;
 }
 
 std::shared_ptr<RSRenderComposerClient> RSRenderComposerClient::Create(
@@ -43,6 +43,16 @@ std::shared_ptr<RSRenderComposerClient> RSRenderComposerClient::Create(
         renderToComposerConn->SetComposerToRenderConnection(composerToRenderConn);
     }
     return std::make_shared<RSRenderComposerClient>(renderToComposerConn, rsVsyncManagerAgent);
+}
+
+void RSRenderComposerClient::SetOutput(const std::shared_ptr<HdiOutput>& output)
+{
+    output_ = output;
+}
+
+std::shared_ptr<HdiOutput> RSRenderComposerClient::GetOutput() const
+{
+    return output_;
 }
 
 std::shared_ptr<RSLayer> RSRenderComposerClient::GetRSLayer(RSLayerId rsLayerId)

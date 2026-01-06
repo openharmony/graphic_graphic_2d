@@ -38,9 +38,9 @@ public:
     void operator=(const RSComposerAdapter&) = delete;
 
     bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
-        const FallbackCallback& cb);
+        const FallbackCallback& cb, const std::shared_ptr<HdiOutput>& output);
     bool Init(const RSScreenRenderNode& node, const ScreenInfo& screenInfo, const ScreenInfo& mirroredScreenInfo,
-        float mirrorAdaptiveCoefficient, const FallbackCallback& cb);
+        float mirrorAdaptiveCoefficient, const FallbackCallback& cb, const std::shared_ptr<HdiOutput>& output);
 
     RSLayerPtr CreateLayer(RSSurfaceRenderNode& node) const;
     RSLayerPtr CreateLayer(RSScreenRenderNode& node) const;

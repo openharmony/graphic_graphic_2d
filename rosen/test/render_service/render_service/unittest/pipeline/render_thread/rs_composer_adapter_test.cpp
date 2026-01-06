@@ -96,7 +96,7 @@ void RSComposerAdapterTest::CreateComposerAdapterWithScreenInfo(uint32_t width, 
     info.colorGamut = colorGamut;
     info.state = state;
     info.rotation = rotation;
-    composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient, nullptr);
+    composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient, nullptr, nullptr);
 }
 
 /**

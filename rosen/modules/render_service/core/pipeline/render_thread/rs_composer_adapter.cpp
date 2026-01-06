@@ -38,14 +38,15 @@
 namespace OHOS {
 namespace Rosen {
 bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
-    float mirrorAdaptiveCoefficient, const FallbackCallback& cb)
+    float mirrorAdaptiveCoefficient, const FallbackCallback& cb,
+    const std::shared_ptr<HdiOutput>& output)
 {
-    std::shared_ptr<HdiOutput> output_; // 待composer适配
-    if (output_ == nullptr) {
+    if (output == nullptr) {
         RS_LOGE("RSComposerAdapter::Init: output_ is nullptr");
         return false;
     }
 
+    output_ = output;
     fallbackCb_ = cb;
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
         OnPrepareComplete(surface, param, data);
@@ -66,14 +67,15 @@ bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int3
 }
 
 bool RSComposerAdapter::Init(const RSScreenRenderNode& node, const ScreenInfo& screenInfo,
-    const ScreenInfo& mirroredScreenInfo, float mirrorAdaptiveCoefficient, const FallbackCallback& cb)
+    const ScreenInfo& mirroredScreenInfo, float mirrorAdaptiveCoefficient, const FallbackCallback& cb,
+    const std::shared_ptr<HdiOutput>& output)
 {
-    std::shared_ptr<HdiOutput> output_; // 待composer适配
-    if (output_ == nullptr) {
+    if (output == nullptr) {
         RS_LOGE("RSComposerAdapter::Init: output_ is nullptr");
         return false;
     }
 
+    output_ = output;
     fallbackCb_ = cb;
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
         OnPrepareComplete(surface, param, data);

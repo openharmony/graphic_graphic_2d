@@ -30,6 +30,10 @@ RSRenderComposerManager::RSRenderComposerManager(std::shared_ptr<AppExecFwk::Eve
 void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>& output,
     const sptr<RSScreenProperty>& property)
 {
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RS_LOGE("OnScreenConnected not uni render");
+        return;
+    }
     if (output == nullptr || property == nullptr) {
         RS_LOGE("OnScreenConnected output or property is nullptr");
         return;
@@ -64,6 +68,10 @@ void RSRenderComposerManager::OnScreenDisconnected(ScreenId screenId)
 {
     RS_TRACE_NAME_FMT("RSRenderComposerManager::OnScreenDisconnected screenId %u", screenId);
     RS_LOGI("OnScreenDisconnected screenId:%{public}" PRIu64, screenId);
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RS_LOGE("OnScreenDisconnected not uni render");
+        return;
+    }
     std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
     {
         std::lock_guard<std::mutex> lock(mutex_);
