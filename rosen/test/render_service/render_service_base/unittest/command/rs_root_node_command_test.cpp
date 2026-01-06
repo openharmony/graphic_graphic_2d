@@ -114,4 +114,86 @@ HWTEST_F(RSRootNodeCommandTest, CreateTest001, TestSize.Level1)
     RootNodeCommandHelper::Create(context, id, false);
     EXPECT_TRUE(id != -2);
 }
+
+/**
+ * @tc.name: CreateTest002
+ * @tc.desc: Verify function Create
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRootNodeCommandTest, CreateTest002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RootNodeCommandHelper::Create(context, id);
+    EXPECT_FALSE(context.GetMutableNodeMap().UnRegisterUnTreeNode(id));
+}
+ 
+/**
+ * @tc.name: CreateTest003
+ * @tc.desc: Verify function Create
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRootNodeCommandTest, CreateTest003, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    context.GetMutableNodeMap().RegisterUnTreeNode(id);
+    RootNodeCommandHelper::Create(context, id);
+    EXPECT_FALSE(context.GetMutableNodeMap().UnRegisterUnTreeNode(id));
+}
+ 
+/**
+ * @tc.name: AttachToUniSurfaceNodeTest001
+ * @tc.desc: Verify function AttachToUniSurfaceNode
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRootNodeCommandTest, AttachToUniSurfaceNodeTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId parentId = static_cast<NodeId>(1);
+    NodeId childId = static_cast<NodeId>(2);
+    SurfaceNodeCommandHelper::Create(context, parentId);
+    ASSERT_NE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(parentId), nullptr);
+    RootNodeCommandHelper::AttachToUniSurfaceNode(context, childId, parentId);
+    EXPECT_TRUE(context.GetMutableNodeMap().UnRegisterUnTreeNode(childId));
+}
+ 
+/**
+ * @tc.name: AttachToUniSurfaceNodeTest002
+ * @tc.desc: Verify function AttachToUniSurfaceNode
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRootNodeCommandTest, AttachToUniSurfaceNodeTest002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId parentId = static_cast<NodeId>(1);
+    NodeId childId = static_cast<NodeId>(2);
+    SurfaceNodeCommandHelper::Create(context, parentId);
+    ASSERT_NE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(parentId), nullptr);
+    RootNodeCommandHelper::Create(context, childId);
+    ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRootRenderNode>(childId), nullptr);
+    RootNodeCommandHelper::AttachToUniSurfaceNode(context, childId, parentId);
+    EXPECT_FALSE(context.GetMutableNodeMap().UnRegisterUnTreeNode(childId));
+}
+ 
+/**
+ * @tc.name: AttachToUniSurfaceNodeTest003
+ * @tc.desc: Verify function AttachToUniSurfaceNode
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRootNodeCommandTest, AttachToUniSurfaceNodeTest003, TestSize.Level1)
+{
+    RSContext context;
+    NodeId parentId = static_cast<NodeId>(1);
+    NodeId childId = static_cast<NodeId>(2);
+    RootNodeCommandHelper::Create(context, childId);
+    ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRootRenderNode>(childId), nullptr);
+    RootNodeCommandHelper::AttachToUniSurfaceNode(context, childId, parentId);
+    EXPECT_TRUE(context.GetMutableNodeMap().UnRegisterUnTreeNode(parentId));
+}
 } // namespace OHOS::Rosen
