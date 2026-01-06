@@ -14,6 +14,8 @@
  */
 #include "feature/hyper_graphic_manager/hgm_rp_energy.h"
 
+#include <algorithm>
+
 #include "rs_frame_rate_vote.h"
 #include "rs_trace.h"
 
@@ -59,7 +61,6 @@ void HgmRPEnergy::GetComponentFps(FrameRateRange& range)
     }
     auto componentFpsIter = componentPowerConfig_.find(range.GetComponentName());
     if (componentFpsIter == componentPowerConfig_.end()) {
-        RS_TRACE_NAME_FMT("GetComponentFps not find config");
         return;
     }
 
@@ -72,16 +73,10 @@ void HgmRPEnergy::GetComponentFps(FrameRateRange& range)
     range.preferred_ = std::min(range.preferred_, idleFps);
 }
 
-void HgmRPEnergy::ClearEnergyCommonData()
+void HgmRPEnergy::MoveEnergyCommonDataTo(EnergyCommonDataMap& commonData)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    energyCommonData_.clear();
-}
-
-const EnergyCommonDataMap& HgmRPEnergy::GetEnergyCommonData()
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    return energyCommonData_;
+    std::swap(energyCommonData_, commonData);
 }
 
 void HgmRPEnergy::AddEnergyCommonData(EnergyEvent event, const std::string& key, const std::string& value)

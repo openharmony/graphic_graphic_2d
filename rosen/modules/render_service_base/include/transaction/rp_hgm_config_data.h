@@ -31,6 +31,8 @@ public:
 
     [[nodiscard]] static RPHgmConfigData* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;
+    bool MarshallingComponentPowerConfig(Parcel& parcel) const;
+    bool UnmarshallingComponentPowerConfig(Parcel& parcel);
 
     void AddAnimDynamicItem(const AnimDynamicItem& item) { configData_.emplace_back(item); }
 

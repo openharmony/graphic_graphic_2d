@@ -24,8 +24,8 @@ public:
 
     void SetTouchState(bool isIdle);
 
-    const EnergyCommonDataMap& GetEnergyCommonData();
-    void ClearEnergyCommonData();
+    void MoveEnergyCommonDataTo(EnergyCommonDataMap& commonData);
+
     void AddEnergyCommonData(EnergyEvent event, const std::string& key, const std::string& value);
 
     void StatisticAnimationTime(uint64_t timestamp);
