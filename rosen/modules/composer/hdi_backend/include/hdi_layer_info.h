@@ -557,7 +557,7 @@ public:
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) { ancoSrcRect_ = ancoSrcRect; }
     const GraphicIRect& GetAncoSrcRect() const { return ancoSrcRect_; }
 
-    // hpae offline: while creating layer, use srcRect & dstRect instead of bounds to create redraw metrix
+    // hpae offline: while creating layer, use srcRect&dstRect instead of bounds to create redraw matrix
     void SetUseDeviceOffline(bool useOffline) { useDeviceOffline_ = useOffline; }
     bool GetUseDeviceOffline() const { return useDeviceOffline_; }
 

@@ -96,7 +96,7 @@ bool RSHpaeOfflineLayer::CreateSurface(sptr<IBufferConsumerListener>& listener)
         return false;
     }
     pSurface_->SetQueueSize(bufferSize_);
-    pSurface_->SetBufferName(HPAE_OFFLINE_BUFFER_TAG);
+    pSurface_->SetBufferTypeLeak(HPAE_OFFLINE_BUFFER_TAG);
     surfaceCreated_ = true;
     surfaceHandler_->SetConsumer(consumer);
     return true;
