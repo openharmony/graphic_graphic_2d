@@ -39,7 +39,7 @@ enum class CancelAnimationStatus;
 
 class RSC_EXPORT RSImplicitAnimator {
 public:
-    RSImplicitAnimator() = default;
+    RSImplicitAnimator(pid_t tid = gettid()) : tid_(tid) {}
     virtual ~RSImplicitAnimator() = default;
 
     // open implicit animation with given animation options, finish callback and repeatcallback
@@ -95,6 +95,8 @@ public:
     
     void ApplyAnimationSpeedMultiplier(float multiplier = 1.0f);
 
+    pid_t GetTid() const { return tid_; }
+
 private:
     void EndImplicitAnimation();
     void BeginImplicitCurveAnimation();
@@ -129,6 +131,7 @@ private:
     std::stack<std::tuple<bool, int, int>> durationKeyframeParams_;
 
     bool implicitAnimationDisabled_ { false };
+    pid_t tid_ { 0 };
 
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> interactiveImplicitAnimations_;
     bool isAddInteractiveAnimator_ { false };

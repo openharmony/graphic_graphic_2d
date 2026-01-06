@@ -30,13 +30,15 @@ namespace OHOS {
 namespace Rosen {
 static constexpr int NUMBER_FOR_HALF = 2;
 
-RSPathAnimation::RSPathAnimation(std::shared_ptr<RSPropertyBase> property,
-    const std::shared_ptr<RSPath>& animationPath) : RSPropertyAnimation(property), animationPath_(animationPath)
+RSPathAnimation::RSPathAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+    std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPath>& animationPath)
+    : RSPropertyAnimation(rsUIContext, property), animationPath_(animationPath)
 {}
 
-RSPathAnimation::RSPathAnimation(std::shared_ptr<RSPropertyBase> property, const std::string& path,
+RSPathAnimation::RSPathAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+    std::shared_ptr<RSPropertyBase> property, const std::string& path,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue)
-    : RSPathAnimation(property, PreProcessPath(path, startValue, endValue))
+    : RSPathAnimation(rsUIContext, property, PreProcessPath(path, startValue, endValue))
 {
     startValue_ = startValue;
     endValue_ = endValue;

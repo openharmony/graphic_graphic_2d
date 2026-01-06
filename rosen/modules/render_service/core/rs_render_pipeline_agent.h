@@ -29,7 +29,7 @@ public:
     ErrCode CommitTransaction(pid_t callingPid, bool isTokenTypeValid, bool isNonSystemAppCalling,
         std::unique_ptr<RSTransactionData>& transactionData);
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task);
-    
+
     ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success);
 
@@ -162,7 +162,7 @@ public:
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
     ErrCode RepaintEverything();
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
-    ErrCode CleanResources(pid_t pid);
+    void CleanAll(pid_t pid);
     void SetFreeMultiWindowStatus(bool enable);
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback);
@@ -180,7 +180,7 @@ public:
     ErrCode GetHdrOnDuration(int64_t& hdrOnDuration);
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList);
     void OnScreenBacklightChanged(ScreenId screenId, uint32_t level);
-
+    void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList);
     int32_t NotifyScreenRefresh(ScreenId screenId);
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
         const std::shared_ptr<Media::PixelMap> &watermark, const std::vector<NodeId>& nodeIdList,
@@ -190,8 +190,17 @@ public:
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
     ErrCode ForceRefreshOneFrameWithNextVSync();
     ErrCode SetAppWindowNum(uint32_t num);
+    std::string GetBundleName(pid_t pid);
+    void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
 private:
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
+    void CleanRenderNodes(pid_t remotePid) noexcept;
+    void CleanBrightnessInfoChangeCallbacks(pid_t remotePid) noexcept;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void CleanCanvasCallbacksAndPendingBuffer(pid_t remotePid) noexcept;
+#endif
+    std::unordered_map<pid_t, std::string> pidToBundleName_;
+    mutable std::mutex pidToBundleMutex_;
 };
 
 } // namespace Rosen

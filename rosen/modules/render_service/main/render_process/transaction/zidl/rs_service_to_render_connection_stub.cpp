@@ -285,16 +285,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             SetLayerTop(nodeIdStr, isTop);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::CLEAN_RESOURCE): {
-            pid_t pid;
-            if (!data.ReadInt32(pid)) {
-                RS_LOGE("RSClientToRenderConnectionStub::CLEAN_RESOURCE read pid failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            CleanResources(pid);
-            break;
-        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE): {
             float cpuMemSize = 0.f;
             float gpuMemSize = 0.f;
@@ -988,6 +978,17 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             OnScreenBacklightChanged(id, level);
+            break;
+        }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::ON_GLOBAL_BLACKLIST_CHANGED) : {
+            ScreenId id{INVALID_SCREEN_ID};
+            std::vector<NodeId> globalBlackList;
+            if (!data.ReadUInt64Vector(&globalBlackList)) {
+                RS_LOGE("RSServiceToRenderStub::ON_GLOBAL_BLACKLIST_CHANGED Read ScreenId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            OnGlobalBlacklistChanged({globalBlackList.begin(), globalBlackList.end()});
             break;
         }
         default:

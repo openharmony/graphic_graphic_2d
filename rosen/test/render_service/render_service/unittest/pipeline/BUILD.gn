@@ -349,6 +349,7 @@ ohos_unittest("RSRenderServiceListenerTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -587,6 +588,7 @@ ohos_unittest("RSUniRenderUtilTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -1138,6 +1140,7 @@ ohos_unittest("RSHwcContextTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",

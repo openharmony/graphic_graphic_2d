@@ -96,7 +96,7 @@ void RSRenderToComposerConnection::SetComposerToRenderConnection(
     rsRenderComposerAgent_->SetComposerToRenderConnection(composerToRenderConn);
 }
 
-void RSRenderToComposerConnection::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer)
+void RSRenderToComposerConnection::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
 {
     RS_TRACE_NAME_FMT("RSRenderToComposerConnection::PreAllocProtectedFrameBuffers");
     if (rsRenderComposerAgent_ == nullptr) {

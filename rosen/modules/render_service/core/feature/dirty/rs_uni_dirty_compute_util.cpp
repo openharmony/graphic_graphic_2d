@@ -30,6 +30,7 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "params/rs_screen_render_params.h"
@@ -369,7 +370,7 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
 
     // update accumulated special layer status changed
-    auto currentBlackList = params.GetScreenProperty().GetMergeBlackList();
+    auto currentBlackList = RSSpecialLayerUtils::GetMergeBlackList(params.GetScreenProperty());
     if (currentBlackList != params.GetLastBlackList()) {
         params.SetLastBlackList(currentBlackList);
         params.SetAccumulatedSpecialLayerStatusChanged(true);
@@ -449,7 +450,7 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
     }
     const auto& displayDrawables = mirrorScreenParams->GetDisplayDrawables();
     auto& curAllSurfaceDrawables = mainScreenParams->GetAllMainAndLeashSurfaceDrawables();
-    auto curBlackList = mirrorScreenParams->GetScreenProperty().GetMergeBlackList();
+    auto curBlackList = RSSpecialLayerUtils::GetMergeBlackList(mirrorScreenParams->GetScreenProperty());
     auto curTypeBlackList = mirrorScreenParams->GetScreenProperty().GetTypeBlackList();
     for (const auto& drawable : displayDrawables) {
         if (drawable == nullptr) {

@@ -64,5 +64,16 @@ void RSRenderProcessManager::OnScreenBacklightChanged(ScreenId id, uint32_t leve
     }
     conn->OnScreenBacklightChanged(id, level);
 }
+
+void RSRenderProcessManager::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
+{
+    auto serviceToRenderConns = GetServiceToRenderConns();
+    for (const auto& conn : serviceToRenderConns) {
+        if (conn == nullptr) {
+            continue;
+        }
+        conn->OnGlobalBlacklistChanged(globalBlackList);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

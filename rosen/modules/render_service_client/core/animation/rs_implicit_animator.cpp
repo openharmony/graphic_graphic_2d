@@ -570,7 +570,7 @@ void RSImplicitAnimator::CreateImplicitTransition(RSNode& target)
         return;
     }
     auto transitionImplicitParam = std::static_pointer_cast<RSImplicitTransitionParam>(params);
-    auto transition = transitionImplicitParam->CreateAnimation();
+    auto transition = transitionImplicitParam->CreateAnimation(rsUIContext_.lock());
     if (transition != nullptr) {
         target.AddAnimation(transition);
         implicitAnimations_.top().push_back({ transition, target.GetId() });
@@ -629,7 +629,7 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
     switch (params->GetType()) {
         case ImplicitAnimationParamType::CURVE: {
             auto curveImplicitParam = static_cast<RSImplicitCurveAnimationParam*>(params.get());
-            animation = curveImplicitParam->CreateAnimation(property, startValue, endValue);
+            animation = curveImplicitParam->CreateAnimation(rsUIContext_.lock(), property, startValue, endValue);
             break;
         }
         case ImplicitAnimationParamType::KEYFRAME: {
@@ -639,8 +639,8 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
             [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, unused] = durationKeyframeParams_.top();
             SetPropertyValue(property, endValue);
             if (keyframeIter == keyframeAnimations.end()) {
-                animation = keyframeImplicitParam->CreateAnimation(property, isDurationKeyframe, totalDuration,
-                    startValue, endValue);
+                animation = keyframeImplicitParam->CreateAnimation(
+                    rsUIContext_.lock(), property, isDurationKeyframe, totalDuration, startValue, endValue);
                 keyframeAnimations[{ target->GetId(), property->GetId() }] = animation;
             } else {
                 if (isDurationKeyframe) {
@@ -653,7 +653,7 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         }
         case ImplicitAnimationParamType::SPRING: {
             auto springImplicitParam = static_cast<RSImplicitSpringAnimationParam*>(params.get());
-            animation = springImplicitParam->CreateAnimation(property, startValue, endValue);
+            animation = springImplicitParam->CreateAnimation(rsUIContext_.lock(), property, startValue, endValue);
             const auto& finishCallback =
                 std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
             if (finishCallback && finishCallback->finishCallbackType_ == FinishCallbackType::LOGICALLY) {
@@ -664,7 +664,8 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         case ImplicitAnimationParamType::INTERPOLATING_SPRING: {
             auto interpolatingSpringImplicitParam =
                 static_cast<RSImplicitInterpolatingSpringAnimationParam*>(params.get());
-            animation = interpolatingSpringImplicitParam->CreateAnimation(property, startValue, endValue);
+            animation =
+                interpolatingSpringImplicitParam->CreateAnimation(rsUIContext_.lock(), property, startValue, endValue);
             const auto& finishCallback =
                 std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
             if (finishCallback && finishCallback->finishCallbackType_ == FinishCallbackType::LOGICALLY) {
@@ -674,14 +675,15 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         }
         case ImplicitAnimationParamType::PATH: {
             auto pathImplicitParam = static_cast<RSImplicitPathAnimationParam*>(params.get());
-            animation = pathImplicitParam->CreateAnimation(property, startValue, endValue);
+            animation = pathImplicitParam->CreateAnimation(rsUIContext_.lock(), property, startValue, endValue);
             break;
         }
         case ImplicitAnimationParamType::CANCEL: {
             // CreateEmptyAnimation
             if (property->id_ == 0) {
                 auto curveImplicitParam = static_cast<RSImplicitCancelAnimationParam*>(params.get());
-                animation = curveImplicitParam->CreateEmptyAnimation(property, startValue, endValue);
+                animation =
+                    curveImplicitParam->CreateEmptyAnimation(rsUIContext_.lock(), property, startValue, endValue);
                 break;
             }
             RSAnimationTraceUtils::GetInstance().AddAnimationCancelTrace(target->GetId(), property->GetId());
@@ -776,7 +778,7 @@ void RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity(const std::s
         return;
     }
 
-    animation = springImplicitParam->CreateAnimation(property, startValue, endValue);
+    animation = springImplicitParam->CreateAnimation(rsUIContext_.lock(), property, startValue, endValue);
     if (!animation) {
         ROSEN_LOGE("RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity: failed to create animation.");
         return;

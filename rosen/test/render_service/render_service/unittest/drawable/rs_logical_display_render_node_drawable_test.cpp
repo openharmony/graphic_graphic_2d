@@ -3303,7 +3303,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, GetSpecialLayerType, TestSize.L
     result = displayDrawable_->GetSpecialLayerType(*params);
     ASSERT_EQ(result, 0);
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
-    params->specialLayerManager_.ClearScreenSpecialLayer(screenId);
+    params->specialLayerManager_.ClearScreenSpecialLayer();
     RSUniRenderThread::Instance().whiteList_.clear();
 }
 

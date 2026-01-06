@@ -43,16 +43,11 @@
 #include <screen_manager/rs_screen_info.h>
 #include <screen_manager/rs_screen_property.h>
 #include "rs_screen_preprocessor.h"
+#include "product_feature/fold/rs_foldable_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSScreen;
-enum class FoldState : uint32_t {
-    UNKNOW,
-    FOLDED,
-    EXPAND
-};
-
 // This class can be only created by RSRenderService to manager screen.
 class RSScreenManager : public RefBase {
 public:
@@ -156,11 +151,16 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const;
 
-    int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
-    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
+    // type blacklist
     int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList);
+    
+    // blacklist
+    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
     int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
     int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
+
+    // global blacklist
+    int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<uint64_t>& securityExemptionList);
@@ -189,21 +189,12 @@ public:
 private:
     void OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens);
 
-    void PrintScreenBlackList(
-        std::string funcName, ScreenId id, const std::unordered_set<uint64_t> &set) const;
-
     // physical screen
     bool CheckFoldScreenIdBuiltIn(ScreenId id);
     void ProcessScreenConnected(ScreenId id);
     void ProcessPendingConnections();
     void ProcessScreenDisConnected(ScreenId id);
     void HandleDefaultScreenDisConnected();
-
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    void HandleSensorData(float angle);
-    FoldState TransferAngleToScreenState(float angle);
-    void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
-#endif
 
     sptr<RSScreenProperty> QueryScreenProperty(ScreenId id) const; // Only for internal use by ScreenManager
     std::shared_ptr<RSScreen> GetScreen(ScreenId id) const;
@@ -219,6 +210,11 @@ private:
 
     void OnScreenPropertyChanged(const sptr<RSScreenProperty>& property);
     void OnScreenBacklightChanged(ScreenId id, uint32_t level);
+
+    // global blacklist
+    int32_t SetGlobalBlackList(const std::unordered_set<NodeId>& blackList);
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList);
+    int32_t RemoveGlobalBlackList(const std::vector<uint64_t>& blackList);
 
     std::atomic<ScreenId> defaultScreenId_ = INVALID_SCREEN_ID;
 
@@ -243,8 +239,8 @@ private:
     std::unordered_map<ScreenId, uint32_t> screenBacklight_;
     std::unordered_map<ScreenId, ScreenRotation> screenCorrection_;
 
-    std::mutex blackListMutex_;
-    std::unordered_set<uint64_t> globalBlackList_ = {};
+    std::mutex globalBlackListMutex_;
+    std::unordered_set<NodeId> globalBlackList_ = {};
 
     std::atomic<uint64_t> frameId_ = 0;
 
@@ -256,21 +252,14 @@ private:
     std::atomic<bool> isScreenSwitching_ = false;
 
     bool isFoldScreenFlag_ = false;
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    ScreenId innerScreenId_ = 0;
-    ScreenId externalScreenId_ = INVALID_SCREEN_ID;
-    ScreenId activeScreenId_ = 0;
-    bool isPostureSensorDataHandled_ = false;
-    std::condition_variable activeScreenIdAssignedCV_;
-    mutable std::mutex activeScreenIdAssignedMutex_;
-#endif
+    std::unique_ptr<RSFoldableScreenManager> foldableScreenManager_;
     struct FoldScreenStatus {
         bool isConnected;
         bool isPowerOn;
     };
     std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
 
-    const std::shared_ptr<RSScreenCallbackManager> callbackMgr_ = std::make_shared<RSScreenCallbackManager>();
+    const std::unique_ptr<RSScreenCallbackManager> callbackMgr_ = std::make_unique<RSScreenCallbackManager>();
     std::unique_ptr<RSScreenPreprocessor> preprocessor_;
 
     friend class RSScreenPreprocessor;

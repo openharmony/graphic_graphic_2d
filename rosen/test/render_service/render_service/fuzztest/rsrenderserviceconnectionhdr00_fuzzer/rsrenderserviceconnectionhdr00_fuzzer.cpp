@@ -96,13 +96,13 @@ void SetUp(FuzzedDataProvider& fdp)
     std::string tag = enableForAll ? "ENABLED_FOR_ALL" : "DISABLED";
     WriteUnirenderConfig(tag);
     RSUniRenderJudgement::InitUniRenderConfig();
-    g_toServiceConnection->mainThread_ = g_mainThread;
+    // g_toServiceConnection->mainThread_ = g_mainThread;
 }
 
 void TearDown()
 {
     WriteUnirenderConfig(g_originTag);
-    g_toServiceConnection->mainThread_ = nullptr;
+    // g_toServiceConnection->mainThread_ = nullptr;
 }
 
 /* Fuzzer test GetPixelFormat */
@@ -341,7 +341,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 
     OHOS::Rosen::g_toServiceConnection = new OHOS::Rosen::RSClientToServiceConnection(
         OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
-        OHOS::Rosen::g_mainThread, screenManagerAgent_, OHOS::Rosen::g_token->AsObject(), appVSyncDistributor);
+        screenManagerAgent_, OHOS::Rosen::g_token->AsObject(), appVSyncDistributor);
 
     OHOS::Rosen::g_toRenderConnection =
         new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, OHOS::Rosen::g_token->AsObject());

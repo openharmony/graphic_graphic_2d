@@ -45,7 +45,7 @@ HWTEST_F(RSFrameRateLinkerCommandTest, Destroy001, TestSize.Level1)
 {
     RSContext context;
     FrameRateLinkerId linkerId = 0;
-    auto& destoryIds = context.GetMutableFrameRateLinkerDestoryIds();
+    auto& destoryIds = context.GetMutableFrameRateLinkerDestroyIds();
     RSFrameRateLinkerCommandHelper::Destroy(context, linkerId);
     EXPECT_EQ(destoryIds.size(), 1);
 
@@ -73,7 +73,7 @@ HWTEST_F(RSFrameRateLinkerCommandTest, UpdateRange001, TestSize.Level1)
     auto& updateInfoMap = context.GetMutableFrameRateLinkerUpdateInfoMap();
     EXPECT_EQ(updateInfoMap.size(), 1);
     EXPECT_EQ(updateInfoMap[linkerId].animatorExpectedFrameRate, 30);
-    EXPECT_EQ(pdateInfoMap[linkerId].range.preferred_, 60);
+    EXPECT_EQ(updateInfoMap[linkerId].range.preferred_, 60);
 }
 } // namespace Rosen
 } // namespace OHOS

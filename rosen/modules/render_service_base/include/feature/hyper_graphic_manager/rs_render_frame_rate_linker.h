@@ -12,10 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_FRAME_RATE_LINKER_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_FRAME_RATE_LINKER_H
 
 #include <mutex>
+
 #include <refbase.h>
 
 #include "animation/rs_frame_rate_range.h"
@@ -25,10 +27,12 @@
 namespace OHOS {
 namespace Rosen {
 class RSIFrameRateLinkerExpectedFpsUpdateCallback;
+
 class RSB_EXPORT RSRenderFrameRateLinker : public std::enable_shared_from_this<RSRenderFrameRateLinker> {
 public:
     using ObserverType = std::function<void()>;
     using TimePoint = std::atomic<std::chrono::steady_clock::time_point>;
+
     explicit RSRenderFrameRateLinker(FrameRateLinkerId id, ObserverType observer);
     explicit RSRenderFrameRateLinker(ObserverType observer);
     explicit RSRenderFrameRateLinker(FrameRateLinkerId id);
@@ -40,36 +44,23 @@ public:
     RSRenderFrameRateLinker& operator=(const RSRenderFrameRateLinker&& other);
     ~RSRenderFrameRateLinker();
 
-    inline FrameRateLinkerId GetId() const
-    {
-        return id_;
-    }
-
-    inline int32_t GetAceAnimatorExpectedFrameRate() {
-        return animatorExpectedFrameRate_;
-    }
-
-    inline std::string GetVsyncName()
-    {
-        return vsyncName_;
-    }
-
-    inline uint64_t GetWindowNodeId()
-    {
-        return windowNodeId_;
-    }
+    FrameRateLinkerId GetId() const { return id_; }
+    int32_t GetAceAnimatorExpectedFrameRate() { return animatorExpectedFrameRate_; }
+    std::string GetVsyncName() { return vsyncName_; }
+    uint64_t GetWindowNodeId() { return windowNodeId_; }
+    uint32_t GetFrameRate() const;
 
     void SetAnimatorExpectedFrameRate(int32_t animatorExpectedFrameRate);
-    void SetVsyncName(const std::string &vsyncName);
-    void SetWindowNodeId(uint64_t windowNodeId);
+    void SetVsyncName(const std::string& vsyncName) { vsyncName_ = vsyncName; }
+    void SetWindowNodeId(uint64_t windowNodeId) { windowNodeId_ = windowNodeId; }
     void SetExpectedRange(const FrameRateRange& range);
     const FrameRateRange& GetExpectedRange() const;
     void SetFrameRate(uint32_t rate);
-    uint32_t GetFrameRate() const;
 
     void RegisterExpectedFpsUpdateCallback(pid_t pid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
     void UpdateNativeVSyncTimePoint();
     bool NativeVSyncIsTimeOut() const;
+
 private:
     static FrameRateLinkerId GenerateId();
     void Copy(const RSRenderFrameRateLinker&& other);
@@ -77,14 +68,15 @@ private:
 
     FrameRateLinkerId id_ = 0;
     ObserverType observer_ = nullptr; // will not be copied to other obj
-    FrameRateRange expectedRange_;
     const std::string xcomponentId_ = "";
-    uint32_t frameRate_ = 0;
     int32_t animatorExpectedFrameRate_ = -1;
     std::string vsyncName_;
     uint64_t windowNodeId_ = 0;
-    mutable std::mutex mutex_;
     TimePoint nativeVSyncTimePoint_ = std::chrono::steady_clock::time_point::min();
+
+    mutable std::mutex mutex_;
+    FrameRateRange expectedRange_;
+    uint32_t frameRate_ = 0;
 
     std::unordered_map<pid_t, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>> expectedFpsChangeCallbacks_;
 };

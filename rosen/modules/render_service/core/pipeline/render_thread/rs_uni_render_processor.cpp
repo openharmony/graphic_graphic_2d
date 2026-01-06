@@ -142,7 +142,7 @@ void RSUniRenderProcessor::CreateLayer(/*const ??? todo */ RSSurfaceRenderNode& 
         RS_LOGE("CreateLayer failed to get layer info.");
         return;
     }
-    node.SetRSLayer(layer);
+    node.SetRSLayer(screenInfo_.id, layer);
     layer->SetSdrNit(params.GetSdrNit());
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
@@ -206,7 +206,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
         RS_LOGE("CreateLayerForRenderThread failed to get layer info.");
         return;
     }
-    surfaceDrawable.SetRSLayer(layer);
+    surfaceDrawable.SetRSLayer(screenInfo_.id, layer);
     layer->SetNodeId(surfaceDrawable.GetId());  // node id only for dfx
     auto& renderParams = static_cast<RSSurfaceRenderParams&>(params);
     layer->SetSdrNit(renderParams.GetSdrNit());
@@ -523,7 +523,7 @@ void RSUniRenderProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
     }
     uniLayer_ = layer;
     layers_.emplace_back(layer);
-    node.SetRSLayer(layer);
+    node.SetRSLayer(screenInfo_.id, layer);
     auto drawable = node.GetRenderDrawable();
     if (!drawable) {
         return;

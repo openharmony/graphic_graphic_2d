@@ -40,7 +40,7 @@ public:
     }
 
 protected:
-    RSPropertyAnimation(std::shared_ptr<RSPropertyBase> property);
+    RSPropertyAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property);
 
     void SetAdditive(bool isAdditive);
 

@@ -24,8 +24,9 @@
 
 namespace OHOS {
 namespace Rosen {
-RSTransition::RSTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
-    : isTransitionIn_(isTransitionIn), effect_(effect)
+RSTransition::RSTransition(const std::shared_ptr<RSUIContext>& rsUIContext,
+    const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
+    : RSAnimation(rsUIContext), isTransitionIn_(isTransitionIn), effect_(effect)
 {}
 
 void RSTransition::OnStart()

@@ -72,7 +72,6 @@ public:
     const std::unordered_set<NodeId>& GetBlackList() const;
     const std::unordered_set<NodeType>& GetTypeBlackList() const;
     const std::unordered_set<NodeId>& GetGlobalBlackList() const;
-    std::unordered_set<NodeId> GetMergeBlackList() const;
     const std::vector<NodeId>& GetSecurityExemptionList() const;
     std::shared_ptr<Media::PixelMap> GetSecurityMask() const;
     bool EnableSkipWindow() const;

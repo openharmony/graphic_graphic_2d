@@ -153,7 +153,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, Init001, TestSize.Level2)
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     auto renderEngine = uniRenderThread.GetRenderEngine();
     ASSERT_NE(nullptr, processor);
-    ASSERT_EQ(false, processor->Init(rsScreenRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
+    ASSERT_EQ(false, processor->Init(rsScreenRenderNode, offsetX, offsetY, renderEngine));
 }
 
 /**

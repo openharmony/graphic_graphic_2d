@@ -47,7 +47,8 @@ AnimationId RSAnimation::GenerateId()
     return ((AnimationId)pid_ << 32) | (currentId);
 }
 
-RSAnimation::RSAnimation() : id_(GenerateId()) {}
+RSAnimation::RSAnimation(const std::shared_ptr<RSUIContext>& rsUIContext) : id_(GenerateId()), rsUIContext_(rsUIContext)
+{}
 
 RSAnimation::~RSAnimation()
 {
@@ -517,10 +518,8 @@ void RSAnimation::UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAni
         }
     }
     // set token to RSRenderAnimation
-    if (auto target = target_.lock()) {
-        if (auto context = target->GetRSUIContext()) {
-            animation->SetToken(context->GetToken());
-        }
+    if (auto context = rsUIContext_.lock()) {
+        animation->SetToken(context->GetToken());
     } else {
         ROSEN_LOGE("multi-instance, RSAnimation::UpdateParamToRenderAnimation, target is null!");
     }

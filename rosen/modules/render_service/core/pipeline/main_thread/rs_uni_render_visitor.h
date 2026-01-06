@@ -277,9 +277,6 @@ private:
     void HandlePixelFormat(RSScreenRenderNode& node);
     bool IsHardwareComposerEnabled();
 
-    void UpdateScreenSpecialLayersRecord(const RSSurfaceRenderNode& node);
-    void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node);
-    void DealWithSpecialLayer(RSSurfaceRenderNode& node);
     void SendRcdMessage(RSScreenRenderNode& node);
 
     bool ForcePrepareSubTree()

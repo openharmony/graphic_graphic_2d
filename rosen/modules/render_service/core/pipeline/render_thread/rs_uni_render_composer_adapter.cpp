@@ -1112,7 +1112,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
     if (layer != nullptr) {
         layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
         layer->SetUniRenderFlag(true);
-        screenDrawable.SetRSLayer(layer);
+        screenDrawable.SetRSLayer(screenInfo_.id, layer);
         SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
     }
     // do not crop or scale down for displayNode's layer.
@@ -1164,7 +1164,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
     if (layer != nullptr) {
         layer->SetNodeId(node.GetId());
         layer->SetUniRenderFlag(true);
-        node.SetRSLayer(layer);
+        node.SetRSLayer(screenInfo_.id, layer);
         SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
         LayerRotate(layer, *screenDrawable);
     }
@@ -1204,7 +1204,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)
             LayerRotate(layer, *drawable);
         }
         layer->SetNodeId(node.GetId());
-        node.SetRSLayer(layer);
+        node.SetRSLayer(screenInfo_.id, layer);
     }
     return layer;
 }

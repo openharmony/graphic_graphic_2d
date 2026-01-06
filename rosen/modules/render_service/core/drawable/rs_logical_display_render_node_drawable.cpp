@@ -21,6 +21,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "params/rs_logical_display_render_params.h"
 #include "params/rs_screen_render_params.h"
@@ -173,7 +174,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         uniParam->SetSecurityDisplay(params->IsSecurityDisplay());
         const auto& screenProperty = screenParams->GetScreenProperty();
-        currentBlackList_ = screenProperty.GetMergeBlackList();
+        currentBlackList_ = RSSpecialLayerUtils::GetMergeBlackList(screenProperty);
         RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
         if (mirroredRenderParams) {
             curVisibleRect_ = RSUniRenderThread::Instance().GetVisibleRect();

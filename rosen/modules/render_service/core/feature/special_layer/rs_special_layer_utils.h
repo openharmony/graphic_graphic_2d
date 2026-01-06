@@ -17,6 +17,9 @@
 #include <unordered_set>
 
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "screen_manager/rs_screen_property.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -24,6 +27,22 @@ class RSSpecialLayerUtils {
 public:
     static std::unordered_set<uint64_t> GetAllBlackList(const RSRenderNodeMap& nodeMap);
     static std::unordered_set<uint64_t> GetAllWhiteList(const RSRenderNodeMap& nodeMap);
+
+    static std::unordered_set<NodeId> GetMergeBlackList(const RSScreenProperty& screenProperty);
+
+    static void DumpScreenSpecialLayer(const std::string& funcName,
+       SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds);
+
+    static void UpdateScreenSpecialLayer(
+        const RSScreenProperty& newProperty = {}, const RSScreenProperty& oldProperty = {});
+
+    static void DealWithSpecialLayer(
+        RSSurfaceRenderNode& node, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer);
+    
+    static void UpdateScreenSpecialLayersRecord(
+        RSSurfaceRenderNode& node, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer);
+
+    static void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node, RSLogicalDisplayRenderNode& displayNode);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -75,7 +75,7 @@ void RSAnimationBaseTest::InitAnimationWindow()
     struct RSSurfaceNodeConfig surfaceNodeConfig = { .SurfaceNodeName = surfaceNodeName, .isSync = true };
     animationSurfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true);
 
-    rsUiDirector = RSUIDirector::Create()
+    rsUiDirector = RSUIDirector::Create();
     rsUiDirector->Init();
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);

@@ -924,7 +924,7 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessorTest001, TestSize.Level1)
     RSRootNode::SharedPtr nodePtr = std::make_shared<RSRootNode>(nodeId);
     bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
     director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    auto animation = std::make_shared<RSAnimation>(director->rsUIContext_);
+    auto animation = std::make_shared<RSAnimation>(director->GetRSUIContext());
     animId = animation->GetId();
     director->rsUIContext_->animations_.emplace(animId, animation);
     director->AnimationCallbackProcessor(nodeId, animId, token, event);

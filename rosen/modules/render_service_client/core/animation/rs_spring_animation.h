@@ -28,10 +28,11 @@ class RSRenderSpringAnimation;
 
 class RSC_EXPORT RSSpringAnimation : public RSPropertyAnimation {
 public:
-    RSSpringAnimation(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& byValue);
+    RSSpringAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPropertyBase>& byValue);
 
-    RSSpringAnimation(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
-        const std::shared_ptr<RSPropertyBase>& endValue);
+    RSSpringAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue);
 
     virtual ~RSSpringAnimation() = default;
 

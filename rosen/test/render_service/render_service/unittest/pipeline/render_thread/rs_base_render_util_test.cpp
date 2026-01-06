@@ -540,7 +540,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetScreenIdFromSurfaceRenderParamsTest, TestSize.
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
     auto screenProperty = RSBaseRenderUtil::GetScreenPropertyFromSurfaceRenderParams(surfaceParams);
-    EXPECT_EQ(screenProperty.has_value(), true)
+    EXPECT_EQ(screenProperty.has_value(), true);
 }
 
 /*

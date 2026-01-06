@@ -164,12 +164,6 @@ void RSServiceToRenderConnection::HandleHwcEvent(uint32_t deviceId, uint32_t eve
     renderPipelineAgent_->NotifyHwcEventToRender(deviceId, eventId, eventData);
 }
 
-ErrCode RSServiceToRenderConnection::CleanResources(pid_t pid)
-{
-    RS_TRACE_NAME_FMT("RSServiceToRenderConnection::CleanResources pid is %d", pid);
-    return renderPipelineAgent_->CleanResources(pid);
-}
-
 ErrCode RSServiceToRenderConnection::RepaintEverything()
 {
     ErrCode errCode = renderPipelineAgent_->RepaintEverything();
@@ -323,6 +317,15 @@ void RSServiceToRenderConnection::SetCurtainScreenUsingStatus(bool isCurtainScre
 void RSServiceToRenderConnection::OnScreenBacklightChanged(ScreenId screenId, uint32_t level)
 {
     renderPipelineAgent_->OnScreenBacklightChanged(screenId, level);
+}
+
+void RSServiceToRenderConnection::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
+        return;
+    }
+    renderPipelineAgent_->OnGlobalBlacklistChanged(globalBlackList);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -117,25 +117,43 @@ RSClientToRenderConnection::RSClientToRenderConnection(
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
       applicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this))
 {
-    if (token_ == nullptr) {
+    if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSClientToRenderConnection: Failed to set death recipient.");
     }
 
     if (renderPipelineAgent_ == nullptr) {
         RS_LOGW("RSClientToRenderConnection: renderPipelineAgent_ is nullptr");
     }
+    
 }
 
 RSClientToRenderConnection::~RSClientToRenderConnection() noexcept
 {
-}
-
-void RSClientToRenderConnection::CleanRenderNodes() noexcept
-{
+    RS_LOGI("~RSClientToRenderConnection remotePid:%{public}d", remotePid_);
+    if (token_ && connDeathRecipient_) {
+        token_->RemoveDeathRecipient(connDeathRecipient_);
+    }
+    CleanAll();
 }
 
 void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
 {
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (cleanDone_) {
+            return;
+        }
+    }
+
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
+
+    renderPipelineAgent_->CleanAll(remotePid_);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        cleanDone_ = true;
+    }
 }
 
 RSClientToRenderConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(
@@ -145,6 +163,24 @@ RSClientToRenderConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipie
 
 void RSClientToRenderConnection::RSConnectionDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& token)
 {
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        RS_LOGW("RSConnectionDeathRecipient::OnRemoteDied: can't promote remote object.");
+        return;
+    }
+
+    auto rsConn = conn_.promote();
+    if (rsConn == nullptr) {
+        RS_LOGW("RSConnectionDeathRecipient::OnRemoteDied: RSClientToServiceConnection was dead, do nothing.");
+        return;
+    }
+
+    if (rsConn->GetToken() != tokenSptr) {
+        RS_LOGI("RSConnectionDeathRecipient::OnRemoteDied: token doesn't match, ignore it.");
+        return;
+    }
+
+    rsConn->CleanAll(true);
 }
 
 RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::RSApplicationRenderThreadDeathRecipient(
@@ -153,6 +189,22 @@ RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::RSApplicati
 
 void RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& token)
 {
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        RS_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: can't promote remote object.");
+        return;
+    }
+
+    auto rsConn = conn_.promote();
+    if (rsConn == nullptr || rsConn->renderPipelineAgent_ == nullptr) {
+        RS_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: "
+            "RSClientToServiceConnection was dead, do nothing.");
+        return;
+    }
+
+    RS_LOGD("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: Unregister.");
+    auto app = iface_cast<IApplicationAgent>(tokenSptr);
+    rsConn->renderPipelineAgent_->UnRegisterApplicationAgent(app);
 }
 
 ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
@@ -553,5 +605,12 @@ void RSClientToRenderConnection::ClearSurfaceWatermark(pid_t pid, const std::str
     renderPipelineAgent_->ClearSurfaceWatermark(pid, name, isSystemCalling);
 }
 
+std::string RSClientToRenderConnection::GetBundleName(pid_t pid)
+{
+    if (!renderPipelineAgent_) {
+        return {};
+    }
+    return renderPipelineAgent_->GetBundleName(pid);
+}
 } // namespace Rosen
 } // namespace OHOS

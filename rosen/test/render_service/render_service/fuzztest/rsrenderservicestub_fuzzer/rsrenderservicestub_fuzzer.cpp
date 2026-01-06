@@ -26,7 +26,7 @@
 #include <securec.h>
 
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
-#include "platform/ohos/rs_irender_service_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/transaction/rs_irender_service_ipc_interface_code_access_verifier.h"
 #include "platform/ohos/rs_render_service_proxy.h"
 #include "render_server/rs_render_service.h"
 #include "render_server/transaction/zidl/rs_render_service_stub.h"

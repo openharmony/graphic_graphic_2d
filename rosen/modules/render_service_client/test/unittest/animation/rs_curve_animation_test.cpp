@@ -393,7 +393,8 @@ HWTEST_F(RSCurveAnimationTest, IsSupportInteractiveAnimator001, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    auto curveAnimation = std::make_shared<RSCurveAnimation>(property, startProperty, endProperty);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
     auto interpolator = std::shared_ptr<RSInterpolator>();
     auto timingCurve = RSAnimationTimingCurve(interpolator);
     curveAnimation->SetTimingCurve(timingCurve);

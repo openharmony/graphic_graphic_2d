@@ -59,6 +59,7 @@
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "feature/power_off_render_skip/rs_power_off_render_controller.h"
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -233,7 +234,6 @@ constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
-constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status";
 constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
@@ -1719,48 +1719,6 @@ static bool CheckOverlayDisplayEnable()
 #else
     return false;
 #endif
-}
-
-void RSMainThread::UpdateScreenSpecialLayer(const RSScreenProperty& newProperty, const RSScreenProperty& oldProperty)
-{
-    std::unordered_map<SpecialLayerType, std::unordered_set<NodeId>> screenSpecialLayerInfos;
-    
-    // check black list
-    auto oldblackList = oldProperty.GetMergeBlackList();
-    auto newblackList = newProperty.GetMergeBlackList();
-    if (oldblackList != newblackList) {
-        screenSpecialLayerInfos[SpecialLayerType::IS_BLACK_LIST] = newblackList;
-    }
-
-    // check white list
-    auto oldWhiteList = oldProperty.GetWhiteList();
-    auto newWhiteList = newProperty.GetWhiteList();
-    if (oldWhiteList != newWhiteList) {
-        screenSpecialLayerInfos[SpecialLayerType::IS_WHITE_LIST] = newWhiteList;
-    }
-
-    SetScreenSpecialLayerStatus(newProperty.GetScreenId(), screenSpecialLayerInfos);
-}
-
-void RSMainThread::SetScreenSpecialLayerStatus(
-    ScreenId screenId, std::unordered_map<SpecialLayerType, std::unordered_set<NodeId>>& screenSpecialLayerInfos)
-{
-    const auto& nodeMap = GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes(
-        [screenId, &screenSpecialLayerInfos](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-            if (surfaceNode == nullptr) {
-                return;
-            }
-            for (const auto& [type, nodeIds] : screenSpecialLayerInfos) {
-                if (nodeIds.find(surfaceNode->GetId()) != nodeIds.end() ||
-                    nodeIds.find(surfaceNode->GetLeashPersistentId()) != nodeIds.end()) {
-                    surfaceNode->SetScreenSpecialLayerStatus(screenId, type, true);
-                } else {
-                    surfaceNode->SetScreenSpecialLayerStatus(screenId, type, false);
-                }
-            }
-        }
-    );
 }
 
 void RSMainThread::CollectInfoForHardwareComposer()
@@ -5383,7 +5341,7 @@ void RSMainThread::CreateScreenNode(const sptr<RSScreenProperty>& property)
             }
         };
         nodeMap.TraverseLogicalDisplayNodes(setOnTree);
-        UpdateScreenSpecialLayer(*property);
+        RSSpecialLayerUtils::UpdateScreenSpecialLayer(*property);
     };
     if (mainThread->isRunning_) {
         RS_TRACE_NAME_FMT("OnScreenConnect post task ScreenId[%" PRIu64 "]", id);
@@ -5435,13 +5393,13 @@ void RSMainThread::HandleScreenPropertyRefreshOneFrame(const RSScreenProperty& l
         PostTask([this]() {
             SetDirtyFlag();
         });
-        ForceRefreshForUni();
         RS_OPTIONAL_TRACE_NAME_FMT(
             "RSMainThread::%{public}s: renderSizeChanged:%d, surfaceChanged:%d, gamutMapChanged:%d", __func__,
             renderSizeChanged, surfaceChanged, gamutMapChanged);
         RS_LOGI("RSMainThread::%{public}s: renderSizeChanged:%{public}d, surfaceChanged:%{public}d,"
                 "gamutMapChanged:%{public}d",
                 __func__, renderSizeChanged, surfaceChanged, gamutMapChanged);
+        ForceRefreshForUni();
     }
 }
 
@@ -5487,25 +5445,12 @@ void RSMainThread::DestroyScreenNode(ScreenId screenId)
         if (screenNode == nullptr) {
             return;
         }
-        ClearScreenSpecialLayerRecord(screenId);
+        ScreenSpecialLayerInfo::ClearByScreenId(screenId);
         screenNode->ResetMirrorSource();
         context->GetGlobalRootRenderNode()->RemoveChild(screenNode);
         nodeMap.UnregisterRenderNode(screenNode->GetId());
     };
     mainThread->PostTask(task);
-}
-
-void RSMainThread::ClearScreenSpecialLayerRecord(ScreenId screenId)
-{
-    auto& nodeMap = context_->GetMutableNodeMap();
-    nodeMap.TraverseSurfaceNodes(
-        [screenId](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-            if (surfaceNode == nullptr) {
-                return;
-            }
-            surfaceNode->ClearScreenSpecialLayerRecord(screenId);
-        }
-    );
 }
 
 void RSMainThread::UpdateScreenProperty(const sptr<RSScreenProperty>& property)
@@ -5521,7 +5466,7 @@ void RSMainThread::UpdateScreenProperty(const sptr<RSScreenProperty>& property)
         nodeMap.TraverseScreenNodes(
             [this, id, property](const std::shared_ptr<RSScreenRenderNode>& node) {
             if (node && node->GetScreenId() == id) {
-                UpdateScreenSpecialLayer(*property, node->GetScreenProperty());
+                RSSpecialLayerUtils::UpdateScreenSpecialLayer(*property, node->GetScreenProperty());
                 node->SetScreenProperty(*property);
             }
         });

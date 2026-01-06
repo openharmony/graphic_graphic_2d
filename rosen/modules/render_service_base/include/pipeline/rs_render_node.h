@@ -49,6 +49,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_display_sync.h"
 #include "property/rs_properties.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1022,9 +1023,10 @@ public:
     virtual void AfterTreeStatueChanged() {}
 
     RectI GetFilterDrawableSnapshotRegion() const;
-    void SetRSLayer(const std::shared_ptr<RSLayer>& layer)
+    void SetRSLayer(ScreenId screenId, const std::shared_ptr<RSLayer>& layer)
     {
-        rsLayer_ = layer;
+        std::lock_guard<std::mutex> lock(rsLayerMutex_);
+        rsLayersPerScreen_[screenId] = layer;
     }
 protected:
     void ResetDirtyStatus();
@@ -1124,7 +1126,8 @@ protected:
     RSHwcRecorder hwcRecorder_;
 
 private:
-    std::shared_ptr<RSLayer> rsLayer_ = nullptr;
+    mutable std::mutex rsLayerMutex_;
+    std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
     // mark cross node in physical extended screen model
     bool isRepaintBoundary_ = false;
     bool hasForceSubmit_ = false;

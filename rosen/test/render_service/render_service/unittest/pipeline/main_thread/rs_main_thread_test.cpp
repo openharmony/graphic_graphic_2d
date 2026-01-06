@@ -3883,11 +3883,10 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes010, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, CreateVirtualScreen, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        nullptr, screenManagerAgent_, token->AsObject(), nullptr);
 
     std::string name("name");
     uint32_t width = 1;
@@ -3901,7 +3900,7 @@ HWTEST_F(RSMainThreadTest, CreateVirtualScreen, TestSize.Level1)
     EXPECT_NE(rsRenderServiceConnection->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList),
         INVALID_SCREEN_ID);
 
-    for (auto nodeId = 0; nodeId <= MAX_WHITE_LIST_NUM + 1; nodeId++) {
+    for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
         whiteList.push_back(nodeId);
     }
     EXPECT_EQ(rsRenderServiceConnection->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList),
@@ -3916,17 +3915,16 @@ HWTEST_F(RSMainThreadTest, CreateVirtualScreen, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        nullptr, screenManagerAgent_, token->AsObject(), nullptr);
 
     ScreenId id = 100;
     std::vector<uint64_t> blackList = {};
     EXPECT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), 5);
 
-    for (auto nodeId = 0; nodeId <= MAX_BLACK_LIST_NUM + 1; nodeId++) {
+    for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
         blackList.push_back(nodeId);
     }
     EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), 5);
@@ -3940,18 +3938,17 @@ HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        nullptr, screenManagerAgent_, token->AsObject(), nullptr);
 
     ScreenId id = 100;
     std::vector<uint64_t> blackList = {};
     int32_t repCode;
     EXPECT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);
 
-    for (auto nodeId = 0; nodeId <= MAX_BLACK_LIST_NUM + 1; nodeId++) {
+    for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
         blackList.push_back(nodeId);
     }
     EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);

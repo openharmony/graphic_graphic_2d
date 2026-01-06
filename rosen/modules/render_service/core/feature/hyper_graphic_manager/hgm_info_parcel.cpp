@@ -21,6 +21,8 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t MAX_DATA_SIZE = 512;
+constexpr uint32_t MAX_EVENT_SIZE = 10;
+constexpr uint32_t MAX_EVENT_DATA_SIZE = 20;
 }
 
 bool HgmServiceToProcessInfo::Marshalling(Parcel& data) const
@@ -225,6 +227,13 @@ bool HgmProcessToServiceInfo::MarshallingSurfaceData(MessageParcel* message) con
 bool HgmProcessToServiceInfo::MarshallingEnergyData(MessageParcel* message) const
 {
     uint32_t eventSize = static_cast<uint32_t>(energyCommonData.size());
+    if (eventSize > MAX_EVENT_SIZE) {
+        HGM_LOGE("Marshalling Failed size:%{public}" PRIu32, eventSize);
+        if (!message->WriteInt32(0)) {
+            return false;
+        }
+        return true;
+    }
     if (!message->WriteUint32(eventSize)) {
         return false;
     }
@@ -234,6 +243,10 @@ bool HgmProcessToServiceInfo::MarshallingEnergyData(MessageParcel* message) cons
             return false;
         }
         uint32_t dataSize = static_cast<uint32_t>(eventData.second.size());
+        if (dataSize > MAX_EVENT_DATA_SIZE) {
+            HGM_LOGE("Marshalling eventData Failed, dataSize:%{public}" PRIu32, dataSize);
+            return false;
+        }
         if (!message->WriteUint32(dataSize)) {
             return false;
         }
@@ -383,10 +396,18 @@ bool HgmProcessToServiceInfo::UnmarshallingEnergyData(MessageParcel* message)
     if (!message->ReadUint32(eventSize)) {
         return false;
     }
+    if (eventSize > MAX_EVENT_SIZE) {
+        HGM_LOGE("Unmarshalling Failed, size:%{public}" PRIu32, eventSize);
+        return false;
+    }
     for (uint32_t i = 0; i < eventSize; i++) {
         int32_t eventCode;
         uint32_t dataSize;
         if (!message->ReadInt32(eventCode) || !message->ReadUint32(dataSize)) {
+            return false;
+        }
+        if (dataSize > MAX_EVENT_DATA_SIZE) {
+            HGM_LOGE("Unmarshalling eventData Failed, dataSize:%{public}" PRIu32, dataSize);
             return false;
         }
         std::unordered_map<std::string, std::string> energyData;
@@ -396,10 +417,10 @@ bool HgmProcessToServiceInfo::UnmarshallingEnergyData(MessageParcel* message)
             if (!message->ReadString(key) || !message->ReadString(value)) {
                 return false;
             }
-            energyData.emplace(key, value);
+            energyData.emplace(std::move(key), std::move(value));
         }
         EnergyEvent event = static_cast<EnergyEvent>(eventCode);
-        energyCommonData.emplace(event, energyData);
+        energyCommonData.emplace(event, std::move(energyData));
     }
     return true;
 }

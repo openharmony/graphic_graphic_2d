@@ -579,7 +579,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetScreenFrameGravity, TestSize.Le
  * @tc.type:FUNC
  * @tc.require: issueI9KXXE
  */
-HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterBufferClearListener, TestSize.Level1)
+HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterBufferClearListener, TestSize.Level1)
 {
     NodeId id = 1;
     sptr<RSIBufferClearCallback> callback;

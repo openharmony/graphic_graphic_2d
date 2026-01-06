@@ -541,7 +541,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface008, TestSize.Level1)
     ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().FindWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
-    surfaceParams->GetMultableSpecialLayerMgr().ClearScreenSpecialLayer(virtualScreenId);
+    surfaceParams->GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
 }
 
 /**

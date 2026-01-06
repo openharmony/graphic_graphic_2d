@@ -216,7 +216,7 @@ void RSRenderToComposerConnectionProxy::SetComposerToRenderConnection(
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_COMPOSER_TO_RENDER_CONNECTION, parcel, reply, option);
 }
 
-void RSRenderToComposerConnectionProxy::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer)
+void RSRenderToComposerConnectionProxy::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
 {
     MessageOption option;
     MessageParcel reply;

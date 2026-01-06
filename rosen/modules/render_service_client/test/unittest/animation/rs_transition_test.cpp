@@ -20,6 +20,7 @@
 #include "common/rs_color.h"
 #include "rs_animation_base_test.h"
 #include "rs_animation_test_utils.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -44,7 +45,8 @@ void RSTransitionTest::TearDownTestCase() {}
 HWTEST_F(RSTransitionTest, SetTransitionEffectTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSTransitionTest SetTransitionEffectTest start";
-    RSTransition transition(nullptr, false);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    RSTransition transition(rsUIContext, nullptr, false);
     ASSERT_FALSE(transition.effect_);
     auto effect = RSTransitionEffect::Create();
     transition.SetTransitionEffect(effect);
@@ -63,7 +65,8 @@ HWTEST_F(RSTransitionTest, SetTransitionEffectTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init SetTransitionEffect
      */
-    auto transition = std::make_shared<RSTransition>(RSTransitionEffect::EMPTY, true);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::EMPTY, true);
     /**
      * @tc.steps: step2. start SetTransitionEffect test
      */
@@ -88,7 +91,8 @@ HWTEST_F(RSTransitionTest, SetTransitionEffectTest002, TestSize.Level1)
     /**
      * @tc.steps: step1. init SetTransitionEffect
      */
-    auto transition = std::make_shared<RSTransition>(RSTransitionEffect::EMPTY, true);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::EMPTY, true);
     /**
      * @tc.steps: step2. start SetTransitionEffect test
      */
@@ -112,7 +116,8 @@ HWTEST_F(RSTransitionTest, SetTransitionEffectTest003, TestSize.Level1)
     /**
      * @tc.steps: step1. init SetTransitionEffect
      */
-    auto transition = std::make_shared<RSTransition>(RSTransitionEffect::EMPTY, true);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::EMPTY, true);
     /**
      * @tc.steps: step2. start SetTransitionEffect test
      */
@@ -136,7 +141,8 @@ HWTEST_F(RSTransitionTest, SetTimingCurveTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init GetTimingCurve
      */
-    auto transition = std::make_shared<RSTransition>(RSTransitionEffect::OPACITY, true);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::OPACITY, true);
     transition->SetTimingCurve(RSAnimationTimingCurve::DEFAULT);
     /**
      * @tc.steps: step2. start GetTimingCurve test
@@ -160,7 +166,8 @@ HWTEST_F(RSTransitionTest, SetTimingCurveTest002, TestSize.Level1)
     /**
      * @tc.steps: step1. init GetTimingCurve
      */
-    auto transition = std::make_shared<RSTransition>(RSTransitionEffect::OPACITY, true);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::OPACITY, true);
     transition->SetTimingCurve(RSAnimationTimingCurve::LINEAR);
     /**
      * @tc.steps: step2. start GetTimingCurve test
@@ -184,7 +191,8 @@ HWTEST_F(RSTransitionTest, SetTimingCurveTest003, TestSize.Level1)
     /**
      * @tc.steps: step1. init GetTimingCurve
      */
-    auto transition = std::make_shared<RSTransition>(RSTransitionEffect::SCALE, true);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::SCALE, true);
     transition->SetTimingCurve(RSAnimationTimingCurve::EASE_IN);
     /**
      * @tc.steps: step2. start GetTimingCurve test

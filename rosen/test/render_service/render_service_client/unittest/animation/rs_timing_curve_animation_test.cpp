@@ -20,6 +20,7 @@
 
 #include "animation/rs_curve_animation.h"
 #include "animation/rs_render_curve_animation.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,9 +47,10 @@ void RSTimingCurveAnimationTest::TearDown() {}
  */
 HWTEST_F(RSTimingCurveAnimationTest, StartAnimationTest, Level1)
 {
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto property = std::make_shared<RSProperty<float>>();
     auto value = std::make_shared<RSProperty<float>>();
-    RSCurveAnimation curveAnimation(property, value);
+    RSCurveAnimation curveAnimation(rsUIContext, property, value);
     auto animation = std::make_shared<RSRenderCurveAnimation>();
     curveAnimation.StartInner(nullptr);
     curveAnimation.StartRenderAnimation(animation);

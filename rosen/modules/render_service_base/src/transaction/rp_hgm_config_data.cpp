@@ -18,6 +18,7 @@
 
 namespace {
 constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
+constexpr uint32_t MAX_POWER_CONFIG_SIZE = 10;
 }
 
 namespace OHOS {
@@ -75,15 +76,17 @@ RPHgmConfigData* RPHgmConfigData::Unmarshalling(Parcel& parcel)
         AnimDynamicItem item = { std::move(type), std::move(name), minSpeed, maxSpeed, preferredFps };
         data->AddSmallSizeAnimDynamicItem(item);
     }
-
-    uint32_t powerConfigSize = parcel.ReadUint32();
-    for (uint32_t i = 0; i < powerConfigSize; i++) {
-        std::string key = parcel.ReadString();
-        int32_t value = parcel.ReadInt32();
-        data->componentPowerConfig_.emplace(key, value);
+    if (!data->UnmarshallingComponentPowerConfig(parcel)) {
+        RS_LOGE("%{public}s read componentPowerConfig data failed", __func__);
+        return data;
     }
 
-    data->isVideoSwitchOn_ = parcel.ReadBool();
+    bool isVideoSwitchOn = false;
+    if (!parcel.ReadBool(isVideoSwitchOn)) {
+        RS_LOGE("%{public}s read isVideoSwitchOn failed", __func__);
+        return data;
+    }
+    data->isVideoSwitchOn_ = isVideoSwitchOn;
     return data;
 }
 
@@ -123,19 +126,9 @@ bool RPHgmConfigData::Marshalling(Parcel& parcel) const
         }
     }
 
-    uint32_t powerConfigSize = static_cast<uint32_t>(componentPowerConfig_.size());
-    success = parcel.WriteUint32(powerConfigSize);
+    success = MarshallingComponentPowerConfig(parcel);
     if (!success) {
-        RS_LOGE("RPHgmConfigData::Marshalling parse power config failed");
         return success;
-    }
-
-    for (const auto& item : componentPowerConfig_) {
-        success = parcel.WriteString(item.first) && parcel.WriteInt32(item.second);
-        if (!success) {
-            RS_LOGE("RPHgmConfigData::Marshalling parse power config item failed");
-            return success;
-        }
     }
 
     success = parcel.WriteBool(isVideoSwitchOn_);
@@ -144,6 +137,53 @@ bool RPHgmConfigData::Marshalling(Parcel& parcel) const
         return success;
     }
     return success;
+}
+
+bool RPHgmConfigData::MarshallingComponentPowerConfig(Parcel& parcel) const
+{
+    uint32_t size = static_cast<uint32_t>(componentPowerConfig_.size());
+    if (size > MAX_POWER_CONFIG_SIZE) {
+        RS_LOGE("%{public}s energyCommonData Failed size:%{public}" PRIu32, __func__, size);
+        if (!parcel.WriteInt32(0)) {
+            return false;
+        }
+        return true;
+    }
+    if (!parcel.WriteUint32(size)) {
+        RS_LOGE("%{public}s parse power config failed", __func__);
+        return false;
+    }
+    for (const auto& item : componentPowerConfig_) {
+        if (!parcel.WriteString(item.first) || !parcel.WriteInt32(item.second)) {
+            RS_LOGE("%{public}s parse power config item failed", __func__);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool RPHgmConfigData::UnmarshallingComponentPowerConfig(Parcel& parcel)
+{
+    uint32_t configSize;
+    if (!parcel.ReadUint32(configSize)) {
+        RS_LOGE("%{public}s read configSize failed", __func__);
+        return false;
+    }
+    if (configSize > MAX_POWER_CONFIG_SIZE) {
+        RS_LOGE("%{public}s Failed read map, size:%{public}" PRIu32, __func__, configSize);
+        return false;
+    }
+    for (uint32_t i = 0; i < configSize; i++) {
+        std::string key;
+        int32_t value;
+        if (!parcel.ReadString(key) || !parcel.ReadInt32(value)) {
+            RS_LOGE("%{public}s read map failed", __func__);
+            componentPowerConfig_.clear();
+            return false;
+        }
+        componentPowerConfig_.emplace(std::move(key), value);
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

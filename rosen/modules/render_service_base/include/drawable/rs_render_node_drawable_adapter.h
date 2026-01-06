@@ -29,6 +29,7 @@
 #include "drawable/rs_property_drawable.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "recording/recording_canvas.h"
+#include "screen_manager/screen_types.h"
 #include "utils/rect.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -296,9 +297,10 @@ public:
         return RSRenderNodeDrawableType::UNKNOW;
     }
 
-    void SetRSLayer(const std::shared_ptr<RSLayer>& layer)
+    void SetRSLayer(ScreenId screenId, const std::shared_ptr<RSLayer>& layer)
     {
-        rsLayer_ = layer;
+        std::lock_guard<std::mutex> lock(rsLayerMutex_);
+        rsLayersPerScreen_[screenId] = layer;
     }
 protected:
     // Util functions
@@ -391,7 +393,8 @@ private:
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
     std::atomic<bool> isOnDraw_ = false;
-    std::shared_ptr<RSLayer> rsLayer_ = nullptr;
+    mutable std::mutex rsLayerMutex_;
+    std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
 
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSScreenRenderNode;

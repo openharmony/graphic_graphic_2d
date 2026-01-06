@@ -78,8 +78,8 @@ namespace OHOS {
         sptr<Rosen::VSyncReceiver> vsyncReceiver = new Rosen::VSyncReceiver(vsyncConnection);
         vsyncReceiver->Init();
         std::vector<sptr<Rosen::VSyncConnection>> conns = { vsyncConnection };
-        int64_t timestamp = GetData<int64_t>();
-        bool isDvsyncThread = GetData<bool>();
+        // int64_t timestamp = GetData<int64_t>(); car 2 compile
+        // bool isDvsyncThread = GetData<bool>(); car 2 compile
 
         vsyncReceiver->looper_->RemoveFileDescriptorListener(vsyncReceiver->fd_);
         vsyncReceiver->looper_ = nullptr;

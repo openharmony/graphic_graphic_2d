@@ -100,7 +100,7 @@ int Initialize()
 
     g_toServiceConnection =
         new RSClientToServiceConnection(g_pid, renderServiceAgent_,
-            renderProcessManagerAgent_, g_mainThread, screenManagerAgent_, g_token->AsObject(), appVSyncDistributor);
+            renderProcessManagerAgent_, screenManagerAgent_, g_token->AsObject(), appVSyncDistributor);
     g_toServiceConnectionStub = g_toServiceConnection;
 #ifdef RS_ENABLE_VK
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
@@ -137,13 +137,13 @@ void SetUp(FuzzedDataProvider& fdp)
     std::string tag = enableForAll ? "ENABLED_FOR_ALL" : "DISABLED";
     WriteUnirenderConfig(tag);
     RSUniRenderJudgement::InitUniRenderConfig();
-    g_toServiceConnection->mainThread_ = g_mainThread;
+    // g_toServiceConnection->mainThread_ = g_mainThread;
 }
 
 void TearDown()
 {
     WriteUnirenderConfig(g_originTag);
-    g_toServiceConnection->mainThread_ = nullptr;
+    // g_toServiceConnection->mainThread_ = nullptr;
 }
 
 void DoCreateVirtualScreen(FuzzedDataProvider& fdp)

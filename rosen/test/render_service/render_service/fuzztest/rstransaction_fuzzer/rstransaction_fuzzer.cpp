@@ -92,8 +92,8 @@ bool RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest002(const u
     code = static_cast<CodeUnderlyingType>(
         RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_REALTIME_REFRESH_RATE);
     verifier.IsExclusiveVerificationPassed(code);
-    code = static_cast<CodeUnderlyingType>(
-        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::TAKE_SURFACE_CAPTURE);
+    // code = static_cast<CodeUnderlyingType>(   car 2 compile
+        // RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::TAKE_SURFACE_CAPTURE);
     verifier.IsExclusiveVerificationPassed(code);
     code = static_cast<CodeUnderlyingType>(
         RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS);

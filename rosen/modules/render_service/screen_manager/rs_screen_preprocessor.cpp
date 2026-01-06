@@ -24,16 +24,11 @@
 #include <screen_manager/rs_screen_manager.h>
 
 namespace OHOS {
-namespace Rosen{
-constexpr int32_t SENSOR_SUCCESS = 0;
-constexpr int32_t POSTURE_INTERVAL = 4000000;
-constexpr uint16_t SENSOR_EVENT_FIRST_DATA = 0;
-const std::string BOOTEVENT_BOOT_COMPLETED = "bootevent.boot.completed";
-std::function<void(SensorEvent*)> sensorCallback = nullptr;
-RSScreenPreprocessor::RSScreenPreprocessor(wptr<RSScreenManager> screenManager,
-    std::shared_ptr<RSScreenCallbackManager> callbackMgr, std::shared_ptr<AppExecFwk::EventHandler> handler,
+namespace Rosen {
+RSScreenPreprocessor::RSScreenPreprocessor(RSScreenManager& screenManager,
+    RSScreenCallbackManager& callbackMgr, std::shared_ptr<AppExecFwk::EventHandler> handler,
     bool isFoldScreen)
-    : screenManager_(screenManager), callbackMgrWeak_(callbackMgr), mainHandler_(handler),
+    : screenManager_(screenManager), callbackMgr_(callbackMgr), mainHandler_(handler),
       isFoldScreenFlag_(isFoldScreen) {}
 
 void RSScreenPreprocessor::OnHotPlug(std::shared_ptr<HdiOutput>& output, bool connected, void* data)
@@ -134,134 +129,9 @@ bool RSScreenPreprocessor::Init() noexcept
         RS_LOGW("%{public}s: Not support register OnScreenVBlankIdle Func to composer", __func__);
     }
     ProcessScreenHotPlugEvents();
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    InitFoldSensor();
-#endif
     RS_LOGI("Init RSScreenPreprocessor succeed");
     return true;
 }
-
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-void RSScreenPreprocessor::InitFoldSensor()
-{
-    if (!isFoldScreenFlag_) {
-        RS_LOGI("%{public}s not FoldScreen no need to InitFoldSensor.", __func__);
-        return;
-    }
-    RS_LOGI("%{public}s FoldScreen need to RegisterSensorCallback.", __func__);
-    RegisterSensorCallback();
-    RSSystemProperties::WatchSystemProperty(BOOTEVENT_BOOT_COMPLETED.c_str(), OnBootComplete, nullptr);
-    bool bootCompleted = RSSystemProperties::GetBootCompleted();
-    if (UNLIKELY(bootCompleted)) {
-        RS_LOGW("%{public}s boot completed.", __func__);
-        UnRegisterSensorCallback();
-        return;
-    }
-}
-
-void RSScreenPreprocessor::RegisterSensorCallback()
-{
-    std::unique_lock<std::mutex> lock(registerSensorMutex_);
-    if (hasRegisterSensorCallback_) {
-        RS_LOGE("%{public}s hasRegisterSensorCallback_ is true", __func__);
-        return;
-    }
-    hasRegisterSensorCallback_ = true;
-    sensorCallback = std::bind(&RSScreenPreprocessor::HandlePostureData, this, std::placeholders::_1);
-    sensorUser_.callback = [](SensorEvent* event) { sensorCallback(event); };
-    int32_t subscribeRet;
-    int32_t setBatchRet;
-    int32_t activateRet;
-    int tryCnt = 0;
-    constexpr int tryLimit = 5; // 5 times failure limit
-    do {
-        subscribeRet = SubscribeSensor(SENSOR_TYPE_ID_POSTURE, &sensorUser_);
-        RS_LOGI("%{public}s: subscribeRet: %{public}d", __func__, subscribeRet);
-        setBatchRet = SetBatch(SENSOR_TYPE_ID_POSTURE, &sensorUser_, POSTURE_INTERVAL, POSTURE_INTERVAL);
-        RS_LOGI("%{public}s: setBatchRet: %{public}d", __func__, setBatchRet);
-        activateRet = ActivateSensor(SENSOR_TYPE_ID_POSTURE, &sensorUser_);
-        RS_LOGI("%{public}s: activateRet: %{public}d", __func__, activateRet);
-        if (subscribeRet != SENSOR_SUCCESS || setBatchRet != SENSOR_SUCCESS || activateRet != SENSOR_SUCCESS) {
-            RS_LOGE("%{public}s failed subscribeRet:%{public}d, setBatchRet:%{public}d, activateRet:%{public}d",
-                    __func__, subscribeRet, setBatchRet, activateRet);
-            usleep(1000); // wait 1000 us for next try
-            tryCnt++;
-        }
-    } while (tryCnt <= tryLimit && (subscribeRet != SENSOR_SUCCESS || setBatchRet != SENSOR_SUCCESS ||
-        activateRet != SENSOR_SUCCESS));
-    if (tryCnt <= tryLimit) {
-        RS_LOGI("%{public}s success.", __func__);
-    }
-}
-
-void RSScreenPreprocessor::UnRegisterSensorCallback()
-{
-    std::unique_lock<std::mutex> lock(registerSensorMutex_);
-    if (!hasRegisterSensorCallback_) {
-        RS_LOGE("%{public}s hasRegisterSensorCallback_ is false", __func__);
-        return;
-    }
-    hasRegisterSensorCallback_ = false;
-    int32_t deactivateRet = DeactivateSensor(SENSOR_TYPE_ID_POSTURE, &sensorUser_);
-    int32_t unsubscribeRet = UnsubscribeSensor(SENSOR_TYPE_ID_POSTURE, &sensorUser_);
-    if (deactivateRet == SENSOR_SUCCESS && unsubscribeRet == SENSOR_SUCCESS) {
-        RS_LOGI("%{public}s success.", __func__);
-    } else {
-        RS_LOGE("%{public}s failed, deactivateRet:%{public}d, unsubscribeRet:%{public}d",
-                __func__, deactivateRet, unsubscribeRet);
-    }
-}
-
-void RSScreenPreprocessor::OnBootComplete(const char* key, const char* value, void *context)
-{
-    if (strcmp(key, BOOTEVENT_BOOT_COMPLETED.c_str()) == 0 && strcmp(value, "true") == 0) {
-        RSScreenPreprocessor* processor = nullptr;
-        if (context != nullptr) {
-            RS_LOGI("%{public}s: data is not nullptr", __func__);
-            processor = static_cast<RSScreenPreprocessor*>(context);
-        } else {
-            RS_LOGI("%{public}s: data is nullptr", __func__);
-        }
-
-        if (!processor) {
-            RS_LOGE("%{public}s: processor is nullptr", __func__);
-            return;
-        }
-    
-        processor->OnBootCompleteEvent();
-    } else {
-        RS_LOGE("%{public}s key:%{public}s, value:%{public}s", __func__, key, value);
-    }
-}
-
-void RSScreenPreprocessor::OnBootCompleteEvent()
-{
-    if (isFoldScreenFlag_) {
-        RS_LOGI("%{public}s: UnRegisterSensorCallback", __func__);
-        UnRegisterSensorCallback();
-    }
-}
-
-void RSScreenPreprocessor::HandlePostureData(const SensorEvent* const event)
-{
-    if (event == nullptr) {
-        RS_LOGW("%{public}s SensorEvent is nullptr.", __func__);
-        return;
-    }
-    if (event[SENSOR_EVENT_FIRST_DATA].data == nullptr) {
-        RS_LOGW("%{public}s SensorEvent[0].data is nullptr.", __func__);
-        return;
-    }
-    if (event[SENSOR_EVENT_FIRST_DATA].dataLen < sizeof(PostureData)) {
-        RS_LOGW("%{public}s SensorEvent dataLen less than posture data size.", __func__);
-        return;
-    }
-    PostureData* postureData = reinterpret_cast<PostureData*>(event[SENSOR_EVENT_FIRST_DATA].data);
-    float angle = (*postureData).angle;
-    RS_LOGD("%{public}s angle value in PostureData is: %{public}f.", __func__, angle);
-    screenManager_->HandleSensorData(angle);
-}
-#endif
 
 void RSScreenPreprocessor::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bool connected)
 {
@@ -302,11 +172,7 @@ void RSScreenPreprocessor::ProcessScreenHotPlugEvents()
             ConfigureScreenDisconnected(event.output);
         }
     }
-    if (auto screenManager = screenManager_.promote()) {
-        screenManager->ProcessPendingConnections();
-    } else {
-        RS_LOGE("%{public}s: screenManager is nullptr.", __func__);
-    }
+    screenManager_.ProcessPendingConnections();
     isHwcDead_ = false;
 }
 
@@ -315,26 +181,16 @@ void RSScreenPreprocessor::ConfigureScreenConnected(std::shared_ptr<HdiOutput>& 
     ScreenId id = ToScreenId(output->GetScreenId());
     RS_LOGI("%{public}s The screen for id %{public}" PRIu64 ", connected.", __func__, id);
 
-    if (auto screenManager = screenManager_.promote()) {
-        // 第一步：检查物理屏是否已经连接，已经连接先通知屏幕断开消息
-        if (screenManager->GetScreen(id)) {
-            RS_LOGW("%{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
-            if (auto callbackMgr = callbackMgrWeak_.lock()) {
-                callbackMgr->NotifyScreenDisconnected(id);
-            }
-        }
-        // 第二步: 配置连接消息
-        screenManager->ProcessScreenConnected(id);
-        // 第三步: 通知屏幕连接消息
-        if (auto callbackMgr = callbackMgrWeak_.lock()) {
-            ScreenPresenceEvent event = {.id = id, .output = output,
-                                         .property = screenManager->QueryScreenProperty(id)};
-            if (isHwcDead_) {
-                callbackMgr->NotifyHwcRestored(event);
-            } else {
-                callbackMgr->NotifyScreenConnected(event);
-            }
-        }
+    if (screenManager_.GetScreen(id)) {
+        RS_LOGW("%{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
+        callbackMgr_.NotifyScreenDisconnected(id);
+    }
+    screenManager_.ProcessScreenConnected(id);
+    ScreenPresenceEvent event = { .id = id, .output = output, .property = screenManager_.QueryScreenProperty(id) };
+    if (isHwcDead_) {
+        callbackMgr_.NotifyHwcRestored(event);
+    } else {
+        callbackMgr_.NotifyScreenConnected(event);
     }
 }
 
@@ -343,39 +199,32 @@ void RSScreenPreprocessor::ConfigureScreenDisconnected(std::shared_ptr<HdiOutput
     ScreenId id = ToScreenId(output->GetScreenId());
     RS_LOGI("%{public}s: The screen for id %{public}" PRIu64 "disconnected.", __func__, id);
 
-    if (auto screenManager = screenManager_.promote()) {
-        // 第一步：检查物理屏是否已经连接，已经连接通知屏幕断开消息
-        if (screenManager->GetScreen(id)) {
-            RS_LOGW("%{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
-            if (auto callbackMgr = callbackMgrWeak_.lock()) {
-                callbackMgr->NotifyScreenDisconnected(id);
-            }
-        }
-        // 第二步: 配置断开屏幕
-        screenManager->ProcessScreenDisConnected(id);
+    if (screenManager_.GetScreen(id)) {
+        RS_LOGW("%{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
+        callbackMgr_.NotifyScreenDisconnected(id);
     }
+    screenManager_.ProcessScreenDisConnected(id);
 }
 
 void RSScreenPreprocessor::NotifyVirtualScreenConnected(ScreenId newId,
     ScreenId associatedScreenId, sptr<RSScreenProperty> property)
 {
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        callbackMgr->NotifyVirtualScreenConnected(newId, associatedScreenId, property);
-    }
+    callbackMgr_.NotifyVirtualScreenConnected(newId, associatedScreenId, property);
 }
 
 void RSScreenPreprocessor::NotifyVirtualScreenDisconnected(ScreenId id)
 {
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        callbackMgr->NotifyVirtualScreenDisconnected(id);
-    }
+    callbackMgr_.NotifyVirtualScreenDisconnected(id);
+}
+
+void RSScreenPreprocessor::NotifyActiveScreenIdChanged(ScreenId activeScreenId)
+{
+    callbackMgr_.NotifyActiveScreenIdChanged(activeScreenId);
 }
 
 void RSScreenPreprocessor::OnRefreshEvent(ScreenId id)
 {
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        callbackMgr->NotifyScreenRefresh(id);
-    }
+    callbackMgr_.NotifyScreenRefresh(id);
 }
 
 /**
@@ -389,20 +238,16 @@ void RSScreenPreprocessor::OnHwcDeadEvent()
         RS_TRACE_NAME("RSScreenPreprocessor::OnHwcDeadEvent");
         RS_LOGI("RSScreenPreprocessor::OnHwcDeadEvent.");
         isHwcDead_ = true;
-        if (auto screenManager = screenManager_.promote()) {
-            std::map<ScreenId, std::shared_ptr<RSScreen>> retScreens;
-            screenManager->OnHwcDeadEvent(retScreens);
-            #ifdef RS_ENABLE_GPU
-            // The `NotifyHwcDead` method synchronously calls the composition cleanup-related resources.
-            // It may take a long time due to task accumulation, resulting in holding screenMapMutex lock for too long.
-            // That is why it is necessary to handle this notification independently.
-            if (auto callbackMgr = callbackMgrWeak_.lock()) {
-                for (const auto& [id, _] : retScreens) {
-                    callbackMgr->NotifyHwcDead(id);
-                }
-            }
-            #endif
+        std::map<ScreenId, std::shared_ptr<RSScreen>> retScreens;
+        screenManager_.OnHwcDeadEvent(retScreens);
+        #ifdef RS_ENABLE_GPU
+        // The `NotifyHwcDead` method synchronously calls the composition cleanup-related resources.
+        // It may take a long time due to task accumulation, resulting in holding screenMapMutex lock for too long.
+        // That is why it is necessary to handle this notification independently.
+        for (const auto& [id, _] : retScreens) {
+            callbackMgr_.NotifyHwcDead(id);
         }
+        #endif
         if (!composer_) {
             RS_LOGE("CleanAndReinit: Failed to get composer.");
             return;
@@ -419,18 +264,14 @@ void RSScreenPreprocessor::OnHwcDeadEvent()
 void RSScreenPreprocessor::OnHwcEventCallback(
     uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        callbackMgr->NotifyHwcEvent(deviceId, eventId, eventData);
-    }
+    callbackMgr_.NotifyHwcEvent(deviceId, eventId, eventData);
 }
 
 void RSScreenPreprocessor::OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns)
 {
 #ifdef RS_ENABLE_GPU
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        ScreenId id = ToScreenId(devId);
-        callbackMgr->NotifyVBlankIdle(id, ns);
-    }
+    ScreenId id = ToScreenId(devId);
+    callbackMgr_.NotifyVBlankIdle(id, ns);
 #endif
 }
 

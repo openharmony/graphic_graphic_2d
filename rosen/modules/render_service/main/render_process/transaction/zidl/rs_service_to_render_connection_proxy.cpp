@@ -107,30 +107,6 @@ ErrCode RSServiceToRenderConnectionProxy::CreatePixelMapFromSurface(sptr<Surface
     return ERR_OK;
 }
 
-ErrCode RSServiceToRenderConnectionProxy::CleanResources(pid_t pid)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    RS_TRACE_NAME_FMT("ccc: RSServiceToRenderConnectionProxy::CleanResources pid is %d", pid);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetMemoryGraphic: WriteInterfaceToken failed.");
-        return RS_CONNECTION_ERROR;
-    }
-    if (!data.WriteInt32(pid)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::CleanResources: WriteInt32 failed.");
-        return RS_CONNECTION_ERROR;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::CLEAN_RESOURCE);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::CleanResources: Send Request failed");
-        return ERR_INVALID_VALUE;
-    }
-    return ERR_OK;
-}
-
 ErrCode RSServiceToRenderConnectionProxy::SetLayerTop(const std::string& nodeIdStr, bool isTop)
 {
     MessageParcel data;
@@ -1705,6 +1681,29 @@ void RSServiceToRenderConnectionProxy::OnScreenBacklightChanged(ScreenId screenI
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BACKLIGHT_LEVEL);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy sendrequest failed, error is %{public}d", err);
+    }
+}
+
+void RSServiceToRenderConnectionProxy::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy failed to get descriptor");
+        return;
+    }
+    if (!data.WriteUInt64Vector({globalBlackList.begin(), globalBlackList.end()})) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy:%{public}s WriteUInt64Vector globalBlackList err.", __func__);
+        return;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::ON_GLOBAL_BLACKLIST_CHANGED);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy sendrequest failed, error is %{public}d", err);
