@@ -395,7 +395,7 @@ HWTEST_F(RSRenderNodeMapTest, GetSelfDrawSurfaceNameByPidAndUniqueId001, TestSiz
     RSRenderNodeMap rsRenderNodeMap;
     {
         rsRenderNodeMap.surfaceNodeMap_.clear();
-        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(1, 0), "");
+        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(1, 0), "");
 
         pid_t newPid = 1000;
         NodeId nodeId = 2000;
@@ -405,7 +405,7 @@ HWTEST_F(RSRenderNodeMapTest, GetSelfDrawSurfaceNameByPidAndUniqueId001, TestSiz
         auto node = std::make_shared<RSSurfaceRenderNode>(config);
         uint64_t uniqueId = 0;
         rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
-        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, uniqueId), "");
+        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, uniqueId), "");
         rsRenderNodeMap.surfaceNodeMap_.clear();
     }
 
@@ -418,7 +418,7 @@ HWTEST_F(RSRenderNodeMapTest, GetSelfDrawSurfaceNameByPidAndUniqueId001, TestSiz
         auto node = std::make_shared<RSSurfaceRenderNode>(config);
         uint64_t uniqueId = 0;
         rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
-        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, uniqueId), "");
+        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, uniqueId), "");
         rsRenderNodeMap.surfaceNodeMap_.clear();
     }
 }
@@ -447,9 +447,9 @@ HWTEST_F(RSRenderNodeMapTest, GetSelfDrawSurfaceNameByPidAndUniqueId002, TestSiz
 #endif
     rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
     if (uniqueId != 0) {
-        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, uniqueId), "xcompentsurface");
+        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, uniqueId), "xcompentsurface");
     }
-    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, 0), "");
+    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, 0), "");
     rsRenderNodeMap.surfaceNodeMap_.clear();
 }
 
@@ -473,7 +473,7 @@ HWTEST_F(RSRenderNodeMapTest, GetSelfDrawSurfaceNameByPidAndUniqueId003, TestSiz
     node->surfaceHandler_->SetConsumer(nullptr);
 #endif
     rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
-    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, 0), "");
+    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, 0), "");
     rsRenderNodeMap.surfaceNodeMap_.clear();
 }
 
@@ -496,7 +496,7 @@ HWTEST_F(RSRenderNodeMapTest, GetSelfDrawSurfaceNameByPidAndUniqueId004, TestSiz
     node->surfaceHandler_ = nullptr;
 #endif
     rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
-    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, 0), "");
+    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, 0), "");
     rsRenderNodeMap.surfaceNodeMap_.clear();
 }
 } // namespace OHOS::Rosen
