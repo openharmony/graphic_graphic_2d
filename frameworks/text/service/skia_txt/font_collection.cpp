@@ -125,7 +125,6 @@ RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
         return RegisterError::INVALID_INPUT;
     }
 
-    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     if (typefaceSet_.count(ta)) {
         TEXT_LOGI_LIMIT3_MIN(
             "Find same typeface, family name: %{public}s, hash: %{public}u", ta.GetAlias().c_str(), ta.GetHash());

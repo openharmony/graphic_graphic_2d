@@ -345,12 +345,14 @@ void Typography::SetParagraghId(uint32_t id)
 
 bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespace, LineMetrics* lineMetrics)
 {
-    std::shared_lock<std::shared_mutex> readLock(mutex_);
-    if (paragraph_ == nullptr) {
-        return false;
-    }
-    if (lineNumber < 0 || lineNumber >= static_cast<int>(paragraph_->GetLineCount()) || lineMetrics == nullptr) {
-        return false;
+    {
+        std::shared_lock<std::shared_mutex> readLock(mutex_);
+        if (paragraph_ == nullptr) {
+            return false;
+        }
+        if (lineNumber < 0 || lineNumber >= static_cast<int>(paragraph_->GetLineCount()) || lineMetrics == nullptr) {
+            return false;
+        }
     }
 
     skia::textlayout::LineMetrics sklineMetrics;
@@ -442,12 +444,14 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
 
 bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
 {
-    std::shared_lock<std::shared_mutex> readLock(mutex_);
-    if (paragraph_ == nullptr) {
-        return false;
-    }
-    if (lineNumber < 0 || lineNumber >= static_cast<int>(paragraph_->GetLineCount()) || lineMetrics == nullptr) {
-        return false;
+    {
+        std::shared_lock<std::shared_mutex> readLock(mutex_);
+        if (paragraph_ == nullptr) {
+            return false;
+        }
+        if (lineNumber < 0 || lineNumber >= static_cast<int>(paragraph_->GetLineCount()) || lineMetrics == nullptr) {
+            return false;
+        }
     }
     std::vector<LineMetrics> vecLineMetrics = GetLineMetrics();
 
