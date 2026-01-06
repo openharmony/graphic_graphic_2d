@@ -45,6 +45,7 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+constexpr int32_t MAX_SETRATE_RETRY_COUNT = 20;
 class BufferConsumerListener : public ::OHOS::IBufferConsumerListener {
 public:
     void OnBufferAvailable() override
@@ -581,6 +582,28 @@ HWTEST_F(RsRenderComposerTest, ScreenInfo_DetailedBranches, TestSize.Level1)
     // Verify composer is still in valid state after processing
     EXPECT_NE(rsRenderComposer_->handler_, nullptr);
     EXPECT_EQ(rsRenderComposer_->handler_, initialHandler); // Handler should remain the same
+}
+
+/**
+ * Function: HandlePowerStatus_Coverage
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call HandlePowerStatus with different timestamp values
+ *                  3. verify composer remains in valid state after VBlank callback
+ */
+HWTEST_F(RsRenderComposerTest, HandlePowerStatus_Coverage, TestSize.Level1)
+{
+    ScreenPowerStatus status = POWER_STATUS_ON;
+    rsRenderComposer_->HandlePowerStatus(status);
+    // Verify composer is still valid after callback with normal status
+    EXPECT_NE(rsRenderComposer_->handler_, nullptr);
+
+    status = INVALID_POWER_STATUS;
+    rsRenderComposer_->HandlePowerStatus(status);
+    // Verify composer is still valid after callback with invalid status
+    EXPECT_NE(rsRenderComposer_->handler_, nullptr);
 }
 
 /**
@@ -2015,6 +2038,293 @@ HWTEST_F(RsRenderComposerTest, CalculateDelayTime, TestSize.Level1)
 
     hgmCore.isLtpoMode_.store(isLtpoMode);
     tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ExecuteSwitchRefreshRate
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call ExecuteSwitchRefreshRate
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, ExecuteSwitchRefreshRate, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+    hgmCore.hgmFrameRateMgr_ = nullptr;
+    tmpRsRenderComposer->hgmHardwareUtils_.ExecuteSwitchRefreshRate(screenId);
+
+    hgmCore.hgmFrameRateMgr_ = frameRateMgr;
+    tmpRsRenderComposer->hgmHardwareUtils_.ExecuteSwitchRefreshRate(screenId);
+
+    // Set Screen resolution to 1080p
+    ScreenSize sSize = {720, 1080, 685, 1218};
+    hgmCore.AddScreen(screenId, 0, sSize);
+    auto screen = hgmCore.GetScreen(screenId);
+    screen->SetSelfOwnedScreenFlag(true);
+
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate = true;
+    tmpRsRenderComposer->hgmHardwareUtils_.ExecuteSwitchRefreshRate(screenId);
+
+    hgmCore.SetScreenRefreshRateImme(1);
+    tmpRsRenderComposer->hgmHardwareUtils_.ExecuteSwitchRefreshRate(screenId);
+    hgmCore.GetFrameRateMgr()->curScreenId_.store(hgmCore.GetFrameRateMgr()->GetLastCurScreenId());
+    tmpRsRenderComposer->hgmHardwareUtils_.ExecuteSwitchRefreshRate(screenId);
+    hgmCore.GetFrameRateMgr()->curScreenId_.store(-1);
+    tmpRsRenderComposer->hgmHardwareUtils_.ExecuteSwitchRefreshRate(screenId);
+    int32_t status = hgmCore.SetScreenRefreshRate(0, screenId, 0);
+    ASSERT_TRUE(status < EXEC_SUCCESS);
+}
+
+/**
+ * Function: UpdateRetrySetRateStatus
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call UpdateRetrySetRateStatus, set Status SUCCESS
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, UpdateRetrySetRateStatus, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    int32_t modeId = 60;
+    tmpRsRenderComposer->hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId, modeId, StatusCode::SUCCESS);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount, 0);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, false);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, false);
+}
+
+/**
+ * Function: UpdateRetrySetRateStatus_002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call UpdateRetrySetRateStatus, set Status SET_RATE_ERROR
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, UpdateRetrySetRateStatus_002, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    int32_t modeId = 60;
+    tmpRsRenderComposer->hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId, modeId, StatusCode::SET_RATE_ERROR);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount, 1);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, true);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, false);
+}
+
+/**
+ * Function: UpdateRetrySetRateStatus_003
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call UpdateRetrySetRateStatus, set Status SUCCESS
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, UpdateRetrySetRateStatus_003, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    int32_t modeId = 60;
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate = true;
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount = MAX_SETRATE_RETRY_COUNT;
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit = false;
+
+    tmpRsRenderComposer->hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId, modeId, StatusCode::SET_RATE_ERROR);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount, 0);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, false);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, true);
+}
+
+/**
+ * Function: PerformSetActiveMode
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call PerformSetActiveMode
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, PerformSetActiveMode, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    tmpRsRenderComposer->hgmHardwareUtils_.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
+    tmpRsRenderComposer->hgmHardwareUtils_.PerformSetActiveMode(output);
+
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
+    int32_t rate = 3;
+    hgmCore.modeListToApply_->try_emplace(screenId, rate);
+    tmpRsRenderComposer->hgmHardwareUtils_.PerformSetActiveMode(output);
+
+    uint64_t timestamp = 0;
+    auto supportedModes = screenManager->GetScreenSupportedModes(screenId);
+    ASSERT_EQ(supportedModes.size(), 0);
+    auto hgm = HgmCore::Instance().hgmFrameRateMgr_;
+    HgmCore::Instance().hgmFrameRateMgr_->isAdaptive_ = true;
+    HgmCore::Instance().hgmFrameRateMgr_->isGameNodeOnTree_ = true;
+    tmpRsRenderComposer->hgmHardwareUtils_.PerformSetActiveMode(output);
+    HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
+    tmpRsRenderComposer->hgmHardwareUtils_.PerformSetActiveMode(output);
+    HgmCore::Instance().hgmFrameRateMgr_ = hgm;
+    HgmCore::Instance().vBlankIdleCorrectSwitch_.store(true);
+    tmpRsRenderComposer->hgmHardwareUtils_.vblankIdleCorrector_.isVBlankIdle_ = true;
+    tmpRsRenderComposer->OnScreenVBlankIdleCallback(timestamp);
+    tmpRsRenderComposer->hgmHardwareUtils_.PerformSetActiveMode(output);
+}
+
+/**
+ * Function: ResetRetryCount
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call ResetRetryCount
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, ResetRetryCount, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenPowerStatus powerstatus = POWER_STATUS_ON;
+    int32_t modeId = 60;
+    auto setRateRet = static_cast<uint32_t>(StatusCode::SET_RATE_ERROR);
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate = true;
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount = MAX_SETRATE_RETRY_COUNT;
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit = false;
+    tmpRsRenderComposer->hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId, modeId, setRateRet);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, false);
+    
+    tmpRsRenderComposer->hgmHardwareUtils_.ResetRetryCount(powerstatus);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, true);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, false);
+}
+
+/**
+ * Function: ResetRetryCount_002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call ResetRetryCount
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, ResetRetryCount_002, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenPowerStatus powerstatus = POWER_STATUS_ON;
+    int32_t modeId = 60;
+    auto setRateRet = static_cast<uint32_t>(StatusCode::SET_RATE_ERROR);
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate = false;
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount = 0;
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit = false;
+    tmpRsRenderComposer->hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId, modeId, setRateRet);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, true);
+
+    tmpRsRenderComposer->hgmHardwareUtils_.ResetRetryCount(powerstatus);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, true);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, false);
+}
+
+/**
+ * Function: ResetRetryCount_003
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call ResetRetryCount
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, ResetRetryCount_003, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenPowerStatus powerstatus = POWER_STATUS_ON_ADVANCED;
+    int32_t modeId = 60;
+    auto setRateRet = static_cast<uint32_t>(StatusCode::SET_RATE_ERROR);
+    tmpRsRenderComposer->hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId, modeId, setRateRet);
+
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, true);
+    tmpRsRenderComposer->hgmHardwareUtils_.ResetRetryCount(powerstatus);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, true);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, false);
+}
+
+/**
+ * Function: ResetRetryCount_004
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call ResetRetryCount_004
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, ResetRetryCount_004, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenPowerStatus powerstatus = POWER_STATUS_ON_ADVANCED;
+    int32_t modeId = 60;
+    auto setRateRet = static_cast<uint32_t>(StatusCode::SET_RATE_ERROR);
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate = true;
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount = MAX_SETRATE_RETRY_COUNT;
+    tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit = false;
+    tmpRsRenderComposer->hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId, modeId, setRateRet);
+
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, false);
+    tmpRsRenderComposer->hgmHardwareUtils_.ResetRetryCount(powerstatus);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, false);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, false);
 }
 } // namespace Rosen
 } // namespace OHOS

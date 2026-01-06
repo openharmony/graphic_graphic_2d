@@ -799,6 +799,12 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const sptr<Surface
     return pixelFormat;
 }
 
+void RSRenderComposer::HandlePowerStatus(ScreenPowerStatus status)
+{
+    RS_TRACE_NAME_FMT("%s: screenId: %" PRIu64 " PowerStatus: %d", __func__, screenId_, status);
+    hgmHardwareUtils_.ResetRetryCount(status);
+}
+
 void RSRenderComposer::OnScreenVBlankIdleCallback(uint64_t timestamp)
 {
     RS_TRACE_NAME_FMT("RSRenderComposer::OnScreenVBlankIdleCallback screenId: %" PRIu64" now: %" PRIu64,

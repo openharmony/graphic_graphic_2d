@@ -81,6 +81,7 @@ protected:
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
     int32_t GetThreadTid() const;
+    void HandlePowerStatus(ScreenPowerStatus status);
     void OnScreenVBlankIdleCallback(uint64_t timestamp);
     GSError ClearFrameBuffers(bool isNeedResetContext = true);
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);

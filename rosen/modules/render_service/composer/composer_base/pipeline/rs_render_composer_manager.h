@@ -58,6 +58,7 @@ public:
     void PostTaskWithInnerDelay(ScreenId screenId, const std::function<void()>& task);
     void ForEachScreen(const std::function<void(ScreenId, std::shared_ptr<RSRenderComposer>)>& func);
     GSError ClearFrameBuffers(ScreenId screenId, bool isNeedResetContext = true);
+    void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
