@@ -1742,7 +1742,7 @@ ErrCode RSClientToServiceConnectionProxy::GetRefreshInfoByPidAndUniqueId(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
+        ROSEN_LOGE("RSClientToServiceConnectionProxy sendrequest error : %{public}d", err);
         enable = "";
         return ERR_INVALID_VALUE;
     }
