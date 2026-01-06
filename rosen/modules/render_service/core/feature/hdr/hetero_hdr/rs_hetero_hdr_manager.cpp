@@ -39,7 +39,7 @@ constexpr int GRAPH_NUM = 3;
 constexpr int MAX_RELEASE_FRAME_NUM = 5;
 constexpr float RATIO_CHANGE_TH = 0.02f;
 constexpr uint32_t RS_HARDWARE_THREAD_TASK_NUM = 2;
-constexpr uint32_t RS_WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
+constexpr uint32_t RS_WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 500;
 }
 
 RSHeteroHDRManager& RSHeteroHDRManager::Instance()
@@ -760,15 +760,12 @@ void RSHeteroHDRManager::GenerateHDRHeteroShader(
 
 void RSHeteroHDRManager::WaitHardwareThreadTaskExecute(ScreenId screenId)
 {
-    std::unique_lock<std::mutex> lock(hardwareThreadTaskMutex_);
-    bool ret = hardwareThreadTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
-        std::chrono::milliseconds(RS_WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT),
-        [screenId]() {
-            return RSRenderComposerManager::GetInstance()
-                .GetUnExecuteTaskNum(screenId) <= RS_HARDWARE_THREAD_TASK_NUM;
-        });
-    if (!ret) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager WaitHardwareThreadTaskExecute has too many hw tasks to execute");
+    if (RSRenderComposerManager::GetInstance().GetUnExecuteTaskNum(screenId) <= RS_HARDWARE_THREAD_TASK_NUM) {
+        return;
+    } else {
+        std::unique_lock<std::mutex> lock(hardwareThreadTaskMutex_);
+        hardwareThreadTaskCond_.wait_until(lock,
+            std::chrono::system_clock::now() + std::chrono::milliseconds(RS_WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT));
     }
 }
 

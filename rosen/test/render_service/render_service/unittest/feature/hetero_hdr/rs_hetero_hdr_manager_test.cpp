@@ -1440,6 +1440,7 @@ HWTEST_F(RSHeteroHDRManagerTest, IsHDRSurfaceNodeSkippedTest, TestSize.Level1)
     ret = mockRSHeteroHDRManager.IsHDRSurfaceNodeSkipped(drawable);
     EXPECT_EQ(ret, true);
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    mockRSHeteroHDRManager.WaitHardwareThreadTaskExecute(screenId);
 }
 
 /**

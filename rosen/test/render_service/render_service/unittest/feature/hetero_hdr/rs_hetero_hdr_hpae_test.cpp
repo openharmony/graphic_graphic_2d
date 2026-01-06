@@ -92,7 +92,6 @@ void RSHeteroHDRHpaeTest::TearDownTestCase()
 void RSHeteroHDRHpaeTest::SetUp()
 {
     RS_LOGI("SetUp------------------------------------");
-    SingletonMockRSHeteroHDRHpae::Instance().ResetMdcDev();
 }
 
 void RSHeteroHDRHpaeTest::TearDown() { RS_LOGI("TearDown------------------------------------"); }
@@ -113,20 +112,21 @@ HWTEST_F(RSHeteroHDRHpaeTest, BuildHpaeHDRTaskTest001, TestSize.Level1)
     taskInfo.taskId = &taskId;
     taskInfo.dstRect = MDCRectT {0, 0, 0, 100};
     taskInfo.curHandleStatus = HdrStatus::HDR_VIDEO;
-    int32_t ret = SingletonMockRSHeteroHDRHpae::Instance().BuildHpaeHDRTask(taskInfo);
+    MockRSHeteroHDRHpae mockRSHeteroHDRHpae;
+    int32_t ret = mockRSHeteroHDRHpae.BuildHpaeHDRTask(taskInfo);
     EXPECT_EQ(ret, -1);
 
     taskInfo.dstRect = MDCRectT {0, 0, 100, 0};
-    ret = SingletonMockRSHeteroHDRHpae::Instance().BuildHpaeHDRTask(taskInfo);
+    ret = mockRSHeteroHDRHpae.BuildHpaeHDRTask(taskInfo);
     EXPECT_EQ(ret, -1);
 
     taskInfo.dstRect = MDCRectT {0, 0, 0, 100};
     taskInfo.curHandleStatus = HdrStatus::AI_HDR_VIDEO_GAINMAP;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().BuildHpaeHDRTask(taskInfo);
+    ret = mockRSHeteroHDRHpae.BuildHpaeHDRTask(taskInfo);
     EXPECT_EQ(ret, -1);
 
     taskInfo.dstRect = MDCRectT {0, 0, 100, 0};
-    ret = SingletonMockRSHeteroHDRHpae::Instance().BuildHpaeHDRTask(taskInfo);
+    ret = mockRSHeteroHDRHpae.BuildHpaeHDRTask(taskInfo);
     EXPECT_EQ(ret, -1);
 }
 
@@ -145,14 +145,15 @@ HWTEST_F(RSHeteroHDRHpaeTest, BuildHpaeHDRTaskTest002, TestSize.Level1)
     taskInfo.taskId = &taskId;
     taskInfo.curHandleStatus = HdrStatus::HDR_VIDEO;
     taskInfo.dstRect = MDCRectT {0, 0, 100, 100};
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(false);
-    int32_t ret = SingletonMockRSHeteroHDRHpae::Instance().BuildHpaeHDRTask(taskInfo);
+    MockRSHeteroHDRHpae mockRSHeteroHDRHpae;
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(false);
+    int32_t ret = mockRSHeteroHDRHpae.BuildHpaeHDRTask(taskInfo);
     EXPECT_EQ(ret, -1);
 
     taskInfo.curHandleStatus = HdrStatus::AI_HDR_VIDEO_GAINMAP;
     taskInfo.dstRect = MDCRectT {0, 0, 100, 100};
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(false);
-    ret = SingletonMockRSHeteroHDRHpae::Instance().BuildHpaeHDRTask(taskInfo);
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(false);
+    ret = mockRSHeteroHDRHpae.BuildHpaeHDRTask(taskInfo);
     EXPECT_EQ(ret, -1);
 }
 
@@ -171,31 +172,33 @@ HWTEST_F(RSHeteroHDRHpaeTest, BuildHpaeHDRTaskTest003, TestSize.Level1)
     taskInfo.taskId = &taskId;
     taskInfo.curHandleStatus = HdrStatus::HDR_VIDEO;
     taskInfo.dstRect = MDCRectT {0, 0, 100, 100};
-
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(true);
+    MockRSHeteroHDRHpae mockRSHeteroHDRHpae;
+    mockRSHeteroHDRHpae.SetMdcDev();
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(true);
     auto copybitFalse = [](struct MDCDeviceT *dev, int channel, MDCContentsT *hwLayers) { return -1; };
     auto releaseChannel = [](struct MDCDeviceT *dev, int channel) { return 0; };
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.copybit = copybitFalse;
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.releaseChannel = releaseChannel;
-    int32_t ret = SingletonMockRSHeteroHDRHpae::Instance().BuildHpaeHDRTask(taskInfo);
+    mockRSHeteroHDRHpae.mdcDev_->copybit = copybitFalse;
+    mockRSHeteroHDRHpae.mdcDev_->releaseChannel = releaseChannel;
+    mockRSHeteroHDRHpae.mdcDev_->destroyTask = [](uint32_t taskId) { return; };
+    int32_t ret = mockRSHeteroHDRHpae.BuildHpaeHDRTask(taskInfo);
     EXPECT_EQ(ret, -1);
 
     auto copybitTrue = [](struct MDCDeviceT *dev, int channel, MDCContentsT *hwLayers) { return 0; };
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.copybit = copybitTrue;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().BuildHpaeHDRTask(taskInfo);
+    mockRSHeteroHDRHpae.mdcDev_->copybit = copybitTrue;
+    ret = mockRSHeteroHDRHpae.BuildHpaeHDRTask(taskInfo);
     EXPECT_EQ(ret, 0);
 
     taskInfo.curHandleStatus = HdrStatus::AI_HDR_VIDEO_GAINMAP;
     taskInfo.dstRect = MDCRectT {0, 0, 100, 100};
 
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(true);
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.copybit = copybitFalse;
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.releaseChannel = releaseChannel;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().BuildHpaeHDRTask(taskInfo);
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(true);
+    mockRSHeteroHDRHpae.mdcDev_->copybit = copybitFalse;
+    mockRSHeteroHDRHpae.mdcDev_->releaseChannel = releaseChannel;
+    ret = mockRSHeteroHDRHpae.BuildHpaeHDRTask(taskInfo);
     EXPECT_EQ(ret, -1);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.copybit = copybitTrue;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().BuildHpaeHDRTask(taskInfo);
+    mockRSHeteroHDRHpae.mdcDev_->copybit = copybitTrue;
+    ret = mockRSHeteroHDRHpae.BuildHpaeHDRTask(taskInfo);
     EXPECT_EQ(ret, 0);
 }
 
@@ -207,51 +210,56 @@ HWTEST_F(RSHeteroHDRHpaeTest, BuildHpaeHDRTaskTest003, TestSize.Level1)
  */
 HWTEST_F(RSHeteroHDRHpaeTest, RequestHpaeChannelTest, TestSize.Level1)
 {
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(true);
+    MockRSHeteroHDRHpae mockRSHeteroHDRHpae;
+    mockRSHeteroHDRHpae.SetMdcDev();
+    mockRSHeteroHDRHpae.mdcDev_->destroyTask = [](uint32_t taskId) { return; };
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(true);
     auto requestChannelByCap0 = [](struct MDCDeviceT *dev, uint64_t needCaps) { return 0; };
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCap0;
-    int32_t ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::HDR_VIDEO);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCap0;
+    auto releaseChannel = [](struct MDCDeviceT *dev, int channel) { return 0; };
+    mockRSHeteroHDRHpae.mdcDev_->releaseChannel = releaseChannel;
+    int32_t ret = mockRSHeteroHDRHpae.RequestHpaeChannel(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(ret, 0);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(false);
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = nullptr;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::HDR_VIDEO);
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(false);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = nullptr;
+    ret = mockRSHeteroHDRHpae.RequestHpaeChannel(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(ret, -1);
 
     auto requestChannelByCapFalse = [](struct MDCDeviceT *dev, uint64_t needCaps) { return -1; };
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapFalse;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::HDR_VIDEO);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCapFalse;
+    ret = mockRSHeteroHDRHpae.RequestHpaeChannel(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(ret, -1);
 
     auto requestChannelByCapFalse3 = [](struct MDCDeviceT *dev, uint64_t needCaps) { return -3; };
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapFalse3;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::HDR_VIDEO);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCapFalse3;
+    ret = mockRSHeteroHDRHpae.RequestHpaeChannel(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(ret, -3);
 
     auto requestChannelByCapTrue = [](struct MDCDeviceT *dev, uint64_t needCaps) { return 1; };
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapTrue;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::HDR_VIDEO);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCapTrue;
+    ret = mockRSHeteroHDRHpae.RequestHpaeChannel(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(ret, 0);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(true);
-    ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::AI_HDR_VIDEO_GAINMAP);
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(true);
+    ret = mockRSHeteroHDRHpae.RequestHpaeChannel(HdrStatus::AI_HDR_VIDEO_GAINMAP);
     EXPECT_EQ(ret, 0);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(false);
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = nullptr;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::AI_HDR_VIDEO_GAINMAP);
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(false);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = nullptr;
+    ret = mockRSHeteroHDRHpae.RequestHpaeChannel(HdrStatus::AI_HDR_VIDEO_GAINMAP);
     EXPECT_EQ(ret, -1);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapFalse;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::AI_HDR_VIDEO_GAINMAP);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCapFalse;
+    ret = mockRSHeteroHDRHpae.RequestHpaeChannel(HdrStatus::AI_HDR_VIDEO_GAINMAP);
     EXPECT_EQ(ret, -1);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapTrue;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::AI_HDR_VIDEO_GAINMAP);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCapTrue;
+    ret = mockRSHeteroHDRHpae.RequestHpaeChannel(HdrStatus::AI_HDR_VIDEO_GAINMAP);
     EXPECT_EQ(ret, 0);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapTrue;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::NO_HDR);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCapTrue;
+    ret = mockRSHeteroHDRHpae.RequestHpaeChannel(HdrStatus::NO_HDR);
     EXPECT_EQ(ret, -1);
 }
 
@@ -268,21 +276,28 @@ HWTEST_F(RSHeteroHDRHpaeTest, CheckHpaeAccessibleTest, TestSize.Level1)
     auto checkResourceConflictFalse = [](struct MDCDeviceT *dev, uint64_t needCaps) { return false; };
     auto checkResourceConflictTrue = [](struct MDCDeviceT *dev, uint64_t needCaps) { return true; };
 
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(false);
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapFalse;
-    bool ret = SingletonMockRSHeteroHDRHpae::Instance().CheckHpaeAccessible(HdrStatus::AI_HDR_VIDEO_GAINMAP);
+    MockRSHeteroHDRHpae mockRSHeteroHDRHpae;
+    mockRSHeteroHDRHpae.SetMdcDev();
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCapTrue;
+    auto releaseChannel = [](struct MDCDeviceT *dev, int channel) { return 0; };
+    mockRSHeteroHDRHpae.mdcDev_->releaseChannel = releaseChannel;
+
+
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(false);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCapFalse;
+    bool ret = mockRSHeteroHDRHpae.CheckHpaeAccessible(HdrStatus::AI_HDR_VIDEO_GAINMAP);
     EXPECT_EQ(ret, false);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(false);
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapTrue;
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.checkResourceConflict = checkResourceConflictTrue;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().CheckHpaeAccessible(HdrStatus::HDR_VIDEO);
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(false);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCapTrue;
+    mockRSHeteroHDRHpae.mdcDev_->checkResourceConflict = checkResourceConflictTrue;
+    ret = mockRSHeteroHDRHpae.CheckHpaeAccessible(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(ret, false);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(false);
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapTrue;
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.checkResourceConflict = checkResourceConflictFalse;
-    ret = SingletonMockRSHeteroHDRHpae::Instance().CheckHpaeAccessible(HdrStatus::HDR_VIDEO);
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(false);
+    mockRSHeteroHDRHpae.mdcDev_->requestChannelByCap = requestChannelByCapTrue;
+    mockRSHeteroHDRHpae.mdcDev_->checkResourceConflict = checkResourceConflictFalse;
+    ret = mockRSHeteroHDRHpae.CheckHpaeAccessible(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(ret, true);
 }
 
@@ -294,17 +309,19 @@ HWTEST_F(RSHeteroHDRHpaeTest, CheckHpaeAccessibleTest, TestSize.Level1)
  */
 HWTEST_F(RSHeteroHDRHpaeTest, DestroyHpaeHDRTaskTest, TestSize.Level1)
 {
+    MockRSHeteroHDRHpae mockRSHeteroHDRHpae;
+    mockRSHeteroHDRHpae.SetMdcDev();
     uint32_t taskId = 123;
-    SingletonMockRSHeteroHDRHpae::Instance().mdcStatus_.store(false);
+    mockRSHeteroHDRHpae.mdcStatus_.store(false);
     auto destroyTask = [](uint32_t taskId) { return; };
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.destroyTask = destroyTask;
-    SingletonMockRSHeteroHDRHpae::Instance().DestroyHpaeHDRTask(taskId);
-    bool ret = SingletonMockRSHeteroHDRHpae::Instance().mdcStatus_.load();
+    mockRSHeteroHDRHpae.mdcDev_->destroyTask = destroyTask;
+    mockRSHeteroHDRHpae.DestroyHpaeHDRTask(taskId);
+    bool ret = mockRSHeteroHDRHpae.mdcStatus_.load();
     EXPECT_EQ(ret, false);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mdcStatus_.store(true);
-    SingletonMockRSHeteroHDRHpae::Instance().DestroyHpaeHDRTask(taskId);
-    ret = SingletonMockRSHeteroHDRHpae::Instance().mdcStatus_.load();
+    mockRSHeteroHDRHpae.mdcStatus_.store(true);
+    mockRSHeteroHDRHpae.DestroyHpaeHDRTask(taskId);
+    ret = mockRSHeteroHDRHpae.mdcStatus_.load();
     EXPECT_EQ(ret, true);
 }
 
@@ -316,16 +333,18 @@ HWTEST_F(RSHeteroHDRHpaeTest, DestroyHpaeHDRTaskTest, TestSize.Level1)
  */
 HWTEST_F(RSHeteroHDRHpaeTest, ReleaseHpaeHDRChannelTest, TestSize.Level1)
 {
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(false);
+    MockRSHeteroHDRHpae mockRSHeteroHDRHpae;
+    mockRSHeteroHDRHpae.SetMdcDev();
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(false);
     auto releaseChannel = [](struct MDCDeviceT *dev, int channel) { return 0; };
-    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.releaseChannel = releaseChannel;
-    SingletonMockRSHeteroHDRHpae::Instance().ReleaseHpaeHDRChannel();
-    bool ret = SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.load();
+    mockRSHeteroHDRHpae.mdcDev_->releaseChannel = releaseChannel;
+    mockRSHeteroHDRHpae.ReleaseHpaeHDRChannel();
+    bool ret = mockRSHeteroHDRHpae.mdcExistedStatus_.load();
     EXPECT_EQ(ret, false);
 
-    SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(true);
-    SingletonMockRSHeteroHDRHpae::Instance().ReleaseHpaeHDRChannel();
-    ret = SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.load();
+    mockRSHeteroHDRHpae.mdcExistedStatus_.store(true);
+    mockRSHeteroHDRHpae.ReleaseHpaeHDRChannel();
+    ret = mockRSHeteroHDRHpae.mdcExistedStatus_.load();
     EXPECT_EQ(ret, false);
 }
 
