@@ -108,7 +108,7 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-bool DoCreate(const uint8_t* data, size_t size)
+bool DoCreate()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -118,7 +118,7 @@ bool DoCreate(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoRemoveChild(const uint8_t* data, size_t size)
+bool DoRemoveChild()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -129,7 +129,7 @@ bool DoRemoveChild(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetAndGet(const uint8_t* data, size_t size)
+bool DoSetAndGet()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -161,7 +161,7 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetBufferAvailableCallback(const uint8_t* data, size_t size)
+bool DoSetBufferAvailableCallback()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -176,7 +176,7 @@ bool DoSetBufferAvailableCallback(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
+bool DoSetBoundsChangedCallback()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -190,7 +190,7 @@ bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoMarshalling(const uint8_t* data, size_t size)
+bool DoMarshalling()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -200,7 +200,7 @@ bool DoMarshalling(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoUnmarshalling(const uint8_t* data, size_t size)
+bool DoUnmarshalling()
 {
     // test
     RSSurfaceNodeConfig config = GetRSSurfaceNodeConfigFromData();
@@ -210,7 +210,7 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoUnmarshallingAsProxyNode(const uint8_t* data, size_t size)
+bool DoUnmarshallingAsProxyNode()
 {
     // test
     RSSurfaceNodeConfig config = GetRSSurfaceNodeConfigFromData();
@@ -220,7 +220,7 @@ bool DoUnmarshallingAsProxyNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoAttachToDisplay(const uint8_t* data, size_t size)
+bool DoAttachToDisplay()
 {
     // test
     RSSurfaceNodeConfig config = GetRSSurfaceNodeConfigFromData();
@@ -230,7 +230,7 @@ bool DoAttachToDisplay(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoDetachToDisplayAndSetHardwareEnabled(const uint8_t* data, size_t size)
+bool DoDetachToDisplayAndSetHardwareEnabled()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -242,7 +242,7 @@ bool DoDetachToDisplayAndSetHardwareEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetForceHardwareAndFixRotation(const uint8_t* data, size_t size)
+bool DoSetForceHardwareAndFixRotation()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -252,7 +252,7 @@ bool DoSetForceHardwareAndFixRotation(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetTextureExport(const uint8_t* data, size_t size)
+bool DoSetTextureExport()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -262,7 +262,7 @@ bool DoSetTextureExport(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetContainerWindow(const uint8_t* data, size_t size)
+bool DoSetContainerWindow()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -273,7 +273,7 @@ bool DoSetContainerWindow(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetWindowIdAndSetFreeze(const uint8_t* data, size_t size)
+bool DoSetWindowIdAndSetFreeze()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -286,7 +286,7 @@ bool DoSetWindowIdAndSetFreeze(const uint8_t* data, size_t size)
 }
 
 #ifdef USE_SURFACE_TEXTURE
-bool DoSetSurfaceTexture(const uint8_t* data, size_t size)
+bool DoSetSurfaceTexture()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -296,7 +296,7 @@ bool DoSetSurfaceTexture(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoMarkUiFrameAvailable(const uint8_t* data, size_t size)
+bool DoMarkUiFrameAvailable()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -306,7 +306,7 @@ bool DoMarkUiFrameAvailable(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreateSurfaceExt(const uint8_t* data, size_t size)
+bool DoCreateSurfaceExt()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -317,7 +317,7 @@ bool DoCreateSurfaceExt(const uint8_t* data, size_t size)
 }
 #endif
 
-bool DoSetForeground(const uint8_t* data, size_t size)
+bool DoSetForeground()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -327,7 +327,7 @@ bool DoSetForeground(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetForceUIFirst(const uint8_t* data, size_t size)
+bool DoSetForceUIFirst()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -337,7 +337,7 @@ bool DoSetForceUIFirst(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetAncoFlags(const uint8_t* data, size_t size)
+bool DoSetAncoFlags()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -347,7 +347,7 @@ bool DoSetAncoFlags(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetWatermark(const uint8_t* data, size_t size)
+bool DoSetWatermark()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -358,7 +358,7 @@ bool DoSetWatermark(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetHDRPresent(const uint8_t* data, size_t size)
+bool DoSetHDRPresent()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -369,7 +369,7 @@ bool DoSetHDRPresent(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoRSSurfaceNode(const uint8_t* data, size_t size)
+bool DoRSSurfaceNode()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -380,7 +380,7 @@ bool DoRSSurfaceNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreateNode(const uint8_t* data, size_t size)
+bool DoCreateNode()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -400,7 +400,7 @@ bool DoCreateNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
+bool DoCreateNodeAndSurface()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -421,7 +421,7 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetIsTextureExportNode(const uint8_t* data, size_t size)
+bool DoSetIsTextureExportNode()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -431,7 +431,7 @@ bool DoSetIsTextureExportNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetLeashPersistentId(const uint8_t* data, size_t size)
+bool DoSetLeashPersistentId()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -441,7 +441,7 @@ bool DoSetLeashPersistentId(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetGlobalPositionEnabled(const uint8_t* data, size_t size)
+bool DoSetGlobalPositionEnabled()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -451,7 +451,7 @@ bool DoSetGlobalPositionEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetSkipDraw(const uint8_t* data, size_t size)
+bool DoSetSkipDraw()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -461,7 +461,7 @@ bool DoSetSkipDraw(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
+bool DoSetHidePrivacyContent()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -471,7 +471,7 @@ bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetHardwareEnableHint(const uint8_t* data, size_t size)
+bool DoSetHardwareEnableHint()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -481,7 +481,7 @@ bool DoSetHardwareEnableHint(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetSourceVirtualScreenId(const uint8_t* data, size_t size)
+bool DoSetSourceVirtualScreenId()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -491,7 +491,7 @@ bool DoSetSourceVirtualScreenId(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetFrameGravityNewVersionEnabled(const uint8_t* data, size_t size)
+bool DoSetFrameGravityNewVersionEnabled()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -522,38 +522,38 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     
     /* Run your code on data */
-    OHOS::Rosen::DoCreate(data, size);
-    OHOS::Rosen::DoSetAndGet(data, size);
-    OHOS::Rosen::DoSetBufferAvailableCallback(data, size);
-    OHOS::Rosen::DoSetBoundsChangedCallback(data, size);
-    OHOS::Rosen::DoMarshalling(data, size);
-    OHOS::Rosen::DoUnmarshalling(data, size);
-    OHOS::Rosen::DoUnmarshallingAsProxyNode(data, size);
-    OHOS::Rosen::DoAttachToDisplay(data, size);
-    OHOS::Rosen::DoDetachToDisplayAndSetHardwareEnabled(data, size);
-    OHOS::Rosen::DoSetForceHardwareAndFixRotation(data, size);
-    OHOS::Rosen::DoSetTextureExport(data, size);
-    OHOS::Rosen::DoSetContainerWindow(data, size);
-    OHOS::Rosen::DoSetWindowIdAndSetFreeze(data, size);
+    OHOS::Rosen::DoCreate();
+    OHOS::Rosen::DoSetAndGet();
+    OHOS::Rosen::DoSetBufferAvailableCallback();
+    OHOS::Rosen::DoSetBoundsChangedCallback();
+    OHOS::Rosen::DoMarshalling();
+    OHOS::Rosen::DoUnmarshalling();
+    OHOS::Rosen::DoUnmarshallingAsProxyNode();
+    OHOS::Rosen::DoAttachToDisplay();
+    OHOS::Rosen::DoDetachToDisplayAndSetHardwareEnabled();
+    OHOS::Rosen::DoSetForceHardwareAndFixRotation();
+    OHOS::Rosen::DoSetTextureExport();
+    OHOS::Rosen::DoSetContainerWindow();
+    OHOS::Rosen::DoSetWindowIdAndSetFreeze();
 #ifdef USE_SURFACE_TEXTURE
-    OHOS::Rosen::DoSetSurfaceTexture(data, size);
-    OHOS::Rosen::DoMarkUiFrameAvailable(data, size);
-    OHOS::Rosen::DoCreateSurfaceExt(data, size);
+    OHOS::Rosen::DoSetSurfaceTexture();
+    OHOS::Rosen::DoMarkUiFrameAvailable();
+    OHOS::Rosen::DoCreateSurfaceExt();
 #endif
-    OHOS::Rosen::DoSetForeground(data, size);
-    OHOS::Rosen::DoSetForceUIFirst(data, size);
-    OHOS::Rosen::DoSetAncoFlags(data, size);
-    OHOS::Rosen::DoRSSurfaceNode(data, size);
-    OHOS::Rosen::DoCreateNode(data, size);
-    OHOS::Rosen::DoCreateNodeAndSurface(data, size);
-    OHOS::Rosen::DoSetIsTextureExportNode(data, size);
-    OHOS::Rosen::DoSetLeashPersistentId(data, size);
-    OHOS::Rosen::DoSetGlobalPositionEnabled(data, size);
-    OHOS::Rosen::DoSetSkipDraw(data, size);
-    OHOS::Rosen::DoSetHidePrivacyContent(data, size);
-    OHOS::Rosen::DoSetHardwareEnableHint(data, size);
-    OHOS::Rosen::DoSetSourceVirtualScreenId(data, size);
-    OHOS::Rosen::DoSetFrameGravityNewVersionEnabled(data, size);
+    OHOS::Rosen::DoSetForeground();
+    OHOS::Rosen::DoSetForceUIFirst();
+    OHOS::Rosen::DoSetAncoFlags();
+    OHOS::Rosen::DoRSSurfaceNode();
+    OHOS::Rosen::DoCreateNode();
+    OHOS::Rosen::DoCreateNodeAndSurface();
+    OHOS::Rosen::DoSetIsTextureExportNode();
+    OHOS::Rosen::DoSetLeashPersistentId();
+    OHOS::Rosen::DoSetGlobalPositionEnabled();
+    OHOS::Rosen::DoSetSkipDraw();
+    OHOS::Rosen::DoSetHidePrivacyContent();
+    OHOS::Rosen::DoSetHardwareEnableHint();
+    OHOS::Rosen::DoSetSourceVirtualScreenId();
+    OHOS::Rosen::DoSetFrameGravityNewVersionEnabled();
     OHOS::Rosen::DoSetSurfaceBufferOpaque();
     return 0;
 }

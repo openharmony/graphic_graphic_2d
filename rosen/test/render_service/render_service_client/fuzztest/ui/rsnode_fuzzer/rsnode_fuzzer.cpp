@@ -98,7 +98,7 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
+bool RSSurfaceNodeFuzzTest()
 {
     RSSurfaceNodeConfig surfaceNodeConfig = GetRSSurfaceNodeConfigFromData();
     std::shared_ptr<RSBaseNode> child = RSCanvasNode::Create();
@@ -253,7 +253,7 @@ void RSNodeFuzzTestInner02(std::shared_ptr<RSSurfaceNode> surfaceNode)
     surfaceNode->UpdateOcclusionCullingStatus(GetData<bool>(), GetData<NodeId>());
 }
 
-bool RSNodeFuzzTest(const uint8_t* data, size_t size)
+bool RSNodeFuzzTest()
 {
     RSSurfaceNodeConfig surfaceNodeConfig;
     std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
@@ -279,7 +279,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
 
     /* Run your code on data */
-    OHOS::Rosen::RSSurfaceNodeFuzzTest(data, size);
-    OHOS::Rosen::RSNodeFuzzTest(data, size);
+    OHOS::Rosen::RSSurfaceNodeFuzzTest();
+    OHOS::Rosen::RSNodeFuzzTest();
     return 0;
 }
