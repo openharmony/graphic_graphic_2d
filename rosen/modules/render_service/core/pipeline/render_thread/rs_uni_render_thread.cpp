@@ -590,6 +590,24 @@ void RSUniRenderThread::NotifyScreenNodeBufferReleased(ScreenId curScreenId)
     tmpCond->screenNodeBufferReleasedCond.notify_one();
 }
 
+void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo)
+{
+    ScreenId curScreenId = releaseLayerInfo.screenId;
+    std::shared_ptr<RSRenderComposerClient> composerClient = GetRSRenderComposerClient(curScreenId);
+    if (composerClient == nullptr) {
+        RS_LOGE("GetRSRenderComposerClient failed, screenId:%{public}" PRIu64, curScreenId);
+        return;
+    }
+    composerClient->RegistOnReleaseLayerBuffersCB([this](
+        std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
+        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec) {
+        bufferManager_.OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec);
+    });
+    composerClient->ReleaseLayerBuffers(curScreenId, releaseLayerInfo.timestampVec,
+        releaseLayerInfo.releaseBufferFenceVec);
+    NotifyScreenNodeBufferReleased(curScreenId);
+}
+
 void RSUniRenderThread::PerfForBlurIfNeeded()
 {
     if (!SOCPerfParam::IsBlurSOCPerfEnable()) {

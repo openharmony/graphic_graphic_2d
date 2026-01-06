@@ -72,7 +72,7 @@ public:
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
 
     void UnRegisterCond(ScreenId curScreenId);
-    void NotifyScreenNodeBufferReleased(ScreenId curScreenId);
+    void ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo);
     bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
@@ -271,12 +271,6 @@ public:
         bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence);
     }
 
-    void OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
-        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec)
-    {
-        bufferManager_.OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec);
-    }
-
     void OnDrawBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
     {
@@ -329,6 +323,7 @@ private:
     void Inittcache();
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
+    void NotifyScreenNodeBufferReleased(ScreenId curScreenId);
 
     std::atomic_bool isPostedReclaimMemoryTask_ = false;
     // Those variable is used to manage memory.
