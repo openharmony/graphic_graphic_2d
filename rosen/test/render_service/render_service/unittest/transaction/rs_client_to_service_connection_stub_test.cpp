@@ -1255,7 +1255,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStu
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
     reply.writable_ = false;
     reply.data_ = nullptr;
-    int res = toServiceConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_REPLY);
 }
 
