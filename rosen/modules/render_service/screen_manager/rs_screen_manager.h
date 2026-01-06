@@ -161,9 +161,6 @@ public:
 
     // global blacklist
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
-    int32_t SetGlobalBlackList(const std::unordered_set<NodeId>& blackList);
-    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList);
-    int32_t RemoveGlobalBlackList(const std::vector<uint64_t>& blackList);
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<uint64_t>& securityExemptionList);
@@ -213,6 +210,11 @@ private:
 
     void OnScreenPropertyChanged(const sptr<RSScreenProperty>& property);
     void OnScreenBacklightChanged(ScreenId id, uint32_t level);
+
+    // global blacklist
+    int32_t SetGlobalBlackList(const std::unordered_set<NodeId>& blackList);
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList);
+    int32_t RemoveGlobalBlackList(const std::vector<uint64_t>& blackList);
 
     std::atomic<ScreenId> defaultScreenId_ = INVALID_SCREEN_ID;
 
