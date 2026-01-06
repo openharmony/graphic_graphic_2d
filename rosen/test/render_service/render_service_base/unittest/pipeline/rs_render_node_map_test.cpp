@@ -394,44 +394,35 @@ HWTEST_F(RSRenderNodeMapTest, GetSelfDrawSurfaceNameByPidAndUniqueId001, TestSiz
 {
     RSRenderNodeMap rsRenderNodeMap;
     {
-        rsRenderNodeMap.renderNodeMap_.clear();
-        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(1, 0), "");
- 
+        rsRenderNodeMap.surfaceNodeMap_.clear();
+        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(1, 0), "");
+
         pid_t newPid = 1000;
-        NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
-        RSSurfaceRenderNodeConfig config = {
-            .id = nodeId, .name = "surfaceRosenWeb", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
-        };
-        auto node = std::make_shared<RSSurfaceRenderNode>(config);
-        node->isOnTheTree_ = true;
-        uint64_t uniqueId = 0;
-#ifndef ROSEN_CROSS_PLATFORM
-        node->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(nodeId);
-        sptr<IConsumerSurface> consumer = IConsumerSurface::Create("xcompentsurface");
-        node->surfaceHandler_->SetConsumer(consumer);
-#endif
-        rsRenderNodeMap.renderNodeMap_[newPid][nodeId] = node;
-        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, uniqueId), "");
-        rsRenderNodeMap.renderNodeMap_.clear();
-    }
- 
-    {
-        pid_t newPid = 1001;
-        NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
+        NodeId nodeId = 2000;
         RSSurfaceRenderNodeConfig config = {
             .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
         };
         auto node = std::make_shared<RSSurfaceRenderNode>(config);
-        node->isOnTheTree_ = true;
-#ifndef ROSEN_CROSS_PLATFORM
-        node->surfaceHandler_ = nullptr;
-#endif
-        rsRenderNodeMap.renderNodeMap_[newPid][nodeId] = node;
-        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, 0), "");
-        rsRenderNodeMap.renderNodeMap_.clear();
+        uint64_t uniqueId = 0;
+        rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
+        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, uniqueId), "");
+        rsRenderNodeMap.surfaceNodeMap_.clear();
+    }
+
+    {
+        pid_t newPid = 1000;
+        NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
+        RSSurfaceRenderNodeConfig config = {
+            .id = nodeId, .name = "surfaceRosenWeb", .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE
+        };
+        auto node = std::make_shared<RSSurfaceRenderNode>(config);
+        uint64_t uniqueId = 0;
+        rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
+        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, uniqueId), "");
+        rsRenderNodeMap.surfaceNodeMap_.clear();
     }
 }
- 
+
 /**
  * @tc.name: GetSelfDrawSurfaceNameByPidAndUniqueId002
  * @tc.desc: test results of GetSelfDrawSurfaceNameByPidAndUniqueId
@@ -447,24 +438,21 @@ HWTEST_F(RSRenderNodeMapTest, GetSelfDrawSurfaceNameByPidAndUniqueId002, TestSiz
         .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
     };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
-    node->isOnTheTree_ = true;
     uint64_t uniqueId = 0;
-    node->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(nodeId);
 #ifndef ROSEN_CROSS_PLATFORM
-        sptr<IConsumerSurface> consumer = IConsumerSurface::Create("xcompentsurface");
-        node->surfaceHandler_->SetConsumer(consumer);
-        uniqueId = consumer->GetUniqueId();
+    node->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(nodeId);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("xcompentsurface");
+    node->surfaceHandler_->SetConsumer(consumer);
+    uniqueId = consumer->GetUniqueId();
 #endif
-    rsRenderNodeMap.renderNodeMap_.clear();
-    rsRenderNodeMap.renderNodeMap_[newPid][nodeId] = node;
+    rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
     if (uniqueId != 0) {
-        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, uniqueId), "xcompentsurface");
+        EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, uniqueId), "xcompentsurface");
     }
- 
-    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, 0), "");
-    rsRenderNodeMap.renderNodeMap_.clear();
+    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, 0), "");
+    rsRenderNodeMap.surfaceNodeMap_.clear();
 }
- 
+
 /**
  * @tc.name: GetSelfDrawSurfaceNameByPidAndUniqueId003
  * @tc.desc: test results of GetSelfDrawSurfaceNameByPidAndUniqueId
@@ -477,12 +465,38 @@ HWTEST_F(RSRenderNodeMapTest, GetSelfDrawSurfaceNameByPidAndUniqueId003, TestSiz
     pid_t newPid = 1003;
     NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
     RSSurfaceRenderNodeConfig config = {
-        .id = 123, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
+        .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
     };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
-    node->isOnTheTree_ = true;
-    rsRenderNodeMap.renderNodeMap_[newPid][nodeId] = node;
-    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(newPid, 0), "");
-    rsRenderNodeMap.renderNodeMap_.clear();
+#ifndef ROSEN_CROSS_PLATFORM
+    node->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(nodeId);
+    node->surfaceHandler_->SetConsumer(nullptr);
+#endif
+    rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
+    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, 0), "");
+    rsRenderNodeMap.surfaceNodeMap_.clear();
+}
+
+/**
+ * @tc.name: GetSelfDrawSurfaceNameByPidAndUniqueId004
+ * @tc.desc: test results of GetSelfDrawSurfaceNameByPidAndUniqueId
+ * @tc.type: FUNC
+ * @tc.require: issueIAI1VN
+ */
+HWTEST_F(RSRenderNodeMapTest, GetSelfDrawSurfaceNameByPidAndUniqueId004, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    pid_t newPid = 1001;
+    NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
+    RSSurfaceRenderNodeConfig config = {
+        .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
+    };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+#ifndef ROSEN_CROSS_PLATFORM
+    node->surfaceHandler_ = nullptr;
+#endif
+    rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
+    EXPECT_EQ(rsRenderNodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId1(newPid, 0), "");
+    rsRenderNodeMap.surfaceNodeMap_.clear();
 }
 } // namespace OHOS::Rosen
