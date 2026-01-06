@@ -1178,7 +1178,7 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
     AppendFormat(ret, "%" PRIu64 ", rootF:%d record:%d rootS:%d opCan:%d isRD:%d, GetOpDropped:%d,"
         "isOpincDropNodeExt:%d", params->GetId(), params->OpincGetRootFlag(),
         opincDrawCache_.GetRecordState(), opincDrawCache_.GetRootNodeStrategyType(), opincDrawCache_.IsOpCanCache(),
-        opincDrawCache_.GetDrawAreaEnableState(), GetOpDropped(), isOpincDropNodeExt_);
+        opincDrawCache_.GetDrawAreaEnableState(), GetOpDropped(), RSOpincDrawCache::GetOpincBlockNodeSkip());
     auto& info = opincDrawCache_.GetOpListHandle().GetOpInfo();
     AppendFormat(ret, " opNum:%d opPercent:%d", info.num, info.percent);
     auto bounds = params->GetBounds();
@@ -1191,9 +1191,9 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
 
 void RSRenderNodeDrawable::ClearOpincState()
 {
-    // Init opincRootTotalCount_ when the new thread init
-    opincRootTotalCount_ = 0;
-    isOpincDropNodeExt_ = true;
+    // Init opincRootNodeCount_ when the new thread init
+    RSOpincDrawCache::ClearOpincRootNodeCount();
+    RSOpincDrawCache::SetOpincBlockNodeSkip(true);
 }
 
 } // namespace OHOS::Rosen::DrawableV2

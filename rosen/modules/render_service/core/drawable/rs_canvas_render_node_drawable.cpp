@@ -101,7 +101,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     auto needOcclusionSkip = paintFilterCanvas->IsQuickDrawState() ?
-        true : GetOpincDrawCache().PreDrawableCacheState(*params, isOpincDropNodeExt_);
+        true : GetOpincDrawCache().PreDrawableCacheState(*params);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     float hdrBrightness = paintFilterCanvas->GetHDRBrightness();
@@ -138,12 +138,12 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
-        GetOpincDrawCache().BeforeDrawCache(canvas, *params, isOpincDropNodeExt_);
+        GetOpincDrawCache().BeforeDrawCache(canvas, *params);
         if (!IsDrawingBlurForCache()) {
             GenerateCacheIfNeed(canvas, *params);
         }
         CheckCacheTypeAndDraw(canvas, *params);
-        GetOpincDrawCache().AfterDrawCache(canvas, *params, isOpincDropNodeExt_, opincRootTotalCount_);
+        GetOpincDrawCache().AfterDrawCache(canvas, *params);
         GetOpincDrawCache().DrawOpincDisabledDfx(canvas, *params);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);

@@ -782,6 +782,24 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetNodeDebugInfo
+ * @tc.desc: Test GetNodeDebugInfo by default
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, GetNodeDebugInfo001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = nullptr;
+    EXPECT_EQ(drawable->GetRenderParams(), nullptr);
+    EXPECT_EQ(drawable->GetNodeDebugInfo(), "");
+    NodeId nodeId = 1;
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    EXPECT_NE(drawable->GetRenderParams(), nullptr);
+    EXPECT_NE(drawable->GetNodeDebugInfo(), "");
+}
+
+/**
  * @tc.name: GetImageAlias
  * @tc.desc: Test GetImageAlias by nullptr
  * @tc.type: FUNC
