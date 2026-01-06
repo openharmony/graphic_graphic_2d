@@ -2010,8 +2010,7 @@ PanelPowerStatus RSScreenManager::GetPanelPowerStatus(ScreenId id) const
         RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
     }
-    auto status = screen->GetPanelPowerStatus();
-    return status;
+    return screen->GetPanelPowerStatus();
 }
 
 ScreenInfo RSScreenManager::QueryDefaultScreenInfo() const

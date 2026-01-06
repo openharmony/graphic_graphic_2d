@@ -131,6 +131,7 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const;
+    PanelPowerStatus GetPanelPowerStatus(ScreenId id) const;
     void WaitScreenPowerStatusTask();
     bool IsScreenPoweringOn() const;
     bool IsScreenPoweringOff(ScreenId id) const;
@@ -143,7 +144,6 @@ public:
     void ResetPowerOffNeedProcessOneFrame();
     bool GetPowerOffNeedProcessOneFrame() const;
 
-    PanelPowerStatus GetPanelPowerStatus(ScreenId id) const;
     void SetScreenBacklight(ScreenId id, uint32_t level);
     int32_t GetScreenBacklight(ScreenId id) const;
     int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type);

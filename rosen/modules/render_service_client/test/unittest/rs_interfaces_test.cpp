@@ -881,13 +881,13 @@ HWTEST_F(RSInterfacesTest, GetScreenBacklight002, Function | SmallTest | Level2)
 }
 
 /*
-* Function: GetPanelPowerStatus
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetPanelPowerStatus
-*                  2. check
-*/
+ * Function: GetPanelPowerStatus
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetPanelPowerStatus
+ *                  2. check
+ */
 HWTEST_F(RSInterfacesTest, GetPanelPowerStatus001, Function | SmallTest | Level2)
 {
     auto screenId = rsInterfaces->GetDefaultScreenId();
@@ -911,13 +911,13 @@ HWTEST_F(RSInterfacesTest, GetPanelPowerStatus001, Function | SmallTest | Level2
 }
 
 /*
-* Function: GetPanelPowerStatus
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetPanelPowerStatus with invalid screenId
-*                  2. check
-*/
+ * Function: GetPanelPowerStatus
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetPanelPowerStatus with invalid screenId
+ *                  2. check
+ */
 HWTEST_F(RSInterfacesTest, GetPanelPowerStatus002, Function | SmallTest | Level2)
 {
     auto screenId = INVALID_SCREEN_ID;

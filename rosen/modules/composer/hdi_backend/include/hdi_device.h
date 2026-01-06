@@ -44,6 +44,7 @@ public:
     virtual int32_t SetScreenMode(uint32_t screenId, uint32_t modeId) = 0;
     virtual int32_t SetScreenActiveRect(uint32_t screenId, const GraphicIRect& activeRect) = 0;
     virtual int32_t SetScreenOverlayResolution(uint32_t screenId, uint32_t width, uint32_t height) = 0;
+    virtual int32_t GetPanelPowerStatus(uint32_t devId, GraphicPanelPowerStatus& status) = 0;
     virtual int32_t GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus &status) = 0;
     virtual int32_t SetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus status) = 0;
     virtual int32_t GetScreenBacklight(uint32_t screenId, uint32_t &level) = 0;
@@ -117,7 +118,6 @@ public:
     virtual int32_t ClearClientBuffer(uint32_t screenId) = 0;
     virtual void Destroy() = 0;
     virtual int32_t RegHwcEventCallback(const RSHwcEventCallback& callback, void *data) = 0;
-    virtual int32_t GetPanelPowerStatus(uint32_t devId, GraphicPanelPowerStatus& status) = 0;
 
 private:
     HdiDevice(const HdiDevice& rhs) = delete;

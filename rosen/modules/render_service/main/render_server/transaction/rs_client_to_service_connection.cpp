@@ -1804,26 +1804,30 @@ void RSClientToServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level
     }
 }
 
-ErrCode RSClientToServiceConnection::GetPanelPowerStatus(ScreenId screenId, uint32_t& status)
+ErrCode RSClientToServiceConnection::GetPanelPowerStatus(ScreenId screenId, PanelPowerStatus& status)
 {
     if (!screenManager_) {
         RS_LOGE("%{public}s screenManager_ is nullptr.", __func__);
-        status = INVALID_PANEL_POWER_STATUS;
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
         return ERR_INVALID_OPERATION;
     }
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         status = RSRenderComposerManager::GetInstance().PostSyncTask(screenId,
-            [=]() { return screenManager_->GetPanelPowerStatus(screenId); });
+            [screenManager = screenManager_, screenId]() {
+                return screenManager->GetPanelPowerStatus(screenId);
+            });
 #else
-        status = INVALID_PANEL_POWER_STATUS;
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
 #endif
     } else if (mainThread_ != nullptr) {
         status = mainThread_->ScheduleTask(
-            [=]() { return screenManager_->GetPanelPowerStatus(screenId); }).get();
+            [screenManager = screenManager_, screenId]() {
+                return screenManager->GetPanelPowerStatus(screenId);
+            }).get();
     } else {
-        status = INVALID_PANEL_POWER_STATUS;
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
