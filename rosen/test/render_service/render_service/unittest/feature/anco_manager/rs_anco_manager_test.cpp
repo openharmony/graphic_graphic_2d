@@ -410,7 +410,7 @@ HWTEST_F(RSAncoManagerTest, UpdateLayerSrcRectForAnco, TestSize.Level2)
  */
 HWTEST_F(RSAncoManagerTest, ValidCropRect, TestSize.Level2)
 {
-    GraphicIRect cropRect{-1, -1, -1, -1 };
+    GraphicIRect cropRect{-1, -1, -1, -1};
     ASSERT_FALSE(RSAncoManager::ValidCropRect(cropRect));
     cropRect.w = 1;
     ASSERT_FALSE(RSAncoManager::ValidCropRect(cropRect));

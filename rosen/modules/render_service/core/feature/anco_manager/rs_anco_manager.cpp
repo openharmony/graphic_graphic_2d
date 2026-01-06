@@ -212,13 +212,13 @@ void RSAncoManager::ShrinkAmountIfNeed(const AncoBufferInfo& ancoInfo, Drawing::
     float cropHeight = outSrcRect.GetHeight();
     if (cropWidth < static_cast<float>(ancoInfo.width) &&
         cropWidth > TWO_TIMES * shrinkAmount) {
-            outSrcRect.left_ += shrinkAmount;
-            outSrcRect.right_ -= shrinkAmount;
+        outSrcRect.left_ += shrinkAmount;
+        outSrcRect.right_ -= shrinkAmount;
     }
     if (cropHeight < static_cast<float>(ancoInfo.height) &&
         cropHeight > TWO_TIMES * shrinkAmount) {
-            outSrcRect.top_ += shrinkAmount;
-            outSrcRect.bottom_ -= shrinkAmount;
+        outSrcRect.top_ += shrinkAmount;
+        outSrcRect.bottom_ -= shrinkAmount;
     }
 }
 } // namespace OHOS::Rosen
