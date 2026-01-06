@@ -501,29 +501,29 @@ std::vector<NodeId> RSRenderNodeMap::GetSelfDrawingNodeInProcess(pid_t pid)
 
 std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPidAndUniqueId(pid_t nodePid, uint64_t uniqueId)
 {
-    auto selfDrawingNodeVector = GetSelfDrawingNodeInProcess(nodePid);
-    for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
-        auto node = GetRenderNode(*iter);
-        if (!node) {
-            continue;
-        }
-        auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (!surfaceNode || surfaceNode->IsRosenWeb()) {
-            continue;
-        }
+    for (auto& t : surfaceNodeMap_) {
+        if (ExtractPid(t.first) == nodePid && t.second->IsSelfDrawingType() && !t.second->IsRosenWeb()) {
 #ifndef ROSEN_CROSS_PLATFORM
-        auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
-        if (!surfaceHandler) {
-            continue;
-        }
-        auto consumer = surfaceHandler->GetConsumer();
-        if (consumer && consumer->GetUniqueId() == uniqueId) {
-            return consumer->GetName();
-        }
+            auto surfaceNode = t.second->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (!surfaceNode) {
+                continue;
+            }
+            auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+            if (!surfaceHandler) {
+                continue;
+            }
+            auto consumer = surfaceHandler->GetConsumer();
+            if (consumer && consumer->GetUniqueId() == uniqueId) {
+                return consumer->GetName();
+            }
 #else
-        return surfaceNode->GetName();
+            return t.second->GetName();
 #endif
+        }
     }
+    ROSEN_LOGD("RSRenderNodeMap::GetSelfDrawSurfaceNameByPidAndUniqueId no self drawing "
+               "nodes belong to pid %{public}d",
+        static_cast<int32_t>(nodePid));
     return "";
 }
 
