@@ -1552,32 +1552,34 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParamTest003, TestSize.Level1)
     bool forceCPU = false;
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto surfaceHandle = surfaceNode->GetRSSurfaceHandler();
-    const auto& surfaceConsumer = surfaceHandle->GetConsumer();
-    auto producer = surfaceConsumer->GetProducer();
 
+    surfaceHandle->SetConsumer(nullptr);
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU);
     ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
 
-    producer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_UNKNOWN);
+    params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceHandle, forceCPU);
+    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
+
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    surfaceHandle->SetConsumer(consumer);
+
     params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU);
-    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
 
     params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceHandle, forceCPU);
-    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
 
     auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
     auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(surfaceAdapter);
     surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->id_);
-    surfaceDrawable->consumerOnDraw_ = surfaceConsumer;
+    surfaceDrawable->consumerOnDraw_ = consumer;
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
     surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
-    producer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
     params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceDrawable, forceCPU, 0);
-    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
 
-    producer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_UNPREMUL);
     params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU, 0, false);
-    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
 }
 
 /**
@@ -1593,7 +1595,7 @@ HWTEST_F(RSUniRenderUtilTest, GetMatrixByDegree001, TestSize.Level1)
     const int32_t ROTATE_180 = 180;
     auto canvas = std::make_unique<Drawing::Canvas>(100, 100); // create 100*100 canvas
     RectF bounds = {0, 0, 0, 0}; // create zero bounds
-    
+
     canvas->Rotate(ROTATE_90);
     int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(canvas->GetTotalMatrix());
     ASSERT_EQ(degree, ROTATE_90);

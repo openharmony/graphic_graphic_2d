@@ -216,8 +216,7 @@ public:
 
     bool IsUIFirstDirtyEnabled() const
     {
-        return RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
-            RSSystemProperties::GetUIFirstDirtyEnabled();
+        return GetUiFirstType() == UiFirstCcmType::MULTI && RSSystemProperties::GetUIFirstDirtyEnabled();
     }
 private:
     struct NodeDataBehindWindow {
@@ -282,7 +281,7 @@ private:
     // check if non-focus window enable uifirst
     static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
     void SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable,
-        const GraphicColorGamut& colorGamut);
+        const GraphicColorGamut& curColorGamut);
 
     // update node's uifirst state
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
