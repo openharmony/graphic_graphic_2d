@@ -162,7 +162,6 @@ private:
     bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
     void UpdateSurfaceDrawRegion(std::shared_ptr<RSPaintFilterCanvas>& mainCanvas,
         RSScreenRenderParams* params);
-    void CheckAndClearRelatedSourceNodeCache(RSScreenRenderParams& params);
 
     static void UpdateSlrScale(ScreenInfo& screenInfo);
 

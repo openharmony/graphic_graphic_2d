@@ -672,15 +672,5 @@ void RSScreenRenderNode::ResetVideoHeadroomInfo()
     headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GAINMAP);
 }
 
-void RSScreenRenderNode::SetCloneNodeMap(
-    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap)
-{
-    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
-    if (screenParams == nullptr) {
-        RS_LOGE("RSScreenRenderNode::SetCloneNodeMap screenParams is null");
-        return;
-    }
-    screenParams->SetCloneNodeMap(cloneNodeMap);
-}
 } // namespace Rosen
 } // namespace OHOS

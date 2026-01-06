@@ -38,49 +38,27 @@ RSDrawWindowCache::~RSDrawWindowCache()
 void RSDrawWindowCache::DrawAndCacheWindowContent(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     RSPaintFilterCanvas& canvas, const Drawing::Rect& bounds)
 {
-    auto cacheImage = CacheWindowContent(surfaceDrawable, canvas, bounds);
-    if (!cacheImage) {
-        RS_LOGE("RSDrawWindowCache::DrawAndCacheWindowContent CacheWindowContent failed!");
-        return;
-    }
-    if (surfaceDrawable->GetNeedCacheRelatedSourceNode()) {
-        surfaceDrawable->SetRelatedSourceNodeCache(cacheImage);
-    } else {
-        image_ = cacheImage;
-    }
-    Drawing::Brush paint;
-    paint.SetAntiAlias(true);
-    canvas.AttachBrush(paint);
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
-    canvas.DrawImage(*cacheImage, 0, 0, samplingOptions);
-    canvas.DetachBrush();
-}
-
-std::shared_ptr<Drawing::Image> RSDrawWindowCache::CacheWindowContent(
-    DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-    RSPaintFilterCanvas& canvas, const Drawing::Rect& bounds)
-{
     if (surfaceDrawable == nullptr) {
-        RS_LOGE("CacheWindowContent drawable nullptr.");
-        return nullptr;
+        RS_LOGE("DrawAndCacheWindowContent drawable nullptr.");
+        return;
     }
 
     // prepare offscreen canvas
     auto mainSurface = canvas.GetSurface();
     if (mainSurface == nullptr) {
-        RS_LOGE("CacheWindowContent main surface nullptr.");
-        return nullptr;
+        RS_LOGE("DrawAndCacheWindowContent main surface nullptr.");
+        return;
     }
     auto windowSurface = mainSurface->MakeSurface(bounds.GetWidth(), bounds.GetHeight());
     if (windowSurface == nullptr) {
-        RS_LOGE("CacheWindowContent surface nullptr.");
-        return nullptr;
+        RS_LOGE("DrawAndCacheWindowContent surface nullptr.");
+        return;
     }
     auto windowCanvas = std::make_shared<RSPaintFilterCanvas>(windowSurface.get());
     if (windowCanvas == nullptr) {
-        RS_LOGE("CacheWindowContent canvas nullptr.");
+        RS_LOGE("DrawAndCacheWindowContent canvas nullptr.");
         windowSurface = nullptr;
-        return nullptr;
+        return;
     }
     RS_TRACE_NAME_FMT("DrawAndCacheWindow node[%" PRIu64 "] %s", surfaceDrawable->GetId(),
         surfaceDrawable->GetName().c_str());
@@ -108,16 +86,20 @@ std::shared_ptr<Drawing::Image> RSDrawWindowCache::CacheWindowContent(
     }
 #endif
     // cache and draw snapshot of offscreen canvas onto target canvas
-    auto cacheImage = windowSurface->GetImageSnapshot();
-    if (cacheImage == nullptr) {
-        RS_LOGE("CacheWindowContent snapshot nullptr.");
-        return nullptr;
+    image_ = windowSurface->GetImageSnapshot();
+    if (image_ == nullptr) {
+        RS_LOGE("DrawAndCacheWindowContent snapshot nullptr.");
+        return;
     }
     surfaceDrawable->GetRsSubThreadCache().SetCacheCompletedBehindWindowData(windowCanvas->GetCacheBehindWindowData());
     surfaceDrawable->GetRsSubThreadCache().DrawBehindWindowBeforeCache(canvas);
-    return cacheImage;
+    Drawing::Brush paint;
+    paint.SetAntiAlias(true);
+    canvas.AttachBrush(paint);
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    canvas.DrawImage(*image_, 0, 0, samplingOptions);
+    canvas.DetachBrush();
 }
-
 #ifdef RS_ENABLE_GPU
 bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParam)
@@ -147,19 +129,6 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     }
     RS_TRACE_NAME_FMT("DealWithCachedWindow node[%lld] %s",
         surfaceDrawable->GetId(), surfaceDrawable->GetName().c_str());
-    DrawCache(surfaceDrawable, canvas, surfaceParams, image_);
-    if (surfaceParams.IsCrossNode() &&
-        uniParam.GetCrossNodeOffScreenStatus() == CrossNodeOffScreenRenderDebugType::ENABLE_DFX) {
-        // rgba: Alpha 128, red 255, green 128, blue 128
-        Drawing::Color color(255, 128, 128, 128);
-        DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParam, color);
-    }
-    return true;
-}
-
-void RSDrawWindowCache::DrawCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, std::shared_ptr<Drawing::Image> cacheImage)
-{
     RSAutoCanvasRestore acr(&canvas);
     //Alpha and matrix have been applied in func CaptureSurface
     if (!RSUniRenderThread::GetCaptureParam().isSnapshot_ && !RSUniRenderThread::GetCaptureParam().isMirror_) {
@@ -180,18 +149,18 @@ void RSDrawWindowCache::DrawCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfa
     auto boundSize = surfaceParams.GetBounds();
     // draw background
     surfaceDrawable->DrawBackground(canvas, boundSize);
-    const auto& gravityMatrix = surfaceDrawable->GetGravityMatrix(cacheImage->GetWidth(), cacheImage->GetHeight());
-    float scaleX = boundSize.GetWidth() / static_cast<float>(cacheImage->GetWidth());
-    float scaleY = boundSize.GetHeight() / static_cast<float>(cacheImage->GetHeight());
+    const auto& gravityMatrix = surfaceDrawable->GetGravityMatrix(image_->GetWidth(), image_->GetHeight());
+    float scaleX = boundSize.GetWidth() / static_cast<float>(image_->GetWidth());
+    float scaleY = boundSize.GetHeight() / static_cast<float>(image_->GetHeight());
     if (ROSEN_EQ(scaleY, scaleX, SCALE_DIFF)) {
         canvas.Scale(scaleX, scaleY);
     } else {
         canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
     }
     if (RSSystemProperties::GetRecordingEnabled()) {
-        if (cacheImage->IsTextureBacked()) {
+        if (image_->IsTextureBacked()) {
             RS_LOGI("DealWithCachedWindow convert image from texture to raster image.");
-            cacheImage = cacheImage->MakeRasterImage();
+            image_ = image_->MakeRasterImage();
         }
     }
     Drawing::Brush brush;
@@ -202,12 +171,19 @@ void RSDrawWindowCache::DrawCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfa
     // draw BehindWindowFilter
     surfaceDrawable->GetRsSubThreadCache().DrawBehindWindowBeforeCache(canvas, translateX, translateY);
     // draw content/children
-    canvas.DrawImage(*cacheImage, translateX, translateY, samplingOptions);
+    canvas.DrawImage(*image_, translateX, translateY, samplingOptions);
     canvas.DetachBrush();
     // draw foreground
     surfaceDrawable->DrawForeground(canvas, boundSize);
     // draw watermark
     surfaceDrawable->DrawCommSurfaceWatermark(canvas, surfaceParams);
+    if (surfaceParams.IsCrossNode() &&
+        uniParam.GetCrossNodeOffScreenStatus() == CrossNodeOffScreenRenderDebugType::ENABLE_DFX) {
+        // rgba: Alpha 128, red 255, green 128, blue 128
+        Drawing::Color color(255, 128, 128, 128);
+        DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParam, color);
+    }
+    return true;
 }
 #endif
 

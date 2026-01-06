@@ -111,9 +111,6 @@ bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
     bool isAppFreeze = GetData<bool>();
     bool hasContainerWindow = GetData<bool>();
     RRect rrect = GetData<RRect>();
-    NodeId id = GetData<NodeId>();
-    bool needOffscreen = GetData<bool>();
-    bool isRelated = GetData<bool>();
 
     std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     if (!surfaceNode) {
@@ -125,7 +122,6 @@ bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
     surfaceNode->SetSecurityLayer(isSecurityLayer);
     surfaceNode->SetAbilityBGAlpha(alpha);
     surfaceNode->SetIsNotifyUIBufferAvailable(available);
-    surfaceNode->SetClonedNodeInfo(id, needOffscreen, isRelated);
     surfaceNode->Marshalling(parcel);
     RSSurfaceNode::Unmarshalling(parcel);
     RSSurfaceNode::UnmarshallingAsProxyNode(parcel);

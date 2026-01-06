@@ -267,21 +267,4 @@ HWTEST_F(RSScreenRenderParamsTest, SetHasMirroredScreenChanged, TestSize.Level1)
     params.SetHasMirroredScreenChanged(false);
     ASSERT_FALSE(params.GetHasMirroredScreenChanged());
 }
-
-/**
- * @tc.name: SetCloneNodeMap
- * @tc.desc: test result of SetCloneNodeMap
- * @tc.type: FUNC
- * @tc.require: issue20471
- */
-HWTEST_F(RSScreenRenderParamsTest, SetCloneNodeMap, TestSize.Level1)
-{
-    RSScreenRenderParams params(118);
-    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> nodeMap;
-    nodeMap[1];
-    ASSERT_EQ(params.GetCloneNodeMap().size(), 0);
-
-    params.SetCloneNodeMap(nodeMap);
-    ASSERT_EQ(params.GetCloneNodeMap().size(), 1);
-}
 } // namespace OHOS::Rosen
