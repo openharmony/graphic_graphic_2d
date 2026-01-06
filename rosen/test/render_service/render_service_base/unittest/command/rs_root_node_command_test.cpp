@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "include/command/rs_root_node_command.h"
 #include "include/command/rs_surface_node_command.h"
+#include "include/pipeline/rs_root_render_node.h"
 #include "include/pipeline/rs_surface_render_node.h"
 
 using namespace testing;
