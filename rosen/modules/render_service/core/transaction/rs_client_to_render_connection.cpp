@@ -209,6 +209,9 @@ void RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::OnRemo
 
 ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
     pid_t callingPid = GetCallingPid();
     bool isTokenTypeValid = true;
     bool isNonSystemAppCalling = false;
@@ -219,12 +222,15 @@ ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransact
 
 ErrCode RSClientToRenderConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
     return renderPipelineAgent_->ExecuteSynchronousTask(task);
 }
 
 ErrCode RSClientToRenderConnection::ForceRefreshOneFrameWithNextVSync()
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->ForceRefreshOneFrameWithNextVSync();
@@ -232,7 +238,7 @@ ErrCode RSClientToRenderConnection::ForceRefreshOneFrameWithNextVSync()
 
 ErrCode RSClientToRenderConnection::SetAppWindowNum(uint32_t num)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetAppWindowNum(num);
@@ -241,7 +247,7 @@ ErrCode RSClientToRenderConnection::SetAppWindowNum(uint32_t num)
 ErrCode RSClientToRenderConnection::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->CreateNode(displayNodeConfig, nodeId, success);
@@ -249,7 +255,7 @@ ErrCode RSClientToRenderConnection::CreateNode(const RSDisplayNodeConfig& displa
 
 ErrCode RSClientToRenderConnection::CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->CreateNode(config, success);
@@ -258,7 +264,7 @@ ErrCode RSClientToRenderConnection::CreateNode(const RSSurfaceRenderNodeConfig& 
 ErrCode RSClientToRenderConnection::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
     sptr<Surface>& sfc, bool unobscured)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->CreateNodeAndSurface(config, sfc, unobscured);
@@ -266,7 +272,7 @@ ErrCode RSClientToRenderConnection::CreateNodeAndSurface(const RSSurfaceRenderNo
 
 ErrCode RSClientToRenderConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     renderPipelineAgent_->RegisterApplicationAgent(pid, app);
@@ -278,7 +284,7 @@ ErrCode RSClientToRenderConnection::RegisterApplicationAgent(uint32_t pid, sptr<
 ErrCode RSClientToRenderConnection::RegisterBufferClearListener(
     NodeId id, sptr<RSIBufferClearCallback> callback)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->RegisterBufferClearListener(id, callback);
@@ -287,7 +293,7 @@ ErrCode RSClientToRenderConnection::RegisterBufferClearListener(
 ErrCode RSClientToRenderConnection::RegisterBufferAvailableListener(
     NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->RegisterBufferAvailableListener(id, callback, isFromRenderThread);
@@ -295,7 +301,7 @@ ErrCode RSClientToRenderConnection::RegisterBufferAvailableListener(
 
 ErrCode RSClientToRenderConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         success = false;
         return ERR_INVALID_VALUE;
     }
@@ -304,8 +310,7 @@ ErrCode RSClientToRenderConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap
 
 ErrCode RSClientToRenderConnection::SetGlobalDarkColorMode(bool isDark)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetGlobalDarkColorMode(isDark);
@@ -314,7 +319,7 @@ ErrCode RSClientToRenderConnection::SetGlobalDarkColorMode(bool isDark)
 ErrCode RSClientToRenderConnection::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         success = false;
         return ERR_INVALID_VALUE;
     }
@@ -324,8 +329,7 @@ ErrCode RSClientToRenderConnection::GetPixelmap(NodeId id, const std::shared_ptr
 ErrCode RSClientToRenderConnection::SetSystemAnimatedScenes(
     SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         success = false;
         return ERR_INVALID_VALUE;
     }
@@ -340,7 +344,7 @@ ErrCode RSClientToRenderConnection::SetSystemAnimatedScenes(
 ErrCode RSClientToRenderConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
     bool dynamicHardwareEnable)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
@@ -348,7 +352,7 @@ ErrCode RSClientToRenderConnection::SetHardwareEnabled(NodeId id, bool isEnabled
 
 ErrCode RSClientToRenderConnection::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         resCode = static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
         return ERR_INVALID_VALUE;
     }
@@ -357,13 +361,16 @@ ErrCode RSClientToRenderConnection::SetHidePrivacyContent(NodeId id, bool needHi
 
 bool RSClientToRenderConnection::GetHighContrastTextState()
 {
-    return renderPipelineAgent_ != nullptr && renderPipelineAgent_->GetHighContrastTextState();
+    if (renderPipelineAgent_ == nullptr) {
+        return false;
+    }
+    return renderPipelineAgent_->GetHighContrastTextState();
 }
 
 
 ErrCode RSClientToRenderConnection::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         repCode = INVALID_ARGUMENTS;
         return ERR_INVALID_VALUE;
     }
@@ -374,18 +381,28 @@ void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCa
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
     const Drawing::Rect& specifiedAreaRect, RSSurfaceCapturePermissions permissions)
 {
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
     renderPipelineAgent_->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSClientToRenderConnection::TakeSurfaceCaptureSoloNode(
     NodeId id, const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions permissions)
 {
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    if (renderPipelineAgent_ == nullptr) {
+        return pixelMapIdPairVector;
+    }
     return renderPipelineAgent_->TakeSurfaceCaptureSoloNode(id, captureConfig, permissions);
 }
 
 void RSClientToRenderConnection::TakeSelfSurfaceCapture(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
     bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SELF_SURFACE_CAPTURE");
     renderPipelineAgent_->TakeSelfSurfaceCapture(id, callback, captureConfig, isSystemCalling);
@@ -395,7 +412,7 @@ ErrCode RSClientToRenderConnection::TakeSurfaceCaptureWithAllWindows(NodeId id,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock, RSSurfaceCapturePermissions permissions)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->TakeSurfaceCaptureWithAllWindows(
@@ -404,7 +421,7 @@ ErrCode RSClientToRenderConnection::TakeSurfaceCaptureWithAllWindows(NodeId id,
 
 ErrCode RSClientToRenderConnection::FreezeScreen(NodeId id, bool isFreeze)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->FreezeScreen(id, isFreeze);
@@ -414,7 +431,7 @@ ErrCode RSClientToRenderConnection::SetWindowFreezeImmediately(NodeId id, bool i
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     const RSSurfaceCaptureBlurParam& blurParam)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
@@ -426,13 +443,16 @@ ErrCode RSClientToRenderConnection::SetWindowFreezeImmediately(NodeId id, bool i
 void RSClientToRenderConnection::TakeUICaptureInRange(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
     renderPipelineAgent_->TakeUICaptureInRange(id, callback, captureConfig);
 }
 
 ErrCode RSClientToRenderConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
@@ -440,7 +460,7 @@ ErrCode RSClientToRenderConnection::SetHwcNodeBounds(int64_t rsNodeId, float pos
 
 int32_t RSClientToRenderConnection::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->GetBrightnessInfo(screenId, brightnessInfo);
@@ -448,7 +468,7 @@ int32_t RSClientToRenderConnection::GetBrightnessInfo(ScreenId screenId, Brightn
 
 ErrCode RSClientToRenderConnection::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->GetScreenHDRStatus(id, hdrStatus, resCode);
@@ -456,7 +476,7 @@ ErrCode RSClientToRenderConnection::GetScreenHDRStatus(ScreenId id, HdrStatus& h
 
 ErrCode RSClientToRenderConnection::DropFrameByPid(const std::vector<int32_t> pidList)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->DropFrameByPid(pidList);
@@ -464,8 +484,7 @@ ErrCode RSClientToRenderConnection::DropFrameByPid(const std::vector<int32_t> pi
 
 ErrCode RSClientToRenderConnection::SetAncoForceDoDirect(bool direct, bool& res)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         res = false;
         return ERR_INVALID_VALUE;
     }
@@ -475,7 +494,7 @@ ErrCode RSClientToRenderConnection::SetAncoForceDoDirect(bool direct, bool& res)
 ErrCode RSClientToRenderConnection::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     sptr<RSISurfaceBufferCallback> callback)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->RegisterSurfaceBufferCallback(pid, uid, callback);
@@ -483,7 +502,7 @@ ErrCode RSClientToRenderConnection::RegisterSurfaceBufferCallback(pid_t pid, uin
 
 ErrCode RSClientToRenderConnection::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->UnregisterSurfaceBufferCallback(pid, uid);
@@ -491,7 +510,7 @@ ErrCode RSClientToRenderConnection::UnregisterSurfaceBufferCallback(pid_t pid, u
 
 ErrCode RSClientToRenderConnection::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetLayerTopForHWC(nodeId, isTop, zOrder);
@@ -500,12 +519,15 @@ ErrCode RSClientToRenderConnection::SetLayerTopForHWC(NodeId nodeId, bool isTop,
 void RSClientToRenderConnection::RegisterTransactionDataCallback(uint64_t token,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
     renderPipelineAgent_->RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
 ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetWindowContainer(nodeId, value);
@@ -513,24 +535,33 @@ ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value
 
 void RSClientToRenderConnection::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
     renderPipelineAgent_->SetScreenFrameGravity(id, gravity);
 }
 
 void RSClientToRenderConnection::ClearUifirstCache(NodeId id)
 {
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
     renderPipelineAgent_->ClearUifirstCache(id);
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSClientToRenderConnection::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
     renderPipelineAgent_->RegisterCanvasCallback(remotePid_, callback);
 }
 
 int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
     NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SubmitCanvasPreAllocatedBuffer(remotePid_, nodeId, buffer, resetSurfaceIndex);
@@ -541,7 +572,7 @@ uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::s
     const std::shared_ptr<Media::PixelMap> &watermark,
     const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return WATER_MARK_RS_CONNECTION_ERROR;
     }
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
@@ -554,7 +585,7 @@ uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::s
 void RSClientToRenderConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
     const std::vector<NodeId> &nodeIdList)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return;
     }
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
@@ -565,7 +596,7 @@ void RSClientToRenderConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const 
     
 void RSClientToRenderConnection::ClearSurfaceWatermark(pid_t pid, const std::string &name)
 {
-    if (!renderPipelineAgent_) {
+    if (renderPipelineAgent_ == nullptr) {
         return;
     }
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
