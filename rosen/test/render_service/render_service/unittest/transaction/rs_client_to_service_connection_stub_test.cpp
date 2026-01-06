@@ -1238,6 +1238,28 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStu
 }
 
 /**
+ * @tc.name: TestRSClientToServiceConnectionStub035
+ * @tc.desc: Test Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStub035, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt32(1000);
+    data.WriteUint64(0);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
+    reply.writable_ = false;
+    reply.data_ = nullptr;
+    int res = toServiceConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
+}
+
+/**
  * @tc.name: NotifyWindowExpectedByWindowIDTest001
  * @tc.desc: Test
  * @tc.type: FUNC
