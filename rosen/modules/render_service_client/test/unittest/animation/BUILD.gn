@@ -96,6 +96,8 @@ ohos_unittest("RSAnimationTest2") {
     "rs_showing_properties_freezer_test.cpp",
   ]
 
+  include_dirs = [ "//foundation/graphic/graphic_2d/utils/log" ]
+
   configs = [ ":rs_animation_test_config" ]
 
   deps =

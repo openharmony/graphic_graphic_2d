@@ -24,7 +24,10 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
     "rs_ui_shader_base_test.cpp"
   ]
 
-  include_dirs = [ "//foundation/graphic/graphic_2d/rosen/test/include" ]
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/test/include",
+    "//foundation/graphic/graphic_2d/utils/log",
+  ]
 
   configs = [
     ":property_test",
