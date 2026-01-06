@@ -639,7 +639,8 @@ static void InitGLES()
         RS_LOGE("Failed to get default display.");
         return;
     }
-    EGLint major, minor;
+    EGLint major;
+    EGLint minor;
     if (eglInitialize(g_tmpDisplay, &major, &minor) == EGL_FALSE) {
         RS_LOGE("Failed to initialize EGL.");
         return;
