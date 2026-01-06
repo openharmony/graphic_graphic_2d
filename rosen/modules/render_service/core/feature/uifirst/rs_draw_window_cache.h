@@ -62,12 +62,8 @@ public:
 
     void DrawCrossNodeOffscreenDFX(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
         RSRenderThreadParams& uniParams, const Drawing::Color& color);
-    static void DrawCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, std::shared_ptr<Drawing::Image> cacheImage);
 private:
     bool HasCache() const;
-    std::shared_ptr<Drawing::Image> CacheWindowContent(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-        RSPaintFilterCanvas& canvas, const Drawing::Rect& bounds);
     std::shared_ptr<Drawing::Image> image_ = nullptr;
 };
 } // Rosen

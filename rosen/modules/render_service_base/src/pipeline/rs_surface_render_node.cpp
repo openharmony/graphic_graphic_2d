@@ -248,8 +248,9 @@ bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 #endif
 }
 
-void RSSurfaceRenderNode::UpdateInfoForClonedNode(bool isClonedNode)
+void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
 {
+    bool isClonedNode = GetId() == nodeId;
     if (isClonedNode && IsMainWindowType() && clonedSourceNodeNeedOffscreen_) {
         SetNeedCacheSurface(true);
         SetHwcChildrenDisabledState();
@@ -1150,52 +1151,21 @@ void RSSurfaceRenderNode::SetFingerprint(bool hasFingerprint)
     SetDirty();
 }
 
-void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen, bool isRelated)
+void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen)
 {
+    isCloneNode_ = (id != INVALID_NODEID);
+    clonedSourceNodeId_ = id;
     auto context = GetContext().lock();
     if (!context) {
         RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo invalid context");
         return;
     }
-    auto clonedSurfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
-    if (!clonedSurfaceNode) {
-        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo invalid clonedNodeId");
-        return;
+    auto clonedSurfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(clonedSourceNodeId_);
+    if (clonedSurfaceNode) {
+        clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = needOffscreen;
     }
-    if (CheckCloneCircle(std::static_pointer_cast<RSSurfaceRenderNode>(shared_from_this()), clonedSurfaceNode)) {
-        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo clone circle");
-        return;
-    }
-    clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = !isRelated && needOffscreen;
-    isCloneNode_ = (id != INVALID_NODEID);
-    clonedSurfaceNode->SetRelatedSourceNode(isRelated);
-    SetRelated(isCloneNode_ && isRelated);
-    clonedSourceNodeId_ = id;
-    RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d"
-        "isRelated: %{public}d", id, needOffscreen, isRelated);
-}
-
-bool RSSurfaceRenderNode::CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> currentNode,
-    std::shared_ptr<RSSurfaceRenderNode> clonedNode)
-{
-    bool isCircle = false;
-    if (currentNode->GetId() == clonedNode->GetId()) {
-        isCircle = true;
-        return isCircle;
-    }
-    auto parentNode = currentNode->GetParent().lock();
-    if (parentNode) {
-        std::shared_ptr<RSSurfaceRenderNode> parentSurfaceNode = parentNode->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (parentSurfaceNode) {
-            isCircle = CheckCloneCircle(parentSurfaceNode, clonedNode);
-        }
-    }
-    auto context = GetContext().lock();
-    auto nextClonedNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(clonedNode->clonedSourceNodeId_);
-    if (nextClonedNode) {
-        isCircle = CheckCloneCircle(currentNode, nextClonedNode);
-    }
-    return isCircle;
+    RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d",
+        id, needOffscreen);
 }
 
 void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
@@ -3877,35 +3847,6 @@ bool RSSurfaceRenderNode::IsAncestorScreenFrozen() const
     }
     screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(firstLevelNode->GetAncestorScreenNode().lock());
     return screenNode == nullptr ? false : screenNode->GetForceFreeze();
-}
-
-void RSSurfaceRenderNode::SetRelated(bool value)
-{
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams == nullptr) {
-        return;
-    }
-    surfaceParams->SetRelated(value);
-    AddToPendingSyncList();
-}
-
-void RSSurfaceRenderNode::SetRelatedSourceNode(bool value)
-{
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams == nullptr) {
-        return;
-    }
-    surfaceParams->SetRelatedSourceNode(value);
-    AddToPendingSyncList();
-}
-
-bool RSSurfaceRenderNode::IsRelated() const
-{
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams == nullptr) {
-        return false;
-    }
-    return surfaceParams->IsRelated();
 }
 } // namespace Rosen
 } // namespace OHOS

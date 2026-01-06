@@ -216,10 +216,6 @@ HWTEST_F(RSDrawWindowCacheTest, DrawAndCacheWindowContent, TestSize.Level1)
     drawWindowCache.image_ = bmp.MakeImage();
     drawWindowCache.DrawAndCacheWindowContent(surfaceDrawable, canvas, bounds);
     ASSERT_TRUE(drawWindowCache.HasCache());
-
-    surfaceDrawable->SetNeedCacheRelatedSourceNode(true);
-    drawWindowCache.DrawAndCacheWindowContent(surfaceDrawable, canvas, bounds);
-    ASSERT_TRUE(drawWindowCache.HasCache());
 }
 
 /**

@@ -507,9 +507,6 @@ public:
     void UpdateHeadroomMapDecrease(HdrStatus status, uint32_t level);
     void ResetVideoHeadroomInfo();
 
-    void SetCloneNodeMap(
-        const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap);
-
 protected:
     void OnSync() override;
 private:

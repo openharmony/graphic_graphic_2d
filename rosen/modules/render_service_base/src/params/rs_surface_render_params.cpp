@@ -469,11 +469,6 @@ bool RSSurfaceRenderParams::IsCloneNode() const
     return isCloneNode_;
 }
 
-bool RSSurfaceRenderParams::IsRelated() const
-{
-    return isRelated_;
-}
-
 bool RSSurfaceRenderParams::GetSkipDraw() const
 {
     return isSkipDraw_;
@@ -607,8 +602,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable_;
     targetSurfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
     targetSurfaceParams->isCloneNode_ = isCloneNode_;
-    targetSurfaceParams->isRelated_ = isRelated_;
-    targetSurfaceParams->isRelatedSourceNode_ = isRelatedSourceNode_;
     targetSurfaceParams->clonedSourceNode_ = clonedSourceNode_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
