@@ -109,7 +109,7 @@ public:
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
 
     void SetActiveRectSwitchStatus(bool flag);
-    void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
+    void AncoTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
         const sptr<SyncFence>& previousReleaseFence);
 
     void SetMaskLayer(const std::shared_ptr<HdiLayer>& maskLayer) { maskLayer_ = maskLayer; }

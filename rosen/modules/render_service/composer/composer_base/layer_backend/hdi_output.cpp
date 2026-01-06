@@ -752,7 +752,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
         if (layer != nullptr) {
             auto preBuffer = layer->GetPreBuffer();
             auto consumer = layer->GetSurface();
-            ANCOTransactionOnComplete(layer, fence);
+            AncoTransactionOnComplete(layer, fence);
             releaseBuffer(preBuffer, fence, consumer);
             if (layer->GetUniRenderFlag()) {
                 releaseFence = fence;
@@ -1042,7 +1042,7 @@ void HdiOutput::SetActiveRectSwitchStatus(bool flag)
     isActiveRectSwitching_ = flag;
 }
 
-void HdiOutput::ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
+void HdiOutput::AncoTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
     const sptr<SyncFence>& previousReleaseFence)
 {
     if (rsLayer == nullptr) {
