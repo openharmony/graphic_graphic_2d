@@ -229,11 +229,13 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
     RS_LOGI_LIMIT("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate NodeId[%{public}" PRIu64 "]", GetId());
     RS_OPTIONAL_TRACE_NAME_FMT("canvas drawing node[%llu] ContentStyleSlotUpdate", GetId());
 
-    // clear content_style drawcmdlist
-    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
-    auto contentCmdList = drawCmdListsNG_.find(ModifierNG::RSModifierType::CONTENT_STYLE);
-    if (contentCmdList != drawCmdListsNG_.end()) {
-        contentCmdList->second.clear();
+    {
+        // clear content_style drawcmdlist
+        std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
+        auto contentCmdList = drawCmdListsNG_.find(ModifierNG::RSModifierType::CONTENT_STYLE);
+        if (contentCmdList != drawCmdListsNG_.end()) {
+            contentCmdList->second.clear();
+        }
     }
     saveDirtyTypesNG.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), false);
     dirtyTypesNG_ = saveDirtyTypesNG;
