@@ -17,7 +17,6 @@
 #include "frame_report.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_composer_client.h"
 #include "rs_trace.h"
 
@@ -26,22 +25,12 @@
 
 namespace OHOS {
 namespace Rosen {
-int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInfo &releaseLayerInfo)
+int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo)
 {
-    uint64_t screenId = releaseLayerInfo.screenId;
-    RS_LOGD("RSComposerToRenderConnection::ReleaseLayerBuffers, screenId:%{public}" PRIu64, screenId);
-    auto uniRenderThread = &(RSUniRenderThread::Instance());
-    std::shared_ptr<RSRenderComposerClient> composerClient = uniRenderThread->GetRSRenderComposerClient(screenId);
-    if (composerClient == nullptr) {
-        RS_LOGE("GetRSRenderComposerClient failed, screenId:%{public}" PRIu64, screenId);
-        return COMPOSITOR_ERROR_NULLPTR;
+    RS_LOGD("RSComposerToRenderConnection::ReleaseLayerBuffers, screenId:%{public}" PRIu64, releaseLayerInfo.screenId);
+    if (releaseLayerBuffersCB_ != nullptr) {
+        releaseLayerBuffersCB_(releaseLayerInfo);
     }
-    composerClient->RegistOnReleaseLayerBuffersCB([](std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
-        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec) {
-        RSUniRenderThread::Instance().OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec);
-    });
-    composerClient->ReleaseLayerBuffers(screenId, releaseLayerInfo.timestampVec, releaseLayerInfo.releaseBufferFenceVec);
-    uniRenderThread->NotifyScreenNodeBufferReleased(screenId);
     // 游戏大脑 打桩获取SwapBufferTime
     if (FrameReport::GetInstance().HasGameScene()) {
         RS_LOGD("[game_accelerate_schedule] RSComposerToRenderConnection lastSwapBufferTime %{public}" PRId64,
@@ -49,6 +38,11 @@ int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInf
         FrameReport::GetInstance().SetLastSwapBufferTime(releaseLayerInfo.lastSwapBufferTime);
     }
     return COMPOSITOR_ERROR_OK;
+}
+
+void RSComposerToRenderConnection::RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback)
+{
+    releaseLayerBuffersCB_ = callback;
 }
 
 int32_t RSComposerToRenderConnection::NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds)

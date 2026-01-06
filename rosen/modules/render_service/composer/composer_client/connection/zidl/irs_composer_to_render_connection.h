@@ -21,8 +21,9 @@
 #include "graphic_common.h"
 #include <iremote_broker.h>
 #include "rs_layer_common_def.h"
-#include <sync_fence.h>
+#include "screen_manager/screen_types.h"
 #include <surface_buffer.h>
+#include <sync_fence.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -32,6 +33,8 @@ struct ReleaseLayerBuffersInfo {
     std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>> releaseBufferFenceVec = {};
     int64_t lastSwapBufferTime = 0; /* 每帧回执时长 */
 };
+using NotifyScreenNodeBufferReleasedCB = std::function<void(ScreenId screenId)>;
+using ReleaseLayerBuffersCB = std::function<void(ReleaseLayerBuffersInfo& releaseLayerInfo)>;
 
 class IRSComposerToRenderConnection : public IRemoteBroker {
 public:
@@ -40,8 +43,9 @@ public:
     IRSComposerToRenderConnection() = default;
     virtual ~IRSComposerToRenderConnection() noexcept = default;
 
-    virtual int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo &releaseLayerInfo) = 0;
-    virtual int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t> &lppNodeIds) = 0;
+    virtual int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo) = 0;
+    virtual int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds) = 0;
+    virtual void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) = 0;
 
 protected:
     enum {
