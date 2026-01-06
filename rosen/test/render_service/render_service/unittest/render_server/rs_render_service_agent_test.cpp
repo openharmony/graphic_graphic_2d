@@ -145,7 +145,7 @@ HWTEST_F(RSRenderServiceAgentTest, ScheduleTask001, TestSize.Level1)
     renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(renderService->runner_);
     sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
     auto task = []() {};
-    auto future = renderServiceAgent.ScheduleTask(task);
+    auto future = renderServiceAgent.ScheduleTask(std::move(task));
     ASSERT_EQ(future.valid(), true);
 }
 } // namespace OHOS::Rosen
