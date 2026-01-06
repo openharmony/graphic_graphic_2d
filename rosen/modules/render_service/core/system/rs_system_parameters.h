@@ -87,6 +87,7 @@ public:
     static int32_t GetWindowScreenScanType();
     static int32_t GetPurgeableResourceLimit();
     static bool GetAnimationOcclusionEnabled();
+    static bool GetDDGRSLREnabled();
     static bool GetUIFirstPurgeEnabled();
     static bool GetUIFirstOcclusionEnabled();
     static bool GetUIFirstCaptrueReuseEnabled();

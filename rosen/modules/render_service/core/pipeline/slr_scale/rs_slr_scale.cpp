@@ -178,30 +178,57 @@ void RSSLRScaleFunction::CanvasScale(RSPaintFilterCanvas& canvas)
     canvas.Restore();
 }
 
+void RSSLRScaleFunction::DDGRDrawImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImage, Drawing::Brush& brush)
+{
+    Drawing::Rect src = Drawing::Rect(0, 0, srcWidth_, srcHeight_);
+    Drawing::Rect dst = Drawing::Rect(0, 0, dstWidth_, dstHeight_);
+    Drawing::HDSampleInfo info;
+    info.type = Drawing::HDSampleType::SLR;
+    info.sharpness = alpha_;
+    info.isUniformScale = true;
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>(cacheImage);
+    auto imageFilter = Drawing::ImageFilter::CreateHDSampleImageFilter(image, src, dst, info);
+    auto filter = Drawing::Filter();
+    filter.SetImageFilter(imageFilter);
+    brush.SetFilter(filter);
+    canvas.AttachBrush(brush);
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    canvas.DrawImage(cacheImage, 0, 0, sampling);
+}
+
 void RSSLRScaleFunction::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed)
 {
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
-    canvas.AttachBrush(brush);
-    auto image = ProcessSLRImage(canvas, cacheImageProcessed);
-    if (image == nullptr) {
-        RS_LOGE("RSSLRScaleFunction::ProcessCacheImage image is nullptr");
-        return;
+    if (RSSystemParameters::GetDDGRSLREnabled()) {
+        DDGRDrawImage(canvas, cacheImageProcessed, brush);
+    } else {
+        canvas.AttachBrush(brush);
+        auto image = ProcessSLRImage(canvas, cacheImageProcessed);
+        if (image == nullptr) {
+            RS_LOGE("RSSLRScaleFunction::ProcessCacheImage image is nullptr");
+            return;
+        }
+        auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+        canvas.DrawImage(*image, 0, 0, sampling);
     }
-    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    canvas.DrawImage(*image, 0, 0, sampling);
     canvas.DetachBrush();
 }
 
 void RSSLRScaleFunction::ProcessOffscreenImage(RSPaintFilterCanvas& canvas, Drawing::Image& offscreenImage)
 {
-    auto image = ProcessSLRImage(canvas, offscreenImage);
-    if (image == nullptr) {
-        RS_LOGE("RSSLRScaleFunction::ProcessOffscreenImage image is nullptr");
-        return;
+    if (RSSystemParameters::GetDDGRSLREnabled()) {
+        Drawing::Brush brush;
+        DDGRDrawImage(canvas, offscreenImage, brush);
+    } else {
+        auto image = ProcessSLRImage(canvas, offscreenImage);
+        if (image == nullptr) {
+            RS_LOGE("RSSLRScaleFunction::ProcessOffscreenImage image is nullptr");
+            return;
+        }
+        auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+        canvas.DrawImage(*image, 0, 0, sampling);
     }
-    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    canvas.DrawImage(*image, 0, 0, sampling);
 }
 
 std::shared_ptr<Rosen::Drawing::Image> RSSLRScaleFunction::ProcessSLRImage(RSPaintFilterCanvas& canvas,
