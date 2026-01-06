@@ -1081,7 +1081,7 @@ protected:
     virtual void InitRenderParams();
     virtual void OnSync();
     virtual void OnSkipSync();
-    virtual void ClearResource() {};
+    virtual void AccumulateLastDirtyTypes() {};
     virtual void ClearNeverOnTree() {};
 
     void AddUIExtensionChild(SharedPtr child);

@@ -3191,6 +3191,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
         // clean node, skip apply
         return;
     }
+    AccumulateLastDirtyTypes();
     RecordCurDirtyTypes();
     // Reset and re-apply all modifiers
     ResetAndApplyModifiers();
@@ -3236,8 +3237,6 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
 
     UpdateFilterCacheWithBackgroundDirty();
 
-    // Clear node some resource
-    ClearResource();
     // update state
     dirtyTypesNG_.reset();
     AddToPendingSyncList();
