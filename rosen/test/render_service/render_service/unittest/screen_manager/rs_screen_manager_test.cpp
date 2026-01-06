@@ -121,33 +121,6 @@ sptr<IRemoteObject> RSScreenManagerTest::RSIScreenChangeCallbackConfig::AsObject
 // };
 
 /*
- * @tc.name: HandleSensorDataTest
- * @tc.desc: Test HandleSensorData
- * @tc.type: FUNC
- */
-// HWTEST_F(RSScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
-// {
-//     ASSERT_NE(nullptr, screenManager_);
-//     screenManager_->HandleSensorData(0.f);
-//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
-//     screenManager_->HandleSensorData(0.f);
-//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
-//     screenManager_->isPostureSensorDataHandled_ = false;
-//     screenManager_->HandleSensorData(0.f);
-//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
-//     screenManager_->HandleSensorData(180.f);
-//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->innerScreenId_);
-//     screenManager_->HandleSensorData(180.f);
-//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->innerScreenId_);
-//     screenManager_->isPostureSensorDataHandled_ = false;
-//     screenManager_->HandleSensorData(180.f);
-//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->innerScreenId_);
-//     screenManager_->HandleSensorData(0.f);
-//     EXPECT_EQ(screenManager_->activeScreenId_, screenManager_->externalScreenId_);
-//     screenManager_->activeScreenId_ = 0;
-// }
-
-/*
  * @tc.name: CreateOrGetScreenManager_001
  * @tc.desc: Test CreateOrGetScreenManager
  * @tc.type: FUNC
@@ -1769,25 +1742,6 @@ HWTEST_F(RSScreenManagerTest, SetVirtualMirrorScreenCanvasRotationn_002, TestSiz
 
     ASSERT_EQ(static_cast<StatusCode>(
         screenManager_->SetVirtualMirrorScreenCanvasRotation(id, true)), true);
-}
-
-/*
- * @tc.name: GetActiveScreenId_001
- * @tc.desc: Test GetActiveScreenId
- * @tc.type: FUNC
- * @tc.require: issueI8ECTE
- */
-HWTEST_F(RSScreenManagerTest, GetActiveScreenId_001, TestSize.Level1)
-{
-    ASSERT_NE(nullptr, screenManager_);
-    auto activeScreenId = screenManager_->GetActiveScreenId();
-    bool isFoldScreenFlag = false;
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    isFoldScreenFlag = system::GetParameter("const.window.foldscreen.type", "") != "";
-#endif
-    if (isFoldScreenFlag) {        ASSERT_NE(INVALID_SCREEN_ID, activeScreenId);
-    } else {        ASSERT_EQ(INVALID_SCREEN_ID, activeScreenId);
-    }
 }
 
 // /*

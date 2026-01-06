@@ -27,7 +27,6 @@
 #include "param/sys_param.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "product_feature/fold/rs_foldable_screen_manager.h"
 #include "rs_screen.h"
 #include "rs_trace.h"
 
@@ -78,23 +77,23 @@ void RSScreenManager::UnRegisterAgentListener(const sptr<RSIScreenManagerAgentLi
 bool RSScreenManager::Init(const std::shared_ptr<AppExecFwk::EventHandler>& mainHandler) noexcept
 {
     isFoldScreenFlag_ = system::GetParameter("const.window.foldscreen.type", "") != "";
-    preprocessor_ = std::make_shared<RSScreenPreprocessor>(
-        wptr<RSScreenManager>(this), callbackMgr_, mainHandler, isFoldScreenFlag_);
+    preprocessor_ = std::make_unique<RSScreenPreprocessor>(
+        *this, *callbackMgr_, mainHandler, isFoldScreenFlag_);
     if (isFoldScreenFlag_) {
-        foldScreenManager_ = std::make_unique<RSFoldableScreenManager>(preprocessor_);
+        foldableScreenManager_ = std::make_unique<RSFoldableScreenManager>(*preprocessor_);
     }
     if (!preprocessor_->Init()) {
         return false;
     }
-    if (foldScreenManager_) {
-        foldScreenManager_->Init();
+    if (foldableScreenManager_) {
+        foldableScreenManager_->Init();
     }
     return true;
 }
 
 ScreenId RSScreenManager::GetActiveScreenId()
 {
-    return foldScreenManager_ ? foldScreenManager_->GetActiveScreenId() : INVALID_SCREEN_ID;
+    return foldableScreenManager_ ? foldableScreenManager_->GetActiveScreenId() : INVALID_SCREEN_ID;
 }
 
 void RSScreenManager::OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens)
@@ -184,8 +183,8 @@ void RSScreenManager::ProcessScreenConnected(ScreenId id)
         defaultScreenId = id;
     }
     defaultScreenId_ = defaultScreenId;
-    if (foldScreenManager_ && id != 0) {
-        foldScreenManager_->SetExternalScreenId(id);
+    if (foldableScreenManager_ && id != 0) {
+        foldableScreenManager_->SetExternalScreenId(id);
     }
     std::lock_guard<std::mutex> connectLock(hotPlugAndConnectMutex_);
     pendingConnectedIds_.emplace_back(id);

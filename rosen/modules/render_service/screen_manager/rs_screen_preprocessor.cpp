@@ -24,11 +24,11 @@
 #include <screen_manager/rs_screen_manager.h>
 
 namespace OHOS {
-namespace Rosen{
-RSScreenPreprocessor::RSScreenPreprocessor(wptr<RSScreenManager> screenManager,
-    std::shared_ptr<RSScreenCallbackManager> callbackMgr, std::shared_ptr<AppExecFwk::EventHandler> handler,
+namespace Rosen {
+RSScreenPreprocessor::RSScreenPreprocessor(RSScreenManager& screenManager,
+    RSScreenCallbackManager& callbackMgr, std::shared_ptr<AppExecFwk::EventHandler> handler,
     bool isFoldScreen)
-    : screenManager_(screenManager), callbackMgrWeak_(callbackMgr), mainHandler_(handler),
+    : screenManager_(screenManager), callbackMgr_(callbackMgr), mainHandler_(handler),
       isFoldScreenFlag_(isFoldScreen) {}
 
 void RSScreenPreprocessor::OnHotPlug(std::shared_ptr<HdiOutput>& output, bool connected, void* data)
@@ -172,11 +172,7 @@ void RSScreenPreprocessor::ProcessScreenHotPlugEvents()
             ConfigureScreenDisconnected(event.output);
         }
     }
-    if (auto screenManager = screenManager_.promote()) {
-        screenManager->ProcessPendingConnections();
-    } else {
-        RS_LOGE("%{public}s: screenManager is nullptr.", __func__);
-    }
+    screenManager_.ProcessPendingConnections();
     isHwcDead_ = false;
 }
 
@@ -185,26 +181,16 @@ void RSScreenPreprocessor::ConfigureScreenConnected(std::shared_ptr<HdiOutput>& 
     ScreenId id = ToScreenId(output->GetScreenId());
     RS_LOGI("%{public}s The screen for id %{public}" PRIu64 ", connected.", __func__, id);
 
-    if (auto screenManager = screenManager_.promote()) {
-        // 第一步：检查物理屏是否已经连接，已经连接先通知屏幕断开消息
-        if (screenManager->GetScreen(id)) {
-            RS_LOGW("%{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
-            if (auto callbackMgr = callbackMgrWeak_.lock()) {
-                callbackMgr->NotifyScreenDisconnected(id);
-            }
-        }
-        // 第二步: 配置连接消息
-        screenManager->ProcessScreenConnected(id);
-        // 第三步: 通知屏幕连接消息
-        if (auto callbackMgr = callbackMgrWeak_.lock()) {
-            ScreenPresenceEvent event = {.id = id, .output = output,
-                                         .property = screenManager->QueryScreenProperty(id)};
-            if (isHwcDead_) {
-                callbackMgr->NotifyHwcRestored(event);
-            } else {
-                callbackMgr->NotifyScreenConnected(event);
-            }
-        }
+    if (screenManager_.GetScreen(id)) {
+        RS_LOGW("%{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
+        callbackMgr_.NotifyScreenDisconnected(id);
+    }
+    screenManager_.ProcessScreenConnected(id);
+    ScreenPresenceEvent event = { .id = id, .output = output, .property = screenManager_.QueryScreenProperty(id) };
+    if (isHwcDead_) {
+        callbackMgr_.NotifyHwcRestored(event);
+    } else {
+        callbackMgr_.NotifyScreenConnected(event);
     }
 }
 
@@ -213,46 +199,32 @@ void RSScreenPreprocessor::ConfigureScreenDisconnected(std::shared_ptr<HdiOutput
     ScreenId id = ToScreenId(output->GetScreenId());
     RS_LOGI("%{public}s: The screen for id %{public}" PRIu64 "disconnected.", __func__, id);
 
-    if (auto screenManager = screenManager_.promote()) {
-        // 第一步：检查物理屏是否已经连接，已经连接通知屏幕断开消息
-        if (screenManager->GetScreen(id)) {
-            RS_LOGW("%{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
-            if (auto callbackMgr = callbackMgrWeak_.lock()) {
-                callbackMgr->NotifyScreenDisconnected(id);
-            }
-        }
-        // 第二步: 配置断开屏幕
-        screenManager->ProcessScreenDisConnected(id);
+    if (screenManager_.GetScreen(id)) {
+        RS_LOGW("%{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
+        callbackMgr_.NotifyScreenDisconnected(id);
     }
+    screenManager_.ProcessScreenDisConnected(id);
 }
 
 void RSScreenPreprocessor::NotifyVirtualScreenConnected(ScreenId newId,
     ScreenId associatedScreenId, sptr<RSScreenProperty> property)
 {
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        callbackMgr->NotifyVirtualScreenConnected(newId, associatedScreenId, property);
-    }
+    callbackMgr_.NotifyVirtualScreenConnected(newId, associatedScreenId, property);
 }
 
 void RSScreenPreprocessor::NotifyVirtualScreenDisconnected(ScreenId id)
 {
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        callbackMgr->NotifyVirtualScreenDisconnected(id);
-    }
+    callbackMgr_.NotifyVirtualScreenDisconnected(id);
 }
 
 void RSScreenPreprocessor::NotifyActiveScreenIdChanged(ScreenId activeScreenId)
 {
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        callbackMgr->NotifyActiveScreenIdChanged(activeScreenId);
-    }
+    callbackMgr_.NotifyActiveScreenIdChanged(activeScreenId);
 }
 
 void RSScreenPreprocessor::OnRefreshEvent(ScreenId id)
 {
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        callbackMgr->NotifyScreenRefresh(id);
-    }
+    callbackMgr_.NotifyScreenRefresh(id);
 }
 
 /**
@@ -266,20 +238,16 @@ void RSScreenPreprocessor::OnHwcDeadEvent()
         RS_TRACE_NAME("RSScreenPreprocessor::OnHwcDeadEvent");
         RS_LOGI("RSScreenPreprocessor::OnHwcDeadEvent.");
         isHwcDead_ = true;
-        if (auto screenManager = screenManager_.promote()) {
-            std::map<ScreenId, std::shared_ptr<RSScreen>> retScreens;
-            screenManager->OnHwcDeadEvent(retScreens);
-            #ifdef RS_ENABLE_GPU
-            // The `NotifyHwcDead` method synchronously calls the composition cleanup-related resources.
-            // It may take a long time due to task accumulation, resulting in holding screenMapMutex lock for too long.
-            // That is why it is necessary to handle this notification independently.
-            if (auto callbackMgr = callbackMgrWeak_.lock()) {
-                for (const auto& [id, _] : retScreens) {
-                    callbackMgr->NotifyHwcDead(id);
-                }
-            }
-            #endif
+        std::map<ScreenId, std::shared_ptr<RSScreen>> retScreens;
+        screenManager_.OnHwcDeadEvent(retScreens);
+        #ifdef RS_ENABLE_GPU
+        // The `NotifyHwcDead` method synchronously calls the composition cleanup-related resources.
+        // It may take a long time due to task accumulation, resulting in holding screenMapMutex lock for too long.
+        // That is why it is necessary to handle this notification independently.
+        for (const auto& [id, _] : retScreens) {
+            callbackMgr_.NotifyHwcDead(id);
         }
+        #endif
         if (!composer_) {
             RS_LOGE("CleanAndReinit: Failed to get composer.");
             return;
@@ -296,18 +264,14 @@ void RSScreenPreprocessor::OnHwcDeadEvent()
 void RSScreenPreprocessor::OnHwcEventCallback(
     uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        callbackMgr->NotifyHwcEvent(deviceId, eventId, eventData);
-    }
+    callbackMgr_.NotifyHwcEvent(deviceId, eventId, eventData);
 }
 
 void RSScreenPreprocessor::OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns)
 {
 #ifdef RS_ENABLE_GPU
-    if (auto callbackMgr = callbackMgrWeak_.lock()) {
-        ScreenId id = ToScreenId(devId);
-        callbackMgr->NotifyVBlankIdle(id, ns);
-    }
+    ScreenId id = ToScreenId(devId);
+    callbackMgr_.NotifyVBlankIdle(id, ns);
 #endif
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,8 @@
 
 #ifndef RS_FOLDABLE_SCREEN_MANAGER_H
 #define RS_FOLDABLE_SCREEN_MANAGER_H
-#include "rs_fold_screen_manager.h"
 #include <mutex>
+#include <screen_manager/screen_types.h>
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 #include <sensor_agent.h>
 #include <sensor_agent_type.h>
@@ -31,14 +31,14 @@ enum class FoldState : uint32_t {
     EXPAND
 };
 
-class RSFoldableScreenManager : public RSFoldScreenManager {
+class RSFoldableScreenManager {
 public:
-    RSFoldableScreenManager(std::weak_ptr<RSScreenPreprocessor> screenPreprocessor)
-        : screenPreprocessor_(screenPreprocessor){};
-    ~RSFoldableScreenManager() noexcept override;
-    ScreenId GetActiveScreenId() override;
-    void SetExternalScreenId(ScreenId externalScreenId) override;
-    void Init() override;
+    RSFoldableScreenManager(RSScreenPreprocessor& screenPreprocessor)
+        : screenPreprocessor_(screenPreprocessor) {}
+    ~RSFoldableScreenManager() noexcept;
+    ScreenId GetActiveScreenId();
+    void SetExternalScreenId(ScreenId externalScreenId);
+    void Init();
 private:
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void RegisterSensorCallback();
@@ -48,8 +48,10 @@ private:
     void HandlePostureData(const SensorEvent* const event);
     void HandleSensorData(float angle);
     FoldState TransferAngleToScreenState(float angle);
+#endif
 
-    std::weak_ptr<RSScreenPreprocessor> screenPreprocessor_;
+    RSScreenPreprocessor& screenPreprocessor_;
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     SensorUser sensorUser_;
     bool hasRegisterSensorCallback_ = false;
     mutable std::mutex registerSensorMutex_;
