@@ -35,7 +35,7 @@ public:
     RSPiplineDumper(const RSPiplineDumper&) = delete;
     RSPiplineDumper& operator=(const RSPiplineDumper&) = delete;
 
-    void RpDumpInit(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
+    void RpDumpInit(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
 
 private:
     void DumpNodesNotOnTheTree(std::string& dumpString) const;
@@ -52,12 +52,12 @@ private:
     uint32_t GenerateTaskId();
 
     // RS dump init
-    void RegisterRSGfxFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
-    void RegisterRSTreeFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
-    void RegisterMemFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
-    void RegisterGpuFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
-    void RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
-    void RegisterSurfaceInfoFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
+    void RegisterRSGfxFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
+    void RegisterRSTreeFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
+    void RegisterMemFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
+    void RegisterGpuFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
+    void RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
+    void RegisterSurfaceInfoFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
 
     void ScheduleTask(std::function<void()> task) const;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
