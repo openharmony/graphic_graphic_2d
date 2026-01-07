@@ -1862,7 +1862,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             PanelPowerStatus status{PanelPowerStatus::INVALID_PANEL_POWER_STATUS};
             int32_t errCode = GetPanelPowerStatus(id, status);
             if (!reply.WriteUint32(static_cast<uint32_t>(status))) {
-                RS_LOGE("RSRenderServiceConnectionStub::GET_PANEL_POWER_STATUS write failed! errCode: %{public}d",
+                RS_LOGE("RSRenderServiceConnectionStub::GET_PANEL_POWER_STATUS Write failed! errCode: %{public}d",
                         errCode);
                 ret = ERR_INVALID_REPLY;
             }

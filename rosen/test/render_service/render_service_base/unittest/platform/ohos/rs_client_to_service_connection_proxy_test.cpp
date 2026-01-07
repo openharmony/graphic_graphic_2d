@@ -788,7 +788,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetPanelPowerStatus001, TestSize.
 HWTEST_F(RSClientToServiceConnectionProxyTest, GetPanelPowerStatus002, TestSize.Level1)
 {
     ScreenId id = 1;
-    PanelPowerStatus status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+    PanelPowerStatus status = PanelPowerStatus::PANEL_POWER_STATUS_ON;
     sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
     auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));

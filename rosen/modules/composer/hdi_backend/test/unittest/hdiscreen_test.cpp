@@ -445,7 +445,7 @@ HWTEST_F(HdiScreenTest, GetDisplayPropertyForHardCursor001, Function | MediumTes
 }
 
 /*
- * Function: GetPanelPowerStatus001
+ * Function: GetPanelPowerStatus
  * Type: Function
  * Rank: Important(3)
  * EnvConditions: N/A
