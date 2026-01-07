@@ -17,9 +17,9 @@
 
 #include "filter_param.h"
 #include "ge_mesa_blur_shader_filter.h"
+#include "ge_render.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties.h"
-#include "render/rs_render_kawase_blur_filter.h"
 #include "system/rs_system_parameters.h"
 
 #define XML_KEY_NAME "name"
@@ -99,7 +99,7 @@ void FilterParamParse::FilterCCMInit()
     RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
     RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
     RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
-    RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
+    GraphicsEffectEngine::GERender::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
     GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
 }
 } // namespace OHOS::Rosen
