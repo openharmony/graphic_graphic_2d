@@ -790,7 +790,6 @@ ohos_unittest("HgmContextTest") {
   }
 }
 
-
 ## Build HgmRPContextTest
 ohos_unittest("HgmRPContextTest") {
   module_out_path = module_output_path
