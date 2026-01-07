@@ -16,7 +16,7 @@
 #include "rs_render_single_process_manager.h"
 
 #include "dfx/rs_service_dump_manager.h"
-#include "dfx/rs_process_dump_manager.h"
+#include "dfx/rs_pipline_dump_manager.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
 #include "rs_composer_to_render_connection.h"
@@ -67,7 +67,6 @@ sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId scr
     auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(property->GetScreenId());
     renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_,
         renderService_.rsVsyncManagerAgent_);
-    RSProcessDumpManager::GetInstance().SetRenderToServiceConnection(renderToServiceConnection_);
     return connectToRenderConnection_->AsObject();
 }
 

@@ -63,19 +63,6 @@ void RSRenderToServiceConnectionTest::SetUp() {}
 void RSRenderToServiceConnectionTest::TearDown() {}
 
 /**
- * @tc.name: ReplyDumpResultToServiceTest
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSRenderToServiceConnectionTest, ReplyDumpResultToServiceTest, TestSize.Level1)
-{
-    std::string dumpString = "dump";
-    g_rsConn->ReplyDumpResultToService(dumpString);
-    ASSERT_TRUE(g_rsConn);
-}
-
-/**
  * @tc.name: NotifyRpHgmFrameRateTest
  * @tc.desc: Test
  * @tc.type: FUNC

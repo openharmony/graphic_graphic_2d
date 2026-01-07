@@ -402,12 +402,17 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceStub::DFX_DUMP Read args failed!");
                 ret = ERR_INVALID_DATA;
             }
-
+            auto remoteObject = data.ReadRemoteObject();
+            if (!remoteObject) {
+                RS_LOGE("RSRenderServiceStub::DFX_DUMP Read Object failed!");
+                ret = ERR_NULL_OBJECT;
+            }
             std::unordered_set<std::u16string> argSets;
             for (decltype(args.size()) index = 0; index < args.size(); ++index) {
                 argSets.insert(args[index]);
             }
-            DoDump(argSets);
+            sptr<RSIDumpCallback> callback = iface_cast<RSIDumpCallback>(remoteObject);
+            DoDump(argSets, callback);
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT): {

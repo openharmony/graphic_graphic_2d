@@ -79,9 +79,9 @@ ErrCode RSServiceToRenderConnection::AvcodecVideoStop(const std::vector<uint64_t
     return renderPipelineAgent_->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
 }
 
-void RSServiceToRenderConnection::DoDump(std::unordered_set<std::u16string>& argSets)
+void RSServiceToRenderConnection::DoDump(std::unordered_set<std::u16string>& argSets, sptr<RSIDumpCallback> callback)
 {
-    renderPipelineAgent_->DoDump(argSets);
+    renderPipelineAgent_->DoDump(argSets, callback);
 }
 
 void RSServiceToRenderConnection::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)

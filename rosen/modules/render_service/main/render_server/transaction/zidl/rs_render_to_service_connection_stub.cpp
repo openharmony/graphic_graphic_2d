@@ -37,18 +37,6 @@ int RSRenderToServiceConnectionStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
     switch (code) {
-        case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::REPLY_DUMP_RESULT_TO_SERVICE): {
-            int32_t size = 0;
-            if (!data.ReadInt32(size)) {
-                RS_LOGE("%{public}s::REPLY_DUMP_RESULT_TO_SERVICE ReadInt32 failed.", __func__);
-                return ERR_INVALID_STATE;
-            }
-            char *dataPtr = RSDumpManager::GetInstance().ReadAshmemDataFromParcel(data, size);
-            std::string dumpString = dataPtr != nullptr ? 
-                std::string(static_cast<const char*>(dataPtr), size) : "";
-            ReplyDumpResultToService(dumpString);
-            break;
-        }
         case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_PROCESS_FRAME_RATE): {
             uint64_t timestamp = 0;
             uint64_t vsyncId = 0;

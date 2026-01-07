@@ -28,6 +28,7 @@
 #include "vsync_iconnection_token.h"
 #include "vsync_receiver.h"
 #include "dfx/rs_service_dumper.h"
+#include "dfx/rs_service_dump_manager.h"
 
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/zidl/rs_render_service_stub.h"
@@ -36,6 +37,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSMainThread;
+class RSRenderComposerManager;
 class RSRenderService : public RSRenderServiceStub {
 public:
     RSRenderService() = default;
@@ -117,6 +119,8 @@ private:
     sptr<VSyncDistributor> rsVSyncDistributor_ = nullptr;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
+    std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
+    std::shared_ptr<RSServiceDumpManager> rsDumpManager_ = nullptr;
 
     // TODO: DO NOT USE. Will be removed asap
     RSMainThread* mainThread_ = nullptr;
@@ -131,6 +135,7 @@ private:
     friend class RSConnectToRenderProcess;
     friend class RSClientToRenderConnection;
     friend class RSClientToServiceConnection;
+
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_ZIDL_RS_ISERVICE_TO_RENDER_CONNECTION_H
 
 #include <sync_fence.h>
+#include "ipc_callbacks/dfx/rs_dump_callback.h"
 #include "irs_render_to_composer_connection.h"
 #include "platform/ohos/transaction/rs_irender_connection_token.h"
 #include "screen_manager/rs_screen_property.h"
@@ -60,7 +61,7 @@ public:
     virtual ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) = 0;
 
     // Dfx
-    virtual void DoDump(std::unordered_set<std::u16string>& argSets) = 0;
+    virtual void DoDump(std::unordered_set<std::u16string>& argSets, sptr<RSIDumpCallback> callback) = 0;
     virtual int32_t GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB) = 0;
     virtual ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) = 0;
     virtual ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) = 0;

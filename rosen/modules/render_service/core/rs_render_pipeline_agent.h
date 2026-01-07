@@ -148,7 +148,7 @@ public:
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
     void GetSurfaceRootNodeId(NodeId &windowNodeId);
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
-    void DoDump(std::unordered_set<std::u16string>& argSets);
+    void DoDump(std::unordered_set<std::u16string>& argSets, sptr<RSIDumpCallback> callback);
     void NotifyHwcEventToRender(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode);

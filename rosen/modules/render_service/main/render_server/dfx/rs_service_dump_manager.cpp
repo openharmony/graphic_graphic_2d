@@ -18,12 +18,6 @@
 
 namespace OHOS::Rosen {
 constexpr size_t PROCESS_DUMP_TREE_TIMEOUT = 2500;
-RSServiceDumpManager& RSServiceDumpManager::GetInstance()
-{
-    // Define a static RSServiceDumpManager object to ensure only one instance is created
-    static RSServiceDumpManager instance;
-    return instance;
-}
 
 bool RSServiceDumpManager::IsServiceDumpCmd(const std::u16string& cmd)
 {
@@ -53,7 +47,7 @@ void RSServiceDumpManager::WaitForDump(std::string& dumpString)
     {
         RS_TRACE_NAME_FMT("RSServiceDumpManager::WaitForDump");
         processDumpCondVar_.wait_for(lock, std::chrono::milliseconds(PROCESS_DUMP_TREE_TIMEOUT), [this] () {
-            return RSServiceDumpManager::GetInstance().IsDumpCompleted();
+            return IsDumpCompleted();
         });
     }
 
@@ -85,7 +79,7 @@ void RSServiceDumpManager::CollectDump(std::string& dumpString)
 }
 
 void RSServiceDumpManager::DoDump(const std::vector<std::u16string>& args, std::string& dumpString,
-    const std::vector<sptr<RSIServiceToRenderConnection>>& serviceToRenderConns)
+    const sptr<RSRenderProcessManager> processManager)
 {
     std::unordered_set<std::u16string> serviceArgSets;
     std::unordered_set<std::u16string> processArgSets;
@@ -116,15 +110,18 @@ void RSServiceDumpManager::DoDump(const std::vector<std::u16string>& args, std::
         RSDumpManager::CmdExec(serviceArgSets, dumpString);
     }
 
+    auto serviceToRenderConns = processManager->GetServiceToRenderConns();
     if (!processArgSets.empty()) {
         if (serviceToRenderConns.size() == 0) {
             RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
             return;
         }
-
+        if (rsDumpCallbackDirector_ == nullptr) {
+            rsDumpCallbackDirector_ = new RSDumpCallbackDirector(this);
+        }
         InitProcessDumpTask(static_cast<int32_t>(serviceToRenderConns.size()));
         for (auto conn : serviceToRenderConns) {
-            conn->DoDump(processArgSets);
+            conn->DoDump(processArgSets, rsDumpCallbackDirector_);
         }
         WaitForDump(dumpString);
     }

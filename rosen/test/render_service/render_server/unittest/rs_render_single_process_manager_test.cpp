@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "dfx/rs_service_dump_manager.h"
-#include "dfx/rs_process_dump_manager.h"
+#include "dfx/rs_pipline_dump_manager.h"
 #include "parameters.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_render_single_process_manager.h"

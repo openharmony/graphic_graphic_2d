@@ -273,10 +273,10 @@ ohos_shared_library("librender_service") {
   sources += [
     "core/drawable/dfx/rs_refresh_rate_dfx.cpp", 
     "core/drawable/dfx/rs_skp_capture_dfx.cpp",
+    "core/dfx/rs_pipline_dump_manager.cpp",
+    "core/dfx/rs_pipline_dumper.cpp",
     "main/render_server/dfx/rs_service_dump_manager.cpp",
     "main/render_server/dfx/rs_service_dumper.cpp",
-    "main/render_process/dfx/rs_process_dump_manager.cpp",
-    "main/render_process/dfx/rs_process_dumper.cpp",
   ]
 
   #blurPredict
@@ -716,6 +716,7 @@ ohos_executable("render_process") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
 
   deps = [

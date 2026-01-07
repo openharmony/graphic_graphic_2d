@@ -830,7 +830,7 @@ ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const s
     return ERR_OK;
 }
 
-void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>& argSets)
+void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>& argSets, sptr<RSIDumpCallback> callback)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -843,6 +843,9 @@ void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>
     if (!data.WriteString16Vector(args)) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::DoDump: WriteString16Vector failed");
         return;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        RS_LOGE("RSServiceToRenderConnectionProxy::DoDump: WriteRemoteObject failed");
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::DFX_DUMP);
     int32_t err = Remote()->SendRequest(code, data, reply, option);

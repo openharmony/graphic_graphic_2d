@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_RS_PROCESS_DUMPER_H
-#define RENDER_SERVICE_RS_PROCESS_DUMPER_H
+#ifndef RENDER_SERVICE_RS_PIPLINE_DUMPER_H
+#define RENDER_SERVICE_RS_PIPLINE_DUMPER_H
 #include <unordered_set>
 
+#include "rs_pipline_dump_manager.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "transaction/zidl/rs_render_service_stub.h"
 #include "vsync_controller.h"
 #include "vsync_distributor.h"
 
@@ -26,15 +26,16 @@ namespace OHOS {
 namespace Rosen {
 class RSMainThread;
 
-class RSProcessDumper final {
+class RSPiplineDumper final {
 public:
-    RSProcessDumper() {};
-    ~RSProcessDumper() {};
+    RSPiplineDumper() {};
+    explicit RSPiplineDumper(std::shared_ptr<AppExecFwk::EventHandler> mainHandler);
+    ~RSPiplineDumper() {};
 
-    RSProcessDumper(const RSProcessDumper&) = delete;
-    RSProcessDumper& operator=(const RSProcessDumper&) = delete;
+    RSPiplineDumper(const RSPiplineDumper&) = delete;
+    RSPiplineDumper& operator=(const RSPiplineDumper&) = delete;
 
-    void RpDumpInit();
+    void RpDumpInit(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
 
 private:
     void DumpNodesNotOnTheTree(std::string& dumpString) const;
@@ -51,16 +52,18 @@ private:
     uint32_t GenerateTaskId();
 
     // RS dump init
-    void RegisterRSGfxFuncs();
-    void RegisterRSTreeFuncs();
-    void RegisterMemFuncs();
-    void RegisterGpuFuncs();
-    void RegisterBufferFuncs();
-    void RegisterSurfaceInfoFuncs();
+    void RegisterRSGfxFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
+    void RegisterRSTreeFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
+    void RegisterMemFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
+    void RegisterGpuFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
+    void RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
+    void RegisterSurfaceInfoFuncs(std::shared_ptr<RSPiplineDumpManger> rpDumpManager);
 
+    void ScheduleTask(std::function<void()> task) const;
+    std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
     sptr<RSScreenManager> screenManager_;
 };
 } // Rosen
 } // OHOS
 
-#endif // RENDER_SERVICE_RS_PROCESS_DUMPER_H
+#endif // RENDER_SERVICE_RS_PIPLINE_DUMPER_H

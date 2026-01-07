@@ -24,34 +24,6 @@ namespace Rosen {
 RSRenderToServiceConnectionProxy::RSRenderToServiceConnectionProxy(const sptr<IRemoteObject>& impl) :
     IRemoteProxy<RSIRenderToServiceConnection>(impl) {}
 
-void RSRenderToServiceConnectionProxy::ReplyDumpResultToService(std::string& dumpString)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIRenderToServiceConnection::GetDescriptor())) {
-        RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
-        return;
-    }
-    int32_t dumpStringLength = static_cast<int32_t>(dumpString.length());
-    const char* dumpData = dumpString.c_str();
-    if (!data.WriteInt32(dumpStringLength)) {
-        ROSEN_LOGE("dmulti_process %{public}s: WriteSize failed.", __func__);
-        return;
-    }
-    if (!RSDumpManager::GetInstance().WriteAshmemDataToParcel(data, dumpStringLength, dumpData)) {
-        ROSEN_LOGE("dmulti_process %{public}s: WriteDumpData failed.", __func__);
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::REPLY_DUMP_RESULT_TO_SERVICE);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process %{public}s: SendRquest failed, err is %{public}d", __func__, err);
-        return;
-    }
-}
-
 sptr<HgmServiceToProcessInfo> RSRenderToServiceConnectionProxy::NotifyRpHgmFrameRate(uint64_t timestamp,
     uint64_t vsyncId, const sptr<HgmProcessToServiceInfo>& processToServiceInfo)
 {

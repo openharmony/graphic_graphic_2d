@@ -167,7 +167,8 @@ void RSRenderService::FeatureComponentInit()
 
     // dump init
     rsDumper_ = std::make_shared<RSServiceDumper>(handler_, screenManager_, rsRenderComposerManager_);
-    rsDumper_->RsDumpInit();
+    rsDumpManager_ = std::make_shared<RSServiceDumpManager>();
+    rsDumper_->RsDumpInit(rsDumpManager_);
 
     // rdo init
 #ifdef RS_ENABLE_RDO
@@ -354,7 +355,7 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
 int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
 {
     std::string dumpString;
-    RSServiceDumpManager::GetInstance().DoDump(args, dumpString, renderProcessManager_->GetServiceToRenderConns());
+    rsDumpManager_->DoDump(args, dumpString, renderProcessManager_);
 
     if (dumpString.size() == 0) {
         return OHOS::INVALID_OPERATION;

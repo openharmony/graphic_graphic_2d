@@ -47,7 +47,7 @@
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #endif
-#include "main/render_process/dfx/rs_process_dump_manager.h"
+#include "core/dfx/rs_pipline_dump_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
@@ -1474,13 +1474,14 @@ int32_t RSRenderPipelineAgent::NotifyScreenRefresh(ScreenId screenId)
     return 0;
 }
 
-void RSRenderPipelineAgent::DoDump(std::unordered_set<std::u16string>& argSets)
+void RSRenderPipelineAgent::DoDump(std::unordered_set<std::u16string>& argSets, sptr<RSIDumpCallback> callback)
 {
-    if (rsRenderPipeline_ == nullptr) {
+    if (rsRenderPipeline_ == nullptr || rsRenderPipeline_->rpDumpManager_ == nullptr) {
+        RS_LOGE("RSRenderPiplineAgent::DoDump: RenderPipeline or DumpManager is null");
         return;
     }
     std::string dumpString;
-    RSProcessDumpManager::GetInstance().CmdExec(argSets, dumpString);
+    rsRenderPipeline_->rpDumpManager_->CmdExec(argSets, dumpString);
 }
 
 void RSRenderPipelineAgent::NotifyHwcEventToRender(

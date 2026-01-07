@@ -34,9 +34,10 @@
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
 
+#include "dfx/rs_pipline_dumper.h"
 #include "ge_mesa_blur_shader_filter.h"
 #include "graphic_feature_param_manager.h"
-#include "main/render_process/dfx/rs_process_dumper.h"
+
 #include "parameter.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
@@ -86,7 +87,7 @@ void RSRenderPipeline::Init(const std::shared_ptr<AppExecFwk::EventHandler>& han
     InitMainThread(handler, receiver, renderToServiceConnection, rsVsyncManagerAgent);
 
     // Gfx init
-    InitDumper();
+    InitDumper(handler);
 
     // todo
     // RS_PROFILER_INIT(this);
@@ -259,9 +260,10 @@ void RSRenderPipeline::InitUniRenderThread()
     uniBufferThread_->Start();
 }
 
-void RSRenderPipeline::InitDumper()
+void RSRenderPipeline::InitDumper(const std::shared_ptr<AppExecFwk::EventHandler>& handler)
 {
-    auto rpDumper_ = std::make_shared<RSProcessDumper>();
+    rpDumpManager_ = std::make_shared<RSPiplineDumpManager>();
+    rsDumper_ = std::make_shared<RSPiplineDumper>(handler);
     rpDumper_->RpDumpInit();
 }
 
