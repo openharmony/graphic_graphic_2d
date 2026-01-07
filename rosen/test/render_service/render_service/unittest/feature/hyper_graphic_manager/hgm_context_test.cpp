@@ -17,13 +17,14 @@
 
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "hgm_core.h"
+#include "render_server/rs_render_service.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-constexpr uint32_t DELAY_110MS = 110;
+RSRenderService renderService;
 }
 
 class HgmContextTest : public testing::Test {
@@ -41,28 +42,28 @@ void HgmContextTest::TearDown() {}
 
 /**
  * @tc.name: HgmContextCreateTest
- * @tc.desc: test HgmContext.HgmContext
+ * @tc.desc: test HgmContext.HandleHgmProcessInfo
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmContextTest, HgmContextInitTest, TestSize.Level1)
+HWTEST_F(HgmContextTest, HandleHgmProcessInfoTest, TestSize.Level1)
 {
     renderService.HgmInit();
     ASSERT_NE(renderService.hgmContext_, nullptr);
     const auto& hgmContext = renderService.GetHgmContext();
-    ASSERT_NE(hgmContext->rsFrameRateLinker_, nullptr);
+    hgmContext->HandleHgmProcessInfo(nullptr);
+    EXPECT_EQ(frameRateManager.isGameNodeOnTree, false)
+    sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
+    processToServiceInfo->frameRateLinkerDestroyIds = { 1 };
+    FrameRateRange range((0, 120, 60));
+    processToServiceInfo->frameRateLinkerUpdateInfoMap[2] = { range, 120 };
+    processToServiceInfo->rsCurrRange = range;
+    processToServiceInfo->surfaceData = { std::tuple<std::string, pid_t>({surfaceName, pid}) };
+    processToServiceInfo->isGameNodeOnTree = true;
+    hgmContext->HandleHgmProcessInfo(processToServiceInfo);
     auto frameRateManager = hgmContext->frameRateManager_;
-    ASSERT_NE(frameRateManager->forceUpdateCallback_, nullptr);
-    ASSERT_NE(frameRateManager->hgmConfigUpdateCallback_, nullptr);
-    ASSERT_NE(frameRateManager->adaptiveVsyncUpdateCallback_, nullptr);
-    frameRateManager->forceUpdateCallback_(true);
-    frameRateManager->adaptiveVsyncUpdateCallback_(true, "test");
-    auto& hgmCore = HgmCore::Instance();
-    frameRateManager->hgmConfigUpdateCallback_(std::make_shared<RPHgmConfigData>(),
-        hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
-    EXPECT_EQ(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::ADAPTIVE_VSYNC), true)
-    EXPECT_EQ(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::HGM_CONFIG_DATA), true)
+    EXPECT_EQ(hgmContext.rsCurrRange_.preferred_, 60)
+    EXPECT_EQ(frameRateManager.isGameNodeOnTree, true)
 }
 } // namespace OHOS::Rosen
 
