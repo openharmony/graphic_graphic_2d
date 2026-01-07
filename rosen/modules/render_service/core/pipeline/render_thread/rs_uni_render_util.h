@@ -66,7 +66,7 @@ public:
         std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec);
     static Occlusion::Region MergeDirtyRects(Occlusion::Region dirtyRegion);
     static void MergeDirtyHistoryInVirtual(
-        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, int32_t bufferAge, bool renderParallel = false);
+        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, int32_t bufferAge);
     // isSecScreen means that special layers can be displayed on the screen, for example wired mirror screen.
     static Occlusion::Region MergeVisibleDirtyRegionInVirtual(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
