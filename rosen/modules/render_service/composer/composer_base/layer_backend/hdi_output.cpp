@@ -1187,5 +1187,14 @@ void HdiOutput::SetScreenPowerOnChanged(bool flag)
 {
     screenPowerOnChanged_ = flag;
 }
+
+int32_t HdiOutput::GetDisplayClientTargetProperty(int32_t& pixelFormat, int32_t& dataspace)
+{
+    int32_t ret = device_->GetDisplayClientTargetProperty(screenId_, pixelFormat, dataspace);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGD("Call hdi GetDisplayClientTargetProperty failed, ret is %{public}d", ret);
+    }
+    return ret;
+}
 } // namespace Rosen
 } // namespace OHOS

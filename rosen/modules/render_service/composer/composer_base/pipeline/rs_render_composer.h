@@ -107,6 +107,9 @@ private:
     static GraphicPixelFormat ComputeTargetPixelFormat(const std::vector<std::shared_ptr<RSLayer>>& layers);
     static bool ConvertColorGamutToSpaceType(const GraphicColorGamut& colorGamut,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceType);
+    bool GetDisplayClientTargetProperty(GraphicPixelFormat &pixelFormat,
+        GraphicColorGamut &colorGamut, const std::vector<std::shared_ptr<RSLayer>>& layers);
+
 #endif
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
     void RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<std::shared_ptr<RSLayer>>& layers);

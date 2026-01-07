@@ -997,7 +997,8 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
-    GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    GetDisplayClientTargetProperty(pixelFormat, colorGamut, layers);
     RS_LOGD("Redraw computed target color gamut: %{public}d,"
         "pixel format: %{public}d, frame width: %{public}u, frame height: %{public}u",
         colorGamut, pixelFormat, screenInfo.phyWidth, screenInfo.phyHeight);
@@ -1235,6 +1236,29 @@ bool RSRenderComposer::ConvertColorGamutToSpaceType(const GraphicColorGamut& col
 
     colorSpaceType = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(colorGamut);
     return true;
+}
+
+bool RSRenderComposer::GetDisplayClientTargetProperty(GraphicPixelFormat &pixelFormat, GraphicColorGamut &colorGamut,
+    const std::vector<std::shared_ptr<RSLayer>>& layers)
+{
+    int32_t pixelFormatInt = 0;
+    int32_t dataspaceInt = 0;
+    if (hdiOutput_ != nullptr) {
+        int32_t ret = hdiOutput_->GetDisplayClientTargetProperty(pixelFormatInt, dataspaceInt);
+        if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+            // Direct cast from int32_t to GraphicPixelFormat
+            pixelFormat = static_cast<GraphicPixelFormat>(pixelFormatInt);
+            return true;
+        } else {
+            RS_LOGD("GetDisplayClientTargetProperty failed, ret: %{public}d, fallback to computed values", ret);
+            pixelFormat = ComputeTargetPixelFormat(layers);
+            return false;
+        }
+    } else {
+        RS_LOGD("output returned nullptr, fallback to computed values");
+        pixelFormat = ComputeTargetPixelFormat(layers);
+        return false;
+    }
 }
 #endif
 

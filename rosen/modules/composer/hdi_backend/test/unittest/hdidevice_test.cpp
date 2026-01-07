@@ -555,6 +555,27 @@ HWTEST_F(HdiDeviceTest, LayerFuncs006, Function | MediumTest| Level3)
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
+
+/*
+* Function: GetDisplayClientTargetProperty
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetDisplayClientTargetProperty
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, GetDisplayClientTargetProperty, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    int32_t pixelFormat = 0;
+    int32_t dataspace = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(_, _, _)).WillRepeatedly(
+            testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace),
+              GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
