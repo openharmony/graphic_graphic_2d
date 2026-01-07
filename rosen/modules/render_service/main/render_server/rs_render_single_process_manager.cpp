@@ -66,7 +66,7 @@ sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId scr
 {
     auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(property->GetScreenId());
     renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_,
-        renderService_.rsVsyncManagerAgent_);
+        renderService_.rsVsyncManagerAgent_, output);
     return connectToRenderConnection_->AsObject();
 }
 
