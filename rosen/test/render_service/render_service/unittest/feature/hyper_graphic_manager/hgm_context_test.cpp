@@ -51,18 +51,18 @@ HWTEST_F(HgmContextTest, HandleHgmProcessInfoTest, TestSize.Level1)
     renderService.HgmInit();
     ASSERT_NE(renderService.hgmContext_, nullptr);
     const auto& hgmContext = renderService.GetHgmContext();
+    auto frameRateManager = hgmContext->frameRateManager_;
     hgmContext->HandleHgmProcessInfo(nullptr);
-    EXPECT_EQ(frameRateManager.isGameNodeOnTree, false)
+    EXPECT_EQ(frameRateManager->isGameNodeOnTree_, false);
     sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
     processToServiceInfo->frameRateLinkerDestroyIds = { 1 };
-    FrameRateRange range((0, 120, 60));
+    FrameRateRange range(0, 120, 60);
     processToServiceInfo->frameRateLinkerUpdateInfoMap[2] = { range, 120 };
     processToServiceInfo->rsCurrRange = range;
-    processToServiceInfo->surfaceData = { std::tuple<std::string, pid_t>({surfaceName, pid}) };
+    processToServiceInfo->surfaceData = { std::tuple<std::string, pid_t>({ "test", 1 }) };
     processToServiceInfo->isGameNodeOnTree = true;
     hgmContext->HandleHgmProcessInfo(processToServiceInfo);
-    auto frameRateManager = hgmContext->frameRateManager_;
-    EXPECT_EQ(hgmContext.rsCurrRange_.preferred_, 60)
-    EXPECT_EQ(frameRateManager.isGameNodeOnTree, true)
+    EXPECT_EQ(hgmContext->rsCurrRange_.preferred_, 60);
+    EXPECT_EQ(frameRateManager->isGameNodeOnTree_, true);
 }
 } // namespace OHOS::Rosen

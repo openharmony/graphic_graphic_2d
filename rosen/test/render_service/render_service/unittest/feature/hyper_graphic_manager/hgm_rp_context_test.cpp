@@ -62,16 +62,16 @@ HWTEST_F(HgmRPContextTest, TestSetServiceToProcessInfo, TestSize.Level1)
     serviceToProcessInfo->isPowerIdle = true;
     hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
     EXPECT_EQ(refreshRate, 60);
-    EXPECT_EQ(hgmRPContext.isAdaptive, false);
-    EXPECT_EQ(hgmRPContext.ltpoEnabled, false);
-    EXPECT_EQ(hgmRPContext.hgmRPEnergy_.isTouchIdle_, true);
+    EXPECT_EQ(hgmRPContext.isAdaptive_, false);
+    EXPECT_EQ(hgmRPContext.ltpoEnabled_, false);
+    EXPECT_EQ(hgmRPContext.hgmRPEnergy_->isTouchIdle_, true);
 
-    serviceToProcessInfo->hgmDataChangeTypes_.set(HgmDataChangeType::ADAPTIVE_VSYNC)
+    serviceToProcessInfo->hgmDataChangeTypes.set(HgmDataChangeType::ADAPTIVE_VSYNC);
     hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
-    EXPECT_EQ(hgmRPContext.isAdaptive, true);
+    EXPECT_EQ(hgmRPContext.isAdaptive_, true);
 
-    serviceToProcessInfo->hgmDataChangeTypes_.set(HgmDataChangeType::HGM_CONFIG_DATA)
+    serviceToProcessInfo->hgmDataChangeTypes.set(HgmDataChangeType::HGM_CONFIG_DATA);
     hgmRPContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
-    EXPECT_EQ(hgmRPContext.ltpoEnabled, true);
+    EXPECT_EQ(hgmRPContext.ltpoEnabled_, true);
 }
 } // namespace OHOS::Rosen
