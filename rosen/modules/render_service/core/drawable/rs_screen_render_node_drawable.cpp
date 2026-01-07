@@ -847,12 +847,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         isHdrOn, params->GetNewPixelFormat(), params->GetNewColorSpace(), isHebc);
 #endif
     RSUniRenderThread::Instance().WaitUntilScreenNodeBufferReleased(*this);
-    RS_TRACE_NAME_FMT("yzy RequestFrame");
     auto renderFrame = RequestFrame(*params, processor);
     if (!renderFrame) {
         SetDrawSkipType(DrawSkipType::REQUEST_FRAME_FAIL);
-        RS_TRACE_NAME_FMT("yzy RequestFrame fail");
-        RS_LOGE("yzy RSScreenRenderNodeDrawable::OnDraw failed to request frame");
+        RS_LOGE("RSScreenRenderNodeDrawable::OnDraw failed to request frame");
         return;
     }
 
@@ -878,7 +876,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto drSurface = renderFrame->GetFrame()->GetSurface();
     if (!drSurface) {
         SetDrawSkipType(DrawSkipType::SURFACE_NULL);
-        RS_TRACE_NAME_FMT("yzy GetSurface fail");
         RS_LOGE("RSScreenRenderNodeDrawable::OnDraw DrawingSurface is null");
         return;
     }
@@ -886,7 +883,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
     if (!curCanvas_) {
         SetDrawSkipType(DrawSkipType::CANVAS_NULL);
-        RS_TRACE_NAME_FMT("yzy CANVAS_NULL fail");
         RS_LOGE("RSScreenRenderNodeDrawable::OnDraw failed to create canvas");
         return;
     }
