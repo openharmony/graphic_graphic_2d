@@ -991,7 +991,7 @@ RSUifirstManager::SkipSyncState RSUifirstManager::CollectSkipSyncNodeWithDrawabl
     auto isPreDoing = IsPreFirstLevelNodeDoingAndTryClear(node);
     auto drawable = node->GetRenderDrawable();
     if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
-        RS_LOGE("CollectSkipSyncNode drawable/params nullptr");
+        RS_LOGD("CollectSkipSyncNode drawable/params nullptr");
         // must not be in the DOING state with the invalid drawable.
         return SkipSyncState::STATE_NOT_SKIP;
     }

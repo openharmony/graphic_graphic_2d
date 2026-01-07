@@ -57,7 +57,7 @@ public:
     void FrameDurationEnd();
 
     void Init(const sptr<VSyncDistributor>& appVSyncDistributor);
-    void ResetFrameValues(uint32_t refreshRate);
+    void ResetFrameValues(uint32_t rsRefreshRate);
     void CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& node);
     void SetUniVsync();
 
