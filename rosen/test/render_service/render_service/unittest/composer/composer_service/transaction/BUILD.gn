@@ -21,9 +21,9 @@ group("unittest") {
 
   deps = [
     ":RSLayerTransactionTest",
-    ":RSTransactionDataUnittest",
-    ":RSMarshallingHelperUnittest",
-    ":RSLayerTransactionHandlerUnittest",
+    ":RSTransactionDataTest",
+    ":RSMarshallingHelperTest",
+    ":RSLayerTransactionHandlerTest",
     "command:unittest",
   ]
 }
@@ -149,8 +149,8 @@ ohos_unittest("RSLayerTransactionTest") {
   part_name = "graphic_2d"
 }
 
-## Build RSTransactionDataUnittest
-ohos_unittest("RSTransactionDataUnittest") {
+## Build RSTransactionDataTest
+ohos_unittest("RSTransactionDataTest") {
   module_out_path = module_output_path
   sources = [ "rs_layer_transaction_data_test.cpp" ]
 
@@ -162,8 +162,8 @@ ohos_unittest("RSTransactionDataUnittest") {
   part_name = "graphic_2d"
 }
 
-## Build RSMarshallingHelperUnittest
-ohos_unittest("RSMarshallingHelperUnittest") {
+## Build RSMarshallingHelperTest
+ohos_unittest("RSMarshallingHelperTest") {
   module_out_path = module_output_path
   sources = [ "rs_layer_marshalling_helper_test.cpp" ]
 
@@ -175,8 +175,8 @@ ohos_unittest("RSMarshallingHelperUnittest") {
   part_name = "graphic_2d"
 }
 
-## Build RSLayerTransactionHandlerUnittest
-ohos_unittest("RSLayerTransactionHandlerUnittest") {
+## Build RSLayerTransactionHandlerTest
+ohos_unittest("RSLayerTransactionHandlerTest") {
   module_out_path = module_output_path
   sources = [ "rs_layer_transaction_handler_test.cpp" ]
 

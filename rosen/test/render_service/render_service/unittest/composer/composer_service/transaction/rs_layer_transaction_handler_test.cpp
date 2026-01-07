@@ -20,6 +20,8 @@
 #undef UnmarshallingFunc
 #include "rs_render_layer_cmd.h"
 #include "rs_render_to_composer_connection_proxy.h"
+#include "rs_render_to_composer_connection.h"
+#include "rs_render_composer_agent.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -97,8 +99,11 @@ HWTEST(RSLayerTransactionHandlerTest, Commit_WithNonEmpty_WithoutConnection_Fail
  */
 HWTEST(RSLayerTransactionHandlerTest, Commit_WithProxyToStub_FailsAndKeepsData, TestSize.Level1)
 {
-    // Use a real Proxy but with nullptr remote to trigger failure path
-    sptr<RSRenderToComposerConnectionProxy> proxy = new RSRenderToComposerConnectionProxy(nullptr);
+    // Bind Proxy to an in-process Stub (server) with agent that returns false
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    sptr<RSRenderToComposerConnection> server = sptr<RSRenderToComposerConnection>::MakeSptr(
+        "composer_conn", 0u, agent);
+    sptr<RSRenderToComposerConnectionProxy> proxy = new RSRenderToComposerConnectionProxy(server);
 
     RSLayerTransactionHandler handler;
     handler.SetRSComposerConnectionProxy(proxy);

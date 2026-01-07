@@ -72,6 +72,7 @@ HWTEST(RSLayerMarshallingHelperTest, CmdType_And_CmdPtr_Marshall_Unmarshall, Tes
     auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(3);
     auto cmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
     ASSERT_TRUE(RSLayerMarshallingHelper::Marshalling(parcel, cmd));
+    ASSERT_TRUE(parcel.RewindRead(0));
 
     std::shared_ptr<RSRenderLayerCmd> out;
     ASSERT_TRUE(RSLayerMarshallingHelper::Unmarshalling(parcel, out));
