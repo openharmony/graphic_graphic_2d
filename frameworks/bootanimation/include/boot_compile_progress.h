@@ -30,13 +30,24 @@
 #include "util.h"
 #include "vsync_receiver.h"
 #include <map>
+#include <iremote_object.h>
 
 namespace OHOS {
 class BootCompileProgress {
 public:
     void Init(const std::string& configPath, const BootAnimationConfig& config);
+    ~BootCompileProgress();
 
 private:
+    class DeathRecipientInner : public IRemoteObject::DeathRecipient {
+    public:
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+ 
+        DeathRecipientInner(std::shared_ptr<OHOS::AppExecFwk::EventRunner> compileRunner);
+ 
+        ~DeathRecipientInner() = default;
+        std::shared_ptr<OHOS::AppExecFwk::EventRunner> compileRunner_;
+    };
     void OnVsync();
     void DrawCompileProgress();
     void UpdateCompileProgress();
@@ -48,6 +59,7 @@ private:
     void RecordDeviceType();
     void SetFrame();
     void SetSpecialProgressFrame(int32_t maxLength, int32_t screenId);
+    void RegisterDeathRecipientInner();
 
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
@@ -76,6 +88,8 @@ private:
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> compileRunner_;
     std::shared_ptr<Rosen::RSInterpolator> sharpCurve_;
     std::map<int32_t, BootAnimationProgressConfig> progressConfigsMap_;
+    sptr<DeathRecipientInner> deathRecipient_ = nullptr;
+    sptr<IRemoteObject> renderObj_ = nullptr;
 };
 } // namespace OHOS
 
