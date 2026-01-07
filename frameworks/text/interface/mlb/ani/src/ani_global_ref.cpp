@@ -103,6 +103,8 @@ constexpr CacheKey PARAGRAPH_STYLE_INCLUDE_FONT_PADDING_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>includeFontPadding", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 constexpr CacheKey PARAGRAPH_STYLE_FALLBACK_LINE_SPACING_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>fallbackLineSpacing", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
+constexpr CacheKey PARAGRAPH_STYLE_LINE_SPACING_KEY{
+    ANI_INTERFACE_PARAGRAPH_STYLE, "<get>lineSpacing", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
 
 constexpr CacheKey STRUT_STYLE_FONT_STYLE_KEY{
     ANI_INTERFACE_STRUT_STYLE, "<get>fontStyle", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_STYLE)};
@@ -153,6 +155,10 @@ constexpr CacheKey TEXT_STYLE_ELLIPSIS_MODE_KEY{
 constexpr CacheKey TEXT_STYLE_LOCALE_KEY{ANI_INTERFACE_TEXT_STYLE, "<get>locale", ANI_WRAP_RETURN_C(ANI_STRING)};
 constexpr CacheKey TEXT_STYLE_BASELINE_SHIFT_KEY{
     ANI_INTERFACE_TEXT_STYLE, "<get>baselineShift", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
+constexpr CacheKey TEXT_STYLE_MAX_LINE_HEIGHT_KEY{
+    ANI_INTERFACE_TEXT_STYLE, "<get>lineHeightMaximum", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
+constexpr CacheKey TEXT_STYLE_MIN_LINE_HEIGHT_KEY{
+    ANI_INTERFACE_TEXT_STYLE, "<get>lineHeightMinimum", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
 constexpr CacheKey TEXT_STYLE_BACKGROUND_RECT_KEY{
     ANI_INTERFACE_TEXT_STYLE, "<get>backgroundRect", ANI_WRAP_RETURN_C(ANI_INTERFACE_RECT_STYLE)};
 constexpr CacheKey TEXT_STYLE_DECORATION_KEY{
@@ -165,6 +171,8 @@ constexpr CacheKey TEXT_STYLE_FONT_VARIATIONS_KEY{
     ANI_INTERFACE_TEXT_STYLE, "<get>fontVariations", ANI_WRAP_RETURN_C(ANI_ARRAY)};
 constexpr CacheKey TEXT_STYLE_BADGE_TYPE_KEY{
     ANI_INTERFACE_TEXT_STYLE, "<get>badgeType", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BADGE_TYPE)};
+constexpr CacheKey TEXT_STYLE_LINE_HEIGHT_STYLE_KEY{
+    ANI_INTERFACE_TEXT_STYLE, "<get>lineHeightStyle", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_LINE_HEIGHT_STYLE_TYPE)};
 
 constexpr CacheKey DECORATION_DECORATION_TYPE_KEY{
     ANI_INTERFACE_DECORATION, "<get>textDecoration", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_DECORATION_TYPE)};
@@ -421,6 +429,8 @@ void AniGlobalMethod::InitParagraphStyleMethod(ani_env* env)
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_INCLUDE_FONT_PADDING_KEY);
     paragraphStyleFallbackLineSpacing = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_FALLBACK_LINE_SPACING_KEY);
+    paragraphStyleLineSpacing = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_LINE_SPACING_KEY);
 }
 void AniGlobalMethod::InitStrutStyleMethod(ani_env* env)
 {
@@ -477,6 +487,12 @@ void AniGlobalMethod::InitTextStyleMethod(ani_env* env)
         AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_BACKGROUND_RECT_KEY);
     textStyleBadgeType =
         AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_BADGE_TYPE_KEY);
+    textStyleLineHeightStyle =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_LINE_HEIGHT_STYLE_KEY);
+    textStyleMaxLineHeight =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_MAX_LINE_HEIGHT_KEY);
+    textStyleMinLineHeight =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_MIN_LINE_HEIGHT_KEY);
 }
 
 void AniGlobalMethod::InitDecorationMethod(ani_env* env)

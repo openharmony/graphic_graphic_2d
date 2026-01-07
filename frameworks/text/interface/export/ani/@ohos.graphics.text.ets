@@ -279,6 +279,11 @@ namespace text {
     BREAK_HYPHEN,
   }
 
+  export enum LineHeightStyle {
+    FONT_SIZE = 0,
+    FONT_HEIGHT = 1
+  }
+
   export interface StrutStyle {
     fontFamilies?: Array<string>;
     fontStyle?: FontStyle;
@@ -314,6 +319,7 @@ namespace text {
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
+    lineSpacing?: double;
   }
 
   export interface TextShadow {
@@ -359,6 +365,9 @@ namespace text {
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
     badgeType?: TextBadgeType;
+    lineHeightMaximum?: double;
+    lineHeightMinimum?: double;
+    lineHeightStyle?: LineHeightStyle;
   }
 
   class TextStyleInternal implements TextStyle {
@@ -383,6 +392,9 @@ namespace text {
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
     badgeType?: TextBadgeType;
+    lineHeightMaximum?: double;
+    lineHeightMinimum?: double;
+    lineHeightStyle?: LineHeightStyle;
     constructor(
       decoration: Decoration,
       color: common2D.Color,
@@ -403,7 +415,10 @@ namespace text {
       fontFeatures: Array<FontFeature>,
       textShadows: Array<TextShadow>,
       backgroundRect: RectStyle,
-      badgeType: TextBadgeType
+      badgeType: TextBadgeType,
+      lineHeightMaximum: double,
+      lineHeightMinimum: double,
+      lineHeightStyle: LineHeightStyle
     ) {
       this.decoration = decoration;
       this.color = color;
@@ -425,6 +440,9 @@ namespace text {
       this.textShadows = textShadows;
       this.backgroundRect = backgroundRect;
       this.badgeType = badgeType;
+      this.lineHeightMaximum = lineHeightMaximum;
+      this.lineHeightMinimum = lineHeightMinimum;
+      this.lineHeightStyle = lineHeightStyle;
     }
   }
 

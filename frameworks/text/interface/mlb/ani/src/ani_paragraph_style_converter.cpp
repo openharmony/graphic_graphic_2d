@@ -47,6 +47,8 @@ void AniParagraphStyleConverter::ParseSimpleParagraphStyleToNative(
         paragraphStyle->includeFontPadding);
     AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleFallbackLineSpacing,
         paragraphStyle->fallbackLineSpacing);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleLineSpacing,
+        paragraphStyle->lineSpacing);
 }
 
 ani_status ParagraphStyleGetMaxLine(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
