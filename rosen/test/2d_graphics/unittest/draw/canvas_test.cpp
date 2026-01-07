@@ -23,6 +23,8 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static constexpr int32_t BITMAP_WIDTH = 200;
+static constexpr int32_t BITMAP_HEIGHT = 200;
 class CanvasTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -416,6 +418,31 @@ HWTEST_F(CanvasTest, DrawImageEffectHPSStatisticsEmptyImage, TestSize.Level1)
         Drawing::HpsStatisticsType::MEAN);
     hpsEffectParams.push_back(hpsStatisticsArgs);
     ASSERT_TRUE(canvas->DrawImageEffectHPS(image, hpsEffectParams) == false);
+}
+
+/**
+ * @tc.name: DrawImageEffectHPSStatisticsWithPixelMap
+ * @tc.desc: Test DrawImageEffectHPS Statistics Effect With PixelMap
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(CanvasTest, DrawImageEffectHPSStatisticsWithPixelMap, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Bitmap bmp;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bmp.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    Drawing::Image image;
+    image.BuildFromBitmap(bmp);
+    Drawing::Rect srcRect = { 0.0f, 0.0f, 100.0f, 100.0f };
+    Drawing::Rect dstRect = { 0.0f, 0.0f, 1.0f, 1.0f };
+    std::vector<std::shared_ptr<HpsEffectParameter>> hpsEffectParams;
+    auto hpsStatisticsArgs = std::make_shared<Drawing::HpsStatisticsParameter>(srcRect, dstRect,
+        Drawing::HpsStatisticsType::MEAN);
+    hpsEffectParams.push_back(hpsStatisticsArgs);
+    canvas->DrawImageEffectHPS(image, hpsEffectParams);
 }
 
 /**
