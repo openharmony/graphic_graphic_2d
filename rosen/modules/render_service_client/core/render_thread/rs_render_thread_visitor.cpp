@@ -39,6 +39,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
+#include "render_context/new_render_context/render_context_gl.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -430,6 +431,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
             RSRenderThread::Instance().TrimMemory();
         });
     });
+
 #endif
 
 #ifdef RS_ENABLE_VK

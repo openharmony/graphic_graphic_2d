@@ -19,6 +19,7 @@
 #include "ge_mesa_blur_shader_filter.h"
 #include "ge_radial_gradient_shader_mask.h"
 #include "ge_variable_radius_blur_shader_filter.h"
+#include "sdf/ge_sdf_from_image_filter.h"
 #include "rs_trace.h"
 
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -268,6 +269,38 @@ DrawingError EffectImageChain::ApplyHpsBlur(float radius)
 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return ret;
+}
+
+DrawingError EffectImageChain::ApplySDFCreation(int spreadFactor, bool generateDerivs)
+{
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplySDFCreation");
+
+    if (!prepared_) {
+        EFFECT_LOG_E("EffectImageChain::ApplySDFCreation: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+
+    // CPU not supported
+    if (forceCPU_) {
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    std::lock_guard<std::mutex> lock(apiMutex_);
+
+    if (filters_ != nullptr) {
+        DrawOnFilter();  // need draw first to ensure cascading
+        image_ = surface_->GetImageSnapshot();
+        filters_ = nullptr;  // clear filters_ to avoid apply again
+    }
+
+    Drawing::GESDFFromImageFilterParams params{spreadFactor, generateDerivs};
+    auto sdfFromImageFilter = std::make_shared<GESDFFromImageFilter>(params);
+    image_ = sdfFromImageFilter->ProcessImage(*canvas_, image_,
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
+
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return DrawingError::ERR_OK;
 }
 
 void EffectImageChain::DrawOnFilter()

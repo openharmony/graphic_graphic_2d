@@ -154,7 +154,8 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
 std::once_flag flag_;
 } // namespace
 
-const std::array<std::pair<uint16_t, uint16_t>, 2> RSNode::lazyLoadCommandTypes_{{
+const std::array<std::pair<uint16_t, uint16_t>, 3> RSNode::lazyLoadCommandTypes_{{
+    {RSCommandType::RS_NODE, RSNodeCommandType::ADD_MODIFIER_NG},
     {RSCommandType::RS_NODE, RSNodeCommandType::MARK_REPAINT_BOUNDARY},
     {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_DESTROY}
 }};
@@ -1961,16 +1962,6 @@ void RSNode::SetOutlineRadius(const Vector4f& radius)
 
 void RSNode::SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrategyType strategy, uint64_t interval)
 {
-    if (placeholder == ColorPlaceholder::NONE || ColorPickStrategyType::NONE == strategy) {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::COLOR_PICKER);
-        if (modifier != nullptr) {
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_PLACEHOLDER);
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL);
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_STRATEGY);
-        }
-        return;
-    }
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
         &ModifierNG::RSColorPickerModifier::SetColorPickerPlaceholder>(placeholder);
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
@@ -2178,28 +2169,6 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
             { brightnessBlender->GetNegativeCoeff().data_[0], brightnessBlender->GetNegativeCoeff().data_[1],
                 brightnessBlender->GetNegativeCoeff().data_[2] } });
     }
-}
-
-void RSNode::SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffectPara)
-{
-    if (visualEffectPara == nullptr) {
-        ROSEN_LOGE("RSNode::SetBorderLightShader: visualEffectPara is null!");
-        return;
-    }
-    auto borderLightEffectPara = std::static_pointer_cast<BorderLightEffectPara>(visualEffectPara);
-    Vector3f rotationAngle;
-    float cornerRadius = 1.0f;
-    RSBorderLightParams borderLightParam = {
-        borderLightEffectPara->GetLightPosition(),
-        borderLightEffectPara->GetLightColor(),
-        borderLightEffectPara->GetLightIntensity(),
-        borderLightEffectPara->GetLightWidth(),
-        rotationAngle,
-        cornerRadius
-    };
-    auto borderLightShader = std::make_shared<RSBorderLightShader>();
-    borderLightShader->SetRSBorderLightParams(borderLightParam);
-    SetBackgroundShader(borderLightShader);
 }
 
 void RSNode::SetBlender(const Blender* blender)
@@ -2615,6 +2584,8 @@ void RSNode::SetHDRBrightness(const float& hdrBrightness)
 {
     SetPropertyNG<ModifierNG::RSHDRBrightnessModifier, &ModifierNG::RSHDRBrightnessModifier::SetHDRBrightness>(
         hdrBrightness);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetHDRUIBrightness>(GetId(), hdrBrightness);
+    AddCommand(command, IsRenderServiceNode());
 }
 
 void RSNode::SetHDRBrightnessFactor(float factor)
@@ -2972,7 +2943,7 @@ void RSNode::ClearAllModifiers()
 
 void RSNode::LoadRenderNodeIfNeed() const
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    std::unique_lock<std::recursive_mutex> lock(lazyLoadMutex_);
     if (!lazyLoad_) {
         return;
     }
@@ -2998,22 +2969,6 @@ void RSNode::LoadRenderNodeIfNeed() const
             child->AddCommandInner(child_command, IsRenderServiceNode(), GetFollowType(), id_);
         }
         ++index;
-    }
-
-    for (auto [_, modifier] : modifiersNG_) {
-        if (modifier == nullptr) {
-            continue;
-        }
-        if (modifier->IsCustom()) {
-            std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();
-        }
-        std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
-        AddCommandInner(command, IsRenderServiceNode(), GetFollowType(), id_);
-        if (NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> cmdForRemote =
-                std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
-            AddCommandInner(cmdForRemote, true, GetFollowType(), id_);
-        }
     }
     NotifyPageNodeChanged();
 }
@@ -3277,9 +3232,11 @@ void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUICon
     }
 }
 
-void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty)
+void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty, bool colorAdaptive)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    SetPropertyNG<ModifierNG::RSForegroundFilterModifier,
+        &ModifierNG::RSForegroundFilterModifier::SetColorAdaptive>(colorAdaptive);
     if (isNodeGroup_ == isNodeGroup) {
         return;
     }
@@ -4211,7 +4168,7 @@ bool RSNode::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServic
     FollowType followType, NodeId nodeId) const
 {
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        std::unique_lock<std::recursive_mutex> lock(lazyLoadMutex_);
         if (lazyLoad_) {
             constexpr size_t maxLazyCommandSize{8};
             if (IsLazyLoadCommand(*command) && lazyLoadCommands_.size() < maxLazyCommandSize) {
@@ -4288,9 +4245,6 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         }
         NotifyPageNodeChanged();
         modifiersNG_.emplace(modifier->GetId(), modifier);
-        if (lazyLoad_) {
-            return;
-        }
     }
     if (modifier->IsCustom()) {
         std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();

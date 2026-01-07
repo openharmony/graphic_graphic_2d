@@ -267,7 +267,7 @@ bool RSHpaeBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
         return false;
     }
     producerSurface_->SetQueueSize(HPAE_BUFFER_SIZE);
-    producerSurface_->SetBufferName(HPAE_BUFFER_NAME);
+    producerSurface_->SetBufferTypeLeak(HPAE_BUFFER_NAME);
 
     auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     auto surface = client->CreateRSSurface(producerSurface_);

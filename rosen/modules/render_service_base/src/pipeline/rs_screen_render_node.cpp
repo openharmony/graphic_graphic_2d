@@ -368,6 +368,46 @@ bool RSScreenRenderNode::GetFixVirtualBuffer10Bit() const
     return isFixVirtualBuffer10Bit_;
 }
 
+HdrStatus RSScreenRenderNode::GetDisplayHdrStatus() const
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return HdrStatus::NO_HDR;
+    }
+    HdrStatus currentHDRStatus = screenParams->GetScreenHDRStatus();
+    lastDisplayTotalHdrStatus_ = currentHDRStatus;
+    return currentHDRStatus;
+}
+
+void RSScreenRenderNode::CollectHdrStatus(HdrStatus hdrStatus)
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return;
+    }
+    HdrStatus currentHDRStatus = screenParams->GetScreenHDRStatus();
+    HdrStatus newHDRStatus = static_cast<HdrStatus>(currentHDRStatus | hdrStatus);
+    screenParams->CollectHdrStatus(newHDRStatus);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+void RSScreenRenderNode::ResetDisplayHdrStatus()
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return;
+    }
+    screenParams->ResetDisplayHdrStatus();
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
 void RSScreenRenderNode::SetExistHWCNode(bool existHWCNode)
 {
     if (existHWCNode_ == existHWCNode) {
@@ -610,6 +650,26 @@ void RSScreenRenderNode::CheckSurfaceChanged()
 
     isVirtualSurfaceChanged_ = false;
 #endif
+}
+
+void RSScreenRenderNode::UpdateHeadroomMapIncrease(HdrStatus status, uint32_t level)
+{
+    headroomCounts_[status][level]++;
+}
+
+void RSScreenRenderNode::UpdateHeadroomMapDecrease(HdrStatus status, uint32_t level)
+{
+    auto& map = headroomCounts_[status];
+    if (map.count(level) && map[level] > 0U) {
+        map[level]--;
+    }
+}
+
+void RSScreenRenderNode::ResetVideoHeadroomInfo()
+{
+    headroomCounts_.erase(HdrStatus::HDR_VIDEO);
+    headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GTM);
+    headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GAINMAP);
 }
 
 } // namespace Rosen

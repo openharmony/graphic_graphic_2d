@@ -110,6 +110,14 @@ GSError RSRenderComposerAgent::ClearFrameBuffers(bool isNeedResetContext)
     return rsRenderComposer_->ClearFrameBuffers(isNeedResetContext);
 }
 
+void RSRenderComposerAgent::HandlePowerStatus(ScreenPowerStatus status)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    rsRenderComposer_->HandlePowerStatus(status);
+}
+
 void RSRenderComposerAgent::OnScreenVBlankIdleCallback(uint64_t timestamp)
 {
     if (rsRenderComposer_ == nullptr) {

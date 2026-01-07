@@ -78,6 +78,9 @@ public:
 
     void NotifyBufferUsed(bool status) { bufferUsed_ = status; }
     bool GetBufferUsed() { return bufferUsed_; }
+    void NotifyOfftree(const std::string nodeName, bool isOnTree);
+    void SetDesktopOffTree(bool offTree);
+    bool GetDesktopOffTree();
 
 private:
     RSHpaeBaseData();
@@ -91,6 +94,7 @@ private:
 
     HpaeStatus hpaeStatus_;
     bool bufferUsed_ = true;
+    bool desktopOffTree_ = false;
 };
 
 } // OHOS::Rosen

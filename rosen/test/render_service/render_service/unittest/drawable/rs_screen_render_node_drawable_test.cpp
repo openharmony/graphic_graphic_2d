@@ -16,7 +16,6 @@
 #include <parameters.h>
 
 #include "feature/anco_manager/rs_anco_manager.h"
-#include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "gtest/gtest.h"

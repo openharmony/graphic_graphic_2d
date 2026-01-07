@@ -15,6 +15,7 @@
 
 #include "rs_graphic_test_profiler_thread.h"
 
+#include <fcntl.h>
 #include <securec.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -24,6 +25,7 @@
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_packet.h"
 #endif
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,6 +39,8 @@ static const std::vector<std::string> expectedMessages = {
     "awake_frame 0",
     "StartTime and EndTime:"
 };
+const std::string RESPOND_NODETREE_LOAD = "Load subTree result: ";
+const std::string RESPOND_SUBTREE_CLEAR = "Clear SubTree Success";
 
 RSGraphicTestProfilerThread::~RSGraphicTestProfilerThread()
 {
@@ -56,7 +60,8 @@ void RSGraphicTestProfilerThread::Stop()
     system("param set persist.graphic.profiler.enabled 0");
     if (runnig_) {
         runnig_ = false;
-        cv_.notify_all();
+        loopCv_.notify_all();
+        responseCv_.notify_all();
         socketResultCV_.notify_all();
     }
     if (socket_ != -1) {
@@ -77,7 +82,7 @@ void RSGraphicTestProfilerThread::SendCommand(const std::string command, int out
     if (outTime > 0) {
         std::unique_lock lock(wait_mutex_);
         waitReceive_ = true;
-        cv_.wait_for(lock, std::chrono::milliseconds(outTime), [&] { return !waitReceive_; });
+        responseCv_.wait_for(lock, std::chrono::milliseconds(outTime), [&] { return !waitReceive_; });
     }
 }
 
@@ -86,6 +91,16 @@ void RSGraphicTestProfilerThread::MainLoop()
     socket_ = socket(AF_UNIX, SOCK_STREAM, 0);
     if (socket_ == -1) {
         std::cout << "profiler socket create failed" << std::endl;
+        return;
+    }
+    int flags = fcntl(socket_, F_GETFL, 0);
+    if (flags == -1) {
+        std::cout << "fcntl(F_GETFL) failed" << std::endl;
+        return;
+    }
+
+    if (fcntl(socket_, F_SETFL, flags | O_NONBLOCK) == -1) {
+        std::cout << "fcntl(F_SETFL) failed" << std::endl;
         return;
     }
 
@@ -114,7 +129,7 @@ void RSGraphicTestProfilerThread::MainLoop()
     while (runnig_) {
         {
             std::unique_lock lock(queue_mutex_);
-            cv_.wait_for(lock, std::chrono::milliseconds(SOCKET_REFRESH_TIME), [this] { return !runnig_; });
+            loopCv_.wait_for(lock, std::chrono::milliseconds(SOCKET_REFRESH_TIME), [this] { return !runnig_; });
         }
         SendMessage();
         RecieveMessage();
@@ -217,7 +232,7 @@ void RSGraphicTestProfilerThread::ProcessLogMessage(const std::vector<char>& dat
         if (reveive) {
             std::unique_lock lock(wait_mutex_);
             waitReceive_ = false;
-            cv_.notify_one();
+            responseCv_.notify_all();
         }
     }
 }
@@ -241,13 +256,19 @@ bool RSGraphicTestProfilerThread::RecieveHeader(void* data, size_t& size)
     const ssize_t receivedBytes = recv(socket_, static_cast<char*>(data), size, 0);
     if (receivedBytes > 0) {
         size = static_cast<size_t>(receivedBytes);
-    } else {
+    } else if (receivedBytes == 0) {
         size = 0;
-        if ((errno == EWOULDBLOCK) || (errno == EAGAIN) || (errno == EINTR)) {
-            return true;
-        }
-        std::cout << "profiler socket recieve header failed" << std::endl;
+        std::cout << "profiler socket service closed." << std::endl;
         return false;
+    } else {
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            size = -1;
+            return false;
+        } else {
+            size = 0;
+            std::cout << "profiler socket receive header failed" << std::endl;
+            return false;
+        }
     }
     return true;
 }

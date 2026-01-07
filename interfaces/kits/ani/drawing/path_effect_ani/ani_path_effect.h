@@ -38,7 +38,7 @@ public:
         ani_object aniOuterPathEffectObj, ani_object aniInnerPathEffectObj);
     static ani_object CreateCornerPathEffect(ani_env* env, ani_object obj, ani_double aniRadius);
     static ani_object CreateDashPathEffect(
-        ani_env* env, ani_object obj, ani_object aniIntervalsArray, ani_double aniPhase);
+        ani_env* env, ani_object obj, ani_array aniIntervalsArray, ani_double aniPhase);
 
     DRAWING_API std::shared_ptr<PathEffect> GetPathEffect();
 

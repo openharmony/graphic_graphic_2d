@@ -62,7 +62,7 @@ RSHpaeFfrtPatternManager& RSHpaeFfrtPatternManager::Instance()
     return instance;
 }
 
-RSHpaeFfrtPatternManager::RSHpaeFfrtPatternManager()
+void RSHpaeFfrtPatternManager::OpenDevice()
 {
     if (!MHCDlOpen()) {
         HPAE_LOGE("MHCDlOpen() failed!");
@@ -107,7 +107,7 @@ bool RSHpaeFfrtPatternManager::MHCDlOpen()
 #if defined(ROSEN_OHOS)
     HPAE_LOGI("mhc_so MHCDlOpen start\n");
     if (g_mhcHandle == nullptr) {
-        g_mhcHandle = dlopen("/vendor/lib64/libmhc_framework.so", RTLD_LAZY | RTLD_NODELETE);
+        g_mhcHandle = dlopen("libmhc_framework.so", RTLD_LAZY | RTLD_NODELETE);
         if (!g_mhcHandle) {
             HPAE_LOGW("mhc_so dlopen libmhc_framework.so error");
             return false;

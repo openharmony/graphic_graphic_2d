@@ -16,7 +16,6 @@
 #include "drawable/rs_effect_render_node_drawable.h"
 
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
@@ -114,9 +113,7 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
     if (drawCmdIndex_.childrenIndex_ == -1) {
         // case 0: No children, skip
         return false;
-    } else if (drawCmdIndex_.backgroundFilterIndex_ == -1 ||
-        !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_) ||
-        (!effectParams->GetHasEffectChildrenWithoutEmptyRect() && !canvas.GetUICapture())) {
+    } else if (IsBlurNotRequired(effectParams, paintFilterCanvas)) {
         // case 1: no blur or no need to blur, do nothing
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {
         // case 2: dynamic blur, blur the underlay content

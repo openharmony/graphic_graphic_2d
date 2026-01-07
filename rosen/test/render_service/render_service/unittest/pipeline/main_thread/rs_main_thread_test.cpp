@@ -3622,7 +3622,7 @@ HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
 
     ScreenId id = 100;
     std::vector<uint64_t> blackList = {};
-    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), StatusCode::BLACKLIST_IS_EMPTY);
+    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), SCREEN_NOT_FOUND);
 
     for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
         blackList.push_back(nodeId);

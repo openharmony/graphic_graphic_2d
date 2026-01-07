@@ -26,6 +26,7 @@
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "effect/runtime_blender_builder.h"
+#include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "memory/rs_tag_tracker.h"
 #ifdef ROSEN_OHOS
 #include "native_buffer_inner.h"
@@ -146,7 +147,7 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
 
     // skip shadow if cache is enabled
     if (canvas->GetCacheType() == Drawing::CacheType::ENABLED) {
-        ROSEN_LOGD("RSShadowDrawable::CreateDrawFunc cache type enabled.");
+        ROSEN_LOGD("RSShadowDrawable::OnDraw cache type enabled.");
         return;
     }
 #ifdef RS_ENABLE_GPU
@@ -613,7 +614,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter != nullptr) {
         const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-        RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
+        RSPropertyDrawableUtils::ApplySDFShapeToFilter(node.GetRenderProperties(),
             drawingFilter, node.GetId());
         RecordFilterInfos(rsFilter);
         needSync_ = true;
@@ -820,7 +821,7 @@ void RSUseEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* r
 #endif
     if (useEffectType_ == UseEffectType::BEHIND_WINDOW &&
         (paintFilterCanvas->GetIsWindowFreezeCapture() || paintFilterCanvas->GetIsDrawingCache())) {
-        RS_TRACE_NAME_FMT("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow WindowFreezeCapture:%d, "
+        RS_TRACE_NAME_FMT("RSUseEffectDrawable::OnDraw drawBehindWindow WindowFreezeCapture:%d, "
             "DrawingCache:%d, CacheData_valid:%d, bounds:%s", paintFilterCanvas->GetIsWindowFreezeCapture(),
             paintFilterCanvas->GetIsDrawingCache(), paintFilterCanvas->GetCacheBehindWindowData() != nullptr,
             paintFilterCanvas->GetDeviceClipBounds().ToString().c_str());
@@ -972,15 +973,55 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-    if (!RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
-        drawingFilter, node.GetId())) {
-        return false;
-    }
+    RSPropertyDrawableUtils::ApplySDFShapeToFilter(node.GetRenderProperties(),
+        drawingFilter, node.GetId());
+    stagingEmptyShape_ = node.GetRenderProperties().GetSDFShape() &&
+        node.GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE;
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
     PostUpdate(node);
     return true;
+}
+
+void RSMaterialFilterDrawable::OnSync()
+{
+    if (needSync_) {
+        emptyShape_ = stagingEmptyShape_;
+    }
+    RSFilterDrawable::OnSync();
+}
+
+void RSMaterialFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
+{
+    if (emptyShape_) {
+        return;
+    }
+    auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter);
+    RectF bound = (rect != nullptr ?
+        RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());
+    Drawing::RectI snapshotRect = GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
+    Drawing::RectI drawRect = GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound);
+    RectF snapshotRelativeRect = GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
+    RS_TRACE_NAME_FMT("RSMaterialFilterDrawable::OnDraw node[%llu] ", renderNodeId_);
+    if (rect) {
+        filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
+            snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
+    }
+    int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();
+    RSPropertyDrawableUtils::DrawFilter(canvas, filter_,
+        cacheManager_, renderNodeId_, IsForeground(), snapshotRect, drawRect);
+    int64_t blurDuration = Drawing::PerfmonitorReporter::GetCurrentTime() - startBlurTime;
+    auto filterType = filter_->GetFilterType();
+    RSPerfMonitorReporter::GetInstance().RecordBlurNode(renderNodeName_, blurDuration,
+        RSPropertyDrawableUtils::IsBlurFilterType(filterType));
+    if (rect != nullptr) {
+        RSPerfMonitorReporter::GetInstance().RecordBlurPerfEvent(renderNodeId_, renderNodeName_,
+            static_cast<uint16_t>(filterType), RSPropertyDrawableUtils::GetBlurFilterRadius(filter_),
+            rect->GetWidth(), rect->GetHeight(), blurDuration,
+            RSPropertyDrawableUtils::IsBlurFilterType(filterType));
+    }
 }
 
 Drawing::RectI RSMaterialFilterDrawable::GetAbsRenderEffectRect(const Drawing::Canvas& canvas,

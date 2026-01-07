@@ -52,7 +52,7 @@ public:
         if (pixelMap) {
             pixelMap->crop({ 0, 0, 1200, 2000 });
             const ::testing::TestInfo* const testInfo =
-            ::testing::UnitTest::GetInstance()->current_test_info();
+                ::testing::UnitTest::GetInstance()->current_test_info();
             std::string fileName = "/data/local/graphic_test/rs_perform_feature/dirty_region/";
             namespace fs = std::filesystem;
             if (!fs::exists(fileName)) {
@@ -66,8 +66,7 @@ public:
                     return;
                 }
             }
-            fileName += testInfo->test_case_name() + std::string("_");
-            fileName += testInfo->name() + std::string(".png");
+            fileName += testInfo->test_case_name() + std::string("_") + testInfo->name() + std::string(".png");
             if (!WriteToPngWithPixelMap(fileName, *pixelMap)) {
                 // NOT MODIFY THE COMMENTS
                 std::cout << "[   FAILED   ] " << fileName << std::endl;

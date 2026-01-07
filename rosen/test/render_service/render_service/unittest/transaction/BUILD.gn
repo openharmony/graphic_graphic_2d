@@ -42,7 +42,11 @@ config("pipeline_test") {
 ## Build RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest
 ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
   module_out_path = module_output_path
+  include_dirs = [
+    "mock",
+  ]
   sources = [
+    "mock/mock_accesstoken_kit.cpp",
     "rs_irender_service_connection_ipc_interface_code_access_verifier_test.cpp",
   ]
   deps = [

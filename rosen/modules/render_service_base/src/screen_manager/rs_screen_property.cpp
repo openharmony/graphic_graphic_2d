@@ -506,7 +506,7 @@ bool RSScreenProperty::Marshalling(Parcel& data) const
         return false;
     }
     if (!data.WriteUint32(static_cast<uint32_t>(connectionType_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 connectionType_ err.");
+        ROSEN_LOGE("WriteScreenProperty: WriteUint32 connectionType err.");
         return false;
     }
     if (!data.WriteBool(isHardCursorSupport_)) {

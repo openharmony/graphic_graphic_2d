@@ -27,20 +27,20 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-    constexpr uint32_t COLOR_RED = 0xFFFF0000;
-    constexpr uint32_t SLEEP_TIME_FOR_PROXY = 1000000;
-    constexpr int ABILITY_BGALPHA = 255;
+constexpr uint32_t COLOR_RED = 0xFFFF0000;
+constexpr uint32_t SLEEP_TIME_FOR_PROXY = 1000000;
+constexpr int ABILITY_BGALPHA = 255;
 
-    Vector2f TRANSLATE_POSITIVE_X = { 600, 0 };
-    Vector2f TRANSLATE_NEGATIVE_X = { -600, 0 };
-    Vector2f TRANSLATE_POSITIVE_Y = { 0, 600 };
-    Vector2f TRANSLATE_NEGATIVE_Y = { 0, -600 };
-    Vector4f DEFAULT_SMALL_BOUNDS_TOP = { 0, 100, 400, 400 };
-    Vector4f DEFAULT_SMALL_BOUNDS_BOTTOM = { 800, 900, 400, 400 };
-    Vector4f DEFAULT_LARGE_BOUNDS = { 200, 200, 800, 800 };
-    Vector4f DEFAULT_PIXEL_STRETCH_BOUNDS = { -50, -50, -50, -50 };
+Vector2f TRANSLATE_POSITIVE_X = { 600, 0 };
+Vector2f TRANSLATE_NEGATIVE_X = { -600, 0 };
+Vector2f TRANSLATE_POSITIVE_Y = { 0, 600 };
+Vector2f TRANSLATE_NEGATIVE_Y = { 0, -600 };
+Vector4f DEFAULT_SMALL_BOUNDS_TOP = { 0, 100, 400, 400 };
+Vector4f DEFAULT_SMALL_BOUNDS_BOTTOM = { 800, 900, 400, 400 };
+Vector4f DEFAULT_LARGE_BOUNDS = { 200, 200, 800, 800 };
+Vector4f DEFAULT_PIXEL_STRETCH_BOUNDS = { -50, -50, -50, -50 };
 
-    const std::string TEST_IMG_PATH = "/data/local/tmp/dr_test.jpg";
+const std::string TEST_IMG_PATH = "/data/local/tmp/dr_test.jpg";
 } //namespace
 
 class DirtyRegionTest06 : public RSGraphicTest {
@@ -75,8 +75,7 @@ public:
                     return;
                 }
             }
-            fileName += testInfo->test_case_name() + std::string("_");
-            fileName += testInfo->name() + std::string(".png");
+            fileName += testInfo->test_case_name() + std::string("_") + testInfo->name() + std::string(".png");
             if (!WriteToPngWithPixelMap(fileName, *pixelMap)) {
                 // NOT MODIFY THE COMMENTS
                 std::cout << "[   FAILED   ] " << fileName << std::endl;

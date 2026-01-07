@@ -36,6 +36,8 @@ namespace {
 int64_t offset0 = 0;
 int32_t testThreadNums = 100;
 int32_t touchCnt = 1;
+const std::chrono::steady_clock::duration MORETHAN_NATIVEVSYNCFALLBACKINTERVAL =
+    std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::milliseconds(300));
 const std::string otherSurface = "Other_SF";
 const std::string settingStrategyName = "99";
 const int32_t HGM_REFRESHRATE_MODE_HIGH = 2;
@@ -58,8 +60,6 @@ constexpr int32_t frameRateLinkerId2 = 2;
 constexpr int32_t errorVelocity = -1;
 constexpr int32_t strategy3 = 3;
 constexpr int32_t maxSize = 25;
-const std::chrono::steady_clock::duration MORETHAN_NATIVEVSYNCFALLBACKINTERVAL =
-    std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::milliseconds(300));
 const std::string testScene = "TestScene";
 const std::string pkgName0 = "com.pkg.other:0:-1";
 const std::string pkgName1 = "com.ss.hm.ugc.aweme:1001:10067";
@@ -497,7 +497,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
         sptr<CustomHgmCallback> cb = new CustomHgmCallback();
         hccMgr->animDynamicCfgCallbacks_[0] = cb;
         hccMgr->refreshRateModeCallbacks_[0] = cb;
-        hccMgr->SyncHgmConfigChangeCallback();
+        hccMgr->SyncHgmConfigChangeCallback(pid);
         hccMgr->SyncRefreshRateModeChangeCallback(0);
         hccMgr->RegisterHgmConfigChangeCallback(0, nullptr);
         auto& hgmCore = HgmCore::Instance();
@@ -667,6 +667,30 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest004, Function | SmallT
         hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
     }
     ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid].size(), 50); // 50 : xcomponentIdNumsMax of one pid
+}
+
+/**
+ * @tc.name: HgmConfigCallbackManagerTest005
+ * @tc.desc: Verify the result of HgmConfigCallbackManagerTest005 function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest005, Function | SmallTest | Level0)
+{
+    sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    if (parser->LoadConfiguration(xmlConfig) == EXEC_SUCCESS) {
+        sptr<CustomHgmCallback> cb = sptr<CustomHgmCallback>::MakeSptr();
+        hccMgr->RegisterHgmConfigChangeCallback(0, cb);
+        hccMgr->SyncHgmConfigChangeCallback(pid);
+        std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap;
+        foregroundPidAppMap.try_emplace(pid, std::pair<int32_t, std::string>{ 0, "com.app10" });
+        hccMgr->SyncHgmConfigChangeCallback(foregroundPidAppMap, pid);
+        ASSERT_EQ(hccMgr->pendingAnimDynamicCfgCallbacks_.find(pid) ==
+            hccMgr->pendingAnimDynamicCfgCallbacks_.end(), true);
+    } else {
+        EXPECT_EQ(parser->LoadConfiguration(xmlConfig), XML_FILE_LOAD_FAIL);
+    }
 }
 
 /**
@@ -1807,6 +1831,31 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckRefreshRateChange, Function | SmallTest |
 }
 
 /**
+ * @tc.name: TestUpdateSoftVSync
+ * @tc.desc: Verify the result of TestUpdateSoftVSync function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestUpdateSoftVSync, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    mgr.multiAppStrategy_.disableSafeVote_ = true;
+    mgr.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
+    auto linker = std::make_shared<RSRenderFrameRateLinker>();
+    FrameRateLinkerMap appFrameRateLinkers;
+    appFrameRateLinkers[((NodeId)1000) << 32] = linker;
+    mgr.appFrameRateLinkers_ = appFrameRateLinkers;
+    mgr.UpdateSoftVSync(false);
+    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->UpdateNativeVSyncTimePoint();
+    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->expectedRange_.type_ = NATIVE_VSYNC_FRAME_RATE_TYPE;
+    mgr.UpdateSoftVSync(false);
+    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->nativeVSyncTimePoint_.store(
+        std::chrono::steady_clock::now() - MORETHAN_NATIVEVSYNCFALLBACKINTERVAL);
+    mgr.UpdateSoftVSync(false);
+    EXPECT_EQ(mgr.idleDetector_.aceAnimatorIdleState_, true);
+}
+
+/**
  * @tc.name: TestSetHgmConfigUpdateCallback
  * @tc.desc: Verify the result of SetHgmConfigUpdateCallback
  * @tc.type: FUNC
@@ -1859,31 +1908,6 @@ HWTEST_F(HgmFrameRateMgrTest, TestSyncHgmConfigUpdateCallback, Function | SmallT
 
     HgmCore::Instance().hgmFrameRateMgr_->curScreenId_.store(curScreenId);
     HgmCore::Instance().mPolicyConfigData_ = std::move(policyConfigData);
-}
-
-/**
- * @tc.name: TestUpdateSoftVSync
- * @tc.desc: Verify the result of TestUpdateSoftVSync function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, TestUpdateSoftVSync, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    mgr.multiAppStrategy_.disableSafeVote_ = true;
-    mgr.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
-    auto linker = std::make_shared<RSRenderFrameRateLinker>();
-    FrameRateLinkerMap appFrameRateLinkers;
-    appFrameRateLinkers[((NodeId)1000) << 32] = linker;
-    mgr.appFrameRateLinkers_ = appFrameRateLinkers;
-    mgr.UpdateSoftVSync(false);
-    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->UpdateNativeVSyncTimePoint();
-    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->expectedRange_.type_ = NATIVE_VSYNC_FRAME_RATE_TYPE;
-    mgr.UpdateSoftVSync(false);
-    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->nativeVSyncTimePoint_.store(
-        std::chrono::steady_clock::now() - MORETHAN_NATIVEVSYNCFALLBACKINTERVAL);
-    mgr.UpdateSoftVSync(false);
-    EXPECT_EQ(mgr.idleDetector_.aceAnimatorIdleState_, true);
 }
 
 /**

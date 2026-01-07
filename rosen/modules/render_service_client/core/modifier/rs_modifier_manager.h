@@ -32,6 +32,7 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "animation/rs_animation_rate_decider.h"
 #include "common/rs_common_def.h"
@@ -204,7 +205,8 @@ private:
      */
     const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
 
-    std::set<std::shared_ptr<Modifier>> modifiers_;
+    std::vector<std::shared_ptr<Modifier>> modifiers_;
+    std::unordered_set<ModifierId> modifierIds_;
     std::unordered_map<AnimationId, std::weak_ptr<RSRenderAnimation>> animations_;
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
 

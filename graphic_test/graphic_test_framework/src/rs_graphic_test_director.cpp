@@ -129,10 +129,17 @@ RSGraphicTestDirector& RSGraphicTestDirector::Instance()
 
 RSGraphicTestDirector::~RSGraphicTestDirector()
 {
-    rootNode_->screenSurfaceNode_->RemoveFromTree();
+    if (rootNode_ && rootNode_->screenSurfaceNode_) {
+        rootNode_->screenSurfaceNode_->RemoveFromTree();
+    }
+
+    if (rsUiDirector_) {
     rsUiDirector_->SendMessages();
+    }
+
+    if (runner_) {
     runner_->Stop();
-    sleep(1);
+}
 }
 
 void RetryProfilerSocketConnection()
@@ -185,14 +192,16 @@ void RSGraphicTestDirector::Run()
     Vector4f defaultScreenBounds = {0, 0, defaultDisplay->GetWidth(), defaultDisplay->GetHeight()};
     screenBounds_ = defaultScreenBounds;
 
-    rootNode_ = std::make_shared<RSGraphicRootNode>();
-    rootNode_->screenSurfaceNode_->SetBounds(defaultScreenBounds);
-    rootNode_->screenSurfaceNode_->SetFrame(defaultScreenBounds);
-    rootNode_->screenSurfaceNode_->SetBackgroundColor(SCREEN_COLOR);
-    rootNode_->screenSurfaceNode_->AttachToDisplay(screenId_);
-    rootNode_->screenSurfaceNode_->SetPositionZ(TOP_LEVEL_Z);
+    if (!isDynamicTest_) {
+        rootNode_ = std::make_shared<RSGraphicRootNode>();
+        rootNode_->screenSurfaceNode_->SetBounds(defaultScreenBounds);
+        rootNode_->screenSurfaceNode_->SetFrame(defaultScreenBounds);
+        rootNode_->screenSurfaceNode_->SetBackgroundColor(SCREEN_COLOR);
+        rootNode_->screenSurfaceNode_->AttachToDisplay(screenId_);
+        rootNode_->screenSurfaceNode_->SetPositionZ(TOP_LEVEL_Z);
 
-    rsUiDirector_->SetRSSurfaceNode(rootNode_->screenSurfaceNode_);
+        rsUiDirector_->SetRSSurfaceNode(rootNode_->screenSurfaceNode_);
+    }
     rsUiDirector_->SendMessages();
     sleep(1);
 
@@ -201,8 +210,35 @@ void RSGraphicTestDirector::Run()
 
 void RSGraphicTestDirector::FlushMessage()
 {
-    RS_TRACE_NAME("RSGraphicTestDirector::FlushMessage");
+    RS_TRACE_NAME("RSGraphicTestDirector::FlushMessage.");
     rsUiDirector_->SendMessages();
+}
+
+bool RSGraphicTestDirector::FlushMessageAndWait(int timeoutMs)
+{
+    RS_TRACE_NAME("RSGraphicTestDirector::FlushMessageAndWait");
+    struct SyncState {
+        std::mutex mtx;
+        std::condition_variable flushMessageCv;
+        bool flushMessageFinish = false;
+    };
+
+    auto state = std::make_shared<SyncState>();
+
+    //rs call this lambda after SendMessages
+    rsUiDirector_->SendMessages([state]() {
+        std::cout << "callback in FlushMessageAndWait" << std::endl;
+    std::lock_guard<std::mutex> lock(state->mtx);
+    state->flushMessageFinish = true;
+    state->flushMessageCv.notify_one();
+    });
+
+    std::unique_lock<std::mutex> lock(state->mtx);
+    return state->flushMessageCv.wait_for(
+        lock,
+        std::chrono::milliseconds(timeoutMs),
+        [state]() { return state->flushMessageFinish; }
+    );
 }
 
 std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait(int ms, bool isScreenShot)
@@ -210,8 +246,10 @@ std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait
     RS_TRACE_NAME("RSGraphicTestDirector::TakeScreenCaptureAndWait");
 
     if (isScreenShot) {
+        DmErrorCode code = DmErrorCode::DM_OK;
         auto pixelMap =
-            DisplayManager::GetInstance().GetScreenshot(DisplayManager::GetInstance().GetDefaultDisplayId());
+            DisplayManager::GetInstance().GetScreenshot(DisplayManager::GetInstance().GetDefaultDisplayId(),
+                &code, true);
         return pixelMap;
     }
 
@@ -262,6 +300,16 @@ void RSGraphicTestDirector::SetSingleTest(bool isSingleTest)
 bool RSGraphicTestDirector::IsSingleTest()
 {
     return isSingleTest_;
+}
+
+void RSGraphicTestDirector::SetDynamicTest(bool dynamicTest)
+{
+    isDynamicTest_ = dynamicTest;
+}
+
+bool RSGraphicTestDirector::IsDynamicTest()
+{
+    return isDynamicTest_;
 }
 
 void RSGraphicTestDirector::SetProfilerTest(bool isProfilerTest)

@@ -836,25 +836,24 @@ HWTEST_F(RSNodeTest2, SetMaterialWithQualityLevel_ClearColorPicker, TestSize.Lev
 
     // Ensure properties exist
     EXPECT_NE(modifierBefore->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_PLACEHOLDER),
-              modifierBefore->properties_.end());
+        modifierBefore->properties_.end());
     EXPECT_NE(modifierBefore->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_STRATEGY),
-              modifierBefore->properties_.end());
+        modifierBefore->properties_.end());
     EXPECT_NE(modifierBefore->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL),
-              modifierBefore->properties_.end());
+        modifierBefore->properties_.end());
 
     // Call SetMaterialWithQualityLevel with nullptr should clear color picker properties
     rsNode->SetMaterialWithQualityLevel(nullptr, FilterQuality::DEFAULT);
 
     auto modifierAfter = rsNode->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
-    // Modifier may still exist but properties should be detached
-    if (modifierAfter != nullptr) {
-        EXPECT_EQ(modifierAfter->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_PLACEHOLDER),
-                  modifierAfter->properties_.end());
-        EXPECT_EQ(modifierAfter->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_STRATEGY),
-                  modifierAfter->properties_.end());
-        EXPECT_EQ(modifierAfter->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL),
-                  modifierAfter->properties_.end());
-    }
+    // Modifier and properties still exist to pick up previously extracted color
+    ASSERT_TRUE(modifierAfter);
+    EXPECT_NE(modifierAfter->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_PLACEHOLDER),
+        modifierAfter->properties_.end());
+    EXPECT_NE(modifierAfter->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_STRATEGY),
+        modifierAfter->properties_.end());
+    EXPECT_NE(modifierAfter->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL),
+        modifierAfter->properties_.end());
 }
 
 /**

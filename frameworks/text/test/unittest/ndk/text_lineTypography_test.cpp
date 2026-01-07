@@ -149,6 +149,7 @@ HWTEST_F(NdkLineTypographyTest, GetLineBreakTest003, TestSize.Level0)
     auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
     EXPECT_EQ(count, strlen(text));
     OH_Drawing_DestroyLineTypography(lineTypography);
+    OH_Drawing_DestroyLineTypography(nullptr);
 }
 
 /*
@@ -220,6 +221,8 @@ HWTEST_F(NdkLineTypographyTest, GetLineBreakTest006, TestSize.Level0)
     startIndex = 0;
     count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
     EXPECT_EQ(count, 1);
+    count = OH_Drawing_LineTypographyGetLineBreak(nullptr, 0, 1);
+    EXPECT_EQ(count, 0);
     OH_Drawing_DestroyLineTypography(lineTypography);
 }
 
@@ -326,6 +329,10 @@ HWTEST_F(NdkLineTypographyTest, CreateLineTest010, TestSize.Level0)
     EXPECT_EQ(line2, nullptr);
     EXPECT_EQ(OH_Drawing_TextLineGetGlyphCount(line2), 0L);
     OH_Drawing_DestroyTextLine(line2);
+
+    auto line3 = OH_Drawing_LineTypographyCreateLine(nullptr, 0, 1);
+    EXPECT_EQ(line3, nullptr);
+    OH_Drawing_DestroyTextLine(line3);
     OH_Drawing_DestroyLineTypography(lineTypography);
 }
 

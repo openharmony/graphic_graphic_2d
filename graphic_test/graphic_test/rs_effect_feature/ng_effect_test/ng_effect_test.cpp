@@ -410,7 +410,6 @@ std::vector<std::array<std::variant<Vector4f, Vector2f, float>, ROUNDED_RECT_AIB
 };
 
 // Frosted Glass Default values
-const float DEFAULT_BLUR_PARAMS = 1.0f; // K times downsample
 const Vector2f DEFAULT_WEIGHTS_EMBOSS = Vector2f(1.0f, 0.5f);
 const Vector2f DEFAULT_WEIGHTS_EDL = Vector2f(1.0f, 1.0f);
 // Background darken parameters
@@ -687,7 +686,6 @@ static void SetAIBarRectHaloParams(const std::shared_ptr<RSNGAIBarRectHalo>& aiB
 
 static void InitFrostedGlassEffect(std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlassEffect)
 {
-    frostedGlassEffect->Setter<FrostedGlassEffectBlurParamTag>(DEFAULT_BLUR_PARAMS);
     frostedGlassEffect->Setter<FrostedGlassEffectWeightsEmbossTag>(DEFAULT_WEIGHTS_EMBOSS);
     frostedGlassEffect->Setter<FrostedGlassEffectWeightsEdlTag>(DEFAULT_WEIGHTS_EDL);
     frostedGlassEffect->Setter<FrostedGlassEffectBgRatesTag>(DEFAULT_BG_RATES);

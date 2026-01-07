@@ -578,8 +578,8 @@ SurfaceError SurfaceImage::OnBufferAvailable()
         std::lock_guard<std::mutex> lockGuard(opMutex_);
         // check here maybe a messagequeue, flag instead now
         OnUpdateBufferAvailableState(true);
-        if (listener_ == nullptr || context_ == nullptr) {
-            BLOGE("SurfaceImage::OnBufferAvailable listener or context is nullptr");
+        if (listener_ == nullptr) {
+            BLOGE("SurfaceImage::OnBufferAvailable listener is nullptr");
             return GSERROR_INVALID_OPERATING;
         }
         listener = listener_;

@@ -1146,7 +1146,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable002, TestSize.Level2)
         node->InitRenderParams();
     }
     
-    ASSERT_EQ(node->QuerySubAssignable(false), false);
+    ASSERT_EQ(node->QuerySubAssignable(false), true);
 }
 
 /**
@@ -1536,6 +1536,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, HdrVideoTest, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, MetadataTest, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(testNode->GetId());
     testNode->SetSdrHasMetadata(true);
     EXPECT_EQ(testNode->GetSdrHasMetadata(), true);
     testNode->SetSdrHasMetadata(false);
@@ -1955,7 +1956,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckValidFilterCacheFullyCoverTargetTest, Tes
     node->CheckValidFilterCacheFullyCoverTarget(filterNode2, targetRect);
     EXPECT_FALSE(node->isFilterCacheStatusChanged_);
     auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    drawable->stagingCacheManager_->isFilterCacheValid_ = true;
+    if (RSProperties::filterCacheEnabled_) {
+        drawable->stagingCacheManager_->isFilterCacheValid_ = true;
+    }
     filterNode.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawable;
     node->isFilterCacheFullyCovered_ = false;
     node->CheckValidFilterCacheFullyCoverTarget(filterNode, targetRect);

@@ -38,8 +38,9 @@ public:
     void RegisterHgmRefreshRateUpdateCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
     void RegisterXComponentExpectedFrameRateCallback(pid_t listenerPid, pid_t dstPid,
         const sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>& callback);
-    void SyncHgmConfigChangeCallback();
-    void SyncHgmConfigChangeCallback(const std::unordered_map<pid_t, std::pair<int32_t, std::string>>& pids);
+    void SyncHgmConfigChangeCallback(pid_t extraSyncPid = 0);
+    void SyncHgmConfigChangeCallback(const std::unordered_map<pid_t, std::pair<int32_t, std::string>>& pids,
+        pid_t extraSyncPid = 0);
     void SyncRefreshRateModeChangeCallback(int32_t refreshRateMode);
     void SyncRefreshRateUpdateCallback(int32_t refreshRate);
     void SyncXComponentExpectedFrameRateCallback(pid_t pid, const std::string& xcomponentId, int32_t expectedFrameRate);

@@ -74,6 +74,9 @@ AniTextResult LoadResource(ani_env* env, ani_object path, std::shared_ptr<OHOS::
     if (!result.success) {
         return result;
     }
+    if (dataLen == 0) {
+        return AniTextResult::Error(MLB::ERROR_FILE_EMPTY);
+    }
     if (fontCollection->LoadFont(familyName, data.get(), dataLen, index) == nullptr) {
         TEXT_LOGE("Failed to load font");
         return AniTextResult::Error(MLB::ERROR_FILE_CORRUPTED);

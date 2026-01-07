@@ -822,21 +822,21 @@ HWTEST_F(HdiOutputTest, CheckSupportCopybitMetadata001, Function | MediumTest | 
 }
 
 /*
- * Function: ANCOTransactionOnComplete
+ * Function: AncoTransactionOnComplete
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1.call ANCOTransactionOnComplete()
+ * CaseDescription: 1.call AncoTransactionOnComplete()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, AncoTransactionOnComplete001, Function | MediumTest | Level1)
 {
     std::shared_ptr<RSLayer> rsLayer = nullptr;
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     rsLayer = std::make_shared<RSSurfaceLayer>();
     const uint32_t ancoFlag = 0x0111;
     rsLayer->SetAncoFlags(ancoFlag);
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     ASSERT_EQ(rsLayer->GetAncoFlags(), ancoFlag);
 }
 
@@ -1168,7 +1168,7 @@ HWTEST_F(HdiOutputTest, ReleaseSurfaceBuffer002, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->layerIdMap_[3] = hdiLayer3;
     HdiOutputTest::hdiOutput_->layersId_.push_back(3);
     HdiOutputTest::hdiOutput_->fences_.push_back(fence);
-    
+
     HdiOutputTest::hdiOutput_->layerIdMap_[4] = hdiLayer4;
     HdiOutputTest::hdiOutput_->layersId_.push_back(4);
     HdiOutputTest::hdiOutput_->fences_.push_back(fence);
@@ -1211,7 +1211,7 @@ HWTEST_F(HdiOutputTest, ReleaseSurfaceBuffer003, Function | MediumTest | Level1)
     ASSERT_NE(rsLayer3, nullptr);
     hdiLayer3->UpdateRSLayer(rsLayer3);
     rsLayer3->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    // has rslayer and surface , UniRenderFlag is true, prebuffer is not nullptr
+    // has rslayer and surface, UniRenderFlag is true, prebuffer is not nullptr
     std::shared_ptr<HdiLayer> hdiLayer4 = HdiLayer::CreateHdiLayer(4);
     ASSERT_NE(hdiLayer4, nullptr);
     std::shared_ptr<RSLayer> rsLayer4 = std::make_shared<RSSurfaceLayer>();
@@ -1615,31 +1615,31 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPre002, Function | MediumTest | Level1)
 }
 
 /*
- * Function: ANCOTransactionOnComplete002
+ * Function: AncoTransactionOnComplete002
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1.call ANCOTransactionOnComplete()
+ * CaseDescription: 1.call AncoTransactionOnComplete()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, AncoTransactionOnComplete002, Function | MediumTest | Level1)
 {
     std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
     const uint32_t ancoFlag = 0x0111;
     rsLayer->SetAncoFlags(ancoFlag);
     // no surface no buffer
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     // has surface no buffer
     rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     // no surface has buffer
     rsLayer->SetSurface(nullptr);
     rsLayer->SetBuffer(new SurfaceBufferImpl());
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     // has surface has buffer
     rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
     rsLayer->SetBuffer(new SurfaceBufferImpl());
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     ASSERT_EQ(rsLayer->GetAncoFlags(), ancoFlag);
 }
 
@@ -2046,6 +2046,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked004, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->vmArsrWhiteList_ = vmArsrWhiteList;
     HdiOutputTest::hdiOutput_->device_ = preDevice;
 }
+
 /*
  * Function: UpdateLayerCompType001
  * Type: Function
@@ -2219,6 +2220,7 @@ HWTEST_F(HdiOutputTest, SetAncoSrcRect, Function | MediumTest | Level3)
     EXPECT_EQ(srcRect.w, srcRectRet.w);
     EXPECT_EQ(srcRect.h, srcRectRet.h);
 }
+
 /*
  * Function: UpdateInfosAfterCommit
  * Type: Function

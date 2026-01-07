@@ -106,4 +106,14 @@ std::shared_ptr<RSNGFilterBase> RSForegroundFilterModifier::GetNGFilterBase() co
     return Getter<std::shared_ptr<RSNGFilterBase>>(RSPropertyType::FOREGROUND_NG_FILTER, nullptr);
 }
 
+void RSForegroundFilterModifier::SetColorAdaptive(bool value)
+{
+    Setter<RSProperty>(RSPropertyType::COLOR_ADAPTIVE, value);
+}
+
+bool RSForegroundFilterModifier::GetColorAdaptive() const
+{
+    return Getter(RSPropertyType::COLOR_ADAPTIVE, false);
+}
+
 } // namespace OHOS::Rosen::ModifierNG

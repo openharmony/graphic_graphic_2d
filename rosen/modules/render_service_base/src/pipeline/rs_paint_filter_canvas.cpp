@@ -22,6 +22,7 @@
 #include "draw/canvas.h"
 
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 
@@ -1108,6 +1109,63 @@ Drawing::Surface* RSPaintFilterCanvas::GetSurface() const
     return surface_;
 }
 
+void RSPaintFilterCanvas::SetCanvasReplacable(bool replacable)
+{
+    isReplacable_ = replacable;
+}
+
+void RSPaintFilterCanvas::ConvertToType(
+    Drawing::ColorType colorType, Drawing::AlphaType alphaType, std::shared_ptr<Drawing::ColorSpace> colorSpace)
+{
+    if (!isReplacable_) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ConvertToType canvas is not replacable");
+        return;
+    }
+    bool invalid = !canvas_ || !surface_ || canvas_->GetImageInfo().GetColorType() == colorType;
+    if (invalid) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ConvertToType surface_ or canvas_ is nullptr or colorType correct");
+        return;
+    }
+
+    Drawing::ImageInfo info = { canvas_->GetWidth(), canvas_->GetHeight(), colorType, alphaType, colorSpace };
+    auto newSurface = surface_->MakeSurface(info);
+    if (!newSurface) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ConvertToType newSurface is nullptr");
+        return;
+    }
+    auto newCanvas = newSurface->GetCanvas().get();
+    if (!newCanvas) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ConvertToType newCanvas is nullptr");
+        return;
+    }
+    bool result = newCanvas->InheritStateAndContentFrom(canvas_);
+    if (!result) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ConvertToType InheritStateAndContentFrom result is false");
+        return;
+    }
+    ReplaceSurface(newSurface.get());
+    isReplacable_ = false;
+}
+
+void RSPaintFilterCanvas::ReplaceSurface(Drawing::Surface* surface)
+{
+    RS_TRACE_NAME_FMT("RSPaintFilterCanvas::ReplaceSurface surface_:%d, surface:%d", surface_, surface);
+    if (!surface_ || !surface) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ReplaceSurface surface_ or surface is nullptr");
+        return;
+    }
+    auto canvas = surface->GetCanvas().get();
+#ifdef SKP_RECORDING_ENABLED
+    auto iter = std::find(pCanvasList_.begin(), pCanvasList_.end(), canvas_);
+    if (iter != pCanvasList_.end()) {
+        pCanvasList_.erase(iter);
+    }
+    AddCanvas(canvas);
+#endif
+    *surface_ = *surface;
+    canvas_ = canvas;
+}
+
 CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
 {
     if (canvas_ == nullptr) {
@@ -1432,6 +1490,7 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     targetColorGamut_ = other.targetColorGamut_;
     isHdrOn_ = other.isHdrOn_;
     hdrProperties_ = other.hdrProperties_;
+    isReplacable_ = other.isReplacable_;
 }
 
 bool RSPaintFilterCanvas::CopyCachedEffectData(std::shared_ptr<CachedEffectData>& dstEffectData,

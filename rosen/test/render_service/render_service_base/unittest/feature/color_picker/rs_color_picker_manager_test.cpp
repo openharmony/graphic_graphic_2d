@@ -40,18 +40,18 @@ public:
 };
 
 /**
- * @tc.name: InitialColorIsTransparent
- * @tc.desc: GetColorPicked returns transparent when no updates and rect is nullptr
+ * @tc.name: InitialColorIsBlack
+ * @tc.desc: GetColorPicked returns BLACK when no updates and rect is nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(RSColorPickerManagerTest, InitialColorIsTransparent, TestSize.Level1)
+HWTEST_F(RSColorPickerManagerTest, InitialColorIsBlack, TestSize.Level1)
 {
     RSColorPickerManager manager;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
     Drawing::ColorQuad color = manager.GetColorPicked(canvas, nullptr, 0 /*nodeId*/, ColorPickStrategyType::AVERAGE, 0);
-    EXPECT_EQ(color, Drawing::Color::COLOR_TRANSPARENT);
+    EXPECT_EQ(color, Drawing::Color::COLOR_BLACK);
 }
 
 /**
@@ -155,6 +155,7 @@ HWTEST_F(RSColorPickerManagerTest, CooldownReturnsCachedColor, TestSize.Level1)
     // Immediate call should return same color due to cooldown
     auto second = manager.GetColorPicked(canvas, nullptr, 0, ColorPickStrategyType::AVERAGE, 100000 /*interval*/);
     EXPECT_EQ(first, second);
+    EXPECT_TRUE(manager.lastUpdateTime_ > 0);
 }
 
 /**

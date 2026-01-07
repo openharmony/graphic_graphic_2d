@@ -55,7 +55,7 @@ HWTEST_F(RSHwcContextTest, CheckPackageInConfigList001, TestSize.Level1)
     std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.youku.next", "1"}};
     auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
     std::vector<std::string> pkgs;
-    pkgs.push_back("com.youku.next");
+    pkgs.push_back("com.youku.next:00");
     auto& rsCommonHook = RsCommonHook::Instance();
     hwcContext->sourceTuningConfig_["com.youku.next"] = "1";
     hwcContext->solidLayerConfig_["com.youku.next"] = "1";
@@ -101,7 +101,7 @@ HWTEST_F(RSHwcContextTest, CheckPackageInConfigList002, TestSize.Level1)
     std::unordered_map<std::string, std::string> sourceTuningConfig = {{"com.youku.next", "1"}};
     std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.youku.next", "1"}};
     auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
-    std::vector<std::string> pkgs = {"com.youku.next", "yylx.danmaku.bili"};
+    std::vector<std::string> pkgs = {"com.youku.next:00", "yylx.danmaku.bili:01"};
     auto& rsCommonHook = RsCommonHook::Instance();
     hwcContext->CheckPackageInConfigList(pkgs);
     EXPECT_FALSE(rsCommonHook.GetVideoSurfaceFlag());
@@ -122,7 +122,7 @@ HWTEST_F(RSHwcContextTest, CheckPackageInConfigList003, TestSize.Level1)
     std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.youku.next", "1"}};
     auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
     std::vector<std::string> pkgs;
-    pkgs.push_back("com.youku.next");
+    pkgs.push_back("com.youku.next:00");
     auto& rsCommonHook = RsCommonHook::Instance();
     hwcContext->sourceTuningConfig_["com.youku.next"] = "1";
     hwcContext->solidLayerConfig_["com.youku.next"] = "2";
@@ -176,7 +176,30 @@ HWTEST_F(RSHwcContextTest, CheckPackageInConfigList004, TestSize.Level1)
     std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.youku.next", "1"}};
     auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
     std::vector<std::string> pkgs;
-    pkgs.push_back("yylx.danmaku.bili");
+    pkgs.push_back("yylx.danmaku.bili:00");
+    auto& rsCommonHook = RsCommonHook::Instance();
+    hwcContext->sourceTuningConfig_["com.youku.next"] = "1";
+    hwcContext->solidLayerConfig_["com.youku.next"] = "1";
+    hwcContext->CheckPackageInConfigList(pkgs);
+    EXPECT_FALSE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_FALSE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+}
+
+/**
+ * @tc.name: CheckPackageInConfigList005
+ * @tc.desc: Test CheckPackageInConfigList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcContextTest, CheckPackageInConfigList005, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sourceTuningConfig = {{"com.youku.next", "1"}};
+    std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.youku.next", "1"}};
+    auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
+    std::vector<std::string> pkgs;
+    pkgs.push_back("com.youku.next");
     auto& rsCommonHook = RsCommonHook::Instance();
     hwcContext->sourceTuningConfig_["com.youku.next"] = "1";
     hwcContext->solidLayerConfig_["com.youku.next"] = "1";

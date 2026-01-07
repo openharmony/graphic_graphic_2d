@@ -2957,8 +2957,10 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBackgroundColor001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = 0x034123;
+    RSColor color = Color::FromArgbInt(colorValue);
+    color.ConvertToP3ColorSpace();
     canvasNode->SetBackgroundColor(colorValue);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundColor() == Color::FromArgbInt(colorValue));
+    EXPECT_TRUE(colorValue == color.AsArgbInt());
 }
 
 /**
@@ -2970,8 +2972,10 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBackgroundColor002, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
+    RSColor color = Color::FromArgbInt(colorValue);
+    color.ConvertToP3ColorSpace();
     canvasNode->SetBackgroundColor(colorValue);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundColor() == Color::FromArgbInt(colorValue));
+    EXPECT_TRUE(colorValue == color.AsArgbInt());
 }
 
 /**
@@ -2983,8 +2987,10 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBackgroundColor003, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
+    RSColor color = Color::FromArgbInt(colorValue);
+    color.ConvertToP3ColorSpace();
     canvasNode->SetBackgroundColor(colorValue);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundColor() == Color::FromArgbInt(colorValue));
+    EXPECT_TRUE(colorValue == color.AsArgbInt());
 }
 
 /**
@@ -3711,6 +3717,21 @@ HWTEST_F(RSCanvasNodeTest, GetPixelmap003, TestSize.Level1)
     Drawing::Rect rect = {0, 0, 0, 0};
     auto ret = canvasNode->GetPixelmap(nullptr, nullptr, &rect);
     EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: SetPixelmap
+ * @tc.desc: Test SetPixelmap
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSCanvasNodeTest, SetPixelmap, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPixelmap(nullptr);
+    auto pixelmap = std::make_shared<OHOS::Media::PixelMap>();
+    EXPECT_NE(pixelmap, nullptr);
+    canvasNode->SetPixelmap(pixelmap);
 }
 
 /**

@@ -1384,9 +1384,18 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bo
 
 VsyncError VSyncDistributor::SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene)
 {
-    std::vector<uint64_t> tmpVec = pidWindowIdMap_[pid];
+    std::lock_guard<std::mutex> locker(mutex_);
+    // pid not found
+    if (connectionsMap_.find(pid) == connectionsMap_.end()) {
+        return VSYNC_ERROR_OK;
+    }
+    const auto& iter = pidWindowIdMap_.find(pid);
+    if (iter == pidWindowIdMap_.end()) {
+        return VSYNC_ERROR_OK;
+    }
+    const auto& tmpVec = iter->second;
     for (const auto& windowId : tmpVec) {
-        VsyncError ret = SetQosVSyncRate(windowId, rate, isSystemAnimateScene);
+        VsyncError ret = SetQosVSyncRateLocked(windowId, rate, isSystemAnimateScene);
         if (ret != VSYNC_ERROR_OK) {
             VLOGD("windowId:%{public}" PRUint " is not exit", windowId);
             return VSYNC_ERROR_INVALID_ARGUMENTS;
@@ -1504,6 +1513,11 @@ VsyncError VSyncDistributor::SetQosVSyncRateByConnId(uint64_t connId, int32_t ra
 VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene)
 {
     std::lock_guard<std::mutex> locker(mutex_);
+    return SetQosVSyncRateLocked(windowNodeId, rate, isSystemAnimateScene);
+}
+
+VsyncError VSyncDistributor::SetQosVSyncRateLocked(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene)
+{
     VsyncError resCode = SetQosVSyncRateByPid(ExtractPid(windowNodeId), rate, isSystemAnimateScene);
     auto iter = connectionsMap_.find(windowNodeId);
     if (iter == connectionsMap_.end()) {

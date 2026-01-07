@@ -28,16 +28,21 @@ rosen/modules/render_service_base/include/pipeline/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/pipeline/ @xiaojianfeng_jeffery
 rosen/modules/render_service/core/drawable/ @xiaojianfeng_jeffery
 
+[property-display]
 rosen/modules/render_service_client/core/modifier/ @hanamaru
 rosen/modules/render_service_client/core/modifier_ng/ @hanamaru
-rosen/modules/render_service_base/include/drawable/ @hanamaru
-rosen/modules/render_service_base/src/drawable/ @hanamaru
 rosen/modules/render_service_base/include/modifier/ @hanamaru
 rosen/modules/render_service_base/include/modifier_ng/ @hanamaru
 rosen/modules/render_service_base/src/modifier_ng/ @hanamaru
 rosen/modules/render_service_base/include/property/ @hanamaru
 rosen/modules/render_service_base/src/property/ @hanamaru
+rosen/modules/render_service_base/include/drawable/ @hanamaru
+rosen/modules/render_service_base/src/drawable/ @hanamaru
 
+[effect]
+rosen/modules/render_service_client/core/ui_effect/ @hanamaru
+rosen/modules/render_service_base/include/effect/ @hanamaru
+rosen/modules/render_service_base/src/effect/ @hanamaru
 rosen/modules/render_service_base/include/render/ @lyt1024
 rosen/modules/render_service_base/src/render/ @lyt1024
 
@@ -67,11 +72,11 @@ rosen/modules/render_service_base/src/transaction/rs_transaction_data.cpp @chuch
 rosen/modules/render_service_base/include/transaction/rs_transaction_data.h @chuchengcheng
 
 [animation]
-interfaces/kits/napi/graphic/animation/window_animation_manager/ @comicchang
-rosen/modules/animation/window_animation/ @comicchang
-rosen/modules/render_service_base/include/animation/ @comicchang
-rosen/modules/render_service_base/src/animation/ @comicchang
-rosen/modules/render_service_client/core/animation/ @comicchang
+interfaces/kits/napi/graphic/animation/window_animation_manager/ @chensiyi_CE
+rosen/modules/animation/window_animation/ @chensiyi_CE
+rosen/modules/render_service_client/core/animation/ @chensiyi_CE
+rosen/modules/render_service_base/include/animation/ @chensiyi_CE
+rosen/modules/render_service_base/src/animation/ @chensiyi_CE
 
 [uifirst]
 rosen/modules/render_service/core/feature/uifirst/ @charlielou
@@ -183,3 +188,6 @@ rosen/modules/render_service_base/include/pipeline/rs_dirty_region_manager.h @ch
 rosen/modules/render_service_base/src/pipeline/rs_dirty_region_manager.cpp @chenlushen
 rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.h @chenlushen
 rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.cpp @chenlushen
+
+[capture]
+rosen/modules/render_service/core/feature/capture @chuchengcheng

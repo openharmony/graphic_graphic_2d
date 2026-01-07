@@ -146,6 +146,15 @@ void RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(RSContext& context, NodeId
     }
 }
 
+void RSNodeCommandHelper::SetHDRUIBrightness(RSContext& context, NodeId nodeId, float brightness)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node != nullptr) {
+        node->SetHDRUIBrightness(brightness);
+    }
+}
+
 void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
     const bool isInSameWindow)
 {

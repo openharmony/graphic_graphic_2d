@@ -287,6 +287,14 @@ bool RSSystemParameters::GetAnimationOcclusionEnabled()
     return ConvertToInt(enable, 0) != 0;
 }
 
+bool RSSystemParameters::GetDDGRSLREnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.DDGRSLR.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemParameters::GetUIFirstPurgeEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.uifirst.purge.enable", "1");

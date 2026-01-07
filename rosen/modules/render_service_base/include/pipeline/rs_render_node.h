@@ -643,6 +643,8 @@ public:
     }
 
     float GetHDRBrightness() const;
+    void SetHDRUIBrightness(float brightness);
+
     bool GetCommandExecuted() const
     {
         return commandExecuted_;
@@ -953,7 +955,7 @@ public:
 
     bool ChildHasVisibleHDRContent() const;
 
-    void SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType);
+    void SetHdrNum(bool flag, NodeId instanceRootNodeId, NodeId screenNodeId, HDRComponentType hdrType);
 
     virtual void UpdateNodeColorSpace() {};
     void ResetNodeColorSpace();
@@ -1079,7 +1081,7 @@ protected:
     virtual void InitRenderParams();
     virtual void OnSync();
     virtual void OnSkipSync();
-    virtual void ClearResource() {};
+    virtual void AccumulateLastDirtyTypes() {};
     virtual void ClearNeverOnTree() {};
 
     void AddUIExtensionChild(SharedPtr child);
@@ -1090,6 +1092,13 @@ protected:
     void UpdateDrawableVecV2();
     void ClearDrawableVec2();
     void UpdateDrawableEnableEDR();
+
+    void SetHdrPhotoHeadroom(uint32_t headroom);
+    void SetHdrEffectHeadroom(uint32_t headroom);
+    void SetHdrUIComponentHeadroom(uint32_t headroom);
+    uint32_t GetHdrPhotoHeadroom() const;
+    uint32_t GetHdrEffectHeadroom() const;
+    uint32_t GetHdrUIComponentHeadroom() const;
 
     void DrawPropertyDrawable(RSDrawableSlot slot, RSPaintFilterCanvas& canvas);
     void DrawPropertyDrawableRange(RSDrawableSlot begin, RSDrawableSlot end, RSPaintFilterCanvas& canvas);
@@ -1321,6 +1330,14 @@ private:
     void ShowSetIsOnetheTreeCntIfNeed(const std::string& funcName, NodeId nodeId, const std::string& nodeName);
 
     bool enableHdrEffect_ = false;
+    static constexpr uint32_t DEFAULT_HEADROOM_VALUE = 0U;
+    struct HeadroomInfo {
+        uint32_t hdrPhotoHeadroom = DEFAULT_HEADROOM_VALUE;
+        uint32_t hdrEffectHeadroom = DEFAULT_HEADROOM_VALUE;
+        uint32_t hdrUIComponentHeadroom = DEFAULT_HEADROOM_VALUE;
+    };
+    std::unique_ptr<HeadroomInfo> headroomInfo_ = nullptr;
+    void CheckHdrHeadroomInfoPointer();
 
     bool needUseCmdlistDrawRegion_ = false;
     RectF cmdlistDrawRegion_;

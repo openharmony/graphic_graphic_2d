@@ -232,8 +232,8 @@ void RSCanvasNode::OnBoundsSizeChanged() const
 
 void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
 {
-  std::lock_guard<std::mutex> lock(mutex_);
-  boundsChangedCallback_ = callback;
+    std::lock_guard<std::mutex> lock(mutex_);
+    boundsChangedCallback_ = callback;
 }
 
 bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
@@ -291,6 +291,16 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
     });
 #endif
     return ret;
+}
+
+void RSCanvasNode::SetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (!pixelMap) {
+        return;
+    }
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSCanvasNodeSetPixelmap>(GetId(), pixelMap);
+    AddCommand(command, true);
 }
 
 bool RSCanvasNode::ResetSurface(int width, int height)

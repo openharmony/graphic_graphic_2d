@@ -119,7 +119,8 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     SetOcclusionCullingEnabled((!uniParam || uniParam->IsOpDropped()) && GetOpDropped());
-    if (IsOcclusionCullingEnabled() && QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDropNodeExt_) {
+    if (IsOcclusionCullingEnabled() && QuickReject(canvas, params->GetLocalDrawRect()) &&
+        RSOpincDrawCache::GetOpincBlockNodeSkip()) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }

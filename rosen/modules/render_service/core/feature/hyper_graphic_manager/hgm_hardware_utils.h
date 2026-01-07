@@ -32,6 +32,12 @@ struct RefreshRateParam {
     uint64_t fastComposeTimeStampDiff = 0;
 };
 
+struct SetRateRetryParam {
+    int32_t retryCount = 0; // Number of retries attempted for frame switching
+    bool needRetrySetRate = false;  // whether a retry is needed for next frame switching
+    bool isRetryOverLimit = false;  // Determines if the maximum retry limit has been exceeded
+};
+
 class HgmHardwareUtils {
 public:
     HgmHardwareUtils() = default;
@@ -40,6 +46,7 @@ public:
     void ExecuteSwitchRefreshRate(ScreenId screenId);
     void PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output);
     void UpdateRefreshRateParam();
+    void ResetRetryCount(ScreenPowerStatus status);
     void SetScreenVBlankIdle() { vblankIdleCorrector_.SetScreenVBlankIdle(); }
 
     const RefreshRateParam& GetRefreshRateParam() const
@@ -55,10 +62,9 @@ private:
     void UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet);
 
     HgmCore& hgmCore_ = HgmCore::Instance();
-    // key: ScreenId, value: <needRetrySetRate, retryCount>
-    std::unordered_map<ScreenId, std::pair<bool, int32_t>> setRateRetryMap_;
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RefreshRateParam refreshRateParam_;
+    SetRateRetryParam setRateRetryParam_;
     RSVBlankIdleCorrector vblankIdleCorrector_;
 };
 } // namespace OHOS

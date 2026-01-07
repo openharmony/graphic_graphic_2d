@@ -31,6 +31,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_union_render_node.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -107,6 +108,9 @@ public:
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
     static inline Drawing::Canvas drawingCanvas_;
+
+    void CheckWithStatusLevel(const RSScreenRenderNode::HeadroomMap &map, HdrStatus status, uint32_t level);
+    void CheckWithoutStatusLevel(const RSScreenRenderNode::HeadroomMap &map, HdrStatus status, uint32_t level);
 };
 
 void RSRenderNodeTest2::SetUpTestCase()
@@ -511,6 +515,22 @@ HWTEST_F(RSRenderNodeTest2, GetHDRBrightness, TestSize.Level1)
     RSRenderNode node(id, context);
     node.GetHDRBrightness();
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetHDRUIBrightness
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9V3BK
+ */
+HWTEST_F(RSRenderNodeTest2, SetHDRUIBrightness, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    constexpr uint32_t INCORRECT_HEADROOM = static_cast<uint32_t>(-1);
+    node.SetHdrUIComponentHeadroom(INCORRECT_HEADROOM);
+    node.SetHDRUIBrightness(1.0F);
+    ASSERT_NE(node.headroomInfo_, nullptr);
+    ASSERT_NE(node.GetHdrUIComponentHeadroom(), INCORRECT_HEADROOM);
 }
 
 #ifndef MODIFIER_NG
@@ -1898,27 +1918,193 @@ HWTEST_F(RSRenderNodeTest2, HDRStatusTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetHdrNum
+ * @tc.name: SetHdrNum001
  * @tc.desc: SetHdrNum test
  * @tc.type: FUNC
  * @tc.require: issueI9US6V
  */
-HWTEST_F(RSRenderNodeTest2, SetHdrNum, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, SetHdrNum001, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     EXPECT_NE(rsContext, nullptr);
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
     EXPECT_NE(surfaceNode, nullptr);
     rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = surfaceNode;
-    node->SetHdrNum(true, 1, HDRComponentType::IMAGE);
+    NodeId screenNodeId = 2UL;
+    node->SetHdrNum(true, 1, screenNodeId, HDRComponentType::IMAGE);
     EXPECT_EQ(surfaceNode->hdrPhotoNum_, 1);
-    node->SetHdrNum(true, 1, HDRComponentType::UICOMPONENT);
+    node->SetHdrNum(true, 1, screenNodeId, HDRComponentType::UICOMPONENT);
     EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 1);
-    node->SetHdrNum(false, 1, HDRComponentType::IMAGE);
+    node->SetHdrNum(true, 1, screenNodeId, HDRComponentType::EFFECT);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 1);
+    node->SetHdrNum(false, 1, screenNodeId, HDRComponentType::IMAGE);
     EXPECT_EQ(surfaceNode->hdrPhotoNum_, 0);
-    node->SetHdrNum(false, 1, HDRComponentType::UICOMPONENT);
+    node->SetHdrNum(false, 1, screenNodeId, HDRComponentType::UICOMPONENT);
     EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 0);
+    node->SetHdrNum(false, 1, screenNodeId, HDRComponentType::EFFECT);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
+}
+
+void RSRenderNodeTest2::CheckWithStatusLevel(const RSScreenRenderNode::HeadroomMap &map,
+    HdrStatus status, uint32_t level)
+{
+    ASSERT_EQ(map.count(status), 1U);
+    ASSERT_EQ(map.at(status).count(level), 1U);
+    ASSERT_EQ(map.at(status).at(level), 1U);
+}
+
+void RSRenderNodeTest2::CheckWithoutStatusLevel(const RSScreenRenderNode::HeadroomMap &map,
+    HdrStatus status, uint32_t level)
+{
+    if (map.count(status) > 0U) {
+        const auto &statusMap = map.at(status);
+        if (statusMap.count(level) > 0U) {
+            ASSERT_EQ(statusMap.at(level), 0U);
+        }
+    }
+}
+
+/**
+ * @tc.name: SetHdrNum002
+ * @tc.desc: SetHdrNum test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrNum002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+    NodeId surfaceNodeId = 1UL;
+    NodeId screenNodeId = 2UL;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(surfaceNode);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0U, rsContext);
+    EXPECT_NE(screenNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(screenNode);
+
+    node->SetHdrPhotoHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrUIComponentHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetEnableHdrEffect(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    constexpr HDRComponentType INCORRECT_HDR_COMPONENT_TYPE = static_cast<HDRComponentType>(-1);
+    node->SetHdrNum(true, surfaceNodeId, screenNodeId, INCORRECT_HDR_COMPONENT_TYPE);
+    node->SetHdrNum(false, surfaceNodeId, screenNodeId, INCORRECT_HDR_COMPONENT_TYPE);
+    const auto &map = screenNode->GetHeadroomMap();
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_VIDEO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::AI_HDR_VIDEO_GTM, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::AI_HDR_VIDEO_GAINMAP, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrNum003
+ * @tc.desc: SetHdrNum test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrNum003, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+    NodeId surfaceNodeId = 1UL;
+    NodeId screenNodeId = 2UL;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(surfaceNode);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0U, rsContext);
+    EXPECT_NE(screenNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(screenNode);
+
+    node->SetHdrPhotoHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrUIComponentHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetEnableHdrEffect(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    const auto &map = screenNode->GetHeadroomMap();
+    node->SetHdrNum(true, surfaceNodeId, screenNodeId, HDRComponentType::IMAGE);
+    CheckWithStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrNum(false, surfaceNodeId, screenNodeId, HDRComponentType::IMAGE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrNum004
+ * @tc.desc: SetHdrNum test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrNum004, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+    NodeId surfaceNodeId = 1UL;
+    NodeId screenNodeId = 2UL;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(surfaceNode);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0U, rsContext);
+    EXPECT_NE(screenNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(screenNode);
+
+    node->SetHdrPhotoHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrUIComponentHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetEnableHdrEffect(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    const auto &map = screenNode->GetHeadroomMap();
+    node->SetHdrNum(true, surfaceNodeId, screenNodeId, HDRComponentType::UICOMPONENT);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrNum(false, surfaceNodeId, screenNodeId, HDRComponentType::UICOMPONENT);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrNum005
+ * @tc.desc: SetHdrNum test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrNum005, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+    NodeId surfaceNodeId = 1UL;
+    NodeId screenNodeId = 2UL;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(surfaceNode);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0U, rsContext);
+    EXPECT_NE(screenNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(screenNode);
+
+    node->SetHdrPhotoHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrUIComponentHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetEnableHdrEffect(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    const auto &map = screenNode->GetHeadroomMap();
+    node->SetHdrNum(true, surfaceNodeId, screenNodeId, HDRComponentType::EFFECT);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrNum(false, surfaceNodeId, screenNodeId, HDRComponentType::EFFECT);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
 }
 
 /**
@@ -1932,6 +2118,7 @@ HWTEST_F(RSRenderNodeTest2, SetEnableHdrEffect, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     EXPECT_NE(rsContext, nullptr);
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
     node->InitRenderParams();
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
     EXPECT_NE(surfaceNode, nullptr);
@@ -1945,6 +2132,137 @@ HWTEST_F(RSRenderNodeTest2, SetEnableHdrEffect, TestSize.Level1)
     EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
     node->SetEnableHdrEffect(false);
     EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
+}
+
+/**
+ * @tc.name: CheckHdrHeadroomInfoPointer
+ * @tc.desc: CheckHdrHeadroomInfoPointer test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, CheckHdrHeadroomInfoPointer, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    node->CheckHdrHeadroomInfoPointer();
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    node->CheckHdrHeadroomInfoPointer();
+    EXPECT_NE(node->headroomInfo_, nullptr);
+}
+
+/**
+ * @tc.name: SetHdrPhotoHeadroom
+ * @tc.desc: SetHdrPhotoHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrPhotoHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrPhotoHeadroom(HEADROOM);
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_NE(node->headroomInfo_->hdrPhotoHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrEffectHeadroom
+ * @tc.desc: SetHdrEffectHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrEffectHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrEffectHeadroom(HEADROOM);
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_NE(node->headroomInfo_->hdrEffectHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrUIComponentHeadroom
+ * @tc.desc: SetHdrUIComponentHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrUIComponentHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrUIComponentHeadroom(HEADROOM);
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_NE(node->headroomInfo_->hdrUIComponentHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: GetHdrPhotoHeadroom
+ * @tc.desc: GetHdrPhotoHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, GetHdrPhotoHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    uint32_t photoHeadroom = node->GetHdrPhotoHeadroom();
+    EXPECT_EQ(photoHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrPhotoHeadroom(HEADROOM);
+    photoHeadroom = node->GetHdrPhotoHeadroom();
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_EQ(photoHeadroom, HEADROOM);
+    EXPECT_NE(photoHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: GetHdrEffectHeadroom
+ * @tc.desc: GetHdrEffectHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, GetHdrEffectHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    uint32_t effectHeadroom = node->GetHdrEffectHeadroom();
+    EXPECT_EQ(effectHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrEffectHeadroom(HEADROOM);
+    effectHeadroom = node->GetHdrEffectHeadroom();
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_EQ(effectHeadroom, HEADROOM);
+    EXPECT_NE(effectHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: GetHdrUIComponentHeadroom
+ * @tc.desc: GetHdrUIComponentHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, GetHdrUIComponentHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    uint32_t uiComponentHeadroom = node->GetHdrUIComponentHeadroom();
+    EXPECT_EQ(uiComponentHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrUIComponentHeadroom(HEADROOM);
+    uiComponentHeadroom = node->GetHdrUIComponentHeadroom();
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_EQ(uiComponentHeadroom, HEADROOM);
+    EXPECT_NE(uiComponentHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
 }
 
 /**
@@ -3282,6 +3600,39 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBackgroundAndAlphaDirtyTest, Te
             = backgroundColorDrawable;
         renderNode->UpdateFilterCacheWithBackgroundDirty();
     }
+}
+
+/**
+ * @tc.name: ApplyModifiersProcessUnionInfoAfterApplyModifiers001
+ * @tc.desc: test ApplyModifiersProcessUnionInfoAfterApplyModifiers001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+
+    node->ApplyModifiers();
+    ASSERT_FALSE(node->renderProperties_.useUnion_);
+}
+
+/**
+ * @tc.name: ApplyModifiersProcessUnionInfoAfterApplyModifiers002
+ * @tc.desc: test ApplyModifiersProcessUnionInfoAfterApplyModifiers001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+
+    node->ApplyModifiers();
+    ASSERT_FALSE(node->renderProperties_.useUnion_);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1173,6 +1173,7 @@ ohos_unittest("RSHpaeManagerTest") {
   sources = [ "hpae/rs_hpae_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "ffrt:libffrt",
     "c_utils:utils",
     "hilog:libhilog",
   ]

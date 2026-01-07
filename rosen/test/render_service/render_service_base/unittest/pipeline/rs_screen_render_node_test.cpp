@@ -37,6 +37,9 @@ public:
     static inline NodeId id;
     static inline ScreenId screenId;
     static inline std::weak_ptr<RSContext> context = {};
+
+    void CheckWithStatusLevel(const RSScreenRenderNode::HeadroomMap &map, HdrStatus status, uint32_t level);
+    void CheckWithoutStatusLevel(const RSScreenRenderNode::HeadroomMap &map, HdrStatus status, uint32_t level);
 };
 
 void RSScreenRenderNodeTest::SetUpTestCase() {}
@@ -927,11 +930,11 @@ HWTEST_F(RSScreenRenderNodeTest, UpdateColorSpaceTest, TestSize.Level1)
     node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, node->GetColorSpace());
 
-    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
-    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, node->GetColorSpace());
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, node->GetColorSpace());
 
     node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, node->GetColorSpace());
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, node->GetColorSpace());
 }
 
 /**
@@ -1102,4 +1105,137 @@ HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest005, TestSize.Level1)
     screenNode->CheckSurfaceChanged();
     EXPECT_FALSE(screenNode->isVirtualSurfaceChanged_);
 }
+
+void RSScreenRenderNodeTest::CheckWithStatusLevel(const RSScreenRenderNode::HeadroomMap &map,
+    HdrStatus status, uint32_t level)
+{
+    ASSERT_EQ(map.count(status), 1U);
+    ASSERT_EQ(map.at(status).count(level), 1U);
+    ASSERT_EQ(map.at(status).at(level), 1U);
+}
+
+void RSScreenRenderNodeTest::CheckWithoutStatusLevel(const RSScreenRenderNode::HeadroomMap &map,
+    HdrStatus status, uint32_t level)
+{
+    if (map.count(status) > 0U) {
+        const auto &statusMap = map.at(status);
+        if (statusMap.count(level) > 0U) {
+            ASSERT_EQ(statusMap.at(level), 0U);
+        }
+    }
+}
+
+/**
+ * @tc.name: GetHeadroomMap
+ * @tc.desc: test results of GetHeadroomMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeTest, GetHeadroomMap, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+
+    const auto &map = screenNode->GetHeadroomMap();
+    HdrStatus status = HdrStatus::HDR_PHOTO;
+    uint32_t level = 0U;
+
+    CheckWithoutStatusLevel(map, status, level);
+    screenNode->UpdateHeadroomMapIncrease(status, level);
+    CheckWithStatusLevel(map, status, level);
+}
+
+/**
+ * @tc.name: UpdateHeadroomMapIncrease
+ * @tc.desc: test results of UpdateHeadroomMapIncrease
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeTest, UpdateHeadroomMapIncrease, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+
+    const auto &map = screenNode->GetHeadroomMap();
+    HdrStatus status1 = HdrStatus::HDR_PHOTO;
+    HdrStatus status2 = HdrStatus::HDR_VIDEO;
+    uint32_t level1 = 0U;
+    uint32_t level2 = 1U;
+
+    CheckWithoutStatusLevel(map, status1, level1);
+    CheckWithoutStatusLevel(map, status2, level2);
+
+    screenNode->UpdateHeadroomMapIncrease(status1, level1);
+    CheckWithStatusLevel(map, status1, level1);
+    CheckWithoutStatusLevel(map, status2, level2);
+
+    screenNode->UpdateHeadroomMapIncrease(status2, level2);
+    CheckWithStatusLevel(map, status1, level1);
+    CheckWithStatusLevel(map, status2, level2);
+}
+
+/**
+ * @tc.name: UpdateHeadroomMapDecrease
+ * @tc.desc: test results of UpdateHeadroomMapDecrease
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeTest, UpdateHeadroomMapDecrease, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+
+    const auto &map = screenNode->GetHeadroomMap();
+    HdrStatus status1 = HdrStatus::HDR_PHOTO;
+    HdrStatus status2 = HdrStatus::HDR_VIDEO;
+    uint32_t level1 = 0U;
+    uint32_t level2 = 1U;
+
+    screenNode->UpdateHeadroomMapIncrease(status1, level1);
+    screenNode->UpdateHeadroomMapIncrease(status2, level2);
+    CheckWithStatusLevel(map, status1, level1);
+    CheckWithStatusLevel(map, status2, level2);
+
+    screenNode->UpdateHeadroomMapDecrease(status1, level1);
+    CheckWithoutStatusLevel(map, status1, level1);
+    CheckWithStatusLevel(map, status2, level2);
+
+    screenNode->UpdateHeadroomMapDecrease(status2, level2);
+    CheckWithoutStatusLevel(map, status1, level1);
+    CheckWithoutStatusLevel(map, status2, level2);
+
+    screenNode->UpdateHeadroomMapDecrease(status2, level2);
+    CheckWithoutStatusLevel(map, status1, level1);
+    CheckWithoutStatusLevel(map, status2, level2);
+}
+
+/**
+ * @tc.name: ResetVideoHeadroomInfo
+ * @tc.desc: test results of ResetVideoHeadroomInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeTest, ResetVideoHeadroomInfo, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    uint32_t level = 1U;
+    screenNode->UpdateHeadroomMapIncrease(HdrStatus::HDR_PHOTO, level);
+    screenNode->UpdateHeadroomMapIncrease(HdrStatus::HDR_VIDEO, level);
+    screenNode->UpdateHeadroomMapIncrease(HdrStatus::AI_HDR_VIDEO_GTM, level);
+    screenNode->UpdateHeadroomMapIncrease(HdrStatus::HDR_EFFECT, level);
+    screenNode->UpdateHeadroomMapIncrease(HdrStatus::AI_HDR_VIDEO_GAINMAP, level);
+    screenNode->UpdateHeadroomMapIncrease(HdrStatus::HDR_UICOMPONENT, level);
+
+    const auto &map = screenNode->GetHeadroomMap();
+    screenNode->ResetVideoHeadroomInfo();
+
+    CheckWithStatusLevel(map, HdrStatus::HDR_PHOTO, level);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_VIDEO, level);
+    CheckWithoutStatusLevel(map, HdrStatus::AI_HDR_VIDEO_GTM, level);
+    CheckWithStatusLevel(map, HdrStatus::HDR_EFFECT, level);
+    CheckWithoutStatusLevel(map, HdrStatus::AI_HDR_VIDEO_GAINMAP, level);
+    CheckWithStatusLevel(map, HdrStatus::HDR_UICOMPONENT, level);
+}
+
 } // namespace OHOS::Rosen

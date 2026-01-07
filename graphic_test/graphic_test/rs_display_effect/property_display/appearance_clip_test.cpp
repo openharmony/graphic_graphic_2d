@@ -111,7 +111,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipRRect_Test_2)
             testNode->SetBounds({ 0.0, nodePosY, nodeSize, nodeSize });
             testNode->SetBackgroundColor(0xff00ff00);
             testFaNode->AddChild(testNode);
-            testFaNode->SetClipRRect(rect[i], radius[j]);
+            testFaNode->SetClipRRect(std::make_shared<RRect>(rect[i], radius[j]));
             GetRootNode()->AddChild(testFaNode);
             RegisterNode(testNode);
             RegisterNode(testFaNode);

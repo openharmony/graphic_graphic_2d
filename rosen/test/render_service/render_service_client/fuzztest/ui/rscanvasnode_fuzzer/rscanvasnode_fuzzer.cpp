@@ -63,7 +63,7 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreate(const uint8_t* data, size_t size)
+bool DoCreate()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -74,7 +74,7 @@ bool DoCreate(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoBeginRecordingAndFinishRecording(const uint8_t* data, size_t size)
+bool DoBeginRecordingAndFinishRecording()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -90,7 +90,7 @@ bool DoBeginRecordingAndFinishRecording(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreateTextureExportRenderNodeInRT(const uint8_t* data, size_t size)
+bool DoCreateTextureExportRenderNodeInRT()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -102,7 +102,7 @@ bool DoCreateTextureExportRenderNodeInRT(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoDrawOnNode(const uint8_t* data, size_t size)
+bool DoDrawOnNode()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -116,7 +116,7 @@ bool DoDrawOnNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetPaintWidthAndGetPaintHeight(const uint8_t* data, size_t size)
+bool DoGetPaintWidthAndGetPaintHeight()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -129,7 +129,7 @@ bool DoGetPaintWidthAndGetPaintHeight(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetFreeze(const uint8_t* data, size_t size)
+bool DoSetFreeze()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -142,7 +142,7 @@ bool DoSetFreeze(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetHDRPresent(const uint8_t* data, size_t size)
+bool DoSetHDRPresent()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -155,7 +155,7 @@ bool DoSetHDRPresent(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoOnBoundsSizeChanged(const uint8_t* data, size_t size)
+bool DoOnBoundsSizeChanged()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -169,7 +169,7 @@ bool DoOnBoundsSizeChanged(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
+bool DoSetBoundsChangedCallback()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -182,7 +182,7 @@ bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoDrawOnNode002(const uint8_t* data, size_t size)
+bool DoDrawOnNode002()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -200,7 +200,7 @@ bool DoDrawOnNode002(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetFreeze002(const uint8_t* data, size_t size)
+bool DoSetFreeze002()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -221,16 +221,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     
     /* Run your code on data */
-    OHOS::Rosen::DoCreate(data, size);
-    OHOS::Rosen::DoBeginRecordingAndFinishRecording(data, size);
-    OHOS::Rosen::DoCreateTextureExportRenderNodeInRT(data, size);
-    OHOS::Rosen::DoDrawOnNode(data, size);
-    OHOS::Rosen::DoGetPaintWidthAndGetPaintHeight(data, size);
-    OHOS::Rosen::DoSetFreeze(data, size);
-    OHOS::Rosen::DoSetHDRPresent(data, size);
-    OHOS::Rosen::DoOnBoundsSizeChanged(data, size);
-    OHOS::Rosen::DoSetBoundsChangedCallback(data, size);
-    OHOS::Rosen::DoDrawOnNode002(data, size);
-    OHOS::Rosen::DoSetFreeze002(data, size);
+    OHOS::Rosen::DoCreate();
+    OHOS::Rosen::DoBeginRecordingAndFinishRecording();
+    OHOS::Rosen::DoCreateTextureExportRenderNodeInRT();
+    OHOS::Rosen::DoDrawOnNode();
+    OHOS::Rosen::DoGetPaintWidthAndGetPaintHeight();
+    OHOS::Rosen::DoSetFreeze();
+    OHOS::Rosen::DoSetHDRPresent();
+    OHOS::Rosen::DoOnBoundsSizeChanged();
+    OHOS::Rosen::DoSetBoundsChangedCallback();
+    OHOS::Rosen::DoDrawOnNode002();
+    OHOS::Rosen::DoSetFreeze002();
     return 0;
 }

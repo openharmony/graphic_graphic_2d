@@ -100,24 +100,37 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
 
 bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
-    // read mainScreenRect only to reduce ipc data size
-    if (!data.ReadBool(captureConfig.isHdrCapture) ||
+    uint8_t captureType { 0 };
+    if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
+        !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
+        !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
+        !data.ReadBool(captureConfig.isHdrCapture) ||
         !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.ReadBool(captureConfig.needErrorCode) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.bottom_) ||
-        !data.ReadUInt64Vector(&captureConfig.blackList) ||
         !data.ReadUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
         !data.ReadBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
         !data.ReadFloat(captureConfig.specifiedAreaRect.left_) ||
         !data.ReadFloat(captureConfig.specifiedAreaRect.top_) ||
         !data.ReadFloat(captureConfig.specifiedAreaRect.right_) ||
-        !data.ReadFloat(captureConfig.specifiedAreaRect.bottom_)) {
+        !data.ReadFloat(captureConfig.specifiedAreaRect.bottom_) ||
+        !data.ReadUInt64Vector(&captureConfig.blackList) ||
+        !data.ReadUint32(captureConfig.backGroundColor) ||
+        !data.ReadUint32(captureConfig.colorSpace.first) ||
+        !data.ReadBool(captureConfig.colorSpace.second) ||
+        !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
+        !data.ReadBool(captureConfig.dynamicRangeMode.second)) {
         RS_LOGE("RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig read parcel failed!");
         return false;
     }
+    if (captureType >= static_cast<uint8_t>(SurfaceCaptureType::SURFACE_CAPTURE_TYPE_BUTT)) {
+        RS_LOGE("RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig Read captureType failed!");
+        return false;
+    }
+    captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);
     return true;
 }
 } // namespace Rosen

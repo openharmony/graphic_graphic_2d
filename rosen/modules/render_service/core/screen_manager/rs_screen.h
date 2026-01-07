@@ -193,6 +193,8 @@ public:
     int32_t GetOffsetX() const;
     int32_t GetOffsetY() const;
 
+    bool GetAndResetWhiteListChange();
+    void SetWhiteListChange(bool whiteListChange);
     bool GetAndResetPSurfaceChange();
     void SetPSurfaceChange(bool pSurfaceChange);
     bool GetAndResetVirtualScreenPlay();
@@ -256,6 +258,7 @@ private:
     // status for full screen dirty region update
     std::atomic<bool> pSurfaceChange_ = false;
     std::atomic<bool> virtualScreenPlay_ = false;
+    std::atomic<bool> whiteListChange_ = false;
 
     std::function<void(const sptr<RSScreenProperty>&)> onPropertyChange_;
     RSScreenThreadSafeProperty property_;

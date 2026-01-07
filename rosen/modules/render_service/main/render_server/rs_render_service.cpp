@@ -24,18 +24,6 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
-#include "hgm_core.h"
-#include "memory/rs_memory_manager.h"
-#include "parameter.h"
-#include "pipeline/main_thread/rs_main_thread.h"
-#include "rs_profiler.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
-#include "vsync_generator.h"
-#include "rs_trace.h"
-#include "ge_render.h"
-#include "ge_mesa_blur_shader_filter.h"
-
 #include "common/rs_singleton.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #ifdef RS_ENABLE_RDO
@@ -46,15 +34,25 @@
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
+#include "ge_mesa_blur_shader_filter.h"
+#include "ge_render.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
 #include "graphic_feature_param_manager.h"
+#include "hgm_core.h"
+#include "memory/rs_memory_manager.h"
+#include "parameter.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
+#include "rs_profiler.h"
 #include "rs_render_composer_manager.h"
+#include "rs_trace.h"
 #include "system/rs_system_parameters.h"
-
 #include "text/font_mgr.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "vsync_generator.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
@@ -230,7 +228,6 @@ void RSRenderService::Run()
 
 void RSRenderService::RegisterRcdMsg()
 {
-#ifdef RS_ENABLE_GPU
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
         RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
         if (!isRcdServiceRegister_) {
@@ -255,7 +252,6 @@ void RSRenderService::RegisterRcdMsg()
         }
         RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice already.");
     }
-#endif
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(
@@ -641,7 +637,8 @@ static void InitGLES()
         RS_LOGE("Failed to get default display.");
         return;
     }
-    EGLint major, minor;
+    EGLint major;
+    EGLint minor;
     if (eglInitialize(g_tmpDisplay, &major, &minor) == EGL_FALSE) {
         RS_LOGE("Failed to initialize EGL.");
         return;

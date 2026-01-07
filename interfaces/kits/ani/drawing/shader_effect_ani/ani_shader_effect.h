@@ -30,17 +30,16 @@ public:
 
     static ani_object CreateColorShader(ani_env* env, ani_object obj, ani_int color);
     static ani_object CreateLinearGradient(ani_env* env, ani_object obj, ani_object startPt, ani_object endPt,
-        ani_object colorsArray, ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix);
+        ani_array colorsArray, ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix);
     static ani_object CreateConicalGradient(ani_env* env, ani_object obj, ani_object startPt, ani_double startRadius,
-        ani_object endPt, ani_double endRadius, ani_object colorsArray, ani_enum_item aniTileMode, ani_object aniPos,
+        ani_object endPt, ani_double endRadius, ani_array colorsArray, ani_enum_item aniTileMode, ani_object aniPos,
         ani_object aniMatrix);
-    static ani_object CreateSweepGradient(ani_env* env, ani_object obj, ani_object centerPt, ani_object colorsArray,
+    static ani_object CreateSweepGradient(ani_env* env, ani_object obj, ani_object centerPt, ani_array colorsArray,
         ani_enum_item aniTileMode, ani_double startAngle, ani_double endAngle, ani_object aniPos, ani_object aniMatrix);
     static ani_object CreateRadialGradient(ani_env* env, ani_object obj, ani_object centerPt, ani_double radius,
-        ani_object colorsArray, ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix);
+        ani_array colorsArray, ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix);
     std::shared_ptr<ShaderEffect> GetShaderEffect();
 private:
-    static ani_boolean IsReferenceValid(ani_env* env, ani_object obj);
     static ani_object CreateAniShaderEffect(ani_env* env, std::shared_ptr<ShaderEffect> shaderEffect);
     std::shared_ptr<ShaderEffect> shaderEffect_ = nullptr;;
 };

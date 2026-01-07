@@ -173,6 +173,7 @@ public:
     static bool GetDrawOpTraceEnabled();
     static bool GetDrawOpLimitEnabled();
     static bool GetAnimationTraceEnabled();
+    static bool GetTestModeEnabled();
     static bool GetAnimationDelayOptimizeEnabled();
     static bool GetRSClientMultiInstanceEnabled();
     static bool GetRenderNodePurgeEnabled();
@@ -255,6 +256,7 @@ public:
     static bool GetSkipGeometryNotChangeEnabled();
     static bool GetRenderParallelEnabled();
     static bool GetPropertyDrawableEnable();
+    static bool GetEDRCanvasReplaceEnabled();
 
     static bool GetDrawFilterWithoutSnapshotEnabled();
     static bool GetBlurExtraFilterEnabled();
@@ -319,6 +321,7 @@ public:
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
     static bool GetOpincCacheMemThresholdEnabled();
+    static bool GetFilterCacheMemThresholdEnabled();
     static bool GetSkipDisplayIfScreenOffEnabled();
     static bool GetBatchRemovingOnRemoteDiedEnabled();
 

@@ -302,7 +302,7 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<R
     layerIdMap_[layerId] = hdiLayer;
 
     if (rsLayer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
-        // solid layer's surfaceId is unique, use solidLayerCount as key, to avoid conflict with normal layer
+        // solid hdiLayer's surfaceId is unique, use solidLayerCount as key, to avoid conflict with normal hdiLayer
         solidSurfaceIdMap_[surfaceId] = hdiLayer;
     } else {
         surfaceIdMap_[surfaceId] = hdiLayer;
@@ -639,7 +639,6 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     }
     thirdFrameAheadPresentFenceFd_ = -1;
     thirdFrameAheadPresentTime_ = SyncFence::FENCE_PENDING_TIMESTAMP;
-
     RS_TRACE_BEGIN("HdiOutput::SyncFileReadTimestamp");
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
     RS_TRACE_END();
@@ -740,7 +739,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
         for (const auto& [id, layer] : layerIdMap_) {
             if (layer == nullptr || layer->GetRSLayer() == nullptr ||
                 layer->GetRSLayer()->GetSurface() == nullptr) {
-                HLOGD("HdiOutput::ReleaseLayers: layer or layerInfo or layer's cSurface is nullptr");
+                HLOGD("HdiOutput::ReleaseLayers: layer or rsLayer or layer's cSurface is nullptr");
                 continue;
             }
             auto preBuffer = layer->GetRSLayer()->GetPreBuffer();
@@ -753,7 +752,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
         if (layer != nullptr) {
             auto preBuffer = layer->GetPreBuffer();
             auto consumer = layer->GetSurface();
-            ANCOTransactionOnComplete(layer, fence);
+            AncoTransactionOnComplete(layer, fence);
             releaseBuffer(preBuffer, fence, consumer);
             if (layer->GetUniRenderFlag()) {
                 releaseFence = fence;
@@ -791,7 +790,7 @@ void HdiOutput::ReleaseLayers(sptr<SyncFence>& releaseFence)
     std::unique_lock<std::mutex> lock(mutex_);
     for (const auto& [id, layer] : layerIdMap_) {
         if (layer == nullptr || layer->GetRSLayer() == nullptr || layer->GetRSLayer()->GetSurface() == nullptr) {
-            HLOGD("HdiOutput::ReleaseLayers: layer or layerInfo or layer's cSurface is nullptr");
+            HLOGD("HdiOutput::ReleaseLayers: layer or rsLayer or layer's cSurface is nullptr");
             continue;
         }
         layerPresentTimestamp(layer->GetRSLayer(), layer->GetRSLayer()->GetSurface());
@@ -854,8 +853,8 @@ void HdiOutput::Dump(std::string& result) const
     result.append("\n");
     result.append("-- LayerInfo\n");
 
-    for (const LayerDumpInfo &rsLayer : dumpLayerInfos) {
-        const std::shared_ptr<HdiLayer> &hdiLayer = rsLayer.hdiLayer;
+    for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
+        const std::shared_ptr<HdiLayer> &hdiLayer = layerInfo.hdiLayer;
         if (hdiLayer == nullptr || hdiLayer->GetRSLayer() == nullptr) {
             continue;
         }
@@ -863,7 +862,7 @@ void HdiOutput::Dump(std::string& result) const
         const std::string& name = surface ? surface->GetName() :
             "Layer Without Surface" + std::to_string(hdiLayer->GetRSLayer()->GetZorder());
         auto info = hdiLayer->GetRSLayer();
-        result += "\n surface [" + name + "] NodeId[" + std::to_string(rsLayer.nodeId) + "]";
+        result += "\n surface [" + name + "] NodeId[" + std::to_string(layerInfo.nodeId) + "]";
         result += " LayerId[" + std::to_string(hdiLayer->GetLayerId()) + "]:\n";
         info->Dump(result);
     }
@@ -883,8 +882,8 @@ void HdiOutput::DumpCurrentFrameLayers() const
     std::unique_lock<std::mutex> lock(mutex_);
     ReorderLayerInfoLocked(dumpLayerInfos);
 
-    for (const LayerDumpInfo &rsLayer : dumpLayerInfos) {
-        const std::shared_ptr<HdiLayer> &hdiLayer = rsLayer.hdiLayer;
+    for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
+        const std::shared_ptr<HdiLayer> &hdiLayer = layerInfo.hdiLayer;
         if (hdiLayer == nullptr || hdiLayer->GetRSLayer() == nullptr ||
             hdiLayer->GetRSLayer()->GetSurface() == nullptr) {
             continue;
@@ -1017,7 +1016,7 @@ void HdiOutput::ReorderLayerInfoLocked(std::vector<LayerDumpInfo>& dumpLayerInfo
     std::sort(dumpLayerInfos.begin(), dumpLayerInfos.end(), Cmp);
 }
 
-int HdiOutput::GetBufferCacheSize()
+int HdiOutput::GetBufferCacheSize() const
 {
     return bufferCache_.size();
 }
@@ -1043,15 +1042,15 @@ void HdiOutput::SetActiveRectSwitchStatus(bool flag)
     isActiveRectSwitching_ = flag;
 }
 
-void HdiOutput::ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& layerInfo,
+void HdiOutput::AncoTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
     const sptr<SyncFence>& previousReleaseFence)
 {
-    if (layerInfo == nullptr) {
+    if (rsLayer == nullptr) {
         return;
     }
-    if (layerInfo->IsAncoNative()) {
-        auto consumer = layerInfo->GetSurface();
-        auto curBuffer = layerInfo->GetBuffer();
+    if (rsLayer->IsAncoNative()) {
+        auto consumer = rsLayer->GetSurface();
+        auto curBuffer = rsLayer->GetBuffer();
         if (consumer == nullptr || curBuffer == nullptr) {
             return;
         }
@@ -1139,6 +1138,7 @@ void HdiOutput::Repaint()
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
     }
+
     if (screenPowerOnChanged_) {
         HLOGI("Power On First Frame commit finish");
         screenPowerOnChanged_ = false;

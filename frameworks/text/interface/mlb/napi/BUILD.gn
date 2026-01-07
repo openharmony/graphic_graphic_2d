@@ -110,6 +110,7 @@ ohos_shared_library("text_napi_impl") {
     "eventhandler:libeventhandler",
     "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
     "napi:ace_napi",
     "resource_management:global_resmgr",
   ]

@@ -63,8 +63,8 @@ private:
     static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color, bool prevDark);
 
     std::mutex colorMtx_;
-    Drawing::ColorQuad colorPicked_ = Drawing::Color::COLOR_TRANSPARENT;
-    Drawing::ColorQuad prevColor_ = Drawing::Color::COLOR_TRANSPARENT;
+    Drawing::ColorQuad colorPicked_ = Drawing::Color::COLOR_BLACK;
+    Drawing::ColorQuad prevColor_ = Drawing::Color::COLOR_BLACK;
 
     std::atomic<uint64_t> animStartTime_ = 0;
     uint64_t lastUpdateTime_ = 0;

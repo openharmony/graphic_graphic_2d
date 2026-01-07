@@ -764,7 +764,7 @@ HWTEST_F(RSRenderServiceConnectionTest, ModifyVirtualScreenBlackList001, TestSiz
     ASSERT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(screenId, blacklist), SUCCESS);
     ASSERT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(screenId, blacklist, repCode), ERR_OK);
     // blacklist is empty
-    ASSERT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(screenId, {}), SUCCESS);
+    ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(screenId, {}), SUCCESS);
     ASSERT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(screenId, {}, repCode), ERR_OK);
     ASSERT_NE(rsRenderServiceConnection->RemoveVirtualScreenBlackList(screenId, {}, repCode), ERR_OK);
 }

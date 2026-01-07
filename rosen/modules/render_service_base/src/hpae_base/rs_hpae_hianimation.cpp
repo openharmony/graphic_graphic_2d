@@ -66,13 +66,13 @@ void HianimationManager::AlgoInitAsync(uint32_t imgWidth, uint32_t imgHeight, fl
 {
 #if defined(ROSEN_OHOS)
     {
-        std::unique_lock<std::mutex> lock(algoInitMutex_);
+        std::unique_lock<MutexType> lock(algoInitMutex_);
         algoInitDone_ = false;
     }
 
     ffrt::submit_h([=]() {
         this->HianimationAlgoInit(imgWidth, imgHeight, maxSigma, format);
-        std::unique_lock<std::mutex> lock(algoInitMutex_);
+        std::unique_lock<MutexType> lock(algoInitMutex_);
         this->algoInitDone_ = true;
         this->algoInitCv_.notify_all();
         }, {}, {}, ffrt::task_attr().qos(5));
@@ -84,7 +84,7 @@ void HianimationManager::AlgoInitAsync(uint32_t imgWidth, uint32_t imgHeight, fl
 void HianimationManager::WaitAlgoInit()
 {
     using namespace std::chrono_literals;
-    std::unique_lock<std::mutex> lock(algoInitMutex_);
+    std::unique_lock<MutexType> lock(algoInitMutex_);
     if (!algoInitDone_) {
         RS_TRACE_NAME("HpaeWaitAlgoInit");
         HPAE_LOGI("HpaeWaitAlgoInit");
@@ -107,14 +107,14 @@ void HianimationManager::AlgoDeInitAsync()
 
 bool HianimationManager::HianimationInvalid()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     return libHandle_ == nullptr;
 }
 
 void HianimationManager::OpenDevice()
 {
 #if defined(ROSEN_OHOS)
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     if (hianimationDevice_ != nullptr) {
         // do nothing
         return;
@@ -148,7 +148,7 @@ void HianimationManager::OpenDevice()
 void HianimationManager::CloseDevice()
 {
 #if defined(ROSEN_OHOS)
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     RS_OPTIONAL_TRACE_NAME("Hianimation: CloseDevice");
     if (libHandle_ != nullptr) {
         dlclose(libHandle_);
@@ -162,7 +162,7 @@ bool HianimationManager::HianimationInputCheck(const struct BlurImgParam *imgInf
 {
     WaitAlgoInit();
 
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     if (hianimationDevice_ == nullptr) {
         HPAE_LOGE("device is nullptr");
         return false;
@@ -183,7 +183,7 @@ int32_t HianimationManager::HianimationAlgoInit(uint32_t panelWidth, uint32_t pa
 {
     WaitAllTaskDone(); // do outside mutex_
 
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     if (hianimationDevice_ == nullptr) {
         HPAE_LOGE("device is nullptr");
         return -1;
@@ -215,7 +215,7 @@ int32_t HianimationManager::HianimationAlgoDeInit()
     WaitAlgoInit();
     WaitAllTaskDone(); // do outside mutex_
 
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     if (hianimationDevice_ == nullptr) {
         HPAE_LOGE("device is nullptr");
         return -1;
@@ -242,7 +242,7 @@ int32_t HianimationManager::HianimationAlgoDeInit()
 
 bool HianimationManager::WaitAllTaskDone()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     bool result = true;
     if (!taskIdMap_.empty()) {
         RS_TRACE_NAME("HpaeWaitAllTaskDone");
@@ -261,7 +261,7 @@ bool HianimationManager::WaitAllTaskDone()
 
 bool HianimationManager::WaitPreviousTask()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     bool result = true;
     if (taskIdMap_.size() >= HPAE_BLUR_DELAY) {
         RS_TRACE_NAME("HpaeWaitPreviousTask");
@@ -277,7 +277,7 @@ bool HianimationManager::WaitPreviousTask()
 int32_t HianimationManager::HianimationBuildTask(const struct HaeBlurBasicAttr *basicInfo,
     const struct HaeBlurEffectAttr *effectInfo, uint32_t *outTaskId, void **outTaskPtr)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     if (hianimationDevice_ == nullptr) {
         HPAE_LOGE("device is nullptr");
         return -1;
@@ -293,7 +293,7 @@ int32_t HianimationManager::HianimationBuildTask(const struct HaeBlurBasicAttr *
 
 void HianimationManager::HianimationDumpDebugInfo(uint32_t taskId)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
 
     if (hianimationDevice_ == nullptr) {
         HPAE_LOGE("device is nullptr");
@@ -306,7 +306,7 @@ void HianimationManager::HianimationDumpDebugInfo(uint32_t taskId)
 
 int32_t HianimationManager::HianimationDestroyTask(uint32_t taskId)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
 
     if (hianimationDevice_ == nullptr) {
         HPAE_LOGE("device is nullptr");
@@ -320,7 +320,7 @@ int32_t HianimationManager::HianimationDestroyTask(uint32_t taskId)
 
 int32_t HianimationManager::HianimationDestroyTaskAndNotify(uint32_t taskId)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
 
     if (hianimationDevice_ == nullptr) {
         HPAE_LOGE("device is nullptr");

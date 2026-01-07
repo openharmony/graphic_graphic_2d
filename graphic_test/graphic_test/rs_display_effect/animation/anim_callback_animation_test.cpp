@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "animation/rs_curve_animation.h"
 #include "anim_custom_modifier_test.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_text.h"
@@ -34,6 +35,19 @@ public:
         SetScreenSize(screenWidth, screenHeight);
     }
 };
+
+RSCanvasNode::SharedPtr AddTestNode(std::string text, int positionY)
+{
+    auto node = RSCanvasNode::Create();
+    node->SetBounds({ 0, 1500 + positionY, 500, 500 });
+    node->SetBackgroundColor(0xff00ff00);
+    auto textModifier = std::make_shared<TextCustomModifier>();
+    textModifier->SetText(text);
+    float frontSize = 50;
+    textModifier->SetFontSize(frontSize);
+    node->AddModifier(textModifier);
+    return node;
+}
 
 RSCanvasNode::SharedPtr FinishCallbackFunc()
 {
@@ -312,6 +326,70 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddKeyFrame_Test_1)
     RSNode::AddKeyFrame(keyFrameFractionThree, RSAnimationTimingCurve::EASE_OUT, [&]() {
         animationCustomModifier->SetPosition(900);
     });
+    RSNode::CloseImplicitAnimation();
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddKeyFrame_Test_2)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    float keyFrameFractionOne = 0.35f;
+    float keyFrameFractionTwo = 0.8f;
+    float keyFrameFractionThree = 1.0f;
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(1000);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSNode::OpenImplicitAnimation(protocol, timingCurve, [this]() {
+        auto finishCallbackNode = FinishCallbackFunc();
+        GetRootNode()->AddChild(finishCallbackNode);
+        RegisterNode(finishCallbackNode);
+        std::cout << "Animation_AddKeyFrame_Test_2 animation finish callback" << std::endl;
+    });
+    RSNode::AddKeyFrame(
+        keyFrameFractionOne, RSAnimationTimingCurve::EASE_IN, [&]() { animationCustomModifier->SetPosition(500); });
+    RSNode::AddKeyFrame(
+        keyFrameFractionTwo, RSAnimationTimingCurve::LINEAR, [&]() { animationCustomModifier->SetPosition(700); });
+    RSNode::AddKeyFrame(
+        keyFrameFractionThree, RSAnimationTimingCurve::EASE_OUT, [&]() { animationCustomModifier->SetPosition(900); });
+    RSNode::CloseImplicitAnimation();
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddKeyFrame_Test_3)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    float keyFrameFractionOne = 0.25f;
+    float keyFrameFractionTwo = 0.75f;
+    float keyFrameFractionThree = 1.0f;
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(800);
+    auto timingCurve = RSAnimationTimingCurve::EASE;
+    RSNode::OpenImplicitAnimation(protocol, timingCurve, [this]() {
+        auto finishCallbackNode = FinishCallbackFunc();
+        GetRootNode()->AddChild(finishCallbackNode);
+        RegisterNode(finishCallbackNode);
+        std::cout << "Animation_AddKeyFrame_Test_3 animation finish callback" << std::endl;
+    });
+    RSNode::AddKeyFrame(
+        keyFrameFractionOne, RSAnimationTimingCurve::EASE_IN, [&]() { animationCustomModifier->SetPosition(500); });
+    RSNode::AddKeyFrame(
+        keyFrameFractionTwo, RSAnimationTimingCurve::LINEAR, [&]() { animationCustomModifier->SetPosition(700); });
+    RSNode::AddKeyFrame(
+        keyFrameFractionThree, RSAnimationTimingCurve::EASE_OUT, [&]() { animationCustomModifier->SetPosition(900); });
     RSNode::CloseImplicitAnimation();
 }
 
@@ -699,6 +777,391 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_12)
             RegisterNode(finishCallbackNode);
             std::cout << "Animation_PathAnimation_Test_12 animation finish callback" << std::endl;
         });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_1)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(1000);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSNode::AnimateWithCurrentCallback(protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_2)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(100);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSNode::AnimateWithCurrentCallback(protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_3)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(500);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSNode::AnimateWithCurrentCallback(protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_4)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(500);
+    auto timingCurve = RSAnimationTimingCurve::LINEAR;
+    RSNode::AnimateWithCurrentCallback(protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_5)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(500);
+    auto timingCurve = RSAnimationTimingCurve::EASE;
+    RSNode::AnimateWithCurrentCallback(protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_IsImplicitAnimationOpen_Test_1)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    if (RSNode::IsImplicitAnimationOpen()) {
+        auto node = AddTestNode("implicit animation is open", 100);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(1000);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    // OpenImplicitAnimation & CloseImplicitAnimation
+    RSNode::OpenImplicitAnimation(protocol, timingCurve, [this]() {
+        auto finishCallbackNode = FinishCallbackFunc();
+        GetRootNode()->AddChild(finishCallbackNode);
+        RegisterNode(finishCallbackNode);
+        std::cout << "Animation_IsImplicitAnimationOpen_Test_1 animation finish callback" << std::endl;
+    });
+    if (RSNode::IsImplicitAnimationOpen()) {
+        auto node = AddTestNode("implicit animation is open", 200);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+    animationCustomModifier->SetPosition(500);
+    RSNode::CloseImplicitAnimation();
+
+    if (RSNode::IsImplicitAnimationOpen()) {
+        auto node = AddTestNode("implicit animation is open", 300);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RemoveAllAnimations_Test_1)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(property, endProperty);
+    curveAnimation->SetDuration(300);
+
+    auto curveAnimation2 = std::make_shared<RSCurveAnimation>(property, endProperty);
+    curveAnimation2->SetDuration(400);
+    testNode->AddAnimation(curveAnimation);
+    testNode->AddAnimation(curveAnimation2);
+
+    std::string countStr =
+        "Animations count before RemoveAllAnimations: " + std::to_string(testNode->GetAnimationsCount());
+    auto node = AddTestNode(countStr, 100);
+    GetRootNode()->AddChild(node);
+    RegisterNode(node);
+
+    testNode->RemoveAllAnimations();
+
+    std::string countStrAfter =
+        "Animations count after RemoveAllAnimations: " + std::to_string(testNode->GetAnimationsCount());
+    auto node2 = AddTestNode(countStrAfter, 200);
+    GetRootNode()->AddChild(node2);
+    RegisterNode(node2);
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RemoveAnimation_Test_1)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(property, endProperty);
+    curveAnimation->SetDuration(300);
+
+    auto curveAnimation2 = std::make_shared<RSCurveAnimation>(property, endProperty);
+    curveAnimation2->SetDuration(400);
+    testNode->AddAnimation(curveAnimation);
+    testNode->AddAnimation(curveAnimation2);
+
+    std::string countStr = "Animations count before RemoveAnimation: " + std::to_string(testNode->GetAnimationsCount());
+    auto node = AddTestNode(countStr, 100);
+    GetRootNode()->AddChild(node);
+    RegisterNode(node);
+
+    testNode->RemoveAnimation(curveAnimation);
+
+    std::string countStrAfter =
+        "Animations count after RemoveAnimation: " + std::to_string(testNode->GetAnimationsCount());
+    auto node2 = AddTestNode(countStrAfter, 200);
+    GetRootNode()->AddChild(node2);
+    RegisterNode(node2);
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_1)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    std::string ANIMATION_PATH = "M0 0 L300 200 L300 500 Z";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    testNode->SetMotionPathOption(motionPathOption);
+    testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::BOUNDS, ModifierNG::RSPropertyType::BOUNDS);
+    testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::FRAME, ModifierNG::RSPropertyType::FRAME);
+    testNode->SetMotionPathOptionToProperty(
+        ModifierNG::RSModifierType::TRANSFORM, ModifierNG::RSPropertyType::TRANSLATE);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(1000);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSNode::Animate(
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
+        [this]() {
+            auto finishCallbackNode = FinishCallbackFunc();
+            GetRootNode()->AddChild(finishCallbackNode);
+            RegisterNode(finishCallbackNode);
+            std::cout << "Animation_SetMotionPath_Test_1 animation finish callback" << std::endl;
+        });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_2)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    std::string ANIMATION_PATH = "Mstart.x start.y L300 200 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    testNode->SetMotionPathOption(motionPathOption);
+    testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::BOUNDS, ModifierNG::RSPropertyType::BOUNDS);
+    testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::FRAME, ModifierNG::RSPropertyType::FRAME);
+    testNode->SetMotionPathOptionToProperty(
+        ModifierNG::RSModifierType::TRANSFORM, ModifierNG::RSPropertyType::TRANSLATE);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(1000);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSNode::Animate(
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
+        [this]() {
+            auto finishCallbackNode = FinishCallbackFunc();
+            GetRootNode()->AddChild(finishCallbackNode);
+            RegisterNode(finishCallbackNode);
+            std::cout << "Animation_SetMotionPath_Test_2 animation finish callback" << std::endl;
+        });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_3)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    std::string ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    testNode->SetMotionPathOption(motionPathOption);
+    testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::BOUNDS, ModifierNG::RSPropertyType::BOUNDS);
+    testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::FRAME, ModifierNG::RSPropertyType::FRAME);
+    testNode->SetMotionPathOptionToProperty(
+        ModifierNG::RSModifierType::TRANSFORM, ModifierNG::RSPropertyType::TRANSLATE);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(1000);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSNode::Animate(
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
+        [this]() {
+            auto finishCallbackNode = FinishCallbackFunc();
+            GetRootNode()->AddChild(finishCallbackNode);
+            RegisterNode(finishCallbackNode);
+            std::cout << "Animation_SetMotionPath_Test_3 animation finish callback" << std::endl;
+        });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_4)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    std::string ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    motionPathOption->SetBeginFraction(-1.0f); // beginFraction -1
+    motionPathOption->SetEndFraction(-1.0f);   // endFraction -1
+    testNode->SetMotionPathOption(motionPathOption);
+    testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::BOUNDS, ModifierNG::RSPropertyType::BOUNDS);
+    testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::FRAME, ModifierNG::RSPropertyType::FRAME);
+    testNode->SetMotionPathOptionToProperty(
+        ModifierNG::RSModifierType::TRANSFORM, ModifierNG::RSPropertyType::TRANSLATE);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(1000);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSNode::Animate(
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
+        [this]() {
+            auto finishCallbackNode = FinishCallbackFunc();
+            GetRootNode()->AddChild(finishCallbackNode);
+            RegisterNode(finishCallbackNode);
+            std::cout << "Animation_SetMotionPath_Test_4 animation finish callback" << std::endl;
+        });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_5)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    std::string ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    motionPathOption->SetBeginFraction(0); // beginFraction 0
+    motionPathOption->SetEndFraction(0);   // endFraction 0
+    testNode->SetMotionPathOption(motionPathOption);
+    testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::BOUNDS, ModifierNG::RSPropertyType::BOUNDS);
+    testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::FRAME, ModifierNG::RSPropertyType::FRAME);
+    testNode->SetMotionPathOptionToProperty(
+        ModifierNG::RSModifierType::TRANSFORM, ModifierNG::RSPropertyType::TRANSLATE);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(1000);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSNode::Animate(
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
+        [this]() {
+            auto finishCallbackNode = FinishCallbackFunc();
+            GetRootNode()->AddChild(finishCallbackNode);
+            RegisterNode(finishCallbackNode);
+            std::cout << "Animation_SetMotionPath_Test_5 animation finish callback" << std::endl;
+        });
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_GetMotionPath_Test_1)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
+    testNode->AddModifier(animationCustomModifier);
+    animationCustomModifier->SetPosition(100);
+    animationCustomModifier->SetTimeInterval(8.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    std::string ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    motionPathOption->SetBeginFraction(0); // beginFraction 0
+    motionPathOption->SetEndFraction(0);   // endFraction 0
+    testNode->SetMotionPathOption(motionPathOption);
+    if (testNode->GetMotionPathOption() != nullptr) {
+        auto node = AddTestNode("GetMotionPathOption success", 200);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
 }
 
 } // namespace OHOS::Rosen

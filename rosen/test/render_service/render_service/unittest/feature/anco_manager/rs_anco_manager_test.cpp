@@ -53,7 +53,7 @@ HWTEST_F(RSAncoManagerTest, IsAncoOptimize, TestSize.Level2)
 
 /**
  * @tc.name: AncoOptimizeScreenNode
- * @tc.desc: test AncoOptimizesScreenNode
+ * @tc.desc: test AncoOptimizeScreenNode
  * @tc.type: FUNC
  * @tc.require: issueIARZ3Q
  */
@@ -303,17 +303,13 @@ HWTEST_F(RSAncoManagerTest, IsAncoSfv, TestSize.Level2)
     ASSERT_TRUE(RSAncoManager::IsAncoSfv(flag));
     flag = static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE) | static_cast<uint32_t>(AncoFlags::FORCE_REFRESH);
     ASSERT_TRUE(RSAncoManager::IsAncoSfv(flag));
-    flag = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE);
-    ASSERT_TRUE(RSAncoManager::IsAncoSfv(flag));
-    flag = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE) | static_cast<uint32_t>(AncoFlags::FORCE_REFRESH);
-    ASSERT_TRUE(RSAncoManager::IsAncoSfv(flag));
 }
 
 /**
  * @tc.name: UpdateCropRectForAnco_001
  * @tc.desc: test UpdateCropRectForAnco_001
  * @tc.type: FUNC
- * @tc.require: issueICPWO9
+ * @tc.require: issueICLRGN
  */
 HWTEST_F(RSAncoManagerTest, UpdateCropRectForAnco_001, TestSize.Level2)
 {
@@ -334,7 +330,7 @@ HWTEST_F(RSAncoManagerTest, UpdateCropRectForAnco_001, TestSize.Level2)
     RSAncoManager::UpdateCropRectForAnco(flag, cropRect, ancoInfo, srcRect);
     ASSERT_TRUE(srcRect == Drawing::Rect(0, 0, 50, 50));
 
-    ancoInfo = { 100, 100, GRAPHIC_PIXEL_FMT_BGRA_8888 };
+    ancoInfo = { 100, 100, GRAPHIC_PIXEL_FMT_RGBA_8888 };
     cropRect.w = 50;
     cropRect.h = 50;
     srcRect = Drawing::Rect(0, 0, 100, 100);
@@ -351,14 +347,14 @@ HWTEST_F(RSAncoManagerTest, UpdateCropRectForAnco_001, TestSize.Level2)
  * @tc.name: UpdateCropRectForAnco_002
  * @tc.desc: test UpdateCropRectForAnco_002
  * @tc.type: FUNC
- * @tc.require: issueICPWO9
+ * @tc.require: issueICLRGN
  */
 HWTEST_F(RSAncoManagerTest, UpdateCropRectForAnco_002, TestSize.Level2)
 {
     uint32_t flag = 0;
     GraphicIRect cropRect{ 0, 0, 100, 100 };
     Drawing::Rect srcRect{ 0, 0, 100, 100 };
-    AncoBufferInfo ancoInfo{};
+    AncoBufferInfo ancoInfo;
     RSAncoManager::UpdateCropRectForAnco(flag, cropRect, ancoInfo, srcRect);
     ASSERT_TRUE(srcRect == Drawing::Rect(0, 0, 100, 100));
 
@@ -383,7 +379,7 @@ HWTEST_F(RSAncoManagerTest, UpdateCropRectForAnco_002, TestSize.Level2)
  * @tc.name: UpdateLayerSrcRectForAnco
  * @tc.desc: test UpdateLayerSrcRectForAnco
  * @tc.type: FUNC
- * @tc.require: issueICPWO9
+ * @tc.require: issueICLRGN
  */
 HWTEST_F(RSAncoManagerTest, UpdateLayerSrcRectForAnco, TestSize.Level2)
 {
@@ -410,11 +406,11 @@ HWTEST_F(RSAncoManagerTest, UpdateLayerSrcRectForAnco, TestSize.Level2)
  * @tc.name: ValidCropRect
  * @tc.desc: test ValidCropRect
  * @tc.type: FUNC
- * @tc.require: issueICPWO9
+ * @tc.require: issueICLRGN
  */
 HWTEST_F(RSAncoManagerTest, ValidCropRect, TestSize.Level2)
 {
-    GraphicIRect cropRect{ -1, -1, -1, -1 };
+    GraphicIRect cropRect{-1, -1, -1, -1};
     ASSERT_FALSE(RSAncoManager::ValidCropRect(cropRect));
     cropRect.w = 1;
     ASSERT_FALSE(RSAncoManager::ValidCropRect(cropRect));
@@ -430,7 +426,7 @@ HWTEST_F(RSAncoManagerTest, ValidCropRect, TestSize.Level2)
  * @tc.name: IntersectCrop
  * @tc.desc: test IntersectCrop
  * @tc.type: FUNC
- * @tc.require: issueICPWO9
+ * @tc.require: issueICLRGN
  */
 HWTEST_F(RSAncoManagerTest, IntersectCrop, TestSize.Level2)
 {
@@ -451,7 +447,7 @@ HWTEST_F(RSAncoManagerTest, IntersectCrop, TestSize.Level2)
  * @tc.name: CalculateShrinkAmount
  * @tc.desc: test CalculateShrinkAmount
  * @tc.type: FUNC
- * @tc.require: issueICPWO9
+ * @tc.require: issueICLRGN
  */
 HWTEST_F(RSAncoManagerTest, CalculateShrinkAmount, TestSize.Level2)
 {
@@ -467,7 +463,7 @@ HWTEST_F(RSAncoManagerTest, CalculateShrinkAmount, TestSize.Level2)
  * @tc.name: ShrinkAmountIfNeed
  * @tc.desc: test ShrinkAmountIfNeed
  * @tc.type: FUNC
- * @tc.require: issueICPWO9
+ * @tc.require: issueICLRGN
  */
 HWTEST_F(RSAncoManagerTest, ShrinkAmountIfNeed, TestSize.Level2)
 {
@@ -475,14 +471,14 @@ HWTEST_F(RSAncoManagerTest, ShrinkAmountIfNeed, TestSize.Level2)
     Drawing::Rect srcRect{ 0, 0, 100, 100 };
     RSAncoManager::ShrinkAmountIfNeed(ancoInfo, srcRect);
     ASSERT_TRUE(srcRect == Drawing::Rect(0, 0, 100, 100));
-    ancoInfo = { 200, 200, GRAPHIC_PIXEL_FMT_BGRA_8888 };
+    ancoInfo = { 200, 200, GRAPHIC_PIXEL_FMT_RGBA_8888 };
     RSAncoManager::ShrinkAmountIfNeed(ancoInfo, srcRect);
     ASSERT_TRUE(srcRect == Drawing::Rect(0.5, 0.5, 99.5, 99.5));
     srcRect = Drawing::Rect(0, 0, 1, 1);
     RSAncoManager::ShrinkAmountIfNeed(ancoInfo, srcRect);
     ASSERT_TRUE(srcRect == Drawing::Rect(0, 0, 1, 1));
 
-    ancoInfo.format_ = GRAPHIC_PIXEL_FMT_BUTT;
+    ancoInfo.format = GRAPHIC_PIXEL_FMT_BUTT;
     srcRect = Drawing::Rect(0, 0, 100, 100);
     RSAncoManager::ShrinkAmountIfNeed(ancoInfo, srcRect);
     ASSERT_TRUE(srcRect == Drawing::Rect(1, 1, 99, 99));

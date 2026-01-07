@@ -98,6 +98,14 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderFrostedGlassBlurFilter>();
         }
     },
+    {RSNGEffectType::MAGNIFIER, [] {
+            return std::make_shared<RSNGRenderMagnifierFilter>();
+        }
+    },
+    {RSNGEffectType::SDF_EDGE_LIGHT, [] {
+            return std::make_shared<RSNGRenderSDFEdgeLightFilter>();
+        }
+    },
 };
 
 using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
@@ -114,7 +122,17 @@ static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRect
                 rect.GetWidth() + outStep * 2, rect.GetHeight() + outStep * 2);
             return snapshotRect;
         }
-    }
+    },
+    {
+        RSNGEffectType::MAGNIFIER, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
+            auto magnifier = std::static_pointer_cast<RSNGRenderMagnifierFilter>(filter);
+            auto offsetX = magnifier->Getter<OHOS::Rosen::MagnifierOffsetXRenderTag>()->Get();
+            auto offsetY = magnifier->Getter<OHOS::Rosen::MagnifierOffsetYRenderTag>()->Get();
+            auto snapshotRect = rect;
+            snapshotRect.SetAll(rect.GetLeft() + offsetX, rect.GetTop() + offsetY, rect.GetWidth(), rect.GetHeight());
+            return snapshotRect;
+        }
+    },
 };
 
 using FilterGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;

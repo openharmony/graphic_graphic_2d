@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "render/rs_color_adaptive_filter.h"
 #include "render/rs_filter.h"
 
 using namespace testing;
@@ -217,5 +218,31 @@ HWTEST_F(RSFilterTest, GetRect001, TestSize.Level1)
     EXPECT_EQ(filter->GetRect(bound, EffectRectType(UINT8_MAX)), RectF());
     EXPECT_EQ(filter->GetRect(bound, EffectRectType::SNAPSHOT), bound);
     EXPECT_EQ(filter->GetRect(bound, EffectRectType::DRAW), bound);
+}
+
+/**
+ * @tc.name: ColorAdaptiveFilter001
+ * @tc.desc: test ColorAdaptiveFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, ColorAdaptiveFilter001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSColorAdaptiveFilter>();
+    ASSERT_NE(filter, nullptr);
+    EXPECT_TRUE(filter->IsValid());
+    EXPECT_EQ(filter->GetDescription(), "RSColorAdaptiveFilter");
+
+    auto color = Drawing::Color::ColorQuadSetARGB(255, 120, 130, 140);
+    filter->UpdateColor(color);
+    EXPECT_EQ(filter->Compose(nullptr), nullptr);
+
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src(0.f, 0.f, 10.f, 10.f);
+    Drawing::Rect dst(0.f, 0.f, 10.f, 10.f);
+    filter->DrawImageRect(canvas, image, src, dst);
+
+    auto res = RSColorAdaptiveFilter::ApplyFilter(nullptr, nullptr, 0.0f);
+    EXPECT_FALSE(res);
 }
 } // namespace OHOS::Rosen

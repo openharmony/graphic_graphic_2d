@@ -203,8 +203,8 @@ public:
     }
 
 private:
-    std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>> lightSourcesAndPosVec_;
-    std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>> stagingLightSourcesAndPosVec_;
+    std::vector<std::pair<RSLightSource, Vector4f>> lightSourcesAndPosVec_;
+    std::vector<std::pair<RSLightSource, Vector4f>> stagingLightSourcesAndPosVec_;
     IlluminatedType illuminatedType_ = IlluminatedType::INVALID;
     IlluminatedType stagingIlluminatedType_ = IlluminatedType::INVALID;
     float borderWidth_ = 0.0f;

@@ -844,8 +844,29 @@ HWTEST_F(VSyncGeneratorTest, AddListener005, Function | MediumTest| Level0)
     ASSERT_TRUE(generatorImpl->isUseFfrt_);
     ASSERT_NE(generatorImpl->ffrtThread_, nullptr);
     sptr<VSyncGeneratorTestCallback> callback = new VSyncGeneratorTestCallback;
-    ASSERT_EQ(generatorImpl->AddListener(callback, false, false), VSYNC_ERROR_OK);
+    ASSERT_EQ(generatorImpl->AddListener(callback, false, false, 0), VSYNC_ERROR_OK);
     ASSERT_EQ(generatorImpl->listeners_.size(), 1);
+    generatorImpl = nullptr;
+}
+
+/*
+* Function: AddListenerForAS
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddListener
+ */
+HWTEST_F(VSyncGeneratorTest, AddListenerForAS, Function | MediumTest| Level0)
+{
+    sptr<impl::VSyncGenerator> generatorImpl = new impl::VSyncGenerator(true);
+    generatorImpl->period_ = 8300000;
+    sptr<VSyncGeneratorTestCallback> callback = new VSyncGeneratorTestCallback;
+    int64_t now = SystemTime();
+    int64_t lastVsyncTime = now - 2700000;
+    ASSERT_EQ(generatorImpl->AddListener(callback, true, true, lastVsyncTime), VSYNC_ERROR_OK);
+    ASSERT_EQ(generatorImpl->listeners_.size(), 1);
+    ASSERT_EQ(generatorImpl->listeners_[0].isRS_, true);
+    ASSERT_EQ(generatorImpl->listeners_[0].lastTime_, now - 2700000);
     generatorImpl = nullptr;
 }
 
@@ -1358,6 +1379,26 @@ HWTEST_F(VSyncGeneratorTest, WaitForTimeoutConNotifyLockedForRefreshRate001, Fun
 }
 
 /*
+ * @tc.name: IsNeedAdaptiveAfterUpdateMode001
+ * @tc.desc: Test For IsNeedAdaptiveAfterUpdateMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VSyncGeneratorTest, IsNeedAdaptiveAfterUpdateMode001, Function | MediumTest| Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->period_ = 8333333; // 8333333ns
+    vsyncGeneratorImpl->lastVsyncRsInterval_ = 8333222;
+    ASSERT_EQ(vsyncGeneratorImpl->IsNeedAdaptiveAfterUpdateMode(), true);
+
+    vsyncGeneratorImpl->lastVsyncRsInterval_ = 11033222; // 8333222 + 2700000
+    vsyncGeneratorImpl->lastVsyncRsTime_ = SystemTime() - 2000000;
+    ASSERT_EQ(vsyncGeneratorImpl->IsNeedAdaptiveAfterUpdateMode(), false);
+    usleep(8400);
+    ASSERT_EQ(vsyncGeneratorImpl->IsNeedAdaptiveAfterUpdateMode(), true);
+}
+
+/*
  * @tc.name: NeedPreexecuteAndUpdateTs001
  * @tc.desc: Test For NeedPreexecuteAndUpdateTs
  * @tc.type: FUNC
@@ -1372,11 +1413,11 @@ HWTEST_F(VSyncGeneratorTest, NeedPreexecuteAndUpdateTs001, Function | MediumTest
     int64_t lastVsyncTime = SystemTime();
     int64_t offset = 0;
     usleep(10000);
-    ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, offset, lastVsyncTime), true);
+    ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, lastVsyncTime), true);
 
     lastVsyncTime = SystemTime();
     usleep(9100);
-    ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, offset, lastVsyncTime), false);
+    ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, lastVsyncTime), false);
 }
 } // namespace
 } // namespace Rosen

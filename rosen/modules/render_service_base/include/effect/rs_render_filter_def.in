@@ -181,3 +181,38 @@ DECLARE_FILTER(FrostedGlassBlur, FROSTED_GLASS_BLUR,
     ADD_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK),
     ADD_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx)
 );
+
+DECLARE_FILTER(Magnifier, MAGNIFIER,
+    ADD_PROPERTY_TAG(Magnifier, Factor),
+    ADD_PROPERTY_TAG(Magnifier, Width),
+    ADD_PROPERTY_TAG(Magnifier, Height),
+    ADD_PROPERTY_TAG(Magnifier, CornerRadius),
+    ADD_PROPERTY_TAG(Magnifier, BorderWidth),
+    ADD_PROPERTY_TAG(Magnifier, OffsetX),
+    ADD_PROPERTY_TAG(Magnifier, OffsetY),
+    ADD_PROPERTY_TAG(Magnifier, ZoomOffsetX),
+    ADD_PROPERTY_TAG(Magnifier, ZoomOffsetY),
+    ADD_PROPERTY_TAG(Magnifier, ShadowOffsetX),
+    ADD_PROPERTY_TAG(Magnifier, ShadowOffsetY),
+    ADD_PROPERTY_TAG(Magnifier, ShadowSize),
+    ADD_PROPERTY_TAG(Magnifier, ShadowStrength),
+    ADD_PROPERTY_TAG(Magnifier, GradientMaskColor1),
+    ADD_PROPERTY_TAG(Magnifier, GradientMaskColor2),
+    ADD_PROPERTY_TAG(Magnifier, OuterContourColor1),
+    ADD_PROPERTY_TAG(Magnifier, OuterContourColor2)
+);
+
+DECLARE_FILTER(SDFEdgeLight, SDF_EDGE_LIGHT,
+    ADD_PROPERTY_TAG(SDFEdgeLight, SpreadFactor),
+    ADD_PROPERTY_TAG(SDFEdgeLight, BloomIntensityCutoff),
+    ADD_PROPERTY_TAG(SDFEdgeLight, LightMaxIntensity),
+    ADD_PROPERTY_TAG(SDFEdgeLight, MaxBloomIntensity),
+    ADD_PROPERTY_TAG(SDFEdgeLight, BloomFalloffPow),
+    ADD_PROPERTY_TAG(SDFEdgeLight, MinBorderWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLight, MaxBorderWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLight, InnerBorderBloomWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLight, OuterBorderBloomWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLight, SDFImage),
+    ADD_PROPERTY_TAG(SDFEdgeLight, LightMask),
+    ADD_PROPERTY_TAG(SDFEdgeLight, SDFShape)
+);

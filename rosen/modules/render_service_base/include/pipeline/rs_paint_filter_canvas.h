@@ -299,6 +299,11 @@ public:
 
     Drawing::Surface* GetSurface() const override;
 
+    void SetCanvasReplacable(bool replacable);
+    void ConvertToType(Drawing::ColorType colorType, Drawing::AlphaType alphaType,
+        std::shared_ptr<Drawing::ColorSpace> colorSpace);
+    void ReplaceSurface(Drawing::Surface* surface);
+
     // high contrast
     void SetHighContrast(bool enabled);
     bool isHighContrastEnabled() const override;
@@ -533,6 +538,7 @@ private:
     bool recordDrawable_ = false;
     bool multipleScreen_ = false;
     bool isHdrOn_ = false;
+    bool isReplacable_ = false;
     bool isWindowFreezeCapture_ = false;
     // Drawing window cache or uifirst cache
     bool isDrawingCache_ = false;

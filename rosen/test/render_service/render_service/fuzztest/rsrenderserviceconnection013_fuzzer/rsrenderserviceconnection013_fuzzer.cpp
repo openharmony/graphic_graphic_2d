@@ -141,7 +141,8 @@ void DoCreateVirtualScreen(FuzzedDataProvider& fdp)
     MessageParcel dataP;
     MessageParcel reply;
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
-    sptr<IBufferProducer> bufferProducer = IConsumerSurface::Create()->GetProducer();
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FuzzTest");
+    sptr<IBufferProducer> bufferProducer = cSurface->GetProducer();
     if (!bufferProducer) {
         return;
     }

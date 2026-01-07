@@ -78,12 +78,13 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, UpdatedTest, TestSize.Level1)
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCRequestEGraphTest, TestSize.Level1)
 {
     RSHpaeFfrtPatternManager ffrtManager;
-    bool ret = ffrtManager.MHCRequestEGraph(0);
-    EXPECT_TRUE(ret);
-
     ffrtManager.g_instance = nullptr;
-    ret = ffrtManager.MHCRequestEGraph(0);
+    bool ret = ffrtManager.MHCRequestEGraph(0);
     EXPECT_FALSE(ret);
+
+    ffrtManager.OpenDevice();
+    ret = ffrtManager.MHCRequestEGraph(0);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -95,12 +96,13 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCRequestEGraphTest, TestSize.Level1)
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCWaitTest, TestSize.Level1)
 {
     RSHpaeFfrtPatternManager ffrtManager;
-    bool ret = ffrtManager.MHCWait(0, MHC_PatternTaskName::BLUR_GPU0);
-    EXPECT_TRUE(ret);
-
     ffrtManager.g_instance = nullptr;
-    ret = ffrtManager.MHCWait(0, MHC_PatternTaskName::BLUR_GPU0);
+    bool ret = ffrtManager.MHCWait(0, MHC_PatternTaskName::BLUR_GPU0);
     EXPECT_FALSE(ret);
+
+    ffrtManager.OpenDevice();
+    ret = ffrtManager.MHCWait(0, MHC_PatternTaskName::BLUR_GPU0);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -112,12 +114,13 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCWaitTest, TestSize.Level1)
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGetVulkanTaskWaitEventTest, TestSize.Level1)
 {
     RSHpaeFfrtPatternManager ffrtManager;
-    uint16_t ret = ffrtManager.MHCGetVulkanTaskWaitEvent(0, MHC_PatternTaskName::BLUR_GPU0);
-    EXPECT_EQ(ret, 1);
-
     ffrtManager.g_instance = nullptr;
-    ret = ffrtManager.MHCGetVulkanTaskWaitEvent(0, MHC_PatternTaskName::BLUR_GPU0);
+    uint16_t ret = ffrtManager.MHCGetVulkanTaskWaitEvent(0, MHC_PatternTaskName::BLUR_GPU0);
     EXPECT_EQ(ret, 0);
+
+    ffrtManager.OpenDevice();
+    ret = ffrtManager.MHCGetVulkanTaskWaitEvent(0, MHC_PatternTaskName::BLUR_GPU0);
+    EXPECT_EQ(ret, 1);
 }
 
 /**
@@ -129,12 +132,13 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGetVulkanTaskWaitEventTest, TestSize.L
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGetVulkanTaskNotifyEventTest, TestSize.Level1)
 {
     RSHpaeFfrtPatternManager ffrtManager;
-    uint16_t ret = ffrtManager.MHCGetVulkanTaskNotifyEvent(0, MHC_PatternTaskName::BLUR_GPU0);
-    EXPECT_EQ(ret, 2);
-
     ffrtManager.g_instance = nullptr;
-    ret = ffrtManager.MHCGetVulkanTaskNotifyEvent(0, MHC_PatternTaskName::BLUR_GPU0);
+    uint16_t ret = ffrtManager.MHCGetVulkanTaskNotifyEvent(0, MHC_PatternTaskName::BLUR_GPU0);
     EXPECT_EQ(ret, 0);
+
+    ffrtManager.OpenDevice();
+    ret = ffrtManager.MHCGetVulkanTaskNotifyEvent(0, MHC_PatternTaskName::BLUR_GPU0);
+    EXPECT_EQ(ret, 2);
 }
 
 /**
@@ -146,12 +150,13 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGetVulkanTaskNotifyEventTest, TestSize
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCReleaseEGraphTest, TestSize.Level1)
 {
     RSHpaeFfrtPatternManager ffrtManager;
-    bool ret = ffrtManager.MHCReleaseEGraph(0);
-    EXPECT_TRUE(ret);
-
     ffrtManager.g_instance = nullptr;
-    ret = ffrtManager.MHCReleaseEGraph(0);
+    bool ret = ffrtManager.MHCReleaseEGraph(0);
     EXPECT_FALSE(ret);
+
+    ffrtManager.OpenDevice();
+    ret = ffrtManager.MHCReleaseEGraph(0);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -163,12 +168,13 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCReleaseEGraphTest, TestSize.Level1)
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCReleaseAllTest, TestSize.Level1)
 {
     RSHpaeFfrtPatternManager ffrtManager;
-    ffrtManager.MHCReleaseAll();
-    EXPECT_NE(ffrtManager.g_instance, nullptr);
-
     ffrtManager.g_instance = nullptr;
     ffrtManager.MHCReleaseAll();
     EXPECT_EQ(ffrtManager.g_instance, nullptr);
+
+    ffrtManager.OpenDevice();
+    ffrtManager.MHCReleaseAll();
+    EXPECT_NE(ffrtManager.g_instance, nullptr);
 }
 
 /**
@@ -187,12 +193,13 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCSubmitTaskTest, TestSize.Level1)
         return;
     };
 
-    bool ret = ffrtManager.MHCSubmitTask(0, MHC_PatternTaskName::BLUR_GPU0, preFunc, nullptr, 0, afterFunc);
-    EXPECT_TRUE(ret);
-
     ffrtManager.g_instance = nullptr;
-    ret = ffrtManager.MHCSubmitTask(0, MHC_PatternTaskName::BLUR_GPU0, preFunc, nullptr, 0, afterFunc);
+    bool ret = ffrtManager.MHCSubmitTask(0, MHC_PatternTaskName::BLUR_GPU0, preFunc, nullptr, 0, afterFunc);
     EXPECT_FALSE(ret);
+
+    ffrtManager.OpenDevice();
+    ret = ffrtManager.MHCSubmitTask(0, MHC_PatternTaskName::BLUR_GPU0, preFunc, nullptr, 0, afterFunc);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -231,6 +238,7 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCCheckTest, TestSize.Level1)
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGraphPatternInitTest, TestSize.Level1)
 {
     RSHpaeFfrtPatternManager ffrtManager;
+    ffrtManager.OpenDevice();
     bool ret = ffrtManager.MHCGraphPatternInit(5);
     EXPECT_TRUE(ret);
 }

@@ -98,6 +98,10 @@ public:
     void SetExistHWCNode(bool isExistHWCNode);
     bool GetExistHWCNode() const;
 
+    void CollectHdrStatus(HdrStatus hdrStatus);
+    void ResetDisplayHdrStatus();
+    HdrStatus GetScreenHDRStatus() const;
+
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
@@ -247,6 +251,7 @@ private:
     RSScreenProperty screenProperty_;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
     uint32_t childDisplayCount_ = 0;
+    HdrStatus screenHDRStatus_ = HdrStatus::NO_HDR;
     bool isMirrorScreen_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool hasChildCrossNode_ = false;

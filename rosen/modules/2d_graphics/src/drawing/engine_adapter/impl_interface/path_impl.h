@@ -88,6 +88,7 @@ public:
 
     virtual bool Interpolate(const Path& ending, scalar weight, Path& out) = 0;
     virtual int CountVerbs() const = 0;
+    virtual int CountPoints() const = 0;
     virtual Point GetPoint(int index) const = 0;
     virtual bool IsInterpolate(const Path& other) = 0;
     virtual void Transform(const Matrix& matrix) = 0;

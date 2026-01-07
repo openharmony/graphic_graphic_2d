@@ -17,7 +17,6 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_TYPEFACE_ARGUMENTS_NAME = "@ohos.graphics.drawing.drawing.TypefaceArguments";
 constexpr uint32_t VARIATION_AXIS_LENGTH = 4;
 constexpr uint32_t AXIS_OFFSET_ZERO = 24;
 constexpr uint32_t AXIS_OFFSET_ONE = 16;
@@ -25,10 +24,9 @@ constexpr uint32_t AXIS_OFFSET_TWO = 8;
 
 ani_status AniTypefaceArguments::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_TYPEFACE_ARGUMENTS_NAME, &cls);
-    if (ret != ANI_OK) {
-        ROSEN_LOGE("[ANI] can't find class: %{public}s ret: %{public}d", ANI_CLASS_TYPEFACE_ARGUMENTS_NAME, ret);
+    ani_class cls = AniGlobalClass::GetInstance().typefaceArguments;
+    if (cls == nullptr) {
+        ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_TYPEFACE_ARGUMENTS_NAME);
         return ANI_NOT_FOUND;
     }
 
@@ -37,7 +35,7 @@ ani_status AniTypefaceArguments::AniInit(ani_env *env)
         ani_native_function { "addVariation", nullptr, reinterpret_cast<void*>(AddVariation) },
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s ret: %{public}d", ANI_CLASS_TYPEFACE_ARGUMENTS_NAME, ret);
         return ANI_NOT_FOUND;
@@ -49,8 +47,8 @@ ani_status AniTypefaceArguments::AniInit(ani_env *env)
 void AniTypefaceArguments::Constructor(ani_env* env, ani_object obj)
 {
     AniTypefaceArguments* aniTypefaceArguments = new AniTypefaceArguments();
-    ani_status ret = env->Object_SetFieldByName_Long(
-        obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypefaceArguments));
+    ani_status ret = env->Object_SetField_Long(obj, AniGlobalField::GetInstance().typefaceArgumentsNativeObj,
+        reinterpret_cast<ani_long>(aniTypefaceArguments));
     if (ret != ANI_OK) {
         ROSEN_LOGE("AniTypefaceArguments::Constructor failed create AniTypefaceArguments. ret: %{public}d", ret);
         delete aniTypefaceArguments;
@@ -73,7 +71,8 @@ void AniTypefaceArguments::AddVariation(ani_env* env, ani_object obj, ani_string
             "Incorrect parameter0 length, the length must be four");
         return;
     }
-    auto aniTypefaceArguments = GetNativeFromObj<AniTypefaceArguments>(env, obj);
+    auto aniTypefaceArguments = GetNativeFromObj<AniTypefaceArguments>(env, obj,
+        AniGlobalField::GetInstance().typefaceArgumentsNativeObj);
     if (aniTypefaceArguments == nullptr) {
         ROSEN_LOGE("AniTypefaceArguments::AddVariation aniTypefaceArguments invalid.");
         return;

@@ -23,6 +23,7 @@
 #include <mutex>
 #include <atomic>
 
+#include "ffrt_inner.h"
 #include "feature/hpae/rs_hpae_buffer.h"
 #include "hpae_base/rs_hpae_base_data.h"
 #include "hpae_base/rs_hpae_base_types.h"
@@ -65,6 +66,7 @@ public:
     void SetUpHpaeSurface(GraphicPixelFormat pixelFormat, GraphicColorGamut colorSpace, bool isHebc);
 
     bool IsFirstFrame();
+    bool IsHpaeException(RSRenderNode& node);
 
 private:
     RSHpaeManager();
@@ -93,7 +95,7 @@ private:
     std::shared_ptr<DrawableV2::RSHpaeBuffer> hpaeBufferIn_;
     std::shared_ptr<DrawableV2::RSHpaeBuffer> hpaeBufferOut_;
 
-    std::mutex releaseIoBuffersMutex_;
+    ffrt::mutex releaseIoBuffersMutex_;
     std::vector<HpaeBufferInfo> inBufferVec_;
     std::vector<HpaeBufferInfo> outBufferVec_;
 

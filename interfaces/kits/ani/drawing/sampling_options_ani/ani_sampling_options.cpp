@@ -23,13 +23,10 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 
-const char* ANI_CLASS_SAMPLING_OPTIONS_NAME = "@ohos.graphics.drawing.drawing.SamplingOptions";
-
 ani_status AniSamplingOptions::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_SAMPLING_OPTIONS_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().samplingOptions;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_SAMPLING_OPTIONS_NAME);
         return ANI_NOT_FOUND;
     }
@@ -40,7 +37,7 @@ ani_status AniSamplingOptions::AniInit(ani_env *env)
             reinterpret_cast<void*>(ConstructorWithFilterMode) },
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_SAMPLING_OPTIONS_NAME);
         return ANI_NOT_FOUND;
@@ -65,7 +62,8 @@ void AniSamplingOptions::Constructor(ani_env* env, ani_object obj)
 {
     std::shared_ptr<SamplingOptions> samplingOptions = std::make_shared<SamplingOptions>();
     AniSamplingOptions* aniSamplingOptions = new AniSamplingOptions(samplingOptions);
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniSamplingOptions))) {
+    if (ANI_OK != env->Object_SetField_Long(obj, AniGlobalField::GetInstance().samplingOptionsNativeObj,
+        reinterpret_cast<ani_long>(aniSamplingOptions))) {
         ROSEN_LOGE("AniSamplingOptions::Constructor failed create aniSamplingOptions");
         delete aniSamplingOptions;
         return;
@@ -83,7 +81,8 @@ void AniSamplingOptions::ConstructorWithFilterMode(ani_env* env, ani_object obj,
     std::shared_ptr<SamplingOptions> samplingOptions = std::make_shared<SamplingOptions>(FilterMode(filterMode));
     AniSamplingOptions* aniSamplingOptions = new AniSamplingOptions(samplingOptions);
 
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniSamplingOptions))) {
+    if (ANI_OK != env->Object_SetField_Long(obj, AniGlobalField::GetInstance().samplingOptionsNativeObj,
+        reinterpret_cast<ani_long>(aniSamplingOptions))) {
         ROSEN_LOGE("AniSamplingOptions::Constructor failed create aniSamplingOptions");
         delete aniSamplingOptions;
         return;
@@ -110,7 +109,8 @@ ani_object AniSamplingOptions::SamplingOptionsTransferStatic(
     }
 
     auto aniSamplingOptions = new AniSamplingOptions(jsSamplingOptions->GetSamplingOptions());
-    if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniSamplingOptions))) {
+    if (ANI_OK != env->Object_SetField_Long(output, AniGlobalField::GetInstance().samplingOptionsNativeObj,
+        reinterpret_cast<ani_long>(aniSamplingOptions))) {
         ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic failed create aniSamplingOptions");
         delete aniSamplingOptions;
         return CreateAniUndefined(env);
@@ -120,7 +120,8 @@ ani_object AniSamplingOptions::SamplingOptionsTransferStatic(
 
 ani_long AniSamplingOptions::GetSamplingOptionsAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    auto aniSamplingOptions = GetNativeFromObj<AniSamplingOptions>(env, input);
+    auto aniSamplingOptions = GetNativeFromObj<AniSamplingOptions>(env, input,
+        AniGlobalField::GetInstance().samplingOptionsNativeObj);
     if (aniSamplingOptions == nullptr || aniSamplingOptions->GetSamplingOptions() == nullptr) {
         ROSEN_LOGE("AniSamplingOptions::GetSamplingOptionsAddr aniSamplingOptions is null");
         return 0;

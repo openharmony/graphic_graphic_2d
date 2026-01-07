@@ -752,6 +752,16 @@ public:
         return hdrPhotoNum_ > 0 || hdrUIComponentNum_ > 0;
     }
 
+    bool GetHDRUIPresent() const
+    {
+        return hdrUIComponentNum_ > 0;
+    }
+
+    bool GetHDRImagePresent() const
+    {
+        return hdrPhotoNum_ > 0;
+    }
+
     void IncreaseHDRNum(HDRComponentType hdrType);
     void ReduceHDRNum(HDRComponentType hdrType);
 
@@ -862,6 +872,16 @@ public:
     void SetOcclusionVisibleWithoutFilter(bool visible)
     {
         isOcclusionVisibleWithoutFilter_ = visible;
+    }
+
+    void SetIsParticipateInOcclusion(bool isParticipate)
+    {
+        isParticipateInOcclusion_ = isParticipate;
+    }
+
+    bool GetIsParticipateInOcclusion() const
+    {
+        return isParticipateInOcclusion_;
     }
 
     const Occlusion::Region& GetVisibleRegion() const
@@ -1801,6 +1821,7 @@ private:
     bool isRefresh_ = false;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
+    bool isParticipateInOcclusion_ = true;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;

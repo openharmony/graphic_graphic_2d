@@ -240,6 +240,12 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return isAnimationTraceDebugEnabled || isOpenTestModeTraceDebug;
 }
 
+bool RSSystemProperties::GetTestModeEnabled()
+{
+    bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
+    return isOpenTestModeTraceDebug;
+}
+
 bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.animationdelay.optimize.enabled", "1");
@@ -1297,6 +1303,13 @@ bool RSSystemProperties::GetOpincCacheMemThresholdEnabled()
     return opincCacheMemThresholdEnabled;
 }
 
+bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
+{
+    static bool filterCacheMemThresholdEnabled =
+        (std::atoi(system::GetParameter("persist.rosen.filter.cacheMemThreshold", "1").c_str()) != 0);
+    return filterCacheMemThresholdEnabled;
+}
+
 DdgrOpincDfxType RSSystemProperties::GetDdgrOpincDfxType()
 {
     return ddgrOpincDfxType_;
@@ -1364,6 +1377,14 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     static bool pixelMapEnabled =
         std::atoi((system::GetParameter("persist.rosen.textBlobAsPixelMapEnable.enable", "0")).c_str()) != 0;
     return pixelMapEnabled;
+}
+
+bool RSSystemProperties::GetEDRCanvasReplaceEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.EDRCanvasReplace.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
 }
 
 bool RSSystemProperties::GetHdrImageEnabled()

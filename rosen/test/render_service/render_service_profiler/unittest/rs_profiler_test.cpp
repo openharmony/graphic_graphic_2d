@@ -351,7 +351,6 @@ HWTEST_F(RSProfilerTest, RSDoubleTransformationTest, Function | Reliability | La
         EXPECT_TRUE(isDrawCmdModifiersEqual);
     });
 }
-#endif
 
 /*
  * @tc.name: IfNeedToSkipDuringReplay
@@ -381,6 +380,7 @@ HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | Larg
     EXPECT_TRUE(RSProfiler::IfNeedToSkipDuringReplay(*messageParcel, position));
     EXPECT_EQ(messageParcel->GetReadPosition(), position);
 }
+#endif
 
 class RSProfilerTestWithContext : public testing::Test {
     static RSRenderService* renderService;

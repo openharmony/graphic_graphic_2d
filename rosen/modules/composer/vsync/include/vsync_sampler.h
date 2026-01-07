@@ -48,6 +48,7 @@ public:
     virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) = 0;
     virtual uint64_t GetVsyncEnabledScreenId() = 0;
     virtual void SetAdaptive(bool isAdaptive) = 0;
+    virtual bool GetAdaptive() = 0;
     virtual void RecordDisplayVSyncStatus(bool enabled) = 0;
     virtual void RollbackHardwareVSyncStatus() = 0;
 protected:
@@ -82,6 +83,7 @@ public:
     virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) override;
     virtual uint64_t GetVsyncEnabledScreenId() override;
     virtual void SetAdaptive(bool isAdaptive) override;
+    virtual bool GetAdaptive() override;
     virtual void RecordDisplayVSyncStatus(bool enabled) override;
     virtual void RollbackHardwareVSyncStatus() override;
 
@@ -102,6 +104,10 @@ private:
     void CheckIfFirstRefreshAfterIdleLocked();
     void ComputePhaseLocked();
     void SetScreenVsyncEnabledInRSMainThreadLocked(uint64_t screenId, bool enabled);
+
+    // Adaptive Sync
+    void UpdateModeForASLocked();
+    void ResetCountForASLocked();
 
     int64_t period_;
     int64_t phase_;
@@ -124,8 +130,12 @@ private:
     int64_t pendingPeriod_ = 0;
     std::atomic<bool> enableVsyncSample_ = true;
     uint64_t vsyncEnabledScreenId_ = UINT64_MAX;
+
+    // Adaptive Sync
     bool isAdaptive_ = false;
     int64_t lastAdaptiveTime_ = 0;
+    int64_t diffSum_ = 0;
+    uint32_t frameCount_ = 0;
 };
 } // impl
 } // namespace Rosen

@@ -213,6 +213,23 @@ GSError RSRenderComposerManager::ClearFrameBuffers(ScreenId screenId, bool isNee
     return renderComposerAgent->ClearFrameBuffers(isNeedResetContext);
 }
 
+void RSRenderComposerManager::HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("%s: screenId %u", __func__, screenId);
+    std::shared_ptr<RSRenderComposer> renderComposer;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto iter = rsRenderComposerMap_.find(screenId);
+        if (iter == rsRenderComposerMap_.end()) {
+            RS_LOGE("%{public}s not find screenId:%{public}" PRIu64, __func__, screenId);
+            return;
+        }
+        renderComposer = iter->second;
+    }
+    auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
+    renderComposerAgent->HandlePowerStatus(status);
+}
+
 void RSRenderComposerManager::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::OnScreenVBlankIdleCallback screenId %u", screenId);

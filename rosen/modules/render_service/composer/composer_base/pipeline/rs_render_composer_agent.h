@@ -36,6 +36,7 @@ public:
     void PostTask(const std::function<void()>& task);
     void PostTaskWithInnerDelay(const std::function<void()>& task);
     GSError ClearFrameBuffers(bool isNeedResetContext = true);
+    void HandlePowerStatus(ScreenPowerStatus status);
     void OnScreenVBlankIdleCallback(uint64_t timestamp);
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);

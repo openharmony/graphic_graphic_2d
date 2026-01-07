@@ -47,7 +47,7 @@ public:
     static void SetEmbeddedBitmaps(ani_env* env, ani_object obj, ani_boolean isEmbeddedBitmaps);
     static ani_boolean IsEmbeddedBitmaps(ani_env* env, ani_object obj);
     static void SetForceAutoHinting(ani_env* env, ani_object obj, ani_boolean isForceAutoHinting);
-    static ani_object GetWidths(ani_env* env, ani_object obj, ani_object glyphs);
+    static ani_object GetWidths(ani_env* env, ani_object obj, ani_array glyphs);
     static ani_object TextToGlyphs(ani_env* env, ani_object obj, ani_string aniText, ani_object glyphCount);
     static ani_boolean IsSubpixel(ani_env* env, ani_object obj);
     static ani_boolean IsLinearMetrics(ani_env* env, ani_object obj);
@@ -62,7 +62,7 @@ public:
     static ani_enum_item GetHinting(ani_env* env, ani_object obj);
     static ani_enum_item GetEdging(ani_env* env, ani_object obj);
     static ani_object CreatePathForGlyph(ani_env* env, ani_object obj, ani_int index);
-    static ani_object GetBounds(ani_env* env, ani_object obj, ani_object glyphs);
+    static ani_object GetBounds(ani_env* env, ani_object obj, ani_array glyphs);
     static ani_object GetTextPath(ani_env* env, ani_object obj, ani_string aniText,
         ani_int byteLength, ani_double x, ani_double y);
     static void SetThemeFontFollowed(ani_env* env, ani_object obj, ani_boolean followed);

@@ -55,6 +55,29 @@ struct Color {
   alpha: f64;
 }
 
+struct LiquidMaterialEffectParam {
+  enable : bool;
+  distortProgress : f64;
+  distortFactor : f64;
+  rippleProgress : f64;
+  refractionFactor : f64;
+  reflectionFactor : f64;
+  materialFactor : f64;
+  tintColor : @sts_type("[double, double, double, double]") Opaque;
+  @optional ripplePosition: Optional<Array<@sts_type("[double, double]") Opaque>>;
+}
+
+struct BrightnessParam {
+  rate : f64;
+  lightUpDegree : f64;
+  cubicCoeff : f64;
+  quadCoeff : f64;
+  saturation : f64;
+  posRgb : @sts_type("[double, double, double]") Opaque;
+  negRgb : @sts_type("[double, double, double]") Opaque;
+  fraction : f64;
+}
+
 enum FlyMode : i32 {
   BOTTOM = 0,
   TOP = 1,
@@ -94,8 +117,13 @@ function CreateRippleMask(center: @sts_type("common2D.Point") Opaque, radius: f6
   @optional offset: Optional<f64>): Mask;
 
 @static("Mask")
-function CreatePixelMapMask(pixelMap: PixelMap, srcRect: @sts_type("common2D.Rect") Opaque,
+@rename("createPixelMapMask")
+function CreatePixelMapMaskWithRect(pixelMap: PixelMap, srcRect: @sts_type("common2D.Rect") Opaque,
   dstRect: @sts_type("common2D.Rect") Opaque, @optional fillColor: Optional<Color>): Mask;
+
+@static("Mask")
+@rename("createPixelMapMask")
+function CreatePixelMapMaskOnly(pixelMap: PixelMap): Mask;
 
 @static("Mask")
 function CreateWaveGradientMask(center: @sts_type("common2D.Point") Opaque, width: f64, propagationRadius: f64,
@@ -105,6 +133,9 @@ function CreateWaveGradientMask(center: @sts_type("common2D.Point") Opaque, widt
 function CreateRadialGradientMask(center: @sts_type("common2D.Point") Opaque, radiusX: f64, radiusY: f64,
   gradients: Array<@sts_type("[double, double]") Opaque>): Mask;
 
+@static("Mask")
+function CreateUseEffectMask(useEffect: bool): Mask;
+
 
 interface VisualEffect {
   BackgroundColorBlender(blender: BrightnessBlender): VisualEffect;
@@ -112,6 +143,8 @@ interface VisualEffect {
     @optional alphaMask: Optional<Mask>): VisualEffect;
   BorderLight(lightPosition: @sts_type("common2D.Point3d") Opaque, lightColor: @sts_type("common2D.Color") Opaque,
     lightIntensity: f64, borderWidth: f64): VisualEffect;
+  LiquidMaterial(param : LiquidMaterialEffectParam, useEffectMask: Mask, @optional distortMask: Optional<Mask>,
+    @optional brightnessParam: Optional<BrightnessParam>): VisualEffect;
 }
 
 function CreateBrightnessBlender(param: BrightnessBlenderParam): BrightnessBlender;

@@ -24,6 +24,10 @@
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "command/rs_surface_node_command.h"
+#include "surface_utils.h"
+#ifndef ROSEN_CROSS_PLATFORM
+#include "metadata_helper.h"
+#endif
 using namespace testing;
 using namespace testing::ext;
 
@@ -259,13 +263,13 @@ HWTEST_F(RSCanvasRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
 {
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
-    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.SetCacheType(CacheType::CONTENT);
-    EXPECT_EQ(rsCanvasRenderNode.IsOnTheTree(), false);
-    EXPECT_FALSE(rsCanvasRenderNode.needClearSurface_);
-    rsCanvasRenderNode.OnTreeStateChanged();
-    EXPECT_EQ(rsCanvasRenderNode.GetCacheType(), CacheType::NONE);
-    EXPECT_TRUE(rsCanvasRenderNode.needClearSurface_);
+    std::shared_ptr<RSCanvasRenderNode> rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId, context);
+    rsCanvasRenderNode->SetCacheType(CacheType::CONTENT);
+    EXPECT_EQ(rsCanvasRenderNode->IsOnTheTree(), false);
+    EXPECT_FALSE(rsCanvasRenderNode->needClearSurface_);
+    rsCanvasRenderNode->OnTreeStateChanged();
+    EXPECT_EQ(rsCanvasRenderNode->GetCacheType(), CacheType::NONE);
+    EXPECT_TRUE(rsCanvasRenderNode->needClearSurface_);
 }
 
 /**
@@ -309,6 +313,151 @@ HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnSetPixelmap001
+ * @tc.desc: test OnSetPixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.isOnTheTree_ = false;
+    rsCanvasRenderNode.OnSetPixelmap(nullptr);
+
+    auto pixelmap = std::make_shared<OHOS::Media::PixelMap>();
+    EXPECT_NE(pixelmap, nullptr);
+    rsCanvasRenderNode.OnSetPixelmap(pixelmap);
+
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    ASSERT_NE(surfaceBuffer, nullptr);
+    BufferRequestConfig allocConfig;
+    allocConfig.width = 1;
+    allocConfig.height = 1;
+    allocConfig.strideAlignment = 4;
+    allocConfig.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    allocConfig.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE;
+    allocConfig.timeout = 1;
+    GSError allocRet = surfaceBuffer->Alloc(allocConfig);
+    ASSERT_EQ(allocRet, GSERROR_OK);
+
+    std::vector<uint8_t> dataVec = { 0U, 0U, 0U, 0U};
+    pixelmap->SetPixelsAddr(dataVec.data(), surfaceBuffer, 1U, Media::AllocatorType::DEFAULT, false);
+#ifndef ROSEN_CROSS_PLATFORM
+    const uint32_t STATIC_METADATA_SIZE = sizeof(OHOS::HDI::Display::Graphic::Common::V1_0::HdrStaticMetadata);
+    std::vector<uint8_t> hdrStaticMetaData{};
+    hdrStaticMetaData.resize(STATIC_METADATA_SIZE - 1U);
+    GSError ret = MetadataHelper::SetHDRStaticMetadata(surfaceBuffer, hdrStaticMetaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+#endif
+    rsCanvasRenderNode.OnSetPixelmap(pixelmap);
+}
+
+/**
+ * @tc.name: OnSetPixelmap002
+ * @tc.desc: test OnSetPixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap002, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.isOnTheTree_ = false;
+    auto pixelmap = std::make_shared<OHOS::Media::PixelMap>();
+    EXPECT_NE(pixelmap, nullptr);
+
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    ASSERT_NE(surfaceBuffer, nullptr);
+    BufferRequestConfig allocConfig;
+    allocConfig.width = 1;
+    allocConfig.height = 1;
+    allocConfig.strideAlignment = 4;
+    allocConfig.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    allocConfig.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE;
+    allocConfig.timeout = 1;
+    GSError allocRet = surfaceBuffer->Alloc(allocConfig);
+    ASSERT_EQ(allocRet, GSERROR_OK);
+
+    std::vector<uint8_t> dataVec = { 0U, 0U, 0U, 0U};
+    pixelmap->SetPixelsAddr(dataVec.data(), surfaceBuffer, 1U, Media::AllocatorType::DEFAULT, false);
+
+    const uint32_t STATIC_METADATA_SIZE = sizeof(OHOS::HDI::Display::Graphic::Common::V1_0::HdrStaticMetadata);
+    std::vector<uint8_t> hdrStaticMetaData{};
+    hdrStaticMetaData.resize(STATIC_METADATA_SIZE);
+    GSError ret = MetadataHelper::SetHDRStaticMetadata(surfaceBuffer, hdrStaticMetaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+    rsCanvasRenderNode.OnSetPixelmap(pixelmap);
+
+    constexpr uint32_t HEADROOM_VALUE = 1U;
+    rsCanvasRenderNode.SetHdrPhotoHeadroom(HEADROOM_VALUE);
+    rsCanvasRenderNode.OnSetPixelmap(pixelmap);
+
+    rsCanvasRenderNode.isOnTheTree_ = true;
+    rsCanvasRenderNode.SetHdrPhotoHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    rsCanvasRenderNode.OnSetPixelmap(pixelmap);
+
+    rsCanvasRenderNode.isOnTheTree_ = true;
+    rsCanvasRenderNode.SetHdrPhotoHeadroom(HEADROOM_VALUE);
+    rsCanvasRenderNode.OnSetPixelmap(pixelmap);
+#endif
+}
+
+/**
+ * @tc.name: OnSetPixelmap003
+ * @tc.desc: test OnSetPixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap003, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    NodeId nodeId = 0;
+    auto context = std::make_shared<RSContext>();
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.isOnTheTree_ = true;
+    constexpr uint32_t INCORRECT_HEADROOM_VALUE = static_cast<uint32_t>(-1);
+    rsCanvasRenderNode.SetHdrPhotoHeadroom(INCORRECT_HEADROOM_VALUE);
+
+    auto pixelmap = std::make_shared<OHOS::Media::PixelMap>();
+    EXPECT_NE(pixelmap, nullptr);
+
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    ASSERT_NE(surfaceBuffer, nullptr);
+    BufferRequestConfig allocConfig;
+    allocConfig.width = 1;
+    allocConfig.height = 1;
+    allocConfig.strideAlignment = 4;
+    allocConfig.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    allocConfig.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE;
+    allocConfig.timeout = 1;
+    GSError allocRet = surfaceBuffer->Alloc(allocConfig);
+    ASSERT_EQ(allocRet, GSERROR_OK);
+
+    std::vector<uint8_t> dataVec = { 0U, 0U, 0U, 0U};
+    pixelmap->SetPixelsAddr(dataVec.data(), surfaceBuffer, 1U, Media::AllocatorType::DEFAULT, false);
+
+    const uint32_t STATIC_METADATA_SIZE = sizeof(OHOS::HDI::Display::Graphic::Common::V1_0::HdrStaticMetadata);
+    std::vector<uint8_t> hdrStaticMetaData{};
+    hdrStaticMetaData.resize(STATIC_METADATA_SIZE);
+    GSError ret = MetadataHelper::SetHDRStaticMetadata(surfaceBuffer, hdrStaticMetaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+    rsCanvasRenderNode.OnSetPixelmap(pixelmap);
+
+    NodeId screenNodeId = 2U;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0U, context);
+    EXPECT_NE(screenNode, nullptr);
+    context->nodeMap.RegisterRenderNode(screenNode);
+    rsCanvasRenderNode.screenNodeId_ = screenNodeId;
+    rsCanvasRenderNode.SetHdrPhotoHeadroom(INCORRECT_HEADROOM_VALUE);
+    rsCanvasRenderNode.OnSetPixelmap(pixelmap);
+#endif
+}
+
+/**
  * @tc.name: SetColorGamut001
  * @tc.desc: test true of SetColorGamut
  * @tc.type: FUNC
@@ -320,7 +469,7 @@ HWTEST_F(RSCanvasRenderNodeTest, SetColorGamut001, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
     rsCanvasRenderNode.SetColorGamut(ColorManager::ColorSpaceName::DISPLAY_P3); // 3 is DISPLAY_P3
-    EXPECT_EQ(rsCanvasRenderNode.GetColorGamut(), ColorManager::ColorSpaceName::DISPLAY_P3); // 3 is DISPLAY_P3
+    EXPECT_EQ(rsCanvasRenderNode.colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3); // 3 is DISPLAY_P3
 }
 
 /**

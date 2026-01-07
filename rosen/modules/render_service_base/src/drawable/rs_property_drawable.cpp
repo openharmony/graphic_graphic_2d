@@ -366,15 +366,15 @@ void RSFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
 #endif
     if (needDrawBehindWindow_) {
         if (!canvas->GetSurface()) {
-            RS_LOGE("RSFilterDrawable::CreateDrawFunc DrawBehindWindow surface is nullptr");
+            RS_LOGE("RSFilterDrawable::OnDraw DrawBehindWindow surface is nullptr");
             return;
         }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%" PRIu64 "], "
+        RS_TRACE_NAME_FMT("RSFilterDrawable::OnDraw DrawBehindWindow node[%" PRIu64 "], "
             "windowFreezeCapture[%d], DrawingCache[%d]", renderNodeId_,
             paintFilterCanvas->GetIsWindowFreezeCapture(), paintFilterCanvas->GetIsDrawingCache());
         if (paintFilterCanvas->GetIsWindowFreezeCapture()) {
-            RS_LOGD("RSFilterDrawable::CreateDrawFunc DrawBehindWindow capture freeze surface, "
+            RS_LOGD("RSFilterDrawable::OnDraw DrawBehindWindow capture freeze surface, "
                 "no need to drawBehindWindow");
             return;
         }
@@ -384,7 +384,7 @@ void RSFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
         Drawing::Rect relativeBounds(drawBehindWindowRegion_.GetLeft(), drawBehindWindowRegion_.GetTop(),
             drawBehindWindowRegion_.GetRight(), drawBehindWindowRegion_.GetBottom());
         if (paintFilterCanvas->GetIsDrawingCache()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow DrawingCache bounds:%s",
+            RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::OnDraw DrawBehindWindow DrawingCache bounds:%s",
                 relativeBounds.ToString().c_str());
             auto data = std::make_shared<RSPaintFilterCanvas::CacheBehindWindowData>(filter_, relativeBounds);
             paintFilterCanvas->SetCacheBehindWindowData(std::move(data));
@@ -400,7 +400,7 @@ void RSFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
         return;
     }
     if (canvas && renderIntersectWithDRM_) {
-        RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc IntersectWithDRM node[%lld] isDarkColorMode[%d]",
+        RS_TRACE_NAME_FMT("RSFilterDrawable::OnDraw IntersectWithDRM node[%lld] isDarkColorMode[%d]",
             renderNodeId_, renderIsDarkColorMode_);
         RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, renderIsDarkColorMode_);
         return;
@@ -414,7 +414,7 @@ void RSFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
         Drawing::RectI snapshotRect = GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
         Drawing::RectI drawRect = GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound);
         RectF snapshotRelativeRect = GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
-        RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", renderNodeId_);
+        RS_TRACE_NAME_FMT("RSFilterDrawable::OnDraw node[%llu] ", renderNodeId_);
         if (rect) {
             filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
                 snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());

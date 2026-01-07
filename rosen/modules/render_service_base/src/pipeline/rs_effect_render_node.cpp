@@ -287,6 +287,7 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
     if (effectParams == nullptr) {
         return;
     }
+    effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
     effectParams->SetHasEffectChildrenWithoutEmptyRect(ChildHasVisibleEffectWithoutEmptyRect());
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::filterCacheEnabled_) {

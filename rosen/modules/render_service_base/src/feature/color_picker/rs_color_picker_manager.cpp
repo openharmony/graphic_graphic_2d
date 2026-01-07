@@ -23,6 +23,7 @@
 #include "rs_trace.h"
 
 #include "common/rs_color.h"
+#include "common/rs_optional_trace.h"
 #include "draw/color.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "platform/common/rs_log.h"
@@ -30,6 +31,7 @@
 
 namespace OHOS::Rosen {
 namespace {
+constexpr int32_t TRACE_LEVEL_TWO = 2;
 constexpr int64_t TASK_DELAY_TIME = 16;                 // 16ms
 constexpr float COLOR_PICKER_ANIMATE_DURATION = 350.0f; // 350ms
 
@@ -55,8 +57,9 @@ Drawing::ColorQuad RSColorPickerManager::GetColorPicked(RSPaintFilterCanvas& can
         RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); // continue animation
     }
 
-    if (currTime >= interval + lastUpdateTime_) { // cooldown check
+    if (strategy != ColorPickStrategyType::NONE && currTime >= interval + lastUpdateTime_) { // cooldown check
         ScheduleColorPick(canvas, rect, nodeId, strategy);
+        lastUpdateTime_ = currTime;
     }
     return res;
 }
@@ -129,6 +132,9 @@ void RSColorPickerManager::HandleColorUpdate(
     Drawing::ColorQuad newColor, uint64_t nodeId, ColorPickStrategyType strategy)
 {
     {
+        RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+            "RSColorPickerManager::extracted background color = %x, prevColor = %x, nodeId = %lu", newColor, prevColor_,
+            nodeId);
         std::lock_guard<std::mutex> lock(colorMtx_);
         if (strategy == ColorPickStrategyType::CONTRAST) {
             newColor = GetContrastColor(newColor, colorPicked_ == Drawing::Color::COLOR_BLACK);
@@ -143,10 +149,8 @@ void RSColorPickerManager::HandleColorUpdate(
         prevColor_ = InterpolateColor(prevColor_, colorPicked_, animFraction);
         colorPicked_ = newColor;
         animStartTime_ = now;
-
-        RS_TRACE_NAME_FMT(
-            "RSColorPickerManager::notifyNodeDirty, prevColor = %x, newColor = %x", prevColor_, colorPicked_);
     }
+    RS_TRACE_NAME_FMT("RSColorPickerManager::notifyNodeDirty, prevColor = %x, newColor = %x", prevColor_, colorPicked_);
     RSColorPickerThread::Instance().NotifyNodeDirty(nodeId);
 }
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+* Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,11 +52,7 @@ sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToS
 namespace {
 const uint8_t DO_SHOW_WATERMARK = 0;
 const uint8_t DO_SET_WATERMARK = 1;
-const uint8_t DO_REGISTER_TRANSACTION_DATA_CALLBACK = 2;
-const uint8_t TARGET_SIZE = 3;
-
-sptr<RSIClientToServiceConnection> CONN = nullptr;
-sptr<RSClientToServiceConnectionStub> rsToServiceConnStub_ = nullptr;
+const uint8_t TARGET_SIZE = 2;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -77,19 +73,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -102,21 +85,6 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 } // namespace
-
-namespace Mock {
-void CreateVirtualScreenStubbing(ScreenId screenId)
-{
-    uint32_t width = GetData<uint32_t>();
-    uint32_t height = GetData<uint32_t>();
-    int32_t flags = GetData<int32_t>();
-    std::string name = GetData<std::string>();
-    // Random name of IBufferProducer is not necessary
-    sptr<IBufferProducer> bp = IConsumerSurface::Create("DisplayNode")->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-
-    CONN->CreateVirtualScreen(name, width, height, pSurface, screenId, flags);
-}
-} // namespace Mock
 
 void DoShowWatermark()
 {
@@ -149,28 +117,6 @@ void DoSetWatermark()
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
-void DoRegisterTransactionDataCallback()
-{
-    MessageParcel dataP;
-    MessageParcel reply;
-    MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        return;
-    }
-    uint64_t token = GetData<uint64_t>();
-    auto timeStamp = GetData<uint64_t>();
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    dataP.WriteUint64(token);
-    dataP.WriteUint64(timeStamp);
-    dataP.WriteRemoteObject(remoteObject);
-    uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    if (rsToServiceConnStub_ == nullptr) {
-        return;
-    }
-    rsToServiceConnStub_->OnRemoteRequest(code, dataP, reply, option);
-}
 
 } // namespace Rosen
 } // namespace OHOS
@@ -193,9 +139,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_SHOW_WATERMARK:
             OHOS::Rosen::DoShowWatermark();
             break;
-        case OHOS::Rosen::DO_REGISTER_TRANSACTION_DATA_CALLBACK:
-            OHOS::Rosen::DoRegisterTransactionDataCallback();
-            break;
+
         case OHOS::Rosen::DO_SET_WATERMARK:
             OHOS::Rosen::DoSetWatermark();
             break;

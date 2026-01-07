@@ -379,6 +379,8 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
     } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
         pixelFmt == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
         glType = GR_GL_RGB10_A2;
+    } else if (pixelFmt == GRAPHIC_PIXEL_FMT_RGB_565) {
+        glType = GR_GL_RGB565;
     }
     externalTextureInfo.SetFormat(glType);
     if (!image->BuildFromTexture(*canvas.GetGPUContext(), externalTextureInfo,

@@ -2453,14 +2453,20 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     RSUniRenderThread::Instance().PostSyncTask([this, processor, screenNode, screenInfo]() mutable {
         RS_TRACE_NAME("DoDirectComposition PostProcess");
         auto screenId = screenNode->GetScreenId();
+        screenNode->ResetVideoHeadroomInfo();
+        auto& rsLuminance = RSLuminanceControl::Get();
         for (auto& surfaceNode : hardwareEnabledNodes_) {
             if (surfaceNode == nullptr) {
                 RS_LOGE("DoDirectComposition: surfaceNode is null!");
                 continue;
             }
             SetHasSurfaceLockLayer(surfaceNode->GetFixRotationByUser());
-            RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, screenId);
-            screenNode->CollectHdrStatus(surfaceNode->GetVideoHdrStatus());
+            HdrStatus status = surfaceNode->GetVideoHdrStatus();
+            if (float scaler; RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, screenId, scaler)) {
+                uint32_t level = rsLuminance.ConvertScalerFromFloatToLevel(scaler);
+                screenNode->UpdateHeadroomMapIncrease(status, level);
+            }
+            screenNode->CollectHdrStatus(status);
             auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
             if (!surfaceNode->IsHardwareForcedDisabled()) {
                 auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
@@ -2484,7 +2490,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 params->SetBufferSynced(true);
             }
         }
-        RSLuminanceControl::Get().SetHdrStatus(screenId,
+        rsLuminance.SetHdrStatus(screenId,
             screenNode->GetForceCloseHdr() ? HdrStatus::NO_HDR : screenNode->GetDisplayHdrStatus());
         RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
         auto rcdInfo = std::make_unique<RcdInfo>();

@@ -685,6 +685,7 @@ HWTEST_F(RSRenderParamsTest, HDRStatusTest, TestSize.Level2)
     renderParams->UpdateHDRStatus(hdrStatus, true);
     EXPECT_TRUE(renderParams->needSync_);
     EXPECT_EQ(renderParams->GetHDRStatus(), hdrStatus);
+    EXPECT_TRUE(renderParams->SelfOrChildHasHDR());
 
     renderParams->ClearHDRVideoStatus();
     EXPECT_EQ(renderParams->GetHDRStatus(), HdrStatus::NO_HDR);

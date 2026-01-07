@@ -142,8 +142,6 @@ protected:
 
     static inline bool autoCacheDrawingEnable_ = false;
     static inline std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
-    thread_local static inline bool isOpincDropNodeExt_ = true;
-    thread_local static inline int opincRootTotalCount_ = 0;
 
     static inline int32_t offsetX_ = 0;
     static inline int32_t offsetY_ = 0;

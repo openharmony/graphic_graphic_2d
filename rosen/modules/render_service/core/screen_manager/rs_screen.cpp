@@ -199,7 +199,7 @@ void RSScreen::PhysicalScreenInit() noexcept
 
     auto outType = GraphicDisplayConnectionType::GRAPHIC_DISPLAY_CONNECTION_TYPE_INTERNAL;
     if (hdiScreen_->GetScreenConnectionType(outType) != 0) {
-        RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenConnectionType.", __func__, id);
+        RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenConnectionType.", __func__, id);
         property_.SetConnectionType(ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE);
     } else {
         property_.SetConnectionType(static_cast<ScreenConnectionType>(outType));
@@ -1710,6 +1710,18 @@ int32_t RSScreen::SetScreenLinearMatrix(const std::vector<float> &matrix)
 
     linearMatrix_ = matrix;
     return StatusCode::SUCCESS;
+}
+
+// only used in virtual screen
+bool RSScreen::GetAndResetWhiteListChange()
+{
+    bool expected = true;
+    return whiteListChange_.compare_exchange_strong(expected, false);
+}
+
+void RSScreen::SetWhiteListChange(bool whiteListChange)
+{
+    whiteListChange_ = whiteListChange;
 }
 
 bool RSScreen::GetAndResetPSurfaceChange()

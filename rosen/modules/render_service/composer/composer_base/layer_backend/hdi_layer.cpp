@@ -785,7 +785,7 @@ void HdiLayer::SavePrevRSLayer()
     prevRSLayer_->CopyLayerInfo(rsLayer_);
 }
 
-void HdiLayer::Dump(std::string& result)
+void HdiLayer::Dump(std::string& result) const
 {
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = count_;
@@ -809,7 +809,7 @@ void HdiLayer::DumpByName(std::string windowName, std::string& result)
     }
 }
 
-void HdiLayer::DumpMergedResult(std::string& result)
+void HdiLayer::DumpMergedResult(std::string& result) const
 {
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = mergedCount_;

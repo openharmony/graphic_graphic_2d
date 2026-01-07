@@ -283,6 +283,28 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenVBlankIdleCallback_FoundAndNotFoun
 }
 
 /**
+ * Function: HandlePowerStatus_FoundAndNotFound
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager
+ *                  2. call HandlePowerStatus before and after add screen id
+ *                  3. check connection is null before add and not null after add
+ */
+HWTEST_F(RsRenderComposerManagerTest, HandlePowerStatus_FoundAndNotFound, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    mgr->HandlePowerStatus(1, POWER_STATUS_ON);
+    EXPECT_EQ(mgr->rsRenderComposerMap_.find(1), mgr->rsRenderComposerMap_.end());
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    mgr->OnScreenConnected(output);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    mgr->HandlePowerStatus(1, POWER_STATUS_ON);
+    EXPECT_NE(mgr->rsRenderComposerMap_.find(1), mgr->rsRenderComposerMap_.end());
+}
+
+/**
  * Function: RateCount_Operations
  * Type: Function
  * Rank: Important(2)

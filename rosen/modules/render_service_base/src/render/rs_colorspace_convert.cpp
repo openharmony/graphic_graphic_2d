@@ -292,6 +292,11 @@ bool RSColorSpaceConvert::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& 
     return true;
 }
 
+float RSColorSpaceConvert::GetDefaultHDRScaler()
+{
+    return DEFAULT_SCALER;
+}
+
 void RSColorSpaceConvert::CloseLibraryHandle()
 {
     colorSpaceConvertDisplayCreate_ = nullptr;

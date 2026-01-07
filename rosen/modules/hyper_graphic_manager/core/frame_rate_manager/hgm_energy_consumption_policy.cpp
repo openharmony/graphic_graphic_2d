@@ -400,20 +400,20 @@ void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string
     bool hasVideoApp = false;
     const auto& videoCallLayerConfig = configData->videoCallLayerConfig_;
     const auto& videoFrameRateList = configData->videoFrameRateList_;
-    std::string videoCallLayerNameStr = "";
-    for (const auto& pkg: pkgs) {
+    std::string videoCallLayerNameStr;
+    std::lock_guard<std::mutex> lock(videoCallLock_);
+    for (const auto& pkg : pkgs) {
         std::string pkgName = pkg.substr(0, pkg.find(":"));
-        if (videoCallLayerName_ == "") {
-            if (const auto& videoCallLayerName = videoCallLayerConfig.find(pkgName);
-                videoCallLayerName != videoCallLayerConfig.end()) {
-                videoCallLayerNameStr = videoCallLayerName->second;
+        if (videoCallLayerName_.empty()) {
+            if (const auto& iter = videoCallLayerConfig.find(pkgName);
+                iter != videoCallLayerConfig.end()) {
+                videoCallLayerNameStr = iter->second;
             }
         }
         bool isVideoApp = videoFrameRateList.find(pkgName) != videoFrameRateList.end();
         hasVideoApp = hasVideoApp || isVideoApp;
     }
     RSFrameRateVote::isVideoApp_.store(hasVideoApp);
-    std::lock_guard<std::mutex> lock(videoCallLock_);
     videoCallLayerName_ = videoCallLayerNameStr;
 }
 

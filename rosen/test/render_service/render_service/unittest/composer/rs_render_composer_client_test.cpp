@@ -24,7 +24,6 @@
 
 #include "connection/rs_render_to_composer_connection.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
-#include "layer/rs_layer_factory.h"
 #include "layer_backend/hdi_output.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include "pipeline/rs_render_composer_agent.h"
