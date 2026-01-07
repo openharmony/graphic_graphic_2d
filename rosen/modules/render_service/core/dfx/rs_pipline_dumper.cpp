@@ -132,18 +132,18 @@ uint32_t RSPiplineDumper::GenerateTaskId()
     return id.fetch_add(1, std::memory_order::memory_order_relaxed);
 }
 
-void RSPiplineDumper::RpDumpInit(std::shared_ptr<RSPiplineDumpManager> rpDumpManger)
+void RSPiplineDumper::RpDumpInit(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     // 用于renderProcess进程Dump初始化
-    RegisterRSTreeFuncs(rpDumpManger);
-    RegisterGpuFuncs(rpDumpManger);
-    RegisterRSGfxFuncs(rpDumpManger);
-    RegisterMemFuncs(rpDumpManger);
-    RegisterBufferFuncs(rpDumpManger);
-    RegisterSurfaceInfoFuncs(rpDumpManger);
+    RegisterRSTreeFuncs(rpDumpManager);
+    RegisterGpuFuncs(rpDumpManager);
+    RegisterRSGfxFuncs(rpDumpManager);
+    RegisterMemFuncs(rpDumpManager);
+    RegisterBufferFuncs(rpDumpManager);
+    RegisterSurfaceInfoFuncs(rpDumpManager);
 }
 
-void RSPiplineDumper::RegisterRSGfxFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManger)
+void RSPiplineDumper::RegisterRSGfxFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     // Event Param List
     RSDumpFunc rsEventParamFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
@@ -178,10 +178,10 @@ void RSPiplineDumper::RegisterRSGfxFuncs(std::shared_ptr<RSPiplineDumpManager> r
         { RSDumpID::RS_LOG_FLAG, rsLogFlagFunc },
         { RSDumpID::RS_FLUSH_JANK_STATS, flushJankStatsRsFunc },
     };
-    rpDumpManger->Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::RegisterRSTreeFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManger)
+void RSPiplineDumper::RegisterRSTreeFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     // RS not on Tree
     RSDumpFunc rsNotOnTreeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
@@ -230,10 +230,10 @@ void RSPiplineDumper::RegisterRSTreeFuncs(std::shared_ptr<RSPiplineDumpManager> 
         { RSDumpID::CLIENT_INFO, rsClientFunc, RS_CLIENT_TAG },
     };
 
-    rpDumpManger->Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::RegisterMemFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManger)
+void RSPiplineDumper::RegisterMemFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     // surface mem
     RSDumpFunc surfaceMemFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
@@ -260,10 +260,10 @@ void RSPiplineDumper::RegisterMemFuncs(std::shared_ptr<RSPiplineDumpManager> rpD
         { RSDumpID::EXIST_PID_MEM_INFO, existPidMemFunc },
     };
 
-    rpDumpManger->Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::RegisterGpuFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManger)
+void RSPiplineDumper::RegisterGpuFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
 #ifdef RS_ENABLE_VK
     // vk texture Limit
@@ -280,10 +280,10 @@ void RSPiplineDumper::RegisterGpuFuncs(std::shared_ptr<RSPiplineDumpManager> rpD
 #endif
     };
 
-    rpDumpManger->Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManger)
+void RSPiplineDumper::RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     RSDumpFunc currentFrameBufferFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                                std::string &dumpString) -> void {
@@ -308,10 +308,10 @@ void RSPiplineDumper::RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManager> 
         { RSDumpID::CURRENT_FRAME_BUFFER, currentFrameBufferFunc },
     };
 
-    rpDumpManger->Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::RegisterSurfaceInfoFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManger)
+void RSPiplineDumper::RegisterSurfaceInfoFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     // todo : 分离渲染适配
     // surface info
@@ -324,7 +324,7 @@ void RSPiplineDumper::RegisterSurfaceInfoFuncs(std::shared_ptr<RSPiplineDumpMana
         { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_TAG },
     };
 
-    rpDumpManger->Register(handers);
+    rpDumpManager->Register(handers);
 }
 
 void RSPiplineDumper::DumpNodesNotOnTheTree(std::string& dumpString) const
