@@ -65,7 +65,6 @@ public:
     RSServiceDumpManager() {};
     ~RSServiceDumpManager() = default;
 
-    static RSServiceDumpManager& GetInstance();
     static bool IsServiceDumpCmd(const std::u16string& cmd);
     static bool IsProcessDumpCmd(const std::u16string& cmd);
 

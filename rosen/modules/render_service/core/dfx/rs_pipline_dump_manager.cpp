@@ -17,7 +17,7 @@
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
-void RSProcessDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out, sptr<RSIDumpCallback> callback)
+void RSPiplineDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out, sptr<RSIDumpCallback> callback)
 {
     out += "\nRSProcessDump pid:";
     out += std::to_string(pid_);
@@ -31,12 +31,12 @@ void RSProcessDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets, 
     callback->OnDumpResult(out);
 }
 
-void RSProcessDumpManager::SetPid(int pid)
+void RSPiplineDumpManager::SetPid(int pid)
 {
     pid_ = pid;
 }
 
-void RSProcessDumpManager::SetScreenId(unsigned long screenId)
+void RSPiplineDumpManager::SetScreenId(unsigned long screenId)
 {
     screenId_ = screenId;
 }

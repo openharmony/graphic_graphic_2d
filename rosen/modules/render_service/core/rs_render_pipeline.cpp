@@ -264,7 +264,7 @@ void RSRenderPipeline::InitDumper(const std::shared_ptr<AppExecFwk::EventHandler
 {
     rpDumpManager_ = std::make_shared<RSPiplineDumpManager>();
     rsDumper_ = std::make_shared<RSPiplineDumper>(handler);
-    rpDumper_->RpDumpInit();
+    rpDumper_->RpDumpInit(rpDumpManager_);
 }
 
 } // namespace Rosen

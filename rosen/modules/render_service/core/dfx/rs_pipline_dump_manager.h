@@ -16,6 +16,7 @@
 #define RENDER_PROCESS_DFX_RS_PIPLINE_DUMP_MANAGER_H
 
 #include "gfx/dump/rs_dump_manager.h"
+#include "ipc_callbacks/dfx/rs_dump_callback.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
 
 namespace OHOS::Rosen {

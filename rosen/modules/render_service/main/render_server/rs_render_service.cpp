@@ -169,7 +169,6 @@ void RSRenderService::FeatureComponentInit()
     rsDumper_ = std::make_shared<RSServiceDumper>(handler_, screenManager_, rsRenderComposerManager_);
     rsDumpManager_ = std::make_shared<RSServiceDumpManager>();
     rsDumper_->RsDumpInit(rsDumpManager_);
-
     // rdo init
 #ifdef RS_ENABLE_RDO
     EnableRSCodeCache();

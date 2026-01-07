@@ -299,7 +299,7 @@ void RSPiplineDumper::RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManager> 
 //                 RS_TRACE_NAME("RSRenderService dump current frame buffer in HardwareThread");
 //                 RS_LOGD("dump current frame buffer in HardwareThread");
 //                 return screenManager_->DumpCurrentFrameLayers();
-//             }).wait();
+//             });
 // #endif
         }
     };
