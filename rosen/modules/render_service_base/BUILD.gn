@@ -193,9 +193,9 @@ ohos_source_set("render_service_base_src") {
     #delegate
     "src/delegate/rs_functional_delegate.cpp",
 
-    #hdr_heterogeneous
-    #"src/hetero_hdr/rs_hdr_pattern_manager.cpp",
-    #"src/hetero_hdr/rs_hdr_vulkan_task.cpp",
+    
+
+    
 
     #ipc_callbacks
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
