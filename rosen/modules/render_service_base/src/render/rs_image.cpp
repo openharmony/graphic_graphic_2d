@@ -641,15 +641,15 @@ void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
         std::swap(repeat_x, repeat_y);
     }
     if (repeat_x == imageRepeat_ || ImageRepeat::REPEAT == imageRepeat_) {
-        minX = dstRect_.left_ > left ? 
+        minX = dstRect_.left_ > left ?
             std::floor((left - dstRect_.left_) / dstRect_.width_) : 0;
-        maxX = right > dstRect_.left_ + dstRect_.width_ ? 
+        maxX = right > dstRect_.left_ + dstRect_.width_ ?
             std::ceil((right - dstRect_.left_ - dstRect_.width_) / dstRect_.width_) : 0;
     }
     if (repeat_y == imageRepeat_ || ImageRepeat::REPEAT == imageRepeat_) {
-        minY = dstRect_.top_ > top ? 
+        minY = dstRect_.top_ > top ?
             std::floor((top - dstRect_.top_) / dstRect_.height_) : 0;
-        maxY = bottom > dstRect_.top_ + dstRect_.height_ ? 
+        maxY = bottom > dstRect_.top_ + dstRect_.height_ ?
             std::ceil((bottom - dstRect_.top_ - dstRect_.height_) / dstRect_.height_) : 0;
     }
 }
