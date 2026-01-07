@@ -63,6 +63,58 @@ constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
 constexpr uint32_t DYNAMIC_RANGE_MODE_CONSTRAINT = 1;
 constexpr int32_t UI_PiPLINE_NUM_UNDEFINED = -1;
 
+template<typename T>
+inline constexpr bool ROSEN_EQ(const T& x, const T& y)
+{
+    if constexpr (std::is_floating_point<T>::value) {
+        return (std::abs((x) - (y)) <= (std::numeric_limits<T>::epsilon()));
+    } else {
+        return x == y;
+    }
+}
+
+template<typename T>
+inline bool ROSEN_EQ(T x, T y, T epsilon)
+{
+    return (std::abs((x) - (y)) <= (epsilon));
+}
+
+template<typename T>
+inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
+{
+    return !(x.owner_before(y) || y.owner_before(x));
+}
+
+template<typename T>
+inline constexpr bool ROSEN_NE(const T& x, const T& y)
+{
+    return !ROSEN_EQ(x, y);
+}
+
+inline bool ROSEN_LNE(float left, float right) // less not equal
+{
+    constexpr float epsilon = -0.001f;
+    return (left - right) < epsilon;
+}
+
+inline bool ROSEN_GNE(float left, float right) // great not equal
+{
+    constexpr float epsilon = 0.001f;
+    return (left - right) > epsilon;
+}
+
+inline bool ROSEN_GE(float left, float right) // great or equal
+{
+    constexpr float epsilon = -0.001f;
+    return (left - right) > epsilon;
+}
+
+inline bool ROSEN_LE(float left, float right) // less or equal
+{
+    constexpr float epsilon = 0.001f;
+    return (left - right) < epsilon;
+}
+
 /**
  * Bitmask enumeration for hierarchical type identification
  * Descendant types must include all ancestor bits following the rules:
@@ -348,11 +400,20 @@ struct RSSurfaceCaptureConfig {
     std::pair<uint32_t, bool> dynamicRangeMode = {DEFAULT_DYNAMIC_RANGE_MODE_STANDARD, false};
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
-        return mainScreenRect == config.mainScreenRect &&
-            specifiedAreaRect == config.specifiedAreaRect &&
-            uiCaptureInRangeParam.endNodeId == config.uiCaptureInRangeParam.endNodeId &&
-            uiCaptureInRangeParam.useBeginNodeSize == config.uiCaptureInRangeParam.useBeginNodeSize &&
-            blackList == config.blackList;
+        return ROSEN_EQ(scaleX, config.scaleX) && ROSEN_EQ(scaleY, config.scaleY) &&
+               (useDma == config.useDma) && (useCurWindow == config.useCurWindow) &&
+               (captureType == config.captureType) && (isSync == config.isSync) &&
+               (mainScreenRect == config.mainScreenRect) && (blackList == config.blackList) &&
+               (isSoloNodeUiCapture == config.isSoloNodeUiCapture) &&
+               (isHdrCapture == config.isHdrCapture) &&
+               (needF16WindowCaptureForScRGB == config.needF16WindowCaptureForScRGB) &&
+               (needErrorCode == config.needErrorCode) &&
+               (uiCaptureInRangeParam.endNodeId == config.uiCaptureInRangeParam.endNodeId) &&
+               (uiCaptureInRangeParam.useBeginNodeSize == config.uiCaptureInRangeParam.useBeginNodeSize) &&
+               (specifiedAreaRect == config.specifiedAreaRect) &&
+               (backGroundColor == config.backGroundColor) &&
+               (colorSpace == config.colorSpace) &&
+               (dynamicRangeMode == config.dynamicRangeMode);
     }
 };
 
@@ -592,58 +653,6 @@ constexpr float PI = M_PI;
 #else
 static const float PI = std::atanf(1.0) * 4;
 #endif
-
-template<typename T>
-inline constexpr bool ROSEN_EQ(const T& x, const T& y)
-{
-    if constexpr (std::is_floating_point<T>::value) {
-        return (std::abs((x) - (y)) <= (std::numeric_limits<T>::epsilon()));
-    } else {
-        return x == y;
-    }
-}
-
-template<typename T>
-inline bool ROSEN_EQ(T x, T y, T epsilon)
-{
-    return (std::abs((x) - (y)) <= (epsilon));
-}
-
-template<typename T>
-inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
-{
-    return !(x.owner_before(y) || y.owner_before(x));
-}
-
-template<typename T>
-inline constexpr bool ROSEN_NE(const T& x, const T& y)
-{
-    return !ROSEN_EQ(x, y);
-}
-
-inline bool ROSEN_LNE(float left, float right) // less not equal
-{
-    constexpr float epsilon = -0.001f;
-    return (left - right) < epsilon;
-}
-
-inline bool ROSEN_GNE(float left, float right) // great not equal
-{
-    constexpr float epsilon = 0.001f;
-    return (left - right) > epsilon;
-}
-
-inline bool ROSEN_GE(float left, float right) // great or equal
-{
-    constexpr float epsilon = -0.001f;
-    return (left - right) > epsilon;
-}
-
-inline bool ROSEN_LE(float left, float right) // less or equal
-{
-    constexpr float epsilon = 0.001f;
-    return (left - right) < epsilon;
-}
 
 class MemObject {
 public:
