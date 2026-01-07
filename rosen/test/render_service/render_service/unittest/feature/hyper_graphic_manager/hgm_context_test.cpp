@@ -16,14 +16,14 @@
 #include "gtest/gtest.h"
 
 #include "feature/hyper_graphic_manager/hgm_context.h"
-#include "render_server/rs_render_service.h"
+#include "hgm_core.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-RSRenderService renderService;
+constexpr uint32_t DELAY_110MS = 110;
 }
 
 class HgmContextTest : public testing::Test {
@@ -34,11 +34,7 @@ public:
     void TearDown() override;
 };
 
-void HgmContextTest::SetUpTestCase()
-{
-    OHOS::system::SetParameter("bootevent.samgr.ready", "false");
-    renderService.Init();
-}
+void HgmContextTest::SetUpTestCase() {}
 void HgmContextTest::TearDownTestCase() {}
 void HgmContextTest::SetUp() {}
 void HgmContextTest::TearDown() {}
@@ -64,8 +60,9 @@ HWTEST_F(HgmContextTest, HgmContextInitTest, TestSize.Level1)
     auto& hgmCore = HgmCore::Instance();
     frameRateManager->hgmConfigUpdateCallback_(std::make_shared<RPHgmConfigData>(),
         hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
-    ASSERT_NE(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::ADAPTIVE_VSYNC), true)
-    ASSERT_NE(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::HGM_CONFIG_DATA), true)
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    EXPECT_EQ(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::ADAPTIVE_VSYNC), true)
+    EXPECT_EQ(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::HGM_CONFIG_DATA), true)
 }
 } // namespace OHOS::Rosen
 
