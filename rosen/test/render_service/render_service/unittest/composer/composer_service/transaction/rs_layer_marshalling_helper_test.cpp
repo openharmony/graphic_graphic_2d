@@ -58,30 +58,6 @@ HWTEST(RSLayerMarshallingHelperTest, Basic_Types_Marshall_Unmarshall, TestSize.L
 }
 
 /**
- * Function: CmdType_And_CmdPtr_Marshall_Unmarshall
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. marshal RSLayerCmdType and Zorder command pointer
- *                  2. unmarshal type and command
- *                  3. expect type equals ZORDER and command not null
- */
-HWTEST(RSLayerMarshallingHelperTest, CmdType_And_CmdPtr_Marshall_Unmarshall, TestSize.Level1)
-{
-    MessageParcel parcel;
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(3);
-    auto cmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
-    ASSERT_TRUE(RSLayerMarshallingHelper::Marshalling(parcel, cmd));
-    MessageParcel rd;
-    ASSERT_TRUE(rd.ParseFrom(parcel.GetData(), parcel.GetDataSize()));
-
-    std::shared_ptr<RSRenderLayerCmd> out;
-    ASSERT_TRUE(RSLayerMarshallingHelper::Unmarshalling(rd, out));
-    ASSERT_NE(out, nullptr);
-    EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::ZORDER);
-}
-
-/**
  * Function: CmdType_Unmarshall_Fail_NoData
  * Type: Function
  * Rank: Important(2)

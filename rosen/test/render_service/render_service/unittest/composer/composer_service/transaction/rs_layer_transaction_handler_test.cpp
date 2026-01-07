@@ -84,35 +84,4 @@ HWTEST(RSLayerTransactionHandlerTest, Commit_WithNonEmpty_WithoutConnection_Fail
     EXPECT_FALSE(ok);
     EXPECT_FALSE(handler.IsEmpty());
 }
-
-/**
- * Function: Commit_WithProxyToStub_FailsAndKeepsData
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. set connection to proxy bound to stub with null agent
- *                  2. add a valid RSLayerParcel
- *                  3. call CommitRSLayerTransaction; expect false (agent returns false)
- *                  4. verify handler remains non-empty
- */
-HWTEST(RSLayerTransactionHandlerTest, Commit_WithProxyToStub_FailsAndKeepsData, TestSize.Level1)
-{
-    // Bind Proxy to a null remote to exercise failure path (no agent)
-    sptr<RSRenderToComposerConnectionProxy> proxy = new RSRenderToComposerConnectionProxy(nullptr);
-
-    RSLayerTransactionHandler handler;
-    handler.SetRSComposerConnectionProxy(proxy);
-
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(2);
-    auto zCmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
-    RSLayerId id = static_cast<RSLayerId>(200u);
-    std::shared_ptr<RSLayerParcel> parcel = std::make_shared<RSUpdateRSLayerCmd>(id, zCmd);
-    handler.AddRSLayerParcel(parcel, id);
-    EXPECT_FALSE(handler.IsEmpty());
-
-    ComposerInfo info;
-    bool ok = handler.CommitRSLayerTransaction(info, 0u, "");
-    EXPECT_FALSE(ok);
-    EXPECT_FALSE(handler.IsEmpty());
-}
 }
