@@ -14,6 +14,7 @@
  */
 
 #include <functional>
+#include <variant>
 #include <vector>
 #include "js_fontdescriptor.h"
 
@@ -35,25 +36,25 @@ FontDescriptorPropertyList GenerateDescriptorPropList(FontDescSharedPtr fd)
         return {};
     }
     FontDescriptorPropertyList propList = {
-        {"path", fd->path},
-        {"postScriptName", fd->postScriptName},
-        {"fullName", fd->fullName},
-        {"fontFamily", fd->fontFamily},
-        {"fontSubfamily", fd->fontSubfamily},
-        {"width", fd->width},
-        {"italic", fd->italic},
-        {"monoSpace", fd->monoSpace},
-        {"symbolic", fd->symbolic},
-        {"localPostscriptName", fd->localPostscriptName},
-        {"localFullName", fd->localFullName},
-        {"localFamilyName", fd->localFamilyName},
-        {"localSubFamilyName", fd->localSubFamilyName},
-        {"version", fd->version},
-        {"manufacture", fd->manufacture},
-        {"copyright", fd->copyright},
-        {"trademark", fd->trademark},
-        {"license", fd->license},
-        {"index", fd->index},
+        {"path", std::ref(fd->path)},
+        {"postScriptName", std::ref(fd->postScriptName)},
+        {"fullName", std::ref(fd->fullName)},
+        {"fontFamily", std::ref(fd->fontFamily)},
+        {"fontSubfamily", std::ref(fd->fontSubfamily)},
+        {"width", std::ref(fd->width)},
+        {"italic", std::ref(fd->italic)},
+        {"monoSpace", std::ref(fd->monoSpace)},
+        {"symbolic", std::ref(fd->symbolic)},
+        {"localPostscriptName", std::ref(fd->localPostscriptName)},
+        {"localFullName", std::ref(fd->localFullName)},
+        {"localFamilyName", std::ref(fd->localFamilyName)},
+        {"localSubFamilyName", std::ref(fd->localSubFamilyName)},
+        {"version", std::ref(fd->version)},
+        {"manufacture", std::ref(fd->manufacture)},
+        {"copyright", std::ref(fd->copyright)},
+        {"trademark", std::ref(fd->trademark)},
+        {"license", std::ref(fd->license)},
+        {"index", std::ref(fd->index)},
     };
     return propList;
 }
