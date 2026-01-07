@@ -296,6 +296,7 @@ ScreenInfo RSScreenProperty::GetScreenInfo() const
     info.maskRect = maskRect_;
     info.reviseRect = reviseRect_;
     info.powerStatus = powerStatus_;
+    info.activeRefreshRate = refreshRate_;
     return info;
 }
 

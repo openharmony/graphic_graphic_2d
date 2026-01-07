@@ -544,9 +544,6 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
 {
     HILOG_COMM_INFO("SetResolution screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u",
                     property_.GetId(), width, height);
-    if (width == property_.GetWidth() && height == property_.GetHeight()) {
-        return StatusCode::SUCCESS;
-    }
     if (IsVirtual()) {
         property_.SetWidth(width);
         property_.SetHeight(height);
