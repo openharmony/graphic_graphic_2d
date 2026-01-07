@@ -140,7 +140,7 @@ public:
     void CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out);
 
     // ashmem
-    static bool WriteFileDescriptor(Parcel &parcel, int fd) const;
+    static bool WriteFileDescriptor(Parcel &parcel, int fd);
     static int ReadFileDescriptor(Parcel &parcel);
     static bool WriteAshmemDataToParcel(Parcel &parcel, size_t size, const char* dataPtr);
     static char *ReadAshmemDataFromParcel(Parcel &parcel, int32_t size);
