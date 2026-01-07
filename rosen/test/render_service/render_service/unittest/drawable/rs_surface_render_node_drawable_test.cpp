@@ -706,7 +706,16 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, PrepareOffscreenRenderTest002, TestSiz
     RSPaintFilterCanvas paintFilterCanvas(surface.get());
     surfaceDrawable_->curCanvas_ = &paintFilterCanvas;
     surfaceDrawable_->maxRenderSize_ = 200; // for test
-    surfaceDrawable_->offscreenSurface_ = std::make_shared<Drawing::Surface>();
+    surfaceDrawable_->offscreenSurface_ = nullptr;
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParams, nullptr);
+    auto& renderParam = surfaceDrawable_->renderParams_;
+    ASSERT_NE(renderParam, nullptr);
+    renderParam->SetChildHasVisibleHDRContent(true);
+    uniParams->SetIsMirrorScreen(true);
+    uniParams->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
+    uniParams->screenInfo_.width = DEFAULT_CANVAS_SIZE;
+    uniParams->screenInfo_.height = DEFAULT_CANVAS_SIZE;
     ASSERT_TRUE(surfaceDrawable_->PrepareOffscreenRender());
     ASSERT_TRUE(surfaceDrawable_->curCanvas_->GetSurface());
 }
@@ -1746,6 +1755,22 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw005, TestSize.Level2)
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     RSUniRenderThread::Instance().SetEnableVisibleRect(false);
     surfaceParams->UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
+
+    surfaceDrawable_->OnDraw(*canvas_);
+    // HDR case Test
+    {
+        auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+        ASSERT_NE(uniParams, nullptr);
+        surfaceParams->SetChildHasVisibleHDRContent(true);
+        uniParams->SetIsMirrorScreen(true);
+        uniParams->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
+        surfaceDrawable_->OnDraw(*canvas_);
+        surfaceParams->SetChildHasVisibleHDRContent(false);
+        RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+        surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::LEASH_WINDOW);
+        RSUniRenderThread::GetCaptureParam().isMirror_ = true;
+        surfaceDrawable_->OnDraw(*canvas_);
+    }
 
     // test no special layer
     surfaceDrawable_->OnDraw(*canvas_);

@@ -186,6 +186,11 @@ public:
         return childHasVisibleHDRContent_;
     }
 
+    bool SelfOrChildHasHDR() const
+    {
+        return childHasVisibleHDRContent_ || hdrStatus_ != HdrStatus::NO_HDR;
+    }
+
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
 
     GraphicColorGamut GetNodeColorSpace() const

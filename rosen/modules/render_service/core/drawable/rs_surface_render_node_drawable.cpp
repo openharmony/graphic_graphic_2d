@@ -388,11 +388,13 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
     int offscreenWidth = curCanvas_->GetSurface()->Width();
     int offscreenHeight = curCanvas_->GetSurface()->Height();
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    bool isMirrorProjection = false;
     if (uniParam && uniParam->IsMirrorScreen() &&
         uniParam->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE) {
         auto screenInfo = uniParam->GetScreenInfo();
         offscreenWidth = static_cast<int>(screenInfo.width);
         offscreenHeight = static_cast<int>(screenInfo.height);
+        isMirrorProjection = true;
     }
     if (offscreenWidth <= 0 || offscreenHeight <= 0) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::PrepareOffscreenRender, offscreenWidth or offscreenHeight is invalid");
@@ -402,11 +404,21 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
     int maxRenderSize = GetMaxRenderSizeForRotationOffscreen(offscreenWidth, offscreenHeight);
     // create offscreen surface and canvas
     if (offscreenSurface_ == nullptr || maxRenderSize_ != maxRenderSize) {
-        RS_LOGD("PrepareOffscreenRender create offscreen surface offscreenSurface_,\
-            new [%{public}d, %{public}d %{public}d]", offscreenWidth, offscreenHeight, maxRenderSize);
-        RS_TRACE_NAME_FMT("PrepareOffscreenRender surface size: [%d, %d]", maxRenderSize, maxRenderSize);
+        auto& renderParam = GetRenderParams();
+        bool isNeedFP16 = isMirrorProjection && renderParam && renderParam->SelfOrChildHasHDR();
         maxRenderSize_ = maxRenderSize;
-        offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(maxRenderSize_, maxRenderSize_);
+        RS_LOGD("PrepareOffscreenRender create offscreen surface offscreenSurface_,\
+            new [%{public}d, %{public}d %{public}d], isNeedFP16:%{public}d",
+            offscreenWidth, offscreenHeight, maxRenderSize, isNeedFP16);
+        RS_TRACE_NAME_FMT("PrepareOffscreenRender surface size: [%d, %d], isNeedFP16:%{public}d",
+            maxRenderSize, maxRenderSize, isNeedFP16);
+        if (isNeedFP16) {
+            Drawing::ImageInfo info = { maxRenderSize_, maxRenderSize_, Drawing::ColorType::COLORTYPE_RGBA_F16,
+                Drawing::ALPHATYPE_PREMUL, Drawing::ColorSpace::CreateSRGB() };
+            offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(info);
+        } else {
+            offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(maxRenderSize_, maxRenderSize_);
+        }
     }
     if (offscreenSurface_ == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::PrepareOffscreenRender, offscreenSurface is nullptr");
@@ -735,8 +747,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     
     bool specialLayerInSecDisplay = uniParam->IsSecurityDisplay() && (specialLayerManager.Find(HAS_GENERAL_SPECIAL) ||
         specialLayerManager.FindWithScreen(curDisplayScreenId_, SpecialLayerType::HAS_BLACK_LIST));
+    bool wiredMirrorProjectionInHDR = surfaceParams->SelfOrChildHasHDR() &&
+        uniParam->IsMirrorScreen() && uniParam->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE;
     // Attention : Don't change the order of conditions. If securitydisplay has special layers, don't enable uifirst.
-    if (!specialLayerInSecDisplay &&
+    if (!specialLayerInSecDisplay && !wiredMirrorProjectionInHDR &&
         subThreadCache_.DealWithUIFirstCache(this, *rscanvas, *surfaceParams, *uniParam)) {
         if (GetDrawSkipType() == DrawSkipType::NONE) {
             SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
