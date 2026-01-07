@@ -527,10 +527,10 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
     };
-    surfaceBUfferImpl->Alloc(requestConfig, nullptr);
+    surfaceBufferImpl->Alloc(requestConfig, nullptr);
     EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
-    surfaceBUfferImpl->handle_ = nullptr;
-    surfaceBUfferImpl->FreeBufferHandleLocked();
+    surfaceBufferImpl->handle_ = nullptr;
+    surfaceBufferImpl->FreeBufferHandleLocked();
 }
 
 /*
@@ -1377,12 +1377,12 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessSetRCDMetaDataInvalid, TestSize.Level1
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
     };
-    surfaceBUfferImpl->Alloc(requestConfig, nullptr);
+    surfaceBufferImpl->Alloc(requestConfig, nullptr);
     bottomSurfaceNode->buffer_.buffer = surfaceBufferImpl;
     EXPECT_TRUE(bottomSurfaceNode->SetRCDMetaData() == false);
 
     // SetMetaData fail
-    surfaceBUfferImpl->handle_ = nullptr;
+    surfaceBufferImpl->handle_ = nullptr;
     EXPECT_TRUE(bottomSurfaceNode->SetRCDMetaData() == false);
 }
 
