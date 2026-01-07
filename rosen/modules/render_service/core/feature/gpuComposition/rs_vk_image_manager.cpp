@@ -393,6 +393,7 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(RSPaintF
         return nullptr;
     }
     auto& backendTexture = imageCache->GetBackendTexture();
+    RS_TRACE_NAME_FMT("BuildFromTexture, ignoreAlpha %d", params.ignoreAlpha);
     if (!image->BuildFromTexture(*contextDrawingVk, backendTexture.GetTextureInfo(),
         surfaceOrigin, bitmapFormat, drawingColorSpace,
         NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper(), params.ignoreAlpha)) {
