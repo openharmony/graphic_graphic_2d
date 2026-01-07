@@ -35,9 +35,9 @@ std::shared_ptr<RSLayer> RSSurfaceRCDLayer::Create(const std::shared_ptr<RSCompo
         return nullptr;
     }
     std::shared_ptr<RSLayer> layer = context->GetRSLayer(rsLayerId);
-    if (layer != nullptr) {
-        RS_TRACE_NAME_FMT("RSSurfaceRCDLayer::Create use exist layer, id: %" PRIu64 ", name: %s",
-            rsLayerId, layer->GetSurfaceName().c_str());
+    if (layer != nullptr && layer->IsScreenRCDLayer()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRCDLayer::Create use exist layer, id: %" PRIu64 ", name: %s, isRCD: %d",
+            rsLayerId, layer->GetSurfaceName().c_str(), static_cast<int>(layer->IsScreenRCDLayer()));
         RS_LOGD("RSSurfaceRCDLayer::Create get cache layer by layer id: %{public}" PRIu64, rsLayerId);
         layer->SetRSLayerId(rsLayerId);
         return layer;

@@ -303,6 +303,14 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE));
 }
 
+bool RSSystemProperties::GetRCDForceRedrawEnable()
+{
+    int changed = 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.rcdforceredraw.enabled", "0");
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0);
+}
+
 bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
 {
     static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "0") != "0";

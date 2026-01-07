@@ -33,7 +33,6 @@ struct ReleaseLayerBuffersInfo {
     std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>> releaseBufferFenceVec = {};
     int64_t lastSwapBufferTime = 0; /* 每帧回执时长 */
 };
-using NotifyScreenNodeBufferReleasedCB = std::function<void(ScreenId screenId)>;
 using ReleaseLayerBuffersCB = std::function<void(ReleaseLayerBuffersInfo& releaseLayerInfo)>;
 
 class IRSComposerToRenderConnection : public IRemoteBroker {

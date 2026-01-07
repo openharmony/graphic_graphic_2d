@@ -29,7 +29,7 @@ public:
         return Type;
     }
     
-    RSPhysicalScreenProcessor();
+    RSPhysicalScreenProcessor(const std::shared_ptr<RSRenderComposerClient>& composerClient);
     ~RSPhysicalScreenProcessor() noexcept override;
 
     bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,
@@ -43,6 +43,7 @@ private:
 
     std::unique_ptr<RSComposerAdapter> composerAdapter_ = nullptr;
     std::vector<RSLayerPtr> layers_;
+    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

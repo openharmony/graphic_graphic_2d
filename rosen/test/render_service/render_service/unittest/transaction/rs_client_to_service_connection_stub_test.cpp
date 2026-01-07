@@ -196,7 +196,7 @@ void RSClientToServiceConnectionStubTest::CreateComposerAdapterWithScreenInfo(ui
     info.state = state;
     info.rotation = rotation;
     composerAdapter_ = std::make_unique<RSComposerAdapter>();
-    composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient, nullptr);
+    composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient, nullptr, nullptr);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
 }
 

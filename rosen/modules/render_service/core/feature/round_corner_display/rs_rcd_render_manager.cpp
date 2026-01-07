@@ -25,13 +25,31 @@
 #include "rs_rcd_render_visitor.h"
 #include "rs_round_corner_display_manager.h"
 #include "sandbox_utils.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
 namespace {
     const NodeId PID_T = static_cast<NodeId>(GetRealPid());
-    const NodeId TOP_RCD_NODE_ID = ((PID_T << 32) | 1);
-    const NodeId BACKGROUND_RCD_NODE_ID = ((PID_T << 32) | 2);
+    const NodeId TOP_RCD_NODE_ID = 1;
+    const NodeId BOTTOM_RCD_NODE_ID = 2;
+
+    static NodeId GenerateRoundCornerDisplayID(NodeId screenID, uint32_t rcdTypeId)
+    {
+#ifdef USE_M133_SKIA
+        const auto hashFunc = SkChecksum::Hash32;
+#else
+        const auto hashFunc = SkOpts::hash;
+#endif
+        uint32_t hashOut = rcdTypeId;
+        hashOut = hashFunc(&screenID, sizeof(screenID), hashOut);
+        NodeId idOut = ((PID_T << 32) | static_cast<NodeId>(hashOut));
+        return idOut;
+    }
 }
 
 static std::unique_ptr<RSRcdRenderManager> g_rcdRenderManagerInstance =
@@ -171,7 +189,8 @@ RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetTopRenderNode(NodeId id)
         return it->second;
     }
     // create and insert
-    auto topRcdNode = RSRcdSurfaceRenderNode::Create(TOP_RCD_NODE_ID, RCDSurfaceType::TOP);
+    auto topId = GenerateRoundCornerDisplayID(id, TOP_RCD_NODE_ID);
+    auto topRcdNode = RSRcdSurfaceRenderNode::Create(topId, RCDSurfaceType::TOP);
     topRcdNode->SetRenderTargetId(id);
     topSurfaceNodeMap_[id] = topRcdNode;
     RS_LOGI_IF(DEBUG_PIPELINE, "RCD: insert a top rendernode");
@@ -186,7 +205,8 @@ RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetBottomRenderNode(NodeId id)
         return it->second;
     }
     // create and insert
-    auto bottomRcdNode = RSRcdSurfaceRenderNode::Create(BACKGROUND_RCD_NODE_ID, RCDSurfaceType::BOTTOM);
+    auto bottomId = GenerateRoundCornerDisplayID(id, BOTTOM_RCD_NODE_ID);
+    auto bottomRcdNode = RSRcdSurfaceRenderNode::Create(bottomId, RCDSurfaceType::BOTTOM);
     bottomRcdNode->SetRenderTargetId(id);
     bottomSurfaceNodeMap_[id] = bottomRcdNode;
     RS_LOGI_IF(DEBUG_PIPELINE, "RCD: insert a bottom rendernode");
@@ -200,14 +220,7 @@ void RSRcdRenderManager::DrawRoundCorner(RSPaintFilterCanvas& canvas, const std:
         if (layer == nullptr || !layer->IsScreenRCDLayer()) {
             continue;
         }
-        auto img = RSRcdSurfaceRenderNode::PareseBitmapFromRCDLayer(layer).MakeImage();
-        if (img == nullptr) {
-            continue;
-        }
-        auto rect = layer->GetLayerSize();
-        Drawing::Brush brush;
-        canvas.AttachBrush(brush);
-        canvas.DrawImage(*img, rect.x, rect.y, Drawing::SamplingOptions());
+        RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, layer);
     }
 }
 

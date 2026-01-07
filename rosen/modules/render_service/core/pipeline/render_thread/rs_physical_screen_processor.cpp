@@ -22,8 +22,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSPhysicalScreenProcessor::RSPhysicalScreenProcessor()
-    : composerAdapter_(std::make_unique<RSComposerAdapter>())
+RSPhysicalScreenProcessor::RSPhysicalScreenProcessor(const std::shared_ptr<RSRenderComposerClient>& composerClient)
+    : composerAdapter_(std::make_unique<RSComposerAdapter>()), composerClient_(composerClient)
 {
 }
 
@@ -42,7 +42,7 @@ bool RSPhysicalScreenProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, 
 #endif
 
     return composerAdapter_->Init(node, screenInfo_, mirroredScreenInfo_, mirrorAdaptiveCoefficient_,
-        [this](const auto& surface, const auto& layers) { Redraw(surface, layers); });
+        [this](const auto& surface, const auto& layers) { Redraw(surface, layers); }, composerClient_->GetOutput());
 }
 
 void RSPhysicalScreenProcessor::PostProcess()

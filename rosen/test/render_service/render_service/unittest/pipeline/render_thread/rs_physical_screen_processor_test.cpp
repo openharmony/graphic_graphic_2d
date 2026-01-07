@@ -305,7 +305,8 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessRcdSurface, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, Redraw, TestSize.Level1)
 {
-    std::shared_ptr<RSPhysicalScreenProcessor> rsHardwareProcessor = std::make_shared<RSPhysicalScreenProcessor>();
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    std::shared_ptr<RSPhysicalScreenProcessor> rsHardwareProcessor = std::make_shared<RSPhysicalScreenProcessor>(client);
     sptr<Surface> surface;
     std::vector<RSLayerPtr> layers;
     rsHardwareProcessor->Redraw(surface, layers);

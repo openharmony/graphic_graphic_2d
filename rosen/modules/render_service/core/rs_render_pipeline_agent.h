@@ -201,6 +201,7 @@ private:
 #endif
     std::unordered_map<pid_t, std::string> pidToBundleName_;
     mutable std::mutex pidToBundleMutex_;
+    mutable std::mutex mutex_;
 };
 
 } // namespace Rosen

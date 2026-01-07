@@ -139,7 +139,8 @@ void RSRenderPipeline::PostUniRenderThreadSyncTask(RSTaskMessage::RSTask task)
 void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
-        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent,
+        const std::shared_ptr<HdiOutput>& output)
 {
     RS_LOGI("RSRenderPipeline %{public}s, screen id: %{public}" PRIu64, __func__,
         rsScreenProperty ? rsScreenProperty->GetScreenId() : INVALID_SCREEN_ID);
@@ -163,6 +164,9 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
             std::bind(&RSUniRenderThread::ReleaseLayerBuffers, uniRenderThread_, std::placeholders::_1));
         composerClient = RSRenderComposerClient::Create(renderToComposerConn, composerToRenderConn,
             rsVsyncManagerAgent);
+        if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            composerClient->SetOutput(output);
+        }
     }
     uniRenderThread_->OnScreenConnected(rsScreenProperty->GetScreenId(), composerClient);
 }

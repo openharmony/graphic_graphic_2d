@@ -177,6 +177,11 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
         parcelCopied->InjectOffsets(old.GetObjectOffsets(), objectNum);
         CopyFileDescriptor(old, *parcelCopied);
     }
+    auto token = parcelCopied->ReadInterfaceToken();
+    if (token != RSIClientToRenderConnection::GetDescriptor()) {
+        RS_LOGE("RSClientToRenderConnectionStub::CopyParcelIfNeed parcel token Read failed");
+        return nullptr;
+    }
     int32_t data{0};
     if (!parcelCopied->ReadInt32(data)) {
         RS_LOGE("RSClientToRenderConnectionStub::CopyParcelIfNeed parcel data Read failed");
