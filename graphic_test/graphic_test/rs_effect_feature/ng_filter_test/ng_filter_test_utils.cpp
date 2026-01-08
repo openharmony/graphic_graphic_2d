@@ -67,7 +67,19 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
     {RSNGEffectType::MAGNIFIER,
      [] {
          return std::make_shared<RSNGMagnifierFilter>();
-     }}
+     }},
+    {RSNGEffectType::GASIFY_SCALE_TWIST, [] {
+            return std::make_shared<RSNGGasifyScaleTwistFilter>();
+        }
+    },
+    {RSNGEffectType::GASIFY_BLUR, [] {
+            return std::make_shared<RSNGGasifyBlurFilter>();
+        }
+    },
+    {RSNGEffectType::GASIFY, [] {
+            return std::make_shared<RSNGGasifyFilter>();
+        }
+    }
 };
 
 std::shared_ptr<RSNGMaskBase> CreateMask(RSNGEffectType type)

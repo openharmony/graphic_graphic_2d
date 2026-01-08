@@ -25,6 +25,11 @@ std::shared_ptr<RSNGMaskBase> CreateMask(RSNGEffectType type);
 std::shared_ptr<RSNGFilterBase> CreateFilter(RSNGEffectType type);
 
 const std::string FG_TEST_JPG_PATH = "/data/local/tmp/fg_test.jpg";
+const std::string BG_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
+const std::string MASK_RGB_PATH = "/data/local/tmp/Images/maskRGB.png";
+const std::string MASK_SHADOW_PATH = "/data/local/tmp/Images/maskShadow.png";
+const int SCREEN_WIDTH = 1200;
+const int SCREEN_HEIGHT = 2000;
 
 // Default values
 const Vector2f DEFAULT_BLUR_PARAMS = Vector2f(20.0f, 3.0f);
@@ -426,5 +431,7 @@ enum class TestDataGroupParamsType {
     INVALID_DATA_MAX,
     COUNT
 };
+
+const std::vector<float> gasifyProgressVec = {-1.f, 0.01f, 0.2f, 1.5f};
 }  // namespace OHOS::Rosen
 #endif // NG_FILTER_TEST_UTILS_H
