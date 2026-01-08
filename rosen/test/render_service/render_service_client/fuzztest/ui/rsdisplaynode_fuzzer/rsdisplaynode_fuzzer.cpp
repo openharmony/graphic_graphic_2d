@@ -105,6 +105,9 @@ bool DoUnmarshalling()
         return false;
     }
     Parcel parcel;
+    parcel.WriteUint64(GetData<uint64_t>());
+    parcel.WriteUint64(GetData<uint64_t>());
+    parcel.WriteBool(GetData<bool>());
     displayNode->Unmarshalling(parcel);
     return true;
 }
