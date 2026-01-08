@@ -138,7 +138,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
-        GetOpincDrawCache().BeforeDrawCache(canvas, *params, isOpincDropNodeExt_);
+        GetOpincDrawCache().BeforeDrawCache(canvas, *params);
         if (!IsDrawingBlurForCache() || IsDrawingExcludedSubTreeForCache()) {
             GenerateCacheIfNeed(canvas, *params);
         }
