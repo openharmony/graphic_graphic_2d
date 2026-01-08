@@ -183,8 +183,8 @@ public:
     uint32_t GetIndex() const;
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
-    static TypefaceRegisterCallback registerTypefaceCallBack_;
-    static std::function<std::shared_ptr<Typeface>(uint64_t)> uniqueIdCallBack_;
+    inline static TypefaceRegisterCallback registerTypefaceCallBack_ = nullptr;
+    inline static std::function<std::shared_ptr<Typeface>(uint64_t)> uniqueIdCallBack_ = nullptr;
     uint32_t size_ = 0;
     uint32_t index_ = 0;
 };
