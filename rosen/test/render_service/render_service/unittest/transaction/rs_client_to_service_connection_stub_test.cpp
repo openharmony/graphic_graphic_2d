@@ -2070,7 +2070,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest001, Tes
     data3.WriteUint64(SCREEN_ID);
     data3.WriteUint32(width);
     data3.WriteUint32(height);
-    reply3.writeable_ = false;
+    reply3.writable_ = false;
     res = connectionStub_->OnRemoteRequest(code, data3, reply3, option);
     ASSERT_EQ(res, ERR_INVALID_REPLY);
 
