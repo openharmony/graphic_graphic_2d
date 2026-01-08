@@ -217,8 +217,8 @@ void RSGraphicTest::TearDown()
     }
 
     StartUIAnimation();
-    RSGraphicTestDirector::Instance().FlushMessageAndWait(RSParameterParse::Instance().testCaseWaitTime);
-    WaitTimeout(RSParameterParse::Instance().normalWaitTime);
+    RSGraphicTestDirector::Instance().FlushMessage();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     bool isManualTest = false;
     if (extInfo) {
@@ -236,6 +236,7 @@ void RSGraphicTest::TearDown()
     }
 
     AfterEach();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     if (isDynamicTest) {
         PlaybackStop();
@@ -244,8 +245,8 @@ void RSGraphicTest::TearDown()
     GetRootNode()->ResetTestSurface();
     nodes_.clear();
     RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear");
-    RSGraphicTestDirector::Instance().FlushMessageAndWait(RSParameterParse::Instance().testCaseWaitTime);
-    WaitTimeout(RSParameterParse::Instance().normalWaitTime);
+    RSGraphicTestDirector::Instance().FlushMessage();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 }
 
 void RSGraphicTest::RegisterNode(std::shared_ptr<RSNode> node)
