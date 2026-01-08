@@ -16,6 +16,7 @@
 #ifndef TEXT_LOG_H
 #define TEXT_LOG_H
 
+#include <chrono>
 #include <hilog/log.h>
 
 namespace OHOS {

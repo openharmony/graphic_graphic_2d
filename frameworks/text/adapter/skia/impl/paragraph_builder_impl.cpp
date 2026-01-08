@@ -304,8 +304,8 @@ void ParagraphBuilderImpl::RecordDifferentPthreadCall(const char* caller) const
 {
     pthread_t currenetThreadId = pthread_self();
     if (threadId_ != currenetThreadId) {
-        TEXT_LOGE_LIMIT3_HOUR("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
-            threadId_, caller);
+        TEXT_LOGE_LIMIT3_HOUR("New pthread access paragraph builder, old %{public}zu, caller %{public}s",
+            static_cast<size_t>(threadId_), caller);
         threadId_ = currenetThreadId;
     }
 }
