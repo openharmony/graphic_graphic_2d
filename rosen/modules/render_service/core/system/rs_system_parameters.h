@@ -69,7 +69,7 @@ public:
     static bool GetSkipCanvasNodeOutofScreenEnabled();
     static bool GetDrawingEffectRegionEnabledDfx();
     static bool GetRenderStop();
-    static bool GetOcclusionCallBackToWMSDebugType();
+    static int GetOcclusionCullingDebugLevel();
     static bool GetPrevalidateHwcNodeEnabled();
     static bool GetSolidLayerHwcEnabled();
     static bool GetControlBufferConsumeEnabled();
