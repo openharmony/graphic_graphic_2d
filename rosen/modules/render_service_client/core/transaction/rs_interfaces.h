@@ -250,6 +250,8 @@ public:
      * @param watermark Watermark pixelmap.
      * @param maxSize The maximum supported image size is 6MB. if the maximum image size exceeds 512Kb,
      * the time to draw the watermark will increase. In such cases, consider using DMA mode for pixelMap
+     * SetSurfaceWatermark has a maximum of 1000 images.
+     * When not using a watermark, the watermark image should be released.
      * @return set watermark success return true, else return false.
      */
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
@@ -266,6 +268,7 @@ public:
      * if the maximum image size exceeds 512Kb, the time to draw the watermark will increase. In such cases, consider
      * using DMA mode for pixelMap
      * SetSurfaceWatermark has a maximum of 1000 images.
+     * When not using a watermark, the watermark image should be released.
      * if SurfaceWatermarkType is SYSTEM_WATER_MARK, the nodeList is ineffective. Therefore, SetWatermarkEnabled needs
      * to be set.
      * @return set watermark success return 0, else return errorCode.
