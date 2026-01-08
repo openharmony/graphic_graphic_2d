@@ -273,7 +273,7 @@ napi_value JsFontDescriptor::GetSystemFontFullNamesByType(napi_env env, napi_cal
     return NapiAsyncWork::Enqueue(env, context, "GetSystemFontFullNamesByType", executor, complete).result;
 }
 
-napi_value JsFontDescriptor::CreateFontList(napi_env env, std::unordered_set<std::string>& fontList)
+napi_value JsFontDescriptor::CreateFontList(napi_env env, const std::unordered_set<std::string>& fontList)
 {
     TEXT_ERROR_CHECK(env != nullptr, return nullptr, "Env is nullptr");
     napi_value fullNameArray = nullptr;
@@ -467,7 +467,7 @@ napi_value JsFontDescriptor::GetFontPathsByType(napi_env env, napi_callback_info
 
     if (!ConvertFromJsValue(env, argv[0], fontType)) {
         TEXT_LOGE("Failed to convert argument to SystemFontType");
-        return NapiThrowError(env, MLB::ERROR_INVALID_PARAM, "Invalid system font type");
+        return CreateFontList(env, {});
     }
 
     std::unordered_set<std::string> fontPaths;

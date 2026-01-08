@@ -34,7 +34,7 @@ public:
     static napi_value CreateFontDescriptor(napi_env env, FontDescSharedPtr& result);
     static napi_value GetSystemFontFullNamesByType(napi_env env, napi_callback_info info);
     static napi_value GetFontDescriptorByFullName(napi_env env, napi_callback_info info);
-    static napi_value CreateFontList(napi_env env, std::unordered_set<std::string>& fontList);
+    static napi_value CreateFontList(napi_env env, const std::unordered_set<std::string>& fontList);
     static napi_value GetFontDescriptorsFromPath(napi_env env, napi_callback_info info);
     static napi_value GetFontUnicodeSet(napi_env env, napi_callback_info info);
     static napi_value GetFontCount(napi_env env, napi_callback_info info);
