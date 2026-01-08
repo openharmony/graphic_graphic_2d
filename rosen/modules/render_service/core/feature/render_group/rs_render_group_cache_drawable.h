@@ -54,7 +54,6 @@ private:
     static thread_local bool drawExcludedSubTreeForCache_;
     bool isCanceledByParentRenderGroup_ = false;
     bool isLastFrameCacheRootHasExcludedChild_ = false;
-    
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
