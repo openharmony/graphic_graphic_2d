@@ -409,7 +409,7 @@ typedef enum {
      * Middle modal. It is valid for any value of maxLines in OH_Drawing_TypographyStyle.
      * @since 24
      */
-     ELLIPSIS_MODAL_MULTILINE_MIDDLE = 4,
+    ELLIPSIS_MODAL_MULTILINE_MIDDLE = 4,
 } OH_Drawing_EllipsisModal;
 
 /**
