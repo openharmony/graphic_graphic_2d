@@ -93,7 +93,7 @@ HWTEST_F(RSLayerTransactionTest, CommitLayersTransactionTest, Level1)
 {
     ASSERT_NE(handler_, nullptr);
     ASSERT_NE(handler_->rsComposerConnection_, nullptr);
-    handler_->CommitLayersTransaction();
+    handler_->CommitRSLayerTransaction();
 }
 
 /**

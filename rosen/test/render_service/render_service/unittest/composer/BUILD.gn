@@ -82,6 +82,8 @@ ohos_unittest("RSLayerTransactionTest") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
+    "samgr:samgr_proxy",
+    "hisysevent:libhisysevent",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -91,7 +93,7 @@ ohos_unittest("RSLayerTransactionTest") {
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
-    defines = [ "RES_SCHED_ENABLE" ]
+    defines += [ "RES_SCHED_ENABLE" ]
   }
 
   subsystem_name = "graphic"
@@ -158,6 +160,7 @@ ohos_unittest("RSLayerContextTest") {
     "ipc:ipc_core",
     "memmgr:memmgrclient",
     "samgr:samgr_proxy",
+    "hisysevent:libhisysevent",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -234,6 +237,7 @@ ohos_unittest("RSRenderComposerClientTest") {
     "ipc:ipc_core",
     "memmgr:memmgrclient",
     "samgr:samgr_proxy",
+    "hisysevent:libhisysevent",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -243,7 +247,7 @@ ohos_unittest("RSRenderComposerClientTest") {
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
-    defines += [ "RES_SCHED_ENABLE" ]
+    defines = [ "RES_SCHED_ENABLE" ]
   }
 
   subsystem_name = "graphic"
@@ -310,6 +314,7 @@ ohos_unittest("RSSurfaceLayerTest") {
     "ipc:ipc_core",
     "memmgr:memmgrclient",
     "samgr:samgr_proxy",
+    "hisysevent:libhisysevent",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
