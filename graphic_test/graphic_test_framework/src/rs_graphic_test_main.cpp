@@ -194,7 +194,7 @@ static int RunPlaybackProfilerTest(int argc, char **argv)
 
 TEST(DummyTest, NoOpTest)
 {
-    // Always-passing infrastructure test for CI fallback
+    // Always-passing infrastructure test for CI fallback.
     constexpr int kRef = 100;
     constexpr int kVal = 100;
     constexpr bool kOk = (kRef == kVal);
