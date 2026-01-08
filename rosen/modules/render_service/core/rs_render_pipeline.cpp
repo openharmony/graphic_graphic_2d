@@ -259,9 +259,6 @@ void RSRenderPipeline::InitUniRenderThread()
 {
     uniRenderThread_ = &(RSUniRenderThread::Instance());
     uniRenderThread_->Start();
-
-    uniBufferThread_ = &(RSBufferThread::Instance());
-    uniBufferThread_->Start();
 }
 
 void RSRenderPipeline::InitDumper(const std::shared_ptr<AppExecFwk::EventHandler>& handler)

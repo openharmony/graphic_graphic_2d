@@ -55,6 +55,8 @@ public:
 
         void AddRef()
         {
+            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::AddRef seqNum %u refCount_ %u", uint32_t(seqNum_),
+                refCount_.load());
             if (seqNum_ == 0) {
                 RS_LOGE("BufferOwnerCount::AddRef seqNum %{public}u ret %{public}u", uint32_t(seqNum_),
                     refCount_.load());
@@ -65,8 +67,10 @@ public:
 
         void DecRef()
         {
+            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::DecRef seqNum %u refCount_ %u", uint32_t(seqNum_),
+                refCount_.load());
             if (seqNum_ == 0) {
-                RS_LOGE("BufferOwnerCount::AddRef seqNum %{public}u ret %{public}u", uint32_t(seqNum_),
+                RS_LOGE("BufferOwnerCount::DecRef seqNum %{public}u ret %{public}u", uint32_t(seqNum_),
                     refCount_.load());
                 return;
             }

@@ -38,7 +38,11 @@ void RSBufferCollectorHelper::SetAcquireFence(sptr<SyncFence> fence)
     if (fence == nullptr) {
         return;
     }
-    fence_ = SyncFence::MergeFence("RSBufferCollectorHelper", fence_, fence);
+    if (fence_ && fence_->Get() != -1) {
+        fence_ = SyncFence::MergeFence("RSBufferCollectorHelper", fence_, fence);
+    } else {
+        fence_ = fence;
+    }
 }
 
 void RSBufferCollectorHelper::OnCanvasDrawBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
@@ -57,6 +61,8 @@ void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
         return;
     }
     auto seqNum = buffer->GetSeqNum();
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::AddPendingReleaseBuffer(with consumer) seqNum %u fence %d",
+        uint32_t(seqNum), fence->Get());
     std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
     auto iter = pendingReleaseBuffers_.find(seqNum);
     if (iter == pendingReleaseBuffers_.end()) {
@@ -67,20 +73,24 @@ void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
             // the buffer can only be released when both sides have finished using it.
             if (iter->second.mergedFence_ && iter->second.mergedFence_->Get() != -1) {
                 iter->second.mergedFence_ = SyncFence::MergeFence("bufferFence", iter->second.mergedFence_, fence);
+                RS_OPTIONAL_TRACE_NAME_FMT("AddPendingReleaseBuffer After Merge seqNum %u mergedFence_ %d fence %d",
+                    uint32_t(seqNum), iter->second.mergedFence_ ? iter->second.mergedFence_->Get() : -1, fence->Get());
             } else {
                 iter->second.mergedFence_ = fence;
             }
         }
         iter->second.buffer_ = buffer;
-        iter->second.consumer_ = consumer;
+        if (iter->second.consumer_ == nullptr) {
+            iter->second.consumer_ = consumer;
+        }
     }
 }
 
 void RSBufferManager::AddPendingReleaseBuffer(uint64_t seqNum, sptr<SyncFence> fence)
 {
     std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
-    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::AddPendingReleaseBuffer seqNum %u fence %d", uint32_t(seqNum),
-        fence->Get());
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::AddPendingReleaseBuffer(without consumer) seqNum %u fence %d",
+        uint32_t(seqNum), fence->Get());
     if (fence == nullptr) {
         RS_LOGE("RSBufferManager::AddPendingReleaseBuffer(without consumer) fence is null");
         return;
@@ -89,10 +99,13 @@ void RSBufferManager::AddPendingReleaseBuffer(uint64_t seqNum, sptr<SyncFence> f
     if (iter == pendingReleaseBuffers_.end()) {
         pendingReleaseBuffers_[seqNum] = { nullptr, nullptr, fence };
     } else {
-        iter->second.mergedFence_ = SyncFence::MergeFence("bufferFence", iter->second.mergedFence_, fence);
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager AddPendingReleaseBuffer After Merge seqNum %u mergedFence_ %d "
-            "fence %d", uint32_t(seqNum),
-            iter->second.mergedFence_ ? iter->second.mergedFence_->Get() : -1, fence->Get());
+        if (iter->second.mergedFence_ && iter->second.mergedFence_->Get() != -1) {
+            iter->second.mergedFence_ = SyncFence::MergeFence("bufferFence", iter->second.mergedFence_, fence);
+            RS_OPTIONAL_TRACE_NAME_FMT("AddPendingReleaseBuffer After Merge seqNum %u mergedFence_ %d fence %d",
+                uint32_t(seqNum), iter->second.mergedFence_ ? iter->second.mergedFence_->Get() : -1, fence->Get());
+        } else {
+            iter->second.mergedFence_ = fence;
+        }
     }
 }
 
@@ -140,7 +153,7 @@ void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::
     sptr<SyncFence>& uniFence, std::set<uint32_t>& decedSet,
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers)
 {
-    if (uniBufferCount) {
+    if (uniBufferCount == nullptr) {
         return;
     }
     std::lock_guard<std::mutex> lock(uniBufferCount->mapMutex_);

@@ -401,14 +401,20 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
             this->buildHdrTaskStatus_ =
                 BuildHDRTask(surfaceParams, MDCSrcRect, &taskId, &(this->taskPtr_), this->curHandleStatus_);
             this->taskId_.store(taskId);
+            if (surfaceParams && surfaceParams->GetBufferOwnerCount()) {
+                surfaceParams->GetBufferOwnerCount()->AddRef();
+            }
         },
         &taskPtr_,
-        [this, curFrameId] {
+        [surfaceParams, this, curFrameId] {
             RS_TRACE_NAME("[hdrHetero]:RSHeteroHDRManager PrepareAndSubmitHDRTask afterFunc finished");
             RSHeteroHDRHpae::GetInstance().DestroyHpaeHDRTask(this->taskId_.load());
             RSHDRPatternManager::Instance().MHCGraphQueryTaskError(curFrameId, MHC_PATTERN_TASK_HDR_HPAE);
             this->taskPtr_ = nullptr;
             destroyedFlag_.store(true);
+            if (surfaceParams && surfaceParams->GetBufferOwnerCount()) {
+                surfaceParams->GetBufferOwnerCount()->DecRef();
+            }
         });
     return submitRet;
 }
@@ -609,7 +615,10 @@ bool RSHeteroHDRManager::UpdateHDRHeteroParams(RSPaintFilterCanvas& canvas,
             RS_LOGE("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams ConsumeAndUpdateBuffer or GetBuffer failed");
             return false;
         }
-        rsHeteroHDRBufferLayer_.ReleaseBuffer();
+        auto hdrPreBufferCount = hdrSurfaceHandler->GetPreBufferOwnerCount();
+        if (hdrPreBufferCount && hdrSurfaceHandler->IsCurrentFrameBufferConsumed()) {
+            hdrPreBufferCount->DecRef();
+        }
         RSHDRPatternManager::Instance().SetThreadId(canvas);
 
         ProcessParamsUpdate(canvas, surfaceDrawable, drawableParams);

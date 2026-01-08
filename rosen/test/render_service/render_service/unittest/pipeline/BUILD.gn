@@ -24,7 +24,6 @@ group("unittest") {
     ":RSBaseRenderEngineUnitTest",
     ":RSBaseRenderUtilTest",
     ":RSBufferManagerTest",
-    ":RSBufferThreadTest",
     ":RSComposerAdapterTest",
     ":RSDividedRenderUtilTest",
     ":RSDrawFrameTest",
@@ -82,21 +81,6 @@ ohos_unittest("RSBufferManagerTest") {
   module_out_path = module_output_path
   sources = [ "buffer_thread/rs_buffer_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
-}
-
-## Build RSBufferThreadTest
-ohos_unittest("RSBufferThreadTest") {
-  module_out_path = module_output_path
-  sources = [ "buffer_thread/rs_buffer_thread_test.cpp" ]
-  deps = [
-    ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
 }
 
 ## Build RSVirtualScreenProcessorTest
