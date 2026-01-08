@@ -169,7 +169,7 @@
 #include "feature_cfg/feature_param/feature_param.h"
 
 #ifdef HETERO_HDR_ENABLE
-#include "/rs_hetero_hdr_manager.h"
+#include "rs_hetero_hdr_manager.h"
 #endif
 
 #ifdef SUBTREE_PARALLEL_ENABLE

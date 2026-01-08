@@ -643,7 +643,8 @@ ohos_source_set("render_service_base_src") {
     include_dirs += [ "$graphic_2d_ext_root/subtree" ]
   }
 
-  if (graphic_2d_feature_hetero_hdr_enable) {
+  if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable
+      && defined(graphic_2d_hetero_hdr_configs)) {
     include_dirs += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_include
     sources += graphic_2d_hetero_hdr_configs.librender_service_base_hetero_hdr_sources
     external_deps += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_external_deps

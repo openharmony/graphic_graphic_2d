@@ -534,7 +534,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
 
-    std::vector<GrBackendSemaphore> semaphoreVec = {backendSemaphore};
+    std::vector<GrBackendSemaphore> semaphoreVec = { backendSemaphore };
 #ifdef HETERO_HDR_ENABLE
     std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface.drawingSurface, frameIdVec);

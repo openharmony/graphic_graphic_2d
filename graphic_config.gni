@@ -343,7 +343,7 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/subtree/build/subtree_confi
   }
 }
 
-graphic_2d_hetero_hdr_config = {}
+graphic_2d_hetero_hdr_configs = {}
 
 if (exec_script(check_graphic_ext_file_script,
                 check_hetero_hdr_ext_file_args,
@@ -351,15 +351,15 @@ if (exec_script(check_graphic_ext_file_script,
 
   graphic_2d_hetero_hdr_configs = {
     import(
-      "//foundation/graphic/graphic_2d_ext/hetero_hdr/build/hetero_hdr_config/gni")
+      "//foundation/graphic/graphic_2d_ext/hetero_hdr/build/hetero_hdr_config.gni")
   }
 }
 
 
-graphic_2d_mhc_config = {}
+graphic_2d_mhc_configs = {}
 
 if (path_exists("//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni")) {
-  graphic_2d_mhc_config = {
+  graphic_2d_mhc_configs = {
     import(
       "//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni")
   }

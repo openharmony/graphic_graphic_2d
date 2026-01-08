@@ -20,8 +20,6 @@
 
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
-
-
 #include "graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
