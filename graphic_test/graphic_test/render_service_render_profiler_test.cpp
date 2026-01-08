@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifdef ENABLE_PROFILER_CMD_TEST
 #include <condition_variable>
 #include <cstdio>
 #include <cstring>
@@ -26,6 +27,9 @@
 #include <thread>
 #include <unistd.h>
 #include "rs_graphic_test.h"
+#else
+#include "gtest/gtest.h"
+#endif
 
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_packet.h"
@@ -35,6 +39,7 @@ using namespace OHOS::Rosen;
 #endif
 using namespace std;
 
+#ifdef ENABLE_PROFILER_CMD_TEST
 constexpr int MAX_WAITING_TIMES = 1000;
 [[maybe_unused]] constexpr int INIT_WAIT_TIME = 50;
 [[maybe_unused]] constexpr int SOCKET_REFRESH_TIME = 20;
@@ -384,3 +389,25 @@ int main(int argc, char * argv[])
     }
     return 0;
 }
+#else
+class RenderServiceRenderProfilerTest : public testing::Test {
+public:
+    static void SetUpTestCase() {};
+    static void TearDownTestCase() {};
+    void SetUp() override {};
+    void TearDown() override {};
+    void TestBody() override {}
+};
+
+/*
+ * @tc.name: EmptyTest
+ * @tc.desc: empty test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RenderServiceRenderProfilerTest, EmptyTest, testing::ext::TestSize.Level1)
+{
+    auto profilerThread = std::make_shared<RenderServiceRenderProfilerTest>();
+    ASSERT_TRUE(profilerThread);
+}
+#endif

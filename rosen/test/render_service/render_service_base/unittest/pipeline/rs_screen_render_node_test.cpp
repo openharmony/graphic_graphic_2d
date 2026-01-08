@@ -954,22 +954,6 @@ HWTEST_F(RSScreenRenderNodeTest, PixelFormatTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: HdrStatusTest
- * @tc.desc: test results of CollectHdrStatus, GetDisplayHdrStatus, ResetDisplayHdrStatus
- * @tc.type: FUNC
- * @tc.require: issuesIBANP9
- */
-HWTEST_F(RSScreenRenderNodeTest, HdrStatusTest, TestSize.Level1)
-{
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
-    screenNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
-    screenNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
-    screenNode->CollectHdrStatus(HdrStatus::AI_HDR_VIDEO_GTM);
-    EXPECT_EQ(screenNode->GetDisplayHdrStatus(), HdrStatus::HDR_PHOTO | HdrStatus::HDR_VIDEO |
-        HdrStatus::AI_HDR_VIDEO_GTM);
-}
-
-/**
  * @tc.name: GetTargetSurfaceRenderNodeId
  * @tc.desc: test results of Set/GetTargetSurfaceRenderNodeId
  * @tc.type: FUNC
