@@ -725,8 +725,13 @@ HWTEST_F(RSScreenTest, SetRogResolution_002, testing::ext::TestSize.Level1)
     rsScreen->property_.SetPhyHeight(height + 1);
 
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
-    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
 
+    // case 1: hdiScreen_->SetScreenOverlayResolution failed
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
+    rsScreen->SetRogResolution(width, height);
+
+    // case 2:hdiScreen_->SetScreenOverlayResolution success
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(0));
     rsScreen->SetRogResolution(width, height);
 }
 
@@ -865,7 +870,7 @@ HWTEST_F(RSScreenTest, SetActiveMode_003, testing::ext::TestSize.Level1)
     EXPECT_CALL(*hdiDeviceMock_, SetScreenMode).Times(1).WillOnce(testing::Return(-1));
     rsScreen->SetActiveMode(3);
 
-    constexpr int32_t HDF_ERR_NOT_SUPPORT = -2;
+    constexpr int32_t HDF_ERR_NOT_SUPPORT = -5;
     EXPECT_CALL(*hdiDeviceMock_, SetScreenMode).Times(2).WillRepeatedly(testing::Return(HDF_ERR_NOT_SUPPORT));
     auto ret = rsScreen->SetActiveMode(1);
     EXPECT_EQ(ret, StatusCode::HDI_ERR_NOT_SUPPORT);
@@ -2612,17 +2617,17 @@ HWTEST_F(RSScreenTest, PhysicalScreenInit, testing::ext::TestSize.Level1)
     auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));
     ASSERT_NE(nullptr, rsScreen);
     EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_INTERVAL);
- 
+
     id = 1;
     rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));
     ASSERT_NE(nullptr, rsScreen);
     EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_INTERVAL);
- 
+
     id = 2;
     rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));
     ASSERT_NE(nullptr, rsScreen);
     EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_INTERVAL);
- 
+
     id = 3;
     MultiScreenParam::SetSkipFrameByActiveRefreshRate(true);
     rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));

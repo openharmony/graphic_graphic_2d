@@ -1610,7 +1610,6 @@ void RSScreenManager::RemoveVirtualScreen(ScreenId id)
             RS_LOGW("%{public}s: The screen is not virtual, id %{public}" PRIu64, __func__, id);
             return;
         }
-
         screens_.erase(iter);
         --currentVirtualScreenNum_;
         RS_LOGI("%{public}s: remove virtual screen(id %{public}" PRIu64 ").", __func__, id);
@@ -1620,7 +1619,6 @@ void RSScreenManager::RemoveVirtualScreen(ScreenId id)
         freeVirtualScreenIds_.push(id);
     }
     NotifyScreenNodeChange(id, false);
-
     // when virtual screen doesn't exist no more, render control can be recovered.
     {
         std::lock_guard<std::mutex> lock(renderControlMutex_);
@@ -2010,8 +2008,7 @@ PanelPowerStatus RSScreenManager::GetPanelPowerStatus(ScreenId id) const
         RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
     }
-    auto status = screen->GetPanelPowerStatus();
-    return status;
+    return screen->GetPanelPowerStatus();
 }
 
 ScreenInfo RSScreenManager::QueryDefaultScreenInfo() const
@@ -2140,6 +2137,7 @@ int32_t RSScreenManager::SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSw
     std::lock_guard<std::shared_mutex> lock(screenSwitchingNotifyCallbackMutex_);
     screenSwitchingNotifyCallback_ = callback;
     RS_LOGI("%{public}s: set screen switching notify callback succeed.", __func__);
+    RS_OPTIONAL_TRACE_NAME("set screen switching notify callback succeed");
     return SUCCESS;
 }
 
@@ -2748,18 +2746,6 @@ void RSScreenManager::NotifyScreenNodeChange(ScreenId id, bool connected) const
     }
 }
 
-void RSScreenManager::NotifySwitchingCallback(bool status) const
-{
-    std::shared_lock<std::shared_mutex> lock(screenSwitchingNotifyCallbackMutex_);
-    if (screenSwitchingNotifyCallback_ == nullptr) {
-        RS_LOGE("%{public}s: screenSwitchingNotifyCallback_ is nullptr! status: %{public}d", __func__, status);
-        return;
-    }
-
-    RS_LOGI("%{public}s: status: %{public}d", __func__, status);
-    screenSwitchingNotifyCallback_->OnScreenSwitchingNotify(status);
-}
-
 void RSScreenManager::RegisterHwcEvent(std::function<void()> func)
 {
     registerHwcEventFunc_ = std::move(func);
@@ -2773,6 +2759,18 @@ std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId id) c
         return nullptr;
     }
     return iter->second;
+}
+
+void RSScreenManager::NotifySwitchingCallback(bool status) const
+{
+    std::shared_lock<std::shared_mutex> lock(screenSwitchingNotifyCallbackMutex_);
+    if (screenSwitchingNotifyCallback_ == nullptr) {
+        RS_LOGE("%{public}s: screenSwitchingNotifyCallback_ is nullptr! status: %{public}d", __func__, status);
+        return;
+    }
+
+    RS_LOGI("%{public}s: status: %{public}d", __func__, status);
+    screenSwitchingNotifyCallback_->OnScreenSwitchingNotify(status);
 }
 
 sptr<RSScreenProperty> RSScreenManager::QueryScreenProperty(ScreenId id) const

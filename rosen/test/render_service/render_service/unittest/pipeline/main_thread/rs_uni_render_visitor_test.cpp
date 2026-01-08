@@ -1536,7 +1536,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord003, TestSize.Level2)
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenState_ = ScreenState::SOFTWARE_OUTPUT_ENABLE;
+    rsUniRenderVisitor->screenState_ = ScreenState::PRODUCER_SURFACE_ENABLE;
     rsUniRenderVisitor->screenManager_ = nullptr;
     rsUniRenderVisitor->hasMirrorDisplay_ = false;
     rsUniRenderVisitor->UpdateBlackListRecord(*node);
@@ -1557,7 +1557,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord004, TestSize.Level2)
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenState_ = ScreenState::SOFTWARE_OUTPUT_ENABLE;
+    rsUniRenderVisitor->screenState_ = ScreenState::PRODUCER_SURFACE_ENABLE;
     rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->hasMirrorDisplay_ = false;
     rsUniRenderVisitor->UpdateBlackListRecord(*node);
@@ -1578,7 +1578,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord005, TestSize.Level2)
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenState_ = ScreenState::SOFTWARE_OUTPUT_ENABLE;
+    rsUniRenderVisitor->screenState_ = ScreenState::PRODUCER_SURFACE_ENABLE;
     rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->hasMirrorDisplay_ = true;
     rsUniRenderVisitor->UpdateBlackListRecord(*node);

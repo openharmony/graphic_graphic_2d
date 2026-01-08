@@ -120,9 +120,9 @@ HWTEST_F(RSScreenHDRCapabilityTest, Marshalling001, TestSize.Level1)
 HWTEST_F(RSScreenHDRCapabilityTest, Unmarshalling001, TestSize.Level1)
 {
     std::vector<ScreenHDRFormat> formats = {ScreenHDRFormat::VIDEO_HDR10, ScreenHDRFormat::VIDEO_HDR_VIVID};
-    RSScreenHDRCapability rsScreen(1.f, 1.f, 1.f, formats);
+    RSScreenHDRCapability screenCapability(1.f, 1.f, 1.f, formats);
     Parcel parcel;
-    ASSERT_TRUE(rsScreen.Marshalling(parcel));
+    ASSERT_TRUE(screenCapability.Marshalling(parcel));
     ASSERT_NE(RSScreenHDRCapability::Unmarshalling(parcel), nullptr);
 }
 
