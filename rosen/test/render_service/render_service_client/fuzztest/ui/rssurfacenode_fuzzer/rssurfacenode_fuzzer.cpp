@@ -233,6 +233,9 @@ bool DoUnmarshalling()
         return false;
     }
     Parcel parcel;
+    parcel.WriteUint64(GetData<uint64_t>());
+    parcel.WriteString(GetData<std::string>());
+    parcel.WriteBool(GetData<bool>());
     surfaceNode->Unmarshalling(parcel);
     return true;
 }
@@ -246,6 +249,9 @@ bool DoUnmarshallingAsProxyNode()
         return false;
     }
     Parcel parcel;
+    parcel.WriteUint64(GetData<uint64_t>());
+    parcel.WriteString(GetData<std::string>());
+    parcel.WriteBool(GetData<bool>());
     surfaceNode->UnmarshallingAsProxyNode(parcel);
     return true;
 }
