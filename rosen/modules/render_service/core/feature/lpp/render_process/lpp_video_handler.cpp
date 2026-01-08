@@ -32,6 +32,7 @@ void LppVideoHandler::ConsumeAndUpdateLppBuffer(
     }
     std::shared_ptr<RSSurfaceHandler> surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     const auto& consumer = surfaceHandler->GetConsumer();
+    hasLppVideo_.store(true);
     std::lock_guard<std::mutex> lock(mutex_);
     bool needRemoveTopNode = lppConsumerMap_.find(vsyncId) == lppConsumerMap_.end() &&
                              lppConsumerMap_.size() >= LPP_SURFACE_NODE_MAX_SIZE;
@@ -53,6 +54,9 @@ void LppVideoHandler::ConsumeAndUpdateLppBuffer(
     surfaceBuffer->buffer = buffer;
     surfaceBuffer->acquireFence = acquireFence;
     surfaceBuffer->timestamp = timestamp;
+    surfaceBuffer->RegisterReleaseBufferListener(
+        [](uint64_t seqNum) { RSUniRenderThread::Instance().ReleaseBufferById(seqNum); });
+    RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer, SyncFence::InvalidFence());
     RSBaseRenderUtil::MergeBufferDamages(surfaceBuffer->damageRect, damages);
     if (surfaceBuffer->damageRect.h <= 0 || surfaceBuffer->damageRect.w <= 0) {
         RS_LOGW("RsDebug ConsumerLowPowerBuffer(id: %{public}" PRIu64 ") buffer damage is invalid",
@@ -156,5 +160,12 @@ void LppVideoHandler::JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLaye
             break;
         }
     }
+}
+
+bool LppVideoHandler::HasLppVideo()
+{
+    bool hasLppVideo = hasLppVideo_.load();
+    hasLppVideo_.store(false);
+    return hasLppVideo;
 }
 } // namespace OHOS::Rosen

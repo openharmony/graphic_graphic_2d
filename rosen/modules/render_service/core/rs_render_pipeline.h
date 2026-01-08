@@ -124,6 +124,9 @@ private:
     void InitUniRenderThread();
     void InitDumper(const std::shared_ptr<AppExecFwk::EventHandler>& handler);
 
+    // LPP
+    void RegisterJudgeLppLayerCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
+
     RSMainThread* mainThread_ = nullptr;
     RSUniRenderThread* uniRenderThread_ = nullptr;
 

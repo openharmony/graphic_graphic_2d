@@ -34,6 +34,7 @@ struct ReleaseLayerBuffersInfo {
     int64_t lastSwapBufferTime = 0; /* 每帧回执时长 */
 };
 using ReleaseLayerBuffersCB = std::function<void(ReleaseLayerBuffersInfo& releaseLayerInfo)>;
+using JudgeLppLayerCB = std::function<void(uint64_t, const std::set<uint64_t>&)>;
 
 class IRSComposerToRenderConnection : public IRemoteBroker {
 public:
@@ -45,6 +46,7 @@ public:
     virtual int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo) = 0;
     virtual int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds) = 0;
     virtual void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) = 0;
+    virtual void RegisterJudgeLppLayerCB(JudgeLppLayerCB callback) = 0;
 
 protected:
     enum {

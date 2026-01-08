@@ -158,6 +158,7 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         RS_LOGE("%{public}s uniRenderThread_ is nullptr, return", __func__);
         return;
     }
+    RegisterJudgeLppLayerCB(composerToRenderConn);
     std::shared_ptr<RSRenderComposerClient> composerClient = nullptr;
     if (!rsScreenProperty->IsVirtual()) {
         composerToRenderConn->RegisterReleaseLayerBuffersCB(
@@ -268,5 +269,12 @@ void RSRenderPipeline::InitDumper(const std::shared_ptr<AppExecFwk::EventHandler
     rpDumper_->RpDumpInit(rpDumpManager_);
 }
 
+void RSRenderPipeline::RegisterJudgeLppLayerCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
+{
+    composerToRenderConn->RegisterJudgeLppLayerCB(
+        [mainThread = mainThread_](uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds) {
+            mainThread->GetLppVideoHander().JudgeLppLayer(vsyncId, lppNodeIds);
+        });
+}
 } // namespace Rosen
 } // namespace OHOS

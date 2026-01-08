@@ -466,7 +466,10 @@ public:
     // used for ScaleImageAsync
     void MarkScaledImageDirty(uint64_t nodeId);
 
-    void JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLayerIds);
+    LppVideoHandler& GetLppVideoHander()
+    {
+        return lppVideoHandler_;
+    }
 
     void RegisterScreenSwitchFinishCallback(sptr<RSIRenderToServiceConnection> conn);
     bool RemoveConnection(const sptr<RSIConnectionToken>& token);

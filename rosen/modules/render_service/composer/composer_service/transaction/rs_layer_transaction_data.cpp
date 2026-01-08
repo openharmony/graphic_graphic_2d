@@ -89,6 +89,7 @@ bool RSLayerTransactionData::UnMarshallingPipelineParam(OHOS::MessageParcel& par
         parcel.ReadBool(composerInfo_.pipelineParam.hasGameScene) &&
         parcel.ReadUint32(composerInfo_.pipelineParam.pendingScreenRefreshRate) &&
         parcel.ReadUint64(composerInfo_.pipelineParam.pendingConstraintRelativeTime) &&
+        parcel.ReadBool(composerInfo_.pipelineParam.hasLppVideo) &&
         parcel.ReadUint32(composerInfo_.pipelineParam.SurfaceFpsOpNum);
 
     composerInfo_.pipelineParam.SurfaceFpsOpList = std::vector<SurfaceFpsOp>(
@@ -115,6 +116,7 @@ bool RSLayerTransactionData::MarshallingPipelineParam(std::shared_ptr<OHOS::Mess
         parcel->WriteBool(composerInfo_.pipelineParam.hasGameScene) &&
         parcel->WriteUint32(composerInfo_.pipelineParam.pendingScreenRefreshRate) &&
         parcel->WriteUint64(composerInfo_.pipelineParam.pendingConstraintRelativeTime) &&
+        parcel->WriteBool(composerInfo_.pipelineParam.hasLppVideo) &&
         parcel->WriteUint32(composerInfo_.pipelineParam.SurfaceFpsOpNum);
 
     for (int i = 0; i < composerInfo_.pipelineParam.GetSurfaceFpsOpNum(); i++) {

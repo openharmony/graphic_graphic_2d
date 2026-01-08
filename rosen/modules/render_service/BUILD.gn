@@ -262,7 +262,6 @@ ohos_shared_library("librender_service") {
 
   #composer
   sources += [
-    "composer/composer_client/connection/rs_composer_to_render_connection.cpp",
     "composer/composer_service/connection/rs_render_to_composer_connection.cpp",
     "composer/composer_service/pipeline/rs_render_composer.cpp",
     "composer/composer_service/pipeline/rs_render_composer_agent.cpp",
