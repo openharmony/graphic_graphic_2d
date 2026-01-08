@@ -20,26 +20,17 @@
 
 namespace OHOS {
 namespace Rosen {
-RSComposerContext::RSComposerContext()
-    : rsLayerTransactionHandler_(std::make_shared<RSLayerTransactionHandler>())
-{}
+RSComposerContext::RSComposerContext(const sptr<IRSRenderToComposerConnection>& conn)
+{
+    rsComposerConnection_ = conn;
+    rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
+    rsLayerTransactionHandler_->SetRSComposerConnectionProxy(conn);
+}
 
 std::shared_ptr<RSLayerTransactionHandler> RSComposerContext::GetRSLayerTransaction() const
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     return rsLayerTransactionHandler_;
-}
-
-void RSComposerContext::SetRenderComposerClientConnection(const sptr<IRSRenderToComposerConnection>& conn)
-{
-    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
-    if (rsLayerTransactionHandler_ == nullptr) {
-        RS_LOGE("RSComposerContext::SetRenderComposerClientConnection rsLayerTransactionHandler is nullptr");
-        return;
-    }
-    RS_LOGI("RSComposerContext::SetRenderComposerClientConnection");
-    rsComposerConnection_ = conn;
-    rsLayerTransactionHandler_->SetRSComposerConnectionProxy(conn);
 }
 
 void RSComposerContext::AddRSLayer(const std::shared_ptr<RSLayer>& rsLayer)

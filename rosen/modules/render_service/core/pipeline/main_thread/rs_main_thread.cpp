@@ -2445,8 +2445,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
 
 #ifdef RS_ENABLE_GPU
-    auto client = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenId);
-    auto processor = RSProcessorFactory::CreateProcessor(screenNode->GetCompositeType(), client);
+    auto processor = RSProcessorFactory::CreateProcessor(screenNode->GetCompositeType(), screenId);
     auto renderEngine = GetRenderEngine();
     if (processor == nullptr || renderEngine == nullptr) {
         RS_LOGE("DoDirectComposition: RSProcessor or renderEngine is null!");

@@ -50,10 +50,10 @@ namespace {
 constexpr std::chrono::milliseconds HPAE_OFFLINE_TIMEOUT{100};
 }
 
-RSUniRenderProcessor::RSUniRenderProcessor(std::shared_ptr<RSRenderComposerClient> composerClient)
-    : uniComposerAdapter_(std::make_unique<RSUniRenderComposerAdapter>()),
-    composerClient_(std::move(composerClient))
+RSUniRenderProcessor::RSUniRenderProcessor(ScreenId screenId)
+    : uniComposerAdapter_(std::make_unique<RSUniRenderComposerAdapter>())
 {
+    composerClient_ = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenId);
 }
 
 RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
@@ -305,6 +305,10 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,
     const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::GetLayerInfo client is nullptr");
+        return nullptr;
+    }
     RSLayerPtr layer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), params.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSUniRenderProcessor::GetLayerInfo failed to create layer");

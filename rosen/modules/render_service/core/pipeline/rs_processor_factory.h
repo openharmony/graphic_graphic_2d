@@ -22,8 +22,7 @@ namespace OHOS {
 namespace Rosen {
 class RSProcessorFactory final {
 public:
-    static std::shared_ptr<RSProcessor> CreateProcessor(CompositeType type,
-        const std::shared_ptr<RSRenderComposerClient>& composerClient);
+    static std::shared_ptr<RSProcessor> CreateProcessor(CompositeType type, ScreenId screenId);
 };
 } // namespace Rosen
 } // namespace OHOS

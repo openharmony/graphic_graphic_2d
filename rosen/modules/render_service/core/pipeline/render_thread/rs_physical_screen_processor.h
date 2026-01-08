@@ -29,7 +29,7 @@ public:
         return Type;
     }
     
-    RSPhysicalScreenProcessor(const std::shared_ptr<RSRenderComposerClient>& composerClient);
+    RSPhysicalScreenProcessor(ScreenId screenId);
     ~RSPhysicalScreenProcessor() noexcept override;
 
     bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,

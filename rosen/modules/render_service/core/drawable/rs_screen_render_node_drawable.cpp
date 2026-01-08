@@ -649,8 +649,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         uniParam->SetVirtualDirtyRefresh(true);
     }
 
-    std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(paramScreenId);
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), composerClient);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), paramScreenId);
     if (!processor) {
         SetDrawSkipType(DrawSkipType::CREATE_PROCESSOR_FAIL);
         RS_LOGE("RSScreenRenderNodeDrawable::OnDraw RSProcessor is null!");
@@ -659,6 +658,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     uniParam->SetRSProcessor(processor);
 
+    std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(paramScreenId);
     if (composerClient) {
         PipelineParam param = composerClient->GetPipelineParam();
         param.frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();

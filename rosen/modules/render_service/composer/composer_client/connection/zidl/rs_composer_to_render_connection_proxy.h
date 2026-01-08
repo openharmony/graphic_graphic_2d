@@ -29,7 +29,7 @@ public:
 
     int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo) override;
     int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds) override;
-    void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) override {};
+    void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) override {}
 
 private:
     static inline BrokerDelegator<RSComposerToRenderConnectionProxy> delegator_;
