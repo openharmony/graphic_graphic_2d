@@ -2380,6 +2380,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ::close(sharedTypeface.fd_);
                 RS_LOGE("RSClientToServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                     "no permission REGISTER_SHARED_TYPEFACE", callingPid);
+                needUpdate = -1;
             }
             if (!reply.WriteInt32(needUpdate)) {
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE Write needUpdate failed!");

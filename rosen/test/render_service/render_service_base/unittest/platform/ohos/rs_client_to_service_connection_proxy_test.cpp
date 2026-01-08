@@ -1082,6 +1082,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, UnRegisterTypeface, TestSize.Leve
  */
 HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterSharedTypeface, TestSize.Level1)
 {
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     std::vector<char> content;
     LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
     std::shared_ptr<Drawing::Typeface> typeface =
@@ -1090,16 +1091,12 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterSharedTypeface, TestSize.
     int32_t needUpdate;
     pid_t pid = getpid();
 
-    Drawing::SharedTypeface sharedTypeface;
-    sharedTypeface.id_ = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
-    sharedTypeface.size_ = typeface->GetSize();
-    sharedTypeface.fd_ = typeface->GetFd();
-
-    EXPECT_TRUE(proxy->RegisterTypeface(sharedTypeface, needUpdate));
-    EXPECT_EQ(needUpdate, 0);
-    EXPECT_TRUE(proxy->RegisterTypeface(sharedTypeface, needUpdate));
+    Drawing::SharedTypeface sharedTypeface(
+        (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetUniqueID()), typeface);
+    clientToService->RegisterTypeface(sharedTypeface, needUpdate);
+    clientToService->RegisterTypeface(sharedTypeface, needUpdate);
     EXPECT_EQ(needUpdate, 1);
-    EXPECT_TRUE(proxy->UnRegisterTypeface(typeface->GetHash()));
+    EXPECT_TRUE(clientToService->UnRegisterTypeface(typeface->GetHash()));
 }
 
 /**
