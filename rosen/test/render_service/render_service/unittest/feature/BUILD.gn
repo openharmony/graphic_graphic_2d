@@ -34,9 +34,9 @@ group("unittest") {
     ":RSUiCaptureTaskParallelTest",
     ":RSUniHwcComputeUtilTest",
     ":RSUniUiCaptureTest",
+    ":HgmContextTest",
     ":HgmRPContextTest",
     ":RSVBlankIdleCorrectorTest",
-    ":HgmContextTest",
     ":LppVideoHandlerTest",
     ":RSWindowKeyFrameDrawableTest",
     ":RSWindowCaptureTaskTest",
@@ -757,12 +757,11 @@ ohos_unittest("HgmContextTest") {
   module_out_path = module_output_path
   sources = [
     "hyper_graphic_manager/hgm_context_test.cpp",
-    "hyper_graphic_manager/rp_frame_rate_policy_test.cpp",
-    "hyper_graphic_manager/rp_hgm_xml_parser_test.cpp",
   ]
   deps = [
     ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -797,20 +796,24 @@ ohos_unittest("HgmRPContextTest") {
   sources = [
     "hyper_graphic_manager/hgm_rp_context_test.cpp",
     "hyper_graphic_manager/rp_frame_rate_policy_test.cpp",
+    "hyper_graphic_manager/rp_hgm_xml_parser_test.cpp",
   ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
-    "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+    external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
   }
   defines = []
   defines += gpu_defines
@@ -1267,6 +1270,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service/main",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
