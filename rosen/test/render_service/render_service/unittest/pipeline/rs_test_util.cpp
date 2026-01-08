@@ -14,6 +14,7 @@
  */
 #include "rs_test_util.h"
 #include "feature/round_corner_display/rs_rcd_render_listener.h"
+#include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -48,6 +49,8 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
     auto producer = surfaceConsumer->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);
     psurf->SetQueueSize(1);
+    sptr<IBufferConsumerListener> listener = new RSUniRenderListener(rsSurfaceRenderNode->GetRSSurfaceHandler());
+    surfaceConsumer->RegisterConsumerListener(listener);
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
     [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);

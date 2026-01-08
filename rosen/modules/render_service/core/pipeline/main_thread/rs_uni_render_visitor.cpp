@@ -2050,7 +2050,6 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     } else {
         needRecalculateOcclusion_ = false;
     }
-    // screenWhiteList_ = screenManager_->GetScreenWhiteList(); // ??? todo
     screenState_ = screenInfo.state;
     node.GetLogicalDisplayNodeDrawables().clear();
 
