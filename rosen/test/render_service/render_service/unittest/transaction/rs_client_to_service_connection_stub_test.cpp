@@ -18,6 +18,7 @@
 #include <message_parcel.h>
 #include <parameters.h>
 
+#include "binder_invoker.h"
 #include "gtest/gtest.h"
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
@@ -30,6 +31,8 @@
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/brightness_info_change_callback_stub.h"
+#include "ipc_skeleton.h"
+#include "ipc_thread_skeleton.h"
 #include "pipeline/render_thread/rs_composer_adapter.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
@@ -2040,7 +2043,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest001, Tes
     uint32_t width{1920};
     uint32_t height{1080};
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
-
+    
     // case 1: entire pipeline
     MessageParcel data;
     MessageParcel reply;
@@ -2057,7 +2060,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest001, Tes
     MessageParcel reply2;
     data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data2.WriteUint64(SCREEN_ID);
-    int res = connectionStub_->OnRemoteRequest(code, data2, reply2, option);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply2, option);
     ASSERT_EQ(res, ERR_OK);
 
     // case 3: Write parcel failed
@@ -2068,7 +2071,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest001, Tes
     data3.WriteUint32(width);
     data3.WriteUint32(height);
     reply3.writeable_ = false;
-    int res = connectionStub_->OnRemoteRequest(code, data3, reply3, option);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply3, option);
     ASSERT_EQ(res, ERR_INVALID_REPLY);
 
     // remove the invoker
