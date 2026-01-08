@@ -3137,13 +3137,10 @@ bool RSMainThread::RemoveConnection(const sptr<RSIConnectionToken>& token)
     return true;
 }
 
-void RSMainThread::AddConnection(
-    sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
+void RSMainThread::AddConnection(const sptr<IRemoteObject>& token,
+    const sptr<RSIClientToRenderConnection>& connectToRenderConnection)
 {
-    if (connections_.find(token) != connections_.end()) {
-        return;
-    }
-    connections_[token] = connectToRenderConnection;
+    connections_.insert({token, connectToRenderConnection});
 }
 
 sptr<RSIClientToRenderConnection> RSMainThread::FindClientToRenderConnection(const sptr<IRemoteObject>& token)

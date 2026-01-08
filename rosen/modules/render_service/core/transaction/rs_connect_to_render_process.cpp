@@ -14,6 +14,7 @@
  */
 
 #include "rs_connect_to_render_process.h"
+
 #include "transaction/rs_client_to_render_connection.h"
 
 #undef LOG_TAG
@@ -25,20 +26,17 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnecti
     const sptr<RSIConnectionToken>& token)
 {
     if (!token) {
-        RS_LOGE("%{public}s::CreateRenderConnection failed, token is nullptr.", __func__);
+        RS_LOGE("%{public}s: token is nullptr.", __func__);
         return nullptr;
     }
     auto tokenObj = token->AsObject();
     if (auto renderConnection = renderPipelineAgent_->FindClientToRenderConnection(tokenObj)) {
         return renderConnection;
     }
-    RS_LOGD("%{public}s::CreateRenderConnection", __func__);
     pid_t remotePid = GetCallingPid();
     auto newRenderConn = sptr<RSClientToRenderConnection>::MakeSptr(remotePid, renderPipelineAgent_, tokenObj);
     renderPipelineAgent_->AddTransactionDataPidInfo(remotePid);
     renderPipelineAgent_->AddConnection(tokenObj, newRenderConn);
-    RS_LOGD("%{public}s, has not the same token one %{public}p, return %{public}p.", __func__,
-        tokenObj.GetRefPtr(), newRenderConn.GetRefPtr());
     return newRenderConn;
 }
 } // namespace Rosen

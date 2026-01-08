@@ -470,7 +470,8 @@ public:
 
     void RegisterScreenSwitchFinishCallback(sptr<RSIRenderToServiceConnection> conn);
     bool RemoveConnection(const sptr<RSIConnectionToken>& token);
-    void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
+    void AddConnection(const sptr<IRemoteObject>& token,
+        const sptr<RSIClientToRenderConnection>& connectToRenderConnection);
     sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
     void SetScreenFrameGravity(ScreenId id, Gravity gravity);
 
