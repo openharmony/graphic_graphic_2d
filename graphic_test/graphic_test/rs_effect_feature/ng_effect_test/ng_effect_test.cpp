@@ -535,9 +535,6 @@ constexpr uint32_t NUM_8 = 8;
 constexpr uint32_t NUM_9 = 9;
 constexpr uint32_t NUM_10 = 10;
 constexpr uint32_t NUM_11 = 11;
-constexpr uint32_t NUM_12 = 12;
-constexpr uint32_t NUM_13 = 13;
-constexpr uint32_t NUM_14 = 14;
 }
 
 class NGEffectTest : public RSGraphicTest {
