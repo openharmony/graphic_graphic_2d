@@ -1472,6 +1472,21 @@ HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level0)
     finalRange = {OLED_30_HZ, OLED_90_HZ, OLED_30_HZ};
     ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange), OLED_60_HZ);
     frameRateMgr->stylusVec_.clear();
+
+    frameRateMgr->isLtpo_.store(true);
+    frameRateMgr->isAmbientStatus_ = LightFactorStatus::NORMAL_LOW;
+    frameRateMgr->isAmbientEffect_ = true;
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
+    frameRateMgr->isAmbientStatus_ = LightFactorStatus::HIGH_LEVEL;
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
+    frameRateMgr->isAmbientEffect_ = false;
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
+    frameRateMgr->isLtpo_.store(false);
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
+    frameRateMgr->isAmbientEffect_ = true;
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
+    frameRateMgr->isAmbientStatus_ = LightFactorStatus::NORMAL_LOW;
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
 }
 
 /**
