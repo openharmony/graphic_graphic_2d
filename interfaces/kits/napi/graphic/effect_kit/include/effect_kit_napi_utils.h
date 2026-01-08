@@ -104,7 +104,7 @@ public:
     template<typename T>
     napi_status CreateAsyncWork(napi_env& env, napi_status& status, const char* workName,
         napi_async_execute_callback exec, napi_async_complete_callback complete, std::unique_ptr<T>& aContext,
-        napi_async_work& work)
+        napi_async_work& work, napi_qos_t qos = napi_qos_default)
     {
         napi_value resource = nullptr;
         status = napi_create_string_utf8(env, workName, NAPI_AUTO_LENGTH, &resource);
