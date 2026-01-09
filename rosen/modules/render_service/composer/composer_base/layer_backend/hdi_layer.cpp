@@ -948,7 +948,7 @@ void HdiLayer::ClearBufferCache()
 
 int32_t HdiLayer::SetTunnelLayerParameters()
 {
-    if (layerInfo_->GetTunnelLayerId() && layerInfo_->GetTunnelLayerProperty()) {
+    if (rsLayer_->GetTunnelLayerId() && rsLayer_->GetTunnelLayerProperty()) {
         int32_t tunnelLayerIdRet = SetTunnelLayerId();
         if (tunnelLayerIdRet != GRAPHIC_DISPLAY_SUCCESS) {
             CheckRet(tunnelLayerIdRet, "SetTunnelLayerId");
