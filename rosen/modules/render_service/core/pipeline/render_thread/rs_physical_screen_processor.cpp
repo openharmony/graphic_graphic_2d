@@ -14,17 +14,17 @@
  */
 
 #include "rs_physical_screen_processor.h"
-
-#include "rs_trace.h"
-#include "string_utils.h"
-
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
+#include "rs_uni_render_thread.h"
+#include "string_utils.h"
 
 namespace OHOS {
 namespace Rosen {
-RSPhysicalScreenProcessor::RSPhysicalScreenProcessor(const std::shared_ptr<RSRenderComposerClient>& composerClient)
-    : composerAdapter_(std::make_unique<RSComposerAdapter>()), composerClient_(composerClient)
+RSPhysicalScreenProcessor::RSPhysicalScreenProcessor(ScreenId screenId)
+    : composerAdapter_(std::make_unique<RSComposerAdapter>())
 {
+    composerClient_ = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenId);
 }
 
 RSPhysicalScreenProcessor::~RSPhysicalScreenProcessor() noexcept
@@ -40,6 +40,10 @@ bool RSPhysicalScreenProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, 
         return false;
     }
 #endif
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSPhysicalScreenProcessor::Init client nullptr");
+        return false;
+    }
 
     return composerAdapter_->Init(node, screenInfo_, mirroredScreenInfo_, mirrorAdaptiveCoefficient_,
         [this](const auto& surface, const auto& layers) { Redraw(surface, layers); }, composerClient_->GetOutput());
