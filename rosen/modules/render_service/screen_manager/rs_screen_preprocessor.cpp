@@ -209,22 +209,38 @@ void RSScreenPreprocessor::ConfigureScreenDisconnected(std::shared_ptr<HdiOutput
 void RSScreenPreprocessor::NotifyVirtualScreenConnected(ScreenId newId,
     ScreenId associatedScreenId, sptr<RSScreenProperty> property)
 {
-    callbackMgr_.NotifyVirtualScreenConnected(newId, associatedScreenId, property);
+    ScheduleTask([this, newId, associatedScreenId, property]() {
+        callbackMgr_.NotifyVirtualScreenConnected(newId, associatedScreenId, property);
+    });
 }
 
 void RSScreenPreprocessor::NotifyVirtualScreenDisconnected(ScreenId id)
 {
-    callbackMgr_.NotifyVirtualScreenDisconnected(id);
+    ScheduleTask([this, id]() {
+        callbackMgr_.NotifyVirtualScreenDisconnected(id);
+    });
 }
 
 void RSScreenPreprocessor::NotifyActiveScreenIdChanged(ScreenId activeScreenId)
 {
-    callbackMgr_.NotifyActiveScreenIdChanged(activeScreenId);
+    ScheduleTask([this, activeScreenId]() {
+        callbackMgr_.NotifyActiveScreenIdChanged(activeScreenId);
+    });
+}
+
+void RSScreenPreprocessor::NotifyScreenPropertyChanged(ScreenId id,
+    ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
+{
+    ScheduleTask([this, id, type, property]() {
+        callbackMgr_.NotifyScreenPropertyUpdated(id, type, property);
+    });
 }
 
 void RSScreenPreprocessor::OnRefreshEvent(ScreenId id)
 {
-    callbackMgr_.NotifyScreenRefresh(id);
+    ScheduleTask([this, id]() {
+        callbackMgr_.NotifyScreenRefresh(id);
+    });
 }
 
 /**

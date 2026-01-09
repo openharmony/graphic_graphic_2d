@@ -60,10 +60,9 @@ RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
 {
 }
 
-bool RSUniRenderProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,
-                                std::shared_ptr<RSBaseRenderEngine> renderEngine)
+bool RSUniRenderProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
-    if (!RSProcessor::Init(node, offsetX, offsetY, renderEngine)) {
+    if (!RSProcessor::Init(node, renderEngine)) {
         return false;
     }
     // In uni render mode, we can handle screen rotation in the rendering process,
@@ -71,7 +70,7 @@ bool RSUniRenderProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
 
-    return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, composerClient_);
+    return uniComposerAdapter_->Init(screenInfo_, composerClient_);
 }
 
 bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
@@ -85,7 +84,7 @@ bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDra
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
 
-    return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, composerClient_);
+    return uniComposerAdapter_->Init(screenInfo_, composerClient_);
 }
 
 bool RSUniRenderProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable)

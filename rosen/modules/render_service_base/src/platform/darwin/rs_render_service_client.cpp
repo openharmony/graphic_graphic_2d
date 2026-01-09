@@ -171,6 +171,10 @@ void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_
 {
 }
 
+void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+}
+
 void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
 }

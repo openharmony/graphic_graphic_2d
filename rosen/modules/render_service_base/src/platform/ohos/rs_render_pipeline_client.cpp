@@ -871,15 +871,6 @@ void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
     clientToRender->ClearUifirstCache(id);
 }
 
-void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
-{
-    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
-    if (clientToRender == nullptr) {
-        return;
-    }
-    clientToRender->SetScreenFrameGravity(id, gravity);
-}
-
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSRenderPipelineClient::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {

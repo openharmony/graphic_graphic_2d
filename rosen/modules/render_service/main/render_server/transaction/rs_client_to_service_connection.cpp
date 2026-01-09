@@ -1340,6 +1340,15 @@ void RSClientToServiceConnection::SetScreenOffset(ScreenId id, int32_t offsetX, 
     }
     screenManagerAgent_->SetScreenOffset(id, offsetX, offsetY);
 }
+
+void RSClientToServiceConnection::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+    if (!screenManagerAgent_) {
+        return;
+    }
+    screenManagerAgent_->SetScreenFrameGravity(id, gravity);
+}
+
 ErrCode RSClientToServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback,
     int32_t& repCode)
 {

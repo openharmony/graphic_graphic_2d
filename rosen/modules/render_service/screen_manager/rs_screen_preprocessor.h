@@ -46,6 +46,8 @@ public:
     void NotifyVirtualScreenConnected(ScreenId newId, ScreenId associatedScreenId, sptr<RSScreenProperty> property);
     void NotifyVirtualScreenDisconnected(ScreenId id);
     void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
+    void NotifyScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+
 private:
     void OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bool connected);
     void OnRefreshEvent(ScreenId id);

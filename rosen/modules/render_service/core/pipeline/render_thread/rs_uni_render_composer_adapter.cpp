@@ -60,14 +60,11 @@ std::string RectVectorToString(const std::vector<GraphicIRect>& dirtyRects)
 }
 }
 
-bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
+bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo,
     const std::shared_ptr<RSRenderComposerClient>& composerClient)
 {
-    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::initialize id:%{public}" PRIu64
-        " offsetX:%{public}d offsetY:%{public}d", screenInfo.id, offsetX, offsetY);
+    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::initialize id:%{public}" PRIu64, screenInfo.id);
 
-    offsetX_ = offsetX;
-    offsetY_ = offsetY;
     screenInfo_ = screenInfo;
     composerClient_ = composerClient;
     return true;

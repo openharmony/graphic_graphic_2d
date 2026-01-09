@@ -88,6 +88,9 @@ public:
     void UpdateScreenProperty(ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
     {
         screenProperty_.Set(type, property);
+        if (type == ScreenPropertyType::SCREEN_FRAME_GRAVITY) {
+            GetMutableRenderProperties().SetFrameGravity(screenProperty_.GetFrameGravity());
+        }
     }
 
     const RSScreenProperty& GetScreenProperty() const

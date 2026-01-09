@@ -1914,23 +1914,6 @@ void RSRenderPipelineAgent::OnGlobalBlacklistChanged(const std::unordered_set<No
     rsRenderPipeline_->PostMainThreadTask(task);
 }
 
-void RSRenderPipelineAgent::SetScreenFrameGravity(ScreenId id, int32_t gravity)
-{
-    if (rsRenderPipeline_ == nullptr) {
-        return;
-    }
-    auto task = [renderPipeline = rsRenderPipeline_, id, gravity] () -> void {
-        auto &context = renderPipeline->GetMainThread()->GetContext();
-        context.GetNodeMap().
-            TraverseScreenNodes([id, gravity] (const std::shared_ptr<RSScreenRenderNode>& node) {
-            if (node && node->GetScreenId() == id) {
-                node->GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
-            }
-        });
-    };
-    rsRenderPipeline_->PostMainThreadTask(task);
-}
-
 uint32_t RSRenderPipelineAgent::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
     const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType, bool isSystemCalling)

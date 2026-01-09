@@ -649,7 +649,7 @@ void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY
 
 void RSInterfaces::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
-    renderInterface_->SetScreenFrameGravity(id, gravity);
+    renderServiceClient_->SetScreenFrameGravity(id, gravity);
 }
 
 int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)

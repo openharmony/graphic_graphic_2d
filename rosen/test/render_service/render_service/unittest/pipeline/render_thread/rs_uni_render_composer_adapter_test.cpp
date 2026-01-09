@@ -49,8 +49,6 @@ public:
 
 public:
     static inline uint32_t screenId_ = 0;
-    static inline int32_t offsetX = 0; // screenOffset on x axis equals to 0
-    static inline int32_t offsetY = 0; // screenOffset on y axis equals to 0
     static inline float mirrorAdaptiveCoefficient = 1.0f;
 
     static inline sptr<RSScreenManager> screenManager_;
@@ -82,7 +80,7 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
     renderComposerManager->OnScreenConnected(output, property);
     auto client = std::make_shared<RSRenderComposerClient>(
         renderComposerManager->rsComposerConnectionMap_[screenId_], rsVsyncManagerAgent);
-    composerAdapter_->Init(info, offsetX, offsetY, client);
+    composerAdapter_->Init(info, client);
 }
 
 void RSUniRenderComposerAdapterTest::TearDownTestCase() {}
@@ -100,7 +98,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
     auto composerClient1 = nullptr;
-    composerAdapter_->Init(info, offsetX, offsetY, composerClient1);
+    composerAdapter_->Init(info, composerClient1);
     EXPECT_EQ(composerAdapter_->composerClient_, nullptr);
     info.width = width;
     info.height = height;
@@ -114,7 +112,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
     auto rsVsyncManagerAgent = nullptr;
     auto composerClient2 =
         RSRenderComposerClient::Create(renderToComposerConn, composerToRenderConn, rsVsyncManagerAgent);
-    composerAdapter_->Init(info, offsetX, offsetY, composerClient2);
+    composerAdapter_->Init(info, composerClient2);
     EXPECT_NE(composerAdapter_->composerClient_, nullptr);
 }
 /**

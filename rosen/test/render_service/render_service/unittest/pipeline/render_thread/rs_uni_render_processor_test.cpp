@@ -92,7 +92,7 @@ void RSUniRenderProcessorTest::SetUpTestCase()
     NodeId nodeId = 1;
     RSScreenRenderNode node(nodeId, screenId_);
     auto renderEngine = std::make_shared<RSUniRenderEngine>();
-    renderProcessor->Init(node, 0, 0, renderEngine);
+    renderProcessor->Init(node, renderEngine);
     EXPECT_NE(renderProcessor->composerClient_, nullptr);
 }
 void RSUniRenderProcessorTest::TearDownTestCase()
@@ -116,7 +116,7 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
     if (RSUniRenderJudgement::IsUniRender()) {
         auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, 0);
         RSScreenRenderNode node(nodeId, screenId, context);
-        EXPECT_EQ(processor->Init(node, 0, 0, nullptr), false);
+        EXPECT_EQ(processor->Init(node, nullptr), false);
     }
 }
 
@@ -136,7 +136,7 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
         ASSERT_NE(processor, nullptr);
         RSScreenRenderNode node(nodeId, screenId, context);
         auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
-        processor->Init(node, 0, 0, uniRenderEngine);
+        processor->Init(node, uniRenderEngine);
         RSSurfaceRenderNode surfaceNode(2);
         processor->ProcessSurface(surfaceNode);
     }
@@ -184,7 +184,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, renderEngine);
         renderProcessor->CreateLayer(*surfaceNode, *params);
         EXPECT_TRUE(params->GetLayerCreated());
     }
@@ -406,7 +406,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread002, TestSize.Level
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, renderEngine);
         renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
     }
 }
@@ -706,7 +706,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayerTest, TestSize.Level1)
     NodeId nodeId = 1;
     RSScreenRenderNode screenNode(nodeId, screenId_);
     auto renderEngine = std::make_shared<RSUniRenderEngine>();
-    renderProcessor->Init(screenNode, 0, 0, renderEngine);
+    renderProcessor->Init(screenNode, renderEngine);
     renderProcessor->CreateSolidColorLayer(layer, *params);
     ASSERT_NE(renderProcessor->layers_.size(), 0);
 }

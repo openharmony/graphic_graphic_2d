@@ -242,6 +242,8 @@ private:
 
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
 
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
+
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(

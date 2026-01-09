@@ -171,8 +171,7 @@ std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode
         return screenNode;
     }
 
-    rsScreen->property_.SetPhyWidth(SCREEN_PHYSICAL_WIDTH);
-    rsScreen->property_.SetPhyHeight(SCREEN_PHYSICAL_HEIGHT);
+    rsScreen->property_.SetPhysicalModeParams(SCREEN_PHYSICAL_WIDTH, SCREEN_PHYSICAL_HEIGHT, 0);
     screenManager_->MockHdiScreenConnected(rsScreen);
     return screenNode;
 }
@@ -1457,18 +1456,17 @@ HWTEST_F(RSMainThreadTest, CollectInfoForHardwareComposer002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetMultiDisplay001
- * @tc.desc: GetMultiDisplay test
+ * @tc.name: IsMultiDisplay001
+ * @tc.desc: IsMultiDisplay test
  * @tc.type: FUNC
  * @tc.require: issueI7HDVG
  */
-HWTEST_F(RSMainThreadTest, GetMultiDisplay001, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, IsMultiDisplay001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     ASSERT_NE(mainThread->context_, nullptr);
-    auto rootNode = mainThread->context_->globalRootRenderNode_;
-    ASSERT_FALSE(RSMainThread::GetMultiDisplay(rootNode));
+    ASSERT_FALSE(mainThread->IsMultiDisplay());
 
     auto rsContext = std::make_shared<RSContext>();
     auto node1 = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
@@ -1477,9 +1475,10 @@ HWTEST_F(RSMainThreadTest, GetMultiDisplay001, TestSize.Level1)
     auto node4 = std::make_shared<RSRenderNode>(4, true);
     node1->AddChild(node3);
     node2->AddChild(node4);
-    rootNode->AddChild(node1);
-    rootNode->AddChild(node2);
-    ASSERT_TRUE(RSMainThread::GetMultiDisplay(rootNode));
+    auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node1);
+    nodeMap.RegisterRenderNode(node2);
+    ASSERT_TRUE(mainThread->IsMultiDisplay());
 }
 
 /**

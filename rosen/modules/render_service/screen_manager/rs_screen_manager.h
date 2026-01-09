@@ -168,10 +168,9 @@ public:
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false);
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);
-    // Get all whiteList and their screenId
-    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const;
 
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
     void ExecuteCallback(const sptr<RSIScreenChangeCallback>& callback) const;
 
@@ -204,7 +203,6 @@ private:
     using ScreenNode = decltype(screens_)::value_type;
     bool AnyScreenFits(std::function<bool(const ScreenNode&)> func) const;
 
-    void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void OnScreenBacklightChanged(ScreenId id, uint32_t level);
 
     // global blacklist

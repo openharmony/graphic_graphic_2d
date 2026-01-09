@@ -45,8 +45,6 @@ public:
     static inline std::unique_ptr<RSComposerAdapter> composerAdapter_;
     static inline sptr<RSScreenManager> screenManager_;
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
-    int32_t offsetX = 0; // screenOffset on x axis equals to 0
-    int32_t offsetY = 0; // screenOffset on y axis equals to 0
     float mirrorAdaptiveCoefficient = 1.0f;
     static uint32_t screenId_;
     static inline std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager = nullptr;
@@ -96,7 +94,7 @@ void RSComposerAdapterTest::CreateComposerAdapterWithScreenInfo(uint32_t width, 
     info.colorGamut = colorGamut;
     info.state = state;
     info.rotation = rotation;
-    composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient, nullptr, nullptr);
+    composerAdapter_->Init(info, mirrorAdaptiveCoefficient, nullptr, nullptr);
 }
 
 /**

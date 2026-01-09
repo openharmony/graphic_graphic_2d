@@ -37,8 +37,7 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
-    float mirrorAdaptiveCoefficient, const FallbackCallback& cb,
+bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, float mirrorAdaptiveCoefficient, const FallbackCallback& cb,
     const std::shared_ptr<HdiOutput>& output)
 {
     if (output == nullptr) {
@@ -53,8 +52,8 @@ bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int3
     };
     output_->RegPrepareComplete(onPrepareCompleteFunc, this);
 
-    offsetX_ = offsetX;
-    offsetY_ = offsetY;
+    offsetX_ = screenInfo.offsetX;
+    offsetY_ = screenInfo.offsetY;
     mirrorAdaptiveCoefficient_ = mirrorAdaptiveCoefficient;
     screenInfo_ = screenInfo;
 

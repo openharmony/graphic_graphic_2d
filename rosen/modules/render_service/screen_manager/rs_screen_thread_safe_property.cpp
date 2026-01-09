@@ -308,6 +308,13 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenSwitchS
     return { ScreenPropertyType::SCREEN_SWITCH_STATUS, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetFrameGravity(int32_t gravity)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::SCREEN_FRAME_GRAVITY>(gravity);
+    return { ScreenPropertyType::SCREEN_FRAME_GRAVITY, prop };
+}
+
 ScreenId RSScreenThreadSafeProperty::GetId() const
 {
     return property_->GetScreenId();

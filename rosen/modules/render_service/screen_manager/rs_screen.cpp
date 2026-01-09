@@ -288,49 +288,9 @@ void RSScreen::SetScreenOffset(int32_t offsetX, int32_t offsetY)
     NotifyScreenPropertyChange(prop);
 }
 
-int32_t RSScreen::GetOffsetX() const
+void RSScreen::SetScreenFrameGravity(int32_t gravity)
 {
-    return property_.GetOffsetX();
-}
-
-int32_t RSScreen::GetOffsetY() const
-{
-    return property_.GetOffsetY();
-}
-
-bool RSScreen::IsSamplingOn() const
-{
-    return property_.GetIsSamplingOn();
-}
-
-float RSScreen::GetSamplingTranslateX() const
-{
-    return property_.GetSamplingTranslateX();
-}
-
-float RSScreen::GetSamplingTranslateY() const
-{
-    return property_.GetSamplingTranslateY();
-}
-
-float RSScreen::GetSamplingScale() const
-{
-    return property_.GetSamplingScale();
-}
-
-RectI RSScreen::GetActiveRect() const
-{
-    return property_.GetActiveRect();
-}
-
-RectI RSScreen::GetMaskRect() const
-{
-    return property_.GetMaskRect();
-}
-
-RectI RSScreen::GetReviseRect() const
-{
-    return property_.GetReviseRect();
+    UPDATE_PROPERTY(FrameGravity, gravity);
 }
 
 bool RSScreen::IsVirtual() const
@@ -1406,7 +1366,7 @@ void RSScreen::SetScreenSwitchStatus(bool status)
 
 void RSScreen::NotifyScreenPropertyChange(std::pair<ScreenPropertyType, const sptr<ScreenPropertyBase>&> prop)
 {
-    if (onPropertyChange_) {
+    if (onPropertyChange_ && prop.second) {
         onPropertyChange_(property_.GetId(), prop.first, prop.second);
     }
 }

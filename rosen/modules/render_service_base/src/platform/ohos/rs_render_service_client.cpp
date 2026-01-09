@@ -1081,6 +1081,15 @@ void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_
     clientToService->SetScreenOffset(id, offSetX, offSetY);
 }
 
+void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return;
+    }
+    clientToService->SetScreenFrameGravity(id, gravity);
+}
+
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub
 {
 public:

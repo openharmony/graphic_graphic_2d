@@ -66,6 +66,7 @@ public:
     ResType SetSupportedColorGamuts(std::vector<ScreenColorGamut> colorGamuts);
     ResType SetDisablePowerOffRenderControl(bool disable);
     ResType SetScreenSwitchStatus(bool status);
+    ResType SetFrameGravity(int32_t gravity);
 
     ScreenId GetId() const;
     bool IsVirtual() const;

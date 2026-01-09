@@ -20,10 +20,8 @@
 #include <surface_type.h>
 #include <unordered_set>
 #include "message_parcel.h"
-#include "transaction/rs_marshalling_helper.h"
 #include "common/rs_rect.h"
 #include "screen_types.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 enum class ScreenState : uint8_t {
