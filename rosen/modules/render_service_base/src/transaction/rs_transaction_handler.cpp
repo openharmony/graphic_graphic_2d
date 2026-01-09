@@ -168,6 +168,7 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     }
 
     if (renderServiceClient_ == nullptr || implicitRemoteTransactionData_->IsEmpty()) {
+        RS_TRACE_NAME("UI skip");
         return;
     }
 
