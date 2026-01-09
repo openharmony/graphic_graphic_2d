@@ -250,7 +250,7 @@ public:
      * @param watermark Watermark pixelmap.
      * @param maxSize The maximum supported image size is 6MB. if the maximum image size exceeds 512Kb,
      * @attention the time to draw the watermark will increase. In such cases, consider using DMA mode for pixelMap
-     * @attention SetSurfaceWatermark has a maximum of 1000 images.
+     * @attention watermark has a maximum of 1000 images.
      * @attention When not using a watermark, the watermark image should be released.
      * @return set watermark success return true, else return false.
      */
@@ -266,7 +266,7 @@ public:
      * @param watermarkType custom or system watermark.
      * @attention if the maximum image size exceeds 512Kb, the time to draw the watermark will increase. In such cases,
      * consider using DMA mode for pixelMap
-     * @attention SetSurfaceWatermark has a maximum of 1000 images.
+     * @attention watermark has a maximum of 1000 images.
      * @attention When not using a watermark, the watermark image should be released.
      * @attention if SurfaceWatermarkType is SYSTEM_WATER_MARK, the nodeList is ineffective. Therefore,
      * SetWatermarkEnabled needs to be set.
