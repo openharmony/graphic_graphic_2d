@@ -169,7 +169,7 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = 0.0f,
         .progress = 0.0f
     }
-}
+};
 }
 
 class NGSubstractedRectTest : public RSGraphicTest {
