@@ -403,7 +403,7 @@ public:
  * @tc.name: EmptyTest
  * @tc.desc: empty test
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 21499
  */
 HWTEST_F(RenderServiceRenderProfilerTest, EmptyTest, testing::ext::TestSize.Level1)
 {
