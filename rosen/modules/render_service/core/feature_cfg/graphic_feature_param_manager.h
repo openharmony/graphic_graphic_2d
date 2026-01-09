@@ -39,6 +39,8 @@
 #include "mem_param.h"
 #include "multiscreen_param_parse.h"
 #include "multiscreen_param.h"
+#include "node_mem_release_param_parse.h"
+#include "node_mem_release_param.h"
 #include "occlusion_culling_param.h"
 #include "occlusion_culling_param_parse.h"
 #include "opinc_param_parse.h"
@@ -126,6 +128,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<SmartCacheParam>(); }},
     {FEATURE_CONFIGS[GPU_CACHE], [] { return std::make_unique<GpuCacheParamParse>(); },
         [] { return std::make_unique<GpuCacheParam>(); }},
+    {FEATURE_CONFIGS[NODE_MEM_RELEASE], [] { return std::make_unique<NodeMemReleaseParamParse>(); },
+        [] { return std::make_unique<NodeMemReleaseParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

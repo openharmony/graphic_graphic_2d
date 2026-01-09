@@ -48,6 +48,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "VideoMetadataConfig",
     "SmartCacheConfig",
     "GpuCacheConfig",
+    "NodeMemReleaseConfig",
 };
 
 enum FeatureModule {
@@ -75,6 +76,7 @@ enum FeatureModule {
     VIDEO_METADATA,
     SMART_CACHE,
     GPU_CACHE,
+    NODE_MEM_RELEASE,
     // Do not change it.
     ENUM_LENGTH,
 };
