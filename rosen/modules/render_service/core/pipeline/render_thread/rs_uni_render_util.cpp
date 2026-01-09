@@ -32,9 +32,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
-#include "feature/hdr/hetero_hdr/rs_hetero_hdr_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
-#include "hetero_hdr/rs_hdr_pattern_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -53,6 +51,12 @@
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 
+#ifdef HETERO_HDR_ENABLE
+#include "rs_hdr_pattern_manager.h"
+#include "rs_hdr_vulkan_task.h"
+#include "rs_hetero_hdr_util.h"
+#endif
+
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
@@ -60,7 +64,6 @@
 #else
 #include "include/gpu/GrBackendSurface.h"
 #endif
-#include "hetero_hdr/rs_hdr_vulkan_task.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -1113,11 +1116,11 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         DestroySemaphoreInfo* destroyInfo =
             new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
 
-        std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-
         std::vector<GrBackendSemaphore> semaphoreVec = { backendSemaphore };
+#ifdef HETERO_HDR_ENABLE
+        std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
         RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
-
+#endif
         Drawing::FlushInfo drawingFlushInfo;
         drawingFlushInfo.backendSurfaceAccess = true;
         drawingFlushInfo.numSemaphores = semaphoreVec.size();
@@ -1127,7 +1130,9 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         surface->Flush(&drawingFlushInfo);
         grContext->Submit();
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
+#ifdef HETERO_HDR_ENABLE
         RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);
+#endif
     } else {
         surface->FlushAndSubmit(true);
     }

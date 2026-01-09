@@ -193,10 +193,6 @@ ohos_source_set("render_service_base_src") {
     #delegate
     "src/delegate/rs_functional_delegate.cpp",
 
-    #hdr_heterogeneous
-    "src/hetero_hdr/rs_hdr_pattern_manager.cpp",
-    "src/hetero_hdr/rs_hdr_vulkan_task.cpp",
-
     #ipc_callbacks
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_available_callback_stub.cpp",
@@ -644,6 +640,13 @@ ohos_source_set("render_service_base_src") {
 
   if (graphic_2d_feature_subtree_parallel_enable) {
     include_dirs += [ "$graphic_2d_ext_root/subtree" ]
+  }
+
+  if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable
+      && defined(graphic_2d_hetero_hdr_configs)) {
+    include_dirs += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_include
+    sources += graphic_2d_hetero_hdr_configs.librender_service_base_hetero_hdr_sources
+    external_deps += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_external_deps
   }
 
   if (graphic_2d_feature_mhc_enable) {
