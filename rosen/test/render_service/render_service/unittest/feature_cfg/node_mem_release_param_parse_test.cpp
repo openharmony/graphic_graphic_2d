@@ -67,11 +67,6 @@ HWTEST_F(NodeMemReleaseParamParseTest, ParseFeatureParamTest, TestSize.Level1)
 
     name = "FeatureSwitch";
     childNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
-    xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)("Other"));
-    xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
-    result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
-    ASSERT_EQ(result, PARSE_EXEC_SUCCESS);
-
     xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)("NodeOffTreeMemReleaseEnabled"));
     xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
     result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
@@ -81,6 +76,16 @@ HWTEST_F(NodeMemReleaseParamParseTest, ParseFeatureParamTest, TestSize.Level1)
     xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
     result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
     ASSERT_EQ(result, PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)("RsRenderNodeGCMemReleaseEnabled"));
+    xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
+    result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
+    ASSERT_EQ(result, PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)("Other"));
+    xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
+    result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
+    ASSERT_EQ(result, PARSE_INTERNAL_FAIL);
 }
 
 } // namespace Rosen
