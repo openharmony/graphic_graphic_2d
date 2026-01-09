@@ -42,6 +42,7 @@ namespace OHOS::Rosen {
 namespace {
 constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 10000;
 constexpr size_t TRANSACTION_DATA_KILL_COUNT = 20000;
+constexpr int MAX_CONCURRENCY = 3;
 const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
 
 const std::shared_ptr<AppExecFwk::AppMgrClient> GetAppMgrClient()
@@ -60,6 +61,11 @@ RSUnmarshalThread& RSUnmarshalThread::Instance()
 
 void RSUnmarshalThread::Start()
 {
+    if (RSSystemProperties::GetUnmarshalParallelEnabled()) {
+        parallelQueue_ = std::make_shared<ffrt::queue>(
+            ffrt::queue_concurrent, "RSUnmarshalThreadParallel",
+            ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(MAX_CONCURRENCY));
+    }
     queue_ = std::make_shared<ffrt::queue>(
         static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "RSUnmarshalThread",
         ffrt::queue_attr().qos(ffrt::qos_user_interactive));
@@ -73,6 +79,35 @@ void RSUnmarshalThread::PostTask(const std::function<void()>& task, const std::s
                                  .name(name.c_str())
                                  .delay(0)
                                  .priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_immediate)));
+    }
+}
+
+void RSUnmarshalThread::PostParallelTask(const std::function<void()>& task, const std::string& name)
+{
+    if (parallelQueue_) {
+        ffrt::task_handle handle =
+            parallelQueue_->submit_h(
+                std::move(task), ffrt::task_attr()
+                                 .name(name.c_str())
+                                 .delay(0)
+                                 .priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_immediate)));
+        std::lock_guard<std::mutex> lock(transactionDataMutex_);
+        cachedHandles_.emplace_back(handle);
+    }
+}
+
+void RSUnmarshalThread::WaitUntilParallelTasksFinished()
+{
+    if (!parallelQueue_ || !RSSystemProperties::GetUnmarshalParallelEnabled()) {
+        return;
+    }
+    std::vector<ffrt::task_handle> cachedHandles;
+    {
+        std::lock_guard<std::mutex> lock(transactionDataMutex_);
+        std::swap(cachedHandles, cachedHandles_);
+    }
+    for (auto& handle : cachedHandles) {
+        parallelQueue_->wait(handle);
     }
 }
 
@@ -147,7 +182,10 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
     {
-        PostTask(task);
+        bool unmarshalParallel = RSSystemProperties::GetUnmarshalParallelEnabled() &&
+                                 ashmemFdWorker == nullptr &&
+                                 parcel->GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize();
+        unmarshalParallel ? PostParallelTask(task) : PostTask(task);
         /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
          * so set willHaveCachedData_ to true
          */

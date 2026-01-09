@@ -168,7 +168,12 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         }
         ++marshallingIndex_;
         ++marshaledSize;
-        if (parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD) {
+        bool transactionDataSplit = parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD ||
+            (RSSystemProperties::GetUnmarshalParallelEnabled() &&
+            parcel.GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize() && !needSync_);
+        if (transactionDataSplit) {
+            // data split to several parcels, which will be parallel unmarshalled using FFRT.
+            RS_OPTIONAL_TRACE_NAME_FMT("RSTransactionData::Marshalling data split size: [%zu]", parcel.GetDataSize());
             break;
         }
     }
