@@ -60,6 +60,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
+    "icu:shared_icuuc",
     "image_framework:image_native",
   ]
 
