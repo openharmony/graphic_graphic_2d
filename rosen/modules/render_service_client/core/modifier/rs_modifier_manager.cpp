@@ -16,7 +16,6 @@
 
 #include "modifier/rs_modifier_manager.h"
 
-#include <algorithm>
 #include "rs_trace.h"
 
 #include "animation/rs_animation_trace_utils.h"
@@ -30,15 +29,7 @@ namespace OHOS {
 namespace Rosen {
 void RSModifierManager::AddModifier(const std::shared_ptr<Modifier>& modifier)
 {
-    if (!modifier) {
-        return;
-    }
-    auto modifierId = modifier->GetId();
-    if (modifierIds_.count(modifierId)) {
-        return;
-    }
-    modifiers_.push_back(modifier);
-    modifierIds_.insert(modifierId);
+    modifiers_.insert(modifier);
 }
 
 void RSModifierManager::Draw()
@@ -52,7 +43,6 @@ void RSModifierManager::Draw()
             modifier->ResetRSNodeExtendModifierDirty();
         }
         modifiers_.clear();
-        modifierIds_.clear();
     }
 }
 
@@ -62,7 +52,7 @@ void RSModifierManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& a
         ROSEN_LOGE("RSModifierManager::AddAnimation animation is nullptr");
         return;
     }
-
+    
     AnimationId key = animation->GetAnimationId();
     if (animations_.find(key) != animations_.end()) {
         ROSEN_LOGE("RSModifierManager::AddAnimation, The animation already exists when is added");
@@ -242,15 +232,11 @@ void RSModifierManager::MoveModifier(std::shared_ptr<RSModifierManager> dstModif
     if (modifiers_.empty()) {
         return;
     }
-
     for (auto iter = modifiers_.begin(); iter != modifiers_.end();) {
         if (*iter) {
             auto node = (*iter)->node_.lock();
             if (node && node->GetId() == nodeId) {
-                dstModifierManager->modifiers_.push_back(*iter);
-                auto modifyId = (*iter)->GetId();
-                dstModifierManager->modifierIds_.insert(modifyId);
-                modifierIds_.erase(modifyId);
+                dstModifierManager->modifiers_.insert(*iter);
                 iter = modifiers_.erase(iter);
                 continue;
             }
