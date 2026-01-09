@@ -5565,11 +5565,6 @@ void RSMainThread::SetScreenFrameGravity(ScreenId id, Gravity gravity)
     });
 }
 
-void RSMainThread::JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLayerIds)
-{
-    lppVideoHandler_.JudgeLppLayer(vsyncId, lppLayerIds);
-}
-
 void RSMainThread::CheckPackageInConfigList(const std::vector<std::string>& packageList)
 {
     hwcContext_->CheckPackageInConfigList(packageList);

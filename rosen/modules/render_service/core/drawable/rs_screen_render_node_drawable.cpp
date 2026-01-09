@@ -669,6 +669,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         param.pendingScreenRefreshRate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
         param.isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag();
         param.hasGameScene = RSUniRenderThread::Instance().GetHasGameScene();
+        param.hasLppVideo = RSMainThread::Instance()->GetLppVideoHander().HasLppVideo();
         composerClient->UpdatePipelineParam(param);
     } else {
         RS_LOGE("composerClient->UpdatePipelineParam failed!");

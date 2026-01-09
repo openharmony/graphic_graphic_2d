@@ -17,7 +17,6 @@
 namespace OHOS::Rosen {
 void LppLayerColletor::AddLppLayerId(const std::vector<RSLayerPtr>& layers)
 {
-    lastLppLayerId_ = lppLayerId_;
     lppLayerId_.clear();
     for (const auto& layer : layers) {
         bool isLppLayer =
@@ -41,14 +40,9 @@ void LppLayerColletor::RemoveLayerId(const std::vector<RSLayerPtr>& layers)
     }
 }
 
-std::set<uint64_t> LppLayerColletor::GetLppLayerId()
+const std::set<uint64_t>& LppLayerColletor::GetLppLayerId()
 {
     return lppLayerId_;
-}
-
-bool LppLayerColletor::IsLppLayerChange()
-{
-    return lppLayerId_ != lastLppLayerId_;
 }
 
 } // namespace OHOS::Rosen

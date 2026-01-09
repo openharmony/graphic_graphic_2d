@@ -323,7 +323,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
         RSHiSysEvent::EventWrite(RSEventName::RS_HARDWARE_THREAD_LOAD_WARNING, RSEventType::RS_STATISTIC,
             "FRAME_RATE", frameRate, "MISSED_FRAMES", missedFrames, "FRAME_TIME", frameTime);
     }
-    if (composerToRenderConnection_ != nullptr && lppLayerColletor_.IsLppLayerChange()) {
+    if (composerToRenderConnection_ != nullptr && pipelineParam.hasLppVideo) {
         composerToRenderConnection_->NotifyLppLayerToRender(pipelineParam.vsyncId, lppLayerColletor_.GetLppLayerId());
     }
     EndCheck(timer);

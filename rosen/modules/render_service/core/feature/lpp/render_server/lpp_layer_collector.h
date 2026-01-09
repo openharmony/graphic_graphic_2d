@@ -25,13 +25,11 @@ constexpr uint32_t LPP_LAYER_PROPERTY =
 class LppLayerColletor {
 private:
     std::set<uint64_t> lppLayerId_;
-    std::set<uint64_t> lastLppLayerId_;
 
 public:
     void AddLppLayerId(const std::vector<RSLayerPtr>& layers);
     void RemoveLayerId(const std::vector<RSLayerPtr>& layers);
-    std::set<uint64_t> GetLppLayerId();
-    bool IsLppLayerChange();
+    const std::set<uint64_t>& GetLppLayerId();
 };
 } // namespace OHOS::Rosen
 

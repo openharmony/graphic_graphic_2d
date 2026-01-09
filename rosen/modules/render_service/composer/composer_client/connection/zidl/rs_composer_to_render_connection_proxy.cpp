@@ -121,28 +121,28 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSComposerToRenderConnectionProxy::NotifyLppLayerToRender write InterfaceToken failed");
+        ROSEN_LOGE("%{public}s: write InterfaceToken failed", __func__);
         return -1;
     }
     if (!data.WriteUint64(vsyncId)) {
-        ROSEN_LOGE("RSComposerToRenderConnectionProxy::NotifyLppLayerToRender: write vsyncId failed");
+        ROSEN_LOGE("%{public}s write vsyncId failed", __func__);
         return -1;
     }
 
     int32_t size = static_cast<int32_t>(lppNodeIds.size());
     if (!data.WriteInt32(size)) {
-        ROSEN_LOGE("RSComposerToRenderConnectionProxy::NotifyLppLayerToRender write lppNodeIds size failed");
+        ROSEN_LOGE("%{public}s write lppNodeIds size failed", __func__);
         return -1;
     }
 
-    for (const uint64_t& nodeId : lppNodeIds) {
+    for (uint64_t nodeId : lppNodeIds) {
         if (!data.WriteUint64(nodeId)) {
-            ROSEN_LOGE("RSComposerToRenderConnectionProxy::NotifyLppLayerToRender write nodeId failed");
+            ROSEN_LOGE("%{public}s write nodeId failed", __func__);
             return -1;
         }
     }
 
-    RS_LOGI("RSComposerToRenderConnectionProxy::NotifyLppLayerToRender conn write vsyncId = %{public}llu remoteObj successfully", vsyncId);
+    RS_LOGI("%{public}s conn write vsyncId = %{public}" PRIu64 " remoteObj successfully", __func__, vsyncId);
     uint32_t code = static_cast<uint32_t>(NOTIFY_LPP_LAYER_TO_RENDER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -150,7 +150,7 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
         return -1;
     }
     auto replyMessage = reply.ReadInt32();
-    RS_LOGI("RSComposerToRenderConnectionProxy::NotifyLppLayerToRender reply received successfully");
+    RS_LOGI("%{public}s reply received successfully", __func__);
     return replyMessage;
 }
 } // namespace Rosen
