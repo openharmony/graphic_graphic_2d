@@ -1031,6 +1031,17 @@ HWTEST_F(RSScreenManagerTest, GetScreenCapability_002, TestSize.Level1)
     RSScreenCapability screenCapability;
     screenCapability.SetName("virtualScreen01");
     screenCapability.SetType(ScreenInterfaceType::DISP_INTF_LCD);
+    screenCapability.SetPhyWidth(0);
+    screenCapability.SetPhyHeight(0);
+    screenCapability.SetSupportLayers(0);
+    ASSERT_EQ(screenCapability.GetSupportLayers(), 0);
+    screenCapability.SetVirtualDispCount(0);
+    ASSERT_EQ(screenCapability.GetVirtualDispCount(), 0);
+    screenCapability.SetSupportWriteBack(false);
+    ASSERT_EQ(screenCapability.GetSupportWriteBack(), 0);
+    std::vector<RSScreenProps> props = {};
+    screenCapability.SetProps(props);
+    screenCapability.GetProps();
     screenCapability = screenManager_->GetScreenCapability(virtualScreenId);
     ASSERT_EQ(screenCapability.GetName(), "virtualScreen01");
 }
