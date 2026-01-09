@@ -327,8 +327,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     }
     connections_[tokenObj] = { newConn, newRenderConn };
     lock.unlock();
-    // TODO: 这个AddTransactionDataPidInfo需要移到renderPipeline里面去 transaction
-    mainThread_->AddTransactionDataPidInfo(remotePid);
+
     return std::make_pair(newConn, newRenderConn);
 }
 

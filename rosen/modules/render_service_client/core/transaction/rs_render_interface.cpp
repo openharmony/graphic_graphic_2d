@@ -38,11 +38,6 @@ namespace OHOS {
 namespace Rosen {
 constexpr uint32_t WATERMARK_PIXELMAP_SIZE_LIMIT = 500 * 1024;
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
-RSRenderInterface &RSRenderInterface::GetInstance()
-{
-    static RSRenderInterface instance;
-    return instance;
-}
 
 RSRenderInterface::RSRenderInterface() : renderPipelineClient_(std::make_unique<RSRenderPipelineClient>())
 {

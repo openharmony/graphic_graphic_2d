@@ -92,10 +92,6 @@ public:
         return std::move(taskFuture);
     }
 
-    RSMainThread* GetMainThread()
-    {
-        return mainThread_;
-    }
 
     void OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
@@ -120,11 +116,24 @@ private:
         const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void InitUniRenderThread();
     void InitDumper();
+    bool RemoveConnection(const sptr<RSIConnectionToken>& token);
+    void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
+    sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
+    void AddTransactionDataPidInfo(pid_t remotePid);
+    RSMainThread* GetMainThread()
+    {
+        return mainThread_;
+    }
 
+    RSUniRenderThread* GetUniRenderThread()
+    {
+        return uniRenderThread_;
+    }
     RSMainThread* mainThread_ = nullptr;
     RSUniRenderThread* uniRenderThread_ = nullptr;
     RSBufferThread* uniBufferThread_ = nullptr;
-
+    std::map<sptr<IRemoteObject>, sptr<RSIClientToRenderConnection>> renderConnections_ = {};
+    mutable std::mutex renderConnectionMutex_;
     std::shared_ptr<ImageEnhanceManager> imageEnhanceManager_ = nullptr;
 
     friend class RSServiceToRenderConnection;

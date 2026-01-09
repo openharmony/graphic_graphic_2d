@@ -23,8 +23,8 @@
 namespace OHOS {
 namespace Rosen {
 
-RSConnectToRenderProcess::RSConnectToRenderProcess(RSMainThread *mainThread, sptr<RSRenderPipelineAgent> renderPipelineAgent)
-    : mainThread_(mainThread), renderPipelineAgent_(renderPipelineAgent)
+RSConnectToRenderProcess::RSConnectToRenderProcess(sptr<RSRenderPipelineAgent> renderPipelineAgent)
+    : renderPipelineAgent_(renderPipelineAgent)
 {}
 
 sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnection(const sptr<RSIConnectionToken>& token)
@@ -36,15 +36,18 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnecti
     RS_LOGI("RSConnectToRenderProcess::%{public}s, %{public}p", __func__, token.GetRefPtr());
     pid_t remotePid = GetCallingPid();
     auto tokenObj = token->AsObject();
-    sptr<RSIClientToRenderConnection> renderConnection = mainThread_->FindClientToRenderConnection(tokenObj);
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGW("RSClientToRenderConnection: renderPipelineAgent_ is nullptr");
+    }
+    sptr<RSIClientToRenderConnection> renderConnection = renderPipelineAgent_->FindClientToRenderConnection(tokenObj);
     if (renderConnection != nullptr) {
         return renderConnection;
     }
     RS_LOGI("RSConnectToRenderProcess::CreateRenderConnection");
     sptr<RSIClientToRenderConnection> newRenderConn =
         new RSClientToRenderConnection(remotePid, renderPipelineAgent_, tokenObj);
-    mainThread_->AddTransactionDataPidInfo(remotePid);
-    mainThread_->AddConnection(tokenObj, newRenderConn);
+    renderPipelineAgent_->AddTransactionDataPidInfo(remotePid);
+    renderPipelineAgent_->AddConnection(tokenObj, newRenderConn);
     RS_LOGI("RSConnectToRenderProcess::%{public}s, has not the same token one %{public}p, return %{public}p.", __func__,
         tokenObj.GetRefPtr(), newRenderConn.GetRefPtr());
     return newRenderConn;

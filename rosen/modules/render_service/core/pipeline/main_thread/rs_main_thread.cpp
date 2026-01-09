@@ -752,6 +752,77 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         }, "ReleaseNodeDrawableMem in mainthread", 0, AppExecFwk::EventQueue::Priority::HIGH);
     });
 }
+void RSMainThread::CleanBrightnessInfoChangeCallbacks(pid_t remotePid) noexcept
+{
+    auto& context = GetContext();
+    context.SetBrightnessInfoChangeCallback(remotePid, nullptr);
+}
+
+void RSMainThread::CleanRenderNodes(pid_t remotePid) noexcept
+{
+    auto& context = GetContext();
+    auto& nodeMap = context.GetMutableNodeMap();
+    MemoryTrack::Instance().RemovePidRecord(remotePid);
+
+    RS_PROFILER_KILL_PID(remotePid);
+    nodeMap.FilterNodeByPid(remotePid);
+    RS_PROFILER_KILL_PID_END();
+
+    RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+}
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSMainThread::CleanCanvasCallbacksAndPendingBuffer(pid_t remotePid) noexcept
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.RegisterCanvasCallback(remotePid, nullptr);
+    bufferCache.ClearPendingBufferByPid(remotePid);
+}
+#endif
+
+void RSMainThread::CleanResources(pid_t pid)
+{
+    RS_TRACE_NAME_FMT("CleanResources %d", pid);
+    // 0. CleanRenderNodes
+    {
+        RS_TRACE_BEGIN("CleanRenderNodes");
+        CleanRenderNodes(pid);
+        CleanBrightnessInfoChangeCallbacks(pid);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        CleanCanvasCallbacksAndPendingBuffer();
+#endif
+        RS_TRACE_END();
+    }
+
+    {
+        RS_TRACE_BEGIN("ClearTransactionDataPidInfo");
+        ClearTransactionDataPidInfo(pid);
+        if (IsRequestedNextVSync()) {
+            SetDirtyFlag();
+        }
+        RS_TRACE_END();
+    }
+
+    {
+        RS_TRACE_BEGIN("UnRegisterCallback");
+        UnRegisterOcclusionChangeCallback(pid);
+        ClearSurfaceOcclusionChangeCallback(pid);
+        UnRegisterUIExtensionCallback(pid);
+        RS_TRACE_END();
+    }
+
+    {
+        ClearSurfaceWatermark(pid);
+    }
+
+    {
+        if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
+            auto &monitor = SelfDrawingNodeMonitor::GetInstance();
+            monitor.UnRegisterRectChangeCallback(pid);
+        }
+    }
+
+}
 
 void RSMainThread::OnScreenConnected(const sptr<RSScreenProperty>& screenProperty)
 {
@@ -3115,48 +3186,6 @@ bool RSMainThread::CheckSurfaceOcclusionNeedProcess(NodeId id)
     return true;
 }
 
-bool RSMainThread::RemoveConnection(const sptr<RSIConnectionToken>& token)
-{
-    if (token == nullptr) {
-        RS_LOGE("RemoveConnection: token is nullptr");
-        return false;
-    }
-    // temporarily extending the life cycle
-    auto tokenObj = token->AsObject();
-    std::unique_lock<std::mutex> lock(mutex_);
-    auto iter = connections_.find(tokenObj);
-    if (iter == connections_.end()) {
-        RS_LOGE("RemoveConnection: connections_ cannot find token");
-        return false;
-    }
-    auto tmp = iter->second;
-    connections_.erase(tokenObj);
-    lock.unlock();
-    return true;
-}
-
-void RSMainThread::AddConnection(
-    sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
-{
-    if (connections_.find(token) != connections_.end()) {
-        return;
-    }
-    connections_[token] = connectToRenderConnection;
-}
-
-sptr<RSIClientToRenderConnection> RSMainThread::FindClientToRenderConnection(const sptr<IRemoteObject>& token)
-{
-    auto it = connections_.find(token);
-    if (it != connections_.end()) {
-        auto clientToRenderConnection = it->second;
-        RS_LOGE("RSMainThread::FindClientToRenderConnection::%{public}s, has the same token one %{public}p, return "
-                "%{public}p",
-            __func__, token.GetRefPtr(), clientToRenderConnection.GetRefPtr());
-        return clientToRenderConnection;
-    }
-    return nullptr;
-}
-
 uint32_t RSMainThread::GetVsyncRefreshRate()
 {
     if (receiver_ == nullptr) {
@@ -4958,17 +4987,6 @@ void RSMainThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface
 {
     std::lock_guard<std::mutex> lock(mutex_);
     tmpSurfaces_.push(std::move(surface));
-}
-
-void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
-{
-#ifdef RS_ENABLE_GPU
-    RSUniRenderThread::Instance().PostSyncTask([&cpuMemSize, &gpuMemSize] {
-        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(
-            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
-        cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
-    });
-#endif
 }
 
 void RSMainThread::SubscribeAppState()

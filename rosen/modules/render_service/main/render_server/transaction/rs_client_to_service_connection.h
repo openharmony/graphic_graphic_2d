@@ -80,7 +80,6 @@ private:
     void GetSurfaceRootNodeId(NodeId& windowNodeId);
 
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) override;
-    float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
 
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
         const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) override;
@@ -394,19 +393,6 @@ private:
     };
     friend class RSConnectionDeathRecipient;
     sptr<RSConnectionDeathRecipient> connDeathRecipient_;
-
-    class RSApplicationRenderThreadDeathRecipient : public IRemoteObject::DeathRecipient {
-    public:
-        explicit RSApplicationRenderThreadDeathRecipient(wptr<RSClientToServiceConnection> conn);
-        virtual ~RSApplicationRenderThreadDeathRecipient() = default;
-
-        void OnRemoteDied(const wptr<IRemoteObject>& token) override;
-
-    private:
-        wptr<RSClientToServiceConnection> conn_;
-    };
-    friend class RSApplicationRenderThreadDeathRecipient;
-    sptr<RSApplicationRenderThreadDeathRecipient> applicationDeathRecipient_ = nullptr;
 
     mutable std::mutex mutex_;
     bool cleanDone_ = false;

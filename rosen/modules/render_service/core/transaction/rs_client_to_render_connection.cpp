@@ -119,12 +119,14 @@ RSClientToRenderConnection::RSClientToRenderConnection(
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSClientToRenderConnection: Failed to set death recipient.");
+        return;
     }
 
     if (renderPipelineAgent_ == nullptr) {
         RS_LOGW("RSClientToRenderConnection: renderPipelineAgent_ is nullptr");
+        return;
     }
-    
+    renderPipelineAgent->AddTransactionDataPidInfo(remotePid);
 }
 
 RSClientToRenderConnection::~RSClientToRenderConnection() noexcept
@@ -153,6 +155,11 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
     {
         std::lock_guard<std::mutex> lock(mutex_);
         cleanDone_ = true;
+    }
+
+    if (toDelete) {
+        auto token = iface_cast<RSIConnectionToken>(GetToken());
+        renderPipelineAgent_->RemoveConnection(token);
     }
 }
 

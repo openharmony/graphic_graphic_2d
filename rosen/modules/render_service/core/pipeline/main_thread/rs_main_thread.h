@@ -125,7 +125,6 @@ public:
     void RsEventParamDump(std::string& dumpString);
     void UpdateAnimateNodeFlag();
     void ResetAnimateNodeFlag();
-    void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
@@ -469,14 +468,12 @@ public:
     void JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLayerIds);
 
     void RegisterScreenSwitchFinishCallback(sptr<RSIRenderToServiceConnection> conn);
-    bool RemoveConnection(const sptr<RSIConnectionToken>& token);
-    void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
-    sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
     void SetScreenFrameGravity(ScreenId id, Gravity gravity);
 
     bool TransitionDataMutexLockIfNoCommands();
     void TransitionDataMutexUnlock();
-
+    void CleanResources(pid_t pid);
+    
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
 
     std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet>& GetMutableAIBarNodes()
@@ -625,7 +622,11 @@ private:
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
     void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
-
+    void CleanRenderNodes(pid_t remotePid) noexcept;
+    void CleanBrightnessInfoChangeCallbacks(pid_t remotePid) noexcept;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void CleanCanvasCallbacksAndPendingBuffer(pid_t remotePid) noexcept;
+#endif
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
     bool clearMemoryFinished_ = true;

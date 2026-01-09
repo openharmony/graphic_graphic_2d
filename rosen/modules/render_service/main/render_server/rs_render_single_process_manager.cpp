@@ -58,7 +58,7 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
 
     // step3:
     connectToRenderConnection_ = sptr<RSIConnectToRenderProcess>(
-        new RSConnectToRenderProcess(renderService.mainThread_, renderPipelineAgent));
+        new RSConnectToRenderProcess(renderPipelineAgent));
 }
 
 sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId screenId,

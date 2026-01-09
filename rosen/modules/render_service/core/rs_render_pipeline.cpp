@@ -135,6 +135,14 @@ void RSRenderPipeline::PostUniRenderThreadSyncTask(RSTaskMessage::RSTask task)
     uniRenderThread_->PostSyncTask(task);
 }
 
+void RSRenderPipeline::AddTransactionDataPidInfo(pid_t remotePid)
+{
+    if (mainThread_ == nullptr) {
+        return;
+    }
+    mainThread_->AddTransactionDataPidInfo(remotePid);
+}
+
 void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
@@ -265,5 +273,47 @@ void RSRenderPipeline::InitDumper()
     rpDumper_->RpDumpInit();
 }
 
+bool RSRenderPipeline::RemoveConnection(const sptr<RSIConnectionToken>& token)
+{
+    if (token == nullptr) {
+        RS_LOGE("RemoveConnection: token is nullptr");
+        return false;
+    }
+    // temporarily extending the life cycle
+    auto tokenObj = token->AsObject();
+    std::unique_lock<std::mutex> lock(renderConnectionMutex_);
+    auto iter = renderConnections_.find(tokenObj);
+    if (iter == renderConnections_.end()) {
+        RS_LOGE("RSRenderPipelineAgent RemoveConnection: connections_ cannot find token");
+        return false;
+    }
+    renderConnections_.erase(tokenObj);
+    lock.unlock();
+    return true;
+}
+
+void RSRenderPipeline::AddConnection(
+    sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
+{
+    std::unique_lock<std::mutex> lock(renderConnectionMutex_);
+    if (renderConnections_.find(token) != renderConnections_.end()) {
+        return;
+    }
+    renderConnections_[token] = connectToRenderConnection;
+}
+
+sptr<RSIClientToRenderConnection> RSRenderPipeline::FindClientToRenderConnection(const sptr<IRemoteObject>& token)
+{
+    std::unique_lock<std::mutex> lock(renderConnectionMutex_);
+    auto it = renderConnections_.find(token);
+    if (it != renderConnections_.end()) {
+        auto clientToRenderConnection = it->second;
+        RS_LOGE("RSRenderPipelineAgent::FindClientToRenderConnection::%{public}s, has the same token one %{public}p, return "
+                "%{public}p",
+            __func__, token.GetRefPtr(), clientToRenderConnection.GetRefPtr());
+        return clientToRenderConnection;
+    }
+    return nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS

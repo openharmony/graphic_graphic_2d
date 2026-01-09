@@ -32,7 +32,6 @@ class RSC_EXPORT RSRenderInterface {
 public:
     RSRenderInterface();
     ~RSRenderInterface() noexcept;
-    static RSRenderInterface &GetInstance();
     /**
      * @brief Get snapshot of surfaceNode.
      * @param node Indicates which node, usually point to a window.

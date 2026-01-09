@@ -120,7 +120,6 @@ RSClientToServiceConnection::RSClientToServiceConnection(
       screenManagerAgent_(screenManagerAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
-      applicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this)),
       appVSyncDistributor_(distributor)
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
@@ -227,15 +226,6 @@ void RSClientToServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(const
     rsConn->CleanAll(true);
 }
 
-RSClientToServiceConnection::RSApplicationRenderThreadDeathRecipient::RSApplicationRenderThreadDeathRecipient(
-    wptr<RSClientToServiceConnection> conn) : conn_(conn)
-{}
-
-void RSClientToServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemoteDied(
-    const wptr<IRemoteObject>& token)
-{
-}
-
 ErrCode RSClientToServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
     return ERR_OK;
@@ -331,23 +321,6 @@ ErrCode RSClientToServiceConnection::GetPixelMapByProcessId(
     }
     repCode = SUCCESS;
     return ERR_OK;
-}
-
-float RSClientToServiceConnection::GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer)
-{
-    if (buffer == nullptr) {
-        RS_LOGE("GetRotationInfoFromSurfaceBuffer buffer is null");
-        return 0.0f;
-    }
-    auto transformType = buffer->GetSurfaceBufferTransform();
-    if (transformType == GRAPHIC_ROTATE_90) {
-        return 90.0f;
-    } else if (transformType == GRAPHIC_ROTATE_180) {
-        return 180.0f;
-    } else if (transformType == GRAPHIC_ROTATE_270) {
-        return 270.0f;
-    }
-    return 0.0f;
 }
 
 ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
