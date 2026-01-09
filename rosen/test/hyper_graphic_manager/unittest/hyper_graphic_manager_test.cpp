@@ -718,8 +718,8 @@ HWTEST_F(HyperGraphicManagerTest, SetPerformanceConfigTest001, Function | SmallT
     instance.SetPerformanceConfig(curScreenSetting);
     EXPECT_TRUE(instance.isVsyncOffsetCustomized_.load());
     int64_t offset = 0;
-    EXPECT_EQ(instance.GetRsPhaseOffset(), customizedOffset);
-    EXPECT_EQ(instance.GetAppPhaseOffset(), customizedOffset);
+    EXPECT_EQ(instance.GetRsPhaseOffset(offset), customizedOffset);
+    EXPECT_EQ(instance.GetAppPhaseOffset(offset), customizedOffset);
 
     curScreenSetting.performanceConfig.erase("rsPhaseOffset");
     curScreenSetting.performanceConfig.erase("appPhaseOffset");
@@ -727,8 +727,8 @@ HWTEST_F(HyperGraphicManagerTest, SetPerformanceConfigTest001, Function | SmallT
     curScreenSetting.performanceConfig["appPhaseOffset"] = std::to_string(invalidOffset);
     instance.SetPerformanceConfig(curScreenSetting);
     EXPECT_TRUE(instance.isVsyncOffsetCustomized_.load());
-    EXPECT_EQ(instance.GetRsPhaseOffset(), 0);
-    EXPECT_EQ(instance.GetAppPhaseOffset(), 0);
+    EXPECT_EQ(instance.GetRsPhaseOffset(offset), 0);
+    EXPECT_EQ(instance.GetAppPhaseOffset(offset), 0);
 
     // recover
     instance.isVsyncOffsetCustomized_.store(orgIsVsyncOffsetCustomized);
