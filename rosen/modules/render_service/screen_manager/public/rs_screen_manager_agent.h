@@ -115,6 +115,7 @@ public:
     uint32_t SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect);
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
     void SetScreenSwitchStatus(ScreenId id, bool status);
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
 private:
     sptr<RSScreenManager> screenManager_;

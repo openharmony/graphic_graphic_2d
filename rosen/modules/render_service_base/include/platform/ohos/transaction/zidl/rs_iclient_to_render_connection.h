@@ -164,8 +164,6 @@ public:
 
     virtual ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) = 0;
 
-    virtual void SetScreenFrameGravity(ScreenId id, int32_t gravity) = 0;
-
     virtual void RemoveToken() = 0;
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

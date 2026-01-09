@@ -139,8 +139,6 @@ private:
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
-
     void ClearUifirstCache(NodeId id) override;
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

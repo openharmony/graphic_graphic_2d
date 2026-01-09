@@ -62,6 +62,7 @@ enum class ScreenPropertyType : uint32_t {
     SUPPORTED_COLOR_GAMUTS,
     DISABLE_POWER_OFF_RENDER_CONTROL,
     SCREEN_SWITCH_STATUS,
+    SCREEN_FRAME_GRAVITY,
 };
 
 template<ScreenPropertyType T>
@@ -129,6 +130,7 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS,
     std::vector<ScreenColorGamut>, std::vector<ScreenColorGamut>());
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_SWITCH_STATUS, bool, false);
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_FRAME_GRAVITY, int32_t, static_cast<int32_t>(Gravity::DEFAULT));
 
 class ScreenPropertyBase : public Parcelable {
 public:
@@ -224,6 +226,7 @@ public:
     std::vector<ScreenColorGamut> GetScreenSupportedColorGamuts() const;
     bool GetDisablePowerOffRenderControl() const;
     bool IsScreenSwitching() const;
+    Gravity GetFrameGravity() const;
 
     ScreenInfo GetScreenInfo() const;
 
@@ -236,6 +239,9 @@ private:
     template<ScreenPropertyType propType>
     sptr<ScreenPropertyBase> Set(const typename PropertyTypeMapper<propType>::value_type& val) {
         using T = typename PropertyTypeMapper<propType>::value_type;
+        if (ROSEN_EQ(Get<propType>(), val)) {
+            return nullptr;
+        }
         auto screenProperty = sptr<ScreenProperty<T>>::MakeSptr(val);
         screenProperties_.insert_or_assign(propType, screenProperty);
         return screenProperty;

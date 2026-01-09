@@ -155,8 +155,7 @@ public:
     void SetVisibleRectOption(bool enable, const Rect& mainScreenRect, bool supportRotation);
 
     void SetScreenOffset(int32_t offsetX, int32_t offsetY);
-    int32_t GetOffsetX() const;
-    int32_t GetOffsetY() const;
+    void SetScreenFrameGravity(int32_t gravity);
 
     void SetDisablePowerOffRenderControl(bool disable);
 

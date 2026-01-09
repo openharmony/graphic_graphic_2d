@@ -68,7 +68,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_SCREEN_HDR_STATUS),
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SURFACE_WATERMARK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES),
@@ -1233,22 +1232,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             RS_LOGD("RSRenderServiceConnectionStub: already decode unicode, timeStamp: %{public}"
                 PRIu64 " token: %{public}" PRIu64, timeStamp, token);
             RegisterTransactionDataCallback(token, timeStamp, callback);
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY): {
-            ScreenId id = INVALID_SCREEN_ID;
-            int32_t gravity = 0;
-            if (!data.ReadUint64(id) || !data.ReadInt32(gravity)) {
-                RS_LOGE("RSClientToRenderConnectionStub::SET_SCREEN_FRAME_GRAVITY Read parcel failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (gravity < 0 || gravity > static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT)) {
-                RS_LOGE("RSClientToRenderConnectionStub::SET_SCREEN_FRAME_GRAVITY gravity is invalid!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetScreenFrameGravity(id, gravity);
             break;
         }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_UIFIRST_CACHE) : {

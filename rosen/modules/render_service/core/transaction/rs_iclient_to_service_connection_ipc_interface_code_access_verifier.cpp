@@ -159,6 +159,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_OFFSET");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_FRAME_GRAVITY): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GRAVITY");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_ACTIVE_MODE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_ACTIVE_MODE");
             break;

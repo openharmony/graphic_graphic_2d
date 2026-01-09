@@ -91,17 +91,17 @@ bool RSProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawabl
     return true;
 }
 
-bool RSProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,
-    std::shared_ptr<RSBaseRenderEngine> renderEngine)
+bool RSProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
     if (renderEngine == nullptr) {
         RS_LOGE("renderEngine is nullptr");
         return false;
     }
     renderEngine_ = renderEngine;
-    offsetX_ = offsetX;
-    offsetY_ = offsetY;
-    screenInfo_ = node.GetScreenProperty().GetScreenInfo();
+    const auto& screenProperty = node.GetScreenProperty();
+    offsetX_ = screenProperty.GetOffsetX();
+    offsetY_ = screenProperty.GetOffsetY();
+    screenInfo_ = screenProperty.GetScreenInfo();
 
     auto children = node.GetChildrenList();
     std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;

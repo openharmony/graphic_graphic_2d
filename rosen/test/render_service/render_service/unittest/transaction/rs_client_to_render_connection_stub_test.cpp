@@ -80,8 +80,6 @@ public:
     static inline sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
     static inline RSMainThread* mainThread_;
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
-    int32_t offsetX = 0; //screenOffset on x axis equals to 0
-    int32_t offsetY = 0; //screenOffset on y axis equals to 0
     float mirrorAdaptiveCoefficient = 1.0f;
     static uint32_t screenId_;
     static std::shared_ptr<RSSurfaceRenderNode> surfaceNode_;
@@ -289,7 +287,7 @@ void RSClientToRenderConnectionStubTest::CreateComposerAdapterWithScreenInfo(uin
     info.state = state;
     info.rotation = rotation;
     composerAdapter_ = std::make_unique<RSComposerAdapter>();
-    composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient, nullptr);
+    composerAdapter_->Init(info, mirrorAdaptiveCoefficient, nullptr);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
 }
 

@@ -199,12 +199,12 @@ void RSRenderPipeline::OnScreenPropertyChanged(
 
 void RSRenderPipeline::OnScreenRefresh(ScreenId screenId)
 {
-    if (mainThread_) {
-        mainThread_->PostTask([mainThread = mainThread_]() {
-            mainThread->SetForceUpdateUniRenderFlag(true);
-            mainThread->RequestNextVSync();
-        });
+    if (!mainThread_) {
+        RS_LOGE("%{public}s mainThread_ is nullptr, return", __func__);
+        return;
     }
+    mainThread_->SetForceUpdateUniRenderFlag(true);
+    mainThread_->RequestNextVSync();
 }
 
 void RSRenderPipeline::InitEnvironment()

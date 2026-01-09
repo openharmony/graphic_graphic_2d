@@ -533,14 +533,6 @@ ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value
     return renderPipelineAgent_->SetWindowContainer(nodeId, value);
 }
 
-void RSClientToRenderConnection::SetScreenFrameGravity(ScreenId id, int32_t gravity)
-{
-    if (renderPipelineAgent_ == nullptr) {
-        return;
-    }
-    renderPipelineAgent_->SetScreenFrameGravity(id, gravity);
-}
-
 void RSClientToRenderConnection::ClearUifirstCache(NodeId id)
 {
     if (renderPipelineAgent_ == nullptr) {

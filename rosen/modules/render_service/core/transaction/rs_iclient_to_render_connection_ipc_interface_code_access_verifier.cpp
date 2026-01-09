@@ -50,10 +50,6 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FOCUS_APP_INFO");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_FRAME_GRAVITY): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GRAVITY");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SURFACE_WATERMARK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SURFACE_WATERMARK");
             break;

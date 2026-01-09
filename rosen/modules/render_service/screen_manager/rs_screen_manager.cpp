@@ -159,8 +159,9 @@ bool RSScreenManager::CheckFoldScreenIdBuiltIn(ScreenId id)
 void RSScreenManager::ProcessScreenConnected(ScreenId id)
 {
     auto screen = std::make_shared<RSScreen>(id);
-    screen->SetOnPropertyChangedCallback(std::bind(&RSScreenManager::OnScreenPropertyChanged, this,
-        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    screen->SetOnPropertyChangedCallback([this](auto id, auto type, auto property) {
+        preprocessor_->NotifyScreenPropertyChanged(id, type, property);
+    });
     screen->SetOnBacklightChangedCallback(
         std::bind(&RSScreenManager::OnScreenBacklightChanged, this, std::placeholders::_1, std::placeholders::_2));
 
@@ -502,8 +503,9 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     configs.whiteList = std::unordered_set<NodeId>(whiteList.begin(), whiteList.end());
 
     auto screen = std::make_shared<RSScreen>(configs);
-    screen->SetOnPropertyChangedCallback(std::bind(&RSScreenManager::OnScreenPropertyChanged, this,
-        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    screen->SetOnPropertyChangedCallback([this](auto id, auto type, auto property) {
+        preprocessor_->NotifyScreenPropertyChanged(id, type, property);
+    });
     {
         std::lock_guard<std::mutex> lock(screenMapMutex_);
         screens_[newId] = screen;
@@ -1416,6 +1418,16 @@ void RSScreenManager::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offs
     screen->SetScreenOffset(offsetX, offsetY);
 }
 
+void RSScreenManager::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return;
+    }
+    screen->SetScreenFrameGravity(gravity);
+}
+
 bool RSScreenManager::AnyScreenFits(std::function<bool(const ScreenNode&)> func) const
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
@@ -1467,15 +1479,6 @@ sptr<RSScreenProperty> RSScreenManager::QueryScreenProperty(ScreenId id) const
         return nullptr;
     }
     return screen->GetProperty();
-}
-
-void RSScreenManager::OnScreenPropertyChanged(ScreenId id,
-    ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
-{
-    if (property == nullptr) {
-        return;
-    }
-    callbackMgr_->NotifyScreenPropertyUpdated(id, type, property);
 }
 
 void RSScreenManager::OnScreenBacklightChanged(ScreenId id, uint32_t level)

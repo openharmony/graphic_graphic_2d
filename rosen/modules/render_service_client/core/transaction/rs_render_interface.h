@@ -252,13 +252,6 @@ public:
      */
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
-    /**
-     * @brief Set frame gravity of screen node
-     * @param id Screen id.
-     * @param gravity The gravity value of the screen node.
-     */
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
-    
     // WMS set dark color display mode to RS
     /**
      * @brief Notify if system themes switch to dark mode.

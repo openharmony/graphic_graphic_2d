@@ -261,6 +261,8 @@ public:
 
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
 
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t RegisterSurfaceOcclusionChangeCallback(

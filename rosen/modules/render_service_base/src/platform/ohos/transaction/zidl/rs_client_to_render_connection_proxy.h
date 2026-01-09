@@ -122,8 +122,6 @@ public:
 
     void ClearUifirstCache(NodeId id) override;
 
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
-
     bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
 
     bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);

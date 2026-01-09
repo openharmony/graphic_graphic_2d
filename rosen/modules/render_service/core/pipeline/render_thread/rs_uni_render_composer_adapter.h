@@ -43,8 +43,7 @@ public:
     ~RSUniRenderComposerAdapter() noexcept = default;
     RSLayerPtr CreateLayer(RSScreenRenderNode& node);
     RSLayerPtr CreateLayer(RSRcdSurfaceRenderNode& node);
-    bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
-        const std::shared_ptr<RSRenderComposerClient>& composerClient);
+    bool Init(const ScreenInfo& screenInfo, const std::shared_ptr<RSRenderComposerClient>& composerClient);
     bool UpdateMirrorInfo(float mirrorAdaptiveCoefficient);
 
     RSLayerPtr CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
@@ -87,9 +86,6 @@ private:
     void SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const;
 
     ScreenInfo screenInfo_;
-    // The offset on dst screen for all layers.
-    int32_t offsetX_ = 0;
-    int32_t offsetY_ = 0;
     float mirrorAdaptiveCoefficient_ = 1.0f;
     std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
 };

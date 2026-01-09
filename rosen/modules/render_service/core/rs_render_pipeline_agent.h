@@ -45,8 +45,6 @@ public:
 
     ErrCode SetGlobalDarkColorMode(bool isDark);
 
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
-
     ErrCode SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success);
 

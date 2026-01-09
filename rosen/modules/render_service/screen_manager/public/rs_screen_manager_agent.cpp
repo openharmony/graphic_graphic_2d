@@ -658,5 +658,14 @@ void RSScreenManagerAgent::SetScreenSwitchStatus(ScreenId id, bool status)
     // temporary: only for main screen
     screenManager_->SetScreenSwitchStatus(0, status);
 }
+
+void RSScreenManagerAgent::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+    if (!screenManager_) {
+        return;
+    }
+    screenManager_->SetScreenFrameGravity(id, gravity);
+}
+
 } // namespace Rosen
 } // namespace OHOS

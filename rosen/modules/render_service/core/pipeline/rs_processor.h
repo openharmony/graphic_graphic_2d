@@ -52,8 +52,7 @@ public:
 
     RSProcessor(const RSProcessor&) = delete;
     void operator=(const RSProcessor&) = delete;
-    virtual bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,
-        std::shared_ptr<RSBaseRenderEngine> renderEngine);
+    virtual bool Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual void CreateLayer(/* const ??? todo */ RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) {}
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;

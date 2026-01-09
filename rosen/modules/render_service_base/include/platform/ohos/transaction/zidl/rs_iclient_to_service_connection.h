@@ -252,6 +252,8 @@ public:
 
     virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
 
+    virtual void SetScreenFrameGravity(ScreenId id, int32_t gravity) = 0;
+
     virtual ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) = 0;
 
     virtual int32_t RegisterSurfaceOcclusionChangeCallback(

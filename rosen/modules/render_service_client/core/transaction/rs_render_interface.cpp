@@ -378,11 +378,6 @@ int32_t RSRenderInterface::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
     return renderPipelineClient_->GetScreenHDRStatus(id, hdrStatus);
 }
 
-void RSRenderInterface::SetScreenFrameGravity(ScreenId id, int32_t gravity)
-{
-    return renderPipelineClient_->SetScreenFrameGravity(id, gravity);
-}
-
 bool RSRenderInterface::GetHighContrastTextState()
 {
     return renderPipelineClient_->GetHighContrastTextState();

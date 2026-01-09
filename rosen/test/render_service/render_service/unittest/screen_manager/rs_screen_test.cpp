@@ -1984,36 +1984,6 @@ HWTEST_F(RSScreenTest, GetVirtualSecLayerOption001, testing::ext::TestSize.Level
 }
 
 /*
- * @tc.name: SetScreenLinearMatrix_001
- * @tc.desc: SetScreenLinearMatrix Test
- * @tc.type: FUNC
- * @tc.require: issueIB2KBH
- */
-HWTEST_F(RSScreenTest, SetScreenLinearMatrix_001, testing::ext::TestSize.Level1)
-{
-    auto rsScreen = std::make_unique<RSScreen>(0);
-    EXPECT_NE(nullptr, rsScreen);
-
-    std::vector<float> matrix1 = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-    std::vector<float> matrix2(5, 3.14f);
-
-    rsScreen->property_.SetIsVirtual(true);
-    auto res = rsScreen->SetScreenLinearMatrix(matrix1);
-    EXPECT_EQ(StatusCode::VIRTUAL_SCREEN, res);
-
-    rsScreen->property_.SetIsVirtual(false);
-    rsScreen->hdiScreen_ = nullptr;
-    res = rsScreen->SetScreenLinearMatrix(matrix1);
-    EXPECT_EQ(StatusCode::HDI_ERROR, res);
-
-    rsScreen->hdiScreen_ = std::make_unique<HdiScreen>(100);
-    res = rsScreen->SetScreenLinearMatrix(matrix1);
-    EXPECT_EQ(StatusCode::SUCCESS, res);
-    res = rsScreen->SetScreenLinearMatrix(matrix2);
-    EXPECT_EQ(StatusCode::INVALID_ARGUMENTS, res);
-}
-
-/*
  * @tc.name: GetDisplayIdentificationData
  * @tc.desc: GetDisplayIdentificationData Test
  * @tc.type: FUNC

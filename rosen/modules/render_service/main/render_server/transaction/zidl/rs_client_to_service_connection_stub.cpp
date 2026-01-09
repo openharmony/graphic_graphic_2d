@@ -1937,6 +1937,22 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             SetScreenOffset(id, offsetX, offsetY);
             break;
         }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY): {
+            ScreenId id = INVALID_SCREEN_ID;
+            int32_t gravity = 0;
+            if (!data.ReadUint64(id) || !data.ReadInt32(gravity)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (gravity < 0 || gravity > static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY gravity is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetScreenFrameGravity(id, gravity);
+            break;
+        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -2753,7 +2769,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED) : {
             ScreenId screenId;
             if (!data.ReadUint64(screenId)) {
-                RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_SCREEN_SWITCHED ReadBool failed");
+                RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_SCREEN_SWITCHED Read screenId failed");
                 ret = ERR_INVALID_DATA;
                 break;
             }

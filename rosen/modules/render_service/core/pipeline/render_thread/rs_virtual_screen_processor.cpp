@@ -35,11 +35,10 @@ RSVirtualScreenProcessor::~RSVirtualScreenProcessor() noexcept
 {
 }
 
-bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,
-                                    std::shared_ptr<RSBaseRenderEngine> renderEngine)
+bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSProcessor::Init(node, offsetX, offsetY, renderEngine)) {
+    if (!RSProcessor::Init(node, renderEngine)) {
         return false;
     }
 #endif

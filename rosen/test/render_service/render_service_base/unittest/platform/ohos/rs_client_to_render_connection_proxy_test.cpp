@@ -560,20 +560,6 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, DropFrameByPidWithInvalidParameter
 }
 
 /**
- * @tc.name: SetScreenFrameGravity Test
- * @tc.desc: SetScreenFrameGravity Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToRenderConnectionProxyTest, SetScreenFrameGravity, TestSize.Level1)
-{
-    ScreenId id = 100;
-    int32_t gravity = 5;
-    proxy->SetScreenFrameGravity(id, gravity);
-    ASSERT_NE(proxy->transactionDataIndex_, 5);
-}
-
-/**
  * @tc.name: RegisterBufferClearListener Test
  * @tc.desc: RegisterBufferClearListener Test
  * @tc.type:FUNC
