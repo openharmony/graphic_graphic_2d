@@ -26,14 +26,17 @@ public:
 
     static bool IsNodeOffTreeMemReleaseEnabled();
     static bool IsCanvasDrawingNodeDMAMemEnabled();
+    static bool IsRsRenderNodeGCMemReleaseEnabled();
 
 protected:
     static void SetNodeOffTreeMemReleaseEnabled(bool isEnable);
     static void SetCanvasDrawingNodeDMAMemEnabled(bool isEnable);
+    static void SetRsRenderNodeGCMemReleaseEnabled(bool isEnable);
 
 private:
     inline static bool isNodeOffTreeMemReleaseEnabled_ = true;
     inline static bool isCanvasDrawingNodeDMAMemEnabled_ = true;
+    inline static bool isRsRenderNodeGCMemReleaseEnabled_ = true;
 
     friend class NodeMemReleaseParamParse;
 };
