@@ -945,6 +945,8 @@ void RSSurfaceLayer::SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::Buffe
     }
 
     std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceLayer::SetBufferOwnerCount seqNum %u layerId %" PRIu64,
+        uint32_t(bufferOwnerCount->seqNum_), rsLayerId_);
     if (bufferOwnerCounts_.find(bufferOwnerCount->seqNum_) == bufferOwnerCounts_.end()) {
         bufferOwnerCount->AddRef();
     }
