@@ -91,7 +91,7 @@ private:
     mutable std::mutex mapMutex_;
     std::unordered_map<uint64_t, uint64_t> typefaceHashCode_;
     std::unordered_map<uint64_t, TypefaceTuple> typefaceHashMap_;
-    std::unordered_map<uint32_t, std::shared_ptr<Drawing::Typeface>> typefaceBaseHashMap_;
+    std::unordered_map<uint32_t, TypefaceTuple> typefaceBaseHashMap_;
 
     mutable std::mutex listMutex_;
     std::list<RSTypefaceRef> delayDestroyTypefaces_;
