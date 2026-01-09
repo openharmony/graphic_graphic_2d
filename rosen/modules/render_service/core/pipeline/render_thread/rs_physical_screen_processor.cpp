@@ -34,16 +34,16 @@ RSPhysicalScreenProcessor::~RSPhysicalScreenProcessor() noexcept
 bool RSPhysicalScreenProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,
                                      std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSPhysicalScreenProcessor::Init client nullptr");
+        return false;
+    }
 #ifdef RS_ENABLE_GPU
     // planning: adapt isRenderThread
     if (!RSProcessor::Init(node, offsetX, offsetY, renderEngine)) {
         return false;
     }
 #endif
-    if (composerClient_ == nullptr) {
-        RS_LOGE("RSPhysicalScreenProcessor::Init client nullptr");
-        return false;
-    }
 
     return composerAdapter_->Init(node, screenInfo_, mirroredScreenInfo_, mirrorAdaptiveCoefficient_,
         [this](const auto& surface, const auto& layers) { Redraw(surface, layers); }, composerClient_->GetOutput());

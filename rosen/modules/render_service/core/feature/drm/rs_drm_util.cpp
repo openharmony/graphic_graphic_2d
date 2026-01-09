@@ -242,15 +242,10 @@ bool RSDrmUtil::IsDRMNodesOnTheTree()
 void RSDrmUtil::PreAllocProtectedFrameBuffers(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         const sptr<SurfaceBuffer>& buffer)
 {
-    auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock());
-    if (screenNode) {
-        auto composerClientMap = RSUniRenderThread::Instance().GetRSRenderComposerClientMap();
-        for (auto [id, client] : composerClientMap) {
-            if (id == screenNode->GetScreenId()) {
-                RSUniRenderThread::Instance().AddScreenHasProtectedLayerSet(id);
-                RS_TRACE_NAME_FMT("PreAllocProtectedFrameBuffers screenId:%" PRIu64 "", id);
-                client->PreAllocProtectedFrameBuffers(buffer);
-            }
+    if (auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock())) {
+        if (auto client = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenNode->GetScreenId())) {
+            RS_TRACE_NAME_FMT("PreAllocProtectedFrameBuffers screenId:%" PRIu64 "", screenNode->GetScreenId());
+            client->PreAllocProtectedFrameBuffers(buffer);
         }
     }
 }

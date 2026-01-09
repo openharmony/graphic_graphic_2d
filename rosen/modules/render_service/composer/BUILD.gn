@@ -107,6 +107,10 @@ ohos_shared_library("librender_composer") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/rs_composer_to_render_connection.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl/rs_composer_to_render_connection_proxy.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl/rs_composer_to_render_connection_stub.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_rcd_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_context.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_render_composer_client.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl/rs_render_to_composer_connection_proxy.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl/rs_render_to_composer_connection_stub.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_backend.cpp",
@@ -121,10 +125,6 @@ ohos_shared_library("librender_composer") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/rs_layer_marshalling_helper.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/rs_layer_transaction_data.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/rs_layer_transaction_handler.cpp",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_layer.cpp",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_rcd_layer.cpp",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_context.cpp",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_render_composer_client.cpp",
   ]
 
   include_dirs = [
