@@ -316,7 +316,7 @@ HWTEST_F(RenderContextTest, AbandonContextTest001, Level1)
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto renderContext = RenderContext::Create();
-        auto renderContextVK = static_pointer_cast<RenderContextVK>(renderContext);
+        auto renderContextVK = std::static_pointer_cast<RenderContextVK>(renderContext);
         renderContextVK->SetDrGPUContext(nullptr);
         renderContextVK->AbandonContext();
         renderContextVK->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
