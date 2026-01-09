@@ -14,7 +14,7 @@
  */
 
 #include "rs_connect_to_render_process.h"
-#include "pipeline/main_thread/rs_main_thread.h"
+
 #include "transaction/rs_client_to_render_connection.h"
 
 #undef LOG_TAG
@@ -22,31 +22,21 @@
 
 namespace OHOS {
 namespace Rosen {
-
-RSConnectToRenderProcess::RSConnectToRenderProcess(RSMainThread *mainThread, sptr<RSRenderPipelineAgent> renderPipelineAgent)
-    : mainThread_(mainThread), renderPipelineAgent_(renderPipelineAgent)
-{}
-
-sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnection(const sptr<RSIConnectionToken>& token)
+sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnection(
+    const sptr<RSIConnectionToken>& token)
 {
     if (!token) {
-        RS_LOGE("RSConnectToRenderProcess::CreateRenderConnection CreateRenderConnection failed, token is nullptr.");
+        RS_LOGE("%{public}s: token is nullptr.", __func__);
         return nullptr;
     }
-    RS_LOGI("RSConnectToRenderProcess::%{public}s, %{public}p", __func__, token.GetRefPtr());
-    pid_t remotePid = GetCallingPid();
     auto tokenObj = token->AsObject();
-    sptr<RSIClientToRenderConnection> renderConnection = mainThread_->FindClientToRenderConnection(tokenObj);
-    if (renderConnection != nullptr) {
+    if (auto renderConnection = renderPipelineAgent_->FindClientToRenderConnection(tokenObj)) {
         return renderConnection;
     }
-    RS_LOGI("RSConnectToRenderProcess::CreateRenderConnection");
-    sptr<RSIClientToRenderConnection> newRenderConn =
-        new RSClientToRenderConnection(remotePid, renderPipelineAgent_, tokenObj);
-    mainThread_->AddTransactionDataPidInfo(remotePid);
-    mainThread_->AddConnection(tokenObj, newRenderConn);
-    RS_LOGI("RSConnectToRenderProcess::%{public}s, has not the same token one %{public}p, return %{public}p.", __func__,
-        tokenObj.GetRefPtr(), newRenderConn.GetRefPtr());
+    pid_t remotePid = GetCallingPid();
+    auto newRenderConn = sptr<RSClientToRenderConnection>::MakeSptr(remotePid, renderPipelineAgent_, tokenObj);
+    renderPipelineAgent_->AddTransactionDataPidInfo(remotePid);
+    renderPipelineAgent_->AddConnection(tokenObj, newRenderConn);
     return newRenderConn;
 }
 } // namespace Rosen

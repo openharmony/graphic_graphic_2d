@@ -582,7 +582,7 @@ bool RSScreenRenderNode::GetForceFreeze() const
     return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
 }
 
-void RSScreenRenderNode::CheckSurfaceChanged()
+void RSScreenRenderNode::CheckVirtualScreenStatusChanged()
 {
 #ifndef ROSEN_CROSS_PLATFORM
     if (!screenProperty_.IsVirtual()) {
@@ -595,16 +595,25 @@ void RSScreenRenderNode::CheckSurfaceChanged()
         lastHasSurface = curHasSurface;
         lastSurfaceId = curSurface ? curSurface->GetUniqueId() : UINT64_MAX;
         isVirtualSurfaceChanged_ = true;
-        return;
+    } else {
+        isVirtualSurfaceChanged_ = false;
     }
-
-    isVirtualSurfaceChanged_ = false;
 #endif
+
+    virtualScreenStatusChanged_ = lastStatus_ != VIRTUAL_SCREEN_PLAY &&
+        screenProperty_.GetVirtualScreenStatus() == VIRTUAL_SCREEN_PLAY;
+    lastStatus_ = screenProperty_.GetVirtualScreenStatus();
 }
 
 bool RSScreenRenderNode::IsVirtualSurfaceChanged() const
 {
     return isVirtualSurfaceChanged_;
 }
+
+bool RSScreenRenderNode::IsVirtualScreenStatusChanged() const
+{
+    return virtualScreenStatusChanged_;
+}
+
 } // namespace Rosen
 } // namespace OHOS

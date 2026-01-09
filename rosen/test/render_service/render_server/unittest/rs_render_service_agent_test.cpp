@@ -37,7 +37,7 @@ RSRenderService renderService;
 sptr<RSRenderServiceAgent> g_rsAgent = nullptr;
 }
 
-class RenderServiceAgentTest : public testing::Test {
+class RSRenderServiceAgentTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -45,7 +45,7 @@ public:
     void TearDown() override;
 };
 
-void RenderServiceAgentTest::SetUpTestCase()
+void RSRenderServiceAgentTest::SetUpTestCase()
 {
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
@@ -53,9 +53,41 @@ void RenderServiceAgentTest::SetUpTestCase()
     g_rsAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
 }
 
-void RenderServiceAgentTest::TearDownTestCase() {}
-void RenderServiceAgentTest::SetUp() {}
-void RenderServiceAgentTest::TearDown() {}
+void RSRenderServiceAgentTest::TearDownTestCase() {}
+void RSRenderServiceAgentTest::SetUp() {}
+void RSRenderServiceAgentTest::TearDown() {}
+
+/**
+ * @tc.name: PostTaskImmediate001
+ * @tc.desc: PostTaskImmediate Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceAgentTest, PostTaskImmediate001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    renderService->runner_ = AppExecFwk::EventRunner::Create(false);
+    renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(renderService->runner_);
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
+    RSTaskMessage::RSTask task = []() -> void { return; };
+    renderServiceAgent->PostTaskImmediate(task);
+}
+
+/**
+ * @tc.name: PostSyncTaskImmediate001
+ * @tc.desc: PostSyncTaskImmediate Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceAgentTest, PostSyncTaskImmediate001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    renderService->runner_ = AppExecFwk::EventRunner::Create(false);
+    renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(renderService->runner_);
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
+    RSTaskMessage::RSTask task = []() -> void { return; };
+    renderServiceAgent->PostSyncTaskImmediate(task);
+}
 
 /**
  * @tc.name: HandleTouchEventTest
@@ -63,7 +95,7 @@ void RenderServiceAgentTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RenderServiceAgentTest, HandleTouchEventTest, TestSize.Level1)
+HWTEST_F(RSRenderServiceAgentTest, HandleTouchEventTest, TestSize.Level1)
 {
     int32_t touchStatus = 1;
     int32_t touchCnt = 1;
@@ -77,7 +109,7 @@ HWTEST_F(RenderServiceAgentTest, HandleTouchEventTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RenderServiceAgentTest, ProcessHgmFrameRateTest, TestSize.Level1)
+HWTEST_F(RSRenderServiceAgentTest, ProcessHgmFrameRateTest, TestSize.Level1)
 {
     int32_t timeStamp = 1;
     int32_t vsyncId = 1;

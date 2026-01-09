@@ -18,10 +18,10 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d/render_service/render_server"
 
 ###############################################################################
-ohos_unittest("RenderServiceAgentTest") {
+ohos_unittest("RSRenderServiceAgentTest") {
     module_out_path = module_output_path
 
-    sources = [ "render_service_agent_test.cpp" ]
+    sources = [ "rs_render_service_agent_test.cpp" ]
 
     cflags = [
         "-Dprivate=public",
@@ -336,8 +336,8 @@ group("unittest") {
     testonly = true
 
     deps = [
-        ":RenderServiceAgentTest",
         ":RenderServiceTest",
+        ":RSRenderServiceAgentTest",
         ":RSRenderProcessManagerAgentTest",
         ":RSRenderSingleProcessManagerTest",
     ]

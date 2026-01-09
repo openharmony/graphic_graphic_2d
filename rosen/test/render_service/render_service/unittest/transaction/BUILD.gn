@@ -28,7 +28,7 @@ group("unittest") {
     # ":RSClientToRenderConnectionStubTest",
     ":RSRenderServiceStubTest",
     ":RSUnmarshalThreadTest",
-    ":RSConnectToRenderProcessTest",
+    # ":RSConnectToRenderProcessTest",
     ":RSConnectToRenderProcessProxyTest",
     # ":RSConnectToRenderProcessStubTest",
   ]

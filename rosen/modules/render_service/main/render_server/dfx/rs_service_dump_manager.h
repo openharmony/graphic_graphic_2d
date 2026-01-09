@@ -19,9 +19,13 @@
 #include <mutex>
 
 #include "gfx/dump/rs_dump_manager.h"
-#include "transaction/rs_client_to_service_connection.h"
+#include "ipc_callbacks/dfx/rs_dump_callback_stub.h"
+#include "render_server/rs_render_process_manager.h"
 
 namespace OHOS::Rosen {
+class RSRenderComposerManager;
+class RSServiceDumper;
+
 const std::list<std::u16string> serviceDumpList = {
     u"screen",
     u"surface",
@@ -55,12 +59,12 @@ const std::list<std::u16string> processDumpList = {
     u"allInfo",
 };
 
+class RSDumpCallbackDirector;
 class RSB_EXPORT RSServiceDumpManager : public RSDumpManager {
 public:
     RSServiceDumpManager() {};
     ~RSServiceDumpManager() = default;
 
-    static RSServiceDumpManager& GetInstance();
     static bool IsServiceDumpCmd(const std::u16string& cmd);
     static bool IsProcessDumpCmd(const std::u16string& cmd);
 
@@ -68,7 +72,7 @@ public:
     void WaitForDump(std::string& dumpString);
     void CollectDump(std::string& dumpString);
     void DoDump(const std::vector<std::u16string>& args, std::string& dumpString,
-        const std::vector<sptr<RSIServiceToRenderConnection>>& serviceToRenderConns);
+        const sptr<RSRenderProcessManager> processManager);
 
 private:
     std::condition_variable processDumpCondVar_;
@@ -77,8 +81,22 @@ private:
     int32_t completionCount_;
     int32_t processCount_;
     std::vector<std::string> dumpDataList_;
-
+    sptr<RSDumpCallbackDirector> rsDumpCallbackDirector_ = nullptr;
     bool IsDumpCompleted();
+};
+
+class RSDumpCallbackDirector : public RSDumpCallbackStub
+{
+public:
+    explicit RSDumpCallbackDirector(RSServiceDumpManager* rsDumpManger) : rsDumpManger_(rsDumpManger) {}
+    ~RSDumpCallbackDirector() override {}
+    void OnDumpResult(std::string& dumpString) override
+    {
+        rsDumpManger_->CollectDump(dumpString);
+    };
+
+private:
+    RSServiceDumpManager* rsDumpManger_;
 };
 }
 #endif // RENDER_SERVICE_DFX_RS_DUMP_SERVICE_MANAGER_H

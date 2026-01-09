@@ -106,20 +106,21 @@ static void DestroyGLES()
 }
 #endif
 
-void RSServiceDumper::RsDumpInit()
+void RSServiceDumper::RsDumpInit(std::shared_ptr<RSServiceDumpManager> rsDumpManager)
 {
     // 用于renderService进程Dump初始化
-    RegisterGpuFuncs();
-    RegisterMemFuncs();
-    RegisterFpsFuncs();
-    RegisterRSGfxFuncs();
+    RegisterGpuFuncs(rsDumpManager);
+    RegisterMemFuncs(rsDumpManager);
+    RegisterFpsFuncs(rsDumpManager);
+    RegisterRSGfxFuncs(rsDumpManager);
 }
 
-void RSServiceDumper::RegisterRSGfxFuncs()
+void RSServiceDumper::RegisterRSGfxFuncs(std::shared_ptr<RSServiceDumpManager> rsDumpManager)
 {
     // screen info
     RSDumpFunc screenInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                        std::string &dumpString) -> void {
+        RS_LOGE("hwj RSServiceDumper::RegisterRSGfxFuncs screenInfoFunc");
         ScheduleTask([this, &dumpString]() { screenManager_->DisplayDump(dumpString); });
     };
 
@@ -142,10 +143,10 @@ void RSServiceDumper::RegisterRSGfxFuncs()
         { RSDumpID::SCREEN_INFO, screenInfoFunc },
         { RSDumpID::RS_LOG_FLAG, rsLogFlagFunc },
     };
-    RSServiceDumpManager::GetInstance().Register(handers);
+    rsDumpManager->Register(handers);
 }
 
-void RSServiceDumper::RegisterMemFuncs()
+void RSServiceDumper::RegisterMemFuncs(std::shared_ptr<RSServiceDumpManager> rsDumpManager)
 {
     // surface info
     RSDumpFunc surfaceInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
@@ -156,7 +157,7 @@ void RSServiceDumper::RegisterMemFuncs()
     // surface mem
     RSDumpFunc surfaceMemFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                        std::string &dumpString) -> void {
-        RSMainThread::Instance()->ScheduleTask([this, &dumpString]() { DumpAllNodesMemSize(dumpString); }).wait();
+        ScheduleTask([this, &dumpString]() { DumpAllNodesMemSize(dumpString); });
     };
 
     std::vector<RSDumpHander> handers = {
@@ -164,10 +165,10 @@ void RSServiceDumper::RegisterMemFuncs()
         { RSDumpID::SURFACE_MEM_INFO, surfaceMemFunc },
     };
 
-    RSServiceDumpManager::GetInstance().Register(handers);
+    rsDumpManager->Register(handers);
 }
 
-void RSServiceDumper::RegisterFpsFuncs()
+void RSServiceDumper::RegisterFpsFuncs(std::shared_ptr<RSServiceDumpManager> rsDumpManager)
 {
     // fps info cmd, [windowname]/composer fps
     RSDumpFunc fpsInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
@@ -184,13 +185,13 @@ void RSServiceDumper::RegisterFpsFuncs()
     // fps count
     RSDumpFunc fpsCountFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                      std::string &dumpString) -> void {
-        RSMainThread::Instance()->ScheduleTask([this, &dumpString]() { DumpRefreshRateCounts(dumpString); }).wait();
+        ScheduleTask([this, &dumpString]() { DumpRefreshRateCounts(dumpString); });
     };
 
     // clear fps Count
     RSDumpFunc clearFpsCountFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                           std::string &dumpString) -> void {
-        RSMainThread::Instance()->ScheduleTask([this, &dumpString]() { DumpClearRefreshRateCounts(dumpString); }).wait();
+        ScheduleTask([this, &dumpString]() { DumpClearRefreshRateCounts(dumpString); });
     };
 
     // [windowname] hitchs
@@ -205,10 +206,10 @@ void RSServiceDumper::RegisterFpsFuncs()
         { RSDumpID::HITCHS, hitchsFunc },
     };
 
-    RSServiceDumpManager::GetInstance().Register(handers);
+    rsDumpManager->Register(handers);
 }
 
-void RSServiceDumper::RegisterGpuFuncs()
+void RSServiceDumper::RegisterGpuFuncs(std::shared_ptr<RSServiceDumpManager> rsDumpManager)
 {
     // gpu info
     RSDumpFunc gpuInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
@@ -220,7 +221,7 @@ void RSServiceDumper::RegisterGpuFuncs()
         { RSDumpID::GPU_INFO, gpuInfoFunc },
     };
 
-    RSServiceDumpManager::GetInstance().Register(handers);
+    rsDumpManager->Register(handers);
 }
 
 void RSServiceDumper::FPSDumpProcess(std::unordered_set<std::u16string>& argSets,
@@ -265,7 +266,7 @@ void RSServiceDumper::DumpFps(std::string& dumpString, std::string& layerName) c
         ScheduleTask([this, &dumpString, &layerName]() { rsRenderComposerManager_->FpsDump(dumpString, layerName); });
 #endif
     } else {
-        // RSMainThread::Instance()->ScheduleTask(
+        // ScheduleTask(
         //     [this, &dumpString, &layerName]() { return screenManager_->FpsDump(dumpString, layerName); }).wait();
     }
 }

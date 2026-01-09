@@ -28,6 +28,7 @@
 #include "vsync_iconnection_token.h"
 #include "vsync_receiver.h"
 #include "dfx/rs_service_dumper.h"
+#include "dfx/rs_service_dump_manager.h"
 
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/zidl/rs_render_service_stub.h"
@@ -36,6 +37,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSMainThread;
+class RSRenderComposerManager;
 class RSRenderService : public RSRenderServiceStub {
 public:
     RSRenderService() = default;
@@ -61,7 +63,8 @@ private:
         void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
                            const sptr<RSScreenProperty>& property) override;
         void OnHwcDead(ScreenId id) override;
-        void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
+        void OnScreenPropertyChanged(
+            ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property) override;
         void OnScreenRefresh(ScreenId id) override;
         void OnVBlankIdle(ScreenId id, uint64_t ns) override;
         void OnVirtualScreenConnected(ScreenId id,
@@ -108,7 +111,6 @@ private:
     sptr<RSRenderProcessManager> renderProcessManager_ = nullptr;
     std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager_ = nullptr;
     std::shared_ptr<HgmContext> hgmContext_ = nullptr;
-    std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
 
     sptr<VSyncGenerator> vsyncGenerator_ = nullptr;
     sptr<VSyncSampler> vsyncSampler_ = nullptr;
@@ -117,6 +119,8 @@ private:
     sptr<VSyncDistributor> rsVSyncDistributor_ = nullptr;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
+    std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
+    std::shared_ptr<RSServiceDumpManager> rsDumpManager_ = nullptr;
 
     // TODO: DO NOT USE. Will be removed asap
     RSMainThread* mainThread_ = nullptr;
@@ -131,6 +135,7 @@ private:
     friend class RSConnectToRenderProcess;
     friend class RSClientToRenderConnection;
     friend class RSClientToServiceConnection;
+
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

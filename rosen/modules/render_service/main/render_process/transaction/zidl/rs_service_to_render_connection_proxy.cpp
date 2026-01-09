@@ -257,17 +257,17 @@ ErrCode RSServiceToRenderConnectionProxy::SetDiscardJankFrames(bool discardJankF
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("SetDiscardJankFrames: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteBool(discardJankFrames)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::SetDiscardJankFrames: WriteBool discardJankFrames err.");
+        ROSEN_LOGE("%{public}s: WriteBool discardJankFrames err.", __func__);
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_DISCARD_JANK_FRAME);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetDiscardJankFrames: Send Request err.");
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
@@ -560,7 +560,7 @@ int32_t RSServiceToRenderConnectionProxy::RegisterOcclusionChangeCallback(
         return RS_CONNECTION_ERROR;
     }
     if (!data.WriteInt32(static_cast<int32_t>(pid))) {
-        ROSEN_LOGE("dmulti_process %{public}s WriteInt32 failed.", __func__);
+        ROSEN_LOGE("%{public}s WriteInt32 failed.", __func__);
         return INVALID_ARGUMENTS;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
@@ -588,7 +588,7 @@ int32_t RSServiceToRenderConnectionProxy::SetBrightnessInfoChangeCallback(pid_t 
         return RS_CONNECTION_ERROR;
     }
     if (!data.WriteInt32(static_cast<int32_t>(pid))) {
-        ROSEN_LOGE("dmulti_process %{public}s WriteInt32 failed.", __func__);
+        ROSEN_LOGE("%{public}s WriteInt32 failed.", __func__);
         return INVALID_ARGUMENTS;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
@@ -686,29 +686,29 @@ ErrCode RSServiceToRenderConnectionProxy::GetPixelMapByProcessId(
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteUint64(pid)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetPixelMapByProcessId: WriteUint64 pid err.");
+        ROSEN_LOGE("%{public}s: WriteUint64 pid err.", __func__);
         repCode = INVALID_ARGUMENTS;
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetPixelMapByProcessId: Send Request err");
+        ROSEN_LOGE("%{public}s: Send Request err", __func__);
         repCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
     int32_t result{0};
     if (!reply.ReadInt32(result)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetPixelMapByProcessId Read result failed");
+        ROSEN_LOGE("%{public}s Read result failed", __func__);
         return ERR_INVALID_VALUE;
     }
     if (result == SUCCESS) {
         pixelMapInfoVector.clear();
         if (!RSMarshallingHelper::Unmarshalling(reply, pixelMapInfoVector)) {
-            ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetPixelMapByProcessId: Unmarshalling failed");
+            ROSEN_LOGE("%{public}s: Unmarshalling failed", __func__);
         }
     } else {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetPixelMapByProcessId: Invalid reply");
+        ROSEN_LOGE("%{public}s: Invalid reply", __func__);
     }
     return ERR_OK;
 }
@@ -716,7 +716,7 @@ ErrCode RSServiceToRenderConnectionProxy::GetPixelMapByProcessId(
 void RSServiceToRenderConnectionProxy::ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow)
 {
     if (watermarkImg == nullptr) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::ShowWatermark: watermarkImg is nullptr.");
+        ROSEN_LOGE("%{public}s: watermarkImg is nullptr.", __func__);
         return;
     }
     MessageParcel data;
@@ -724,21 +724,21 @@ void RSServiceToRenderConnectionProxy::ShowWatermark(const std::shared_ptr<Media
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::ShowWatermark: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
         return;
     }
     if (!data.WriteParcelable(watermarkImg.get())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::ShowWatermark: WriteParcelable watermarkImg.get() err.");
+        ROSEN_LOGE("%{public}s: WriteParcelable watermarkImg.get() err.", __func__);
         return;
     }
     if (!data.WriteBool(isShow)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::ShowWatermark: WriteBool isShow err.");
+        ROSEN_LOGE("%{public}s: WriteBool isShow err.", __func__);
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::ShowWatermark: Send Request err.");
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
         return;
     }
 }
@@ -750,21 +750,21 @@ ErrCode RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId(NodeId& windowNod
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteUint64(windowNodeId)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId: windowNodeId:%{public}" PRIu64 "err.", windowNodeId);
+        ROSEN_LOGE("%{public}s: windowNodeId:%{public}" PRIu64 "err.", __func__, windowNodeId);
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId: Send Request err.");
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
         return ERR_INVALID_VALUE;
     }
     if (!reply.ReadUint64(windowNodeId)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId: ReadWindowNodeId err.");
+        ROSEN_LOGE("%{public}s: ReadWindowNodeId err.", __func__);
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
@@ -800,29 +800,29 @@ ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const s
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::SetWatermark: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
         success = false;
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteInt32(callingPid)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::SetWatermark: WriteUint64 pid err.");
+        ROSEN_LOGE("%{public}s: WriteUint64 pid err.", __func__);
         success = false;
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteString(name)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::SetWatermark: WriteString name err.");
+        ROSEN_LOGE("%{public}s: WriteString name err.", __func__);
         success = false;
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteParcelable(watermark.get())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::SetWatermark: WriteParcelable watermark.get() err.");
+        ROSEN_LOGE("%{public}s: WriteParcelable watermark.get() err.", __func__);
         success = false;
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::SetWatermark: Send Request err.");
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
         success = false;
         return ERR_INVALID_VALUE;
     }
@@ -830,7 +830,7 @@ ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const s
     return ERR_OK;
 }
 
-void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>& argSets)
+void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>& argSets, sptr<RSIDumpCallback> callback)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -841,13 +841,17 @@ void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>
     }
     std::vector<std::u16string> args(argSets.begin(), argSets.end());
     if (!data.WriteString16Vector(args)) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::DoDump: WriteString16Vector failed");
+        ROSEN_LOGE("%{public}s: WriteString16Vector failed", __func__);
+        return;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        RS_LOGE("%{public}s: WriteRemoteObject failed", __func__);
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::DFX_DUMP);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process %{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
         return;
     }
 }
@@ -859,27 +863,27 @@ void RSServiceToRenderConnectionProxy::NotifyPackageEvent(uint32_t listSize, con
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("NotifyPackageEvent: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
         return;
     }
     if (listSize != packageList.size()) {
-        ROSEN_LOGE("input size doesn't match");
+        ROSEN_LOGE("%{public}s: input size doesn't match", __func__);
         return;
     }
     if (!data.WriteUint32(listSize)) {
-        ROSEN_LOGE("NotifyPackageEvent: WriteUint32 listSize err.");
+        ROSEN_LOGE("%{public}s: WriteUint32 listSize err.", __func__);
         return;
     }
     for (auto pkg : packageList) {
         if (!data.WriteString(pkg)) {
-            ROSEN_LOGE("NotifyPackageEvent: WriteString pkg err.");
+            ROSEN_LOGE("%{public}s: WriteString pkg err.", __func__);
             return;
         }
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSserviceToRenderConnectionProxy::NotifyPackageEvent: Send Request err.");
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
         return;
     }
 }
@@ -1002,19 +1006,17 @@ ErrCode RSServiceToRenderConnectionProxy::GetMemoryGraphic(int pid, MemoryGraphi
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetMemoryGraphic: WriteInterfaceToken failed.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed.", __func__);
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteInt32(static_cast<int32_t>(pid))) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetMemoryGraphic: WriteInt32 failed.");
+        ROSEN_LOGE("%{public}s: WriteInt32 failed.", __func__);
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHIC);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::GetMemoryGraphic: SendRequest failed, err is %{public}d.",
-            err);
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return ERR_INVALID_VALUE;
     }
     sptr<MemoryGraphic> pMemoryGraphic(reply.ReadParcelable<MemoryGraphic>());
@@ -1033,20 +1035,20 @@ bool RSServiceToRenderConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("RegisterTypeface: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
         return false;
     }
     if (!typeface) {
-        RS_LOGW("typeface is nullptr");
+        RS_LOGW("%{public}s: typeface is nullptr", __func__);
         return false;
     }
     uint32_t hash = typeface->GetHash();
     if (!data.WriteUint64(globalUniqueId)) {
-        ROSEN_LOGE("RegisterTypeface: WriteUint64 globalUniqueId err.");
+        ROSEN_LOGE("%{public}s: WriteUint64 globalUniqueId err.", __func__);
         return false;
     }
     if (!data.WriteUint32(hash)) {
-        ROSEN_LOGE("RegisterTypeface: WriteUint32 hash err.");
+        ROSEN_LOGE("%{public}s: WriteUint32 hash err.", __func__);
         return false;
     }
 
@@ -1055,12 +1057,12 @@ bool RSServiceToRenderConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_TYPEFACE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        RS_LOGD("RSServiceToRenderConnectionProxy::RegisterTypeface: RegisterTypeface failed");
+        RS_LOGD("%{public}s: RegisterTypeface failed", __func__);
         return false;
     }
     bool result{false};
     if (!reply.ReadBool(result)) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::RegisterTypeface Read result failed");
+        ROSEN_LOGE("%{public}s: Read result failed", __func__);
         return READ_PARCEL_ERR;
     }
     return result;
@@ -1096,22 +1098,21 @@ void RSServiceToRenderConnectionProxy::HgmForceUpdateTask(bool flag, const std::
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::HgmForceUpdateTask: WriteInterfaceToken failed.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed.", __func__);
         return;
     }
     if (!data.WriteBool(flag)) {
-        ROSEN_LOGE("dmulti_process HgmForceUpdateTask: WriteBool err.");
+        ROSEN_LOGE("%{public}s: WriteBool err.", __func__);
         return;
     }
     if (!data.WriteString(fromWhom)) {
-        ROSEN_LOGE("dmulti_process HgmForceUpdateTask: WriteString err.");
+        ROSEN_LOGE("%{public}s: WriteString err.", __func__);
         return;
     }
-    RS_LOGI("dmulti_process RSServiceToRenderConnectionProxy::HgmForceUpdateTask write successfully");
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HGM_FORCE_UPDATE_TASK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::HgmForceUpdateTask: SendRequest failed, err is %{public}d.", err);
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return;
     }
 }
@@ -1123,25 +1124,25 @@ void RSServiceToRenderConnectionProxy::HandleHwcEvent(uint32_t deviceId, uint32_
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        RS_LOGE("HandleHwcEvent: WriteInterfaceToken failed.");
+        RS_LOGE("%{public}s: WriteInterfaceToken failed.", __func__);
         return;
     }
     if (!data.WriteUint32(deviceId)) {
-        RS_LOGE("HandleHwcEvent: WriteUint32 err.");
+        RS_LOGE("%{public}s: WriteUint32 err.", __func__);
         return;
     }
     if (!data.WriteUint32(eventId)) {
-        RS_LOGE("HandleHwcEvent: WriteUint32 err.");
+        RS_LOGE("%{public}s: WriteUint32 err.", __func__);
         return;
     }
     if (!data.WriteInt32Vector(eventData)) {
-        RS_LOGE("HandleHwcEvent: WriteInt32Vector err.");
+        RS_LOGE("%{public}s: WriteInt32Vector err.", __func__);
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        RS_LOGE("HandleHwcEvent: SendRequest failed, err is %{public}d.", err);
+        RS_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return;
     }
 }
@@ -1177,19 +1178,16 @@ ErrCode RSServiceToRenderConnectionProxy::RepaintEverything()
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::RepaintEverything: WriteInterfaceToken failed.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed.", __func__);
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPAINT_EVERYTHING);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::RepaintEverything: SendRequest failed, err is %{public}d.",
-            err);
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return ERR_INVALID_VALUE;
     }
     auto replyMessage = reply.ReadInt32();
-    RS_LOGI("dmulti_process RSServiceToRenderConnectionProxy::RepaintEverything reply received successfully msg: %{public}d", replyMessage);
     return replyMessage;
 }
 
@@ -1404,22 +1402,18 @@ std::vector<ActiveDirtyRegionInfo> RSServiceToRenderConnectionProxy::GetActiveDi
     option.SetFlags(MessageOption::TF_SYNC);
     std::vector<ActiveDirtyRegionInfo> activeDirtyRegionInfos;
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::GetActiveDirtyRegionInfo: WriteInterfaceToken failed");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return activeDirtyRegionInfos;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::GetActiveDirtyRegionInfo: SendRequest failed, err is "
-            "%{public}d.",
-            err);
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return activeDirtyRegionInfos;
     }
     int32_t activeDirtyRegionInfosSize{0};
     if (!reply.ReadInt32(activeDirtyRegionInfosSize)) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetActiveDirtyRegionInfo Read activeDirtyRegionInfoSize failed");
+        ROSEN_LOGE("%{public}s: Read activeDirtyRegionInfoSize failed", __func__);
         return activeDirtyRegionInfos;
     }
     while (activeDirtyRegionInfosSize--) {
@@ -1429,8 +1423,7 @@ std::vector<ActiveDirtyRegionInfo> RSServiceToRenderConnectionProxy::GetActiveDi
         std::string windowName;
         if (!reply.ReadInt64(activeDirtyRegionArea) || !reply.ReadInt32(activeFramesNumber) ||
             !reply.ReadInt32(pidOfBelongsApp) || !reply.ReadString(windowName)) {
-            ROSEN_LOGE(
-                "RSServiceToRenderConnectionProxy::GetActiveDirtyRegionInfo Read parcel failed");
+            ROSEN_LOGE("%{public}s: Read parcel failed", __func__);
             return activeDirtyRegionInfos;
         }
         activeDirtyRegionInfos.emplace_back(
@@ -1447,17 +1440,13 @@ GlobalDirtyRegionInfo RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo
     option.SetFlags(MessageOption::TF_SYNC);
     GlobalDirtyRegionInfo globalDirtyRegionInfo;
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: WriteInterfaceToken failed");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return globalDirtyRegionInfo;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: SendRequest failed, err is "
-            "%{public}d.",
-            err);
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return globalDirtyRegionInfo;
     }
     int64_t globalDirtyRegionAreas{0};
@@ -1466,7 +1455,7 @@ GlobalDirtyRegionInfo RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo
     int32_t mostSendingPidWhenDisplayNodeSkip{0};
     if (!reply.ReadInt64(globalDirtyRegionAreas) || !reply.ReadInt32(globalFramesNumber) ||
         !reply.ReadInt32(skipProcessFramesNumber) || !reply.ReadInt32(mostSendingPidWhenDisplayNodeSkip)) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo Read parcel failed");
+        ROSEN_LOGE("%{public}s: Read parcel failed", __func__);
         return globalDirtyRegionInfo;
     }
     return globalDirtyRegionInfo;
@@ -1480,15 +1469,13 @@ LayerComposeInfo RSServiceToRenderConnectionProxy::GetLayerComposeInfo()
     option.SetFlags(MessageOption::TF_SYNC);
     LayerComposeInfo layerComposeInfo;
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetLayerComposeInfo: WriteInterfaceToken failed");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return layerComposeInfo;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetLayerComposeInfo: SendRequest failed, err is "
-                   "%{public}d.",
-            err);
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return layerComposeInfo;
     }
     int32_t uniformRenderFrameNumber{0};
@@ -1496,7 +1483,7 @@ LayerComposeInfo RSServiceToRenderConnectionProxy::GetLayerComposeInfo()
     int32_t redrawFrameNumber{0};
     if (!reply.ReadInt32(uniformRenderFrameNumber) || !reply.ReadInt32(offlineComposeFrameNumber) ||
         !reply.ReadInt32(redrawFrameNumber)) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetLayerComposeInfo Read parcel failed");
+        ROSEN_LOGE("%{public}s: Read parcel failed", __func__);
         return layerComposeInfo;
     }
     return LayerComposeInfo(uniformRenderFrameNumber, offlineComposeFrameNumber, redrawFrameNumber);
@@ -1510,30 +1497,26 @@ HwcDisabledReasonInfos RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInf
     option.SetFlags(MessageOption::TF_SYNC);
     HwcDisabledReasonInfos hwcDisabledReasonInfos;
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo: WriteInterfaceToken failed.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed.", __func__);
         return hwcDisabledReasonInfos;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::
         GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo: SendRequest failed, err "
-                "is %{public}d.",
-            err);
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return hwcDisabledReasonInfos;
     }
     int32_t size{0};
     if (!reply.ReadInt32(size)) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo Read size failed");
+        ROSEN_LOGE("%{public}s: Read size failed", __func__);
         return hwcDisabledReasonInfos;
     }
     size_t readableSize = reply.GetReadableBytes() / HWC_DISABLED_REASON_INFO_MINIMUM_SIZE;
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > hwcDisabledReasonInfos.max_size()) {
-        RS_LOGE("RSServiceToRenderConnectionProxy GetHwcDisabledReasonInfo Failed read vector, size:%{public}zu,"
-            " readableSize:%{public}zu", len, readableSize);
+        ROSEN_LOGE("%{public}s: Failed read vector, size:%{public}zu, readableSize:%{public}zu",
+            __func__, len, readableSize);
         return hwcDisabledReasonInfos;
     }
 
@@ -1556,7 +1539,7 @@ ErrCode RSServiceToRenderConnectionProxy::GetHdrOnDuration(int64_t& hdrOnDuratio
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetHdrOnDuration: WriteInterfaceToken failed");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_HDR_ON_DURATION);
@@ -1599,20 +1582,18 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenRefresh(ScreenId id)
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenRefresh: WriteInterfaceToken failed.");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed.", __func__);
         return -1;
     }
 
     if (!data.WriteUint64(id)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenRefresh: WriteUint64 failed.");
+        ROSEN_LOGE("%{public}s: WriteUint64 failed.", __func__);
         return -1;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_REFRESH);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenRefresh: SendRequest failed, err is %{public}d.",
-            err);
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
     }
     return err;
 }

@@ -83,7 +83,7 @@ void HgmContext::InitHgmUpdateCallback()
 
     auto adaptiveVsyncUpdateCallbackTask = [this](bool isAdaptive, const std::string& gameNodeName) {
         renderServiceHandler_->PostTask([this, isAdaptive, gameNodeName] {
-            hgmDataChangeTypes_.set(HgmDataChangeType::HGM_CONFIG_DATA);
+            hgmDataChangeTypes_.set(HgmDataChangeType::ADAPTIVE_VSYNC);
             isAdaptive_ = isAdaptive;
             gameNodeName_ = gameNodeName;
         });

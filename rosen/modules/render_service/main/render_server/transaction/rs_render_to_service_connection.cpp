@@ -28,11 +28,6 @@ RSRenderToServiceConnection::RSRenderToServiceConnection(sptr<RSRenderServiceAge
       renderProcessManagerAgent_(renderProcessManagerAgent),
       screenManagerAgent_(screenManagerAgent) {}
 
-void RSRenderToServiceConnection::ReplyDumpResultToService(std::string& dumpString)
-{
-    RSServiceDumpManager::GetInstance().CollectDump(dumpString);
-}
-
 sptr<HgmServiceToProcessInfo> RSRenderToServiceConnection::NotifyRpHgmFrameRate(uint64_t timestamp,
     uint64_t vsyncId, const sptr<HgmProcessToServiceInfo>& processToServiceInfo)
 {

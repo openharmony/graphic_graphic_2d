@@ -998,13 +998,13 @@ HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest001, TestSize.Level1)
     NodeId id = 1;
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_NE(screenNode, nullptr);
-    screenNode->screenProperty_.isVirtual_ = true;
+    screenNode->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
 
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    screenNode->screenProperty_.producerSurface_ = psurface;
-    screenNode->CheckSurfaceChanged();
+    screenNode->screenProperty_.Set<ScreenPropertyType::PRODUCER_SURFACE>(psurface);
+    screenNode->CheckVirtualScreenStatusChanged();
     EXPECT_TRUE(screenNode->isVirtualSurfaceChanged_);
 }
 
@@ -1018,10 +1018,10 @@ HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest002, TestSize.Level1)
     NodeId id = 1;
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_NE(screenNode, nullptr);
-    screenNode->screenProperty_.isVirtual_ = true;
+    screenNode->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
 
     screenNode->virtualSurfaceState_ = { true, UINT64_MAX };
-    screenNode->CheckSurfaceChanged();
+    screenNode->CheckVirtualScreenStatusChanged();
     EXPECT_TRUE(screenNode->isVirtualSurfaceChanged_);
 }
 
@@ -1035,9 +1035,9 @@ HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest003, TestSize.Level1)
     NodeId id = 1;
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_NE(screenNode, nullptr);
-    screenNode->screenProperty_.isVirtual_ = true;
+    screenNode->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
 
-    screenNode->CheckSurfaceChanged();
+    screenNode->CheckVirtualScreenStatusChanged();
     EXPECT_FALSE(screenNode->isVirtualSurfaceChanged_);
 }
 
@@ -1051,14 +1051,14 @@ HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest004, TestSize.Level1)
     NodeId id = 1;
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_NE(screenNode, nullptr);
-    screenNode->screenProperty_.isVirtual_ = true;
+    screenNode->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
 
     screenNode->virtualSurfaceState_ = { true, UINT64_MAX };
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    screenNode->screenProperty_.producerSurface_ = psurface;
-    screenNode->CheckSurfaceChanged();
+    screenNode->screenProperty_.Set<ScreenPropertyType::PRODUCER_SURFACE>(psurface);
+    screenNode->CheckVirtualScreenStatusChanged();
     EXPECT_TRUE(screenNode->isVirtualSurfaceChanged_);
 }
 
@@ -1072,14 +1072,14 @@ HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest005, TestSize.Level1)
     NodeId id = 1;
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_NE(screenNode, nullptr);
-    screenNode->screenProperty_.isVirtual_ = true;
+    screenNode->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
 
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     screenNode->virtualSurfaceState_ = { true, psurface->GetUniqueId() };
-    screenNode->screenProperty_.producerSurface_ = psurface;
-    screenNode->CheckSurfaceChanged();
+    screenNode->screenProperty_.Set<ScreenPropertyType::PRODUCER_SURFACE>(psurface);
+    screenNode->CheckVirtualScreenStatusChanged();
     EXPECT_FALSE(screenNode->isVirtualSurfaceChanged_);
 }
 } // namespace OHOS::Rosen

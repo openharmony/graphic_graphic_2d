@@ -29,7 +29,8 @@ public:
     sptr<IRemoteObject> OnScreenConnected(ScreenId id,
         const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property) override;
     void OnScreenDisconnected(ScreenId id) override;
-    void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
+    void OnScreenPropertyChanged(
+        ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property) override;
     void OnScreenRefresh(ScreenId id) override;
     void OnVirtualScreenConnected(ScreenId id,
         ScreenId associatedScreenId, const sptr<RSScreenProperty>& property) override;

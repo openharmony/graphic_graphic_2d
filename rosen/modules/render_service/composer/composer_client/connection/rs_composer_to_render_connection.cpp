@@ -16,7 +16,6 @@
 #include "rs_composer_to_render_connection.h"
 #include "frame_report.h"
 #include "platform/common/rs_log.h"
-#include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_render_composer_client.h"
 #include "rs_trace.h"
 
@@ -48,11 +47,15 @@ void RSComposerToRenderConnection::RegisterReleaseLayerBuffersCB(ReleaseLayerBuf
 int32_t RSComposerToRenderConnection::NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds)
 {
     RS_LOGD("RSComposerToRenderConnection NotifyLppLayerToRender");
-    auto mainThread = RSMainThread::Instance();
-    if (mainThread != nullptr) {
-        mainThread->JudgeLppLayer(vsyncId, lppNodeIds);
+    if (judgeLppLayerCB_ != nullptr) {
+        judgeLppLayerCB_(vsyncId, lppNodeIds);
     }
     return COMPOSITOR_ERROR_OK;
+}
+
+void RSComposerToRenderConnection::RegisterJudgeLppLayerCB(JudgeLppLayerCB callback)
+{
+    judgeLppLayerCB_ = std::move(callback);
 }
 } // namespace Rosen
 } // namespace OHOS

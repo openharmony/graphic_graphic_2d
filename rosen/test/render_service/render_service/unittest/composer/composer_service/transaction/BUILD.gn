@@ -21,10 +21,58 @@ group("unittest") {
 
   deps = [
     ":RSLayerTransactionTest",
+    ":RSTransactionDataTest",
+    ":RSMarshallingHelperTest",
+    ":RSLayerTransactionHandlerTest",
+    "command:unittest",
   ]
 }
 
 ###############################################################################
+
+# Common settings extracted for transaction unittests
+common_include_dirs_transaction = [
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+  "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+  "$graphic_2d_root/rosen/modules/render_service/core",
+  "$graphic_2d_root/rosen/modules/render_service/core/feature",
+  "$graphic_2d_root/rosen/modules/render_service/core/feature/hyper_graphic_manager",
+  "$graphic_2d_root/rosen/modules/render_service/core/feature/lpp/render_server",
+  "$graphic_2d_root/rosen/modules/render_service_base/include",
+  "$graphic_2d_root/rosen/modules/render_service_base/src",
+]
+
+common_cflags_basic = [
+  "-Dprivate=public",
+  "-Dprotected=public",
+]
+
+common_deps_transaction = [
+  "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+]
+
+common_external_deps_light = [
+  "googletest:gtest_main",
+  "ipc:ipc_core",
+  "hilog:libhilog",
+]
 
 ## Build RSLayerTransactionTest
 ohos_unittest("RSLayerTransactionTest") {
@@ -57,17 +105,14 @@ ohos_unittest("RSLayerTransactionTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature/hyper_graphic_manager",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature/lpp/render_server",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
 
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-    "-Dprivate=public",
-    "-Dprotected=public",
-  ]
+  cflags = [ "-Wall", "-Werror", "-g3" ] + common_cflags_basic
 
   defines = []
   deps = [
@@ -100,6 +145,45 @@ ohos_unittest("RSLayerTransactionTest") {
     defines = [ "RES_SCHED_ENABLE" ]
   }
 
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
+## Build RSTransactionDataTest
+ohos_unittest("RSTransactionDataTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_layer_transaction_data_test.cpp" ]
+
+  include_dirs = common_include_dirs_transaction
+  cflags = common_cflags_basic
+  deps = common_deps_transaction
+  external_deps = common_external_deps_light
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
+## Build RSMarshallingHelperTest
+ohos_unittest("RSMarshallingHelperTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_layer_marshalling_helper_test.cpp" ]
+
+  include_dirs = common_include_dirs_transaction
+  cflags = common_cflags_basic
+  deps = common_deps_transaction
+  external_deps = common_external_deps_light
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
+## Build RSLayerTransactionHandlerTest
+ohos_unittest("RSLayerTransactionHandlerTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_layer_transaction_handler_test.cpp" ]
+
+  include_dirs = common_include_dirs_transaction
+  cflags = common_cflags_basic
+  deps = common_deps_transaction
+  external_deps = common_external_deps_light
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

@@ -71,6 +71,7 @@ public:
     // Dfx
     void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
     void FpsDump(std::string& dumpString, const std::string& arg);
+    void CollectDump(std::string& dumpString);
 
 private:
     RSRenderService& renderService_;

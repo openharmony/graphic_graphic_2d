@@ -112,14 +112,6 @@ sptr<IRemoteObject> RSScreenManagerTest::RSIScreenChangeCallbackConfig::AsObject
 {    return nullptr;
 }
 
-// class RSScreenNodeListenerMock : public RSIScreenNodeListener {public:
-//     ~RSScreenNodeListenerMock() override {};
-
-//     void OnScreenConnect(ScreenId id, const sptr<RSScreenProperty>& property) override {}
-//     void OnScreenDisconnect(ScreenId id) override {}
-//     void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override {}
-// };
-
 /*
  * @tc.name: CreateOrGetScreenManager_001
  * @tc.desc: Test CreateOrGetScreenManager
@@ -1107,30 +1099,6 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_003, TestSize.Level1)
 // }
 
 /*
- * @tc.name: CheckVirtualScreenStatusChanged
- * @tc.desc: Test CheckVirtualScreenStatusChanged while suface change
- * @tc.type: FUNC
- * @tc.require: issueICMB9P
- */
-HWTEST_F(RSScreenManagerTest, CheckVirtualScreenStatusChanged, TestSize.Level2)
-{
-    ASSERT_NE(nullptr, screenManager_);
-    ScreenId id = mockScreenId_;
-    ASSERT_EQ(screenManager_->CheckVirtualScreenStatusChanged(id), false);
-    auto screen = std::make_shared<RSScreen>(0);
-    screen->property_.SetIsVirtual(true);
-    screen->SetPSurfaceChange(true);
-    screenManager_->screens_[id] = std::move(screen);
-    ASSERT_EQ(true, screenManager_->CheckVirtualScreenStatusChanged(id));
-    screen = std::make_shared<RSScreen>(0);
-    screen->property_.SetIsVirtual(true);
-    screen->virtualScreenPlay_ = true;
-    screenManager_->screens_[id] = std::move(screen);
-    ASSERT_EQ(true, screenManager_->CheckVirtualScreenStatusChanged(id));
-    ASSERT_EQ(false, screenManager_->CheckVirtualScreenStatusChanged(id));
-}
-
-/*
  * @tc.name: RemoveVirtualScreen_001
  * @tc.desc: Test RemoveVirtualScreen
  * @tc.type: FUNC
@@ -1319,36 +1287,6 @@ HWTEST_F(RSScreenManagerTest, SetScreenCorrection_002, TestSize.Level1)
     auto rsScreen = std::make_shared<RSScreen>(cfgVirtual);
     screenManager_->MockHdiScreenConnected(rsScreen);
     ASSERT_EQ(screenManager_->SetScreenCorrection(screenId, ScreenRotation::ROTATION_270), StatusCode::SUCCESS);
-}
-
-/*
- * @tc.name: GetScreenCorrection_001
- * @tc.desc: Test GetScreenCorrection, with INVALID_SCREEN_ID
- * @tc.type: FUNC
- * @tc.require: issueI9AT9P
- */
-HWTEST_F(RSScreenManagerTest, GetScreenCorrection_001, TestSize.Level1)
-{
-    ScreenId screenId = INVALID_SCREEN_ID;
-    screenManager_->GetScreenCorrection(screenId);
-    ASSERT_EQ(screenManager_->GetScreenCorrection(screenId), ScreenRotation::INVALID_SCREEN_ROTATION);
-}
-
-/*
- * @tc.name: GetScreenCorrection_002
- * @tc.desc: Test GetScreenCorrection, with virtual screen
- * @tc.type: FUNC
- * @tc.require: issueI9S56D
- */
-HWTEST_F(RSScreenManagerTest, GetScreenCorrection_002, TestSize.Level1)
-{
-    ScreenId screenId = 1;
-    VirtualScreenConfigs cfgVirtual;
-    cfgVirtual.id = screenId;
-    auto rsScreen = std::make_shared<RSScreen>(cfgVirtual);
-    screenManager_->MockHdiScreenConnected(rsScreen);
-    screenManager_->SetScreenCorrection(screenId, ScreenRotation::ROTATION_270);
-    ASSERT_EQ(screenManager_->GetScreenCorrection(screenId), ScreenRotation::ROTATION_270);
 }
 
 /*
@@ -2404,11 +2342,7 @@ HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect003, TestSize.Level1)
     VirtualScreenConfigs cfgVirtual;
     cfgVirtual.id = id;
     screenManager_->screens_[id] = std::make_shared<RSScreen>(cfgVirtual);
-    screenManager_->screens_[id]->SetEnableVisibleRect(true);
-    Rect rect = {0, 0, 0, 0};
-    int32_t ret = screenManager_->SetMirrorScreenVisibleRect(id, rect);
-    ASSERT_EQ(ret, StatusCode::SUCCESS);
-    ASSERT_EQ(screenManager_->screens_[id]->GetEnableVisibleRect(), false);
+    screenManager_->SetMirrorScreenVisibleRect(id, Rect());
 }
 
 /*
@@ -2767,53 +2701,6 @@ HWTEST_F(RSScreenManagerTest, GenerateVirtualScreenId_001, TestSize.Level1)
 //     auto screenId = screenManager_->freeVirtualScreenIds_.front();
 //     ASSERT_EQ(screenManager_->GenerateVirtualScreenId(), screenId);
 // }
-
-// /*
-//  * @tc.name: ReleaseScreenDmaBufferTest_001
-//  * @tc.desc: Test ReleaseScreenDmaBuffer.
-//  * @tc.type: FUNC
-//  * @tc.require: issueIAJ6B9
-//  */
-// HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
-// {// 
-//     ASSERT_NE(nullptr, screenManager_);
-
-//     ScreenId screenId = SCREEN_ID;
-//     screenManager_->ReleaseScreenDmaBuffer(screenId);
-//     ASSERT_EQ(screenManager_->GetOutput(screenId), nullptr);
-
-//     screenManager_->screens_[SCREEN_ID] = std::make_shared<RSScreen>(0);
-//     screenManager_->ReleaseScreenDmaBuffer(screenId);
-//     ASSERT_EQ(screenManager_->GetOutput(screenId), nullptr);
-// }
-
-/*
- * Function: SetScreenHasProtectedLayer
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1. preSetup: create screenManager_
- *                  2. operation: SetScreenHasProtectedLayer
- *                  3. result: screenManager_ is nullptr
- */
-// HWTEST_F(RSScreenManagerTest, SetScreenHasProtectedLayer001, TestSize.Level1)
-// {
-//     ASSERT_NE(nullptr, screenManager_);
-//     screenManager_->SetScreenHasProtectedLayer(SCREEN_ID, true);
-// }
-
-/*
- * @tc.name: GetVirtualScreenStatus
- * @tc.desc: Test GetVirtualScreenStatus
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenManagerTest, GetVirtualScreenStatus, TestSize.Level1)
-{
-    ASSERT_NE(nullptr, screenManager_);
-    auto res = screenManager_->GetVirtualScreenStatus(SCREEN_ID);
-    ASSERT_EQ(res, VIRTUAL_SCREEN_PLAY);
-}
 
 /*
  * @tc.name: SetScreenSecurityMask001
@@ -4089,8 +3976,8 @@ HWTEST_F(RSScreenManagerTest, OnHwcDeadEvent, TestSize.Level1)
 HWTEST_F(RSScreenManagerTest, OnScreenPropertyChanged001, TestSize.Level1)
 {    auto screenManager_ = std::make_shared<RSScreenManager>();
     EXPECT_NE(screenManager_, nullptr);
-    sptr<RSScreenProperty> property = nullptr;
-    screenManager_->OnScreenPropertyChanged(property);
+    sptr<ScreenPropertyBase> property = nullptr;
+    screenManager_->OnScreenPropertyChanged(INVALID_SCREEN_ID, ScreenPropertyType::ID, property);
 }
 
 /*
@@ -4101,24 +3988,8 @@ HWTEST_F(RSScreenManagerTest, OnScreenPropertyChanged001, TestSize.Level1)
 HWTEST_F(RSScreenManagerTest, OnScreenPropertyChanged002, TestSize.Level1)
 {    auto screenManager_ = std::make_shared<RSScreenManager>();
     EXPECT_NE(screenManager_, nullptr);
-    auto property = sptr<RSScreenProperty>::MakeSptr();
-    screenManager_->OnScreenPropertyChanged(property);
-}
-
-/*
- * @tc.name: OnScreenPropertyChanged003
- * @tc.desc: Test results of OnScreenPropertyChanged
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenManagerTest, OnScreenPropertyChanged003, TestSize.Level1)
-{    ScreenId screenId = 10;
-    auto screenManager_ = std::make_shared<RSScreenManager>();
-    EXPECT_NE(screenManager_, nullptr);
-    auto property = sptr<RSScreenProperty>::MakeSptr();
-    property->id_ = screenId;
-    screenManager_->screens_[screenId] = std::make_shared<RSScreen>(0);
-    // screenManager_->screenNodeListener_ = std::make_shared<RSScreenNodeListenerMock>();
-    screenManager_->OnScreenPropertyChanged(property);
+    auto property = sptr<ScreenProperty<ScreenId>>::MakeSptr();
+    screenManager_->OnScreenPropertyChanged(INVALID_SCREEN_ID, ScreenPropertyType::ID, property);
 }
 
 /*

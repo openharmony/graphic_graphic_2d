@@ -21,6 +21,7 @@
 
 #include "screen_manager/rs_screen_manager.h"
 #include "render_server/transaction/zidl/rs_render_service_stub.h"
+#include "rs_service_dump_manager.h"
 #include "vsync_controller.h"
 #include "vsync_distributor.h"
 
@@ -39,7 +40,7 @@ public:
     RSServiceDumper(const RSServiceDumper&) = delete;
     RSServiceDumper& operator=(const RSServiceDumper&) = delete;
 
-    void RsDumpInit();
+    void RsDumpInit(std::shared_ptr<RSServiceDumpManager> rsDumpManager);
 
 private:
     void DumpAllNodesMemSize(std::string& dumpString) const;
@@ -56,10 +57,10 @@ private:
     void ClearFps(std::string& dumpString, std::string& layerName) const;
 
     // RS dump init
-    void RegisterRSGfxFuncs();
-    void RegisterMemFuncs();
-    void RegisterFpsFuncs();
-    void RegisterGpuFuncs();
+    void RegisterRSGfxFuncs(std::shared_ptr<RSServiceDumpManager> rsDumpManager);
+    void RegisterMemFuncs(std::shared_ptr<RSServiceDumpManager> rsDumpManager);
+    void RegisterFpsFuncs(std::shared_ptr<RSServiceDumpManager> rsDumpManager);
+    void RegisterGpuFuncs(std::shared_ptr<RSServiceDumpManager> rsDumpManager);
 
     void ScheduleTask(std::function<void()> task) const;
 

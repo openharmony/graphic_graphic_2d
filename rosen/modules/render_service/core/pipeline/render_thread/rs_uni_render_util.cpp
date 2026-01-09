@@ -1068,25 +1068,9 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         surface->Flush(&drawingFlushInfo);
         grContext->Submit();
 
-        if (acquireFence) {
-            int fenceFd = -1;
-            auto backendTexture = surface->GetBackendTexture().GetTextureInfo().GetVKTextureInfo();;
-
-            auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
-                vkContext.GetQueue(), 1, &semaphore,
-                backendTexture ? backendTexture->vkImage : VK_NULL_HANDLE /* VkImage */, &fenceFd);
-            if (err != VK_SUCCESS) {
-                if (err == VK_ERROR_DEVICE_LOST) {
-                    vkContext.DestroyAllSemaphoreFence();
-                }
-                RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(destroyInfo);
-                destroyInfo = nullptr;
-                ROSEN_LOGE("QueueSignalReleaseImageOHOS failed %{public}d", err);
-                return;
-            }
-            acquireFence = SyncFence::MergeFence("OptimizedFlushAndSubmit", acquireFence,
-                sptr<SyncFence>(new SyncFence(fenceFd)));
-        }
+        int syncFenceFd = -1;
+        NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, syncFenceFd);
+        acquireFence = sptr<SyncFence>(new SyncFence(fenceFd));
 
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
         RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);

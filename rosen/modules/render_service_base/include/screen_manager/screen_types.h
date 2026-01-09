@@ -292,7 +292,7 @@ inline int32_t ScreenRotationMapping(ScreenRotation screenCorrection)
         RS_ROTATION_0 : static_cast<int32_t>(screenCorrection) * RS_ROTATION_90;
 }
 
-typedef enum {
+typedef enum : uint8_t {
     SKIP_FRAME_BY_INTERVAL,
     SKIP_FRAME_BY_REFRESH_RATE,
     SKIP_FRAME_BY_ACTIVE_REFRESH_RATE,

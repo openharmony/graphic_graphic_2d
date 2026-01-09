@@ -33,7 +33,8 @@ public:
     virtual void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
         const sptr<RSScreenProperty>& property) = 0;
     virtual void OnHwcDead(ScreenId id) = 0;
-    virtual void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) = 0;
+    virtual void OnScreenPropertyChanged(
+        ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property) = 0;
     virtual void OnScreenRefresh(ScreenId id) = 0;
     virtual void OnVBlankIdle(ScreenId id, uint64_t ns) = 0;
     virtual void OnVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId,

@@ -42,7 +42,7 @@ public:
 
     void NotifyScreenConnected(const ScreenPresenceEvent& event);
     void NotifyScreenDisconnected(ScreenId id);
-    void NotifyScreenPropertyUpdated(ScreenId id, const sptr<RSScreenProperty>& property);
+    void NotifyScreenPropertyUpdated(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void NotifyScreenRefresh(ScreenId id);
     void NotifyHwcRestored(const ScreenPresenceEvent& event);
     void NotifyHwcDead(ScreenId id);

@@ -16,10 +16,13 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 group("unittest") {
   testonly = true
   deps = [
-    "composer_client/pipeline:unittest",
+    "composer_client/connection:unittest",
     "composer_client/layer:unittest",
+    "composer_client/pipeline:unittest",
+    "composer_service/connection:unittest",
     "composer_service/layer_backend:unittest",
     "composer_service/pipeline:unittest",
+    "composer_service/render_layer:unittest",
     "composer_service/transaction:unittest",
   ]
 }

@@ -129,12 +129,12 @@ void RSScreenRenderNodeDrawableTest::SetUp()
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     params->childDisplayCount_ = 1;
     params->screenInfo_.id = renderNode_->GetScreenId();
-    params->screenProperty_.id_ = renderNode_->GetScreenId();
+    params->screenProperty_.Set<ScreenPropertyType::ID>(renderNode_->GetScreenId());
 
     auto mirroredParams = static_cast<RSScreenRenderParams*>(mirroredScreenDrawable_->GetRenderParams().get());
     mirroredParams->childDisplayCount_ = 1;
     mirroredParams->screenInfo_.id = mirroredNode_->GetScreenId();
-    mirroredParams->screenProperty_.id_ = mirroredNode_->GetScreenId();
+    mirroredParams->screenProperty_.Set<ScreenPropertyType::ID>(mirroredNode_->GetScreenId());
 
     // generate canvas for screenDrawable_
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
@@ -648,11 +648,10 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::RENDER_ENGINE_NULL);
     EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
     // when enableVisibleRect is true;
-    params->screenProperty_.enableVisibleRect_ = true;
-    const Rect& visibleRect = { 1, 1, 1, 1 };
-    params->screenProperty_.mainScreenVisibleRect_ = visibleRect;
+    params->screenProperty_.Set<ScreenPropertyType::VISIBLE_RECT_OPTION>(
+        std::make_tuple(true, Rect{1, 1, 1, 1}, false));
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(RSUniRenderThread::Instance().GetVisibleRect().left_, visibleRect.x);
+    EXPECT_EQ(RSUniRenderThread::Instance().GetVisibleRect().left_, 1);
     EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
     // when comositeType is not UNI_RENDER_MIRROR_COMPOSITE
     params->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;

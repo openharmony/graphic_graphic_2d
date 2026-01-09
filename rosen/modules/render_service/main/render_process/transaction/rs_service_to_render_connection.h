@@ -61,7 +61,7 @@ public:
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
 
     // Dfx
-    void DoDump(std::unordered_set<std::u16string>& argSets) override;
+    void DoDump(std::unordered_set<std::u16string>& argSets, sptr<RSIDumpCallback> callback) override;
     int32_t GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB) override;
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) override;

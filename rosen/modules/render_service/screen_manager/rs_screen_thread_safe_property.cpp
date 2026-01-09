@@ -27,623 +27,554 @@ sptr<RSScreenProperty> RSScreenThreadSafeProperty::Clone() const
 {
     auto cloned = sptr<RSScreenProperty>::MakeSptr();
     UniqueLock lock(propertyMutex_);
-    cloned->id_ = property_->id_;
-    cloned->isVirtual_ = property_->isVirtual_;
-    cloned->name_ = property_->name_;
-    cloned->width_ = property_->width_;
-    cloned->height_ = property_->height_;
-    cloned->phyWidth_ = property_->phyWidth_ ? property_->phyWidth_ : property_->width_;
-    cloned->phyHeight_ = property_->phyHeight_ ? property_->phyHeight_ : property_->height_;
-    cloned->refreshRate_ = property_->refreshRate_;
-    cloned->offsetX_ = property_->offsetX_;
-    cloned->offsetY_ = property_->offsetY_;
-    cloned->isSamplingOn_ = property_->isSamplingOn_;
-    cloned->samplingTranslateX_ = property_->samplingTranslateX_;
-    cloned->samplingTranslateY_ = property_->samplingTranslateY_;
-    cloned->samplingScale_ = property_->samplingScale_;
-    cloned->colorGamut_ = property_->colorGamut_;
-    cloned->gamutMap_ = property_->gamutMap_;
-    cloned->state_ = property_->state_;
-    cloned->correction_ = property_->correction_;
-    cloned->canvasRotation_ = property_->canvasRotation_;
-    cloned->autoBufferRotation_ = property_->autoBufferRotation_;
-    cloned->activeRect_ = property_->activeRect_;
-    cloned->maskRect_ = property_->maskRect_;
-    cloned->reviseRect_ = property_->reviseRect_;
-    cloned->skipFrameInterval_ = property_->skipFrameInterval_;
-    cloned->expectedRefreshRate_ = property_->expectedRefreshRate_;
-    cloned->skipFrameStrategy_ = property_->skipFrameStrategy_;
-    cloned->pixelFormat_ = property_->pixelFormat_;
-    cloned->hdrFormat_ = property_->hdrFormat_;
-    cloned->enableVisibleRect_ = property_->enableVisibleRect_;
-    cloned->mainScreenVisibleRect_ = property_->mainScreenVisibleRect_;
-    cloned->isSupportRotation_ = property_->isSupportRotation_;
-    cloned->whiteList_ = property_->whiteList_;
-    cloned->blackList_ = property_->blackList_;
-    cloned->typeBlackList_ = property_->typeBlackList_;
-    cloned->securityExemptionList_ = property_->securityExemptionList_;
-    cloned->securityMask_ = property_->securityMask_;
-    cloned->skipWindow_ = property_->skipWindow_;
-    cloned->powerStatus_ = property_->powerStatus_;
-    cloned->screenType_ = property_->screenType_;
-    cloned->connectionType_ = property_->connectionType_;
-    cloned->producerSurface_ = property_->producerSurface_;
-    cloned->scaleMode_ = property_->scaleMode_;
-    cloned->screenStatus_ = property_->screenStatus_;
-    cloned->virtualSecLayerOption_ = property_->virtualSecLayerOption_;
-    cloned->isHardCursorSupport_ = property_->isHardCursorSupport_;
-    cloned->disablePowerOffRenderControl_ = property_->disablePowerOffRenderControl_;
-    cloned->supportedColorGamuts_ = property_->supportedColorGamuts_;
-    cloned->screenSwitchStatus_ = property_->screenSwitchStatus_;
+    cloned->screenProperties_ = property_->screenProperties_;
     return cloned;
 }
 
-void RSScreenThreadSafeProperty::SetId(ScreenId id)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetId(ScreenId id)
 {
-    property_->id_ = id;
+    auto prop = property_->Set<ScreenPropertyType::ID>(id);
+    return { ScreenPropertyType::ID, prop };
 }
 
-void RSScreenThreadSafeProperty::SetIsVirtual(bool isVirtual)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetIsVirtual(bool isVirtual)
 {
-    property_->isVirtual_ = isVirtual;
+    auto prop = property_->Set<ScreenPropertyType::IS_VIRTUAL>(isVirtual);
+    return { ScreenPropertyType::IS_VIRTUAL, prop };
 }
 
-void RSScreenThreadSafeProperty::SetName(const std::string& name)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetName(const std::string& name)
 {
-    property_->name_ = name;
+    auto prop = property_->Set<ScreenPropertyType::NAME>(name);
+    return { ScreenPropertyType::NAME, prop };
 }
 
-void RSScreenThreadSafeProperty::SetWidth(uint32_t width)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetResolution(std::pair<uint32_t, uint32_t> resolution)
 {
     UniqueLock lock(propertyMutex_);
-    property_->width_ = width;
+    auto prop = property_->Set<ScreenPropertyType::RENDER_RESOLUTION>(resolution);
+    return { ScreenPropertyType::RENDER_RESOLUTION, prop };
 }
 
-void RSScreenThreadSafeProperty::SetHeight(uint32_t height)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetPhysicalModeParams(
+    uint32_t phyWidth, uint32_t phyHeight, uint32_t refreshRate)
 {
     UniqueLock lock(propertyMutex_);
-    property_->height_ = height;
+    auto prop = property_->Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        std::make_tuple(phyWidth, phyHeight, refreshRate));
+    return { ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE, prop };
 }
 
-void RSScreenThreadSafeProperty::SetPhyWidth(uint32_t phyWidth)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetOffset(int32_t offsetX, int32_t offsetY)
 {
     UniqueLock lock(propertyMutex_);
-    property_->phyWidth_ = phyWidth;
+    auto prop = property_->Set<ScreenPropertyType::OFFSET>(std::make_pair(offsetX, offsetY));
+    return { ScreenPropertyType::OFFSET, prop };
 }
 
-void RSScreenThreadSafeProperty::SetPhyHeight(uint32_t phyHeight)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSamplingOption(
+    bool isSamplingOn, float translateX, float translateY, float samplingScale)
 {
     UniqueLock lock(propertyMutex_);
-    property_->phyHeight_ = phyHeight;
+    auto prop = property_->Set<ScreenPropertyType::SAMPLING_OPTION>(
+        std::make_tuple(isSamplingOn, translateX, translateY, samplingScale));
+    return { ScreenPropertyType::SAMPLING_OPTION, prop };
 }
 
-void RSScreenThreadSafeProperty::SetRefreshRate(uint32_t refreshRate)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenColorGamut(ScreenColorGamut colorGamut)
 {
     UniqueLock lock(propertyMutex_);
-    property_->refreshRate_ = refreshRate;
+    auto prop = property_->Set<ScreenPropertyType::COLOR_GAMUT>(static_cast<uint32_t>(colorGamut));
+    return { ScreenPropertyType::COLOR_GAMUT, prop };
 }
 
-void RSScreenThreadSafeProperty::SetOffsetX(int32_t offsetX)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenGamutMap(ScreenGamutMap gamutMap)
 {
     UniqueLock lock(propertyMutex_);
-    property_->offsetX_ = offsetX;
+    auto prop = property_->Set<ScreenPropertyType::GAMUT_MAP>(static_cast<uint32_t>(gamutMap));
+    return { ScreenPropertyType::GAMUT_MAP, prop };
 }
 
-void RSScreenThreadSafeProperty::SetOffsetY(int32_t offsetY)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetState(ScreenState state)
 {
     UniqueLock lock(propertyMutex_);
-    property_->offsetY_ = offsetY;
+    auto prop = property_->Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(state));
+    return { ScreenPropertyType::STATE, prop };
 }
 
-void RSScreenThreadSafeProperty::SetIsSamplingOn(bool isSamplingOn)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenCorrection(ScreenRotation correction)
 {
     UniqueLock lock(propertyMutex_);
-    property_->isSamplingOn_ = isSamplingOn;
+    auto prop = property_->Set<ScreenPropertyType::CORRECTION>(static_cast<uint32_t>(correction));
+    return { ScreenPropertyType::CORRECTION, prop };
 }
 
-void RSScreenThreadSafeProperty::SetSamplingTranslateX(float samplingTranslateX)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetCanvasRotation(bool canvasRotation)
 {
     UniqueLock lock(propertyMutex_);
-    property_->samplingTranslateX_ = samplingTranslateX;
+    auto prop = property_->Set<ScreenPropertyType::CANVAS_ROTATION>(canvasRotation);
+    return { ScreenPropertyType::CANVAS_ROTATION, prop };
 }
 
-void RSScreenThreadSafeProperty::SetSamplingTranslateY(float samplingTranslateY)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAutoBufferRotation(bool isAutoRotation)
 {
     UniqueLock lock(propertyMutex_);
-    property_->samplingTranslateY_ = samplingTranslateY;
+    auto prop = property_->Set<ScreenPropertyType::AUTO_BUFFER_ROTATION>(isAutoRotation);
+    return { ScreenPropertyType::AUTO_BUFFER_ROTATION, prop };
 }
 
-void RSScreenThreadSafeProperty::SetSamplingScale(float samplingScale)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetActiveRectOption(
+    RectI activeRect, RectI maskRect, RectI reviseRect)
 {
     UniqueLock lock(propertyMutex_);
-    property_->samplingScale_ = samplingScale;
+    auto prop = property_->Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
+        std::make_tuple(activeRect, maskRect, reviseRect));
+    return { ScreenPropertyType::ACTIVE_RECT_OPTION, prop };
 }
 
-void RSScreenThreadSafeProperty::SetScreenColorGamut(ScreenColorGamut colorGamut)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSkipFrameOption(
+    uint32_t skipFrameInterval, uint32_t expectedRefreshRate, SkipFrameStrategy skipFrameStrategy)
 {
     UniqueLock lock(propertyMutex_);
-    property_->colorGamut_ = colorGamut;
+    auto prop = property_->Set<ScreenPropertyType::SKIP_FRAME_OPTION>(
+        std::make_tuple(skipFrameInterval, expectedRefreshRate, static_cast<uint8_t>(skipFrameStrategy)));
+    return { ScreenPropertyType::SKIP_FRAME_OPTION, prop };
 }
 
-void RSScreenThreadSafeProperty::SetScreenGamutMap(ScreenGamutMap gamutMap)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetPixelFormat(GraphicPixelFormat pixelFormat)
 {
     UniqueLock lock(propertyMutex_);
-    property_->gamutMap_ = gamutMap;
+    auto prop = property_->Set<ScreenPropertyType::PIXEL_FORMAT>(static_cast<int32_t>(pixelFormat));
+    return { ScreenPropertyType::PIXEL_FORMAT, prop };
 }
 
-void RSScreenThreadSafeProperty::SetState(ScreenState state)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenHDRFormat(ScreenHDRFormat hdrFormat)
 {
     UniqueLock lock(propertyMutex_);
-    property_->state_ = state;
+    auto prop = property_->Set<ScreenPropertyType::HDR_FORMAT>(static_cast<uint32_t>(hdrFormat));
+    return { ScreenPropertyType::HDR_FORMAT, prop };
 }
 
-void RSScreenThreadSafeProperty::SetScreenCorrection(ScreenRotation screenRotation)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetVisibleRectOption(
+    bool enableVisibleRect, const Rect& mainScreenRect, bool supportRotation)
 {
     UniqueLock lock(propertyMutex_);
-    property_->correction_ = screenRotation;
+    auto prop = property_->Set<ScreenPropertyType::VISIBLE_RECT_OPTION>(
+        std::make_tuple(enableVisibleRect, mainScreenRect, supportRotation));
+    return { ScreenPropertyType::VISIBLE_RECT_OPTION, prop };
 }
 
-void RSScreenThreadSafeProperty::SetCanvasRotation(bool canvasRotation)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetWhiteList(
+    const std::unordered_set<uint64_t>& whiteList)
 {
     UniqueLock lock(propertyMutex_);
-    property_->canvasRotation_ = canvasRotation;
+    auto prop = property_->Set<ScreenPropertyType::WHITE_LIST>(whiteList);
+    return { ScreenPropertyType::WHITE_LIST, prop };
 }
 
-void RSScreenThreadSafeProperty::SetAutoBufferRotation(bool isAutoRotation)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetBlackList(
+    const std::unordered_set<uint64_t>& blackList)
 {
     UniqueLock lock(propertyMutex_);
-    property_->autoBufferRotation_ = isAutoRotation;
+    auto prop = property_->Set<ScreenPropertyType::BLACK_LIST>(blackList);
+    return { ScreenPropertyType::BLACK_LIST, prop };
 }
 
-void RSScreenThreadSafeProperty::SetActiveRect(RectI activeRect)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::AddBlackList(
+    const std::vector<uint64_t>& blackList)
 {
     UniqueLock lock(propertyMutex_);
-    property_->activeRect_ = activeRect;
+    auto tmpList = property_->Get<ScreenPropertyType::BLACK_LIST>();
+    tmpList.insert(blackList.cbegin(), blackList.cend());
+
+    auto prop = property_->Set<ScreenPropertyType::BLACK_LIST>(tmpList);
+    return { ScreenPropertyType::BLACK_LIST, prop };
 }
 
-void RSScreenThreadSafeProperty::SetMaskRect(RectI maskRect)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::RemoveBlackList(
+    const std::vector<uint64_t>& blackList)
 {
     UniqueLock lock(propertyMutex_);
-    property_->maskRect_ = maskRect;
-}
-
-void RSScreenThreadSafeProperty::SetReviseRect(RectI reviseRect)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->reviseRect_ = reviseRect;
-}
-
-void RSScreenThreadSafeProperty::SetSkipFrameInterval(uint32_t skipFrameInterval)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->skipFrameInterval_ = skipFrameInterval;
-}
-
-void RSScreenThreadSafeProperty::SetExpectedRefreshRate(uint32_t expectedRefreshRate)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->expectedRefreshRate_ = expectedRefreshRate;
-}
-
-void RSScreenThreadSafeProperty::SetSkipFrameStrategy(SkipFrameStrategy skipFrameStrategy)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->skipFrameStrategy_ = skipFrameStrategy;
-}
-
-void RSScreenThreadSafeProperty::SetPixelFormat(GraphicPixelFormat pixelFormat)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->pixelFormat_ = pixelFormat;
-}
-
-void RSScreenThreadSafeProperty::SetScreenHDRFormat(ScreenHDRFormat hdrFormat)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->hdrFormat_ = hdrFormat;
-}
-
-void RSScreenThreadSafeProperty::SetEnableVisibleRect(bool enableVisibleRect)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->enableVisibleRect_ = enableVisibleRect;
-}
-
-void RSScreenThreadSafeProperty::SetMainScreenVisibleRect(const Rect& mainScreenRect)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->mainScreenVisibleRect_ = mainScreenRect;
-}
-
-void RSScreenThreadSafeProperty::SetVisibleRectSupportRotation(bool supportRotation)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->isSupportRotation_ = supportRotation;
-}
-
-void RSScreenThreadSafeProperty::SetWhiteList(const std::unordered_set<uint64_t>& whiteList)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->whiteList_ = whiteList;
-}
-
-void RSScreenThreadSafeProperty::SetBlackList(const std::unordered_set<uint64_t>& blackList)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->blackList_ = blackList;
-}
-
-void RSScreenThreadSafeProperty::AddBlackList(const std::vector<uint64_t>& blackList)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->blackList_.insert(blackList.cbegin(), blackList.cend());
-}
-
-void RSScreenThreadSafeProperty::RemoveBlackList(const std::vector<uint64_t>& blackList)
-{
-    UniqueLock lock(propertyMutex_);
-    for (const auto& list : blackList) {
-        property_->blackList_.erase(list);
+    auto tmpList = property_->Get<ScreenPropertyType::BLACK_LIST>();
+    for (auto id : blackList) {
+        tmpList.erase(id);
     }
+    auto prop = property_->Set<ScreenPropertyType::BLACK_LIST>(tmpList);
+    return { ScreenPropertyType::BLACK_LIST, prop };
 }
 
-void RSScreenThreadSafeProperty::SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetTypeBlackList(
+    const std::unordered_set<uint8_t>& typeBlackList)
 {
     UniqueLock lock(propertyMutex_);
-    property_->typeBlackList_ = typeBlackList;
+    auto prop = property_->Set<ScreenPropertyType::TYPE_BLACK_LIST>(typeBlackList);
+    return { ScreenPropertyType::TYPE_BLACK_LIST, prop };
 }
 
-void RSScreenThreadSafeProperty::SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSecurityExemptionList(
+    const std::vector<uint64_t>& securityExemptionList)
 {
     UniqueLock lock(propertyMutex_);
-    property_->securityExemptionList_ = securityExemptionList;
+    auto prop = property_->Set<ScreenPropertyType::SECURITY_EXEMPTION_LIST>(securityExemptionList);
+    return { ScreenPropertyType::SECURITY_EXEMPTION_LIST, prop };
 }
 
-void RSScreenThreadSafeProperty::SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSecurityMask(
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     UniqueLock lock(propertyMutex_);
-    property_->securityMask_ = securityMask;
+    auto prop = property_->Set<ScreenPropertyType::SECURITY_MASK>(securityMask);
+    return { ScreenPropertyType::SECURITY_MASK, prop };
 }
 
-void RSScreenThreadSafeProperty::SetCastScreenEnableSkipWindow(bool enable)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetCastScreenEnableSkipWindow(bool enable)
 {
     UniqueLock lock(propertyMutex_);
-    property_->skipWindow_ = enable;
+    auto prop = property_->Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(enable);
+    return { ScreenPropertyType::ENABLE_SKIP_WINDOW, prop };
 }
 
-void RSScreenThreadSafeProperty::SetPowerStatus(ScreenPowerStatus powerStatus)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetPowerStatus(ScreenPowerStatus powerStatus)
 {
     UniqueLock lock(propertyMutex_);
-    property_->powerStatus_ = powerStatus;
+    auto prop = property_->Set<ScreenPropertyType::POWER_STATUS>(static_cast<uint32_t>(powerStatus));
+    return { ScreenPropertyType::POWER_STATUS, prop };
 }
 
-void RSScreenThreadSafeProperty::SetScreenType(RSScreenType screenType)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenType(RSScreenType screenType)
 {
-    property_->screenType_ = screenType;
+    auto prop = property_->Set<ScreenPropertyType::SCREEN_TYPE>(static_cast<uint32_t>(screenType));
+    return { ScreenPropertyType::SCREEN_TYPE, prop };
 }
 
-void RSScreenThreadSafeProperty::SetConnectionType(ScreenConnectionType connectionType)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetConnectionType(ScreenConnectionType connectionType)
 {
-    property_->connectionType_ = connectionType;
+    auto prop = property_->Set<ScreenPropertyType::CONNECTION_TYPE>(static_cast<uint32_t>(connectionType));
+    return { ScreenPropertyType::CONNECTION_TYPE, prop };
 }
 
-void RSScreenThreadSafeProperty::SetProducerSurface(sptr<Surface> producerSurface)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->producerSurface_ = producerSurface;
-}
-
-void RSScreenThreadSafeProperty::SetScreenScaleMode(ScreenScaleMode scaleMode)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetProducerSurface(sptr<Surface> producerSurface)
 {
     UniqueLock lock(propertyMutex_);
-    property_->scaleMode_ = scaleMode;
+    auto prop = property_->Set<ScreenPropertyType::PRODUCER_SURFACE>(producerSurface);
+    return { ScreenPropertyType::PRODUCER_SURFACE, prop };
 }
 
-void RSScreenThreadSafeProperty::SetScreenStatus(VirtualScreenStatus screenStatus)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenScaleMode(ScreenScaleMode scaleMode)
 {
     UniqueLock lock(propertyMutex_);
-    property_->screenStatus_ = screenStatus;
+    auto prop = property_->Set<ScreenPropertyType::SCALE_MODE>(static_cast<uint32_t>(scaleMode));
+    return { ScreenPropertyType::SCALE_MODE, prop };
 }
 
-void RSScreenThreadSafeProperty::SetVirtualSecLayerOption(int32_t virtualSecLayerOption)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenStatus(VirtualScreenStatus screenStatus)
 {
     UniqueLock lock(propertyMutex_);
-    property_->virtualSecLayerOption_ = virtualSecLayerOption;
+    auto prop = property_->Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(screenStatus));
+    return { ScreenPropertyType::SCREEN_STATUS, prop };
 }
 
-void RSScreenThreadSafeProperty::SetIsHardCursorSupport(bool isHardCursorSupport)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetVirtualSecLayerOption(int32_t virtualSecLayerOption)
 {
     UniqueLock lock(propertyMutex_);
-    property_->isHardCursorSupport_ = isHardCursorSupport;
+    auto prop = property_->Set<ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION>(virtualSecLayerOption);
+    return { ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION, prop };
 }
 
-void RSScreenThreadSafeProperty::SetSupportedColorGamuts(std::vector<ScreenColorGamut> colorGamuts)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetIsHardCursorSupport(bool isHardCursorSupport)
 {
-    UniqueLock lock(propertyMutex_);
-    property_->supportedColorGamuts_ = colorGamuts;
+    auto prop = property_->Set<ScreenPropertyType::IS_HARD_CURSOR_SUPPORT>(isHardCursorSupport);
+    return { ScreenPropertyType::IS_HARD_CURSOR_SUPPORT, prop };
 }
 
-void RSScreenThreadSafeProperty::SetDisablePowerOffRenderControl(bool disable)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSupportedColorGamuts(
+    std::vector<ScreenColorGamut> colorGamuts)
 {
-    UniqueLock lock(propertyMutex_);
-    property_->disablePowerOffRenderControl_ = disable;
+    auto prop = property_->Set<ScreenPropertyType::SUPPORTED_COLOR_GAMUTS>(colorGamuts);
+    return { ScreenPropertyType::SUPPORTED_COLOR_GAMUTS, prop };
 }
 
-void RSScreenThreadSafeProperty::SetScreenSwitchStatus(bool status)
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetDisablePowerOffRenderControl(bool disable)
 {
     UniqueLock lock(propertyMutex_);
-    property_->screenSwitchStatus_ = status;
+    auto prop = property_->Set<ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL>(disable);
+    return { ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL, prop };
+}
+
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenSwitchStatus(bool status)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::SCREEN_SWITCH_STATUS>(status);
+    return { ScreenPropertyType::SCREEN_SWITCH_STATUS, prop };
 }
 
 ScreenId RSScreenThreadSafeProperty::GetId() const
 {
-    return property_->id_;
+    return property_->GetScreenId();
 }
 
 bool RSScreenThreadSafeProperty::IsVirtual() const
 {
-    return property_->isVirtual_;
+    return property_->IsVirtual();
 }
 
-const std::string& RSScreenThreadSafeProperty::Name() const
+std::string RSScreenThreadSafeProperty::Name() const
 {
-    return property_->name_;
+    return property_->Name();
 }
 
 uint32_t RSScreenThreadSafeProperty::GetWidth() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->width_;
+    return property_->GetWidth();
 }
 
 uint32_t RSScreenThreadSafeProperty::GetHeight() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->height_;
+    return property_->GetHeight();
 }
 
 uint32_t RSScreenThreadSafeProperty::GetPhyWidth() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->phyWidth_;
+    return property_->GetPhyWidth();
 }
 
 uint32_t RSScreenThreadSafeProperty::GetPhyHeight() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->phyHeight_;
+    return property_->GetPhyHeight();
 }
 
 uint32_t RSScreenThreadSafeProperty::GetRefreshRate() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->refreshRate_;
+    return property_->GetRefreshRate();
 }
 
 int32_t RSScreenThreadSafeProperty::GetOffsetX() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->offsetX_;
+    return property_->GetOffsetX();
 }
 
 int32_t RSScreenThreadSafeProperty::GetOffsetY() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->offsetY_;
+    return property_->GetOffsetY();
 }
 
 bool RSScreenThreadSafeProperty::GetIsSamplingOn() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->isSamplingOn_;
+    return property_->GetIsSamplingOn();
 }
 
 float RSScreenThreadSafeProperty::GetSamplingTranslateX() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->samplingTranslateX_;
+    return property_->GetSamplingTranslateX();
 }
 
 float RSScreenThreadSafeProperty::GetSamplingTranslateY() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->samplingTranslateY_;
+    return property_->GetSamplingTranslateY();
 }
 
 float RSScreenThreadSafeProperty::GetSamplingScale() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->samplingScale_;
+    return property_->GetSamplingScale();
 }
 
 ScreenColorGamut RSScreenThreadSafeProperty::GetScreenColorGamut() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->colorGamut_;
+    return property_->GetScreenColorGamut();
 }
 
 ScreenGamutMap RSScreenThreadSafeProperty::GetScreenGamutMap() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->gamutMap_;
+    return property_->GetScreenGamutMap();
 }
 
 ScreenState RSScreenThreadSafeProperty::GetState() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->state_;
+    return property_->GetState();
 }
 
 ScreenRotation RSScreenThreadSafeProperty::GetScreenCorrection() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->correction_;
+    return property_->GetScreenCorrection();
 }
 
 bool RSScreenThreadSafeProperty::GetCanvasRotation() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->canvasRotation_;
+    return property_->GetCanvasRotation();
 }
 
 bool RSScreenThreadSafeProperty::GetAutoBufferRotation() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->autoBufferRotation_;
+    return property_->GetAutoBufferRotation();
 }
 
 RectI RSScreenThreadSafeProperty::GetActiveRect() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->activeRect_;
+    return property_->GetActiveRect();
 }
 
 RectI RSScreenThreadSafeProperty::GetMaskRect() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->maskRect_;
+    return property_->GetMaskRect();
 }
 
 RectI RSScreenThreadSafeProperty::GetReviseRect() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->reviseRect_;
+    return property_->GetReviseRect();
 }
 
 uint32_t RSScreenThreadSafeProperty::GetSkipFrameInterval() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->skipFrameInterval_;
+    return property_->GetScreenSkipFrameInterval();
 }
 
 uint32_t RSScreenThreadSafeProperty::GetExpectedRefreshRate() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->expectedRefreshRate_;
+    return property_->GetScreenExpectedRefreshRate();
 }
 
 SkipFrameStrategy RSScreenThreadSafeProperty::GetSkipFrameStrategy() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->skipFrameStrategy_;
+    return property_->GetScreenSkipFrameStrategy();
 }
 
 GraphicPixelFormat RSScreenThreadSafeProperty::GetPixelFormat() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->pixelFormat_;
+    return property_->GetPixelFormat();
 }
 
 ScreenHDRFormat RSScreenThreadSafeProperty::GetScreenHDRFormat() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->hdrFormat_;
+    return property_->GetScreenHDRFormat();
 }
 
 bool RSScreenThreadSafeProperty::GetEnableVisibleRect() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->enableVisibleRect_;
+    return property_->GetEnableVisibleRect();
 }
 
 Rect RSScreenThreadSafeProperty::GetMainScreenVisibleRect() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->mainScreenVisibleRect_;
+    return property_->GetVisibleRect();
 }
 
 bool RSScreenThreadSafeProperty::GetVisibleRectSupportRotation() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->isSupportRotation_;
+    return property_->IsVisibleRectSupportRotation();
 }
 
 std::unordered_set<uint64_t> RSScreenThreadSafeProperty::GetWhiteList() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->whiteList_;
+    return property_->GetWhiteList();
 }
 
 std::unordered_set<uint64_t> RSScreenThreadSafeProperty::GetBlackList() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->blackList_;
+    return property_->GetBlackList();
 }
 
 std::unordered_set<uint8_t> RSScreenThreadSafeProperty::GetTypeBlackList() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->typeBlackList_;
+    return property_->GetTypeBlackList();
 }
 
 std::vector<uint64_t> RSScreenThreadSafeProperty::GetSecurityExemptionList() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->securityExemptionList_;
+    return property_->GetSecurityExemptionList();
 }
 
 std::shared_ptr<Media::PixelMap> RSScreenThreadSafeProperty::GetSecurityMask() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->securityMask_;
+    return property_->GetSecurityMask();
 }
 
 bool RSScreenThreadSafeProperty::GetCastScreenEnableSkipWindow() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->skipWindow_;
+    return property_->EnableSkipWindow();
 }
 
 ScreenPowerStatus RSScreenThreadSafeProperty::GetPowerStatus() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->powerStatus_;
+    return property_->GetScreenPowerStatus();
 }
 
 RSScreenType RSScreenThreadSafeProperty::GetScreenType() const
 {
-    return property_->screenType_;
+    return property_->GetScreenType();
 }
 
 ScreenConnectionType RSScreenThreadSafeProperty::GetConnectionType() const
 {
-    return property_->connectionType_;
+    return property_->GetConnectionType();
 }
 
 sptr<Surface> RSScreenThreadSafeProperty::GetProducerSurface() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->producerSurface_;
+    return property_->GetProducerSurface();
 }
 
 ScreenScaleMode RSScreenThreadSafeProperty::GetScreenScaleMode() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->scaleMode_;
+    return property_->GetScaleMode();
 }
 
 VirtualScreenStatus RSScreenThreadSafeProperty::GetScreenStatus() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->screenStatus_;
+    return property_->GetVirtualScreenStatus();
 }
 
 int32_t RSScreenThreadSafeProperty::GetVirtualSecLayerOption() const
 {
     SharedLock lock(propertyMutex_);
-    return property_->virtualSecLayerOption_;
+    return property_->GetVirtualSecLayerOption();
 }
 
 bool RSScreenThreadSafeProperty::GetIsHardCursorSupport() const
 {
-    SharedLock lock(propertyMutex_);
-    return property_->isHardCursorSupport_;
+    return property_->IsHardCursorSupport();
 }
 
 std::vector<ScreenColorGamut> RSScreenThreadSafeProperty::GetSupportedColorGamuts() const
 {
-    SharedLock lock(propertyMutex_);
-    return property_->supportedColorGamuts_;
+    return property_->GetScreenSupportedColorGamuts();
 }
 
 ScreenInfo RSScreenThreadSafeProperty::GetScreenInfo() const

@@ -21,6 +21,8 @@
 #include <unordered_set>
 #include "common/rs_common_def.h"
 #include "common/rs_thread_handler.h"
+#include "dfx/rs_pipline_dump_manager.h"
+#include "dfx/rs_pipline_dumper.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
@@ -34,6 +36,7 @@
 #include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
 #include "rs_render_composer_client.h"
 #include "vsync_receiver.h"
+#include "screen_manager/rs_screen_property.h"
 #include "screen_manager/screen_types.h"
 #include "memory/rs_memory_manager.h"
 
@@ -63,8 +66,6 @@ private:
 class RSIRenderToServiceConnection;
 class RSMainThread;
 class RSUniRenderThread;
-class RSBufferThread;
-class RSScreenProperty;
 class RSHwcContext;
 class RSRenderPipeline final : public RefBase {
 public:
@@ -103,8 +104,9 @@ public:
         const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent,
         const std::shared_ptr<HdiOutput>& output);
     void OnScreenDisconnected(ScreenId screenId);
-    void OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty);
+    void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void OnScreenRefresh(ScreenId screenId);
+    void RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn);
 
 private:
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
@@ -120,13 +122,17 @@ private:
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
         const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void InitUniRenderThread();
-    void InitDumper();
+    void InitDumper(const std::shared_ptr<AppExecFwk::EventHandler>& handler);
+
+    // LPP
+    void RegisterJudgeLppLayerCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
 
     RSMainThread* mainThread_ = nullptr;
     RSUniRenderThread* uniRenderThread_ = nullptr;
-    RSBufferThread* uniBufferThread_ = nullptr;
 
     std::shared_ptr<ImageEnhanceManager> imageEnhanceManager_ = nullptr;
+    std::shared_ptr<RSPiplineDumper> rpDumper_ = nullptr;
+    std::shared_ptr<RSPiplineDumpManager> rpDumpManager_ = nullptr;
 
     friend class RSServiceToRenderConnection;
     friend class RSRenderProcessAgent;

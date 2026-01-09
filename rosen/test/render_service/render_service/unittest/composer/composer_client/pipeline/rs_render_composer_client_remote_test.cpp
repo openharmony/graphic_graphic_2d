@@ -92,8 +92,7 @@ void RSRenderComposerClientRemoteTest::SetUpTestCase()
         uint32_t screenId = 10;
         std::shared_ptr<HdiOutput> output = std::make_shared<HdiOutput>(screenId);
         sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
-        property->width_ = 2048;
-        property->height_ = 1024;
+        property->Set<ScreenPropertyType::RENDER_RESOLUTION>(std::make_pair(2048, 1024));
         std::shared_ptr<RSRenderComposer> renderComposer = std::make_shared<RSRenderComposer>(output, property);
         auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
         sptr<RSRenderToComposerConnection> renderToComposer =

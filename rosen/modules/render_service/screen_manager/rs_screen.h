@@ -56,7 +56,7 @@ public:
     RSScreen& operator=(const RSScreen&) = delete;
 
     ScreenId Id() const;
-    const std::string& Name() const;
+    std::string Name() const;
     ScreenId GetAssociatedScreenId() const;
 
     bool IsVirtual() const;
@@ -77,10 +77,7 @@ public:
 
     void DisplayDump(int32_t screenIndex, std::string& dumpString);
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval);
-    uint32_t GetScreenSkipFrameInterval() const;
     void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate);
-    uint32_t GetScreenExpectedRefreshRate() const;
-    SkipFrameStrategy GetScreenSkipFrameStrategy() const;
     void SetScreenVsyncEnabled(bool enabled) const;
 
     uint32_t SetActiveMode(uint32_t modeId);
@@ -93,7 +90,6 @@ public:
     int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const;
 
     void SetScreenCorrection(ScreenRotation screenRotation);
-    ScreenRotation GetScreenCorrection() const;
 
     int32_t SetPowerStatus(uint32_t powerStatus);
     ScreenPowerStatus GetPowerStatus();
@@ -143,40 +139,31 @@ public:
     ScreenScaleMode GetScaleMode() const;
 
     bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus);
-    VirtualScreenStatus GetVirtualScreenStatus() const;
 
     void SetCastScreenEnableSkipWindow(bool enable);
-    bool GetCastScreenEnableSkipWindow();
     void SetBlackList(const std::unordered_set<uint64_t>& blackList);
     void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList);
     void AddBlackList(const std::vector<uint64_t>& blackList);
     void RemoveBlackList(const std::vector<uint64_t>& blackList);
     std::unordered_set<uint64_t> GetBlackList() const;
-    std::unordered_set<uint8_t> GetTypeBlackList() const;
     std::unordered_set<uint64_t> GetWhiteList() const;
 
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList);
-    const std::vector<uint64_t> GetSecurityExemptionList() const;
 
     int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask);
 
-    void SetEnableVisibleRect(bool enable);
-    bool GetEnableVisibleRect() const;
-    void SetMainScreenVisibleRect(const Rect& mainScreenRect);
-    void SetVisibleRectSupportRotation(bool supportRotation);
+    void SetVisibleRectOption(bool enable, const Rect& mainScreenRect, bool supportRotation);
 
     void SetScreenOffset(int32_t offsetX, int32_t offsetY);
     int32_t GetOffsetX() const;
     int32_t GetOffsetY() const;
 
-    bool GetAndResetPSurfaceChange();
-    void SetPSurfaceChange(bool pSurfaceChange);
     void SetDisablePowerOffRenderControl(bool disable);
-    bool GetAndResetVirtualScreenPlay();
 
     void SetScreenSwitchStatus(bool status);
 
-    void SetOnPropertyChangedCallback(std::function<void(const sptr<RSScreenProperty>&)> callback);
+    using OnPropertyChangeCallback = std::function<void(ScreenId, ScreenPropertyType, const sptr<ScreenPropertyBase>&)>;
+    void SetOnPropertyChangedCallback(OnPropertyChangeCallback callback);
     sptr<RSScreenProperty> GetProperty() const;
     ScreenInfo GetScreenInfo() const;
 
@@ -188,7 +175,7 @@ private:
     void VirtualScreenInit() noexcept;
     void InitDisplayPropertyForHardCursor();
     void WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode);
-    bool CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect);
+    bool CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect, RectI& maskRect);
 
     void ModeInfoDump(std::string& dumpString);
     void CapabilityDump(std::string& dumpString);
@@ -198,6 +185,8 @@ private:
     void ScreenTypeDump(std::string& dumpString);
 
     void UpdateSamplingScale(uint32_t phyWidth, uint32_t phyHeight, uint32_t width, uint32_t height);
+
+    void NotifyScreenPropertyChange(std::pair<ScreenPropertyType, const sptr<ScreenPropertyBase>&> prop);
 
     ScreenId associatedScreenId_ = INVALID_SCREEN_ID;
 
@@ -233,11 +222,7 @@ private:
 
     std::atomic<bool> hasLogBackLightAfterPowerStatusChanged_ = false;
 
-    // status for full screen dirty region update
-    std::atomic<bool> pSurfaceChange_ = false;
-    std::atomic<bool> virtualScreenPlay_ = false;
-
-    std::function<void(const sptr<RSScreenProperty>&)> onPropertyChange_;
+    OnPropertyChangeCallback onPropertyChange_;
     RSScreenThreadSafeProperty property_;
 };
 } // namespace Rosen

@@ -572,6 +572,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         IsAccessibilityConfigChanged() ||
         curScreenNode_->HasMirroredScreenChanged() ||
         curScreenNode_->IsVirtualSurfaceChanged() ||
+        curScreenNode_->IsVirtualScreenStatusChanged() ||
         curScreenNode_->IsScreenResolutionChanged();
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -2028,7 +2029,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     node.SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
     node.SetExistHWCNode(false);
     CheckLuminanceStatusChange(curScreenNode_->GetScreenId());
-    node.CheckSurfaceChanged();
+    node.CheckVirtualScreenStatusChanged();
 
     // 2 init screenManager info
     auto screenInfo = curScreenNode_->GetScreenProperty().GetScreenInfo();
@@ -2049,7 +2050,6 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     } else {
         needRecalculateOcclusion_ = false;
     }
-    // screenWhiteList_ = screenManager_->GetScreenWhiteList(); // ??? todo
     screenState_ = screenInfo.state;
     node.GetLogicalDisplayNodeDrawables().clear();
 

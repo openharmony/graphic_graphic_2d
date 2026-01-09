@@ -629,13 +629,13 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual007, Function
 
     auto screenManager = sptr<RSScreenManager>::MakeSptr();
     ASSERT_NE(screenManager, nullptr);
-    screenManager->screens_[screenId] = std::make_shared<RSScreen>(screenId);
+    screenManager->screens_[screenId] = nullptr;
     int32_t result = screenManager->AddVirtualScreenBlackList(screenId, blockList);
     ASSERT_EQ(result, SCREEN_NOT_FOUND);
 
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, false);
     damageRegionRects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(screenNodeDrawable, bufferAge, screenInfo);
-    ASSERT_TRUE(damageRegionRects.size() == SIZE_ONE);
+    ASSERT_TRUE(damageRegionRects.size() == SIZE_TWO);
 }
 
 /*

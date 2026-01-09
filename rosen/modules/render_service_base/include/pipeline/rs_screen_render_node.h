@@ -85,6 +85,11 @@ public:
         screenProperty_ = property;
     }
 
+    void UpdateScreenProperty(ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
+    {
+        screenProperty_.Set(type, property);
+    }
+
     const RSScreenProperty& GetScreenProperty() const
     {
         return screenProperty_;
@@ -110,7 +115,6 @@ public:
         return screenRect_;
     }
 
-    
     bool HasChildCrossNode() const
     {
         return hasChildCrossNode_;
@@ -505,8 +509,9 @@ public:
     void SetForceFreeze(bool forceFreeze);
     bool GetForceFreeze() const;
 
-    void CheckSurfaceChanged();
+    void CheckVirtualScreenStatusChanged();
     bool IsVirtualSurfaceChanged() const;
+    bool IsVirtualScreenStatusChanged() const;
 
 protected:
     void OnSync() override;
@@ -576,6 +581,8 @@ private:
     bool hasMirrorDisplay_ = false;
     bool screenResolutionChanged_ = false;
 
+    VirtualScreenStatus lastStatus_ = VIRTUAL_SCREEN_PLAY;
+    bool virtualScreenStatusChanged_ = false;
     std::pair<bool, uint64_t> virtualSurfaceState_ = { false, UINT64_MAX };
     bool isVirtualSurfaceChanged_ = false;
 

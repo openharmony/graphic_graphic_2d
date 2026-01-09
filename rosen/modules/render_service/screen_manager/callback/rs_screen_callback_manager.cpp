@@ -73,10 +73,11 @@ void RSScreenCallbackManager::NotifyScreenDisconnected(ScreenId screenId)
     }
 }
 
-void RSScreenCallbackManager::NotifyScreenPropertyUpdated(ScreenId id, const sptr<RSScreenProperty>& property)
+void RSScreenCallbackManager::NotifyScreenPropertyUpdated(
+    ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
 {
     if (coreListener_) {
-        coreListener_->OnScreenPropertyChanged(id, property);
+        coreListener_->OnScreenPropertyChanged(id, type, property);
     } else {
         RS_LOGI("%{public}s: coreListener is nullptr", __func__);
     }

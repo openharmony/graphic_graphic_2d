@@ -13,48 +13,30 @@
  * limitations under the License.
  */
 
-#include "rs_process_dump_manager.h"
+#include "rs_pipline_dump_manager.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
-RSProcessDumpManager& RSProcessDumpManager::GetInstance()
-{
-    // Define a static RSProcessDumpManager object to ensure only one instance is created
-    static RSProcessDumpManager instance;
-    return instance;
-}
-
-void RSProcessDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out)
+void RSPiplineDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out, sptr<RSIDumpCallback> callback)
 {
     out += "\nRSProcessDump pid:";
     out += std::to_string(pid_);
     out += " screenId:";
     out += std::to_string(screenId_);
     RSDumpManager::CmdExec(argSets, out);
-    DumpCallback(out);
-}
-
-void RSProcessDumpManager::SetRenderToServiceConnection(sptr<RSIRenderToServiceConnection> conn)
-{
-    renderToServiceConnection_ = conn;
-}
-
-void RSProcessDumpManager::DumpCallback(std::string& dumpString)
-{
-    if (renderToServiceConnection_ != nullptr) {
-        renderToServiceConnection_ ->ReplyDumpResultToService(dumpString);
+    if (callback == nullptr) {
+        RS_LOGW("CmdExec called with null RSIDumpCallback. Dump result discarded");
         return;
     }
-
-    RS_LOGE("RSProcessDumpManager::ReplyDumpResultToService connection is nullptr");
+    callback->OnDumpResult(out);
 }
 
-void RSProcessDumpManager::SetPid(int pid)
+void RSPiplineDumpManager::SetPid(int pid)
 {
     pid_ = pid;
 }
 
-void RSProcessDumpManager::SetScreenId(unsigned long screenId)
+void RSPiplineDumpManager::SetScreenId(unsigned long screenId)
 {
     screenId_ = screenId;
 }

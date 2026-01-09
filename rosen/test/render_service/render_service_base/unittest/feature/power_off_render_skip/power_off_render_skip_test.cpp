@@ -47,8 +47,8 @@ void RSPowerOffRenderSkipTest::RegisterScreenNode(
 {
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(curNodeId_++, screenId, context);
-    screenNode->screenProperty_.powerStatus_ = powerStatus;
-    screenNode->screenProperty_.disablePowerOffRenderControl_ = disableControl;
+    screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(powerStatus);
+    screenNode->screenProperty_.Set<ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL>(disableControl);
     renderNodeMap.RegisterRenderNode(screenNode);
 }
 

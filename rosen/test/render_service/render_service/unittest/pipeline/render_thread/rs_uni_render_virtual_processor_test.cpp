@@ -191,7 +191,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level
     ASSERT_NE(virtualRenderParams, nullptr);
     virtualRenderParams->mirrorSourceDrawable_ = mainNode->renderDrawable_;
     virtualRenderParams->screenInfo_.id = screenId;
-    virtualRenderParams->screenProperty_.producerSurface_ = surface;
+    virtualRenderParams->screenProperty_.Set<ScreenPropertyType::PRODUCER_SURFACE>(surface);
 
     auto& uniRenderThread = RSUniRenderThread::Instance();
     auto renderEngine = uniRenderThread.GetRenderEngine();
@@ -248,7 +248,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread002, TestSize.Level
     ASSERT_NE(virtualRenderParams, nullptr);
     virtualRenderParams->mirrorSourceDrawable_ = mainNode->renderDrawable_;
     virtualRenderParams->screenInfo_.id = screenId;
-    virtualRenderParams->screenProperty_.producerSurface_ = surface;
+    virtualRenderParams->screenProperty_.Set<ScreenPropertyType::PRODUCER_SURFACE>(surface);
 
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     ASSERT_NE(renderEngine, nullptr);
@@ -1163,7 +1163,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, UpdateMirrorInfo006, TestSize.Level2)
     auto params = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
     params->mirrorSourceDrawable_ = sourceDrawable;
     auto mirroredScreenParams = static_cast<RSScreenRenderParams*>(sourceScreenDrawable->renderParams_.get());
-    mirroredScreenParams->screenProperty_.isSamplingOn_ = true;
+    mirroredScreenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>(
+        std::make_tuple(true, 0.f, 0.f, 1.f));
 
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, 0);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);

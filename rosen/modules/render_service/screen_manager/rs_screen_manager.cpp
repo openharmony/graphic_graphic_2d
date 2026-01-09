@@ -159,8 +159,8 @@ bool RSScreenManager::CheckFoldScreenIdBuiltIn(ScreenId id)
 void RSScreenManager::ProcessScreenConnected(ScreenId id)
 {
     auto screen = std::make_shared<RSScreen>(id);
-    screen->SetOnPropertyChangedCallback(
-        std::bind(&RSScreenManager::OnScreenPropertyChanged, this, std::placeholders::_1));
+    screen->SetOnPropertyChangedCallback(std::bind(&RSScreenManager::OnScreenPropertyChanged, this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     screen->SetOnBacklightChangedCallback(
         std::bind(&RSScreenManager::OnScreenBacklightChanged, this, std::placeholders::_1, std::placeholders::_2));
 
@@ -440,17 +440,6 @@ ScreenPowerStatus RSScreenManager::GetScreenPowerStatus(ScreenId id) const
     return status;
 }
 
-ScreenRotation RSScreenManager::GetScreenCorrection(ScreenId id) const
-{
-    auto screen = GetScreen(id);
-    if (screen == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return ScreenRotation::INVALID_SCREEN_ROTATION;
-    }
-
-    return screen->GetScreenCorrection();
-}
-
 ScreenId RSScreenManager::GetDefaultScreenId() const
 {
     return defaultScreenId_;
@@ -514,7 +503,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
 
     auto screen = std::make_shared<RSScreen>(configs);
     screen->SetOnPropertyChangedCallback(std::bind(&RSScreenManager::OnScreenPropertyChanged, this,
-        std::placeholders::_1));
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     {
         std::lock_guard<std::mutex> lock(screenMapMutex_);
         screens_[newId] = screen;
@@ -697,9 +686,7 @@ int32_t RSScreenManager::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mai
 
     // zero Rect means disable visible rect
     static Rect ZERO = {0, 0, 0, 0};
-    mainScreen->SetEnableVisibleRect(mainScreenRect != ZERO);
-    mainScreen->SetMainScreenVisibleRect(mainScreenRect);
-    mainScreen->SetVisibleRectSupportRotation(supportRotation);
+    mainScreen->SetVisibleRectOption(mainScreenRect != ZERO, mainScreenRect, supportRotation);
     RS_LOGI("%{public}s: mirror screen(id %{public}" PRIu64 "), "
         "visible rect[%{public}d, %{public}d, %{public}d, %{public}d], supportRotation: %{public}d",
         __func__, id, mainScreenRect.x, mainScreenRect.y, mainScreenRect.w, mainScreenRect.h, supportRotation);
@@ -748,20 +735,6 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
     screen->SetProducerSurface(surface);
     RS_LOGI("%{public}s: set virtual screen surface success!", __func__);
     return SUCCESS;
-}
-
-// only used in dirtyRegion
-bool RSScreenManager::CheckVirtualScreenStatusChanged(ScreenId id)
-{
-    auto screen = GetScreen(id);
-    if (screen == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return false;
-    }
-    if (!screen->IsVirtual()) {
-        return false;
-    }
-    return screen->GetAndResetPSurfaceChange() || screen->GetAndResetVirtualScreenPlay();
 }
 
 void RSScreenManager::RemoveVirtualScreen(ScreenId id)
@@ -1401,16 +1374,6 @@ bool RSScreenManager::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus sc
     return screen->SetVirtualScreenStatus(screenStatus);
 }
 
-VirtualScreenStatus RSScreenManager::GetVirtualScreenStatus(ScreenId id) const
-{
-    auto screen = GetScreen(id);
-    if (screen == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return VirtualScreenStatus::VIRTUAL_SCREEN_INVALID_STATUS;
-    }
-    return screen->GetVirtualScreenStatus();
-}
-
 void RSScreenManager::SetScreenSwitchStatus(ScreenId id, bool status)
 {
     auto screen = GetScreen(id);
@@ -1463,7 +1426,7 @@ void RSScreenManager::NotifySwitchingCallback(bool status) const
 {
     std::shared_lock<std::shared_mutex> lock(screenSwitchingNotifyCallbackMutex_);
     if (screenSwitchingNotifyCallback_ == nullptr) {
-        RS_LOGE("%{public}s: screenSwitchingNotifyCallback_ is nullptr! status: %{public}d", __func__, status);
+        RS_LOGI("%{public}s: screenSwitchingNotifyCallback_ is nullptr! status: %{public}d", __func__, status);
         return;
     }
 
@@ -1506,12 +1469,13 @@ sptr<RSScreenProperty> RSScreenManager::QueryScreenProperty(ScreenId id) const
     return screen->GetProperty();
 }
 
-void RSScreenManager::OnScreenPropertyChanged(const sptr<RSScreenProperty>& property)
+void RSScreenManager::OnScreenPropertyChanged(ScreenId id,
+    ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
 {
     if (property == nullptr) {
         return;
     }
-    callbackMgr_->NotifyScreenPropertyUpdated(property->id_, property);
+    callbackMgr_->NotifyScreenPropertyUpdated(id, type, property);
 }
 
 void RSScreenManager::OnScreenBacklightChanged(ScreenId id, uint32_t level)

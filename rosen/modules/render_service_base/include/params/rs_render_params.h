@@ -82,6 +82,7 @@ struct PipelineParam {
     bool hasGameScene = false;
     uint32_t SurfaceFpsOpNum = 0;
     std::vector<SurfaceFpsOp> SurfaceFpsOpList;
+    bool hasLppVideo = false;
 
     void ResetSurfaceFpsOp() {
         SurfaceFpsOpNum = 0;

@@ -2265,13 +2265,14 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorScreenTest012, TestSi
     auto mirroredRenderParams =
         static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get());
     ASSERT_NE(mirroredRenderParams, nullptr);
-    VirtualScreenStatus status = screenManager_->GetVirtualScreenStatus(mirroredRenderParams->GetScreenId());
-    screenManager_->SetVirtualScreenStatus(mirroredRenderParams->GetScreenId(), VIRTUAL_SCREEN_PAUSE);
+    auto mirroredScreenParams = static_cast<RSScreenRenderParams*>(mirroredScreenDrawable_->GetRenderParams().get());
+    VirtualScreenStatus status = mirroredScreenParams->screenProperty_.GetVirtualScreenStatus();
+    mirroredScreenParams->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(VIRTUAL_SCREEN_PAUSE);
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     virtualProcesser->canvas_ = drawingFilterCanvas_;
     displayDrawable_->DrawMirrorScreen(*renderParams, virtualProcesser);
     // recover virtualScreenStatus
-    screenManager_->SetVirtualScreenStatus(mirroredRenderParams->GetScreenId(), status);
+    mirroredScreenParams->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(status);
     EXPECT_FALSE(virtualProcesser->GetDrawVirtualMirrorCopy());
 }
 

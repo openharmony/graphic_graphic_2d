@@ -30,7 +30,7 @@ void RSPowerOffRenderController::CheckScreenPowerRenderControlStatus(const RSRen
             if (node == nullptr) {
                 return;
             }
-            ScreenPowerStatus status = node->GetScreenProperty().GetPowerStatus();
+            ScreenPowerStatus status = node->GetScreenProperty().GetScreenPowerStatus();
             disableRenderControl = disableRenderControl || node->GetScreenProperty().GetDisablePowerOffRenderControl();
             ScreenId screenId = node->GetScreenId();
             RS_TRACE_NAME_FMT("CheckScreenPowerRenderControlStatus screenId:%d, powerStatus: %d, forceDisable: %d",

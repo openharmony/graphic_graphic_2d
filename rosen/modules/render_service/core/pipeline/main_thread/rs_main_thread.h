@@ -101,7 +101,7 @@ public:
         const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void OnScreenConnected(const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected(ScreenId screenId);
-    void OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty);
+    void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void UpdateFocusNodeId(NodeId focusNodeId);
     void UpdateNeedDrawFocusChange(NodeId id);
@@ -466,11 +466,15 @@ public:
     // used for ScaleImageAsync
     void MarkScaledImageDirty(uint64_t nodeId);
 
-    void JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLayerIds);
+    LppVideoHandler& GetLppVideoHander()
+    {
+        return lppVideoHandler_;
+    }
 
     void RegisterScreenSwitchFinishCallback(sptr<RSIRenderToServiceConnection> conn);
     bool RemoveConnection(const sptr<RSIConnectionToken>& token);
-    void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
+    void AddConnection(const sptr<IRemoteObject>& token,
+        const sptr<RSIClientToRenderConnection>& connectToRenderConnection);
     sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
     void SetScreenFrameGravity(ScreenId id, Gravity gravity);
 
@@ -503,11 +507,9 @@ private:
     void ProcessCommand();
     void CreateScreenNode(const sptr<RSScreenProperty>& property);
     void DestroyScreenNode(ScreenId screenId);
-    void HandleScreenPropertyChange(const sptr<RSScreenProperty>& property);
-    void HandleScreenPropertyRefreshOneFrame(const RSScreenProperty& lastProperty,
-                                             const sptr<RSScreenProperty>& property);
-    void HandlePowerStatusChanged(const RSScreenProperty& lastProperty, const sptr<RSScreenProperty>& property);
-    void UpdateScreenProperty(const sptr<RSScreenProperty>& property);
+    void HandleScreenPropertyRefreshOneFrame(ScreenPropertyType type);
+    void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);

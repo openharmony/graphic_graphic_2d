@@ -30,6 +30,12 @@
 #undef LOG_TAG
 #define LOG_TAG "RSScreen"
 
+#define UPDATE_PROPERTY(name, value)            \
+    do {                                        \
+        auto prop = property_.Set##name(value); \
+        NotifyScreenPropertyChange(prop);       \
+    } while (0)                                 \
+
 namespace OHOS {
 namespace Rosen {
 using namespace HiviewDFX;
@@ -98,8 +104,7 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
     property_.SetId(configs.id);
     associatedScreenId_ = configs.associatedScreenId;
     property_.SetName(configs.name);
-    property_.SetWidth(configs.width);
-    property_.SetHeight(configs.height);
+    property_.SetResolution(std::make_pair(configs.width, configs.height));
     property_.SetVirtualSecLayerOption(configs.flags);
     property_.SetProducerSurface(configs.surface);
     property_.SetPixelFormat(configs.pixelFormat);
@@ -167,11 +172,8 @@ void RSScreen::PhysicalScreenInit() noexcept
     }
     auto activeMode = GetActiveMode();
     if (activeMode) {
-        property_.SetPhyWidth(activeMode->width);
-        property_.SetPhyHeight(activeMode->height);
-        property_.SetWidth(activeMode->width);
-        property_.SetHeight(activeMode->height);
-        property_.SetRefreshRate(activeMode->freshRate);
+        property_.SetResolution(std::make_pair(activeMode->width, activeMode->height));
+        property_.SetPhysicalModeParams(activeMode->width, activeMode->height, activeMode->freshRate);
         RS_LOGI("%{public}s activeMode, screenId:%{public}" PRIu64
                 ", activeModeId: %{public}d, size:[%{public}u, %{public}u], activeRefreshRate: %{public}u",
                 __func__, id, activeMode->id, activeMode->width, activeMode->height, activeMode->freshRate);
@@ -215,7 +217,8 @@ void RSScreen::PhysicalScreenInit() noexcept
     backlightLevel_ = GetScreenBacklight();
     // Enable when an external screen is connected and the vsync rate doesn't match the active refresh rate.
     if (id != 0 && MultiScreenParam::IsSkipFrameByActiveRefreshRate()) {
-        property_.SetSkipFrameStrategy(SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
+        property_.SetSkipFrameOption(
+            DEFAULT_SKIP_FRAME_INTERVAL, INVALID_EXPECTED_REFRESH_RATE, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
     }
 }
 
@@ -252,7 +255,7 @@ ScreenId RSScreen::GetAssociatedScreenId() const
     return associatedScreenId_;
 }
 
-const std::string& RSScreen::Name() const
+std::string RSScreen::Name() const
 {
     return property_.Name();
 }
@@ -281,11 +284,8 @@ void RSScreen::SetScreenOffset(int32_t offsetX, int32_t offsetY)
 {
     RS_LOGI("%{public}s id: %{public}" PRIu64 ", offset: [%{public}d, %{public}d]",
         __func__, property_.GetId(), offsetX, offsetY);
-    property_.SetOffsetX(offsetX);
-    property_.SetOffsetY(offsetY);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    auto prop = property_.SetOffset(offsetX, offsetY);
+    NotifyScreenPropertyChange(prop);
 }
 
 int32_t RSScreen::GetOffsetX() const
@@ -382,10 +382,7 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
                               targetModeInfo.height != property_.GetPhyHeight();
     auto preState = property_.GetState();
     if (resolutionChanging) {
-        property_.SetState(ScreenState::DISABLED);
-        if (onPropertyChange_) {
-            onPropertyChange_(property_.Clone());
-        }
+        UPDATE_PROPERTY(State, ScreenState::DISABLED);
     }
     int32_t hdiErr = hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId));
     constexpr int32_t hdfErrNotSupport = -2;
@@ -394,10 +391,7 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
         HILOG_COMM_ERROR("SetActiveMode: Hdi SetScreenMode fails.");
         if (hdiErr != hdfErrNotSupport) {
             if (resolutionChanging) {
-                property_.SetState(preState);
-                if (onPropertyChange_) {
-                    onPropertyChange_(property_.Clone());
-                }
+                UPDATE_PROPERTY(State, preState);
             }
             return StatusCode::SET_RATE_ERROR;
         }
@@ -408,9 +402,8 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
     }
     auto activeMode = GetActiveMode();
     if (activeMode) {
-        property_.SetPhyWidth(activeMode->width);
-        property_.SetPhyHeight(activeMode->height);
-        property_.SetRefreshRate(activeMode->freshRate);
+        auto prop = property_.SetPhysicalModeParams(activeMode->width, activeMode->height, activeMode->freshRate);
+        NotifyScreenPropertyChange(prop);
         WriteHisyseventEpsLcdInfo(activeMode.value());
         RS_LOGD("%{public}s screenId:%{public}" PRIu64
             ", activeModeId: %{public}d, size:[%{public}u, %{public}u], RefreshRate:[%{public}u]",
@@ -418,10 +411,7 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
     }
     if (resolutionChanging) {
         UpdateSamplingScale(activeMode->width, activeMode->height, property_.GetWidth(), property_.GetHeight());
-    }
-    property_.SetState(preState);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
+        UPDATE_PROPERTY(State, preState);
     }
     return ret;
 }
@@ -450,24 +440,25 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
         return StatusCode::INVALID_ARGUMENTS;
     }
 
-    property_.SetActiveRect(RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h));
     RS_LOGI("%{public}s success, activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
         "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     GraphicIRect reviseRect = activeRect;
-    if (!CalculateMaskRectAndReviseRect(activeRect, reviseRect)) {
+    RectI maskRect;
+    if (!CalculateMaskRectAndReviseRect(activeRect, reviseRect, maskRect)) {
         HILOG_COMM_WARN("CalculateMaskRect failed or not need");
     }
-    property_.SetReviseRect(RectI(reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h));
+    auto prop = property_.SetActiveRectOption(
+        RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h),
+        maskRect,
+        RectI(reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h));
+    NotifyScreenPropertyChange(prop);
 
     HILOG_COMM_INFO("SetScreenActiveRect success, reviseRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
         "%{public}" PRId32 ", %{public}" PRId32 ")", reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
     return StatusCode::SUCCESS;
 }
 
-bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect)
+bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect, RectI& maskRect)
 {
 #ifdef ROSEN_EMULATOR
     RS_LOGD("%{public}s emulator device do not revise rect", __func__);
@@ -480,8 +471,7 @@ bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, Gr
     if (activeRect.w > 0 && activeRect.h > 0) {
         // neet tobe configuration item
         static RectI rect[2] = {{0, 0, 0, 0}, {0, 1008, 2232, 128}};
-        auto maskRect = (static_cast<uint32_t>(activeRect.h) == property_.GetHeight()) ? rect[0] : rect[1];
-        property_.SetMaskRect(maskRect);
+        maskRect = (static_cast<uint32_t>(activeRect.h) == property_.GetHeight()) ? rect[0] : rect[1];
         // Take the minimum rectangular area containing two rectangles
         reviseRect.x = std::clamp(activeRect.x, 0, std::min(activeRect.x, maskRect.left_));
         reviseRect.y = std::clamp(activeRect.y, 0, std::min(activeRect.y, maskRect.top_));
@@ -501,11 +491,7 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
                     "phyWidth: %{public}u, phyHeight: %{public}u.",
                     __func__, property_.GetId(), width, height, phyWidth, phyHeight);
     if (IsVirtual()) {
-        property_.SetWidth(width);
-        property_.SetHeight(height);
-        if (onPropertyChange_) {
-            onPropertyChange_(property_.Clone());
-        }
+        UPDATE_PROPERTY(Resolution, std::make_pair(width, height));
         return StatusCode::SUCCESS;
     }
     bool isValidArgs = (width > 0 && width <= phyWidth && height > 0 && height <= phyHeight) ||
@@ -526,28 +512,27 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
             return StatusCode::HDI_ERROR;
         }
     }
-    property_.SetWidth(width);
-    property_.SetHeight(height);
+    UPDATE_PROPERTY(Resolution, std::make_pair(width, height));
     UpdateSamplingScale(phyWidth, phyHeight, width, height);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
     return StatusCode::SUCCESS;
 }
 
 void RSScreen::UpdateSamplingScale(uint32_t phyWidth, uint32_t phyHeight, uint32_t width, uint32_t height)
 {
     bool isSamplingOn = (width >= phyWidth && height >= phyHeight) && !(width == phyWidth && height == phyHeight);
-    property_.SetIsSamplingOn(isSamplingOn);
+    float samplingScale = 1.f;
+    float translateX = 0.f;
+    float translateY = 0.f;
     if (isSamplingOn) {
-        auto samplingScale = std::min(static_cast<float>(phyWidth) / width, static_cast<float>(phyHeight) / height);
-        property_.SetSamplingScale(samplingScale);
-        property_.SetSamplingTranslateX((phyWidth - width * samplingScale) / 2.f);
-        property_.SetSamplingTranslateY((phyHeight - height * samplingScale) / 2.f);
+        samplingScale = std::min(static_cast<float>(phyWidth) / width, static_cast<float>(phyHeight) / height);
+        translateX = (phyWidth - width * samplingScale) / 2.f;
+        translateY = (phyHeight - height * samplingScale) / 2.f;
         HILOG_COMM_INFO("%{public}s: sampling is enabled. "
             "scale: %{public}f, translateX: %{public}f, translateY: %{public}f",
-            __func__, samplingScale, property_.GetSamplingTranslateX(), property_.GetSamplingTranslateY());
+            __func__, samplingScale, translateX, translateY);
     }
+    auto prop = property_.SetSamplingOption(isSamplingOn, translateX, translateY, samplingScale);
+    NotifyScreenPropertyChange(prop);
 }
 
 int32_t RSScreen::GetActiveModePosByModeId(int32_t modeId) const
@@ -578,18 +563,11 @@ int32_t RSScreen::SetPowerStatus(uint32_t powerStatus)
     hasLogBackLightAfterPowerStatusChanged_ = false;
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         HILOG_COMM_WARN("[UL_POWER] SetPowerStatus failed to set power status");
-        property_.SetPowerStatus(ScreenPowerStatus::INVALID_POWER_STATUS);
-        if (onPropertyChange_) {
-            onPropertyChange_(property_.Clone());
-        }
+        UPDATE_PROPERTY(PowerStatus, ScreenPowerStatus::INVALID_POWER_STATUS);
         return StatusCode::HDI_ERROR;
     }
 
-    property_.SetPowerStatus(static_cast<ScreenPowerStatus>(powerStatus));
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
-
+    UPDATE_PROPERTY(PowerStatus, static_cast<ScreenPowerStatus>(powerStatus));
     HILOG_COMM_WARN("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u done.", id, powerStatus);
     return StatusCode::SUCCESS;
 }
@@ -654,10 +632,7 @@ ScreenPowerStatus RSScreen::GetPowerStatus()
         RS_LOGE("%{public}s failed to get screen powerStatus", __func__);
         return INVALID_POWER_STATUS;
     }
-    property_.SetPowerStatus(static_cast<ScreenPowerStatus>(status));
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(PowerStatus, static_cast<ScreenPowerStatus>(status));
     RS_LOGW("%{public}s cached powerStatus is INVALID_POWER_STATUS and GetScreenPowerStatus %{public}u",
         __func__, static_cast<uint32_t>(status));
     return static_cast<ScreenPowerStatus>(status);
@@ -670,14 +645,11 @@ sptr<Surface> RSScreen::GetProducerSurface() const
 
 void RSScreen::SetProducerSurface(sptr<Surface> producerSurface)
 {
-    property_.SetProducerSurface(producerSurface);
+    UPDATE_PROPERTY(ProducerSurface, producerSurface);
     if (producerSurface) {
-        property_.SetState(ScreenState::SOFTWARE_OUTPUT_ENABLE);
+        UPDATE_PROPERTY(State, ScreenState::SOFTWARE_OUTPUT_ENABLE);
     } else {
-        property_.SetState(ScreenState::DISABLED);
-    }
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
+        UPDATE_PROPERTY(State, ScreenState::DISABLED);
     }
 }
 
@@ -874,11 +846,7 @@ void RSScreen::ResizeVirtualScreen(uint32_t width, uint32_t height)
         RS_LOGW("%{public}s: physical screen not support ResizeVirtualScreen.", __func__);
         return;
     }
-    property_.SetWidth(width);
-    property_.SetHeight(height);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(Resolution, std::make_pair(width, height));
 }
 
 void RSScreen::SetScreenBacklight(uint32_t level)
@@ -994,57 +962,37 @@ int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
             return StatusCode::INVALID_ARGUMENTS;
         }
         currentVirtualColorGamutIdx_ = modeIdx;
-        property_.SetScreenColorGamut(supportedVirtualColorGamuts_[currentVirtualColorGamutIdx_]);
-        if (onPropertyChange_) {
-            onPropertyChange_(property_.Clone());
-        }
+        UPDATE_PROPERTY(ScreenColorGamut, supportedVirtualColorGamuts_[modeIdx]);
         return StatusCode::SUCCESS;
     }
     if (!hdiScreen_) {
         RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
         return StatusCode::HDI_ERROR;
     }
-    std::vector<GraphicColorGamut> hdiMode;
-    if (hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) != GRAPHIC_DISPLAY_SUCCESS) {
-        return StatusCode::HDI_ERROR;
-    }
-    if (modeIdx >= static_cast<int32_t>(hdiMode.size())) {
+    if (modeIdx >= static_cast<int32_t>(supportedPhysicalColorGamuts_.size())) {
         return StatusCode::INVALID_ARGUMENTS;
     }
-    int32_t result = hdiScreen_->SetScreenColorGamut(hdiMode[modeIdx]);
+    auto screenColorGamut = supportedPhysicalColorGamuts_[modeIdx];
+    int32_t result = hdiScreen_->SetScreenColorGamut(static_cast<GraphicColorGamut>(screenColorGamut));
     if (result != GRAPHIC_DISPLAY_SUCCESS) {
         return StatusCode::HDI_ERROR;
     }
     currentPhysicalColorGamutIdx_ = modeIdx;
-    property_.SetScreenColorGamut(supportedPhysicalColorGamuts_[currentPhysicalColorGamutIdx_]);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(ScreenColorGamut, screenColorGamut);
     return StatusCode::SUCCESS;
-    }
+}
 
 void RSScreen::SetScreenCorrection(ScreenRotation screenRotation)
 {
     RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), ScreenRotation: %{public}u.", __func__,
         property_.GetId(), static_cast<uint32_t>(screenRotation));
-    property_.SetScreenCorrection(screenRotation);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
-}
-
-ScreenRotation RSScreen::GetScreenCorrection() const
-{
-    return property_.GetScreenCorrection();
+    UPDATE_PROPERTY(ScreenCorrection, screenRotation);
 }
 
 int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
 {
     if (IsVirtual()) {
-        property_.SetScreenGamutMap(mode);
-        if (onPropertyChange_) {
-            onPropertyChange_(property_.Clone());
-        }
+        UPDATE_PROPERTY(ScreenGamutMap, mode);
         return StatusCode::SUCCESS;
     }
     if (!hdiScreen_) {
@@ -1055,6 +1003,7 @@ int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
     if (result == GRAPHIC_DISPLAY_SUCCESS) {
         return StatusCode::SUCCESS;
     }
+    UPDATE_PROPERTY(ScreenGamutMap, mode);
     return StatusCode::HDI_ERROR;
 }
 
@@ -1095,35 +1044,15 @@ ScreenConnectionType RSScreen::GetConnectionType() const
 
 void RSScreen::SetScreenSkipFrameInterval(uint32_t skipFrameInterval)
 {
-    property_.SetSkipFrameInterval(skipFrameInterval);
-    property_.SetSkipFrameStrategy(SKIP_FRAME_BY_INTERVAL);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    auto prop = property_.SetSkipFrameOption(skipFrameInterval, INVALID_EXPECTED_REFRESH_RATE, SKIP_FRAME_BY_INTERVAL);
+    NotifyScreenPropertyChange(prop);
 }
 
 void RSScreen::SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate)
 {
-    property_.SetExpectedRefreshRate(expectedRefreshRate);
-    property_.SetSkipFrameStrategy(SKIP_FRAME_BY_REFRESH_RATE);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
-}
-
-uint32_t RSScreen::GetScreenSkipFrameInterval() const
-{
-    return property_.GetSkipFrameInterval();
-}
-
-uint32_t RSScreen::GetScreenExpectedRefreshRate() const
-{
-    return property_.GetExpectedRefreshRate();
-}
-
-SkipFrameStrategy RSScreen::GetScreenSkipFrameStrategy() const
-{
-    return property_.GetSkipFrameStrategy();
+    auto prop = property_.SetSkipFrameOption(
+        DEFAULT_SKIP_FRAME_INTERVAL, expectedRefreshRate, SKIP_FRAME_BY_REFRESH_RATE);
+    NotifyScreenPropertyChange(prop);
 }
 
 void RSScreen::SetScreenVsyncEnabled(bool enabled) const
@@ -1142,10 +1071,7 @@ bool RSScreen::SetVirtualMirrorScreenCanvasRotation(bool canvasRotation)
         return false;
     }
 
-    property_.SetCanvasRotation(canvasRotation);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(CanvasRotation, canvasRotation);
     return true;
 }
 
@@ -1160,10 +1086,7 @@ int32_t RSScreen::SetVirtualScreenAutoRotation(bool isAutoRotation)
         return StatusCode::INVALID_ARGUMENTS;
     }
 
-    property_.SetAutoBufferRotation(isAutoRotation);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(AutoBufferRotation, isAutoRotation);
     return StatusCode::SUCCESS;
 }
 
@@ -1178,10 +1101,7 @@ bool RSScreen::SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode)
         return false;
     }
 
-    property_.SetScreenScaleMode(scaleMode);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(ScreenScaleMode, scaleMode);
     return true;
 }
 
@@ -1229,10 +1149,7 @@ int32_t RSScreen::SetScreenHDRFormat(int32_t modeIdx)
             return StatusCode::INVALID_ARGUMENTS;
         }
         currentVirtualHDRFormatIdx_ = modeIdx;
-        property_.SetScreenHDRFormat(supportedVirtualHDRFormats_[currentVirtualHDRFormatIdx_]);
-        if (onPropertyChange_) {
-            onPropertyChange_(property_.Clone());
-        }
+        UPDATE_PROPERTY(ScreenHDRFormat, supportedVirtualHDRFormats_[modeIdx]);
         return StatusCode::SUCCESS;
     } else {
         // There should be some hdi operation
@@ -1240,10 +1157,7 @@ int32_t RSScreen::SetScreenHDRFormat(int32_t modeIdx)
             return StatusCode::INVALID_ARGUMENTS;
         }
         currentPhysicalHDRFormatIdx_ = modeIdx;
-        property_.SetScreenHDRFormat(supportedPhysicalHDRFormats_[currentPhysicalHDRFormatIdx_]);
-        if (onPropertyChange_) {
-            onPropertyChange_(property_.Clone());
-        }
+        UPDATE_PROPERTY(ScreenHDRFormat, supportedPhysicalHDRFormats_[modeIdx]);
         return StatusCode::SUCCESS;
     }
     return StatusCode::HDI_ERROR;
@@ -1257,10 +1171,7 @@ int32_t RSScreen::GetPixelFormat(GraphicPixelFormat& pixelFormat) const
 
 int32_t RSScreen::SetPixelFormat(GraphicPixelFormat pixelFormat)
 {
-    property_.SetPixelFormat(pixelFormat);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(PixelFormat, pixelFormat);
     return StatusCode::SUCCESS;
 }
 
@@ -1301,42 +1212,30 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
         return StatusCode::INVALID_ARGUMENTS;
     }
     ScreenColorGamut dstColorGamut = static_cast<ScreenColorGamut>(iter->second);
-    int32_t curIdx;
     if (IsVirtual()) {
         auto it = std::find(supportedVirtualColorGamuts_.begin(), supportedVirtualColorGamuts_.end(), dstColorGamut);
         if (it == supportedVirtualColorGamuts_.end()) {
             return StatusCode::INVALID_ARGUMENTS;
         }
-        curIdx = std::distance(supportedVirtualColorGamuts_.begin(), it);
-        currentVirtualColorGamutIdx_ = curIdx;
-        property_.SetScreenColorGamut(supportedVirtualColorGamuts_[currentVirtualColorGamutIdx_]);
-        if (onPropertyChange_) {
-            onPropertyChange_(property_.Clone());
-        }
+        currentVirtualColorGamutIdx_ = std::distance(supportedVirtualColorGamuts_.begin(), it);
+        UPDATE_PROPERTY(ScreenColorGamut, dstColorGamut);
         return StatusCode::SUCCESS;
     }
     if (!hdiScreen_) {
         RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
         return StatusCode::HDI_ERROR;
     }
-    std::vector<GraphicColorGamut> hdiMode;
-    if (hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) != GRAPHIC_DISPLAY_SUCCESS) {
-        return StatusCode::HDI_ERROR;
-    }
-    auto it = std::find(hdiMode.begin(), hdiMode.end(), static_cast<GraphicColorGamut>(dstColorGamut));
-    if (it == hdiMode.end()) {
+
+    auto it = std::find(supportedPhysicalColorGamuts_.begin(), supportedPhysicalColorGamuts_.end(), dstColorGamut);
+    if (it == supportedPhysicalColorGamuts_.end()) {
         return StatusCode::INVALID_ARGUMENTS;
     }
-    curIdx = std::distance(hdiMode.begin(), it);
-    int32_t result = hdiScreen_->SetScreenColorGamut(hdiMode[curIdx]);
+    int32_t result = hdiScreen_->SetScreenColorGamut(static_cast<GraphicColorGamut>(dstColorGamut));
     if (result != GRAPHIC_DISPLAY_SUCCESS) {
         return StatusCode::HDI_ERROR;
     }
-    currentPhysicalColorGamutIdx_ = curIdx;
-    property_.SetScreenColorGamut(supportedPhysicalColorGamuts_[currentPhysicalColorGamutIdx_]);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    currentPhysicalColorGamutIdx_ = std::distance(supportedPhysicalColorGamuts_.begin(), it);
+    UPDATE_PROPERTY(ScreenColorGamut, dstColorGamut);
     return StatusCode::SUCCESS;
 }
 
@@ -1347,18 +1246,12 @@ std::unordered_set<uint64_t> RSScreen::GetWhiteList() const
 
 void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
 {
-    property_.SetBlackList(blackList);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(BlackList, blackList);
 }
 
 void RSScreen::SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList)
 {
-    property_.SetTypeBlackList(typeBlackList);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(TypeBlackList, typeBlackList);
 }
 
 void RSScreen::AddBlackList(const std::vector<uint64_t>& blackList)
@@ -1366,10 +1259,8 @@ void RSScreen::AddBlackList(const std::vector<uint64_t>& blackList)
     if (blackList.empty()) {
         return;
     }
-    property_.AddBlackList(blackList);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    auto prop = property_.AddBlackList(blackList);
+    NotifyScreenPropertyChange(prop);
 }
 
 void RSScreen::RemoveBlackList(const std::vector<uint64_t>& blackList)
@@ -1377,33 +1268,18 @@ void RSScreen::RemoveBlackList(const std::vector<uint64_t>& blackList)
     if (blackList.empty()) {
         return;
     }
-    property_.RemoveBlackList(blackList);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    auto prop = property_.RemoveBlackList(blackList);
+    NotifyScreenPropertyChange(prop);
 }
 
 void RSScreen::SetCastScreenEnableSkipWindow(bool enable)
 {
-    property_.SetCastScreenEnableSkipWindow(enable);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
-}
-
-bool RSScreen::GetCastScreenEnableSkipWindow()
-{
-    return property_.GetCastScreenEnableSkipWindow();
+    UPDATE_PROPERTY(CastScreenEnableSkipWindow, enable);
 }
 
 std::unordered_set<uint64_t> RSScreen::GetBlackList() const
 {
     return property_.GetBlackList();
-}
-
-std::unordered_set<uint8_t> RSScreen::GetTypeBlackList() const
-{
-    return property_.GetTypeBlackList();
 }
 
 int32_t RSScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type)
@@ -1422,53 +1298,19 @@ int32_t RSScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, Scre
 
 void RSScreen::SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList)
 {
-    property_.SetSecurityExemptionList(securityExemptionList);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
-}
-
-const std::vector<uint64_t> RSScreen::GetSecurityExemptionList() const
-{
-    return property_.GetSecurityExemptionList();
+    UPDATE_PROPERTY(SecurityExemptionList, securityExemptionList);
 }
 
 int32_t RSScreen::SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask)
 {
-    property_.SetSecurityMask(securityMask);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(SecurityMask, securityMask);
     return SUCCESS;
 }
 
-void RSScreen::SetEnableVisibleRect(bool enable)
+void RSScreen::SetVisibleRectOption(bool enable, const Rect& mainScreenRect, bool supportRotation)
 {
-    property_.SetEnableVisibleRect(enable);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
-}
-
-bool RSScreen::GetEnableVisibleRect() const
-{
-    return property_.GetEnableVisibleRect();
-}
-
-void RSScreen::SetMainScreenVisibleRect(const Rect& mainScreenRect)
-{
-    property_.SetMainScreenVisibleRect(mainScreenRect);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
-}
-
-void RSScreen::SetVisibleRectSupportRotation(bool supportRotation)
-{
-    property_.SetVisibleRectSupportRotation(supportRotation);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    auto prop = property_.SetVisibleRectOption(enable, mainScreenRect, supportRotation);
+    NotifyScreenPropertyChange(prop);
 }
 
 bool RSScreen::SetVirtualScreenStatus(VirtualScreenStatus screenStatus)
@@ -1477,20 +1319,8 @@ bool RSScreen::SetVirtualScreenStatus(VirtualScreenStatus screenStatus)
         return false;
     }
 
-    property_.SetScreenStatus(screenStatus);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
-
-    if (screenStatus == VirtualScreenStatus::VIRTUAL_SCREEN_PLAY) {
-        virtualScreenPlay_ = true;
-    }
+    UPDATE_PROPERTY(ScreenStatus, screenStatus);
     return true;
-}
-
-VirtualScreenStatus RSScreen::GetVirtualScreenStatus() const
-{
-    return property_.GetScreenStatus();
 }
 
 void RSScreen::InitDisplayPropertyForHardCursor()
@@ -1544,24 +1374,6 @@ int32_t RSScreen::SetScreenLinearMatrix(const std::vector<float> &matrix)
     return StatusCode::SUCCESS;
 }
 
-bool RSScreen::GetAndResetPSurfaceChange()
-{
-    bool expected = true;
-    return pSurfaceChange_.compare_exchange_strong(expected, false);
-}
-
-// only used in virtual screen
-void RSScreen::SetPSurfaceChange(bool pSurfaceChange)
-{
-    pSurfaceChange_ = pSurfaceChange;
-}
-
-bool RSScreen::GetAndResetVirtualScreenPlay()
-{
-    bool expected = true;
-    return virtualScreenPlay_.compare_exchange_strong(expected, false);
-}
-
 sptr<RSScreenProperty> RSScreen::GetProperty() const
 {
     return property_.Clone();
@@ -1572,7 +1384,7 @@ ScreenInfo RSScreen::GetScreenInfo() const
     return property_.GetScreenInfo();
 }
 
-void RSScreen::SetOnPropertyChangedCallback(std::function<void(const sptr<RSScreenProperty>&)> callback)
+void RSScreen::SetOnPropertyChangedCallback(OnPropertyChangeCallback callback)
 {
     onPropertyChange_ = std::move(callback);
 }
@@ -1584,17 +1396,18 @@ void RSScreen::SetOnBacklightChangedCallback(std::function<void(ScreenId, uint32
 
 void RSScreen::SetDisablePowerOffRenderControl(bool disable)
 {
-    property_.SetDisablePowerOffRenderControl(disable);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(DisablePowerOffRenderControl, disable);
 }
 
 void RSScreen::SetScreenSwitchStatus(bool status)
 {
-    property_.SetScreenSwitchStatus(status);
+    UPDATE_PROPERTY(ScreenSwitchStatus, status);
+}
+
+void RSScreen::NotifyScreenPropertyChange(std::pair<ScreenPropertyType, const sptr<ScreenPropertyBase>&> prop)
+{
     if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
+        onPropertyChange_(property_.GetId(), prop.first, prop.second);
     }
 }
 } // namespace Rosen

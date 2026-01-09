@@ -12,24 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_PROCESS_DFX_RS_PROCESS_DUMP_MANAGER_H
-#define RENDER_PROCESS_DFX_RS_PROCESS_DUMP_MANAGER_H
+#ifndef RENDER_PROCESS_DFX_RS_PIPLINE_DUMP_MANAGER_H
+#define RENDER_PROCESS_DFX_RS_PIPLINE_DUMP_MANAGER_H
 
 #include "gfx/dump/rs_dump_manager.h"
+#include "ipc_callbacks/dfx/rs_dump_callback.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
 
 namespace OHOS::Rosen {
-class RSB_EXPORT RSProcessDumpManager : public RSDumpManager {
+class RSB_EXPORT RSPiplineDumpManager : public RSDumpManager {
 public:
-    RSProcessDumpManager() {};
-    ~RSProcessDumpManager() = default;
-
-    static RSProcessDumpManager& GetInstance();
+    RSPiplineDumpManager() {};
+    ~RSPiplineDumpManager() = default;
 
     // Execute a command
-    void CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out);
-    void SetRenderToServiceConnection(sptr<RSIRenderToServiceConnection> conn);
-    void DumpCallback(std::string& dumpString);
+    void CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out, sptr<RSIDumpCallback> callback);
     void SetPid(int pid);
     void SetScreenId(unsigned long screenId);
 
@@ -39,4 +36,4 @@ private:
     pid_t pid_;
 };
 }
-#endif // RENDER_PROCESS_DFX_RS_PROCESS_DUMP_MANAGER_H
+#endif // RENDER_PROCESS_DFX_RS_PIPLINE_DUMP_MANAGER_H

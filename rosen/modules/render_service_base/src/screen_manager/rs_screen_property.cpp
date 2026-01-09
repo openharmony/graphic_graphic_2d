@@ -18,523 +18,361 @@
 
 namespace OHOS {
 namespace Rosen {
-RSScreenProperty::RSScreenProperty() {}
-RSScreenProperty::~RSScreenProperty() {}
-
 ScreenId RSScreenProperty::GetScreenId() const
 {
-    return id_;
+    return Get<ScreenPropertyType::ID>();
 }
 
 bool RSScreenProperty::IsVirtual() const
 {
-    return isVirtual_;
+    return Get<ScreenPropertyType::IS_VIRTUAL>();
 }
 
-const std::string& RSScreenProperty::Name() const
+std::string RSScreenProperty::Name() const
 {
-    return name_;
+    return Get<ScreenPropertyType::NAME>();
 }
 
 uint32_t RSScreenProperty::GetWidth() const
 {
-    return width_;
+    auto res = Get<ScreenPropertyType::RENDER_RESOLUTION>();
+    return res.first;
 }
 
 uint32_t RSScreenProperty::GetHeight() const
 {
-    return height_;
+    auto res = Get<ScreenPropertyType::RENDER_RESOLUTION>();
+    return res.second;
 }
 
 uint32_t RSScreenProperty::GetPhyWidth() const
 {
-    return phyWidth_;
+    auto res = Get<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>();
+    return std::get<0>(res);
 }
 
 uint32_t RSScreenProperty::GetPhyHeight() const
 {
-    return phyHeight_;
+    auto res = Get<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>();
+    return std::get<1>(res);
 }
 
 uint32_t RSScreenProperty::GetRefreshRate() const
 {
-    return refreshRate_;
+    auto res = Get<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>();
+    return std::get<2>(res);
 }
 
 int32_t RSScreenProperty::GetOffsetX() const
 {
-    return offsetX_;
+    auto res = Get<ScreenPropertyType::OFFSET>();
+    return res.first;
 }
 
 int32_t RSScreenProperty::GetOffsetY() const
 {
-    return offsetY_;
+    auto res = Get<ScreenPropertyType::OFFSET>();
+    return res.second;
 }
 
 bool RSScreenProperty::GetIsSamplingOn() const
 {
-    return isSamplingOn_;
+    auto res = Get<ScreenPropertyType::SAMPLING_OPTION>();
+    return std::get<0>(res);
 }
 
 float RSScreenProperty::GetSamplingTranslateX() const
 {
-    return samplingTranslateX_;
+    auto res = Get<ScreenPropertyType::SAMPLING_OPTION>();
+    return std::get<1>(res);
 }
 
 float RSScreenProperty::GetSamplingTranslateY() const
 {
-    return samplingTranslateY_;
+    auto res = Get<ScreenPropertyType::SAMPLING_OPTION>();
+    return std::get<2>(res);
 }
 
 float RSScreenProperty::GetSamplingScale() const
 {
-    return samplingScale_;
+    auto res = Get<ScreenPropertyType::SAMPLING_OPTION>();
+    return std::get<3>(res);
 }
 
 ScreenColorGamut RSScreenProperty::GetScreenColorGamut() const
 {
-    return colorGamut_;
+    return static_cast<ScreenColorGamut>(Get<ScreenPropertyType::COLOR_GAMUT>());
 }
 
 ScreenGamutMap RSScreenProperty::GetScreenGamutMap() const
 {
-    return gamutMap_;
+    return static_cast<ScreenGamutMap>(Get<ScreenPropertyType::GAMUT_MAP>());
 }
 
 ScreenState RSScreenProperty::GetState() const
 {
-    return state_;
+    return static_cast<ScreenState>(Get<ScreenPropertyType::STATE>());
 }
 
 ScreenRotation RSScreenProperty::GetScreenCorrection() const
 {
-    return correction_;
+    return static_cast<ScreenRotation>(Get<ScreenPropertyType::CORRECTION>());
 }
 
 bool RSScreenProperty::GetCanvasRotation() const
 {
-    return canvasRotation_;
+    return Get<ScreenPropertyType::CANVAS_ROTATION>();
 }
 
 bool RSScreenProperty::GetAutoBufferRotation() const
 {
-    return autoBufferRotation_;
+    return Get<ScreenPropertyType::AUTO_BUFFER_ROTATION>();
 }
 
 RectI RSScreenProperty::GetActiveRect() const
 {
-    return activeRect_;
+    auto res = Get<ScreenPropertyType::ACTIVE_RECT_OPTION>();
+    return std::get<0>(res);
 }
 
 RectI RSScreenProperty::GetMaskRect() const
 {
-    return maskRect_;
+    auto res = Get<ScreenPropertyType::ACTIVE_RECT_OPTION>();
+    return std::get<1>(res);
 }
 
 RectI RSScreenProperty::GetReviseRect() const
 {
-    return reviseRect_;
+    auto res = Get<ScreenPropertyType::ACTIVE_RECT_OPTION>();
+    return std::get<2>(res);
 }
 
 uint32_t RSScreenProperty::GetScreenSkipFrameInterval() const
 {
-    return skipFrameInterval_;
+    auto res = Get<ScreenPropertyType::SKIP_FRAME_OPTION>();
+    return std::get<0>(res);
 }
 
 uint32_t RSScreenProperty::GetScreenExpectedRefreshRate() const
 {
-    return expectedRefreshRate_;
+    auto res = Get<ScreenPropertyType::SKIP_FRAME_OPTION>();
+    return std::get<1>(res);
 }
 
 SkipFrameStrategy RSScreenProperty::GetScreenSkipFrameStrategy() const
 {
-    return skipFrameStrategy_;
+    auto res = Get<ScreenPropertyType::SKIP_FRAME_OPTION>();
+    return static_cast<SkipFrameStrategy>(std::get<2>(res));
 }
 
 GraphicPixelFormat RSScreenProperty::GetPixelFormat() const
 {
-    return pixelFormat_;
+    return static_cast<GraphicPixelFormat>(Get<ScreenPropertyType::PIXEL_FORMAT>());
 }
 
 ScreenHDRFormat RSScreenProperty::GetScreenHDRFormat() const
 {
-    return hdrFormat_;
+    return static_cast<ScreenHDRFormat>(Get<ScreenPropertyType::HDR_FORMAT>());
 }
 
 bool RSScreenProperty::GetEnableVisibleRect() const
 {
-    return enableVisibleRect_;
+    auto res = Get<ScreenPropertyType::VISIBLE_RECT_OPTION>();
+    return std::get<0>(res);
 }
 
 Rect RSScreenProperty::GetVisibleRect() const
 {
-    return mainScreenVisibleRect_;
+    auto res = Get<ScreenPropertyType::VISIBLE_RECT_OPTION>();
+    return std::get<1>(res);
 }
 
 bool RSScreenProperty::IsVisibleRectSupportRotation() const
 {
-    return isSupportRotation_;
+    auto res = Get<ScreenPropertyType::VISIBLE_RECT_OPTION>();
+    return std::get<2>(res);
 }
 
-const std::unordered_set<NodeId>& RSScreenProperty::GetWhiteList() const
+std::unordered_set<NodeId> RSScreenProperty::GetWhiteList() const
 {
-    return whiteList_;
+    return Get<ScreenPropertyType::WHITE_LIST>();
 }
 
-const std::unordered_set<NodeId>& RSScreenProperty::GetBlackList() const
+std::unordered_set<NodeId> RSScreenProperty::GetBlackList() const
 {
-    return blackList_;
+    return Get<ScreenPropertyType::BLACK_LIST>();
 }
 
-const std::unordered_set<NodeType>& RSScreenProperty::GetTypeBlackList() const
+std::unordered_set<NodeType> RSScreenProperty::GetTypeBlackList() const
 {
-    return typeBlackList_;
+    return Get<ScreenPropertyType::TYPE_BLACK_LIST>();
 }
 
-const std::vector<NodeId>& RSScreenProperty::GetSecurityExemptionList() const
+std::vector<NodeId> RSScreenProperty::GetSecurityExemptionList() const
 {
-    return securityExemptionList_;
+    return Get<ScreenPropertyType::SECURITY_EXEMPTION_LIST>();
 }
 
 std::shared_ptr<Media::PixelMap> RSScreenProperty::GetSecurityMask() const
 {
-    return securityMask_;
+    return Get<ScreenPropertyType::SECURITY_MASK>();
 }
 
 bool RSScreenProperty::EnableSkipWindow() const
 {
-    return skipWindow_;
+    return Get<ScreenPropertyType::ENABLE_SKIP_WINDOW>();
 }
 
 ScreenPowerStatus RSScreenProperty::GetScreenPowerStatus() const
 {
-    return powerStatus_;
+    return static_cast<ScreenPowerStatus>(Get<ScreenPropertyType::POWER_STATUS>());
 }
 
 RSScreenType RSScreenProperty::GetScreenType() const
 {
-    return screenType_;
+    return static_cast<RSScreenType>(Get<ScreenPropertyType::SCREEN_TYPE>());
 }
 
 ScreenConnectionType RSScreenProperty::GetConnectionType() const
 {
-    return connectionType_;
+    return static_cast<ScreenConnectionType>(Get<ScreenPropertyType::CONNECTION_TYPE>());
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
 sptr<Surface> RSScreenProperty::GetProducerSurface() const
 {
-    return producerSurface_;
+    return Get<ScreenPropertyType::PRODUCER_SURFACE>();
 }
 #endif
 
 ScreenScaleMode RSScreenProperty::GetScaleMode() const
 {
-    return scaleMode_;
+    return static_cast<ScreenScaleMode>(Get<ScreenPropertyType::SCALE_MODE>());
 }
 
 VirtualScreenStatus RSScreenProperty::GetVirtualScreenStatus() const
 {
-    return screenStatus_;
+    return static_cast<VirtualScreenStatus>(Get<ScreenPropertyType::SCREEN_STATUS>());
 }
 
 int32_t RSScreenProperty::GetVirtualSecLayerOption() const
 {
-    return virtualSecLayerOption_;
+    return Get<ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION>();
 }
 
 bool RSScreenProperty::IsHardCursorSupport() const
 {
-    return isHardCursorSupport_;
+    return Get<ScreenPropertyType::IS_HARD_CURSOR_SUPPORT>();
 }
 
-const std::vector<ScreenColorGamut>& RSScreenProperty::GetScreenSupportedColorGamuts() const
+std::vector<ScreenColorGamut> RSScreenProperty::GetScreenSupportedColorGamuts() const
 {
-    return supportedColorGamuts_;
+    return Get<ScreenPropertyType::SUPPORTED_COLOR_GAMUTS>();
 }
 
 bool RSScreenProperty::GetDisablePowerOffRenderControl() const
 {
-    return disablePowerOffRenderControl_;
-}
-
-ScreenPowerStatus RSScreenProperty::GetPowerStatus() const
-{
-    return powerStatus_;
+    return Get<ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL>();
 }
 
 bool RSScreenProperty::IsScreenSwitching() const
 {
-    return screenSwitchStatus_;
+    return Get<ScreenPropertyType::SCREEN_SWITCH_STATUS>();
 }
 
 ScreenInfo RSScreenProperty::GetScreenInfo() const
 {
     ScreenInfo info;
-    info.id = id_;
-    info.width = width_;
-    info.height = height_;
-    info.phyWidth = phyWidth_;
-    info.phyHeight = phyHeight_;
-    info.offsetX = offsetX_;
-    info.offsetY = offsetY_;
-    info.isSamplingOn = isSamplingOn_;
-    info.samplingTranslateX = samplingTranslateX_;
-    info.samplingTranslateY = samplingTranslateY_;
-    info.samplingScale = samplingScale_;
-    info.colorGamut = colorGamut_;
-    info.gamutMap = gamutMap_;
-    info.state = state_;
-    info.skipFrameInterval = skipFrameInterval_;
-    info.expectedRefreshRate = expectedRefreshRate_;
-    info.skipFrameStrategy = skipFrameStrategy_;
-    info.pixelFormat = pixelFormat_;
-    info.hdrFormat = hdrFormat_;
-    info.whiteList = whiteList_;
-    info.enableVisibleRect = enableVisibleRect_;
-    info.activeRect = activeRect_;
-    info.maskRect = maskRect_;
-    info.reviseRect = reviseRect_;
-    info.powerStatus = powerStatus_;
+    info.id = GetScreenId();
+    info.width = GetWidth();
+    info.height = GetHeight();
+    info.phyWidth = GetPhyWidth();
+    info.phyHeight = GetPhyHeight();
+    info.offsetX = GetOffsetX();
+    info.offsetY = GetOffsetY();
+    info.isSamplingOn = GetIsSamplingOn();
+    info.samplingTranslateX = GetSamplingTranslateX();
+    info.samplingTranslateY = GetSamplingTranslateY();
+    info.samplingScale = GetSamplingScale();
+    info.colorGamut = GetScreenColorGamut();
+    info.gamutMap = GetScreenGamutMap();
+    info.state = GetState();
+    info.skipFrameInterval = GetScreenSkipFrameInterval();
+    info.expectedRefreshRate = GetScreenExpectedRefreshRate();
+    info.skipFrameStrategy = GetScreenSkipFrameStrategy();
+    info.pixelFormat = GetPixelFormat();
+    info.hdrFormat = GetScreenHDRFormat();
+    info.whiteList = GetWhiteList();
+    info.enableVisibleRect = GetEnableVisibleRect();
+    info.activeRect = GetActiveRect();
+    info.maskRect = GetMaskRect();
+    info.reviseRect = GetReviseRect();
+    info.powerStatus = GetScreenPowerStatus();
     return info;
 }
 
+#define MARSHALL_CASE(ENUM_TYPE)                                                                        \
+    case ENUM_TYPE: {                                                                                   \
+        using T = PropertyTypeMapper<ENUM_TYPE>::value_type;                                            \
+        auto property = static_cast<ScreenProperty<T>*>(prop.GetRefPtr());                              \
+        if (!property || !property->Marshalling(data)) {                                                \
+            RS_LOGE("%{public}s failed, type: %{public}u", __func__, static_cast<uint32_t>(ENUM_TYPE)); \
+            return false;                                                                               \
+        }                                                                                               \
+        break;                                                                                          \
+    }
+
 bool RSScreenProperty::Marshalling(Parcel& data) const
 {
-    if (!data.WriteUint64(id_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint64 id err.");
+    if (!data.WriteUint32(static_cast<uint32_t>(screenProperties_.size()))) {
+        RS_LOGE("%{public}s write size failed", __func__);
         return false;
     }
-    if (!data.WriteBool(isVirtual_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool isVirtual err.");
-        return false;
-    }
-    if (!data.WriteString(name_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteString name err.");
-        return false;
-    }
-    if (!data.WriteUint32(width_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 width err.");
-        return false;
-    }
-    if (!data.WriteUint32(height_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 height err.");
-        return false;
-    }
-    if (!data.WriteUint32(phyWidth_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 phyWidth err.");
-        return false;
-    }
-    if (!data.WriteUint32(phyHeight_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 phyHeight err.");
-        return false;
-    }
-    if (!data.WriteUint32(refreshRate_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 refreshRate err.");
-        return false;
-    }
-    if (!data.WriteInt32(offsetX_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteInt32 offsetX err.");
-        return false;
-    }
-    if (!data.WriteInt32(offsetY_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteInt32 offsetY err.");
-        return false;
-    }
-    if (!data.WriteBool(isSamplingOn_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool isSamplingOn err.");
-        return false;
-    }
-    if (!data.WriteFloat(samplingTranslateX_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteFloat samplingTranslateX err.");
-        return false;
-    }
-    if (!data.WriteFloat(samplingTranslateY_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteFloat samplingTranslateY err.");
-        return false;
-    }
-    if (!data.WriteFloat(samplingScale_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteFloat samplingScale err.");
-        return false;
-    }
-    if (!data.WriteUint32(static_cast<uint32_t>(colorGamut_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 colorGamut err.");
-        return false;
-    }
-    if (!data.WriteUint32(static_cast<uint32_t>(gamutMap_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 gamutMap err.");
-        return false;
-    }
-    if (!data.WriteUint8(static_cast<uint8_t>(state_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint8 state err.");
-        return false;
-    }
-    if (!data.WriteUint32(static_cast<uint32_t>(correction_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 correction err.");
-        return false;
-    }
-    if (!data.WriteBool(canvasRotation_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool canvasRotation err.");
-        return false;
-    }
-    if (!data.WriteBool(autoBufferRotation_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool autoBufferRotation err.");
-        return false;
-    }
-#ifdef ROSEN_OHOS
-    if (!activeRect_.Marshalling(data)) {
-        ROSEN_LOGE("WriteScreenProperty: Marshalling activeRect err.");
-        return false;
-    }
-    if (!maskRect_.Marshalling(data)) {
-        ROSEN_LOGE("WriteScreenProperty: Marshalling maskRect err.");
-        return false;
-    }
-    if (!reviseRect_.Marshalling(data)) {
-        ROSEN_LOGE("WriteScreenProperty: Marshalling reviseRect err.");
-        return false;
-    }
-#endif
-    if (!data.WriteUint32(skipFrameInterval_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 skipFrameInterval err.");
-        return false;
-    }
-    if (!data.WriteUint32(expectedRefreshRate_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 expectedRefreshRate err.");
-        return false;
-    }
-    if (!data.WriteInt32(static_cast<int32_t>(skipFrameStrategy_))) {
-        ROSEN_LOGE("WriteScreenProperty: Write skipFrameStrategy err.");
-        return false;
-    }
-    if (!data.WriteInt32(static_cast<int32_t>(pixelFormat_))) {
-        ROSEN_LOGE("WriteScreenProperty: Write pixelFormat err.");
-        return false;
-    }
-    if (!data.WriteUint32(static_cast<uint32_t>(hdrFormat_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 hdrFormat err.");
-        return false;
-    }
-    if (!data.WriteBool(enableVisibleRect_)) {
-        ROSEN_LOGE("WriteScreenProperty: Write enableVisibleRect err.");
-        return false;
-    }
-    if (!data.WriteInt32(mainScreenVisibleRect_.x) || !data.WriteInt32(mainScreenVisibleRect_.y) ||
-        !data.WriteInt32(mainScreenVisibleRect_.w) || !data.WriteInt32(mainScreenVisibleRect_.h)) {
-        ROSEN_LOGE("WriteScreenProperty: Write mainScreenVisibleRect err.");
-        return false;
-    }
-    if (!data.WriteBool(isSupportRotation_)) {
-        ROSEN_LOGE("WriteScreenProperty: Write isSupportRotation err.");
-        return false;
-    }
-
-    std::vector<uint64_t> whiteListVec;
-    whiteListVec.assign(whiteList_.begin(), whiteList_.end());
-    if (!data.WriteUInt64Vector(whiteListVec)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUInt64Vector whiteList err.");
-        return false;
-    }
-
-    std::vector<uint64_t> blackListVec;
-    blackListVec.assign(blackList_.begin(), blackList_.end());
-    if (!data.WriteUInt64Vector(blackListVec)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUInt64Vector blackList err.");
-        return false;
-    }
-
-    std::vector<uint64_t> globalBlackListVec;
-    globalBlackListVec.assign(globalBlackList_.begin(), globalBlackList_.end());
-    if (!data.WriteUInt64Vector(globalBlackListVec)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUInt64Vector globalBlackList err.");
-        return false;
-    }
-
-    std::vector<uint8_t> typeBlackListVec;
-    typeBlackListVec.assign(typeBlackList_.begin(), typeBlackList_.end());
-    if (!data.WriteUInt8Vector(typeBlackListVec)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUInt8Vector typeBlackList err.");
-        return false;
-    }
-
-    if (!data.WriteUInt64Vector(securityExemptionList_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUInt64Vector securityExemptionList err.");
-        return false;
-    }
-
-    if (securityMask_) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(securityMask_.get())) {
-            ROSEN_LOGE("WriteScreenProperty: WriteBool[true] OR WriteParcelable[securityMask.get()] err.");
+    for (const auto& [type, prop] : screenProperties_) {
+        if (!data.WriteUint32(static_cast<uint32_t>(type))) {
+            RS_LOGE("%{public}s write type failed, type: %{public}u", __func__, static_cast<uint32_t>(type));
             return false;
         }
-    } else {
-        if (!data.WriteBool(false)) {
-            ROSEN_LOGE("WriteScreenProperty: WriteBool [false] err.");
-            return false;
+
+        switch (type) {
+            MARSHALL_CASE(ScreenPropertyType::ID)
+            MARSHALL_CASE(ScreenPropertyType::IS_VIRTUAL)
+            MARSHALL_CASE(ScreenPropertyType::NAME)
+            MARSHALL_CASE(ScreenPropertyType::RENDER_RESOLUTION)
+            MARSHALL_CASE(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE)
+            MARSHALL_CASE(ScreenPropertyType::OFFSET)
+            MARSHALL_CASE(ScreenPropertyType::SAMPLING_OPTION)
+            MARSHALL_CASE(ScreenPropertyType::COLOR_GAMUT)
+            MARSHALL_CASE(ScreenPropertyType::GAMUT_MAP)
+            MARSHALL_CASE(ScreenPropertyType::STATE)
+            MARSHALL_CASE(ScreenPropertyType::CORRECTION)
+            MARSHALL_CASE(ScreenPropertyType::CANVAS_ROTATION)
+            MARSHALL_CASE(ScreenPropertyType::AUTO_BUFFER_ROTATION)
+            MARSHALL_CASE(ScreenPropertyType::ACTIVE_RECT_OPTION)
+            MARSHALL_CASE(ScreenPropertyType::SKIP_FRAME_OPTION)
+            MARSHALL_CASE(ScreenPropertyType::PIXEL_FORMAT)
+            MARSHALL_CASE(ScreenPropertyType::HDR_FORMAT)
+            MARSHALL_CASE(ScreenPropertyType::VISIBLE_RECT_OPTION)
+            MARSHALL_CASE(ScreenPropertyType::WHITE_LIST)
+            MARSHALL_CASE(ScreenPropertyType::BLACK_LIST)
+            MARSHALL_CASE(ScreenPropertyType::TYPE_BLACK_LIST)
+            MARSHALL_CASE(ScreenPropertyType::SECURITY_EXEMPTION_LIST)
+            MARSHALL_CASE(ScreenPropertyType::SECURITY_MASK)
+            MARSHALL_CASE(ScreenPropertyType::ENABLE_SKIP_WINDOW)
+            MARSHALL_CASE(ScreenPropertyType::POWER_STATUS)
+            MARSHALL_CASE(ScreenPropertyType::SCREEN_TYPE)
+            MARSHALL_CASE(ScreenPropertyType::CONNECTION_TYPE)
+            MARSHALL_CASE(ScreenPropertyType::PRODUCER_SURFACE)
+            MARSHALL_CASE(ScreenPropertyType::SCALE_MODE)
+            MARSHALL_CASE(ScreenPropertyType::SCREEN_STATUS)
+            MARSHALL_CASE(ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION)
+            MARSHALL_CASE(ScreenPropertyType::IS_HARD_CURSOR_SUPPORT)
+            MARSHALL_CASE(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS)
+            MARSHALL_CASE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL)
+            MARSHALL_CASE(ScreenPropertyType::SCREEN_SWITCH_STATUS)
+            default:
+                RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
         }
-    }
-
-    if (!data.WriteBool(skipWindow_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool skipWindow err.");
-        return false;
-    }
-    if (!data.WriteUint32(powerStatus_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool powerStatus err.");
-        return false;
-    }
-    if (!data.WriteUint32(static_cast<uint32_t>(scaleMode_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool scaleMode err.");
-        return false;
-    }
-
-#ifndef ROSEN_CROSS_PLATFORM
-    if (!producerSurface_ || !producerSurface_->GetProducer()) {
-        data.WriteBool(false);
-    } else {
-        data.WriteBool(true);
-        auto producer = producerSurface_->GetProducer();
-        if (!data.WriteRemoteObject(producer->AsObject())) {
-            ROSEN_LOGE("WriteScreenProperty: WriteRemoteObject producer->AsObject() err.");
-            return false;
-        }
-    }
-#endif
-
-    if (!data.WriteUint32(static_cast<uint32_t>(screenStatus_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 screenStatus err.");
-        return false;
-    }
-    if (!data.WriteInt32(virtualSecLayerOption_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteInt32 virtualSecLayerOption err.");
-        return false;
-    }
-    if (!data.WriteUint32(static_cast<uint32_t>(screenType_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 screenType err.");
-        return false;
-    }
-    if (!data.WriteUint32(static_cast<uint32_t>(connectionType_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 connectionType_ err.");
-        return false;
-    }
-    if (!data.WriteBool(isHardCursorSupport_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool isHardCursorSupport err.");
-        return false;
-    }
-
-    std::vector<uint32_t> supportedColorGamuts;
-    supportedColorGamuts.assign(supportedColorGamuts_.begin(), supportedColorGamuts_.end());
-    if (!data.WriteUInt32Vector(supportedColorGamuts)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUInt32Vector supportedColorGamut err.");
-        return false;
-    }
-
-    if (!data.WriteBool(disablePowerOffRenderControl_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool disablePowerOffRenderControl err.");
-        return false;
-    }
-    if (!data.WriteBool(screenSwitchStatus_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool screenSwitchStatus err.");
-        return false;
     }
     return true;
 }
@@ -549,282 +387,70 @@ RSScreenProperty* RSScreenProperty::Unmarshalling(Parcel& data)
     return nullptr;
 }
 
+#define UNMARSHALL_CASE(ENUM_TYPE)                                                                      \
+    case ENUM_TYPE: {                                                                                   \
+        using T = PropertyTypeMapper<ENUM_TYPE>::value_type;                                            \
+        auto property = sptr<ScreenProperty<T>>(ScreenProperty<T>::Unmarshalling(data));                \
+        if (!property) {                                                                                \
+            RS_LOGE("%{public}s failed, type: %{public}u", __func__, static_cast<uint32_t>(ENUM_TYPE)); \
+            return false;                                                                               \
+        }                                                                                               \
+        screenProperties_.insert_or_assign(ENUM_TYPE, property);                                        \
+        break;                                                                                          \
+    }
+
 bool RSScreenProperty::UnmarshallingData(Parcel& data)
 {
-    if (!data.ReadUint64(id_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint64 id err.");
+    uint32_t size = 0;
+    if (!data.ReadUint32(size)) {
+        RS_LOGE("%{public}s read size failed", __func__);
         return false;
     }
-    if (!data.ReadBool(isVirtual_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool isVirtual err.");
-        return false;
-    }
-    if (!data.ReadString(name_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadString name err.");
-        return false;
-    }
-    if (!data.ReadUint32(width_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 width err.");
-        return false;
-    }
-    if (!data.ReadUint32(height_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 height err.");
-        return false;
-    }
-    if (!data.ReadUint32(phyWidth_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 phyWidth err.");
-        return false;
-    }
-    if (!data.ReadUint32(phyHeight_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 phyHeight err.");
-        return false;
-    }
-    if (!data.ReadUint32(refreshRate_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 refreshRate err.");
-        return false;
-    }
-    if (!data.ReadInt32(offsetX_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadInt32 offsetX err.");
-        return false;
-    }
-    if (!data.ReadInt32(offsetY_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadInt32 offsetY err.");
-        return false;
-    }
-    if (!data.ReadBool(isSamplingOn_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool isSamplingOn err.");
-        return false;
-    }
-    if (!data.ReadFloat(samplingTranslateX_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadFloat samplingTranslateX err.");
-        return false;
-    }
-    if (!data.ReadFloat(samplingTranslateY_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadFloat samplingTranslateY err.");
-        return false;
-    }
-    if (!data.ReadFloat(samplingScale_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadFloat samplingScale err.");
-        return false;
-    }
-    uint32_t colorGamut = 0;
-    if (!data.ReadUint32(colorGamut)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 colorGamut err.");
-        return false;
-    }
-    colorGamut_ = static_cast<ScreenColorGamut>(colorGamut);
-    uint32_t gamutMap = 0;
-    if (!data.ReadUint32(gamutMap)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 gamutMap err.");
-        return false;
-    }
-    gamutMap_ = static_cast<ScreenGamutMap>(gamutMap);
-    uint8_t state = 0;
-    if (!data.ReadUint8(state)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint8 state err.");
-        return false;
-    }
-    state_ = static_cast<ScreenState>(state);
-    uint32_t correction = 0;
-    if (!data.ReadUint32(correction)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 rotation err.");
-        return false;
-    }
-    correction_ = static_cast<ScreenRotation>(correction);
-
-    if (!data.ReadBool(canvasRotation_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool canvasRotation err.");
-        return false;
-    }
-    if (!data.ReadBool(autoBufferRotation_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool autoBufferRotation err.");
-        return false;
-    }
-
-    // Rects
-#ifdef ROSEN_OHOS
-    if (!RSMarshallingHelper::Unmarshalling(data, activeRect_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: Marshalling activeRect err.");
-        return false;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(data, maskRect_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: Marshalling maskRect err.");
-        return false;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(data, reviseRect_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: Marshalling reviseRect err.");
-        return false;
-    }
-#endif
-
-    if (!data.ReadUint32(skipFrameInterval_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 skipFrameInterval err.");
-        return false;
-    }
-    if (!data.ReadUint32(expectedRefreshRate_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 expectedRefreshRate err.");
-        return false;
-    }
-    int32_t skipFrameStrategy = 0;
-    if (!data.ReadInt32(skipFrameStrategy)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadInt32 skipFrameStrategy err.");
-        return false;
-    }
-    skipFrameStrategy_ = static_cast<SkipFrameStrategy>(skipFrameStrategy);
-    int32_t pixelFormat = 0;
-    if (!data.ReadInt32(pixelFormat)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadInt32 pixelFormat err.");
-        return false;
-    }
-    pixelFormat_ = static_cast<GraphicPixelFormat>(pixelFormat);
-    uint32_t hdrFormat = 0;
-    if (!data.ReadUint32(hdrFormat)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 hdrFormat err.");
-        return false;
-    }
-    hdrFormat_ = static_cast<ScreenHDRFormat>(hdrFormat);
-    if (!data.ReadBool(enableVisibleRect_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool enableVisibleRect err.");
-        return false;
-    }
-
-    int32_t x = -1;
-    int32_t y = -1;
-    int32_t w = -1;
-    int32_t h = -1;
-    if (!data.ReadInt32(x) || !data.ReadInt32(y) ||
-        !data.ReadInt32(w) || !data.ReadInt32(h)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool visibleRect err.");
-        return false;
-    }
-    mainScreenVisibleRect_ = {x, y, w, h};
-    if (!data.ReadBool(isSupportRotation_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool isSupportRotation err.");
-        return false;
-    }
-
-    std::vector<uint64_t> whiteListVec;
-    if (!data.ReadUInt64Vector(&whiteListVec)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUInt64Vector whiteList err.");
-        return false;
-    }
-    whiteList_ = std::unordered_set<uint64_t>(whiteListVec.begin(), whiteListVec.end());
-
-    std::vector<NodeId> blackListVec;
-    if (!data.ReadUInt64Vector(&blackListVec)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUInt64Vector blackList err.");
-        return false;
-    }
-    blackList_ = std::unordered_set<NodeId>(blackListVec.begin(), blackListVec.end());
-
-    std::vector<NodeId> globalBlackListVec;
-    if (!data.ReadUInt64Vector(&globalBlackListVec)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUInt64Vector globalBlackList err.");
-        return false;
-    }
-    globalBlackList_ = std::unordered_set<NodeId>(globalBlackListVec.begin(), globalBlackListVec.end());
-
-    std::vector<uint8_t> typeBlackListVec;
-    if (!data.ReadUInt8Vector(&typeBlackListVec)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUInt8Vector typeBlackList err.");
-        return false;
-    }
-    typeBlackList_ = std::unordered_set<NodeType>(typeBlackListVec.begin(), typeBlackListVec.end());
-
-    if (!data.ReadUInt64Vector(&securityExemptionList_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUInt64Vector securityExemptionList err.");
-        return false;
-    }
-
-    bool enable{false};
-    if (!data.ReadBool(enable)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool securityMask err.");
-        return false;
-    }
-    if (enable) {
-        securityMask_ = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
-    }
-
-    if (!data.ReadBool(skipWindow_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool skipWindow err.");
-        return false;
-    }
-
-    uint32_t powerStatus = 0;
-    if (!data.ReadUint32(powerStatus)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 powerStatus err.");
-        return false;
-    }
-    powerStatus_ = static_cast<ScreenPowerStatus>(powerStatus);
-
-    uint32_t scaleMode = 0;
-    if (!data.ReadUint32(scaleMode)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 scaleMode err.");
-        return false;
-    }
-    scaleMode_ = static_cast<ScreenScaleMode>(scaleMode);
-
-#ifndef ROSEN_CROSS_PLATFORM
-    bool hasSurface = false;
-    if (!data.ReadBool(hasSurface)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool hasSurface err.");
-        return false;
-    }
-    if (hasSurface) {
-        auto remoteObject = static_cast<MessageParcel*>(&data)->ReadRemoteObject();
-        if (remoteObject != nullptr) {
-            auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
-            producerSurface_ = Surface::CreateSurfaceAsProducer(bufferProducer);
+    for (uint32_t i = 0; i < size; i++) {
+        uint32_t type;
+        if (!data.ReadUint32(type)) {
+            RS_LOGE("%{public}s read type failed", __func__);
+            return false;
         }
-    } else {
-        producerSurface_ = nullptr;
-    }
-#endif
-
-    uint32_t screenStatus = 0;
-    if (!data.ReadUint32(screenStatus)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 screenStatus err.");
-        return false;
-    }
-    screenStatus_ = static_cast<VirtualScreenStatus>(screenStatus);
-
-    if (!data.ReadInt32(virtualSecLayerOption_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadInt32 virtualSecLayerOption err.");
-        return false;
-    }
-    uint32_t screenType = 0;
-    if (!data.ReadUint32(screenType)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 screenType err.");
-        return false;
-    }
-    screenType_ = static_cast<RSScreenType>(screenType);
-    uint32_t connectionType = 0;
-    if (!data.ReadUint32(connectionType)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 connectionType err.");
-        return false;
-    }
-    connectionType_ = static_cast<ScreenConnectionType>(connectionType);
-    if (!data.ReadBool(isHardCursorSupport_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool isHardCursorSupport err.");
-        return false;
-    }
-
-    std::vector<uint32_t> supportedColorGamuts;
-    if (!data.ReadUInt32Vector(&supportedColorGamuts)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUInt32Vector supportedColorGamuts err.");
-        return false;
-    }
-    supportedColorGamuts_.resize(supportedColorGamuts.size());
-    std::transform(supportedColorGamuts.begin(), supportedColorGamuts.end(), supportedColorGamuts_.begin(),
-        [](auto val) { return static_cast<ScreenColorGamut>(val); });
-
-    if (!data.ReadBool(disablePowerOffRenderControl_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool disablePowerOffRenderControl err.");
-        return false;
-    }
-    if (!data.ReadBool(screenSwitchStatus_)) {
-        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool screenSwitchStatus err.");
-        return false;
+        switch (static_cast<ScreenPropertyType>(type)) {
+            UNMARSHALL_CASE(ScreenPropertyType::ID)
+            UNMARSHALL_CASE(ScreenPropertyType::IS_VIRTUAL)
+            UNMARSHALL_CASE(ScreenPropertyType::NAME)
+            UNMARSHALL_CASE(ScreenPropertyType::RENDER_RESOLUTION)
+            UNMARSHALL_CASE(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE)
+            UNMARSHALL_CASE(ScreenPropertyType::OFFSET)
+            UNMARSHALL_CASE(ScreenPropertyType::SAMPLING_OPTION)
+            UNMARSHALL_CASE(ScreenPropertyType::COLOR_GAMUT)
+            UNMARSHALL_CASE(ScreenPropertyType::GAMUT_MAP)
+            UNMARSHALL_CASE(ScreenPropertyType::STATE)
+            UNMARSHALL_CASE(ScreenPropertyType::CORRECTION)
+            UNMARSHALL_CASE(ScreenPropertyType::CANVAS_ROTATION)
+            UNMARSHALL_CASE(ScreenPropertyType::AUTO_BUFFER_ROTATION)
+            UNMARSHALL_CASE(ScreenPropertyType::ACTIVE_RECT_OPTION)
+            UNMARSHALL_CASE(ScreenPropertyType::SKIP_FRAME_OPTION)
+            UNMARSHALL_CASE(ScreenPropertyType::PIXEL_FORMAT)
+            UNMARSHALL_CASE(ScreenPropertyType::HDR_FORMAT)
+            UNMARSHALL_CASE(ScreenPropertyType::VISIBLE_RECT_OPTION)
+            UNMARSHALL_CASE(ScreenPropertyType::WHITE_LIST)
+            UNMARSHALL_CASE(ScreenPropertyType::BLACK_LIST)
+            UNMARSHALL_CASE(ScreenPropertyType::TYPE_BLACK_LIST)
+            UNMARSHALL_CASE(ScreenPropertyType::SECURITY_EXEMPTION_LIST)
+            UNMARSHALL_CASE(ScreenPropertyType::SECURITY_MASK)
+            UNMARSHALL_CASE(ScreenPropertyType::ENABLE_SKIP_WINDOW)
+            UNMARSHALL_CASE(ScreenPropertyType::POWER_STATUS)
+            UNMARSHALL_CASE(ScreenPropertyType::SCREEN_TYPE)
+            UNMARSHALL_CASE(ScreenPropertyType::CONNECTION_TYPE)
+            UNMARSHALL_CASE(ScreenPropertyType::PRODUCER_SURFACE)
+            UNMARSHALL_CASE(ScreenPropertyType::SCALE_MODE)
+            UNMARSHALL_CASE(ScreenPropertyType::SCREEN_STATUS)
+            UNMARSHALL_CASE(ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION)
+            UNMARSHALL_CASE(ScreenPropertyType::IS_HARD_CURSOR_SUPPORT)
+            UNMARSHALL_CASE(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS)
+            UNMARSHALL_CASE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL)
+            UNMARSHALL_CASE(ScreenPropertyType::SCREEN_SWITCH_STATUS)
+            default:
+                RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
+        }
     }
     return true;
 }

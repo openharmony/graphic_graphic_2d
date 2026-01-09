@@ -158,7 +158,7 @@ void RSDumpManager::DumpHelpInfo(std::string &out)
     }
 }
 
-bool RSDumpManager::WriteFileDescriptor(Parcel &parcel, int fd) const
+bool RSDumpManager::WriteFileDescriptor(Parcel &parcel, int fd)
 {
     if (fd < 0) {
         RS_LOGI("RSDumpManager::WriteFileDescriptor get fd failed, fd:[%{public}d].", fd);

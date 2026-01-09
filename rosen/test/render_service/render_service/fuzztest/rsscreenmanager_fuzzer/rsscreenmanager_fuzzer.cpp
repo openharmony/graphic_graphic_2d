@@ -128,12 +128,6 @@ void GetScreenPowerStatus()
     screenManager_->GetScreenPowerStatus(screenId);
 }
 
-void GetScreenCorrection()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    screenManager_->GetScreenCorrection(screenId);
-}
-
 void GetDefaultScreenId()
 {
     screenManager_->GetDefaultScreenId();
@@ -502,7 +496,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::GetScreenSupportedModes,
         OHOS::Rosen::GetScreenCapability,
         OHOS::Rosen::GetScreenPowerStatus,
-        OHOS::Rosen::GetScreenCorrection,
         OHOS::Rosen::GetDefaultScreenId,
         OHOS::Rosen::GetAllScreenIds,
         OHOS::Rosen::CreateVirtualScreen,

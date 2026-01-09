@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "rs_process_dumper.h"
+#include "rs_pipline_dumper.h"
 
 #include <iservice_registry.h>
 #include <malloc.h>
@@ -36,7 +36,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
-#include "dfx/rs_process_dump_manager.h"
+#include "dfx/rs_pipline_dump_manager.h"
 #include "graphic_feature_param_manager.h"
 
 namespace OHOS {
@@ -52,6 +52,9 @@ static EGLDisplay g_tmpDisplay = EGL_NO_DISPLAY;
 static EGLContext g_tmpContext = EGL_NO_CONTEXT;
 #endif
 }
+
+RSPiplineDumper::RSPiplineDumper(std::shared_ptr<AppExecFwk::EventHandler> mainHandler)
+    : mainHandler_(mainHandler) {}
 
 static bool IsNumber(const std::string& type)
 {
@@ -123,29 +126,29 @@ static void DestroyGLES()
 }
 #endif
 
-uint32_t RSProcessDumper::GenerateTaskId()
+uint32_t RSPiplineDumper::GenerateTaskId()
 {
     static std::atomic<uint32_t> id;
     return id.fetch_add(1, std::memory_order::memory_order_relaxed);
 }
 
-void RSProcessDumper::RpDumpInit()
+void RSPiplineDumper::RpDumpInit(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     // 用于renderProcess进程Dump初始化
-    RegisterRSTreeFuncs();
-    RegisterGpuFuncs();
-    RegisterRSGfxFuncs();
-    RegisterMemFuncs();
-    RegisterBufferFuncs();
-    RegisterSurfaceInfoFuncs();
+    RegisterRSTreeFuncs(rpDumpManager);
+    RegisterGpuFuncs(rpDumpManager);
+    RegisterRSGfxFuncs(rpDumpManager);
+    RegisterMemFuncs(rpDumpManager);
+    RegisterBufferFuncs(rpDumpManager);
+    RegisterSurfaceInfoFuncs(rpDumpManager);
 }
 
-void RSProcessDumper::RegisterRSGfxFuncs()
+void RSPiplineDumper::RegisterRSGfxFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     // Event Param List
     RSDumpFunc rsEventParamFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                          std::string &dumpString) -> void {
-        RSMainThread::Instance()->ScheduleTask([this, &dumpString]() { DumpRSEvenParam(dumpString); }).wait();
+        ScheduleTask([this, &dumpString]() { DumpRSEvenParam(dumpString); });
     };
 
     // rs log flag
@@ -167,7 +170,7 @@ void RSProcessDumper::RegisterRSGfxFuncs()
     RSDumpFunc flushJankStatsRsFunc = [this](const std::u16string &cmd,
                                              std::unordered_set<std::u16string> &argSets,
                                              std::string &dumpString) -> void {
-        RSMainThread::Instance()->ScheduleTask([this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
+        ScheduleTask([this, &dumpString]() { DumpJankStatsRs(dumpString); });
     };
 
     std::vector<RSDumpHander> handers = {
@@ -175,21 +178,21 @@ void RSProcessDumper::RegisterRSGfxFuncs()
         { RSDumpID::RS_LOG_FLAG, rsLogFlagFunc },
         { RSDumpID::RS_FLUSH_JANK_STATS, flushJankStatsRsFunc },
     };
-    RSProcessDumpManager::GetInstance().Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSProcessDumper::RegisterRSTreeFuncs()
+void RSPiplineDumper::RegisterRSTreeFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     // RS not on Tree
     RSDumpFunc rsNotOnTreeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                         std::string &dumpString) -> void {
-        RSMainThread::Instance()->ScheduleTask([this, &dumpString]() { DumpNodesNotOnTheTree(dumpString); }).wait();
+        ScheduleTask([this, &dumpString]() { DumpNodesNotOnTheTree(dumpString); });
     };
 
     // RS Tree
     RSDumpFunc rsTreeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                    std::string &dumpString) -> void {
-        RSMainThread::Instance()->ScheduleTask([this, &dumpString]() { DumpRenderServiceTree(dumpString); }).wait();
+        ScheduleTask([this, &dumpString]() { DumpRenderServiceTree(dumpString); });
     };
 
     // RS SurfaceNode
@@ -201,21 +204,21 @@ void RSProcessDumper::RegisterRSTreeFuncs()
                 static_cast<NodeId>(std::atoll(std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}
                                                    .to_bytes(*argSets.begin())
                                                    .c_str()));
-            RSMainThread::Instance()->ScheduleTask([this, &dumpString, &id]() { return DumpSurfaceNode(dumpString, id); }).wait();
+            ScheduleTask([this, &dumpString, &id]() { return DumpSurfaceNode(dumpString, id); });
         }
     };
 
     // Multi RS Trees
     RSDumpFunc multiRSTreesFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                          std::string &dumpString) -> void {
-        RSMainThread::Instance()->ScheduleTask([this, &dumpString]() { DumpRenderServiceTree(dumpString, false); }).wait();
+        ScheduleTask([this, &dumpString]() { DumpRenderServiceTree(dumpString, false); });
     };
 
     // client tree
     RSDumpFunc rsClientFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                      std::string &dumpString) -> void {
         auto taskId = GenerateTaskId();
-        RSMainThread::Instance()->ScheduleTask([this, taskId]() { RSMainThread::Instance()->SendClientDumpNodeTreeCommands(taskId); }).wait();
+        ScheduleTask([this, taskId]() { RSMainThread::Instance()->SendClientDumpNodeTreeCommands(taskId); });
         RSMainThread::Instance()->CollectClientNodeTreeResult(taskId, dumpString, CLIENT_DUMP_TREE_TIMEOUT);
     };
 
@@ -227,15 +230,15 @@ void RSProcessDumper::RegisterRSTreeFuncs()
         { RSDumpID::CLIENT_INFO, rsClientFunc, RS_CLIENT_TAG },
     };
 
-    RSProcessDumpManager::GetInstance().Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSProcessDumper::RegisterMemFuncs()
+void RSPiplineDumper::RegisterMemFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     // surface mem
     RSDumpFunc surfaceMemFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                        std::string &dumpString) -> void {
-        RSMainThread::Instance()->ScheduleTask([this, &dumpString]() { DumpAllNodesMemSize(dumpString); }).wait();
+        ScheduleTask([this, &dumpString]() { DumpAllNodesMemSize(dumpString); });
     };
 
     // Mem
@@ -257,17 +260,17 @@ void RSProcessDumper::RegisterMemFuncs()
         { RSDumpID::EXIST_PID_MEM_INFO, existPidMemFunc },
     };
 
-    RSProcessDumpManager::GetInstance().Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSProcessDumper::RegisterGpuFuncs()
+void RSPiplineDumper::RegisterGpuFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
 #ifdef RS_ENABLE_VK
     // vk texture Limit
     RSDumpFunc vktextureLimitFunc = [this](const std::u16string &cmd,
                                            std::unordered_set<std::u16string> &argSets,
                                            std::string &dumpString) -> void {
-        RSMainThread::Instance()->ScheduleTask([this, &dumpString]() { DumpVkTextureLimit(dumpString); }).wait();
+        ScheduleTask([this, &dumpString]() { DumpVkTextureLimit(dumpString); });
     };
 #endif
 
@@ -277,10 +280,10 @@ void RSProcessDumper::RegisterGpuFuncs()
 #endif
     };
 
-    RSProcessDumpManager::GetInstance().Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSProcessDumper::RegisterBufferFuncs()
+void RSPiplineDumper::RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     RSDumpFunc currentFrameBufferFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                                std::string &dumpString) -> void {
@@ -296,7 +299,7 @@ void RSProcessDumper::RegisterBufferFuncs()
 //                 RS_TRACE_NAME("RSRenderService dump current frame buffer in HardwareThread");
 //                 RS_LOGD("dump current frame buffer in HardwareThread");
 //                 return screenManager_->DumpCurrentFrameLayers();
-//             }).wait();
+//             });
 // #endif
         }
     };
@@ -305,10 +308,10 @@ void RSProcessDumper::RegisterBufferFuncs()
         { RSDumpID::CURRENT_FRAME_BUFFER, currentFrameBufferFunc },
     };
 
-    RSProcessDumpManager::GetInstance().Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSProcessDumper::RegisterSurfaceInfoFuncs()
+void RSPiplineDumper::RegisterSurfaceInfoFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
 {
     // todo : 分离渲染适配
     // surface info
@@ -321,10 +324,10 @@ void RSProcessDumper::RegisterSurfaceInfoFuncs()
         { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_TAG },
     };
 
-    RSProcessDumpManager::GetInstance().Register(handers);
+    rpDumpManager->Register(handers);
 }
 
-void RSProcessDumper::DumpNodesNotOnTheTree(std::string& dumpString) const
+void RSPiplineDumper::DumpNodesNotOnTheTree(std::string& dumpString) const
 {
     dumpString.append("\n");
     dumpString.append("-- Node Not On Tree\n");
@@ -347,7 +350,7 @@ void RSProcessDumper::DumpNodesNotOnTheTree(std::string& dumpString) const
     });
 }
 
-void RSProcessDumper::DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame) const
+void RSPiplineDumper::DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame) const
 {
     dumpString.append("\n");
     dumpString.append("-- RenderServiceTreeDump: \n");
@@ -356,7 +359,7 @@ void RSProcessDumper::DumpRenderServiceTree(std::string& dumpString, bool forceD
 #endif
 }
 
-void RSProcessDumper::DumpAllNodesMemSize(std::string& dumpString) const
+void RSPiplineDumper::DumpAllNodesMemSize(std::string& dumpString) const
 {
     dumpString.append("\n");
     dumpString.append("-- All Surfaces Memory Size\n");
@@ -378,14 +381,14 @@ void RSProcessDumper::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
-void RSProcessDumper::DumpRSEvenParam(std::string& dumpString) const
+void RSPiplineDumper::DumpRSEvenParam(std::string& dumpString) const
 {
     dumpString.append("\n");
     dumpString.append("-- EventParamListDump: \n");
     RSMainThread::Instance()->RsEventParamDump(dumpString);
 }
 
-void RSProcessDumper::DumpJankStatsRs(std::string& dumpString) const
+void RSPiplineDumper::DumpJankStatsRs(std::string& dumpString) const
 {
     dumpString.append("\n");
     RSJankStats::GetInstance().ReportJankStats();
@@ -393,7 +396,7 @@ void RSProcessDumper::DumpJankStatsRs(std::string& dumpString) const
 }
 
 #ifdef RS_ENABLE_VK
-void RSProcessDumper::DumpVkTextureLimit(std::string& dumpString) const
+void RSPiplineDumper::DumpVkTextureLimit(std::string& dumpString) const
 {
     dumpString.append("\n");
     dumpString.append("-- vktextureLimit:\n");
@@ -409,7 +412,7 @@ void RSProcessDumper::DumpVkTextureLimit(std::string& dumpString) const
 }
 #endif
 
-void RSProcessDumper::DumpExistPidMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+void RSPiplineDumper::DumpExistPidMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
     if (!RSUniRenderJudgement::IsUniRender()) {
         dumpString.append("\n---------------\n Not in UniRender and no information");
@@ -429,7 +432,7 @@ void RSProcessDumper::DumpExistPidMem(std::unordered_set<std::u16string>& argSet
     }
 }
 
-void RSProcessDumper::DumpSurfaceNode(std::string& dumpString, NodeId id) const
+void RSPiplineDumper::DumpSurfaceNode(std::string& dumpString, NodeId id) const
 {
     dumpString.append("\n");
     dumpString.append("-- SurfaceNode\n");
@@ -478,7 +481,7 @@ void RSProcessDumper::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     consumer->Dump(dumpString);
 }
 
-void RSProcessDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+void RSPiplineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
     if (!RSUniRenderJudgement::IsUniRender()) {
         dumpString.append("\n---------------\nNot in UniRender and no information");
@@ -495,9 +498,18 @@ void RSProcessDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std::
     if (!type.empty() && IsNumber(type)) {
         pid = std::atoi(type.c_str());
     }
-    RSMainThread::Instance()->ScheduleTask([this, &argSets, &dumpString, &type, &pid]() {
+    ScheduleTask([this, &argSets, &dumpString, &type, &pid]() {
             return RSMainThread::Instance()->DumpMem(argSets, dumpString, type, pid);
-        }).wait();
+        });
+}
+
+void RSPiplineDumper::ScheduleTask(std::function<void()> task) const
+{
+    if (mainHandler_) {
+        mainHandler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        return;
+    }
+    RS_LOGE("RSPiplineDumper::ScheduleTask mainHandler_ is null");
 }
 } // Rosen
 } // OHOS

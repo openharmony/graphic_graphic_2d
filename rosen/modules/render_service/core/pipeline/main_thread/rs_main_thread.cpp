@@ -775,14 +775,16 @@ void RSMainThread::OnScreenDisconnected(ScreenId screenId)
     }
 }
 
-void RSMainThread::OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty)
+void RSMainThread::OnScreenPropertyChanged(
+    ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
 {
-    if (!rsScreenProperty) {
-        RS_LOGE("%{public}s, rsScreenProperty is nullptr.", __func__);
+    if (!property) {
+        RS_LOGE("%{public}s, property is nullptr.", __func__);
         return;
     }
-    HandleScreenPropertyChange(rsScreenProperty);
-    UpdateScreenProperty(rsScreenProperty);
+    HandleScreenPropertyRefreshOneFrame(type);
+    HandlePowerStatusChanged(id, type, property);
+    UpdateScreenProperty(id, type, property);
     RequestNextVSync();
 }
 
@@ -3134,13 +3136,10 @@ bool RSMainThread::RemoveConnection(const sptr<RSIConnectionToken>& token)
     return true;
 }
 
-void RSMainThread::AddConnection(
-    sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
+void RSMainThread::AddConnection(const sptr<IRemoteObject>& token,
+    const sptr<RSIClientToRenderConnection>& connectToRenderConnection)
 {
-    if (connections_.find(token) != connections_.end()) {
-        return;
-    }
-    connections_[token] = connectToRenderConnection;
+    connections_.insert({token, connectToRenderConnection});
 }
 
 sptr<RSIClientToRenderConnection> RSMainThread::FindClientToRenderConnection(const sptr<IRemoteObject>& token)
@@ -5351,81 +5350,61 @@ void RSMainThread::CreateScreenNode(const sptr<RSScreenProperty>& property)
     }
 }
 
-void RSMainThread::HandleScreenPropertyChange(const sptr<RSScreenProperty>& property)
+void RSMainThread::HandleScreenPropertyRefreshOneFrame(ScreenPropertyType type)
 {
-    if (!property) {
-        RS_LOGE("%{public}s property is nullptr.", __func__);
-        return;
-    }
-    ScreenId id = property->GetScreenId();
-    PostTask([context = context_, id, property, this] () {
-        auto& nodeMap = context->GetMutableNodeMap();
-        nodeMap.TraverseScreenNodes(
-            [id, property, this](const std::shared_ptr<RSScreenRenderNode>& node) {
-            if (node && node->GetScreenId() == id) {
-                const RSScreenProperty& lastProperty = node->GetScreenProperty();
-                HandleScreenPropertyRefreshOneFrame(lastProperty, property);
-                HandlePowerStatusChanged(lastProperty, property);
-            }
-        });
-    });
-    RSRealtimeRefreshRateManager::Instance().UpdateScreenRefreshRate(id, property->GetRefreshRate());
-}
-
-void RSMainThread::HandleScreenPropertyRefreshOneFrame(const RSScreenProperty& lastProperty,
-                                                       const sptr<RSScreenProperty>& property)
-{
-    // Screen render size changed
-    bool renderSizeChanged = lastProperty.GetWidth() != property->GetWidth() ||
-                             lastProperty.GetHeight() != property->GetHeight();
-    // Virtual Screen Surface Changed
-    bool surfaceChanged = lastProperty.GetProducerSurface() == nullptr && property->GetProducerSurface() != nullptr;
-    surfaceChanged = surfaceChanged ||
-                     (lastProperty.GetProducerSurface() != nullptr && property->GetProducerSurface() == nullptr);
-    surfaceChanged = surfaceChanged || (lastProperty.GetProducerSurface() && property->GetProducerSurface() &&
-                                        property->GetProducerSurface()->GetUniqueId() !=
-                                            lastProperty.GetProducerSurface()->GetUniqueId());
-    // gamutMapChanged
-    bool gamutMapChanged = lastProperty.GetScreenGamutMap() != property->GetScreenGamutMap();
-    bool needForceRefreshOneFrame = renderSizeChanged || surfaceChanged || gamutMapChanged;
+    bool needForceRefreshOneFrame = type == ScreenPropertyType::RENDER_RESOLUTION ||
+                                    type == ScreenPropertyType::PRODUCER_SURFACE ||
+                                    type == ScreenPropertyType::GAMUT_MAP;
     if (needForceRefreshOneFrame) {
         PostTask([this]() {
             SetDirtyFlag();
         });
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "RSMainThread::%{public}s: renderSizeChanged:%d, surfaceChanged:%d, gamutMapChanged:%d", __func__,
-            renderSizeChanged, surfaceChanged, gamutMapChanged);
-        RS_LOGI("RSMainThread::%{public}s: renderSizeChanged:%{public}d, surfaceChanged:%{public}d,"
-                "gamutMapChanged:%{public}d",
-                __func__, renderSizeChanged, surfaceChanged, gamutMapChanged);
+        RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::%{public}s: type:%u", __func__, static_cast<uint32_t>(type));
+        RS_LOGI("RSMainThread::%{public}s: type:%{public}u", __func__, static_cast<uint32_t>(type));
         ForceRefreshForUni();
     }
 }
 
-void RSMainThread::HandlePowerStatusChanged(const RSScreenProperty& lastProperty,
-                                                       const sptr<RSScreenProperty>& property)
+void RSMainThread::HandlePowerStatusChanged(ScreenId id,
+    ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
 {
-    ScreenPowerStatus lastStatus = lastProperty.GetScreenPowerStatus();
-    ScreenPowerStatus status = property->GetScreenPowerStatus();
-    if (status == lastStatus) {
+    if (type != ScreenPropertyType::POWER_STATUS) {
         return;
     }
-    if (status != ScreenPowerStatus::POWER_STATUS_ON &&
-        status != ScreenPowerStatus::POWER_STATUS_ON_ADVANCED) {
+    auto powerStatusProperty = static_cast<ScreenProperty<uint32_t>*>(property.GetRefPtr());
+    if (!powerStatusProperty) {
         return;
     }
-    PostTask([this]() {
+    auto curStatus = static_cast<ScreenPowerStatus>(powerStatusProperty->Get());
+    if (curStatus != ScreenPowerStatus::POWER_STATUS_ON &&
+        curStatus != ScreenPowerStatus::POWER_STATUS_ON_ADVANCED) {
+        return;
+    }
+
+    auto checkPowerStatus = [id, curStatus, this](const std::shared_ptr<RSScreenRenderNode>& node) {
+        if (id != node->GetScreenId()) {
+            return;
+        }
+        auto lastStatus = node->GetScreenProperty().GetScreenPowerStatus();
+        if (lastStatus == curStatus) {
+            return;
+        }
         SetDirtyFlag();
         SetScreenPowerOnChanged(true);
+        if (lastStatus == ScreenPowerStatus::POWER_STATUS_OFF ||
+            lastStatus == ScreenPowerStatus::POWER_STATUS_OFF_FAKE ||
+            lastStatus == ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED) {
+            ForceRefreshForUni();
+        } else {
+            RequestNextVSync();
+        }
+        RS_LOGI("[UL_POWER] RSMainThread::%{public}s: PowerStatus %{public}d, request a frame", __func__, curStatus);
+    };
+
+    PostTask([context = context_, checkPowerStatus]() {
+        auto& nodeMap = context->GetNodeMap();
+        nodeMap.TraverseScreenNodes(checkPowerStatus);
     });
-    if (lastStatus == ScreenPowerStatus::POWER_STATUS_OFF ||
-        lastStatus == ScreenPowerStatus::POWER_STATUS_OFF_FAKE ||
-        lastStatus == ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED) {
-        ForceRefreshForUni();
-    } else {
-        RequestNextVSync();
-    }
-    RS_LOGI("[UL_POWER] RSMainThread::%{public}s: PowerStatus %{public}d, request a frame", __func__, status);
 }
 
 void RSMainThread::DestroyScreenNode(ScreenId screenId)
@@ -5452,23 +5431,30 @@ void RSMainThread::DestroyScreenNode(ScreenId screenId)
     mainThread->PostTask(task);
 }
 
-void RSMainThread::UpdateScreenProperty(const sptr<RSScreenProperty>& property)
+void RSMainThread::UpdateScreenProperty(
+    ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
 {
     if (!property) {
-        RS_LOGE("%{public}s, rsScreenProperty is nullptr.", __func__);
+        RS_LOGE("%{public}s, property is nullptr.", __func__);
         return;
     }
-    ScreenId id = property->GetScreenId();
-    RS_LOGI("%{public}s, screen id: %{public}" PRIu64, __func__, id);
-    PostTask([this, context = context_, id, property] () {
-        auto& nodeMap = context->GetMutableNodeMap();
-        nodeMap.TraverseScreenNodes(
-            [this, id, property](const std::shared_ptr<RSScreenRenderNode>& node) {
-            if (node && node->GetScreenId() == id) {
-                RSSpecialLayerUtils::UpdateScreenSpecialLayer(*property, node->GetScreenProperty());
-                node->SetScreenProperty(*property);
+    RS_LOGI("%{public}s, screen id: %{public}" PRIu64 ", type: %{public}u", __func__, id, static_cast<uint32_t>(type));
+
+    auto updateProperty = [id, type, property](const std::shared_ptr<RSScreenRenderNode>& node) {
+        if (node && node->GetScreenId() == id) {
+            auto oldProperty = node->GetScreenProperty();
+            node->UpdateScreenProperty(type, property);
+            RSSpecialLayerUtils::UpdateScreenSpecialLayer(node->GetScreenProperty(), oldProperty);
+            if (type == ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE) {
+                auto refreshRate = node->GetScreenProperty().GetRefreshRate();
+                RSRealtimeRefreshRateManager::Instance().UpdateScreenRefreshRate(id, refreshRate);
             }
-        });
+        }
+    };
+
+    PostTask([context = context_, updateProperty] () {
+        auto& nodeMap = context->GetMutableNodeMap();
+        nodeMap.TraverseScreenNodes(updateProperty);
     });
 }
 
@@ -5576,11 +5562,6 @@ void RSMainThread::SetScreenFrameGravity(ScreenId id, Gravity gravity)
                 gravity);
         screenNode->GetMutableRenderProperties().SetFrameGravity(gravity);
     });
-}
-
-void RSMainThread::JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLayerIds)
-{
-    lppVideoHandler_.JudgeLppLayer(vsyncId, lppLayerIds);
 }
 
 void RSMainThread::CheckPackageInConfigList(const std::vector<std::string>& packageList)
