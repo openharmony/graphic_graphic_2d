@@ -36,6 +36,7 @@ public:
     RSComposerContext(const RSComposerContext&&) = delete;
     RSComposerContext& operator=(const RSComposerContext&) = delete;
     RSComposerContext& operator=(const RSComposerContext&&) = delete;
+    RSComposerContext() = default;
     virtual ~RSComposerContext() = default;
 
 protected:

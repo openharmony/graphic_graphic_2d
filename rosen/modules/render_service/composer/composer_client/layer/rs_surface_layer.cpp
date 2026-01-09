@@ -938,6 +938,7 @@ void RSSurfaceLayer::DumpCurrentFrameLayer() const
         cSurface_->DumpCurrentFrameLayer();
     }
 }
+
 void RSSurfaceLayer::SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
 {
     if (bufferOwnerCount == nullptr) {
@@ -969,6 +970,5 @@ std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetBufferOwn
     std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
     return bufferOwnerCount_;
 }
-
 } // namespace Rosen
 } // namespace OHOS
