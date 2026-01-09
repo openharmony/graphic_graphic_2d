@@ -98,12 +98,12 @@ void RSScreenManagerTest::TearDownTestCase()
 {
     for (auto& [id, renderComposer]: RSRenderComposerManager::GetInstance().rsRenderComposerMap_) {
         if (renderComposer) {
-            renderComposer->frameBufferSurfaceOhosMap_ .clear();
+            renderComposer->frameBufferSurfaceOhosMap_.clear();
             renderComposer->uniRenderEngine_ = nullptr;
         }
     }
     RSRenderComposerManager::GetInstance().rsRenderComposerMap_.clear();
-    usleep(200); // 200 : sleep time
+    usleep(SLEEP_TIME_US);
 }
 void RSScreenManagerTest::SetUp() {}
 void RSScreenManagerTest::TearDown() {}
@@ -2001,7 +2001,7 @@ HWTEST_F(RSScreenManagerTest, ResizeVirtualScreen_002, TestSize.Level1)
     sleep(1);
 }
 
-/*
+/**
  * @tc.name: SetRogScreenResolution_001
  * @tc.desc: Test SetRogScreenResolution while screen's id doesn't match
  * @tc.type: FUNC
@@ -2028,7 +2028,7 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_001, TestSize.Level2)
     usleep(SLEEP_TIME_US);
 }
 
-/*
+/**
  * @tc.name: SetRogScreenResolution_002
  * @tc.desc: Test SetRogScreenResolution while the screen's id match
  * @tc.type: FUNC
@@ -2055,7 +2055,7 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_002, TestSize.Level2)
     usleep(SLEEP_TIME_US);
 }
 
-/*
+/**
  * @tc.name: GetRogScreenResolution_001
  * @tc.desc: Test GetRogScreenResolution, with INVALID_SCREEN_ID
  * @tc.type: FUNC
@@ -2071,7 +2071,7 @@ HWTEST_F(RSScreenManagerTest, GetRogScreenResolution_001, TestSize.Level1)
     ASSERT_EQ(screenManager->GetRogScreenResolution(screenId, width, height), SCREEN_NOT_FOUND);
 }
 
-/*
+/**
  * @tc.name: GetRogScreenResolution_002
  * @tc.desc: Test GetRogScreenResolution, with mock HDI device
  * @tc.type: FUNC
