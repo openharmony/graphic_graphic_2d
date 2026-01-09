@@ -1339,6 +1339,18 @@ ohos_static_library("rs_test_common") {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
 
+  if (accessibility_enable) {
+    external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
+    defines += accessibility_defines
+  }
+
+  if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_SCHED_ENABLE" ]
+  }
+
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
