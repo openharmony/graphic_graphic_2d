@@ -12,30 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "node_mem_release_param.h"
- 
+
 namespace OHOS::Rosen {
- 
+
 bool NodeMemReleaseParam::IsNodeOffTreeMemReleaseEnabled()
 {
     return isNodeOffTreeMemReleaseEnabled_;
 }
- 
+
 bool NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()
 {
     return isCanvasDrawingNodeDMAMemEnabled_;
 }
- 
- 
+
+
 void NodeMemReleaseParam::SetNodeOffTreeMemReleaseEnabled(bool isEnable)
 {
     isNodeOffTreeMemReleaseEnabled_ = isEnable;
 }
- 
+
 void NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(bool isEnable)
 {
     isCanvasDrawingNodeDMAMemEnabled_ = isEnable;
 }
- 
+
 } // namespace OHOS::Rosen

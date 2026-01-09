@@ -12,17 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include <gtest/gtest.h>
 #include <test_header.h>
- 
+
 #include "node_mem_release_param.h"
- 
+
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
- 
+
 class NodeMemReleaseParamTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -30,12 +30,12 @@ public:
     void SetUp();
     void TearDown();
 };
- 
+
 void NodeMemReleaseParamTest::SetUpTestCase() {}
 void NodeMemReleaseParamTest::TearDownTestCase() {}
 void NodeMemReleaseParamTest::SetUp() {}
 void NodeMemReleaseParamTest::TearDown() {}
- 
+
 /**
  * @tc.name: NodeOffTreeMemReleaseEnabledTest
  * @tc.desc: Verify the SetNodeOffTreeMemReleaseEnabled IsNodeOffTreeMemReleaseEnabled function
@@ -49,7 +49,7 @@ HWTEST_F(NodeMemReleaseParamTest, NodeOffTreeMemReleaseEnabledTest, Function | S
     NodeMemReleaseParam::SetNodeOffTreeMemReleaseEnabled(false);
     ASSERT_EQ(NodeMemReleaseParam::IsNodeOffTreeMemReleaseEnabled(), false);
 }
- 
+
 /**
  * @tc.name: CanvasDrawingNodeDMAMemEnabledTest
  * @tc.desc: Verify the SetCanvasDrawingNodeDMAMemEnabled IsCanvasDrawingNodeDMAMemEnabled function
@@ -63,6 +63,6 @@ HWTEST_F(NodeMemReleaseParamTest, CanvasDrawingNodeDMAMemEnabledTest, Function |
     NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(false);
     ASSERT_EQ(NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled(), false);
 }
- 
+
 } // namespace Rosen
 } // namespace OHOS

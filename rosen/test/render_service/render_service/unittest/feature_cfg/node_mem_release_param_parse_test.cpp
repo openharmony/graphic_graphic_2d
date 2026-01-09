@@ -12,17 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include <gtest/gtest.h>
 #include <test_header.h>
- 
+
 #include "node_mem_release_param_parse.h"
- 
+
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
- 
+
 class NodeMemReleaseParamParseTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -30,12 +30,12 @@ public:
     void SetUp();
     void TearDown();
 };
- 
+
 void NodeMemReleaseParamParseTest::SetUpTestCase() {}
 void NodeMemReleaseParamParseTest::TearDownTestCase() {}
 void NodeMemReleaseParamParseTest::SetUp() {}
 void NodeMemReleaseParamParseTest::TearDown() {}
- 
+
 /**
  * @tc.name: ParseFeatureParamTest
  * @tc.desc: Test ParseFeatureParam
@@ -50,13 +50,13 @@ HWTEST_F(NodeMemReleaseParamParseTest, ParseFeatureParamTest, TestSize.Level1)
     NodeMemReleaseParamParse nodeMemReleaseParamParse;
     int32_t result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
     ASSERT_EQ(result, PARSE_GET_CHILD_FAIL);
- 
+
     xmlNode attributeNode;
     attributeNode.type = xmlElementType::XML_ATTRIBUTE_NODE;
     node.xmlChildrenNode = &attributeNode;
     result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
     ASSERT_EQ(result, PARSE_EXEC_SUCCESS);
- 
+
     xmlNode childNode;
     childNode.type = xmlElementType::XML_ELEMENT_NODE;
     std::string name = "FeatureSingleParam";
@@ -64,24 +64,24 @@ HWTEST_F(NodeMemReleaseParamParseTest, ParseFeatureParamTest, TestSize.Level1)
     node.xmlChildrenNode = &childNode;
     result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
     ASSERT_EQ(result, PARSE_INTERNAL_FAIL);
- 
+
     name = "FeatureSwitch";
     childNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
     xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)("Other"));
     xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
     result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
     ASSERT_EQ(result, PARSE_EXEC_SUCCESS);
- 
+
     xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)("NodeOffTreeMemReleaseEnabled"));
     xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
     result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
     ASSERT_EQ(result, PARSE_EXEC_SUCCESS);
- 
+
     xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)("CanvasDrawingNodeDMAMemEnabled"));
     xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
     result = nodeMemReleaseParamParse.ParseFeatureParam(featureParam, node);
     ASSERT_EQ(result, PARSE_EXEC_SUCCESS);
 }
- 
+
 } // namespace Rosen
 } // namespace OHOS

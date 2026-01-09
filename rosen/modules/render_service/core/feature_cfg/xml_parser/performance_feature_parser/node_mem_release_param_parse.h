@@ -12,22 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef NODE_MEM_RELEASE_PARAM_PARSE_H
 #define NODE_MEM_RELEASE_PARAM_PARSE_H
- 
+
 #include "node_mem_release_param.h"
 #include "xml_parser_base.h"
- 
+
 namespace OHOS::Rosen {
- 
+
 class NodeMemReleaseParamParse : public XMLParserBase {
 public:
     NodeMemReleaseParamParse() = default;
     ~NodeMemReleaseParamParse() = default;
- 
+
     int32_t ParseFeatureParam(FeatureParamMapType& featureMap, xmlNode& node) override;
- 
+
 private:
     int32_t ParseNodeMemReleaseInternal(xmlNode& node);
 };

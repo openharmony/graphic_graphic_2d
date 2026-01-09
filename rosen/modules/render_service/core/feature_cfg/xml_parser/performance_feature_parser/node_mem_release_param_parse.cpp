@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "node_mem_release_param_parse.h"
- 
+
 namespace OHOS::Rosen {
- 
+
 int32_t NodeMemReleaseParamParse::ParseFeatureParam(FeatureParamMapType& featureMap, xmlNode& node)
 {
     RS_LOGI("NodeMemReleaseParamParse start");
@@ -26,12 +26,12 @@ int32_t NodeMemReleaseParamParse::ParseFeatureParam(FeatureParamMapType& feature
         RS_LOGD("NodeMemReleaseParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
- 
+
     for (; currNode; currNode = currNode->next) {
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
- 
+
         if (ParseNodeMemReleaseInternal(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGD("NodeMemReleaseParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
@@ -39,7 +39,7 @@ int32_t NodeMemReleaseParamParse::ParseFeatureParam(FeatureParamMapType& feature
     }
     return PARSE_EXEC_SUCCESS;
 }
- 
+
 int32_t NodeMemReleaseParamParse::ParseNodeMemReleaseInternal(xmlNode& node)
 {
     // Start Parse Feature Params
@@ -65,5 +65,5 @@ int32_t NodeMemReleaseParamParse::ParseNodeMemReleaseInternal(xmlNode& node)
     }
     return PARSE_EXEC_SUCCESS;
 }
- 
+
 } // namespace OHOS::Rosen
