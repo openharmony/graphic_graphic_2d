@@ -45,7 +45,13 @@ void RSScreenPropsTest::TearDown() {}
 HWTEST_F(RSScreenPropsTest, Marshalling001, TestSize.Level1)
 {
     RSScreenProps screenProps;
-screenProps
+    std::string name = "RSScreenPropsTest";
+    screenProps.SetPropertyName(name);
+    screenProps.SetPropId(0);
+    screenProps.SetValue(0);
+    ASSERT_EQ(screenProps.GetPropertyName(), name);
+    ASSERT_EQ(screenProps.GetPropId(), 0);
+    ASSERT_EQ(screenProps.GetValue(), 0);
     Parcel parcel;
     ASSERT_TRUE(screenProps.Marshalling(parcel));
 }
