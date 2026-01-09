@@ -58,7 +58,7 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI001, TestSize.Level1)
         void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
             std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
     };
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     auto callback = std::make_shared<TestSurfaceCapture>();
     bool res = instance.TakeSurfaceCaptureForUI(nullptr, callback, 1.f, 1.f, true);
     EXPECT_TRUE(res == false);
@@ -88,7 +88,7 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI002, TestSize.Level1)
 {
     std::shared_ptr<RSNode> node = nullptr;
     std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     bool res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true);
     EXPECT_TRUE(res == false);
 
@@ -107,7 +107,7 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI003, TestSize.Level1)
 {
     std::shared_ptr<RSNode> node = nullptr;
     std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
     bool res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true, specifiedAreaRect);
     EXPECT_TRUE(res == false);
@@ -127,8 +127,7 @@ HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback001, TestSize.Level1)
 {
     uint64_t token = 123;
     uint64_t timeStamp = 456;
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
-    instance.renderPipelineClient_ = std::make_unique<RSRenderPipelineClient>();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     bool res = instance.RegisterTransactionDataCallback(token, timeStamp, nullptr);
     EXPECT_TRUE(res == false);
 }
@@ -143,8 +142,7 @@ HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback002, TestSize.Level1)
 {
     uint64_t token = 123;
     uint64_t timeStamp = 456;
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
-    instance.renderPipelineClient_ = std::make_unique<RSRenderPipelineClient>();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     std::function<void()> callback = []() {};
     bool res = instance.RegisterTransactionDataCallback(token, timeStamp, callback);
     EXPECT_TRUE(res == true);
@@ -159,7 +157,7 @@ HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback002, TestSize.Level1)
 HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureSoloNodeList001, TestSize.Level1)
 {
     std::shared_ptr<RSNode> node = nullptr;
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> res =
         instance.TakeSurfaceCaptureSoloNodeList(node);
     EXPECT_TRUE(res.size() == 0);
@@ -174,7 +172,7 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureSoloNodeList001, TestSize.Level1)
 HWTEST_F(RSInterfacesTest, SetHwcNodeBoundsTest, TestSize.Level1)
 {
     NodeId nodeId = 1;
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     bool res = instance.SetHwcNodeBounds(nodeId, 1.0f, 1.0f, 1.0f, 1.0f);
     EXPECT_TRUE(res);
 }
@@ -585,8 +583,7 @@ HWTEST_F(RSInterfacesTest, RegisterSurfaceBufferCallback001, TestSize.Level1)
         void OnFinish(const FinishCallbackRet& ret) {}
         void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) {}
     };
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
-    instance.renderPipelineClient_ = std::make_unique<RSRenderPipelineClient>();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
 
     bool res = instance.RegisterSurfaceBufferCallback(1, 1, nullptr);
     EXPECT_FALSE(res);
@@ -604,8 +601,7 @@ HWTEST_F(RSInterfacesTest, RegisterSurfaceBufferCallback001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, UnregisterSurfaceBufferCallback001, TestSize.Level1)
 {
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
-    instance.renderPipelineClient_ = std::make_unique<RSRenderPipelineClient>();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     bool res = instance.UnregisterSurfaceBufferCallback(1, 1);
     EXPECT_FALSE(res);
 }
@@ -634,11 +630,10 @@ HWTEST_F(RSInterfacesTest, RegisterAndUnRegisterFirstFrameCommitCallback001, Tes
  */
 HWTEST_F(RSInterfacesTest, SetWindowContainer001, TestSize.Level1)
 {
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
-    instance.renderPipelineClient_ = std::make_unique<RSRenderPipelineClient>();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     NodeId nodeId = {};
     instance.SetWindowContainer(nodeId, false);
-    EXPECT_TRUE(instance.renderPipelineClient_ != nullptr);
+    EXPECT_TRUE(instance.renderInterface_ != nullptr);
 }
 
 /**
@@ -752,7 +747,7 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureWithAllWindowsTest001, TestSize.Lev
         void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
             std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
     };
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     std::shared_ptr<RSDisplayNode> displayNode;
     std::shared_ptr<TestSurfaceCapture> callback;
     RSSurfaceCaptureConfig captureConfig;
@@ -775,7 +770,7 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureWithAllWindowsTest001, TestSize.Lev
  */
 HWTEST_F(RSInterfacesTest, FreezeScreenTest001, TestSize.Level1)
 {
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     std::shared_ptr<RSDisplayNode> displayNode;
     bool isFreeze = true;
     bool ret = instance.FreezeScreen(displayNode, isFreeze);

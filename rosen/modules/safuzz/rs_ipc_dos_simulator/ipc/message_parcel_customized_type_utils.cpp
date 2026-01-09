@@ -316,7 +316,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomOcclusionChangeCallbackSptr(Me
 bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPipelineClient_.get();
+    RSRenderPipelineClient* rsClient = RSInterfaces::GetInstance().renderInterface_->renderPipelineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferCallbackSptr "
             "rsClient is nullptr");
@@ -382,7 +382,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr(Messa
 bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPipelineClient_.get();
+    RSRenderPipelineClient* rsClient = RSInterfaces::GetInstance().renderInterface_->renderPipelineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr "
             "rsClient is nullptr");
@@ -413,7 +413,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomBrightnessInfoChangeCallbackSp
 bool MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPipelineClient_.get();
+    RSRenderPipelineClient* rsClient = RSInterfaces::GetInstance().renderInterface_->renderPipelineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr "
             "rsClient is nullptr");

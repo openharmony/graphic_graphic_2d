@@ -31,7 +31,7 @@
 #include <ffrt.h>
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
-#include "transaction/rs_render_interface.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_callback_router.h"
 #endif
 
@@ -103,7 +103,7 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
         static std::once_flag callbackFlag;
         std::call_once(callbackFlag, []() {
             sptr<RSICanvasSurfaceBufferCallback> globalCallback = new GlobalCanvasSurfaceBufferCallback();
-            RSRenderInterface::GetInstance().RegisterCanvasCallback(globalCallback);
+            RSInterfaces::GetInstance().RegisterCanvasCallback(globalCallback);
         });
     }
 #endif
@@ -176,7 +176,7 @@ void RSCanvasDrawingNode::PreAllocateDMABuffer(
         return;
     }
 
-    auto result = RSRenderInterface::GetInstance().SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+    auto result = RSInterfaces::GetInstance().SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
     if (!CheckNodeAndSurfaceBufferState(weakNode, nodeId, resetSurfaceIndex)) {
         RS_LOGE(
             "PreAllocateDMABuffer: CheckNodeAndSurfaceBufferState fail, skip update, nodeId=%{public}" PRIu64, nodeId);

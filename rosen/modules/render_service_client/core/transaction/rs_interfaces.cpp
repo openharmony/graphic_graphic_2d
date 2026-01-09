@@ -729,6 +729,20 @@ void RSInterfaces::SetAppWindowNum(uint32_t num)
     renderInterface_->SetAppWindowNum(num);
 }
 
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSRenderInterface::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+{
+    renderInterface_->RegisterCanvasCallback(callback);
+}
+
+int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+{
+    return renderInterface_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+}
+#endif
+
 /**
  * @brief Display safe Watermark
  * @param watermarkImg, The image width and height are less than twice the screen size

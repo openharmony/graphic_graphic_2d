@@ -811,15 +811,11 @@ void RSMainThread::CleanResources(pid_t pid)
         RS_TRACE_END();
     }
 
-    {
-        ClearSurfaceWatermark(pid);
-    }
+    ClearSurfaceWatermark(pid);
 
-    {
-        if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
+    if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
             auto &monitor = SelfDrawingNodeMonitor::GetInstance();
             monitor.UnRegisterRectChangeCallback(pid);
-        }
     }
 
 }

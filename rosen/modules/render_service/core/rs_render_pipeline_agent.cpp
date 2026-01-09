@@ -1344,7 +1344,8 @@ ErrCode RSRenderPipelineAgent::GetPixelMapByProcessId(std::vector<PixelMapInfo>&
         return ERR_INVALID_VALUE;
     }
     std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
-    std::function<void()> getSurfaceBufferByPidTask = [renderPipeline = rsRenderPipeline_, &sfBufferInfoVector, pid]() -> void {
+    std::function<void()> getSurfaceBufferByPidTask = [renderPipeline = rsRenderPipeline_,
+        &sfBufferInfoVector, pid]() -> void {
         auto selfDrawingNodeVector =
             renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);         
         RS_TRACE_NAME_FMT("RSRenderPipelineAgent::GetPixelMapByProcessId getSurfaceBufferByPidTask pid: %d", pid);

@@ -110,7 +110,6 @@ public:
     bool CheckSurfaceCaptureCallback();
 
     static RSInterfaces* rsInterfaces_;
-    static RSRenderInterface* rsRenderInterfaces_;
     static std::shared_ptr<RenderContext> renderContext_;
     static RSDisplayNodeConfig defaultConfig_;
     static RSDisplayNodeConfig mirrorConfig_;
@@ -118,7 +117,6 @@ public:
     static std::shared_ptr<CustomizedSurfaceCapture> surfaceCaptureCb_;
 };
 RSInterfaces* RSWindowCaptureTaskTest::rsInterfaces_ = nullptr;
-RSRenderInterface* RSWindowCaptureTaskTest::rsRenderInterfaces_ = nullptr;
 std::shared_ptr<RenderContext> RSWindowCaptureTaskTest::renderContext_ = nullptr;
 RSDisplayNodeConfig RSWindowCaptureTaskTest::defaultConfig_ = {INVALID_SCREEN_ID, false, INVALID_SCREEN_ID};
 RSDisplayNodeConfig RSWindowCaptureTaskTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
@@ -151,9 +149,9 @@ void RSWindowCaptureTaskTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
     rsInterfaces_ = &(RSInterfaces::GetInstance());
-    rsRenderInterfaces_ = &(RSRenderInterface::GetInstance());
-    if (rsInterfaces_ == nullptr || rsRenderInterfaces_ == nullptr) {
-        HiLog::Error(LOG_LABEL, "%s: rsInterfaces_ == nullptr or rsRenderInterfaces_ == nullptr", __func__);
+
+    if (rsInterfaces_ == nullptr) {
+        HiLog::Error(LOG_LABEL, "%s: rsInterfaces_ == nullptr or rsInterfaces_ == nullptr", __func__);
         return;
     }
     ScreenId screenId = rsInterfaces_->GetDefaultScreenId();
@@ -275,7 +273,7 @@ bool RSWindowCaptureTaskTest::CheckSurfaceCaptureCallback()
 HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForNullClientNode, Function | SmallTest | Level2)
 {
     std::shared_ptr<RSSurfaceNode> surfaceNode  = nullptr;
-    bool ret = rsRenderInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
+    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
     EXPECT_EQ(ret, false);
 }
 
@@ -290,7 +288,7 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForNullCallback, Function | Sm
     std::shared_ptr<CustomizedSurfaceCapture> callback  = nullptr;
     auto surfaceNode = CreateSurface("RSSurfaceCaptureForNullCallback");
     ASSERT_NE(surfaceNode, nullptr);
-    bool ret = rsRenderInterfaces_->TakeSurfaceCapture(surfaceNode, callback);
+    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, callback);
     EXPECT_EQ(ret, false);
 }
 
@@ -307,7 +305,7 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForInvalidScale, Function | Sm
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleX = 0.f;
     captureConfig.scaleY = 0.f;
-    bool ret = rsRenderInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_, captureConfig);
+    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_, captureConfig);
     EXPECT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -331,7 +329,7 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForShouldPaint, Function | Sma
     surfaceNode->SetAlpha(0.f);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    bool ret = rsRenderInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
+    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
     EXPECT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -342,7 +340,7 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForShouldPaint, Function | Sma
     surfaceNode->SetVisible(false);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    ret = rsRenderInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
+    ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
     EXPECT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -367,7 +365,7 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForPixelMap, Function | SmallT
     surfaceNode->SetBoundsHeight(0.f);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    bool ret = rsRenderInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
+    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
     EXPECT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -378,7 +376,7 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForPixelMap, Function | SmallT
     surfaceNode->SetBoundsHeight(-1.f);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    ret = rsRenderInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
+    ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
     EXPECT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
