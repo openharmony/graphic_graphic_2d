@@ -591,6 +591,9 @@ group("unittest") {
     ":RSScreenManagerTest",
     ":RSScreenTest",
     ":VsyncEnabledScreenIdTest",
+    ":RSScreenPreprocessorTest",
+    ":RSScreenManagerAgentTest",
+    # ":RSScreenCallbackManagerTest",
   ]
   if (tp_feature_enable) {
     deps += [ ":TouchScreenTest" ]

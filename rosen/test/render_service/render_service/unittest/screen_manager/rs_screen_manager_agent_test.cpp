@@ -39,7 +39,7 @@ public:
     void GetGlobalPreprocessor()
     {
         screenManagerAgent_->screenManager_->preprocessor_ = std::make_unique<RSScreenPreprocessor>(
-            wptr<RSScreenManager>(screenManager_), callbackMgr_, handler_, false);
+            *screenManager_, *callbackMgr_, handler_, false);
     }
 
 private:
@@ -117,7 +117,7 @@ HWTEST_F(RSScreenManagerAgentTest, GetDefaultScreenId001, TestSize.Level1)
  */
 HWTEST_F(RSScreenManagerAgentTest, GetActiveScreenId001, TestSize.Level1)
 {
-    screenManager_->activeScreenId_ = GenerateScreenId();
+    // screenManager_->activeScreenId_ = GenerateScreenId();
     screenManager_->isFoldScreenFlag_ = true;
     ScreenId activeScreenId = INVALID_SCREEN_ID;
     screenManagerAgent_->GetActiveScreenId(activeScreenId);

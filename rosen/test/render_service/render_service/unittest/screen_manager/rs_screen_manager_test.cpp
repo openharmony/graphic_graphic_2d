@@ -1029,6 +1029,8 @@ HWTEST_F(RSScreenManagerTest, GetScreenCapability_002, TestSize.Level1)
 {
     auto virtualScreenId = screenManager_->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr, INVALID_SCREEN_ID, 0, {});
     RSScreenCapability screenCapability;
+    screenCapability.SetName("virtualScreen01");
+    screenCapability.SetType(ScreenInterfaceType::DISP_INTF_LCD);
     screenCapability = screenManager_->GetScreenCapability(virtualScreenId);
     ASSERT_EQ(screenCapability.GetName(), "virtualScreen01");
 }

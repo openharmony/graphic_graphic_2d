@@ -45,6 +45,7 @@ void RSScreenPropsTest::TearDown() {}
 HWTEST_F(RSScreenPropsTest, Marshalling001, TestSize.Level1)
 {
     RSScreenProps screenProps;
+screenProps
     Parcel parcel;
     ASSERT_TRUE(screenProps.Marshalling(parcel));
 }
