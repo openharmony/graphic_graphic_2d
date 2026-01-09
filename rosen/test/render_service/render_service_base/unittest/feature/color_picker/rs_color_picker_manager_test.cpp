@@ -229,39 +229,50 @@ HWTEST_F(RSColorPickerManagerTest, GetContrastColorTest, TestSize.Level1)
     const Drawing::ColorQuad white = Drawing::Color::COLOR_WHITE;
     const Drawing::ColorQuad black = Drawing::Color::COLOR_BLACK;
 
-    auto contrastForWhite = RSColorPickerManager::GetContrastColor(white, false);
+    auto contrastForWhite = RSColorPickerManager::GetContrastColor(white);
     EXPECT_EQ(contrastForWhite, Drawing::Color::COLOR_BLACK);
 
-    auto contrastForBlack = RSColorPickerManager::GetContrastColor(black, false);
+    auto contrastForBlack = RSColorPickerManager::GetContrastColor(black);
     EXPECT_EQ(contrastForBlack, Drawing::Color::COLOR_WHITE);
 }
 
 /**
- * @tc.name: GetContrastColorPrevBlackTest
- * @tc.desc: Verify GetContrastColor with prevDark=true uses low threshold
+ * @tc.name: GetContrastColorHysteresisTest
+ * @tc.desc: Verify GetContrastColor hysteresis behavior with middle-range luminance
  * @tc.type:FUNC
  */
-HWTEST_F(RSColorPickerManagerTest, GetContrastColorPrevBlackTest, TestSize.Level1)
+HWTEST_F(RSColorPickerManagerTest, GetContrastColorHysteresisTest, TestSize.Level1)
 {
-    // Use a mid-light gray so hysteresis changes the result.
-    const Drawing::ColorQuad midGray = Drawing::Color::ColorQuadSetARGB(0xFF, 200, 200, 200);
-    auto contrastPrevDark = RSColorPickerManager::GetContrastColor(midGray, true);
-    auto contrastPrevLight = RSColorPickerManager::GetContrastColor(midGray, false);
+    // First, set the global state to WHITE by using low luminance
+    const Drawing::ColorQuad darkGray = Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50);
+    auto contrastDark = RSColorPickerManager::GetContrastColor(darkGray);
+    EXPECT_EQ(contrastDark, Drawing::Color::COLOR_WHITE);
 
-    EXPECT_EQ(contrastPrevDark, Drawing::Color::COLOR_BLACK);
-    EXPECT_EQ(contrastPrevLight, Drawing::Color::COLOR_WHITE);
+    // Now use mid-range luminance (between 150 and 220) - should stick to WHITE
+    const Drawing::ColorQuad midGray = Drawing::Color::ColorQuadSetARGB(0xFF, 180, 180, 180);
+    auto contrastMid1 = RSColorPickerManager::GetContrastColor(midGray);
+    EXPECT_EQ(contrastMid1, Drawing::Color::COLOR_WHITE);
+
+    // Set the global state to BLACK by using high luminance
+    const Drawing::ColorQuad lightGray = Drawing::Color::ColorQuadSetARGB(0xFF, 230, 230, 230);
+    auto contrastLight = RSColorPickerManager::GetContrastColor(lightGray);
+    EXPECT_EQ(contrastLight, Drawing::Color::COLOR_BLACK);
+
+    // Now use mid-range luminance again - should stick to BLACK
+    auto contrastMid2 = RSColorPickerManager::GetContrastColor(midGray);
+    EXPECT_EQ(contrastMid2, Drawing::Color::COLOR_BLACK);
 }
 
 /**
- * @tc.name: PickColorContrastPrevBlackTest
- * @tc.desc: Verify PickColor CONTRAST branch with prevDark=true
+ * @tc.name: PickColorContrastTest
+ * @tc.desc: Verify PickColor CONTRAST strategy uses GetContrastColor
  * @tc.type:FUNC
  */
-HWTEST_F(RSColorPickerManagerTest, PickColorContrastPrevBlackTest, TestSize.Level1)
+HWTEST_F(RSColorPickerManagerTest, PickColorContrastTest, TestSize.Level1)
 {
     // Contrast color now provided by static API. Validate for white input.
     const Drawing::ColorQuad white = Drawing::Color::COLOR_WHITE;
-    auto result = RSColorPickerManager::GetContrastColor(white, true);
+    auto result = RSColorPickerManager::GetContrastColor(white);
     EXPECT_EQ(result, Drawing::Color::COLOR_BLACK);
 }
 } // namespace Rosen
