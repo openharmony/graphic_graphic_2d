@@ -529,6 +529,17 @@ ohos_unittest("RSBaseRenderUtilTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (accessibility_enable) {
+    external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
+    defines += accessibility_defines
+  }
+
+  if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_SCHED_ENABLE" ]
+  }
 }
 
 ## Build RSUniRenderComposerAdapterTest

@@ -97,8 +97,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
-    auto composerClient1 = nullptr;
-    composerAdapter_->Init(info, composerClient1);
+    composerAdapter_->Init(info, nullptr);
     EXPECT_EQ(composerAdapter_->composerClient_, nullptr);
     info.width = width;
     info.height = height;
@@ -107,12 +106,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
     info.colorGamut = colorGamut;
     info.state = state;
     info.rotation = rotation;
-    auto renderToComposerConn = nullptr;
-    auto composerToRenderConn = nullptr;
-    auto rsVsyncManagerAgent = nullptr;
-    auto composerClient2 =
-        RSRenderComposerClient::Create(renderToComposerConn, composerToRenderConn, rsVsyncManagerAgent);
-    composerAdapter_->Init(info, composerClient2);
+    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
     EXPECT_NE(composerAdapter_->composerClient_, nullptr);
 }
 /**
@@ -352,15 +347,20 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer001, TestSize.Level2)
     auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     surfaceHandler->SetBuffer(cbuffer, acquireFence, {}, 0, bufferOwnerCount);
     surfaceHandler->SetAvailableBufferCount(0);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    surfaceHandler->SetConsumer(consumer);
     composerAdapter_->composerClient_ = nullptr;
     layer = composerAdapter_->CreateLayer(*rsScreenNode);
     ASSERT_EQ(layer, nullptr);
+    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
     layer = composerAdapter_->CreateLayer(*rsScreenNode);
     ASSERT_NE(layer, nullptr);
     
     composerAdapter_->composerClient_ = nullptr;
     layer = composerAdapter_->CreateLayer(*screenDrawable);
     ASSERT_EQ(layer, nullptr);
+    composerAdapter_->Init(info, composerClient);
     layer = composerAdapter_->CreateLayer(*screenDrawable);
     ASSERT_NE(layer, nullptr);
 }
@@ -379,9 +379,13 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
     Rect damage;
     auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    rcdSurfaceRenderNode->SetConsumer(consumer);
     composerAdapter_->composerClient_ = nullptr;
     RSLayerPtr layer = composerAdapter_->CreateLayer(*rcdSurfaceRenderNode);
     ASSERT_EQ(layer, nullptr);
+    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
     layer = composerAdapter_->CreateLayer(*rcdSurfaceRenderNode);
     ASSERT_NE(layer, nullptr);
 }
