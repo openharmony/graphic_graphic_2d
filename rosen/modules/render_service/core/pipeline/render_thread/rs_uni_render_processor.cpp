@@ -23,6 +23,7 @@
 #include "surface_type.h"
 
 #include "common/rs_common_hook.h"
+#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "common/rs_optional_trace.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
@@ -320,14 +321,6 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     }
     layer->SetNeedBilinearInterpolation(params.NeedBilinearInterpolation());
     layer->SetSurface(consumer);
-    auto unmapFunc = [this](int32_t bufferId) {
-        RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
-    };
-    if (consumer == nullptr ||
-        (consumer->RegisterDeleteBufferListener(unmapFunc) != GSERROR_OK)) {
-        RS_LOGE("RSUniRenderProcessor::GetLayerInfo RegisterDeleteBufferListener: failed to register "
-            "UnMapVkImage callback.");
-    }
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);
     if (!offlineResult) {

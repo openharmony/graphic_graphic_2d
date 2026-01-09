@@ -352,6 +352,13 @@ ohos_shared_library("librender_service") {
     sources += [ "core/feature/gpuComposition/rs_image_manager.cpp" ]
   }
 
+  # GPU cache coordinator (coordinate cross-component GPU cache cleanup)
+  if (rs_enable_gpu) {
+    sources += [
+      "core/feature/gpuComposition/rs_gpu_cache_manager.cpp",
+    ]
+  }
+
   if (graphic_2d_feature_product != "wearable") {
     defines += [ "IS_ENABLE_DRM" ]
   }

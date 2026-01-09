@@ -61,6 +61,7 @@
 #include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -92,6 +93,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
+#include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
@@ -514,7 +516,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         OnUniRenderDraw();
         UIExtensionNodesTraverseAndCallback();
         if (!isUniRender_) {
-            RSMainThread::GPUCompositonCacheGuard guard;
             ReleaseAllNodesBuffer();
         }
         SendCommands();
@@ -640,6 +641,47 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         renderEngine_ = std::make_shared<RSRenderEngine>();
         renderEngine_->Init();
     }
+
+    // Initialize GPU cache manager (owned by RSBaseRenderEngine)
+#ifdef RS_ENABLE_GPU
+    auto renderEngine = GetRenderEngine();
+    if (renderEngine) {
+        auto gpuCacheManager = GPUCacheManager::Create(renderEngine);
+        if (!gpuCacheManager) {
+            RS_LOGE("RSMainThread::Init: Failed to create GPUCacheManager");
+        } else {
+            // Set GPU cache manager to RenderEngine
+            renderEngine->SetGPUCacheManager(gpuCacheManager);
+
+            // Set Composer Client map provider callback (UniRender mode only)
+            if (isUniRender_) {
+                gpuCacheManager->SetComposerClientMapProvider(
+                    [this]() -> GPUCacheManager::ComposerClientMap {
+                        return RSUniRenderThread::Instance().GetRSRenderComposerClientMap();
+                    }
+                );
+            }
+
+            // Set GPUCacheManager callback to RSSubThreadManager (dependency injection)
+            RSSubThreadManager::Instance()->SetGetGPUCacheManagerFunc(
+                [renderEngine]() -> std::shared_ptr<GPUCacheManager> {
+                    return renderEngine->GetGPUCacheManager();
+                }
+            );
+
+            // Set global GPU cache cleanup callback for RSSurfaceHandler (dependency injection)
+            RSSurfaceHandler::SetGPUCacheCleanupCallback(
+                [renderEngine](const std::set<uint64_t>& bufferIds) {
+                    auto cacheManager = renderEngine->GetGPUCacheManager();
+                    if (cacheManager) {
+                        cacheManager->ScheduleBufferCleanup(bufferIds);
+                    }
+                }
+            );
+        }
+    }
+#endif
+
     RSOpincManager::Instance().SetOPIncSwitch(OPIncParam::IsOPIncEnable());
     RSUifirstManager::Instance().ReadUIFirstCcmParam();
     auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
@@ -2161,38 +2203,6 @@ void RSMainThread::ProcessUiCaptureTasks()
         captureTask();
     }
 #endif
-}
-
-void RSMainThread::StartGPUDraw()
-{
-    gpuDrawCount_.fetch_add(1, std::memory_order_relaxed);
-}
-
-void RSMainThread::EndGPUDraw()
-{
-    if (gpuDrawCount_.fetch_sub(1, std::memory_order_relaxed) == 1) {
-        // gpuDrawCount_ is now 0
-        ClearUnmappedCache();
-    }
-}
-
-void RSMainThread::ClearUnmappedCache()
-{
-    std::set<uint64_t> bufferIds;
-    {
-        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
-        bufferIds.swap(unmappedCacheSet_);
-    }
-    if (!bufferIds.empty()) {
-        auto engine = GetRenderEngine();
-        if (engine) {
-            engine->ClearCacheSet(bufferIds);
-        }
-        auto map = RSUniRenderThread::Instance().GetRSRenderComposerClientMap();
-        for (const auto& [_, client] : map) {
-            client->ClearRedrawGPUCompositionCache(bufferIds);
-        }
-    }
 }
 
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)

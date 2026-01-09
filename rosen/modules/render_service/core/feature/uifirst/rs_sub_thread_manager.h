@@ -20,6 +20,7 @@
 
 #include <condition_variable>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <mutex>
 #include "EGL/egl.h"
@@ -28,8 +29,15 @@
 #include "render_context/render_context.h"
 
 namespace OHOS::Rosen {
+
+// Forward declarations
+class GPUCacheManager;
+
 class RSSubThreadManager {
 public:
+    // Callback type to get GPU cache manager (dependency injection)
+    using GetGPUCacheManagerFunc = std::function<std::shared_ptr<GPUCacheManager>()>;
+
     static RSSubThreadManager *Instance();
     void Start(std::shared_ptr<RenderContext> context);
     void PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask = false);
@@ -50,6 +58,9 @@ public:
     void ScheduleReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
     std::shared_ptr<Drawing::GPUContext> GetGrContextFromSubThread(pid_t tid);
 
+    // Set callback to get GPU cache manager (dependency injection, avoids singleton access)
+    void SetGetGPUCacheManagerFunc(GetGPUCacheManagerFunc func);
+
 private:
     RSSubThreadManager() = default;
     ~RSSubThreadManager() = default;
@@ -69,6 +80,9 @@ private:
     bool needResetContext_ = false;
     bool needCancelTask_ = false;
     bool needCancelReleaseTextureTask_ = false;
+
+    // Callback to get GPU cache manager (dependency injection)
+    GetGPUCacheManagerFunc getGPUCacheManagerCallback_;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_MANAGER_H

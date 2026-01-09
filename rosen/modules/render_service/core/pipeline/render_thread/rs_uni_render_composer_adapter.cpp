@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "common/rs_common_def.h"
+#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -244,14 +245,6 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
         return;
     }
     layer->SetSurface(surface);
-    auto unmapFunc = [this](int32_t bufferId) {
-        RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
-    };
-    if (surface == nullptr ||
-        (surface->RegisterDeleteBufferListener(unmapFunc) != GSERROR_OK)) {
-        RS_LOGE("RSUniRenderComposerAdapter::SetComposeInfoToLayer RegisterDeleteBufferListener: failed to register "
-            "UnMapVkImage callback.");
-    }
     layer->SetBuffer(info.buffer, info.fence);
     layer->SetPreBuffer(info.preBuffer);
     layer->SetZorder(info.zOrder);

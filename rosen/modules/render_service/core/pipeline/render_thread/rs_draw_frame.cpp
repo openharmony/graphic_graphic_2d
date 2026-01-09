@@ -40,6 +40,7 @@
 #endif
 #include "rs_render_composer_manager.h"
 #include "rs_uni_render_thread.h"
+#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -80,8 +81,13 @@ void RSDrawFrame::RenderFrame()
     HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
     StartCheck();
-    // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
-    RSMainThread::GPUCompositonCacheGuard guard;
+
+    // Use GPUGuard to manage GPU draw lifecycle (RAII-based)
+    // The guard will automatically call EndGPUDraw() when destroyed
+    auto renderEngine = unirenderInstance_.GetRenderEngine();
+    auto cacheManager = renderEngine ? renderEngine->GetGPUCacheManager() : nullptr;
+    GPUGuard gpuGuard = cacheManager ? cacheManager->CreateGuard() : GPUGuard(nullptr);
+
     RsFrameReport::GetInstance().UniRenderStart();
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsStart();
     unirenderInstance_.IncreaseFrameCount();

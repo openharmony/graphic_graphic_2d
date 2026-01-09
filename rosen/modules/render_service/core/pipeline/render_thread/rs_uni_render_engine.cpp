@@ -52,10 +52,8 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     if (!params.useCPU) {
         if (hdrHeteroRet) {
             std::shared_ptr<RSSurfaceHandler> hdrSurfaceHandler = RSHeteroHDRManager::Instance().GetHDRSurfaceHandler();
-            RegisterDeleteBufferListener(hdrSurfaceHandler->GetConsumer());
             DrawImage(canvas, params);
         } else {
-            RegisterDeleteBufferListener(surfaceDrawable.GetConsumerOnDraw());
 #ifdef RS_ENABLE_TV_PQ_METADATA
             auto& renderParams = surfaceDrawable.GetRenderParams();
             if (renderParams) {

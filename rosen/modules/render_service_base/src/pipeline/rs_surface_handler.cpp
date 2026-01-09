@@ -21,8 +21,15 @@
 
 namespace OHOS {
 namespace Rosen {
+
+GPUCacheCleanupCallback RSSurfaceHandler::s_gpuCacheCleanupCallback = nullptr;
+
 RSSurfaceHandler::~RSSurfaceHandler() noexcept
 {
+#ifdef RS_ENABLE_GPU
+    // Flush any pending GPU cache cleanup on destruction
+    FlushGPUCacheCleanup();
+#endif
 }
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceHandler::SetConsumer(sptr<IConsumerSurface> consumer)

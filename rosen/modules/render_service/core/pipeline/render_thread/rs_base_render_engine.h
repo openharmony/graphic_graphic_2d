@@ -16,7 +16,12 @@
 #ifndef RS_CORE_PIPELINE_BASE_RENDER_ENGINE_H
 #define RS_CORE_PIPELINE_BASE_RENDER_ENGINE_H
 
+#include <atomic>
+#include <functional>
+#include <map>
 #include <memory>
+#include <mutex>
+#include <set>
 
 #include "hdi_layer_info.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -49,6 +54,14 @@
 
 namespace OHOS {
 namespace Rosen {
+
+// Forward declarations
+class RSRenderComposerClient;
+class GPUCacheManager;
+
+// Composer Client 映射类型（用于 GPU 缓存清理）
+using ComposerClientMap = std::map<ScreenId, std::shared_ptr<RSRenderComposerClient>>;
+using ComposerClientMapFunc = std::function<ComposerClientMap()>;
 namespace DrawableV2 {
 class RSSurfaceRenderNodeDrawable;
 }
@@ -211,6 +224,10 @@ public:
         BufferDrawParam& params);
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
+
+    // GPU cache management
+    std::shared_ptr<GPUCacheManager> GetGPUCacheManager() const { return gpuCacheManager_; }
+    void SetGPUCacheManager(std::shared_ptr<GPUCacheManager> manager) { gpuCacheManager_ = std::move(manager); }
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
         BufferDrawParam& params, VideoInfo& videoInfo);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -226,6 +243,7 @@ public:
 
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
     void ClearCacheSet(const std::set<uint64_t>& unmappedCache);
+
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode();
     static void SetHighContrast(bool enabled);
@@ -264,6 +282,7 @@ public:
     }
 #endif
     void DumpVkImageInfo(std::string &dumpString);
+
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
@@ -281,7 +300,9 @@ private:
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
     std::shared_ptr<RSImageManager> imageManager_ = nullptr;
+    std::shared_ptr<GPUCacheManager> gpuCacheManager_ = nullptr;
     using SurfaceId = uint64_t;
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static bool SetColorSpaceConverterDisplayParameter(
         const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);

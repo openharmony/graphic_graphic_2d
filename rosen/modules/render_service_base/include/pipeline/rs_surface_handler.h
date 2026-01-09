@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SURFACE_HANDLER_H
 
 #include <atomic>
+#include <functional>
 #include <map>
 #include <mutex>
 #include <set>
@@ -35,6 +36,15 @@ namespace OHOS {
 namespace Rosen {
 using OnDeleteBufferFunc = std::function<void(uint32_t)>;
 using OnReleaseBufferFunc = std::function<void(uint64_t)>;
+
+/**
+ * @brief GPU 缓存清理回调类型
+ *
+ * 用于在 RSSurfaceHandler 中注册 GPU 缓存清理回调
+ * 这样 RSSurfaceHandler 不需要直接依赖 RSGPUCacheManager 单例
+ */
+using GPUCacheCleanupCallback = std::function<void(const std::set<uint64_t>&)>;
+
 class RSB_EXPORT RSSurfaceHandler {
 public:
     // indicates which node this handler belongs to.
@@ -354,6 +364,62 @@ public:
         preBuffer_.Reset();
     }
 
+    /**
+     * @brief 注册 GPU 缓存清理回调
+     *
+     * 允许外部组件（如 RSMainThread）注册一个回调函数，
+     * 当 RSSurfaceHandler 需要清理 GPU 缓存时会调用该回调。
+     * 这样 RSSurfaceHandler 不需要直接依赖 RSGPUCacheManager 单例。
+     *
+     * @param callback GPU 缓存清理回调函数
+     *
+     * @note 该回调是线程安全的，可以从任意线程调用
+     * @note 通常在 RSMainThread::Init() 中注册全局清理回调
+     */
+    static void SetGPUCacheCleanupCallback(GPUCacheCleanupCallback callback)
+    {
+        s_gpuCacheCleanupCallback = std::move(callback);
+    }
+
+    /**
+     * @brief 添加 Buffer ID 到 GPU 缓存清理集合
+     *
+     * 将指定的 Buffer ID 添加到待清理集合中
+     *
+     * @param bufferId Buffer ID
+     */
+    void AddGPUCacheToCleanupSet(uint64_t bufferId)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        gpuCacheCleanupSet_.insert(bufferId);
+    }
+
+    /**
+     * @brief 批量添加 Buffer ID 到 GPU 缓存清理集合
+     *
+     * @param bufferIds Buffer ID 集合
+     */
+    void AddGPUCacheToCleanupSet(const std::set<uint64_t>& bufferIds)
+    {
+        if (bufferIds.empty()) {
+            return;
+        }
+        std::lock_guard<std::mutex> lock(mutex_);
+        gpuCacheCleanupSet_.insert(bufferIds.begin(), bufferIds.end());
+    }
+
+    void FlushGPUCacheCleanup()
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (gpuCacheCleanupSet_.empty()) {
+            return;
+        }
+        if (s_gpuCacheCleanupCallback) {
+            s_gpuCacheCleanupCallback(gpuCacheCleanupSet_);
+        }
+        gpuCacheCleanupSet_.clear();
+    }
+
     void ResetBufferAvailableCount()
     {
         bufferAvailableCount_ = 0;
@@ -439,6 +505,12 @@ private:
     bool bufferTransformTypeChanged_ = false;
     uint32_t sourceType_ = 0;
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
+
+    // GPU 缓存清理集合（每个 RSSurfaceHandler 实例维护自己的集合）
+    std::set<uint64_t> gpuCacheCleanupSet_;
+
+    // GPU 缓存清理回调（所有 RSSurfaceHandler 实例共享）
+    static GPUCacheCleanupCallback s_gpuCacheCleanupCallback;
 };
 }
 }
