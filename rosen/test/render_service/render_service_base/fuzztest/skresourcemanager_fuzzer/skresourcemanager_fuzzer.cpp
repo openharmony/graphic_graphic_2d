@@ -61,14 +61,6 @@ bool DoHoldResource(const uint8_t* data, size_t size)
     auto surface = std::make_shared<Drawing::Surface>();
     SKResourceManager::Instance().HoldResource(img);
     SKResourceManager::Instance().HoldResource(surface);
-    return true;
-}
-bool DoReleaseResource(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
     SKResourceManager::Instance().ReleaseResource();
     return true;
 }
