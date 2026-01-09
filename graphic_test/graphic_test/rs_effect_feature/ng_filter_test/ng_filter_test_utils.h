@@ -24,7 +24,9 @@ namespace OHOS::Rosen {
 std::shared_ptr<RSNGMaskBase> CreateMask(RSNGEffectType type);
 std::shared_ptr<RSNGFilterBase> CreateFilter(RSNGEffectType type);
 
+const std::string APPEARANCE_TEST_JPG_PATH = "/data/local/tmp/appearance_test.jpg";
 const std::string BG_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
+const std::string FG_TEST_JPG_PATH = "/data/local/tmp/fg_test.jpg";
 const std::string MASK_RGB_PATH = "/data/local/tmp/Images/maskRGB.png";
 const std::string MASK_SHADOW_PATH = "/data/local/tmp/Images/maskShadow.png";
 const int SCREEN_WIDTH = 1200;

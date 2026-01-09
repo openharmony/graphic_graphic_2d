@@ -69,9 +69,6 @@ constexpr uint32_t SHADOW_RADIUS = 50;
 constexpr uint32_t SHADOW_OFFSET_X = 50;
 constexpr uint32_t SHADOW_OFFSET_Y = 50;
 constexpr uint32_t colorList[NUM_4] = { COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_BLUE };
-
-const std::string FG_TEST_JPG_PATH = "/data/local/tmp/fg_test.jpg";
-const std::string APPEARANCE_TEST_JPG_PATH = "/data/local/tmp/appearance_test.jpg";
 }
 class NGFilterFrostedGlassTest : public RSGraphicTest {
 public:
