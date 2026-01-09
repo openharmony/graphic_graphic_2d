@@ -134,6 +134,50 @@ uint32_t RSColorPicker::GetAverageColor(Drawing::ColorQuad &color) const
     return RS_COLOR_PICKER_SUCCESS;
 }
 
+uint32_t RSColorPicker::GetAverageColorDirect(const std::shared_ptr<Drawing::Pixmap>& pixmap, Drawing::ColorQuad& color)
+{
+    if (pixmap == nullptr) {
+        return RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE;
+    }
+
+    int width = pixmap->GetWidth();
+    int height = pixmap->GetHeight();
+    if (width <= 0 || height <= 0) {
+        return RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE;
+    }
+
+    // Safety check: limit to reasonable size to prevent performance issues
+    // Typical usage is with pre-scaled images (10x10 or 100x100 from GpuScaleImage)
+    constexpr int MAX_PIXELS = 1000000; // 1 megapixel limit (e.g., 1000x1000)
+    int64_t totalPixels = static_cast<int64_t>(width) * height;
+    if (totalPixels > MAX_PIXELS) {
+        ROSEN_LOGW("RSColorPicker::GetAverageColorDirect: pixmap too large (%dx%d=%lld pixels), limit is %d", width,
+            height, static_cast<long long>(totalPixels), MAX_PIXELS);
+        return RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE;
+    }
+
+    uint64_t redSum = 0;
+    uint64_t greenSum = 0;
+    uint64_t blueSum = 0;
+
+    // Directly read all pixels and calculate average without quantization
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            uint32_t pixelColor = pixmap->GetColor(x, y);
+            redSum += (pixelColor >> ARGB_R_SHIFT) & ARGB_MASK;
+            greenSum += (pixelColor >> ARGB_G_SHIFT) & ARGB_MASK;
+            blueSum += (pixelColor >> ARGB_B_SHIFT) & ARGB_MASK;
+        }
+    }
+
+    uint32_t redMean = static_cast<uint32_t>(redSum / totalPixels);
+    uint32_t greenMean = static_cast<uint32_t>(greenSum / totalPixels);
+    uint32_t blueMean = static_cast<uint32_t>(blueSum / totalPixels);
+
+    color = (redMean << ARGB_R_SHIFT) | (greenMean << ARGB_G_SHIFT) | (blueMean << ARGB_B_SHIFT) | 0xFF000000;
+    return RS_COLOR_PICKER_SUCCESS;
+}
+
 bool RSColorPicker::IsBlackOrWhiteOrGrayColor(uint32_t color) const
 {
     HSV hsv = RGB2HSV(color);

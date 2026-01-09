@@ -209,14 +209,9 @@ bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> con
         RS_LOGE("RSPropertyDrawableUtils::PickColor ReadPixel Failed");
         return false;
     }
-    uint32_t errorCode = 0;
-    std::shared_ptr<RSColorPicker> colorPicker = RSColorPicker::CreateColorPicker(dst, errorCode);
-    if (colorPicker == nullptr || errorCode != 0) {
-        RS_LOGE("RSPropertyDrawableUtils::PickColor CreateColorPicker failed");
-        return false;
-    }
-    if (colorPicker->GetAverageColor(colorPicked) != 0) {
-        RS_LOGE("RSPropertyDrawableUtils::PickColor PickColor failed");
+    // Use direct average calculation to avoid quantization artifacts
+    if (RSColorPicker::GetAverageColorDirect(dst, colorPicked) != 0) {
+        RS_LOGE("RSPropertyDrawableUtils::PickColor GetAverageColorDirect failed");
         return false;
     }
     return true;
