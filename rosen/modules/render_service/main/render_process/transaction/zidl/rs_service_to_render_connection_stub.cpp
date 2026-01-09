@@ -684,7 +684,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RS_LOGI("dmulti_process HGM_FORCE_UPDATE_TASK flag[%{public}d] fromWhom[%{public}s]", flag, fromWhom.c_str());
+            RS_LOGI("HGM_FORCE_UPDATE_TASK flag[%{public}d] fromWhom[%{public}s]", flag, fromWhom.c_str());
             HgmForceUpdateTask(flag, fromWhom);
             break;
         }

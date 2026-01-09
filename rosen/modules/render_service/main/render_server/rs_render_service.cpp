@@ -65,8 +65,8 @@ constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
 
 bool RSRenderService::Init()
 {
+    RS_LOGI("%{public}s: renderService init", __func__);
     // Set boot voting to false
-    RS_LOGD("dmulti_process %{public}s: renderService init", __func__);
     system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "false");
 
     // Initialize runner_, handler_, and watchdog
@@ -75,7 +75,7 @@ bool RSRenderService::Init()
     uint32_t timeForWatchDog = WATCHDOG_TIMEVAL;
     int ret = HiviewDFX::Watchdog::GetInstance().AddThread("RenderService", handler_, timeForWatchDog);
     if (ret != 0) {
-        RS_LOGW("dmulti_process Add watchdog thread failed");
+        RS_LOGW("%{public}s: Add watchdog thread failed", __func__);
     }
 
     // Enable tcache
@@ -97,15 +97,14 @@ bool RSRenderService::Init()
 
     // Register with system ability manager
     if (!SAMgrRegister()) {
-        RS_LOGE("dmulti_process %{public}s: samgr registration failed", __func__);
+        RS_LOGE("%{public}s: samgr registration failed", __func__);
         return false;
     }
 
     // Set boot voting to true
-    RS_LOGD("dmulti_process %{public}s: Set boot render service started true", __func__);
     system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "true");
 
-    RS_LOGD("dmulti_process %{public}s: render service init successfully", __func__);
+    RS_LOGI("%{public}s: render service init successfully", __func__);
     return true;
 }
 
@@ -117,7 +116,7 @@ void RSRenderService::InitCCMConfig()
 
 void RSRenderService::CoreComponentsInit()
 {
-    RS_LOGD("dmulti_process %{public}s: CoreComponentsInit", __func__);
+    RS_LOGI("%{public}s: CoreComponentsInit", __func__);
     // vsyncManager init
     VsyncComponentInit();
     
@@ -153,6 +152,7 @@ void RSRenderService::HgmInit()
 
 void RSRenderService::FeatureComponentInit()
 {
+    RS_LOGI("%{public}s: FeatureComponentInit init", __func__);
     // vk init
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
@@ -224,30 +224,30 @@ void RSRenderService::VsyncComponentInit()
 
 void RSRenderService::RenderProcessManagerInit()
 {
-    RS_LOGD("dmulti_process %{public}s: renderProcessManager_ init", __func__);
+    RS_LOGI("%{public}s: renderProcessManager_ init", __func__);
     // TODO: mainThread_ need to be removed in render_service asap
     mainThread_ = RSMainThread::Instance();
     renderProcessManager_ = RSRenderProcessManager::Create(*this);
     auto screenManagerListener = sptr<ScreenManagerListener>::MakeSptr(*this);
     screenManager_->RegisterCoreListener(screenManagerListener);
     if (screenManager_->Init(handler_)) {
-        RS_LOGI("ScreenManager init Success");
+        RS_LOGI("%{public}s: ScreenManager init Success", __func__);
     }
 }
 
 bool RSRenderService::SAMgrRegister()
 {
-    RS_LOGD("dmulti_process samgr registration start");
+    RS_LOGI("%{public}s: samgr registration start", __func__);
     // Wait samgr ready for up to 5 seconds to ensure adding service to samgr
     int status = WaitParameter("bootevent.samgr.ready", "true", 5);
     if (status != 0) {
-        RS_LOGE("dmulti_process %{public}s: wait SAMGR error, return value [%{public}d]", __func__, status);
+        RS_LOGE("%{public}s: wait SAMGR error, return value [%{public}d]", __func__, status);
         return false;
     }
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
-        RS_LOGE("dmulti_process %{public}s: GetSystemAbilityManager fail", __func__);
+        RS_LOGE("%{public}s: GetSystemAbilityManager fail", __func__);
         return false;
     }
     
@@ -281,7 +281,7 @@ DVSyncFeatureParam RSRenderService::InitDVSyncParams()
 void RSRenderService::Run()
 {
     if (runner_) {
-        RS_LOGD("dmulti_process MainProcess Run");
+        RS_LOGI("%{public}s: MainProcess Run", __func__);
         runner_->Run();
     }
 }

@@ -50,7 +50,7 @@ void RSRenderProcessManager::OnHwcEvent(uint32_t deviceId, uint32_t eventId, con
 {
     auto serviceToRenderConns = GetServiceToRenderConns();
     for (const auto& conn : serviceToRenderConns) {
-        RS_LOGI("dmulti_process %{public}s: OnHwcEvent start", __func__);
+        RS_LOGI("%{public}s: OnHwcEvent start", __func__);
         conn->HandleHwcEvent(deviceId, eventId, eventData);
     }
 }
@@ -59,7 +59,7 @@ void RSRenderProcessManager::OnScreenBacklightChanged(ScreenId id, uint32_t leve
 {
     auto conn = GetServiceToRenderConn(id);
     if (conn == nullptr) {
-        RS_LOGE("dmulti_process %{public}s conn is nullptr", __func__);
+        RS_LOGE("%{public}s conn is nullptr", __func__);
         return;
     }
     conn->OnScreenBacklightChanged(id, level);
