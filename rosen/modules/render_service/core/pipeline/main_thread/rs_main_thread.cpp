@@ -1842,15 +1842,14 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool enableHwcForMirrorMode = RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
-    isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ || isFoldScreenSwitching ||
-        hasColorFilter || CheckOverlayDisplayEnable() ||
-        (isMultiDisplay && !hasProtectedLayer_ && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode));
-    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
-        "isFoldScreenSwitching:%d doWindowAnimate_:%d hasColorFilter:%d overlayDisplayEnable:%d isMultiDisplay:%d"
-        "hasProtectedLayer:%d isExpandScreenOrWiredProjectionCase:%d enableHwcForMirrorMode:%d",
-        isHardwareForcedDisabled_, isFoldScreenSwitching, doWindowAnimate_.load(), hasColorFilter,
-        CheckOverlayDisplayEnable(), isMultiDisplay, hasProtectedLayer_, isExpandScreenOrWiredProjectionCase,
-        enableHwcForMirrorMode);
+    isHardwareForcedDisabled_ = (!hasProtectedLayer_ && (isHardwareForcedDisabled_ || doWindowAnimate_ ||
+        isFoldScreenSwitching || (isMultiDisplay && ( (isExpandScreenOrWiredProjectionCase ||
+        !enableHwcForMirrorMode)) || hasColorFilter)) || CheckOverlayDisplayEnable();
+    RS_OPTIONAL_TRACE_FMT("hwc debug: CheckIfHardwareForcedDisabled hasProtectedLayer:%d isHardwareForcedDisabled_:%d"
+        " doWindowAnimate_:%d isFoldScreenSwitching:%d isMultiDisplay:%d isExpandScreenOrWiredProjectionCase:%d"
+        " enableHwcForMirrorMode:%d hasColorFilter:%d overlayDisplayEnable:%d",
+        hasProtectedLayer_, isHardwareForcedDisabled_, doWindowAnimate_.load(), isFoldScreenSwitching, isMultiDisplay, 
+        isExpandScreenOrWiredProjectionCase, enableHwcForMirrorMode, hasColorFilter, CheckOverlayDisplayEnable());
     if (isMultiDisplay && !isHardwareForcedDisabled_) {
         // Disable direct composition when hardware composer is enabled for virtual screen
         doDirectComposition_ = false;
