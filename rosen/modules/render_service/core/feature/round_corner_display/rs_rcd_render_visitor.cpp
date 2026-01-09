@@ -57,6 +57,7 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     bufferOwnerCount->bufferReleaseCb_ = [](uint64_t seqNum){
         RSUniRenderThread::Instance().ReleaseBufferById(seqNum);
     };
+    RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, buffer, SyncFence::InvalidFence());
 
     node.SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
 
@@ -99,6 +100,7 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
 
     sptr<SurfaceBuffer> buffer = node.GetBuffer();
     if (!resourceChanged && buffer != nullptr) {
+        node.ResetCurrentFrameBufferConsumed();
         uniProcessor_->ProcessRcdSurface(node);
         return true;
     }

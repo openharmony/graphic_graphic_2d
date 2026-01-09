@@ -176,6 +176,7 @@ void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::
             continue;
         }
 
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseUniOnDrawBuffers seqNum %u", uint32_t(seqNum));
         AddPendingReleaseBuffer(bufferOwnerCount->seqNum_, uniFence);
         if (!bufferOwnerCount->CheckLastUniBufferOwner(uniBufferCount->seqNum_)) {
             layer->SetBufferOwnerCount(bufferOwnerCount);
