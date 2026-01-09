@@ -28,10 +28,8 @@ public:
     virtual ~RSComposerToRenderConnectionProxy() noexcept = default;
 
     int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo) override;
-    void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) override {};
-
-    // LPP
-    int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds) override;
+    int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds) override;
+    void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) override {}
     void RegisterJudgeLppLayerCB(JudgeLppLayerCB callback) override {}
 
 private:

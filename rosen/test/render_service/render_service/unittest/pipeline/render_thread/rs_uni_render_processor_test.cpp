@@ -114,7 +114,7 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
     ScreenId screenId = 0;
     std::weak_ptr<RSContext> context = {};
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, nullptr);
+        auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, 0);
         RSScreenRenderNode node(nodeId, screenId, context);
         EXPECT_EQ(processor->Init(node, 0, 0, nullptr), false);
     }
@@ -132,7 +132,7 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
     ScreenId screenId = 0;
     std::weak_ptr<RSContext> context = {};
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, nullptr);
+        auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, 0);
         ASSERT_NE(processor, nullptr);
         RSScreenRenderNode node(nodeId, screenId, context);
         auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();

@@ -31,7 +31,7 @@ using OnReleaseLayerBuffersCB = std::function<void(std::unordered_map<RSLayerId,
 
 class RSC_EXPORT RSComposerContext : public std::enable_shared_from_this<RSComposerContext> {
 public:
-    RSComposerContext();
+    RSComposerContext(const sptr<IRSRenderToComposerConnection>& conn);
     RSComposerContext(const RSComposerContext&) = delete;
     RSComposerContext(const RSComposerContext&&) = delete;
     RSComposerContext& operator=(const RSComposerContext&) = delete;
@@ -40,7 +40,6 @@ public:
 
 protected:
     std::shared_ptr<RSLayerTransactionHandler> GetRSLayerTransaction() const;
-    void SetRenderComposerClientConnection(const sptr<IRSRenderToComposerConnection>& conn);
 
     void AddRSLayer(const std::shared_ptr<RSLayer>& rsLayer);
     void RemoveRSLayer(RSLayerId layerId);
@@ -54,10 +53,10 @@ protected:
     void ClearFrameBuffers();
     void DumpLayersInfo(std::string &dumpString);
     void DumpCurrentFrameLayers();
-    void RegistOnReleaseLayerBuffersCB(OnReleaseLayerBuffersCB onReleaseLayerBuffersCB)
+    void RegisterOnReleaseLayerBuffersCB(OnReleaseLayerBuffersCB onReleaseLayerBuffersCB)
     {
         if (onReleaseLayerBuffersCB_ == nullptr) {
-            onReleaseLayerBuffersCB_ = onReleaseLayerBuffersCB;
+            onReleaseLayerBuffersCB_ = std::move(onReleaseLayerBuffersCB);
         }
     }
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);

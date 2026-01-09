@@ -32,7 +32,7 @@ public:
     }
 
     RSUniRenderProcessor() = default;
-    RSUniRenderProcessor(std::shared_ptr<RSRenderComposerClient> composerClient);
+    RSUniRenderProcessor(ScreenId screenId);
     ~RSUniRenderProcessor() noexcept override;
 
     bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,

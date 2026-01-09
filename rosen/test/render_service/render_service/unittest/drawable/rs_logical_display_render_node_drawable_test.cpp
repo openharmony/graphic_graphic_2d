@@ -276,7 +276,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest004, TestSize.Level1)
     renderParams->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     mirroredDisplayDrawable_->renderParams_ = nullptr;
     auto uniParams = std::make_unique<RSRenderThreadParams>();
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     uniParams->SetRSProcessor(processor);
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
     displayDrawable_->OnDraw(*drawingFilterCanvas_);
@@ -307,7 +307,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest005, TestSize.Level1)
     renderParams->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     mirroredDisplayDrawable_->renderParams_ = nullptr;
     auto uniParams = std::make_unique<RSRenderThreadParams>();
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     uniParams->SetRSProcessor(processor);
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
     displayDrawable_->OnDraw(*drawingFilterCanvas_);
@@ -1863,7 +1863,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDrawTest001, T
 
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *renderParams, processor);
 }
 
@@ -1880,7 +1880,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDrawTest002, T
 
     mirroredDisplayDrawable_->renderParams_ = nullptr;
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *renderParams, processor);
     EXPECT_EQ(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
 }
@@ -1899,7 +1899,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDrawTest003, T
     auto isExternalScreenSecure = MultiScreenParam::IsExternalScreenSecure();
     MultiScreenParam::SetExternalScreenSecure(true);
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *renderParams, processor);
     EXPECT_TRUE(MultiScreenParam::IsExternalScreenSecure());
     MultiScreenParam::SetExternalScreenSecure(isExternalScreenSecure);
@@ -1922,7 +1922,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDrawTest004, T
         static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get());
     mirroredRenderParams->specialLayerManager_ = slManager;
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *renderParams, processor);
     EXPECT_TRUE(mirroredRenderParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY));
 }
@@ -1941,7 +1941,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDrawTest005, T
 
     mirroredScreenDrawable_->renderParams_ = nullptr;
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *renderParams, processor);
     EXPECT_EQ(mirroredScreenDrawable_->GetRenderParams(), nullptr);
 }
@@ -1959,7 +1959,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDrawTest006, T
     ASSERT_NE(mirroredScreenDrawable_, nullptr);
 
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *renderParams, processor);
 }
 
@@ -1974,7 +1974,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDrawTest007, T
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(mirroredDisplayDrawable_, nullptr);
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     RSSpecialLayerManager slManager;
     slManager.Set(SpecialLayerType::HAS_SECURITY, true);
     auto mirroredRenderParams =
@@ -1997,7 +1997,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDrawTest008, T
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(mirroredDisplayDrawable_, nullptr);
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     RSSpecialLayerManager slManager;
     slManager.Set(SpecialLayerType::HAS_SECURITY, false);
     auto mirroredRenderParams =
@@ -2024,7 +2024,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDrawTest009, T
 
     // default, hasSecSurface is false and isExternalScreenSecure is false
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
     MultiScreenParam::SetExternalScreenSecure(false);
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *renderParams, processor);
 
@@ -2648,7 +2648,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest, TestSize.Level1
 
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
     auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     RSRenderThreadParams uniParam;
     displayDrawable_->DrawMirror(*params, virtualProcesser, uniParam);
@@ -2674,7 +2674,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest001, TestSize.Lev
 
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
     auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     RSRenderThreadParams uniParam;
 
@@ -2724,7 +2724,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest001_SKP, TestSize
 
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
     auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     RSRenderThreadParams uniParam;
 
@@ -2773,7 +2773,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest002, TestSize.Lev
 
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
     auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     RSRenderThreadParams uniParam;
 
@@ -2823,7 +2823,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest002_SKP, TestSize
 
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
     auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     RSRenderThreadParams uniParam;
 
@@ -2956,7 +2956,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirror007, TestSize.Level1)
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
     mirroredScreenDrawable_->SetAccumulateDirtyInSkipFrame(false);
     auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     Drawing::Canvas drawingCanvas;
     virtualProcesser->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);

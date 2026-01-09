@@ -74,13 +74,6 @@ void RSLayerContextTest::TearDown() {}
  */
 HWTEST_F(RSLayerContextTest, InitContextTest, Function | SmallTest | Level2)
 {
-    auto context = std::make_shared<RSComposerContext>();
-    EXPECT_NE(context, nullptr);
-
-    auto handle = context->GetRSLayerTransaction();
-    EXPECT_NE(handle, nullptr);
-
-    context->rsLayerTransactionHandler_ = nullptr;
     auto output = std::make_shared<HdiOutput>(screenId);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
@@ -88,10 +81,12 @@ HWTEST_F(RSLayerContextTest, InitContextTest, Function | SmallTest | Level2)
     auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
     auto connect = sptr<RSRenderToComposerConnection>::MakeSptr("name", screenId, renderComposerAgent);
     // RSComposerContext API renamed
-    context->SetRenderComposerClientConnection(connect);
+    auto context = std::make_shared<RSComposerContext>(connect);
+    EXPECT_NE(context, nullptr);
 
+    auto handle = context->GetRSLayerTransaction();
+    EXPECT_NE(handle, nullptr);
     context->rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
-    context->SetRenderComposerClientConnection(connect);
     EXPECT_NE(context->rsLayerTransactionHandler_->rsComposerConnection_, nullptr);
 }
 
@@ -103,10 +98,6 @@ HWTEST_F(RSLayerContextTest, InitContextTest, Function | SmallTest | Level2)
  */
 HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
 {
-    auto context = std::make_shared<RSComposerContext>();
-    EXPECT_NE(context, nullptr);
-
-    context->rsLayerTransactionHandler_ = nullptr;
     auto output = std::make_shared<HdiOutput>(0);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
@@ -115,6 +106,10 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
     sptr<IRSRenderToComposerConnection> ifaceConn = conn;
     auto client = RSRenderComposerClient::Create(ifaceConn, nullptr, nullptr);
     auto layer = std::make_shared<RSSurfaceLayer>();
+    auto context = std::make_shared<RSComposerContext>(ifaceConn);
+    EXPECT_NE(context, nullptr);
+
+    context->rsLayerTransactionHandler_ = nullptr;
     context->AddRSLayer(layer);
     ComposerInfo composerInfo;
     EXPECT_FALSE(context->CommitLayers(composerInfo));

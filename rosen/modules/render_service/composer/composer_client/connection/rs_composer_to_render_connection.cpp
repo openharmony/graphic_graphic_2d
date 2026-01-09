@@ -41,7 +41,7 @@ int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInf
 
 void RSComposerToRenderConnection::RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback)
 {
-    releaseLayerBuffersCB_ = callback;
+    releaseLayerBuffersCB_ = std::move(callback);
 }
 
 int32_t RSComposerToRenderConnection::NotifyLppLayerToRender(

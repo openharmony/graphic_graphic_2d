@@ -922,7 +922,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor->processor_ =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, nullptr);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
     EXPECT_TRUE(rsRenderServiceVisitor != nullptr);
 }
@@ -939,7 +939,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor->processor_ =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, nullptr);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsRenderServiceVisitor->isSecurityDisplay_ = true;
     rsSurfaceRenderNode->SetSecurityLayer(true);
     rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
@@ -958,7 +958,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor->processor_ =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, nullptr);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(0.0f);
     rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
     EXPECT_TRUE(rsRenderServiceVisitor != nullptr);
@@ -976,7 +976,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor->processor_ =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, nullptr);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
     ASSERT_EQ(true, rsSurfaceRenderNode->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
     rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
