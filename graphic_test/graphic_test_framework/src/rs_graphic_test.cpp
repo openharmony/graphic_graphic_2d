@@ -335,9 +335,10 @@ bool RSGraphicTest::IsSingleTest()
 
 std::string RSGraphicTest::GetImageSavePath(const std::string path)
 {
-    std::string imagePath = "/data/local/";
-    size_t posCnt = path.rfind("/") + 1;
-    std::string subPath = path.substr(0, posCnt);
+    std::string imagePath = "/data/local/graphic_test";
+    size_t preCnt = path.find("/");
+    size_t posCnt = path.rfind("/");
+    std::string subPath = path.substr(preCnt, posCnt - preCnt + 1);
     imagePath.append(subPath);
 
     namespace fs = std::filesystem;
