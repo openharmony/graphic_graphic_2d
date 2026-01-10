@@ -20,7 +20,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-
 bool SystemProperties::GetHMSymbolEnable()
 {
     static bool isHMSymbolEnable =
@@ -47,7 +46,7 @@ bool SystemProperties::IsVkImageDfxEnabled()
 bool SystemProperties::IsDebugGpuMem()
 {
     static bool isDebugEnabled =
-        (std::atoi(OHOS::system::GetParameter("persist.sys.graphic.debug.gpumem", "0").c_str()) != 0);
+        (OHOS::system::GetParameter("persist.sys.graphic.debug.gpumem", "0") != "0");
     return isDebugEnabled;
 }
 #endif

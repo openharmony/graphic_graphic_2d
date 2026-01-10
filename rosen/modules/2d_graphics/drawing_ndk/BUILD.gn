@@ -103,18 +103,12 @@ template("drawing_ndk_source_set") {
       "$drawing_utils_root/native_pixel_map_manager.cpp",
     ]
 
-    if (is_arkui_x) {
-      defines += [ "CROSS_PLATFORM" ]
-    }
     if (rs_enable_gpu) {
       defines += [ "RS_ENABLE_GPU" ]
       sources += [
         "$drawing_utils_root/drawing_gpu_context_manager.cpp",
         "$drawing_utils_root/drawing_surface_utils.cpp",
       ]
-    }
-    if (is_emulator) {
-      defines += [ "ROSEN_EMULATOR" ]
     }
 
     include_dirs += [

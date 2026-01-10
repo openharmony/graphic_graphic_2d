@@ -100,17 +100,9 @@ public:
     void SetStoreCachePath(const std::string& filename);
     std::string GetStoreCachePath() const;
 
-    /**
-     * @brief cache small Texture on UnUni devices.
-     * @param isUniRender isUniRender A boolean value indicating whether to use the unified rendering mode.
-     */
-    void SetIsUniRender(bool isUniRender);
-    bool GetIsUniRender() const;
-
 private:
     PersistentCache* persistentCache_ = nullptr;
     bool allowPathMaskCaching_ = true;
-    bool isUniRender_ = true;
     std::string filePath_ = "";
 };
 
@@ -265,7 +257,7 @@ public:
     /**
      * @brief                         Register LeashWindow callback function
      *                                provided callback function when gpu reset with device lost error.
-     * @param LeashWindowCallback     callback function for skia recall
+     * @param vulkanErrorCallback     callback function for skia recall
      */
     void RegisterVulkanErrorCallback(
         const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback);
@@ -297,13 +289,6 @@ public:
      * @param tag               GPU resource tag used to dump memory statistics.
      */
     void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const;
-
-    /**
-     * @brief                   Enumerates all cached GPU resources and return their memory.
-     * @param traceMemoryDump   A trace to memory dump.
-     * @param tag               GPU resource tag used to dump memory statistics.
-     */
-    uint64_t NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const;
 
     /**
      * @brief                   Enumerates all cached GPU resources and dumps their memory to traceMemoryDump.

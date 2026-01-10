@@ -46,9 +46,6 @@ void ParticleRippleField::UpdateRipple(float deltaTime)
 
 float ParticleRippleField::CalculateForceStrength(float distance)
 {
-    const float k = 2.0f * static_cast<float>(M_PI) / std::max(1e-3f, wavelength_);
-    const float w = waveSpeed_ * k;
-
     const float t  = std::max(0.0f, lifeTime_);
     const float ct = waveSpeed_ * t;
 
@@ -67,8 +64,32 @@ float ParticleRippleField::CalculateForceStrength(float distance)
 
     const float radialAtten = 1.0f / (1.0f + 0.002f * distance);
 
-    const float phase = k * distance + w * t;
-    float disp = amplitude_ * decay * radialAtten * std::sin(phase);
+    const float sigma = std::max(1.0f, 0.15f * wavelength_);
+    const float d = distance - ct;
+
+    float band = 0.0f;
+    if (std::abs(d) <= sigma) {
+        const float x = d / sigma;
+        band = 0.5f * (1.0f + std::cos(static_cast<float>(M_PI) * x));
+    }
+
+    const float tailW     = 0.25f * wavelength_;
+    const float residual  = 0.50f;
+    const float areaRatio = 1.0f - residual;
+
+    float recoilCoeff = areaRatio * sigma * (static_cast<float>(M_PI) * 0.5f)
+                        / std::max(1e-3f, tailW);
+    
+    const float dtTail = 0.5f * tailW / std::max(1e-3f, waveSpeed_);
+    recoilCoeff *= std::exp(attenuation_ * dtTail);
+
+    float tail = 0.0f;
+    if (d < 0.0f && d >= -tailW) {
+        float u = (-d) / std::max(1e-6f, tailW);
+        tail = recoilCoeff * std::sin(static_cast<float>(M_PI) * u);
+    }
+
+    float disp = amplitude_ * decay * radialAtten * (band - tail);
 
     return gate * disp;
 }
