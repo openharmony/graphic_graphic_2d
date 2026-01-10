@@ -34,7 +34,9 @@ struct ReleaseLayerBuffersInfo {
     std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>> releaseBufferFenceVec = {};
     int64_t lastSwapBufferTime = 0; /* 每帧回执时长 */
 };
-using ReleaseLayerBuffersCB = std::function<void(ReleaseLayerBuffersInfo& releaseLayerInfo)>;
+class RSRenderComposerClient;
+using ReleaseLayerBuffersCB = std::function<void(ReleaseLayerBuffersInfo& releaseLayerInfo,
+    const std::shared_ptr<RSRenderComposerClient>& composerClient)>;
 using JudgeLppLayerCB = std::function<void(uint64_t, const std::unordered_set<uint64_t>&)>;
 
 class IRSComposerToRenderConnection : public IRemoteBroker {
@@ -46,6 +48,7 @@ public:
 
     virtual int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo) = 0;
     virtual void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) = 0;
+    virtual void SetRSRenderComposerClient(const std::shared_ptr<RSRenderComposerClient>& composerClient) = 0;
 
     // LPP
     virtual int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds) = 0;

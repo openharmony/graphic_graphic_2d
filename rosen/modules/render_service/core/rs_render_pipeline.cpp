@@ -161,10 +161,12 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
     std::shared_ptr<RSRenderComposerClient> composerClient = nullptr;
     if (!rsScreenProperty->IsVirtual()) {
         composerToRenderConn->RegisterReleaseLayerBuffersCB(
-            std::bind(&RSUniRenderThread::ReleaseLayerBuffers, uniRenderThread_, std::placeholders::_1));
+            std::bind(&RSUniRenderThread::ReleaseLayerBuffers, uniRenderThread_,
+                std::placeholders::_1, std::placeholders::_2));
         RegisterJudgeLppLayerCB(composerToRenderConn);
         composerClient = RSRenderComposerClient::Create(renderToComposerConn, composerToRenderConn,
             rsVsyncManagerAgent);
+        composerToRenderConn->SetRSRenderComposerClient(composerClient);
         if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
             composerClient->SetOutput(output);
         }

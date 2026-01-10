@@ -596,10 +596,10 @@ void RSUniRenderThread::NotifyScreenNodeBufferReleased(ScreenId curScreenId)
     tmpCond->screenNodeBufferReleasedCond.notify_one();
 }
 
-void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo)
+void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo,
+    const std::shared_ptr<RSRenderComposerClient>& composerClient)
 {
     ScreenId curScreenId = releaseLayerInfo.screenId;
-    std::shared_ptr<RSRenderComposerClient> composerClient = GetRSRenderComposerClient(curScreenId);
     if (composerClient == nullptr) {
         RS_LOGE("GetRSRenderComposerClient failed, screenId:%{public}" PRIu64, curScreenId);
         return;
