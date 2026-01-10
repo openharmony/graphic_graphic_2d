@@ -1308,51 +1308,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyRtlClusterIndexOffset00
 }
 
 /*
- * @tc.name: TypographyGetDumpInfoTest
- * @tc.desc: test for get dump info
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
-{
-    OHOS::Rosen::TypographyStyle typographyStyle;
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
-        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
-        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
-    ASSERT_NE(typographyCreate, nullptr);
-    OHOS::Rosen::TextStyle style1;
-    style1.fontSize = 50;
-    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
-    style1.fontWeight = FontWeight::W500;
-    style1.fontWidth = FontWidth::SEMI_EXPANDED;
-    style1.fontStyle = FontStyle::OBLIQUE;
-    std::u16string text = u"你好, 测试GetDumpInfo中返回的数据, 是否符合预期";
-    typographyCreate->PushStyle(style1);
-    typographyCreate->AppendText(text);
-    OHOS::Rosen::TextStyle style2;
-    style2.fontSize = 60;
-    style2.color = Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0);
-    style2.fontWeight = FontWeight::W300;
-    style2.fontWidth = FontWidth::EXPANDED;
-    style2.fontStyle = FontStyle::ITALIC;
-    typographyCreate->PushStyle(style2);
-    typographyCreate->AppendText(text);
-    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    double maxWidth = 500;
-    typography->Layout(maxWidth);
-
-    OHOS::Rosen::Drawing::Canvas canvas;
-    typography->Paint(&canvas, 0, 0);
-    std::unique_ptr<SPText::Paragraph> paragraphTemp = nullptr;
-    AdapterTxt::Typography* typographyImpl = static_cast<AdapterTxt::Typography*>(typography.get());
-    typographyImpl->paragraph_.swap(paragraphTemp);
-    EXPECT_EQ(typography->GetDumpInfo(), "");
-    typographyImpl->paragraph_.swap(paragraphTemp);
-    EXPECT_EQ(typography->GetDumpInfo(), g_expectDumpInfo);
-}
-
-/*
  * @tc.name: TypographyStyleEllipsisTest01
  * @tc.desc: test for MULTILINE_HEAD ellipsisModal in normal situation.
  * @tc.type: FUNC
@@ -1528,5 +1483,49 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest06, TestSize.Leve
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
 
+/*
+ * @tc.name: TypographyGetDumpInfoTest
+ * @tc.desc: test for get dump info
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    style1.fontWeight = FontWeight::W500;
+    style1.fontWidth = FontWidth::SEMI_EXPANDED;
+    style1.fontStyle = FontStyle::OBLIQUE;
+    std::u16string text = u"你好, 测试GetDumpInfo中返回的数据, 是否符合预期";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::TextStyle style2;
+    style2.fontSize = 60;
+    style2.color = Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0);
+    style2.fontWeight = FontWeight::W300;
+    style2.fontWidth = FontWidth::EXPANDED;
+    style2.fontStyle = FontStyle::ITALIC;
+    typographyCreate->PushStyle(style2);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    std::unique_ptr<SPText::Paragraph> paragraphTemp = nullptr;
+    AdapterTxt::Typography* typographyImpl = static_cast<AdapterTxt::Typography*>(typography.get());
+    typographyImpl->paragraph_.swap(paragraphTemp);
+    EXPECT_EQ(typography->GetDumpInfo(), "");
+    typographyImpl->paragraph_.swap(paragraphTemp);
+    EXPECT_EQ(typography->GetDumpInfo(), g_expectDumpInfo);
+}
 } // namespace Rosen
 } // namespace OHOS
