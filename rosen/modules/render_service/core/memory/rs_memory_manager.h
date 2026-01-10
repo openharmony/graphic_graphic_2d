@@ -25,7 +25,7 @@
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {
-using GpuPidInfo = std::unordered_map<pid_t, std::tuple<float, std::vector<std::pair<std::string, float>>>>;
+
 class MemoryManager {
 public:
     static void DumpMemoryUsage(DfxString& log, std::string& type, bool isLite = false);
@@ -71,8 +71,6 @@ private:
         Drawing::GPUResourceTag* tag, std::string& name);
     static float DumpGpuCacheNew(DfxString& log, const Drawing::GPUContext* gpuContext,
         Drawing::GPUResourceTag* tag);
-    static void DumpGpuCacheWithPidInfo(DfxString& log, const Drawing::GPUContext* gpuContext,
-        Drawing::GPUResourceTag* tag, std::string& name, GpuPidInfo& info);
     static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext,
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
     //jemalloc info
