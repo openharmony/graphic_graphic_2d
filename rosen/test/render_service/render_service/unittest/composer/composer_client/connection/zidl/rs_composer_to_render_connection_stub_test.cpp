@@ -40,7 +40,8 @@ HWTEST_F(RSComposerToRenderConnectionStubTest, Stub_OnRemoteRequest_ReleaseLayer
 {
     RSComposerToRenderConnection stub;
     ReleaseLayerBuffersInfo captured {};
-    stub.RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) { captured = info; });
+    stub.RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info,
+        const std::shared_ptr<RSRenderComposerClient>& composerClient) { captured = info; });
 
     MessageParcel data;
     MessageParcel reply;
@@ -113,7 +114,8 @@ HWTEST_F(RSComposerToRenderConnectionStubTest, Stub_OnRemoteRequest_ReleaseLayer
     RSComposerToRenderConnection stub;
     bool called = false;
     size_t capturedSize = 0;
-    stub.RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
+    stub.RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info,
+        const std::shared_ptr<RSRenderComposerClient>& composerClient) {
         called = true;
         capturedSize = info.releaseBufferFenceVec.size();
     });

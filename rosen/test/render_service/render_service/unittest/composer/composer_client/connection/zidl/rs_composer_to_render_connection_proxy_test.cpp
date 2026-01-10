@@ -44,7 +44,8 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, ProxyStub_ReleaseLayerBuffers_An
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     ReleaseLayerBuffersInfo capturedInfo;
     bool cbCalled = false;
-    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info,
+        const std::shared_ptr<RSRenderComposerClient>& composerClient) {
         capturedInfo = info;
         cbCalled = true;
     });
@@ -85,7 +86,8 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_Timest
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     ReleaseLayerBuffersInfo capturedInfo;
     bool cbCalled = false;
-    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info,
+        const std::shared_ptr<RSRenderComposerClient>& composerClient) {
         capturedInfo = info;
         cbCalled = true;
     });
@@ -120,7 +122,8 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_MixedN
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     ReleaseLayerBuffersInfo capturedInfo;
     bool cbCalled = false;
-    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info,
+        const std::shared_ptr<RSRenderComposerClient>& composerClient) {
         capturedInfo = info;
         cbCalled = true;
     });
@@ -177,7 +180,8 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_EmptyV
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     uint64_t capturedScreenId = 0;
     bool cbCalled = false;
-    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info,
+        const std::shared_ptr<RSRenderComposerClient>& composerClient) {
         capturedScreenId = info.screenId;
         cbCalled = true;
     });
@@ -252,8 +256,10 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_Buffer
 {
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     bool receivedHasBufferFalse = false;
-    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
-        receivedHasBufferFalse = (info.releaseBufferFenceVec.size() == 1 && std::get<1>(info.releaseBufferFenceVec[0]) == nullptr);
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info,
+        const std::shared_ptr<RSRenderComposerClient>& composerClient) {
+        receivedHasBufferFalse = (info.releaseBufferFenceVec.size() == 1 &&
+        std::get<1>(info.releaseBufferFenceVec[0]) == nullptr);
     });
     RSComposerToRenderConnectionProxy proxy(stub->AsObject());
 

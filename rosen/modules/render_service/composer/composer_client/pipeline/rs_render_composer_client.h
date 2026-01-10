@@ -24,6 +24,7 @@
 #include <mutex>
 #include <vector>
 #include "hdi_output.h"
+#include "irs_composer_to_render_connection.h"
 #include "irs_render_to_composer_connection.h"
 #include "rs_composer_context.h"
 #include "screen_manager/rs_screen_info.h"
