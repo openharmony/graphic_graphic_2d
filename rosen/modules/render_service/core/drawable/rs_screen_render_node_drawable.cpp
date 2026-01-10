@@ -473,7 +473,8 @@ void RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(
         return;
     }
     bool isScreenOccluded = false;
-    RectI screenRect = {0, 0, screenInfo.width, screenInfo.height};
+    RectI screenRect = (screenInfo.activeRect.IsEmpty() ?
+        RectI(0, 0, screenInfo.width, screenInfo.height) : screenInfo.activeRect);
     // top-down traversal all mainsurface
     // if upper surface reuse filter cache which fully cover whole screen
     // mark lower layers for process skip

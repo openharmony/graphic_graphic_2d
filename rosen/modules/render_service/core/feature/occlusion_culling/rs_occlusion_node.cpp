@@ -132,10 +132,19 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
         renderProperties.GetClipBounds()) {
         return true;
     }
-
-    // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.
+    // Skip this subtree if node has 3d transformations
+    if (Contains3dTransformation(renderProperties)) {
+        return true;
+    }
+    // Skip this subtree if node's frame is out of it's bounds
     const auto& originBounds = renderProperties.GetBounds();
     const auto drawRect = RectF(originBounds.x_, originBounds.y_, originBounds.z_, originBounds.w_);
+    const auto& originFrame = renderProperties.GetFrame();
+    const auto drawFrameRect = RectF(originFrame.x_, originFrame.y_, originFrame.z_, originFrame.w_);
+    if (!drawFrameRect.IsEmpty() && !drawFrameRect.IsInsideOf(drawRect)) {
+        return true;
+    }
+    // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.
     const auto& drawRegion = renderProperties.GetDrawRegion();
     const auto& outline = renderProperties.GetOutline();
     const auto& pixelStretch = renderProperties.GetPixelStretch();

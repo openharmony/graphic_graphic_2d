@@ -1817,6 +1817,27 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusion, Tes
 }
 
 /**
+ * @tc.name: CheckAndUpdateFilterCacheOcclusionTest002
+ * @tc.desc: Test CheckAndUpdateFilterCacheOcclusion when screen has non-empty active rect
+ * @tc.type: FUNC
+ * @tc.require: issue21543
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusionTest002, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    ScreenInfo screenInfo;
+    constexpr int activeSize{10};
+    screenInfo.activeRect = RectI(0, 0, activeSize, activeSize);
+    constexpr int screenSize{100};
+    screenInfo.width = screenSize;
+    screenInfo.height = screenSize;
+    RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
+    EXPECT_EQ(screenInfo.activeRect, RectI(0, 0, activeSize, activeSize));
+}
+
+/**
  * @tc.name: GetBufferAge
  * @tc.desc: Test GetBufferAge
  * @tc.type: FUNC

@@ -461,6 +461,83 @@ HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnored, TestSize.Level1)
 }
 
 /*
+ * @tc.name: IsSubTreeShouldIgnoredTest002
+ * @tc.desc: Test IsSubTreeShouldIgnored with node contains 3d transformation
+ * @tc.type: FUNC
+ * @tc.require: issue21543
+ */
+HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnoredTest002, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
+    constexpr float nonTrivialValue(0.711f);
+
+    RSProperties renderProperties1;
+    renderProperties1.SetTranslateZ(nonTrivialValue);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties1));
+
+    RSProperties renderProperties2;
+    renderProperties2.SetRotationX(nonTrivialValue);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties2));
+
+    RSProperties renderProperties3;
+    renderProperties3.SetRotationY(nonTrivialValue);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties3));
+
+    RSProperties renderProperties4;
+    renderProperties4.SetScaleZ(nonTrivialValue);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties4));
+
+    RSProperties renderProperties5;
+    renderProperties5.SetSkewZ(nonTrivialValue);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties5));
+
+    RSProperties renderProperties6;
+    renderProperties6.SetPivotZ(nonTrivialValue);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties6));
+
+    RSProperties renderProperties7;
+    renderProperties7.SetCameraDistance(nonTrivialValue);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties7));
+
+    RSProperties renderProperties8;
+    renderProperties8.SetPerspZ(nonTrivialValue);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties8));
+
+    RSProperties renderProperties9;
+    renderProperties9.SetPerspW(nonTrivialValue);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties9));
+
+    RSProperties renderProperties10;
+    renderProperties10.SetQuaternion(Quaternion(nonTrivialValue, nonTrivialValue, nonTrivialValue, nonTrivialValue));
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties10));
+}
+
+/*
+ * @tc.name: IsSubTreeShouldIgnoredTest003
+ * @tc.desc: Test IsSubTreeShouldIgnored when node's frame is not empty
+ * @tc.type: FUNC
+ * @tc.require: issue21543
+ */
+HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnoredTest003, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
+    RSProperties renderProperties;
+    constexpr float defaultSize{10};
+    renderProperties.SetBounds({defaultSize, defaultSize, defaultSize, defaultSize});
+
+    renderProperties.SetFrame({defaultSize, defaultSize, defaultSize, defaultSize});
+    EXPECT_FALSE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties));
+
+    constexpr float testSize{100};
+    renderProperties.SetFrame({testSize, testSize, testSize, testSize});
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties));
+}
+
+/*
  * @tc.name: CalculateDrawRect
  * @tc.desc: Test CalculateDrawRect with invalid properties.
  * @tc.type: FUNC
