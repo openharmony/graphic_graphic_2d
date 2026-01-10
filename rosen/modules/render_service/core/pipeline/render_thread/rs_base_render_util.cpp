@@ -1069,16 +1069,7 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
     // should drop frame after acquire buffer to avoid drop key frame
     DropFrameProcess(surfaceHandler, acquireTimeStamp);
-#ifdef RS_ENABLE_GPU
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (!renderEngine) {
-        return true;
-    }
-    renderEngine->RegisterDeleteBufferListener(surfaceHandler);
     return true;
-#else
-    return true;
-#endif
 }
 
 bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)

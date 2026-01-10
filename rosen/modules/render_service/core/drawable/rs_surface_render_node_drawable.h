@@ -197,6 +197,7 @@ private:
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IConsumerSurface> consumerOnDraw_ = nullptr;
+    uint64_t registeredDeleteBufferListenerSurfaceId_ = 0;
 #endif
 
     // dirty manager

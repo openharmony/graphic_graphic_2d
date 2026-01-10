@@ -18,6 +18,8 @@
 
 #include "hdi_backend.h"
 
+#include <functional>
+#include <memory>
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "rs_base_render_util.h"
@@ -26,8 +28,10 @@
 namespace OHOS {
 namespace Rosen {
 
+// Forward declarations
 class RSRenderComposerClient;
 using FallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<RSLayerPtr>& layers)>;
+
 class RSComposerAdapter {
 public:
     RSComposerAdapter() = default;

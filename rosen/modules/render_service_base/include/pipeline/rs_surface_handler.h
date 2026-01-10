@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SURFACE_HANDLER_H
 
 #include <atomic>
+#include <functional>
 #include <map>
 #include <mutex>
 #include <set>
@@ -35,6 +36,15 @@ namespace OHOS {
 namespace Rosen {
 using OnDeleteBufferFunc = std::function<void(uint32_t)>;
 using OnReleaseBufferFunc = std::function<void(uint64_t)>;
+
+/**
+ * @brief GPU cache cleanup callback type.
+ *
+ * Used to register a GPU cache cleanup callback in RSSurfaceHandler, so that RSSurfaceHandler
+ * does not need to directly depend on GPUCacheManager.
+ */
+using GPUCacheCleanupCallback = std::function<void(const std::set<uint64_t>&)>;
+
 class RSB_EXPORT RSSurfaceHandler {
 public:
     // indicates which node this handler belongs to.
@@ -358,6 +368,54 @@ public:
         preBuffer_.Reset();
     }
 
+    static void SetGPUCacheCleanupCallback(GPUCacheCleanupCallback callback)
+    {
+        std::lock_guard<std::mutex> lock(s_gpuCacheCleanupCallbackMutex_);
+        s_gpuCacheCleanupCallback = std::move(callback);
+    }
+
+    void AddGPUCacheToCleanupSet(uint64_t bufferId)
+    {
+        std::lock_guard<std::mutex> lock(gpuCacheCleanupMutex_);
+        gpuCacheCleanupSet_.insert(bufferId);
+    }
+
+    void AddGPUCacheToCleanupSet(const std::set<uint64_t>& bufferIds)
+    {
+        if (bufferIds.empty()) {
+            return;
+        }
+        std::lock_guard<std::mutex> lock(gpuCacheCleanupMutex_);
+        gpuCacheCleanupSet_.insert(bufferIds.begin(), bufferIds.end());
+    }
+
+    void FlushGPUCacheCleanup()
+    {
+        std::set<uint64_t> bufferIds;
+        {
+            std::lock_guard<std::mutex> lock(gpuCacheCleanupMutex_);
+            if (gpuCacheCleanupSet_.empty()) {
+                return;
+            }
+            bufferIds.swap(gpuCacheCleanupSet_);
+        }
+
+        GPUCacheCleanupCallback callback;
+        {
+            std::lock_guard<std::mutex> lock(s_gpuCacheCleanupCallbackMutex_);
+            callback = s_gpuCacheCleanupCallback;
+        }
+        if (callback) {
+            callback(bufferIds);
+        }
+    }
+
+    void EnqueueAndFlushGPUCacheCleanup(const std::set<uint64_t>& bufferIds)
+    {
+        AddGPUCacheToCleanupSet(bufferIds);
+        FlushGPUCacheCleanup();
+    }
+
     void ResetBufferAvailableCount()
     {
         bufferAvailableCount_ = 0;
@@ -443,6 +501,14 @@ private:
     bool bufferTransformTypeChanged_ = false;
     uint32_t sourceType_ = 0;
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
+
+    // GPU cache cleanup set (owned per RSSurfaceHandler instance).
+    std::set<uint64_t> gpuCacheCleanupSet_;
+    mutable std::mutex gpuCacheCleanupMutex_;
+
+    // GPU cache cleanup callback (shared across all RSSurfaceHandler instances).
+    static GPUCacheCleanupCallback s_gpuCacheCleanupCallback;
+    static std::mutex s_gpuCacheCleanupCallbackMutex_;
 };
 }
 }

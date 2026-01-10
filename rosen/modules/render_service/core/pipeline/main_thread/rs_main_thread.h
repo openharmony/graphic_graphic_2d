@@ -68,6 +68,7 @@ class AccessibilityObserver;
 class HgmRPContext;
 class RSIRenderToServiceConnection;
 class RSUniRenderVisitor;
+class GPUCacheManager;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -126,6 +127,7 @@ public:
     void UpdateAnimateNodeFlag();
     void ResetAnimateNodeFlag();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
         std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize);
@@ -412,35 +414,6 @@ public:
         ifStatusBarDirtyOnly_.store(ifStatusBarDirtyOnly);
     }
 
-    void StartGPUDraw();
-
-    void EndGPUDraw();
-
-    struct GPUCompositonCacheGuard {
-        GPUCompositonCacheGuard()
-        {
-            RSMainThread::Instance()->StartGPUDraw();
-        }
-
-        ~GPUCompositonCacheGuard()
-        {
-            RSMainThread::Instance()->EndGPUDraw();
-        }
-    };
-
-    void AddToUnmappedCacheSet(uint64_t bufferId)
-    {
-        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
-        unmappedCacheSet_.insert(bufferId);
-    }
-
-    void AddToUnmappedCacheSet(const std::set<uint64_t>& seqNumSet)
-    {
-        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
-        unmappedCacheSet_.insert(seqNumSet.begin(), seqNumSet.end());
-    }
-
-    void ClearUnmappedCache();
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
     void NotifyUnmarshalTask(int64_t uiTimestamp);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
@@ -738,25 +711,6 @@ private:
     bool isColorTemperatureOn_ = false;
 
     LppVideoHandler lppVideoHandler_;
-
-    /**
-     * @brief A set to store buffer IDs of images that are about to be unmapped from GPU cache.
-     *
-     * This set is used to track images that are no longer needed and should be removed from the GPU cache.
-     * When an image is unmapped, its buffer ID is added to this set. During the rendering process,
-     * if an image is found in this set, it means that the image is no longer needed and can be safely
-     * removed from the GPU cache.
-     */
-    std::set<uint64_t> unmappedCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
-    std::mutex unmappedCacheSetMutex_;
-
-    /**
-     * @brief An atomic integer to keep track of the GPU draw count.
-     *
-     * This variable is used to safely increment and decrement the count of GPU draw operations
-     * across multiple threads without causing data races.
-     */
-    std::atomic<int> gpuDrawCount_ = 0;
 
     std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;

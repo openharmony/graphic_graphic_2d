@@ -21,6 +21,7 @@
 #include <sys/time.h>
 
 #include "common/rs_common_def.h"
+#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "draw/canvas.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -396,14 +397,8 @@ void RSComposerAdapter::SetComposeInfoToLayer(
         return;
     }
     layer->SetSurface(surface);
-    auto unmapFunc = [this](int32_t bufferId) {
-        RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
-    };
-    if (surface == nullptr ||
-        (surface->RegisterDeleteBufferListener(unmapFunc) != GSERROR_OK)) {
-        RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer RegisterDeleteBufferListener: failed to register "
-            "UnMapVkImage callback.");
-    }
+    // Buffer delete listener should be registered during RSSurfaceHandler initialization.
+    // No need to register here again.
     layer->SetBuffer(info.buffer, info.fence);
     layer->SetZorder(info.zOrder);
     layer->SetAlpha(info.alpha);
