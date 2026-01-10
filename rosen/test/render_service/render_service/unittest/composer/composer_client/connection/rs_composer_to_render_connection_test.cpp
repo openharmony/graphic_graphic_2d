@@ -14,8 +14,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <set>
 #include <unistd.h>
+#include <unordered_set>
 #include "rs_composer_to_render_connection.h"
 #include "frame_report.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -105,7 +105,7 @@ HWTEST_F(RSComposerToRenderConnectionTest, Connection_ReleaseLayerBuffers_Normal
 HWTEST_F(RSComposerToRenderConnectionTest, Connection_NotifyLppLayerToRender_Normal, TestSize.Level1)
 {
     RSComposerToRenderConnection conn;
-    std::set<uint64_t> ids { 1u, 2u, 3u };
+    std::unordered_set<uint64_t> ids { 1u, 2u, 3u };
     int32_t ret = conn.NotifyLppLayerToRender(555u, ids);
     EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
 }

@@ -80,6 +80,7 @@ public:
     uint64_t GetVsyncId() const;
     bool GetForceRefreshFlag() const;
     bool GetHasGameScene() const;
+    bool GetHasLppVideo() const;
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
     uint32_t GetDefaultScreenRefreshRate() const;

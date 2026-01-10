@@ -40,7 +40,7 @@ void LppLayerColletor::RemoveLayerId(const std::vector<RSLayerPtr>& layers)
     }
 }
 
-const std::set<uint64_t>& LppLayerColletor::GetLppLayerId()
+const std::unordered_set<uint64_t>& LppLayerColletor::GetLppLayerId()
 {
     return lppLayerId_;
 }

@@ -243,6 +243,16 @@ public:
         return hasGameScene_;
     }
 
+    void SetHasLppVideo(bool hasLppVideo)
+    {
+        hasLppVideo_ = hasLppVideo;
+    }
+
+    bool GetHasLppVideo() const
+    {
+        return hasLppVideo_;
+    }
+
     void SetDynamicRefreshRate(uint32_t defaultScreenRefreshRate)
     {
         defaultScreenRefreshRate_ = defaultScreenRefreshRate;
@@ -587,6 +597,7 @@ private:
     uint64_t pendingConstraintRelativeTime_ = 0;
     uint64_t fastComposeTimeStampDiff_ = 0;
     bool hasGameScene_ = false;
+    bool hasLppVideo_ = false;
     uint32_t defaultScreenRefreshRate_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;

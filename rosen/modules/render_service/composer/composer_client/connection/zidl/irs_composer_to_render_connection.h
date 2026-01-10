@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_COMPOSER_CLIENT_CONNECTION_ZIDL_IRS_COMPOSER_TO_RENDER_CONNECTION_H
 #define RENDER_SERVICE_COMPOSER_CLIENT_CONNECTION_ZIDL_IRS_COMPOSER_TO_RENDER_CONNECTION_H
 
-#include <set>
 #include "common/rs_macros.h"
 #include "graphic_common.h"
 #include <iremote_broker.h>
@@ -24,6 +23,8 @@
 #include "screen_manager/screen_types.h"
 #include <surface_buffer.h>
 #include <sync_fence.h>
+
+#include <unordered_set>
 
 namespace OHOS {
 namespace Rosen {
@@ -34,7 +35,7 @@ struct ReleaseLayerBuffersInfo {
     int64_t lastSwapBufferTime = 0; /* 每帧回执时长 */
 };
 using ReleaseLayerBuffersCB = std::function<void(ReleaseLayerBuffersInfo& releaseLayerInfo)>;
-using JudgeLppLayerCB = std::function<void(uint64_t, const std::set<uint64_t>&)>;
+using JudgeLppLayerCB = std::function<void(uint64_t, const std::unordered_set<uint64_t>&)>;
 
 class IRSComposerToRenderConnection : public IRemoteBroker {
 public:
@@ -44,8 +45,10 @@ public:
     virtual ~IRSComposerToRenderConnection() noexcept = default;
 
     virtual int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo) = 0;
-    virtual int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds) = 0;
     virtual void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) = 0;
+
+    // LPP
+    virtual int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds) = 0;
     virtual void RegisterJudgeLppLayerCB(JudgeLppLayerCB callback) = 0;
 
 protected:

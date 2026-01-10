@@ -272,7 +272,7 @@ void RSRenderPipeline::InitDumper(const std::shared_ptr<AppExecFwk::EventHandler
 void RSRenderPipeline::RegisterJudgeLppLayerCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
     composerToRenderConn->RegisterJudgeLppLayerCB(
-        [mainThread = mainThread_](uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds) {
+        [mainThread = mainThread_](uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds) {
             mainThread->GetLppVideoHander().JudgeLppLayer(vsyncId, lppNodeIds);
         });
 }

@@ -14,8 +14,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <set>
 #include <thread>
+#include <unordered_set>
 #include "rs_composer_to_render_connection_proxy.h"
 #include "rs_composer_to_render_connection.h"
 #include "graphic_common_c.h"
@@ -67,7 +67,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, ProxyStub_ReleaseLayerBuffers_An
     ASSERT_EQ(capturedInfo.timestampVec.size(), 1u);
     ASSERT_EQ(capturedInfo.releaseBufferFenceVec.size(), 1u);
 
-    std::set<uint64_t> ids { 11u, 22u };
+    std::unordered_set<uint64_t> ids { 11u, 22u };
     r = proxy.NotifyLppLayerToRender(777u, ids);
     EXPECT_EQ(r, COMPOSITOR_ERROR_OK);
 }
@@ -155,7 +155,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLppLayerToRender_Lar
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     RSComposerToRenderConnectionProxy proxy(stub->AsObject());
 
-    std::set<uint64_t> ids;
+    std::unordered_set<uint64_t> ids;
     for (uint64_t i = 0; i < 1000; ++i) {
         ids.insert(100000 + i);
     }
@@ -278,7 +278,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLppLayerToRender_Emp
 {
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     RSComposerToRenderConnectionProxy proxy(stub->AsObject());
-    std::set<uint64_t> ids;
+    std::unordered_set<uint64_t> ids;
     int32_t r = proxy.NotifyLppLayerToRender(100u, ids);
     EXPECT_EQ(r, COMPOSITOR_ERROR_OK);
 }
@@ -309,7 +309,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_SendRequest_ErrorBranch, T
     int32_t r1 = proxy.ReleaseLayerBuffers(info);
     EXPECT_EQ(r1, -1);
 
-    std::set<uint64_t> ids;
+    std::unordered_set<uint64_t> ids;
     int32_t r2 = proxy.NotifyLppLayerToRender(1u, ids);
     EXPECT_EQ(r2, -1);
 }

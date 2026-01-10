@@ -276,7 +276,7 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer001, TestSize.Level1)
 {
     LppVideoHandler lppVideoHandler;
     lppVideoHandler.lppConsumerMap_.clear();
-    std::set<uint64_t> lppLayerIds {};
+    std::unordered_set<uint64_t> lppLayerIds {};
     lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 }
@@ -299,7 +299,7 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer002, TestSize.Level1)
     lppVideoHandler.lppConsumerMap_[0].push_back(nullConsumer);
 
     lppVideoHandler.lppRsState_ = LppState::LPP_LAYER;
-    std::set<uint64_t> lppLayerIds {};
+    std::unordered_set<uint64_t> lppLayerIds {};
     lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     // isInvalidNode is true
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());

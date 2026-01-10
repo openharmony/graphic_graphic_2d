@@ -15,7 +15,7 @@
 
 #ifndef ROSEN_RENDER_SERVICE_LPP_LAYER_COLLECTOR_H
 #define ROSEN_RENDER_SERVICE_LPP_LAYER_COLLECTOR_H
-#include <set>
+#include <unordered_set>
 
 #include "feature/lpp/render_server/lpp_layer_collector.h"
 #include "hdi_layer.h"
@@ -24,12 +24,12 @@ constexpr uint32_t LPP_LAYER_PROPERTY =
     TunnelLayerProperty::TUNNEL_PROP_BUFFER_ADDR | TunnelLayerProperty::TUNNEL_PROP_DEVICE_COMMIT;
 class LppLayerColletor {
 private:
-    std::set<uint64_t> lppLayerId_;
+    std::unordered_set<uint64_t> lppLayerId_;
 
 public:
     void AddLppLayerId(const std::vector<RSLayerPtr>& layers);
     void RemoveLayerId(const std::vector<RSLayerPtr>& layers);
-    const std::set<uint64_t>& GetLppLayerId();
+    const std::unordered_set<uint64_t>& GetLppLayerId();
 };
 } // namespace OHOS::Rosen
 

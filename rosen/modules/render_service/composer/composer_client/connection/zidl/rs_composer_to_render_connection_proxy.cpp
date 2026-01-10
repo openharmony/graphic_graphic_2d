@@ -114,7 +114,7 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
 }
 
 int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
-    uint64_t vsyncId, const std::set<uint64_t>& lppNodeIds)
+    uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -150,7 +150,6 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
         return -1;
     }
     auto replyMessage = reply.ReadInt32();
-    RS_LOGI("%{public}s reply received successfully", __func__);
     return replyMessage;
 }
 } // namespace Rosen

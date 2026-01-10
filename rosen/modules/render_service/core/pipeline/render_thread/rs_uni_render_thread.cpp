@@ -487,6 +487,12 @@ bool RSUniRenderThread::GetHasGameScene() const
     return renderThreadParams ? renderThreadParams->GetHasGameScene() : false;
 }
 
+bool RSUniRenderThread::GetHasLppVideo() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetHasLppVideo() : false;
+}
+
 uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
 {
     auto& renderThreadParams = GetRSRenderThreadParams();

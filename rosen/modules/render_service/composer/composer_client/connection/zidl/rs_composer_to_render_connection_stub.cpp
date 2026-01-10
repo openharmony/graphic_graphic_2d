@@ -27,8 +27,10 @@
 
 namespace OHOS {
 namespace Rosen {
-static constexpr size_t RELEASE_LAYER_MAX_SIZE = 1000; // upper bound of parcel capacity
-static constexpr int32_t MAX_LPP_LAYER_SIZE = 5;
+namespace {
+constexpr size_t RELEASE_LAYER_MAX_SIZE = 1000; // upper bound of parcel capacity
+constexpr int32_t MAX_LPP_LAYER_SIZE = 5;
+}
 int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
@@ -104,22 +106,22 @@ int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel&
 int32_t RSComposerToRenderConnectionStub::NotifyLppLayerToRenderStub(MessageParcel& data,
     MessageParcel& reply, MessageOption& option)
 {
-    auto interfaceToken = data.ReadInterfaceToken();
-    if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
-        RS_LOGE("RSComposerToRenderConnectionStub::CREATE_CONNECTION Read interfaceToken failed!");
+    if (auto interfaceToken = data.ReadInterfaceToken();
+        interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
+        RS_LOGE("%{public}s::CREATE_CONNECTION Read interfaceToken failed!", __func__);
         return ERR_INVALID_DATA;
     }
     uint64_t vsyncId;
-    int32_t size;
     if (!data.ReadUint64(vsyncId)) {
         ROSEN_LOGE("%{public}s read vsyncId failed", __func__);
         return ERR_INVALID_DATA;
     }
+    int32_t size;
     if (!data.ReadInt32(size) || size > MAX_LPP_LAYER_SIZE) {
         ROSEN_LOGE("%{public}s read size failed", __func__);
         return ERR_INVALID_DATA;
     }
-    std::set<uint64_t> lppNodeIds;
+    std::unordered_set<uint64_t> lppNodeIds;
     for (int32_t i = 0; i < size; i++) {
         uint64_t nodeId;
         if (!data.ReadUint64(nodeId)) {
