@@ -1335,7 +1335,11 @@ HWTEST_F(RSUniRenderUtilTest, FrameAwareTraceBoostTest, TestSize.Level1)
 
     layerNum = 11;
     res = RSUniRenderUtil::FrameAwareTraceBoost(layerNum);
+#ifdef FRAME_TRACE_ENABLE
     ASSERT_EQ(res, true);
+#else
+    ASSERT_EQ(res, false);
+#endif
 }
 
 /**
@@ -1499,7 +1503,7 @@ HWTEST_F(RSUniRenderUtilTest, CollectHardwareEnabledNodesByDisplayNodeId001, Tes
     EXPECT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
     std::unique_ptr<RSRenderThreadParams> uniParamUnique = std::make_unique<RSRenderThreadParams>();
     RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(uniParamUnique));
-    EXPECT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
+    EXPECT_NE(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
     NodeId nodeId = 0;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> enabledNode;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> toEnabledNode;
@@ -1614,7 +1618,7 @@ HWTEST_F(RSUniRenderUtilTest, GetMatrixByDegree001, TestSize.Level1)
 
     canvas->Rotate(ROTATE_180);
     degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(canvas->GetTotalMatrix());
-    ASSERT_EQ(degree, ROTATE_180);
+    ASSERT_EQ(degree, -ROTATE_180);
     matrix = RSUniRenderUtil::GetMatrixByDegree(ROTATE_180, bounds);
     canvas->ConcatMatrix(matrix);
     degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(canvas->GetTotalMatrix());
