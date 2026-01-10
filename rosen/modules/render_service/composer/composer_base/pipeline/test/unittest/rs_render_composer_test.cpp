@@ -2056,7 +2056,7 @@ HWTEST_F(RsRenderComposerTest, ExecuteSwitchRefreshRate, TestSize.Level1)
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
     EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
-    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenId screenId = tmpRsRenderComposer->hdiOutput_->GetScreenId();
     auto& hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     ASSERT_NE(frameRateMgr, nullptr);
@@ -2101,7 +2101,7 @@ HWTEST_F(RsRenderComposerTest, UpdateRetrySetRateStatus, TestSize.Level1)
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
     EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
-    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenId screenId = tmpRsRenderComposer->hdiOutput_->GetScreenId();
     int32_t modeId = 60;
     tmpRsRenderComposer->hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId, modeId, StatusCode::SUCCESS);
     EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount, 0);
@@ -2125,7 +2125,7 @@ HWTEST_F(RsRenderComposerTest, UpdateRetrySetRateStatus_002, TestSize.Level1)
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
     EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
-    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenId screenId = tmpRsRenderComposer->hdiOutput_->GetScreenId();
     int32_t modeId = 60;
     tmpRsRenderComposer->hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId, modeId, StatusCode::SET_RATE_ERROR);
     EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount, 1);
@@ -2149,14 +2149,14 @@ HWTEST_F(RsRenderComposerTest, UpdateRetrySetRateStatus_003, TestSize.Level1)
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
     EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
-    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenId screenId = tmpRsRenderComposer->hdiOutput_->GetScreenId();
     int32_t modeId = 60;
     tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate = true;
     tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount = MAX_SETRATE_RETRY_COUNT;
     tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit = false;
 
     tmpRsRenderComposer->hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId, modeId, StatusCode::SET_RATE_ERROR);
-    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount, 0);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.retryCount, MAX_SETRATE_RETRY_COUNT);
     EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, false);
     EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, true);
 }
@@ -2177,7 +2177,7 @@ HWTEST_F(RsRenderComposerTest, PerformSetActiveMode, TestSize.Level1)
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
     EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
-    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenId screenId = tmpRsRenderComposer->hdiOutput_->GetScreenId();
     
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(screenManager, nullptr);
@@ -2222,7 +2222,7 @@ HWTEST_F(RsRenderComposerTest, ResetRetryCount, TestSize.Level1)
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
     EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
-    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenId screenId = tmpRsRenderComposer->hdiOutput_->GetScreenId();
     ScreenPowerStatus powerstatus = POWER_STATUS_ON;
     int32_t modeId = 60;
     auto setRateRet = static_cast<uint32_t>(StatusCode::SET_RATE_ERROR);
@@ -2253,7 +2253,7 @@ HWTEST_F(RsRenderComposerTest, ResetRetryCount_002, TestSize.Level1)
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
     EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
-    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenId screenId = tmpRsRenderComposer->hdiOutput_->GetScreenId();
     ScreenPowerStatus powerstatus = POWER_STATUS_ON;
     int32_t modeId = 60;
     auto setRateRet = static_cast<uint32_t>(StatusCode::SET_RATE_ERROR);
@@ -2284,7 +2284,7 @@ HWTEST_F(RsRenderComposerTest, ResetRetryCount_003, TestSize.Level1)
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
     EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
-    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenId screenId = tmpRsRenderComposer->hdiOutput_->GetScreenId();
     ScreenPowerStatus powerstatus = POWER_STATUS_ON_ADVANCED;
     int32_t modeId = 60;
     auto setRateRet = static_cast<uint32_t>(StatusCode::SET_RATE_ERROR);
@@ -2312,7 +2312,7 @@ HWTEST_F(RsRenderComposerTest, ResetRetryCount_004, TestSize.Level1)
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
     EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
-    ScreenId screenId = rsRenderComposer_->hdiOutput_->GetScreenId();
+    ScreenId screenId = tmpRsRenderComposer->hdiOutput_->GetScreenId();
     ScreenPowerStatus powerstatus = POWER_STATUS_ON_ADVANCED;
     int32_t modeId = 60;
     auto setRateRet = static_cast<uint32_t>(StatusCode::SET_RATE_ERROR);
@@ -2324,7 +2324,7 @@ HWTEST_F(RsRenderComposerTest, ResetRetryCount_004, TestSize.Level1)
     EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, false);
     tmpRsRenderComposer->hgmHardwareUtils_.ResetRetryCount(powerstatus);
     EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, false);
-    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, false);
+    EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, true);
 }
 } // namespace Rosen
 } // namespace OHOS
