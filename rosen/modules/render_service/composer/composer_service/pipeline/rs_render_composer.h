@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <set>
+#include <unordered_map>
 #include "common/rs_exception_check.h"
 #include "event_handler.h"
 #include "feature/hyper_graphic_manager/hgm_hardware_utils.h"

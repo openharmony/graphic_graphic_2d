@@ -1605,10 +1605,15 @@ std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNodeDrawable::GetSyncDirtyM
 void RSSurfaceRenderNodeDrawable::RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer)
 {
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (!renderEngine || !consumerOnDraw_) {
+    if (!renderEngine || !consumer) {
         return;
     }
-    renderEngine->RegisterDeleteBufferListener(consumerOnDraw_);
+    auto surfaceId = consumer->GetUniqueId();
+    if (surfaceId != 0 && registeredDeleteBufferListenerSurfaceId_ == surfaceId) {
+        return;
+    }
+    renderEngine->RegisterDeleteBufferListener(consumer);
+    registeredDeleteBufferListenerSurfaceId_ = surfaceId;
 }
 #endif
 

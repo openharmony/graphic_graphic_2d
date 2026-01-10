@@ -1148,18 +1148,13 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
 #ifdef RS_ENABLE_GPU
-    // Register buffer delete listener using RSSurfaceHandler's SurfaceBufferEntry mechanism
-    // The callback will be triggered when preBuffer_ is reset/replaced
-    std::weak_ptr<RSSurfaceRenderNode> nodeWeak = node;
-    node->GetRSSurfaceHandler()->RegisterDeleteBufferListener(
-        [nodeWeak](uint32_t bufferId) {
-            if (auto node = nodeWeak.lock()) {
-                if (auto handler = node->GetRSSurfaceHandler()) {
-                    handler->AddGPUCacheToCleanupSet(static_cast<uint64_t>(bufferId));
-                }
-            }
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::weak_ptr<RSSurfaceHandler> handlerWeak = surfaceHandler;
+    surfaceHandler->RegisterDeleteBufferListener([handlerWeak](uint32_t bufferId) {
+        if (auto handler = handlerWeak.lock()) {
+            handler->AddGPUCacheToCleanupSet(static_cast<uint64_t>(bufferId));
         }
-    );
+    });
 #endif
     std::function<void()> registerNode = [node, renderPipeline = rsRenderPipeline_]() -> void {
         if (auto preNode = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(node->GetId())) {

@@ -1118,13 +1118,11 @@ bool RSScreenRenderNodeDrawable::CreateSurface(sptr<IBufferConsumerListener> lis
     // Register buffer delete listener using RSSurfaceHandler's SurfaceBufferEntry mechanism
     // The callback will be triggered when preBuffer_ is reset/replaced
     std::weak_ptr<RSSurfaceHandler> handlerWeak = surfaceHandler_;
-    surfaceHandler_->RegisterDeleteBufferListener(
-        [handlerWeak](uint32_t bufferId) {
-            if (auto handler = handlerWeak.lock()) {
-                handler->AddGPUCacheToCleanupSet(static_cast<uint64_t>(bufferId));
-            }
+    surfaceHandler_->RegisterDeleteBufferListener([handlerWeak](uint32_t bufferId) {
+        if (auto handler = handlerWeak.lock()) {
+            handler->AddGPUCacheToCleanupSet(static_cast<uint64_t>(bufferId));
         }
-    );
+    });
 #endif
     return true;
 }

@@ -19,6 +19,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <set>
 #include <variant>
 #include <unordered_map>
 #include <surface.h>
@@ -36,6 +37,12 @@ public:
     virtual ~RSImageManager() = default;
 
     virtual void UnMapImageFromSurfaceBuffer(uint64_t seqNum) = 0;
+    virtual void UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& bufferIds)
+    {
+        for (auto bufferId : bufferIds) {
+            UnMapImageFromSurfaceBuffer(bufferId);
+        }
+    }
     virtual std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
         RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
         const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) = 0;

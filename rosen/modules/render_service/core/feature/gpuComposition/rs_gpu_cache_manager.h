@@ -17,6 +17,7 @@
 #define RS_GPU_CACHE_MANAGER_V2_H
 
 #include <atomic>
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <memory>
@@ -65,7 +66,7 @@ private:
 };
 
 /**
- * @brief GPU Cache Manager (Non-Singleton)
+ * @brief GPU Cache Manager
  *
  * Manages GPU cache cleanup for cross-component coordination.
  * Owned by RSMainThread, not a singleton.
@@ -78,7 +79,6 @@ private:
  * Based on AOSP's callback-driven pattern:
  * - Event-driven cleanup (via callbacks from graphic_surface)
  * - RAII-based lifecycle for GPU operations (GPUGuard)
- * - No global singleton
  */
 class GPUCacheManager : public std::enable_shared_from_this<GPUCacheManager> {
 public:
@@ -186,8 +186,8 @@ private:
     // Cleanup pending buffers (called when GPU draw count reaches zero)
     void CleanupPendingBuffers();
 
-    // RenderEngine for cache cleanup (owned via shared_ptr, not raw reference)
-    std::shared_ptr<RSBaseRenderEngine> renderEngine_;
+    // RenderEngine for cache cleanup (owned by RSBaseRenderEngine).
+    std::weak_ptr<RSBaseRenderEngine> renderEngine_;
 
     // Callback to get Composer Client map (dependency injection)
     ComposerClientMapFunc getComposerClientMapCallback_;

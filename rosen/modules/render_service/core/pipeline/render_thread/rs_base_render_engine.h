@@ -59,7 +59,7 @@ namespace Rosen {
 class RSRenderComposerClient;
 class GPUCacheManager;
 
-// Composer Client 映射类型（用于 GPU 缓存清理）
+// Composer Client map type (used for GPU cache cleanup).
 using ComposerClientMap = std::map<ScreenId, std::shared_ptr<RSRenderComposerClient>>;
 using ComposerClientMapFunc = std::function<ComposerClientMap()>;
 namespace DrawableV2 {

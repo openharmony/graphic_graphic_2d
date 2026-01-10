@@ -296,8 +296,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
 
     // Use GPUGuard to manage GPU draw lifecycle (RAII-based)
     // Use dependency injection callback to get GPUCacheManager (avoids singleton access)
-    auto cacheManager = getGPUCacheManagerCallback_ ? getGPUCacheManagerCallback_() : nullptr;
-    auto gpuGuard = cacheManager ? std::make_shared<GPUGuard>(cacheManager->CreateGuard()) : nullptr;
+    auto gpuGuard = std::make_shared<GPUGuard>(getGPUCacheManagerCallback_());
 
     subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount,
                             uniParam = new RSRenderThreadParams(*rtUniParam), gpuGuard]() mutable {

@@ -396,9 +396,8 @@ void RSComposerAdapter::SetComposeInfoToLayer(
         return;
     }
     layer->SetSurface(surface);
-    // Buffer delete listener should be registered during RSSurfaceHandler initialization
-    // via RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler&)
-    // No need to register here again
+    // Buffer delete listener should be registered during RSSurfaceHandler initialization.
+    // No need to register here again.
     layer->SetBuffer(info.buffer, info.fence);
     layer->SetZorder(info.zOrder);
     layer->SetAlpha(info.alpha);

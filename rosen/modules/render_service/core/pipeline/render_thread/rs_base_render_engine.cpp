@@ -872,7 +872,9 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
     if (RSSystemProperties::IsUseVulkan()) {
         // Use GPUCacheManager instance method to create callback
         auto regUnMapVkImageFunc = gpuCacheManager_->CreateBufferDeleteCallback();
-        handler.RegisterDeleteBufferListener(regUnMapVkImageFunc);
+        handler.RegisterDeleteBufferListener([regUnMapVkImageFunc](uint32_t bufferId) {
+            regUnMapVkImageFunc(static_cast<uint64_t>(bufferId));
+        });
         return;
     }
 #endif // #ifdef RS_ENABLE_VK
@@ -880,7 +882,9 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     // Use GPUCacheManager instance method to create callback
     auto regUnMapEglImageFunc = gpuCacheManager_->CreateBufferDeleteCallback();
-    handler.RegisterDeleteBufferListener(regUnMapEglImageFunc);
+    handler.RegisterDeleteBufferListener([regUnMapEglImageFunc](uint32_t bufferId) {
+        regUnMapEglImageFunc(static_cast<uint64_t>(bufferId));
+    });
 #endif // #ifdef RS_ENABLE_EGLIMAGE
 }
 
@@ -896,9 +900,7 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 void RSBaseRenderEngine::ClearCacheSet(const std::set<uint64_t>& unmappedCache)
 {
     if (imageManager_ != nullptr) {
-        for (auto id : unmappedCache) {
-            imageManager_->UnMapImageFromSurfaceBuffer(id);
-        }
+        imageManager_->UnMapImagesFromSurfaceBuffer(unmappedCache);
     }
 }
 } // namespace Rosen

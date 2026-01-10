@@ -23,11 +23,30 @@ namespace OHOS {
 namespace Rosen {
 
 GPUCacheCleanupCallback RSSurfaceHandler::s_gpuCacheCleanupCallback = nullptr;
+std::mutex RSSurfaceHandler::s_gpuCacheCleanupCallbackMutex_;
 
 RSSurfaceHandler::~RSSurfaceHandler() noexcept
 {
 #ifdef RS_ENABLE_GPU
-    // Flush any pending GPU cache cleanup on destruction
+    // Ensure buffers currently held by this handler are included in cleanup.
+#ifndef ROSEN_CROSS_PLATFORM
+    std::set<uint64_t> bufferIds;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (buffer_.buffer != nullptr) {
+            bufferIds.insert(buffer_.buffer->GetBufferId());
+        }
+        if (preBuffer_.buffer != nullptr) {
+            bufferIds.insert(preBuffer_.buffer->GetBufferId());
+        }
+        if (holdBuffer_ && holdBuffer_->buffer != nullptr) {
+            bufferIds.insert(holdBuffer_->buffer->GetBufferId());
+        }
+    }
+    AddGPUCacheToCleanupSet(bufferIds);
+#endif
+
+    // Flush any pending GPU cache cleanup on destruction.
     FlushGPUCacheCleanup();
 #endif
 }
@@ -96,7 +115,7 @@ void RSSurfaceHandler::UpdateBuffer(
     buffer_.bufferOwnerCount_ = bufferOwnerCount;
     if (buffer != nullptr) {
         buffer_.seqNum = buffer->GetBufferId();
-		buffer_.bufferOwnerCount_->seqNum_ = buffer_.seqNum;
+        buffer_.bufferOwnerCount_->seqNum_ = buffer_.seqNum;
         buffer_.buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
     }
     buffer_.acquireFence = acquireFence;

@@ -147,8 +147,7 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         surfaceHandler->ResetPreBuffer();
         std::set<uint64_t> tmpSet;
         node->NeedClearPreBuffer(tmpSet);
-        surfaceHandler->AddGPUCacheToCleanupSet(tmpSet);
-        surfaceHandler->FlushGPUCacheCleanup();
+        surfaceHandler->EnqueueAndFlushGPUCacheCleanup(tmpSet);
     });
 
     CleanLayerBufferCache();
@@ -194,10 +193,8 @@ void RSRenderServiceListener::OnGoBackground()
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());
         std::set<uint64_t> tmpSet;
         node->NeedClearBufferCache(tmpSet);
-        // Use GPUCacheManager via SurfaceHandler callback
         if (!tmpSet.empty()) {
-            surfaceHandler->AddGPUCacheToCleanupSet(tmpSet);
-            surfaceHandler->FlushGPUCacheCleanup();
+            surfaceHandler->EnqueueAndFlushGPUCacheCleanup(tmpSet);
         }
         surfaceHandler->ResetBufferAvailableCount();
         surfaceHandler->CleanCache();

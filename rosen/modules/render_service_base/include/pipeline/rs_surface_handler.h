@@ -38,10 +38,10 @@ using OnDeleteBufferFunc = std::function<void(uint32_t)>;
 using OnReleaseBufferFunc = std::function<void(uint64_t)>;
 
 /**
- * @brief GPU 缓存清理回调类型
+ * @brief GPU cache cleanup callback type.
  *
- * 用于在 RSSurfaceHandler 中注册 GPU 缓存清理回调
- * 这样 RSSurfaceHandler 不需要直接依赖 RSGPUCacheManager 单例
+ * Used to register a GPU cache cleanup callback in RSSurfaceHandler, so that RSSurfaceHandler
+ * does not need to directly depend on GPUCacheManager.
  */
 using GPUCacheCleanupCallback = std::function<void(const std::set<uint64_t>&)>;
 
@@ -364,60 +364,52 @@ public:
         preBuffer_.Reset();
     }
 
-    /**
-     * @brief 注册 GPU 缓存清理回调
-     *
-     * 允许外部组件（如 RSMainThread）注册一个回调函数，
-     * 当 RSSurfaceHandler 需要清理 GPU 缓存时会调用该回调。
-     * 这样 RSSurfaceHandler 不需要直接依赖 RSGPUCacheManager 单例。
-     *
-     * @param callback GPU 缓存清理回调函数
-     *
-     * @note 该回调是线程安全的，可以从任意线程调用
-     * @note 通常在 RSMainThread::Init() 中注册全局清理回调
-     */
     static void SetGPUCacheCleanupCallback(GPUCacheCleanupCallback callback)
     {
+        std::lock_guard<std::mutex> lock(s_gpuCacheCleanupCallbackMutex_);
         s_gpuCacheCleanupCallback = std::move(callback);
     }
 
-    /**
-     * @brief 添加 Buffer ID 到 GPU 缓存清理集合
-     *
-     * 将指定的 Buffer ID 添加到待清理集合中
-     *
-     * @param bufferId Buffer ID
-     */
     void AddGPUCacheToCleanupSet(uint64_t bufferId)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
+        std::lock_guard<std::mutex> lock(gpuCacheCleanupMutex_);
         gpuCacheCleanupSet_.insert(bufferId);
     }
 
-    /**
-     * @brief 批量添加 Buffer ID 到 GPU 缓存清理集合
-     *
-     * @param bufferIds Buffer ID 集合
-     */
     void AddGPUCacheToCleanupSet(const std::set<uint64_t>& bufferIds)
     {
         if (bufferIds.empty()) {
             return;
         }
-        std::lock_guard<std::mutex> lock(mutex_);
+        std::lock_guard<std::mutex> lock(gpuCacheCleanupMutex_);
         gpuCacheCleanupSet_.insert(bufferIds.begin(), bufferIds.end());
     }
 
     void FlushGPUCacheCleanup()
     {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (gpuCacheCleanupSet_.empty()) {
-            return;
+        std::set<uint64_t> bufferIds;
+        {
+            std::lock_guard<std::mutex> lock(gpuCacheCleanupMutex_);
+            if (gpuCacheCleanupSet_.empty()) {
+                return;
+            }
+            bufferIds.swap(gpuCacheCleanupSet_);
         }
-        if (s_gpuCacheCleanupCallback) {
-            s_gpuCacheCleanupCallback(gpuCacheCleanupSet_);
+
+        GPUCacheCleanupCallback callback;
+        {
+            std::lock_guard<std::mutex> lock(s_gpuCacheCleanupCallbackMutex_);
+            callback = s_gpuCacheCleanupCallback;
         }
-        gpuCacheCleanupSet_.clear();
+        if (callback) {
+            callback(bufferIds);
+        }
+    }
+
+    void EnqueueAndFlushGPUCacheCleanup(const std::set<uint64_t>& bufferIds)
+    {
+        AddGPUCacheToCleanupSet(bufferIds);
+        FlushGPUCacheCleanup();
     }
 
     void ResetBufferAvailableCount()
@@ -506,11 +498,13 @@ private:
     uint32_t sourceType_ = 0;
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 
-    // GPU 缓存清理集合（每个 RSSurfaceHandler 实例维护自己的集合）
+    // GPU cache cleanup set (owned per RSSurfaceHandler instance).
     std::set<uint64_t> gpuCacheCleanupSet_;
+    mutable std::mutex gpuCacheCleanupMutex_;
 
-    // GPU 缓存清理回调（所有 RSSurfaceHandler 实例共享）
+    // GPU cache cleanup callback (shared across all RSSurfaceHandler instances).
     static GPUCacheCleanupCallback s_gpuCacheCleanupCallback;
+    static std::mutex s_gpuCacheCleanupCallbackMutex_;
 };
 }
 }

@@ -15,6 +15,8 @@
 
 #include "rs_gpu_cache_manager.h"
 
+#include <inttypes.h>
+
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "platform/common/rs_log.h"
 
@@ -68,7 +70,7 @@ std::shared_ptr<GPUCacheManager> GPUCacheManager::Create(std::shared_ptr<RSBaseR
 }
 
 GPUCacheManager::GPUCacheManager(std::shared_ptr<RSBaseRenderEngine> renderEngine)
-    : renderEngine_(std::move(renderEngine))
+    : renderEngine_(renderEngine)
 {
     RS_LOGD("GPUCacheManager created");
 }
@@ -92,7 +94,6 @@ void GPUCacheManager::ScheduleBufferCleanup(const std::set<uint64_t>& bufferIds)
     RS_LOGD("GPUCacheManager::ScheduleBufferCleanup: scheduled %{public}zu buffers for cleanup",
         bufferIds.size());
 
-    // If no active GPU draws, cleanup immediately
     if (activeDrawCount_.load() == 0) {
         CleanupPendingBuffers();
     }
@@ -104,10 +105,10 @@ void GPUCacheManager::ScheduleBufferCleanup(uint64_t bufferId)
         std::lock_guard<std::mutex> lock(cleanupMutex_);
         pendingCleanupBuffers_.insert(bufferId);
     }
-    RS_LOGD("GPUCacheManager::ScheduleBufferCleanup: buffer id %{public}llu scheduled for cleanup",
-        static_cast<unsigned long long>(bufferId));
+    RS_LOGD("GPUCacheManager::ScheduleBufferCleanup: buffer id %{public}" PRIu64 " scheduled for cleanup", bufferId);
 
-    // If no active GPU draws, cleanup immediately
+    // "Idle" here means there is no in-flight GPU draw scope guarded by GPUGuard (activeDrawCount_ == 0).
+    // If idle, cleanup can run immediately; otherwise it is deferred until the last GPUGuard is destroyed.
     if (activeDrawCount_.load() == 0) {
         CleanupPendingBuffers();
     }
@@ -144,12 +145,25 @@ std::function<void(int32_t)> GPUCacheManager::CreateBufferDeleteCallback32()
 
 void GPUCacheManager::OnGPUDrawStart()
 {
+    // activeDrawCount_ tracks the number of in-flight GPU draw scopes (managed by GPUGuard).
+    // The count is also used as a lightweight "busy/idle" flag (idle when it reaches 0).
+    //
+    // memory_order_relaxed is sufficient here because this counter is not used to protect any other data;
+    // it only gates when cleanup is allowed to run.
     activeDrawCount_.fetch_add(1, std::memory_order_relaxed);
     RS_LOGD("GPUCacheManager::OnGPUDrawStart: count = %{public}d", activeDrawCount_.load());
 }
 
 void GPUCacheManager::OnGPUDrawEnd()
 {
+    // fetch_sub returns the value *before* decrement. prevCount == 1 means we just transitioned 1 -> 0 (busy -> idle).
+    //
+    // Use memory_order_acq_rel so the 1 -> 0 transition becomes a clear synchronization point:
+    // - release: prevents the cleanup trigger from being reordered before the logical end of the GPU draw scope
+    // - acquire: ensures the thread that observes the transition can safely proceed to cleanup work
+    //
+    // In many cases memory_order_relaxed would also work for a pure counter, but acq_rel makes the intent explicit
+    // because reaching 0 immediately enables cleanup of GPU resources.
     auto prevCount = activeDrawCount_.fetch_sub(1, std::memory_order_acq_rel);
     RS_LOGD("GPUCacheManager::OnGPUDrawEnd: count = %{public}d (was %{public}d)",
         activeDrawCount_.load(), prevCount);
@@ -175,22 +189,19 @@ void GPUCacheManager::CleanupPendingBuffers()
     RS_LOGD("GPUCacheManager::CleanupPendingBuffers: cleaning %{public}zu buffers", bufferIds.size());
 
     // Cleanup RenderEngine cache
-    if (renderEngine_) {
-        renderEngine_->ClearCacheSet(bufferIds);
+    auto renderEngine = renderEngine_.lock();
+    if (renderEngine) {
+        renderEngine->ClearCacheSet(bufferIds);
     }
 
     // Cleanup Composer Client cache (if callback is set)
     if (getComposerClientMapCallback_) {
-        try {
-            auto clientMap = getComposerClientMapCallback_();
-            for (const auto& [screenId, client] : clientMap) {
-                if (client) {
-                    client->ClearRedrawGPUCompositionCache(bufferIds);
-                }
+        auto clientMap = getComposerClientMapCallback_();
+        for (const auto& item : clientMap) {
+            const auto& client = item.second;
+            if (client) {
+                client->ClearRedrawGPUCompositionCache(bufferIds);
             }
-        } catch (const std::exception& e) {
-            RS_LOGE("GPUCacheManager::CleanupPendingBuffers: exception in ComposerClient cleanup: %{public}s",
-                e.what());
         }
     }
 }

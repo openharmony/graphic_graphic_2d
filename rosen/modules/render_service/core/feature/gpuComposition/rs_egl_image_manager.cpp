@@ -15,6 +15,8 @@
 
 #include "rs_egl_image_manager.h"
 
+#include <vector>
+
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include <native_window.h>
 #include <platform/common/rs_log.h>
@@ -294,6 +296,51 @@ void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
             UnMapImageFromSurfaceBuffer(id);
         }
         cacheQueue_.pop();
+    }
+}
+
+void RSEglImageManager::UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& bufferIds)
+{
+    if (bufferIds.empty()) {
+        return;
+    }
+
+    RS_LOGD("RSEglImageManager::UnMapImagesFromSurfaceBuffer: request %{public}zu buffers", bufferIds.size());
+
+    std::unordered_map<pid_t, std::vector<uint64_t>> bufferIdsByThread;
+    {
+        std::lock_guard<std::mutex> lock(opMutex_);
+        for (auto bufferId : bufferIds) {
+            auto iter = imageCacheSeqs_.find(bufferId);
+            if (iter == imageCacheSeqs_.end() || !iter->second) {
+                continue;
+            }
+            bufferIdsByThread[iter->second->GetThreadIndex()].push_back(bufferId);
+        }
+    }
+
+    for (auto& [threadIndex, ids] : bufferIdsByThread) {
+        if (ids.empty()) {
+            continue;
+        }
+        auto task = [this, ids = std::move(ids)]() mutable {
+            RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage batch count: %zu", ids.size());
+            std::vector<std::unique_ptr<EglImageResource>> resources;
+            resources.reserve(ids.size());
+            {
+                std::lock_guard<std::mutex> lock(opMutex_);
+                for (auto bufferId : ids) {
+                    auto iter = imageCacheSeqs_.find(bufferId);
+                    if (iter == imageCacheSeqs_.end()) {
+                        continue;
+                    }
+                    RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %" PRIu64 "", bufferId);
+                    resources.push_back(std::move(iter->second));
+                    imageCacheSeqs_.erase(iter);
+                }
+            }
+        };
+        RSTaskDispatcher::GetInstance().PostTask(threadIndex, task);
     }
 }
 

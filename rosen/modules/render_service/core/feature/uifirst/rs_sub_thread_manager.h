@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <memory>
 #include <mutex>
 #include "EGL/egl.h"
 #include "drawable/rs_surface_render_node_drawable.h"
@@ -82,7 +83,7 @@ private:
     bool needCancelReleaseTextureTask_ = false;
 
     // Callback to get GPU cache manager (dependency injection)
-    GetGPUCacheManagerFunc getGPUCacheManagerCallback_;
+    GetGPUCacheManagerFunc getGPUCacheManagerCallback_ = []() -> std::shared_ptr<GPUCacheManager> { return nullptr; };
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_MANAGER_H

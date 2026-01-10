@@ -82,11 +82,10 @@ void RSDrawFrame::RenderFrame()
     RS_TRACE_NAME_FMT("RenderFrame");
     StartCheck();
 
+    auto renderEngine = unirenderInstance_.GetRenderEngine();
     // Use GPUGuard to manage GPU draw lifecycle (RAII-based)
     // The guard will automatically call EndGPUDraw() when destroyed
-    auto renderEngine = unirenderInstance_.GetRenderEngine();
-    auto cacheManager = renderEngine ? renderEngine->GetGPUCacheManager() : nullptr;
-    GPUGuard gpuGuard = cacheManager ? cacheManager->CreateGuard() : GPUGuard(nullptr);
+    GPUGuard gpuGuard(renderEngine->GetGPUCacheManager());
 
     RsFrameReport::GetInstance().UniRenderStart();
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsStart();
