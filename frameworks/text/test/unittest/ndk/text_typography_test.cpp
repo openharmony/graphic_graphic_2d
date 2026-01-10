@@ -3310,6 +3310,7 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest005, Tes
     int heightStyle = 0;
     OH_Drawing_ErrorCode heightStyleCode = OH_Drawing_GetTypographyStyleAttributeInt(typoStyle,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &heightStyle);
+    EXPECT_EQ(heightStyle, 1);
     EXPECT_EQ(heightStyleCode, OH_DRAWING_SUCCESS);
     OH_Drawing_ErrorCode minHeightCode = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, &limitLineHeight);

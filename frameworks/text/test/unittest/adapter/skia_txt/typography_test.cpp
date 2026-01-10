@@ -31,6 +31,9 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 const double ARC_FONT_SIZE = 28;
+const double DEFAULT_FONT_SIZE = 40;
+const size_t DEFAULT_MAXLINES = 2;
+const double DEFAULT_MAX_WIDTHS = 100;
 class OH_Drawing_TypographyTest : public testing::Test {
 };
 
@@ -1347,6 +1350,182 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
     EXPECT_EQ(typography->GetDumpInfo(), "");
     typographyImpl->paragraph_.swap(paragraphTemp);
     EXPECT_EQ(typography->GetDumpInfo(), g_expectDumpInfo);
+}
+
+/*
+ * @tc.name: TypographyStyleEllipsisTest01
+ * @tc.desc: test for MULTILINE_HEAD ellipsisModal in normal situation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest01, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = DEFAULT_FONT_SIZE;
+    typographyStyle.ellipsis = u"...";
+    typographyStyle.ellipsisModal = OHOS::Rosen::EllipsisModal::MULTILINE_HEAD;
+    typographyStyle.maxLines = DEFAULT_MAXLINES;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"你好, 测试, paragraphyStyle中的ellipsis and ellipsisModal属性。";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    double maxWidth = DEFAULT_MAX_WIDTHS;
+    typography->Layout(maxWidth);
+    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
+    EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
+}
+
+/*
+ * @tc.name: TypographyStyleEllipsisTest02
+ * @tc.desc: test for MULTILINE_MIDDLE ellipsisModal in normal situation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest02, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = DEFAULT_FONT_SIZE;
+    typographyStyle.ellipsis = u"...";
+    typographyStyle.ellipsisModal = OHOS::Rosen::EllipsisModal::MULTILINE_MIDDLE;
+    typographyStyle.maxLines = DEFAULT_MAXLINES;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"你好, 测试, paragraphyStyle中的ellipsis and ellipsisModal属性。";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    double maxWidth = DEFAULT_MAX_WIDTHS;
+    typography->Layout(maxWidth);
+    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
+    EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
+}
+
+/*
+ * @tc.name: TypographyStyleEllipsisTest03
+ * @tc.desc: test for MULTILINE_MIDDLE ellipsisModal BALANCED breakStrategy situation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest03, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = DEFAULT_FONT_SIZE;
+    typographyStyle.ellipsis = u"...";
+    typographyStyle.ellipsisModal = OHOS::Rosen::EllipsisModal::MULTILINE_HEAD;
+    typographyStyle.maxLines = DEFAULT_MAXLINES;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"你好, 测试, paragraphyStyle中的ellipsis and ellipsisModal属性。";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    double maxWidth = DEFAULT_MAX_WIDTHS;
+    typography->Layout(maxWidth);
+    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
+    EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
+}
+
+/*
+ * @tc.name: TypographyStyleEllipsisTest04
+ * @tc.desc: test for MULTILINE_MIDDLE ellipsisModal in BALANCED breakStrategy situation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest04, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = DEFAULT_FONT_SIZE;
+    typographyStyle.ellipsis = u"...";
+    typographyStyle.ellipsisModal = OHOS::Rosen::EllipsisModal::MULTILINE_MIDDLE;
+    typographyStyle.breakStrategy = OHOS::Rosen::BreakStrategy::BALANCED;
+    typographyStyle.maxLines = DEFAULT_MAXLINES;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"你好, 测试, paragraphyStyle中的ellipsis and ellipsisModal属性。";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    double maxWidth = DEFAULT_MAX_WIDTHS;
+    typography->Layout(maxWidth);
+    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
+    EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
+}
+
+/*
+ * @tc.name: TypographyStyleEllipsisTest05
+ * @tc.desc: test for MULTILINE_MIDDLE ellipsisModal: BALANCED breakStrategy, ellipsis is ###.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest05, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = DEFAULT_FONT_SIZE;
+    typographyStyle.ellipsis = u"###";
+    typographyStyle.ellipsisModal = OHOS::Rosen::EllipsisModal::MULTILINE_HEAD;
+    typographyStyle.maxLines = DEFAULT_MAXLINES;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"你好, 测试, paragraphyStyle中的ellipsis and ellipsisModal属性。";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    double maxWidth = DEFAULT_MAX_WIDTHS;
+    typography->Layout(maxWidth);
+    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
+    EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
+}
+
+/*
+ * @tc.name: TypographyStyleEllipsisTest06
+ * @tc.desc: test for MULTILINE_MIDDLE ellipsisModal: BALANCED breakStrategy, ellipsis is ###.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest06, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = DEFAULT_FONT_SIZE;
+    typographyStyle.ellipsis = u"###";
+    typographyStyle.ellipsisModal = OHOS::Rosen::EllipsisModal::MULTILINE_MIDDLE;
+    typographyStyle.breakStrategy = OHOS::Rosen::BreakStrategy::BALANCED;
+    typographyStyle.maxLines = DEFAULT_MAXLINES;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"你好, 测试, paragraphyStyle中的ellipsis and ellipsisModal属性。";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    double maxWidth = DEFAULT_MAX_WIDTHS;
+    typography->Layout(maxWidth);
+    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
+    EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
 
 } // namespace Rosen
