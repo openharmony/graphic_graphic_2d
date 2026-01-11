@@ -316,7 +316,6 @@ private:
         return lightPosZ * tan;
     }
     Vector4f lightPosition_ = Vector4f();
-    Vector4f absLightPosition_ = Vector4f(); // absolute light Position;
     float intensity_ = 0.f;
     float preIntensity_ = 0.f;
     Color lightColor_ = RgbPalette::White();
