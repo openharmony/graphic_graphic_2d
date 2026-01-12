@@ -16,14 +16,8 @@
 #include <securec.h>
 
 #include "drawing_font_collection.h"
-// #include "drawing_point.h"
-// #include "drawing_rect.h"
-// #include "drawing_text_line.h"
-// #include "drawing_text_run.h"
 #include "drawing_text_typography.h"
 #include "gtest/gtest.h"
-// #include "impl/paragraph_impl.h"
-// #include "modules/skparagraph/include/DartTypes.h"
 #include "modules/skparagraph/src/ParagraphImpl.h"
 #include "rosen_text/typography.h"
 
@@ -51,7 +45,8 @@ protected:
     OH_Drawing_Typography* typography_{nullptr};
 };
 
-void NdkTypographyStyleEllipsisTest::CreateAndPushTextStyle(std::string& text, double fontSize, OH_Drawing_FontWeight fontWeight)
+void NdkTypographyStyleEllipsisTest::CreateAndPushTextStyle(std::string& text, double fontSize,
+    OH_Drawing_FontWeight fontWeight)
 {
     if (txtStyle_ != nullptr) {
         OH_Drawing_DestroyTextStyle(txtStyle_);
@@ -142,7 +137,7 @@ void NdkTypographyStyleEllipsisTest::TearDown()
  */
 HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyStyleAttributeEllipsisModalTest001, TestSize.Level0)
 {
-    // Test for invalid SetTypographyStyleAttributeInt 
+    // Test for invalid SetTypographyStyleAttributeInt
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
     auto res = OH_Drawing_SetTypographyStyleAttributeInt(nullptr, TYPOGRAPHY_STYLE_ATTR_I_ELLIPSIS_MODAL,
