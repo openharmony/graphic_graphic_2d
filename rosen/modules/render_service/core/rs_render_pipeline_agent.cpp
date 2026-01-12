@@ -1847,9 +1847,9 @@ void RSRenderPipelineAgent::OnGlobalBlacklistChanged(const std::unordered_set<No
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return;
     }
-    auto task = [globalBlackList]() { 
+    auto task = [globalBlackList, mainThread = rsRenderPipeline_->GetMainThread()]() { 
         ScreenSpecialLayerInfo::SetGlobalBlackList(globalBlackList);
-        RSSpecialLayerUtils::UpdateScreenSpecialLayer();
+        RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
     };
     rsRenderPipeline_->PostMainThreadTask(task);
 }

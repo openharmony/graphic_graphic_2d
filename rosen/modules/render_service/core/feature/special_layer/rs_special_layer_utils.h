@@ -33,8 +33,13 @@ public:
     static void DumpScreenSpecialLayer(const std::string& funcName,
        SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds);
 
-    static void UpdateScreenSpecialLayer(
-        const RSScreenProperty& newProperty = {}, const RSScreenProperty& oldProperty = {});
+    static void UpdateInfoWithGlobalBlackList(const RSRenderNodeMap& nodeMap);
+
+    static void UpdateScreenSpecialLayer(const RSScreenProperty& screenProperty);
+
+    static void UpdateScreenSpecialLayer(const RSScreenProperty& screenProperty, ScreenPropertyType type);
+
+    static void NotifyScreenSpecialLayerChange();
 
     static void DealWithSpecialLayer(
         RSSurfaceRenderNode& node, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer);

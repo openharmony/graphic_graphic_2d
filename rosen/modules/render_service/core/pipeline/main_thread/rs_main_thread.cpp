@@ -5426,9 +5426,8 @@ void RSMainThread::UpdateScreenProperty(
 
     auto updateProperty = [id, type, property](const std::shared_ptr<RSScreenRenderNode>& node) {
         if (node && node->GetScreenId() == id) {
-            auto oldProperty = node->GetScreenProperty();
             node->UpdateScreenProperty(type, property);
-            RSSpecialLayerUtils::UpdateScreenSpecialLayer(node->GetScreenProperty(), oldProperty);
+            RSSpecialLayerUtils::UpdateScreenSpecialLayer(node->GetScreenProperty(), type);
             if (type == ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE) {
                 auto refreshRate = node->GetScreenProperty().GetRefreshRate();
                 RSRealtimeRefreshRateManager::Instance().UpdateScreenRefreshRate(id, refreshRate);
