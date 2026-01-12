@@ -56,8 +56,8 @@ ohos_source_set("libtexgine_source") {
     "src/font_config.cpp",
     "src/font_descriptor_cache.cpp",
     "src/font_descriptor_mgr.cpp",
-    "src/font_tool_set.cpp",
     "src/font_parser.cpp",
+    "src/font_tool_set.cpp",
     "src/opentype_parser/opentype_basic_type.cpp",
   ]
 
@@ -83,6 +83,7 @@ ohos_source_set("libtexgine_source") {
       "//third_party/skia:skia_$platform",
     ]
     deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/cJSON:cjson_static",
     ]
@@ -90,6 +91,7 @@ ohos_source_set("libtexgine_source") {
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "cJSON:cjson",
+      "hilog:libhilog",
       "i18n:intl_util",
       "skia:skia_canvaskit",
     ]
@@ -103,7 +105,6 @@ ohos_source_set("libtexgine_source") {
 
     external_deps += [
       "c_utils:utils",
-      "hilog:libhilog",
       "hitrace:hitrace_meter",
       "icu:shared_icuuc",
       "init:libbegetutil",

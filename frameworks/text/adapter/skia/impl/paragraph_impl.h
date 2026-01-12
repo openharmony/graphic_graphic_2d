@@ -198,8 +198,6 @@ private:
 #endif
     void UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::optional<RSBrush>& brush);
 
-    void RecordDifferentPthreadCall(const char* caller) const;
-
     void InitSymbolRuns();
 
     void UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
@@ -212,7 +210,6 @@ private:
     std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
     uint32_t id_ = 0;
-    mutable pthread_t threadId_;
     std::vector<std::shared_ptr<HMSymbolRun>> hmSymbols_;
     std::once_flag initSymbolRunsFlag_;
 };

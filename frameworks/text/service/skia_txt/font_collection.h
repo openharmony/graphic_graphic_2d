@@ -64,7 +64,7 @@ public:
     std::shared_ptr<txt::FontCollection> Get();
 
     void EnableGlobalFontMgr() override;
-    bool IsLocalFontCollection() override;
+    bool IsLocalFontCollection() const override;
     void DisableFallback() override;
     void DisableSystemFont() override;
     std::shared_ptr<Drawing::Typeface> LoadFont(
