@@ -662,7 +662,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest004, Function | SmallT
     hccMgr->xcomponentExpectedFrameRate_.clear();
     hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid, xcomponentIdMap);
 
-    for (int32_t i = 0; i < 100; ++i) { // 100 : xcomponentIdNums
+    for (int32_t i = 0; i < 100; ++i) { // 100 ： xcomponentIdNums
         std::string idStr = xcomponentId + std::to_string(i);
         hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
     }
@@ -1558,6 +1558,7 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | L
 
     frameRateMgr->frameVoter_.isDragScene_ = true;
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
+    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 120);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
@@ -1846,7 +1847,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckRefreshRateChange, Function | SmallTest |
 
 /**
  * @tc.name: TestUpdateSoftVSync
- * @tc.desc: Verify the result of TestUpdateSoftVSync function
+ * @tc.desc: Verify the result of UpdateSoftVSync function
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1954,11 +1955,13 @@ HWTEST_F(HgmFrameRateMgrTest, TestIsMouseOrTouchPadEvent, Function | SmallTest |
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);
 
+    mgr.frameVoter_.voterGamesEffective_ = false;
     touchStatus = AXIS_BEGIN;
     sourceType = TouchSourceType::SOURCE_TYPE_TOUCHSCREEN;
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);
 
+    mgr.frameVoter_.voterGamesEffective_ = false;
     touchStatus = -1;
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);
