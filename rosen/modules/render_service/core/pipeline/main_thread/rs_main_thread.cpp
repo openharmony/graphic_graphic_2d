@@ -1842,7 +1842,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool enableHwcForMirrorMode = RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
-    isHardwareForcedDisabled_ = 
+    isHardwareForcedDisabled_ =
         (!hasProtectedLayer_ &&
  	     (isHardwareForcedDisabled_ || doWindowAnimate_ || isFoldScreenSwitching ||
  	      (isMultiDisplay && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode)) || hasColorFilter)) ||
