@@ -467,7 +467,7 @@ napi_value JsFontDescriptor::GetFontPathsByType(napi_env env, napi_callback_info
 
     if (!ConvertFromJsValue(env, argv[0], fontType)) {
         TEXT_LOGE("Failed to convert argument to SystemFontType");
-        return CreateFontList(env, {});
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid argument");
     }
 
     std::unordered_set<std::string> fontPaths;
