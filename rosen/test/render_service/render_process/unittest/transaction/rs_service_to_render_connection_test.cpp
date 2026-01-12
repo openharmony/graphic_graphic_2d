@@ -49,9 +49,7 @@ void RSServiceToRenderConnectionTest::SetUpTestCase()
     auto runner = AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
     auto renderPipeline = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
-
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
-    renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     sptr<RSRenderPipelineAgent> renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
     g_rsConn = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
@@ -100,6 +98,23 @@ HWTEST_F(RSServiceToRenderConnectionTest, GetShowRefreshRateEnabledTest, TestSiz
     bool enabled1 = false;
     g_rsConn->GetShowRefreshRateEnabled(enabled);
     g_rsConn->GetShowRefreshRateEnabled(enabled1);
+    ASSERT_TRUE(g_rsConn);
+}
+
+/**
+ * @tc.name: NotifyPackageEventTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, NotifyPackageEventTest, TestSize.Level1)
+{
+    uint32_t listSize1 = 0;
+    std::vector<std::string> package1;
+    uint32_t listSize2 = 2;
+    std::vector<std::string> package2 = {"package1", "package2"};
+    g_rsConn->NotifyPackageEvent(listSize1, package1);
+    g_rsConn->NotifyPackageEvent(listSize2, package2);
     ASSERT_TRUE(g_rsConn);
 }
 } // namespace OHOS::Rosen
