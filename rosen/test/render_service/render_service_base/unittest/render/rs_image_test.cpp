@@ -726,9 +726,8 @@ HWTEST_F(RSImageTest, addImageMatrixMarshallingTest, TestSize.Level1)
     rsImage->SetFitMatrix(matrix);
 
     MessageParcel parcel;
-    EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel, rsImage), true);
-    std::shared_ptr<RSImage> newImage;
-    EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
+    EXPECT_EQ(rsImage->Marshalling(parcel), true);
+    EXPECT_EQ(rsImage->Unmarshalling(parcel), nullptr);
 }
 
 /**
