@@ -828,18 +828,12 @@ void RSMainThread::OnScreenConnected(const sptr<RSScreenProperty>& screenPropert
     }
     RS_LOGI("%{public}s: screen id: %{public}" PRIu64, __func__, screenProperty->GetScreenId());
     CreateScreenNode(screenProperty);
-    if (!screenProperty->IsVirtual() && hgmRPContext_) {
-        hgmRPContext_->AddScreenId(screenProperty->GetScreenId());
-    }
 }
 
 void RSMainThread::OnScreenDisconnected(ScreenId screenId)
 {
     RS_LOGI("%{public}s, screenId: %{public}" PRIu64, __func__, screenId);
     DestroyScreenNode(screenId);
-    if (hgmRPContext_) {
-        hgmRPContext_->RemoveScreenId(screenId);
-    }
 }
 
 void RSMainThread::OnScreenPropertyChanged(

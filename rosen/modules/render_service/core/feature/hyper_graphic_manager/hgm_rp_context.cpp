@@ -82,18 +82,6 @@ void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_ptr<
         pipelineParam.pendingScreenRefreshRate, pipelineParam.pendingConstraintRelativeTime);
 }
 
-void HgmRPContext::AddScreenId(ScreenId screenId)
-{
-    RS_LOGI("%{public}s: screenId[%{public}" PRIu64 "]", __func__, screenId);
-    screenIds_.insert(screenId);
-}
-
-void HgmRPContext::RemoveScreenId(ScreenId screenId)
-{
-    RS_LOGI("%{public}s: screenId[%{public}" PRIu64 "]", __func__, screenId);
-    screenIds_.erase(screenId);
-}
-
 void HgmRPContext::HandleGameNode(const RSRenderNodeMap& nodeMap)
 {
     if (isAdaptive_ != SupportASStatus::SUPPORT_AS) {

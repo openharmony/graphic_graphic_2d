@@ -673,14 +673,19 @@ void RSClientToServiceConnection::SetShowRefreshRateEnabled(bool enabled, int32_
 
 uint32_t RSClientToServiceConnection::GetRealtimeRefreshRate(ScreenId screenId)
 {
-    if (renderProcessManagerAgent_ == nullptr) {
-        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+    if (renderProcessManagerAgent_ == nullptr || screenManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent or screenManagerAgent is nullptr", __func__);
         return 0;
     }
-    auto screen = HgmCore::Instance().GetScreen(screenId);
-    if (screen == nullptr) {
-        screenId = HgmCore::Instance().GetActiveScreenId();
+
+    if (screenId == INVALID_SCREEN_ID) {
+        if (hgmContext_) {
+            hgmContext_->GetActiveScreenId(screenId);
+        } else {
+            screenManagerAgent_->GetActiveScreenId(screenId);
+        }
     }
+
     auto conn = renderProcessManagerAgent_->GetServiceToRenderConn(screenId);
     if (conn == nullptr) {
         RS_LOGE("%{public}s serviceToRenderConn is nullptr", __func__);

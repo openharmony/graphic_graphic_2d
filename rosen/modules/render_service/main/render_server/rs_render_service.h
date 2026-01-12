@@ -48,8 +48,6 @@ public:
 
     bool Init();
     void Run();
-    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
-        const sptr<RSIConnectionToken>& token) override;
 
 private:
     class ScreenManagerListener : public RSIScreenManagerListener {
@@ -80,7 +78,10 @@ private:
     };
 
     // IPC related
-    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(const sptr<RSIConnectionToken>& token) override;
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
+        const sptr<RSIConnectionToken>& token) override;
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
+        const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 
     // Initialization related
@@ -122,12 +123,12 @@ private:
     std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
     std::shared_ptr<RSServiceDumpManager> rsDumpManager_ = nullptr;
 
-    // TODO: DO NOT USE. Will be removed asap
-    RSMainThread* mainThread_ = nullptr;
+    // To be used by single process
     std::shared_ptr<RSRenderPipeline> renderPipeline_ = nullptr;
+
     mutable std::mutex mutex_;
-    std::map<sptr<IRemoteObject>, std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>>
-        connections_;
+    std::map<sptr<IRemoteObject>,
+        std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>> connections_;
     
     friend class RSRenderServiceAgent;
     friend class RSRenderProcessManager;
@@ -135,7 +136,6 @@ private:
     friend class RSConnectToRenderProcess;
     friend class RSClientToRenderConnection;
     friend class RSClientToServiceConnection;
-
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

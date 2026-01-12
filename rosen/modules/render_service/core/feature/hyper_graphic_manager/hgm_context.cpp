@@ -361,6 +361,13 @@ std::vector<int32_t> HgmContext::GetScreenSupportedRefreshRates(ScreenId id)
     }).get();
 }
 
+void HgmContext::GetActiveScreenId(ScreenId& screenId) const
+{
+    if (!hgmCore_.GetScreen(screenId)) {
+        screenId = hgmCore_.GetActiveScreenId();
+    }
+}
+
 void HgmContext::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
 {
     HgmTaskHandleThread::Instance().PostTask([frameRateManager = frameRateManager_, enableDynamicModeEvent] {

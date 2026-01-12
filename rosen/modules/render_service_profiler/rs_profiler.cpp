@@ -353,7 +353,7 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
 void RSProfiler::Init(RSRenderService* renderService)
 {
     g_renderService = renderService;
-    g_mainThread = g_renderService ? g_renderService->mainThread_ : nullptr;
+    g_mainThread = g_renderService ? g_renderService->renderPipeline_->GetMainThread() : nullptr;
     context_ = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
     RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
