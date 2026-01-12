@@ -1932,7 +1932,7 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
         if (isSelfDrawingNode_) {
             // merge self drawing node last frame size and join current frame size to absDrawRect_ when changed
             dirtyManager.MergeDirtyRect(oldAbsDrawRect_.IntersectRect(clipRect));
-            selfDrawingNodeAbsDirtyRect.JoinRect(absDrawRect_);
+            selfDrawingNodeAbsDirtyRect = selfDrawingNodeAbsDirtyRect.JoinRect(absDrawRect_);
         }
         oldAbsDrawRect_ = absDrawRect_;
     }
