@@ -682,9 +682,9 @@ HWTEST_F(HyperGraphicManagerTest, SetPerformanceConfigTest001, Function | SmallT
     int64_t invalidOffset = 16000001;
     auto& instance = HgmCore::Instance();
     auto curScrnStrategyId = instance.hgmFrameRateMgr_->GetCurScreenStrategyId();
-    if ((instance.mPolicyConfigData_->screenConfigs_.count(curScrnStrategyId) == 0 ||
-            instance.mPolicyConfigData_->screenConfigs_[curScrnStrategyId].count(
-                std::to_string(instance.customFrameRateMode_)) == 0)) {
+    if (instance.mPolicyConfigData_->screenConfigs_.count(curScrnStrategyId) == 0 ||
+        instance.mPolicyConfigData_->screenConfigs_[curScrnStrategyId].count(
+            std::to_string(instance.customFrameRateMode_)) == 0) {
         return;
     }
 
@@ -704,11 +704,11 @@ HWTEST_F(HyperGraphicManagerTest, SetPerformanceConfigTest001, Function | SmallT
     auto& curScreenSetting =
         instance.mPolicyConfigData_->screenConfigs_[curScrnStrategyId][std::to_string(instance.customFrameRateMode_)];
     auto it = curScreenSetting.performanceConfig.find("rsPhaseOffset");
-    std::string orgRsPhaseOffsetStr = "";
+    std::string orgRsPhaseOffsetStr;
     if (it != curScreenSetting.performanceConfig.end()) {
         orgRsPhaseOffsetStr = it->second;
     }
-    std::string orgAppPhaseOffsetStr = "";
+    std::string orgAppPhaseOffsetStr;
     it = curScreenSetting.performanceConfig.find("appPhaseOffset");
     if (it != curScreenSetting.performanceConfig.end()) {
         orgAppPhaseOffsetStr = it->second;
@@ -745,7 +745,7 @@ HWTEST_F(HyperGraphicManagerTest, SetPerformanceConfigTest001, Function | SmallT
         curScreenSetting.performanceConfig["appPhaseOffset"] = orgAppPhaseOffsetStr;
     }
     GTEST_LOG_(INFO) << "orgIsVsyncOffsetCustomized:" << orgIsVsyncOffsetCustomized
-                     << "orgRsPhaseOffset:" << orgRsPhaseOffset << "orgAppPhaseOffset:" << orgAppPhaseOffset;
+                     << "orgRsPhaseOffset: " << orgRsPhaseOffset << ",orgAppPhaseOffset: " << orgAppPhaseOffset;
     if (curScreenSetting.performanceConfig.count("rsPhaseOffset") != 0) {
         GTEST_LOG_(INFO) << "rsPhaseOffset:" << curScreenSetting.performanceConfig["rsPhaseOffset"];
     }
