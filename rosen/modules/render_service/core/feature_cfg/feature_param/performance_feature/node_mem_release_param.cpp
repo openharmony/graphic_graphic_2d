@@ -17,11 +17,6 @@
 
 namespace OHOS::Rosen {
 
-bool NodeMemReleaseParam::IsNodeOffTreeMemReleaseEnabled()
-{
-    return isNodeOffTreeMemReleaseEnabled_;
-}
-
 bool NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()
 {
     return isCanvasDrawingNodeDMAMemEnabled_;
@@ -32,11 +27,6 @@ bool NodeMemReleaseParam::IsRsRenderNodeGCMemReleaseEnabled()
     return isRsRenderNodeGCMemReleaseEnabled_;
 }
 
-
-void NodeMemReleaseParam::SetNodeOffTreeMemReleaseEnabled(bool isEnable)
-{
-    isNodeOffTreeMemReleaseEnabled_ = isEnable;
-}
 
 void NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(bool isEnable)
 {

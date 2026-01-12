@@ -108,6 +108,16 @@ public:
         drawableReleaseFunc_ = func;
     }
 
+    void SetNodeOffTreeMemReleaseEnabled(bool isEnable)
+    {
+        isNodeOffTreeMemReleaseEnabled_ = isEnable;
+    }
+
+    bool IsNodeOffTreeMemReleaseEnabled()
+    {
+        return isNodeOffTreeMemReleaseEnabled_;
+    }
+
 private:
     GCLevel JudgeGCLevel(uint32_t remainBucketSize);
     void ReleaseOffTreeNodeForBucket(const RSThresholdDetector<uint32_t>::DetectCallBack& callBack);
@@ -142,6 +152,8 @@ private:
 
     std::function<void()> imageReleaseFunc_;
     std::function<void(bool)> drawableReleaseFunc_;
+
+    bool isNodeOffTreeMemReleaseEnabled_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

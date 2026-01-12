@@ -474,5 +474,20 @@ HWTEST_F(RSRenderNodeGCTest, SetIsOnTheTree001, TestSize.Level1)
     nodeGC.SetIsOnTheTree(nodeId, ptr, isOnTree);
     EXPECT_EQ(nodeGC.notOnTreeNodeMap_[nodePid][nodeId].lock().get(), ptr.get());
 }
+
+/**
+ * @tc.name: NodeOffTreeMemReleaseEnabledTest
+ * @tc.desc: Verify the SetNodeOffTreeMemReleaseEnabled and IsNodeOffTreeMemReleaseEnabled functions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeGCTest, NodeOffTreeMemReleaseEnabledTest, TestSize.Level1)
+{
+    RSRenderNodeGC::Instance().SetNodeOffTreeMemReleaseEnabled(true);
+    ASSERT_EQ(RSRenderNodeGC::Instance().IsNodeOffTreeMemReleaseEnabled(), true);
+    RSRenderNodeGC::Instance().SetNodeOffTreeMemReleaseEnabled(false);
+    ASSERT_EQ(RSRenderNodeGC::Instance().IsNodeOffTreeMemReleaseEnabled(), false);
+}
+
 } // namespace Rosen
 } // namespace OHOS

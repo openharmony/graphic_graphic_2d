@@ -14,6 +14,7 @@
  */
 
 #include "node_mem_release_param_parse.h"
+#include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS::Rosen {
 
@@ -49,9 +50,9 @@ int32_t NodeMemReleaseParamParse::ParseNodeMemReleaseInternal(xmlNode& node)
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "NodeOffTreeMemReleaseEnabled") {
-            NodeMemReleaseParam::SetNodeOffTreeMemReleaseEnabled(isEnabled);
+            RSRenderNodeGC::Instance().SetNodeOffTreeMemReleaseEnabled(isEnabled);
             RS_LOGI("NodeMemReleaseParamParse parse NodeOffTreeMemReleaseEnabled %{public}d",
-                    NodeMemReleaseParam::IsNodeOffTreeMemReleaseEnabled());
+                    RSRenderNodeGC::Instance().IsNodeOffTreeMemReleaseEnabled());
         } else if (name == "CanvasDrawingNodeDMAMemEnabled") {
             NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(isEnabled);
             RS_LOGI("NodeMemReleaseParamParse parse CanvasDrawingNodeDMAMemEnabled %{public}d",

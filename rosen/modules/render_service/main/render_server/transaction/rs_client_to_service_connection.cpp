@@ -58,6 +58,7 @@
 #endif
 #include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
+#include "node_mem_release_param.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -188,7 +189,9 @@ void RSClientToServiceConnection::CleanRenderNodes() noexcept
     nodeMap.FilterNodeByPid(remotePid_);
     RS_PROFILER_KILL_PID_END();
 
-    RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+    if (NodeMemReleaseParam::IsRsRenderNodeGCMemReleaseEnabled()) {
+        RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+    }
 }
 
 void RSClientToServiceConnection::CleanFrameRateLinkers() noexcept

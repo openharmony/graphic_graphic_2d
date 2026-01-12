@@ -733,8 +733,9 @@ void RSRenderNode::ReleaseNodeMem()
 bool RSRenderNode::IsNodeMemClearEnable()
 {
 #ifdef NOT_BUILD_FOR_OHOS_SDK
-        return RSSystemProperties::GetNodeMemClearEnabled() && GetType() == RSRenderNodeType::CANVAS_NODE
-        && RSProperties::IS_UNI_RENDER && !isTextureExportNode_;
+        return RSRenderNodeGC::Instance().IsNodeOffTreeMemReleaseEnabled() &&
+            RSSystemProperties::GetNodeMemClearEnabled() && GetType() == RSRenderNodeType::CANVAS_NODE &&
+            RSProperties::IS_UNI_RENDER && !isTextureExportNode_;
 #else
         return false;
 #endif

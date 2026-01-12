@@ -37,22 +37,8 @@ void NodeMemReleaseParamTest::SetUp() {}
 void NodeMemReleaseParamTest::TearDown() {}
 
 /**
- * @tc.name: NodeOffTreeMemReleaseEnabledTest
- * @tc.desc: Verify the SetNodeOffTreeMemReleaseEnabled IsNodeOffTreeMemReleaseEnabled function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(NodeMemReleaseParamTest, NodeOffTreeMemReleaseEnabledTest, Function | SmallTest | Level1)
-{
-    NodeMemReleaseParam::SetNodeOffTreeMemReleaseEnabled(true);
-    ASSERT_EQ(NodeMemReleaseParam::IsNodeOffTreeMemReleaseEnabled(), true);
-    NodeMemReleaseParam::SetNodeOffTreeMemReleaseEnabled(false);
-    ASSERT_EQ(NodeMemReleaseParam::IsNodeOffTreeMemReleaseEnabled(), false);
-}
-
-/**
  * @tc.name: CanvasDrawingNodeDMAMemEnabledTest
- * @tc.desc: Verify the SetCanvasDrawingNodeDMAMemEnabled IsCanvasDrawingNodeDMAMemEnabled function
+ * @tc.desc: Verify the SetCanvasDrawingNodeDMAMemEnabled and IsCanvasDrawingNodeDMAMemEnabled functions
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -66,7 +52,7 @@ HWTEST_F(NodeMemReleaseParamTest, CanvasDrawingNodeDMAMemEnabledTest, Function |
 
 /**
  * @tc.name: RsRenderNodeGCMemReleaseEnabledTest
- * @tc.desc: Verify the SetRsRenderNodeGCMemReleaseEnabled IsRsRenderNodeGCMemReleaseEnabled function
+ * @tc.desc: Verify the SetRsRenderNodeGCMemReleaseEnabled and IsRsRenderNodeGCMemReleaseEnabled functions
  * @tc.type: FUNC
  * @tc.require:
  */
