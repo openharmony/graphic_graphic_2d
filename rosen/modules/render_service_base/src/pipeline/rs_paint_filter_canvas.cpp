@@ -1149,7 +1149,8 @@ void RSPaintFilterCanvas::ConvertToType(
 
 void RSPaintFilterCanvas::ReplaceSurface(Drawing::Surface* surface)
 {
-    RS_TRACE_NAME_FMT("RSPaintFilterCanvas::ReplaceSurface surface_:%d, surface:%d", surface_, surface);
+    RS_TRACE_NAME_FMT("RSPaintFilterCanvas::ReplaceSurface surface_:%d, surface:%d",
+        surface_ != nullptr, surface != nullptr);
     if (!surface_ || !surface) {
         ROSEN_LOGD("RSPaintFilterCanvas::ReplaceSurface surface_ or surface is nullptr");
         return;

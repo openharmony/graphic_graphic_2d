@@ -78,7 +78,7 @@ void RSHdrUtilTest::TearDownTestCase() {}
 void RSHdrUtilTest::SetUp() {}
 void RSHdrUtilTest::TearDown() {}
 
-#ifndef USE_VIDEO_PROCESSING_ENGINE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: CheckIsHdrSurface
  * @tc.desc: Test CheckIsHdrSurface

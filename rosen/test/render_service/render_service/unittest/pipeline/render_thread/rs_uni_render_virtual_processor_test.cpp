@@ -14,10 +14,12 @@
  */
 #include <parameters.h>
 
+#include "ibuffer_consumer_listener.h"
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
+#include "params/rs_render_params.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "multiscreen_param.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -27,6 +29,10 @@
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_processor_factory.h"
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#endif
 #include "common/rs_obj_abs_geometry.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
@@ -52,6 +58,13 @@ BufferRequestConfig requestConfig = {
     .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
     .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
     .timeout = 0,
+};
+
+class BufferConsumerListener : public ::OHOS::IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override
+    {
+    }
 };
 
 class RSUniRenderVirtualProcessorTest : public testing::Test {
@@ -524,6 +537,83 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, PostProcess, TestSize.Level2)
     ASSERT_NE(processor, nullptr);
     processor->PostProcess();
 }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: InitForRenderThread003
+ * @tc.desc: Test RSUniRenderVirtualProcessorTest.InitForRenderThread
+ * @tc.type:FUNC
+ * @tc.require: issueIB7AGV
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
+    ASSERT_NE(surface, nullptr);
+    auto screenId = screenManager->CreateVirtualScreen("virtual_screen", 10, 10, surface, 0UL, 0, {});
+    screenManager->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
+
+    NodeId mainNodeId = 1;
+    NodeId virtualNodeId = 2; // virtual node id
+    auto mainNode = std::make_shared<RSScreenRenderNode>(mainNodeId, 0);
+    mainNode->InitRenderParams();
+    auto virtualNode = std::make_shared<RSScreenRenderNode>(virtualNodeId, screenId);
+    virtualNode->isMirroredScreen_ = true;
+    virtualNode->mirrorSource_ = mainNode;
+    virtualNode->InitRenderParams();
+
+    auto mainRenderDrawable = static_cast<RSScreenRenderNodeDrawable* >(mainNode->renderDrawable_.get());
+    auto virtualRenderDrawable = static_cast<RSScreenRenderNodeDrawable* >(virtualNode->renderDrawable_.get());
+    ASSERT_NE(mainRenderDrawable, nullptr);
+    ASSERT_NE(virtualRenderDrawable, nullptr);
+    auto mainRenderParams = static_cast<RSScreenRenderParams*>(mainRenderDrawable->GetRenderParams().get());
+    auto virtualRenderParams = static_cast<RSScreenRenderParams*>(virtualRenderDrawable->GetRenderParams().get());
+    ASSERT_NE(mainRenderParams, nullptr);
+    ASSERT_NE(virtualRenderParams, nullptr);
+    virtualRenderParams->mirrorSourceDrawable_ = mainNode->renderDrawable_;
+
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    ASSERT_NE(renderEngine, nullptr);
+
+    mainRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2100_HLG;
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    ASSERT_NE(virtualProcessor, nullptr);
+    virtualProcessor->virtualScreenId_ = screenId;
+    ASSERT_NE(screenManager->GetProducerSurface(virtualProcessor->virtualScreenId_), nullptr);
+
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    std::shared_ptr<RSSurfaceOhosVulkan> rsSurface1 = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+    auto tmpSurface = std::make_shared<Drawing::Surface>();
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(tmpSurface, 100, 100, 10);
+    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface1, std::move(surfaceFrame));
+    ASSERT_NE(virtualProcessor->renderFrame_, nullptr);
+    ASSERT_NE(virtualProcessor->renderFrame_->surfaceFrame_, nullptr);
+    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
+
+    virtualRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2100_HLG;
+    virtualRenderParams->SetHDRPresent(true);
+    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
+
+    sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<OHOS::IBufferProducer> producer2 = cSurface->GetProducer();
+    sptr<OHOS::Surface> pSurface2 = Surface::CreateSurfaceAsProducer(producer2);
+    int32_t fence;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+
+    pSurface2->RequestBuffer(sBuffer, fence, requestConfig);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+    ASSERT_NE(nativeWindowBuffer, nullptr);
+    rsSurface1->mSurfaceList.emplace_back(nativeWindowBuffer);
+    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
+    auto res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, virtualProcessor->renderFrame_);
+    EXPECT_EQ(GSERROR_OK, res);
+}
+#endif
 
 /**
  * @tc.name: OriginScreenRotation
