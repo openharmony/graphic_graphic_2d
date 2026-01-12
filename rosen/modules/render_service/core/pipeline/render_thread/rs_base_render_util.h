@@ -17,6 +17,8 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 
 #include <atomic>
+#include <vector>
+
 #include "draw/pen.h"
 #include "image/bitmap.h"
 #include "metadata_helper.h"
@@ -29,7 +31,6 @@
 #include "sync_fence.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
-#include <vector>
 
 namespace OHOS {
 namespace Rosen {

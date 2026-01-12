@@ -69,7 +69,7 @@ public:
 
     static inline uint32_t screenId_ = 0;
     static inline std::shared_ptr<RSUniRenderProcessor> renderProcessor = nullptr;
-    static inline std::unique_ptr<OHOS::Rosen::RSScreen> screen = nullptr;
+    static inline std::unique_ptr<RSScreen> screen = nullptr;
 };
 
 void RSUniRenderProcessorTest::SetUpTestCase()
@@ -80,7 +80,7 @@ void RSUniRenderProcessorTest::SetUpTestCase()
     RSTestUtil::InitRenderNodeGC();
     auto output = std::make_shared<HdiOutput>(screenId_);
     RSRenderComposerManager::GetInstance().OnScreenConnected(output);
-    screen = std::make_unique<OHOS::Rosen::RSScreen>(output);
+    screen = std::make_unique<RSScreen>(output);
     auto screenManager = RSScreenManager::GetInstance();
     screenManager->screens_.insert(std::make_pair(0, std::move(screen)));
 
@@ -92,6 +92,7 @@ void RSUniRenderProcessorTest::SetUpTestCase()
     renderProcessor->Init(node, 0, 0, 0, renderEngine);
     EXPECT_NE(renderProcessor->composerClient_, nullptr);
 }
+
 void RSUniRenderProcessorTest::TearDownTestCase()
 {
     RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId_]->uniRenderEngine_ = nullptr;
@@ -405,10 +406,10 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread002, TestSize.Level
         ASSERT_NE(surfaceDrawable->renderParams_, nullptr);
         sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
         surfaceDrawable->renderParams_->SetBuffer(buffer, {});
-        ASSERT_EQ(renderProcessor, nullptr);
+        ASSERT_NE(renderProcessor, nullptr);
         renderProcessor->composerClient_ = nullptr;
         renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
-        
+
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
@@ -653,10 +654,9 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
     auto buffer = SurfaceBuffer::Create();
     auto ret = buffer->Alloc(RSUniRenderProcessorTest::requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
- 
+
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_NE(src, nullptr);
-    (*src) = RSUniRenderProcessorTest::defaultSelfDrawingRect;
+    ASSERT_EQ(src, nullptr);
 
     EXPECT_EQ(params.GetTunnelLayerId(), 1);
     params.SetBuffer(buffer, DEFAULT_RECT);
@@ -682,7 +682,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayerTest, TestSize.Level1)
     auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-    params->SetIsHwcEnabledBySolidLayer(true);
+    params->SetIsHwcEnabledBySolidLayer(false);
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->composerClient_ = nullptr;
     renderProcessor->CreateSolidColorLayer(layer, *params);

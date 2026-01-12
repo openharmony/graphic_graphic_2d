@@ -761,27 +761,6 @@ bool RSUniRenderThread::IsCurtainScreenOn() const
     return renderThreadParams ? renderThreadParams->IsCurtainScreenOn() : false;
 }
 
-bool RSUniRenderThread::IsColorFilterModeOn() const
-{
-    if (!uniRenderEngine_) {
-        return false;
-    }
-    ColorFilterMode colorFilterMode = uniRenderEngine_->GetColorFilterMode();
-    if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
-        colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
-        return false;
-    }
-    return true;
-}
-
-bool RSUniRenderThread::IsHighContrastTextModeOn() const
-{
-    if (!uniRenderEngine_) {
-        return false;
-    }
-    return uniRenderEngine_->IsHighContrastEnabled();
-}
-
 static std::string FormatNumber(size_t number)
 {
     constexpr int FORMATE_NUM_STEP = 3;
@@ -831,6 +810,27 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
     gpuContext->SetResourceCacheLimits(maxResources, maxResourcesBytes);
     dumpString.append("setgpulimit: " + FormatNumber(cacheLimit)
         + "==>" + FormatNumber(maxResourcesBytes) + "\n");
+}
+
+bool RSUniRenderThread::IsColorFilterModeOn() const
+{
+    if (!uniRenderEngine_) {
+        return false;
+    }
+    ColorFilterMode colorFilterMode = uniRenderEngine_->GetColorFilterMode();
+    if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
+        colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
+        return false;
+    }
+    return true;
+}
+
+bool RSUniRenderThread::IsHighContrastTextModeOn() const
+{
+    if (!uniRenderEngine_) {
+        return false;
+    }
+    return uniRenderEngine_->IsHighContrastEnabled();
 }
 
 void RSUniRenderThread::DumpMem(DfxString& log, bool isLite)
@@ -1063,7 +1063,7 @@ void RSUniRenderThread::SetDefaultClearMemoryFinished(bool isFinished)
     isDefaultCleanTaskFinished_ = isFinished;
 }
 
-bool RSUniRenderThread::IsDefaultClearMemroyFinished()
+bool RSUniRenderThread::IsDefaultClearMemoryFinished()
 {
     return isDefaultCleanTaskFinished_;
 }

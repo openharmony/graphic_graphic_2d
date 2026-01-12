@@ -1059,28 +1059,6 @@ void RSUniRenderUtil::DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& r
     canvas.DetachBrush();
 }
 
-#ifdef RS_ENABLE_VK
-
-std::vector<GrBackendSemaphore> RSUniRenderUtil::PrepareHdrSemaphoreVector(GrBackendSemaphore& backendSemaphore,
-    std::shared_ptr<Drawing::Surface>& surface)
-{
-    VkSemaphore notifySemaphore;
-    std::vector<GrBackendSemaphore> semphoreVec = {backendSemaphore};
-    std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGpuTask();
-
-    for (auto frameId : frameIdVec) {
-        if (RSHDRVulkanTask::GetHTSNotifySemaphore(notifySemaphore, frameId)) {
-            GrBackendSemaphore htsSemaphore;
-            htsSemaphore.initVulkan(notifySemaphore);
-            semphoreVec.emplace_back(std::move(htsSemaphore));
-        }
-        RSHDRVulkanTask::InsertHTSWaitSemaphore(surface, frameId);
-    }
-
-    return semphoreVec;
-}
-#endif
-
 void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, bool optFenceWait)
 {
