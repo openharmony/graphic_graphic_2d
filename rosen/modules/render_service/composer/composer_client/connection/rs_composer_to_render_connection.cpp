@@ -28,7 +28,7 @@ int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInf
 {
     RS_LOGD("RSComposerToRenderConnection::ReleaseLayerBuffers, screenId:%{public}" PRIu64, releaseLayerInfo.screenId);
     if (releaseLayerBuffersCB_ != nullptr) {
-        releaseLayerBuffersCB_(releaseLayerInfo, composerClient_);
+        releaseLayerBuffersCB_(releaseLayerInfo);
     }
     // 游戏大脑 打桩获取SwapBufferTime
     if (FrameReport::GetInstance().HasGameScene()) {
@@ -42,11 +42,6 @@ int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInf
 void RSComposerToRenderConnection::RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback)
 {
     releaseLayerBuffersCB_ = std::move(callback);
-}
-
-void RSComposerToRenderConnection::SetRSRenderComposerClient(const std::shared_ptr<RSRenderComposerClient>& composerClient)
-{
-    composerClient_ = composerClient;
 }
 
 int32_t RSComposerToRenderConnection::NotifyLppLayerToRender(

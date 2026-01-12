@@ -72,8 +72,7 @@ public:
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
 
     void UnRegisterCond(ScreenId curScreenId);
-    void ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo,
-        const std::shared_ptr<RSRenderComposerClient>& composerClient);
+    void ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo);
     bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;

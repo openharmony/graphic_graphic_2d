@@ -27,7 +27,6 @@ public:
     ~RSComposerToRenderConnection() noexcept = default;
     int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo) override;
     void RegisterReleaseLayerBuffersCB(ReleaseLayerBuffersCB callback) override;
-    void SetRSRenderComposerClient(const std::shared_ptr<RSRenderComposerClient>& composerClient) override;
     
     // LPP
     int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds) override;
@@ -36,7 +35,6 @@ public:
 private:
     ReleaseLayerBuffersCB releaseLayerBuffersCB_;
     JudgeLppLayerCB judgeLppLayerCB_;
-    std::shared_ptr<RSRenderComposerClient> composerClient_;
 };
 } // namespace Rosen
 } // namespace OHOS
