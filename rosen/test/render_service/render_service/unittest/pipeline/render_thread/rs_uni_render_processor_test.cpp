@@ -235,7 +235,7 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
 HWTEST_F(RSUniRenderProcessorTest, InitForRenderThread001, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        // case1:renderEngine is nullptr
+        // case1: renderEngine is nullptr
         NodeId nodeId = 1;
         auto screenNode = std::make_shared<RSRenderNode>(nodeId);
         auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
@@ -251,7 +251,7 @@ HWTEST_F(RSUniRenderProcessorTest, InitForRenderThread001, TestSize.Level1)
         EXPECT_EQ(ret, false);
 
         // case3: renderEngine not nullptr, renderParams not nullptr
-        screenDrawable->renderParams_ = std::make_unique<RSRenderParams>(screenNode->GetId());
+        screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
         ret = renderProcessor->InitForRenderThread(*screenDrawable, renderEngine);
         EXPECT_EQ(ret, false);
     }
@@ -523,7 +523,7 @@ HWTEST_F(RSUniRenderProcessorTest, HandleTunnelLayerParameters001, TestSize.Leve
 
     ASSERT_EQ(layer->GetTunnelLayerId(), params.GetTunnelLayerId());
 }
- 
+
 /**
  * @tc.name: GetLayerInfo001
  * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo
@@ -681,7 +681,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayerTest, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
-    auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
     params->SetIsHwcEnabledBySolidLayer(false);
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->composerClient_ = nullptr;
