@@ -38,6 +38,9 @@ namespace OHOS {
 namespace {
 constexpr int32_t KFLOAT_PRECISION = 1000000;
 constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
+const double DEFAULT_DOUBLE_MAX_WIDTH1 = 80;
+const double DEFOUT_DOUBLE_MAX_WIDTH2 = 100;
+const double DEFOUT_DOUBLE_MAX_WIDTH3 = 30;
 }
 
 class NdkTextLineTest : public testing::Test {
@@ -1259,6 +1262,7 @@ HWTEST_F(NdkTextLineTest, NdkTextLineTest037, TestSize.Level0)
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
+
 /*
  * @tc.name: NdkTextLineTest038
  * @tc.desc: test for the textLine CreateTruncatedLine.
@@ -1325,6 +1329,108 @@ HWTEST_F(NdkTextLineTest, NdkTextLineTest039, TestSize.Level0)
     EXPECT_TRUE(truncatedLine == nullptr);
 
     truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 100, ELLIPSIS_MODAL_TAIL, nullptr);
+    EXPECT_TRUE(truncatedLine == nullptr);
+
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NdkTextLineExtraTest001
+ * @tc.desc: test for the textLine CreateTruncatedLine.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTextLineTest, NdkTextLineExtraTest001, TestSize.Level0)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    constexpr size_t realTextlineSize = 3;
+    EXPECT_EQ(size, realTextlineSize);
+    // Test for ELLIPSIS_MODAL_MULTILINE_HEAD glyph count.
+    std::vector<int32_t> countArr = {7, 10, 7};
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_TextLine *truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, DEFAULT_DOUBLE_MAX_WIDTH1,
+            ELLIPSIS_MODAL_MULTILINE_MIDDLE, "...");
+        EXPECT_TRUE(truncatedLine == nullptr);
+        OH_Drawing_DestroyTextLine(truncatedLine);
+        truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, DEFOUT_DOUBLE_MAX_WIDTH2,
+            ELLIPSIS_MODAL_MULTILINE_HEAD, "...");
+        EXPECT_TRUE(truncatedLine != nullptr);
+        // Paint position x and y.
+        constexpr std::pair<double, double> position = {30, 550};
+        OH_Drawing_TextLinePaint(truncatedLine, canvas_, position.first, position.second);
+        double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
+        EXPECT_EQ(count, countArr[index]);
+        OH_Drawing_DestroyTextLine(truncatedLine);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NdkTextLineExtraTest002
+ * @tc.desc: test for the textLine CreateTruncatedLine.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTextLineTest, NdkTextLineExtraTest002, TestSize.Level0)
+{
+    PrepareCreateTextLine(
+        "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
+        "Drawing \n\n   \u231A \u513B"
+        " \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本\n123");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    constexpr size_t realTextlineSize = 7;
+    constexpr size_t specialIndex = 3;
+    constexpr double specialGlyphCount = 3;
+    EXPECT_EQ(size, realTextlineSize);
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_TextLine *truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, DEFOUT_DOUBLE_MAX_WIDTH3,
+            ELLIPSIS_MODAL_HEAD, "测试");
+        EXPECT_TRUE(truncatedLine != nullptr);
+        // Paint position x and y.
+        constexpr std::pair<double, double> position = {30, 300};
+        OH_Drawing_TextLinePaint(truncatedLine, canvas_, position.first, position.second);
+        double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
+        if (index == specialIndex) {
+            EXPECT_EQ(count, 0);
+        } else {
+            EXPECT_EQ(count, specialGlyphCount);
+        }
+        OH_Drawing_DestroyTextLine(truncatedLine);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NdkTextLineExtraTest003
+ * @tc.desc: test for the textLine CreateTruncatedLine.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTextLineTest, NdkTextLineExtraTest003, TestSize.Level0)
+{
+    PrepareCreateTextLine("\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    constexpr size_t realTextlineSize = 3;
+    EXPECT_EQ(size, realTextlineSize);
+
+    OH_Drawing_TextLine* textLine = textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    EXPECT_TRUE(textLine != nullptr);
+
+    OH_Drawing_TextLine *truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(nullptr, DEFOUT_DOUBLE_MAX_WIDTH3,
+        ELLIPSIS_MODAL_MULTILINE_HEAD, "1");
+    EXPECT_TRUE(truncatedLine == nullptr);
+    constexpr size_t specialEllipsisMode = 5;
+    truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, DEFOUT_DOUBLE_MAX_WIDTH2, specialEllipsisMode, "1");
+    EXPECT_TRUE(truncatedLine == nullptr);
+
+    truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, DEFOUT_DOUBLE_MAX_WIDTH2, ELLIPSIS_MODAL_TAIL, nullptr);
     EXPECT_TRUE(truncatedLine == nullptr);
 
     OH_Drawing_DestroyTextLines(textLines);
