@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-#ifndef GRAPHIC_RS_HDIDEVICE_MOCK_H
-#define GRAPHIC_RS_HDIDEVICE_MOCK_H
+#ifndef GRAPHIC_2D_COMPOSER_HDIDEVICE_MOCK_H
+#define GRAPHIC_2D_COMPOSER_HDIDEVICE_MOCK_H
 
 #include "hdi_device.h"
+
 #include <gmock/gmock.h>
 
 namespace OHOS {
@@ -48,7 +49,6 @@ public:
     MOCK_METHOD2(SetScreenPowerStatus, int32_t(uint32_t, GraphicDispPowerStatus));
     MOCK_METHOD2(GetScreenBacklight, int32_t(uint32_t, uint32_t&));
     MOCK_METHOD2(SetScreenBacklight, int32_t(uint32_t, uint32_t));
-    MOCK_METHOD2(GetPanelPowerStatus, int32_t(uint32_t, GraphicPanelPowerStatus&));
     MOCK_METHOD2(PrepareScreenLayers, int32_t(uint32_t, bool&));
     MOCK_METHOD3(GetScreenCompChange, int32_t(uint32_t, std::vector<uint32_t>&, std::vector<int32_t>&));
     MOCK_METHOD4(SetScreenClientBuffer, int32_t(uint32_t, const BufferHandle*, uint32_t, const sptr<SyncFence>&));
@@ -64,6 +64,7 @@ public:
     MOCK_METHOD2(GetHDRCapabilityInfos, int32_t(uint32_t, GraphicHDRCapability&));
     MOCK_METHOD2(GetSupportedMetaDataKey, int32_t(uint32_t, std::vector<GraphicHDRMetadataKey>&));
     MOCK_METHOD2(Commit, int32_t(uint32_t, sptr<SyncFence>&));
+    MOCK_METHOD2(GetPanelPowerStatus, int32_t(uint32_t, GraphicPanelPowerStatus&));
     MOCK_METHOD3(GetDisplayIdentificationData, int32_t(uint32_t, uint8_t&, std::vector<uint8_t>&));
     MOCK_METHOD3(SetDisplayPerFrameParameterSmq,
                  int32_t(uint32_t, const std::string&, const std::vector<int8_t>&));
@@ -111,11 +112,8 @@ public:
     MOCK_METHOD7(CommitAndGetReleaseFence, int32_t(uint32_t, sptr<SyncFence>&, int32_t&, bool&,
         std::vector<uint32_t>&, std::vector<sptr<SyncFence>>&, bool));
     MOCK_METHOD0(Destroy, void());
-
-    static GraphicDispPowerStatus powerStatusMock_;
-    static GraphicPanelPowerStatus panelPowerStatusMock_;
 };
 } // namespace Mock
 } // namespace Rosen
 } // namespace OHOS
-#endif // GRAPHIC_RS_HDIDEVICE_MOCK_H
+#endif // GRAPHIC_2D_COMPOSER_HDIDEVICE_MOCK_H

@@ -781,5 +781,11 @@ int32_t HdiDeviceImpl::RegHwcEventCallback(const RSHwcEventCallback& callback, v
     return g_composer->RegHwcEventCallback(callback, data);
 }
 
+int32_t HdiDeviceImpl::GetDisplayClientTargetProperty(uint32_t screenId, int32_t& pixelFormat, int32_t& dataspace)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace);
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -118,7 +118,7 @@ public:
     virtual void Destroy() = 0;
     virtual int32_t RegHwcEventCallback(const RSHwcEventCallback& callback, void *data) = 0;
     virtual int32_t GetPanelPowerStatus(uint32_t devId, GraphicPanelPowerStatus& status) = 0;
-
+    virtual int32_t GetDisplayClientTargetProperty(uint32_t screenId, int32_t& pixelFormat, int32_t& dataspace) = 0;
 private:
     HdiDevice(const HdiDevice& rhs) = delete;
     HdiDevice& operator=(const HdiDevice& rhs) = delete;

@@ -61,6 +61,8 @@ namespace OHOS {
         uint32_t maskInfo = GetData<uint32_t>();
         uint64_t tunnelId = GetData<uint64_t>();
         uint32_t property = GetData<uint32_t>();
+        int32_t pixelFormat = GetData<int32_t>();
+        int32_t dataspace = GetData<int32_t>();
 
         // test
         HdiDevice *device = HdiDevice::GetInstance();
@@ -73,6 +75,7 @@ namespace OHOS {
         device->SetTunnelLayerProperty(screenId, layerId, property);
         device->GetPresentTimestamp(screenId, layerId, timestamp);
         device->SetLayerMaskInfo(screenId, layerId, maskInfo);
+        device->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace);
 
         // DISPLAY ENGINE
         std::vector<std::string> keys = device->GetSupportedLayerPerFrameParameterKey();
