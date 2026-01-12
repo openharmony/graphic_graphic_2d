@@ -367,13 +367,11 @@ void RSScreenThreadSafeProperty::SetVirtualSecLayerOption(int32_t virtualSecLaye
 
 void RSScreenThreadSafeProperty::SetIsHardCursorSupport(bool isHardCursorSupport)
 {
-    UniqueLock lock(propertyMutex_);
     property_->isHardCursorSupport_ = isHardCursorSupport;
 }
 
 void RSScreenThreadSafeProperty::SetSupportedColorGamuts(std::vector<ScreenColorGamut> colorGamuts)
 {
-    UniqueLock lock(propertyMutex_);
     property_->supportedColorGamuts_ = colorGamuts;
 }
 
@@ -650,13 +648,11 @@ int32_t RSScreenThreadSafeProperty::GetVirtualSecLayerOption() const
 
 bool RSScreenThreadSafeProperty::GetIsHardCursorSupport() const
 {
-    SharedLock lock(propertyMutex_);
     return property_->isHardCursorSupport_;
 }
 
 std::vector<ScreenColorGamut> RSScreenThreadSafeProperty::GetSupportedColorGamuts() const
 {
-    SharedLock lock(propertyMutex_);
     return property_->supportedColorGamuts_;
 }
 
