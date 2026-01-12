@@ -59,7 +59,6 @@ void RSServiceToRenderConnectionStubTest::SetUpTestCase()
     auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
     auto renderPipeline = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
-    renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline);
     g_connectionStub = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
