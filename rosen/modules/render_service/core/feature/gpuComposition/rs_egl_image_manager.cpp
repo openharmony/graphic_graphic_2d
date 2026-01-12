@@ -307,7 +307,9 @@ void RSEglImageManager::UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& b
 
     RS_LOGD("RSEglImageManager::UnMapImagesFromSurfaceBuffer: request %{public}zu buffers", bufferIds.size());
 
-    std::unordered_map<pid_t, std::vector<uint64_t>> bufferIdsByThread;
+    // Remove matching cache entries from the shared map first, then release them on their target threads.
+    // This prevents an already-scheduled unmap task from erasing a newly recreated cache with the same bufferId.
+    std::unordered_map<pid_t, std::vector<std::unique_ptr<EglImageResource>>> resourcesByThread;
     {
         std::lock_guard<std::mutex> lock(opMutex_);
         for (auto bufferId : bufferIds) {
@@ -315,30 +317,19 @@ void RSEglImageManager::UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& b
             if (iter == imageCacheSeqs_.end() || !iter->second) {
                 continue;
             }
-            bufferIdsByThread[iter->second->GetThreadIndex()].push_back(bufferId);
+            pid_t threadIndex = iter->second->GetThreadIndex();
+            resourcesByThread[threadIndex].push_back(std::move(iter->second));
+            imageCacheSeqs_.erase(iter);
         }
     }
 
-    for (auto& [threadIndex, ids] : bufferIdsByThread) {
-        if (ids.empty()) {
+    for (auto& [threadIndex, resources] : resourcesByThread) {
+        if (resources.empty()) {
             continue;
         }
-        auto task = [this, ids = std::move(ids)]() mutable {
-            RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage batch count: %zu", ids.size());
-            std::vector<std::unique_ptr<EglImageResource>> resources;
-            resources.reserve(ids.size());
-            {
-                std::lock_guard<std::mutex> lock(opMutex_);
-                for (auto bufferId : ids) {
-                    auto iter = imageCacheSeqs_.find(bufferId);
-                    if (iter == imageCacheSeqs_.end()) {
-                        continue;
-                    }
-                    RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %" PRIu64 "", bufferId);
-                    resources.push_back(std::move(iter->second));
-                    imageCacheSeqs_.erase(iter);
-                }
-            }
+        auto task = [resources = std::move(resources)]() mutable {
+            RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage batch count: %zu", resources.size());
+            // EglImageResource instances will be released on this thread when the task finishes.
         };
         RSTaskDispatcher::GetInstance().PostTask(threadIndex, task);
     }
@@ -346,26 +337,20 @@ void RSEglImageManager::UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& b
 
 void RSEglImageManager::UnMapImageFromSurfaceBuffer(uint64_t seqNum)
 {
+    std::unique_ptr<EglImageResource> resource;
     pid_t threadIndex = 0;
     {
         std::lock_guard<std::mutex> lock(opMutex_);
-        if (imageCacheSeqs_.count(seqNum) == 0) {
+        auto iter = imageCacheSeqs_.find(seqNum);
+        if (iter == imageCacheSeqs_.end() || !iter->second) {
             return;
         }
-        if (imageCacheSeqs_[seqNum]) {
-            threadIndex = imageCacheSeqs_[seqNum]->GetThreadIndex();
-        }
+        threadIndex = iter->second->GetThreadIndex();
+        resource = std::move(iter->second);
+        imageCacheSeqs_.erase(iter);
     }
-    auto func = [this, seqNum]() {
-        std::unique_ptr<EglImageResource> imageCacheSeq;
-        {
-            std::lock_guard<std::mutex> lock(opMutex_);
-            if (imageCacheSeqs_.count(seqNum) == 0) {
-                return;
-            }
-            imageCacheSeq = std::move(imageCacheSeqs_[seqNum]);
-        }
-        imageCacheSeq.reset();
+    auto func = [resource = std::move(resource), seqNum]() mutable {
+        resource.reset();
         RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %" PRIu64 "", seqNum);
         RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}" PRIu64 "", seqNum);
     };
