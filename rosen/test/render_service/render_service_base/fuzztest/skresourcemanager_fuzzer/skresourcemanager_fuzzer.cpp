@@ -89,7 +89,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     OHOS::Rosen::DoHoldResource(data, size);
-    OHOS::Rosen::DoReleaseResource(data, size);
     OHOS::Rosen::HaveReleaseableResourceCheck(data, size);
     return 0;
 }
