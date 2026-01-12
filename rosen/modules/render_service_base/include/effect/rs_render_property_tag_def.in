@@ -346,6 +346,8 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgRates, Vector2f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgKBS, Vector3f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgPos, Vector3f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeEdLightAngles, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeEdLightKBS, Vector3f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, Shape, std::shared_ptr<RSNGRenderShapeBase>);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, BaseVibrancyEnabled, bool);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, BaseMaterialType, float);
@@ -434,6 +436,8 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgRates, Vector2f
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgKBS, Vector3f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgPos, Vector3f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgNeg, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeEdLightAngles, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeEdLightKBS, Vector3f);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK, float);

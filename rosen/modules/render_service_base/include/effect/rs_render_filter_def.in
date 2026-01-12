@@ -152,7 +152,9 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgRates),
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgKBS),
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgPos),
-    ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg)
+    ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg),
+    ADD_PROPERTY_TAG(FrostedGlass, DarkModeEdLightAngles),
+    ADD_PROPERTY_TAG(FrostedGlass, DarkModeEdLightKBS)
 );
 
 DECLARE_FILTER(GridWarp, GRID_WARP,
