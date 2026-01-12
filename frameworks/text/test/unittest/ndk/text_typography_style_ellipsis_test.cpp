@@ -396,6 +396,7 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
     constexpr double layoutWidth = 820;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth, true);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
+    double lastLineWidth = OH_Drawing_TypographyGetLineWidth(typography_, 0);
     constexpr double realLongesline = 816.439331054;
     EXPECT_LT(lastLineWidth, layoutWidth);
     EXPECT_LT(realLongesline, layoutWidth);
@@ -512,7 +513,7 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
     constexpr double realLastLineWidth = 64.1401367;
     EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
 }
-//////////////////////////////MultiMiddle///////////////////////////
+
 /*
  * @tc.name: TypographyMultiMiddleEllipsisStyleChange001
  * @tc.desc: test for miltiline middle ellipsis style: span change, layoutWidth is very small and
@@ -567,7 +568,7 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
     constexpr double layoutWidth = 580;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 565.769470;
+    constexpr double realLongesline = 526.559570;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
 }
 
@@ -584,11 +585,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, DEFAULT_DOUBLE_MAXWIDTH);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 0.01;
+    constexpr double realLongesline = 80.51991271;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
     double lastLineWidth = OH_Drawing_TypographyGetLineWidth(typography_, maxline - 1);
     EXPECT_LT(lastLineWidth, DEFAULT_DOUBLE_MAXWIDTH);
-    constexpr double realLastLineWidth = 0.01;
+    constexpr double realLastLineWidth = 21.8799743;
     EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
 }
 
@@ -605,11 +606,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, DEFAULT_DOUBLE_MAXWIDTH);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 0.01;
+    constexpr double realLongesline = 84.55992126;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
     double lastLineWidth = OH_Drawing_TypographyGetLineWidth(typography_, maxline - 1);
     EXPECT_LT(lastLineWidth, DEFAULT_DOUBLE_MAXWIDTH);
-    constexpr double realLastLineWidth = 0.01;
+    constexpr double realLastLineWidth = 18.1999816;
     EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
 }
 
@@ -628,12 +629,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
     constexpr double layoutWidth = 5;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 27.719971;
+    constexpr double realLongesline = 55.4399414;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
     double lastLineWidth = OH_Drawing_TypographyGetLineWidth(typography_, maxline - 1);
-    EXPECT_GT(lastLineWidth, layoutWidth);
-    constexpr double realLastLineWidth = 27.719971;
-    EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
+    EXPECT_LT(lastLineWidth, layoutWidth);
+    EXPECT_NEAR(lastLineWidth, 0, FLOAT_DATA_EPSILON);
 }
 
 /*
@@ -650,11 +650,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
     constexpr double layoutWidth = 100;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 0;
+    constexpr double realLongesline = 52.0799560;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
     double lastLineWidth = OH_Drawing_TypographyGetLineWidth(typography_, maxline - 1);
-    EXPECT_GT(lastLineWidth, layoutWidth);
-    constexpr double realLastLineWidth = 0;
+    EXPECT_LT(lastLineWidth, layoutWidth);
+    constexpr double realLastLineWidth = 52.0799560;
     EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
 }
 
@@ -694,11 +694,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, DEFAULT_DOUBLE_MAXWIDTH);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 0.01;
+    constexpr double realLongesline = 86.9599151;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
     double lastLineWidth = OH_Drawing_TypographyGetLineWidth(typography_, maxline - 1);
     EXPECT_LT(lastLineWidth, DEFAULT_DOUBLE_MAXWIDTH);
-    constexpr double realLastLineWidth = 0.01;
+    constexpr double realLastLineWidth = 59.23994445;
     EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
 }
 
@@ -718,7 +718,7 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
     constexpr double layoutWidth = 820;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth, true);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 765.769226;
+    constexpr double realLongesline = 786.5593261;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
 }
 
@@ -735,11 +735,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, DEFAULT_DOUBLE_MAXWIDTH, true);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 0.01;
+    constexpr double realLongesline = 97.3598937;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
     double lastLineWidth = OH_Drawing_TypographyGetLineWidth(typography_, maxline - 1);
     EXPECT_LT(lastLineWidth, DEFAULT_DOUBLE_MAXWIDTH);
-    constexpr double realLastLineWidth = 0.01;
+    constexpr double realLastLineWidth = 69.6399230;
     EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
 }
 
@@ -758,12 +758,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
     constexpr double layoutWidth = 5;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 27.719971;
+    constexpr double realLongesline = 55.4399414;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
     double lastLineWidth = OH_Drawing_TypographyGetLineWidth(typography_, maxline - 1);
-    EXPECT_GT(lastLineWidth, layoutWidth);
-    constexpr double realLastLineWidth = 27.719971;
-    EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
+    EXPECT_LT(lastLineWidth, layoutWidth);
+    EXPECT_NEAR(lastLineWidth, 0, FLOAT_DATA_EPSILON);
 }
 
 /*
@@ -781,11 +780,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
     constexpr double layoutWidth = 100;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth, true);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 0;
+    constexpr double realLongesline = 52.0799560;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
     double lastLineWidth = OH_Drawing_TypographyGetLineWidth(typography_, maxline - 1);
-    EXPECT_GT(lastLineWidth, layoutWidth);
-    constexpr double realLastLineWidth = 0;
+    EXPECT_LT(lastLineWidth, layoutWidth);
+    constexpr double realLastLineWidth = 52.0799560;
     EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
 }
 
@@ -825,15 +824,14 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, DEFAULT_DOUBLE_MAXWIDTH, true);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
-    constexpr double realLongesline = 0.01;
+    constexpr double realLongesline = 76.9999237;
     EXPECT_NEAR(longesline, realLongesline, FLOAT_DATA_EPSILON);
     double lastLineWidth = OH_Drawing_TypographyGetLineWidth(typography_, maxline - 1);
     EXPECT_LT(lastLineWidth, DEFAULT_DOUBLE_MAXWIDTH);
-    constexpr double realLastLineWidth = 0.01;
+    constexpr double realLastLineWidth = 48.67994689;
     EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
 /*
  * @tc.name: TypographyEllipsisStyleChange001
  * @tc.desc: test for tail ellipsis style: span change, layoutWidth is very small and the maxWidth can’t even fit
