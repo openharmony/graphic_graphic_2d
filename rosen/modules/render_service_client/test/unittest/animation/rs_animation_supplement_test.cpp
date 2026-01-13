@@ -836,56 +836,55 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
 }
 
 /** 
-  * @tc.name: AnimationSupplementTest022 
-  * @tc.desc: Verify the setcallback of Animation 
-  * @tc.type: FUNC 
-  */ 
+ * @tc.name: AnimationSupplementTest022 
+ * @tc.desc: Verify the setcallback of Animation 
+ * @tc.type: FUNC 
+ */ 
  HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1) 
- { 
-     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 start"; 
-     /** 
-      * @tc.steps: step1. init 
-      */ 
-     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f); 
-     property->GetStagingValue(); 
-     auto stagingValue = property->Get(); 
-     property->Set(stagingValue); 
-     property->GetShowingValueAndCancelAnimation(); 
-     property->RequestCancelAnimation(); 
-     auto propertyUnit_ { RSPropertyUnit::UNKNOWN }; 
-     property->SetPropertyUnit(propertyUnit_); 
-     auto base = std::make_shared<RSRenderProperty<bool>>(); 
-     base->SetModifierType(RSModifierType::BOUNDS); 
-     auto type = base->GetModifierType(); 
-     EXPECT_TRUE(type == RSModifierType::BOUNDS); 
-     property->SetValueFromRender(base); 
-     property->SetUpdateCallback(nullptr); 
-     RSAnimationTimingProtocol timingProtocol; 
-     RSAnimationTimingCurve timingCurve; 
-     timingProtocol.SetFinishCallbackType(FinishCallbackType::TIME_SENSITIVE); 
-     std::shared_ptr<RSPropertyBase> targetValue = std::make_shared<RSAnimatableProperty<float>>(0.1f); 
-     property->AnimateWithInitialVelocity(timingProtocol, timingCurve, targetValue); 
- 
- 
-     std::shared_ptr<RSNode> node = RSCanvasNode::Create(); 
-     node->SetShadowMask(true); 
-     node->IsImplicitAnimationOpen(); 
-     node->GetChildByIndex(1); 
-     std::string nodeName = "nodeName"; 
-     node->SetNodeName(nodeName); 
-     PropertyCallback callback; 
-     callback = []() { 
-     }; 
-     node->AddDurationKeyFrame(100, timingCurve, callback); // 100 Set duration is 100ms 
-     NodeId id1 = 0; 
-     NodeId id2 = 1; 
-     node->RegisterTransitionPair(id1, id2, true); 
-     node->UnregisterTransitionPair(id1, id2); 
-     node->AnimateWithCurrentCallback(timingProtocol, timingCurve, callback); 
-     std::optional<Vector2f> vec(Vector2f(1.f, 1.f)); 
-     node->SetSandBox(vec); 
-     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 end"; 
- }
+{ 
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 start"; 
+    /** 
+     * @tc.steps: step1. init 
+     */ 
+    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f); 
+    property->GetStagingValue(); 
+    auto stagingValue = property->Get(); 
+    property->Set(stagingValue); 
+    property->GetShowingValueAndCancelAnimation(); 
+    property->RequestCancelAnimation(); 
+    auto propertyUnit_ { RSPropertyUnit::UNKNOWN }; 
+    property->SetPropertyUnit(propertyUnit_); 
+    auto base = std::make_shared<RSRenderProperty<bool>>(); 
+    base->SetModifierType(RSModifierType::BOUNDS); 
+    auto type = base->GetModifierType(); 
+    EXPECT_TRUE(type == RSModifierType::BOUNDS); 
+    property->SetValueFromRender(base); 
+    property->SetUpdateCallback(nullptr); 
+    RSAnimationTimingProtocol timingProtocol; 
+    RSAnimationTimingCurve timingCurve; 
+    timingProtocol.SetFinishCallbackType(FinishCallbackType::TIME_SENSITIVE); 
+    std::shared_ptr<RSPropertyBase> targetValue = std::make_shared<RSAnimatableProperty<float>>(0.1f); 
+    property->AnimateWithInitialVelocity(timingProtocol, timingCurve, targetValue); 
+
+    std::shared_ptr<RSNode> node = RSCanvasNode::Create(); 
+    node->SetShadowMask(true); 
+    node->IsImplicitAnimationOpen(); 
+    node->GetChildByIndex(1); 
+    std::string nodeName = "nodeName"; 
+    node->SetNodeName(nodeName); 
+    PropertyCallback callback; 
+    callback = []() { 
+    }; 
+    node->AddDurationKeyFrame(100, timingCurve, callback); // 100 Set duration is 100ms 
+    NodeId id1 = 0; 
+    NodeId id2 = 1; 
+    node->RegisterTransitionPair(id1, id2, true); 
+    node->UnregisterTransitionPair(id1, id2); 
+    node->AnimateWithCurrentCallback(timingProtocol, timingCurve, callback); 
+    std::optional<Vector2f> vec(Vector2f(1.f, 1.f)); 
+    node->SetSandBox(vec); 
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 end"; 
+}
 
 /**
  * @tc.name: AnimationSupplementTest023
