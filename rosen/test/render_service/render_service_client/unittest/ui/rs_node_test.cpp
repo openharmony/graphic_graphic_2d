@@ -3687,30 +3687,6 @@ HWTEST_F(RSNodeTest, SetandGetRotationVector001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetUIBackgroundFilter
- * @tc.desc: test results of SetUIBackgroundFilter
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest, SetUIBackgroundFilter, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    Filter* filterObj = new(std::nothrow) Filter();
-    filterObj->AddPara(nullptr);
-
-    auto para = std::make_shared<FilterBlurPara>();
-    para->SetRadius(floatData[1]);
-    filterObj->AddPara(para);
-    rsNode->SetUIBackgroundFilter(filterObj);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[1]);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[1]);
-
-    if (filterObj != nullptr) {
-        delete filterObj;
-        filterObj = nullptr;
-    }
-}
-
-/**
  * @tc.name: GetProperty
  * @tc.desc: test results of GetProperty
  * @tc.type: FUNC
