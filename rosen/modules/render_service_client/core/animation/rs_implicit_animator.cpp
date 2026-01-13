@@ -118,8 +118,8 @@ void RSImplicitAnimator::ProcessEmptyAnimations(const std::shared_ptr<AnimationF
     auto protocol = std::get<RSAnimationTimingProtocol>(globalImplicitParams_.top());
     // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, we need to
     // execute it asynchronously, in order to avoid timing issues.
-    auto rsUIContext = rsUIContext_.lock();
-    if (rsUIContext != nullptr) {
+    auto rsUIContext = rsUIContext_.lock();//待微调
+    if (rsUIContext != nullptr) {//待微调
         if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE || protocol.GetDuration() < 0) {
             ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
                        "callback asynchronously");
