@@ -72,9 +72,6 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
         fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
     }
-    if (cleanUpHelper_) {
-        cleanUpHelper_();
-    }
 }
 
 void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected)
@@ -682,11 +679,6 @@ void RSSurfaceOhosVulkan::ClearBuffer()
 void RSSurfaceOhosVulkan::ResetBufferAge()
 {
     ROSEN_LOGD("RSSurfaceOhosVulkan: Reset Buffer Age!");
-}
-
-void RSSurfaceOhosVulkan::SetCleanUpHelper(std::function<void()> func)
-{
-    cleanUpHelper_ = func;
 }
 
 int RSSurfaceOhosVulkan::DupReservedFlushFd()

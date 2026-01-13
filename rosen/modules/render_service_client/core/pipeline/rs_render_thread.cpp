@@ -142,7 +142,6 @@ RSRenderThread::RSRenderThread()
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
         ReleasePixelMapInBackgroundThread();
-        TrimMemory();
         context_->pendingSyncNodes_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
@@ -616,25 +615,6 @@ void RSRenderThread::PostPreTask()
     if (handler_ && preTask_) {
         handler_->PostTask(preTask_);
     }
-}
-
-void RSRenderThread::TrimMemory()
-{
-#if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
-    PostSyncTask([this]() {
-        if (!renderContext_) {
-            RS_LOGE("RSRenderThread::renderContext_ is nullptr");
-            return;
-        }
-        auto gpuContext = renderContext_->GetSharedDrGPUContext();
-        if (!gpuContext) {
-            RS_LOGE("RSRenderThread::gpuContext is nullptr");
-            return;
-        }
-        RS_TRACE_NAME_FMT("RSRenderThread::TrimMemory");
-        gpuContext->PurgeUnlockedResources(false);
-    });
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

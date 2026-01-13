@@ -16,8 +16,10 @@
 #include "ui/rs_texture_export.h"
 
 #include "platform/common/rs_log.h"
+#include "ui/rs_surface_extractor.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
+#include "pipeline/rs_render_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,6 +45,10 @@ RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId sur
 RSTextureExport::~RSTextureExport()
 {
     rsUiDirector_->Destroy(true);
+    std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(virtualSurfaceNode_);
+    virtualSurfaceNode_.reset();
+    RSRenderThread::Instance().PostTask([rsSurface = std::move(rsSurface)]() {
+    });
 }
 
 bool RSTextureExport::DoTextureExport()
