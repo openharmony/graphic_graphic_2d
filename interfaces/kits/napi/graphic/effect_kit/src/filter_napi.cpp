@@ -408,21 +408,12 @@ napi_value FilterNapi::GetPixelMapAsyncCommon(napi_env env, napi_callback_info i
     napi_status status;
     std::unique_ptr<FilterAsyncContext> ctx = std::make_unique<FilterAsyncContext>();
     EFFECT_JS_ARGS(env, info, status, argc, argv, ctx->this_);
-    BuildMsgOnError(env, ctx, 
-        status == napi_ok, 
-        isHighPriority ? "FilterNapi GetPixelMapAsyncHighPrio parsing input fail" 
-            : "FilterNapi GetPixelMapAsync parsing input fail");
-    
+    BuildMsgOnError(env, ctx, status == napi_ok, "FilterNapi GetPixelMapAsync parsing input fail");
     NAPI_CALL(env, napi_unwrap(env, ctx->this_, reinterpret_cast<void**>(&(ctx->filterNapi))));
-    BuildMsgOnError(env, ctx, 
-        (ctx->filterNapi != nullptr), 
-        isHighPriority ? "FilterNapi GetPixelMapAsyncHighPrio filter is nullptr" 
-            : "FilterNapi GetPixelMapAsync filter is nullptr");
-    
+    BuildMsgOnError(env, ctx, (ctx->filterNapi != nullptr), "FilterNapi GetPixelMapAsync filter is nullptr");
     if (EffectKitNapiUtils::GetInstance().GetType(env, argv[0]) == napi_boolean) {
         EFFECT_NAPI_CHECK_RET_D(napi_get_value_bool(env, argv[NUM_0], &(ctx->forceCPU)) == napi_ok, nullptr,
-            EFFECT_LOG_E("FilterNapi: %s parsing forceCPU fail", 
-                isHighPriority ? "GetPixelMapAsyncHighPrio" : "GetPixelMapAsync"));
+            EFFECT_LOG_E("FilterNapi: GetPixelMapAsync parsing forceCPU fail"));
     }
 
     if (argc >= NUM_1) {
@@ -443,8 +434,8 @@ napi_value FilterNapi::GetPixelMapAsyncCommon(napi_env env, napi_callback_info i
     napi_qos_t qos = isHighPriority ? napi_qos_user_initiated : napi_qos_default;
     
     if (ctx->errorMsg != nullptr) {        
-        EffectKitNapiUtils::GetInstance().CreateAsyncWork(
-            env, status, isHighPriority ? "GetPixelMapAsyncHighPrioError" : "GetPixelMapAsyncError",
+         EffectKitNapiUtils::GetInstance().CreateAsyncWork(
+            env, status, "GetPixelMapAsyncError",
             [](napi_env env, void* data) { EFFECT_LOG_E("FilterNapi GetPixelMapAsync extracting param fail"); },
             GetPixelMapAsyncErrorComplete, ctx, ctx->work, qos);
     } else {
@@ -462,8 +453,7 @@ napi_value FilterNapi::GetPixelMapAsyncCommon(napi_env env, napi_callback_info i
             napi_create_string_utf8(env, errorStr, NAPI_AUTO_LENGTH, &result);
             napi_reject_deferred(env, ctx->deferred, result);
         }
-        EFFECT_LOG_E("%s", isHighPriority ? "FilterNapi GetPixelMapAsyncHighPrio creating async work fail"
-            : "FilterNapi GetPixelMapAsync creating async work fail");
+        EFFECT_LOG_E("FilterNapi %s creating async work fail", workName);
     }
     
     return result;
