@@ -105,12 +105,12 @@ void RSUniRenderProcessor::PostProcess()
                 if (layer == nullptr || layer == uniLayer_ || layer->GetBuffer() == nullptr) {
                     continue;
                 }
-                uniBufferOwnerCount->InsertUniOnDrawSet(layer->GetRSLayerId(), layer->GetBuffer()->GetSeqNum());
+                uniBufferOwnerCount->InsertUniOnDrawSet(layer->GetRSLayerId(), layer->GetBuffer()->GetBufferId());
                 auto bufferOwnerCount = layer->GetBufferOwnerCount();
                 if (bufferOwnerCount == nullptr) {
                     continue;
                 }
-                bufferOwnerCount->SetUniBufferOwner(uniBufferOwnerCount->seqNum_);
+                bufferOwnerCount->SetUniBufferOwner(uniBufferOwnerCount->bufferId_);
             }
         }
     } else {
@@ -148,8 +148,8 @@ void RSUniRenderProcessor::CreateLayer(/*const ??? todo */ RSSurfaceRenderNode& 
     layer->SetLayerLinearMatrix(params.GetLayerLinearMatrix());
     auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : params.GetBufferOwnerCount();
     if (bufferOwnerCount) {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayer SetBufferOwnerCount seqNum %u layerId %" PRIu64,
-            uint32_t(bufferOwnerCount->seqNum_), layer->GetRSLayerId());
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayer SetBufferOwnerCount bufferId %" PRIu64
+            " layerId %" PRIu64, bufferOwnerCount->bufferId_, layer->GetRSLayerId());
         layer->SetBufferOwnerCount(bufferOwnerCount);
     }
 #ifdef RS_ENABLE_TV_PQ_METADATA
@@ -214,8 +214,8 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetLayerLinearMatrix(renderParams.GetLayerLinearMatrix());
     auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : renderParams.GetBufferOwnerCount();
     if (bufferOwnerCount) {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayerForRenderThread SetBufferOwnerCount seqNum %u "
-            "layerId %" PRIu64, uint32_t(bufferOwnerCount->seqNum_), layer->GetRSLayerId());
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayerForRenderThread SetBufferOwnerCount "
+            "bufferId %" PRIu64 " layerId %" PRIu64, bufferOwnerCount->bufferId_, layer->GetRSLayerId());
         layer->SetBufferOwnerCount(bufferOwnerCount);
     }
     RS_OPTIONAL_TRACE_NAME_FMT(

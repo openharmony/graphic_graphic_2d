@@ -438,8 +438,8 @@ public:
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetPreBufferOwnerCount() const override;
     inline void SetBufferSynced(bool bufferSynced)
     {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager SetBufferSynced RSSurfaceRenderNode bufferSynced %d %u",
-            bufferSynced, uint32_t(preBufferOwnerCount_ ? preBufferOwnerCount_->seqNum_ : 0));
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager SetBufferSynced RSSurfaceRenderNode bufferSynced %d %" PRIu64,
+            bufferSynced, preBufferOwnerCount_ ? preBufferOwnerCount_->bufferId_ : 0);
         bufferSynced_ = bufferSynced;
     }
     bool IsBufferSynced() const

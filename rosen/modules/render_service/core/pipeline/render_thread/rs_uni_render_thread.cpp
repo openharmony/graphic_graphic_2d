@@ -604,11 +604,6 @@ void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLaye
         RS_LOGE("GetRSRenderComposerClient failed, screenId:%{public}" PRIu64, curScreenId);
         return;
     }
-    composerClient->RegisterOnReleaseLayerBuffersCB([this](
-        std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
-        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec) {
-        bufferManager_.OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec);
-    });
     composerClient->ReleaseLayerBuffers(curScreenId, releaseLayerInfo.timestampVec,
         releaseLayerInfo.releaseBufferFenceVec);
     NotifyScreenNodeBufferReleased(curScreenId);
@@ -1267,6 +1262,10 @@ int RSUniRenderThread::GetMinAccumulatedBufferCount()
 void RSUniRenderThread::AddRenderComposerClient(ScreenId screenId,
     const std::shared_ptr<RSRenderComposerClient>& rsRenderComposerClient)
 {
+    if (rsRenderComposerClient == nullptr) {
+        RS_LOGE("%{public}s client nullptr", __func__);
+        return;
+    }
     RS_LOGI("RSUniRenderThread::AddRenderComposerClient rsRenderComposerClient[%{public}d]",
         rsRenderComposerClient != nullptr);
     if (GetRSRenderComposerClient(screenId)) {
