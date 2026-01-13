@@ -247,7 +247,11 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface003, TestSize.Level1)
     typeface->UpdateStream(std::move(stream));
     typeface->SetFd(fd);
     int32_t result = instance.RegisterTypeface(typeface);
-    EXPECT_EQ(result, -1);
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        EXPECT_EQ(result, INVALID_FD);
+    } else {
+        EXPECT_EQ(result, fd);
+    }
 }
 
 
