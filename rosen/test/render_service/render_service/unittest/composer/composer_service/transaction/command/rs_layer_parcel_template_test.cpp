@@ -38,7 +38,7 @@ HWTEST_F(RSLayerParcelTemplateTest, Template_Marshalling_Unmarshalling_Basic, Te
 HWTEST_F(RSLayerParcelTemplateTest, Template_Unmarshalling_Fail_EmptyParcel, TestSize.Level1)
 {
     MessageParcel empty;
-    std::shared_ptr<RSLayerParcel> out = RSUpdateRSLayerCmd::Unmarshalling(empty);
+    std::unique_ptr<RSLayerParcel> out(RSUpdateRSLayerCmd::Unmarshalling(empty));
     ASSERT_EQ(out, nullptr);
 }
 
