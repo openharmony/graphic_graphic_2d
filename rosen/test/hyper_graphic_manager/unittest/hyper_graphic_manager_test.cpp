@@ -68,6 +68,14 @@ HWTEST_F(HyperGraphicManagerTest, Instance, Function | SmallTest | Level0)
             auto& instance1 = HgmCore::Instance();
             auto& instance2 = HgmCore::Instance();
             STEP("2. check the result of configuration") {
+                auto& hgmCore = HgmCore::Instance();
+                hgmCore.mPolicyConfigData_->defaultRefreshRateMode_ = "errMode";
+                hgmCore.mPolicyConfigVisitor_ = nullptr;
+                hgmCore.Init();
+                RSSystemProperties::SetHgmRefreshRateModesEnabled("1");
+                hgmCore.Init();
+                RSSystemProperties::SetHgmRefreshRateModesEnabled("-1");
+                hgmCore.Init();
                 STEP_ASSERT_EQ(&instance1, &instance2);
             }
         }
@@ -127,6 +135,110 @@ HWTEST_F(HyperGraphicManagerTest, SetAsConfigTest, Function | SmallTest | Level0
     }
 }
 
+/**
+ * @tc.name: SetLtpoConfigTest
+ * @tc.desc: Verify the independency of HgmCore SetLtpoConfigTest
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, SetLtpoConfigTest, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto hgmFrameRateMgr = hgmCore.hgmFrameRateMgr_;
+    auto mPolicyConfigData = hgmCore.mPolicyConfigData_;
+
+    hgmCore.hgmFrameRateMgr_ = nullptr;
+    hgmCore.SetLtpoConfig();
+    EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+    hgmCore.mPolicyConfigData_ = nullptr;
+    hgmCore.SetLtpoConfig();
+    EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+    hgmCore.hgmFrameRateMgr_ = hgmFrameRateMgr;
+    hgmCore.SetLtpoConfig();
+    EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+    hgmCore.mPolicyConfigData_ = mPolicyConfigData;
+    hgmCore.SetLtpoConfig();
+    EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+    auto curScreenStrategyId = hgmCore.hgmFrameRateMgr_->GetCurScreenStrategyId();
+    auto screenConfigIter = mPolicyConfigData->screenConfigs_.find(curScreenStrategyId);
+    if (screenConfigIter != mPolicyConfigData->screenConfigs_.end()) {
+        auto screenConfig = screenConfigIter->second;
+        mPolicyConfigData->screenConfigs_.erase(curScreenStrategyId);
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+        mPolicyConfigData->screenConfigs_[curScreenStrategyId] = screenConfig;
+    }
+}
+
+/**
+ * @tc.name: SetLtpoConfigTest2
+ * @tc.desc: Verify the independency of HgmCore SetLtpoConfigTest
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, SetLtpoConfigTest2, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto hgmFrameRateMgr = hgmCore.hgmFrameRateMgr_;
+    auto mPolicyConfigData = hgmCore.mPolicyConfigData_;
+    auto screenConfigIter = mPolicyConfigData->screenConfigs_.find(hgmFrameRateMgr->GetCurScreenStrategyId());
+    if (screenConfigIter == mPolicyConfigData->screenConfigs_.end()) {
+        return;
+    }
+    auto screenStrategyIter = screenConfigIter->second.find(std::to_string(hgmCore.customFrameRateMode_));
+    if (screenStrategyIter == screenConfigIter->second.end()) {
+        return;
+    }
+    auto& curScreenSetting = screenStrategyIter->second;
+    auto& ltpoConfig = curScreenSetting.ltpoConfig;
+
+    if (auto iter = ltpoConfig.find("switch"); iter != ltpoConfig.end()) {
+        auto switchConfig = iter->second;
+        ltpoConfig.erase("switch");
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+        ltpoConfig["switch"] = "errSwitch";
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+        ltpoConfig["switch"] = switchConfig;
+    }
+
+    if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end()) {
+        auto maxTEConfig = iter->second;
+        ltpoConfig.erase("maxTE");
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.maxTE_, 0);
+        ltpoConfig["maxTE"] = "errMaxTE";
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.maxTE_, 0);
+        ltpoConfig["maxTE"] = maxTEConfig;
+    }
+
+    if (auto iter = ltpoConfig.find("alignRate"); iter != ltpoConfig.end()) {
+        auto alignRateConfig = iter->second;
+        ltpoConfig.erase("alignRate");
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.alignRate_, 0);
+        ltpoConfig["alignRate"] = "errAlignRate";
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.alignRate_, 0);
+        ltpoConfig["alignRate"] = alignRateConfig;
+    }
+
+    if (auto iter = ltpoConfig.find("pipelineOffsetPulseNum"); iter != ltpoConfig.end()) {
+        auto pipelineOffsetPulseNum = iter->second;
+        ltpoConfig.erase("pipelineOffsetPulseNum");
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.pipelineOffsetPulseNum_, 0);
+        ltpoConfig["pipelineOffsetPulseNum"] = "errPipelineOffsetPulseNum";
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.pipelineOffsetPulseNum_, 0);
+        ltpoConfig["pipelineOffsetPulseNum"] = "10";
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.pipelineOffsetPulseNum_, 0);
+        ltpoConfig["pipelineOffsetPulseNum"] = pipelineOffsetPulseNum;
+    }
+}
 
 /**
  * @tc.name: GetActiveScreenTest
@@ -210,6 +322,15 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level0)
         STEP("5. mark screenIds Size") {
             sizeScreenIds  = instance.GetScreenIds().size();
             STEP_ASSERT_EQ(sizeScreenIds, sizeListAfter);
+        }
+
+        STEP("5. mark screenIds Size") {
+            ScreenId screenId = 2;
+            auto mPolicyConfigData = instance.mPolicyConfigData_;
+            instance.mPolicyConfigData_ = nullptr;
+            auto addScreen = instance.AddScreen(screenId, 0, screenSize);
+            STEP_ASSERT_EQ(addScreen, 0);
+            instance.mPolicyConfigData_ = mPolicyConfigData;
         }
     }
 }
@@ -558,9 +679,11 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level0)
     uint32_t rate3 = -1;
     int32_t mode = 1;
     int32_t mode2 = 2;
+    int32_t mode3 = 3;
     std::vector<GraphicDisplayModeInfo> modeList;
     modeList.push_back({width, height, rate, mode});
     modeList.push_back({width, height, rate2, mode2});
+    modeList.push_back({width, height, rate3, mode3});
     instance.AddScreen(screenId2, 1, screenSize, modeList);
 
     PART("HgmCore") {
