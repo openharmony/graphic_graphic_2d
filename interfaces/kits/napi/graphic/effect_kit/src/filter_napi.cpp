@@ -455,7 +455,6 @@ napi_value FilterNapi::GetPixelMapAsyncCommon(napi_env env, napi_callback_info i
         }
         EFFECT_LOG_E("FilterNapi %s creating async work fail", workName);
     }
-    
     return result;
 }
 
