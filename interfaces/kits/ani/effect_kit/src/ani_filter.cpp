@@ -87,6 +87,66 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param)
         env, ANI_CLASS_FILTER.c_str(), "l:", reinterpret_cast<ani_long>(aniFilter));
 }
 
+ani_object AniFilter::EllipticalGradientBlur(ani_env *env, ani_object obj, ani_double blurRadius, ani_double centerX,
+    ani_double centerY, ani_double maskRadiusX, ani_double maskRadiusY, ani_array fractionStops)
+{
+    AniFilter *aniFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
+    if (aniFilter == nullptr) {
+        EFFECT_LOG_E("GetFilterFromEnv failed");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    float blurRadiusParam = 0.0f;
+    if (blurRadius >= 0) {
+        blurRadiusParam = static_cast<float>(blurRadius);
+    }
+    float centerXParam = static_cast<float>(centerX);
+    float centerYParam = static_cast<float>(centerY);
+    float maskRadiusXParam = 0.0f;
+    float maskRadiusYParam = 0.0f;
+    if (maskRadiusX >= 0) {
+        maskRadiusXParam = static_cast<float>(maskRadiusX);
+    }
+    if (maskRadiusY >= 0) {
+        maskRadiusYParam = static_cast<float>(maskRadiusY);
+    }
+    std::vector<float> positionsParam;
+    std::vector<float> degreesParam;
+    ani_size arrayLength = 0;
+    env->Array_GetLength(fractionStops, &arrayLength);
+    for (ani_size i = 0; i < arrayLength; ++i) {
+        ani_ref positionAndDegreeRef;
+        ani_array positionAndDegree;
+        env->Array_Get(fractionStops, i, &positionAndDegreeRef);
+        positionAndDegree = static_cast<ani_array>(positionAndDegreeRef);
+        ani_size positionAndDegreeArrayLength = 0;
+        env->Array_GetLength(positionAndDegree, &positionAndDegreeArrayLength);
+        if (positionAndDegreeArrayLength != 2) {
+            continue; 
+        }
+        if (positionAndDegreeArrayLength==2) {
+            ani_ref positionRef;
+            env->Array_Get(positionAndDegree, 0, &positionRef);
+            ani_double positionParam;
+            env->Object_CallMethodByName_Double(static_cast<ani_object>(positionRef), "toDouble", ":d", &positionParam);
+            positionsParam.emplace_back(static_cast<float>(positionParam));
+            ani_ref degreeRef;
+            env->Array_Get(positionAndDegree, 1, &degreeRef);
+            ani_double degreeParam;
+            env->Object_CallMethodByName_Double(static_cast<ani_object>(degreeRef), "toDouble", ":d", &degreeParam);
+            degreesParam.emplace_back(static_cast<float>(degreeParam));
+        }
+    }
+    if (positionsParam.empty() || degreesParam.empty()) {
+        EFFECT_LOG_E("Invalid fractionStops array: positions or degrees are empty");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    auto ellipticalGradientBlur = EffectImageFilter::EllipticalGradientBlur(
+        blurRadiusParam, centerXParam, centerYParam, maskRadiusXParam, maskRadiusYParam, positionsParam, degreesParam);
+    aniFilter->AddNextFilter(ellipticalGradientBlur);
+    return AniEffectKitUtils::CreateAniObject(
+        env, ANI_CLASS_FILTER.c_str(), "l:", reinterpret_cast<ani_long>(aniFilter));
+}
+
 ani_object AniFilter::Grayscale(ani_env* env, ani_object obj)
 {
     AniFilter* aniFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
