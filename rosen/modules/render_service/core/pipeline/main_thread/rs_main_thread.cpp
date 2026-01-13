@@ -642,60 +642,8 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         renderEngine_->Init();
     }
 
-    // Initialize GPU cache manager (owned by RSBaseRenderEngine)
 #ifdef RS_ENABLE_GPU
-    auto renderEngine = GetRenderEngine();
-    if (renderEngine) {
-        auto gpuCacheManager = GPUCacheManager::Create(renderEngine);
-        if (!gpuCacheManager) {
-            RS_LOGE("RSMainThread::Init: Failed to create GPUCacheManager");
-        } else {
-            // Set GPU cache manager to RenderEngine
-            renderEngine->SetGPUCacheManager(gpuCacheManager);
-
-            // Set Composer Client map provider callback (UniRender mode only)
-            if (isUniRender_) {
-                gpuCacheManager->SetComposerClientMapProvider(
-                    [this]() -> GPUCacheManager::ComposerClientMap {
-                        return RSUniRenderThread::Instance().GetRSRenderComposerClientMap();
-                    }
-                );
-            }
-
-            // Set GPUCacheManager callback to RSSubThreadManager (dependency injection)
-            std::weak_ptr<RSBaseRenderEngine> renderEngineWeak = renderEngine;
-            RSSubThreadManager::Instance()->SetGetGPUCacheManagerFunc(
-                [renderEngineWeak]() -> std::shared_ptr<GPUCacheManager> {
-                    auto engine = renderEngineWeak.lock();
-                    return engine ? engine->GetGPUCacheManager() : nullptr;
-                }
-            );
-
-            // Set global GPU cache cleanup callback for RSSurfaceHandler (dependency injection)
-            RSSurfaceHandler::SetGPUCacheCleanupCallback(
-                [renderEngineWeak](const std::set<uint64_t>& bufferIds) {
-                    auto engine = renderEngineWeak.lock();
-                    if (!engine) {
-                        return;
-                    }
-                    auto cacheManager = engine->GetGPUCacheManager();
-                    if (cacheManager) {
-                        cacheManager->ScheduleBufferCleanup(bufferIds);
-                    }
-                }
-            );
-
-            // Register buffer-delete listener to IConsumerSurface when it is bound to RSSurfaceHandler.
-            RSSurfaceHandler::SetConsumerDeleteBufferListenerCallback(
-                [renderEngineWeak](const sptr<IConsumerSurface>& consumer) {
-                    auto engine = renderEngineWeak.lock();
-                    if (engine) {
-                        engine->RegisterDeleteBufferListener(consumer);
-                    }
-                }
-            );
-        }
-    }
+    InitGPUCacheManager();
 #endif
 
     RSOpincManager::Instance().SetOPIncSwitch(OPIncParam::IsOPIncEnable());
@@ -962,6 +910,67 @@ void RSMainThread::UpdateGpuContextCacheSize()
     gpuContext->SetPurgeableResourceLimit(purgeableMaxCount);
 #endif
 }
+
+#ifdef RS_ENABLE_GPU
+void RSMainThread::InitGPUCacheManager()
+{
+    auto renderEngine = GetRenderEngine();
+    if (!renderEngine) {
+        return;
+    }
+
+    auto gpuCacheManager = GPUCacheManager::Create(renderEngine);
+    if (!gpuCacheManager) {
+        RS_LOGE("RSMainThread::InitGPUCacheManager: Failed to create GPUCacheManager");
+        return;
+    }
+
+    // Set GPU cache manager to RenderEngine
+    renderEngine->SetGPUCacheManager(gpuCacheManager);
+
+    // Set Composer Client map provider callback (UniRender mode only)
+    if (isUniRender_) {
+        gpuCacheManager->SetComposerClientMapProvider(
+            [this]() -> GPUCacheManager::ComposerClientMap {
+                return RSUniRenderThread::Instance().GetRSRenderComposerClientMap();
+            }
+        );
+    }
+
+    // Set GPUCacheManager callback to RSSubThreadManager (dependency injection)
+    std::weak_ptr<RSBaseRenderEngine> renderEngineWeak = renderEngine;
+    RSSubThreadManager::Instance()->SetGetGPUCacheManagerFunc(
+        [renderEngineWeak]() -> std::shared_ptr<GPUCacheManager> {
+            auto engine = renderEngineWeak.lock();
+            return engine ? engine->GetGPUCacheManager() : nullptr;
+        }
+    );
+
+    // Set global GPU cache cleanup callback for RSSurfaceHandler (dependency injection)
+    RSSurfaceHandler::SetGPUCacheCleanupCallback(
+        [renderEngineWeak](const std::set<uint64_t>& bufferIds) {
+            auto engine = renderEngineWeak.lock();
+            if (!engine) {
+                return;
+            }
+            auto cacheManager = engine->GetGPUCacheManager();
+            if (cacheManager) {
+                cacheManager->ScheduleBufferCleanup(bufferIds);
+            }
+        }
+    );
+
+    // Register buffer-delete listener to IConsumerSurface when it is bound to RSSurfaceHandler
+    RSSurfaceHandler::SetConsumerDeleteBufferListenerCallback(
+        [renderEngineWeak](const sptr<IConsumerSurface>& consumer) {
+            auto engine = renderEngineWeak.lock();
+            if (engine) {
+                engine->RegisterDeleteBufferListener(consumer);
+            }
+        }
+    );
+}
+#endif
 
 void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
 {

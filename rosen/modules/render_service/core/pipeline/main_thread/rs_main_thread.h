@@ -416,6 +416,9 @@ public:
     }
 
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
+#ifdef RS_ENABLE_GPU
+    void InitGPUCacheManager();
+#endif
     void NotifyUnmarshalTask(int64_t uiTimestamp);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
