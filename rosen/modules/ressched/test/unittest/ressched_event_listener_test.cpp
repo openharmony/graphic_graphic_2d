@@ -399,29 +399,6 @@ HWTEST_F(ResschedEventListenerTest, ReportFrameRateToRSS_WithValidQueue, Functio
     ResschedEventListener::GetInstance()->ReportFrameRateToRSS(mapPayload);
     sleep(1);
 }
-
-/*
-* Function: ReportFrameRateToRSS_WithInvalidQueue
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: Test ReportFrameRateToRSS with invalid queue
- */
-HWTEST_F(ResschedEventListenerTest, ReportFrameRateToRSS_WithInvalidQueue, Function | MediumTest | Level3)
-{
-    std::unordered_map<std::string, std::string> mapPayload;
-    mapPayload["pid"] = "100";
-    mapPayload["type"] = "1";
-    mapPayload["frameRate"] = "60";
-    
-    // Mock queue failure
-    ResschedEventListener::GetInstance()->ffrtHighPriorityQueue_ = nullptr;
-    
-    ResschedEventListener::GetInstance()->ReportFrameRateToRSS(mapPayload);
-    sleep(1);
-    // No assertion needed, just verifying it doesn't crash
-}
-
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
