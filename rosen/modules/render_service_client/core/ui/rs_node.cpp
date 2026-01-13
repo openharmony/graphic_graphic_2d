@@ -3148,17 +3148,6 @@ bool RSNode::GetIsCustomTextType()
     return isCustomTextType_;
 }
 
-void RSNode::SetIsCustomTypeface(bool isCustomTypeface)
-{
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    isCustomTypeface_ = isCustomTypeface;
-}
-
-bool RSNode::GetIsCustomTypeface()
-{
-    return isCustomTypeface_;
-}
-
 void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));

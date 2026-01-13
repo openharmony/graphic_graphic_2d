@@ -2164,20 +2164,6 @@ void RSSurfaceRenderNode::UpdateDrawingCacheNodes(const std::shared_ptr<RSRender
     drawingCacheNodes_.emplace(nodePtr->GetId(), nodePtr);
 }
 
-void RSSurfaceRenderNode::ResetDrawingCacheStatusIfNodeStatic(
-    std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects)
-{
-    // traversal drawing cache nodes including app window
-    EraseIf(drawingCacheNodes_, [this, &allRects](const auto& pair) {
-        auto node = pair.second.lock();
-        if (node == nullptr || !node->IsOnTheTree()) {
-            return true;
-        }
-        node->SetDrawingCacheChanged(false);
-        return false;
-    });
-}
-
 void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
 {
     if (visible == prevVisible_) {

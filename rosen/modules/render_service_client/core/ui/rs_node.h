@@ -1611,10 +1611,6 @@ public:
      */
     bool GetIsCustomTextType();
 
-    void SetIsCustomTypeface(bool isCustomTypeface);
-
-    bool GetIsCustomTypeface();
-
     /**
      * @brief Sets the drawing region for the node.
      *
