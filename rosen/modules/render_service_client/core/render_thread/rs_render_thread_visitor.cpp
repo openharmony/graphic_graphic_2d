@@ -426,12 +426,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #if defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     auto rc = RSRenderThread::Instance().GetRenderContext();
     rsSurface->SetRenderContext(rc);
-    rsSurface->SetCleanUpHelper([]() {
-        RSRenderThread::Instance().PostTask([]() {
-            RSRenderThread::Instance().TrimMemory();
-        });
-    });
-
 #endif
 
 #ifdef RS_ENABLE_VK
