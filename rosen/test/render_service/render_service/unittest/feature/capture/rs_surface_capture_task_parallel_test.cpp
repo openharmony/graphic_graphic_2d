@@ -206,7 +206,7 @@ void RSSurfaceCaptureTaskParallelTest::SetUpTestCase()
     }
 }
 
-void RSSurfaceCaptureTaskParallelTest::TearDownTestCase() 
+void RSSurfaceCaptureTaskParallelTest::TearDownTestCase()
 {
     surfaceCaptureCb_->Reset();
     surfaceCaptureCb_ = nullptr;
@@ -556,7 +556,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
     EXPECT_EQ(ret, true);
 
     ASSERT_EQ(task1.Run(callback, captureParam), true);
-    
+
     task1.finalRotationAngle_ = RS_ROTATION_90;
     ASSERT_EQ(task1.Run(callback, captureParam), true);
     // Reset
@@ -620,7 +620,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateClientPixelMap, TestSize.Level2
         EXPECT_EQ(pixelMap != nullptr, true);
     }
 
-    // TEST2:: InVaild scalex01
+    // TEST2:: Invalid scalex01
     {
         Drawing::Rect rect = {0, 0, 1260, 2720};
         RSSurfaceCaptureConfig captureConfig;
@@ -630,7 +630,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateClientPixelMap, TestSize.Level2
         EXPECT_EQ(pixelMap == nullptr, true);
     }
 
-    // TESt: invauld scalex01
+    // TESt: Invalid scalex01
 
     {
         Drawing::Rect rect = {0, 0 ,1260, 2720};
