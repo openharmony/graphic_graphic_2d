@@ -26,6 +26,7 @@ int32_t ImageEnhanceParamParse::ParseFeatureParam(FeatureParamMapType& featureMa
         RS_LOGE("ImageEnhanceParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
+
     std::unordered_map<std::string, std::function<int32_t(xmlNode&)>> parserMap = {
         { "ImageEnhance", [this] (xmlNode& node) {return ParseImageEnhanceInternal(node);} },
         { "ImageEnhanceParam", [this] (xmlNode& node) {return ParseImageEnhanceParamInternal(node);} },
@@ -203,7 +204,8 @@ int32_t ImageEnhanceParamParse::ParseImageEnhanceAlgoParam(xmlNode& node)
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-        auto it = handlers.find(ExtractPropertyValue("name", *currNode));
+        std::string nodeName = ExtractPropertyValue("name", *currNode);
+        auto it = handlers.find(nodeName.substr(0, nodeName.find("_")));
         if (it == handlers.end()) {
             return PARSE_INTERNAL_FAIL;
         }
@@ -233,5 +235,4 @@ bool ImageEnhanceParamParse::CheckAlgoParams(RSImageDetailEnhanceAlgoParams& alg
     algoParams.isValid = true;
     return true;
 }
-
 } // namespace OHOS::Rosen
