@@ -20,7 +20,9 @@ module_output_path = "graphic_2d/graphic_2d/graphic_test"
 
 drawing_engine_sources = []
 hardware_manager_sources = []
-open_capability_sources = []
+open_capability_sources = [
+    "open_capability/pixmap/create_pixel_map_from_surface_test.cpp",
+]
 rs_display_effect_sources = [
   "rs_display_effect/animation/anim_callback_animation_test.cpp",
   "rs_display_effect/animation/anim_curve_animation_test.cpp",
@@ -134,8 +136,6 @@ rs_func_feature_sources = [
   "rs_func_feature/component_capture/demo.cpp",
   "rs_func_feature/multi_instance/demo.cpp",
   "rs_func_feature/multi_screen/logical_display_node_test.cpp",
-  "rs_func_feature/multi_screen/create_pixel_map_with_transform_test.cpp",
-  "rs_func_feature/multi_screen/create_pixel_map_without_transform_test.cpp",
   "rs_func_feature/multi_screen/multi_screen_test.cpp",
   "rs_func_feature/screen_capture/display_node_capture_test.cpp",
   "rs_func_feature/special_layer/security_layer_test.cpp",
