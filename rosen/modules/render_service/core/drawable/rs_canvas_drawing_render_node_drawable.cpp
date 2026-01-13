@@ -1078,7 +1078,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback(int width, int h
     if (gpuContext == nullptr) {
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         ReleaseDmaSurfaceBuffer(false);
 #endif
     } else {
