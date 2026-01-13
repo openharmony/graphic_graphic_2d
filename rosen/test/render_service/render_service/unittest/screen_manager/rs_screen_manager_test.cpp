@@ -1593,8 +1593,6 @@ HWTEST_F(RSScreenManagerTest, ResizeVirtualScreen_002, TestSize.Level1)
 {
     ASSERT_NE(nullptr, screenManager_);
     std::string name = "virtualScreen0";
-    // uint32_t width = 500;
-    // uint32_t height = 300;
 
     auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
@@ -1602,6 +1600,22 @@ HWTEST_F(RSScreenManagerTest, ResizeVirtualScreen_002, TestSize.Level1)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
 
+    uint32_t width = 500;
+    uint32_t height = 300;
+    auto id = screenManager_->CreateVirtualScreen(name, width, height, psurface, 0, false, {});
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+ 
+    width = 0;
+    height = 0;
+    ASSERT_EQ(SUCCESS, static_cast<StatusCode>(screenManager_->ResizeVirtualScreen(id, width, height)));
+    width = 100;
+    height = 200;
+    ASSERT_EQ(SUCCESS, static_cast<StatusCode>(screenManager_->ResizeVirtualScreen(id, width, height)));
+ 
+    width = 10000;
+    height = 9000;
+    ASSERT_EQ(SUCCESS, static_cast<StatusCode>(screenManager_->ResizeVirtualScreen(id, width, height)));
+ 
     screenManager_->RemoveVirtualScreen(id);
     sleep(1);
 }
