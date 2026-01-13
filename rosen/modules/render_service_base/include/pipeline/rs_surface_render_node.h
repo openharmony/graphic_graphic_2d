@@ -1322,8 +1322,6 @@ public:
     void UpdateFilterCacheStatusWithVisible(bool visible);
     void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged);
     void UpdateDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
-    // reset static node's drawing cache status as not changed and get filter rects
-    void ResetDrawingCacheStatusIfNodeStatic(std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects);
 
     void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
 
