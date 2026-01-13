@@ -404,6 +404,63 @@ HWTEST_F(RSClientToRenderConnectionStubTest, DropFrameByPid001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: TakeUICaptureInRangeTest001
+ * @tc.desc: Test TakeUICaptureInRange under different node states
+ * @tc.type: FUNC
+ * @tc.require: issue21623
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest001, TestSize.Level2)
+{
+    constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
+    auto mainThread = RSMainThread::Instance();
+    auto runner = mainThread->runner_;
+    auto handler = mainThread->handler_;
+    mainThread->runner_ = AppExecFwk::EventRunner::Create("TakeUICaptureInRangeTest001");
+    ASSERT_NE(mainThread->runner_, nullptr);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    ASSERT_NE(mainThread->handler_, nullptr);
+    mainThread->runner_->Run();
+
+    auto screenManagerPtr = RSScreenManager::GetInstance();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToRenderConnection> toRenderConnection =
+        new RSClientToRenderConnection(getpid(), nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    ASSERT_NE(toRenderConnection, nullptr);
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    ASSERT_NE(callback, nullptr);
+    RSSurfaceCaptureConfig config;
+    config.isSync = false;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    NodeId id{std::numeric_limits<NodeId>::max()};
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    nodeMap.RegisterRenderNode(node);
+    node->isOnTheTree_ = true;
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->renderProperties_.isDirty_ = false;
+    node->isSubTreeDirty_ = false;
+    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    node->isSubTreeDirty_ = true;
+    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    node->renderProperties_.isDirty_ = true;
+    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    node->isOnTheTree_ = false;
+    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    nodeMap.UnregisterRenderNode(id);
+    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    EXPECT_EQ(nodeMap.GetRenderNode<RSRenderNode>(id), nullptr);
+
+    mainThread->runner_ = runner;
+    mainThread->handler_ = handler;
+}
+
+/**
  * @tc.name: GetScreenHDRStatus001
  * @tc.desc: Test GetScreenHDRStatus
  * @tc.type: FUNC

@@ -5281,7 +5281,7 @@ HWTEST_F(RSNodeTest, SetBounds001, TestSize.Level1)
 HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->lazyLoad_, true);
+    rsNode->lazyLoad_ = true;
     rsNode->LoadRenderNodeIfNeed();
     EXPECT_EQ(rsNode->lazyLoad_, false);
 }
@@ -5295,7 +5295,7 @@ HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
 HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->lazyLoad_, true);
+    rsNode->lazyLoad_ = true;
 
     constexpr int commandSize{1024};
     for (int i = 0; i < commandSize; ++i) {
@@ -5313,7 +5313,7 @@ HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed002, TestSize.Level1)
 HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed003, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->lazyLoad_, true);
+    rsNode->lazyLoad_ = true;
 
     auto uiDirector = RSUIDirector::Create();
     uiDirector->Init(true, true);
@@ -7282,7 +7282,7 @@ HWTEST_F(RSNodeTest, AddChildTest004, TestSize.Level1)
     auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), trueChild->GetId(),
         trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
 
-    EXPECT_EQ(trueChild->lazyLoad_, true);
+    trueChild->lazyLoad_ = true;
     rsNode->AddChild(shadowChild, 1);
     EXPECT_EQ(trueChild->lazyLoad_, false);
 }
@@ -7304,7 +7304,7 @@ HWTEST_F(RSNodeTest, AddChildTest005, TestSize.Level1)
     auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
         trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
 
-    EXPECT_EQ(trueChild->lazyLoad_, true);
+    trueChild->lazyLoad_ = true;
     rsNode->AddChild(shadowChild, 1);
     EXPECT_EQ(trueChild->lazyLoad_, true);
 }

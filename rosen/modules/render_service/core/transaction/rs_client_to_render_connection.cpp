@@ -284,13 +284,7 @@ void TakeSurfaceCaptureForUiParallel(
     }
 
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-    if (!node) {
-        RS_LOGE("TakeSurfaceCaptureForUiParallel node is nullptr");
-        callback->OnSurfaceCapture(id, captureConfig, nullptr);
-        return;
-    }
-
-    if (node->IsOnTheTree() && !node->IsDirty() && !node->IsSubTreeDirty()) {
+    if (node != nullptr && node->IsOnTheTree() && !node->IsDirty() && !node->IsSubTreeDirty()) {
         RSMainThread::Instance()->PostTask(captureTask);
     } else {
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
