@@ -662,7 +662,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest004, Function | SmallT
     hccMgr->xcomponentExpectedFrameRate_.clear();
     hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid, xcomponentIdMap);
 
-    for (int32_t i = 0; i < 100; ++i) { // 100 ： xcomponentIdNums
+    for (int32_t i = 0; i < 100; ++i) { // 100 : xcomponentIdNums
         std::string idStr = xcomponentId + std::to_string(i);
         hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
     }
