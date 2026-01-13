@@ -227,8 +227,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     // reset drawing cache changed false for render param if drawable is visited this frame
     // if this drawble is skipped due to occlusion skip of app surface node, this flag should be kept for next frame
     params.SetDrawingCacheChanged(false, true);
-    bool hasFilter =
-        params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() || params.HasChildExcludedFromNodeGroup();
+    bool hasFilter = UpdateCurRenderGroupCacheRootFilterState(params);
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
         && !GetOpincDrawCache().OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
         return;
@@ -251,7 +250,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
 
     // in case of with filter
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    if (needUpdateCache) {
+    if (needUpdateCache && !isOffScreenWithClipHole_) {
         // 1. update cache without filer/shadow/effect & clip hole
         auto canvasType = curCanvas->GetCacheType();
         // set canvas type as OFFSCREEN to not draw filter/shadow/filter
@@ -308,6 +307,23 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     curDrawingCacheRoot_ = root;
 }
 
+bool RSRenderNodeDrawable::UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCacheDrawable>();
+    }
+    renderGroupCache_->SetLastFrameCacheRootHasExcludedChild(params.HasChildExcludedFromNodeGroup());
+    return params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() || params.HasChildExcludedFromNodeGroup();
+}
+
+bool RSRenderNodeDrawable::IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const
+{
+    if (!renderGroupCache_) {
+        return false;
+    }
+    return renderGroupCache_->IsLastFrameCacheRootHasExcludedChild() != params.HasChildExcludedFromNodeGroup();
+}
+
 bool RSRenderNodeDrawable::SkipDrawByWhiteList(Drawing::Canvas& canvas)
 {
     // 1. if it's sub thread drawing, don't skip draw
@@ -356,6 +372,18 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
         "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
         hasFilter, params.GetDrawingCacheType());
     auto originalCacheType = GetCacheType();
+    // for nested render group with filter, cancel the inner group
+    if (isOffScreenWithClipHole_ && hasFilter && GetCacheType() != DrawableCacheType::NONE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu disable inner group drawable cache", nodeId_);
+        SetCacheType(DrawableCacheType::NONE);
+        SetCanceledByParentRenderGroup(true);
+    }
+    // resume the inner render group after outer render group is canceled
+    if (IsCanceledByParentRenderGroup() && !isOffScreenWithClipHole_) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu resume inner group drawable cache", nodeId_);
+        SetCacheType(DrawableCacheType::CONTENT);
+        SetCanceledByParentRenderGroup(false);
+    }
     // can not draw cache because skipCacheLayer in capture process, such as security layers...
     if (GetCacheType() != DrawableCacheType::NONE && hasSkipCacheLayer_ && isInCapture) {
         SetCacheType(DrawableCacheType::NONE);
@@ -591,6 +619,22 @@ void RSRenderNodeDrawable::SetDrawExcludedSubTreeForCache(bool value)
 bool RSRenderNodeDrawable::IsDrawingExcludedSubTreeForCache()
 {
     return RSRenderGroupCacheDrawable::IsDrawingExcludedSubTreeForCache();
+}
+
+void RSRenderNodeDrawable::SetCanceledByParentRenderGroup(bool value)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCacheDrawable>();
+    }
+    renderGroupCache_->SetCanceledByParentRenderGroup(value);
+}
+
+bool RSRenderNodeDrawable::IsCanceledByParentRenderGroup()
+{
+    if (!renderGroupCache_) {
+        return false;
+    }
+    return renderGroupCache_->IsCanceledByParentRenderGroup();
 }
 
 void RSRenderNodeDrawable::UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id)
@@ -943,7 +987,6 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
     if (params.GetRSFreezeFlag()) {
         return updateTimes == 0;
     }
-
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE && params.NeedFilter() &&
         params.GetDrawingCacheIncludeProperty()) || ROSEN_LE(params.GetCacheSize().x_, 0.f) ||
         ROSEN_LE(params.GetCacheSize().y_, 0.f)) {
@@ -951,12 +994,13 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
         ClearCachedSurface();
         return false;
     }
-
     if (NeedInitCachedSurface(params.GetCacheSize())) {
         ClearCachedSurface();
         return true;
     }
-
+    if (IsCurRenderGroupCacheRootExcludedStateChanged(params)) {
+        return true;
+    }
     if (updateTimes == 0 || params.GetDrawingCacheChanged()) {
         return true;
     }

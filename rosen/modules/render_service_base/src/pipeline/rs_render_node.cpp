@@ -1574,11 +1574,11 @@ void RSRenderNode::PrepareSelfNodeForApplyModifiers()
 #endif
 }
 
-void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
+void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, bool isOnExcludedSubTree)
 {
     auto foregroundFilterCache = GetRenderProperties().GetForegroundFilterCache();
-    bool rotateOptimize  = RSSystemProperties::GetCacheOptimizeRotateEnable() ? false : isScreenRotation;
-    if (!ShouldPaint() || (rotateOptimize && !foregroundFilterCache)) {
+    bool rotateOptimize = RSSystemProperties::GetCacheOptimizeRotateEnable() ? false : isScreenRotation;
+    if (!ShouldPaint() || (rotateOptimize && !foregroundFilterCache) || isOnExcludedSubTree) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         return;
     }
@@ -1586,11 +1586,10 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
     if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
         return;
     }
-    SetDrawingCacheChanged((IsContentDirty() || IsSubTreeDirty() || IsAccessibilityConfigChanged()));
-    RS_OPTIONAL_TRACE_NAME_FMT(
-        "SetDrawingCacheChanged id:%llu nodeGroupType:%u contentDirty:%d propertyDirty:%d subTreeDirty:%d "
+    SetDrawingCacheChanged((IsContentDirty() || IsAccessibilityConfigChanged()));
+    RS_OPTIONAL_TRACE_NAME_FMT("SetDrawingCacheChanged id:%llu nodeGroupType:%u contentDirty:%d propertyDirty:%d "
         "AccessibilityConfigChanged:%d",
-        GetId(), nodeGroupType_, isContentDirty_, GetRenderProperties().IsContentDirty(), IsSubTreeDirty(),
+        GetId(), nodeGroupType_, isContentDirty_, GetRenderProperties().IsContentDirty(),
         IsAccessibilityConfigChanged());
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetDrawingCacheIncludeProperty(nodeGroupIncludeProperty_);
@@ -3637,6 +3636,36 @@ bool RSRenderNode::HasChildExcludedFromNodeGroup() const
     return false;
 }
 
+void RSRenderNode::SetRenderGroupExcludedStateChanged(bool isChanged)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetRenderGroupExcludedStateChanged(isChanged);
+#endif
+}
+
+bool RSRenderNode::IsRenderGroupExcludedStateChanged() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->IsRenderGroupExcludedStateChanged();
+#endif
+    return false;
+}
+
+void RSRenderNode::SetRenderGroupSubTreeDirty(bool isDirty)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetRenderGroupSubTreeDirty(isDirty);
+#endif
+}
+
+bool RSRenderNode::IsRenderGroupSubTreeDirty() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->IsRenderGroupSubTreeDirty();
+#endif
+    return false;
+}
+
 bool RSRenderNode::IsNodeGroupIncludeProperty() const
 {
     return nodeGroupIncludeProperty_;
@@ -3668,7 +3697,7 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 
 void RSRenderNode::CheckDrawingCacheType()
 {
-    if (nodeGroupType_ == NodeGroupType::NONE || IsExcludedFromNodeGroup()) {
+    if (nodeGroupType_ == NodeGroupType::NONE) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (nodeGroupType_ & NodeGroupType::GROUPED_BY_FOREGROUND_FILTER) {
         SetDrawingCacheType(RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
@@ -4226,14 +4255,6 @@ void RSRenderNode::UpdateSubSurfaceCnt(int updateCnt)
 bool RSRenderNode::HasSubSurface() const
 {
     return subSurfaceCnt_ > 0;
-}
-void RSRenderNode::SetDrawingCacheRootId(NodeId id)
-{
-    drawingCacheRootId_ = id;
-}
-NodeId RSRenderNode::GetDrawingCacheRootId() const
-{
-    return drawingCacheRootId_;
 }
 bool RSRenderNode::HasAnimation() const
 {
@@ -5170,6 +5191,11 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
         IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
+    if (IsRenderGroupSubTreeDirty()) {
+        SetDrawingCacheChanged(true);
+        SetRenderGroupSubTreeDirty(false); // reset subtree dirty
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter::renderGroup subtree dirty, id:%" PRIu64, GetId());
+    }
     if (IsForceDisableNodeGroup() || GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_CARD) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter force disable nodeGroup id:%" PRIu64, GetId());
         auto parentNode = GetParent().lock();

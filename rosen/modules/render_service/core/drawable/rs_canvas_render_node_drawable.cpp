@@ -139,7 +139,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (LIKELY(isDrawingCacheEnabled_)) {
         GetOpincDrawCache().BeforeDrawCache(canvas, *params);
-        if (!IsDrawingBlurForCache()) {
+        if (!IsDrawingBlurForCache() || IsDrawingExcludedSubTreeForCache()) {
             GenerateCacheIfNeed(canvas, *params);
         }
         CheckCacheTypeAndDraw(canvas, *params);
@@ -199,7 +199,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
     if (LIKELY(isDrawingCacheEnabled_)) {
-        if (canvas.GetUICapture() && !IsDrawingBlurForCache()) {
+        if (canvas.GetUICapture() && (!IsDrawingBlurForCache() || IsDrawingExcludedSubTreeForCache())) {
             GenerateCacheIfNeed(canvas, *params);
         }
         CheckCacheTypeAndDraw(canvas, *params, true);
