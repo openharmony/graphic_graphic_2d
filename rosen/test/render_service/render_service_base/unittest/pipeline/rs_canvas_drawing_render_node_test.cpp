@@ -772,6 +772,17 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ContentStyleSlotUpdateTest001, TestSize.
     EXPECT_FALSE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
 
     node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
+    node->waitSync_ = false;
+    node->isOnTheTree_ = false;
+    node->isNeverOnTree_ = false;
+    node->isTextureExportNode_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE] = { drawCmdList };
+    node->ContentStyleSlotUpdate();
+    EXPECT_FALSE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
+
+    node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
     node->waitSync_ = true;
     node->isOnTheTree_ = false;
     node->isNeverOnTree_ = false;
@@ -1141,5 +1152,59 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest007, TestSize.Level
     ret += "]";
     EXPECT_EQ(outTest1, ret);
     std::cout << outTest1 << std::endl;
+}
+
+/**
+ * @tc.name: AccumulateLastDirtyTypesTest
+ * @tc.desc: Test AccumulateLastDirtyTypes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, AccumulateLastDirtyTypesTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId_ + 1);
+    auto contentStyleDirtyType = static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE);
+    node->lastFrameSynced_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    node->isTextureExportNode_ = false;
+    node->dirtyTypesNG_.reset();
+    node->curDirtyTypesNG_.reset();
+    node->curDirtyTypesNG_.set(contentStyleDirtyType, false);
+    node->AccumulateLastDirtyTypes();
+    EXPECT_TRUE(node->dirtyTypesNG_.test(contentStyleDirtyType));
+    node->dirtyTypesNG_.reset();
+    node->curDirtyTypesNG_.reset();
+    node->curDirtyTypesNG_.set(contentStyleDirtyType, true);
+    node->lastFrameSynced_ = true;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    node->isTextureExportNode_ = false;
+    node->AccumulateLastDirtyTypes();
+    EXPECT_FALSE(node->dirtyTypesNG_.test(contentStyleDirtyType));
+    node->lastFrameSynced_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+    node->isTextureExportNode_ = false;
+    node->AccumulateLastDirtyTypes();
+    EXPECT_FALSE(node->dirtyTypesNG_.test(contentStyleDirtyType));
+    node->lastFrameSynced_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    node->isTextureExportNode_ = true;
+    node->AccumulateLastDirtyTypes();
+    EXPECT_FALSE(node->dirtyTypesNG_.test(contentStyleDirtyType));
+}
+
+/**
+ * @tc.name: OnSyncTest
+ * @tc.desc: Test OnSync
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, OnSyncTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId_ + 1);
+    EXPECT_FALSE(node->modifiersApplied_);
+    node->OnSync();
+    EXPECT_FALSE(node->modifiersApplied_);
+    node->OnApplyModifiers();
+    EXPECT_TRUE(node->modifiersApplied_);
+    node->OnSync();
+    EXPECT_FALSE(node->modifiersApplied_);
 }
 } // namespace OHOS::Rosen

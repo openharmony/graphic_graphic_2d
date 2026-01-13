@@ -994,11 +994,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceforPlaybackTest, Tes
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
- * @tc.name: CreateDmaBackendTexture
+ * @tc.name: CreateDmaBackendTextureTest001
  * @tc.desc: Test If CreateDmaBackendTexture Can Run
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest, TestSize.Level1)
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest001, TestSize.Level1)
 {
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
@@ -1033,20 +1033,34 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest, Tes
     canvas.SetRecordingState(false);
     ret = drawable->ResetSurfaceForVK(10000, 10000, canvas);
     ASSERT_EQ(ret, true);
-    auto node2 = std::make_shared<RSCanvasDrawingRenderNode>(2);
-    auto drawable2 = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node2));
-    drawable2->renderParams_ = nullptr;
-    Drawing::Canvas drawingCanvas2;
-    drawingCanvas2.gpuContext_ = std::make_shared<Drawing::GPUContext>();
-    RSPaintFilterCanvas canvas2(&drawingCanvas2);
-    ret = drawable2->ResetSurfaceForVK(10000, 10000, canvas2);
+    drawable->ResetSurface();
+    ASSERT_EQ(drawable->surface_, nullptr);
+}
+
+/**
+ * @tc.name: CreateDmaBackendTextureTest002
+ * @tc.desc: Test If CreateDmaBackendTexture Can Run
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    drawable->renderParams_ = nullptr;
+    Drawing::Canvas drawingCanvas;
+    drawingCanvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto ret = drawable->ResetSurfaceForVK(10000, 10000, canvas);
     ASSERT_EQ(ret, true);
+    auto buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(1, 100, 100);
     RSCanvasDmaBufferCache::GetInstance().AddPendingBuffer(2, buffer, 2);
-    drawable2->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(2);
-    drawable2->renderParams_->SetCanvasDrawingResetSurfaceIndex(2);
-    drawable2->backendTexture_ = {};
-    ret = drawable2->ReleaseSurfaceVk(100, 100);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(2);
+    drawable->renderParams_->SetCanvasDrawingResetSurfaceIndex(2);
+    drawable->backendTexture_ = {};
+    ret = drawable->ReleaseSurfaceVk(100, 100);
     ASSERT_EQ(ret, true);
+    drawable->ResetSurface();
+    ASSERT_EQ(drawable->surface_, nullptr);
 }
 #endif
 }
