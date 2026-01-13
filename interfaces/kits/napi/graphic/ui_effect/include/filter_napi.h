@@ -37,6 +37,7 @@
 #include "filter/include/filter_radius_gradient_blur_para.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "filter/include/filter_variable_radius_blur_para.h"
+
 #include "mask/include/mask.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
