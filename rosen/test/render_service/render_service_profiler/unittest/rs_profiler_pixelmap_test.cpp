@@ -77,6 +77,37 @@ HWTEST(RSProfilerPixelMapTest, UnmarshalPixelMap, TestSize.Level1)
     EXPECT_EQ(pixelMap, nullptr);
 }
 
+HWTEST(RSProfilerPixelMapTest, PlaybackParcel, TestSize.Level1)
+{
+    OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
+    RSProfiler::testing_ = true;
+    RSProfiler::SetSubMode(SubMode::READ_EMUL);
+
+    std::vector<uint32_t> colors(HUNDRED);
+    for (int i = 0; i < colors.size(); ++i) {
+       colors[i] = 4 * i;
+    }
+
+    Media::InitializationOptions options;
+    options.size.width = TEN;
+    options.size.height = TEN;
+    options.srcRowStride = 0;
+    options.pixelFormat = Media::PixelFormat::RGBA_8888;
+    options.allocatorType = AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> map = Media::PixelMap::Create(colors.data(), colors.size(), options);
+
+    uint8_t parcelMemory[sizeof(Parcel) + 1];
+    auto* parcelPtr = new (parcelMemory + 1) Parcel;
+
+    auto successfulMarshaling = RSProfiler::MarshalPixelMap(*parcelPtr, map);
+    EXPECT_TRUE(successfulMarshaling);
+
+    auto pixelMap = RSProfiler::UnmarshalPixelMap(*parcelPtr, nullptr);
+
+    EXPECT_NE(pixelMap, nullptr);
+    parcelPtr->~Parcel();
+}
+
 HWTEST(RSProfilerPixelMapTest, MarshalUnmarshalNstdPixelMap, TestSize.Level1)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
