@@ -658,8 +658,8 @@ public:
     OutOfParentType GetOutOfParent() const;
 
     void UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced = false);
-    virtual void MarkFilterHasEffectChildren() {};
-    virtual void OnFilterCacheStateChanged() {};
+    virtual void MarkFilterHasEffectChildren() {}
+    virtual void OnFilterCacheStateChanged() {}
 
     // for blur filter cache
     virtual void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false,
@@ -958,7 +958,7 @@ public:
 
     void SetHdrNum(bool flag, NodeId instanceRootNodeId, NodeId screenNodeId, HDRComponentType hdrType);
 
-    virtual void UpdateNodeColorSpace() {};
+    virtual void UpdateNodeColorSpace() {}
     void ResetNodeColorSpace();
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetNodeColorSpace() const;
@@ -1082,8 +1082,8 @@ protected:
     virtual void InitRenderParams();
     virtual void OnSync();
     virtual void OnSkipSync();
-    virtual void AccumulateLastDirtyTypes() {};
-    virtual void ClearNeverOnTree() {};
+    virtual void AccumulateLastDirtyTypes() {}
+    virtual void ClearNeverOnTree() {}
 
     void AddUIExtensionChild(SharedPtr child);
     void MoveUIExtensionChild(SharedPtr child);

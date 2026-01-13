@@ -1715,7 +1715,8 @@ public:
 
     std::string GetFrameNodeTag();
 
-    virtual void SetBoundsChangedCallback(BoundsChangedCallback callback){};
+    virtual void SetBoundsChangedCallback(BoundsChangedCallback callback) {}
+
     bool IsTextureExportNode() const
     {
         return isTextureExportNode_;
@@ -1838,7 +1839,7 @@ public:
      *
      * @param hybridRenderCanvas true to enable hybrid rendering; false otherwise.
      */
-    virtual void SetHybridRenderCanvas(bool hybridRenderCanvas) {};
+    virtual void SetHybridRenderCanvas(bool hybridRenderCanvas) {}
 
     /**
      * @brief Gets whether the node is on the tree.
@@ -2047,7 +2048,7 @@ private:
     std::vector<WeakPtr> children_;
     void SetParent(WeakPtr parent);
     void RemoveChildByNode(SharedPtr child);
-    virtual void CreateRenderNodeForTextureExportSwitch() {};
+    virtual void CreateRenderNodeForTextureExportSwitch() {}
 
     /**
      * @brief Sets a UIFilter property value for a specific modifier.

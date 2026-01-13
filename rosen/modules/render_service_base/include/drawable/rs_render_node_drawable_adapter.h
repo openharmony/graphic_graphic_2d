@@ -221,7 +221,7 @@ public:
     }
     struct FilterNodeInfo {
         FilterNodeInfo(NodeId nodeId, Drawing::Matrix matrix, std::vector<Drawing::RectI> rectVec)
-            : nodeId_(nodeId), matrix_(matrix), rectVec_(rectVec) {};
+            : nodeId_(nodeId), matrix_(matrix), rectVec_(rectVec) {}
         NodeId nodeId_ = 0;
         // Here, matrix_ and rectVec_ represent the transformation and FilterRect of the node relative to the off-screen
         Drawing::Matrix matrix_;

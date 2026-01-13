@@ -47,7 +47,7 @@ class RsImageInfo final {
 public:
     RsImageInfo(int fitNum, int repeatNum, const Drawing::Point* radius, double scale, uint32_t id, int w, int h)
         : fitNum_(fitNum), repeatNum_(repeatNum), radius_(radius), scale_(scale),
-          uniqueId_(id), width_(w), height_(h) {};
+          uniqueId_(id), width_(w), height_(h) {}
     ~RsImageInfo() {}
     int fitNum_ = 0;
     int repeatNum_ = 0;
