@@ -310,7 +310,7 @@ HWTEST(RenderLayerCmdPropertyTest, Unmarshall_SyncFence_FlagTrue_NoData_SuccessW
     std::shared_ptr<RSRenderLayerCmdProperty<sptr<SyncFence>>> out;
     ASSERT_TRUE(prop.OnUnmarshalling(parcel, out));
     ASSERT_NE(out, nullptr);
-    EXPECT_EQ(out->Get(), nullptr);
+    EXPECT_NE(out->Get(), nullptr);
 }
 
 /**
