@@ -658,21 +658,23 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     uniParam->SetRSProcessor(processor);
 
-    std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(paramScreenId);
-    if (composerClient) {
-        PipelineParam param = composerClient->GetPipelineParam();
-        param.frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
-        param.actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp();
-        param.fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff();
-        param.vsyncId = RSUniRenderThread::Instance().GetVsyncId();
-        param.pendingConstraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime();
-        param.pendingScreenRefreshRate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
-        param.isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag();
-        param.hasGameScene = RSUniRenderThread::Instance().GetHasGameScene();
-        param.hasLppVideo = RSUniRenderThread::Instance().GetHasLppVideo();
-        composerClient->UpdatePipelineParam(param);
-    } else {
-        RS_LOGE("composerClient->UpdatePipelineParam failed!");
+    if (!screenProperty.IsVirtual()) {
+        std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(paramScreenId);
+        if (composerClient) {
+            PipelineParam param = composerClient->GetPipelineParam();
+            param.frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
+            param.actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp();
+            param.fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff();
+            param.vsyncId = RSUniRenderThread::Instance().GetVsyncId();
+            param.pendingConstraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime();
+            param.pendingScreenRefreshRate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
+            param.isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag();
+            param.hasGameScene = RSUniRenderThread::Instance().GetHasGameScene();
+            param.hasLppVideo = RSUniRenderThread::Instance().GetHasLppVideo();
+            composerClient->UpdatePipelineParam(param);
+        } else {
+            RS_LOGE("composerClient->UpdatePipelineParam failed!");
+        }
     }
 
     RSUniRenderThread::BufferManagerGuard bufferGuard;

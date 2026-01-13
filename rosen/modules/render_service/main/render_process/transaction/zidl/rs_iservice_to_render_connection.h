@@ -46,7 +46,6 @@ public:
     virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
     
     // Performance Logging
-    virtual ErrCode SetDiscardJankFrames(bool discardJankFrames) = 0;
     virtual ErrCode ReportJankStats() = 0;
     virtual ErrCode ReportEventResponse(DataBaseRs info) = 0;
     virtual ErrCode ReportEventComplete(DataBaseRs info) = 0;
