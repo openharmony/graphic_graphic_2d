@@ -503,7 +503,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data.WriteUint32(captureConfig.backGroundColor);
     auto res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+#ifdef RS_ENABLE_UNI_RENDER
     EXPECT_LE(res, ERR_PERMISSION_DENIED);
+#else
+    EXPECT_LE(res, ERR_INVALID_DATA);
+#endif
 }
 
 /**
