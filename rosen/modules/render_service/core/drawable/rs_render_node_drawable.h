@@ -120,6 +120,8 @@ public:
     bool IsDrawingBlurForCache();
     void SetDrawExcludedSubTreeForCache(bool value);
     bool IsDrawingExcludedSubTreeForCache();
+    void SetCanceledByParentRenderGroup(bool value);
+    bool IsCanceledByParentRenderGroup();
 
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -164,7 +166,10 @@ protected:
     bool CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes);
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
     void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
+    bool UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params);
+    bool IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const;
     bool SkipDrawByWhiteList(Drawing::Canvas& canvas);
+    // !used for render group cache
 
     static int GetProcessedNodeCount();
     static void ProcessedNodeCountInc();

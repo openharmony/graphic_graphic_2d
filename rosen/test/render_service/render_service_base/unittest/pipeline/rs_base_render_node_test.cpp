@@ -537,10 +537,6 @@ HWTEST_F(RSBaseRenderNodeTest, CheckDrawingCacheType, TestSize.Level1)
     node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
     node->CheckDrawingCacheType();
     ASSERT_EQ(node->drawingCacheType_, RSDrawingCacheType::TARGETED_CACHE);
-
-    node->ExcludedFromNodeGroup(true);
-    node->CheckDrawingCacheType();
-    ASSERT_EQ(node->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
 }
 
 /**

@@ -44,9 +44,39 @@ public:
         return hasChildExcludedFromNodeGroup_;
     }
 
+    bool SetRenderGroupExcludedStateChanged(bool isChanged);
+    bool IsRenderGroupExcludedStateChanged() const
+    {
+        return isExcludedStateChanged_;
+    }
+
+    bool SetCachedSubTreeDirty(bool isDirty);
+    bool IsCachedSubTreeDirty() const
+    {
+        return isCachedSubTreeDirty_;
+    }
+
 private:
     bool excludedFromNodeGroup_ = false;
     bool hasChildExcludedFromNodeGroup_ = false;
+    bool isExcludedStateChanged_ = false;
+    bool isCachedSubTreeDirty_ = false;
+};
+
+class RSB_EXPORT AutoRenderGroupExcludedSubTreeGuard {
+public:
+    AutoRenderGroupExcludedSubTreeGuard(NodeId& curExcludedRootNodeId, bool isCurNodeExcluded, NodeId curNodeId);
+    ~AutoRenderGroupExcludedSubTreeGuard();
+
+    AutoRenderGroupExcludedSubTreeGuard() = delete;
+    AutoRenderGroupExcludedSubTreeGuard(const AutoRenderGroupExcludedSubTreeGuard& other) = delete;
+    AutoRenderGroupExcludedSubTreeGuard(AutoRenderGroupExcludedSubTreeGuard&& other) = delete;
+    AutoRenderGroupExcludedSubTreeGuard& operator=(const AutoRenderGroupExcludedSubTreeGuard& other) = delete;
+    AutoRenderGroupExcludedSubTreeGuard& operator=(AutoRenderGroupExcludedSubTreeGuard&& other) = delete;
+
+private:
+    NodeId& curExcludedRootNodeId_;
+    bool isExcluded_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

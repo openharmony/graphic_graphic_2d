@@ -287,21 +287,6 @@ HWTEST_F(RSRenderNodeTest, ManageDrawingCacheTest001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetDrawingCacheRootIdTest
- * @tc.desc: test SetDrawingCacheRootId api
- * @tc.type: FUNC
- * @tc.require: issueI84LBZ
- */
-HWTEST_F(RSRenderNodeTest,  SetDrawingCacheRootIdTest, TestSize.Level2)
-{
-    RSRenderNode node(id, context);
-    RSRenderNode drawingCacheRootNode(id + 1, context);
-
-    node.SetDrawingCacheRootId(drawingCacheRootNode.GetId());
-    ASSERT_EQ(node.GetDrawingCacheRootId(), drawingCacheRootNode.GetId());
-}
-
-/**
  * @tc.name: SetGeoUpdateDelay01
  * @tc.desc: test SetGeoUpdateDelay once
  * @tc.type: FUNC
@@ -1798,11 +1783,15 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest004, TestSize.Level1)
     EXPECT_EQ(checkType, SubTreePrepareCheckType::ENABLED);
     parent->shouldPaint_ = true;
     bool isOccluded = false;
+    bool filterInGlobal = false;
     parent->SetSubTreeDirty(false);
     parent->childHasSharedTransition_ = false;
 
+    parent->SetRenderGroupExcludedStateChanged(true);
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(filterInGlobal, isOccluded));
+    EXPECT_FALSE(parent->IsRenderGroupExcludedStateChanged());
+
     parent->SetChildHasVisibleFilter(false);
-    bool filterInGlobal = false;
     EXPECT_FALSE(parent->IsSubTreeNeedPrepare(filterInGlobal, isOccluded));
     filterInGlobal = true;
     EXPECT_FALSE(parent->IsSubTreeNeedPrepare(filterInGlobal, isOccluded));
@@ -2615,12 +2604,33 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest007, TestSize.
 }
 
 /**
- * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest013
+ * @tc.name: UpdateDrawingCacheInfoAfterChildrenTest008
+ * @tc.desc: Test setRednerGroupSubtreeDirty
+ * @tc.type: FUNC
+ * @tc.require: issue21180
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest008, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+
+    nodeTest->SetRenderGroupSubTreeDirty(true);
+    nodeTest->UpdateDrawingCacheInfoAfterChildren();
+    EXPECT_TRUE(nodeTest->GetDrawingCacheChanged());
+    EXPECT_FALSE(nodeTest->IsRenderGroupSubTreeDirty());
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest001
  * @tc.desc: CheckDrawingCacheType and UpdateDrawingCacheInfoBeforeChildren test
  * @tc.type: FUNC
  * @tc.require: issueI9US6V
  */
-HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest001, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
@@ -2639,11 +2649,11 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize
     // UpdateDrawingCacheInfoBeforeChildren test
     // shouldPaint_ is false
     nodeTest->shouldPaint_ = false;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false, false);
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
     // shouldPaint_ is true
     nodeTest->shouldPaint_ = true;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(true);
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(true, false);
     if (RSSystemProperties::GetCacheOptimizeRotateEnable()) {
         EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
     } else {
@@ -2651,7 +2661,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize
     }
     // isScreenRotation is true
     nodeTest->nodeGroupType_ = RSRenderNode::NONE;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false, false);
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 
     // isScreenRotation is false
@@ -2659,17 +2669,17 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
     EXPECT_NE(stagingRenderParams, nullptr);
     nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false, false);
     EXPECT_FALSE(nodeTest->stagingRenderParams_->needSync_);
 }
 
 /**
- * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest014
+ * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest002
  * @tc.desc: test instanceRootNodeInfo
  * @tc.type: FUNC
  * @tc.require: issueI9US6V
  */
-HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest014, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest002, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
@@ -2690,14 +2700,39 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest014, TestSize
     auto instanceRootNode = nodeTest->GetInstanceRootNode()->ReinterpretCastTo<RSSurfaceRenderNode>();
     EXPECT_NE(instanceRootNode, nullptr);
     EXPECT_EQ(instanceRootNode->GetName(), surfaceNode->GetName());
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false, false);
     EXPECT_NE(nodeTest->stagingRenderParams_->GetInstanceRootNodeId(), surfaceNode->GetId());
     EXPECT_NE(nodeTest->stagingRenderParams_->GetInstanceRootNodeName(), surfaceNode->GetName());
 
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false, false);
     EXPECT_EQ(nodeTest->stagingRenderParams_->GetInstanceRootNodeId(), surfaceNode->GetId());
     EXPECT_EQ(nodeTest->stagingRenderParams_->GetInstanceRootNodeName(), surfaceNode->GetName());
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest003
+ * @tc.desc: test UpdateDrawingCacheInfoBeforeChildren with excluded node
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest003, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    EXPECT_NE(nodeTest->stagingRenderParams_, nullptr);
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
+
+    bool isScreenRotation = false;
+    bool isOnExcludedSubTree = false;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(isScreenRotation, isOnExcludedSubTree);
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+
+    isScreenRotation = false;
+    isOnExcludedSubTree = true;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(isScreenRotation, isOnExcludedSubTree);
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 }
 
 /**
@@ -2738,6 +2773,46 @@ HWTEST_F(RSRenderNodeTest, SetHasChildExcludedFromNodeGroupTest, TestSize.Level1
 
     nodeTest->SetHasChildExcludedFromNodeGroup(false);
     EXPECT_FALSE(nodeTest->HasChildExcludedFromNodeGroup());
+}
+
+/**
+ * @tc.name: SetRenderGroupExcludedStateChangedTest
+ * @tc.desc: Test SetRenderGroupExcludedStateChanged
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderNodeTest, SetRenderGroupExcludedStateChangedTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    EXPECT_NE(nodeTest->stagingRenderParams_, nullptr);
+
+    nodeTest->SetRenderGroupExcludedStateChanged(true);
+    EXPECT_TRUE(nodeTest->IsRenderGroupExcludedStateChanged());
+
+    nodeTest->SetRenderGroupExcludedStateChanged(false);
+    EXPECT_FALSE(nodeTest->IsRenderGroupExcludedStateChanged());
+}
+
+/**
+ * @tc.name: SetRenderGroupSubTreeDirtyTest
+ * @tc.desc: Test SetRenderGroupSubTreeDirty
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderNodeTest, SetRenderGroupSubTreeDirtyTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    EXPECT_NE(nodeTest->stagingRenderParams_, nullptr);
+
+    nodeTest->SetRenderGroupSubTreeDirty(true);
+    EXPECT_TRUE(nodeTest->IsRenderGroupSubTreeDirty());
+
+    nodeTest->SetRenderGroupSubTreeDirty(false);
+    EXPECT_FALSE(nodeTest->IsRenderGroupSubTreeDirty());
 }
 
 #ifndef MODIFIER_NG

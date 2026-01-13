@@ -616,18 +616,6 @@ public:
         return cacheType_;
     }
 
-    void SetDrawingCacheType(RSDrawingCacheType cacheType);
-    RSDrawingCacheType GetDrawingCacheType() const
-    {
-        return drawingCacheType_;
-    }
-    void SetDrawingCacheChanged(bool cacheChanged);
-    bool GetDrawingCacheChanged() const;
-    void SetForceDisableNodeGroup(bool forceDisable);
-    bool IsForceDisableNodeGroup() const;
-    // manage cache root nodeid
-    void SetDrawingCacheRootId(NodeId id);
-    NodeId GetDrawingCacheRootId() const;
     // record cache geodirty for preparation optimization
     void SetGeoUpdateDelay(bool val);
     void ResetGeoUpdateDelay();
@@ -705,6 +693,16 @@ public:
     void MarkForceClearFilterCacheWithInvisible();
     void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
 
+    // used for renderGroup
+    void SetDrawingCacheType(RSDrawingCacheType cacheType);
+    RSDrawingCacheType GetDrawingCacheType() const
+    {
+        return drawingCacheType_;
+    }
+    void SetDrawingCacheChanged(bool cacheChanged);
+    bool GetDrawingCacheChanged() const;
+    void SetForceDisableNodeGroup(bool forceDisable);
+    bool IsForceDisableNodeGroup() const;
     bool IsForcedDrawInGroup() const;
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
@@ -719,13 +717,19 @@ public:
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     void ExcludedFromNodeGroup(bool isExcluded);
     bool IsExcludedFromNodeGroup() const;
-
     void SetHasChildExcludedFromNodeGroup(bool isExcluded);
     bool HasChildExcludedFromNodeGroup() const;
-
+    void SetRenderGroupExcludedStateChanged(bool isChanged);
+    bool IsRenderGroupExcludedStateChanged() const;
+    void SetRenderGroupSubTreeDirty(bool isDirty);
+    bool IsRenderGroupSubTreeDirty() const;
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
     bool IsNodeGroupIncludeProperty() const;
+    void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, bool isOnExcludedSubTree);
+    void UpdateDrawingCacheInfoAfterChildren(
+        bool isInBlackList = false, const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
+    // !used for renderGroup
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
@@ -779,9 +783,6 @@ public:
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
     void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn);
-    void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
-    void UpdateDrawingCacheInfoAfterChildren(bool isInBlackList = false,
-        const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
 
     virtual RectI GetFilterRect() const;
     RectI GetAbsRect() const;

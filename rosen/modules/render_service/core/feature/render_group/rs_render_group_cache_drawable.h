@@ -37,9 +37,23 @@ public:
     static void SetDrawExcludedSubTreeForCache(bool value);
     static bool IsDrawingExcludedSubTreeForCache();
 
+    void SetCanceledByParentRenderGroup(bool value);
+    bool IsCanceledByParentRenderGroup() const
+    {
+        return isCanceledByParentRenderGroup_;
+    }
+
+    void SetLastFrameCacheRootHasExcludedChild(bool hasFilter);
+    bool IsLastFrameCacheRootHasExcludedChild() const
+    {
+        return isLastFrameCacheRootHasExcludedChild_;
+    }
+
 private:
     static thread_local bool drawBlurForCache_;
     static thread_local bool drawExcludedSubTreeForCache_;
+    bool isCanceledByParentRenderGroup_ = false;
+    bool isLastFrameCacheRootHasExcludedChild_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
