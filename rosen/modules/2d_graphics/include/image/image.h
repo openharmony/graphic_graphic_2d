@@ -317,11 +317,9 @@ public:
      * @return            True if Image is created succeeded.
      */
     bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap, bool ignoreAlpha = false);
-#endif
 
     bool MakeFromEncoded(const std::shared_ptr<Data>& data);
 
-#ifdef RS_ENABLE_GPU
     /**
      * @brief             Create a GPU-backed Image from compressed data.
      * @param gpuContext  GPU context.

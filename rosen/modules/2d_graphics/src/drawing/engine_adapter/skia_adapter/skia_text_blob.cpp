@@ -77,11 +77,7 @@ std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromPosText(const void* text, size_t
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
     auto skFont = skiaFont->GetFont();
     const int count = skFont.countText(text, byteLength, skEncoding);
-    std::unique_ptr<SkPoint[]> skPts = std::unique_ptr<SkPoint[]>(new(std::nothrow) SkPoint[count]);
-    if (skPts == nullptr) {
-        LOGD("failed to init skPts of size %{public}d, %{public}s, %{public}d", count, __FUNCTION__, __LINE__);
-        return nullptr;
-    }
+    std::unique_ptr<SkPoint[]> skPts = std::make_unique<SkPoint[]>(count);
     for (int i = 0; i < count; ++i) {
         skPts[i] = {pos[i].GetX(), pos[i].GetY()};
     }
