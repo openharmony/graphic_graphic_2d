@@ -535,7 +535,6 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& v
     }
 
     std::vector<Drawing::FontArguments::VariationPosition::Coordinate>& coords = val.coords_;
-
     uint32_t coordsCount = coords.size();
 
     success &= Marshalling(parcel, coordsCount);
