@@ -248,7 +248,7 @@ void FontParser::ProcessTable(const NameTable* nameTable, FontParser::FontDescri
     }
 }
 
-void FontParser::ProcessTable(const PostTable* postTable, FontParser::FontDescriptor& fontDescriptor, size_t size)
+void FontParser::ProcessTable(const PostTable* postTable, FontParser::FontDescriptor& fontDescriptor, size_t /* size */)
 {
     if (postTable->italicAngle.Get() != 0) {
         fontDescriptor.italic = 1; // means support italics
