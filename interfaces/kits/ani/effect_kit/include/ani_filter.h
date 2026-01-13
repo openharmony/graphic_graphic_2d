@@ -37,6 +37,8 @@ public:
 
     static ani_object CreateEffect(ani_env* env, ani_object para);
     static ani_object Blur(ani_env* env, ani_object obj, ani_double param);
+    static ani_object EllipticalGradientBlur(ani_env *env, ani_object obj, ani_double blurRadius, ani_double centerX,
+        ani_double centerY, ani_double maskRadiusX, ani_double maskRadiusY, ani_array fractionStops);
     static ani_object Grayscale(ani_env* env, ani_object obj);
     static ani_object GetEffectPixelMap(ani_env* env, ani_object obj);
 
