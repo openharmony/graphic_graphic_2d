@@ -31,6 +31,9 @@ using namespace OHOS::Rosen::SPText;
 
 namespace txt {
 namespace skt = skia::textlayout;
+namespace {
+constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
+}
 class ParagraphPathTest : public testing::Test {
 public:
     void SetUp() override;
@@ -158,5 +161,38 @@ HWTEST_F(ParagraphPathTest, ParagraphPathTestgetTextPathByClusterRange002, TestS
     EXPECT_EQ(paths[2].textStyle.getFontSize(), 15.0);
     EXPECT_EQ(paths[3].textStyle.getFontSize(), 20.0);
     EXPECT_EQ(paths[10].textStyle.getFontSize(), 21.5);
+}
+
+/*
+ * @tc.name: ParagraphPathTestgetTextPathByClusterRange003
+ * @tc.desc: test for get text path by cluster range for Uyghur
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphPathTest, ParagraphPathTestgetTextPathByClusterRange003, TestSize.Level0)
+{
+    ParagraphStyle paragraphStyle;
+    auto fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    std::unique_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    OHOS::Rosen::SPText::TextStyle style;
+    style.fontSize = 15.0;
+    paragraphBuilder->PushStyle(style);
+    paragraphBuilder->AddText(u"ئۇيغۇرچە يېزىقنى سىناش");
+    std::shared_ptr<Paragraph> paragraph = paragraphBuilder->Build();
+    OHOS::Rosen::SPText::ParagraphImpl* paragraphImpl = GetParagraphImpl(paragraph);
+    ASSERT_NE(paragraphImpl, nullptr);
+    std::unique_ptr<skt::Paragraph> skParagraph = nullptr;
+    paragraphImpl->paragraph_.swap(skParagraph);
+    ASSERT_NE(skParagraph, nullptr);
+    skParagraph->layout(200);
+    skt::SkRange<skt::TextIndex> range{0, 20};
+    std::vector<skt::PathInfo> pathInfos = skParagraph->getTextPathByClusterRange(range);
+    EXPECT_EQ(pathInfos.size(), 20);
+    EXPECT_NEAR(pathInfos[0].point.GetX(), 19.8901367, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(pathInfos[2].point.GetX(), 29.7901917, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(pathInfos[3].point.GetX(), 39.2252502, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(pathInfos[10].point.GetX(), 81.3005371, FLOAT_DATA_EPSILON);
 }
 } // namespace txt
