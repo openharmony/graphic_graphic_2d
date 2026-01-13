@@ -840,8 +840,8 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
- HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
-{ 
+HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
+{
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 start";
     /**
      * @tc.steps: step1. init
