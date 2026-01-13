@@ -81,6 +81,7 @@ class RSForegroundFilterModifier;
 class RSBackgroundFilterModifier;
 enum class RSModifierType : uint16_t;
 }
+
 /**
  * @class RSNode
  *
@@ -164,7 +165,7 @@ public:
     {
         return children_;
     }
-    // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullopt
+    // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullptr
     RSNode::SharedPtr GetChildByIndex(int index) const;
 
     /**
@@ -368,12 +369,12 @@ public:
     static CancelAnimationStatus CloseImplicitCancelAnimationReturnStatus(
         const std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     static bool IsImplicitAnimationOpen(const std::shared_ptr<RSUIContext> rsUIContext);
-    static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float fraction,
-        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
-    static void AddKeyFrame(
-        const std::shared_ptr<RSUIContext> rsUIContext, float fraction, const PropertyCallback& callback);
-    static void AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, int duration,
-        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
+    static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
+        float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
+    static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
+        float fraction, const PropertyCallback& callback);
+    static void AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
+        int duration, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
     void NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
 
     void AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool isStartAnimation = true);
@@ -1451,8 +1452,8 @@ public:
     /**
      * @brief Sets a rounded rectangle clipping region for the node.
      *
-     * @param clipRect The bounds of the clipping rectangle,represented as (x, y, width, height).
-     * @param clipRadius The radii for the rectangle's corners,represented as (topLeft, topRight, bottomRight,
+     * @param clipRect The bounds of the clipping rectangle, represented as (x, y, width, height).
+     * @param clipRadius The radius for the rectangle's corners, represented as (topLeft, topRight, bottomRight,
      *                   bottomLeft).
      */
     void SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius);
@@ -1954,7 +1955,7 @@ protected:
      * @return true if the command was successfully added; false otherwise.
      */
     bool AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
-        FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;
+                    FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;
 
     /**
      * @brief Sets whether the node is on the tree.
