@@ -700,6 +700,13 @@ public:
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id);
 
     /**
+     * @brief Get power status of the specified screen.
+     * @param id Id of the screen.
+     * @return PanelPowerStatus.
+     */
+    PanelPowerStatus GetPanelPowerStatus(ScreenId id);
+
+    /**
      * @brief Get date of screen.
      * @param id id of the screen.
      * @return RSScreenData.
@@ -719,13 +726,6 @@ public:
      * @param level The value of backlight.
      */
     void SetScreenBacklight(ScreenId id, uint32_t level);
-
-    /**
-     * @brief Get power status of the specified screen.
-     * @param id Id of the screen.
-     * @return PanelPowerStatus.
-     */
-    PanelPowerStatus GetPanelPowerStatus(ScreenId id);
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 

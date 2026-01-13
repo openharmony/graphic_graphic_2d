@@ -223,6 +223,8 @@ public:
 
     virtual ErrCode GetScreenPowerStatus(uint64_t screenId, uint32_t& status) = 0;
 
+    virtual ErrCode GetPanelPowerStatus(ScreenId id, PanelPowerStatus& status) = 0;
+
     virtual RSScreenData GetScreenData(ScreenId id) = 0;
 
     virtual ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) = 0;
@@ -234,8 +236,6 @@ public:
     virtual ErrCode GetScreenBacklight(uint64_t id, int32_t& level) = 0;
 
     virtual void SetScreenBacklight(ScreenId id, uint32_t level) = 0;
-
-    virtual ErrCode GetPanelPowerStatus(ScreenId id, uint32_t& status) = 0;
 
     virtual ErrCode RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) = 0;

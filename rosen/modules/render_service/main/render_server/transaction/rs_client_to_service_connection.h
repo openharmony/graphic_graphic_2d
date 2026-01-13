@@ -211,13 +211,13 @@ private:
 
     ErrCode GetScreenPowerStatus(uint64_t screenId, uint32_t& status) override;
 
+    ErrCode GetPanelPowerStatus(ScreenId screenId, PanelPowerStatus& status) override;
+
     RSScreenData GetScreenData(ScreenId id) override;
 
     ErrCode GetScreenBacklight(uint64_t id, int32_t& level) override;
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
-
-    ErrCode GetPanelPowerStatus(ScreenId screenId, uint32_t& status) override;
 
     ErrCode RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;

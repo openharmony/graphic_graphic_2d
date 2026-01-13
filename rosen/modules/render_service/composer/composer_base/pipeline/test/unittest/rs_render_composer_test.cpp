@@ -810,9 +810,9 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_IsSuperFoldDisplay, TestSize.Lev
     auto tmpReviseRect = rsScreen->property_.GetReviseRect();
     auto tmpMaskRect = rsScreen->property_.GetMaskRect();
 
-    rsScreen->property_.SetActiveRect(RectI{0, 1008, 2232, 128});
-    rsScreen->property_.SetReviseRect(RectI{0, 1008, 2232, 128});
-    rsScreen->property_.SetMaskRect(RectI{0, 1008, 2232, 128});
+    rsScreen->property_.SetActiveRect(RectI{ 0, 1008, 2232, 128 });
+    rsScreen->property_.SetReviseRect(RectI{ 0, 1008, 2232, 128 });
+    rsScreen->property_.SetMaskRect(RectI{ 0, 1008, 2232, 128 });
     screenManager->MockHdiScreenConnected(rsScreen);
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
     const RectI& reviseRect = screenInfo.reviseRect;
