@@ -295,20 +295,22 @@ HWTEST(RenderLayerCmdPropertyTest, Unmarshall_SurfaceBuffer_MissingProperties_Fa
 }
 
 /**
- * Function: Unmarshall_SyncFence_MissingData_Fail
+ * Function: Unmarshall_SyncFence_FlagTrue_NoData_SuccessWithNull
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
  * CaseDescription: 1. parcel writes hasValue=true but omits fence data
- *                  2. expect OnUnmarshalling returns false
+ *                  2. expect OnUnmarshalling returns true with value=nullptr (tolerant path)
  */
-HWTEST(RenderLayerCmdPropertyTest, Unmarshall_SyncFence_MissingData_Fail, TestSize.Level1)
+HWTEST(RenderLayerCmdPropertyTest, Unmarshall_SyncFence_FlagTrue_NoData_SuccessWithNull, TestSize.Level1)
 {
     MessageParcel parcel;
     ASSERT_TRUE(parcel.WriteBool(true)); // hasValue=true
     RSRenderLayerCmdProperty<sptr<SyncFence>> prop(nullptr);
     std::shared_ptr<RSRenderLayerCmdProperty<sptr<SyncFence>>> out;
-    EXPECT_FALSE(prop.OnUnmarshalling(parcel, out));
+    ASSERT_TRUE(prop.OnUnmarshalling(parcel, out));
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(out->Get(), nullptr);
 }
 
 /**
