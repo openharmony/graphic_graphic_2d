@@ -929,7 +929,7 @@ void RSSurfaceLayer::Dump(std::string& result) const
     result += "useDeviceOffline" + std::to_string(useDeviceOffline_) + ", ";
     result += "ignoreAlpha" + std::to_string(ignoreAlpha_) + ", ";
     result += "ancoSrcRect = [" + std::to_string(ancoSrcRect_.x) + ", " + std::to_string(ancoSrcRect_.y) + ", " +
-        std::to_string(ancoSrcRect_.w) + ", " + std::to_string(ancoSrcRect_.h) + "]" + ";";
+        std::to_string(ancoSrcRect_.w) + ", " + std::to_string(ancoSrcRect_.h) + "]" + ";\n";
 }
 
 void RSSurfaceLayer::DumpCurrentFrameLayer() const

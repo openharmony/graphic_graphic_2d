@@ -55,6 +55,7 @@ private:
     void FPSDumpClearProcess(std::unordered_set<std::u16string>& argSets,
         std::string& dumpString, const std::u16string& arg) const;
     void ClearFps(std::string& dumpString, std::string& layerName) const;
+    void DumpAllScreenPowerStatus(std::string &dumpString);
 
     // RS dump init
     void RegisterRSGfxFuncs(std::shared_ptr<RSServiceDumpManager> rsDumpManager);

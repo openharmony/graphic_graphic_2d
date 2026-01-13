@@ -1308,7 +1308,7 @@ void RSUniRenderThread::DumpSurfaceInfo(std::string &dumpString)
         for (auto iter = rsRenderComposerClients_.begin(); iter != rsRenderComposerClients_.end(); iter++) {
             if (iter->second != nullptr) {
                 dumpString.append("\n");
-                dumpString.append("-- LayerInfo " + std::to_string(iter->first) + "\n");
+                dumpString.append("-- LayerInfo screen id: " + std::to_string(iter->first) + "\n");
                 iter->second->DumpLayersInfo(dumpString);
             }
         }

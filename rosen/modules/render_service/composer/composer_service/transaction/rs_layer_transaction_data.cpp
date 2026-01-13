@@ -94,7 +94,7 @@ bool RSLayerTransactionData::UnMarshallingPipelineParam(OHOS::MessageParcel& par
 
     composerInfo_.pipelineParam.SurfaceFpsOpList = std::vector<SurfaceFpsOp>(
         composerInfo_.pipelineParam.SurfaceFpsOpNum);
-    for (int i = 0; i < composerInfo_.pipelineParam.SurfaceFpsOpNum; i++) {
+    for (uint32_t i = 0; i < composerInfo_.pipelineParam.SurfaceFpsOpNum; i++) {
         flag = flag && parcel.ReadUint32(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType) &&
         parcel.ReadUint64(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceNodeId) &&
         parcel.ReadString(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceName);
@@ -119,7 +119,7 @@ bool RSLayerTransactionData::MarshallingPipelineParam(std::shared_ptr<OHOS::Mess
         parcel->WriteBool(composerInfo_.pipelineParam.hasLppVideo) &&
         parcel->WriteUint32(composerInfo_.pipelineParam.SurfaceFpsOpNum);
 
-    for (int i = 0; i < composerInfo_.pipelineParam.GetSurfaceFpsOpNum(); i++) {
+    for (uint32_t i = 0; i < composerInfo_.pipelineParam.GetSurfaceFpsOpNum(); i++) {
         flag = flag && parcel->WriteUint32(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType) &&
         parcel->WriteUint64(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceNodeId) &&
         parcel->WriteString(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceName);
