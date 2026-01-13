@@ -60,7 +60,7 @@ void RSModifierManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& a
         return;
     }
     animations_.emplace(key, animation);
-    RSAnimationTraceUtils::GetInstance().AddAnimation("AddAnimation set hasFirstFrameAnimation id:%" PUBU64
+    RSAnimationTraceUtils::GetInstance().AddAnimationNameTrace("AddAnimation set hasFirstFrameAnimation id:%" PUBU64
         " targetId:%" PUBU64 " targetName:%s", animation->id_, animation->targetId_, animation->targetName_.c_str());
     hasFirstFrameAnimation_ = true;
 
