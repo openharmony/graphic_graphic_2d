@@ -129,6 +129,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         return;
     }
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
+    bool unmarshalParallel = RSSystemProperties::GetUnmarshalParallelEnabled() &&
+                            ashmemFdWorker == nullptr &&
+                            parcel->GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize();
     RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid,
         ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() {
         RSMarshallingHelper::SetCallingPid(callingPid);
@@ -182,9 +185,6 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
     {
-        bool unmarshalParallel = RSSystemProperties::GetUnmarshalParallelEnabled() &&
-                                 ashmemFdWorker == nullptr &&
-                                 parcel->GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize();
         unmarshalParallel ? PostParallelTask(task) : PostTask(task);
         /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
          * so set willHaveCachedData_ to true
