@@ -17,7 +17,7 @@
 
 #include <vector>
 #include "utils/log.h"
-
+ #include "font_harfbuzz.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -135,8 +135,8 @@ std::unordered_map<std::string, FontIdentification> FontMetaDataCollector::Gener
 std::string FontMetaDataCollector::GetFirstAvailableString(const std::shared_ptr<Typeface>& typeface, Drawing::OtNameId nameId)
 {
     unsigned int count = 0;
-    HBFace hbFace = CreateHbFace(*typeface);
-    const hb_ot_name_entry_t* entries = hb_ot_name_list_name(hbFace.get(), &count);
+    HBFace hbFace = FontHarfbuzz::CreateHbFace(*typeface);
+    const hb_ot_name_entry_t* entries = hb_ot_name_list_names(hbFace.get(), &count);
     for (unsigned int i = 0; i < count; i++) {
         hb_ot_name_id_t nameIdValue = static_cast<hb_ot_name_id_t>(nameId);
         if (entries[i].name_id == nameIdValue) {
