@@ -324,6 +324,10 @@ public:
     CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
     CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
 
+#ifdef RS_ENABLE_VK
+    void AttachPaintWithColor(const Drawing::Paint& paint);
+#endif
+
     void SetParallelThreadIdx(uint32_t idx);
     uint32_t GetParallelThreadIdx() const;
     uint32_t GetParallelThreadId();
@@ -594,15 +598,15 @@ public:
 
     bool IsRenderWithForegroundColor() const
     {
-        return isRenderWithForegroundColor;
+        return isRenderWithForegroundColor_;
     }
 
     void SetRenderWithForegroundColor(bool renderFilterStatus)
     {
-        isRenderWithForegroundColor = renderFilterStatus;
+        isRenderWithForegroundColor_ = renderFilterStatus;
     }
 private:
-    bool isRenderWithForegroundColor = false;
+    bool isRenderWithForegroundColor_ = false;
 };
 #endif
 

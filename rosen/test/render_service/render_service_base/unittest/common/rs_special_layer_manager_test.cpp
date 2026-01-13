@@ -136,8 +136,11 @@ HWTEST_F(RSSpecialLayerManagerTest, AutoSpecialLayerStateRecover, TestSize.Level
 {
     LeashPersistentId id1 = 1;
     LeashPersistentId id2 = 2;
+    RSSpecialLayerManager::ResetWhiteListRootId(id1);
     {
         AutoSpecialLayerStateRecover aslsr1(id1);
+        ASSERT_EQ(RSSpecialLayerManager::GetCurWhiteListRootId(), id1);
+        RSSpecialLayerManager::ResetWhiteListRootId(id2);
         ASSERT_EQ(RSSpecialLayerManager::GetCurWhiteListRootId(), id1);
         AutoSpecialLayerStateRecover aslsr2(id2);
         ASSERT_EQ(RSSpecialLayerManager::GetCurWhiteListRootId(), id2);

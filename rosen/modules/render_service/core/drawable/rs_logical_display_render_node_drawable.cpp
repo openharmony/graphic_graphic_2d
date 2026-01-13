@@ -180,8 +180,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
         uniParam->SetSecurityDisplay(params->IsSecurityDisplay());
-        const auto& screenProperty = screenParams->GetScreenProperty();
-        currentBlackList_ = screenProperty.GetBlackList();
+        currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
         RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
         if (mirroredRenderParams) {
             curVisibleRect_ = RSUniRenderThread::Instance().GetVisibleRect();
@@ -194,7 +193,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 uniParam->SetSecurityDisplay(false);
                 return;
             }
-            currentTypeBlackList_ = screenProperty.GetTypeBlackList();
+            currentTypeBlackList_ = screenManager->GetVirtualScreenTypeBlackList(paramScreenId);
             RSUniRenderThread::Instance().SetTypeBlackList(currentTypeBlackList_);
             RSUniRenderThread::Instance().SetWhiteList(screenInfo.whiteList);
             curSecExemption_ = params->GetSecurityExemption();
