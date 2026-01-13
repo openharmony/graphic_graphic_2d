@@ -139,8 +139,8 @@ public:
             if (bufferDeleteCb_ != nullptr) {
                 if (buffer) {
                     buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
+                    bufferDeleteCb_(buffer->GetBufferId());
                 }
-                bufferDeleteCb_(seqNum);
             }
         }
 
@@ -237,7 +237,10 @@ public:
         buffer_.buffer = buffer;
         buffer_.bufferOwnerCount_ = bufferOwnerCount;
         if (buffer != nullptr) {
-            buffer_.seqNum = buffer->GetBufferId();
+            buffer_.seqNum = buffer->GetSeqNum();
+            if (buffer_.bufferOwnerCount_) {
+                buffer_.bufferOwnerCount_->seqNum_ = buffer_.seqNum;
+            }
         }
         buffer_.acquireFence = acquireFence;
         buffer_.damageRect = damage;

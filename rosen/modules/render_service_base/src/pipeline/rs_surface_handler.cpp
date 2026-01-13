@@ -153,7 +153,7 @@ void RSSurfaceHandler::UpdateBuffer(
     buffer_.buffer = buffer;
     buffer_.bufferOwnerCount_ = bufferOwnerCount;
     if (buffer != nullptr) {
-        buffer_.seqNum = buffer->GetBufferId();
+        buffer_.seqNum = buffer->GetSeqNum();
         buffer_.bufferOwnerCount_->seqNum_ = buffer_.seqNum;
         buffer_.buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
     }
