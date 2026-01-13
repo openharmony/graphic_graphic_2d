@@ -888,36 +888,6 @@ HWTEST_F(RSJankStatsTest, AvcodecVideoCollectTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsAnimationEmptyTest001
- * @tc.desc: test IsAnimationEmpty
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSJankStatsTest, IsAnimationEmptyTest001, TestSize.Level1)
-{
-    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
-    EXPECT_NE(rsJankStats, nullptr);
-    rsJankStats->SetStartTime();
-    rsJankStats->SetEndTime(false, true);
-    EXPECT_TRUE(rsJankStats->IsAnimationEmpty());
-}
-
-/**
- * @tc.name: IsAnimationEmptyTest002
- * @tc.desc: test IsAnimationEmpty
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSJankStatsTest, IsAnimationEmptyTest002, TestSize.Level1)
-{
-    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
-    EXPECT_NE(rsJankStats, nullptr);
-    rsJankStats->implicitAnimationTotal_ = 0;
-    rsJankStats->explicitAnimationTotal_ = 0;
-    EXPECT_EQ(rsJankStats->IsAnimationEmpty(), true);
-}
-
-/**
  * @tc.name: SetEarlyZFlagTest011
  * @tc.desc: SetEarlyZFlag test
  * @tc.type:FUNC

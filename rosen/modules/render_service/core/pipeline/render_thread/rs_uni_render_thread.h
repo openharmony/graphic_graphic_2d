@@ -88,7 +88,6 @@ public:
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
     void ResetClearMemoryTask(bool isDoDirectComposition = false);
-    void PurgeShaderCacheAfterAnimate();
     void SetTimeToReclaim(bool isTimeToReclaim);
     bool IsTimeToReclaim();
     void SetDefaultClearMemoryFinished(bool isFinished);
@@ -256,7 +255,6 @@ private:
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
     bool isDefaultCleanTaskFinished_ = true;
-    bool hasPurgeShaderCacheTask_ = false;
     bool postImageReleaseTaskFlag_ = false;
     bool isReclaimMemoryFinished_ = true;
     std::atomic_bool isTimeToReclaim_ = false;

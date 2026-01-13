@@ -114,7 +114,6 @@ void RSDrawFrame::RenderFrame()
         unirenderInstance_.PurgeCacheBetweenFrames();
     }
     unirenderInstance_.MemoryManagementBetweenFrames();
-    unirenderInstance_.PurgeShaderCacheAfterAnimate();
     MemoryManager::MemoryOverCheck(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsEnd(unirenderInstance_.GetDynamicRefreshRate());
     SetEarlyZEnabled(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
