@@ -2413,8 +2413,6 @@ void RSSurfaceRenderNode::OnSync()
         }
         surfaceParams->SetNeedSync(true);
     }
-#ifndef ROSEN_CROSS_PLATFORM
-#endif
     RSRenderNode::OnSync();
 #endif
 }

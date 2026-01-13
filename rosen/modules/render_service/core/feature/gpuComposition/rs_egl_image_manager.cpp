@@ -15,6 +15,7 @@
 
 #include "rs_egl_image_manager.h"
 
+#include <memory>
 #include <vector>
 
 #include "feature/uifirst/rs_sub_thread_manager.h"
@@ -327,9 +328,12 @@ void RSEglImageManager::UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& b
         if (resources.empty()) {
             continue;
         }
-        auto task = [resources = std::move(resources)]() mutable {
-            RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage batch count: %zu", resources.size());
-            // EglImageResource instances will be released on this thread when the task finishes.
+        auto resourcesHolder = std::make_shared<std::vector<std::unique_ptr<EglImageResource>>>(std::move(resources));
+        const size_t count = resourcesHolder->size();
+        auto task = [resourcesHolder, count]() mutable {
+            RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage batch count: %zu", count);
+            // Release EglImageResource instances on this thread explicitly.
+            resourcesHolder->clear();
         };
         RSTaskDispatcher::GetInstance().PostTask(threadIndex, task);
     }
@@ -349,8 +353,9 @@ void RSEglImageManager::UnMapImageFromSurfaceBuffer(uint64_t seqNum)
         resource = std::move(iter->second);
         imageCacheSeqs_.erase(iter);
     }
-    auto func = [resource = std::move(resource), seqNum]() mutable {
-        resource.reset();
+    auto resourceHolder = std::make_shared<std::unique_ptr<EglImageResource>>(std::move(resource));
+    auto func = [resourceHolder, seqNum]() mutable {
+        resourceHolder->reset();
         RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %" PRIu64 "", seqNum);
         RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}" PRIu64 "", seqNum);
     };
