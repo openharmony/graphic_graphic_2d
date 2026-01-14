@@ -170,9 +170,9 @@ public:
     { solidColorLayerProperty_ = solidColorLayerProperty; }
     GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override { return solidColorLayerProperty_; }
     void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> boc) override { bufferOwnerCount_ = boc; }
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetSeqNumFromBufferOwnerCounts(uint64_t seqNum) override
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) override
     {
-        (void)seqNum;
+        (void)bufferId;
         return bufferOwnerCount_;
     }
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override { return bufferOwnerCount_; }

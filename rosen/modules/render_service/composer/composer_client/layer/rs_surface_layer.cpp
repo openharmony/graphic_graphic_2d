@@ -946,19 +946,19 @@ void RSSurfaceLayer::SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::Buffe
     }
 
     std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
-    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceLayer::SetBufferOwnerCount seqNum %u layerId %" PRIu64,
-        uint32_t(bufferOwnerCount->seqNum_), rsLayerId_);
-    if (bufferOwnerCounts_.find(bufferOwnerCount->seqNum_) == bufferOwnerCounts_.end()) {
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceLayer::SetBufferOwnerCount bufferId %" PRIu64 " layerId %" PRIu64,
+        uint32_t(bufferOwnerCount->bufferId_), rsLayerId_);
+    if (bufferOwnerCounts_.find(bufferOwnerCount->bufferId_) == bufferOwnerCounts_.end()) {
         bufferOwnerCount->AddRef();
     }
-    bufferOwnerCounts_[bufferOwnerCount->seqNum_] = bufferOwnerCount;
+    bufferOwnerCounts_[bufferOwnerCount->bufferId_] = bufferOwnerCount;
     bufferOwnerCount_ = bufferOwnerCount;
 }
 
-std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetSeqNumFromBufferOwnerCounts(uint64_t seqNum)
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::PopBufferOwnerCountById(uint64_t bufferId)
 {
     std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
-    auto iter = bufferOwnerCounts_.find(seqNum);
+    auto iter = bufferOwnerCounts_.find(bufferId);
     if (iter != bufferOwnerCounts_.end()) {
         auto bufferOwnerCount = iter->second;
         bufferOwnerCounts_.erase(iter);

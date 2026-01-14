@@ -53,9 +53,9 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
         return false;
     }
     auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-    bufferOwnerCount->seqNum_ = buffer->GetSeqNum();
-    bufferOwnerCount->bufferReleaseCb_ = [](uint64_t seqNum){
-        RSUniRenderThread::Instance().ReleaseBufferById(seqNum);
+    bufferOwnerCount->bufferId_ = buffer->GetBufferId();
+    bufferOwnerCount->bufferReleaseCb_ = [](uint64_t bufferId){
+        RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
     };
     RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, buffer, SyncFence::InvalidFence());
 

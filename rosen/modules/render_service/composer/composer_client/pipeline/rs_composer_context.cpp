@@ -153,7 +153,7 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
             RS_LOGE("LayerPresentTimestamp SetPresentTimestamp failed");
         }
     };
-    RS_LOGI("RSComposerContext::ReleaseLayerBuffers screenId: %{public}" PRIu64, screenId);
+    RS_LOGD("RSComposerContext::ReleaseLayerBuffers screenId: %{public}" PRIu64, screenId);
     for (const auto& [id, isGraphicPresentTimestamp, graphicPresentTimestamp] : timestampVec) {
         if (rsLayers.count(id) == 0) {
             RS_LOGE("RSComposerContext::ReleaseLayerBuffers has no id: %{public}" PRIu64 " layer", id);

@@ -186,7 +186,7 @@ public:
     virtual uint32_t GetCycleBuffersNum() const = 0;
     virtual void SetSurfaceName(std::string surfaceName) = 0;
     virtual void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>) = 0;
-    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetSeqNumFromBufferOwnerCounts(uint64_t seqNum) = 0;
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) = 0;
     virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const = 0;
     virtual std::string GetSurfaceName() const = 0;
     virtual void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) = 0;
