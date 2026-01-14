@@ -433,14 +433,14 @@ napi_value FilterNapi::GetPixelMapAsyncCommon(napi_env env, napi_callback_info i
     const char* workName = isHighPriority ? "GetPixelMapAsyncHighPrio" : "GetPixelMapAsync";
     napi_qos_t qos = isHighPriority ? napi_qos_user_initiated : napi_qos_default;
     
-    if (ctx->errorMsg != nullptr) {        
-         EffectKitNapiUtils::GetInstance().CreateAsyncWork(
+    if (ctx->errorMsg != nullptr) {
+        EffectKitNapiUtils::GetInstance().CreateAsyncWork(
             env, status, "GetPixelMapAsyncError",
             [](napi_env env, void* data) { EFFECT_LOG_E("FilterNapi GetPixelMapAsync extracting param fail"); },
             GetPixelMapAsyncErrorComplete, ctx, ctx->work, qos);
     } else {
         EffectKitNapiUtils::GetInstance().CreateAsyncWork(
-            env, status, workName, GetPixelMapAsyncExecute, GetPixelMapAsyncComplete, 
+            env, status, workName, GetPixelMapAsyncExecute, GetPixelMapAsyncComplete,
             ctx, ctx->work, qos);
     }
     if (status != napi_ok) {
