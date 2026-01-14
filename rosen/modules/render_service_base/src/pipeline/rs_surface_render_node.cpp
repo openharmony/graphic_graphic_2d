@@ -1113,14 +1113,8 @@ void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo()
     }
     auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
         SpecialLayerType::IS_WHITE_LIST, {GetId(), GetLeashPersistentId()});
-    for (const auto screenId : screenIds) {
-        SetHasWhiteListNode(screenId, true);
-        auto nodeParent = GetParent().lock();
-        if (nodeParent == nullptr) {
-            continue;
-        }
-        nodeParent->SetHasWhiteListNode(screenId, true);
-    }
+    SetScreensWithSubTreeWhitelist(screenIds);
+    RSRenderNode::SyncWhiteListInfoToParent();
 }
 
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()

@@ -323,10 +323,8 @@ bool RSRenderNodeDrawable::SkipDrawByWhiteList(Drawing::Canvas& canvas)
     // 3. if node's child is in the white list, only draw children
     const auto& params = GetRenderParams();
     if (params != nullptr) {
-        // info : map<ScreenId, hasWhiteList>
-        const auto& info = params->GetVirtualScreenWhiteListInfo();
-        const auto& curScreenWhiteInfo = info.find(curDisplayScreenId_);
-        if (curScreenWhiteInfo != info.end() && curScreenWhiteInfo->second) {
+        const auto& screenIds = params->GetScreensWithSubTreeWhitelist();
+        if (screenIds.find(curDisplayScreenId_) != screenIds.end()) {
             DrawChildren(canvas, params->GetFrameRect());
         }
     }

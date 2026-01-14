@@ -996,12 +996,17 @@ public:
         return opincCache_;
     }
 
-    void SetHasWhiteListNode(ScreenId screenId, bool hasWhiteListNode)
+    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
     {
-        hasVirtualScreenWhiteList_[screenId] |= hasWhiteListNode;
+        screensWithSubTreeWhitelist_.insert(screenIds.begin(), screenIds.end());
     }
 
-    void UpdateVirtualScreenWhiteListInfo();
+    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
+    {
+        screensWithSubTreeWhitelist_ = screenIds;
+    }
+
+    void SyncWhiteListInfoToParent();
     bool IsForegroundFilterEnable();
     void ResetPixelStretchSlot();
     bool CanFuzePixelStretch();
@@ -1286,7 +1291,7 @@ private:
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
 
-    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
+    std::unordered_set<ScreenId> screensWithSubTreeWhitelist_ = {};
 
     RSProperties renderProperties_;
 

@@ -119,13 +119,11 @@ void RSSpecialLayerUtils::UpdateScreenSpecialLayer(const RSScreenProperty& scree
         return;
     }
     SpecialLayerType specialLayerType = propertIter->second;
-
     auto funcIter = GET_SCREEN_SPECIAL_LAYER.find(specialLayerType);
     if (funcIter == GET_SCREEN_SPECIAL_LAYER.end()) {
         return;
     }
     GetFunc getfunc = funcIter->second;
-
     ScreenSpecialLayerInfo::Update(specialLayerType, screenProperty.GetScreenId(), getfunc(screenProperty));
     NotifyScreenSpecialLayerChange();
 }

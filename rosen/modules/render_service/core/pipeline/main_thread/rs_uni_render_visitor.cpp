@@ -1906,6 +1906,8 @@ bool RSUniRenderVisitor::NeedPrepareChindrenInReverseOrder(RSRenderNode& node) c
 
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
+    // clear whitelist info
+    node.SetScreensWithSubTreeWhitelist({});
     if (UNLIKELY(node.HasRemovedChild())) {
         MergeRemovedChildDirtyRegion(node, true);
     }
