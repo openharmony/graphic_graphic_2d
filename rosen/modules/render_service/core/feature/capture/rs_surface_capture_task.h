@@ -101,7 +101,7 @@ private:
 
     NodeId nodeId_ = INVALID_NODEID;
 
-    RSSurfaceCaptureConfig captureConfig_ = {};
+    const RSSurfaceCaptureConfig captureConfig_ = {};
 
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
 };
