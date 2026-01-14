@@ -3266,7 +3266,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     }
     if (!ROSEN_EQ(node.GetRenderProperties().GetTranslateX(), 0.0f) ||
         !ROSEN_EQ(node.GetRenderProperties().GetTranslateY(), 0.0f)) {
-        nodeParent->SetChildHasTranslateOnSqueeze(true)
+        nodeParent->SetChildHasTranslateOnSqueeze(true);
     }
     node.UpdateNodeColorSpace();
     nodeParent->SetNodeColorSpace(node.GetNodeColorSpace());
