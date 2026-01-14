@@ -344,7 +344,7 @@ HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap001, TestSize.Level1)
 
     std::vector<uint8_t> dataVec = { 0U, 0U, 0U, 0U};
     pixelmap->SetPixelsAddr(dataVec.data(), surfaceBuffer, 1U, Media::AllocatorType::DEFAULT, false);
-#ifndef USE_VIDEO_PROCESSING_ENGINE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     const uint32_t STATIC_METADATA_SIZE = sizeof(OHOS::HDI::Display::Graphic::Common::V1_0::HdrStaticMetadata);
     std::vector<uint8_t> hdrStaticMetaData{};
     hdrStaticMetaData.resize(STATIC_METADATA_SIZE - 1U);
@@ -362,7 +362,7 @@ HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap001, TestSize.Level1)
  */
 HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap002, TestSize.Level1)
 {
-#ifndef USE_VIDEO_PROCESSING_ENGINE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
@@ -414,7 +414,7 @@ HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap002, TestSize.Level1)
  */
 HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap003, TestSize.Level1)
 {
-#ifndef USE_VIDEO_PROCESSING_ENGINE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     NodeId nodeId = 0;
     auto context = std::make_shared<RSContext>();
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
