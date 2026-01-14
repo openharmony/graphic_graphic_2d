@@ -327,7 +327,7 @@ ani_status AniFilter::Init(ani_env* env)
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::Grayscale) },
         ani_native_function { "getEffectPixelMapNative", ":C{@ohos.multimedia.image.image.PixelMap}",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetEffectPixelMap) },
-        ani_native_function{
+        ani_native_function{ 
             "blurNative", "dC{@ohos.effectKit.effectKit.TileMode}:C{@ohos.effectKit.effectKit.Filter}",
             reinterpret_cast<void*>(static_cast<ani_object(*)(ani_env*, ani_object, ani_double, ani_enum_item)>
             (&OHOS::Rosen::AniFilter::Blur)) },
