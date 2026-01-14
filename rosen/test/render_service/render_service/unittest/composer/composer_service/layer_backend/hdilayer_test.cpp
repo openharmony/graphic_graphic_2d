@@ -748,3 +748,184 @@ HWTEST_F(HdiLayerTest, ClearBufferCache002, Function | MediumTest| Level1)
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
+
+/**
+ * Function: SetTransformMode_NoChangeOrButt
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. GRAPHIC_ROTATE_BUTT 或与 prev 相同时跳过设置
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetTransformMode_NoChangeOrButt, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->rsLayer_ = std::make_shared<RSSurfaceLayer>();
+    hdiLayer_->prevRSLayer_ = std::make_shared<RSSurfaceLayer>();
+
+    hdiLayer_->rsLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_BUTT);
+    ASSERT_EQ(hdiLayer_->SetTransformMode(), GRAPHIC_DISPLAY_SUCCESS);
+
+    hdiLayer_->rsLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
+    hdiLayer_->prevRSLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
+    hdiLayer_->doLayerInfoCompare_ = true;
+    ASSERT_EQ(hdiLayer_->SetTransformMode(), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SetLayerZorder_And_PreMulti_NoChange
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Zorder/PreMulti 与 prev 相同时跳过设置
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetLayerZorder_And_PreMulti_NoChange, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->rsLayer_ = std::make_shared<RSSurfaceLayer>();
+    hdiLayer_->prevRSLayer_ = std::make_shared<RSSurfaceLayer>();
+    hdiLayer_->doLayerInfoCompare_ = true;
+
+    hdiLayer_->rsLayer_->SetZorder(5);
+    hdiLayer_->prevRSLayer_->SetZorder(5);
+    ASSERT_EQ(hdiLayer_->SetLayerZorder(), GRAPHIC_DISPLAY_SUCCESS);
+
+    hdiLayer_->rsLayer_->SetPreMulti(true);
+    hdiLayer_->prevRSLayer_->SetPreMulti(true);
+    ASSERT_EQ(hdiLayer_->SetLayerPreMulti(), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SetLayerColorDataSpace_Set
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. 设置色彩空间，返回成功
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetLayerColorDataSpace_Set, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->rsLayer_ = std::make_shared<RSSurfaceLayer>();
+    hdiLayer_->rsLayer_->SetColorDataSpace(GraphicColorDataSpace::GRAPHIC_BT601_NARROW);
+    ASSERT_EQ(hdiLayer_->SetLayerColorDataSpace(), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SetLayerMetaData_Different
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. metaData 与 prev 不同时走设置路径
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetLayerMetaData_Different, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto prevRSLayer = std::make_shared<RSSurfaceLayer>();
+    std::vector<GraphicHDRMetaData> prevMetaData = { { GRAPHIC_MATAKEY_RED_PRIMARY_X, 1 } };
+    prevRSLayer->SetMetaData(prevMetaData);
+    hdiLayer_->prevRSLayer_ = prevRSLayer;
+
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>();
+    std::vector<GraphicHDRMetaData> metaData = { { GRAPHIC_MATAKEY_RED_PRIMARY_X, 2 } };
+    curRSLayer->SetMetaData(metaData);
+    hdiLayer_->rsLayer_ = curRSLayer;
+    ASSERT_EQ(hdiLayer_->SetLayerMetaData(), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: CheckAndUpdateLayerBufferCache_Found
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. 命中已有 sequence 返回 true
+ *                  2. check index/deletingList
+ */
+HWTEST_F(HdiLayerTest, CheckAndUpdateLayerBufferCache_Found, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->bufferCache_.clear();
+    hdiLayer_->bufferCache_.push_back(10);
+    hdiLayer_->bufferCache_.push_back(20);
+    hdiLayer_->bufferCacheCountMax_ = 5;
+    uint32_t index = 0;
+    std::vector<uint32_t> deletingList;
+    bool found = hdiLayer_->CheckAndUpdateLayerBufferCahce(10, index, deletingList);
+    ASSERT_TRUE(found);
+    ASSERT_EQ(index, 0u);
+    ASSERT_TRUE(deletingList.empty());
+}
+
+/**
+ * Function: SetLayerPresentTimestamp_Unsupported
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. 不支持时间戳类型时直接返回成功
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetLayerPresentTimestamp_Unsupported, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->supportedPresentTimestamptype_ = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
+    auto ret = hdiLayer_->SetLayerPresentTimestamp();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SetPerFrameParameters_LinearMatrixParamErr_Last
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. 仅线性矩阵键，当前矩阵尺寸非法导致错误码为最终返回
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameParameters_LinearMatrixParamErr_Last, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    paramKey_.clear();
+    paramKey_.push_back("LayerLinearMatrix");
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>();
+    // 非法尺寸，触发 GRAPHIC_DISPLAY_PARAM_ERR
+    curRSLayer->SetLayerLinearMatrix({1.0f, 2.0f});
+    hdiLayer_->rsLayer_ = curRSLayer;
+    auto ret = hdiLayer_->SetPerFrameParameters();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_PARAM_ERR);
+}
+
+/**
+ * Function: SetPerFrameParameters_AllKeys_Success
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. 设置所有键且顺序保证最终返回成功
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameParameters_AllKeys_Success, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    paramKey_.clear();
+    paramKey_.push_back("SDRBrightnessNit");
+    paramKey_.push_back("BrightnessNit");
+    paramKey_.push_back("SDRBrightnessRatio");
+    paramKey_.push_back("LayerLinearMatrix");
+    paramKey_.push_back("SourceCropTuning");
+
+    auto prevRSLayer = std::make_shared<RSSurfaceLayer>();
+    prevRSLayer->SetLayerLinearMatrix({ 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f });
+    hdiLayer_->prevRSLayer_ = prevRSLayer;
+
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>();
+    curRSLayer->SetSdrNit(10.0f);
+    curRSLayer->SetDisplayNit(200.0f);
+    curRSLayer->SetBrightnessRatio(1.0f);
+    curRSLayer->SetLayerLinearMatrix({ 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f });
+    curRSLayer->SetLayerSourceTuning(7);
+    hdiLayer_->rsLayer_ = curRSLayer;
+
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameterSmq(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = hdiLayer_->SetPerFrameParameters();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
