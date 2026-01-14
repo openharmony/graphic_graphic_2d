@@ -58,7 +58,7 @@ public:
         if (ge == nullptr) {
             return;
         }
-        RS_OPTIONAL_TRACE_FMT("RSNGRenderShaderTemplate::AppendToGEContainer, Type: %s paramStr: %s",
+        RS_OPTIONAL_TRACE_FMT("RSRenderShader, Type: %s paramStr: %s",
             RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(),
             EffectTemplateBase::DumpProperties().c_str());
         auto geShader = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);

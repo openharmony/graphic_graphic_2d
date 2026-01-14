@@ -321,9 +321,7 @@ public:
             tagName = tagName.substr(pos + 1);
         }
         out += tagName;
-        out += "[";
         Getter<Tag>()->Dump(out);
-        out += "]";
     }
 
     bool Marshalling(Parcel& parcel) const override
@@ -377,9 +375,10 @@ public:
 
     void Dump(std::string& out) const override
     {
-        std::string descStr = ": ";
+        std::string descStr = ":";
         std::string splitStr = "--";
 
+        out += "[";
         out += RSNGRenderEffectHelper::GetEffectTypeString(GetType());
         out += descStr;
         DumpProperties(out);
@@ -387,6 +386,7 @@ public:
             out += splitStr;
             Base::nextEffect_->Dump(out);
         }
+        out += "]";
     }
 
     std::string Dump() const override
@@ -433,7 +433,7 @@ protected:
     void DumpProperties(std::string& out) const override
     {
         std::string startStr = "[";
-        std::string splitStr = ", ";
+        std::string splitStr = ",";
         std::string endStr = "]";
 
         out += startStr;
