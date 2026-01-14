@@ -1249,7 +1249,7 @@ bool RSUniRenderThread::GetSetScreenPowerOnChanged()
 
 void RSUniRenderThread::CollectProcessNodeNum(int num)
 {
-    totalProcessNodeNum_ += num;
+    totalProcessNodeNum_.fetch_add(num, std::mem_order_acq_rel);
 }
 } // namespace Rosen
 } // namespace OHOS
