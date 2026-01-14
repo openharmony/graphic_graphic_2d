@@ -2538,7 +2538,8 @@ bool RSRenderNode::GetAbsMatrixReverse(const RSRenderNode& rootNode, Drawing::Ma
 }
 
 void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
-    const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect)
+    const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect,
+    const std::optional<RectI>& surfaceClipRect)
 {
     Drawing::Matrix absMatrix;
     if (!GetAbsMatrixReverse(subTreeRoot, absMatrix)) {
@@ -2548,7 +2549,7 @@ void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirt
     oldDirtyInSurface_ = absDrawRect_.IntersectRect(clipRect);
     auto boundsRect = GetRenderProperties().GetBoundsRect();
     auto totalRect = RSObjAbsGeometry::MapRect(boundsRect, absMatrix);
-    CalVisibleFilterRect(totalRect, absMatrix, clipRect);
+    CalVisibleFilterRect(totalRect, absMatrix, clipRect, surfaceClipRect);
     filterRect = GetFilterRegionInfo().filterRegion_;
 }
 
@@ -3748,17 +3749,18 @@ RectI RSRenderNode::GetFilterRect() const
     return result.JoinRect({ absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight() });
 }
 
-void RSRenderNode::CalVisibleFilterRect(const std::optional<RectI>& clipRect)
+void RSRenderNode::CalVisibleFilterRect(const std::optional<RectI>& clipRect,
+    const std::optional<RectI>& surfaceClipRect)
 {
     auto& geoPtr = (GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         return;
     }
-    CalVisibleFilterRect(GetAbsRect(), geoPtr->GetAbsMatrix(), clipRect);
+    CalVisibleFilterRect(GetFilterRect(), geoPtr->GetAbsMatrix(), clipRect, surfaceClipRect);
 }
 
 void RSRenderNode::CalVisibleFilterRect(const RectI& absRect, const Drawing::Matrix& matrix,
-    const std::optional<RectI>& clipRect)
+    const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect)
 {
     GetFilterRegionInfo().filterRegion_ = absRect;
     if (clipRect.has_value()) {
@@ -3774,7 +3776,7 @@ void RSRenderNode::CalVisibleFilterRect(const RectI& absRect, const Drawing::Mat
         }
 
         auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
-        filterDrawable->CalVisibleRect(matrix, clipRect, boundsRect);
+        filterDrawable->CalVisibleRect(matrix, surfaceClipRect, boundsRect);
         GetFilterRegionInfo().filterRegion_ = GetFilterRegionInfo().filterRegion_.
             JoinRect(filterDrawable->GetVisibleTotalRegion(GetFilterRegionInfo().defaultFilterRegion_));
     }

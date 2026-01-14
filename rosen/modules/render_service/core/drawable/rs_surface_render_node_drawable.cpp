@@ -187,6 +187,7 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         DrawContent(canvas, bounds);
 
         // 4. Draw children of this node by the main canvas.
+        canvas.SetFilterClipBounds(canvas.GetDeviceClipBounds());
         DrawChildren(canvas, bounds);
     }
 
@@ -1266,9 +1267,12 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(canvas.GetTotalMatrix());
+    // canvas can't auto restore envStack in capture surface, so restore filterClipBounds here.
+    auto parentFilterClipBounds = canvas.GetFilterClipBounds();
 
     OnGeneralProcess(canvas, surfaceParams, *uniParams, isSelfDrawingSurface);
 
+    canvas.SetFilterClipBounds(parentFilterClipBounds);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 

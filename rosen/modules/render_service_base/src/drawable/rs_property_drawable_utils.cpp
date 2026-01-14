@@ -84,6 +84,11 @@ Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)
     return { rect, radii };
 }
 
+RectI RSPropertyDrawableUtils::DrawingRectI2RectI(const Drawing::RectI& r)
+{
+    return { r.left_, r.top_, r.GetWidth(), r.GetHeight() };
+}
+
 Drawing::Rect RSPropertyDrawableUtils::Rect2DrawingRect(const RectF& r)
 {
     return { r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_ };

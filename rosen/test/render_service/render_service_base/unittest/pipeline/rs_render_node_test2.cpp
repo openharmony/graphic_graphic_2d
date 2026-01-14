@@ -1126,7 +1126,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree001, TestSize.Leve
     RSBaseRenderNode subTreeRoot(id + 1, context);
     RectI filterRect{0, 0, 1000, 1000};
     RectI clipRect{0, 0, 1000, 1000};
-    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect);
+    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -1144,7 +1144,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree002, TestSize.Leve
     RectI filterRect{0, 0, 1000, 1000};
     node.lastFilterRegion_ = filterRect;
     RectI clipRect{0, 0, 1000, 1000};
-    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect);
+    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -3511,17 +3511,17 @@ HWTEST_F(RSRenderNodeTest2, CalVisibleFilterRect001, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     auto geo = node->GetRenderProperties().boundsGeo_;
-    node->CalVisibleFilterRect(std::nullopt);
+    node->CalVisibleFilterRect(std::nullopt, std::nullopt);
     auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
         filterDrawable;
 
     auto absRect = RectI(0, 0, 10, 10);
-    node->CalVisibleFilterRect(absRect, Drawing::Matrix(), std::nullopt);
+    node->CalVisibleFilterRect(absRect, Drawing::Matrix(), std::nullopt, std::nullopt);
     EXPECT_EQ(node->GetFilterRegionInfo().defaultFilterRegion_, absRect);
 
     node->GetMutableRenderProperties().boundsGeo_ = nullptr;
-    node->CalVisibleFilterRect(std::nullopt);
+    node->CalVisibleFilterRect(std::nullopt, std::nullopt);
 }
 
 /**

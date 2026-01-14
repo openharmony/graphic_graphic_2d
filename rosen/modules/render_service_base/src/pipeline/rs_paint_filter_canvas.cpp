@@ -1634,6 +1634,19 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanva
     return envStack_.top().behindWindowData_;
 }
 
+void RSPaintFilterCanvas::SetFilterClipBounds(const Drawing::RectI& rect)
+{
+    if (envStack_.empty()) {
+        return;
+    }
+    envStack_.top().filterClipBounds_ = rect;
+}
+
+const Drawing::RectI RSPaintFilterCanvas::GetFilterClipBounds() const
+{
+    return envStack_.empty() ? Drawing::RectI() : envStack_.top().filterClipBounds_;
+}
+
 void RSPaintFilterCanvas::ReplaceMainScreenData(std::shared_ptr<Drawing::Surface>& offscreenSurface,
     std::shared_ptr<RSPaintFilterCanvas>& offscreenCanvas)
 {
