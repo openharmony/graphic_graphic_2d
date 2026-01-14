@@ -5365,6 +5365,11 @@ void RSMainThread::HandlePowerStatusChanged(ScreenId id,
     if (!powerStatusProperty) {
         return;
     }
+
+    // set discard jank frames flag for screen on/off animation
+    SetDiscardJankFrames(true);
+    RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(true);
+
     auto curStatus = static_cast<ScreenPowerStatus>(powerStatusProperty->Get());
     if (curStatus != ScreenPowerStatus::POWER_STATUS_ON &&
         curStatus != ScreenPowerStatus::POWER_STATUS_ON_ADVANCED) {

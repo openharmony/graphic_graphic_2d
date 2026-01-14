@@ -32,11 +32,6 @@ int32_t RSServiceToRenderConnection::NotifyScreenRefresh(ScreenId screenId)
     return renderPipelineAgent_->NotifyScreenRefresh(screenId);
 }
 
-ErrCode RSServiceToRenderConnection::SetDiscardJankFrames(bool discardJankFrames)
-{
-    return renderPipelineAgent_->SetDiscardJankFrames(discardJankFrames);
-}
-
 ErrCode RSServiceToRenderConnection::ReportJankStats()
 {
     return renderPipelineAgent_->ReportJankStats();

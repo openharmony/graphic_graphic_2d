@@ -989,16 +989,6 @@ ErrCode RSRenderPipelineAgent::GetPixelmap(NodeId id, const std::shared_ptr<Medi
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::SetDiscardJankFrames(bool discardJankFrames)
-{
-    if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
-    }
-    rsRenderPipeline_->GetMainThread()->SetDiscardJankFrames(discardJankFrames);
-    RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(discardJankFrames);
-    return ERR_OK;
-}
-
 ErrCode RSRenderPipelineAgent::ReportJankStats()
 {
     if (rsRenderPipeline_ == nullptr) {

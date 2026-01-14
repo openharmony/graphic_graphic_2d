@@ -250,29 +250,6 @@ void RSServiceToRenderConnectionProxy::WriteAppInfo(
     option.SetFlags(MessageOption::TF_ASYNC);
 }
 
-ErrCode RSServiceToRenderConnectionProxy::SetDiscardJankFrames(bool discardJankFrames)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    if (!data.WriteBool(discardJankFrames)) {
-        ROSEN_LOGE("%{public}s: WriteBool discardJankFrames err.", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_DISCARD_JANK_FRAME);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    return ERR_OK;
-}
-
 ErrCode RSServiceToRenderConnectionProxy::ReportJankStats()
 {
     MessageParcel data;
