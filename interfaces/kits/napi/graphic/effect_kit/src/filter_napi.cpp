@@ -467,7 +467,6 @@ napi_value FilterNapi::GetPixelMapAsyncHighPriority(napi_env env, napi_callback_
 {
     return GetPixelMapAsyncCommon(env, info, true);
 }
- 
 
 napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
 {
