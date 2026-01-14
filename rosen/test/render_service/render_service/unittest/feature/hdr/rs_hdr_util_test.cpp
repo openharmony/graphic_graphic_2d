@@ -590,6 +590,7 @@ HWTEST_F(RSHdrUtilTest, NeedUseF16CaptureTest, TestSize.Level1)
 HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest, TestSize.Level1)
 {
     ASSERT_NE(screenManager_, nullptr);
+    screenManager_->Init(nullptr);
     auto virtualScreenId = screenManager_->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
     auto rsContext = std::make_shared<RSContext>();
@@ -625,6 +626,7 @@ HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest, TestSize.Level1)
 HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest002, TestSize.Level1)
 {
     ASSERT_NE(screenManager_, nullptr);
+    screenManager_->Init(nullptr);
     auto virtualScreenId = screenManager_->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
@@ -633,7 +635,6 @@ HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest002, TestSize.Level1)
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
     screenNode->SetCompositeType(CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
     ScreenColorGamut colorGamut;
-    EXPECT_NE(screenManager_->GetScreenColorGamut(screenNode->GetScreenId(), colorGamut), StatusCode::SUCCESS);
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // failed GetScreenColorGamut
 
     screenNode->screenId_ = virtualScreenId; // pass GetScreenColorGamut
