@@ -98,7 +98,8 @@ public:
 
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
-        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent,
+        const std::shared_ptr<RSRenderComposerClientManager>& composerClientManager);
     void OnScreenConnected(const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
@@ -882,6 +883,7 @@ private:
     bool hasCanvasDrawingNodeCachedOp_ = false;
 
     std::shared_ptr<HgmRPContext> hgmRPContext_ = nullptr;
+    std::shared_ptr<RSRenderComposerClientManager> composerClientManager_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

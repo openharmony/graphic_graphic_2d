@@ -79,12 +79,12 @@ void RSRenderComposerClient::CommitLayers(ComposerInfo& composerInfo)
 
 PipelineParam RSRenderComposerClient::GetPipelineParam()
 {
-    return pipelineParam_;
+    return std::move(pipelineParam_);
 }
 
 void RSRenderComposerClient::UpdatePipelineParam(const PipelineParam& pipelineParam)
 {
-    pipelineParam_ = pipelineParam;
+    pipelineParam_ = std::move(pipelineParam);
 }
 
 void RSRenderComposerClient::RegisterOnReleaseLayerBuffersCB(OnReleaseLayerBuffersCB cb)

@@ -39,6 +39,7 @@ ohos_systemtest("RSBaseRenderEngineTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/utils:socketpair",
   ]
 

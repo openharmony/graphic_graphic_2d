@@ -96,17 +96,17 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     id_ = surfaceNode->GetId();
 
     if (IsSelfDrawingType()) {
-        std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(curDisplayScreenId_);
-        if (composerClient != nullptr) {
-            PipelineParam param = composerClient->GetPipelineParam();
+        auto composerClientMap = RSUniRenderThread::Instance().GetRSRenderComposerClientManager();
+        if (composerClientMap != nullptr) {
             SurfaceFpsOp op {
                 static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD),
                 id_,
                 name_,
             };
+            PipelineParam param = composerClientMap->GetPipelineParam(curDisplayScreenId_);
             param.SurfaceFpsOpList.push_back(op);
             param.SurfaceFpsOpNum++;
-            composerClient->UpdatePipelineParam(param);
+            composerClientMap->UpdatePipelineParam(curDisplayScreenId_, param);
             RS_LOGD("update pipelineParam for surfaceFps op add id: %{public}" PRIu64 ", name: %{public}s", id_, name_.c_str());
         }
     }
@@ -115,17 +115,17 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
 RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
 {
     if (IsSelfDrawingType()) {
-        std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(curDisplayScreenId_);
-        if (composerClient != nullptr) {
-            PipelineParam param = composerClient->GetPipelineParam();
+        auto composerClientMap = RSUniRenderThread::Instance().GetRSRenderComposerClientManager();
+        if (composerClientMap != nullptr) {
             SurfaceFpsOp op {
                 static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE),
                 id_,
                 name_,
             };
+            PipelineParam param = composerClientMap->GetPipelineParam(curDisplayScreenId_);
             param.SurfaceFpsOpList.push_back(op);
             param.SurfaceFpsOpNum++;
-            composerClient->UpdatePipelineParam(param);
+            composerClientMap->UpdatePipelineParam(curDisplayScreenId_, param);
             RS_LOGD("update pipelineParam for surfaceFps op remove id: %{public}" PRIu64 ", name: %{public}s", id_, name_.c_str());
         }
     }

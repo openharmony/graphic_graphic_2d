@@ -110,6 +110,7 @@ ohos_shared_library("librender_composer") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_layer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_rcd_layer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_context.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_render_composer_client_manager.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_render_composer_client.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl/rs_render_to_composer_connection_proxy.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl/rs_render_to_composer_connection_stub.cpp",

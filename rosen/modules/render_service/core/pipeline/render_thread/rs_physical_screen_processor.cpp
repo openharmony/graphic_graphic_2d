@@ -24,7 +24,8 @@ namespace Rosen {
 RSPhysicalScreenProcessor::RSPhysicalScreenProcessor(ScreenId screenId)
     : composerAdapter_(std::make_unique<RSComposerAdapter>())
 {
-    composerClient_ = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenId);
+    composerClient_ =
+        RSUniRenderThread::Instance().GetRSRenderComposerClientManager()->GetRSRenderComposerClient(screenId);
 }
 
 RSPhysicalScreenProcessor::~RSPhysicalScreenProcessor() noexcept

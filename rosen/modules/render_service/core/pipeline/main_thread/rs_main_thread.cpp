@@ -469,7 +469,8 @@ void RSMainThread::TraverseCanvasDrawingNodes()
 void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
     const std::shared_ptr<VSyncReceiver>& receiver,
     const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
-    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
+    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent,
+    const std::shared_ptr<RSRenderComposerClientManager>& composerClientManager)
 {
     RS_LOGI("RSMainThread init.");
     mainLoop_ = [&]() {
@@ -574,6 +575,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         },
     });
 
+    composerClientManager_ = composerClientManager;
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
@@ -1739,7 +1741,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 }
                 const auto& instanceNode = surfaceNode->GetInstanceRootNode();
                 if (instanceNode && instanceNode->IsOnTheTree() && surfaceHandler->GetBuffer()) {
-                    RSDrmUtil::DealWithDRMNodes(surfaceNode, surfaceHandler->GetBuffer());
+                    RSDrmUtil::DealWithDRMNodes(surfaceNode, surfaceHandler->GetBuffer(), composerClientManager_);
                 }
             }
 #endif
@@ -2242,10 +2244,7 @@ void RSMainThread::ClearUnmappedCache()
         if (engine) {
             engine->ClearCacheSet(bufferIds);
         }
-        auto map = RSUniRenderThread::Instance().GetRSRenderComposerClientMap();
-        for (const auto& [_, client] : map) {
-            client->ClearRedrawGPUCompositionCache(bufferIds);
-        }
+        composerClientManager_->ClearRedrawGPUCompositionCache(bufferIds);
     }
 }
 
@@ -2577,11 +2576,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         auto rcdInfo = std::make_unique<RcdInfo>();
         DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenNode->GetScreenInfo());
         processor->ProcessScreenSurface(*screenNode);
-        if (auto client = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenId)) {
-            client->UpdatePipelineParam(pipelineParam_);
-        } else {
-            RS_LOGE("client->UpdatePipelineParam failed!");
-        }
+        composerClientManager_->UpdatePipelineParam(screenId, pipelineParam_);
         processor->PostProcess();
     });
 #endif
@@ -4588,14 +4583,7 @@ void RSMainThread::PerfMultiWindow()
 
 void RSMainThread::RenderFrameStart(uint64_t timestamp)
 {
-    auto clientMap = RSUniRenderThread::Instance().GetRSRenderComposerClientMap();
-    if (!clientMap.empty()) {
-        uint32_t minBufferCount = INT_MAX;
-        for (auto it : clientMap) {
-            minBufferCount = std::min(minBufferCount, it.second->GetUnExecuteTaskNum());
-        }
-        RsFrameReport::GetInstance().ReportBufferCount(minBufferCount);
-    }
+    composerClientManager_->RenderFrameStart(timestamp);
     int skipFirstFrame = (drawingRequestNextVsyncNum_.load() == SKIP_FIRST_FRAME_DRAWING_NUM) &&
         forceUpdateUniRenderFlag_;
     RsFrameReport::GetInstance().RenderStart(timestamp, skipFirstFrame);
@@ -5126,10 +5114,7 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
         auto screenId = screenNode->GetScreenId();
         if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
             uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
-            auto client = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenId);
-            if (client != nullptr) {
-                client->SetScreenBacklight(newLevel);
-            }
+            composerClientManager_->SetScreenBacklight(screenId, newLevel);
             rsLuminance.SetNowHdrLuminance(screenId, newLevel);
         }
         if (rsLuminance.IsDimmingOn(screenId)) {

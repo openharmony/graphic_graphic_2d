@@ -659,9 +659,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     uniParam->SetRSProcessor(processor);
 
     if (!screenProperty.IsVirtual()) {
-        std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(paramScreenId);
-        if (composerClient) {
-            PipelineParam param = composerClient->GetPipelineParam();
+        auto composerClientManager = RSUniRenderThread::Instance().GetRSRenderComposerClientManager();
+        if (composerClientManager) {
+            PipelineParam param = composerClientManager->GetPipelineParam(paramScreenId);
             param.frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
             param.actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp();
             param.fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff();
@@ -671,9 +671,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             param.isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag();
             param.hasGameScene = RSUniRenderThread::Instance().GetHasGameScene();
             param.hasLppVideo = RSUniRenderThread::Instance().GetHasLppVideo();
-            composerClient->UpdatePipelineParam(param);
-        } else {
-            RS_LOGE("composerClient->UpdatePipelineParam failed!");
+            composerClientManager->UpdatePipelineParam(paramScreenId, param);
         }
     }
 

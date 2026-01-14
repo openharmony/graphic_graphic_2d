@@ -19,7 +19,6 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
-#include "rs_render_composer_client.h"
 #include "rs_trace.h"
 
 #undef LOG_TAG
