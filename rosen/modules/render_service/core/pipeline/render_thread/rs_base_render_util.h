@@ -221,7 +221,7 @@ private:
     static bool enableClient;
 
     static inline std::atomic<int> acquiredBufferCount_ = 0;
-    static pid_t lastSendingPid_;
+    static std::atomic<pid_t> lastSendingPid_;
 };
 } // namespace Rosen
 } // namespace OHOS
