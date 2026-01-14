@@ -50,7 +50,7 @@ public:
 
     std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() override
     {
-        RS_OPTIONAL_TRACE_FMT("RSNGRenderShapeTemplate::GenerateGEVisualEffect, Type: %s",
+        RS_OPTIONAL_TRACE_FMT("RSRenderShape, Type: %s",
             RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str());
         auto geShape = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geShape);
