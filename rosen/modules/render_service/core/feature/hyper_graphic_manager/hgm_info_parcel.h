@@ -21,6 +21,7 @@
 
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
+#include "iremote_object.h"
 #include "pipeline/rs_context.h"
 #include "transaction/rp_hgm_config_data.h"
 
@@ -34,9 +35,10 @@ enum HgmDataChangeType {
 
 using HgmDataChangeTypes = std::bitset<HgmDataChangeType::MAX_CHANGE_TYPE>;
 
-struct HgmServiceToProcessInfo {
+struct HgmServiceToProcessInfo : public RefBase {
     HgmServiceToProcessInfo() = default;
     ~HgmServiceToProcessInfo() noexcept = default;
+
     HgmDataChangeTypes hgmDataChangeTypes;
 
     uint32_t pendingScreenRefreshRate = 0;
@@ -53,7 +55,7 @@ struct HgmServiceToProcessInfo {
     bool isPowerIdle = false;
 };
 
-struct HgmProcessToServiceInfo {
+struct HgmProcessToServiceInfo : public RefBase {
     HgmProcessToServiceInfo() = default;
     ~HgmProcessToServiceInfo() noexcept = default;
 
