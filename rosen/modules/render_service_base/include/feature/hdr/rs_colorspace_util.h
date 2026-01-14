@@ -40,8 +40,8 @@ public:
         const std::shared_ptr<Drawing::ColorSpace>& colorSpace);
     static GraphicColorGamut GetColorGamutFromCanvas(const Drawing::Canvas& canvas);
     static GraphicColorGamut ColorSpaceNameToGraphicGamut(OHOS::ColorManager::ColorSpaceName name);
-    static GraphicColorGamut SelectBigGamut(GraphicColorGamut gamut1, GraphicColorGamut gamut2);
     static ColorManager::ColorSpaceName GraphicGamutToColorSpaceName(GraphicColorGamut gamut);
+    static GraphicColorGamut SelectBigGamut(GraphicColorGamut gamut1, GraphicColorGamut gamut2);
     static GraphicColorGamut MapGamutToStandard(GraphicColorGamut gamut);
 
 #ifndef ROSEN_CROSS_PLATFORM
