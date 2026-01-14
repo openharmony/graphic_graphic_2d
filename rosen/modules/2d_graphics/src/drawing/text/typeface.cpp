@@ -198,7 +198,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
     tf->index_ = index;
     return tf;
 #else
-    auto stream = std::make_unique<MemoryStream>(data, size);
+    auto stream = std::make_unique<MemoryStream>(data, size, true);
     return Typeface::MakeFromStream(std::move(stream), index);
 #endif
 }
@@ -232,7 +232,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
     tf->index_ = fontArguments.GetCollectionIndex();
     return tf;
 #else
-    auto stream = std::make_unique<MemoryStream>(data, size);
+    auto stream = std::make_unique<MemoryStream>(data, size, true);
     return Typeface::MakeFromStream(std::move(stream), fontArguments);
 #endif
 }
