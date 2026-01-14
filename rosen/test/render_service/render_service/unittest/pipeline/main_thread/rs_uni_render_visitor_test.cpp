@@ -4069,19 +4069,19 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo010, TestSize.Level2)
 
     node->GetMutableRenderProperties().SetTranslate({0.0f, 0.0f});
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    EXPECT_FALSE(parent->ChildHasTranslateOnSqueeze());
+    EXPECT_FALSE(parent->stagingRenderParams_->ChildHasTranslateOnSqueeze());
 
     node->GetMutableRenderProperties().SetTranslate({1.0f, 0.0f});
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    EXPECT_TRUE(parent->ChildHasTranslateOnSqueeze());
+    EXPECT_TRUE(parent->stagingRenderParams_->ChildHasTranslateOnSqueeze());
 
     node->GetMutableRenderProperties().SetTranslate({0.0f, 1.0f});
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    EXPECT_TRUE(parent->ChildHasTranslateOnSqueeze());
+    EXPECT_TRUE(parent->stagingRenderParams_->ChildHasTranslateOnSqueeze());
 
     node->GetMutableRenderProperties().SetTranslate({1.0f, 1.0f});
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    EXPECT_TRUE(parent->ChildHasTranslateOnSqueeze());
+    EXPECT_TRUE(parent->stagingRenderParams_->ChildHasTranslateOnSqueeze());
 }
 
 /**
