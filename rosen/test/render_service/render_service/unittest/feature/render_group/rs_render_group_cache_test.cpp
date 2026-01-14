@@ -161,7 +161,7 @@ HWTEST_F(RSRenderGroupCacheTest, AutoRenderGroupExcludedSubTreeGuardTest001, Tes
  * @tc.name: SetChildHasTranslateOnSqueezeTest
  * @tc.desc: Test SetChildHasTranslateOnSqueeze
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: issues/20738
  */
 HWTEST_F(RSRenderGroupCacheTest, SetChildHasTranslateOnSqueezeTest, TestSize.Level1)
 {
