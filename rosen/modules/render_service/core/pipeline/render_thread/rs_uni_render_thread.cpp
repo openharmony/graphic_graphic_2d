@@ -399,15 +399,12 @@ void RSUniRenderThread::Render()
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
     PerfForBlurIfNeeded();
 
-    {
-        totalProcessNodeNumMutex_.lock();
-        if (screenPowerOnChanged_) {
+    if (screenPowerOnChanged_) {
         RS_LOGI("RSUniRenderThread Power On First Frame finish, processNode:%{public}d",
-                totalProcessNodeNum_);
-            screenPowerOnChanged_ = false;
-        }
-        totalProcessNodeNum_ = 0;
+                totalProcessNodeNum_.load());
+        screenPowerOnChanged_ = false;
     }
+    totalProcessNodeNum_ = 0;
 }
 
 void RSUniRenderThread::CollectReleaseTasks(std::map<ScreenId, std::vector<std::function<void()>>>& releaseTasks)
@@ -1252,7 +1249,6 @@ bool RSUniRenderThread::GetSetScreenPowerOnChanged()
 
 void RSUniRenderThread::CollectProcessNodeNum(int num)
 {
-    totalProcessNodeNumMutex_.lock();
     totalProcessNodeNum_ += num;
 }
 } // namespace Rosen

@@ -313,8 +313,7 @@ private:
 #endif
 
     std::atomic<bool> screenPowerOnChanged_ = false;
-    std::mutex totalProcessNodeNumMutex_;
-    uint32_t totalProcessNodeNum_ = 0;
+    std::atomic<uint32_t> totalProcessNodeNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
