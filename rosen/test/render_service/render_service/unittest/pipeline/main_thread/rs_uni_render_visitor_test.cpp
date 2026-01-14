@@ -4048,6 +4048,43 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo009, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CollectEffectInfo010
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, SetChildHasTranslate
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo010, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+
+    node->GetMutableRenderProperties().SetTranslate({0.0f, 0.0f});
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    EXPECT_FALSE(parent->ChildHasTranslateOnSqueeze());
+
+    node->GetMutableRenderProperties().SetTranslate({1.0f, 0.0f});
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    EXPECT_TRUE(parent->ChildHasTranslateOnSqueeze());
+
+    node->GetMutableRenderProperties().SetTranslate({0.0f, 1.0f});
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    EXPECT_TRUE(parent->ChildHasTranslateOnSqueeze());
+
+    node->GetMutableRenderProperties().SetTranslate({1.0f, 1.0f});
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    EXPECT_TRUE(parent->ChildHasTranslateOnSqueeze());
+}
+
+/**
  * @tc.name: SetRenderGroupSubTreeDirtyIfNeedTest
  * @tc.desc: Test SetRenderGroupSubTreeDirtyIfNeed
  * @tc.type: FUNC
