@@ -163,13 +163,13 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest002, TestSize.Level1)
     // test filter_ == nullptr
     auto ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
     EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT); 
-    EXPECT_NE(ret, DrawingError::OK); // need prepared first
+    EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
     ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_NE(ret, DrawingError::OK);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
     // test not prepare
     ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
     EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-    EXPECT_NE(ret, DrawingError::OK); // need prepared first
+    EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
     // test normal condition
     Media::InitializationOptions opts;
     opts.size = { 1, 1 };
