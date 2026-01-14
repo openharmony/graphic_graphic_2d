@@ -37,7 +37,7 @@
 #ifdef __gnu_linux__
 #include <sys/types.h>
 #include <sys/syscall.h>
-#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#define gettid []()->int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
 #endif
 
 // win API conflict handle
