@@ -42,7 +42,6 @@ const char* DefaultLocale()
 ParagraphBuilderImpl::ParagraphBuilderImpl(
     const ParagraphStyle& style, std::shared_ptr<txt::FontCollection> fontCollection)
 {
-    threadId_ = pthread_self();
     builder_ = skt::ParagraphBuilder::make(TextStyleToSkStyle(style), fontCollection->CreateSktFontCollection());
 }
 
@@ -50,19 +49,16 @@ ParagraphBuilderImpl::~ParagraphBuilderImpl() = default;
 
 void ParagraphBuilderImpl::PushStyle(const TextStyle& style)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     builder_->pushStyle(TextStyleToSkStyle(style));
 }
 
 void ParagraphBuilderImpl::Pop()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     builder_->pop();
 }
 
 void ParagraphBuilderImpl::AddText(const std::u16string& text)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API18_VERSION)) {
         std::u16string wideText = text;
         Utf16Utils::HandleIncompleteSurrogatePairs(wideText);
@@ -74,7 +70,6 @@ void ParagraphBuilderImpl::AddText(const std::u16string& text)
 
 void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     skt::PlaceholderStyle placeholderStyle;
     placeholderStyle.fHeight = run.height;
     placeholderStyle.fWidth = run.width;
@@ -87,7 +82,6 @@ void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)
 
 std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     auto ret = std::make_unique<ParagraphImpl>(builder_->Build(), std::move(paints_));
     builder_->Reset();
     return ret;
@@ -297,16 +291,6 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetSymbolShadow(txt.symbol.GetSymbolShadow());
         paint.symbol.SetFirstActive(txt.symbol.GetFirstActive());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
-    }
-}
-
-void ParagraphBuilderImpl::RecordDifferentPthreadCall(const char* caller) const
-{
-    pthread_t currenetThreadId = pthread_self();
-    if (threadId_ != currenetThreadId) {
-        TEXT_LOGE_LIMIT3_HOUR("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
-            threadId_, caller);
-        threadId_ = currenetThreadId;
     }
 }
 } // namespace SPText
