@@ -1003,20 +1003,26 @@ void RSProfiler::MarshalSelfDrawingBuffers(std::stringstream& data, bool isBetaR
     }
     auto& nodeMap = context_->GetMutableNodeMap();
     nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-        if (!surfaceNode) {
+        if (!surfaceNode || !surfaceNode->IsSelfDrawingType()) {
             return;
         }
-        if (!surfaceNode->IsSelfDrawingType()) {
+
+        const auto bounds = surfaceNode->GetAbsRect();
+        if (bounds.IsEmpty()) {
+            HRPW("MarshalSelfDrawingBuffers: Skip node %{public}" PRId64 " with invalid bounds",
+                surfaceNode->GetId());
             return;
         }
+
         sptr<SurfaceBuffer> readableBuffer = SurfaceBuffer::Create();
         if (!readableBuffer) {
             HRPE("MarshalSelfDrawingBuffers: failed create surface buffer");
             return;
         }
-        BufferRequestConfig requestConfig = {
-            .width = surfaceNode->GetAbsRect().GetWidth(),
-            .height = surfaceNode->GetAbsRect().GetHeight(),
+
+        const BufferRequestConfig requestConfig {
+            .width = bounds.GetWidth(),
+            .height = bounds.GetHeight(),
             .strideAlignment = 0x8,
             .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
             .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
@@ -1026,9 +1032,12 @@ void RSProfiler::MarshalSelfDrawingBuffers(std::stringstream& data, bool isBetaR
         };
         GSError ret = readableBuffer->Alloc(requestConfig);
         if (ret != GSERROR_OK) {
-            HRPE("MarshalSelfDrawingBuffers: SurfaceBuffer Alloc failed, %{public}s", GSErrorStr(ret).c_str());
+            HRPE("MarshalSelfDrawingBuffers: SurfaceBuffer::Alloc failed (width=%{public}d height=%{public}d node="
+                "%{public}" PRId64 "): %{public}s",
+                requestConfig.width, requestConfig.height, surfaceNode->GetId(), GSErrorStr(ret).c_str());
             return;
         }
+
         RenderToReadableBuffer(surfaceNode, readableBuffer);
         uint64_t ffmPixelMapId = Utils::PatchSelfDrawingImageId(surfaceNode->GetId());
         PixelMapStorage::Push(ffmPixelMapId, *readableBuffer);
@@ -1039,17 +1048,22 @@ void RSProfiler::UnmarshalSelfDrawingBuffers()
 {
     auto& nodeMap = context_->GetMutableNodeMap();
     nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-        if (!surfaceNode) {
+        if (!surfaceNode || !Utils::IsNodeIdPatched(surfaceNode->GetId())) {
             return;
         }
-        if (!Utils::IsNodeIdPatched(surfaceNode->GetId())) {
+
+        if (surfaceNode->GetAbsRect().IsEmpty()) {
+            HRPW("UnmarshalSelfDrawingBuffers: Skip node %{public}" PRId64 " with invalid bounds",
+                surfaceNode->GetId());
             return;
         }
+
         sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
         if (!buffer) {
             HRPE("UnmarshalSelfDrawingBuffers: failed create surface buffer");
             return;
         }
+
         uint64_t ffmPixelMapId = Utils::PatchSelfDrawingImageId(surfaceNode->GetId());
         if (PixelMapStorage::Pull(ffmPixelMapId, *buffer)) {
             SurfaceNodeUpdateBuffer(surfaceNode, buffer);

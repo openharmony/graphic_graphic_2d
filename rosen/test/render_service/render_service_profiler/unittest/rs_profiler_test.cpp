@@ -191,6 +191,52 @@ HWTEST_F(RSProfilerTest, RSTreeTest, testing::ext::TestSize.Level1)
     });
 }
 
+/*
+ * @tc.name: MarshalSelfDrawingBuffersTest
+ * @tc.desc: Test MarshalSelfDrawingBuffers method
+ * @tc.type: FUNC
+ * @tc.require: 21645
+ */
+HWTEST_F(RSProfilerTest, MarshalSelfDrawingBuffersTest, Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    RSProfiler::context_ = context.get();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    config.name = "surface1";
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    auto& nodeMap = context->GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(rsSurfaceRenderNode);
+    std::stringstream stream;
+    RSProfiler::MarshalSelfDrawingBuffers(stream, false);
+    ASSERT_TRUE(rsSurfaceRenderNode->IsSelfDrawingType());
+    ASSERT_TRUE(rsSurfaceRenderNode->GetAbsRect().IsEmpty());
+}
+
+/*
+ * @tc.name: UnmarshalSelfDrawingBuffersTest
+ * @tc.desc: Test UnmarshalSelfDrawingBuffers method
+ * @tc.type: FUNC
+ * @tc.require: 21645
+ */
+HWTEST_F(RSProfilerTest, UnmarshalSelfDrawingBuffersTest, Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    RSProfiler::context_ = context.get();
+    RSSurfaceRenderNodeConfig config;
+    config.id = Utils::PatchNodeId(1);
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    config.name = "patchSurface";
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    auto& nodeMap = context->GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(rsSurfaceRenderNode);
+    RSProfiler::UnmarshalSelfDrawingBuffers();
+    ASSERT_TRUE(Utils::IsNodeIdPatched(rsSurfaceRenderNode->GetId()));
+    ASSERT_TRUE(rsSurfaceRenderNode->IsSelfDrawingType());
+    ASSERT_TRUE(rsSurfaceRenderNode->GetAbsRect().IsEmpty());
+}
+
 class RSProfilerTestWithContext : public testing::Test {
     static RSRenderService* renderService;
 
