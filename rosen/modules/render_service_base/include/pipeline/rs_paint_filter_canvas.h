@@ -481,12 +481,12 @@ public:
 
     void SaveDamageRegionrects(const std::vector<RectI>& drawAreas)
     {
-        damageRegionRects = drawAreas;
+        damageRegionrects = drawAreas;
     }
 
     const std::vector<RectI>& GetDamageRegionrects() const
     {
-        return damageRegionRects;
+        return damageRegionrects;
     }
 
 protected:
@@ -539,9 +539,6 @@ private:
     bool multipleScreen_ = false;
     bool isHdrOn_ = false;
     bool isReplacable_ = false;
-    bool isWindowFreezeCapture_ = false;
-    // Drawing window cache or uifirst cache
-    bool isDrawingCache_ = false;
     bool isIntersectWithDRM_ = false;
     bool isDarkColorMode_ = false;
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
@@ -571,23 +568,25 @@ private:
     std::stack<OffscreenData> offscreenDataList_; // store offscreen canvas & surface
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
-
+    bool isWindowFreezeCapture_ = false;
+    // Drawing window cache or uifirst cache
+    bool isDrawingCache_ = false;
     std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
     Occlusion::Region drawnRegion_;
     uint32_t threadId_;
     std::weak_ptr<Drawing::Surface> weakSurface_;
     uint8_t subTreeDrawStatus_ = DEFAULT_STATE;
-    std::vector<RectI> damageRegionRects;
+    std::vector<RectI> damageRegionrects;
 };
 
 #ifdef RS_ENABLE_VK
-class RSHybridRenderPaintFilterCanvas : public RSPaintFilterCanvas {
+class RSB_EXPORT RSHybridRenderPaintFilterCanvas : public RSPaintFilterCanvas {
 public:
-    RSHybridRenderPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f) : RSPaintFilterCanvas(canvas, alpha)
-    {}
+    RSHybridRenderPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f) :
+        RSPaintFilterCanvas(canvas, alpha) {}
 
-    RSHybridRenderPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f) : RSPaintFilterCanvas(surface, alpha)
-    {}
+    RSHybridRenderPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f) :
+        RSPaintFilterCanvas(surface, alpha) {}
 
     //Override the AttachPaint method
     CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
