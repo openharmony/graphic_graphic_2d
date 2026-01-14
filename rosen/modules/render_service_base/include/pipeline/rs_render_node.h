@@ -725,6 +725,7 @@ public:
     bool IsRenderGroupSubTreeDirty() const;
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
+    void SetChildHasTranslateOnSqueeze(bool val);
     bool IsNodeGroupIncludeProperty() const;
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, bool isOnExcludedSubTree);
     void UpdateDrawingCacheInfoAfterChildren(

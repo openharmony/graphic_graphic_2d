@@ -278,6 +278,24 @@ bool RSRenderParams::IsRenderGroupSubTreeDirty() const
     return false;
 }
 
+void RSRenderParams::SetChildHasTranslateOnSqueeze(bool val)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetChildHasTranslateOnSqueeze(val)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::ChildHasTranslateOnSqueeze() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->ChildHasTranslateOnSqueeze();
+    }
+    return false;
+}
+
 void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
 {
     if (drawingCacheIncludeProperty_ == includeProperty) {

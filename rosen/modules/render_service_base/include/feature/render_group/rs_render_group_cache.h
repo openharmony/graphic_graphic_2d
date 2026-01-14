@@ -56,11 +56,18 @@ public:
         return isCachedSubTreeDirty_;
     }
 
+    bool SetChildHasTranslateOnSqueeze(bool val);
+    bool ChildHasTranslateOnSqueeze() const
+    {
+        return childHasTranslateOnSqueeze_;
+    }
+
 private:
     bool excludedFromNodeGroup_ = false;
     bool hasChildExcludedFromNodeGroup_ = false;
     bool isExcludedStateChanged_ = false;
     bool isCachedSubTreeDirty_ = false;
+    bool childHasTranslateOnSqueeze_ = false;
 };
 
 class RSB_EXPORT AutoRenderGroupExcludedSubTreeGuard {

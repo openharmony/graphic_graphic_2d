@@ -3665,6 +3665,13 @@ bool RSRenderNode::IsRenderGroupSubTreeDirty() const
     return false;
 }
 
+void RSRenderNode::SetChildHasTranslateOnSqueeze(bool val)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetChildHasTranslateOnSqueeze(val);
+#endif
+}
+
 bool RSRenderNode::IsNodeGroupIncludeProperty() const
 {
     return nodeGroupIncludeProperty_;
