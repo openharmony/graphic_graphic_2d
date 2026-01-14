@@ -835,7 +835,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 end";
 }
 
-/** 
+/**
  * @tc.name: AnimationSupplementTest022
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
