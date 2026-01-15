@@ -18,6 +18,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -36,7 +37,11 @@ public:
     void TearDown() override;
 };
 
-void RsSubThreadManagerTest::SetUpTestCase() {}
+void RsSubThreadManagerTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
+
 void RsSubThreadManagerTest::TearDownTestCase() {}
 void RsSubThreadManagerTest::SetUp() {}
 void RsSubThreadManagerTest::TearDown() {}
@@ -376,26 +381,28 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleRenderNodeDrawableTest, TestSize.Level1
     rsSubThreadManager->ScheduleRenderNodeDrawable(drawable);
     EXPECT_FALSE(drawable);
 
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
-    auto nodeDrawable = std::make_shared<RSSurfaceRenderNodeDrawable>(std::move(surfaceRenderNode));
+    auto surfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    auto nodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
     rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
-    EXPECT_FALSE(nodeDrawable->GetRenderParams());
+    EXPECT_TRUE(nodeDrawable->GetRenderParams());
 
-    nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
-    uint32_t index = 1;
+    uint32_t index = 0;
     auto context = RenderContext::Create();
     auto threadPtr = std::make_shared<RSSubThread>(context, index);
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-    rsSubThreadManager->threadList_[rsSubThreadManager->defaultThreadIndex_] = threadPtr;
+    rsSubThreadManager->threadList_.push_back(threadPtr);
     rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
     EXPECT_TRUE(rsSubThreadManager->defaultThreadIndex_ == 1);
 
+    index = 1;
     auto threadSharedPtr = std::make_shared<RSSubThread>(context, index);
     threadSharedPtr->DoingCacheProcessNumInc();
-    rsSubThreadManager->threadList_[rsSubThreadManager->defaultThreadIndex_] = threadSharedPtr;
+    rsSubThreadManager->threadList_.push_back(threadSharedPtr);
+    index = 2;
     auto threadShared = std::make_shared<RSSubThread>(context, index);
-    rsSubThreadManager->threadList_[2] = threadShared;
+    rsSubThreadManager->threadList_.push_back(threadShared);
     rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
     EXPECT_TRUE(rsSubThreadManager->defaultThreadIndex_ == 2);
 
@@ -436,7 +443,7 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleReleaseCacheSurfaceOnlyTest, TestSize.L
     surfaceDrawable->GetRsSubThreadCache().lastFrameUsedThreadIndex_ = 2;
     auto context = RenderContext::Create();
     auto threadPtr = std::make_shared<RSSubThread>(context, index);
-    rsSubThreadManager->threadList_[1] = threadPtr;
+    rsSubThreadManager->threadList_.push_back(threadPtr);
     rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(surfaceDrawable);
     EXPECT_FALSE(rsSubThreadManager->threadList_.empty());
 }
