@@ -174,10 +174,10 @@ void RSRenderPropertyAnimation::RecordLastAnimateValue()
     }
 }
 
-void RSRenderPropertyAnimation::UpdateAnimateVelocity(float frameInterval)
+void RSRenderPropertyAnimation::UpdateAnimateVelocity(double frameInterval)
 {
     if (!RSRenderAnimation::isCalcAnimateVelocity_ ||
-        !lastAnimateValue_ || !property_ || ROSEN_EQ<float>(frameInterval, 0)) {
+        !lastAnimateValue_ || !property_ || ROSEN_EQ<double>(frameInterval, 0)) {
         return;
     }
 
@@ -195,7 +195,7 @@ void RSRenderPropertyAnimation::UpdateAnimateVelocity(float frameInterval)
     }
 }
 
-void RSRenderPropertyAnimation::ProcessAnimateVelocityUnderAngleRotation(float frameInterval)
+void RSRenderPropertyAnimation::ProcessAnimateVelocityUnderAngleRotation(double frameInterval)
 {
     auto currAnimateValue = property_->Clone();
     if (currAnimateValue == nullptr) {
@@ -218,7 +218,7 @@ void RSRenderPropertyAnimation::ProcessAnimateVelocityUnderAngleRotation(float f
         diffValue = diffFloatValue < 0 ? (currAnimateValue + circleValue) - lastAnimateValue_
                     : currAnimateValue - (lastAnimateValue_ + circleValue);
     }
-    if (ROSEN_EQ<float>(frameInterval, 0)) {
+    if (ROSEN_EQ<double>(frameInterval, 0)) {
         ROSEN_LOGE("%{public}s, frameInterval is 0", __func__);
         return;
     }

@@ -80,7 +80,6 @@ static double g_recordStartTime = 0.0;
 static uint32_t g_frameNumber = 0;
 
 static RSFile g_playbackFile {};
-static double g_playbackStartTime = 0.0;
 static NodeId g_playbackParentNodeId = 0;
 static int g_playbackPid = 0;
 static bool g_playbackShouldBeTerminated = true;
@@ -453,7 +452,7 @@ uint64_t RSProfiler::OnRemoteRequest(RSIClientToServiceConnection* connection, u
         // saving screen right now
     }
     if (IsPlaying()) {
-        SetTransactionTimeCorrection(g_playbackStartTime, g_playbackFile.GetWriteTime());
+        SetTransactionTimeCorrection(g_playbackFile.GetWriteTime());
         SetSubstitutingPid(g_playbackFile.GetHeaderPids(), g_playbackPid, g_playbackParentNodeId);
         SetMode(Mode::READ);
     }
@@ -2201,7 +2200,7 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
         return;
     }
     g_playbackPid = args.Pid();
-    g_playbackStartTime = 0.0;
+    SetReplayStartTimeNano(0);
     g_playbackPauseTime = args.Fp64(1);
     constexpr int pathArgPos = 2;
     std::string path = args.String(pathArgPos);
@@ -2283,15 +2282,13 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         CreateMockConnection(Utils::GetMockPid(pid));
     }
 
-    g_playbackStartTime = Now();
-
+    const uint64_t currentTime = RSMainThread::Instance()->GetCurrentVsyncTime();
+    SetReplayStartTimeNano(currentTime);
     const double pauseTime = g_playbackPauseTime;
     if (pauseTime > 0.0) {
-        const uint64_t currentTime = RawNowNano();
         const uint64_t pauseTimeStart = currentTime + Utils::ToNanoseconds(pauseTime) / BaseGetPlaybackSpeed();
         TimePauseAt(currentTime, pauseTimeStart, g_playbackImmediate);
     }
-
     AwakeRenderServiceThread();
 
     g_playbackShouldBeTerminated = false;
@@ -2316,7 +2313,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
             }
             g_playbackFile.Close();
         }
-        g_playbackStartTime = 0.0;
+        SetReplayStartTimeNano(0);
         g_playbackPid = 0;
         TimePauseClear();
         g_playbackShouldBeTerminated = false;
@@ -2356,7 +2353,7 @@ void RSProfiler::PlaybackStop(const ArgList& args)
 
 double RSProfiler::PlaybackDeltaTime()
 {
-    return Now() - g_playbackStartTime;
+    return Utils::ToSeconds(NowNano() - GetReplayStartTimeNano());
 }
 
 double RSProfiler::PlaybackUpdate(double deltaTime)
@@ -2434,7 +2431,7 @@ void RSProfiler::PlaybackPause(const ArgList& args)
     }
 
     const uint64_t currentTime = RawNowNano();
-    const double recordPlayTime = Utils::ToSeconds(PatchTime(currentTime)) - g_playbackStartTime;
+    const double recordPlayTime = Utils::ToSeconds(PatchTime(currentTime) - GetReplayStartTimeNano());
     TimePauseAt(g_frameBeginTimestamp, currentTime, g_playbackImmediate);
     Respond("OK: " + std::to_string(recordPlayTime));
 
@@ -2466,7 +2463,7 @@ void RSProfiler::PlaybackPauseAt(const ArgList& args)
     }
 
     const uint64_t currentTimeNano = RawNowNano();
-    const double alreadyPlayedTimeSec = Utils::ToSeconds(PatchTime(currentTimeNano)) - g_playbackStartTime;
+    const double alreadyPlayedTimeSec = Utils::ToSeconds(PatchTime(currentTimeNano) - GetReplayStartTimeNano());
     if (alreadyPlayedTimeSec > pauseAtTimeSec) {
         return;
     }

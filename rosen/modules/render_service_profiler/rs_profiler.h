@@ -662,7 +662,9 @@ private:
     RSB_EXPORT static void BetaRecordOnFrameBegin();
     RSB_EXPORT static void BetaRecordOnFrameEnd();
 
-    RSB_EXPORT static void SetTransactionTimeCorrection(double replayStartTime, double recordStartTime);
+    RSB_EXPORT static void SetReplayStartTimeNano(uint64_t replayStartTimeNano);
+    RSB_EXPORT static uint64_t GetReplayStartTimeNano();
+    RSB_EXPORT static void SetTransactionTimeCorrection(double recordStartTime);
     RSB_EXPORT static void TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime, bool immediate);
     RSB_EXPORT static void TimePauseResume(uint64_t curTime);
     RSB_EXPORT static void TimePauseClear();
