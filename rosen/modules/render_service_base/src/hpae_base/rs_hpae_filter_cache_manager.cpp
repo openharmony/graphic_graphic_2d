@@ -170,7 +170,7 @@ void RSHpaeFilterCacheManager::ResetFilterCache(std::shared_ptr<RSPaintFilterCan
         cachedSnapshot_.reset();
     }
     if (cachedFilteredSnapshot) {
-        cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData> (
+        cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(
             cachedFilteredSnapshot->cachedImage_, cachedFilteredSnapshot->cachedRect_);
     } else {
         cachedFilteredSnapshot_.reset();
@@ -461,8 +461,8 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
 
     HianimationManager::GetInstance().HianimationBuildTask(
         &basicInfo, &effectInfo, &resultTask.taskId, &resultTask.taskPtr);
-        RS_OPTIONAL_TRACE_NAME_FMT("Hianimation: taskId: %d, hpae radius=%f",
-            resultTask.taskId, radius);
+    RS_OPTIONAL_TRACE_NAME_FMT("Hianimation: taskId: %d, hpae radius=%f",
+        resultTask.taskId, radius);
 
     return resultTask;
 }

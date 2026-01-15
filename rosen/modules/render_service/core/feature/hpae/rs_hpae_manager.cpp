@@ -328,6 +328,7 @@ bool RSHpaeManager::IsFirstFrame()
         hpaeFrameState_ == HpaeFrameState::SWITCH_BLUR ||
         hpaeFrameState_ == HpaeFrameState::CHANGE_CONFIG;
 }
+
 void RSHpaeManager::InitIoBuffers()
 {
     RS_OPTIONAL_TRACE_NAME("InitIoBuffers");
