@@ -670,13 +670,13 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":RSScreenManagerTest",
-    ":RSScreenTest",
     ":RSFoldScreenManagerTest",
-    ":VsyncEnabledScreenIdTest",
-    ":RSScreenPreprocessorTest",
+    ":RSScreenCallbackManagerTest",
     ":RSScreenManagerAgentTest",
-    # ":RSScreenCallbackManagerTest",
+    ":RSScreenManagerTest",
+    ":RSScreenPreprocessorTest",
+    ":RSScreenTest",
+    ":VsyncEnabledScreenIdTest",
   ]
   if (tp_feature_enable) {
     deps += [ ":TouchScreenTest" ]

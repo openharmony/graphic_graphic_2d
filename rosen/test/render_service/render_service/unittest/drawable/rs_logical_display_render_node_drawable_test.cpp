@@ -2688,6 +2688,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest001, TestSize.Lev
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto id = screenManager_->CreateVirtualScreen("virtualScreen01", 480, 320, psurface);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
@@ -2738,6 +2739,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest001_SKP, TestSize
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto id = screenManager_->CreateVirtualScreen("virtualScreen01", 480, 320, psurface);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
@@ -2787,6 +2789,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest002, TestSize.Lev
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto id = screenManager_->CreateVirtualScreen("virtualScreen02", 480, 320, psurface, 0, 1);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
@@ -2837,6 +2840,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest002_SKP, TestSize
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto id = screenManager_->CreateVirtualScreen("virtualScreen02", 480, 320, psurface, 0, 1);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
@@ -2970,6 +2974,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirror007, TestSize.Level1)
     ASSERT_NE(psurface, nullptr);
     uint32_t width = 480;
     uint32_t height = 320;
+    screenManager_->Init(nullptr);
     auto id = screenManager_->CreateVirtualScreen("virtualScreen01", width, height, psurface);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
@@ -3937,6 +3942,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed001, TestSiz
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto screenId = screenManager_->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, screenId);
     screenManager_->defaultScreenId_ = screenId;
@@ -4010,6 +4016,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed002, TestSiz
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto screenId = screenManager_->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, screenId);
     screenManager_->defaultScreenId_ = screenId;
@@ -4073,6 +4080,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed003, TestSiz
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto screenId = screenManager_->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, screenId);
     screenManager_->defaultScreenId_ = screenId;

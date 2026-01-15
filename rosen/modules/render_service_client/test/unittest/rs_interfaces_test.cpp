@@ -817,7 +817,7 @@ HWTEST_F(RSInterfacesTest, SetScreenChangeCallback, Function | SmallTest | Level
     };
     int32_t status = rsInterfaces->SetScreenChangeCallback(callback);
     EXPECT_EQ(status, StatusCode::SUCCESS);
-    usleep(SET_REFRESHRATE_SLEEP_US); // wait to check if the callback returned.
+    usleep(SET_REFRESHRATE_SLEEP_US * 10); // wait to check if the callback returned.
     if (status == StatusCode::SUCCESS) {
         EXPECT_NE(screenId, INVALID_SCREEN_ID);
         EXPECT_NE(screenEvent, ScreenEvent::UNKNOWN);
