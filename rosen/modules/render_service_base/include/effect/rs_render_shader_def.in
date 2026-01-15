@@ -145,14 +145,7 @@ DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightPos),
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightNeg),
     ADD_PROPERTY_TAG(FrostedGlassEffect, Shape),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, MaterialColor),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, DarkModeWeightsEmboss),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgRates),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgKBS),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgPos),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgNeg),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, DarkModeEdLightAngles),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, DarkModeEdLightKBS)
+    ADD_PROPERTY_TAG(FrostedGlassEffect, MaterialColor)
 );
 
 DECLARE_SHADER(HarmoniumEffect, HARMONIUM_EFFECT,
