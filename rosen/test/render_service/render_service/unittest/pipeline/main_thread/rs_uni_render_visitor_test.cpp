@@ -59,8 +59,6 @@
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "gmock/gmock.h"
 
-
-
 using namespace testing;
 using namespace testing::ext;
 
