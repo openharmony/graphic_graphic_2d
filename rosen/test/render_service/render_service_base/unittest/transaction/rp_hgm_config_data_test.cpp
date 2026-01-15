@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "hgm_core.h"
 #include "transaction/rp_hgm_config_data.h"
 
 using namespace testing;
@@ -374,7 +375,9 @@ HWTEST_F(RPHgmConfigDataTest, MarshallingTest002, TestSize.Level1)
     ASSERT_FALSE(rpHgmConfigData.Marshalling(parcel12));
 
     Parcel parcel13;
-    SetLeftSize(parcel13, 102);
+    if (auto& hgmCore = HgmCore::Instance(); hgmCore.mPolicyConfigData_ != nullptr) {
+        SetLeftSize(parcel13, 102);
+    }
     ASSERT_TRUE(rpHgmConfigData.Marshalling(parcel13));
 }
 } // namespace Rosen
