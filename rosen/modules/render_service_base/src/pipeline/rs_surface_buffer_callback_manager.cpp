@@ -269,8 +269,8 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
         }
     }
 }
- 
-#ifdef RS_ENABLE_VK
+
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId)
 {
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&

@@ -20,7 +20,11 @@
 #include "include/core/SkImage.h"
 #include "utils/drawing_macros.h"
 #ifdef RS_ENABLE_VK
+#ifdef ROSEN_ARKUI_X
+#include "include/third_party/vulkan/vulkan/vulkan_core.h"
+#else
 #include "vulkan/vulkan.h"
+#endif
 #endif
 
 #include "yuv_info.h"

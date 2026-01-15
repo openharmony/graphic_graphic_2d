@@ -65,7 +65,8 @@ public:
 #endif
  
     void RunSurfaceBufferCallback();
-#ifdef RS_ENABLE_VK
+
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     void RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId);
 #endif
 
