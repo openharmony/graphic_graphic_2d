@@ -151,7 +151,7 @@ bool RSLuminanceControl::IsHardwareHdrDisabled(bool checkBrightnessRatio, Screen
     return false;
 }
 
-double RSLuminanceControl::GetConfigScalerLock(ScreenId screenId, HdrStatus type) const
+double RSLuminanceControl::GetConfigScaler(ScreenId screenId, HdrStatus type) const
 {
     return 1.0; // 1.0 means no headroom
 }
