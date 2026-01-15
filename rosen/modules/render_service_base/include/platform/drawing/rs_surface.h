@@ -52,11 +52,16 @@ public:
     // clear buffer for both producer and consumer and will receive OnGoBackground callback
     virtual void ClearAllBuffer() = 0;
     virtual void ResetBufferAge() = 0;
+    virtual void SetSkContext(std::shared_ptr<Drawing::GPUContext> skContext)
+    {
+        mSkContext = skContext;
+    }
 #ifdef USE_SURFACE_TEXTURE
     virtual RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) = 0;
     virtual RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) = 0;
 #endif
 protected:
+    std::shared_ptr<Drawing::GPUContext> mSkContext = nullptr;
 private:
 };
 

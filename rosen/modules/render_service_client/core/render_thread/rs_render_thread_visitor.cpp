@@ -57,8 +57,13 @@
 #endif
 
 #ifdef RS_ENABLE_VK
+#ifndef ROSEN_ARKUI_X
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#else
+#include "rs_vulkan_context.h"
+#include "vulkan/rs_surface_android_vulkan.h"
+#endif
 #endif
 
 namespace OHOS {
@@ -417,27 +422,28 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     // Update queue size for each process loop in case it dynamically changes
     queueSize_ = rsSurface->GetQueueSize();
 
+#if defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)
+    auto rc = RSRenderThread::Instance().GetRenderContext();
+    rsSurface->SetRenderContext(rc);
+#endif
+
     auto rsSurfaceColorSpace = rsSurface->GetColorSpace();
     if (surfaceNodeColorSpace != rsSurfaceColorSpace) {
         ROSEN_LOGD("Set new colorspace %{public}d to rsSurface", surfaceNodeColorSpace);
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
     }
 
-#if defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-    auto rc = RSRenderThread::Instance().GetRenderContext();
-    rsSurface->SetRenderContext(rc);
-#endif
-
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
         auto skContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
         if (skContext == nullptr) {
             ROSEN_LOGE("RSRenderThreadVisitor::ProcessRootRenderNode CreateDrawingContext is null");
             return;
         }
-        std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetSkContext(skContext);
+        rsSurface->SetSkContext(skContext);
     }
 #endif
+
     uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
     RS_TRACE_BEGIN(ptr->GetName() + " rsSurface->RequestFrame");
 #ifdef ROSEN_OHOS
@@ -559,6 +565,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         DrawDirtyRegion();
     }
 
+#ifdef ROSEN_ARKUI_X
+    canvas_->Restore(); //It may be that non-OHOS systems also require this operation.
+#endif
 #ifdef ROSEN_OHOS
     if (overdrawListener != nullptr) {
         overdrawListener->Draw();
@@ -589,7 +598,8 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     ROSEN_LOGD("RSRenderThreadVisitor FlushFrame surfaceNodeId = %{public}" PRIu64 ", uiTimestamp = %{public}" PRIu64,
         node.GetRSSurfaceNodeId(), uiTimestamp_);
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
-#ifdef RS_ENABLE_VK
+
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         auto fenceFd = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->DupReservedFlushFd();
@@ -602,6 +612,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         fdsan_close_with_tag(fenceFd, LOG_DOMAIN);
     }
 #endif
+
 #ifdef ROSEN_OHOS
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
 #endif
