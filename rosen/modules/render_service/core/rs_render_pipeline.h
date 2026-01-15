@@ -34,7 +34,7 @@
 #include "memory/rs_memory_manager.h"
 #include "pipeline/image_enhance/image_enhance_manager.h"
 #include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
-#include "rs_render_composer_client_manager.h"
+#include "rs_composer_client_manager.h"
 #include "vsync_receiver.h"
 #include "screen_manager/rs_screen_property.h"
 #include "screen_manager/screen_types.h"
@@ -103,7 +103,7 @@ public:
     void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void OnScreenRefresh(ScreenId screenId);
     void RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn);
-    std::shared_ptr<RSRenderComposerClientManager> GetRSRenderComposerClientManager() const;
+    std::shared_ptr<RSComposerClientManager> GetComposerClientManager() const;
 
 private:
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
@@ -142,7 +142,7 @@ private:
     std::shared_ptr<ImageEnhanceManager> imageEnhanceManager_ = nullptr;
     std::shared_ptr<RSPiplineDumper> rpDumper_ = nullptr;
     std::shared_ptr<RSPiplineDumpManager> rpDumpManager_ = nullptr;
-    std::shared_ptr<RSRenderComposerClientManager> composerClientManager_ = nullptr;
+    std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
 
     friend class RSServiceToRenderConnection;
     friend class RSRenderProcessAgent;

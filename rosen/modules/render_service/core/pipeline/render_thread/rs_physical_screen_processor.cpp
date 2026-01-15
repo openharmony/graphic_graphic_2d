@@ -25,7 +25,7 @@ RSPhysicalScreenProcessor::RSPhysicalScreenProcessor(ScreenId screenId)
     : composerAdapter_(std::make_unique<RSComposerAdapter>())
 {
     composerClient_ =
-        RSUniRenderThread::Instance().GetRSRenderComposerClientManager()->GetRSRenderComposerClient(screenId);
+        RSUniRenderThread::Instance().GetComposerClientManager()->GetComposerClient(screenId);
 }
 
 RSPhysicalScreenProcessor::~RSPhysicalScreenProcessor() noexcept

@@ -197,7 +197,7 @@ std::unique_ptr<RSRenderFrame> RSScreenRenderNodeDrawable::RequestFrame(
         return nullptr;
     }
     ComposerScreenInfo composerScreenInfo;
-    RSRenderComposerClient::ConvertScreenInfo(params.GetScreenProperty().GetScreenInfo(), composerScreenInfo);
+    RSComposerClient::ConvertScreenInfo(params.GetScreenProperty().GetScreenInfo(), composerScreenInfo);
     auto bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(
         composerScreenInfo, false, params.GetNewColorSpace(), params.GetNewPixelFormat());
     RS_LOGD("RequestFrame colorspace is %{public}d, pixelformat is %{public}d, lastPixelFormat: %{public}d",
@@ -659,8 +659,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     uniParam->SetRSProcessor(processor);
 
     if (!screenProperty.IsVirtual()) {
-        auto composerClientManager = RSUniRenderThread::Instance().GetRSRenderComposerClientManager();
-        if (composerClientManager) {
+        if (auto composerClientManager = RSUniRenderThread::Instance().GetComposerClientManager()) {
             PipelineParam param = composerClientManager->GetPipelineParam(paramScreenId);
             param.frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
             param.actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp();

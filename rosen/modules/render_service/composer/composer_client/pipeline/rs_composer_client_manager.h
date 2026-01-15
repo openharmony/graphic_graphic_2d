@@ -17,18 +17,18 @@
 #define RENDER_SERVICE_COMPOSER_CLIENT_MANAGER_PIPELINE_RS_RENDER_COMPOSER_CLIENT_H
 
 #include <unordered_map>
-#include "rs_render_composer_client.h"
+#include "rs_composer_client.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderComposerClientManager {
+class RSComposerClientManager {
 public:
-    RSRenderComposerClientManager() = default;
-    virtual ~RSRenderComposerClientManager() = default;
-    void AddRenderComposerClient(ScreenId screenId, const std::shared_ptr<RSRenderComposerClient>& rsRenderComposerClient);
-    void DeleteRSRenderComposerClient(ScreenId screenId);
-    std::shared_ptr<RSRenderComposerClient> GetRSRenderComposerClient(ScreenId screenId);
-    void ClearRedrawGPUCompositionCache(std::set<uint64_t> bufferIds);
+    RSComposerClientManager() = default;
+    virtual ~RSComposerClientManager() = default;
+    void AddComposerClient(ScreenId screenId, const std::shared_ptr<RSComposerClient>& rsRenderComposerClient);
+    void DeleteComposerClient(ScreenId screenId);
+    std::shared_ptr<RSComposerClient> GetComposerClient(ScreenId screenId);
+    void ClearRedrawGPUCompositionCache(std::unordered_set<uint64_t>& bufferIds);
     void RenderFrameStart(uint64_t timestamp);
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId, NodeId nodeId);
     void SetScreenBacklight(ScreenId screenId, uint32_t level);
@@ -46,7 +46,7 @@ public:
 
 private:
     mutable std::mutex rsComposerMapMutex_;
-    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerClient>> rsRenderComposerClients_;
+    std::unordered_map<ScreenId, std::shared_ptr<RSComposerClient>> composerClientMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

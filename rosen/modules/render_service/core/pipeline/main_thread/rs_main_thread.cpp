@@ -470,7 +470,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
     const std::shared_ptr<VSyncReceiver>& receiver,
     const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
     const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent,
-    const std::shared_ptr<RSRenderComposerClientManager>& composerClientManager)
+    const std::shared_ptr<RSComposerClientManager>& composerClientManager)
 {
     RS_LOGI("RSMainThread init.");
     mainLoop_ = [&]() {
@@ -2234,7 +2234,7 @@ void RSMainThread::EndGPUDraw()
 
 void RSMainThread::ClearUnmappedCache()
 {
-    std::set<uint64_t> bufferIds;
+    std::unordered_set<uint64_t> bufferIds;
     {
         std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
         bufferIds.swap(unmappedCacheSet_);

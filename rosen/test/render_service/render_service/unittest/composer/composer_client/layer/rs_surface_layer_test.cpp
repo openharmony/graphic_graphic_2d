@@ -29,7 +29,7 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 #include "pipeline/rs_render_composer_agent.h"
-#include "pipeline/rs_render_composer_client.h"
+#include "pipeline/rs_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
 
 #include "screen_manager/rs_screen_property.h"
@@ -48,7 +48,7 @@ public:
     void TearDown() override;
 
     static inline uint32_t screenId = 0;
-    static inline std::shared_ptr<RSRenderComposerClient> client;
+    static inline std::shared_ptr<RSComposerClient> client;
     static inline std::shared_ptr<RSSurfaceLayer> layer;
     static inline std::shared_ptr<RSRenderComposerManager> sMgr;
 };
@@ -66,7 +66,7 @@ void RSSurfaceLayerTest::SetUpTestCase()
     sMgr->OnScreenConnected(output, property);
     auto conn = sMgr->GetRSComposerConnection(screenId);
     sptr<IRSRenderToComposerConnection> ifaceConn = conn;
-    client = RSRenderComposerClient::Create(ifaceConn, nullptr, nullptr);
+    client = RSComposerClient::Create(ifaceConn, nullptr, nullptr);
 }
 
 void RSSurfaceLayerTest::TearDownTestCase()

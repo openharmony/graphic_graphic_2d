@@ -1138,7 +1138,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     }
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(node);
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(surfaceRenderNode, rsRenderPipeline_->GetRSRenderComposerClientManager());
+        new RSRenderServiceListener(surfaceRenderNode, rsRenderPipeline_->GetComposerClientManager());
     SurfaceError ret = surface->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
@@ -1824,7 +1824,7 @@ void RSRenderPipelineAgent::OnScreenBacklightChanged(ScreenId screenId, uint32_t
         return;
     }
     if (rsRenderPipeline_->GetUniRenderThread() != nullptr) {
-        rsRenderPipeline_->GetRSRenderComposerClientManager()->SetScreenBacklight(screenId, level);
+        rsRenderPipeline_->GetComposerClientManager()->SetScreenBacklight(screenId, level);
     }
 }
 

@@ -160,7 +160,7 @@ HWTEST_F(RsRenderComposerAgentTest, Call_Interface_With_Null_Composer, TestSize.
     agent->HitchsDump(dumpString, layerName);
     EXPECT_TRUE(dumpString.empty());
 
-    std::set<uint64_t> bufferIds;
+    std::unordered_set<uint64_t> bufferIds;
     agent->ClearRedrawGPUCompositionCache(bufferIds);
     EXPECT_TRUE(bufferIds.empty());
 }

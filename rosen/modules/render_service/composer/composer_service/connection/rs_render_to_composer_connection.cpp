@@ -64,7 +64,7 @@ void RSRenderToComposerConnection::OnScreenVBlankIdleCallback(ScreenId screenId,
     rsRenderComposerAgent_->OnScreenVBlankIdleCallback(screenId, timestamp);
 }
 
-void RSRenderToComposerConnection::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
+void RSRenderToComposerConnection::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
     RS_TRACE_NAME_FMT("RSRenderToComposerConnection::ClearRedrawGPUCompositionCache screenId:%" PRIu64"",
         screenId_);

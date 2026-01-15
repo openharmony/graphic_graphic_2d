@@ -31,7 +31,7 @@ namespace Rosen {
 class RSComposerAdapter;
 class RSRcdSurfaceRenderNode;
 class RSComposerContext;
-class RSRenderComposerClient;
+class RSComposerClient;
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable;
 class RSSurfaceRenderNodeDrawable;
@@ -43,7 +43,7 @@ public:
     ~RSUniRenderComposerAdapter() noexcept = default;
     RSLayerPtr CreateLayer(RSScreenRenderNode& node);
     RSLayerPtr CreateLayer(RSRcdSurfaceRenderNode& node);
-    bool Init(const ScreenInfo& screenInfo, const std::shared_ptr<RSRenderComposerClient>& composerClient);
+    bool Init(const ScreenInfo& screenInfo, const std::shared_ptr<RSComposerClient>& composerClient);
     bool UpdateMirrorInfo(float mirrorAdaptiveCoefficient);
 
     RSLayerPtr CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
@@ -87,7 +87,7 @@ private:
 
     ScreenInfo screenInfo_;
     float mirrorAdaptiveCoefficient_ = 1.0f;
-    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
+    std::shared_ptr<RSComposerClient> composerClient_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

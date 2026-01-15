@@ -195,7 +195,7 @@ void RSRenderComposer::PostDelayTask(const std::function<void()>& task, int64_t 
     }
 }
 
-void RSRenderComposer::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
+void RSRenderComposer::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
     std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
     if (auto engine = uniRenderEngine.lock()) {

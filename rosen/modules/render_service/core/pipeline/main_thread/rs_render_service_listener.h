@@ -26,7 +26,7 @@ namespace Rosen {
 class RSRenderServiceListener : public IBufferConsumerListener {
 public:
     RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode,
-        std::shared_ptr<RSRenderComposerClientManager> composerClientManager);
+        std::shared_ptr<RSComposerClientManager> composerClientManager);
     ~RSRenderServiceListener() override;
     void OnBufferAvailable() override;
     void OnTunnelHandleChange() override;
@@ -40,7 +40,7 @@ private:
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
     void CleanLayerBufferCache();
     bool ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> &node);
-    std::shared_ptr<RSRenderComposerClientManager> composerClientManager_;
+    std::shared_ptr<RSComposerClientManager> composerClientManager_;
 };
 } // namespace Rosen
 } // namespace OHOS

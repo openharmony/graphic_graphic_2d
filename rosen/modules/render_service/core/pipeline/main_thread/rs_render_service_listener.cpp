@@ -28,7 +28,7 @@ namespace Rosen {
 RSRenderServiceListener::~RSRenderServiceListener() {}
 
 RSRenderServiceListener::RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode,
-    std::shared_ptr<RSRenderComposerClientManager> composerClientManager)
+    std::shared_ptr<RSComposerClientManager> composerClientManager)
     : surfaceRenderNode_(surfaceRenderNode), composerClientManager_(composerClientManager)
 {}
 

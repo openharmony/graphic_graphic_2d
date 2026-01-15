@@ -21,7 +21,7 @@
 #include "hdi_display_type.h"
 #include "iconsumer_surface.h"
 #include "rs_layer.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client.h"
 #include "rs_render_layer_cmd.h"
 #include "rs_render_layer_cmd_property.h"
 #include "surface.h"

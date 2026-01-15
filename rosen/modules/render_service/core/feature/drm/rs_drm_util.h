@@ -36,7 +36,7 @@ public:
         const std::shared_ptr<RSScreenRenderNode>& curScreenNode);
     static bool IsDRMNodesOnTheTree();
     static void DealWithDRMNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSRenderComposerClientManager>& clientManager);
+        const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSComposerClientManager>& clientManager);
 private:
     static void MarkAllBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
@@ -50,7 +50,7 @@ private:
         const std::shared_ptr<RSSurfaceRenderNode>& appWindowNode);
     static void CollectDrmNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     static void PreAllocProtectedFrameBuffers(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSRenderComposerClientManager>& clientManager);
+        const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSComposerClientManager>& clientManager);
     inline static std::unordered_map<NodeId, // map<first level node ID, drm surface node>
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>> drmNodes_ = {};
 };

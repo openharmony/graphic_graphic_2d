@@ -152,7 +152,7 @@ void RSRenderToComposerConnectionProxy::CleanLayerBufferBySurfaceId(uint64_t sur
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_CLEAN_LAYER_BUFFER_BY_SURFACE_ID, parcel, reply, option);
 }
 
-void RSRenderToComposerConnectionProxy::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
+void RSRenderToComposerConnectionProxy::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
     MessageOption option;
     MessageParcel reply;

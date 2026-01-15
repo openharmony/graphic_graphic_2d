@@ -228,7 +228,7 @@ void RSUniRenderThread::InitDrawOpOverCallback(Drawing::GPUContext *gpuContext)
     });
 }
 
-void RSUniRenderThread::Start(const std::shared_ptr<RSRenderComposerClientManager>& composerClientManager)
+void RSUniRenderThread::Start(const std::shared_ptr<RSComposerClientManager>& composerClientManager)
 {
     composerClientManager_ = composerClientManager;
     runner_ = AppExecFwk::EventRunner::Create("RSUniRenderThread");

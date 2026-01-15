@@ -30,7 +30,7 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 #include "pipeline/rs_render_composer_agent.h"
-#include "pipeline/rs_render_composer_client.h"
+#include "pipeline/rs_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
 #include "screen_manager/rs_screen_property.h"
 #include "transaction/rs_layer_transaction_data.h"
@@ -48,7 +48,7 @@ public:
     void TearDown() override;
 
     static inline uint32_t screenId = 0;
-    static inline std::shared_ptr<RSRenderComposerClient> client = nullptr;
+    static inline std::shared_ptr<RSComposerClient> client = nullptr;
 };
 
 void RSRenderComposerClientTest::SetUpTestCase()
@@ -80,7 +80,7 @@ HWTEST_F(RSRenderComposerClientTest, ClientCreateTest, Function | SmallTest | Le
     auto conn = mgr->GetRSComposerConnection(screenId);
     sptr<IRSRenderToComposerConnection> ifaceConn = conn;
 
-    client = RSRenderComposerClient::Create(ifaceConn, nullptr, nullptr);
+    client = RSComposerClient::Create(ifaceConn, nullptr, nullptr);
     EXPECT_NE(client, nullptr);
 }
 

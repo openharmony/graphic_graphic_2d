@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderComposerClient;
+class RSComposerClient;
 class RSUniRenderProcessor : public RSProcessor {
 public:
     static inline constexpr RSProcessorType Type = RSProcessorType::UNIRENDER_PROCESSOR;
@@ -68,7 +68,7 @@ private:
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<std::weak_ptr<RSLayer>> layers_;
     RSLayerPtr uniLayer_ = nullptr;
-    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
+    std::shared_ptr<RSComposerClient> composerClient_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

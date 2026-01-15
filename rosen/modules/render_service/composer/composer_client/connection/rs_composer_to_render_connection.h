@@ -17,7 +17,7 @@
 #define RENDER_SERVICE_COMPOSER_CLIENT_CONNECTION_RS_COMPOSER_TO_RENDER_CONNECTION_H
 
 #include "rs_composer_to_render_connection_stub.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client.h"
 
 namespace OHOS {
 namespace Rosen {

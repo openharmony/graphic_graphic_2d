@@ -19,7 +19,7 @@
 #include "rs_composer_to_render_connection.h"
 #include "frame_report.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "composer/composer_client/pipeline/rs_render_composer_client.h"
+#include "composer/composer_client/pipeline/rs_composer_client.h"
 #include "graphic_common_c.h"
 
 using namespace testing;
@@ -55,8 +55,8 @@ HWTEST_F(RSComposerToRenderConnectionTest, Connection_ReleaseLayerBuffers_Normal
 {
     RSComposerToRenderConnection conn;
     uint64_t screenId = 102u;
-    auto client = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
-    RSUniRenderThread::Instance().GetRSRenderComposerClientManager()->AddRenderComposerClient(screenId, client);
+    auto client = RSComposerClient::Create(nullptr, nullptr, nullptr);
+    RSUniRenderThread::Instance().GetComposerClientManager()->AddComposerClient(screenId, client);
 
     ReleaseLayerBuffersInfo info;
     info.screenId = screenId;
@@ -64,7 +64,7 @@ HWTEST_F(RSComposerToRenderConnectionTest, Connection_ReleaseLayerBuffers_Normal
     int32_t ret = conn.ReleaseLayerBuffers(info);
     EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
 
-    RSUniRenderThread::Instance().GetRSRenderComposerClientManager()->DeleteRSRenderComposerClient(screenId);
+    RSUniRenderThread::Instance().GetComposerClientManager()->DeleteComposerClient(screenId);
 }
 
 /**
@@ -78,8 +78,8 @@ HWTEST_F(RSComposerToRenderConnectionTest, Connection_ReleaseLayerBuffers_Normal
 {
     RSComposerToRenderConnection conn;
     uint64_t screenId = 103u;
-    auto client = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
-    RSUniRenderThread::Instance().GetRSRenderComposerClientManager()->AddRenderComposerClient(screenId, client);
+    auto client = RSComposerClient::Create(nullptr, nullptr, nullptr);
+    RSUniRenderThread::Instance().GetComposerClientManager()->AddComposerClient(screenId, client);
 
     // Activate game scene to hit SetLastSwapBufferTime branch
     FrameReport::GetInstance().SetGameScene(getpid(), 2); // FR_GAME_SCHED
@@ -92,7 +92,7 @@ HWTEST_F(RSComposerToRenderConnectionTest, Connection_ReleaseLayerBuffers_Normal
 
     // Reset game scene
     FrameReport::GetInstance().SetGameScene(getpid(), 0); // FR_GAME_BACKGROUND
-    RSUniRenderThread::Instance().GetRSRenderComposerClientManager()->DeleteRSRenderComposerClient(screenId);
+    RSUniRenderThread::Instance().GetComposerClientManager()->DeleteComposerClient(screenId);
 }
 
 /**

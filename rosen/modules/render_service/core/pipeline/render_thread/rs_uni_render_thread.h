@@ -27,14 +27,14 @@
 #include "pipeline/buffer_thread/rs_buffer_manager.h"
 #include "pipeline/rs_context.h"
 #include "rs_base_render_engine.h"
-#include "rs_render_composer_client_manager.h"
+#include "rs_composer_client_manager.h"
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
 #endif
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderComposerClient;
+class RSComposerClient;
 class IRSRenderToComposerConnection;
 namespace DrawableV2 {
 class RSRenderNodeDrawable;
@@ -52,7 +52,7 @@ public:
     RSUniRenderThread(RSUniRenderThread&&) = delete;
     RSUniRenderThread& operator=(RSUniRenderThread&&) = delete;
 
-    void Start(const std::shared_ptr<RSRenderComposerClientManager>& composerClientManager);
+    void Start(const std::shared_ptr<RSComposerClientManager>& composerClientManager);
     void InitGrContext();
     void RenderFrames();
     void Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams);
@@ -319,7 +319,7 @@ public:
         hasProtectedLayerScreenIdSet_.clear();
     }
 
-    const std::shared_ptr<RSRenderComposerClientManager>& GetRSRenderComposerClientManager() const
+    const std::shared_ptr<RSComposerClientManager>& GetComposerClientManager() const
     {
         return composerClientManager_;
     }
@@ -400,7 +400,7 @@ private:
     std::atomic<bool> screenPowerOnChanged_ = false;
     uint32_t totalProcessNodeNum_ = 0;
     RSBufferManager bufferManager_ = RSBufferManager();
-    std::shared_ptr<RSRenderComposerClientManager> composerClientManager_ = nullptr;
+    std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

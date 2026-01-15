@@ -99,7 +99,7 @@ public:
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
         const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent,
-        const std::shared_ptr<RSRenderComposerClientManager>& composerClientManager);
+        const std::shared_ptr<RSComposerClientManager>& composerClientManager);
     void OnScreenConnected(const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
@@ -748,7 +748,7 @@ private:
      * if an image is found in this set, it means that the image is no longer needed and can be safely
      * removed from the GPU cache.
      */
-    std::set<uint64_t> unmappedCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
+    std::unordered_set<uint64_t> unmappedCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
     std::mutex unmappedCacheSetMutex_;
 
     /**
@@ -883,7 +883,7 @@ private:
     bool hasCanvasDrawingNodeCachedOp_ = false;
 
     std::shared_ptr<HgmRPContext> hgmRPContext_ = nullptr;
-    std::shared_ptr<RSRenderComposerClientManager> composerClientManager_ = nullptr;
+    std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

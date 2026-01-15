@@ -54,7 +54,7 @@ RSUniRenderProcessor::RSUniRenderProcessor(ScreenId screenId)
     : uniComposerAdapter_(std::make_unique<RSUniRenderComposerAdapter>())
 {
     composerClient_ =
-        RSUniRenderThread::Instance().GetRSRenderComposerClientManager()->GetRSRenderComposerClient(screenId);
+        RSUniRenderThread::Instance().GetComposerClientManager()->GetComposerClient(screenId);
 }
 
 RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
