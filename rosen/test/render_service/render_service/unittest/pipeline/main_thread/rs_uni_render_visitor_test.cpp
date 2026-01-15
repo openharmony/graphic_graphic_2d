@@ -2206,6 +2206,38 @@ HWTEST_F(RSUniRenderVisitorTest, CheckIfRoundCornerIntersectDRM, TestSize.Level2
 }
 
 /*
+ * @tc.name: PrepareForUIFirstNode001
+ * @tc.desc: Test PrePareForUIFirstNode with last frame uifirst flag is not leash window and hardware enabled
+ * @tc.type: FUNC
+ * @tc.require: issuesI8MQCS
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForCapsuleWindowMode001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->PrepareForUIFirstNode(*surfaceNode);
+}
+
+/*
+ * @tc.name: PrepareForUIFirstNode002
+ * @tc.desc: Test PrePareForUIFirstNode with last frame uifirst flag is leash window and hardware disabled
+ * @tc.type: FUNC
+ * @tc.require: issuesI8MQCS
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForCapsuleWindowMode002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceNode->SetHardwareForcedDisabledState(true);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->PrepareForUIFirstNode(*surfaceNode);
+}
+
+/*
  * @tc.name: QuickPrepareSurfaceRenderNode001
  * @tc.desc: Test RSUniRenderVisitorTest.QuickPrepareSurfaceRenderNode while surface node has security layer
  * @tc.type: FUNC
@@ -4949,6 +4981,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterCacheNeedForceClearOrSave001, TestSi
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode001, TestSize.Level2)
 {
+#if defined(RS_ENABLE_UNI_RENDER)
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
@@ -4964,6 +4997,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode001, TestSize.Level2)
     rsSurfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
     rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
+#endif
 }
 
 /**
