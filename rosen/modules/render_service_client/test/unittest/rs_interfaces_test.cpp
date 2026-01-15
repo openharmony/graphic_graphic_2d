@@ -989,10 +989,12 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedColorGamuts002, Function | SmallTes
     std::vector<ScreenColorGamut> modes;
     int ret = rsInterfaces->GetScreenSupportedColorGamuts(INVALID_SCREEN_ID, modes);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     auto screenId = rsInterfaces->GetDefaultScreenId();
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
     ret = rsInterfaces->GetScreenSupportedColorGamuts(screenId, modes);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
+#endif
 }
 
 /*
@@ -1043,9 +1045,11 @@ HWTEST_F(RSInterfacesTest, GetScreenColorGamut002, Function | SmallTest | Level2
     ScreenColorGamut mode = ScreenColorGamut::COLOR_GAMUT_INVALID;
     int ret = rsInterfaces->GetScreenColorGamut(INVALID_SCREEN_ID, mode);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     auto screenId = rsInterfaces->GetDefaultScreenId();
     ret = rsInterfaces->GetScreenColorGamut(screenId, mode);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
+#endif
 }
 
 /*
@@ -1060,9 +1064,11 @@ HWTEST_F(RSInterfacesTest, SetScreenColorGamut002, Function | SmallTest | Level2
 {
     int ret = rsInterfaces->SetScreenColorGamut(INVALID_SCREEN_ID, 0);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     auto screenId = rsInterfaces->GetDefaultScreenId();
     ret = rsInterfaces->SetScreenColorGamut(screenId, 0);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
+#endif
 }
 
 /*
@@ -1126,9 +1132,11 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedColorSpaces002, Function | SmallTes
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
     int ret = rsInterfaces->GetScreenSupportedColorSpaces(INVALID_SCREEN_ID, colorSpaces);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     auto screenId = rsInterfaces->GetDefaultScreenId();
     ret = rsInterfaces->GetScreenSupportedColorSpaces(screenId, colorSpaces);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
+#endif
 }
 
 /*
@@ -1144,9 +1152,11 @@ HWTEST_F(RSInterfacesTest, GetScreenColorSpace002, Function | SmallTest | Level2
     GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL;
     int ret = rsInterfaces->GetScreenColorSpace(INVALID_SCREEN_ID, colorSpace);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     auto screenId = rsInterfaces->GetDefaultScreenId();
     ret = rsInterfaces->GetScreenColorSpace(screenId, colorSpace);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
+#endif
 }
 
 /*

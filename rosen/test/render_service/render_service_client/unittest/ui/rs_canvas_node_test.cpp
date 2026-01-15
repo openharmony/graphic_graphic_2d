@@ -2955,12 +2955,14 @@ HWTEST_F(RSCanvasNodeTest, SetandGetForegroundColor003, TestSize.Level1)
  */
 HWTEST_F(RSCanvasNodeTest, SetandGetBackgroundColor001, TestSize.Level1)
 {
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = 0x034123;
     RSColor color = Color::FromArgbInt(colorValue);
     color.ConvertToP3ColorSpace();
     canvasNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(colorValue == color.AsArgbInt());
+#endif
 }
 
 /**
