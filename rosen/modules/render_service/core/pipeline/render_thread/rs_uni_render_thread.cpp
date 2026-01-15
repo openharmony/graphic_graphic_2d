@@ -401,7 +401,7 @@ void RSUniRenderThread::Render()
 
     if (screenPowerOnChanged_) {
         RS_LOGI("RSUniRenderThread Power On First Frame finish, processNode:%{public}d",
-                 totalProcessNodeNum_);
+                totalProcessNodeNum_.load());
         screenPowerOnChanged_ = false;
     }
     totalProcessNodeNum_ = 0;
@@ -1249,7 +1249,7 @@ bool RSUniRenderThread::GetSetScreenPowerOnChanged()
 
 void RSUniRenderThread::CollectProcessNodeNum(int num)
 {
-    totalProcessNodeNum_ += num;
+    totalProcessNodeNum_.fetch_add(num, std::memory_order_acq_rel);
 }
 } // namespace Rosen
 } // namespace OHOS
