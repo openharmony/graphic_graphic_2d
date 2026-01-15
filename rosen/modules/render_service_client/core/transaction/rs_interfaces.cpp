@@ -606,6 +606,11 @@ ScreenPowerStatus RSInterfaces::GetScreenPowerStatus(ScreenId id)
     return renderServiceClient_->GetScreenPowerStatus(id);
 }
 
+PanelPowerStatus RSInterfaces::GetPanelPowerStatus(ScreenId id)
+{
+    return renderServiceClient_->GetPanelPowerStatus(id);
+}
+
 RSScreenData RSInterfaces::GetScreenData(ScreenId id)
 {
     return renderServiceClient_->GetScreenData(id);
@@ -620,11 +625,6 @@ void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
     RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
     renderServiceClient_->SetScreenBacklight(id, level);
-}
-
-PanelPowerStatus RSInterfaces::GetPanelPowerStatus(ScreenId id)
-{
-    return renderServiceClient_->GetPanelPowerStatus(id);
 }
 
 int32_t RSInterfaces::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
