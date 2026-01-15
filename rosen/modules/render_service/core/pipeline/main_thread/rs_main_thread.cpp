@@ -2336,6 +2336,7 @@ bool RSMainThread::IfStatusBarDirtyOnly()
 
 void RSMainThread::ProcessNeedAttachedNodes()
 {
+    // Collect the nodes that need to be re-attached and call AfterTreeStateChanged
     auto &mutablenodeMap = context_->GetMutableNodeMap();
     auto needAttachedNodes = mutablenodeMap.GetNeedAttachedNode();
     if (needAttachedNodes.empty()) {
