@@ -5503,7 +5503,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode003, TestSize.Level2
     rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);
 }
 
-
  /**
   * @tc.name: UpdateHwcNodeInfoForAppNode007
   * @tc.desc: Test UpdateHwcNodeInfoForAppNode with multi-params
