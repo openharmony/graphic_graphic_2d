@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -365,6 +365,7 @@ public:
         std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
         Drawing::RectI cachedRect_ = {};
         Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
+        float refractOut_ = 0.f;
         std::shared_ptr<IGECacheProvider> geCacheProvider_ = nullptr;
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);

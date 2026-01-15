@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -56,6 +56,15 @@ DECLARE_SHADER(ParticleCircularHalo, PARTICLE_CIRCULAR_HALO,
     ADD_PROPERTY_TAG(ParticleCircularHalo, Center),
     ADD_PROPERTY_TAG(ParticleCircularHalo, Radius),
     ADD_PROPERTY_TAG(ParticleCircularHalo, Noise)
+);
+
+DECLARE_SHADER(LightCave, LIGHT_CAVE,
+    ADD_PROPERTY_TAG(LightCave, ColorA),
+    ADD_PROPERTY_TAG(LightCave, ColorB),
+    ADD_PROPERTY_TAG(LightCave, ColorC),
+    ADD_PROPERTY_TAG(LightCave, Position),
+    ADD_PROPERTY_TAG(LightCave, RadiusXY),
+    ADD_PROPERTY_TAG(LightCave, Progress)
 );
 
 DECLARE_SHADER(BorderLight, BORDER_LIGHT,
@@ -135,8 +144,8 @@ DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightKBS),
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightPos),
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightNeg),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, MaterialColor),
     ADD_PROPERTY_TAG(FrostedGlassEffect, Shape),
+    ADD_PROPERTY_TAG(FrostedGlassEffect, MaterialColor),
     ADD_PROPERTY_TAG(FrostedGlassEffect, DarkModeWeightsEmboss),
     ADD_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgRates),
     ADD_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgKBS),
@@ -168,15 +177,6 @@ DECLARE_SHADER(HarmoniumEffect, HARMONIUM_EFFECT,
     ADD_PROPERTY_TAG(HarmoniumEffect, PosRGB),
     ADD_PROPERTY_TAG(HarmoniumEffect, NegRGB),
     ADD_PROPERTY_TAG(HarmoniumEffect, Fraction)
-);
-
-DECLARE_SHADER(LightCave, LIGHT_CAVE,
-    ADD_PROPERTY_TAG(LightCave, ColorA),
-    ADD_PROPERTY_TAG(LightCave, ColorB),
-    ADD_PROPERTY_TAG(LightCave, ColorC),
-    ADD_PROPERTY_TAG(LightCave, Position),
-    ADD_PROPERTY_TAG(LightCave, RadiusXY),
-    ADD_PROPERTY_TAG(LightCave, Progress)
 );
 
 DECLARE_SHADER(AIBarGlow, AIBAR_GLOW,
