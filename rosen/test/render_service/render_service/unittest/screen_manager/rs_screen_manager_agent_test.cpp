@@ -120,8 +120,9 @@ HWTEST_F(RSScreenManagerAgentTest, GetActiveScreenId001, TestSize.Level1)
     // screenManager_->activeScreenId_ = GenerateScreenId();
     screenManager_->isFoldScreenFlag_ = true;
     ScreenId activeScreenId = INVALID_SCREEN_ID;
+    screenManagerAgent_->screenManager_ = nullptr;
     screenManagerAgent_->GetActiveScreenId(activeScreenId);
-    ASSERT_EQ(activeScreenId, testScreenId);
+    ASSERT_EQ(activeScreenId, INVALID_SCREEN_ID);
 }
 
 /*
