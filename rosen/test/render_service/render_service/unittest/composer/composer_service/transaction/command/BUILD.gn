@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_service/transaction/command"
+module_output_path = "graphic_2d/graphic_2d/render_service/composer/composer_service/transaction/command"
 
 group("unittest") {
   testonly = true

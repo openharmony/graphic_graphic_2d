@@ -669,6 +669,7 @@ ohos_unittest("RSUniRenderVisitorTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
+    "eventhandler:libeventhandler",
     "samgr:samgr_proxy",
   ]
   include_dirs =

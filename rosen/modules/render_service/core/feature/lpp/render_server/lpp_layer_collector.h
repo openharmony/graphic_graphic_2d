@@ -22,7 +22,7 @@
 namespace OHOS::Rosen {
 constexpr uint32_t LPP_LAYER_PROPERTY =
     TunnelLayerProperty::TUNNEL_PROP_BUFFER_ADDR | TunnelLayerProperty::TUNNEL_PROP_DEVICE_COMMIT;
-class LppLayerColletor {
+class LppLayerCollector {
 private:
     std::unordered_set<uint64_t> lppLayerId_;
 

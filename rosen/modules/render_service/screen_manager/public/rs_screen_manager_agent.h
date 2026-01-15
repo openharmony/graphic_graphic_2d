@@ -112,7 +112,7 @@ public:
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);
-    uint32_t SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect);
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
     void SetScreenSwitchStatus(ScreenId id, bool status);
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);

@@ -147,6 +147,8 @@ public:
     static std::shared_ptr<RSSurfaceNode> CreateSurface(std::string surfaceName);
     static std::shared_ptr<RSCanvasNode> canvasNode_;
     static sptr<RSScreenManager> screenManager_;
+    static std::shared_ptr<AppExecFwk::EventRunner> runner_;
+    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 
 RSInterfaces* RSSurfaceCaptureTaskParallelTest::rsInterfaces_ = nullptr;
@@ -154,6 +156,8 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceCaptureTaskParallelTest::surfaceNode_ = 
 std::shared_ptr<CustomizedSurfaceCapture> RSSurfaceCaptureTaskParallelTest::surfaceCaptureCb_ = nullptr;
 std::shared_ptr<RSCanvasNode> RSSurfaceCaptureTaskParallelTest::canvasNode_ = nullptr;
 sptr<RSScreenManager> RSSurfaceCaptureTaskParallelTest::screenManager_ = sptr<RSScreenManager>::MakeSptr();
+std::shared_ptr<AppExecFwk::EventRunner> RSSurfaceCaptureTaskParallelTest::runner_ = nullptr;
+std::shared_ptr<AppExecFwk::EventHandler> RSSurfaceCaptureTaskParallelTest::handler_ = nullptr;
 
 bool RSSurfaceCaptureTaskParallelTest::CheckSurfaceCaptureCallback()
 {
@@ -205,11 +209,19 @@ void RSSurfaceCaptureTaskParallelTest::SetUpTestCase()
     if (surfaceCaptureCb_ == nullptr) {
         return;
     }
+    runner_ = AppExecFwk::EventRunner::Create(true);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    runner_->Run();
+    if (screenManager_ != nullptr) {
+        screenManager_->Init(handler_);
+    }
 }
 
 void RSSurfaceCaptureTaskParallelTest::TearDownTestCase() 
 {
     surfaceCaptureCb_->Reset();
+    screenManager_->preprocessor_ = nullptr;
+    runner_->Stop();
     surfaceCaptureCb_ = nullptr;
     rsInterfaces_ = nullptr;
     surfaceNode_ = nullptr;

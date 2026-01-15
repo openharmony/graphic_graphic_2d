@@ -104,8 +104,15 @@ public:
     static void InitTestSurfaceNodeAndScreenInfo(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         std::shared_ptr<RSUniRenderVisitor>& rSUniRenderVisitor);
     std::shared_ptr<RSUniRenderVisitor> InitRSUniRenderVisitor();
-    sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
+    static sptr<RSScreenManager> screenManager_;
+    static std::shared_ptr<AppExecFwk::EventRunner> runner_;
+    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
+
+
+sptr<RSScreenManager> RSUniRenderVisitorTest::screenManager_ = sptr<RSScreenManager>::MakeSptr();
+std::shared_ptr<AppExecFwk::EventRunner> RSUniRenderVisitorTest::runner_ = nullptr;
+std::shared_ptr<AppExecFwk::EventHandler> RSUniRenderVisitorTest::handler_ = nullptr;
 
 class MockRSSurfaceRenderNode : public RSSurfaceRenderNode {
 public:
@@ -124,8 +131,17 @@ void RSUniRenderVisitorTest::SetUpTestCase()
     matrixMock_ = Mock::MatrixMock::GetInstance();
     EXPECT_CALL(*matrixMock_, GetMinMaxScales(_)).WillOnce(testing::Return(false));
     RSTestUtil::InitRenderNodeGC();
+    runner_ = AppExecFwk::EventRunner::Create(true);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    runner_->Run();
+    if (screenManager_ != nullptr) {
+        screenManager_->Init(handler_);
+    }
 }
-void RSUniRenderVisitorTest::TearDownTestCase() {}
+void RSUniRenderVisitorTest::TearDownTestCase() {
+    screenManager_->preprocessor_ = nullptr;
+    runner_->Stop();
+}
 void RSUniRenderVisitorTest::SetUp()
 {
     if (RSUniRenderJudgement::IsUniRender()) {

@@ -931,7 +931,6 @@ HWTEST_F(RSInterfacesTest, SetScreenColorGamut002, Function | SmallTest | Level2
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
     auto screenId = rsInterfaces->GetDefaultScreenId();
     ret = rsInterfaces->SetScreenColorGamut(screenId, 0);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*

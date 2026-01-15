@@ -195,8 +195,10 @@ HWTEST_F(RSUIDirectorTest, Init001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, Init002, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director1 = RSUIDirector::Create();
+    director1->Init(true, true);
     ASSERT_NE(director1->GetRSUIContext(), nullptr);
     std::shared_ptr<RSUIDirector> director2 = RSUIDirector::Create();
+    director2->Init(true, true, director1->GetRSUIContext());
     ASSERT_EQ(director1->GetRSUIContext(), director2->GetRSUIContext());
 }
 
@@ -270,7 +272,7 @@ HWTEST_F(RSUIDirectorTest, SendMessagesTest001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
-
+    director->Init(true, true);
     std::function<void()> callback = []() { std::cout << "for test" << std::endl; };
     auto transaction = std::make_shared<RSTransactionHandler>();
     auto node = RSCanvasNode::Create();
@@ -850,6 +852,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest002, TestSize.Level1)
 {
     auto director = RSUIDirector::Create();
+    director->Init(true, true);
     auto uiContext = director->GetRSUIContext();
     ASSERT_NE(uiContext, nullptr);
     uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
@@ -872,6 +875,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest002, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest003, TestSize.Level1)
 {
     auto director = RSUIDirector::Create();
+    director->Init(true, true);
     auto uiContext = director->GetRSUIContext();
     uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     auto token = 12345;
@@ -894,6 +898,7 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessor, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
+    director->Init(true, true);
     // for test
     NodeId nodeId = 0;
     AnimationId animId = 0;

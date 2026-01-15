@@ -147,7 +147,7 @@ private:
     std::shared_ptr<RSRenderComposerContext> rsRenderComposerContext_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<HgmHardwareUtils> hgmHardwareUtils_;
-    LppLayerColletor lppLayerColletor_;
+    LppLayerCollector lppLayerCollector_;
     ComposerFallbackCallback redrawCb_;
     std::mutex frameBufferSurfaceOhosMapMutex_;
     std::mutex surfaceMutex_;

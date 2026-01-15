@@ -22,7 +22,6 @@
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
 #include "iremote_object.h"
-#include "message_parcel.h"
 #include "pipeline/rs_context.h"
 #include "transaction/rp_hgm_config_data.h"
 
@@ -36,12 +35,9 @@ enum HgmDataChangeType {
 
 using HgmDataChangeTypes = std::bitset<HgmDataChangeType::MAX_CHANGE_TYPE>;
 
-struct HgmServiceToProcessInfo : public Parcelable {
+struct HgmServiceToProcessInfo : public RefBase {
     HgmServiceToProcessInfo() = default;
     ~HgmServiceToProcessInfo() noexcept = default;
-
-    bool Marshalling(Parcel& data) const override;
-    [[nodiscard]] static HgmServiceToProcessInfo* Unmarshalling(Parcel& data);
 
     HgmDataChangeTypes hgmDataChangeTypes;
 
@@ -59,21 +55,9 @@ struct HgmServiceToProcessInfo : public Parcelable {
     bool isPowerIdle = false;
 };
 
-struct HgmProcessToServiceInfo : public Parcelable {
+struct HgmProcessToServiceInfo : public RefBase {
     HgmProcessToServiceInfo() = default;
     ~HgmProcessToServiceInfo() noexcept = default;
-
-    bool Marshalling(Parcel& data) const override;
-    [[nodiscard]] static HgmProcessToServiceInfo* Unmarshalling(Parcel& data);
-
-    bool MarshallingFrameRateLinker(MessageParcel* message) const;
-    bool MarshallingSurfaceData(MessageParcel* message) const;
-    bool MarshallingEnergyData(MessageParcel* message) const;
-    bool MarshallingVRateData(MessageParcel* message) const;
-    bool UnmarshallingFrameRateLinker(MessageParcel* message);
-    bool UnmarshallingSurfaceData(MessageParcel* message);
-    bool UnmarshallingEnergyData(MessageParcel* message);
-    bool UnmarshallingVRateData(MessageParcel* message);
 
     bool isGameNodeOnTree = false;
     std::unordered_set<FrameRateLinkerId> frameRateLinkerDestroyIds;

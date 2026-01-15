@@ -279,12 +279,12 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
         if (!isHwcDead_) {
             hdiOutput_->SetRSLayers(reviseLayers);
         }
-        lppLayerColletor_.AddLppLayerId(reviseLayers);
+        lppLayerCollector_.AddLppLayerId(reviseLayers);
     } else {
         if (!isHwcDead_) {
             hdiOutput_->SetRSLayers(layers);
         }
-        lppLayerColletor_.AddLppLayerId(layers);
+        lppLayerCollector_.AddLppLayerId(layers);
     }
     bool doRepaint = hdiOutput_->IsDeviceValid() && !shouldDropFrame && !isHwcDead_;
     if (doRepaint) {
@@ -324,7 +324,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
             "FRAME_RATE", frameRate, "MISSED_FRAMES", missedFrames, "FRAME_TIME", frameTime);
     }
     if (composerToRenderConnection_ != nullptr && pipelineParam.hasLppVideo) {
-        composerToRenderConnection_->NotifyLppLayerToRender(pipelineParam.vsyncId, lppLayerColletor_.GetLppLayerId());
+        composerToRenderConnection_->NotifyLppLayerToRender(pipelineParam.vsyncId, lppLayerCollector_.GetLppLayerId());
     }
     EndCheck(timer);
     if (isDisconnected_ && unExecuteTaskNum_ == 0) {
@@ -870,7 +870,7 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
         RS_LOGE("Redraw: surface or uniRenderEngine is null.");
         return;
     }
-    lppLayerColletor_.RemoveLayerId(layers);
+    lppLayerCollector_.RemoveLayerId(layers);
     bool isProtected = false;
 
 #ifdef RS_ENABLE_VK

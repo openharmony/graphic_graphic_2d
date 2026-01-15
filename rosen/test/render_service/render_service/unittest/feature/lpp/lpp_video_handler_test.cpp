@@ -341,4 +341,22 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer002, TestSize.Level1)
     delete bufferQueue->lppSlotInfo_;
     bufferQueue->lppSlotInfo_ = nullptr;
 }
+
+/**
+ * @tc.name: JudgeLppLayer002
+ * @tc.desc: JudgeLppLayer002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(LppVideoHandlerTest, JudgeLppLayer003, TestSize.Level1)
+{
+    LppVideoHandler lppVideoHandler;
+    lppVideoHandler.hasLppVideo_ = true;
+    EXPECT_TRUE(lppVideoHandler.HasLppVideo());
+    EXPECT_FALSE(lppVideoHandler.hasLppVideo_);
+
+    lppVideoHandler.hasLppVideo_ = false;
+    EXPECT_FALSE(lppVideoHandler.HasLppVideo());
+    EXPECT_FALSE(lppVideoHandler.hasLppVideo_);
+}
 } // namespace OHOS::Rosen

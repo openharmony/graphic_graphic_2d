@@ -64,31 +64,31 @@ const std::string testScene = "TestScene";
 const std::string pkgName0 = "com.pkg.other:0:-1";
 const std::string pkgName1 = "com.ss.hm.ugc.aweme:1001:10067";
 const std::string pkgName2 = "com.wedobest.fivechess.harm:1002:10110";
-const GraphicIRect rectF {
+const Rect rectF {
     .x = 0,
     .y = 0,
     .w = 2232,
     .h = 1008,
 };
-const GraphicIRect rectM {
+const Rect rectM {
     .x = 0,
     .y = 1136,
     .w = 2232,
     .h = 2048,
 };
-const GraphicIRect rectG {
+const Rect rectG {
     .x = 0,
     .y = 0,
     .w = 2232,
     .h = 3184,
 };
-const GraphicIRect rectNeg {
+const Rect rectNeg {
     .x = -1,
     .y = -1,
     .w = -1,
     .h = -1,
 };
-const GraphicIRect rectMax {
+const Rect rectMax {
     .x = INT_MAX,
     .y = INT_MAX,
     .w = INT_MAX,
@@ -1303,13 +1303,7 @@ HWTEST_F(HgmFrameRateMgrTest, NotifyScreenRectFrameRateChange, Function | SmallT
     auto& hgmCore = HgmCore::Instance();
     Rect activeRect;
     ScreenId id = 0;
-    GraphicIRect dstActiveRect {
-        .x = activeRect.x,
-        .y = activeRect.y,
-        .w = activeRect.w,
-        .h = activeRect.h,
-    };
-    hgmCore.NotifyScreenRectFrameRateChange(id, dstActiveRect);
+    hgmCore.NotifyScreenRectFrameRateChange(id, activeRect);
     EXPECT_NE(hgmCore.hgmFrameRateMgr_, nullptr);
 }
 

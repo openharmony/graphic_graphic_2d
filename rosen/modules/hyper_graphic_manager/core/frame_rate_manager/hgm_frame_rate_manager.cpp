@@ -948,7 +948,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     HandlePageUrlEvent();
 }
 
-void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect)
+void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& activeRect)
 {
     RS_TRACE_NAME_FMT("%s: screenId:%d activeRect(%d, %d, %d, %d)",
         __func__, id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);

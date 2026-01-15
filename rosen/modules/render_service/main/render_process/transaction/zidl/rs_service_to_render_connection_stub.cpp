@@ -164,16 +164,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_DISCARD_JANK_FRAME): {
-            bool discardJankFrames{false};
-            if (!data.ReadBool(discardJankFrames)) {
-                RS_LOGE("RSServiceToRenderStub::SET_DISCARD_JANK_FRAME read flag failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetDiscardJankFrames(discardJankFrames);
-            break;
-        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_JANK_STATS): {
             ReportJankStats();
             break;

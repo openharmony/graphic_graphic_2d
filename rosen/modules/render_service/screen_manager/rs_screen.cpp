@@ -381,7 +381,7 @@ uint32_t RSScreen::GetActiveRefreshRate() const
     return property_.GetRefreshRate();
 }
 
-uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
+uint32_t RSScreen::SetScreenActiveRect(const Rect& activeRect)
 {
     if (IsVirtual()) {
         RS_LOGW("%{public}s failed: virtual screen not support", __func__);
@@ -402,7 +402,7 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
 
     RS_LOGI("%{public}s success, activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
         "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-    GraphicIRect reviseRect = activeRect;
+    Rect reviseRect = activeRect;
     RectI maskRect;
     if (!CalculateMaskRectAndReviseRect(activeRect, reviseRect, maskRect)) {
         HILOG_COMM_WARN("CalculateMaskRect failed or not need");
@@ -418,7 +418,7 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
     return StatusCode::SUCCESS;
 }
 
-bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect, RectI& maskRect)
+bool RSScreen::CalculateMaskRectAndReviseRect(const Rect& activeRect, Rect& reviseRect, RectI& maskRect)
 {
 #ifdef ROSEN_EMULATOR
     RS_LOGD("%{public}s emulator device do not revise rect", __func__);

@@ -622,7 +622,7 @@ int32_t RSScreenManagerAgent::SetVirtualScreenRefreshRate(ScreenId id, uint32_t 
     return screenManager_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
 }
 
-uint32_t RSScreenManagerAgent::SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect)
+uint32_t RSScreenManagerAgent::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
 {
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);

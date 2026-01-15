@@ -46,7 +46,6 @@ public:
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
     
     // Performance Logging
-    ErrCode SetDiscardJankFrames(bool discardJankFrames) override;
     ErrCode ReportJankStats() override;
     ErrCode ReportEventResponse(DataBaseRs info) override;
     ErrCode ReportEventComplete(DataBaseRs info) override;

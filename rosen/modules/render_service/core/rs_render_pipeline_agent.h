@@ -110,7 +110,6 @@ public:
 #endif
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success);
-    ErrCode SetDiscardJankFrames(bool discardJankFrames);
     ErrCode ReportJankStats();
     ErrCode ReportEventResponse(DataBaseRs info);
     ErrCode ReportEventComplete(DataBaseRs info);

@@ -18,20 +18,18 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_out_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("NdkDrawingGpuContextFuzzTest") {
+ohos_fuzztest("NdkDrawingCanvasUtilsFuzzTest") {
   module_out_path = module_out_path
   fuzz_config_file =
-      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/ndk/ndkdrawing_gpu_context_fuzzer"
+      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/ndk/ndkdrawingcanvasutils_fuzzer"
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "$graphic_2d_root/rosen/modules/render_service_client",
-    "$graphic_2d_root/interfaces/inner_api/surface",
-    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/drawing_utils"
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/drawing_utils",
   ]
   cflags = [
     "-g",
@@ -40,23 +38,19 @@ ohos_fuzztest("NdkDrawingGpuContextFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [
-    "drawing_gpu_context_fuzzer.cpp",
+    "drawing_canvas_utils_fuzzer.cpp",
     "get_object.h",
   ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
-    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics"
   ]
 
   external_deps = [
     "image_framework:image_native",
     "image_framework:pixelmap",
     "image_framework:pixelmap_ndk",
-    "openssl:libcrypto_shared"
   ]
 
   part_name = "graphic_2d"
@@ -69,7 +63,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":NdkDrawingGpuContextFuzzTest",
+    ":NdkDrawingCanvasUtilsFuzzTest",
   ]
 }
 ###############################################################################

@@ -17,6 +17,7 @@
 #include <memory>
 #include "rs_surface_rcd_layer.h"
 #include "rs_composer_context.h"
+#include "rs_render_to_composer_connection.h"
 #include "surface_type.h"
 
 using namespace testing;
@@ -25,6 +26,7 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 class RSLayerContextProbe : public RSComposerContext {
 public:
+    RSLayerContextProbe(const sptr<IRSRenderToComposerConnection>& conn) : RSComposerContext(conn) {}
     using RSComposerContext::GetRSLayerTransaction;
     using RSComposerContext::AddRSLayer;
     using RSComposerContext::RemoveRSLayer;
@@ -56,7 +58,8 @@ HWTEST_F(RSSurfaceRCDLayerTest, RCDLayer_Create_NullContext, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRCDLayerTest, RCDLayer_Create_NewAndExisting, TestSize.Level1)
 {
-    auto ctx = std::make_shared<RSLayerContextProbe>();
+    sptr<IRSRenderToComposerConnection> connection = sptr<RSRenderToComposerConnection>::MakeSptr("test", 0, nullptr);
+    auto ctx = std::make_shared<RSLayerContextProbe>(connection);
     auto layer1 = RSSurfaceRCDLayer::Create(ctx, 200u);
     ASSERT_NE(layer1, nullptr);
     EXPECT_EQ(layer1->GetRSLayerId(), 200u);
@@ -76,7 +79,8 @@ HWTEST_F(RSSurfaceRCDLayerTest, RCDLayer_Create_NewAndExisting, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRCDLayerTest, RCDLayer_SetPixelMap_AddsParcel, TestSize.Level1)
 {
-    auto ctx = std::make_shared<RSLayerContextProbe>();
+    sptr<IRSRenderToComposerConnection> connection = sptr<RSRenderToComposerConnection>::MakeSptr("test", 0, nullptr);
+    auto ctx = std::make_shared<RSLayerContextProbe>(connection);
     auto layer = RSSurfaceRCDLayer::Create(ctx, 201u);
     ASSERT_NE(layer, nullptr);
 
@@ -99,7 +103,8 @@ HWTEST_F(RSSurfaceRCDLayerTest, RCDLayer_SetPixelMap_AddsParcel, TestSize.Level1
  */
 HWTEST_F(RSSurfaceRCDLayerTest, RCDLayer_IsScreenFlag, TestSize.Level1)
 {
-    auto ctx = std::make_shared<RSLayerContextProbe>();
+    sptr<IRSRenderToComposerConnection> connection = sptr<RSRenderToComposerConnection>::MakeSptr("test", 0, nullptr);
+    auto ctx = std::make_shared<RSLayerContextProbe>(connection);
     auto layer = RSSurfaceRCDLayer::Create(ctx, 202u);
     ASSERT_NE(layer, nullptr);
     EXPECT_TRUE(layer->IsScreenRCDLayer());
@@ -113,7 +118,8 @@ HWTEST_F(RSSurfaceRCDLayerTest, RCDLayer_IsScreenFlag, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRCDLayerTest, RCDLayer_SetPixelMap_Null_AddsParcel, TestSize.Level1)
 {
-    auto ctx = std::make_shared<RSLayerContextProbe>();
+    sptr<IRSRenderToComposerConnection> connection = sptr<RSRenderToComposerConnection>::MakeSptr("test", 0, nullptr);
+    auto ctx = std::make_shared<RSLayerContextProbe>(connection);
     auto layer = RSSurfaceRCDLayer::Create(ctx, 203u);
     ASSERT_NE(layer, nullptr);
 

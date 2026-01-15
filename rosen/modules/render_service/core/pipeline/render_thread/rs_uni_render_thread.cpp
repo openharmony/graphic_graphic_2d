@@ -596,19 +596,14 @@ void RSUniRenderThread::NotifyScreenNodeBufferReleased(ScreenId curScreenId)
     tmpCond->screenNodeBufferReleasedCond.notify_one();
 }
 
-void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo,
-    const std::shared_ptr<RSRenderComposerClient>& composerClient)
+void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo)
 {
     ScreenId curScreenId = releaseLayerInfo.screenId;
+    std::shared_ptr<RSRenderComposerClient> composerClient = GetRSRenderComposerClient(curScreenId);
     if (composerClient == nullptr) {
         RS_LOGE("GetRSRenderComposerClient failed, screenId:%{public}" PRIu64, curScreenId);
         return;
     }
-    composerClient->RegisterOnReleaseLayerBuffersCB([this](
-        std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
-        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec) {
-        bufferManager_.OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec);
-    });
     composerClient->ReleaseLayerBuffers(curScreenId, releaseLayerInfo.timestampVec,
         releaseLayerInfo.releaseBufferFenceVec);
     NotifyScreenNodeBufferReleased(curScreenId);
@@ -1267,6 +1262,10 @@ int RSUniRenderThread::GetMinAccumulatedBufferCount()
 void RSUniRenderThread::AddRenderComposerClient(ScreenId screenId,
     const std::shared_ptr<RSRenderComposerClient>& rsRenderComposerClient)
 {
+    if (rsRenderComposerClient == nullptr) {
+        RS_LOGE("%{public}s client nullptr", __func__);
+        return;
+    }
     RS_LOGI("RSUniRenderThread::AddRenderComposerClient rsRenderComposerClient[%{public}d]",
         rsRenderComposerClient != nullptr);
     if (GetRSRenderComposerClient(screenId)) {
@@ -1308,7 +1307,7 @@ void RSUniRenderThread::DumpSurfaceInfo(std::string &dumpString)
         for (auto iter = rsRenderComposerClients_.begin(); iter != rsRenderComposerClients_.end(); iter++) {
             if (iter->second != nullptr) {
                 dumpString.append("\n");
-                dumpString.append("-- LayerInfo " + std::to_string(iter->first) + "\n");
+                dumpString.append("-- LayerInfo [ScreenId: " + std::to_string(iter->first) + "]\n");
                 iter->second->DumpLayersInfo(dumpString);
             }
         }

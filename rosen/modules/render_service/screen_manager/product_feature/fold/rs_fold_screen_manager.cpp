@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_foldable_screen_manager.h"
+#include "rs_fold_screen_manager.h"
 #include <parameter.h>
 #include <parameters.h>
 #include <screen_manager/rs_screen_preprocessor.h>
@@ -22,7 +22,7 @@
 #include "platform/common/rs_system_properties.h"
 
 #undef LOG_TAG
-#define LOG_TAG "RSFoldableScreenManager"
+#define LOG_TAG "RSFoldScreenManager"
 namespace OHOS {
 namespace Rosen {
 constexpr float ANGLE_MIN_VAL = 0.0F;
@@ -36,15 +36,15 @@ constexpr uint16_t SENSOR_EVENT_FIRST_DATA = 0;
 const std::string BOOTEVENT_BOOT_COMPLETED = "bootevent.boot.completed";
 std::function<void(SensorEvent*)> sensorCallback = nullptr;
 
-RSFoldableScreenManager::~RSFoldableScreenManager() noexcept {}
+RSFoldScreenManager::~RSFoldScreenManager() noexcept {}
 
-void RSFoldableScreenManager::SetExternalScreenId(ScreenId externalScreenId)
+void RSFoldScreenManager::SetExternalScreenId(ScreenId externalScreenId)
 {
     RS_LOGI("%{public}s The externalScreenId_ is set %{public}" PRIu64 ".", __func__, externalScreenId);
     externalScreenId_ = externalScreenId;
 }
 
-void RSFoldableScreenManager::Init()
+void RSFoldScreenManager::Init()
 {
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     RS_LOGI("%{public}s FoldScreen need to RegisterSensorCallback.", __func__);
@@ -60,7 +60,7 @@ void RSFoldableScreenManager::Init()
 }
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-void RSFoldableScreenManager::HandleSensorData(float angle)
+void RSFoldScreenManager::HandleSensorData(float angle)
 {
     if (std::isless(angle, ANGLE_MIN_VAL) || std::isgreater(angle, ANGLE_MAX_VAL)) {
         RS_LOGW("%{public}s Invalid angle value, angle is %{public}f.", __func__, angle);
@@ -89,7 +89,7 @@ void RSFoldableScreenManager::HandleSensorData(float angle)
     activeScreenIdAssignedCV_.notify_one();
 }
 
-FoldState RSFoldableScreenManager::TransferAngleToScreenState(float angle)
+FoldState RSFoldScreenManager::TransferAngleToScreenState(float angle)
 {
     if (std::isless(angle, ANGLE_MIN_VAL)) {
         RS_LOGD("%{public}s: angle isless ANGLE_MIN_VAL.", __func__);
@@ -112,7 +112,7 @@ FoldState RSFoldableScreenManager::TransferAngleToScreenState(float angle)
 #endif // RS_SUBSCRIBE_SENSOR_ENABLE
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-ScreenId RSFoldableScreenManager::GetActiveScreenId()
+ScreenId RSFoldScreenManager::GetActiveScreenId()
 {
     std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
     if (isPostureSensorDataHandled_) {
@@ -128,14 +128,14 @@ ScreenId RSFoldableScreenManager::GetActiveScreenId()
     return activeScreenId_;
 }
 #else // RS_SUBSCRIBE_SENSOR_ENABLE
-ScreenId RSFoldableScreenManager::GetActiveScreenId()
+ScreenId RSFoldScreenManager::GetActiveScreenId()
 {
     return INVALID_SCREEN_ID;
 }
 #endif // RS_SUBSCRIBE_SENSOR_ENABLE
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-void RSFoldableScreenManager::RegisterSensorCallback()
+void RSFoldScreenManager::RegisterSensorCallback()
 {
     std::unique_lock<std::mutex> lock(registerSensorMutex_);
     if (hasRegisterSensorCallback_) {
@@ -143,7 +143,7 @@ void RSFoldableScreenManager::RegisterSensorCallback()
         return;
     }
     hasRegisterSensorCallback_ = true;
-    sensorCallback = std::bind(&RSFoldableScreenManager::HandlePostureData, this, std::placeholders::_1);
+    sensorCallback = std::bind(&RSFoldScreenManager::HandlePostureData, this, std::placeholders::_1);
     sensorUser_.callback = [](SensorEvent* event) { sensorCallback(event); };
     int32_t subscribeRet;
     int32_t setBatchRet;
@@ -170,7 +170,7 @@ void RSFoldableScreenManager::RegisterSensorCallback()
     }
 }
 
-void RSFoldableScreenManager::UnRegisterSensorCallback()
+void RSFoldScreenManager::UnRegisterSensorCallback()
 {
     std::unique_lock<std::mutex> lock(registerSensorMutex_);
     if (!hasRegisterSensorCallback_) {
@@ -188,16 +188,16 @@ void RSFoldableScreenManager::UnRegisterSensorCallback()
     }
 }
 
-void RSFoldableScreenManager::OnBootComplete(const char* key, const char* value, void *context)
+void RSFoldScreenManager::OnBootComplete(const char* key, const char* value, void *context)
 {
     if (strcmp(key, BOOTEVENT_BOOT_COMPLETED.c_str()) == 0 && strcmp(value, "true") == 0) {
-        RSFoldableScreenManager* foldScreenManager = nullptr;
+        RSFoldScreenManager* foldScreenManager = nullptr;
         if (!context) {
             RS_LOGI("%{public}s: data is nullptr", __func__);
         } else {
             RS_LOGI("%{public}s: data is not nullptr", __func__);
         }
-        foldScreenManager = static_cast<RSFoldableScreenManager*>(context);
+        foldScreenManager = static_cast<RSFoldScreenManager*>(context);
         if (!foldScreenManager) {
             RS_LOGE("%{public}s: processor is nullptr", __func__);
             return;
@@ -209,13 +209,13 @@ void RSFoldableScreenManager::OnBootComplete(const char* key, const char* value,
     }
 }
 
-void RSFoldableScreenManager::OnBootCompleteEvent()
+void RSFoldScreenManager::OnBootCompleteEvent()
 {
     RS_LOGI("%{public}s: UnRegisterSensorCallback", __func__);
     UnRegisterSensorCallback();
 }
 
-void RSFoldableScreenManager::HandlePostureData(const SensorEvent* const event)
+void RSFoldScreenManager::HandlePostureData(const SensorEvent* const event)
 {
     if (event == nullptr) {
         RS_LOGW("%{public}s SensorEvent is nullptr.", __func__);

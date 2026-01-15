@@ -972,7 +972,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenActiveRect001, TestSize.Level1)
     ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
-    GraphicIRect activeRect {
+    Rect activeRect {
         .x = 0,
         .y = 0,
         .w = 0,

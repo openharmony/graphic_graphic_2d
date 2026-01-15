@@ -5400,6 +5400,11 @@ void RSMainThread::HandlePowerStatusChanged(ScreenId id,
     if (!powerStatusProperty) {
         return;
     }
+
+    // set discard jank frames flag for screen on/off animation
+    SetDiscardJankFrames(true);
+    RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(true);
+
     auto curStatus = static_cast<ScreenPowerStatus>(powerStatusProperty->Get());
     if (curStatus != ScreenPowerStatus::POWER_STATUS_ON &&
         curStatus != ScreenPowerStatus::POWER_STATUS_ON_ADVANCED) {
@@ -5457,13 +5462,11 @@ void RSMainThread::UpdateScreenProperty(
         RS_LOGE("%{public}s, property is nullptr.", __func__);
         return;
     }
-    RS_LOGI("%{public}s, screen id: %{public}" PRIu64 ", type: %{public}u", __func__, id, static_cast<uint32_t>(type));
 
     auto updateProperty = [id, type, property](const std::shared_ptr<RSScreenRenderNode>& node) {
         if (node && node->GetScreenId() == id) {
-            auto oldProperty = node->GetScreenProperty();
             node->UpdateScreenProperty(type, property);
-            RSSpecialLayerUtils::UpdateScreenSpecialLayer(node->GetScreenProperty(), oldProperty);
+            RSSpecialLayerUtils::UpdateScreenSpecialLayer(node->GetScreenProperty(), type);
             if (type == ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE) {
                 auto refreshRate = node->GetScreenProperty().GetRefreshRate();
                 RSRealtimeRefreshRateManager::Instance().UpdateScreenRefreshRate(id, refreshRate);

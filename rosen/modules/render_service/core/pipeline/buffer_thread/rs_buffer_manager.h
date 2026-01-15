@@ -62,7 +62,7 @@ public:
 
     void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence);
 
-    void AddPendingReleaseBuffer(uint64_t seqNum, sptr<SyncFence> fence);
+    void AddPendingReleaseBuffer(uint64_t bufferId, sptr<SyncFence> fence);
 
     void OnDrawStart()
     {
@@ -88,7 +88,7 @@ public:
     void ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& uniBufferCount,
         sptr<SyncFence>& uniFence, std::set<uint32_t>& decedSet,
         std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers);
-    void ReleaseBufferById(uint64_t seqNum);
+    void ReleaseBufferById(uint64_t bufferId);
 
 private:
     struct PendingReleaseBufferInfo {

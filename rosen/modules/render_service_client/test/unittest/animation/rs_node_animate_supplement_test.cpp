@@ -689,7 +689,15 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest023, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest024, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest024 start";
-    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus(rsUiDirector->GetRSUIContext());
+    auto rsUIContext = rsUiDirector->GetRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    auto rsImplicitAnimator = rsUIContext->GetRSImplicitAnimator();
+    ASSERT_NE(rsImplicitAnimator, nullptr);
+    rsImplicitAnimator->globalImplicitParams_ = {};
+    rsImplicitAnimator->implicitAnimations_ = {};
+    rsImplicitAnimator->keyframeAnimations_ = {};
+    rsImplicitAnimator->durationKeyframeParams_ = {};
+    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus(rsUIContext);
     EXPECT_EQ(ret, CancelAnimationStatus::NO_OPEN_CLOSURE);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest024 end";
 }

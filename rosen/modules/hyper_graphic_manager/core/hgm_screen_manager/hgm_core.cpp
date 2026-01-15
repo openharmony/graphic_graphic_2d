@@ -407,7 +407,7 @@ void HgmCore::NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
     }
 }
 
-void HgmCore::NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& activeRect)
+void HgmCore::NotifyScreenRectFrameRateChange(ScreenId id, const Rect& activeRect)
 {
     if (hgmFrameRateMgr_ != nullptr) {
         hgmFrameRateMgr_->HandleScreenRectFrameRate(id, activeRect);

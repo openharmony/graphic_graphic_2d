@@ -72,8 +72,7 @@ public:
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
 
     void UnRegisterCond(ScreenId curScreenId);
-    void ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo,
-        const std::shared_ptr<RSRenderComposerClient>& composerClient);
+    void ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo);
     bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
@@ -271,6 +270,12 @@ public:
         sptr<SyncFence> fence)
     {
         bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence);
+    }
+
+    void OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
+        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec)
+    {
+        bufferManager_.OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec);
     }
 
     void OnDrawBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer,

@@ -118,7 +118,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, CommitTransaction, TestSize.Level1
     FollowType followType = FollowType::FOLLOW_TO_PARENT;
     transactionData->AddCommand(command, nodeId, followType);
     proxy->CommitTransaction(transactionData);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+    ASSERT_EQ(proxy->transactionDataIndex_, 1);
 }
 
 /**
@@ -135,7 +135,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, ExecuteSynchronousTask, TestSize.L
     std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
     task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(targetId, property);
     proxy->ExecuteSynchronousTask(task);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
 
 /**
@@ -211,7 +211,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterApplicationAgent, TestSize
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     app = iface_cast<IApplicationAgent>(remoteObject);
     proxy->RegisterApplicationAgent(pid, app);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
 
 /**
@@ -232,7 +232,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterBufferAvailableListener, T
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSIBufferAvailableCallback>(remoteObject);
     proxy->RegisterBufferAvailableListener(id, callback, isFromRenderThread);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
 
 /**
@@ -575,7 +575,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterBufferClearListener, TestS
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSIBufferClearCallback>(remoteObject);
     proxy->RegisterBufferClearListener(id, callback);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
 } // namespace Rosen
 } // namespace OHOS

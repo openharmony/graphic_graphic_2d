@@ -47,6 +47,7 @@ private:
     static inline sptr<IBufferProducer> producer = nullptr;
     static inline sptr<Surface> psurf = nullptr;
     static NodeId id;
+    static std::shared_ptr<RSUniRenderThread> uniRenderThread_;
 };
 } // namespace ROSEN
 } // namespace OHOS

@@ -37,7 +37,8 @@ private:
         void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
             const sptr<RSScreenProperty>& property) override {};
         void OnHwcDead(ScreenId id) override {};
-        void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override {};
+        void OnScreenPropertyChanged(
+            ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property) override {};
         void OnScreenRefresh(ScreenId id) override {};
         void OnVBlankIdle(ScreenId id, uint64_t ns) override {};
         void OnVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId,
@@ -46,6 +47,7 @@ private:
         void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override {};
         void OnActiveScreenIdChanged(ScreenId activeScreenId) override {};
         void OnScreenBacklightChanged(ScreenId id, uint32_t level) override {};
+        void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override {};
     };
 
     std::shared_ptr<RSScreenCallbackManager> callbackMgr_ = std::make_shared<RSScreenCallbackManager>();
@@ -103,9 +105,7 @@ HWTEST_F(RSScreenCallbackManagerTest, AddOrRemoveAgentListenerTest, TestSize.Lev
 HWTEST_F(RSScreenCallbackManagerTest, NotifyScreenConnectedAndDisconnectTest, TestSize.Level0)
 {
     ScreenId screenId = 100;
-    sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
-    property->isVirtual_ = true;
-    ScreenPresenceEvent event { .id = screenId, .output = nullptr, .property = property };
+    ScreenPresenceEvent event { .id = screenId, .output = nullptr };
     if (callbackMgr_->coreListener_) {
         callbackMgr_->coreListener_ = nullptr;
     }
@@ -131,13 +131,12 @@ HWTEST_F(RSScreenCallbackManagerTest, NotifyScreenConnectedAndDisconnectTest, Te
 HWTEST_F(RSScreenCallbackManagerTest, NotifyScreenPropertyUpdatedTest, TestSize.Level0)
 {
     ScreenId screenId = 100;
-    sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
-    property->isVirtual_ = true;
+    sptr<ScreenPropertyBase> property = sptr<ScreenProperty<bool>>::MakeSptr();
     ASSERT_EQ(callbackMgr_->coreListener_, nullptr);
-    callbackMgr_->NotifyScreenPropertyUpdated(screenId, property);
+    callbackMgr_->NotifyScreenPropertyUpdated(screenId, ScreenPropertyType::IS_VIRTUAL, property);
     callbackMgr_->SetCoreListener(coreListener_);
     ASSERT_NE(callbackMgr_->coreListener_, nullptr);
-    callbackMgr_->NotifyScreenPropertyUpdated(screenId, property);
+    callbackMgr_->NotifyScreenPropertyUpdated(screenId, ScreenPropertyType::IS_VIRTUAL, property);
     callbackMgr_->coreListener_ = nullptr;
 }
 
@@ -167,8 +166,7 @@ HWTEST_F(RSScreenCallbackManagerTest, NotifyScreenRefreshTest, TestSize.Level0)
 HWTEST_F(RSScreenCallbackManagerTest, NotifyHwcRestoredTest, TestSize.Level0)
 {
     ScreenId screenId = 100;
-    sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
-    ScreenPresenceEvent event { .id = screenId, .output = nullptr, .property = property };
+    ScreenPresenceEvent event { .id = screenId, .output = nullptr };
     ASSERT_EQ(callbackMgr_->coreListener_, nullptr);
     callbackMgr_->NotifyHwcRestored(event);
     callbackMgr_->SetCoreListener(coreListener_);
@@ -232,21 +230,22 @@ HWTEST_F(RSScreenCallbackManagerTest, NotifyVBlankIdleTest, TestSize.Level0)
 }
 
 /*
- * @tc.name: NotifyVirtualScreenPresenceChangedTest
- * @tc.desc: Test NotifyVirtualScreenPresenceChanged
+ * @tc.name: NotifyVirtualScreenConnectedAndDisconnectedTest
+ * @tc.desc: Test NotifyVirtualScreenConnected and NotifyVirtualScreenDisconnected
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSScreenCallbackManagerTest, NotifyVirtualScreenPresenceChangedTest, TestSize.Level0)
+HWTEST_F(RSScreenCallbackManagerTest, NotifyVirtualScreenConnectedAndDisconnectedTest, TestSize.Level0)
 {
     ScreenId screenId = 100;
     sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
     ASSERT_EQ(callbackMgr_->coreListener_, nullptr);
-    callbackMgr_->NotifyVirtualScreenPresenceChanged(screenId, true, INVALID_SCREEN_ID, property);
+    callbackMgr_->NotifyVirtualScreenConnected(screenId, INVALID_SCREEN_ID, property);
+    callbackMgr_->NotifyVirtualScreenDisconnected(screenId);
     callbackMgr_->SetCoreListener(coreListener_);
     ASSERT_NE(callbackMgr_->coreListener_, nullptr);
-    callbackMgr_->NotifyVirtualScreenPresenceChanged(screenId, true, INVALID_SCREEN_ID, property);
-    callbackMgr_->NotifyVirtualScreenPresenceChanged(screenId, false, INVALID_SCREEN_ID, property);
+    callbackMgr_->NotifyVirtualScreenConnected(screenId, INVALID_SCREEN_ID, property);
+    callbackMgr_->NotifyVirtualScreenDisconnected(screenId);
     callbackMgr_->coreListener_ = nullptr;
 }
 

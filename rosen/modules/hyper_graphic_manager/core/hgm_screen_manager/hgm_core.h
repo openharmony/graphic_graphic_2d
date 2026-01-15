@@ -94,7 +94,7 @@ public:
     int32_t SetRefreshRateMode(int32_t refreshRateMode);
 
     void NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
-    void NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& activeRect);
+    void NotifyScreenRectFrameRateChange(ScreenId id, const Rect& activeRect);
 
     // screen interface
     int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize, bool& isSelfOwnedScreen, 
@@ -192,7 +192,6 @@ private:
     std::atomic<bool> lowRateToHighQuickSwitch_{ false };
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
     RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
-    std::atomic<bool> doDirectComposition_{ false };
     bool enableDynamicMode_ = true;
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
@@ -204,8 +203,6 @@ private:
     std::atomic<bool> isVsyncOffsetCustomized_{ false };
 
     RSScreenManager* screenManager_;
-
-    friend class HWCParam;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

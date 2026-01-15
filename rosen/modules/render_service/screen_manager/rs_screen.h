@@ -117,7 +117,7 @@ public:
     int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const;
     int32_t GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const;
 
-    uint32_t SetScreenActiveRect(const GraphicIRect& activeRect);
+    uint32_t SetScreenActiveRect(const Rect& activeRect);
     RectI GetActiveRect() const;
     RectI GetMaskRect() const;
     RectI GetReviseRect() const;
@@ -174,7 +174,7 @@ private:
     void VirtualScreenInit() noexcept;
     void InitDisplayPropertyForHardCursor();
     void WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode);
-    bool CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect, RectI& maskRect);
+    bool CalculateMaskRectAndReviseRect(const Rect& activeRect, Rect& reviseRect, RectI& maskRect);
 
     void ModeInfoDump(std::string& dumpString);
     void CapabilityDump(std::string& dumpString);

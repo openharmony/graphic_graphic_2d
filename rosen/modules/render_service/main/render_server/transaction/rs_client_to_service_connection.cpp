@@ -815,16 +815,6 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         screenManagerAgent_->SetScreenPowerStatus(id, status);
-        if (!renderProcessManagerAgent_) {
-            RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr.", __func__);
-        } else {
-            auto serviceToRenderConn = renderProcessManagerAgent_->GetServiceToRenderConn(id);
-            if (!serviceToRenderConn) {
-                RS_LOGE("%{public}s serviceToRenderConn is nullptr.", __func__);
-            } else {
-                serviceToRenderConn->SetDiscardJankFrames(true);
-            }
-        }
         HgmTaskHandleThread::Instance().PostTask([id, status]() {
             HgmCore::Instance().NotifyScreenPowerStatus(id, status);
         });
@@ -1280,27 +1270,9 @@ ErrCode RSClientToServiceConnection::SetScreenActiveRect(ScreenId id, const Rect
         repCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    GraphicIRect dstActiveRect {
-        .x = activeRect.x,
-        .y = activeRect.y,
-        .w = activeRect.w,
-        .h = activeRect.h,
-    };
-    if (!renderServiceAgent_) {
-        repCode = StatusCode::INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [weakScreenManager = wptr<RSScreenManager>(screenManagerAgent_), id, dstActiveRect]() -> void {
-        sptr<RSScreenManager> screenManager = weakScreenManager.promote();
-        if (!screenManager) {
-            return;
-        }
-        screenManager->SetScreenActiveRect(id, dstActiveRect);
-    };
-    renderServiceAgent_->ScheduleTask(std::move(task)).wait();
-
-    HgmTaskHandleThread::Instance().PostTask([id, dstActiveRect]() {
-        HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
+    screenManagerAgent_->SetScreenActiveRect(id, activeRect);
+    HgmTaskHandleThread::Instance().PostTask([id, activeRect]() {
+        HgmCore::Instance().NotifyScreenRectFrameRateChange(id, activeRect);
     });
     repCode = StatusCode::SUCCESS;
     return ERR_OK;

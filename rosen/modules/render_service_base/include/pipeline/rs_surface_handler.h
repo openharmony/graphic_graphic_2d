@@ -65,20 +65,20 @@ public:
         BufferOwnerCount() {}
 
         ~BufferOwnerCount() {
-            if (bufferReleaseCb_ != nullptr && seqNum_ != 0) {
-                RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount seqNum %u refCount_ %u",
-                    uint32_t(seqNum_), refCount_.load());
-                bufferReleaseCb_(seqNum_);
+            if (bufferReleaseCb_ != nullptr && bufferId_ != 0) {
+                RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount bufferId % " PRIu64 " refCount_ %u",
+                    bufferId_, refCount_.load());
+                bufferReleaseCb_(bufferId_);
                 bufferReleaseCb_ = nullptr;
             }
         }
 
         void AddRef()
         {
-            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::AddRef seqNum %u refCount_ %u", uint32_t(seqNum_),
+            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::AddRef bufferId % " PRIu64 " refCount_ %u", bufferId_,
                 refCount_.load());
-            if (seqNum_ == 0) {
-                RS_LOGE("BufferOwnerCount::AddRef seqNum %{public}u ret %{public}u", uint32_t(seqNum_),
+            if (bufferId_ == 0) {
+                RS_LOGE("BufferOwnerCount::AddRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
                     refCount_.load());
                 return;
             }
@@ -87,10 +87,10 @@ public:
 
         void DecRef()
         {
-            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::DecRef seqNum %u refCount_ %u", uint32_t(seqNum_),
+            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::DecRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
                 refCount_.load());
-            if (seqNum_ == 0) {
-                RS_LOGE("BufferOwnerCount::DecRef seqNum %{public}u ret %{public}u", uint32_t(seqNum_),
+            if (bufferId_ == 0) {
+                RS_LOGE("BufferOwnerCount::DecRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
                     refCount_.load());
                 return;
             }
@@ -100,7 +100,7 @@ public:
                     RS_LOGE("BufferOwnerCount::DecRef bufferReleaseCb_ is nullptr");
                     return;
                 }
-                bufferReleaseCb_(seqNum_);
+                bufferReleaseCb_(bufferId_);
                 bufferReleaseCb_ = nullptr;
             }
         }
@@ -109,31 +109,31 @@ public:
             DecRef();
         }
 
-        void InsertUniOnDrawSet(uint64_t layerId, uint64_t seqNum)
+        void InsertUniOnDrawSet(uint64_t layerId, uint64_t bufferId)
         {
             std::lock_guard<std::mutex> lock(mapMutex_);
             uniOnDrawBufferMap_.erase(layerId);
-            uniOnDrawBufferMap_[layerId] = seqNum;
+            uniOnDrawBufferMap_[layerId] = bufferId;
         }
 
-        void SetUniBufferOwner(uint64_t seqNum)
+        void SetUniBufferOwner(uint64_t bufferId)
         {
             std::lock_guard<std::mutex> lock(mapMutex_);
-            uniBufferOwnerSeqNum_ = seqNum;
+            uniBufferOwnerId_ = bufferId;
         }
 
-        bool CheckLastUniBufferOwner(uint64_t seqNum)
+        bool CheckLastUniBufferOwner(uint64_t bufferId)
         {
             std::lock_guard<std::mutex> lock(mapMutex_);
-            return uniBufferOwnerSeqNum_ == seqNum;
+            return uniBufferOwnerId_ == bufferId;
         }
 
         std::mutex mapMutex_;
         std::map<uint64_t, uint64_t> uniOnDrawBufferMap_;
         std::atomic<int32_t> refCount_{1};
-        uint64_t seqNum_ = 0;
+        uint64_t bufferId_ = 0;
         OnReleaseBufferFunc bufferReleaseCb_ = nullptr;
-        uint64_t uniBufferOwnerSeqNum_ = 0;
+        uint64_t uniBufferOwnerId_ = 0;
     };
 
     struct SurfaceBufferEntry {

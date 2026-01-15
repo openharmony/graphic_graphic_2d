@@ -1010,8 +1010,8 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         surfaceBuffer->buffer = returnValue.buffer;
         surfaceBuffer->acquireFence = returnValue.fence;
         surfaceBuffer->timestamp = returnValue.timestamp;
-        surfaceBuffer->RegisterReleaseBufferListener([](uint64_t seqNum){
-            RSUniRenderThread::Instance().ReleaseBufferById(seqNum);
+        surfaceBuffer->RegisterReleaseBufferListener([](uint64_t bufferId){
+            RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
         });
         RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer, SyncFence::InvalidFence());
         RS_LOGD_IF(DEBUG_PIPELINE,

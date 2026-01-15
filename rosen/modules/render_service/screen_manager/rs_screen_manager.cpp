@@ -80,20 +80,20 @@ bool RSScreenManager::Init(const std::shared_ptr<AppExecFwk::EventHandler>& main
     preprocessor_ = std::make_unique<RSScreenPreprocessor>(
         *this, *callbackMgr_, mainHandler, isFoldScreenFlag_);
     if (isFoldScreenFlag_) {
-        foldableScreenManager_ = std::make_unique<RSFoldableScreenManager>(*preprocessor_);
+        foldScreenManager_ = std::make_unique<RSFoldScreenManager>(*preprocessor_);
     }
     if (!preprocessor_->Init()) {
         return false;
     }
-    if (foldableScreenManager_) {
-        foldableScreenManager_->Init();
+    if (foldScreenManager_) {
+        foldScreenManager_->Init();
     }
     return true;
 }
 
 ScreenId RSScreenManager::GetActiveScreenId()
 {
-    return foldableScreenManager_ ? foldableScreenManager_->GetActiveScreenId() : INVALID_SCREEN_ID;
+    return foldScreenManager_ ? foldScreenManager_->GetActiveScreenId() : INVALID_SCREEN_ID;
 }
 
 void RSScreenManager::OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens)
@@ -184,8 +184,8 @@ void RSScreenManager::ProcessScreenConnected(ScreenId id)
         defaultScreenId = id;
     }
     defaultScreenId_ = defaultScreenId;
-    if (foldableScreenManager_ && id != 0) {
-        foldableScreenManager_->SetExternalScreenId(id);
+    if (foldScreenManager_ && id != 0) {
+        foldScreenManager_->SetExternalScreenId(id);
     }
     std::lock_guard<std::mutex> connectLock(hotPlugAndConnectMutex_);
     pendingConnectedIds_.emplace_back(id);
@@ -787,7 +787,7 @@ uint32_t RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
     return screen->SetActiveMode(modeId);
 }
 
-uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect)
+uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {

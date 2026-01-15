@@ -140,6 +140,7 @@ ohos_unittest("RSSurfaceCaptureParallelTaskTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "eventhandler:libeventhandler",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
@@ -871,6 +872,7 @@ ohos_unittest("LppVideoHandlerTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "lpp/lpp_collector_layer_test.cpp",
     "lpp/lpp_video_handler_test.cpp",
   ]
   deps = [
