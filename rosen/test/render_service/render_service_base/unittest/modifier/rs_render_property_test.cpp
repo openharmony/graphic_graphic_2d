@@ -214,34 +214,6 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC002, TestSize.Level1)
     }
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: OnChange
- * @tc.desc: Test OnChange and Marshalling
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSRenderPropertyTest, OnChange, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderPropertyBase> base = std::make_shared<RSRenderProperty<bool>>();
-    RSRenderNode node(1);
-    base->OnChange();
-    base->Attach(node);
-    base->modifierType_ = RSModifierType::FOREGROUND_COLOR;
-    base->OnChange();
-    base->modifierType_ = RSModifierType::POSITION_Z;
-    base->OnChange();
-    base->modifierType_ = RSModifierType::FOREGROUND_STYLE;
-    base->OnChange();
-
-    base->UpdatePropertyUnit(RSModifierType::FRAME);
-    base->UpdatePropertyUnit(RSModifierType::SCALE);
-    base->UpdatePropertyUnit(RSModifierType::ROTATION_X);
-    base->UpdatePropertyUnit(RSModifierType::CLIP_BOUNDS);
-    ASSERT_EQ(base->node_.lock(), nullptr);
-}
-#endif
-
 /**
  * @tc.name: IsNearEqual
  * @tc.desc: Test IsNearEqual

@@ -1973,28 +1973,6 @@ HWTEST_F(RSRenderNodeTest, RSUIContextDumpTest, TestSize.Level1)
     ASSERT_TRUE(outTest.find("RSUIContextToken") != string::npos);
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: IsContentNodeTest003
- * @tc.desc: IsContentNode test
- * @tc.type: FUNC
- * @tc.require: issueI9US6V
- */
-HWTEST_F(RSRenderNodeTest, IsContentNodeTest003, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-    nodeTest->drawCmdModifiers_.clear();
-    nodeTest->renderProperties_.isDrawn_ = false;
-    EXPECT_TRUE(nodeTest->IsContentNode());
-    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property =
-        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    nodeTest->drawCmdModifiers_[RSModifierType::CONTENT_STYLE].emplace_back(
-        std::make_shared<RSDrawCmdListRenderModifier>(property));
-    EXPECT_TRUE(nodeTest->IsContentNode());
-}
-#endif
-
 /**
  * @tc.name: AddChildTest004
  * @tc.desc: AddChild test
@@ -2815,161 +2793,6 @@ HWTEST_F(RSRenderNodeTest, SetRenderGroupSubTreeDirtyTest, TestSize.Level1)
     EXPECT_FALSE(nodeTest->IsRenderGroupSubTreeDirty());
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RemoveModifierTest014
- * @tc.desc: RemoveModifier test
- * @tc.type: FUNC
- * @tc.require: issueI9US6V
- */
-HWTEST_F(RSRenderNodeTest, ProcessTest014, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-
-    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest1 =
-        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    std::shared_ptr<RSDrawCmdListRenderModifier> modifier1 =
-        std::make_shared<RSDrawCmdListRenderModifier>(propertyTest1);
-    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest2 =
-        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    std::shared_ptr<RSDrawCmdListRenderModifier> modifier2 =
-        std::make_shared<RSDrawCmdListRenderModifier>(propertyTest2);
-
-    nodeTest->modifiers_.emplace(0, modifier1);
-    nodeTest->modifiers_.emplace(1, modifier2);
-    nodeTest->properties_.emplace(1, propertyTest1);
-
-    EXPECT_EQ(nodeTest->modifiers_.size(), 2);
-    nodeTest->RemoveModifier(1);
-    EXPECT_EQ(nodeTest->modifiers_.size(), 1);
-    nodeTest->RemoveModifier(1);
-    EXPECT_EQ(nodeTest->modifiers_.size(), 1);
-}
-
-/**
- * @tc.name: AccumulateDirtyInOcclusionTest015
- * @tc.desc: AccumulateDirtyInOcclusion
- * @tc.type: FUNC
- * @tc.require: issueI9US6V
- */
-HWTEST_F(RSRenderNodeTest, AccumulateDirtyInOcclusionTest015, TestSize.Level1)
-{
-    // AccumulateDirtyInOcclusion AccumulateDirtyTypes AccumulateDirtyStatus GetMutableRenderProperties
-    // ResetAccumulateDirtyTypes ResetAccumulateDirtyStatus RecordCurDirtyTypes test
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-    nodeTest->curDirtyTypes_.set(static_cast<size_t>(RSModifierType::PIVOT_Z), true);
-    nodeTest->curDirtyTypes_.set(static_cast<size_t>(RSModifierType::PERSP), true);
-
-    nodeTest->AccumulateDirtyInOcclusion(true);
-    nodeTest->AccumulateDirtyInOcclusion(false);
-
-    nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::PIVOT_Z), true);
-    nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::PERSP), true);
-    nodeTest->RecordCurDirtyTypes();
-}
-
-/**
- * @tc.name: GenerateFullChildrenListTest016
- * @tc.desc: RemoveModifier and ApplyPositionZModifier test
- * @tc.type: FUNC
- * @tc.require: issueI9US6V
- */
-HWTEST_F(RSRenderNodeTest, GenerateFullChildrenListTest016, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-
-    nodeTest->isFullChildrenListValid_ = false;
-    nodeTest->GenerateFullChildrenList();
-    EXPECT_TRUE(nodeTest->isFullChildrenListValid_);
-
-    std::shared_ptr<RSRenderNode> childrenTest1 = nullptr;
-    std::shared_ptr<RSRenderNode> childrenTest2 = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(childrenTest2, nullptr);
-    std::shared_ptr<RSRenderNode> childrenTest3 = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(childrenTest3, nullptr);
-    nodeTest->children_.emplace_back(childrenTest1);
-    nodeTest->isContainBootAnimation_ = true;
-    childrenTest2->isBootAnimation_ = false;
-    childrenTest2->isBootAnimation_ = true;
-    nodeTest->children_.emplace_back(childrenTest2);
-
-    std::shared_ptr<RSRenderNode> disappearingChildrenTest1 = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(disappearingChildrenTest1, nullptr);
-    std::shared_ptr<RSRenderNode> disappearingChildrenTest2 = std::make_shared<RSRenderNode>(1);
-    EXPECT_NE(disappearingChildrenTest2, nullptr);
-    disappearingChildrenTest1->isBootAnimation_ = false;
-    nodeTest->disappearingChildren_.emplace_back(std::pair(disappearingChildrenTest1, 0));
-    nodeTest->disappearingChildren_.emplace_back(std::pair(disappearingChildrenTest2, 1));
-
-    // ApplyPositionZModifier test
-    disappearingChildrenTest1->dirtyTypes_.set(static_cast<size_t>(RSModifierType::POSITION_Z), false);
-    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest1 =
-        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    EXPECT_NE(propertyTest1, nullptr);
-    std::shared_ptr<RSDrawCmdListRenderModifier> modifier1 =
-        std::make_shared<RSDrawCmdListRenderModifier>(propertyTest1);
-    EXPECT_NE(modifier1, nullptr);
-    modifier1->SetType(RSModifierType::POSITION_Z);
-    disappearingChildrenTest2->modifiers_.emplace(0, modifier1);
-
-    nodeTest->isChildrenSorted_ = false;
-    nodeTest->GenerateFullChildrenList();
-    EXPECT_TRUE(nodeTest->isChildrenSorted_);
-
-    disappearingChildrenTest2->dirtyTypes_.set(static_cast<size_t>(RSModifierType::POSITION_Z), true);
-    nodeTest->isChildrenSorted_ = false;
-    nodeTest->GenerateFullChildrenList();
-    EXPECT_TRUE(nodeTest->isChildrenSorted_);
-}
-
-/**
- * @tc.name: ApplyModifiersTest017
- * @tc.desc: ApplyModifiers test
- * @tc.type: FUNC
- * @tc.require: issueI9US6V
- */
-HWTEST_F(RSRenderNodeTest, ApplyModifiersTest017, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest1 =
-        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    EXPECT_NE(propertyTest1, nullptr);
-    std::shared_ptr<RSDrawCmdListRenderModifier> modifier1 =
-        std::make_shared<RSDrawCmdListRenderModifier>(propertyTest1);
-    EXPECT_NE(modifier1, nullptr);
-    modifier1->SetType(RSModifierType::POSITION_Z);
-    nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::POSITION_Z), false);
-    nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::SANDBOX), true);
-    nodeTest->modifiers_.emplace(0, modifier1);
-    nodeTest->isFullChildrenListValid_ = false;
-    nodeTest->renderProperties_.alpha_ = 0.0f;
-    RSRenderNode::SharedPtr inNode = std::make_shared<RSRenderNode>(0);
-    RSRenderNode::SharedPtr outNode = std::make_shared<RSRenderNode>(0);
-    std::shared_ptr<SharedTransitionParam> sharedTransitionParam =
-        std::make_shared<SharedTransitionParam>(inNode, outNode, true);
-    nodeTest->sharedTransitionParam_ = sharedTransitionParam;
-    nodeTest->GenerateFullChildrenList();
-    EXPECT_TRUE(nodeTest->isFullChildrenListValid_);
-
-    nodeTest->modifiers_.clear();
-    nodeTest->isChildrenSorted_ = false;
-    nodeTest->GenerateFullChildrenList();
-
-    nodeTest->isChildrenSorted_ = true;
-    nodeTest->childrenHasSharedTransition_ = true;
-    nodeTest->GenerateFullChildrenList();
-
-    nodeTest->dirtyTypes_.reset();
-    EXPECT_TRUE(nodeTest->dirtyTypes_.none());
-    nodeTest->childrenHasSharedTransition_ = false;
-    nodeTest->GenerateFullChildrenList();
-}
-#endif
-
 /**
  * @tc.name: InvalidateHierarchyTest018
  * @tc.desc: MarkParentNeedRegenerateChildren test
@@ -3086,23 +2909,6 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     nodeTest->renderProperties_.hasHarmonium_ = true;
     nodeTest->UpdateEffectRegion(region, true);
 
-#ifndef MODIFIER_NG
-    // GetModifier test
-    std::shared_ptr<RSDrawCmdListRenderModifier> modifier = nullptr;
-    nodeTest->modifiers_.emplace(0, modifier);
-    EXPECT_EQ(nodeTest->GetModifier(0), nullptr);
-    EXPECT_EQ(nodeTest->GetModifier(1), nullptr);
-    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest =
-        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    EXPECT_NE(propertyTest, nullptr);
-    std::shared_ptr<RSDrawCmdListRenderModifier> drawCmdModifiersTest =
-        std::make_shared<RSDrawCmdListRenderModifier>(propertyTest);
-    EXPECT_NE(drawCmdModifiersTest, nullptr);
-    drawCmdModifiersTest->property_->id_ = 1;
-    nodeTest->drawCmdModifiers_[RSModifierType::BOUNDS].emplace_back(drawCmdModifiersTest);
-    EXPECT_NE(nodeTest->GetModifier(1), nullptr);
-#endif
-
     // FilterModifiersByPid test
     nodeTest->FilterModifiersByPid(1);
 
@@ -3127,31 +2933,6 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     nodeTest->SetSharedTransitionParam(sharedTransitionParam);
     EXPECT_NE(nodeTest->sharedTransitionParam_, nullptr);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: CheckGroupableAnimationTest028
- * @tc.desc: CheckGroupableAnimation test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest, CheckGroupableAnimationTest028, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-
-    nodeTest->CheckGroupableAnimation(0, true);
-
-    nodeTest->CheckGroupableAnimation(1, true);
-
-    std::shared_ptr<RSCanvasRenderNode> canvasRenderNodeTest = std::make_shared<RSCanvasRenderNode>(0);
-    EXPECT_NE(canvasRenderNodeTest, nullptr);
-    std::shared_ptr<RSContext> context = nullptr;
-    nodeTest->context_ = context;
-    // RSSystemProperties::GetAnimationCacheEnabled() is false
-    canvasRenderNodeTest->CheckGroupableAnimation(1, true);
-}
-#endif
 
 /**
  * @tc.name: MarkFilterCacheFlags001

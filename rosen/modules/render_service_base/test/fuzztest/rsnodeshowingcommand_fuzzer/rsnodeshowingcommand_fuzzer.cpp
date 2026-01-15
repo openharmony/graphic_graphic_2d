@@ -117,10 +117,6 @@ namespace OHOS {
         data_ = data;
         size_ = size;
         pos = 0;
-#ifndef MODIFIER_NG
-        RSNodeGetShowingPropertyAndCancelAnimationFuzzerTest();
-        RSNodeGetShowingPropertiesAndCancelAnimationFuzzerTest();
-#endif
         RSNodeGetAnimationsValueFractionFuzzerTest();
         return true;
     }

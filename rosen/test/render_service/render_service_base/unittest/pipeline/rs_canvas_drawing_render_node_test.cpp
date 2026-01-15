@@ -64,37 +64,6 @@ void RSCanvasDrawingRenderNodeTest::TearDownTestCase()
 void RSCanvasDrawingRenderNodeTest::SetUp() {}
 void RSCanvasDrawingRenderNodeTest::TearDown() {}
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: ProcessRenderContentsTest
- * @tc.desc: test results of ProcessRenderContents
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsTest, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    std::weak_ptr<RSContext> context;
-    RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
-    rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
-
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
-        std::make_shared<RSGeometryTransRenderModifier>(property);
-    std::shared_ptr<RSRenderModifier> modifier = modifierCast;
-    modifierCast->drawStyle_ = RSModifierType::BOUNDS;
-    rsCanvasDrawingRenderNode.boundsModifier_ = modifier;
-    rsCanvasDrawingRenderNode.AddGeometryModifier(modifier);
-    rsCanvasDrawingRenderNode.surface_ = std::make_shared<Drawing::Surface>();
-    rsCanvasDrawingRenderNode.image_ = std::make_shared<Drawing::Image>();
-    rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
-    ASSERT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
-}
-#endif
-
 /**
  * @tc.name: ProcessRenderContentsOtherTest
  * @tc.desc: test results of ProcessRenderContents other case
@@ -208,61 +177,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest001, Test
     EXPECT_TRUE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: GetSizeFromDrawCmdModifiersTest002
- * @tc.desc: test results of GetSizeFromDrawCmdModifiers
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest002, TestSize.Level1)
-{
-    int width = -1;
-    int height = -1;
-    NodeId nodeId = 1;
-    std::weak_ptr<RSContext> context;
-    RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
-
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
-        std::make_shared<RSGeometryTransRenderModifier>(property);
-    modifierCast->SetType(RSModifierType::CONTENT_STYLE);
-    std::shared_ptr<RSRenderModifier> modifier = modifierCast;
-    rsCanvasDrawingRenderNode.modifiers_.emplace(modifier->GetPropertyId(), modifier);
-    auto res = rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height);
-    ASSERT_FALSE(res);
-
-    width = 1;
-    height = 1;
-    ASSERT_FALSE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
-}
-
-/**
- * @tc.name: GetSizeFromDrawCmdModifiersTest003
- * @tc.desc: test results of GetSizeFromDrawCmdModifiers
- * @tc.type: FUNC
- * @tc.require: issueI9W0GK
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest003, TestSize.Level1)
-{
-    int32_t width = 0;
-    int32_t height = 0;
-    NodeId nodeId = 1;
-    RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId);
-    EXPECT_FALSE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>(width, height);
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
-        property) };
-    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
-    EXPECT_FALSE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
-}
-#endif
-
 /**
  * @tc.name: IsNeedResetSurfaceTest
  * @tc.desc: test results of IsNeedResetSurface
@@ -297,37 +211,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, InitRenderParamsTest, TestSize.Level1)
     rsCanvasDrawingRenderNode->InitRenderParams();
     EXPECT_TRUE(rsCanvasDrawingRenderNode->renderDrawable_ == nullptr);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: ApplyDrawCmdModifier
- * @tc.desc: test results of ApplyDrawCmdModifier
- * @tc.type: FUNC
- * @tc.require: issueI9W0GK
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, ApplyDrawCmdModifier, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    std::weak_ptr<RSContext> context;
-    RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
-
-    RSProperties properties;
-    RSModifierContext contextArgs(properties);
-    rsCanvasDrawingRenderNode.ApplyDrawCmdModifier(contextArgs, RSModifierType::CONTENT_STYLE);
-
-    int width = 1024;
-    int hight = 1090;
-    auto type = RSModifierType::CONTENT_STYLE;
-    std::list<Drawing::DrawCmdListPtr> listDrawCmd { std::make_shared<Drawing::DrawCmdList>(width, hight) };
-    rsCanvasDrawingRenderNode.drawCmdLists_.emplace(type, listDrawCmd);
-    auto it = rsCanvasDrawingRenderNode.drawCmdLists_.find(type);
-    EXPECT_FALSE(it == rsCanvasDrawingRenderNode.drawCmdLists_.end() || it->second.empty());
-    Drawing::Canvas canvas(width, hight);
-    RSPaintFilterCanvas paintCanvas(&canvas);
-    contextArgs.canvas_ = &paintCanvas;
-    rsCanvasDrawingRenderNode.ApplyDrawCmdModifier(contextArgs, type);
-}
-#endif
 
 /**
  * @tc.name: GetBitmap
@@ -437,59 +320,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetPixelmapSurfaceImgValidTest, TestSize
     EXPECT_FALSE(rsCanvasDrawingRenderNode->GetPixelmap(pixelmap, &rect, tid, drawCmdList));
 #endif
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: AddDirtyType
- * @tc.desc: test results of AddDirtyType
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    std::weak_ptr<RSContext> context;
-    RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
-        std::make_shared<RSGeometryTransRenderModifier>(property);
-    std::shared_ptr<RSRenderModifier> modifier = modifierCast;
-    modifierCast->drawStyle_ = RSModifierType::BOUNDS;
-    rsCanvasDrawingRenderNode.boundsModifier_ = modifier;
-    rsCanvasDrawingRenderNode.AddGeometryModifier(modifier);
-    rsCanvasDrawingRenderNode.AddDirtyType(RSModifierType::BLOOM);
-    EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
-
-    int32_t width = 1024;
-    int32_t height = 2468;
-    auto type = RSModifierType::CONTENT_STYLE;
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>(width, height);
-    auto property1 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property1->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
-        property1) };
-    std::shared_ptr<RSDrawCmdListRenderModifier> modifier1;
-    listModifier.emplace_back(modifier1);
-    auto property2 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    auto modifier2 = std::make_shared<RSDrawCmdListRenderModifier>(property2);
-    listModifier.emplace_back(modifier2);
-    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(type, listModifier);
-    std::list<Drawing::DrawCmdListPtr> listDrawCmd;
-    auto listDrawCmdMax = 20;
-    for (int i = 0; i < listDrawCmdMax; ++i) {
-        listDrawCmd.emplace_back(std::make_shared<Drawing::DrawCmdList>(width + i, height + i));
-    }
-    rsCanvasDrawingRenderNode.drawCmdLists_.emplace(type, listDrawCmd);
-    rsCanvasDrawingRenderNode.AddDirtyType(type);
-    EXPECT_TRUE(rsCanvasDrawingRenderNode.isNeedProcess_);
-    rsCanvasDrawingRenderNode.ClearOp();
-    const auto& curDrawCmdLists = rsCanvasDrawingRenderNode.GetDrawCmdLists();
-    EXPECT_TRUE(curDrawCmdLists.empty());
-}
-#endif
 
 /**
  * @tc.name: AddDirtyType
@@ -634,23 +464,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetImageTest, TestSize.Level1)
     EXPECT_TRUE(rsCanvasDrawingRenderNode->GetImage(tid) == nullptr);
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: ClearResourceTest
- * @tc.desc: Test ClearResource
- * @tc.type: FUNC
- * @tc.require: issueI9W0GK
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, ClearResourceTest, TestSize.Level1)
-{
-    NodeId nodeId = 7;
-    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
-    rsCanvasDrawingRenderNode->ClearResource();
-    auto lists = rsCanvasDrawingRenderNode->GetDrawCmdLists();
-    EXPECT_TRUE(lists.empty());
-}
-#endif
-
 /**
  * @tc.name: CheckCanvasDrawingPostPlaybacked
  * @tc.desc: Test CheckCanvasDrawingPostPlaybacked
@@ -665,33 +478,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlaybackedTest, Te
     rsCanvasDrawingRenderNode->isPostPlaybacked_ = true;
     rsCanvasDrawingRenderNode->CheckCanvasDrawingPostPlaybacked();
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: GetDrawCmdListsTest
- * @tc.desc: Test GetDrawCmdLists
- * @tc.type: FUNC
- * @tc.require: ICETEZ
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawCmdListsTest, TestSize.Level1)
-{
-    NodeId nodeId = 8;
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
-    auto type = RSModifierType::CONTENT_STYLE;
-    std::list<Drawing::DrawCmdListPtr> cmdLists;
-    auto cmd = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
-    Drawing::Brush brush;
-    cmd->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
-    cmdLists.push_back(cmd);
-    node->drawCmdLists_.emplace(type, cmdLists);
-
-    auto lists = node->GetDrawCmdLists();
-    EXPECT_FALSE(lists.empty());
-    node->ClearResource();
-    auto lists2 = node->GetDrawCmdLists();
-    EXPECT_TRUE(lists2.empty());
-}
-#endif
 
 /**
  * @tc.name: ApplyCachedCmdListTest

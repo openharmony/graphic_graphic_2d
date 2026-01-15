@@ -158,47 +158,6 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable002, TestSize.Level1)
     ASSERT_TRUE(childrenDrawable.OnSharedTransition(node));
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSCustomModifierDrawable001
- * @tc.desc: Test OnGenerate
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSCanvasDrawingRenderNode node(id);
-    ASSERT_EQ(DrawableV2::RSCustomModifierDrawable::OnGenerate(node, RSModifierType::BOUNDS), nullptr);
-
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-
-    auto propertyTwo = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    propertyTwo->GetRef() = std::make_shared<Drawing::DrawCmdList>(1, 1);
-    list.emplace_back(std::make_shared<RSDrawCmdListRenderModifier>(propertyTwo));
-
-    node.drawCmdModifiers_.emplace(RSModifierType::BOUNDS, list);
-    node.AddDirtyType(RSModifierType::BOUNDS);
-    auto drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, RSModifierType::BOUNDS));
-    ASSERT_NE(drawable, nullptr);
-
-    drawable->OnSync();
-    ASSERT_FALSE(drawable->needSync_);
-    drawable->OnSync();
-    ASSERT_FALSE(drawable->needSync_);
-
-    NodeId idTwo = 2;
-    RSRenderNode nodeTwo(idTwo);
-    nodeTwo.drawCmdModifiers_.emplace(RSModifierType::BOUNDS, list);
-    drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(nodeTwo, RSModifierType::BOUNDS));
-    ASSERT_NE(drawable, nullptr);
-}
-#else
 /**
  * @tc.name: RSCustomModifierDrawable002
  * @tc.desc: Test OnDraw for RSCustomModifierDrawable
@@ -332,7 +291,6 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable003, TestSize.Level1)
     drawable->OnDraw(canvas.get(), rect.get());
     ASSERT_NE(drawable, nullptr);
 }
-#endif
 
 /**
  * @tc.name: RSBeginBlenderDrawable001
@@ -544,33 +502,6 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorStrategyDrawable002, TestSize.Level
     drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSCustomClipToFrameDrawable001
- * @tc.desc: Test OnGenerate
- * @tc.type:FUNC
- * @tc.require: issueIASGKZ
- */
-HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    ASSERT_EQ(DrawableV2::RSCustomClipToFrameDrawable::OnGenerate(node), nullptr);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-    node.drawCmdModifiers_.emplace(RSModifierType::CUSTOM_CLIP_TO_FRAME, list);
-    auto drawable = std::static_pointer_cast<DrawableV2::RSCustomClipToFrameDrawable>(
-        DrawableV2::RSCustomClipToFrameDrawable::OnGenerate(node));
-    ASSERT_NE(drawable, nullptr);
-    drawable->OnSync();
-    ASSERT_FALSE(drawable->needSync_);
-    drawable->OnSync();
-    ASSERT_FALSE(drawable->needSync_);
-}
-#endif
 
 /**
  * @tc.name: RSCustomClipToFrameDrawable002

@@ -533,42 +533,6 @@ HWTEST_F(RSRenderNodeTest2, SetHDRUIBrightness, TestSize.Level1)
     ASSERT_NE(node.GetHdrUIComponentHeadroom(), INCORRECT_HEADROOM);
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: CheckAndUpdateGeoTrans001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, CheckAndUpdateGeoTrans001, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    std::shared_ptr<RSObjAbsGeometry> geoPtr = std::make_shared<RSObjAbsGeometry>();
-    ASSERT_EQ(node.CheckAndUpdateGeoTrans(geoPtr), false);
-}
-
-/**
- * @tc.name: CheckAndUpdateGeoTrans002
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, CheckAndUpdateGeoTrans002, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    std::shared_ptr<RSObjAbsGeometry> geoPtr = std::make_shared<RSObjAbsGeometry>();
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSGeometryTransRenderModifier>(property) };
-    std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> map;
-    map[RSModifierType::GEOMETRYTRANS] = list;
-    node.drawCmdModifiers_ = map;
-    ASSERT_EQ(node.CheckAndUpdateGeoTrans(geoPtr), true);
-}
-#endif
-
 /**
  * @tc.name: UpdateAbsDirtyRegion001
  * @tc.desc: test
@@ -773,37 +737,6 @@ HWTEST_F(RSRenderNodeTest2, Update001, TestSize.Level1)
     bool parentDirty = true;
     ASSERT_EQ(node.Update(*rsDirtyManager, parentNode, parentDirty, clipRect), false);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: Update002
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, Update002, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
-    std::shared_ptr<RSRenderNode> parentNode;
-    RectI clipRect{0, 0, 1000, 1000};
-    node.shouldPaint_ = true;
-    node.isLastVisible_ = false;
-    node.SetDirty();
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSGeometryTransRenderModifier>(property) };
-    std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> map;
-    map[RSModifierType::GEOMETRYTRANS] = list;
-    node.drawCmdModifiers_ = map;
-    bool parentDirty = true;
-    auto& bgProperties = node.GetMutableRenderProperties();
-    bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
-    ASSERT_EQ(node.Update(*rsDirtyManager, parentNode, parentDirty, clipRect), true);
-}
-#endif
 
 /**
  * @tc.name: GetMutableRenderProperties

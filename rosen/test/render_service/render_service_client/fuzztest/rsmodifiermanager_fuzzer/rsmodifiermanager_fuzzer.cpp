@@ -62,30 +62,6 @@ T GetData()
 
 bool TestModifierManager(const uint8_t* data, size_t size)
 {
-#ifndef MODIFIER_NG
-    if (data == nullptr) {
-        return false;
-    }
-
-    float value = GetData<float>();
-    uint64_t id = GetData<uint64_t>();
-    int64_t time = GetData<int64_t>();
-    std::shared_ptr<RSProperty<float>> property = std::make_shared<RSProperty<float>>(value);
-    std::shared_ptr<RSPositionZModifier> modifier = std::make_shared<RSPositionZModifier>(property);
-    auto animation = std::make_shared<RSRenderAnimation>(id);
-    RSModifierManager manager;
-    manager.AddModifier(modifier);
-    manager.AddAnimation(animation);
-    manager.Animate(time);
-    manager.RegisterSpringAnimation(id, id);
-    manager.UnregisterSpringAnimation(id, id);
-    manager.QuerySpringAnimation(id);
-    manager.JudgeAnimateWhetherSkip(id, time, time);
-    manager.SetDisplaySyncEnable(true);
-    manager.FlushStartAnimation(time);
-    manager.GetAnimation(id);
-    manager.RemoveAnimation(id);
-#endif
     return true;
 }
 } // namespace Rosen

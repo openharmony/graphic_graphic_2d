@@ -635,38 +635,6 @@ HWTEST_F(RSCanvasRenderNodeTest, PropertyDrawableRender, TestSize.Level1)
     rsCanvasRenderNode.ProcessAnimatePropertyBeforeChildren(canvas, includeProperty);
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: ApplyDrawCmdModifier
- * @tc.desc: test results of ApplyDrawCmdModifier
- * @tc.type: FUNC
- * @tc.require: issueI9VPPN
- */
-HWTEST_F(RSCanvasRenderNodeTest, ApplyDrawCmdModifier, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    std::weak_ptr<RSContext> context;
-    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    RSProperties property;
-    RSModifierContext modifierContext(property);
-    RSModifierType type = RSModifierType::INVALID;
-    rsCanvasRenderNode.ApplyDrawCmdModifier(modifierContext, type);
-    EXPECT_TRUE(rsCanvasRenderNode.drawCmdModifiers_.empty());
-
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawCmdList->SetWidth(2024);
-    drawCmdList->SetHeight(2090);
-    auto propertyTwo = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    propertyTwo->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
-        propertyTwo) };
-    type = RSModifierType::FOREGROUND_STYLE;
-    rsCanvasRenderNode.drawCmdModifiers_.emplace(type, listModifier);
-    EXPECT_FALSE(RSSystemProperties::GetSingleFrameComposerEnabled());
-    rsCanvasRenderNode.ApplyDrawCmdModifier(modifierContext, type);
-}
-#endif
-
 /**
  * @tc.name: InternalDrawContent
  * @tc.desc: test results of InternalDrawContent
