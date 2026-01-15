@@ -16,9 +16,18 @@
 #include "gtest/gtest.h"
 
 #include "parameters.h"
-#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/main_thread/rs_main_render_thread.h"
+#include "render_process/transaction/rs_service_to_render_connection.h"
+#include "render_server/transaction/rs_render_to_service_connection.h"
+#include "rs_composer_to_render_connection.h"
+#include "rs_render_composer_agent.h"
+#include "rs_render_composer_manager.h"
 #include "rs_render_process_manager_agent.h"
-#include "rs_render_service.h"
+#include "rs_render_single_process_manager.h"
+#include "rs_render_to_composer_connection.h"
+#include "screen_manager/screen_types.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_connect_to_render_process.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -27,24 +36,113 @@ namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
 sptr<RSRenderProcessManagerAgent> g_rsManager = nullptr;
-sptr<RSRenderProcessManagerAgent> g_rsManager1 = nullptr;
 }
+namespace {
+class RSSingleRenderProcessManagerMock : public RSRenderProcessManager {
+public:
+    explicit RSSingleRenderProcessManagerMock(RSRenderService& renderService_)
+        : RSRenderProcessManager(renderService_)
+    {
+        // step2: Create renderPipeline and Following Connections
+        auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService_);
+        auto renderProcessManagerAgent =
+            sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService_.renderProcessManager_);
+        auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService_.screenManager_);
+        renderToServiceConnection_ = sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent,
+            renderProcessManagerAgent, screenManagerAgent);
+        renderService.renderPipeline_ = std::make_shared<RSRenderPipeline>();
 
+        auto mainThread = RSMainRenderThread::Instance();
+        renderService_.renderPipeline_->mainThread_ = mainThread;
+        mainThread->RegisterScreenSwitchFinishCallback(renderToServiceConnection_);
+
+        renderService_.renderPipeline_->uniRenderThread_ = &(RSUniRenderThread::Instance());
+        serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+        composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
+
+        // step3:
+        connectToRenderConnection_ = sptr<RSConnectToRenderProcess>::MakeSptr(renderPipelineAgent);
+
+        // Cancel Thread
+        renderService_.renderPipeline_->uniRenderThread_->handler_ = nullptr;
+        renderService_.renderPipeline_->uniRenderThread_->runner_ = nullptr;
+        renderService_.renderPipeline_->mainThread_->handler_ = nullptr;
+    }
+
+    ~RSSingleRenderProcessManagerMock() noexcept override = default;
+
+    sptr<IRemoteObject> OnScreenConnected(ScreenId screenId_,
+        const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property) override
+    {
+        auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(property->GetScreenId());
+        renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_,
+            renderService_.rsVsyncManagerAgent_, output);
+        return connectToRenderConnection_->AsObject();
+    }
+
+    void OnScreenDisconnected(ScreenId id) override
+    {
+        renderService_.renderPipeline_->OnScreenDisconnected(id);
+    }
+
+    void OnScreenPropertyChanged(
+        ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property) override
+    {
+        renderService_.renderPipeline_->OnScreenPropertyChanged(id, type, property);
+    }
+
+    void OnScreenRefresh(ScreenId id) override
+    {
+        renderService_.renderPipeline_->OnScreenRefresh(id);
+    }
+
+    void OnVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId,
+        const sptr<RSScreenProperty>& property) override
+    {
+        renderService_.renderPipeline_->OnScreenConnected(property, nullptr, nullptr, nullptr, nullptr);
+    }
+
+    void OnVirtualScreenDisconnected(ScreenId id) override
+    {
+        renderService_.renderPipeline_->OnScreenDisconnected(id);
+    }
+
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const override
+    {
+        return serviceToRenderConnection_;
+    }
+
+    std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const override
+    {
+        return { serviceToRenderConnection_ };
+    }
+
+    sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override
+    {
+        return connectToRenderConnection_;
+    }
+    sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
+    sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
+    sptr<RSIConnectToRenderProcess> connectToRenderConnection_ = nullptr;
+};
+} // namespace
 class RSRenderProcessManagerAgentTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+private:
+    static inline RenderService renderService_;
 };
 
 void RSRenderProcessManagerAgentTest::SetUpTestCase()
 {
-    OHOS::system::SetParameter("bootevent.samgr.ready", "false");
-    renderService.Init();
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    renderService_.handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner_);
+    renderService_.renderProcessManager_ = sptr<RSSingleRenderProcessManagerMock>::MakeSptr(renderService_);
     g_rsManager = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
-    g_rsManager1 = sptr<RSRenderProcessManagerAgent>::MakeSptr(nullptr);
 }
 
 void RSRenderProcessManagerAgentTest::TearDownTestCase() {}
@@ -62,8 +160,8 @@ HWTEST_F(RSRenderProcessManagerAgentTest, GetServiceToRenderConnTest, TestSize.L
     ScreenId screenId = 1;
     g_rsManager->GetServiceToRenderConn(screenId);
     g_rsManager->GetServiceToRenderConns();
-    ASSERT_EQ(g_rsManager1->GetServiceToRenderConn(screenId), nullptr);
-    ASSERT_TRUE(g_rsManager1->GetServiceToRenderConns().empty());
+    ASSERT_TRUE(g_rsManager->GetServiceToRenderConn(screenId));
+    ASSERT_FALSE(g_rsManager->GetServiceToRenderConns().empty());
     ASSERT_TRUE(g_rsManager);
 }
 } // namespace OHOS::Rosen
