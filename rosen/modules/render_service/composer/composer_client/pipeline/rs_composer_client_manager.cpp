@@ -26,15 +26,15 @@ constexpr int MAX_ACCUMULATED_BUFFER_COUNT = 4;
 }
 // composer client
 void RSComposerClientManager::AddComposerClient(ScreenId screenId,
-    const std::shared_ptr<RSComposerClient>& rsRenderComposerClient)
+    const std::shared_ptr<RSComposerClient>& rsComposerClient)
 {
-    RS_LOGI("%{public}s rsRenderComposerClient[%{public}d]", __func__, rsRenderComposerClient != nullptr);
+    RS_LOGI("%{public}s rsComposerClient[%{public}d]", __func__, rsComposerClient != nullptr);
     if (GetComposerClient(screenId)) {
         RS_LOGI("GetComposerClient, return.");
         return;
     }
     std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-    composerClientMap_[screenId] = rsRenderComposerClient;
+    composerClientMap_[screenId] = rsComposerClient;
 }
 
 void RSComposerClientManager::DeleteComposerClient(ScreenId screenId)
@@ -46,7 +46,6 @@ void RSComposerClientManager::DeleteComposerClient(ScreenId screenId)
 std::shared_ptr<RSComposerClient> RSComposerClientManager::GetComposerClient(ScreenId screenId)
 {
     std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-    ;
     if (auto it = composerClientMap_.find(screenId); it != composerClientMap_.end()) {
         return it->second;
     } else {
@@ -107,12 +106,12 @@ void RSComposerClientManager::SetScreenBacklight(ScreenId screenId, uint32_t lev
 
 PipelineParam RSComposerClientManager::GetPipelineParam(ScreenId screenId)
 {
-    auto client = GetComposerClient(screenId);
-    if (client == nullptr) {
+    if (auto client = GetComposerClient(screenId)) {
+        return client->GetPipelineParam();
+    } else {
         RS_LOGE("%{public}s failed, screenId: %{public}" PRIu64, __func__, screenId);
         return {};
     }
-    return client->GetPipelineParam();
 }
 
 void RSComposerClientManager::UpdatePipelineParam(ScreenId screenId, const PipelineParam& pipelineParam)
@@ -198,7 +197,7 @@ void RSComposerClientManager::DumpCurrentFrameLayers()
     }
 }
 
-void RSComposerClientManager::ClearFrameBuffers(const std::set<ScreenId>& screenHasProtectedLayerSet)
+void RSComposerClientManager::ClearFrameBuffers(const std::unordered_set<ScreenId>& screenHasProtectedLayerSet)
 {
     std::unordered_map<ScreenId, std::shared_ptr<RSComposerClient>> clientMap;
     {
@@ -207,7 +206,7 @@ void RSComposerClientManager::ClearFrameBuffers(const std::set<ScreenId>& screen
     }
     for (auto& [screenId, client] : clientMap) {
         if (screenHasProtectedLayerSet.count(screenId)) {
-            RS_TRACE_NAME_FMT("screenHasProtectedLayerSet %" PRIu64 "", screenId);
+            RS_TRACE_NAME_FMT("screenHasProtectedLayerSet %" PRIu64, screenId);
             continue;
         }
         client->ClearFrameBuffers();

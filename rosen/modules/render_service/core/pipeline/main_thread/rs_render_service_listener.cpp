@@ -29,7 +29,7 @@ RSRenderServiceListener::~RSRenderServiceListener() {}
 
 RSRenderServiceListener::RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode,
     std::shared_ptr<RSComposerClientManager> composerClientManager)
-    : surfaceRenderNode_(surfaceRenderNode), composerClientManager_(composerClientManager)
+    : surfaceRenderNode_(std::move(surfaceRenderNode)), composerClientManager_(std::move(composerClientManager))
 {}
 
 void RSRenderServiceListener::OnBufferAvailable()

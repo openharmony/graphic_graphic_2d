@@ -25,7 +25,7 @@ class RSComposerClientManager {
 public:
     RSComposerClientManager() = default;
     virtual ~RSComposerClientManager() = default;
-    void AddComposerClient(ScreenId screenId, const std::shared_ptr<RSComposerClient>& rsRenderComposerClient);
+    void AddComposerClient(ScreenId screenId, const std::shared_ptr<RSComposerClient>& rsComposerClient);
     void DeleteComposerClient(ScreenId screenId);
     std::shared_ptr<RSComposerClient> GetComposerClient(ScreenId screenId);
     void ClearRedrawGPUCompositionCache(std::unordered_set<uint64_t>& bufferIds);
@@ -42,7 +42,7 @@ public:
     int32_t GetMinAccumulatedBufferCount();
     void DumpSurfaceInfo(std::string& dumpString);
     void DumpCurrentFrameLayers();
-    void ClearFrameBuffers(const std::set<ScreenId>& screenHasProtectedLayerSet);
+    void ClearFrameBuffers(const std::unordered_set<ScreenId>& screenHasProtectedLayerSet);
 
 private:
     mutable std::mutex rsComposerMapMutex_;

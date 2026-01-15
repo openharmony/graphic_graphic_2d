@@ -309,7 +309,7 @@ public:
         hasProtectedLayerScreenIdSet_.emplace(screenId);
     }
 
-    const std::set<ScreenId>& GetScreenHasProtectedLayerSet()
+    const std::unordered_set<ScreenId>& GetScreenHasProtectedLayerSet()
     {
         return hasProtectedLayerScreenIdSet_;
     }
@@ -388,7 +388,7 @@ private:
     std::unordered_set<NodeType> typeBlackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
     Drawing::RectI visibleRect_;
-    std::set<ScreenId> hasProtectedLayerScreenIdSet_;
+    std::unordered_set<ScreenId> hasProtectedLayerScreenIdSet_;
 
     std::mutex vmaCacheCountMutex_;
 

@@ -33,7 +33,7 @@ namespace OHOS {
 namespace Rosen {
 class RSComposerClient {
 public:
-    explicit RSComposerClient(
+    RSComposerClient(
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     ~RSComposerClient() = default;
