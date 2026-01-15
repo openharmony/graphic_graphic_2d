@@ -123,7 +123,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, ui
     }
     tf->SetHash(hash);
     tf->SetSize(size);
-    tf->index_ = fontArguments.GetCollectionIndex();
+    tf->index_ = static_cast<uint32_t>(fontArguments.GetCollectionIndex());
     return tf;
 #else
     return nullptr;
@@ -229,7 +229,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
     }
     tf->SetHash(hash);
     tf->SetSize(size);
-    tf->index_ = fontArguments.GetCollectionIndex();
+    tf->index_ = static_cast<uint32_t>(fontArguments.GetCollectionIndex());
     return tf;
 #else
     auto stream = std::make_unique<MemoryStream>(data, size, true);
