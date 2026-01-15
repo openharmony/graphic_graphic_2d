@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "parameters.h"
-#include "pipeline/main_thread/rs_main_render_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
 #include "rs_composer_to_render_connection.h"
@@ -52,6 +52,8 @@ public:
         mainThread->RegisterScreenSwitchFinishCallback(renderToServiceConnection_);
 
         renderService_.renderPipeline_->uniRenderThread_ = &(RSUniRenderThread::Instance());
+        
+        auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderService_.renderPipeline_);
         serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
         composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
 
@@ -131,21 +133,18 @@ public:
     void TearDown() override;
     static uint32_t screenId_;
 private:
-    static inline RenderService renderService_;
+    static inline RSRenderService renderService_;
 };
 
 uint32_t RSRenderSingleProcessManagerTest::screenId_ = 0;
 
 void RSRenderSingleProcessManagerTest::SetUpTestCase()
 {
-    auto runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
-    renderService_.handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner_);
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    renderService_.handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     renderService_.renderProcessManager_ = sptr<RSSingleRenderProcessManagerMock>::MakeSptr(renderService_);
 }
-void RSRenderSingleProcessManagerTest::TearDownTestCase()
-{
-    renderService_.renderPipeline_->mainThread_->receiver_ = nullptr;
-}
+void RSRenderSingleProcessManagerTest::TearDownTestCase() {}
 void RSRenderSingleProcessManagerTest::SetUp() {}
 void RSRenderSingleProcessManagerTest::TearDown() {}
 

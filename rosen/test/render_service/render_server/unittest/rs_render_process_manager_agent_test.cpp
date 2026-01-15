@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "parameters.h"
-#include "pipeline/main_thread/rs_main_render_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
 #include "rs_composer_to_render_connection.h"
@@ -57,6 +57,8 @@ public:
         mainThread->RegisterScreenSwitchFinishCallback(renderToServiceConnection_);
 
         renderService_.renderPipeline_->uniRenderThread_ = &(RSUniRenderThread::Instance());
+        
+        auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderService_.renderPipeline_);
         serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
         composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
 
@@ -134,15 +136,15 @@ public:
     void SetUp() override;
     void TearDown() override;
 private:
-    static inline RenderService renderService_;
+    static inline RSRenderService renderService_;
 };
 
 void RSRenderProcessManagerAgentTest::SetUpTestCase()
 {
-    auto runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
-    renderService_.handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner_);
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    renderService_.handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     renderService_.renderProcessManager_ = sptr<RSSingleRenderProcessManagerMock>::MakeSptr(renderService_);
-    g_rsManager = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
+    g_rsManager = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService_.renderProcessManager_);
 }
 
 void RSRenderProcessManagerAgentTest::TearDownTestCase() {}
@@ -158,8 +160,6 @@ void RSRenderProcessManagerAgentTest::TearDown() {}
 HWTEST_F(RSRenderProcessManagerAgentTest, GetServiceToRenderConnTest, TestSize.Level1)
 {
     ScreenId screenId = 1;
-    g_rsManager->GetServiceToRenderConn(screenId);
-    g_rsManager->GetServiceToRenderConns();
     ASSERT_TRUE(g_rsManager->GetServiceToRenderConn(screenId));
     ASSERT_FALSE(g_rsManager->GetServiceToRenderConns().empty());
     ASSERT_TRUE(g_rsManager);
