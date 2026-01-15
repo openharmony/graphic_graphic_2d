@@ -1574,7 +1574,9 @@ std::shared_ptr<Drawing::ShaderEffect> RSLogicalDisplayRenderNodeDrawable::MakeB
         }
     )");
     if (brightnessAdjustmentShaderEffect_ == nullptr) {
-        brightnessAdjustmentShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(shaderString);
+        Drawing::RuntimeEffectOptions runtimeEffectOptions;
+        runtimeEffectOptions.useHighpLocalCoords = true;
+        brightnessAdjustmentShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(shaderString, runtimeEffectOptions);
         if (brightnessAdjustmentShaderEffect_ == nullptr) {
             ROSEN_LOGE("RSLogicalDisplayRenderNodeDrawable::MakeBrightnessAdjustmentShaderBuilder effect is null");
             return nullptr;
