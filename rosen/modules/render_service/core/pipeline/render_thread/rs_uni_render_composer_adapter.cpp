@@ -62,7 +62,7 @@ std::string RectVectorToString(const std::vector<GraphicIRect>& dirtyRects)
 }
 
 bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo,
-    const std::shared_ptr<RSRenderComposerClient>& composerClient)
+    const std::shared_ptr<RSComposerClient>& composerClient)
 {
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::initialize id:%{public}" PRIu64, screenInfo.id);
 
@@ -81,7 +81,7 @@ void RSUniRenderComposerAdapter::CommitLayers()
 {
     if (composerClient_ != nullptr) {
         ComposerInfo composerInfo;
-        RSRenderComposerClient::ConvertScreenInfo(screenInfo_, composerInfo.composerScreenInfo);
+        RSComposerClient::ConvertScreenInfo(screenInfo_, composerInfo.composerScreenInfo);
         composerClient_->CommitLayers(composerInfo);
         RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame(screenInfo_.id);
     }

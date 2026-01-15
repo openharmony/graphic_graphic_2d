@@ -240,21 +240,21 @@ bool RSDrmUtil::IsDRMNodesOnTheTree()
 }
 
 void RSDrmUtil::PreAllocProtectedFrameBuffers(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        const sptr<SurfaceBuffer>& buffer)
+        const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSComposerClientManager>& clientManager)
 {
     if (auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock())) {
-        if (auto client = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenNode->GetScreenId())) {
+        if (clientManager != nullptr) {
             RS_TRACE_NAME_FMT("PreAllocProtectedFrameBuffers screenId:%" PRIu64, screenNode->GetScreenId());
-            client->PreAllocProtectedFrameBuffers(buffer);
+            clientManager->PreAllocProtectedFrameBuffers(screenNode->GetScreenId(), buffer);
         }
     }
 }
 
 void RSDrmUtil::DealWithDRMNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        const sptr<SurfaceBuffer>& buffer)
+        const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSComposerClientManager>& clientManager)
 {
     CollectDrmNodes(surfaceNode);
-    PreAllocProtectedFrameBuffers(surfaceNode, buffer);
+    PreAllocProtectedFrameBuffers(surfaceNode, buffer, clientManager);
 }
 } // namespace Rosen
 } // namespace OHOS

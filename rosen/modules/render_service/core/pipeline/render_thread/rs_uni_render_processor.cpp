@@ -54,7 +54,8 @@ constexpr std::chrono::milliseconds HPAE_OFFLINE_TIMEOUT{100};
 RSUniRenderProcessor::RSUniRenderProcessor(ScreenId screenId)
     : uniComposerAdapter_(std::make_unique<RSUniRenderComposerAdapter>())
 {
-    composerClient_ = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenId);
+    composerClient_ =
+        RSUniRenderThread::Instance().GetComposerClientManager()->GetComposerClient(screenId);
 }
 
 RSUniRenderProcessor::~RSUniRenderProcessor() noexcept

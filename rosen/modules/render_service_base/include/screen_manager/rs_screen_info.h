@@ -95,11 +95,6 @@ struct ScreenInfo {
         return (height == 0) ? 1.f : static_cast<float>(phyHeight) / height;
     }
 
-    bool IsScreenPowerOff() const
-    {
-        return powerStatus == ScreenPowerStatus::POWER_STATUS_SUSPEND || powerStatus == ScreenPowerStatus::POWER_STATUS_OFF;
-    }
-
     // dfx
     std::string ToString() const
     {

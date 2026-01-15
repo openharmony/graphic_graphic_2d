@@ -29,7 +29,7 @@
 #include "screen_manager/rs_screen_property.h"
 #include "rs_surface_layer.h"
 #include "rs_composer_to_render_connection.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -78,7 +78,7 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
     auto output = std::make_shared<HdiOutput>(screenId_);
     auto property = sptr<RSScreenProperty>();
     renderComposerManager->OnScreenConnected(output, property);
-    auto client = std::make_shared<RSRenderComposerClient>(
+    auto client = std::make_shared<RSComposerClient>(
         renderComposerManager->rsComposerConnectionMap_[screenId_], rsVsyncManagerAgent);
     composerAdapter_->Init(info, client);
 }
@@ -106,7 +106,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
     info.colorGamut = colorGamut;
     info.state = state;
     info.rotation = rotation;
-    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr, nullptr);
     composerAdapter_->Init(info, composerClient);
     EXPECT_NE(composerAdapter_->composerClient_, nullptr);
 }
@@ -352,7 +352,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer001, TestSize.Level2)
     composerAdapter_->composerClient_ = nullptr;
     layer = composerAdapter_->CreateLayer(*rsScreenNode);
     ASSERT_EQ(layer, nullptr);
-    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr, nullptr);
     composerAdapter_->Init(info, composerClient);
     layer = composerAdapter_->CreateLayer(*rsScreenNode);
     ASSERT_NE(layer, nullptr);
@@ -384,7 +384,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
     composerAdapter_->composerClient_ = nullptr;
     RSLayerPtr layer = composerAdapter_->CreateLayer(*rcdSurfaceRenderNode);
     ASSERT_EQ(layer, nullptr);
-    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr, nullptr);
     composerAdapter_->Init(info, composerClient);
     layer = composerAdapter_->CreateLayer(*rcdSurfaceRenderNode);
     ASSERT_NE(layer, nullptr);

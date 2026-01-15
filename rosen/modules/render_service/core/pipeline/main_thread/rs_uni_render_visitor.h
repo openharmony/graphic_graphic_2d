@@ -492,8 +492,6 @@ private:
     int32_t rsScreenNodeChildNum_ = 0;
     size_t rsScreenNodeNum_ = 0;
 
-    ScreenState screenState_ = ScreenState::UNKNOWN;
-    
     bool isSkipDrawInVirtualScreen_ = false;
 
     // used for finding the first effect render node to check to need to enabled debug

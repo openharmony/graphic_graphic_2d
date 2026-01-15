@@ -29,7 +29,7 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 #include "pipeline/rs_render_composer_agent.h"
-#include "pipeline/rs_render_composer_client.h"
+#include "pipeline/rs_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
 #include "screen_manager/rs_screen_property.h"
 #include "transaction/rs_layer_transaction_data.h"
@@ -106,7 +106,7 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
     sMgr->OnScreenConnected(output, property);
     auto conn = sMgr->GetRSComposerConnection(0);
     sptr<IRSRenderToComposerConnection> ifaceConn = conn;
-    auto client = RSRenderComposerClient::Create(ifaceConn, nullptr, nullptr);
+    auto client = RSComposerClient::Create(ifaceConn, nullptr, nullptr);
     auto layer = std::make_shared<RSSurfaceLayer>();
     auto context = std::make_shared<RSComposerContext>(ifaceConn);
     EXPECT_NE(context, nullptr);

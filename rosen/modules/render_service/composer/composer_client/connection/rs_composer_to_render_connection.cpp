@@ -16,7 +16,7 @@
 #include "rs_composer_to_render_connection.h"
 #include "frame_report.h"
 #include "platform/common/rs_log.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client.h"
 #include "rs_trace.h"
 
 #undef LOG_TAG

@@ -18,7 +18,7 @@
 #include <securec.h>
 #include <surface_tunnel_handle.h>
 #include "hdi_layer.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client.h"
 #include "rs_surface_layer.h"
 
 using namespace OHOS::Rosen;

@@ -27,13 +27,14 @@
 #include "pipeline/buffer_thread/rs_buffer_manager.h"
 #include "pipeline/rs_context.h"
 #include "rs_base_render_engine.h"
+#include "rs_composer_client_manager.h"
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
 #endif
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderComposerClient;
+class RSComposerClient;
 class IRSRenderToComposerConnection;
 namespace DrawableV2 {
 class RSRenderNodeDrawable;
@@ -51,9 +52,7 @@ public:
     RSUniRenderThread(RSUniRenderThread&&) = delete;
     RSUniRenderThread& operator=(RSUniRenderThread&&) = delete;
 
-    void Start();
-    void OnScreenConnected(const ScreenId screenId, const std::shared_ptr<RSRenderComposerClient>& composerClient);
-    void OnScreenDisconnected(const ScreenId screenId);
+    void Start(const std::shared_ptr<RSComposerClientManager>& composerClientManager);
     void InitGrContext();
     void RenderFrames();
     void Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams);
@@ -254,10 +253,6 @@ public:
 
     void CollectProcessNodeNum(int num);
 
-    void AddRenderComposerClient(ScreenId screenId, const std::shared_ptr<RSRenderComposerClient>& rsRenderComposerClient);
-    void DeleteRSRenderComposerClient(ScreenId screenId);
-    std::shared_ptr<RSRenderComposerClient> GetRSRenderComposerClient(ScreenId screenId);
-    std::map<ScreenId, std::shared_ptr<RSRenderComposerClient>> GetRSRenderComposerClientMap();
     void DumpSurfaceInfo(std::string &dumpString);
     void DumpCurrentFrameLayers();
 
@@ -314,7 +309,7 @@ public:
         hasProtectedLayerScreenIdSet_.emplace(screenId);
     }
 
-    const std::set<ScreenId>& GetScreenHasProtectedLayerSet()
+    const std::unordered_set<ScreenId>& GetScreenHasProtectedLayerSet()
     {
         return hasProtectedLayerScreenIdSet_;
     }
@@ -322,6 +317,11 @@ public:
     void ClearScreenHasProtectedLayerSet()
     {
         hasProtectedLayerScreenIdSet_.clear();
+    }
+
+    const std::shared_ptr<RSComposerClientManager>& GetComposerClientManager() const
+    {
+        return composerClientManager_;
     }
 
 private:
@@ -378,10 +378,6 @@ private:
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
     static thread_local CaptureParam captureParam_;
 
-    // composer client
-    mutable std::mutex rsComposerMapMutex_;
-    std::map<ScreenId, std::shared_ptr<RSRenderComposerClient>> rsRenderComposerClients_;
-
     std::set<pid_t> exitedPidSet_;
 
     std::vector<Callback> imageReleaseTasks_;
@@ -392,7 +388,7 @@ private:
     std::unordered_set<NodeType> typeBlackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
     Drawing::RectI visibleRect_;
-    std::set<ScreenId> hasProtectedLayerScreenIdSet_;
+    std::unordered_set<ScreenId> hasProtectedLayerScreenIdSet_;
 
     std::mutex vmaCacheCountMutex_;
 
@@ -404,6 +400,7 @@ private:
     std::atomic<bool> screenPowerOnChanged_ = false;
     uint32_t totalProcessNodeNum_ = 0;
     RSBufferManager bufferManager_ = RSBufferManager();
+    std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

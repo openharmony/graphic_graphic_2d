@@ -102,8 +102,7 @@ void RSPointerWindowManager::UpdatePointerInfo()
             RS_LOGE("RSPointerWindowManager::UpdatePointerInfo screeNode is null!");
             return;
         }
-        auto screenInfo = node->GetScreenInfo();
-        auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode, screenInfo);
+        auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode);
         surfaceNode->UpdateHwcNodeLayerInfo(transform, isPointerEnableHwc_);
     }
 #endif

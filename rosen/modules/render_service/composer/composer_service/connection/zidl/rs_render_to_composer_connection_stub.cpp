@@ -103,10 +103,10 @@ int32_t RSRenderToComposerConnectionStub::GetCleanLayerBufferSurfaceId(OHOS::Mes
     return COMPOSITOR_ERROR_OK;
 }
 
-std::set<uint64_t> RSRenderToComposerConnectionStub::ParseClearRedrawCacheBufferIds(OHOS::MessageParcel& parcel)
+std::unordered_set<uint64_t> RSRenderToComposerConnectionStub::ParseClearRedrawCacheBufferIds(OHOS::MessageParcel& parcel)
 {
     std::vector<uint64_t> bufferIdsVector;
-    std::set<uint64_t> bufferIds;
+    std::unordered_set<uint64_t> bufferIds;
     if (!parcel.ReadUInt64Vector(&bufferIdsVector)) {
         RS_LOGE("RSRenderToComposerConnectionStub::ParseClearRedrawCacheBufferIds read buffer ids failed.");
         return bufferIds;

@@ -1597,7 +1597,7 @@ HWTEST_F(RsRenderComposerTest, ClearRedrawGPUCompositionCache_Null_UniRenderEngi
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
     tmpRsRenderComposer->uniRenderEngine_ = nullptr;
 
-    std::set<uint64_t> bufferIds;
+    std::unordered_set<uint64_t> bufferIds;
     bufferIds.insert(1u);
     tmpRsRenderComposer->ClearRedrawGPUCompositionCache(bufferIds);
     EXPECT_EQ(bufferIds.size(), 1);

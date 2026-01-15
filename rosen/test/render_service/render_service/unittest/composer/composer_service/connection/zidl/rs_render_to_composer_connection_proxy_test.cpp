@@ -58,7 +58,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.
 
     proxy.CleanLayerBufferBySurfaceId(123u);
 
-    std::set<uint64_t> ids { 7u, 8u };
+    std::unordered_set<uint64_t> ids { 7u, 8u };
     proxy.ClearRedrawGPUCompositionCache(ids);
 
     proxy.SetScreenBacklight(88u);
@@ -81,7 +81,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendRequest_RemoteNull_Err
     RSRenderToComposerConnectionProxy proxy(nullObj);
     proxy.ClearFrameBuffers();
     proxy.CleanLayerBufferBySurfaceId(1u);
-    std::set<uint64_t> ids {1u};
+    std::unordered_set<uint64_t> ids {1u};
     proxy.ClearRedrawGPUCompositionCache(ids);
     proxy.SetScreenBacklight(1u);
     SUCCEED();

@@ -26,7 +26,7 @@
 #include "layer/rs_surface_rcd_layer.h"
 #include "rs_composer_to_render_connection.h"
 #include "rs_render_to_composer_connection.h"
-#include "pipeline/rs_render_composer_client.h"
+#include "pipeline/rs_composer_client.h"
 #include "nativetoken_kit.h"
 #include "rs_render_composer_manager.h"
 #include "token_setproc.h"
@@ -41,7 +41,7 @@ public:
     static void TearDownTestCase();
 
     static inline sptr<IRemoteObject> robj_ = nullptr;
-    static inline std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
+    static inline std::shared_ptr<RSComposerClient> composerClient_ = nullptr;
     static inline pid_t pid_ = 0;
     static inline int pipeFd_[2] = {};
     static inline int pipe1Fd_[2] = {};
@@ -124,7 +124,7 @@ void RSRenderComposerClientRemoteTest::SetUpTestCase()
         robj_ = sam->GetSystemAbility(systemAbilityID_);
         sptr<IRSRenderToComposerConnection> renderToComposer = iface_cast<IRSRenderToComposerConnection>(robj_);
         sptr<IRSComposerToRenderConnection> composerToRender = sptr<RSComposerToRenderConnection>::MakeSptr();
-        composerClient_ = RSRenderComposerClient::Create(renderToComposer, composerToRender, nullptr);
+        composerClient_ = RSComposerClient::Create(renderToComposer, composerToRender, nullptr);
     }
 }
 

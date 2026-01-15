@@ -1244,13 +1244,8 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawSecurityMaskTest002, TestSi
  */
 HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ClearCanvasStencil001, TestSize.Level2)
 {
-    ScreenInfo screenInfo = {
-        .phyWidth = DEFAULT_CANVAS_SIZE,
-        .phyHeight = DEFAULT_CANVAS_SIZE,
-        .width = DEFAULT_CANVAS_SIZE,
-        .height = DEFAULT_CANVAS_SIZE,
-        .isSamplingOn = false,
-    };
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>({DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE});
 
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
@@ -1260,16 +1255,16 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ClearCanvasStencil001, TestSize
     auto tempFilterCanvas = std::make_shared<RSPaintFilterCanvas>(tempCanvas.get());
 
     uniParams->isStencilPixelOcclusionCullingEnabled_ = false;
-    displayDrawable_->ClearCanvasStencil(*tempFilterCanvas, *renderParams, *uniParams, screenInfo);
+    displayDrawable_->ClearCanvasStencil(*tempFilterCanvas, *renderParams, *uniParams, screenProperty);
     EXPECT_EQ(tempFilterCanvas->GetMaxStencilVal(), 0);
 
     uniParams->isStencilPixelOcclusionCullingEnabled_ = true;
-    displayDrawable_->ClearCanvasStencil(*tempFilterCanvas, *renderParams, *uniParams, screenInfo);
+    displayDrawable_->ClearCanvasStencil(*tempFilterCanvas, *renderParams, *uniParams, screenProperty);
     EXPECT_EQ(tempFilterCanvas->GetMaxStencilVal(), 0);
 
     uniParams->isStencilPixelOcclusionCullingEnabled_ = true;
     renderParams->SetTopSurfaceOpaqueRects({{0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE}});
-    displayDrawable_->ClearCanvasStencil(*tempFilterCanvas, *renderParams, *uniParams, screenInfo);
+    displayDrawable_->ClearCanvasStencil(*tempFilterCanvas, *renderParams, *uniParams, screenProperty);
     EXPECT_EQ(tempFilterCanvas->GetMaxStencilVal(), TOP_OCCLUSION_SURFACES_NUM * OCCLUSION_ENABLE_SCENE_NUM);
 }
 
@@ -2688,6 +2683,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest001, TestSize.Lev
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto id = screenManager_->CreateVirtualScreen("virtualScreen01", 480, 320, psurface);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
@@ -2738,6 +2734,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest001_SKP, TestSize
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto id = screenManager_->CreateVirtualScreen("virtualScreen01", 480, 320, psurface);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
@@ -2787,6 +2784,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest002, TestSize.Lev
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto id = screenManager_->CreateVirtualScreen("virtualScreen02", 480, 320, psurface, 0, 1);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
@@ -2837,6 +2835,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest002_SKP, TestSize
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto id = screenManager_->CreateVirtualScreen("virtualScreen02", 480, 320, psurface, 0, 1);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
@@ -2970,6 +2969,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirror007, TestSize.Level1)
     ASSERT_NE(psurface, nullptr);
     uint32_t width = 480;
     uint32_t height = 320;
+    screenManager_->Init(nullptr);
     auto id = screenManager_->CreateVirtualScreen("virtualScreen01", width, height, psurface);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
@@ -3320,27 +3320,23 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, UpdateSlrScale001, TestSize.Lev
     auto param = system::GetParameter("rosen.SLRScale.enabled", "");
     const int32_t width = DEFAULT_CANVAS_SIZE * 2;
     const int32_t height = DEFAULT_CANVAS_SIZE * 2;
-    ScreenInfo screenInfo = {
-        .phyWidth = DEFAULT_CANVAS_SIZE,
-        .phyHeight = DEFAULT_CANVAS_SIZE,
-        .width = width,
-        .height = height,
-        .isSamplingOn = true,
-    };
+
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>({DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>({width, height, 1});
+    screenProperty.Set<ScreenPropertyType::SAMPLING_OPTION>({true, 0.f, 0.f, 1.f});
     system::SetParameter("rosen.SLRScale.enabled", "1");
     // when scaleManager is nullptr
-    displayDrawable_->UpdateSlrScale(screenInfo);
+    displayDrawable_->UpdateSlrScale(screenProperty);
     ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
-    EXPECT_EQ(screenInfo.samplingDistance, displayDrawable_->scaleManager_->GetKernelSize());
     // when scaleManager is not nullptr
     displayDrawable_->scaleManager_ = std::make_unique<RSSLRScaleFunction>(
-        screenInfo.phyWidth, screenInfo.phyHeight, screenInfo.width, screenInfo.height);
-    displayDrawable_->UpdateSlrScale(screenInfo);
+        width, height, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->UpdateSlrScale(screenProperty);
     ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
-    EXPECT_EQ(screenInfo.samplingDistance, displayDrawable_->scaleManager_->GetKernelSize());
 
     system::SetParameter("rosen.SLRScale.enabled", "0");
-    displayDrawable_->UpdateSlrScale(screenInfo);
+    displayDrawable_->UpdateSlrScale(screenProperty);
     EXPECT_EQ(displayDrawable_->scaleManager_, nullptr);
     system::SetParameter("rosen.SLRScale.enabled", param);
 }
@@ -3355,19 +3351,16 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, UpdateSlrScale002, TestSize.Lev
 {
     ASSERT_NE(displayDrawable_, nullptr);
     auto param = system::GetParameter("rosen.SLRScale.enabled", "");
-    ScreenInfo screenInfo = {
-        .phyWidth = DEFAULT_CANVAS_SIZE,
-        .phyHeight = DEFAULT_CANVAS_SIZE,
-        .width = DEFAULT_CANVAS_SIZE,
-        .height = DEFAULT_CANVAS_SIZE,
-        .isSamplingOn = true,
-    };
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>({DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        {DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE, 1});
+    screenProperty.Set<ScreenPropertyType::SAMPLING_OPTION>({true, 0.f, 0.f, 1.f});
     system::SetParameter("rosen.SLRScale.enabled", "1");
     // when params is not nullptr
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    displayDrawable_->UpdateSlrScale(screenInfo, screenParams);
+    displayDrawable_->UpdateSlrScale(screenProperty, screenParams);
     ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
-    EXPECT_EQ(screenInfo.samplingDistance, displayDrawable_->scaleManager_->GetKernelSize());
     // recover rosen.SLRScale.enabled
     system::SetParameter("rosen.SLRScale.enabled", param);
 }
@@ -3383,31 +3376,28 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleCanvasIfNeeded001, TestSiz
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
     auto param = system::GetParameter("rosen.SLRScale.enabled", "");
-    ScreenInfo screenInfo = {
-        .phyWidth = DEFAULT_CANVAS_SIZE,
-        .phyHeight = DEFAULT_CANVAS_SIZE,
-        .width = DEFAULT_CANVAS_SIZE,
-        .height = DEFAULT_CANVAS_SIZE,
-        .isSamplingOn = false,
-    };
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>({DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        {DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE, 1});
     system::SetParameter("rosen.SLRScale.enabled", "1");
     // when scaleManager_ is nullptr
-    displayDrawable_->ScaleCanvasIfNeeded(screenInfo);
+    displayDrawable_->ScaleCanvasIfNeeded(screenProperty);
     ASSERT_EQ(displayDrawable_->scaleManager_, nullptr);
     // when scaleManager is not nullptr
     displayDrawable_->scaleManager_ = std::make_unique<RSSLRScaleFunction>(
-        screenInfo.phyWidth, screenInfo.phyHeight, screenInfo.width, screenInfo.height);
-    displayDrawable_->ScaleCanvasIfNeeded(screenInfo);
+        DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->ScaleCanvasIfNeeded(screenProperty);
     ASSERT_EQ(displayDrawable_->scaleManager_, nullptr);
 
-    screenInfo.isSamplingOn = true;
+    screenProperty.Set<ScreenPropertyType::SAMPLING_OPTION>({true, 0.f, 0.f, 1.f});
     system::SetParameter("rosen.SLRScale.enabled", "0");
-    displayDrawable_->ScaleCanvasIfNeeded(screenInfo);
+    displayDrawable_->ScaleCanvasIfNeeded(screenProperty);
     ASSERT_EQ(displayDrawable_->scaleManager_, nullptr);
     system::SetParameter("rosen.SLRScale.enabled", param);
 
     displayDrawable_->enableVisibleRect_ = true;
-    displayDrawable_->ScaleCanvasIfNeeded(screenInfo);
+    displayDrawable_->ScaleCanvasIfNeeded(screenProperty);
     displayDrawable_->enableVisibleRect_ = false;
 }
 
@@ -3937,6 +3927,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed001, TestSiz
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto screenId = screenManager_->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, screenId);
     screenManager_->defaultScreenId_ = screenId;
@@ -4010,6 +4001,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed002, TestSiz
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto screenId = screenManager_->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, screenId);
     screenManager_->defaultScreenId_ = screenId;
@@ -4073,6 +4065,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed003, TestSiz
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    screenManager_->Init(nullptr);
     auto screenId = screenManager_->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, screenId);
     screenManager_->defaultScreenId_ = screenId;

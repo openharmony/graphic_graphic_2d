@@ -230,6 +230,16 @@ public:
 
     ScreenInfo GetScreenInfo() const;
 
+    float GetRogWidthRatio() const
+    {
+        return (GetWidth() == 0) ? 1.f : static_cast<float>(GetPhyWidth()) / GetWidth();
+    }
+
+    float GetRogHeightRatio() const
+    {
+        return (GetHeight() == 0) ? 1.f : static_cast<float>(GetPhyHeight()) / GetHeight();
+    }
+
     void Set(ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
     {
         screenProperties_.insert_or_assign(type, property);

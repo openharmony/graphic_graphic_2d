@@ -28,8 +28,6 @@
 namespace OHOS {
 namespace Rosen {
 
-// Forward declarations
-class RSRenderComposerClient;
 using FallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<RSLayerPtr>& layers)>;
 
 class RSComposerAdapter {

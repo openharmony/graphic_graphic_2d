@@ -893,7 +893,7 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 #endif // RS_ENABLE_EGLIMAGE
 }
 
-void RSBaseRenderEngine::ClearCacheSet(const std::set<uint64_t>& unmappedCache)
+void RSBaseRenderEngine::ClearCacheSet(const std::unordered_set<uint64_t>& unmappedCache)
 {
     if (imageManager_ != nullptr) {
         imageManager_->UnMapImagesFromSurfaceBuffer(unmappedCache);

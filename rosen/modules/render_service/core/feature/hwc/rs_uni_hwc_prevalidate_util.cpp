@@ -190,7 +190,7 @@ bool RSUniHwcPrevalidateUtil::IsNeedDssRotate(GraphicTransformType transform) co
 }
 
 bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
-    RSScreenRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info)
+    RSScreenRenderNode::SharedPtr node, const RSScreenProperty& screenProperty, uint32_t fps, RequestLayerInfo &info)
 {
     if (!node) {
         return false;
@@ -207,13 +207,13 @@ bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
     auto buffer = surfaceHandler->GetBuffer();
     info.id = node->GetId();
     info.srcRect = {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
-    info.dstRect = {0, 0, screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight()};
+    info.dstRect = {0, 0, screenProperty.GetPhyWidth(), screenProperty.GetPhyHeight()};
     info.zOrder = zorder;
     info.bufferUsage = buffer->GetUsage();
     info.layerUsage = info.layerUsage | USAGE_UNI_LAYER;
     info.format = buffer->GetFormat();
     info.fps = fps;
-    LayerRotate(info, surfaceHandler->GetConsumer(), screenInfo);
+    LayerRotate(info, surfaceHandler->GetConsumer());
     RS_LOGD_IF(DEBUG_PREVALIDATE, "CreateScreenNodeLayerInfo %{public}" PRIu64 ","
         " src: %{public}d,%{public}d,%{public}d,%{public}d"
         " dst: %{public}d,%{public}d,%{public}d,%{public}d, z: %{public}" PRIu32 ","
@@ -225,8 +225,8 @@ bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
     return true;
 }
 
-bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
-    RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info)
+bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(RSRcdSurfaceRenderNode::SharedPtr node,
+    const RSScreenProperty& screenProperty, uint32_t fps, RequestLayerInfo &info)
 {
     if (!node || !node->GetConsumer() || !node->GetBuffer()) {
         return false;
@@ -236,16 +236,18 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     auto src = node->GetSrcRect();
     info.srcRect = {src.left_, src.top_, src.width_, src.height_};
     auto dst = node->GetDstRect();
-    info.dstRect.x = static_cast<uint32_t>(static_cast<float>(dst.left_) * screenInfo.GetRogWidthRatio());
-    info.dstRect.y = static_cast<uint32_t>(static_cast<float>(dst.top_) * screenInfo.GetRogHeightRatio());
-    info.dstRect.w = static_cast<uint32_t>(static_cast<float>(dst.width_) * screenInfo.GetRogWidthRatio());
-    info.dstRect.h = static_cast<uint32_t>(static_cast<float>(dst.height_) * screenInfo.GetRogHeightRatio());
+    float widthRatio = screenProperty.GetRogWidthRatio();
+    float heightRatio = screenProperty.GetRogHeightRatio();
+    info.dstRect.x = static_cast<uint32_t>(static_cast<float>(dst.left_) * widthRatio);
+    info.dstRect.y = static_cast<uint32_t>(static_cast<float>(dst.top_) * heightRatio);
+    info.dstRect.w = static_cast<uint32_t>(static_cast<float>(dst.width_) * widthRatio);
+    info.dstRect.h = static_cast<uint32_t>(static_cast<float>(dst.height_) * heightRatio);
     info.zOrder = static_cast<uint32_t>(node->GetGlobalZOrder());
     info.bufferUsage = node->GetBuffer()->GetUsage();
     info.format = node->GetBuffer()->GetFormat();
     info.fps = fps;
     CopyCldInfo(node->GetCldInfo(), info);
-    LayerRotate(info, node->GetConsumer(), screenInfo);
+    LayerRotate(info, node->GetConsumer());
     RS_LOGD_IF(DEBUG_PREVALIDATE, "CreateRCDLayerInfo %{public}" PRIu64 ","
         " src: %{public}d,%{public}d,%{public}d,%{public}d"
         " dst: %{public}d,%{public}d,%{public}d,%{public}d, z: %{public}" PRIu32 ","
@@ -258,9 +260,8 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     return true;
 }
 
-void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(
-    std::vector<RequestLayerInfo>& prevalidLayers, std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes,
-    uint32_t curFps, uint32_t &zOrder, const ScreenInfo& screenInfo)
+void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(std::vector<RequestLayerInfo>& prevalidLayers,
+    std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes, uint32_t curFps, uint32_t &zOrder)
 {
     for (auto it = surfaceNodes.rbegin(); it != surfaceNodes.rend(); it++) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
@@ -268,7 +269,7 @@ void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(
             continue;
         }
         if (RSUniHwcPrevalidateUtil::CheckHwcNode(surfaceNode)) {
-            RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, surfaceNode, curFps, zOrder, screenInfo);
+            RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, surfaceNode, curFps, zOrder);
         }
         const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
         if (hwcNodes.empty()) {
@@ -279,16 +280,16 @@ void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(
             if (!RSUniHwcPrevalidateUtil::CheckHwcNode(hwcNodePtr)) {
                 continue;
             }
-            RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, hwcNodePtr, curFps, zOrder, screenInfo);
+            RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, hwcNodePtr, curFps, zOrder);
         }
     }
 }
 
 void RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(
     std::vector<RequestLayerInfo>& prevalidLayers, RSSurfaceRenderNode::SharedPtr node,
-    uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo)
+    uint32_t curFps, uint32_t& zOrder)
 {
-    auto transform = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
+    auto transform = RSUniHwcComputeUtil::GetLayerTransform(*node);
     RequestLayerInfo surfaceLayer;
     uint32_t appWindowZOrder = 0;
     if (IsPointerWindow(node)) {
@@ -321,35 +322,13 @@ bool RSUniHwcPrevalidateUtil::IsPointerWindow(const RSSurfaceRenderNode::SharedP
     return node->IsHardwareEnabledTopSurface();
 }
 
-void RSUniHwcPrevalidateUtil::LayerRotate(
-    RequestLayerInfo& info, const sptr<IConsumerSurface>& surface, const ScreenInfo &screenInfo)
+void RSUniHwcPrevalidateUtil::LayerRotate(RequestLayerInfo& info, const sptr<IConsumerSurface>& surface)
 {
     if (!surface) {
         return;
     }
-    const auto screenWidth = static_cast<int32_t>(screenInfo.width);
-    const auto screenHeight = static_cast<int32_t>(screenInfo.height);
-    const auto screenRotation = screenInfo.rotation;
-    const auto rect = info.dstRect;
-    switch (screenRotation) {
-        case ScreenRotation::ROTATION_90: {
-            info.dstRect = {rect.y, screenHeight - rect.x - rect.w, rect.h, rect.w};
-            break;
-        }
-        case ScreenRotation::ROTATION_180: {
-            info.dstRect = {screenWidth - rect.x - rect.w, screenHeight - rect.y - rect.h, rect.w, rect.h};
-            break;
-        }
-        case ScreenRotation::ROTATION_270: {
-            info.dstRect = {screenWidth - rect.y - rect.h, rect.x, rect.h, rect.w};
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-    int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenRotation) + RSBaseRenderUtil::RotateEnumToInt(
-        RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % ROTATION_360;
+    int totalRotation = RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(
+        surface->GetTransform()));
     GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
         RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
     info.transform = rotateEnum;

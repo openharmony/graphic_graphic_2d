@@ -87,7 +87,6 @@ constexpr const char* RECLAIM_MEMORY = "ReclaimMemory";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO = "SuppressGpuCacheBelowCertainRatio";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
-constexpr int MAX_ACCUMULATED_BUFFER_COUNT = 4;
 constexpr uint32_t TIME_OF_SIX_FRAMES = 6000;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -229,8 +228,9 @@ void RSUniRenderThread::InitDrawOpOverCallback(Drawing::GPUContext *gpuContext)
     });
 }
 
-void RSUniRenderThread::Start()
+void RSUniRenderThread::Start(const std::shared_ptr<RSComposerClientManager>& composerClientManager)
 {
+    composerClientManager_ = composerClientManager;
     runner_ = AppExecFwk::EventRunner::Create("RSUniRenderThread");
     if (!runner_) {
         RS_LOGE("RSUniRenderThread Start runner null");
@@ -280,18 +280,6 @@ void RSUniRenderThread::Start()
         auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode);
         rootNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(ptr);
     }
-}
-
-void RSUniRenderThread::OnScreenConnected(const ScreenId screenId, const std::shared_ptr<RSRenderComposerClient>& composerClient)
-{
-    RS_LOGI("RSUniRenderThread::OnScreenConnected");
-    AddRenderComposerClient(screenId, composerClient);
-}
-
-void RSUniRenderThread::OnScreenDisconnected(const ScreenId screenId)
-{
-    RS_LOGI("RSUniRenderThread::OnScreenDisconnected");
-    DeleteRSRenderComposerClient(screenId);
 }
 
 std::shared_ptr<RSBaseRenderEngine> RSUniRenderThread::GetRenderEngine() const
@@ -599,12 +587,7 @@ void RSUniRenderThread::NotifyScreenNodeBufferReleased(ScreenId curScreenId)
 void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo)
 {
     ScreenId curScreenId = releaseLayerInfo.screenId;
-    std::shared_ptr<RSRenderComposerClient> composerClient = GetRSRenderComposerClient(curScreenId);
-    if (composerClient == nullptr) {
-        RS_LOGE("GetRSRenderComposerClient failed, screenId:%{public}" PRIu64, curScreenId);
-        return;
-    }
-    composerClient->ReleaseLayerBuffers(curScreenId, releaseLayerInfo.timestampVec,
+    composerClientManager_->ReleaseLayerBuffers(curScreenId, releaseLayerInfo.timestampVec,
         releaseLayerInfo.releaseBufferFenceVec);
     NotifyScreenNodeBufferReleased(curScreenId);
 }
@@ -867,13 +850,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         RSParallelManager::Singleton().ClearMemoryCache();
 #endif
         auto screenHasProtectedLayerSet = GetScreenHasProtectedLayerSet();
-        for (auto [screenId, client] : rsRenderComposerClients_) {
-            if (screenHasProtectedLayerSet.count(screenId)) {
-                RS_TRACE_NAME_FMT("screenHasProtectedLayerSet %" PRIu64 "", screenId);
-                continue;
-            }
-            client->ClearFrameBuffers();
-        }
+        composerClientManager_->ClearFrameBuffers(screenHasProtectedLayerSet);
         grContext->FlushAndSubmit(true);
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
@@ -1243,86 +1220,20 @@ void RSUniRenderThread::CollectProcessNodeNum(int num)
 
 int RSUniRenderThread::GetMinAccumulatedBufferCount()
 {
-    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-    int minAccumulatedBufferCount = MAX_ACCUMULATED_BUFFER_COUNT;
-    if (rsRenderComposerClients_.empty()) {
-        RS_LOGE("RSUniRenderThread::GetMinAccumulatedBufferCount rsRenderComposerClients_ is empty!");
-        return 0;
-    }
-    for (auto [screenId, client] : rsRenderComposerClients_) {
-        int curAccumulatedBufferCount = client->GetAccumulatedBufferCount();
-        RS_LOGD("RSUniRenderThread::GetMinAccumulatedBufferCount screenId: %{public}" PRIu64 ", count: %{public}d",
-            screenId, curAccumulatedBufferCount);
-        minAccumulatedBufferCount = std::min(minAccumulatedBufferCount, curAccumulatedBufferCount);
-    }
-    return minAccumulatedBufferCount;
+    return composerClientManager_->GetMinAccumulatedBufferCount();
 }
 
-// composer client
-void RSUniRenderThread::AddRenderComposerClient(ScreenId screenId,
-    const std::shared_ptr<RSRenderComposerClient>& rsRenderComposerClient)
-{
-    if (rsRenderComposerClient == nullptr) {
-        RS_LOGE("%{public}s client nullptr", __func__);
-        return;
-    }
-    RS_LOGI("RSUniRenderThread::AddRenderComposerClient rsRenderComposerClient[%{public}d]",
-        rsRenderComposerClient != nullptr);
-    if (GetRSRenderComposerClient(screenId)) {
-        RS_LOGI("GetRSRenderComposerClient, return.");
-        return;
-    }
-    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-    rsRenderComposerClients_[screenId] = rsRenderComposerClient;
-}
-
-void RSUniRenderThread::DeleteRSRenderComposerClient(ScreenId screenId)
-{
-    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-    rsRenderComposerClients_.erase(screenId);
-}
-
-std::shared_ptr<RSRenderComposerClient> RSUniRenderThread::GetRSRenderComposerClient(ScreenId screenId)
-{
-    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-    auto it = rsRenderComposerClients_.find(screenId);
-    if (it != rsRenderComposerClients_.end()) {
-        return it->second;
-    } else {
-        RS_LOGE("RSUniRenderThread::GetRSRenderComposerClient return nullptr");
-        return nullptr;
-    }
-}
-
-std::map<ScreenId, std::shared_ptr<RSRenderComposerClient>> RSUniRenderThread::GetRSRenderComposerClientMap()
-{
-    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-    return rsRenderComposerClients_;
-}
-
-void RSUniRenderThread::DumpSurfaceInfo(std::string &dumpString)
+void RSUniRenderThread::DumpSurfaceInfo(std::string& dumpString)
 {
     PostSyncTask([this, &dumpString]() {
-        std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-        for (auto iter = rsRenderComposerClients_.begin(); iter != rsRenderComposerClients_.end(); iter++) {
-            if (iter->second != nullptr) {
-                dumpString.append("\n");
-                dumpString.append("-- LayerInfo [ScreenId: " + std::to_string(iter->first) + "]\n");
-                iter->second->DumpLayersInfo(dumpString);
-            }
-        }
+        composerClientManager_->DumpSurfaceInfo(dumpString);
     });
 }
 
 void RSUniRenderThread::DumpCurrentFrameLayers()
 {
     PostSyncTask([this]() {
-        std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-        for (auto iter = rsRenderComposerClients_.begin(); iter != rsRenderComposerClients_.end(); iter++) {
-            if (iter->second != nullptr) {
-                iter->second->DumpCurrentFrameLayers();
-            }
-        }
+        composerClientManager_->DumpCurrentFrameLayers();
     });
 }
 } // namespace Rosen

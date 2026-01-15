@@ -30,7 +30,7 @@ public:
     virtual bool CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) = 0;
     virtual void CleanLayerBufferBySurfaceId(uint64_t surfaceId) = 0;
     virtual void ClearFrameBuffers() = 0;
-    virtual void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds) = 0;
+    virtual void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds) = 0;
     virtual void SetScreenBacklight(uint32_t level) = 0;
     virtual void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) = 0;
     virtual void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) = 0;

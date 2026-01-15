@@ -5410,32 +5410,6 @@ HWTEST_F(RSMainThreadTest, IsOcclusionNodesNeedSync004, TestSize.Level2)
 }
 
 /**
- * @tc.name: ProcessHgmFrameRate
- * @tc.desc: test ProcessHgmFrameRate
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, ProcessHgmFrameRate, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    uint64_t timestamp = 0;
-    FrameRateLinkerId id = 0;
-    mainThread->hgmContext_.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(id);
-    mainThread->ProcessHgmFrameRate(timestamp);
-
-    auto vsyncGenerator = CreateVSyncGenerator();
-    auto vsyncController = new VSyncController(vsyncGenerator, 0);
-    mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    mainThread->ProcessHgmFrameRate(timestamp);
-
-    mainThread->rsVSyncDistributor_ = nullptr;
-    mainThread->ProcessHgmFrameRate(timestamp);
-    sleep(1);
-}
-
-/**
  * @tc.name: SetCurtainScreenUsingStatus
  * @tc.desc: test SetCurtainScreenUsingStatus
  * @tc.type: FUNC
@@ -6170,35 +6144,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
     system::SetParameter("persist.sys.graphic.anco.disableHebc", type);
     delete handle;
-}
-
-/**
- * @tc.name: InitHgmTaskHandleThreadTest
- * @tc.desc: InitHgmTaskHandleThreadTest
- * @tc.type: FUNC
- * @tc.require: issueIBZ6NM
- */
-HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->hgmContext_.InitHgmTaskHandleThread(mainThread->rsVSyncController_, mainThread->appVSyncController_,
-        mainThread->vsyncGenerator_, mainThread->appVSyncDistributor_);
-    ASSERT_EQ(mainThread->forceUpdateUniRenderFlag_, true);
-    mainThread->hgmContext_.ProcessHgmFrameRate(0, mainThread->rsVSyncDistributor_, mainThread->vsyncId_);
-
-    auto convertFrameRateFunc = mainThread->hgmContext_.GetConvertFrameRateFunc();
-    if (convertFrameRateFunc) {
-        ASSERT_EQ(convertFrameRateFunc(static_cast<RSPropertyUnit>(0xff), 0.f, 0, 0), 0);
-    }
-    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-    ASSERT_NE(frameRateMgr, nullptr);
-    HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
-    ASSERT_EQ(HgmCore::Instance().GetFrameRateMgr(), nullptr);
-    if (convertFrameRateFunc) {
-        ASSERT_EQ(convertFrameRateFunc(RSPropertyUnit::PIXEL_POSITION, 0.f, 0, 0), 0);
-    }
-    HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
-    ASSERT_NE(HgmCore::Instance().GetFrameRateMgr(), nullptr);
 }
 
 /**

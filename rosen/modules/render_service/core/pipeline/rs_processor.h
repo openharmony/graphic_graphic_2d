@@ -25,7 +25,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "render_thread/rs_base_render_engine.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client_manager.h"
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_hpae_offline_result.h"
 

@@ -72,7 +72,7 @@ private:
     std::vector<RSLayerId> lastCommitLayersId_;
 
     OnReleaseLayerBuffersCB onReleaseLayerBuffersCB_ = nullptr;
-    friend class RSRenderComposerClient;
+    friend class RSComposerClient;
     friend class RSSurfaceLayer;
     friend class RSSurfaceRCDLayer;
 };

@@ -95,6 +95,11 @@ void RSRenderPipeline::Init(const std::shared_ptr<AppExecFwk::EventHandler>& han
     RS_LOGD("%{public}s: render pipeline int success.", __func__);
 }
 
+std::shared_ptr<RSComposerClientManager> RSRenderPipeline::GetComposerClientManager() const
+{
+    return composerClientManager_;
+}
+
 void RSRenderPipeline::PostMainThreadTask(RSTaskMessage::RSTask task)
 {
     if (mainThread_ == nullptr) {
@@ -166,12 +171,12 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         RS_LOGE("%{public}s uniRenderThread_ is nullptr, return", __func__);
         return;
     }
-    std::shared_ptr<RSRenderComposerClient> composerClient = nullptr;
+    std::shared_ptr<RSComposerClient> composerClient = nullptr;
     if (!rsScreenProperty->IsVirtual()) {
         composerToRenderConn->RegisterReleaseLayerBuffersCB(
             std::bind(&RSUniRenderThread::ReleaseLayerBuffers, uniRenderThread_, std::placeholders::_1));
         RegisterJudgeLppLayerCB(composerToRenderConn);
-        composerClient = RSRenderComposerClient::Create(renderToComposerConn, composerToRenderConn,
+        composerClient = RSComposerClient::Create(renderToComposerConn, composerToRenderConn,
             rsVsyncManagerAgent);
         composerClient->RegisterOnReleaseLayerBuffersCB(std::bind(&RSUniRenderThread::OnReleaseLayerBuffers,
             uniRenderThread_, std::placeholders::_1, std::placeholders::_2));
@@ -179,7 +184,7 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
             composerClient->SetOutput(output);
         }
     }
-    uniRenderThread_->OnScreenConnected(rsScreenProperty->GetScreenId(), composerClient);
+    composerClientManager_->AddComposerClient(rsScreenProperty->GetScreenId(), composerClient);
 }
 
 void RSRenderPipeline::OnScreenDisconnected(ScreenId screenId)
@@ -193,7 +198,7 @@ void RSRenderPipeline::OnScreenDisconnected(ScreenId screenId)
         RS_LOGE("%{public}s uniRenderThread_ is nullptr, return", __func__);
         return;
     }
-    uniRenderThread_->OnScreenDisconnected(screenId);
+    composerClientManager_->DeleteComposerClient(screenId);
 }
 
 void RSRenderPipeline::OnScreenPropertyChanged(
@@ -263,13 +268,14 @@ void RSRenderPipeline::InitMainThread(const std::shared_ptr<AppExecFwk::EventHan
     const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
 {
     mainThread_ = RSMainThread::Instance();
-    mainThread_->Init(handler, receiver, renderToServiceConnection, rsVsyncManagerAgent);
+    mainThread_->Init(handler, receiver, renderToServiceConnection, rsVsyncManagerAgent, composerClientManager_);
 }
 
 void RSRenderPipeline::InitUniRenderThread()
 {
     uniRenderThread_ = &(RSUniRenderThread::Instance());
-    uniRenderThread_->Start();
+    composerClientManager_ = std::make_shared<RSComposerClientManager>();
+    uniRenderThread_->Start(composerClientManager_);
 }
 
 void RSRenderPipeline::InitDumper(const std::shared_ptr<AppExecFwk::EventHandler>& handler)
