@@ -1014,12 +1014,6 @@ public:
      */
     int32_t UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid);
 
-    /**
-     * @brief Set appWindow number.
-     * @param num winodw number.
-     */
-    void SetAppWindowNum(uint32_t num);
-
     /*
      * @brief Set the system overload Animated Scenes to RS for special load shedding.
      * @param systemAnimatedScenes indicates the system animation scene.

@@ -305,8 +305,6 @@ private:
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
 
-    ErrCode SetAppWindowNum(uint32_t num) override;
-
     ErrCode SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) override;
 

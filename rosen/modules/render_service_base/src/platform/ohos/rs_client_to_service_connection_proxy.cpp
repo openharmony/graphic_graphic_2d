@@ -3971,30 +3971,6 @@ int32_t RSClientToServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpda
     return result;
 }
 
-ErrCode RSClientToServiceConnectionProxy::SetAppWindowNum(uint32_t num)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("SetAppWindowNum: WriteInterfaceToken GetDescriptor err.");
-        return ERR_INVALID_VALUE;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteUint32(num)) {
-        ROSEN_LOGE("SetAppWindowNum: WriteUint32 num err.");
-        return ERR_INVALID_VALUE;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetAppWindowNum: Send Request err.");
-        return ERR_INVALID_VALUE;
-    }
-
-    return ERR_OK;
-}
-
 ErrCode RSClientToServiceConnectionProxy::SetSystemAnimatedScenes(
     SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success)
 {

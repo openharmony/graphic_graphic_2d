@@ -58,8 +58,6 @@ constexpr int32_t INVALID_VALUE = -1;
 constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
 constexpr int32_t SCREEN_PHYSICAL_WIDTH = 10;
 constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
-constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
-constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
@@ -3419,45 +3417,6 @@ HWTEST_F(RSMainThreadTest, PerfForBlurIfNeeded, TestSize.Level1)
     mainThread->PerfForBlurIfNeeded();
     mainThread->runner_ = nullptr;
     mainThread->handler_ = nullptr;
-}
-
-/**
- * @tc.name: PerfMultiWindow001
- * @tc.desc: PerfMultiWindow Test, not unirender
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, PerfMultiWindow001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = false;
-    mainThread->PerfMultiWindow();
-    mainThread->isUniRender_ = isUniRender;
-}
-
-/**
- * @tc.name: PerfMultiWindow002
- * @tc.desc: PerfMultiWindow Test, unirender
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, PerfMultiWindow002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = true;
-    auto appWindowNum = mainThread->appWindowNum_;
-    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_START_NUM - 1;
-    mainThread->PerfMultiWindow();
-    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_START_NUM;
-    mainThread->PerfMultiWindow();
-    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_END_NUM + 1;
-    mainThread->PerfMultiWindow();
-    mainThread->isUniRender_ = isUniRender;
-    mainThread->appWindowNum_ = appWindowNum;
 }
 
 /**

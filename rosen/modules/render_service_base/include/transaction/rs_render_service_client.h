@@ -330,8 +330,6 @@ public:
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         const FrameRateLinkerExpectedFpsUpdateCallback& callback);
 
-    void SetAppWindowNum(uint32_t num);
-
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);

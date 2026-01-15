@@ -210,7 +210,6 @@ public:
     void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, const std::string& type);
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
-    void SetAppWindowNum(uint32_t num);
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
     SystemAnimatedScenes GetSystemAnimatedScenes();
     bool GetIsRegularAnimation() const;
@@ -509,7 +508,6 @@ private:
     void ClearDisplayBuffer();
     void PerfAfterAnim(bool needRequestNextVsync);
     void PerfForBlurIfNeeded();
-    void PerfMultiWindow();
     void RenderFrameStart(uint64_t timestamp);
     void CheckAndUpdateTransactionIndex(
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
@@ -650,7 +648,6 @@ private:
 
     pid_t lastCleanCachePid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
-    uint32_t appWindowNum_ = 0;
     pid_t desktopPidForRotationScene_ = 0;
     int32_t subscribeFailCount_ = 0;
     SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;

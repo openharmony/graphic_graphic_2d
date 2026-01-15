@@ -334,16 +334,6 @@ bool DoSetScreenGamutMap()
     return true;
 }
 
-bool DoSetAppWindowNum()
-{
-    if (rsToServiceConn_ == nullptr) {
-        return false;
-    }
-    uint32_t num = GetData<uint32_t>();
-    rsToServiceConn_->SetAppWindowNum(num);
-    return true;
-}
-
 bool DoCreateVirtualScreen()
 {
     if (rsToServiceConn_ == nullptr) {
@@ -1570,7 +1560,6 @@ void DoFuzzerTest1()
     DoGetScreenColorGamut();
     DoSetScreenPowerStatus();
     DoSetScreenGamutMap();
-    DoSetAppWindowNum();
     DoCreateVirtualScreen();
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     DoSetPointerColorInversionConfig();

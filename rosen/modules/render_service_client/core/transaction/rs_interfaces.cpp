@@ -836,11 +836,6 @@ int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t
     return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, nullptr);
 }
 
-void RSInterfaces::SetAppWindowNum(uint32_t num)
-{
-    renderServiceClient_->SetAppWindowNum(num);
-}
-
 /**
  * @brief Display safe Watermark
  * @param watermarkImg, The image width and height are less than twice the screen size

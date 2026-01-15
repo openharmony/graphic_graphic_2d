@@ -817,15 +817,6 @@ bool DoUnRegisterFrameRateLinkerExpectedFpsUpdateCallback(const uint8_t* data, s
     return true;
 }
 
-bool DoSetAppWindowNum(const uint8_t* data, size_t size)
-{
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    uint32_t num = GetData<uint32_t>();
-    renderServiceClient->SetAppWindowNum(num);
-
-    return true;
-}
-
 bool DoSetSystemAnimatedScenes()
 {
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
@@ -1702,7 +1693,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetGlobalDarkColorMode002(data, size);
     OHOS::Rosen::DoGetScreenType002(data, size);
     OHOS::Rosen::DoRegisterOcclusionChangeCallback002(data, size);
-    OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoSetHidePrivacyContent002(data, size);
     OHOS::Rosen::DoSetBehindWindowFilterEnabled(data, size);
     OHOS::Rosen::DoGetBehindWindowFilterEnabled(data, size);

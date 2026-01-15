@@ -605,10 +605,6 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     return {};
 }
 
-void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
-{
-}
-
 bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     return {};

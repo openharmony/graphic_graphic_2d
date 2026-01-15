@@ -207,7 +207,6 @@ constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
 constexpr uint64_t MAX_DYNAMIC_STATUS_TIME = 5000000000;
 constexpr uint64_t MAX_SYSTEM_SCENE_STATUS_TIME = 800000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
-constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t TIME_OF_CAPTURE_TASK_REMAIN = 500;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -476,7 +475,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
         }
         RenderFrameStart(timestamp_);
         RSRenderNodeGC::Instance().SetGCTaskEnable(true);
-        PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
         ConsumeAndUpdateAllNodes();

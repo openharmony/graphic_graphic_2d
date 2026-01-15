@@ -2561,16 +2561,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM): {
-            uint32_t num{0};
-            if (!data.ReadUint32(num)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_APP_WINDOW_NUM Read num failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetAppWindowNum(num);
-            break;
-        }
         case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES): {
             uint32_t systemAnimatedScenes{0};
