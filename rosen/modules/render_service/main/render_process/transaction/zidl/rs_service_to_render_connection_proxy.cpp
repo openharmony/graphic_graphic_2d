@@ -411,7 +411,7 @@ ErrCode RSServiceToRenderConnectionProxy::AvcodecVideoStart(const std::vector<ui
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("AvcodecVideoStart: WriteInterfaceToken GetDescriptor err.");
-        return RS_CONNECTION_ERROR;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteUInt64Vector(uniqueIdList)) {
         ROSEN_LOGE("AvcodecVideoStart: WriteUInt64Vector uniqueIdList err.");
@@ -433,12 +433,12 @@ ErrCode RSServiceToRenderConnectionProxy::AvcodecVideoStart(const std::vector<ui
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::AvcodecVideoStart: Send Request err.");
-        return RS_CONNECTION_ERROR;
+        return ERR_INVALID_VALUE;
     }
     int32_t result{0};
     if (!reply.ReadInt32(result)) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::AvcodecVideoStart Read result failed");
-        return READ_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
     }
     return result;
 }
@@ -452,7 +452,7 @@ ErrCode RSServiceToRenderConnectionProxy::AvcodecVideoStop(const std::vector<uin
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("AvcodecVideoStop: WriteInterfaceToken GetDescriptor err.");
-        return RS_CONNECTION_ERROR;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteUInt64Vector(uniqueIdList)) {
         ROSEN_LOGE("AvcodecVideoStop: WriteUInt64Vector uniqueIdList err.");
@@ -470,12 +470,12 @@ ErrCode RSServiceToRenderConnectionProxy::AvcodecVideoStop(const std::vector<uin
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::AvcodecVideoStop: Send Request err.");
-        return RS_CONNECTION_ERROR;
+        return ERR_INVALID_VALUE;
     }
     int32_t result{0};
     if (!reply.ReadInt32(result)) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::AvcodecVideoStop Read result failed");
-        return READ_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
     }
     return result;
 }

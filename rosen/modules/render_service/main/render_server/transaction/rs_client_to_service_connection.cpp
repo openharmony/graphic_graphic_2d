@@ -1444,10 +1444,12 @@ ErrCode RSClientToServiceConnection::ReportJankStats()
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportJankStats();
+        int32_t retTmp = conn->ReportJankStats();
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::NotifyLightFactorStatus(int32_t lightFactorStatus)
@@ -1587,10 +1589,12 @@ ErrCode RSClientToServiceConnection::ReportEventResponse(DataBaseRs info)
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportEventResponse(info);
+        int32_t retTmp = conn->ReportEventResponse(info);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::ReportEventComplete(DataBaseRs info)
@@ -1604,10 +1608,12 @@ ErrCode RSClientToServiceConnection::ReportEventComplete(DataBaseRs info)
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportEventComplete(info);
+        int32_t retTmp = conn->ReportEventComplete(info);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::ReportEventJankFrame(DataBaseRs info)
@@ -1621,10 +1627,12 @@ ErrCode RSClientToServiceConnection::ReportEventJankFrame(DataBaseRs info)
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportEventJankFrame(info);
+        int32_t retTmp = conn->ReportEventJankFrame(info);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::ReportRsSceneJankStart(AppInfo info)
@@ -1638,10 +1646,12 @@ ErrCode RSClientToServiceConnection::ReportRsSceneJankStart(AppInfo info)
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportRsSceneJankStart(info);
+        int32_t retTmp = conn->ReportRsSceneJankStart(info);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::ReportRsSceneJankEnd(AppInfo info)
@@ -1655,10 +1665,12 @@ ErrCode RSClientToServiceConnection::ReportRsSceneJankEnd(AppInfo info)
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportRsSceneJankEnd(info);
+        int32_t retTmp = conn->ReportRsSceneJankEnd(info);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 void RSClientToServiceConnection::ReportGameStateData(GameStateData info)
@@ -2054,10 +2066,12 @@ ErrCode RSClientToServiceConnection::AvcodecVideoStart(const std::vector<uint64_
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+        int32_t retTmp = conn->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
@@ -2072,10 +2086,12 @@ ErrCode RSClientToServiceConnection::AvcodecVideoStop(const std::vector<uint64_t
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+        int32_t retTmp = conn->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
