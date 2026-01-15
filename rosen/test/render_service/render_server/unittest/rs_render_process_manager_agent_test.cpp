@@ -50,14 +50,14 @@ public:
         auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService_.screenManager_);
         renderToServiceConnection_ = sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent,
             renderProcessManagerAgent, screenManagerAgent);
-        renderService.renderPipeline_ = std::make_shared<RSRenderPipeline>();
+        renderService_.renderPipeline_ = std::make_shared<RSRenderPipeline>();
 
-        auto mainThread = RSMainRenderThread::Instance();
+        auto mainThread = RSMainThread::Instance();
         renderService_.renderPipeline_->mainThread_ = mainThread;
         mainThread->RegisterScreenSwitchFinishCallback(renderToServiceConnection_);
 
         renderService_.renderPipeline_->uniRenderThread_ = &(RSUniRenderThread::Instance());
-        
+
         auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderService_.renderPipeline_);
         serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
         composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
