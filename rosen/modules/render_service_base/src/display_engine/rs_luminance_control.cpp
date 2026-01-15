@@ -256,7 +256,7 @@ void RSLuminanceControl::SetCurDisplayHdrBrightnessScaler(ScreenId screenId,
 double RSLuminanceControl::GetConfigScaler(ScreenId screenId, HdrStatus type) const
 {
     return (rSLuminanceControlInterface_ != nullptr) ?
-        rSLuminanceControlInterface_->GetConfigScalerLock(screenId, type) : 1.0; // 1.0 means no headroom
+        rSLuminanceControlInterface_->GetConfigScaler(screenId, type) : 1.0; // 1.0 means no headroom
 }
 
 void RSLuminanceControl::SetDualScreenStatus(ScreenId screenId, DualScreenStatus dualScreenStatus)
