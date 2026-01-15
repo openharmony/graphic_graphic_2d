@@ -85,7 +85,7 @@ static int DisplayAllCaseInfo(int argc, char **argv)
     vector<const TestDefInfo*> info = ::OHOS::Rosen::TestDefManager::Instance().GetAllTestInfos();
     vector<string> layerInfo {};
     vector<string> curlayerInfo {};
-    string findPath = "graphic_test";
+    string findPath = "test";
     if (argc == ARGS_THREE) {
         findPath = string(argv[ARGS_TWO]);
     }
