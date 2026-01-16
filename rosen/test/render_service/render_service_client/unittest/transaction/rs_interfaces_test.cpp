@@ -615,6 +615,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark003, TestSize.Level1)
 {
+#if defined(RS_ENABLE_UNI_RENDER)
     RSInterfaces& instance = RSInterfaces::GetInstance();
     int width = 10;
     int height = 10;
@@ -629,6 +630,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark003, TestSize.Level1)
     pixelmap->SetAstc(false);
     res = instance.SetWatermark("test", pixelmap);
     EXPECT_FALSE(res);
+#endif
 }
 
 /**
