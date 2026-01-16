@@ -111,7 +111,7 @@ void RSUniRenderProcessor::PostProcess()
                 if (bufferOwnerCount == nullptr) {
                     continue;
                 }
-                bufferOwnerCount->SetUniBufferOwner(uniBufferOwnerCount->bufferId_);
+                bufferOwnerCount->SetUniBufferOwner(uniBufferOwnerCount->bufferId_, screenInfo_.id);
             }
         }
     } else {

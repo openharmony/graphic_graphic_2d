@@ -751,8 +751,8 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
         for (const auto& [rsLayer, fence] : layersReleaseFence) {
             if (rsLayer != nullptr) {
                 releaseBufferFenceMap[rsLayer->GetRSLayerId()] = fence;
-                RS_OPTIONAL_TRACE_NAME_FMT("HdiOutput::ReleaseLayers releaseBufferFenceVec bufferId % " PRIu64
-                " Fence %d", rsLayer->GetPreBuffer() ? rsLayer->GetPreBuffer()->GetSeqNum() : 0,
+                RS_OPTIONAL_TRACE_NAME_FMT("HdiOutput::ReleaseLayers releaseBufferFenceVec bufferId %" PRIu64
+                    " Fence %d", rsLayer->GetPreBuffer() ? rsLayer->GetPreBuffer()->GetSeqNum() : 0,
                     fence ? fence->Get() : -1);
                 releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(rsLayer->GetRSLayerId(), rsLayer->GetPreBuffer(), fence));
             }

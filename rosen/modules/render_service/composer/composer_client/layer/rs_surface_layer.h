@@ -145,7 +145,8 @@ public:
     uint32_t GetCycleBuffersNum() const override;
     void SetSurfaceName(std::string surfaceName) override;
     std::string GetSurfaceName() const override;
-    void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount) override;
+    void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount,
+        bool needUpdate) override;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) override;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override;
     void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) override;

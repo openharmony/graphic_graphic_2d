@@ -1010,6 +1010,8 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         surfaceBuffer->buffer = returnValue.buffer;
         surfaceBuffer->acquireFence = returnValue.fence;
         surfaceBuffer->timestamp = returnValue.timestamp;
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::ConsumeAndUpdateBuffer bufferId %" PRIu64,
+            surfaceBuffer->buffer ? surfaceBuffer->buffer->GetBufferId() : 0);
         surfaceBuffer->RegisterReleaseBufferListener([](uint64_t bufferId){
             RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
         });

@@ -46,7 +46,7 @@ public:
 
         ~BufferOwnerCount() {
             if (bufferReleaseCb_ != nullptr && bufferId_ != 0) {
-                RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount bufferId % " PRIu64 " refCount_ %u",
+                RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount bufferId %" PRIu64 " refCount_ %u",
                     bufferId_, refCount_.load());
                 bufferReleaseCb_(bufferId_);
                 bufferReleaseCb_ = nullptr;
@@ -55,7 +55,7 @@ public:
 
         void AddRef()
         {
-            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::AddRef bufferId % " PRIu64 " refCount_ %u", bufferId_,
+            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::AddRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
                 refCount_.load());
             if (bufferId_ == 0) {
                 RS_LOGE("BufferOwnerCount::AddRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
@@ -92,20 +92,26 @@ public:
         void InsertUniOnDrawSet(uint64_t layerId, uint64_t bufferId)
         {
             std::lock_guard<std::mutex> lock(mapMutex_);
-            uniOnDrawBufferMap_.erase(layerId);
             uniOnDrawBufferMap_[layerId] = bufferId;
         }
 
-        void SetUniBufferOwner(uint64_t bufferId)
+        void SetUniBufferOwner(uint64_t bufferId, uint64_t screenId)
         {
+            RS_OPTIONAL_TRACE_NAME_FMT("SetUniBufferOwner seq:%" PRIu64 " uniSeq:%" PRIu64 " screenId:%",
+                bufferId_, bufferId, screenId);
             std::lock_guard<std::mutex> lock(mapMutex_);
-            uniBufferOwnerId_ = bufferId;
+            uniBufferOwnerSeqNumMap_[screenId] = bufferId;
         }
 
-        bool CheckLastUniBufferOwner(uint64_t bufferId)
+        bool CheckLastUniBufferOwner(uint64_t bufferId, uint64_t screenId)
         {
             std::lock_guard<std::mutex> lock(mapMutex_);
-            return uniBufferOwnerId_ == bufferId;
+            auto iter = uniBufferOwnerSeqNumMap_.find(screenId);
+            if (iter == uniBufferOwnerSeqNumMap_.end()) {
+                // If an exception occurs, true is returned to release the buffer
+                return true;
+            }
+            return iter->second == bufferId;
         }
 
         std::mutex mapMutex_;
@@ -113,7 +119,7 @@ public:
         std::atomic<int32_t> refCount_{1};
         uint64_t bufferId_ = 0;
         OnReleaseBufferFunc bufferReleaseCb_ = nullptr;
-        uint64_t uniBufferOwnerId_ = 0;
+        std::map<uint64_t, uint64_t> uniBufferOwnerSeqNumMap_;
     };
 
     struct SurfaceBufferEntry {

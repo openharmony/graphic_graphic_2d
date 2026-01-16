@@ -179,7 +179,7 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         composerClient = RSComposerClient::Create(renderToComposerConn, composerToRenderConn,
             rsVsyncManagerAgent);
         composerClient->RegisterOnReleaseLayerBuffersCB(std::bind(&RSUniRenderThread::OnReleaseLayerBuffers,
-            uniRenderThread_, std::placeholders::_1, std::placeholders::_2));
+            uniRenderThread_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
             composerClient->SetOutput(output);
         }

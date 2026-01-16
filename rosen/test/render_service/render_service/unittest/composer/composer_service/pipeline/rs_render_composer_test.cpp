@@ -98,7 +98,10 @@ public:
     void SetCycleBuffersNum(uint32_t cycleBuffersNum) override { cycleBuffersNum_ = cycleBuffersNum; }
     uint32_t GetCycleBuffersNum() const override { return cycleBuffersNum_; }
     void SetSurfaceName(std::string surfaceName) override { surfaceName_ = surfaceName; }
-    void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> boc) override { bufferOwnerCount_ = boc; }
+    void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> boc, bool needUpdate) override
+    {
+        bufferOwnerCount_ = boc;
+    }
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) override
     { (void)bufferId; return nullptr; }
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override { return bufferOwnerCount_; }

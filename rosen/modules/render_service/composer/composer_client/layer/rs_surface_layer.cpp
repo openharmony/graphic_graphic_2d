@@ -941,20 +941,22 @@ void RSSurfaceLayer::DumpCurrentFrameLayer() const
     }
 }
 
-void RSSurfaceLayer::SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
+void RSSurfaceLayer::SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount,
+    bool needUpdate)
 {
     if (bufferOwnerCount == nullptr) {
         return;
     }
-
-    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceLayer::SetBufferOwnerCount bufferId %" PRIu64 " layerId %" PRIu64,
         uint32_t(bufferOwnerCount->bufferId_), rsLayerId_);
+    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
     if (bufferOwnerCounts_.find(bufferOwnerCount->bufferId_) == bufferOwnerCounts_.end()) {
         bufferOwnerCount->AddRef();
     }
     bufferOwnerCounts_[bufferOwnerCount->bufferId_] = bufferOwnerCount;
-    bufferOwnerCount_ = bufferOwnerCount;
+    if (needUpdate) {
+        bufferOwnerCount_ = bufferOwnerCount;
+    }
 }
 
 std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::PopBufferOwnerCountById(uint64_t bufferId)
