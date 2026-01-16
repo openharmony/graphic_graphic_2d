@@ -302,20 +302,6 @@ HWTEST_F(RSInterfacesTest, GetTotalAppMemSize001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAppWindowNum001
- * @tc.desc: test results of SetAppWindowNum
- * @tc.type: FUNC
- * @tc.require: issueI9N0I9
- */
-HWTEST_F(RSInterfacesTest, SetAppWindowNum001, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    instance.SetAppWindowNum(1);
-    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
-}
-
-/**
  * @tc.name: ReportJankStats001
  * @tc.desc: test results of ReportJankStats
  * @tc.type: FUNC

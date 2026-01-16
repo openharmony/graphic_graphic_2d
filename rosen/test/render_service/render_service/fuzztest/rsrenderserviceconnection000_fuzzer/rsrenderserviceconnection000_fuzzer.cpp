@@ -66,7 +66,6 @@ const uint8_t DO_SET_SCREEN_BACK_LIGHT = 8;
 const uint8_t DO_GET_PIXELMAP_BY_PROCESSID = 9;
 const uint8_t DO_CREATE_VSYNC_CONNECTION = 10;
 const uint8_t DO_REGISTER_OCCLUSION_CHANGE_CALLBACK = 11;
-const uint8_t DO_SET_APP_WINDOW_NUM = 12;
 const uint8_t DO_SET_SYSTEM_ANIMATED_SCENES = 13;
 const uint8_t DO_REGISTER_HGM_CFG_CALLBACK = 14;
 const uint8_t DO_SET_ROTATION_CACHE_ENABLED = 15;
@@ -351,19 +350,6 @@ void DoRegisterOcclusionChangeCallback()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteRemoteObject(rsIOcclusionChangeCallback_->AsObject());
     dataParcel.RewindRead(0);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-}
-
-void DoSetAppWindowNum()
-{
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    MessageOption option;
-
-    uint32_t num = GetData<uint32_t>();
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataParcel.WriteUint32(num);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -821,9 +807,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REGISTER_OCCLUSION_CHANGE_CALLBACK:
             OHOS::Rosen::DoRegisterOcclusionChangeCallback();
-            break;
-        case OHOS::Rosen::DO_SET_APP_WINDOW_NUM:
-            OHOS::Rosen::DoSetAppWindowNum();
             break;
         case OHOS::Rosen::DO_SET_SYSTEM_ANIMATED_SCENES:
             OHOS::Rosen::DoSetSystemAnimatedScenes();

@@ -34,7 +34,6 @@ const uint8_t DO_SET_SCREEN_BACK_LIGHT = 7;
 const uint8_t DO_TAKE_SURFACE_CAPTURE = 8;
 const uint8_t DO_SET_WINDOW_FREEZE_IMMEDIATELY = 9;
 const uint8_t DO_SET_POINTER_POSITION = 10;
-const uint8_t DO_SET_APP_WINDOW_NUM = 11;
 const uint8_t DO_SET_SYSTEM_ANIMATED_SCENES = 12;
 const uint8_t DO_SET_TP_FEATURE_CONFIG = 13;
 const uint8_t DO_SET_CURTAIN_SCREEN_USING_STATUS = 14;
@@ -287,13 +286,6 @@ void DoSetHwcNodeBounds()
     rsRenderInterfaces.SetWindowFreezeImmediately(id, positionX, positionY, positionZ, positionW);
 }
 
-void DoSetAppWindowNum()
-{
-    uint32_t num = GetData<uint32_t>();
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetAppWindowNum(num);
-}
-
 void DoSetSystemAnimatedScenes()
 {
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
@@ -500,9 +492,6 @@ if (!OHOS::Rosen::Init(data, size)) {
             break;
         case OHOS::Rosen::DO_SET_POINTER_POSITION:
             OHOS::Rosen::DoSetHwcNodeBounds();
-            break;
-        case OHOS::Rosen::DO_SET_APP_WINDOW_NUM:
-            OHOS::Rosen::DoSetAppWindowNum();
             break;
         case OHOS::Rosen::DO_SET_SYSTEM_ANIMATED_SCENES:
             OHOS::Rosen::DoSetSystemAnimatedScenes();
