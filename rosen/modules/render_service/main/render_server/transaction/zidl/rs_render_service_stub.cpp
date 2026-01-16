@@ -35,7 +35,7 @@ int RSRenderServiceStub::OnRemoteRequest(
 {
     if (auto interfaceToken = data.ReadInterfaceToken();
         interfaceToken != RSIRenderService::GetDescriptor()) {
-        RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
+        RS_LOGE("RSRenderServiceStub::OnRemoteRequest Read interfaceToken failed!");
         return ERR_INVALID_STATE;
     }
 #ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER

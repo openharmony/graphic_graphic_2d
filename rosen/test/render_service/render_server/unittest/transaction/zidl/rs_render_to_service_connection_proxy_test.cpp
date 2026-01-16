@@ -61,6 +61,6 @@ HWTEST_F(RSRenderToServiceConnectionProxyTest, NotifyRpHgmFrameRateTest, TestSiz
     uint64_t timestamp = 1;
     uint64_t vsyncId = 1;
     sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
-    ASSERT_TRUE(proxy->NotifyRpHgmFrameRate(timestamp, vsyncId, processToServiceInfo));
+    ASSERT_EQ(proxy->NotifyRpHgmFrameRate(timestamp, vsyncId, processToServiceInfo), nullptr);
 }
 } // namespace OHOS::Rosen

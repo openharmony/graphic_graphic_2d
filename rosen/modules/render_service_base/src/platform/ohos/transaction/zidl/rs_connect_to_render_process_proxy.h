@@ -29,6 +29,7 @@ public:
     explicit RSConnectToRenderProcessProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSConnectToRenderProcessProxy() noexcept = default;
     sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token);
+    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSConnectToRenderProcessProxy> delegator_;
