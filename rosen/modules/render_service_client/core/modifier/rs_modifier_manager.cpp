@@ -60,8 +60,8 @@ void RSModifierManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& a
         return;
     }
     animations_.emplace(key, animation);
-    RS_OPTIONAL_TRACE_NAME_FMT("AddAnimation set hasFirstFrameAnimation id:%" PRIu64
-        " targetId:%" PRIu64 " targetName:%s", animation->id_, animation->targetId_, animation->targetName_.c_str());
+    RS_OPTIONAL_TRACE_NAME_FMT("AddAnimation id:%" PRIu64 " targetId:%" PRIu64 " targetName:%s", animation->id_,
+        animation->targetId_, animation->targetName_.c_str());
     hasFirstFrameAnimation_ = true;
 
     std::shared_ptr<RSRenderDisplaySync> displaySync = std::make_shared<RSRenderDisplaySync>(animation);
