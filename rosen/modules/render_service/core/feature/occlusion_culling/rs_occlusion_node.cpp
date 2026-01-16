@@ -394,6 +394,11 @@ RectI16 OcclusionNode::FindMaxDisjointSubRect(const RectI16& baseRect, const Rec
     }
 
     auto intersectRect = baseRect.IntersectRect(clipRect);
+    // Note: even when baseRect.Intersect(clipRect) returns true,
+    // the intersection rect returned by baseRect.IntersectRect(clipRect) may still be empty
+    if (intersectRect.IsEmpty()) {
+        return baseRect;
+    }
     constexpr size_t subRectSize{4};
     std::array<RectI16, subRectSize> subRects{
         RectI16(baseRect.GetLeft(), baseRect.GetTop(),

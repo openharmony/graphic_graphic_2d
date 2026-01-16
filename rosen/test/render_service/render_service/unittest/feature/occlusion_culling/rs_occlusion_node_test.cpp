@@ -1066,4 +1066,28 @@ HWTEST_F(RSOcclusionNodeTest, UpdateCoverageInfoTest001, TestSize.Level1)
     occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
     EXPECT_EQ(globalCoverage.rect_.IsEmpty(), true);
 }
+
+/*
+ * @tc.name: UpdateCoverageInfoTest002
+ * @tc.desc: Test UpdateCoverageInfo with filter is adjacent to coverage
+ * @tc.type: FUNC
+ * @tc.require: issue21670
+ */
+HWTEST_F(RSOcclusionNodeTest, UpdateCoverageInfoTest002, TestSize.Level1)
+{
+    const RectI16 srcRect{10, 10, 100, 100};
+    const RectI16 clipRect{10, 0, 100, 10};
+
+    std::shared_ptr<OcclusionNode> occlusionNode =
+        std::make_shared<OcclusionNode>(firstNodeId, RSRenderNodeType::CANVAS_NODE);
+    occlusionNode->isBgOpaque_ = false;
+    OcclusionCoverageInfo globalCoverage;
+    globalCoverage.rect_ = srcRect;
+    OcclusionCoverageInfo selfCoverage;
+
+    occlusionNode->needFilter_ = true;
+    occlusionNode->outerRect_ = clipRect;
+    occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
+    EXPECT_EQ(globalCoverage.rect_, srcRect);
+}
 } // namespace OHOS::Rosen
