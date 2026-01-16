@@ -293,7 +293,7 @@ void RSRenderComposer::ComposerPrepare(RefreshRateParam& param, uint32_t& curren
 #endif
     {
         ++acquiredBufferCount_;
-        RS_TRACE_NAME_FMT("Inc Acq BufferCount %d screenId: %" PRIu64 "", acquiredBufferCount_.load(), screenId_);
+        RS_TRACE_NAME_FMT("Inc Acq BufferCount %d screenId: %" PRIu64, acquiredBufferCount_.load(), screenId_);
     }
     unExecuteTaskNum_++;
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
