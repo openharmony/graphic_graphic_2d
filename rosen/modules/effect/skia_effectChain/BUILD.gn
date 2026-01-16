@@ -81,7 +81,10 @@ if (is_arkui_x) {
     ]
 
     if (target_os == "android") {
-      defines = [ "ANDROID_PLATFORM" ]
+      defines = [
+        "ANDROID_PLATFORM",
+        "ROSEN_ARKUI_X",
+      ]
     } else if (target_os == "ios") {
       defines = [ "IOS_PLATFORM" ]
     }
@@ -105,12 +108,13 @@ if (is_arkui_x) {
       "src/effect_image_chain.cpp",
       "src/effect_image_render.cpp",
     ]
-  
+
     if (rs_enable_gpu) {
       if (graphic_2d_feature_enable_vulkan) {
         sources += [
           "src/effect_vulkan_context.cpp",
         ]
+        deps = [ "$rosen_root/modules/render_service_base/src/platform:platform" ]
       }
     }
 

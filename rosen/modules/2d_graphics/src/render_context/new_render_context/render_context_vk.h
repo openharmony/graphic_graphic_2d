@@ -30,7 +30,7 @@ public:
     bool AbandonContext() override;
     std::string GetShaderCacheSize() const override;
     std::string CleanAllShaderCache() const override;
-    bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext) override;
+    bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr) override;
 };
 } // namespace Rosen
 } // namespace OHOS
