@@ -1104,6 +1104,19 @@ RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Surface* surface, float alpha)
     (void)alpha; // alpha is no longer used, but we keep it for backward compatibility
 }
 
+#ifdef RS_ENABLE_VK
+void RSPaintFilterCanvas::AttachPaintWithColor(const Drawing::Paint& paint)
+{
+    Paint p(paint);
+    Drawing::Filter filter;
+
+    filter.SetColorFilter(ColorFilter::CreateBlendModeColorFilter(this->GetEnvForegroundColor(), BlendMode::SRC_ATOP));
+    p.SetFilter(filter);
+
+    this->AttachPaint(p);
+}
+#endif
+
 Drawing::Surface* RSPaintFilterCanvas::GetSurface() const
 {
     return surface_;
