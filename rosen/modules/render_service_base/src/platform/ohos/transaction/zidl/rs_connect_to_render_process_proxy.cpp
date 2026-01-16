@@ -43,7 +43,7 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderCon
         return nullptr;
     }
     uint32_t code = static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::CREATE_CONNECTION);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: Send Request err.");
         return nullptr;
@@ -61,6 +61,13 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderCon
     return newConn;
 }
 
-
+int32_t RSConnectToRenderProcessProxy::SendRequest(
+    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+{
+    if (!Remote()) {
+        return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
+    }
+    return Remote()->SendRequest(code, data, reply, option);
+}
 } // namespace Rosen
 } // namespace OHOS

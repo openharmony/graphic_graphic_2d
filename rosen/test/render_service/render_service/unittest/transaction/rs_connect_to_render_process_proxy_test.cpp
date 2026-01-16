@@ -28,7 +28,6 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-RSRenderService renderService;
 sptr<RSConnectToRenderProcessProxy> g_rsConn = nullptr;
 }
 
@@ -43,7 +42,6 @@ public:
 void RSConnectToRenderProcessProxyTest::SetUpTestCase()
 {
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
-    renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     sptr<IRemoteObject> impl = nullptr;
     g_rsConn = sptr<RSConnectToRenderProcessProxy>::MakeSptr(impl);
