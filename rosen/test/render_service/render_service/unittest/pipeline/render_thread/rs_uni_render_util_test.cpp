@@ -141,7 +141,7 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_003, Function | SmallTest | Level
     RectF localBounds = RectF(left, top, right, bottom);
     RSUniRenderUtil::SrcRectScaleDown(
         params, node->GetRSSurfaceHandler()->GetBuffer(), node->GetRSSurfaceHandler()->GetConsumer(), localBounds);
-   
+
     params.srcRect.SetRight(right);
     params.srcRect.SetBottom(bottom);
     right = 1;
@@ -207,7 +207,7 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_003, Function | SmallTest | Level2
     RectF localBounds = RectF(left, top, right, bottom);
     RSUniRenderUtil::SrcRectScaleFit(
         params, node->GetRSSurfaceHandler()->GetBuffer(), node->GetRSSurfaceHandler()->GetConsumer(), localBounds);
-   
+
     params.srcRect.SetRight(right);
     params.srcRect.SetBottom(bottom);
     right = 1;
@@ -603,7 +603,7 @@ HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit001, TestSize.Level2)
  * @tc.name: OptimizedFlushAndSubmit002
  * @tc.desc: OptimizedFlushAndSubmit test when surface and gpuContext is multiple
  * @tc.type: FUNC
- * @tc.require: issueIALXTP
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit002, TestSize.Level2)
 {
@@ -705,7 +705,7 @@ HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer001, TestSize.Level2)
  * @tc.name: FlushDmaSurfaceBuffer002
  * @tc.desc: test FlushDmaSurfaceBuffer when pixelMap is not nullptr
  * @tc.type: FUNC
- * @tc.require: issueIALXTP
+ * @tc.require: issueIAL5XA
  */
 HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer002, TestSize.Level2)
 {
@@ -794,7 +794,7 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam005, TestSize.Level2)
 }
 
 /*
- * @tc.name: DealWithRotationAndGravityForRotationFixed
+ * @tc.name: DealWithRotationAndGravityForRotationFixedTest
  * @tc.desc: test DealWithRotationAndGravityForRotationFixed
  * @tc.type: FUNC
  * @tc.require: issueIAJOWI
@@ -1486,7 +1486,7 @@ HWTEST_F(RSUniRenderUtilTest, AdjustZOrderAndDrawSurfaceNode, TestSize.Level1)
     drawables.push_back(drawableAdapter);
     drawables.push_back(drawable);
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
-    ASSERT_TRUE(drawable->GetRenderParams());
+    ASSERT_TRUE(drawableAdapter->GetRenderParams());
     rscanvas->RemoveAll();
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
 }

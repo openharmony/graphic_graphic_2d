@@ -56,7 +56,6 @@ void RSRenderEngineTest::SetUpTestCase()
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
-    RSTestUtil::InitRenderNodeGC();
     drawingCanvas_ = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
     RSSurfaceCaptureConfig captureConfig;
@@ -183,7 +182,8 @@ HWTEST_F(RSRenderEngineTest, DrawLayers001, TestSize.Level1)
     nodeMap.RegisterRenderNode(surfaceNode);
     layer3->SetNodeId(surfaceNode->GetId());
     layers.emplace_back(layer3);
-    renderEngine->DrawLayers(*canvas, layers, false);
+    ScreenInfo screenInfo;
+    renderEngine->DrawLayers(*canvas, layers, false, screenInfo);
     ASSERT_NE(canvas, nullptr);
     nodeMap.UnregisterRenderNode(surfaceNode->GetId());
 }
@@ -228,6 +228,7 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams001, TestSize.Level1)
 HWTEST_F(RSRenderEngineTest, DrawWithParams002, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();

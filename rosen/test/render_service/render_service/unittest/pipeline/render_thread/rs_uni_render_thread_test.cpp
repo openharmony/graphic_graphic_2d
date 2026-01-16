@@ -608,11 +608,15 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
     params->preBuffer_ = SurfaceBuffer::Create();
     instance.ReleaseSelfDrawingNodeBuffer();
     ASSERT_EQ(params->GetPreBuffer(), nullptr);
+    params->isOnTheTree_ = false;
+    instance.ReleaseSelfDrawingNodeBuffer();
+    ASSERT_EQ(params->GetPreBuffer(), nullptr);
 
     params->isOnTheTree_ = false;
     params->isHardwareEnabled_ = true;
     params->isLastFrameHardwareEnabled_ = true;
     params->preBuffer_ = SurfaceBuffer::Create();
+    params->screenId_ = 0;
     instance.ReleaseSelfDrawingNodeBuffer();
     ASSERT_EQ(params->GetPreBuffer(), nullptr);
 

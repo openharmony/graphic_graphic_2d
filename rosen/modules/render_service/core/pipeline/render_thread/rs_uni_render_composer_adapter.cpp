@@ -14,29 +14,29 @@
  */
 
 #include "rs_uni_render_composer_adapter.h"
+
 #include <memory>
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
-#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "drm/drm.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "metadata_helper.h"
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
-#include "rs_uni_render_util.h"
-#include "string_utils.h"
-#include "metadata_helper.h"
-#include "surface_type.h"
-#include "drm/drm.h"
-
-#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "rs_render_composer_manager.h"
 #include "rs_surface_layer.h"
+#include "rs_uni_render_util.h"
+#include "string_utils.h"
+#include "surface_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -447,9 +447,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(
     ComposeInfo& info, const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
 {
     auto& params = surfaceDrawable.GetRenderParams();
-    if (!params || !info.buffer || !surfaceDrawable.GetConsumerOnDraw()) {
-        RS_LOGE("RSUniRenderComposerAdapter::GetCInfoSrcRect fail, params or buffer or surfaceDrawable's"
-            " consumerOnDraw is nullptr");
+    if (!params || !info.buffer) {
+        RS_LOGE("RSUniRenderComposerAdapter::GetCInfoSrcRect fail, params or buffer is nullptr");
         return;
     }
     const auto bufferWidth = info.buffer->GetSurfaceBufferWidth();
@@ -595,8 +594,8 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(
     const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, ComposeInfo& info) const
 {
     auto& params = surfaceDrawable.GetRenderParams();
-    if (!params) {
-        RS_LOGE("RSUniRenderComposerAdapter::DealDataGravity fail, params is nullptr");
+    if (!params || !info.buffer) {
+        RS_LOGE("RSUniRenderComposerAdapter::DealDataGravity fail, params or info's buffer is nullptr");
         return;
     }
     const float frameWidth = info.buffer->GetSurfaceBufferWidth();
@@ -1128,6 +1127,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
         return nullptr;
     }
+
     auto drawable = node.GetRenderDrawable();
     if (!drawable) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLY fail, drawable is nullptr");
