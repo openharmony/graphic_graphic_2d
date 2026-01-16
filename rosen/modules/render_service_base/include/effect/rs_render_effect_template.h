@@ -373,20 +373,6 @@ public:
         }
     }
 
-    std::shared_ptr<RSNGRenderEffectTemplate<Base, Type, PropertyTags...>> Clone()
-    {
-        RS_OPTIONAL_TRACE_FMT("RSNGRenderEffectTemplate::Clone, Type:%s",
-            RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str());
-        auto effect = std::make_shared<RSNGRenderEffectTemplate<Base, Type, PropertyTags...>>();
-        std::apply([&effect](const auto&... props) {
-            ((std::get<std::decay_t<decltype(props)>>(effect->properties_).value_ = props.value->Clone()), ...);
-        }, properties_);
-        if (Base::nextEffect_) {
-            effect->nextEffect_ = Base::nextEffect_->Clone();
-        }
-        return effect;
-    }
-
     void Dump(std::string& out) const override
     {
         std::string descStr = ":";

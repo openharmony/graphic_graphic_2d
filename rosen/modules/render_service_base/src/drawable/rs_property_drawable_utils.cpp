@@ -1722,9 +1722,9 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
         const auto& filter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(renderFilter);
         auto sdfShape = properties.GetSDFShape();
         if (sdfShape) {
-            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, SDF_EDGE_LIGHT, node %{public}" PRIu64,
+            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, use sdfShape, node %{public}" PRIu64,
                 nodeId);
-            filter->Setter<SDFEdgeLightSDFShapeRenderTag>(sdfShape->Clone());
+            filter->Setter<SDFEdgeLightSDFShapeRenderTag>(sdfShape);
             drawingFilter->SetNGRenderFilter(filter);
         }
         return;
@@ -1737,7 +1737,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     if (sdfShape) {
         ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, use sdfShape, node %{public}" PRIu64,
             nodeId);
-        filter->Setter<FrostedGlassShapeRenderTag>(sdfShape->Clone());
+        filter->Setter<FrostedGlassShapeRenderTag>(sdfShape);
         drawingFilter->SetNGRenderFilter(filter);
         return;
     }

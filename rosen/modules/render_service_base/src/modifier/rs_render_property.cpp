@@ -754,14 +754,6 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
     }
     OnChange();
 }
-template<>
-const std::shared_ptr<RSRenderPropertyBase>
-    RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Clone() const
-{
-    return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>>(
-        RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::stagingValue_->Clone,
-        RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>T>::id_);
-}
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnAttach(RSRenderNode& node,
@@ -798,15 +790,6 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
         value->Attach(*node, modifier_.lock());
     }
     OnChange();
-}
-
-template<>
-const std::shared_ptr<RSRenderPropertyBase>
-    RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Clone() const
-{
-    return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>>(
-        RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::stagingValue_->Clone,
-        RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>T>::id_);
 }
 
 template<>
@@ -847,15 +830,6 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
 }
 
 template<>
-const std::shared_ptr<RSRenderPropertyBase>
-    RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Clone() const
-{
-    return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>>(
-        RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::stagingValue_->Clone,
-        RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>T>::id_);
-}
-
-template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
 {
@@ -890,15 +864,6 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::Set(
         value->Attach(*node, modifier_.lock());
     }
     OnChange();
-}
-
-template<>
-const std::shared_ptr<RSRenderPropertyBase>
-    RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::Clone() const
-{
-    return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(
-        RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::stagingValue_->Clone,
-        RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>T>::id_);
 }
 
 template<typename T>
