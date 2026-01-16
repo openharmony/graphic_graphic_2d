@@ -20,6 +20,8 @@
 #include "rs_surface_layer_parcel.h"
 #include "surface_type.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSSurfaceRCDLayer"
 namespace OHOS {
 namespace Rosen {
 RSSurfaceRCDLayer::RSSurfaceRCDLayer(RSLayerId rsLayerId, std::shared_ptr<RSComposerContext> rsComposerContext) :
@@ -31,14 +33,14 @@ std::shared_ptr<RSLayer> RSSurfaceRCDLayer::Create(const std::shared_ptr<RSCompo
     RSLayerId rsLayerId)
 {
     if (context == nullptr) {
-        RS_LOGE("RSSurfaceRCDLayer::Create context is nullptr");
+        RS_LOGE("%{public}s context is nullptr", __func__);
         return nullptr;
     }
     std::shared_ptr<RSLayer> layer = context->GetRSLayer(rsLayerId);
     if (layer != nullptr && layer->IsScreenRCDLayer()) {
         RS_TRACE_NAME_FMT("RSSurfaceRCDLayer::Create use exist layer, id: %" PRIu64 ", name: %s, isRCD: %d",
             rsLayerId, layer->GetSurfaceName().c_str(), static_cast<int>(layer->IsScreenRCDLayer()));
-        RS_LOGD("RSSurfaceRCDLayer::Create get cache layer by layer id: %{public}" PRIu64, rsLayerId);
+        RS_LOGD("%{public}s get cache layer by layer id: %{public}" PRIu64, __func__, rsLayerId);
         layer->SetRSLayerId(rsLayerId);
         return layer;
     }

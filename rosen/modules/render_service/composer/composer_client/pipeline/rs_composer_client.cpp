@@ -16,6 +16,8 @@
 #include "rs_composer_client.h"
 #include "rs_trace.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSComposerClient"
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -63,14 +65,14 @@ void RSComposerClient::CommitLayers(ComposerInfo& composerInfo)
 {
     std::unique_lock<std::mutex> lock(clientMutex_);
     if (!WaitComposerThreadTaskExecute(lock)) {
-        RS_LOGW("CommitLayers task has too many to Execute TaskNum:[%{public}d]", GetUnExecuteTaskNum());
+        RS_LOGW("%{public}s task has too many to Execute TaskNum:[%{public}d]", __func__, GetUnExecuteTaskNum());
     }
     IncUnExecuteTaskNum();
     composerInfo.pipelineParam = pipelineParam_;
     pipelineParam_.ResetSurfaceFpsOp();
     if (!rsComposerContext_->CommitLayers(composerInfo)) {
         SubUnExecuteTaskNum();
-        RS_LOGE("CommitRSLayer failed, restore task count");
+        RS_LOGE("%{public}s failed, restore task count", __func__);
     }
     if (rsVsyncManagerAgent_ != nullptr) {
         rsVsyncManagerAgent_->SetHardwareTaskNum(GetUnExecuteTaskNum());

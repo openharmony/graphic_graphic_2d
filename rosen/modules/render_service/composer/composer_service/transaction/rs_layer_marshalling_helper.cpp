@@ -18,6 +18,8 @@
 #include "rs_render_layer_cmd.h"
 #include "rs_render_layer_cmd_property.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSLayerMarshallingHelper"
 namespace OHOS {
 namespace Rosen {
 
@@ -53,7 +55,7 @@ bool RSLayerMarshallingHelper::Unmarshalling(OHOS::MessageParcel& parcel, std::s
 {
     val = RSRenderLayerCmd::Unmarshalling(parcel);
     if (val == nullptr) {
-        RS_LOGE("RSLayerMarshallingHelper::UnMarshalling Unmarshalling failed.");
+        RS_LOGE("%{public}s Unmarshalling failed.", __func__);
         return false;
     }
     return true;
@@ -68,7 +70,7 @@ bool RSLayerMarshallingHelper::Unmarshalling(OHOS::MessageParcel& parcel, RSLaye
 {
     uint16_t data = 0;
     if (!parcel.ReadUint16(data)) {
-        RS_LOGE("RSLayerMarshallingHelper::UnMarshalling ReadUint16 failed.");
+        RS_LOGE("%{public}s ReadUint16 failed.", __func__);
         return false;
     }
     val = static_cast<RSLayerCmdType>(data);

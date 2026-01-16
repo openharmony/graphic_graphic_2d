@@ -26,7 +26,7 @@ namespace OHOS {
 namespace Rosen {
 int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo)
 {
-    RS_LOGD("RSComposerToRenderConnection::ReleaseLayerBuffers, screenId:%{public}" PRIu64, releaseLayerInfo.screenId);
+    RS_LOGD("%{public}s, screenId:%{public}" PRIu64, __func__, releaseLayerInfo.screenId);
     if (releaseLayerBuffersCB_ != nullptr) {
         releaseLayerBuffersCB_(releaseLayerInfo);
     }

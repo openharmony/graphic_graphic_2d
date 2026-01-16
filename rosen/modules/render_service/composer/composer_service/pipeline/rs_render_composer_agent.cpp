@@ -20,7 +20,7 @@
 #include "rs_trace.h"
 
 #undef LOG_TAG
-#define LOG_TAG "ComposerAgent"
+#define LOG_TAG "RSRenderComposerAgent"
 
 namespace OHOS {
 namespace Rosen {

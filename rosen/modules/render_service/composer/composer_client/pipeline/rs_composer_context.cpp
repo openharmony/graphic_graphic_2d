@@ -18,6 +18,8 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSComposerContext"
 namespace OHOS {
 namespace Rosen {
 RSComposerContext::RSComposerContext(const sptr<IRSRenderToComposerConnection>& conn)
@@ -42,7 +44,7 @@ void RSComposerContext::AddRSLayer(const std::shared_ptr<RSLayer>& rsLayer)
     if (rsLayers_.count(rsLayer->GetRSLayerId()) > 0) {
         return;
     }
-    RS_LOGI("RSComposerContext::AddRSLayer rsLayerId: %{public}" PRIu64, rsLayer->GetRSLayerId());
+    RS_LOGI("%{public}s rsLayerId: %{public}" PRIu64, __func__, rsLayer->GetRSLayerId());
     rsLayers_.emplace(rsLayer->GetRSLayerId(), rsLayer);
 }
 
@@ -53,7 +55,7 @@ void RSComposerContext::RemoveRSLayer(RSLayerId layerId)
     if (iter == rsLayers_.end()) {
         return;
     }
-    RS_LOGI("RSComposerContext::RemoveRSLayer rsLayerId: %{public}" PRIu64, layerId);
+    RS_LOGI("%{public}s rsLayerId: %{public}" PRIu64, __func__, layerId);
     rsLayers_.erase(iter);
 }
 
@@ -99,10 +101,10 @@ bool RSComposerContext::CommitLayers(ComposerInfo& composerInfo)
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsLayerTransactionHandler_ == nullptr) {
-        RS_LOGE("RSComposerContext::CommitLayers rsLayerTransactionHandler is nullptr");
+        RS_LOGE("%{public}s rsLayerTransactionHandler is nullptr", __func__);
         return false;
     }
-    RS_LOGD("RSComposerContext::CommitLayers rsLayers_ size: %{public}zu", rsLayers_.size());
+    RS_LOGD("%{public}s rsLayers_ size: %{public}zu", __func__, rsLayers_.size());
     return rsLayerTransactionHandler_->CommitRSLayerTransaction(composerInfo);
 }
 
@@ -153,15 +155,15 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
             RS_LOGE("LayerPresentTimestamp SetPresentTimestamp failed");
         }
     };
-    RS_LOGD("RSComposerContext::ReleaseLayerBuffers screenId: %{public}" PRIu64, screenId);
+    RS_LOGD("%{public}s screenId: %{public}" PRIu64, __func__, screenId);
     for (const auto& [id, isGraphicPresentTimestamp, graphicPresentTimestamp] : timestampVec) {
         if (rsLayers.count(id) == 0) {
-            RS_LOGE("RSComposerContext::ReleaseLayerBuffers has no id: %{public}" PRIu64 " layer", id);
+            RS_LOGE("%{public}s has no id: %{public}" PRIu64 " layer", __func__, id);
             continue;
         }
         auto layer = rsLayers[id].lock();
         if (layer == nullptr) {
-            RS_LOGE("RSComposerContext::ReleaseLayerBuffers layer is nullptr");
+            RS_LOGE("%{public}s layer is nullptr", __func__);
             continue;
         }
         layer->SetIsSupportedPresentTimestamp(isGraphicPresentTimestamp);
@@ -180,7 +182,7 @@ void RSComposerContext::ClearFrameBuffers()
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsComposerConnection_ == nullptr) {
-        RS_LOGE("RSComposerContext::ClearFrameBufferIfNeed rsComposerConnection_ is nullptr");
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
         return;
     }
     rsComposerConnection_->ClearFrameBuffers();
@@ -190,7 +192,7 @@ void RSComposerContext::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsComposerConnection_ == nullptr) {
-        RS_LOGE("RSComposerContext::CleanLayerBufferBySurfaceId rsComposerConnection_ is nullptr");
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
         return;
     }
     rsComposerConnection_->CleanLayerBufferBySurfaceId(surfaceId);
@@ -200,7 +202,7 @@ void RSComposerContext::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>&
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsComposerConnection_ == nullptr) {
-        RS_LOGE("RSComposerContext::PreAllocProtectedFrameBuffers rsComposerConnection_ is nullptr");
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
         return;
     }
     rsComposerConnection_->PreAllocProtectedFrameBuffers(buffer);

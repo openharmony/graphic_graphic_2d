@@ -18,12 +18,14 @@
 #include "rs_render_to_composer_connection_proxy.h"
 #include "rs_trace.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSLayerTransactionHandler"
 namespace OHOS {
 namespace Rosen {
 void RSLayerTransactionHandler::SetRSComposerConnectionProxy(const sptr<IRSRenderToComposerConnection>& rsComposerConnection)
 {
     if (rsComposerConnection == nullptr) {
-        RS_LOGE("SetRSComposerConnectionProxy connection is nullptr");
+        RS_LOGE("%{public}s connection is nullptr", __func__);
         return;
     }
     rsComposerConnection_ = rsComposerConnection;
@@ -32,7 +34,7 @@ void RSLayerTransactionHandler::SetRSComposerConnectionProxy(const sptr<IRSRende
 void RSLayerTransactionHandler::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId)
 {
     if (rsLayerTransactionData_ == nullptr || layerParcel == nullptr) {
-        RS_LOGE("RSLayerTransactionHandler::AddRSLayerParcel param is nullptr");
+        RS_LOGE("%{public}s param is nullptr", __func__);
         return;
     }
     rsLayerTransactionData_->AddRSLayerParcel(layerParcel, layerId);
@@ -42,13 +44,13 @@ bool RSLayerTransactionHandler::CommitRSLayerTransaction(ComposerInfo& composerI
 {
     timestamp_ = std::max(timestamp_, timestamp);
     if (rsComposerConnection_ == nullptr || rsLayerTransactionData_->IsEmpty()) {
-        RS_LOGE("RSLayerTransactionHandler::CommitRSLayerTransaction param is nullptr");
+        RS_LOGE("%{public}s param is nullptr", __func__);
         return false;
     }
     rsLayerTransactionData_->timestamp_ = timestamp;
     rsLayerTransactionData_->SetComposerInfo(composerInfo);
     if (!rsComposerConnection_->CommitLayers(rsLayerTransactionData_)) {
-        RS_LOGE("RSLayerTransactionHandler::CommitRSLayerTransaction CommitLayers failed");
+        RS_LOGE("%{public}s CommitLayers failed", __func__);
         return false;
     }
     rsLayerTransactionData_ = std::make_unique<RSLayerTransactionData>();

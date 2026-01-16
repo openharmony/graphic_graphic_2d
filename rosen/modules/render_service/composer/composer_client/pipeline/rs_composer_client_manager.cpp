@@ -24,7 +24,6 @@ namespace Rosen {
 namespace {
 constexpr int MAX_ACCUMULATED_BUFFER_COUNT = 4;
 }
-// composer client
 void RSComposerClientManager::AddComposerClient(ScreenId screenId,
     const std::shared_ptr<RSComposerClient>& rsComposerClient)
 {

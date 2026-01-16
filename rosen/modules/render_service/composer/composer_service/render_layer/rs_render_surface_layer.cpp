@@ -16,6 +16,8 @@
 #include "rs_render_surface_layer.h"
 #include "rs_render_layer_cmd.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSRenderSurfaceLayer"
 namespace OHOS {
 namespace Rosen {
 using RSLayerCmdHandler = std::function<void(std::shared_ptr<RSRenderSurfaceLayer>,
@@ -687,9 +689,9 @@ void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerC
     if (it != cmdHandlers_.end()) {
         it->second(rsRenderLayer, property);
     } else {
-        ROSEN_LOGE("RSRenderSurfaceLayer::UpdateRSLayerCmd type err:%{public}d", static_cast<int32_t>(type));
+        ROSEN_LOGE("%{public}s type err:%{public}d", __func__, static_cast<int32_t>(type));
     }
-    ROSEN_LOGD("RSRenderSurfaceLayer::UpdateRSLayerCmd type:%{public}d", static_cast<int32_t>(type));
+    ROSEN_LOGD("%{public}s type:%{public}d", __func__, static_cast<int32_t>(type));
 }
 } // namespace Rosen
 } // namespace OHOS

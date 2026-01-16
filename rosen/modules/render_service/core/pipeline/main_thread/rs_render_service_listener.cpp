@@ -170,8 +170,7 @@ void RSRenderServiceListener::CleanLayerBufferCache()
         RS_LOGD("%{public}s get consumer fail", __func__);
         return;
     }
-    uint64_t surfaceId = consumer->GetUniqueId();
-    composerClientManager_->CleanLayerBufferBySurfaceId(surfaceId, node->GetId());
+    composerClientManager_->CleanLayerBufferBySurfaceId(consumer->GetUniqueId(), node->GetId());
 }
 
 void RSRenderServiceListener::OnGoBackground()
