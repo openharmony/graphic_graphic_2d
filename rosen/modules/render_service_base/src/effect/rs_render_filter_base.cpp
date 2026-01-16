@@ -131,6 +131,9 @@ static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRect
             auto frostedGlassBlur = std::static_pointer_cast<RSNGRenderFrostedGlassBlurFilter>(filter);
             auto blurRadius = frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurRadiusRenderTag>()->Get();
             auto refractOutPx = frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurRefractOutPxRenderTag>()->Get();
+            if (ROSEN_LE(refractOutPx, 0.0f)) {
+                return rect;
+            }
             const float maxRefractOutPx = 500.0f;
             float outStep = std::max(blurRadius + std::max(std::min(refractOutPx, maxRefractOutPx), 0.0f), 0.0f);
             auto snapshotRect = rect;
