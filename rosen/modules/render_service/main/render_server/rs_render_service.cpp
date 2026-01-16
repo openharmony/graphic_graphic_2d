@@ -299,10 +299,10 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
         return false;
     }
     auto [rsConn, rsRenderConn] = iter->second;
-    // Subsequent sunset
     if (rsConn != nullptr) {
         rsConn->RemoveToken();
     }
+    // Subsequent sunset
     if (rsRenderConn != nullptr) {
         rsRenderConn->RemoveToken();
     }
