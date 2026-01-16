@@ -160,7 +160,7 @@ int32_t HdiLayer::CreateLayer(const std::shared_ptr<RSLayer>& rsLayer)
     bufferCache_.reserve(bufferCacheCountMax_);
     layerId_ = layerId;
 
-    HLOGI("Create hwc layer succeed, layerId is %{public}u", layerId_);
+    HLOGD("Create hwc layer succeed, layerId is %{public}u", layerId_);
 
     CheckRet(device_->GetSupportedPresentTimestampType(screenId_, layerId_, supportedPresentTimestamptype_),
              "GetSupportedPresentTimestamp");
@@ -184,7 +184,7 @@ void HdiLayer::CloseLayer()
         HLOGE("Close hwc layer[%{public}u] failed, ret is %{public}d", layerId_, retCode);
     }
 
-    HLOGI("Close hwc layer succeed, layerId is %{public}u", layerId_);
+    HLOGD("Close hwc layer succeed, layerId is %{public}u", layerId_);
 }
 
 int32_t HdiLayer::SetLayerAlpha()
@@ -939,7 +939,7 @@ void HdiLayer::ClearBufferCache()
         bufferCache_.size());
     ResetBufferCache();
     if (device_ == nullptr) {
-        HLOGE("device_ is nullptr.");
+        HLOGE("device_ is nullptr");
         return;
     }
     int32_t ret = device_->ClearLayerBuffer(screenId_, layerId_);
