@@ -64,7 +64,7 @@ HWTEST_F(HgmHardwareUtilsTest, ExecuteSwitchRefreshRateTest, TestSize.Level1)
 {
     auto hgmHardwareUtils = std::make_shared<HgmHardwareUtils>();
     ASSERT_NE(hgmHardwareUtils, nullptr);
-    auto& hgmCore = HgmCore::Instance();
+    auto& hgmCore = hgmHardwareUtils->hgmCore_;
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     ASSERT_NE(frameRateMgr, nullptr);
 
@@ -78,8 +78,6 @@ HWTEST_F(HgmHardwareUtilsTest, ExecuteSwitchRefreshRateTest, TestSize.Level1)
     ScreenSize sSize = {720, 1080, 685, 1218};
     bool isSelfOwnedScreen = false;
     hgmCore.AddScreen(SCREEN_ID, 0, sSize, isSelfOwnedScreen);
-    auto screen = hgmCore.GetScreen(SCREEN_ID);
-    screen->SetSelfOwnedScreenFlag(true);
     hgmCore.SetScreenRefreshRateImme(1);
     hgmHardwareUtils->ExecuteSwitchRefreshRate(SCREEN_ID);
 
@@ -150,10 +148,11 @@ HWTEST_F(HgmHardwareUtilsTest, PerformSetActiveModeTest, TestSize.Level1)
     ASSERT_NE(outputInvalid, nullptr);
     auto screenManager = sptr<RSScreenManager>::MakeSptr();
     ASSERT_NE(screenManager, nullptr);
-    auto& hgmCore = HgmCore::Instance();
+    auto& hgmCore = hgmHardwareUtils->hgmCore_;
     EXPECT_CALL(*hdiDeviceMock_, SetScreenMode).WillRepeatedly(testing::Return(-1));
 
     auto rsScreen = std::make_shared<RSScreen>(SCREEN_ID);
+    rsScreen->hdiScreen_ = HdiScreen::CreateHdiScreen(SCREEN_ID);
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     rsScreen->supportedModes_.resize(6);
     screenManager->screens_[SCREEN_ID] = rsScreen;
@@ -165,8 +164,8 @@ HWTEST_F(HgmHardwareUtilsTest, PerformSetActiveModeTest, TestSize.Level1)
     if (hgmCore.modeListToApply_ == nullptr) { 
         hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>(); 
     } 
-    hgmCore.modeListToApply_->try_emplace(SCREEN_IDINVALID_, 3);
-    hardwareThread.hgmHardwareUtils_.PerformSetActiveMode(outputInvalid, screenManager);
+    hgmCore.modeListToApply_->try_emplace(SCREEN_IDINVALID, 3);
+    hgmHardwareUtils->PerformSetActiveMode(outputInvalid, screenManager);
     EXPECT_EQ(hgmCore.modeListToApply_, nullptr);
 
     // 1. The number of consecutive failed retries donsnot exceed MAX_SETRATE_RETRY_COUNT
@@ -223,7 +222,7 @@ HWTEST_F(HgmHardwareUtilsTest, SwitchRefreshRateTest, TestSize.Level1)
     ASSERT_NE(output, nullptr);
     auto screenManager = sptr<RSScreenManager>::MakeSptr();
     ASSERT_NE(screenManager, nullptr);
-    auto& hgmCore = HgmCore::Instance();
+    auto& hgmCore = hgmHardwareUtils->hgmCore_;
     RSScreenManager* orgScmFromHgm = hgmCore.GetScreenManager();
 
     uint32_t currentRate = 0;
@@ -232,13 +231,15 @@ HWTEST_F(HgmHardwareUtilsTest, SwitchRefreshRateTest, TestSize.Level1)
 
     hgmHardwareUtils->TransactRefreshRateParam(currentRate, 60, 0, 0);
     hgmHardwareUtils->SwitchRefreshRate(output);
-    
+    bool isSelfOwnedScreen = false;
     ScreenSize sSize = {720, 1080, 685, 1218};
-    hgmCore.AddScreen(SCREEN_ID, 0, sSize, false);
+    hgmCore.AddScreen(SCREEN_ID, 0, sSize, isSelfOwnedScreen);
     hgmHardwareUtils->SwitchRefreshRate(output);
 
-    hgmCore.RemoveScreen(SCREEN_ID, 0, sSize, false);
-    hgmCore.AddScreen(SCREEN_ID, 0, sSize, true);
+    hgmCore.RemoveScreen(SCREEN_ID);
+    hgmCore.AddScreen(SCREEN_ID, 0, sSize, isSelfOwnedScreen);
+    auto screen = hgmCore.GetScreen(SCREEN_ID);
+    screen->SetSelfOwnedScreenFlag(true);
     hgmHardwareUtils->SwitchRefreshRate(output);
 
     hgmCore.SetScreenManager(screenManager.GetRefPtr());
@@ -272,7 +273,7 @@ HWTEST_F(HgmHardwareUtilsTest, AddRefreshRateCountTest, TestSize.Level1)
 {
     auto hgmHardwareUtils = std::make_shared<HgmHardwareUtils>();
     ASSERT_NE(hgmHardwareUtils, nullptr);
-    auto& hgmCore = HgmCore::Instance();
+    auto& hgmCore = hgmHardwareUtils->hgmCore_;
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     ASSERT_NE(frameRateMgr, nullptr);
 
