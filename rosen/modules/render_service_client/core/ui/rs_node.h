@@ -368,12 +368,12 @@ public:
     static CancelAnimationStatus CloseImplicitCancelAnimationReturnStatus(
         const std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     static bool IsImplicitAnimationOpen(const std::shared_ptr<RSUIContext> rsUIContext);
-    static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float fraction,
-        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
-    static void AddKeyFrame(
-        const std::shared_ptr<RSUIContext> rsUIContext, float fraction, const PropertyCallback& callback);
-    static void AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, int duration,
-        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
+    static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
+        float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
+    static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
+        float fraction, const PropertyCallback& callback);
+    static void AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
+        int duration, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
     void NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
 
     void AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool isStartAnimation = true);

@@ -25,19 +25,23 @@ public:
     ~RSBoundsClipRenderModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::CLIP_TO_BOUNDS;
+    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     };
+    // LCOV_EXCL_STOP
 
     static void ResetProperties(RSProperties& properties);
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
+    // LCOV_EXCL_START
     const LegacyPropertyApplierMap& GetLegacyPropertyApplierMap() const override
     {
         return LegacyPropertyApplierMap_;
     }
+    // LCOV_EXCL_STOP
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_CLIP_RENDER_MODIFIER_H

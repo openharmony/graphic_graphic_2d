@@ -80,9 +80,6 @@ void RSRenderNodeGC::NodeDestructor(RSRenderNode* ptr)
 
 void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
 {
-    if (ptr == nullptr) {
-        return;
-    }
     AddNodeToBucket(ptr);
     DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
 }
@@ -121,26 +118,28 @@ void RSRenderNodeGC::ReleaseNodeBucket()
     bool vsyncArrived = false;
     uint32_t realDelNodeNum = 0;
     for (auto ptr : toDele) {
-        if (ptr) {
-            if (isEnable_.load() == false) {
-                AddNodeToBucket(ptr);
-                vsyncArrived = true;
-                continue;
-            }
-            if (RSRenderNodeAllocator::Instance().AddNodeToAllocator(ptr)) {
-                continue;
-            }
-#if defined(__aarch64__)
-            auto* hook = reinterpret_cast<MemoryHook*>(ptr);
-            hook->Protect();
-#endif
-            delete ptr;
-            ptr = nullptr;
-
-            ++realDelNodeNum;
+        if (ptr == nullptr) {
+            continue;
         }
+        if (isEnable_.load() == false) {
+            vsyncArrived = true;
+            if (remainBucketSize < GC_LEVEL_THR_HIGH) {
+                AddNodeToBucket(ptr);
+                continue;
+            }
+        }
+        ++realDelNodeNum;
+        if (RSRenderNodeAllocator::Instance().AddNodeToAllocator(ptr)) {
+            continue;
+        }
+#if defined(__aarch64__)
+        auto* hook = reinterpret_cast<MemoryHook*>(ptr);
+        hook->Protect();
+#endif
+        delete ptr;
+        ptr = nullptr;
     }
-    RS_TRACE_NAME_FMT("Actually ReleaseNode(not null) %u, VSync signal arrival interrupts release: %s",
+    RS_TRACE_NAME_FMT("ReleaseNodeMemory(not null) %u, VSync signal arrival interrupts release: %s",
         realDelNodeNum, vsyncArrived ? "true" : "false");
 }
 

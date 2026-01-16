@@ -84,7 +84,8 @@ RSCanvasNode::~RSCanvasNode()
 
 void RSCanvasNode::SetHDRPresent(bool hdrPresent)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetHDRPresent>(GetId(), hdrPresent);
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSCanvasNodeSetHDRPresent>(GetId(), hdrPresent);
     if (AddCommand(command, true)) {
         ROSEN_LOGD("RSCanvasNode::SetHDRPresent HDRClient set hdr true");
     }
