@@ -18,6 +18,10 @@
 #include "gtest/hwext/gtest-tag.h"
 #include "message_parcel.h"
 #include "common/rs_vector4.h"
+#include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_render_node.h"
 
 using namespace testing;
@@ -1376,5 +1380,85 @@ HWTEST_F(RSRenderPropertyTest, AnimatablePropertyVectorFloatOnUnmarshalling, Tes
     ret = RSRenderAnimatableProperty<std::vector<float>>::OnUnmarshalling(parcel, receivedProp);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSNGRenderMaskBaseSetOnlyValue
+ * @tc.desc: Test Set for RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, RSNGRenderMaskBaseSetOnlyValue, TestSize.Level1)
+{
+    auto nullProp = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>>();
+    nullProp->Set(nullptr, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(nullProp->stagingValue_, nullptr);
+    
+    auto testShader = std::make_shared<RSNGRenderRippleMask>();
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>>();
+    prop->Set(testShader, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(prop->stagingValue_, testShader);
+
+    prop->Set(testShader, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(prop->stagingValue_, testShader);
+}
+
+/**
+ * @tc.name: RSNGRenderShaderBaseSetOnlyValue
+ * @tc.desc: Test Set for RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, RSNGRenderShaderBaseSetOnlyValue, TestSize.Level1)
+{
+    auto nullProp = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>>();
+    nullProp->Set(nullptr, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(nullProp->stagingValue_, nullptr);
+    
+    auto testShader = std::make_shared<RSNGRenderContourDiagonalFlowLight>();
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>>();
+    prop->Set(testShader, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(prop->stagingValue_, testShader);
+
+    prop->Set(testShader, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(prop->stagingValue_, testShader);
+}
+
+/**
+ * @tc.name: RSNGRenderFilterBaseSetOnlyValue
+ * @tc.desc: Test Set for RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, RSNGRenderFilterBaseSetOnlyValue, TestSize.Level1)
+{
+    auto nullProp = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>>();
+    nullProp->Set(nullptr, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(nullProp->stagingValue_, nullptr);
+    
+    auto testShader = std::make_shared<RSNGRenderBlurFilter>();
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>>();
+    prop->Set(testShader, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(prop->stagingValue_, testShader);
+
+    prop->Set(testShader, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(prop->stagingValue_, testShader);
+}
+
+/**
+ * @tc.name: RSNGRenderShapeBaseSetOnlyValue
+ * @tc.desc: Test Set for RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, RSNGRenderShapeBaseSetOnlyValue, TestSize.Level1)
+{
+    auto nullProp = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>();
+    nullProp->Set(nullptr, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(nullProp->stagingValue_, nullptr);
+    
+    auto testShader = std::make_shared<RSNGRenderSDFRRectShape>();
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>();
+    prop->Set(testShader, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(prop->stagingValue_, testShader);
+
+    prop->Set(testShader, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(prop->stagingValue_, testShader);
 }
 } // namespace OHOS::Rosen

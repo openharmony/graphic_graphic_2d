@@ -70,7 +70,8 @@ enum PropertyUpdateType : uint8_t {
     UPDATE_TYPE_OVERWRITE = 0,   // overwrite by given value
     UPDATE_TYPE_INCREMENTAL,     // incremental update by given value
     UPDATE_TYPE_FORCE_OVERWRITE, // overwrite and cancel all previous animations
-    UPDATE_TYPE_ONLY_VALUE,      // only update value without marking dirty or attaching to modifier
+    UPDATE_TYPE_ONLY_VALUE,      // update value without marking dirty or attaching to modifier
+                                 // must use it after animation calculation in main thread
 };
 
 enum class RSPropertyType : uint8_t {
