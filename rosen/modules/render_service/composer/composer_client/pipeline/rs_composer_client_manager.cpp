@@ -80,7 +80,7 @@ void RSComposerClientManager::RenderFrameStart(uint64_t timestamp)
         for (auto it : clientMap) {
             minBufferCount = std::min(minBufferCount, it.second->GetUnExecuteTaskNum());
         }
-        RsFrameReport::GetInstance().ReportBufferCount(minBufferCount);
+        RsFrameReport::ReportBufferCount(minBufferCount);
     }
 }
 
