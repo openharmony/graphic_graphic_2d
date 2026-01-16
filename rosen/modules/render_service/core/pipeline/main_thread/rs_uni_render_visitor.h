@@ -282,6 +282,10 @@ private:
     void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node);
     void UpdateBlackListRecord(RSSurfaceRenderNode& node);
     void DealWithSpecialLayer(RSSurfaceRenderNode& node);
+
+    // collect the rotation lock correction degree
+    void GetRotationLockParam(RSSurfaceRenderNode& node);
+    
     void SendRcdMessage(RSScreenRenderNode& node);
 
     bool ForcePrepareSubTree()

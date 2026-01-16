@@ -7753,4 +7753,34 @@ HWTEST_F(RSUniRenderVisitorTest, SubSurfaceOpaqueRegionFromAccumulatedDirtyRegio
     origin.SubSelf(surfaceNode->opaqueRegion_);
     EXPECT_EQ(accumulatedDirtyRegion.GetRegionInfo(), origin.GetRegionInfo());
 }
+
+/**
+ * @tc.name: GetRotationLockParamTest001
+ * @tc.desc: Test GetRotationLockParam
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, GetRotationLockParamTest001, TestSize.Level2)
+{
+    NodeId id = 0;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = RSTestUtil::CreateSurfaceNode();
+    node->InitRenderParams();
+    rsUniRenderVisitor->curScreenNode_ = nullptr;
+    rsUniRenderVisitor->screenManager_ = nullptr;
+    rsUniRenderVisitor->GetRotationLockParam(node);
+    EXPECT_EQ(rsUniRenderVisitor->screenManager_, nullptr);
+
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    rsUniRenderVisitor->curScreenNode_->InitRenderParams();
+    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
+    rsUniRenderVisitor->screenManager_->SetScreenCorrection(ScreenRotation::ROTATION_180);
+    auto screenNodeParams = static_cast<RSScreenRenderParams*>(curScreenNode_->GetStagingRenderParams().get());
+    screenNodeParams->SetLogicalRotationCorrection(ScreenRotation::ROTATION_180);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+    surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+
+    rsUniRenderVisitor->GetRotationLockParam(node);
+    ASSERT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
+}
 } // OHOS::Rosen

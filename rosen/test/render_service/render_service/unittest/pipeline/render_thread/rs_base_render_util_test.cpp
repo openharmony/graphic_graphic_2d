@@ -589,20 +589,6 @@ HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_001, TestSize.Level2)
 }
 
 /*
- * @tc.name: GetScreenIdFromSurfaceRenderParamsTest
- * @tc.desc: Test GetScreenIdFromSurfaceRenderParams
- * @tc.type: FUNC
- * @tc.require: issueI605F4
- */
-HWTEST_F(RSBaseRenderUtilTest, GetScreenIdFromSurfaceRenderParamsTest, TestSize.Level2)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
-    auto screenId = RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(surfaceParams);
-    ASSERT_EQ(screenId, 0);
-}
-
-/*
  * @tc.name: IsColorFilterModeValid_002
  * @tc.desc: Test IsColorFilterModeValid
  * @tc.type: FUNC
@@ -1397,4 +1383,5 @@ HWTEST_F(RSBaseRenderUtilTest, GenerateDrawingBitmapFormatTest, TestSize.Level2)
     ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGBA_1010102);
     ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
 }
+
 } // namespace OHOS::Rosen

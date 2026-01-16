@@ -507,6 +507,8 @@ public:
     void UpdateHeadroomMapDecrease(HdrStatus status, uint32_t level);
     void ResetVideoHeadroomInfo();
 
+    void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
+
 protected:
     void OnSync() override;
 private:

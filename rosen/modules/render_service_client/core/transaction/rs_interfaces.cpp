@@ -1176,5 +1176,10 @@ void RSInterfaces::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
 {
     renderServiceClient_->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
 }
+
+int32_t RSInterfaces::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
+{
+    return RSRenderInterface::GetInstance().SetLogicalCameraRotationCorrection(id, logicalCorrection);
+}
 } // namespace Rosen
 } // namespace OHOS

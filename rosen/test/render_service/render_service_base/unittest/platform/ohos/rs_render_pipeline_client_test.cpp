@@ -490,5 +490,26 @@ HWTEST_F(RSPipelineClientTest, SubmitCanvasPreAllocatedBufferTest, TestSize.Leve
     ASSERT_NE(ret, 0);
 }
 #endif
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrection Test
+ * @tc.desc: SetLogicalCameraRotationCorrection
+ * @tc.type:FUNC
+ * @tc.require: issueICS2J8
+ */
+HWTEST_F(RSPipelineClientTest, SetLogicalCameraRotationCorrection, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = 0;
+    
+    auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    int32_t ret = rsClient->SetLogicalCameraRotationCorrection(screenId, ScreenRotation::ROTATION_90);
+    ASSERT_EQ(ret, RENDER_SERVICE_NULL);
+
+    RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
+    ret = rsClient->SetLogicalCameraRotationCorrection(screenId, ScreenRotation::ROTATION_90);
+    ASSERT_EQ(ret, SUCCESS);
+}
 } // namespace Rosen
 } // namespace OHOS

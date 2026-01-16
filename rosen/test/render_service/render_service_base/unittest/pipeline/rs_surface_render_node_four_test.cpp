@@ -478,5 +478,41 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, SetIsParticipateInOcclusion, TestSize.Leve
     ASSERT_TRUE(surfaceNode->isParticipateInOcclusion_);
     ASSERT_TRUE(surfaceNode->GetIsParticipateInOcclusion());
 }
+
+/**
+ * @tc.name: SetAppRotationCorrection
+ * @tc.desc: Test SetAppRotationCorrection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, SetAppRotationCorrection, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    node->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+    EXPECT_EQ(surfaceParams->GetAppRotationCorrection(), ScreenRotation::ROTATION_180);
+    node->stagingRenderParams_ = nullptr;
+    node->SetAppRotationCorrection(ScreenRotation::ROTATION_270);
+}
+
+/**
+ * @tc.name: SetRotationCorrectionDegree
+ * @tc.desc: Test SetRotationCorrectionDegree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, SetRotationCorrectionDegree, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    node->SetRotationCorrectionDegree(180);
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
+    node->stagingRenderParams_ = nullptr;
+    node->SetRotationCorrectionDegree(270);
+}
 } // namespace Rosen
 } // namespace OHOS

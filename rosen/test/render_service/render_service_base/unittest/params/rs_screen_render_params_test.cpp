@@ -267,4 +267,24 @@ HWTEST_F(RSScreenRenderParamsTest, SetHasMirroredScreenChanged, TestSize.Level1)
     params.SetHasMirroredScreenChanged(false);
     ASSERT_FALSE(params.GetHasMirroredScreenChanged());
 }
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrection
+ * @tc.desc: test result of SetLogicalCameraRotationCorrection
+ * @tc.type: FUNC
+ * @tc.require: issue20471
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetLogicalCameraRotationCorrection, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    ASSERT_EQ(params.GetLogicalCameraRotationCorrection(), ScreenRotation::ROTATION_0);
+
+    params.SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
+    ASSERT_EQ(params.GetLogicalCameraRotationCorrection(), ScreenRotation::ROTATION_90);
+    params.SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
+
+    std::unique_ptr<RSRenderParams> target = nullptr;
+    params.OnSync(target);
+}
 } // namespace OHOS::Rosen

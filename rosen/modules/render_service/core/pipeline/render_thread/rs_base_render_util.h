@@ -216,7 +216,6 @@ private:
         const std::vector<GraphicHDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap);
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
-    static ScreenId GetScreenIdFromSurfaceRenderParams(RSSurfaceRenderParams* nodeParams);
 
     static bool enableClient;
 

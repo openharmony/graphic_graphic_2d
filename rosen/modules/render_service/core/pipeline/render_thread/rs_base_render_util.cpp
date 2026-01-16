@@ -1309,42 +1309,6 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     return gravityMatrix;
 }
 
-ScreenId RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(RSSurfaceRenderParams* nodeParams)
-{
-    ScreenId screenId = 0;
-    if (gettid() == RSUniRenderThread::Instance().GetTid()) { // Check whether the thread is in the UniRenderThread.
-        auto ancestorDrawable = nodeParams->GetAncestorScreenDrawable().lock();
-        if (ancestorDrawable == nullptr) {
-            return screenId;
-        }
-        auto ancestorDisplayDrawable =
-            std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(ancestorDrawable);
-        if (ancestorDisplayDrawable == nullptr) {
-            return screenId;
-        }
-        auto& ancestorParam = ancestorDisplayDrawable->GetRenderParams();
-        if (ancestorParam == nullptr) {
-            return screenId;
-        }
-        auto renderParams = static_cast<RSScreenRenderParams*>(ancestorParam.get());
-        if (renderParams == nullptr) {
-            return screenId;
-        }
-        screenId = renderParams->GetScreenId();
-    } else {
-        std::shared_ptr<RSScreenRenderNode> ancestor = nullptr;
-        auto displayLock = nodeParams->GetAncestorScreenNode().lock();
-        if (displayLock != nullptr) {
-            ancestor = displayLock->ReinterpretCastTo<RSScreenRenderNode>();
-        }
-        if (ancestor == nullptr) {
-            return screenId;
-        }
-        screenId = ancestor->GetScreenId();
-    }
-    return screenId;
-}
-
 int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodeParams)
 {
     int32_t rotationDegree = 0;
@@ -1362,16 +1326,7 @@ int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodePar
         return rotationDegree;
     }
 
-    ScreenId screenId = GetScreenIdFromSurfaceRenderParams(nodeParams);
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager) {
-        rotationDegree =
-            static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(screenManager->GetScreenCorrection(screenId)));
-    } else {
-        RS_LOGE("RSBaseRenderUtil::GetScreenRotationOffset: screenManager is nullptr");
-    }
-    RS_LOGD("RSBaseRenderUtil::GetScreenRotationOffset: ScreenId: %{public}" PRIu64 ", RotationOffset: %{public}d",
-        screenId, rotationDegree);
+    rotationDegree = nodeParams->GetRotationCorrectionDegree();
     return rotationDegree;
 }
 

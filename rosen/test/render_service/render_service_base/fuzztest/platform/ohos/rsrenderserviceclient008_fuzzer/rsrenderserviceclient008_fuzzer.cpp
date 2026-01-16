@@ -52,13 +52,15 @@ const uint8_t DO_SET_BEHIND_WINDOW_FILTER_ENABLED_002 = 15;
 const uint8_t DO_GET_BEHIND_WINDOW_FILTER_ENABLED_002 = 16;
 const uint8_t DO_ADD_VIRTUAL_SCREEN_BLACK_LIST_002 = 17;
 const uint8_t DO_REMOVE_VIRTUAL_SCREEN_BLACK_LIST_002 = 18;
-const uint8_t TARGET_SIZE = 19;
+const uint8_t DO_SET_LOGICAL_CAMERA_ROTATION_CORRECTION = 19;
+const uint8_t TARGET_SIZE = 20;
 
 sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 constexpr size_t STR_LEN = 10;
+constexpr size_t SCREEN_ROTATION_SIZE = 5;
 
 template<class T>
 T GetData()
@@ -518,6 +520,16 @@ bool DoRemoveVirtualScreenBlackList002()
     renderServiceClient->RemoveVirtualScreenBlackList(id, blackListVector);
     return true;
 }
+
+bool DoSetLogicalCameraRotationCorrection()
+{
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
+    ScreenId id = GetData<ScreenId>();
+    ScreenRotation logicalCorrection = static_cast<ScreenRotation>(GetData<uint8_t>() % SCREEN_ROTATION_SIZE);
+    renderPipelineClient->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -586,6 +598,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_BLACK_LIST_002:
             OHOS::Rosen::DoRemoveVirtualScreenBlackList002();
+            break;
+        case OHOS::Rosen::DO_SET_LOGICAL_CAMERA_ROTATION_CORRECTION:
+            OHOS::Rosen::DoSetLogicalCameraRotationCorrection();
             break;
         default:
             return -1;

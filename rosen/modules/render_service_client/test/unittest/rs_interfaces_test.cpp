@@ -22,6 +22,7 @@
 #include "ibuffer_consumer_listener.h"
 #include "surface_utils.h"
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
@@ -3211,6 +3212,20 @@ HWTEST_F(RSInterfacesTest, ModifyVirtualScreenBlackList001, Function | SmallTest
 
     // restore
     RSRenderServiceConnectHub::instance_ = new RSRenderServiceConnectHub();
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrection
+ * @tc.desc: SetLogicalCameraRotationCorrection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetLogicalCameraRotationCorrection, Function | SmallTest | Level2)
+{
+    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    ScreenId screenId = 0;
+    ScreenRotation logicalRotation = ScreenRotation::ROTATION_90;
+    EXPECT_EQ(instance.SetLogicalCameraRotationCorrection(screenId, logicalRotation), SUCCESS);
 }
 } // namespace Rosen
 } // namespace OHOS

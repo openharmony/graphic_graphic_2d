@@ -1373,6 +1373,14 @@ public:
 
     void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps);
+
+    /**
+     * @brief Set logical camera rotation correction, used to correct logical rotation.
+     * @param id Screen id.
+     * @param logicalCorrection Logical camera rotation correction, see ScreenRotation.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

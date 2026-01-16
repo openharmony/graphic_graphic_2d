@@ -141,5 +141,10 @@ void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
 void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
 }
+
+int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
+{
+    return 0;
+}
 } // namespace Rosen
 } // namespace OHOS

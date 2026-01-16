@@ -3837,5 +3837,29 @@ bool RSSurfaceRenderNode::IsAncestorScreenFrozen() const
     screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(firstLevelNode->GetAncestorScreenNode().lock());
     return screenNode == nullptr ? false : screenNode->GetForceFreeze();
 }
+
+void RSSurfaceRenderNode::SetAppRotationCorrection(ScreenRotation appRotationCorrection)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetAppRotationCorrection(appRotationCorrection);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+void RSSurfaceRenderNode::SetRotationCorrectionDegree(int32_t rotationCorrectionDegree)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetRotationCorrectionDegree(rotationCorrectionDegree);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

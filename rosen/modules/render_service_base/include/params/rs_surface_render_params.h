@@ -770,6 +770,12 @@ public:
         return lastCacheSize_;
     }
 
+    void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
+    ScreenRotation GetAppRotationCorrection() const;
+
+    void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);
+    int32_t GetRotationCorrectionDegree() const;
+
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
@@ -906,6 +912,9 @@ private:
     bool isBufferFlushed_ = false;
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
+
+    ScreenRotation appRotationCorrection_ = ScreenRotation::ROTATION_0;
+    int32_t rotationCorrectionDegree_ = 0;
 
     ScreenId screenId_ = INVALID_SCREEN_ID;
 };
