@@ -116,7 +116,8 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, Mask),
     ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber),
     ADD_PROPERTY_TAG(ColorGradientEffect, Blend),
-    ADD_PROPERTY_TAG(ColorGradientEffect, BlendK)
+    ADD_PROPERTY_TAG(ColorGradientEffect, BlendK),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Brightness)
 );
 
 DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
