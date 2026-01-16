@@ -61,7 +61,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint64_t timestamp = GetData<uint64_t>();
     int requestId = GetData<int>();
     int load = GetData<int>();
     int schedFrameNum = GetData<int>();
