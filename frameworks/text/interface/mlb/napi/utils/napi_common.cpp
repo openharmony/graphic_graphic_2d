@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cinttypes>
 #include <cstdint>
 
 #include "ability.h"
@@ -1047,10 +1048,17 @@ bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &en
 std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& bundleName,
     const std::string& moduleName)
 {
+#if defined(CROSS_PLATFORM)
+    std::shared_ptr<AbilityRuntime::Platform::ApplicationContext> context =
+        AbilityRuntime::Platform::Context::GetApplicationContext();
+    TEXT_ERROR_CHECK(context != nullptr, return nullptr, "Failed to get application context");
+    auto moduleContext = context->CreateModuleContext(moduleName);
+#else
     std::shared_ptr<AbilityRuntime::ApplicationContext> context =
         AbilityRuntime::ApplicationContext::GetApplicationContext();
     TEXT_ERROR_CHECK(context != nullptr, return nullptr, "Failed to get application context");
     auto moduleContext = context->CreateModuleContext(bundleName, moduleName);
+#endif
     if (moduleContext != nullptr) {
         return moduleContext->GetResourceManager();
     } else {

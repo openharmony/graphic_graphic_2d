@@ -76,8 +76,14 @@ ohos_source_set("libtexgine_source") {
     defines += [ "RS_ENABLE_GPU" ]
   }
   if (is_arkui_x) {
-    include_dirs = [ "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter" ]
-    defines += [ "CROSS_PLATFORM" ]
+    include_dirs = [
+      "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
+      "$graphic_2d_root/rosen/modules/platform/utils"
+    ]
+    defines += [
+      "CROSS_PLATFORM",
+      "BUILD_NON_SDK_VER"
+    ]
     public_deps += [
       "//third_party/jsoncpp:jsoncpp_static",
       "//third_party/skia:skia_$platform",
