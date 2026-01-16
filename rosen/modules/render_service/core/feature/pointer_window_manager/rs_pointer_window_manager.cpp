@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_pointer_window_manager.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "common/rs_optional_trace.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
