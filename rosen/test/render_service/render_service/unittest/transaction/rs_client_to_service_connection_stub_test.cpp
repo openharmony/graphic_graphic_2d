@@ -2651,6 +2651,31 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenStatusTest004, Tes
     ASSERT_EQ(res, ERR_OK);
 }
 
+/**
+ * @tc.name: ShowWatermarkTest
+ * @tc.desc: Test ShowWatermark
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ShowWatermarkTest, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
+    bool isShow = true;
+    int width = 10;
+    int height = 10;
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    EXPECT_NE(pixelmap, nullptr);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteParcelable(pixelmap.get());
+    data.WriteBool(isShow);
+    toServiceConnectionStub_->OnRemoteRequest(code, data, reply, option);
+}
 
 /**
  * @tc.name: SetDualScreenStateTest001
