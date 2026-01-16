@@ -46,7 +46,6 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "platform/ohos/rs_node_stats.h"
-#include "rs_frame_report.h"
 #include "rs_render_composer_manager.h"
 #include "rs_trace.h"
 #include "rs_uni_render_engine.h"

@@ -164,7 +164,6 @@ void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& o
     RS_LOGI("RSRenderComposer SetSystemQoS qosRes = %{public}d", qosRes);
 #endif
 #ifdef RS_ENABLE_GPU
-    // todo
     // report composer tid to sched deadline
     RsFrameReport::ReportComposerInfo(screenId_, threadTid_);
 #endif
@@ -960,7 +959,6 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
 #ifdef RES_SCHED_ENABLE
 void RSRenderComposer::SubScribeSystemAbility()
 {
-    // todo
     RS_LOGI("%{public}s", __func__);
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
