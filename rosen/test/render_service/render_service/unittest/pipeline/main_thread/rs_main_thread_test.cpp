@@ -5186,6 +5186,26 @@ HWTEST_F(RSMainThreadTest, CountMem, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CountMem002
+ * @tc.desc: test CountMem when memory overflow
+ * @tc.type: FUNC
+ * @tc.require: issueIB5RAM
+ */
+HWTEST_F(RSMainThreadTest, CountMem002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    float size = 4.5f * 1024 * 1024 * 1024;
+    std::vector<MemoryGraphic> memoryGraphic;
+    MemoryGraphic singleMemoryGraphic;
+    singleMemoryGraphic.SetGpuMemorySize(size);
+    memoryGraphic.emplace_back(singleMemoryGraphic);
+
+    mainThread->CountMem(memoryGraphic);
+}
+
+/**
  * @tc.name: UpdateSubSurfaceCnt001
  * @tc.desc: test UpdateSubSurfaceCnt when info empty
  * @tc.type: FUNC
