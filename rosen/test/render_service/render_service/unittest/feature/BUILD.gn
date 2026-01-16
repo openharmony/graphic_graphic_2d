@@ -757,6 +757,7 @@ ohos_unittest("RSEglImageManagerTest") {
 ohos_unittest("HgmContextTest") {
   module_out_path = module_output_path
   sources = [
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock/mock_hdi_device.cpp",
     "hyper_graphic_manager/hgm_context_test.cpp",
     "hyper_graphic_manager/hgm_hardware_utils_test.cpp",
     "hyper_graphic_manager/rs_vblank_idle_corrector_test.cpp",
