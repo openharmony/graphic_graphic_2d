@@ -15,7 +15,7 @@
 #ifndef RENDER_SERVICE_COMPOSER_SERVICE_CONNECTION_ZIDL_IRS_RENDER_TO_COMPOSER_CONNECTION_H
 #define RENDER_SERVICE_COMPOSER_SERVICE_CONNECTION_ZIDL_IRS_RENDER_TO_COMPOSER_CONNECTION_H
 
-#include <set>
+#include <unordered_set>
 #include "common/rs_macros.h"
 #include "graphic_common.h"
 #include <iremote_broker.h>

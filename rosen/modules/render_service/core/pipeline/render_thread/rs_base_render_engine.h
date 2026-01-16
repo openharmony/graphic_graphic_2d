@@ -59,9 +59,6 @@ namespace Rosen {
 class RSRenderComposerClient;
 class GPUCacheManager;
 
-// Composer Client map type (used for GPU cache cleanup).
-using ComposerClientMap = std::map<ScreenId, std::shared_ptr<RSRenderComposerClient>>;
-using ComposerClientMapFunc = std::function<ComposerClientMap()>;
 namespace DrawableV2 {
 class RSSurfaceRenderNodeDrawable;
 }
@@ -223,7 +220,6 @@ public:
     void DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
         BufferDrawParam& params);
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
-    void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
 
     // GPU cache management
     std::shared_ptr<GPUCacheManager> GetGPUCacheManager() const { return gpuCacheManager_; }

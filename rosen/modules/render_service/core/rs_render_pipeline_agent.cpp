@@ -1117,13 +1117,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
 #ifdef RS_ENABLE_GPU
-    auto surfaceHandler = node->GetRSSurfaceHandler();
-    std::weak_ptr<RSSurfaceHandler> handlerWeak = surfaceHandler;
-    surfaceHandler->RegisterDeleteBufferListener([handlerWeak](uint64_t bufferId) {
-        if (auto handler = handlerWeak.lock()) {
-            handler->AddGPUCacheToCleanupSet(bufferId);
-        }
-    });
+    node->GetRSSurfaceHandler()->EnableGPUCacheCleanupOnDelete();
 #endif
     std::function<void()> registerNode = [node, renderPipeline = rsRenderPipeline_]() -> void {
         if (auto preNode = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(node->GetId())) {

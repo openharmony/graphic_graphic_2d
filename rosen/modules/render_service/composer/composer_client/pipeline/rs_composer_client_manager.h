@@ -28,7 +28,7 @@ public:
     void AddComposerClient(ScreenId screenId, const std::shared_ptr<RSComposerClient>& rsComposerClient);
     void DeleteComposerClient(ScreenId screenId);
     std::shared_ptr<RSComposerClient> GetComposerClient(ScreenId screenId);
-    void ClearRedrawGPUCompositionCache(std::unordered_set<uint64_t>& bufferIds);
+    void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds);
     void RenderFrameStart(uint64_t timestamp);
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId, NodeId nodeId);
     void SetScreenBacklight(ScreenId screenId, uint32_t level);

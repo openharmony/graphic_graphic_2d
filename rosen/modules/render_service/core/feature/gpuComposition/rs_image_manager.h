@@ -20,6 +20,7 @@
 #include <mutex>
 #include <queue>
 #include <set>
+#include <unordered_set>
 #include <variant>
 #include <unordered_map>
 #include <surface.h>
@@ -37,7 +38,7 @@ public:
     virtual ~RSImageManager() = default;
 
     virtual void UnMapImageFromSurfaceBuffer(uint64_t seqNum) = 0;
-    virtual void UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& bufferIds)
+    virtual void UnMapImagesFromSurfaceBuffer(const std::unordered_set<uint64_t>& bufferIds)
     {
         for (auto bufferId : bufferIds) {
             UnMapImageFromSurfaceBuffer(bufferId);

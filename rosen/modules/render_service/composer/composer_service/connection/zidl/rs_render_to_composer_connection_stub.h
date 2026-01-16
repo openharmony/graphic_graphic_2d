@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_COMPOSER_SERVICE_CONNECTION_ZIDL_RS_RENDER_TO_COMPOSER_CONNECTION_STUB_H
 
 #include <iremote_stub.h>
+#include <unordered_set>
 #include "message_parcel.h"
 #include "message_option.h"
 #include "irs_render_to_composer_connection.h"

@@ -861,29 +861,6 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
 #endif // #ifdef RS_ENABLE_EGLIMAGE
 }
 
-void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
-{
-    if (!gpuCacheManager_) {
-        RS_LOGE("RSBaseRenderEngine::RegisterDeleteBufferListener: gpuCacheManager_ is nullptr");
-        return;
-    }
-
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        // Use GPUCacheManager instance method to create callback
-        auto regUnMapVkImageFunc = gpuCacheManager_->CreateBufferDeleteCallback();
-        handler.RegisterDeleteBufferListener(regUnMapVkImageFunc);
-        return;
-    }
-#endif // #ifdef RS_ENABLE_VK
-
-#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
-    // Use GPUCacheManager instance method to create callback
-    auto regUnMapEglImageFunc = gpuCacheManager_->CreateBufferDeleteCallback();
-    handler.RegisterDeleteBufferListener(regUnMapEglImageFunc);
-#endif // #ifdef RS_ENABLE_EGLIMAGE
-}
-
 void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))

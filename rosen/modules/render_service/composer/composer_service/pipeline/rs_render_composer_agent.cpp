@@ -185,7 +185,7 @@ void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::unordered_
     }
     std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
     rsRenderComposer_->PostDelayTask(
-        [weakThis, bufferIds]() {
+        [weakThis, bufferIds]() mutable {
             std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
             if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
                 return;

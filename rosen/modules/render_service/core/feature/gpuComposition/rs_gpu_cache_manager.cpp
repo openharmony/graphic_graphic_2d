@@ -16,9 +16,11 @@
 #include "rs_gpu_cache_manager.h"
 
 #include <inttypes.h>
+#include <unordered_set>
 
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "platform/common/rs_log.h"
+#include "rs_composer_client_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,18 +60,13 @@ GPUGuard& GPUGuard::operator=(GPUGuard&& other) noexcept
     return *this;
 }
 
-std::shared_ptr<GPUCacheManager> GPUCacheManager::Create(std::shared_ptr<RSBaseRenderEngine> renderEngine)
+std::shared_ptr<GPUCacheManager> GPUCacheManager::Create(RSBaseRenderEngine& renderEngine)
 {
-    if (!renderEngine) {
-        RS_LOGE("GPUCacheManager::Create: renderEngine is nullptr");
-        return nullptr;
-    }
-
     // Use shared_ptr constructor with private constructor
-    return std::shared_ptr<GPUCacheManager>(new GPUCacheManager(std::move(renderEngine)));
+    return std::shared_ptr<GPUCacheManager>(new GPUCacheManager(renderEngine));
 }
 
-GPUCacheManager::GPUCacheManager(std::shared_ptr<RSBaseRenderEngine> renderEngine)
+GPUCacheManager::GPUCacheManager(RSBaseRenderEngine& renderEngine)
     : renderEngine_(renderEngine)
 {
     RS_LOGD("GPUCacheManager created");
@@ -114,9 +111,9 @@ void GPUCacheManager::ScheduleBufferCleanup(uint64_t bufferId)
     }
 }
 
-void GPUCacheManager::SetComposerClientMapProvider(ComposerClientMapFunc callback)
+void GPUCacheManager::SetComposerClientManager(const std::shared_ptr<RSComposerClientManager>& manager)
 {
-    getComposerClientMapCallback_ = std::move(callback);
+    composerClientManager_ = manager;
 }
 
 std::function<void(uint64_t)> GPUCacheManager::CreateBufferDeleteCallback()
@@ -188,21 +185,15 @@ void GPUCacheManager::CleanupPendingBuffers()
 
     RS_LOGD("GPUCacheManager::CleanupPendingBuffers: cleaning %{public}zu buffers", bufferIds.size());
 
-    // Cleanup RenderEngine cache
-    auto renderEngine = renderEngine_.lock();
-    if (renderEngine) {
-        renderEngine->ClearCacheSet(bufferIds);
-    }
+    std::unordered_set<uint64_t> bufferIdSet(bufferIds.begin(), bufferIds.end());
 
-    // Cleanup Composer Client cache (if callback is set)
-    if (getComposerClientMapCallback_) {
-        auto clientMap = getComposerClientMapCallback_();
-        for (const auto& item : clientMap) {
-            const auto& client = item.second;
-            if (client) {
-                client->ClearRedrawGPUCompositionCache(bufferIds);
-            }
-        }
+    // Cleanup RenderEngine cache
+    renderEngine_.ClearCacheSet(bufferIdSet);
+
+    // Cleanup Composer Client cache via RSComposerClientManager
+    auto composerClientManager = composerClientManager_.lock();
+    if (composerClientManager) {
+        composerClientManager->ClearRedrawGPUCompositionCache(bufferIdSet);
     }
 }
 

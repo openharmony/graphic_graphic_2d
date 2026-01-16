@@ -188,9 +188,7 @@ void RSRenderServiceListener::OnGoBackground()
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());
         std::set<uint64_t> tmpSet;
         node->NeedClearBufferCache(tmpSet);
-        if (!tmpSet.empty()) {
-            surfaceHandler->EnqueueAndFlushGPUCacheCleanup(tmpSet);
-        }
+        surfaceHandler->EnqueueAndFlushGPUCacheCleanup(tmpSet);
         surfaceHandler->ResetBufferAvailableCount();
         surfaceHandler->CleanCache();
         node->UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);

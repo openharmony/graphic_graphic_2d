@@ -54,7 +54,7 @@ int32_t RSRenderToComposerConnectionStub::OnRemoteRequest(uint32_t code, OHOS::M
             break;
         }
         case IRENDER_TO_COMPOSER_CONNECTION_CLEAR_REDRAW_GPU_COMPOSITION_CACHE: {
-            const auto& bufferIds = ParseClearRedrawCacheBufferIds(data);
+            auto bufferIds = ParseClearRedrawCacheBufferIds(data);
             ClearRedrawGPUCompositionCache(bufferIds);
             break;
         }

@@ -300,7 +300,7 @@ void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
     }
 }
 
-void RSEglImageManager::UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& bufferIds)
+void RSEglImageManager::UnMapImagesFromSurfaceBuffer(const std::unordered_set<uint64_t>& bufferIds)
 {
     if (bufferIds.empty()) {
         return;
@@ -329,9 +329,8 @@ void RSEglImageManager::UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& b
             continue;
         }
         auto resourcesHolder = std::make_shared<std::vector<std::unique_ptr<EglImageResource>>>(std::move(resources));
-        const size_t count = resourcesHolder->size();
-        auto task = [resourcesHolder, count]() mutable {
-            RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage batch count: %zu", count);
+        auto task = [resourcesHolder = std::move(resourcesHolder)]() mutable {
+            RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage batch count: %zu", resourcesHolder->size());
             // Release EglImageResource instances on this thread explicitly.
             resourcesHolder->clear();
         };

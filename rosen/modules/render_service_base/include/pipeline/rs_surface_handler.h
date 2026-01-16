@@ -18,6 +18,7 @@
 #include <atomic>
 #include <functional>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <set>
 
@@ -55,7 +56,7 @@ using GPUCacheCleanupCallback = std::function<void(const std::set<uint64_t>&)>;
 using ConsumerDeleteBufferListenerCallback = std::function<void(const sptr<IConsumerSurface>&)>;
 #endif
 
-class RSB_EXPORT RSSurfaceHandler {
+class RSB_EXPORT RSSurfaceHandler : public std::enable_shared_from_this<RSSurfaceHandler> {
 public:
     // indicates which node this handler belongs to.
     explicit RSSurfaceHandler(NodeId id) : id_(id) {}
@@ -243,7 +244,7 @@ public:
         if (buffer != nullptr) {
             buffer_.seqNum = buffer->GetSeqNum();
             if (buffer_.bufferOwnerCount_) {
-                buffer_.bufferOwnerCount_->seqNum_ = buffer_.seqNum;
+                buffer_.bufferOwnerCount_->bufferId_ = buffer_.seqNum;
             }
         }
         buffer_.acquireFence = acquireFence;
@@ -498,6 +499,20 @@ public:
             preBuffer_.RegisterDeleteBufferListener(bufferDeleteCb);
         }
     }
+
+    /**
+     * @brief Enable automatic GPU cache cleanup when buffer is deleted.
+     */
+    void EnableGPUCacheCleanupOnDelete()
+    {
+        std::weak_ptr<RSSurfaceHandler> weakThis = weak_from_this();
+        RegisterDeleteBufferListener([weakThis](uint64_t bufferId) {
+            if (auto handler = weakThis.lock()) {
+                handler->AddGPUCacheToCleanupSet(bufferId);
+            }
+        });
+    }
+
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
 #endif
 

@@ -239,7 +239,7 @@ std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
     return imageCache;
 }
 
-void RSVkImageManager::UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& bufferIds)
+void RSVkImageManager::UnMapImagesFromSurfaceBuffer(const std::unordered_set<uint64_t>& bufferIds)
 {
     if (bufferIds.empty()) {
         return;

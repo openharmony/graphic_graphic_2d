@@ -19,20 +19,18 @@
 #include <atomic>
 #include <cstdint>
 #include <functional>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <set>
 
 #include "common/rs_macros.h"
-#include "rs_render_composer_client.h"
-#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
 
 // Forward declarations
 class RSBaseRenderEngine;
+class RSComposerClientManager;
 
 /**
  * @brief GPU Operation Guard (RAII)
@@ -82,11 +80,6 @@ private:
  */
 class GPUCacheManager : public std::enable_shared_from_this<GPUCacheManager> {
 public:
-    // Composer Client map type
-    using ComposerClientMap = std::map<ScreenId, std::shared_ptr<RSRenderComposerClient>>;
-
-    // Callback type to get Composer Client map
-    using ComposerClientMapFunc = std::function<ComposerClientMap()>;
 
     /**
      * @brief Factory method to create GPUCacheManager
@@ -95,7 +88,7 @@ public:
      *
      * @note Uses shared_ptr to enable shared_from_this for weak references
      */
-    static std::shared_ptr<GPUCacheManager> Create(std::shared_ptr<RSBaseRenderEngine> renderEngine);
+    static std::shared_ptr<GPUCacheManager> Create(RSBaseRenderEngine& renderEngine);
 
     /**
      * @brief Create GPU operation guard (RAII)
@@ -132,13 +125,13 @@ public:
     void ScheduleBufferCleanup(uint64_t bufferId);
 
     /**
-     * @brief Set callback to get Composer Client map
+     * @brief Set RSComposerClientManager for cache cleanup
      *
      * Using dependency injection pattern to avoid hard-coded dependency.
      *
-     * @param callback Callback function that returns current Composer Client map
+     * @param manager RSComposerClientManager to use for cleanup
      */
-    void SetComposerClientMapProvider(ComposerClientMapFunc callback);
+    void SetComposerClientManager(const std::shared_ptr<RSComposerClientManager>& manager);
 
     /**
      * @brief Create buffer delete callback (uint64_t version)
@@ -177,7 +170,7 @@ private:
      * @brief Private constructor (use Create() factory method)
      * @param renderEngine RenderEngine to use for GPU cache cleanup
      */
-    explicit GPUCacheManager(std::shared_ptr<RSBaseRenderEngine> renderEngine);
+    explicit GPUCacheManager(RSBaseRenderEngine& renderEngine);
 
     // Internal cleanup methods (called by GPUGuard)
     void OnGPUDrawStart();
@@ -186,11 +179,11 @@ private:
     // Cleanup pending buffers (called when GPU draw count reaches zero)
     void CleanupPendingBuffers();
 
-    // RenderEngine for cache cleanup (owned by RSBaseRenderEngine).
-    std::weak_ptr<RSBaseRenderEngine> renderEngine_;
+    // RenderEngine for cache cleanup (global object, won't be destroyed)
+    RSBaseRenderEngine& renderEngine_;
 
-    // Callback to get Composer Client map (dependency injection)
-    ComposerClientMapFunc getComposerClientMapCallback_;
+    // RSComposerClientManager for cache cleanup (dependency injection)
+    std::weak_ptr<RSComposerClientManager> composerClientManager_;
 
     // Active GPU draw count (atomic operation, thread-safe)
     std::atomic<int32_t> activeDrawCount_{0};

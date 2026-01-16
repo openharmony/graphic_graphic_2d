@@ -73,7 +73,7 @@ public:
     ~RSEglImageManager() noexcept override = default;
 
     void UnMapImageFromSurfaceBuffer(uint64_t seqNum) override;
-    void UnMapImagesFromSurfaceBuffer(const std::set<uint64_t>& bufferIds) override;
+    void UnMapImagesFromSurfaceBuffer(const std::unordered_set<uint64_t>& bufferIds) override;
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
         RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
         const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;

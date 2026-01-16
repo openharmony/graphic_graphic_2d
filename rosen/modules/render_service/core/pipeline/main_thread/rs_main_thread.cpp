@@ -982,41 +982,31 @@ void RSMainThread::InitGPUCacheManager()
         return;
     }
 
-    auto gpuCacheManager = GPUCacheManager::Create(renderEngine);
-    if (!gpuCacheManager) {
-        RS_LOGE("RSMainThread::InitGPUCacheManager: Failed to create GPUCacheManager");
-        return;
-    }
+    auto gpuCacheManager = GPUCacheManager::Create(*renderEngine);
 
     // Set GPU cache manager to RenderEngine
     renderEngine->SetGPUCacheManager(gpuCacheManager);
 
-    // Set Composer Client map provider callback (UniRender mode only)
+    // Set Composer Client manager (UniRender mode only)
     if (isUniRender_) {
-        gpuCacheManager->SetComposerClientMapProvider(
-            [this]() -> GPUCacheManager::ComposerClientMap {
-                return RSUniRenderThread::Instance().GetRSRenderComposerClientMap();
-            }
+        gpuCacheManager->SetComposerClientManager(
+            RSUniRenderThread::Instance().GetComposerClientManager()
         );
     }
 
     // Set GPUCacheManager callback to RSSubThreadManager (dependency injection)
-    std::weak_ptr<RSBaseRenderEngine> renderEngineWeak = renderEngine;
+    // renderEngine is global and won't be destroyed, so raw pointer is safe
+    RSBaseRenderEngine* renderEnginePtr = renderEngine.get();
     RSSubThreadManager::Instance()->SetGetGPUCacheManagerFunc(
-        [renderEngineWeak]() -> std::shared_ptr<GPUCacheManager> {
-            auto engine = renderEngineWeak.lock();
-            return engine ? engine->GetGPUCacheManager() : nullptr;
+        [renderEnginePtr]() -> std::shared_ptr<GPUCacheManager> {
+            return renderEnginePtr->GetGPUCacheManager();
         }
     );
 
     // Set global GPU cache cleanup callback for RSSurfaceHandler (dependency injection)
     RSSurfaceHandler::SetGPUCacheCleanupCallback(
-        [renderEngineWeak](const std::set<uint64_t>& bufferIds) {
-            auto engine = renderEngineWeak.lock();
-            if (!engine) {
-                return;
-            }
-            auto cacheManager = engine->GetGPUCacheManager();
+        [renderEnginePtr](const std::set<uint64_t>& bufferIds) {
+            auto cacheManager = renderEnginePtr->GetGPUCacheManager();
             if (cacheManager) {
                 cacheManager->ScheduleBufferCleanup(bufferIds);
             }
@@ -1025,11 +1015,8 @@ void RSMainThread::InitGPUCacheManager()
 
     // Register buffer-delete listener to IConsumerSurface when it is bound to RSSurfaceHandler
     RSSurfaceHandler::SetConsumerDeleteBufferListenerCallback(
-        [renderEngineWeak](const sptr<IConsumerSurface>& consumer) {
-            auto engine = renderEngineWeak.lock();
-            if (engine) {
-                engine->RegisterDeleteBufferListener(consumer);
-            }
+        [renderEnginePtr](const sptr<IConsumerSurface>& consumer) {
+            renderEnginePtr->RegisterDeleteBufferListener(consumer);
         }
     );
 }
