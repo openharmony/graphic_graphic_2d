@@ -252,6 +252,108 @@ HWTEST_F(RSSpecialLayerManagerTest, AddIdsWithScreen002, TestSize.Level2)
 }
 
 /**
+ * @tc.name: GetHasSlInVisibleRect
+ * @tc.desc: test GetHasSlInVisibleRect records valid screenId
+ * @tc.type: FUNC
+ * @tc.require: issue21104
+ */
+HWTEST_F(RSSpecialLayerManagerTest, GetHasSlInVisibleRect, TestSize.Level2)
+{
+    RSSpecialLayerManager slManager;
+    ScreenId screenId = 1;
+    slManager.SetHasSlInVisibleRect(screenId, true);
+    ASSERT_TRUE(slManager.GetHasSlInVisibleRect(screenId));
+}
+
+/**
+ * @tc.name: GetIds001
+ * @tc.desc: test GetIds while type is skip
+ * @tc.require: issue21104
+ */
+HWTEST_F(RSSpecialLayerManagerTest, GetIds001, TestSize.Level1)
+{
+    RSSpecialLayerManager slManager;
+    NodeId id = 1;
+    slManager.AddIds(SpecialLayerType::SKIP, id);
+    ASSERT_FALSE(slManager.GetIds(SpecialLayerType::HAS_SKIP).empty());
+}
+
+/**
+ * @tc.name: GetIds002
+ * @tc.desc: test GetIdsWithScreen while type is skip
+ * @tc.type: FUNC
+ * @tc.require: issue21104
+ */
+HWTEST_F(RSSpecialLayerManagerTest, GetIds002, TestSize.Level2)
+{
+    RSSpecialLayerManager slManager;
+    NodeId nodeId = 1;
+    slManager.AddIds(SpecialLayerType::SKIP, nodeId);
+    ScreenId screenId = 1;
+    ASSERT_TRUE(slManager.GetIdsWithScreen(screenId, SpecialLayerType::HAS_SKIP).empty());
+}
+
+/**
+ * @tc.name: GetIds003
+ * @tc.desc: test GetIdsWithScreen while type mismatch
+ * @tc.type: FUNC
+ * @tc.require: issue21104
+ */
+HWTEST_F(RSSpecialLayerManagerTest, GetIds003, TestSize.Level2)
+{
+    RSSpecialLayerManager slManager;
+    NodeId nodeId = 1;
+    slManager.AddIds(SpecialLayerType::SKIP, nodeId);
+    ScreenId screenId = 1;
+    ASSERT_TRUE(slManager.GetIdsWithScreen(screenId, SpecialLayerType::HAS_SECURITY).empty());
+}
+
+/**
+ * @tc.name: GetIdsWithScreen001
+ * @tc.desc: test GetIdsWithScreen while type is empty
+ * @tc.type: FUNC
+ * @tc.require: issue21104
+ */
+HWTEST_F(RSSpecialLayerManagerTest, GetIdsWithScreen001, TestSize.Level2)
+{
+    RSSpecialLayerManager slManager;
+    NodeId nodeId = 1;
+    ScreenId screenId = 0;
+    slManager.AddIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId);
+    ASSERT_TRUE(slManager.GetIdsWithScreen(screenId, SpecialLayerType::NONE).empty());
+}
+
+/**
+ * @tc.name: GetIdsWithScreen002
+ * @tc.desc: test GetIdsWithScreen while type is skip
+ * @tc.type: FUNC
+ * @tc.require: issue21104
+ */
+HWTEST_F(RSSpecialLayerManagerTest, GetIdsWithScreen002, TestSize.Level2)
+{
+    RSSpecialLayerManager slManager;
+    NodeId nodeId = 1;
+    ScreenId screenId = 0;
+    slManager.AddIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId);
+    ASSERT_FALSE(slManager.GetIdsWithScreen(screenId, SpecialLayerType::HAS_SKIP).empty());
+}
+
+/**
+ * @tc.name: GetIdsWithScreen003
+ * @tc.desc: test GetIdsWithScreen while type mismatch
+ * @tc.type: FUNC
+ * @tc.require: issue21104
+ */
+HWTEST_F(RSSpecialLayerManagerTest, GetIdsWithScreen003, TestSize.Level2)
+{
+    RSSpecialLayerManager slManager;
+    NodeId nodeId = 1;
+    ScreenId screenId = 0;
+    slManager.AddIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId);
+    ASSERT_TRUE(slManager.GetIdsWithScreen(screenId, SpecialLayerType::HAS_SECURITY).empty());
+}
+
+/**
  * @tc.name: AddIdsWithScreen003
  * @tc.desc: test while black list overflows
  * @tc.type: FUNC
