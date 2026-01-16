@@ -5525,7 +5525,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode003, TestSize.Level2
      surfaceNode->SetVisibleRegion(region);
      auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
      ASSERT_NE(rsUniRenderVisitor, nullptr);
-     InitTestSurfaceNodeAndScreenInfo(surfaceNode, rsUniRenderVisitor);
+     NodeId screenNodeId = 0;
+     ScreenId screenId = 0;
+     auto rsContext = std::make_shared<RSContext>();
+     rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId, rsContext);
      rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
      rsUniRenderVisitor->hwcVisitor_->isHardwareForcedDisabled_ = false;
      
