@@ -6383,4 +6383,34 @@ HWTEST_F(RSMainThreadTest, DisableHdrDirectCompositionTest001, TestSize.Level1)
     mainThread->doDirectComposition_ = doDirectComposition;
     RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
 }
+
+/**
+ * @tc.name: ProcessNeedAttachedNodesTest001
+ * @tc.desc: Test ProcessNeedAttachedNodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessNeedAttachedNodesTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ProcessNeedAttachedNodes();
+}
+ 
+/**
+ * @tc.name: ProcessNeedAttachedNodesTest002
+ * @tc.desc: Test ProcessNeedAttachedNodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessNeedAttachedNodesTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto &mutablenodeMap = mainThread->context_->GetMutableNodeMap();
+    mutablenodeMap.RegisterNeedAttachedNode(node);
+    mainThread->ProcessNeedAttachedNodes();
+}
 } // namespace OHOS::Rosen

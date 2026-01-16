@@ -1753,9 +1753,9 @@ public:
     void SetSurfaceBufferOpaque(bool isOpaque);
     bool GetSurfaceBufferOpaque() const;
 
-    void AfterTreeStatueChanged() override;
-
     bool IsAncestorScreenFrozen() const;
+    void AfterTreeStateChanged();
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;

@@ -433,7 +433,7 @@ void RSSurfaceRenderNode::FindScreenId()
     }
 }
 
-void RSSurfaceRenderNode::AfterTreeStatueChanged()
+void RSSurfaceRenderNode::AfterTreeStateChanged()
 {
     if (!IsOnTheTree() && attachedInfo_.has_value()) {
         if (auto context = GetContext().lock()) {
@@ -455,7 +455,10 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     NotifyTreeStateChange();
     RSRenderNode::OnTreeStateChanged();
     if (!IsOnTheTree() && attachedInfo_.has_value()) {
-        return;
+        if (auto context = GetContext().lock()) {
+            context->GetMutableNodeMap().RegisterNeedAttachedNode(
+                std::static_pointer_cast<RSSurfaceRenderNode>(shared_from_this()));
+        }
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!IsOnTheTree()) {

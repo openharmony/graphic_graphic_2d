@@ -86,6 +86,11 @@ public:
 
     bool AttachToDisplay(
         std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode, ScreenId screenId, bool toContainer) const;
+    void RegisterNeedAttachedNode(std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode);
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> GetNeedAttachedNode()
+    {
+        return needAttachedNode_;
+    }
 
 private:
     explicit RSRenderNodeMap();
@@ -120,6 +125,7 @@ private:
     void CollectSelfDrawingNodeOfSubTree(std::vector<NodeId>& vec, const std::shared_ptr<RSBaseRenderNode> rootNode);
     std::unordered_set<NodeId> uiExtensionSurfaceNodes_;
     mutable std::mutex uiExtensionSurfaceNodesMutex_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> needAttachedNode_;
 
     friend class RSContext;
     friend class RSMainThread;
