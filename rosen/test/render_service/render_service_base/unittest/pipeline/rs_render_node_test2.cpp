@@ -1426,6 +1426,44 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect005, TestSize.Level
 }
 
 /**
+ * @tc.name: UpdatePendingPurgeFilterDirtyRect006
+ * @tc.desc: test pendingPurgeFilterRegion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect006, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto& geoPtr = node.renderProperties_.boundsGeo_;
+    geoPtr = std::make_shared<RSObjAbsGeometry>();
+    RectI rect(50, 50, 100, 100);
+    geoPtr->absRect_ = rect;
+
+    RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->stagingCacheManager_->pendingPurge_ = false;
+    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
+
+    auto filterRegion = Occlusion::Region(node.GetFilterRect());
+    node.lastFilterRegion_ = node.GetFilterRect();
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+
+    filterDrawable->stagingCacheManager_->lastHpaeClearCache_ = false;
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+    const auto& pendingPurgeFilterRegion = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
+    EXPECT_FALSE(filterRegion.Sub(pendingPurgeFilterRegion).IsEmpty());
+
+    filterDrawable->stagingCacheManager_->lastHpaeClearCache_ = true;
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+    const auto& pendingPurgeFilterRegion2 = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
+    EXPECT_TRUE(filterRegion.Sub(pendingPurgeFilterRegion2).IsEmpty());
+
+    filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+}
+
+/**
  * @tc.name: IsBackgroundInAppOrNodeSelfDirty
  * @tc.desc: test
  * @tc.type: FUNC

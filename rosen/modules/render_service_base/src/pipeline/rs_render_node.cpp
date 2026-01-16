@@ -2794,7 +2794,8 @@ void RSRenderNode::UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirty
         // because stagingFilterInteractWithDirty_ (whether filter intersects with the dirty region)
         // also AddPendingPurgeFilterRegion if HpaeBlur clear cache
         // may become true later in CheckMergeFilterDirtyWithPreDirty().
-        if (filterDrawable->NeedPendingPurge() || filterDrawable->LastHpaeClearCache()) {
+        if (!filterDrawable->IsAIBarFilter() &&
+            (filterDrawable->NeedPendingPurge() || filterDrawable->LastHpaeClearCache())) {
             dirtyManager.GetFilterCollector().AddPendingPurgeFilterRegion(
                 Occlusion::Region(Occlusion::Rect(lastFilterRegion_)));
         }
