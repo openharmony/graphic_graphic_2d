@@ -19,6 +19,7 @@
 #include "common/rs_optional_trace.h"
 #include "effect/rs_render_property_tag.h"
 #include "effect/rs_render_shape_base.h"
+#include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_color_picker_def.h"
 #include "property/rs_properties_painter.h"
@@ -1722,9 +1723,9 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
         const auto& filter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(renderFilter);
         auto sdfShape = properties.GetSDFShape();
         if (sdfShape) {
-            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, use sdfShape, node %{public}" PRIu64,
+            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, SDF_EDGE_LIGHT, node %{public}" PRIu64,
                 nodeId);
-            filter->Setter<SDFEdgeLightSDFShapeRenderTag>(sdfShape);
+            filter->Setter<SDFEdgeLightSDFShapeRenderTag>(sdfShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
             drawingFilter->SetNGRenderFilter(filter);
         }
         return;
@@ -1737,7 +1738,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     if (sdfShape) {
         ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, use sdfShape, node %{public}" PRIu64,
             nodeId);
-        filter->Setter<FrostedGlassShapeRenderTag>(sdfShape);
+        filter->Setter<FrostedGlassShapeRenderTag>(sdfShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
         drawingFilter->SetNGRenderFilter(filter);
         return;
     }
@@ -1747,7 +1748,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, rrect %{public}s, node %{public}" PRIu64,
         sdfRRect.ToString().c_str(), nodeId);
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
-    filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape);
+    filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
     drawingFilter->SetNGRenderFilter(filter);
 }
 
