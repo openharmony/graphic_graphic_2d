@@ -781,7 +781,9 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         return;
     }
 
-    HGM_LOGI("%{public}s(%{public}d) [%{public}u %{public}u] %{public}d %{public}s", eventName.c_str(), pid,
+    HGM_LOGD("%{public}s(%{public}d) [%{public}u %{public}u] %{public}d %{public}s", eventName.c_str(), pid,
+        eventInfo.minRefreshRate, eventInfo.maxRefreshRate, eventInfo.eventStatus, eventInfo.description.c_str());
+    RS_TRACE_NAME_FMT("%s: %s(%d) [%u %u] %d %s", __func__, eventName.c_str(), pid,
         eventInfo.minRefreshRate, eventInfo.maxRefreshRate, eventInfo.eventStatus, eventInfo.description.c_str());
     if (eventName == "VOTER_SCENE") {
         HandleSceneEvent(pid, eventInfo);
