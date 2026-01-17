@@ -380,7 +380,7 @@ std::pair<UnmarshallingHelper::UnmarshallingFunc, size_t> UnmarshallingHelper::G
 
 UnmarshallingPlayer::UnmarshallingPlayer(const DrawCmdList& cmdList) : cmdList_(cmdList) {}
 
-std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, void* handle, size_t avaliableSize,
+std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, void* handle, size_t availableSize,
                                                                bool isReplayMode)
 {
     if (type == DrawOpItem::OPITEM_HEAD) {
@@ -392,18 +392,18 @@ std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, vo
     if (unmarshallingPair.first == nullptr) {
         return nullptr;
     }
-    if (unmarshallingPair.second > avaliableSize) {
+    if (unmarshallingPair.second > availableSize) {
         if (isReplayMode) {
             auto data = malloc(unmarshallingPair.second);
             if (!data) {
                 return nullptr;
             }
-            auto ret = memset_s(data, sizeof(data), 0, unmarshallingPair.second);
+            auto ret = memset_s(data, unmarshallingPair.second, 0, unmarshallingPair.second);
             if (ret != EOK) {
                 free(data);
                 return nullptr;
             }
-            ret = memmove_s(data, sizeof(data), handle, avaliableSize);
+            ret = memmove_s(data, unmarshallingPair.second, handle, availableSize);
             if (ret != EOK) {
                 free(data);
                 return nullptr;

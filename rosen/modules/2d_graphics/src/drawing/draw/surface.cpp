@@ -193,7 +193,7 @@ void Surface::ClearDrawingArea()
 void Surface::SetHeadroom(float headroom)
 {
     if (!impl_) {
-        LOGD("surfaceImpl SetHeadroom failed impl nullptr");
+        LOGE("surfaceImpl SetHeadroom failed impl nullptr");
         return;
     }
     impl_->SetHeadroom(headroom);
@@ -202,7 +202,7 @@ void Surface::SetHeadroom(float headroom)
 float Surface::GetHeadroom() const
 {
     if (!impl_) {
-        LOGD("surfaceImpl GetHeadroom failed impl nullptr");
+        LOGE("surfaceImpl GetHeadroom failed impl nullptr");
         return 1.0f;
     }
     return impl_->GetHeadroom();
