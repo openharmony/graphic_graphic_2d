@@ -7776,11 +7776,15 @@ HWTEST_F(RSUniRenderVisitorTest, GetRotationLockParamTest001, TestSize.Level2)
     rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
     rsUniRenderVisitor->screenManager_->SetScreenCorrection(ScreenRotation::ROTATION_180);
     auto screenNodeParams = static_cast<RSScreenRenderParams*>(curScreenNode_->GetStagingRenderParams().get());
-    screenNodeParams->SetLogicalRotationCorrection(ScreenRotation::ROTATION_180);
+    screenNodeParams->SetLogicalRotationCorrection(ScreenRotation::ROTATION_0);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
     surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
 
     rsUniRenderVisitor->GetRotationLockParam(node);
     ASSERT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
+
+    screenNodeParams->SetLogicalRotationCorrection(ScreenRotation::ROTATION_90);
+    rsUniRenderVisitor->GetRotationLockParam(node);
+    ASSERT_EQ(surfaceParams->GetRotationCorrectionDegree(), 90);
 }
 } // OHOS::Rosen

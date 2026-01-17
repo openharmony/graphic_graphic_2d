@@ -3746,11 +3746,17 @@ void RSUniRenderVisitor::GetRotationLockParam(RSSurfaceRenderNode& node)
     }
     auto appRotationCorrection = surfaceNodeParams->GetAppRotationCorrection();
 
+    int32_t totalRotationCorrectionDegree = 0;
+
     int32_t screenDegree = static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(screenRotationCorrection));
     int32_t logicalDegree = static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(logicalRotationCorrection));
     int32_t appDegree = static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(appRotationCorrection));
 
-    int32_t totalRotationCorrectionDegree = (screenDegree + logicalDegree + appDegree) % ROUND_ANGLE;
+    if (logicalDegree == 0) {
+        totalRotationCorrectionDegree = screenDegree;
+    } else {
+        totalRotationCorrectionDegree = (screenDegree + logicalDegree + appDegree) % ROUND_ANGLE;
+    }
 
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::GetRotationLockParam NodeId:%" PRIu64 ", screenCorrectionDegree:%d"
         ", logicalCorrectionDegree:%d, appCorrectionDegree:%d, totalCorrectionDegree:%d",
