@@ -716,7 +716,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 
     SubscribeAppState();
     PrintCurrentStatus();
-    RS_LOGI("UpdateGpuContextCacheSize");
     UpdateGpuContextCacheSize();
     RS_LOGI("RSLuminanceControl init");
     RSLuminanceControl::Get().Init();
@@ -916,6 +915,7 @@ void RSMainThread::NotifyUnmarshalTask(int64_t uiTimestamp)
 void RSMainThread::UpdateGpuContextCacheSize()
 {
 #ifdef RS_ENABLE_GPU
+    RS_LOGI("UpdateGpuContextCacheSize");
     auto gpuContext = isUniRender_? GetRenderEngine()->GetRenderContext()->GetDrGPUContext() :
         renderEngine_->GetRenderContext()->GetDrGPUContext();
     if (gpuContext == nullptr) {
@@ -955,6 +955,7 @@ void RSMainThread::UpdateGpuContextCacheSize()
             MAX_GPU_CONTEXT_CACHE_SIZE : cacheLimitsResourceSize;
         if (cacheLimitsResourceSize > maxResourcesSize) {
             gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
+            RS_LOGI("UpdateGpuContextCacheSize, gpu cache size: %{public}zu Bytes", cacheLimitsResourceSize);
         }
     }
     static int systemCacheLimitResourceSize = MEMParam::GetRSCacheLimitsResourceSize();
@@ -4205,21 +4206,12 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
         }
     }
     dumpString.append("dumpMem: " + type + "\n");
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode) {
-        auto childList= rootNode->GetChildrenList();
-        for(auto& child : childList) {
-            if (auto node = child.lock()) {
-                auto screenNode = node->ReinterpretCastTo<RSScreenRenderNode>();
-                if (screenNode) {
-                    const auto& screenProperty = screenNode->GetScreenProperty();
-                    dumpString.append("ScreenResolution: " + std::to_string(screenProperty.GetPhyWidth()) + "x" +
-                        std::to_string(screenProperty.GetPhyHeight()) + "\n");
-                    break;
-                }
-            }
-        }
-    }
+    const auto& nodeMap = context_->GetNodeMap();
+    nodeMap.TraverseScreenNodes([&dumpString](const auto& screenNode) {
+        const auto& screenProperty = screenNode->GetScreenProperty();
+        dumpString.append("\nScreenResolution: " + std::to_string(screenProperty.GetPhyWidth()) + "x" +
+            std::to_string(screenProperty.GetPhyHeight()) + "\n");
+    });
 
     dumpString.append(log.GetString());
     if (!isLite) {
@@ -5326,6 +5318,7 @@ void RSMainThread::CreateScreenNode(const sptr<RSScreenProperty>& property)
     };
     nodeMap.TraverseLogicalDisplayNodes(setOnTree);
     RSSpecialLayerUtils::UpdateScreenSpecialLayer(*property);
+    UpdateGpuContextCacheSize();
 }
 
 void RSMainThread::HandleScreenPropertyRefreshOneFrame(ScreenPropertyType type)
@@ -5404,6 +5397,7 @@ void RSMainThread::DestroyScreenNode(ScreenId screenId)
     screenNode->ResetMirrorSource();
     context_->GetGlobalRootRenderNode()->RemoveChild(screenNode);
     nodeMap.UnregisterRenderNode(screenNode->GetId());
+    UpdateGpuContextCacheSize();
 }
 
 void RSMainThread::UpdateScreenProperty(
