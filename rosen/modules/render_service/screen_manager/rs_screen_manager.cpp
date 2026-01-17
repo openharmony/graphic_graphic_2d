@@ -49,28 +49,16 @@ using namespace HiviewDFX;
 
 void RSScreenManager::RegisterCoreListener(const sptr<RSIScreenManagerListener>& listener)
 {
-    if (!callbackMgr_) {
-        RS_LOGE("%{public}s: callbackMgr is nullptr", __func__);
-        return;
-    }
     callbackMgr_->SetCoreListener(listener);
 }
 
 void RSScreenManager::RegisterAgentListener(const sptr<RSIScreenManagerAgentListener>& listener)
 {
-    if (!callbackMgr_) {
-        RS_LOGE("%{public}s: callbackMgr is nullptr", __func__);
-        return;
-    }
     callbackMgr_->AddAgentListener(listener);
 }
 
 void RSScreenManager::UnRegisterAgentListener(const sptr<RSIScreenManagerAgentListener>& listener)
 {
-    if (!callbackMgr_) {
-        RS_LOGE("%{public}s: callbackMgr is nullptr", __func__);
-        return;
-    }
     callbackMgr_->RemoveAgentListener(listener);
 }
 
@@ -1466,7 +1454,7 @@ void RSScreenManager::ExecuteCallback(const sptr<RSIScreenChangeCallback>& callb
         if (screen->IsVirtual()) {
             continue;
         }
-        sptr<IRemoteObject> conn = callbackMgr_ ? callbackMgr_->GetClientToRenderConnection(id) : nullptr;
+        sptr<IRemoteObject> conn = callbackMgr_->GetClientToRenderConnection(id);
         callback->OnScreenChanged(id, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT, conn);
     }
 }
