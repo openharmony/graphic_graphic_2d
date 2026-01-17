@@ -1566,12 +1566,21 @@ HWTEST_F(RSUifirstManagerTest, LeashWindowContainMainWindowAndStarting001, TestS
     std::vector<std::shared_ptr<RSRenderNode>> children;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1);
     auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1);
+    rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     children.push_back(rsSurfaceRenderNode);
     children.push_back(rsCanvasRenderNode);
     node.fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
     rsCanvasRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(1);
+
+    rsSurfaceRenderNode->leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     resId = uifirstManager_.LeashWindowContainMainWindowAndStarting(node);
     EXPECT_TRUE(resId);
+    EXPECT_TRUE(node.GetUifirstHasContentAppWindow());
+
+    rsSurfaceRenderNode->leashPersistentId_ = 100;
+    resId = uifirstManager_.LeashWindowContainMainWindowAndStarting(node);
+    EXPECT_TRUE(resId);
+    EXPECT_FALSE(node.GetUifirstHasContentAppWindow());
 
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(2);
     children.push_back(canvasRenderNode);

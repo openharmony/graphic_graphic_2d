@@ -460,8 +460,8 @@ void RsSubThreadCache::UpdateCompletedCacheSurface()
 void RsSubThreadCache::ClearCacheSurface(bool isClearCompletedCacheSurface)
 {
     cacheSurface_ = nullptr;
-    cacheSurfaceInfo_ = { -1, -1, -1.f };
     isCacheValid_ = false;
+    cacheSurfaceInfo_.Reset();
     ResetCacheBehindWindowData();
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -472,7 +472,7 @@ void RsSubThreadCache::ClearCacheSurface(bool isClearCompletedCacheSurface)
     if (isClearCompletedCacheSurface) {
         std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
         cacheCompletedSurface_ = nullptr;
-        cacheCompletedSurfaceInfo_ = { -1, -1, -1.f };
+        cacheCompletedSurfaceInfo_.Reset();
         isCacheCompletedValid_ = false;
         ResetCacheCompletedBehindWindowData();
 #ifdef RS_ENABLE_VK
@@ -905,17 +905,16 @@ void RsSubThreadCache::SetHighPostPriority(bool postPriority)
     isHighPostPriority_ = postPriority;
 }
 
-void RsSubThreadCache::UpdateCacheSurfaceInfo(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
+void RsSubThreadCache::UpdateCacheSurfaceInfo(std::shared_ptr<RSSurfaceRenderNodeDrawable> surfaceDrawable,
+    RSSurfaceRenderParams* surfaceParams)
 {
-    if (!nodeDrawable) {
+    if (!surfaceDrawable || !surfaceParams) {
         return;
     }
-    const auto& params = nodeDrawable->GetRenderParams();
-    if (params) {
-        cacheSurfaceInfo_.processedSurfaceCount = GetTotalProcessedSurfaceCount();
-        cacheSurfaceInfo_.processedNodeCount = RSRenderNodeDrawable::GetProcessedNodeCount();
-        cacheSurfaceInfo_.alpha = params->GetGlobalAlpha();
-    }
+    cacheSurfaceInfo_.processedSurfaceCount = GetTotalProcessedSurfaceCount();
+    cacheSurfaceInfo_.processedNodeCount = RSRenderNodeDrawable::GetProcessedNodeCount();
+    cacheSurfaceInfo_.alpha = surfaceParams->GetGlobalAlpha();
+    cacheSurfaceInfo_.processedSubSurfaceNodeIds = surfaceParams->GetAllSubSurfaceNodeIds();
 }
 
 bool RsSubThreadCache::DrawUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
@@ -1033,7 +1032,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     }
     // This branch is entered only when the conditions for executing the DrawUIFirstCache function are met.
     if (surfaceParams.GetGlobalPositionEnabled() &&
-        surfaceParams.GetUifirstUseStarting() == INVALID_NODEID) {
+        surfaceParams.GetUifirstStartingWindowId() == INVALID_NODEID) {
         auto matrix = surfaceParams.GetMatrix();
         Drawing::Matrix inverseMatrix;
         if (!matrix.Invert(inverseMatrix)) {
@@ -1057,8 +1056,9 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     }
     canvas.SetStencilVal(stencilVal);
     bool drawCacheSuccess = true;
-    if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {
-        drawCacheSuccess = DrawUIFirstCacheWithStarting(surfaceDrawable, canvas, surfaceParams.GetUifirstUseStarting());
+    if (surfaceParams.GetUifirstStartingWindowId() != INVALID_NODEID) {
+        drawCacheSuccess = DrawUIFirstCacheWithStarting(surfaceDrawable, canvas,
+            surfaceParams.GetUifirstStartingWindowId());
     } else {
         drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, false);
     }

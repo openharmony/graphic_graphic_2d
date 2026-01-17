@@ -627,7 +627,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
     targetSurfaceParams->uiFirstParentFlag_ = uiFirstParentFlag_;
-    targetSurfaceParams->uifirstUseStarting_ = uifirstUseStarting_;
+    targetSurfaceParams->uifirstStartingWindowId_ = uifirstStartingWindowId_;
     targetSurfaceParams->childrenDirtyRect_ = childrenDirtyRect_;
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     targetSurfaceParams->leashPersistentId_ = leashPersistentId_;

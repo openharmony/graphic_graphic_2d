@@ -726,7 +726,8 @@ public:
     {
         return UIFirstIsPurge_;
     }
-    void SetUifirstUseStarting(NodeId id); // only cache app window, first frame not wait
+    void SetUifirstStartingWindowId(NodeId id); // only cache app window, first frame not wait
+    NodeId GetUifirstStartingWindowId() const;
 
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
@@ -1429,6 +1430,15 @@ public:
         return uifirstStartTime_;
     }
 
+    void SetUifirstHasContentAppWindow(bool hasAppWindow)
+    {
+        uifirstHasContentAppWindow_ = hasAppWindow;
+    }
+    bool GetUifirstHasContentAppWindow() const
+    {
+        return uifirstHasContentAppWindow_;
+    }
+
     void SetUIFirstVisibleFilterRect(const RectI& rect);
 
     RSBaseRenderNode::WeakPtr GetAncestorScreenNode() const
@@ -1983,6 +1993,7 @@ private:
     GamutCollector gamutCollector_;
     // UIFirst
     int64_t uifirstStartTime_ = -1;
+    bool uifirstHasContentAppWindow_ = false;
     size_t lastFrameChildrenCnt_ = 0;
     sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
     sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;

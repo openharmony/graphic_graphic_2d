@@ -286,7 +286,9 @@ private:
     // update node's uifirst state
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
     NodeId LeashWindowContainMainWindowAndStarting(RSSurfaceRenderNode& node);
-    void NotifyUIStartingWindow(NodeId id, bool wait);
+    // notify appwindow whether uifirst should block first frame callback
+    void NotifyUIStartingWindow(NodeId id, bool waitUifirstFrame,
+        std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> surfaceDrawable = nullptr, bool checkIfDrawn = false);
     bool HasStartingWindow(RSSurfaceRenderNode& node);
 
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);
@@ -307,7 +309,6 @@ private:
     bool CheckHasTransAndFilter(RSSurfaceRenderNode& node);
     bool HasBgNodeBelowRootNode(RSSurfaceRenderNode& appNode) const;
 
-    // stating
     void ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType);
 
     bool IsFocusedNode(const RSSurfaceRenderNode& node) const;
@@ -315,6 +316,9 @@ private:
     void DecreaseUifirstWindowCount(const RSSurfaceRenderNode& node);
     bool IsExceededWindowsThreshold(const RSSurfaceRenderNode& node) const;
     void ShouldAutoCleanCache(NodeId id, DrawableV2::RsSubThreadCache& subThreadCache);
+
+    bool IsContentAppWindow(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
+    void CheckAndBlockFirstFrameCallback(RSSurfaceRenderNode& surfaceNode) const;
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;

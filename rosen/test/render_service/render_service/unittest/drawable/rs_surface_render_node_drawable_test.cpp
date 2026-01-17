@@ -2128,7 +2128,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface011, TestSize.Level2)
     rsRenderThreadParams1->isUIFirstDebugEnable_ = true;
     surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::LEASH_WINDOW);
     surfaceParams->SetGlobalPositionEnabled(true);
-    surfaceParams->SetUifirstUseStarting(0);
+    surfaceParams->SetUifirstStartingWindowId(0);
     surfaceParams->SetWindowInfo(false, true, false);
 
     surfaceParams->matrix_.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);

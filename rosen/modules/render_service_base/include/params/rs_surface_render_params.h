@@ -231,18 +231,18 @@ public:
         needSync_ = true;
     }
 
-    void SetUifirstUseStarting(NodeId id)
+    void SetUifirstStartingWindowId(NodeId id)
     {
-        if (uifirstUseStarting_ == id) {
+        if (uifirstStartingWindowId_ == id) {
             return;
         }
-        uifirstUseStarting_ = id;
+        uifirstStartingWindowId_ = id;
         needSync_ = true;
     }
 
-    NodeId GetUifirstUseStarting() const
+    NodeId GetUifirstStartingWindowId() const
     {
-        return uifirstUseStarting_;
+        return uifirstStartingWindowId_;
     }
 
     void SetUifirstChildrenDirtyRectParam(const RectI& rect)
@@ -815,7 +815,7 @@ private:
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
-    NodeId uifirstUseStarting_ = INVALID_NODEID;
+    NodeId uifirstStartingWindowId_ = INVALID_NODEID;
     RectI uiFirstVisibleFilterRect_;
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;

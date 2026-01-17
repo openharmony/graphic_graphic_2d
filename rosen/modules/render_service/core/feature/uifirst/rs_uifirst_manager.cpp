@@ -158,7 +158,7 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     nodePtr->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
     pendingPostNodes_.erase(nodePtr->GetId());
     pendingPostCardNodes_.erase(nodePtr->GetId());
-    nodePtr->SetUifirstUseStarting(false);
+    nodePtr->SetUifirstStartingWindowId(INVALID_NODEID);
     if (SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE)) {
         // enable ->disable
         SetNodeNeedForceUpdateFlag(true);
@@ -314,13 +314,11 @@ void RSUifirstManager::ProcessForceUpdateNode()
     pendingForceUpdateNode_.clear();
 }
 
-void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool wait)
+void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool waitUifirstFrame,
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> surfaceDrawable, bool checkIfDrawn)
 {
-    if (mainThread_ == nullptr) {
-        return;
-    }
     auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-        mainThread_->GetContext().GetNodeMap().GetRenderNode(id));
+        RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id));
     if (node == nullptr || !node->IsLeashWindow()) {
         return;
     }
@@ -329,9 +327,22 @@ void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool wait)
             continue;
         }
         auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceChild && surfaceChild->IsMainWindowType()) {
-            surfaceChild->SetWaitUifirstFirstFrame(wait);
+        if (!surfaceChild || !surfaceChild->IsMainWindowType() ||
+            surfaceChild->IsWaitUifirstFirstFrame() == waitUifirstFrame) {
+            continue;
         }
+        // check if surface child is drawn by subthread
+        if (checkIfDrawn && surfaceDrawable) {
+            const auto& subCache = surfaceDrawable->GetRsSubThreadCache();
+            const auto& drawnSurfaceNodeIds = subCache.GetAllDrawnSubSurfaceNodeIds();
+            // if child surface not drawn or no content, should still block
+            if (drawnSurfaceNodeIds.find(surfaceChild->GetId()) == drawnSurfaceNodeIds.end()) {
+                RS_TRACE_NAME_FMT("NotifyUIStartingWindow child not drawn, id:%" PRIu64, surfaceChild->GetId());
+                continue;
+            }
+        }
+
+        surfaceChild->SetWaitUifirstFirstFrame(waitUifirstFrame);
     }
 }
 
@@ -356,7 +367,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
             SetNodeNeedForceUpdateFlag(true);
             pendingForceUpdateNode_.push_back(id);
         }
-        NotifyUIStartingWindow(id, false);
+        NotifyUIStartingWindow(id, false, drawable, true);
         subthreadProcessingNode_.erase(id);
     }
 }
@@ -1313,6 +1324,7 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
     int canvasNodeNum = 0;
     bool support = true;
     std::shared_ptr<RSRenderNode> startingWindow = nullptr;
+    bool hasContentAppWindow = false;
     for (auto& child : *(node.GetSortedChildren())) {
         if (!child) {
             continue;
@@ -1331,12 +1343,16 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
         auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (surfaceChild && surfaceChild->IsMainWindowType() && canvasNodeNum == 0) {
             mainwindowNum++;
+            if (IsContentAppWindow(surfaceChild)) {
+                hasContentAppWindow = true;
+            }
             continue;
         }
         support = false;
     }
-    RS_TRACE_NAME_FMT("uifirst_node support:%d, canvasNodeNum:%d, mainwindowNum:%d, hasStartingWindow:%d",
-        support, canvasNodeNum, mainwindowNum, startingWindow != nullptr);
+    node.SetUifirstHasContentAppWindow(hasContentAppWindow);
+    RS_TRACE_NAME_FMT("support:%d, canvasNodeNum:%d, mainwindowNum:%d, hasStarting:%d, hasContent:%d", support,
+        canvasNodeNum, mainwindowNum, startingWindow != nullptr, hasContentAppWindow);
     if (support && canvasNodeNum == 1 && mainwindowNum > 0 && startingWindow) { // starting window & appwindow
         startingWindow->SetStartingWindowFlag(true);
         return startingWindow->GetId();
@@ -1352,7 +1368,7 @@ bool RSUifirstManager::HasStartingWindow(RSSurfaceRenderNode& node)
 {
     auto startingWindowId = LeashWindowContainMainWindowAndStarting(node);
     if (startingWindowId != INVALID_NODEID) { // has starting window
-        node.SetUifirstUseStarting(startingWindowId);
+        node.SetUifirstStartingWindowId(startingWindowId);
         // block first frame callback
         NotifyUIStartingWindow(node.GetId(), true);
         return true;
@@ -2062,6 +2078,7 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
             } else {
                 ProcessFirstFrameCache(node, MultiThreadCacheType::LEASH_WINDOW);
             }
+            CheckAndBlockFirstFrameCallback(node);
         } else {
             UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
         }
@@ -2532,6 +2549,30 @@ void RSUifirstManager::ProcessMarkedNodeSubThreadCache()
         }
     }
     markedClearCacheNodes_.clear();
+}
+
+bool RSUifirstManager::IsContentAppWindow(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
+{
+    return surfaceNode->IsAppWindow() && surfaceNode->GetLeashPersistentId() == INVALID_LEASH_PERSISTENTID;
+}
+
+void RSUifirstManager::CheckAndBlockFirstFrameCallback(RSSurfaceRenderNode& surfaceNode) const
+{
+    if (surfaceNode.GetUifirstStartingWindowId() == INVALID_NODEID || surfaceNode.GetUifirstHasContentAppWindow()) {
+        return;
+    }
+    for (auto& child : *(surfaceNode.GetSortedChildren())) {
+        if (!child) {
+            continue;
+        }
+        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceChild && IsContentAppWindow(surfaceChild)) {
+            RS_TRACE_NAME_FMT("BlockFrameCallback id:%" PRIu64, surfaceChild->GetId());
+            surfaceNode.SetUifirstHasContentAppWindow(true);
+            surfaceChild->SetWaitUifirstFirstFrame(true);
+            return;
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
