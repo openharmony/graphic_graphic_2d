@@ -80,6 +80,9 @@ HWTEST_F(HgmRPContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
     RSRenderService renderService;
     auto& hgmCore = HgmCore::Instance();
     auto mgr = hgmCore.GetFrameRateMgr();
+    if (mgr == nullptr) {
+        mgr = std::make_unique<HgmFrameRateManager>();
+    }
     auto rsDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "rs");
     auto appDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "app");
     renderService.hgmContext_ = std::make_shared<HgmContext>(nullptr, mgr, nullptr, appDistributor, rsDistributor);
@@ -117,8 +120,8 @@ HWTEST_F(HgmRPContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
     EXPECT_EQ(hgmRPContext.isAdaptive_, false);
     EXPECT_EQ(pipelineParam.pendingScreenRefreshRate, 60);
     EXPECT_EQ(pipelineParam.pendingConstraintRelativeTime, 2);
-    EXPECT_EQ(renderService.hgmContext_.currVsyncId_, 100);
-    EXPECT_EQ(renderService.hgmContext_.rsCurrRange_.preferred_, 60);
+    EXPECT_EQ(renderService.hgmContext_->currVsyncId_, 100);
+    EXPECT_EQ(renderService.hgmContext_->rsCurrRange_.preferred_, 60);
 }
 
 /**
