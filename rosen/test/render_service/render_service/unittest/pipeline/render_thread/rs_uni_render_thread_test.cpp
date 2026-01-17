@@ -620,6 +620,13 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
     instance.ReleaseSelfDrawingNodeBuffer();
     ASSERT_EQ(params->GetPreBuffer(), nullptr);
 
+    auto output = HdiOutput::CreateHdiOutput(1u);
+    RSRenderComposerManager::GetInstance().OnScreenConnected(output);
+    params->preBuffer_ = SurfaceBuffer::Create();
+    params->screenId_ = 1u;
+    instance.ReleaseSelfDrawingNodeBuffer();
+    ASSERT_EQ(params->GetPreBuffer(), nullptr);
+
     // RSHardwareThread::Instance().delayTime_ = 1;
     instance.ReleaseSelfDrawingNodeBuffer();
     params->isHardwareEnabled_ = true;

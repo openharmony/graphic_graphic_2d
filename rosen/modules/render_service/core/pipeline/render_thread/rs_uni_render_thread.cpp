@@ -502,7 +502,9 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
                 task();
             }
         };
-        RSRenderComposerManager::GetInstance().PostTaskWithInnerDelay(screenId, releaseBufferTask);
+        if (!RSRenderComposerManager::GetInstance().PostTaskWithInnerDelay(screenId, releaseBufferTask)) {
+            releaseBufferTask();
+        }
     }
 }
 
