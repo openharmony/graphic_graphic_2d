@@ -105,31 +105,32 @@ HWTEST_F(HgmHardwareUtilsTest, UpdateRetrySetRateStatusTest, TestSize.Level1)
     ASSERT_NE(hgmHardwareUtils, nullptr);
 
     hgmHardwareUtils->setRateRetryMap_.clear();
-    auto [rateRetryMapIter, success] = hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SET_RATE_ERROR);
+    hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SET_RATE_ERROR);
     EXPECT_TRUE(hgmHardwareUtils->setRateRetryMap_.empty());
-    hgmHardwareUtils->setRateRetryMap_.try_emplace(SCREEN_ID, std::make_pair(false, 0));
-    EXPECT_EQ(rateRetryMapIter.first, false);
-    EXPECT_EQ(rateRetryMapIter.second, 0);
+    auto [rateRetryMapIter, success] = hgmHardwareUtils->setRateRetryMap_.try_emplace(SCREEN_ID, std::make_pair(false, 0));
+    auto& rateRetryData = rateRetryMapIter->second;
+    EXPECT_EQ(rateRetryData.first, false);
+    EXPECT_EQ(rateRetryData.second, 0);
 
     hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SUCCESS);
-    EXPECT_EQ(rateRetryMapIter.first, false);
-    EXPECT_EQ(rateRetryMapIter.second, 0);
+    EXPECT_EQ(rateRetryData.first, false);
+    EXPECT_EQ(rateRetryData.second, 0);
 
     hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SET_RATE_ERROR);
-    EXPECT_EQ(rateRetryMapIter.first, true);
-    EXPECT_EQ(rateRetryMapIter.second, 1);
+    EXPECT_EQ(rateRetryData.first, true);
+    EXPECT_EQ(rateRetryData.second, 1);
     for (int i = 1; i < MAX_SETRATE_RETRY_COUNT; ++i) {
         hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SET_RATE_ERROR);
-        EXPECT_EQ(rateRetryMapIter.first, true);
-        EXPECT_EQ(rateRetryMapIter.second, i + 1);
+        EXPECT_EQ(rateRetryData.first, true);
+        EXPECT_EQ(rateRetryData.second, i + 1);
     }
     hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SET_RATE_ERROR);
-    EXPECT_EQ(rateRetryMapIter.first, false);
-    EXPECT_EQ(rateRetryMapIter.second, MAX_SETRATE_RETRY_COUNT);
+    EXPECT_EQ(rateRetryData.first, false);
+    EXPECT_EQ(rateRetryData.second, MAX_SETRATE_RETRY_COUNT);
 
     hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SUCCESS);
-    EXPECT_EQ(rateRetryMapIter.first, false);
-    EXPECT_EQ(rateRetryMapIter.second, 0);
+    EXPECT_EQ(rateRetryData.first, false);
+    EXPECT_EQ(rateRetryData.second, 0);
 }
 
 /**
