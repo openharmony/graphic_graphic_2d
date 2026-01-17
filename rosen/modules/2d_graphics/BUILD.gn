@@ -224,6 +224,8 @@ template("graphics2d_source_set") {
         sources +=
             [ "$drawing_core_src_dir/utils/system_graphic_properties.cpp" ]
       }
+    } else if (platform == "android") {
+      sources += [ "$drawing_core_src_dir/utils/system_properties.cpp" ]
     }
     if (is_emulator) {
       defines += [ "ROSEN_EMULATOR" ]
@@ -362,6 +364,9 @@ template("graphics2d_source_set") {
       deps += [ "$rosen_root/modules/platform:hilog" ]
 
       if (is_arkui_x) {
+        if(graphic_2d_feature_enable_vulkan) {
+          public_external_deps -= [ "vulkan-headers:vulkan_headers" ]
+        }
         deps += [
           "//third_party/bounds_checking_function:libsec_static",
           "//third_party/skia:skia_$platform",

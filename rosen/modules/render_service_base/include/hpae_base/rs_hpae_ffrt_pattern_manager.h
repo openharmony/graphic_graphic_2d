@@ -19,6 +19,9 @@
 #include <functional>
 #include <memory>
 #include <stdexcept>
+#ifdef ROSEN_ARKUI_X
+#include <unordered_map>
+#endif
 #include <utility>
 #include <vector>
 #include "common/rs_macros.h"

@@ -29,7 +29,11 @@
 #endif
 #endif
 #ifdef RS_ENABLE_VK
+#ifdef ROSEN_ARKUI_X
+#include "include/third_party/vulkan/vulkan/vulkan_core.h"
+#else
 #include "vulkan/vulkan.h"
+#endif
 #endif
 namespace OHOS {
 namespace Rosen {
