@@ -237,7 +237,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, DrawScreenNodeWithParams001, TestSize.Level
         renderEngine->DrawScreenNodeWithParams(*recordingCanvas, *node, param);
     } else {
         auto renderEngine = std::make_shared<RSRenderEngine>();
-        std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasHeight);
+        std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasWidth);
         std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
         ASSERT_NE(canvas, nullptr);
         renderEngine->DrawScreenNodeWithParams(*canvas, *node, param);
@@ -399,7 +399,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, GetCanvasColorSpace002, TestSize.Level1)
 
 /**
  * @tc.name: CancelCurrentFrame
- * @tc.desc: Test CancelCurrentFrame when targetSurface_ is nullptr
+ * @tc.desc: Test CancelCurrentFrame with targetSurface_ is nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -411,13 +411,13 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CancelCurrentFrame, TestSize.Level1)
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
     std::shared_ptr<RSSurfaceOhosVulkan> rsSurface1 = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     auto tmpSurface = std::make_shared<Drawing::Surface>();
-    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(tmpSurface, 100, 100, 100);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(tmpSurface, 100, 100, 10);
     auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface1, std::move(surfaceFrame));
     renderFrame->targetSurface_ = nullptr;
     renderFrame->CancelCurrentFrame();
     ASSERT_EQ(renderFrame->GetSurface(), nullptr);
 
-    renderFrame->targetSurface_ = std::make_shared<RSSurfaceFrameOhosVulkan>(pSurface);
+    renderFrame->targetSurface_ = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     renderFrame->CancelCurrentFrame();
     ASSERT_NE(renderFrame->GetSurface(), nullptr);
 }
@@ -442,10 +442,10 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer001, TestSize.Level1)
  * @tc.name: CreateImageFromBuffer002
  * @tc.desc: Test CreateImageFromBuffer:
  *           1.IsBufferDeleted is false and call CreateImageFromBuffer,
-               vkImage should be cached, imageCacheSeqs_ size expect 1.
-             2.call ClearCacheSet, vkImage should be released, imageCacheSeqs_ size should be 0
-             3.IsBufferDeleted is true and call CreateImageFromBuffer,
-               vkimage should not be cached, imageCacheSeqs_ size expect 0.
+ *             vkImage should be cached, imageCacheSeqs_ size expect 1.
+ *           2.call ClearCacheSet, vkImage should be released, imageCacheSeqs_ size should be 0
+ *           3.IsBufferDeleted is true and call CreateImageFromBuffer,
+ *             vkImage should not be cached, imageCacheSeqs_ size expect 0.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -468,7 +468,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer002, TestSize.Level1)
         params.buffer = CreateBuffer();
         EXPECT_NE(params.buffer, nullptr);
         if (params.buffer && renderEngine->imageManager_ && recordingCanvas) {
-            unmappedCache.insert(params.buffer->GetSeqNum());
+            unmappedCache.insert(params.buffer->GetBufferId());
             EXPECT_FALSE(params.buffer->IsBufferDeleted());
             EXPECT_NE(renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo), nullptr);
             auto vkImageManager = std::static_pointer_cast<RSVkImageManager>(renderEngine->imageManager_);
@@ -481,6 +481,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer002, TestSize.Level1)
             EXPECT_NE(renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo), nullptr);
             EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), 0);
         }
+        auto renderEngineNull = std::make_shared<RSRenderEngine>();
+        EXPECT_EQ(renderEngineNull->CreateImageFromBuffer(*recordingCanvas, params, videoInfo), nullptr);
     }
 #endif
 }
@@ -529,7 +531,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer003, TestSize.Level1)
 
         auto sRGBColorSpace = Drawing::ColorSpace::CreateSRGB();
         auto sRGBInfo = Drawing::ImageInfo(10, 10, Drawing::ColorType::COLORTYPE_RGBA_8888,
-            Drawing::AlphaType::ALPHATYPE_QPAQUE, sRGBColorSpace);
+            Drawing::AlphaType::ALPHATYPE_OPAQUE, sRGBColorSpace);
         auto sRGBSurface = Drawing::Surface::MakeRaster(sRGBInfo);
         ASSERT_NE(sRGBSurface, nullptr);
 
@@ -542,7 +544,6 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer003, TestSize.Level1)
     }
 #endif
 }
-
 
 /**
  * @tc.name: CreateImageFromBuffer004
@@ -579,11 +580,11 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer004, TestSize.Level1)
         }
 
         params.colorFollow = true;
-        if (params.buffer && renderEngine->imgageManager_ && recordingCanvas) {
+        if (params.buffer && renderEngine->imageManager_ && recordingCanvas) {
             auto image = renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo);
             EXPECT_EQ(videoInfo.drawingColorSpace_, nullptr);
             EXPECT_NE(image, nullptr);
-            EXPECT_EQ(iamge->GetAlphaType(), Drawing::AlphaType::ALPHATYPE_PREMUL);
+            EXPECT_EQ(image->GetAlphaType(), Drawing::AlphaType::ALPHATYPE_PREMUL);
         }
     }
 #endif
@@ -614,38 +615,6 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ColorSpaceConvertor001, TestSize.Level1)
     renderEngine->ColorSpaceConvertor(shaderEffect, params, parameter);
     ASSERT_NE(params.paint.shaderEffect_, nullptr);
 #endif
-}
-#endif
-
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-/**
- * @tc.name: ColorSpaceConvertorTest001
- * @tc.desc: Test ColorSpaceConvertorTest:
- * @tc.type: FUNC
- * @tc.require:issueIC1RNF
- */
-HWTEST_F(RSBaseRenderEngineTest, ColorSpaceConvertorTest, TestSize.Level1)
-{
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    renderEngine->Init();
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    BufferDrawParam params;
-    params.isHdrRedraw = false;
-    params.isTmoNitsFixed = false;
-    parmas.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
-    ASSERT_TRUE(renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter));
-
-    std::shared_ptr<Drawing::ShaderEffect> inputShader = Drawing::ShaderEffect::CreateColorShader(0x00000001);
-    ASSERT_TRUE(inputShader);
-
-    RSPaintFilterCanvas::HDRProperties hdrProperties = {
-        .isHDREnabledVirtualScreen = false;
-    };
-    renderEngine->ColorSpaceConvertor(inputShader, params, parameter, hdrProperties);
-    hdrProperties.isHDREnabledVirtualScreen = true;
-    renderEngine->ColorSpaceConvertor(inputShader, params, parameter, hdrProperties);
-    EXPECT_EQ(parameter.currentDisplayNits, RSLuminanceConst::DEFAULT_CAST_HDR_NITS);
 }
 #endif
 
@@ -696,6 +665,38 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation, TestSize.Level1)
     matrix.Set(Drawing::Matrix::SCALE_Y, 1);
     ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
 }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: ColorSpaceConvertorTest001
+ * @tc.desc: Test ColorSpaceConvertorTest:
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderEngineTest, ColorSpaceConvertorTest, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    BufferDrawParam params;
+    params.isHdrRedraw = false;
+    params.isTmoNitsFixed = false;
+    parmas.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    ASSERT_TRUE(renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter));
+
+    std::shared_ptr<Drawing::ShaderEffect> inputShader = Drawing::ShaderEffect::CreateColorShader(0x00000001);
+    ASSERT_TRUE(inputShader);
+
+    RSPaintFilterCanvas::HDRProperties hdrProperties = {
+        .isHDREnabledVirtualScreen = false;
+    };
+    renderEngine->ColorSpaceConvertor(inputShader, params, parameter, hdrProperties);
+    hdrProperties.isHDREnabledVirtualScreen = true;
+    renderEngine->ColorSpaceConvertor(inputShader, params, parameter, hdrProperties);
+    EXPECT_EQ(parameter.currentDisplayNits, RSLuminanceConst::DEFAULT_CAST_HDR_NITS);
+}
+#endif
 
 /**
  * @tc.name: SetColorSpaceConverterDisplayParameterTest
