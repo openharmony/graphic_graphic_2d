@@ -39,8 +39,12 @@
 #else
 #include "include/gpu/GrBackendSemaphore.h"
 #endif
+#ifndef ROSEN_ARKUI_X
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#else
+#include "rs_vulkan_context.h"
+#endif
 #endif
 
 #ifdef USE_M133_SKIA
@@ -84,7 +88,7 @@ Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
             return Drawing::COLORTYPE_RGBA_8888;
     }
 }
-
+#ifndef ROSEN_ARKUI_X
 bool WaitFence(const sptr<SyncFence>& fence)
 {
     if (fence == nullptr) {
@@ -97,6 +101,7 @@ bool WaitFence(const sptr<SyncFence>& fence)
     }
     return true;
 }
+#endif
 #endif
 
 RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& image,
@@ -840,7 +845,7 @@ void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
     }
 }
 
-#ifdef RS_ENABLE_VK
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 /* DrawHybridPixelMapOpItem */
 UNMARSHALLING_REGISTER(DrawHybridPixelMapOpItem, DrawOpItem::HYBRID_RENDER_PIXELMAP_OPITEM,
     DrawHybridPixelMapOpItem::Unmarshalling, sizeof(DrawHybridPixelMapOpItem::ConstructorHandle));
