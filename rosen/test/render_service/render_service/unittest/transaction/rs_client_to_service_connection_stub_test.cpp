@@ -2674,7 +2674,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ShowWatermarkTest, TestSize.Level1
     data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data.WriteParcelable(pixelmap.get());
     data.WriteBool(isShow);
-    toServiceConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    connectionStub_->OnRemoteRequest(code, data, reply, option);
 }
 
 /**
