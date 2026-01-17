@@ -146,7 +146,7 @@ int32_t RSRenderToComposerConnectionStub::PreAllocProtectedFrameBuffersStub(OHOS
     uint32_t sequence;
     sptr<SurfaceBuffer> buffer = nullptr;
     auto readSafeFdFunc = [](OHOS::MessageParcel& messageParcel,
-                                std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
+                             std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
         return messageParcel.ReadFileDescriptor();
     };
     if (ReadSurfaceBufferImpl(parcel, sequence, buffer, readSafeFdFunc) != GSERROR_OK) {

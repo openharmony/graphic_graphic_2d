@@ -46,6 +46,7 @@ public:
     }
 
     void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) override;
+
 private:
     std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
 };

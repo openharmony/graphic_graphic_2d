@@ -62,12 +62,12 @@ void RSLayerParcelHelper::UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerCo
     const std::shared_ptr<RSRenderLayerCmd>& command)
 {
     if (context == nullptr) {
-        ROSEN_LOGE("RSLayerParcelHelper::UpdateRSRCDLayerCmd context is nullptr");
+        ROSEN_LOGE("%{public}s context is nullptr", __func__);
         return;
     }
     auto rsLayer = context->GetRSRenderLayer(layerId);
     if (rsLayer == nullptr) {
-        ROSEN_LOGD("RSLayerParcelHelper::UpdateRSRCDLayerCmd add rsLayer");
+        ROSEN_LOGD("%{public}s add rsLayer", __func__);
         rsLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
         context->AddRSRenderLayer(layerId, rsLayer);
     }
@@ -77,7 +77,7 @@ void RSLayerParcelHelper::UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerCo
         context->AddRSRenderLayer(layerId, rcdLayer);
     }
     rsLayer->UpdateRSLayerCmd(command);
-    ROSEN_LOGD("RSLayerParcelHelper::UpdateRSRCDLayerCmd rslayermap size:%{public}d",
+    ROSEN_LOGD("%{public}s rslayermap size:%{public}d", __func__,
         static_cast<int32_t>(context->GetRSRenderLayerCount()));
 }
 } // namespace Rosen

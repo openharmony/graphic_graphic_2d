@@ -174,7 +174,7 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
     if (onReleaseLayerBuffersCB_) {
         onReleaseLayerBuffersCB_(rsLayers, releaseBufferFenceVec, screenId);
     } else {
-        RS_LOGE("RSBufferManager onReleaseLayerBuffersCB_ is nullptr");
+        RS_LOGE("%{public}s onReleaseLayerBuffersCB_ is nullptr", __func__);
     }
 }
 
