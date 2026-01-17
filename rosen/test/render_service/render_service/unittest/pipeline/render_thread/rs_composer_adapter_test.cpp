@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_composer_adapter.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/mock/mock_hdi_device.h"
@@ -126,6 +127,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest001, Function | SmallTest | Leve
     layers.emplace_back(infoPtr1);
     layers.emplace_back(infoPtr2);
     composerAdapter_->CommitLayers(layers);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -153,6 +155,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest002, Function | SmallTest | Leve
     ASSERT_EQ(infoPtr, nullptr);
     layers.emplace_back(infoPtr);
     composerAdapter_->CommitLayers(layers);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -176,6 +179,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest003, Function | SmallTest | Leve
     layers.emplace_back(infoPtr1);
     layers.emplace_back(infoPtr2);
     composerAdapter_->CommitLayers(layers);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -203,6 +207,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest001, Function | SmallTest | Leve
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
     auto infoPtr2 = composerAdapter_->CreateLayer(*surfaceNode2);
     auto infoPtr3 = composerAdapter_->CreateLayer(*surfaceNode3);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -233,6 +238,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest002, Function | SmallTest | Leve
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
     auto infoPtr2 = composerAdapter_->CreateLayer(*surfaceNode2);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -255,6 +261,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest003, Function | SmallTest | Leve
         ScreenRotation::ROTATION_90);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -277,6 +284,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest004, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -299,6 +307,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest005, Function | SmallTest | Leve
         ScreenRotation::ROTATION_270);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -324,6 +333,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest006, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -352,6 +362,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest007, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -382,6 +393,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest008, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -418,6 +430,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     layer = composerAdapter_->CreateLayer(*surfaceNode1);
     EXPECT_NE(layer, nullptr);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -488,6 +501,7 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp001, Function | SmallTest |
     layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -509,6 +523,7 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp002, Function | SmallTest |
     layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -549,5 +564,6 @@ HWTEST_F(RSComposerAdapterTest, OnPrepareComplete, Function | SmallTest | Level2
     auto producer = surfaceConsumer->GetProducer();
     sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
     composerAdapter_->OnPrepareComplete(sProducer, para, nullptr);
+    RSTestUtil::UnregisterConsumerListener();
 }
 } // namespace OHOS::Rosen

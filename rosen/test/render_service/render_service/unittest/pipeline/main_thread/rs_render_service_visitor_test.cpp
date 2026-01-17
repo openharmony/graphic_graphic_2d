@@ -709,6 +709,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessChildren002, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode001, TestSize.Level1)
 {
+    RSUniRenderThread::Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     auto rsContext = std::make_shared<RSContext>();
