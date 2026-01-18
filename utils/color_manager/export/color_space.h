@@ -146,6 +146,11 @@ inline bool FloatEqual(const float src, const float dst)
     return fabs(src - dst) < COLOR_EPSILON;
 }
 
+inline bool FloatNearlyEqualZero(const float num)
+{
+    return fabs(num) < FLT_EPSILON;
+}
+
 inline std::array<float, DIMES_2> ComputeWhitePoint(Matrix3x3 &toXYZ)
 {
     Vector3 w = toXYZ * Vector3 {1.0f};
@@ -231,6 +236,33 @@ private:
     std::array<float, DIMES_2> whitePoint;
     TransferFunc transferFunc = {};
 };
+
+const ColorSpacePrimaries CSP_ADOBE_RGB = {0.640f, 0.330f, 0.210f, 0.710f, 0.150f, 0.060f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_P3_DCI = {0.680f, 0.320f, 0.265f, 0.690f, 0.150f, 0.060f, 0.314f, 0.351f};
+const ColorSpacePrimaries CSP_P3_D65 = {0.680f, 0.320f, 0.265f, 0.690f, 0.150f, 0.060f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_BT709 = {0.640f, 0.330f, 0.300f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_BT601_P = {0.640f, 0.330f, 0.290f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_BT601_N = {0.630f, 0.340f, 0.310f, 0.595f, 0.155f, 0.070f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_BT2020 = {0.708f, 0.292f, 0.170f, 0.797f, 0.131f, 0.046f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_NTSC_1953 = {0.670f, 0.330f, 0.210f, 0.710f, 0.140f, 0.080f, 0.310f, 0.316f};
+const ColorSpacePrimaries CSP_PRO_PHOTO_RGB = {0.7347f, 0.2653f, 0.1596f, 0.8404f, 0.0366f, 0.0001f, 0.34567f,
+    0.35850f};
+
+// use unique g value to represent HLG and PG transfer function
+constexpr float HLG_G = -3.0f;
+constexpr float PQ_G = -2.0f;
+constexpr float LOG_G = -100.0f;
+
+const TransferFunc TF_ADOBE_RGB = {2.2f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+const TransferFunc TF_GAMMA_2_6 = {2.6f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+const TransferFunc TF_SRGB = {2.4f, 1 / 1.055f, 0.055f / 1.055f, 1 / 12.92f, 0.04045f, 0.0f, 0.0f};
+const TransferFunc TF_BT709 = {1 / 0.45f, 1 / 1.099f, 0.099f / 1.099f, 1 / 4.5f, 0.081f, 0.0f, 0.0f};
+const TransferFunc TF_HLG = {HLG_G, 2.0f, 2.0f, 1 / 0.17883277f, 0.28466892f, 0.55991073f, 0.0f};
+const TransferFunc TF_PQ = {PQ_G, -107 / 128.0f, 1.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f};
+const TransferFunc TF_LINEAR = {1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+const TransferFunc TF_PRO_PHOTO_RGB = {1.8f, 1.0f, 0.0f, 1 / 16.0f, 0.031248f, 0.0f, 0.0f};
+const TransferFunc TF_LOG = {LOG_G, 5.555556f, 0.050943f, 0.130233f, 0.452962f, 6.842619f, 0.092864f};
+
 } // namespace ColorSpace
 } // namespace OHOS
 #endif  // COLORSPACE
