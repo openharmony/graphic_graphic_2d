@@ -164,9 +164,8 @@ void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& o
     RS_LOGI("%{public}s SetSystemQoS qosRes = %{public}d", __func__, qosRes);
 #endif
 #ifdef RS_ENABLE_GPU
-    // todo
     // report composer tid to sched deadline
-    RsFrameReport::GetInstance().ReportComposerInfo(screenId_, threadTid_);
+    RsFrameReport::ReportComposerInfo(screenId_, threadTid_);
 #endif
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
         OnPrepareComplete(surface, param, data);

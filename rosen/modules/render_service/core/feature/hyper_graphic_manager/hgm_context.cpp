@@ -376,7 +376,7 @@ void HgmContext::NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
     }
 
     if (VOTER_SCENE_GPU == eventInfo.eventName) {
-        RsFrameReport::GetInstance().ReportScbSceneInfo(eventInfo.description, eventInfo.eventStatus);
+        RsFrameReport::ReportScbSceneInfo(eventInfo.description, eventInfo.eventStatus);
         return;
     }
 

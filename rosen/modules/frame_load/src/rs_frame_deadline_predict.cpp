@@ -61,6 +61,6 @@ void RsFrameDeadlinePredict::ReportRsFrameDeadline(uint32_t rate, int64_t period
         "vsyncOffset: %" PRId64 ", reservedDrawingTime: %" PRId64 "",
         forceRefreshFlag, currentRate, vsyncOffset, drawingTime);
 
-    RsFrameReport::GetInstance().ReportFrameDeadline(drawingTime, currentRate);
+    RsFrameReport::ReportFrameDeadline(drawingTime, currentRate);
 }
 } // namespace OHOS::Rosen

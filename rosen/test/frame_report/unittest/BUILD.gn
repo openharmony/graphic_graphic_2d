@@ -19,14 +19,15 @@ ohos_unittest("graphic_2d_frame_report_test") {
   include_dirs = [ "$graphic_2d_root/rosen/modules/frame_report/include" ]
   sources = [ "rs_frame_report_test.cpp" ]
 
+  deps = [ "$graphic_2d_root/utils/test_header:test_header" ]
+  external_deps = [ "hilog:libhilog" ]
+
   if (current_os == "ohos") {
     sources += [ "$graphic_2d_root/rosen/modules/frame_report/src/rs_frame_report.cpp" ]
+    external_deps += [ "frame_aware_sched:frame_ui_intf"]
   } else if (!is_arkui_x) {
     sources += [ "$graphic_2d_root/rosen/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
   }
-
-  deps = [ "$graphic_2d_root/utils/test_header:test_header" ]
-  external_deps = [ "hilog:libhilog" ]
 
   cflags = [
     "-Wall",

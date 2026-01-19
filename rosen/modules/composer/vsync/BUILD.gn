@@ -94,7 +94,7 @@ ohos_shared_library("libvsync") {
     "$graphic_2d_root/utils/log",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
-    "$graphic_2d_root/utils/rs_frame_report_ext/include",
+    "$graphic_2d_root/rosen/modules/frame_report/include",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
 
@@ -105,7 +105,6 @@ ohos_shared_library("libvsync") {
   public_configs = [ ":vsync_public_config" ]
 
   deps = [
-    "$graphic_2d_root/utils:rs_frame_report_ext",
     "$graphic_2d_root/utils:sandbox_utils",
     "$graphic_2d_root/utils:scoped_bytrace",
     "$graphic_2d_root/utils:socketpair",
@@ -138,6 +137,13 @@ ohos_shared_library("libvsync") {
     sources += [
       "$graphic_2d_root/rosen/modules/ressched/src/ressched_event_listener.cpp",
     ]
+  }
+
+  if (is_ohos) {
+    sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
+    external_deps += [ "frame_aware_sched:frame_ui_intf"]
+  } else {
+    sources += [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
   }
 
   part_name = "graphic_2d"

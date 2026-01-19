@@ -601,7 +601,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         OHOS::ConcurrentTask::SystemQoSLevel::SYSTEM_QOS_EIGHT);
     RS_LOGI("RSMainThread SetSystemQoS qosRes = %{public}d", qosRes);
 #endif
-    RsFrameReport::GetInstance().Init();
+    RsFrameReport::InitDeadline();
     RSImageDetailEnhancerThread::Instance().RegisterCallback(
         std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
     RSColorPickerThread::Instance().RegisterNodeDirtyCallback(std::bind(&RSMainThread::MarkNodeDirty, this,
@@ -2320,7 +2320,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
             renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
-            RsFrameReport::GetInstance().DirectRenderEnd();
+            RsFrameReport::DirectRenderEnd();
             return;
         }
     }
@@ -2393,7 +2393,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         // set params used in render thread
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
     } else {
-        RsFrameReport::GetInstance().DirectRenderEnd();
+        RsFrameReport::DirectRenderEnd();
     }
 
     PrepareUiCaptureTasks(uniVisitor);
@@ -2717,7 +2717,7 @@ void RSMainThread::OnUniRenderDraw()
 {
 #ifndef SCREENLESS_DEVICE
     if (!isUniRender_) {
-        RsFrameReport::GetInstance().RenderEnd();
+        RsFrameReport::RenderEnd();
         return;
     }
 #ifdef RS_ENABLE_GPU
@@ -2729,9 +2729,9 @@ void RSMainThread::OnUniRenderDraw()
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
-        RsFrameReport::GetInstance().CheckPostAndWaitPoint();
+        RsFrameReport::CheckPostAndWaitPoint();
         drawFrame_.PostAndWait();
-        RsFrameReport::GetInstance().RenderEnd();
+        RsFrameReport::RenderEnd();
         return;
     }
     // To remove ClearMemoryTask for first frame of doDirectComposition or if needed
@@ -2744,7 +2744,7 @@ void RSMainThread::OnUniRenderDraw()
     }
 
     drawFrame_.ClearDrawableResource();
-    RsFrameReport::GetInstance().RenderEnd();
+    RsFrameReport::RenderEnd();
 #endif
 #endif
 }
@@ -3764,7 +3764,7 @@ bool RSMainThread::SurfaceOcclusionCallBackIfOnTreeStateChanged()
 void RSMainThread::SendCommands()
 {
     RS_OPTIONAL_TRACE_FUNC();
-    RsFrameReport::GetInstance().SendCommandsStart();
+    RsFrameReport::SendCommandsStart();
     if (!context_->needSyncFinishAnimationList_.empty()) {
         for (const auto& [nodeId, animationId, token] : context_->needSyncFinishAnimationList_) {
             RS_LOGI("SendCommands sync finish animation node is %{public}" PRIu64 ","
@@ -4578,7 +4578,7 @@ void RSMainThread::RenderFrameStart(uint64_t timestamp)
     composerClientManager_->RenderFrameStart(timestamp);
     int skipFirstFrame = (drawingRequestNextVsyncNum_.load() == SKIP_FIRST_FRAME_DRAWING_NUM) &&
         forceUpdateUniRenderFlag_;
-    RsFrameReport::GetInstance().RenderStart(timestamp, skipFirstFrame);
+    RsFrameReport::RenderStart(timestamp, skipFirstFrame);
     RenderFrameTrace::GetInstance().RenderStartFrameTrace(RS_INTERVAL_NAME);
 }
 

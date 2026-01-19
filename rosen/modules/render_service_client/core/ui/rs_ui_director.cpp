@@ -104,7 +104,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance, std
             }
         }
 
-        RsFrameReport::GetInstance().Init();
+        RsFrameReport::InitDeadline();
         if (!cacheDir_.empty()) {
             RSRenderThread::Instance().SetCacheDir(cacheDir_);
         }

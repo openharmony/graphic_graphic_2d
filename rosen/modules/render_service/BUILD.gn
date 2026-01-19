@@ -561,6 +561,7 @@ ohos_shared_library("librender_service") {
     "window_manager:libwsutils",
     "qos_manager:concurrent_task_client",
   ]
+
   if (graphic_2d_feature_rs_enable_uni_render) {
     external_deps += [ "ability_runtime:ability_manager" ]
   }
@@ -577,6 +578,7 @@ ohos_shared_library("librender_service") {
 
   if (rosen_is_ohos) {
     external_deps += [
+      "frame_aware_sched:frame_ui_intf",
       "image_framework:image_native",
       "lz4:liblz4_shared",
     ]

@@ -34,12 +34,14 @@ void RSComposerClientManager::AddComposerClient(ScreenId screenId,
     }
     std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
     composerClientMap_[screenId] = rsComposerClient;
+    RsFrameReport::ReportAddScreenId(screenId);
 }
 
 void RSComposerClientManager::DeleteComposerClient(ScreenId screenId)
 {
     std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
     composerClientMap_.erase(screenId);
+    RsFrameReport::ReportDelScreenId(screenId);
 }
 
 std::shared_ptr<RSComposerClient> RSComposerClientManager::GetComposerClient(ScreenId screenId)
@@ -77,7 +79,7 @@ void RSComposerClientManager::RenderFrameStart(uint64_t timestamp)
         for (auto it : clientMap) {
             minBufferCount = std::min(minBufferCount, it.second->GetUnExecuteTaskNum());
         }
-        RsFrameReport::GetInstance().ReportBufferCount(minBufferCount);
+        RsFrameReport::ReportBufferCount(minBufferCount);
     }
 }
 

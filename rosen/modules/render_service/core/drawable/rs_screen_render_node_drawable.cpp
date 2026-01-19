@@ -977,7 +977,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     RS_TRACE_BEGIN("RSScreenRenderNodeDrawable Flush");
-    RsFrameReport::GetInstance().CheckBeginFlushPoint();
+    RsFrameReport::CheckBeginFlushPoint();
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
 
     renderFrame->Flush();
