@@ -80,7 +80,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceTest, TestSize.Level1)
     auto node = RSCanvasDrawingNode::Create(isRenderServiceNode);
     bool ret = node->ResetSurface(width, height);
     RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
-    ASSERT_EQ(ret, true);
+    EXPECT_EQ(ret, true);
 #endif
     RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
     bool res = canvasNode->ResetSurface(width, height);

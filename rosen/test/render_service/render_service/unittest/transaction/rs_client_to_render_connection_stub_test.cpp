@@ -960,14 +960,14 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterCanvasCallbackTest, TestSiz
     res = toRenderConnectionStub_->OnRemoteRequest(code, data5, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
 
-    NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled(false);
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(false);
     MessageParcel data6;
     data6.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data6.WriteBool(true);
     callback = new RSCanvasSurfaceBufferCallbackStubMock();
     data6.WriteRemoteObject(callback->AsObject());
     res = toRenderConnectionStub_->OnRemoteRequest(code, data6, reply, option);
-    NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled(true);
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
     ASSERT_EQ(res, ERR_NONE);
 }
 
@@ -1038,7 +1038,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
  */
 HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest002, TestSize.Level1)
 {
-    NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled(false);
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(false);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER);
     MessageParcel data;
     MessageParcel reply;
@@ -1051,7 +1051,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
     auto buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(1, 100, 100);
     buffer->WriteToMessageParcel(data);
     auto ret = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
-    NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled(true);
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
     ASSERT_EQ(ret, 0);
 
     auto newPid = getpid();
