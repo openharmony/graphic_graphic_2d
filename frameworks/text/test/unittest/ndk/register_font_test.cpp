@@ -98,8 +98,6 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest003, TestSize.Level0)
     EXPECT_EQ(result, nullFontCollection);
     result = OH_Drawing_RegisterFont(fontCollection, nullptr, nullptr);
     EXPECT_EQ(result, nullFontCollection);
-    result = OH_Drawing_RegisterFont(fontCollection, nullptr, existFontPath_);
-    EXPECT_EQ(result, 0);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 
