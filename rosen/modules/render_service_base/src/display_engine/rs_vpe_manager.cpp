@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include <string>
 
 #include "common/rs_common_def.h"
@@ -34,6 +35,7 @@ void VpeVideoCallbackImpl::OnOutputBufferAvailable(uint32_t index, VpeBufferFlag
     }
     video->ReleaseOutputBuffer(index, true);
 }
+
 namespace OHOS {
 namespace Rosen {
 RSVpeManager& RSVpeManager::GetInstance()
@@ -53,11 +55,11 @@ void RSVpeManager::ReleaseVpeVideo(uint64_t nodeId)
     if (vpeVideoImp != nullptr) {
         int32_t ret = vpeVideoImp->Stop();
         if (ret != 0) {
-            RS_LOGE("vpeVideo stop failed nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
+            RS_LOGE("vpeVideo stop failed nodeId:%{public}lu, ret:%{public}d", nodeId, ret);
         }
         ret = vpeVideoImp->Release();
         if (ret != 0) {
-            RS_LOGE("vpeVideo release failed nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
+            RS_LOGE("vpeVideo release failed nodeId:%{public}lu, ret:%{public}d", nodeId, ret);
         }
     }
     allVpeVideo_.erase(nodeId);
@@ -133,24 +135,27 @@ sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
         allVpeVideo_[config.id] = vpeVideo;
         mapSize = allVpeVideo_.size();
     }
-    RS_LOGD("type:%{public}u vepSF:%{public}" PRIu64 " RSSF:%{public}" PRIu64
-        " nodeId:%{public}" PRIu64 " mapSize:%{public}u",
+    RS_LOGD("type:%{public}u vepSF:%{public}lu RSSF:%{public}lu nodeId:%{public}lu mapSize:%{public}u",
         type, vpeSurface->GetUniqueId(), RSSurface->GetUniqueId(), config.id, mapSize);
     return vpeSurface;
 }
 
 sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, const RSSurfaceRenderNodeConfig& config)
 {
-    RS_TRACE_NAME_FMT("RSVpeManager::Creat name %{public}s nodeId:%{public}" PRIu64, config.name.c_str(), config.id);
+    RS_TRACE_NAME_FMT("RSVpeManager::Create name: %{public}s nodeId:%{public}" PRIu64, config.name.c_str(), config.id);
+
+    Media::Format parameter{};
+    if (surface == nullptr) {
+        return nullptr;
+    }
 
     if (config.nodeType != OHOS::Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE || config.name == "RosenWeb") {
         return surface;
     }
+
     if (!VpeVideo::IsSupported()) {
         return surface;
     }
-
-    Media::Format parameter{};
     sptr<Surface> vpeSurface = surface;
     std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER };
     for (auto& type : supportTypes) {
