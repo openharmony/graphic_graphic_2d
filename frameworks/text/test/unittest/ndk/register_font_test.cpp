@@ -46,6 +46,8 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest001, TestSize.Level0)
     EXPECT_EQ(errorCode, 1);
     errorCode = OH_Drawing_RegisterFont(fontCollection, fontFamily_, existFontPath_);
     EXPECT_EQ(errorCode, 0);
+    errorCode = OH_Drawing_RegisterFont(fontCollection, nullptr, existFontPath_);
+    EXPECT_EQ(errorCode, 0);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 
@@ -67,6 +69,8 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest002, TestSize.Level0)
     fileStream.close();
     // 测试有效的数据
     uint32_t result = OH_Drawing_RegisterFontBuffer(fontCollection, fontFamily_, buffer.get(), bufferSize);
+    EXPECT_EQ(result, 0);
+    result = OH_Drawing_RegisterFontBuffer(fontCollection, nullptr, buffer.get(), bufferSize);
     EXPECT_EQ(result, 0);
     uint8_t invalidBuffer[] = { 0, 0, 0, 0, 0 };
     // 测试无效的数据
@@ -94,6 +98,8 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest003, TestSize.Level0)
     EXPECT_EQ(result, nullFontCollection);
     result = OH_Drawing_RegisterFont(fontCollection, nullptr, nullptr);
     EXPECT_EQ(result, nullFontCollection);
+    result = OH_Drawing_RegisterFont(fontCollection, nullptr, existFontPath_);
+    EXPECT_EQ(result, 0);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 
