@@ -304,7 +304,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
         new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
     OHOS::Rosen::g_toRenderConnectionStub = toRenderConnection;
-    toRenderConnection->clearDone_ = true;
+    toRenderConnection->cleanDone_ = true;
 
     // reset recevier, otherwise maybe crash
     OHOS::Rosen::renderService_->rsVSyncDistributor_->connections_.clear();
