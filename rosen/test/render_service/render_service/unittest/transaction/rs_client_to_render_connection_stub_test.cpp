@@ -580,6 +580,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetScreenHDRStatus003, TestSize.Lev
     ASSERT_EQ(res, ERR_INVALID_DATA);
 }
 
+
+
 /**
  * @tc.name: TakeSurfaceCaptureWithAllWindowsTest001
  * @tc.desc: Test TakeSurfaceCaptureWithAllWindows for success
