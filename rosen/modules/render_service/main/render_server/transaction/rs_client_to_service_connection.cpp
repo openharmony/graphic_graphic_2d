@@ -1876,7 +1876,7 @@ ErrCode RSClientToServiceConnection::SetOptimizeCanvasDirtyPidList(const std::ve
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
-    Errcode ret = ERR_OK;
+    ErrCode ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
         ErrCode tmpRet = conn->SetOptimizeCanvasDirtyPidList(pidList);
         ret = (ret != ERR_OK) ? ret : tmpRet;
