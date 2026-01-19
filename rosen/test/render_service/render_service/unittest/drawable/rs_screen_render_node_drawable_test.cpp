@@ -825,6 +825,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Lev
     ASSERT_NE(mirroredNode_, nullptr);
 
     auto& rtThread = RSUniRenderThread::Instance();
+    rtThread.composerClientManager_ = std::make_shared<RSComposerClientManager>();
     if (!rtThread.GetRSRenderThreadParams()) {
         rtThread.Sync(std::make_unique<RSRenderThreadParams>());
     }
@@ -833,8 +834,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Lev
         mirroredNode_->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
     }
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     Drawing::Matrix matrix;

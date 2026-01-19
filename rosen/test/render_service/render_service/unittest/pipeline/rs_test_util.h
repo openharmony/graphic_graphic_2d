@@ -31,6 +31,7 @@ public:
     static std::shared_ptr<RSSurfaceRenderNode> CreateSurfaceNodeWithBuffer();
     static std::shared_ptr<RSRcdSurfaceRenderNode> CreateRcdNodeWithBuffer();
     static void InitRenderNodeGC();
+    static void UnregisterConsumerListener();
 private:
     static inline BufferRequestConfig requestConfig = {
         .width = 0x100,

@@ -56,6 +56,7 @@ HWTEST_F(RSComposerToRenderConnectionTest, Connection_ReleaseLayerBuffers_Normal
     RSComposerToRenderConnection conn;
     uint64_t screenId = 102u;
     auto client = RSComposerClient::Create(nullptr, nullptr, nullptr);
+    RSUniRenderThread::Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
     RSUniRenderThread::Instance().GetComposerClientManager()->AddComposerClient(screenId, client);
 
     ReleaseLayerBuffersInfo info;

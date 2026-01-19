@@ -756,6 +756,7 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList001, TestSize.Level1)
     CaptureParam params;
     params.isMirror_ = true;
     std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
     AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
     RSUniRenderThread::SetCaptureParam(params);

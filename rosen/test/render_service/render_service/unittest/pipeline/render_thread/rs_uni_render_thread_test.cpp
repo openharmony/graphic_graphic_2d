@@ -990,6 +990,7 @@ HWTEST_F(RSUniRenderThreadTest, CollectProcessNodeNumTest, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, NotifyScreenNodeBufferReleasedTest, TestSize.Level1)
 {
     auto& instance = RSUniRenderThread::Instance();
+    instance.composerClientManager_ = std::make_shared<RSComposerClientManager>();
     uint32_t screenId = 0;
     instance.screenCond_[screenId] = std::make_shared<RSUniRenderThread::ScreenNodeBufferCond>();
     instance.NotifyScreenNodeBufferReleased(screenId);
