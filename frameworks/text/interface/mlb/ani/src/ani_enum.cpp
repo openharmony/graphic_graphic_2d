@@ -93,6 +93,8 @@ const std::vector<uint32_t> AniTextEnum::ellipsisModal = {
     static_cast<uint32_t>(EllipsisModal::HEAD),
     static_cast<uint32_t>(EllipsisModal::MIDDLE),
     static_cast<uint32_t>(EllipsisModal::TAIL),
+    static_cast<uint32_t>(EllipsisModal::MULTILINE_HEAD),
+    static_cast<uint32_t>(EllipsisModal::MULTILINE_MIDDLE),
 };
 
 const std::vector<uint32_t> AniTextEnum::placeHolderAlignment = {

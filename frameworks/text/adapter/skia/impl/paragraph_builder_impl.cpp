@@ -173,9 +173,6 @@ void ParagraphBuilderImpl::ParagraphStyleToSkParagraphStyle(const ParagraphStyle
     skStyle.setTextAlign(static_cast<skt::TextAlign>(txt.textAlign));
     skStyle.setTextDirection(static_cast<skt::TextDirection>(txt.textDirection));
     skStyle.setEllipsisMod(static_cast<skt::EllipsisModal>(txt.ellipsisModal));
-    if (txt.ellipsisModal != EllipsisModal::TAIL) {
-        skStyle.setEllipsis(txt.ellipsis);
-    }
     skStyle.setMaxLines(txt.maxLines);
     skStyle.setEllipsis(txt.ellipsis);
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));

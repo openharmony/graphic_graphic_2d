@@ -508,6 +508,8 @@ namespace text {
     START,
     MIDDLE,
     END,
+    MULTILINE_START,
+    MULTILINE_MIDDLE,
   }
 
   export interface Decoration {
