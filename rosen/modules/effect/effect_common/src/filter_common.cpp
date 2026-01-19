@@ -174,5 +174,11 @@ std::shared_ptr<OHOS::Media::PixelMap> FilterCommon::GetEffectPixelMap(bool forc
     return ctx->dstPixelMap_;
 }
 
+void FilterCommon::Clear()
+{
+    effectFilters_.clear();
+    srcPixelMap_ = nullptr;
+    dstPixelMap_ = nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS
