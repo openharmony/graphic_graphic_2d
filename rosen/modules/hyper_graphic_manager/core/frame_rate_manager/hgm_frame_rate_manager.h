@@ -186,6 +186,7 @@ public:
     void UpdateSoftVSync(bool followRs);
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
+    const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
 private:
     friend class HgmUserDefineImpl;

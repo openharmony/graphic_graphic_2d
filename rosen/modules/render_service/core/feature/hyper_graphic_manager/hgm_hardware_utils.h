@@ -60,6 +60,7 @@ public:
 
 private:
     void UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet);
+    void ReportRetryOverLimit(uint64_t vsyncId, uint32_t rate);
 
     HgmCore& hgmCore_ = HgmCore::Instance();
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
