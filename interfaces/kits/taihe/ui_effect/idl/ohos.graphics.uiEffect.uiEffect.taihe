@@ -106,6 +106,7 @@ interface Filter {
     @optional bloom: Optional<bool>): Filter;
   ColorGradient(colors: Array<Color>, positions: Array<@sts_type("common2D.Point") Opaque>, strengths: Array<f64>,
     @optional alphaMask: Optional<Mask>): Filter;
+  getNativePtr(): i64;
 }
 
 @class
@@ -145,6 +146,7 @@ interface VisualEffect {
     lightIntensity: f64, borderWidth: f64): VisualEffect;
   LiquidMaterial(param : LiquidMaterialEffectParam, useEffectMask: Mask, @optional distortMask: Optional<Mask>,
     @optional brightnessParam: Optional<BrightnessParam>): VisualEffect;
+  getNativePtr(): i64;
 }
 
 function CreateBrightnessBlender(param: BrightnessBlenderParam): BrightnessBlender;

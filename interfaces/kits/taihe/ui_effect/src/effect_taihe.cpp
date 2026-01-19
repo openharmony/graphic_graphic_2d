@@ -199,6 +199,11 @@ bool VisualEffectImpl::IsVisualEffectValid() const
     return nativeVisualEffect_ != nullptr;
 }
 
+int64_t VisualEffectImpl::getNativePtr()
+{
+    return reinterpret_cast<int64_t>(nativeVisualEffect_.get());
+}
+
 VisualEffect CreateEffect()
 {
     return make_holder<VisualEffectImpl, VisualEffect>();
