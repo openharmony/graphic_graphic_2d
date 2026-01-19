@@ -249,7 +249,7 @@ bool ImageFilterFuzzTest005(const uint8_t* data, size_t size)
     std::shared_ptr<ImageFilter> imageFilterOne = ImageFilter::CreateShaderImageFilter(shaderEffect, rect);
 
     std::shared_ptr<Image> image = std::make_shared<Image>();
-    Rect rect2 { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    Rect rect2 {GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>()};
     SamplingOptions options;
     auto imageFilter = ImageFilter::CreateImageImageFilter(image, rect, rect2, options);
     auto imageFilter2 = ImageFilter::CreateImageImageFilter(nullptr, rect, rect2, options);
@@ -272,7 +272,7 @@ void ImageFilterFuzzTest006(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return;
     }
-
+    // initialize
     Rect srcRect = { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     Rect dstRect = { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     Bitmap bitmap;

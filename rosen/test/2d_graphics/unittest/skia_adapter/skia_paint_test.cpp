@@ -34,6 +34,8 @@
 using namespace testing;
 using namespace testing::ext;
 
+#define TDD_PAINT_RADIUS 10
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -88,7 +90,7 @@ HWTEST_F(SkiaPaintTest, BrushToSkPaint002, TestSize.Level1)
 {
     Brush brush;
     brush.SetAntiAlias(true);
-    Color4f color;
+    Color4f color{0, 0, 0, 1};
     auto space = std::make_shared<ColorSpace>();
     brush.SetColor(color, space);
     brush.SetAlpha(100);
@@ -142,14 +144,14 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint003, TestSize.Level1)
 {
     Pen pen;
     pen.SetAntiAlias(true);
-    Color4f color;
+    Color4f color{0, 0, 0, 1};
     auto space = std::make_shared<ColorSpace>();
     pen.SetColor(color, space);
     pen.SetBlendMode(BlendMode::CLEAR);
     pen.SetCapStyle(Pen::CapStyle::ROUND_CAP);
     pen.SetJoinStyle(Pen::JoinStyle::BEVEL_JOIN);
     pen.SetShaderEffect(ShaderEffect::CreateColorShader(0xFF000000));
-    pen.SetPathEffect(PathEffect::CreateCornerPathEffect(10));
+    pen.SetPathEffect(PathEffect::CreateCornerPathEffect(TDD_PAINT_RADIUS));
     SkPaint skPaint;
     SkiaPaint::PenToSkPaint(pen, skPaint);
     EXPECT_TRUE(skPaint.isAntiAlias());
@@ -166,7 +168,7 @@ HWTEST_F(SkiaPaintTest, PaintToSkPaint001, TestSize.Level1)
     Paint paint;
     paint.SetAntiAlias(true);
     auto space = std::make_shared<ColorSpace>();
-    Color4f color;
+    Color4f color{0, 0, 0, 1};
     paint.SetColor(color, space);
     paint.SetBlendMode(BlendMode::CLEAR);
     SkPaint skPaint;
@@ -186,7 +188,7 @@ HWTEST_F(SkiaPaintTest, ApplyStrokeParam001, TestSize.Level1)
     paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     paint.SetCapStyle(Pen::CapStyle::ROUND_CAP);
     paint.SetJoinStyle(Pen::JoinStyle::BEVEL_JOIN);
-    paint.SetPathEffect(PathEffect::CreateCornerPathEffect(10));
+    paint.SetPathEffect(PathEffect::CreateCornerPathEffect(TDD_PAINT_RADIUS));
     SkiaPaint skiaPaint;
     SkPaint skPaint;
     skiaPaint.ApplyStrokeParam(paint, skPaint);
@@ -195,7 +197,7 @@ HWTEST_F(SkiaPaintTest, ApplyStrokeParam001, TestSize.Level1)
     paint2.SetStyle(Paint::PaintStyle::PAINT_FILL);
     paint2.SetCapStyle(Pen::CapStyle::SQUARE_CAP);
     paint2.SetJoinStyle(Pen::JoinStyle::ROUND_JOIN);
-    paint2.SetPathEffect(PathEffect::CreateCornerPathEffect(10));
+    paint2.SetPathEffect(PathEffect::CreateCornerPathEffect(TDD_PAINT_RADIUS));
     skiaPaint.ApplyStrokeParam(paint2, skPaint);
     EXPECT_TRUE(skPaint.getStrokeCap() == SkPaint::Cap::kSquare_Cap);
 }
