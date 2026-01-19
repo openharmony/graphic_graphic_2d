@@ -119,9 +119,10 @@ int Initialize()
     OHOS::Rosen::renderService_->rsVSyncDistributor_->connMap_.clear();
     OHOS::Rosen::renderService_->rsVSyncDistributor_->connectionsMap_.clear();
     OHOS::Rosen::renderService_->rsVSyncDistributor_ = nullptr;
-
+    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
     OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
     OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
 
     g_toServiceConnectionStub = g_toServiceConnection;
 #ifdef RS_ENABLE_VK

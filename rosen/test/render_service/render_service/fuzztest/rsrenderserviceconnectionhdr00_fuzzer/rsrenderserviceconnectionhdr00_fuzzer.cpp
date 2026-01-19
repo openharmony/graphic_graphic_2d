@@ -351,18 +351,21 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::g_toServiceConnection = new OHOS::Rosen::RSClientToServiceConnection(
         OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
         screenManagerAgent_, token_->AsObject(), appVSyncDistributor_);
+
     OHOS::Rosen::g_toRenderConnection = new OHOS::Rosen::RSClientToRenderConnection(
         OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
+    OHOS::Rosen::g_toRenderConnection->clearDone_ = true;
 
     // reset recevier, otherwise maybe crash
     OHOS::Rosen::renderService_->rsVSyncDistributor_->connections_.clear();
     OHOS::Rosen::renderService_->rsVSyncDistributor_->connMap_.clear();
     OHOS::Rosen::renderService_->rsVSyncDistributor_->connectionsMap_.clear();
     OHOS::Rosen::renderService_->rsVSyncDistributor_ = nullptr;
+    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
 
     OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
     OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
-
+    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
 
     OHOS::Rosen::g_toServiceConnectionStub = OHOS::Rosen::g_toServiceConnection;
     OHOS::Rosen::g_toRenderConnectionStub = OHOS::Rosen::g_toRenderConnection;
