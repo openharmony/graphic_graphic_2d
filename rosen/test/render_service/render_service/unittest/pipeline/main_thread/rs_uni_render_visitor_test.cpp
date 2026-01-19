@@ -5504,11 +5504,11 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode003, TestSize.Level2
 }
 
 /**
-* @tc.name: UpdateHwcNodeInfoForAppNode007
-* @tc.desc: Test UpdateHwcNodeInfoForAppNode with multi-params
-* @tc.type: FUNC
-* @tc.require: issueIASE3Z
-*/
+ * @tc.name: UpdateHwcNodeInfoForAppNode007
+ * @tc.desc: Test UpdateHwcNodeInfoForAppNode with multi-params
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
 HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode007, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
