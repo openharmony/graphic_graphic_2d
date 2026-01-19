@@ -29,6 +29,8 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "parameters.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_service.h"
@@ -51,6 +53,20 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+};
+
+class RSIOcclusionChangeCallbackMock : public RSOcclusionChangeCallbackStub {
+public:
+    RSIOcclusionChangeCallbackMock() = default;
+    virtual ~RSIOcclusionChangeCallbackMock() = default;
+    void OnOcclusionVisibleChanged(std::shared_ptr<RSOcclusionData> occlusionData) override {};
+};
+
+class RSSurfaceOcclusionChangeCallbackStubMock : public RSSurfaceOcclusionChangeCallbackStub {
+public:
+    RSSurfaceOcclusionChangeCallbackStubMock() = default;
+    virtual ~RSSurfaceOcclusionChangeCallbackStubMock() = default;
+    void OnSurfaceOcclusionVisibleChanged(float visibleAreaRatio) override {};
 };
 
 void RSServiceToRenderConnectionStubTest::SetUpTestCase()
@@ -134,5 +150,248 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStu
         RSIServiceToRenderConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
     g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_TRUE(g_connectionStub);
+}
+
+/**
+ * @tc.name: SetGpuCrcDirtyEnabledPidList001
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is invalid
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    data.WriteInt32(-1);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SetGpuCrcDirtyEnabledPidList002
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is valid
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    std::vector<int32_t> pidList;
+    data.WriteInt32Vector(pidList);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+ 
+/**
+ * @tc.name: RegisterOcclusionChangeCallback001
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when ReadInt32 fail
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterOcclusionChangeCallback001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: RegisterOcclusionChangeCallback002
+ * @tc.desc: Test RegisterOcclusionChangeCallback when ReadRemoteObject fail
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterOcclusionChangeCallback002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    data.WriteInt32(0);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NULL_OBJECT);
+}
+ 
+/**
+ * @tc.name: RegisterOcclusionChangeCallback003
+ * @tc.desc: Test RegisterOcclusionChangeCallback when data is valid
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterOcclusionChangeCallback003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    data.WriteInt32(0);
+    sptr<RSIOcclusionChangeCallbackMock> callback =
+        new RSIOcclusionChangeCallbackMock();
+    data.WriteRemoteObject(callback->AsObject());
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+ 
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallback001
+ * @tc.desc: Test RegisterOcclusionChangeCallback when ReadUint64 fail
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallback001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallback002
+ * @tc.desc: Test RegisterOcclusionChangeCallback when ReadInt32 fail
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallback002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    data.WriteUint64(0);
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallback003
+ * @tc.desc: Test RegisterOcclusionChangeCallback when ReadRemoteObject fail
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallback003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    data.WriteUint64(0);
+    data.WriteInt32(0);
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NULL_OBJECT);
+}
+ 
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallback004
+ * @tc.desc: Test RegisterOcclusionChangeCallback when data is valid
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallback004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    data.WriteUint64(0);
+    data.WriteInt32(0);
+    sptr<RSSurfaceOcclusionChangeCallbackStubMock> callback = new RSSurfaceOcclusionChangeCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+ 
+/**
+ * @tc.name: UnRegisterSurfaceOcclusionChangeCallback001
+ * @tc.desc: Test UnRegisterSurfaceOcclusionChangeCallback when ReadUint64 fail
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSurfaceOcclusionChangeCallback001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: UnRegisterSurfaceOcclusionChangeCallback002
+ * @tc.desc: Test UnRegisterSurfaceOcclusionChangeCallback when data is valid
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSurfaceOcclusionChangeCallback002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    data.WriteUint64(0);
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
 }
 } // namespace OHOS::Rosen
