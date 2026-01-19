@@ -26,7 +26,7 @@ import hilog from '@ohos.hilog';
 const TEXT_LOG_DOMAIN = 0xD001408;
 const TEXT_LOG_TAG = "Text";
 
-namespace text {
+export default namespace text {
   loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text");
   const ERROR_INVALID_PARAM = 401;
 
