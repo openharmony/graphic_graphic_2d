@@ -2944,7 +2944,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeSurfaceDirtysForDisplay001, TestSize.
     auto screenId = CreateVirtualScreen(screenManager);
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
     
-    rsDisplayRenderNode->stagingRenderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(screenId);
+    rsDisplayRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenId);
     ASSERT_NE(rsDisplayRenderNode->stagingRenderParams_, nullptr);
     rsUniRenderVisitor->curScreenNode_ = rsDisplayRenderNode;
 
@@ -3246,7 +3246,7 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc001, TestSize.Level
     auto screenId = CreateVirtualScreen(screenManager);
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
     
-    rsDisplayRenderNode->stagingRenderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(screenId);
+    rsDisplayRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenId);
     ASSERT_NE(rsDisplayRenderNode->stagingRenderParams_, nullptr);
     rsUniRenderVisitor->curScreenNode_ = rsDisplayRenderNode;
     rsUniRenderVisitor->InitScreenInfo(*rsDisplayRenderNode);
@@ -3277,7 +3277,7 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc002, TestSize.Level
     auto screenId = CreateVirtualScreen(screenManager);
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
     
-    rsDisplayRenderNode->stagingRenderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(screenId);
+    rsDisplayRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenId);
     ASSERT_NE(rsDisplayRenderNode->stagingRenderParams_, nullptr);
     rsUniRenderVisitor->curScreenNode_ = rsDisplayRenderNode;
     rsUniRenderVisitor->InitScreenInfo(*rsDisplayRenderNode);
