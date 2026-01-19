@@ -43,10 +43,12 @@ namespace {
 constexpr int EDGE_WIDTH_LIMIT = 1000;
 constexpr float DRAW_REGION_FOR_DFX_BORDER = 5.0f;
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-const bool RENDER_DMA_ENABLED =
-    RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled();
-const bool PRE_ALLOCATE_DMA_ENABLED =
-    RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled();
+const bool RENDER_DMA_ENABLED = RSUniRenderJudgement::IsUniRender() &&
+                                RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled() &&
+                                NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled();
+const bool PRE_ALLOCATE_DMA_ENABLED = RSUniRenderJudgement::IsUniRender() &&
+                                      RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled() &&
+                                      NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled();
 #endif
 } // namespace
 RSCanvasDrawingRenderNodeDrawable::Registrar RSCanvasDrawingRenderNodeDrawable::instance_;

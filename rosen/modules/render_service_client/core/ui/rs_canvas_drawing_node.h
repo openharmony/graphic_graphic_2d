@@ -195,6 +195,8 @@ private:
     std::shared_ptr<ffrt::mutex> surfaceBufferMutex_ = nullptr;
 
     uint32_t resetSurfaceIndex_ = 0;
+
+    static bool preAllocateDmaCcm_;
 #endif
 };
 } // namespace Rosen

@@ -51,6 +51,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #endif
 #include "memory/rs_memory_manager.h"
@@ -785,12 +786,17 @@ void RSClientToRenderConnection::ClearUifirstCache(NodeId id)
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSClientToRenderConnection::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
-    RSCanvasDmaBufferCache::GetInstance().RegisterCanvasCallback(remotePid_, callback);
+    if (NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()) {
+        RSCanvasDmaBufferCache::GetInstance().RegisterCanvasCallback(remotePid_, callback);
+    }
 }
 
 int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
     NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
+    if (!NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()) {
+        return FEATURE_DISABLED;
+    }
     if (mainThread_ == nullptr) {
         return INVALID_ARGUMENTS;
     }
