@@ -197,7 +197,7 @@ void RSCanvasDrawingNode::PreAllocateDMABuffer(
     } else {
         if (result == FEATURE_DISABLED) {
             preAllocateDmaCcm_ = false;
-            RSCanvasCallbackRouter::GetInstance().UnregisterNode(GetId());
+            RSCanvasCallbackRouter::GetInstance().UnregisterNode(nodeId);
         }
         // !!! Do not set canvasSurfaceBuffer_ to nullptr, it was set to nullptr in function ResetSurface,
         // if it's not nullptr at this time, then it must have been changed by callback.
