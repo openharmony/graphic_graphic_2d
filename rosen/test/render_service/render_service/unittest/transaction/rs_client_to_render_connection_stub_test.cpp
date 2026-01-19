@@ -628,78 +628,45 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     EXPECT_LE(res, ERR_PERMISSION_DENIED);
 }
 
-// /**
-//  * @tc.name: TakeSurfaceCaptureWithAllWindowsTest002
-//  * @tc.desc: Test TakeSurfaceCaptureWithAllWindows for task execution
-//  * @tc.type: FUNC
-//  * @tc.require: issueICQ74B
-//  */
-// HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest002, TestSize.Level2)
-// {
-//     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
-//     auto handler = RSMainThread::Instance()->handler_;
-//     auto runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
-//     ASSERT_NE(runner_, nullptr);
-//     RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-//     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-//     runner_->Run();
-//     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
-//     ASSERT_NE(connection, nullptr);
-//     auto mainThread = connection->mainThread_;
-//     connection->mainThread_ = nullptr;
-//     RSSurfaceCaptureConfig captureConfig;
-//     RSSurfaceCapturePermissions permissions;
-//     auto ret = connection->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
-//     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
-//     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
-//     ASSERT_NE(callback, nullptr);
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
-//     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+/**
+ * @tc.name: TakeSurfaceCaptureWithAllWindowsTest002
+ * @tc.desc: Test TakeSurfaceCaptureWithAllWindows
+ * @tc.type: FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest002, TestSize.Level2)
+{
+    sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    sptr<RSRenderPipelineAgent> agent = connection->renderPipelineAgent_;
+    connection->renderPipelineAgent_ = nullptr;
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCapturePermissions permissions;
+    auto res = connection->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, true, permissions);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+    connection->renderPipelineAgent_ = agent;
 
-//     ASSERT_NE(mainThread, nullptr);
-//     connection->mainThread_ = mainThread;
-//     permissions.screenCapturePermission = false;
-//     permissions.isSystemCalling = false;
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
-//     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
-//     permissions.screenCapturePermission = true;
-//     permissions.isSystemCalling = false;
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
-//     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    ASSERT_NE(connection->renderPipelineAgent_, nullptr);
+    permissions.isSystemCalling = false;
+    permissions.screenCapturePermission = false;
+    res = connection->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, true, permissions);
+    EXPECT_EQ(res, ERR_PERMISSION_DENIED);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_, nullptr);
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    res = connection->TakeSurfaceCaptureWithAllWindows(0, callback, captureConfig, true, permissions);
+    EXPECT_EQ(res, ERR_PERMISSION_DENIED);
 
-//     permissions.screenCapturePermission = true;
-//     permissions.isSystemCalling = true;
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
-//     usleep(TIME_OF_CAPTURE_TASK);
-//     EXPECT_EQ(ret, ERR_NONE);
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
-//     usleep(TIME_OF_CAPTURE_TASK);
-//     EXPECT_EQ(ret, ERR_NONE);
-
-//     ASSERT_NE(connection->mainThread_, nullptr);
-//     NodeId displayNodeId = 111;
-//     RSDisplayNodeConfig displayNodeConfig;
-//     std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
-//         new RSLogicalDisplayRenderNode(displayNodeId, displayNodeConfig), RSRenderNodeGC::NodeDestructor);
-//     ASSERT_NE(displayNode, nullptr);
-//     auto& nodeMap = connection->mainThread_->GetContext().GetMutableNodeMap();
-//     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, false, permissions);
-//     usleep(TIME_OF_CAPTURE_TASK);
-//     EXPECT_EQ(ret, ERR_NONE);
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, false, permissions);
-//     usleep(TIME_OF_CAPTURE_TASK);
-//     EXPECT_EQ(ret, ERR_NONE);
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, false, permissions);
-//     usleep(TIME_OF_CAPTURE_TASK);
-//     EXPECT_EQ(ret, ERR_NONE);
-
-//     RSMainThread::Instance()->handler_ = handler;
-// }
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    res = renderPipelineAgent_->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, true, permissions);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
 
 /**
  * @tc.name: TakeSurfaceCaptureWithAllWindowsTest003
- * @tc.desc: Test TakeSurfaceCaptureWithAllWindows for failures
+ * @tc.desc: Test TakeSurfaceCaptureWithAllWindows
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
@@ -751,171 +718,137 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     ASSERT_EQ(res, ERR_INVALID_DATA);
 }
 
-// /**
-//  * @tc.name: FreezeScreenTest001
-//  * @tc.desc: Test FreezeScreen to freeze or unfreeze screen
-//  * @tc.type: FUNC
-//  * @tc.require: issueICS2J8
-//  */
-// HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level2)
-// {
-//     constexpr uint32_t TIME_OF_FREEZE_TASK = 100000;
-//     ASSERT_NE(connectionStub_, nullptr);
-//     MessageParcel data1;
-//     MessageParcel reply;
-//     MessageOption option;
-//     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FREEZE_SCREEN);
-//     data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-//     data1.WriteBool(false);
-//     int res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
-//     ASSERT_EQ(res, ERR_INVALID_DATA);
+/**
+ * @tc.name: FreezeScreenTest001
+ * @tc.desc: Test FreezeScreen
+ * @tc.type: FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data1;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FREEZE_SCREEN);
+    data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data1.WriteBool(false);
+    int res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
 
-//     MessageParcel data2;
-//     data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-//     data2.WriteUint64(1);
-//     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
-//     ASSERT_EQ(res, ERR_INVALID_DATA);
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data2.WriteUint64(1);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
 
-//     MessageParcel data3;
-//     data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-//     data3.WriteUint64(1);
-//     data3.WriteBool(true);
-//     res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
-//     ASSERT_EQ(res, ERR_OK);
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data3.WriteUint64(1);
+    data3.WriteBool(true);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    ASSERT_EQ(res, ERR_OK);
 
-//     auto handler = RSMainThread::Instance()->handler_;
-//     auto runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
-//     ASSERT_NE(runner_, nullptr);
-//     RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-//     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-//     runner_->Run();
-//     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
-//     ASSERT_NE(connection, nullptr);
-//     auto mainThread = connection->mainThread_;
-//     connection->mainThread_ = nullptr;
-//     res = connection->FreezeScreen(0, false);
-//     ASSERT_EQ(res, ERR_INVALID_OPERATION);
+    sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    sptr<RSRenderPipelineAgent> agent = connection->renderPipelineAgent_;
+    connection->renderPipelineAgent_ = nullptr;
+    ASSERT_EQ(connection->renderPipelineAgent_, nullptr);
+    res = connection->FreezeScreen(0, false);
+    ASSERT_EQ(res, ERR_INVALID_VALUE);
+    connection->renderPipelineAgent_ = agent;
 
-//     ASSERT_NE(mainThread, nullptr);
-//     connection->mainThread_ = mainThread;
-//     res = connection->FreezeScreen(0, false);
-//     usleep(TIME_OF_FREEZE_TASK);
-//     ASSERT_EQ(res, ERR_OK);
+    ASSERT_NE(connection->renderPipelineAgent_, nullptr);
+    std::shared_ptr<RSRenderPipeline> pipeline = connection->renderPipelineAgent_->rsRenderPipeline_;
+    connection->renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    ASSERT_EQ(connection->renderPipelineAgent_->rsRenderPipeline_, nullptr);
+    res = connection->FreezeScreen(0, false);
+    ASSERT_EQ(res, ERR_INVALID_VALUE);
+    connection->renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
 
-//     NodeId displayNodeId = 1123;
-//     NodeId screenNodeId = 4456;
-//     ScreenId screenId = 1;
-//     RSDisplayNodeConfig displayNodeConfig;
-//     std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
-//         new RSLogicalDisplayRenderNode(displayNodeId, displayNodeConfig), RSRenderNodeGC::NodeDestructor);
-//     ASSERT_NE(displayNode, nullptr);
-//     std::shared_ptr<RSScreenRenderNode> screenNode = std::shared_ptr<RSScreenRenderNode>(
-//         new RSScreenRenderNode(screenNodeId, screenId), RSRenderNodeGC::NodeDestructor);
-//     ASSERT_NE(screenNode, nullptr);
-//     displayNode->SetParent(screenNode);
-//     auto& nodeMap = connection->mainThread_->GetContext().GetMutableNodeMap();
-//     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-//     EXPECT_TRUE(nodeMap.RegisterRenderNode(screenNode));
-//     res = connection->FreezeScreen(displayNodeId, false);
-//     usleep(TIME_OF_FREEZE_TASK);
-//     ASSERT_EQ(res, ERR_OK);
+/**
+ * @tc.name: FreezeScreenTest002
+ * @tc.desc: Test FreezeScreen to freeze or unfreeze screen
+ * @tc.type: FUNC
+ * @tc.require: issueICUQ08
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level2)
+{
+    constexpr uint32_t TIME_OF_FREEZE_TASK = 100000;
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_, nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_->mainThread_, nullptr);
+    NodeId displayNodeId = 896;
+    NodeId screenNodeId = 54;
+    ScreenId screenId = 1;
+    RSDisplayNodeConfig displayNodeConfig;
+    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
+        new RSLogicalDisplayRenderNode(displayNodeId, displayNodeConfig), RSRenderNodeGC::NodeDestructor);
+    ASSERT_NE(displayNode, nullptr);
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::shared_ptr<RSScreenRenderNode>(
+        new RSScreenRenderNode(screenNodeId, screenId), RSRenderNodeGC::NodeDestructor);
+    ASSERT_NE(screenNode, nullptr);
+    displayNode->SetParent(screenNode);
+    auto& nodeMap = renderPipelineAgent_->rsRenderPipeline_->mainThread_->GetContext().GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(screenNode));
+    auto res = renderPipelineAgent_->FreezeScreen(displayNodeId, false);
+    usleep(TIME_OF_FREEZE_TASK);
+    ASSERT_EQ(res, ERR_OK);
+    res = renderPipelineAgent_->FreezeScreen(displayNodeId, true);
+    usleep(TIME_OF_FREEZE_TASK);
+    ASSERT_EQ(res, ERR_OK);
+}
 
-//     RSMainThread::Instance()->handler_ = handler;
-// }
+/**
+ * @tc.name: TakeSurfaceCaptureWithAllWindowsTest004
+ * @tc.desc: Test TakeSurfaceCaptureWithAllWindows for drm/surfacelock
+ * @tc.type: FUNC
+ * @tc.require: issueICUQ08
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest004, TestSize.Level2)
+{
+    constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_, nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_->mainThread_, nullptr);
 
-// /**
-//  * @tc.name: FreezeScreenTest002
-//  * @tc.desc: Test FreezeScreen to freeze or unfreeze screen
-//  * @tc.type: FUNC
-//  * @tc.require: issueICUQ08
-//  */
-// HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level2)
-// {
-//     constexpr uint32_t TIME_OF_FREEZE_TASK = 100000;
-//     ASSERT_NE(connectionStub_, nullptr);
-//     auto handler = RSMainThread::Instance()->handler_;
-//     auto runner_ = AppExecFwk::EventRunner::Create("FreezeScreenTest002");
-//     ASSERT_NE(runner_, nullptr);
-//     RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-//     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-//     runner_->Run();
-//     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
-//     ASSERT_NE(connection, nullptr);
-//     NodeId displayNodeId = 896;
-//     NodeId screenNodeId = 54;
-//     ScreenId screenId = 1;
-//     RSDisplayNodeConfig displayNodeConfig;
-//     std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
-//         new RSLogicalDisplayRenderNode(displayNodeId, displayNodeConfig), RSRenderNodeGC::NodeDestructor);
-//     ASSERT_NE(displayNode, nullptr);
-//     std::shared_ptr<RSScreenRenderNode> screenNode = std::shared_ptr<RSScreenRenderNode>(
-//         new RSScreenRenderNode(screenNodeId, screenId), RSRenderNodeGC::NodeDestructor);
-//     ASSERT_NE(screenNode, nullptr);
-//     displayNode->SetParent(screenNode);
-//     auto& nodeMap = connection->mainThread_->GetContext().GetMutableNodeMap();
-//     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-//     EXPECT_TRUE(nodeMap.RegisterRenderNode(screenNode));
-//     auto res = connection->FreezeScreen(displayNodeId, false);
-//     usleep(TIME_OF_FREEZE_TASK);
-//     ASSERT_EQ(res, ERR_OK);
-//     res = connection->FreezeScreen(displayNodeId, true);
-//     usleep(TIME_OF_FREEZE_TASK);
-//     ASSERT_EQ(res, ERR_OK);
-
-//     RSMainThread::Instance()->handler_ = handler;
-// }
-
-// /**
-//  * @tc.name: TakeSurfaceCaptureWithAllWindowsTest004
-//  * @tc.desc: Test TakeSurfaceCaptureWithAllWindows for drm/surfacelock
-//  * @tc.type: FUNC
-//  * @tc.require: issueICUQ08
-//  */
-// HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest004, TestSize.Level2)
-// {
-//     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
-//     auto handler = RSMainThread::Instance()->handler_;
-//     auto runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest004");
-//     ASSERT_NE(runner_, nullptr);
-//     RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-//     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-//     runner_->Run();
-//     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
-//     ASSERT_NE(connection, nullptr);
-
-//     RSSurfaceCaptureConfig captureConfig;
-//     RSSurfaceCapturePermissions permissions;
-//     permissions.screenCapturePermission = true;
-//     permissions.isSystemCalling = true;
-//     NodeId displayNodeId = 45;
-//     RSDisplayNodeConfig displayNodeConfig;
-//     std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
-//         new RSLogicalDisplayRenderNode(displayNodeId, displayNodeConfig), RSRenderNodeGC::NodeDestructor);
-//     ASSERT_NE(displayNode, nullptr);
-//     auto& nodeMap = connection->mainThread_->GetContext().GetMutableNodeMap();
-//     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-//     auto ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, false, permissions);
-//     usleep(TIME_OF_CAPTURE_TASK);
-//     EXPECT_EQ(ret, ERR_NONE);
-//     RSMainThread::Instance()->SetHasSurfaceLockLayer(false);
-//     RSMainThread::Instance()->hasProtectedLayer_ = false;
-//     RSMainThread::Instance()->hasSurfaceLockLayer_ = false;
-//     EXPECT_FALSE(RSMainThread::Instance()->HasDRMOrSurfaceLockLayer());
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, true, permissions);
-//     usleep(TIME_OF_CAPTURE_TASK);
-//     EXPECT_EQ(ret, ERR_NONE);
-//     RSMainThread::Instance()->hasProtectedLayer_ = true;
-//     RSMainThread::Instance()->hasSurfaceLockLayer_ = true;
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, true, permissions);
-//     usleep(TIME_OF_CAPTURE_TASK);
-//     EXPECT_EQ(ret, ERR_NONE);
-//     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
-//     ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, true, permissions);
-//     usleep(TIME_OF_CAPTURE_TASK);
-//     EXPECT_EQ(ret, ERR_NONE);
-
-//     RSMainThread::Instance()->handler_ = handler;
-// }
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCapturePermissions permissions;
+    permissions.screenCapturePermission = true;
+    permissions.isSystemCalling = true;
+    NodeId displayNodeId = 45;
+    RSDisplayNodeConfig displayNodeConfig;
+    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
+        new RSLogicalDisplayRenderNode(displayNodeId, displayNodeConfig), RSRenderNodeGC::NodeDestructor);
+    ASSERT_NE(displayNode, nullptr);
+    auto& nodeMap = renderPipelineAgent_->rsRenderPipeline_->mainThread_->GetContext().GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+    auto ret = renderPipelineAgent_->TakeSurfaceCaptureWithAllWindows(
+        displayNodeId, nullptr, captureConfig, false, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    EXPECT_EQ(ret, ERR_NONE);
+    RSMainThread::Instance()->SetHasSurfaceLockLayer(false);
+    RSMainThread::Instance()->hasProtectedLayer_ = false;
+    RSMainThread::Instance()->hasSurfaceLockLayer_ = false;
+    EXPECT_FALSE(RSMainThread::Instance()->HasDRMOrSurfaceLockLayer());
+    ret = renderPipelineAgent_->TakeSurfaceCaptureWithAllWindows(
+        displayNodeId, nullptr, captureConfig, true, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    EXPECT_EQ(ret, ERR_NONE);
+    RSMainThread::Instance()->hasProtectedLayer_ = true;
+    RSMainThread::Instance()->hasSurfaceLockLayer_ = true;
+    ret = renderPipelineAgent_->TakeSurfaceCaptureWithAllWindows(
+        displayNodeId, nullptr, captureConfig, true, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    EXPECT_EQ(ret, ERR_NONE);
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    ret = renderPipelineAgent_->TakeSurfaceCaptureWithAllWindows(
+        displayNodeId, callback, captureConfig, true, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    EXPECT_EQ(ret, ERR_NONE);
+}
 
 /**
  * @tc.name: TestRSClientToRenderConnectionStub003
