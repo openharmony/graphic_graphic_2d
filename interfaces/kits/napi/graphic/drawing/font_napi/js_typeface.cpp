@@ -243,8 +243,7 @@ napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
     }
     auto typeface = new JsTypeface(rawTypeface);
     std::string pathStr(text);
-    if (pathStr.substr(0, G_SYSTEM_FONT_DIR.length()) != G_SYSTEM_FONT_DIR &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
         bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface);
         if (!ret) {
             delete typeface;
@@ -282,8 +281,7 @@ napi_value JsTypeface::MakeFromFileWithArguments(napi_env env, napi_callback_inf
     }
     auto typeface = new JsTypeface(rawTypeface);
     std::string pathStr(text);
-    if (pathStr.substr(0, G_SYSTEM_FONT_DIR.length()) != G_SYSTEM_FONT_DIR &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
         !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
             delete typeface;
             ROSEN_LOGE("JsTypeface:: MakeFromFile MakeRegister Typeface failed!");
