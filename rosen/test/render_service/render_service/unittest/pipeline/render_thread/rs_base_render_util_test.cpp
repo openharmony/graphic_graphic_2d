@@ -311,7 +311,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
         auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
         surfaceHandler.SetConsumer(surfaceConsumer);
         uint64_t presentWhen = 100; // let presentWhen smaller than INT64_MAX
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true);
+        RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
     }
 
@@ -357,7 +358,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_004, TestSize.Level2)
         uint64_t parentNodeId = 0;
         const auto& consumer = surfaceHandler.GetConsumer();
         consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, parentNodeId);
+        RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId);
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
         ASSERT_EQ(surfaceHandler.GetSourceType(), 5);
     }
@@ -397,7 +399,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
         consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
         surfaceHandler.SetAvailableBufferCount(1);
         surfaceHandler.SetHoldBuffer(surfaceBuffer);
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, parentNodeId);
+        RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId);
         ASSERT_EQ(surfaceConsumer->GetName(), "DisplayNode");
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
     }
@@ -430,12 +433,13 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
     surfaceHandler.SetConsumer(surfaceConsumer);
     surfaceHandler.SetAvailableBufferCount(1);
-    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, false));
-    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, true));
+    RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
+    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
+    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, true));
     IConsumerSurface::AcquireBufferReturnValue holdReturnValue;
     holdReturnValue.buffer = sptr<SurfaceBufferImpl>::MakeSptr();
     surfaceHandler.SetHoldReturnValue(holdReturnValue);
-    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, false));
+    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
 
     // produce buffer
     sptr<SurfaceBuffer> buffer1 = sptr<SurfaceBufferImpl>::MakeSptr();
@@ -449,7 +453,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     // consume buffer
     surfaceHandler.ResetHoldReturnValue();
     surfaceHandler.SetAvailableBufferCount(1);
-    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, false));
+    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
     RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
 
     // produce buffer
@@ -461,7 +465,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     // consume buffer
     surfaceHandler.SetHoldReturnValue(holdReturnValue);
     surfaceHandler.SetAvailableBufferCount(1);
-    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, true));
+    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, true));
 }
 
 /*
@@ -1440,7 +1444,10 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_001, TestSi
     uint64_t presentWhen = 100;
     int32_t dropFrameLevel = 0; // No drop
 
-    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, 0, dropFrameLevel);
+    RSBaseRenderUtil::DropFrameConfig config;
+    config.enable = true;
+    config.level = dropFrameLevel;
+    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
 
     // Should consume buffer, no frames dropped
     ASSERT_EQ(true, result);
@@ -1491,16 +1498,22 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_002, TestSi
     ret = psurf->FlushBuffer(buffer3, flushFence, flushConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
-    // Consume with dropFrameLevel = 1 (should drop 2 frames, keep latest 1)
+    // Consume with dropFrameLevel = 1
+    // Note: Actual drop behavior depends on acqiureWithPTSEnable:
+    //   - If acqiureWithPTSEnable=true: drops 2 frames, keeps latest 1
+    //   - If acqiureWithPTSEnable=false: no drop, keeps all 3
     auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
     surfaceHandler.SetConsumer(surfaceConsumer);
     surfaceHandler.SetAvailableBufferCount(3);
     uint64_t presentWhen = 100;
     int32_t dropFrameLevel = 1; // Keep latest 1 frame, drop rest
 
-    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, 0, dropFrameLevel);
+    RSBaseRenderUtil::DropFrameConfig config;
+    config.enable = true;
+    config.level = dropFrameLevel;
+    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
 
-    // Should successfully consume after dropping frames
+    // Should always successfully consume
     ASSERT_EQ(true, result);
 
     // Release remaining buffer
@@ -1549,7 +1562,10 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_003, TestSi
     uint64_t presentWhen = 100;
     int32_t dropFrameLevel = 5; // Greater than available count, no drop
 
-    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, 0, dropFrameLevel);
+    RSBaseRenderUtil::DropFrameConfig config;
+    config.enable = true;
+    config.level = dropFrameLevel;
+    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
 
     // Should consume buffer without dropping
     ASSERT_EQ(true, result);
@@ -1593,16 +1609,22 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_004, TestSi
         buffers.push_back(buffer);
     }
 
-    // Consume with dropFrameLevel = 2 (should drop 2 frames, keep latest 2)
+    // Consume with dropFrameLevel = 2
+    // Note: Actual drop behavior depends on acqiureWithPTSEnable:
+    //   - If acqiureWithPTSEnable=true: drops 2 frames, keeps latest 2
+    //   - If acqiureWithPTSEnable=false: no drop, keeps all 4
     auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
     surfaceHandler.SetConsumer(surfaceConsumer);
     surfaceHandler.SetAvailableBufferCount(4);
     uint64_t presentWhen = 100;
     int32_t dropFrameLevel = 2; // Keep latest 2 frames, drop 2
 
-    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, 0, dropFrameLevel);
+    RSBaseRenderUtil::DropFrameConfig config;
+    config.enable = true;
+    config.level = dropFrameLevel;
+    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
 
-    // Should successfully consume after dropping frames
+    // Should always successfully consume
     ASSERT_EQ(true, result);
 
     // Release remaining buffers
@@ -1660,8 +1682,10 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_005, TestSi
     int32_t dropFrameLevel = 1;
     bool dropFrameByPidEnable = false; // Disable drop by PID
 
-    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen,
-                                                           dropFrameByPidEnable, 0, dropFrameLevel);
+    RSBaseRenderUtil::DropFrameConfig config;
+    config.enable = dropFrameByPidEnable;
+    config.level = dropFrameLevel;
+    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
 
     // Should consume without dropping frames
     ASSERT_EQ(true, result);
@@ -1714,7 +1738,10 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_006, TestSi
     uint64_t presentWhen = 100;
     int32_t dropFrameLevel = -1; // Negative, should not drop
 
-    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, 0, dropFrameLevel);
+    RSBaseRenderUtil::DropFrameConfig config;
+    config.enable = true;
+    config.level = dropFrameLevel;
+    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
 
     // Should consume buffer without dropping
     ASSERT_EQ(true, result);

@@ -161,10 +161,29 @@ public:
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,
         const Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL);
 
+    // Configuration for drop frame by PID feature
+    struct DropFrameConfig {
+        bool enable = false;        // Enable drop frame by PID
+        int32_t level = 0;          // Drop frame level: 0=no drop, >0=keep latest N frames
+
+        // Check if dropping should occur
+        bool ShouldDrop() const { return enable && level > 0; }
+
+        // Factory methods for common configurations
+        static DropFrameConfig NoDrop() { return {false, 0}; }
+        static DropFrameConfig Level(int32_t l) { return {true, l}; }
+    };
+
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
+
+    // Drop frames by level: keep latest N frames, drop the rest
+    // Returns the number of frames successfully dropped
+    static int32_t DropFramesByLevel(RSSurfaceHandler& surfaceHandler,
+        const sptr<IConsumerSurface>& consumer, const DropFrameConfig& config);
+
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY,
-        bool dropFrameByPidEnable = false, uint64_t parentNodeId = 0, int32_t dropFrameLevel = 0,
-        bool dropFrameByScreenFrozen = false);
+        const DropFrameConfig& dropFrameConfig = DropFrameConfig::NoDrop(),
+        uint64_t parentNodeId = 0, bool dropFrameByScreenFrozen = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);

@@ -1554,10 +1554,12 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
             surfaceHandler->ResetCurrentFrameBufferConsumed();
             auto parentNode = surfaceNode->GetParent().lock();
+            RSBaseRenderUtil::DropFrameConfig dropFrameConfig;
+            dropFrameConfig.enable = IsNeedDropFrameByPid(surfaceHandler->GetNodeId());
+            dropFrameConfig.level = GetDropFrameLevelByPid(surfaceHandler->GetNodeId());
             auto comsumeResult = RSBaseRenderUtil::ConsumeAndUpdateBuffer(
-                *surfaceHandler, timestamp_, IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
-                parentNode ? parentNode->GetId() : 0, GetDropFrameLevelByPid(surfaceHandler->GetNodeId()),
-                surfaceNode->IsAncestorScreenFrozen());
+                *surfaceHandler, timestamp_, dropFrameConfig,
+                parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
             if (surfaceHandler->GetSourceType() ==
                 static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
                 LppVideoHandler::Instance().ConsumeAndUpdateLppBuffer(vsyncId_, surfaceNode);
@@ -4968,9 +4970,7 @@ bool RSMainThread::IsNeedDropFrameByPid(NodeId nodeId)
 {
     int32_t pid = ExtractPid(nodeId);
     auto it = surfacePidNeedDropFrame_.find(pid);
-    // Only enable drop frame when dropFrameLevel > 0
-    // dropFrameLevel == 0 means no drop frame
-    return it != surfacePidNeedDropFrame_.end() && it->second > 0;
+    return it != surfacePidNeedDropFrame_.end();
 }
 
 int32_t RSMainThread::GetDropFrameLevelByPid(NodeId nodeId)
