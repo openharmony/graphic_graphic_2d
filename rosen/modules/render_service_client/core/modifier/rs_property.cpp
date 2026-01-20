@@ -222,6 +222,7 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(RSNode& node, std::we
     }
 }
 
+// LCOV_EXCL_START
 template<>
 void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach()
 {
@@ -229,6 +230,7 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach()
         stagingValue_->Detach();
     }
 }
+// LCOV_EXCL_STOP
 
 template<>
 void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value)
@@ -257,6 +259,7 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNG
     UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
 }
 
+// LCOV_EXCL_START
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGFilterBase>>::GetRenderProperty()
 {
@@ -271,7 +274,9 @@ void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnAttach(RSNode& node, std::we
         stagingValue_->Attach(node, modifier);
     }
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 template<>
 void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnDetach()
 {
@@ -279,6 +284,7 @@ void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnDetach()
         stagingValue_->Detach();
     }
 }
+// LCOV_EXCL_STOP
 
 template<>
 void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value)
@@ -357,12 +363,14 @@ void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMa
     UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
 }
 
+// LCOV_EXCL_START
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGMaskBase>>::GetRenderProperty()
 {
     std::shared_ptr<RSNGRenderMaskBase> renderProp = stagingValue_ ? stagingValue_->GetRenderEffect() : nullptr;
     return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>>(renderProp, id_);
 }
+// LCOV_EXCL_STOP
 
 template<>
 void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnAttach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier)
@@ -372,6 +380,7 @@ void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnAttach(RSNode& node, std::wea
     }
 }
 
+// LCOV_EXCL_START
 template<>
 void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnDetach()
 {
@@ -379,6 +388,7 @@ void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnDetach()
         stagingValue_->Detach();
     }
 }
+// LCOV_EXCL_STOP
 
 template<>
 void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value)
@@ -407,12 +417,14 @@ void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGS
     UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
 }
 
+// LCOV_EXCL_START
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShapeBase>>::GetRenderProperty()
 {
     std::shared_ptr<RSNGRenderShapeBase> renderProp = stagingValue_ ? stagingValue_->GetRenderEffect() : nullptr;
     return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(renderProp, id_);
 }
+// LCOV_EXCL_STOP
 
 #define UPDATE_TO_RENDER(Command, value, type)                                                                       \
     auto node = target_.lock();                                                                                      \

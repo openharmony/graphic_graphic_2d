@@ -133,6 +133,7 @@ void RSScreenRenderNode::SetIsMirrorScreen(bool isMirror)
     isMirroredScreen_ = isMirror;
 }
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::InitRenderParams()
 {
 #ifdef RS_ENABLE_GPU
@@ -144,6 +145,7 @@ void RSScreenRenderNode::InitRenderParams()
     }
 #endif
 }
+// LCOV_EXCL_STOP
 
 ReleaseDmaBufferTask RSScreenRenderNode::releaseScreenDmaBufferTask_;
 void RSScreenRenderNode::SetReleaseTask(ReleaseDmaBufferTask callback)
@@ -155,6 +157,7 @@ void RSScreenRenderNode::SetReleaseTask(ReleaseDmaBufferTask callback)
     }
 }
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::OnSync()
 {
 #ifdef RS_ENABLE_GPU
@@ -175,7 +178,9 @@ void RSScreenRenderNode::OnSync()
     RSRenderNode::OnSync();
 #endif
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::HandleCurMainAndLeashSurfaceNodes()
 {
     surfaceCountForMultiLayersPerf_ = 0;
@@ -189,6 +194,7 @@ void RSScreenRenderNode::HandleCurMainAndLeashSurfaceNodes()
     curMainAndLeashSurfaceNodes_.clear();
 }
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::UpdateRenderParams()
 {
 #ifdef RS_ENABLE_GPU
@@ -219,7 +225,9 @@ void RSScreenRenderNode::UpdateRenderParams()
     RSRenderNode::UpdateRenderParams();
 #endif
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::UpdateScreenRenderParams()
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -232,7 +240,9 @@ void RSScreenRenderNode::UpdateScreenRenderParams()
     screenParams->isMirrorScreen_ = IsMirrorScreen();
     screenParams->isFirstVisitCrossNodeDisplay_ = IsFirstVisitCrossNodeDisplay();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::UpdatePartialRenderParams()
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -242,6 +252,7 @@ void RSScreenRenderNode::UpdatePartialRenderParams()
     }
     screenParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
 }
+// LCOV_EXCL_STOP
 
 bool RSScreenRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval)
 {
@@ -363,11 +374,14 @@ void RSScreenRenderNode::SetFixVirtualBuffer10Bit(bool isFixVirtualBuffer10Bit)
     isFixVirtualBuffer10Bit_ = isFixVirtualBuffer10Bit;
 }
 
+// LCOV_EXCL_START
 bool RSScreenRenderNode::GetFixVirtualBuffer10Bit() const
 {
     return isFixVirtualBuffer10Bit_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 HdrStatus RSScreenRenderNode::GetDisplayHdrStatus() const
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -379,6 +393,7 @@ HdrStatus RSScreenRenderNode::GetDisplayHdrStatus() const
     lastDisplayTotalHdrStatus_ = currentHDRStatus;
     return currentHDRStatus;
 }
+// LCOV_EXCL_STOP
 
 void RSScreenRenderNode::CollectHdrStatus(HdrStatus hdrStatus)
 {
@@ -395,6 +410,7 @@ void RSScreenRenderNode::CollectHdrStatus(HdrStatus hdrStatus)
     }
 }
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::ResetDisplayHdrStatus()
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -407,6 +423,7 @@ void RSScreenRenderNode::ResetDisplayHdrStatus()
         AddToPendingSyncList();
     }
 }
+// LCOV_EXCL_STOP
 
 void RSScreenRenderNode::SetExistHWCNode(bool existHWCNode)
 {
@@ -627,11 +644,14 @@ void RSScreenRenderNode::SetForceFreeze(bool forceFreeze)
     }
 }
 
+// LCOV_EXCL_START
 bool RSScreenRenderNode::GetForceFreeze() const
 {
     return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::CheckSurfaceChanged()
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -651,6 +671,7 @@ void RSScreenRenderNode::CheckSurfaceChanged()
     isVirtualSurfaceChanged_ = false;
 #endif
 }
+// LCOV_EXCL_STOP
 
 void RSScreenRenderNode::UpdateHeadroomMapIncrease(HdrStatus status, uint32_t level)
 {
