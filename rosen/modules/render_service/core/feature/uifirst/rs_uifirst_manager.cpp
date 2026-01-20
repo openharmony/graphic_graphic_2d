@@ -50,6 +50,7 @@ namespace {
     const std::string CLEAR_CACHE_TASK_PREFIX = "uifirst_clear_cache_";
     constexpr std::string_view ARKTSCARDNODE_NAME = "ArkTSCardNode";
     constexpr std::string_view EVENT_DISABLE_UIFIRST = "APP_LIST_FLING";
+    constexpr std::string_view ABILITY_OR_PAGE_SWITCH = "ABILITY_OR_PAGE_SWITCH";
     constexpr int UIFIRST_TASKSKIP_PRIO_THRESHOLD = 3;
     constexpr int UIFIRST_POSTTASK_HIGHPRIO_MAX = 6;
     constexpr int SUBTHREAD_CONTROL_FRAMERATE_NODE_LIMIT = 10;
@@ -1628,10 +1629,12 @@ bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
             return true;
         }
         if (appPids.count(item.appPid) && (node.GetUifirstStartTime() > 0) &&
-            (node.GetUifirstStartTime() < (item.startTime - EVENT_DISABLE_UIFIRST_GAP)) &&
-            (item.sceneId.find(EVENT_DISABLE_UIFIRST) != std::string::npos)) {
-            EventDisableLeashWindowCache(node.GetId(), item);
-            return true; // app has animation, stop leashwindow uifirst
+            (node.GetUifirstStartTime() < (item.startTime - EVENT_DISABLE_UIFIRST_GAP))) {
+            if (item.sceneId.find(EVENT_DISABLE_UIFIRST) != std::string::npos ||
+                item.sceneId.find(ABILITY_OR_PAGE_SWITCH) != std::string::npos) {
+                EventDisableLeashWindowCache(node.GetId(), item);
+                return true; // app has animation, stop leashwindow uifirst
+            }
         }
     }
     return false;
