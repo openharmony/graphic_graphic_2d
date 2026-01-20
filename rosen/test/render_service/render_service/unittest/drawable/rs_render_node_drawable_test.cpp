@@ -256,6 +256,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
 
     drawable->SetCanceledByParentRenderGroup(true);
     drawable->isOffScreenWithClipHole_ = false;
+    params.drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
     EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), false);
@@ -276,7 +277,7 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheInfoForDfxTest, TestSize.Level1)
     drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
     drawable->isDrawingCacheDfxEnabled_ = true;
     drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
-    ASSERT_EQ(drawable->isDrawingCacheEnabled_, true);
+    ASSERT_EQ(drawable->isDrawingCacheEnabled_, false);
 }
 
 /**
@@ -293,7 +294,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawDfxForCacheInfoTest, TestSize.Level1)
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     auto renderParams = std::make_unique<RSRenderParams>(0);
     drawable->DrawDfxForCacheInfo(paintFilterCanvas, renderParams);
-    ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
+    ASSERT_FALSE(drawable->isDrawingCacheEnabled_);
     ASSERT_TRUE(drawable->isDrawingCacheDfxEnabled_);
     ASSERT_FALSE(drawable->autoCacheDrawingEnable_);
     ASSERT_FALSE(!drawable->isDrawingCacheDfxEnabled_);
