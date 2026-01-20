@@ -202,7 +202,6 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
-    hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     auto rsScreen = std::make_shared<RSScreen>(screenId_);
     screenManager_->MockHdiScreenConnected(rsScreen);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
@@ -801,18 +800,18 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
 //  * @tc.type: FUNC
 //  * @tc.require: issueIBRN69
 //  */
-// HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub018, TestSize.Level1)
-// {
-//     MessageParcel data;
-//     MessageParcel reply;
-//     MessageOption option;
-//     data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-//     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
-//     sptr<RSScreenChangeCallbackStubMock> callback = new RSScreenChangeCallbackStubMock();
-//     data.WriteRemoteObject(callback->AsObject());
-//     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-//     ASSERT_EQ(res, NO_ERROR);
-// }
+HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub018, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
+    sptr<RSScreenChangeCallbackStubMock> callback = new RSScreenChangeCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
 
 /**
  * @tc.name: TestRSRenderServiceConnectionStub019

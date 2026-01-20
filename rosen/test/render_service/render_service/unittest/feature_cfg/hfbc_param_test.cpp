@@ -101,6 +101,9 @@ HWTEST_F(HfbcParamTest, SetHfbcConfigForApp2, Function | SmallTest | Level1)
 
     packages = { { "com.test.banapp2", "1"} };
     EXPECT_EQ(CheckHfbcStatus(packages), true); // disabled
+
+    HFBCParam::SetHfbcControlMode(true);
+    EXPECT_EQ(HFBCParam::GetHfbcControlMode(), true);
 }
 } // namespace Rosen
 } // namespace OHOS
