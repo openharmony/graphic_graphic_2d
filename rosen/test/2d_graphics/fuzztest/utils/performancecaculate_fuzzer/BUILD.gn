@@ -21,7 +21,7 @@ module_output_path = "graphic_2d/graphic_2d"
 ohos_fuzztest("PerformanceCaculateFuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file =
-      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/utils/performance_caculate_fuzzer"
+      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/utils/performancecaculate_fuzzer"
 
   sources = [
     "get_object.h",
