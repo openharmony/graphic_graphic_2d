@@ -41,10 +41,10 @@ struct SurfaceVRateInfo {
     int appWindowArea = 0;
 };
 
-class RPVsyncRateReduceManager {
+class RSVsyncRateReduceManager {
 public:
-    RPVsyncRateReduceManager() {};
-    ~RPVsyncRateReduceManager() = default;
+    RSVsyncRateReduceManager() {};
+    ~RSVsyncRateReduceManager() = default;
 
     void SetFocusedNodeId(NodeId focusedNodeId);
     void PushWindowNodeId(NodeId nodeId);
@@ -122,7 +122,7 @@ private:
     std::map<uint64_t, int> linkersRateMap_;
 };
 
-class RSVsyncRateReduceManager {
+class RSVsyncRateReduceUtil {
 public:
     static void TransformNodeToLinkersRateMap(const std::unordered_map<NodeId, int>& vRateMap,
         bool isNeedRefreshVRate, sptr<VSyncDistributor> appVSyncDistributor);

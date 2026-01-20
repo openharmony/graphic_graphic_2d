@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rp_vsync_rate_reduce_manager.h"
+#include "rs_vsync_rate_reduce_manager.h"
 #include <cstdint>
 #include <parameters.h>
 #include <ratio>
@@ -78,7 +78,7 @@ constexpr int INVISBLE_WINDOW_VSYNC_RATIO = std::numeric_limits<int>::max();
 constexpr int V_VAL_LEVEL_6_WINDOW_VSYNC_RATIO = std::numeric_limits<int>::max() >> 1;
 } // Anonymous namespace
 
-void RPVsyncRateReduceManager::SetFocusedNodeId(NodeId focusedNodeId)
+void RSVsyncRateReduceManager::SetFocusedNodeId(NodeId focusedNodeId)
 {
     if (!vRateReduceEnabled_) {
         return;
@@ -86,7 +86,7 @@ void RPVsyncRateReduceManager::SetFocusedNodeId(NodeId focusedNodeId)
     focusedNodeId_ = focusedNodeId;
 }
 
-void RPVsyncRateReduceManager::PushWindowNodeId(NodeId nodeId)
+void RSVsyncRateReduceManager::PushWindowNodeId(NodeId nodeId)
 {
     if (!vRateReduceEnabled_) {
         return;
@@ -94,7 +94,7 @@ void RPVsyncRateReduceManager::PushWindowNodeId(NodeId nodeId)
     curAllMainAndLeashWindowNodesIds_.emplace_back(nodeId);
 }
 
-void RPVsyncRateReduceManager::ClearLastVisMapForVsyncRate()
+void RSVsyncRateReduceManager::ClearLastVisMapForVsyncRate()
 {
     if (!vRateReduceEnabled_) {
         return;
@@ -102,7 +102,7 @@ void RPVsyncRateReduceManager::ClearLastVisMapForVsyncRate()
     lastVisMapForVSyncVisLevel_.clear();
 }
 
-void RPVsyncRateReduceManager::FrameDurationBegin()
+void RSVsyncRateReduceManager::FrameDurationBegin()
 {
     if (!vRateConditionQualified_) {
         return;
@@ -110,7 +110,7 @@ void RPVsyncRateReduceManager::FrameDurationBegin()
     curTime_ = Now();
 }
 
-void RPVsyncRateReduceManager::FrameDurationEnd()
+void RSVsyncRateReduceManager::FrameDurationEnd()
 {
     if (!vRateConditionQualified_) {
         return;
@@ -122,7 +122,7 @@ void RPVsyncRateReduceManager::FrameDurationEnd()
     curTime_ = 0;
 }
 
-void RPVsyncRateReduceManager::SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes)
+void RSVsyncRateReduceManager::SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes)
 {
     if (!vRateReduceEnabled_) {
         return;
@@ -130,7 +130,7 @@ void RPVsyncRateReduceManager::SetIsReduceBySystemAnimatedScenes(bool isReduceBy
     isReduceBySystemAnimatedScenes_ = isReduceBySystemAnimatedScenes;
 }
 
-void RPVsyncRateReduceManager::EnqueueFrameDuration(float duration)
+void RSVsyncRateReduceManager::EnqueueFrameDuration(float duration)
 {
     std::lock_guard<std::mutex> lock(mutexFrameDuration_);
     while (frameDurations_.size() >= BALANCE_FRAME_COUNT) {
@@ -139,7 +139,7 @@ void RPVsyncRateReduceManager::EnqueueFrameDuration(float duration)
     frameDurations_.push_back(duration);
 }
 
-void RPVsyncRateReduceManager::CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& surfaceNode)
+void RSVsyncRateReduceManager::CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& surfaceNode)
 {
     if (!vRateConditionQualified_) {
         return;
@@ -173,7 +173,7 @@ void RPVsyncRateReduceManager::CollectSurfaceVsyncInfo(const ScreenInfo& screenI
     surfaceVRateMap_.emplace(nodeId, std::move(vRateInfo));
 }
 
-void RPVsyncRateReduceManager::SetUniVsync()
+void RSVsyncRateReduceManager::SetUniVsync()
 {
     if (!vRateConditionQualified_) {
         return;
@@ -184,7 +184,7 @@ void RPVsyncRateReduceManager::SetUniVsync()
     lastVSyncRateMap_ = vSyncRateMap_;
 }
 
-int RPVsyncRateReduceManager::UpdateRatesLevel()
+int RSVsyncRateReduceManager::UpdateRatesLevel()
 {
     float totalDuration = 0;
     {
@@ -232,7 +232,7 @@ int RPVsyncRateReduceManager::UpdateRatesLevel()
     return  curRatesLevel_;
 }
 
-void RPVsyncRateReduceManager::CalcRates()
+void RSVsyncRateReduceManager::CalcRates()
 {
     if (isSystemAnimatedScenes_) {
         for (const auto& [nodeId, vRateInfo]: surfaceVRateMap_) {
@@ -278,12 +278,12 @@ void RPVsyncRateReduceManager::CalcRates()
     }
 }
 
-int RPVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
+int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
 {
     if (std::abs(vVal - V_VAL_LEVEL_BEHINDWINDOW) < 10e-6) {
         int rateBehindWindow = static_cast<int>(ceil(static_cast<double>(rsRefreshRate_) /
             RS_REFRESH_RATE_BEHIND_WINDOW));
-        RS_LOGD("RPVsyncRateReduceManager::GetRateByBalanceLevel in behind window condition vVal=%{public}.2f, rate=%d",
+        RS_LOGD("RSVsyncRateReduceManager::GetRateByBalanceLevel in behind window condition vVal=%{public}.2f, rate=%d",
             vVal, rateBehindWindow);
         return rateBehindWindow;
     }
@@ -311,7 +311,7 @@ int RPVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
     return V_VAL_LEVEL_6_WINDOW_VSYNC_RATIO;
 }
 
-inline Occlusion::Rect RPVsyncRateReduceManager::GetMaxVerticalRect(const Occlusion::Region &region)
+inline Occlusion::Rect RSVsyncRateReduceManager::GetMaxVerticalRect(const Occlusion::Region &region)
 {
     Occlusion::Rect maxRect;
     auto& regionRects = region.GetRegionRects();
@@ -323,7 +323,7 @@ inline Occlusion::Rect RPVsyncRateReduceManager::GetMaxVerticalRect(const Occlus
     return maxRect;
 }
 
-Occlusion::Rect RPVsyncRateReduceManager::CalcMaxVisibleRect(const Occlusion::Region &region,
+Occlusion::Rect RSVsyncRateReduceManager::CalcMaxVisibleRect(const Occlusion::Region &region,
     int appWindowArea)
 {
     int maxRArea = 0;
@@ -370,7 +370,7 @@ Occlusion::Rect RPVsyncRateReduceManager::CalcMaxVisibleRect(const Occlusion::Re
     return maxRect;
 }
 
-float RPVsyncRateReduceManager::CalcVValByAreas(int windowArea, int maxVisRectArea, int visTotalArea)
+float RSVsyncRateReduceManager::CalcVValByAreas(int windowArea, int maxVisRectArea, int visTotalArea)
 {
     int level0Area = std::round(windowArea * CONTINUOUS_RATIO_LEVEL_0);
     int level1Area = std::round(windowArea * CONTINUOUS_RATIO_LEVEL_1);
@@ -396,13 +396,13 @@ float RPVsyncRateReduceManager::CalcVValByAreas(int windowArea, int maxVisRectAr
     return V_VAL_LEVEL_6;
 }
 
-uint64_t RPVsyncRateReduceManager::Now()
+uint64_t RSVsyncRateReduceManager::Now()
 {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
             .count();
 }
 
-bool RPVsyncRateReduceManager::CheckNeedNotify()
+bool RSVsyncRateReduceManager::CheckNeedNotify()
 {
     bool surfaceIdsChanged = lastAllMainAndLeashWindowNodesIds_ != curAllMainAndLeashWindowNodesIds_;
     bool focusChanged = lastFocusedNodeId_ != focusedNodeId_;
@@ -439,14 +439,14 @@ bool RPVsyncRateReduceManager::CheckNeedNotify()
     return true;
 }
 
-void RPVsyncRateReduceManager::Init()
+void RSVsyncRateReduceManager::Init()
 {
     isDeviceSupprotVRate_ = VRateParam::GetVRateEnable();
     vRateReduceEnabled_ = isDeviceSupprotVRate_ && RSSystemParameters::GetVSyncControlEnabled();
     RS_LOGI("Init vRateReduceEnabled_ is %{public}d", vRateReduceEnabled_);
 }
 
-void RPVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
+void RSVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
 {
     vRateConditionQualified_ = false;
     if (!vRateReduceEnabled_) {
@@ -467,7 +467,7 @@ void RPVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
     rsRefreshRate_ = rsRefreshRate;
 }
 
-void RSVsyncRateReduceManager::TransformNodeToLinkersRateMap(const std::unordered_map<NodeId, int>& vRateMap,
+void RSVsyncRateReduceUtil::TransformNodeToLinkersRateMap(const std::unordered_map<NodeId, int>& vRateMap,
     bool isNeedRefreshVRate, sptr<VSyncDistributor> appVSyncDistributor)
 {
     if (!isNeedRefreshVRate || vRateMap.empty()) {
@@ -496,12 +496,12 @@ void RSVsyncRateReduceManager::TransformNodeToLinkersRateMap(const std::unordere
     lastVSyncRateMap_ = vRateMap;
 }
 
-bool RSVsyncRateReduceManager::SetVSyncRatesChangeStatus(bool newState)
+bool RSVsyncRateReduceUtil::SetVSyncRatesChangeStatus(bool newState)
 {
     return needPostTask_.exchange(newState);
 }
 
-std::map<uint64_t, int> RSVsyncRateReduceManager::GetLinkersRateMap()
+std::map<uint64_t, int> RSVsyncRateReduceUtil::GetLinkersRateMap()
 {
     return linkersRateMap_;
 }

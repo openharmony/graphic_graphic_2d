@@ -497,7 +497,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSUifirstManager::Instance().PrepareCurrentFrameEvent();
 #endif
         hgmRPContext_->NotifyRpHgmFrameRate(vsyncId_, context_,
-            rpVsyncRateReduceManager_.GetVrateMap(), rpVsyncRateReduceManager_.CheckNeedNotify(), pipelineParam_);
+            rsVsyncRateReduceManager_.GetVrateMap(), rsVsyncRateReduceManager_.CheckNeedNotify(), pipelineParam_);
         RS_PROFILER_ON_RENDER_BEGIN();
         // cpu boost feature start
         ffrt_cpu_boost_start(CPUBOOST_START_POINT);
@@ -582,7 +582,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSMainThread::Instance()->PostTask(task);
     };
     context_->SetTaskRunner(taskDispatchFunc);
-    rpVsyncRateReduceManager_.Init();
+    rsVsyncRateReduceManager_.Init();
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         auto rtTaskDispatchFunc = [](const RSTaskDispatcher::RSTask& task) {
@@ -2266,7 +2266,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (receiver_) {
         receiver_->GetVSyncPeriod(rsPeriod);
     }
-    rpVsyncRateReduceManager_.ResetFrameValues(impl::CalculateRefreshRate(rsPeriod));
+    rsVsyncRateReduceManager_.ResetFrameValues(impl::CalculateRefreshRate(rsPeriod));
 
     if (isHardwareForcedDisabled_) {
         uniVisitor->MarkHardwareForcedDisabled();
@@ -2344,7 +2344,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         forceUIFirstChanged_ = false;
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
-        rpVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
+        rsVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
         rootNode->QuickPrepare(uniVisitor);
         uniVisitor->ResetCrossNodesVisitedStatus();
 
@@ -2377,7 +2377,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         }
         uniVisitor->SurfaceOcclusionCallbackToWMS();
         SelfDrawingNodeMonitor::GetInstance().TriggerRectChangeCallback();
-        rpVsyncRateReduceManager_.SetUniVsync();
+        rsVsyncRateReduceManager_.SetUniVsync();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
@@ -3015,14 +3015,14 @@ void RSMainThread::CalcOcclusion()
         }
     }
     bool needRefreshRates = systemAnimatedScenesList_.empty() &&
-        rpVsyncRateReduceManager_.GetIsReduceBySystemAnimatedScenes();
+        rsVsyncRateReduceManager_.GetIsReduceBySystemAnimatedScenes();
     if (!winDirty && !needRefreshRates) {
         if (SurfaceOcclusionCallBackIfOnTreeStateChanged()) {
             SurfaceOcclusionCallback();
         }
         return;
     }
-    rpVsyncRateReduceManager_.SetIsReduceBySystemAnimatedScenes(false);
+    rsVsyncRateReduceManager_.SetIsReduceBySystemAnimatedScenes(false);
     VisibleData dstCurVisVec;
     std::map<NodeId, RSVisibleLevel> dstVisMapForVsyncRate;
     for (auto& surfaces : curAllSurfacesInDisplay) {

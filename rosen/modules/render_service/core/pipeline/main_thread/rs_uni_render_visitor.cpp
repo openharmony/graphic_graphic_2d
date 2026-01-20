@@ -476,7 +476,7 @@ void RSUniRenderVisitor::ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRender
     // record current frame mainwindow or leashwindow node
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         curMainAndLeashWindowNodesIds_.push(node.GetId());
-        RSMainThread::Instance()->GetRPVsyncRateReduceManager().PushWindowNodeId(node.GetId());
+        RSMainThread::Instance()->GetRSVsyncRateReduceManager().PushWindowNodeId(node.GetId());
         curScreenNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
     }
     // only reset for instance node
@@ -1635,7 +1635,7 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
     needRecalculateOcclusion_ = needRecalculateOcclusion_ || node.CheckIfOcclusionChanged();
     node.SetOcclusionInSpecificScenes(false);
     CollectOcclusionInfoForWMS(node);
-    mainThread->GetRPVsyncRateReduceManager().CollectSurfaceVsyncInfo(
+    mainThread->GetRSVsyncRateReduceManager().CollectSurfaceVsyncInfo(
         curScreenNode_->GetScreenInfo(), node);
 }
 
@@ -3325,7 +3325,7 @@ void RSUniRenderVisitor::UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRender
             }
             CollectOcclusionInfoForWMS(*subSurfaceNodePtr);
             subSurfaceNodePtr->UpdateRenderParams();
-            auto& rateReduceManager = RSMainThread::Instance()->GetRPVsyncRateReduceManager();
+            auto& rateReduceManager = RSMainThread::Instance()->GetRSVsyncRateReduceManager();
             rateReduceManager.PushWindowNodeId(subSurfaceNodePtr->GetId());
             rateReduceManager.CollectSurfaceVsyncInfo(curScreenNode_->GetScreenInfo(), *subSurfaceNodePtr);
         }

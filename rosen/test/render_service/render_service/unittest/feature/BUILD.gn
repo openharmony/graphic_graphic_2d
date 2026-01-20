@@ -52,7 +52,7 @@ group("unittest") {
     deps += [
       ":RSSubThreadManagerTest",
       ":RSSubThreadTest",
-      ":RPVsyncRateReduceManagerTest",
+      ":RSVsyncRateReduceManagerTest",
     ]
   }
   if (rs_enable_eglimage) {
@@ -582,10 +582,10 @@ ohos_unittest("RSSubThreadCacheTest") {
   }
 }
 
-## Build RPVsyncRateReduceManagerTest
-ohos_unittest("RPVsyncRateReduceManagerTest") {
+## Build RSVsyncRateReduceManagerTest
+ohos_unittest("RSVsyncRateReduceManagerTest") {
   module_out_path = module_output_path
-  sources = [ "vrate/rp_vsync_rate_reduce_manager_test.cpp" ]
+  sources = [ "vrate/rs_vsync_rate_reduce_manager_test.cpp" ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",

@@ -48,7 +48,7 @@
 #include "pipeline/hwc/rs_hwc_context.h"
 #include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
-#include "feature/vrate/rp_vsync_rate_reduce_manager.h"
+#include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "platform/common/rs_event_manager.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -366,9 +366,9 @@ public:
         return systemAnimatedScenesList_.empty();
     }
 
-    RPVsyncRateReduceManager& GetRPVsyncRateReduceManager()
+    RSVsyncRateReduceManager& GetRSVsyncRateReduceManager()
     {
-        return rpVsyncRateReduceManager_;
+        return rsVsyncRateReduceManager_;
     }
 
     bool IsFirstFrameOfOverdrawSwitch() const
@@ -861,7 +861,7 @@ private:
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
-    RPVsyncRateReduceManager rpVsyncRateReduceManager_;
+    RSVsyncRateReduceManager rsVsyncRateReduceManager_;
     RSSurfaceWatermarkHelper surfaceWatermarkHelper_;
 
     // for record fastcompose time change

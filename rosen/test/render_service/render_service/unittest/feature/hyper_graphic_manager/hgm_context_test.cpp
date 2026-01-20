@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "feature/hyper_graphic_manager/hgm_context.h"
-#include "feature/vrate/rp_vsync_rate_reduce_manager.h"
+#include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "hgm_core.h"
 #include "screen_manager/rs_screen_manager.h"
 
@@ -398,13 +398,13 @@ HWTEST_F(HgmContextTest, ProcessHgmFrameRateTest003, TestSize.Level1)
 
         auto orgVoterTouchEffective = frameRateMgr->voterTouchEffective_.load();
         auto orgPostHgmTaskFlag = hgmCore.postHgmTaskFlag_.load();
-        auto orgNeedPostTask = RSVsyncRateReduceManager::needPostTask_.load();
+        auto orgNeedPostTask = RSVsyncRateReduceUtil::needPostTask_.load();
         auto orgIsVideoCallVsyncChange = HgmEnergyConsumptionPolicy::Instance().isVideoCallVsyncChange_.load();
         auto orgPendingScreenRefreshRate = hgmCore.GetPendingScreenRefreshRate();
 
         frameRateMgr->voterTouchEffective_ = false;
         hgmCore.SetHgmTaskFlag(false);
-        RSVsyncRateReduceManager::SetVSyncRatesChangeStatus(false);
+        RSVsyncRateReduceUtil::SetVSyncRatesChangeStatus(false);
         HgmEnergyConsumptionPolicy::Instance().GetVideoCallVsyncChange();
         hgmCore.SetPendingScreenRefreshRate(frameRateMgr->GetCurrRefreshRate());
 
@@ -418,7 +418,7 @@ HWTEST_F(HgmContextTest, ProcessHgmFrameRateTest003, TestSize.Level1)
 
         frameRateMgr->voterTouchEffective_ = orgVoterTouchEffective;
         hgmCore.SetHgmTaskFlag(orgPostHgmTaskFlag);
-        RSVsyncRateReduceManager::SetVSyncRatesChangeStatus(orgNeedPostTask);
+        RSVsyncRateReduceUtil::SetVSyncRatesChangeStatus(orgNeedPostTask);
         HgmEnergyConsumptionPolicy::Instance().isVideoCallVsyncChange_ = orgIsVideoCallVsyncChange;
         hgmCore.SetPendingScreenRefreshRate(orgPendingScreenRefreshRate);
     } else {
