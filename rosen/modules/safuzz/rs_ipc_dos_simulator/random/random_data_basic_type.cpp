@@ -178,7 +178,7 @@ pid_t RandomDataBasicType::GetRandomPid()
 
 double RandomDataBasicType::GetRandomDouble()
 {
-    double data = 0;
+    double data = 0.0;
     std::string s_str = RandomEngine::GetRandomDouble();
     if (auto opt = CommonUtils::StringToDouble(s_str); opt.has_value()) {
         data = opt.value();

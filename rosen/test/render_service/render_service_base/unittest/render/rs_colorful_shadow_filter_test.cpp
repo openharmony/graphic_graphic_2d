@@ -106,12 +106,12 @@ HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawImageRectTest003
+ * @tc.name: DrawImageRectTest004
  * @tc.desc: test DrawImageRect
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectTest003, TestSize.Level1)
+HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectTest004, TestSize.Level1)
 {
     float blurRadius = 10.0f; // 10.0f is radius
     float offsetX = 10.0f; // 10.0f offset x
@@ -139,7 +139,6 @@ HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectWithColorTest001, TestSize.Lev
     float blurRadius = 10.0f; // 10.0f is radius
     float offsetX = 10.0f; // 10.0f offset x
     float offsetY = 10.0f; // 10.0f offset y
-    Drawing::Path path;
     RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY);
 
     Drawing::Canvas canvas;

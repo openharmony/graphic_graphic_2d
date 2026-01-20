@@ -74,14 +74,14 @@ struct NoisyFrameGradientMaskParams {
 
 std::vector<ColorGradientEffectParams> colorGradientEffectParams = {
     {
-        .color0 = {0.0f, 0.0f, 1.0f, 1.0f},
-        .color1 = {0.0f, 0.0f, 1.0f, 1.0f},
-        .color2 = {1.0f, 0.0f, 1.0f, 1.0f},
-        .color3 = {1.0f, 0.0f, 1.0f, 1.0f},
-        .position0 = {0.0f, 1.0f},
-        .position1 = {1.0f, 0.0f},
-        .position2 = {0.0f, 0.0f},
-        .position3 = {1.0f, 1.0f},
+        .color0 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        .color1 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        .color2 = Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        .color3 = Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        .position0 = Vector2f{0.0f, 1.0f},
+        .position1 = Vector2f{1.0f, 0.0f},
+        .position2 = Vector2f{0.0f, 0.0f},
+        .position3 = Vector2f{1.0f, 1.0f},
         .strength0 = 5.4f,
         .strength1 = 5.4f,
         .strength2 = 5.4f,
@@ -117,7 +117,6 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = 0.0f,
         .progress = 0.0f
     },
-    
     // test height bigger than width
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
@@ -130,7 +129,6 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = 0.0f,
         .progress = 0.0f
     },
-    
     // test large frame width
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
@@ -143,7 +141,6 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = 0.0f,
         .progress = 0.0f
     },
-    
     // test rect not included in canvas
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
@@ -156,7 +153,6 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = 0.0f,
         .progress = 0.0f
     },
-    
     // test no corner radius
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},

@@ -79,11 +79,12 @@ public:
     {
         return hasChildCrossNode_;
     }
-    
+
     uint32_t GetChildDisplayCount() const
     {
         return childDisplayCount_;
     }
+
     void SetGlobalZOrder(float zOrder);
     float GetGlobalZOrder() const;
     void SetMainAndLeashSurfaceDirty(bool isDirty);
@@ -183,11 +184,6 @@ public:
         isAccumulatedSpecialLayerStatusChanged_ = false;
     }
 
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetRoundCornerDrawables()
-    {
-        return roundCornerSurfaceDrawables_;
-    }
-
     void SetNeedForceUpdateHwcNodes(bool needForceUpdateHwcNodes);
     bool GetNeedForceUpdateHwcNodes() const;
 
@@ -204,6 +200,7 @@ public:
     {
         hdrBrightnessRatio_ = hdrBrightnessRatio;
     }
+
     float GetHdrBrightnessRatio() const
     {
         return hdrBrightnessRatio_;
@@ -223,17 +220,23 @@ public:
 
     bool GetForceFreeze() const;
     void SetForceFreeze(bool forceFreeze);
-    bool GetHasMirroredScreenChanged() const;
     void SetHasMirroredScreenChanged(bool hasMirroredScreenChanged);
+    bool GetHasMirroredScreenChanged() const;
 
     bool IsVirtualSurfaceChanged() const { return isVirtualSurfaceChanged_; }
 
     void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod) { isEqualVsyncPeriod_ = isEqualVsyncPeriod; }
     bool IsEqualVsyncPeriod() const { return isEqualVsyncPeriod_; }
+    void SetCloneNodeMap(
+        const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap);
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> GetCloneNodeMap()
+    {
+        return cloneNodeMap_;
+    }
 
 private:
-
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
+
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allMainAndLeashSurfaceDrawables_;
     bool isDirtyAlignEnabled_ = false;
@@ -268,17 +271,16 @@ private:
     uint32_t mirrorDstCount_ = 0;
     bool hasMirrorScreen_ = false;
     Drawing::Matrix slrMatrix_;
-    // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;
     friend class RSUniRenderVisitor;
     friend class RSScreenRenderNode;
+
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     Occlusion::Region drawnRegion_;
     bool forceFreeze_ = false;
     bool hasMirroredScreenChanged_ = false;
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> cloneNodeMap_;
 };
 } // namespace OHOS::Rosen
-
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SCREEN_RENDER_PARAMS_H

@@ -47,11 +47,25 @@ void RSComplexShaderTest::TearDown() {}
  */
 HWTEST_F(RSComplexShaderTest, MakeDrawingShaderTest001, TestSize.Level0)
 {
-    auto rsComplexShader = std::make_shared<RSComplexShader>();
+    auto rsComplexShader = std::make_shared<RSComplexShader>(GexComplexShaderType::NONE);
     const OHOS::Rosen::RectF boundsRect(0.0f, 0.0f, 1.0f, 1.0f);
     std::vector<float> tempVec = {0.5f, 0.5f, 0.5f, 0.5f};
     rsComplexShader->MakeDrawingShader(boundsRect, tempVec);
     EXPECT_EQ(rsComplexShader->shaderEffect_, nullptr);
+}
+
+/**
+ * @tc.name: MakeDrawingShaderTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComplexShaderTest, MakeDrawingShaderTest002, TestSize.Level0)
+{
+    auto rsComplexShader = std::make_shared<RSComplexShader>(GexComplexShaderType::COLOR_GRADIENT);
+    const OHOS::Rosen::RectF boundsRect(0.0f, 0.0f, 1.0f, 1.0f);
+    std::vector<float> tempVec = {0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f};
+    rsComplexShader->MakeDrawingShader(boundsRect, tempVec);
+    EXPECT_NE(rsComplexShader->shaderEffect_, nullptr);
 }
 
 /**
@@ -97,7 +111,7 @@ HWTEST_F(RSComplexShaderTest, UnmarshallingTest001, TestSize.Level1)
  */
 HWTEST_F(RSComplexShaderTest, GetShaderEffectTest001, TestSize.Level1)
 {
-    auto rsComplexShader = std::make_shared<RSComplexShader>();
+    auto rsComplexShader = std::make_shared<RSComplexShader>(GexComplexShaderType::NONE);
     std::vector<float> effectParam = {0.0f, 1.0f};
     const Drawing::RectF boundsRect(0.0f, 0.0f, 1.0f, 1.0f);
     auto shaderEffect = rsComplexShader->GetShaderEffect(effectParam, boundsRect);
