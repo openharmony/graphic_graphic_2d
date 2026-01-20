@@ -29,6 +29,7 @@
 
 #include "common/rs_common_def.h"
 #include "modifier/rs_modifier_manager.h"
+#include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
 #include "ui/rs_canvas_node.h"
 
@@ -88,6 +89,71 @@ bool TestModifierManager(const uint8_t* data, size_t size)
 #endif
     return true;
 }
+
+bool TestRemoveAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    auto rsModifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
+    AnimationId keyId = GetData<AnimationId>();
+    rsModifierManager->RemoveAnimation(keyId);
+    return true;
+}
+
+bool TestJudgeAnimateWhetherSkip(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    auto rsModifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
+    AnimationId animId = GetData<AnimationId>();
+    int64_t time = GetData<int64_t>();
+    int64_t vsyncPeriod = GetData<int64_t>();
+    rsModifierManager->JudgeAnimateWhetherSkip(animId, time, vsyncPeriod);
+    return true;
+}
+
+bool TestRegisterSpringAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    auto rsModifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
+    PropertyId propertyId = GetData<PropertyId>();
+    AnimationId animationId = GetData<AnimationId>();
+    rsModifierManager->RegisterSpringAnimation(propertyId, animationId);
+    rsModifierManager->UnregisterSpringAnimation(propertyId, animationId);
+    return true;
+}
+
+bool TestQuerySpringAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    auto rsModifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
+    PropertyId propertyId = GetData<PropertyId>();
+    rsModifierManager->QuerySpringAnimation(propertyId);
+    return true;
+}
+
+bool TestMoveModifier(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    auto rsModifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
+    auto dstRsModifierManager = std::make_shared<RSModifierManager>();;
+    NodeId id = GetData<NodeId>();
+    rsModifierManager->MoveModifier(dstRsModifierManager, id);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -101,5 +167,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     OHOS::Rosen::TestModifierManager(data, size);
+    OHOS::Rosen::TestRemoveAnimation(data, size);
+    OHOS::Rosen::TestJudgeAnimateWhetherSkip(data, size);
+    OHOS::Rosen::TestRegisterSpringAnimation(data, size);
+    OHOS::Rosen::TestQuerySpringAnimation(data, size);
+    OHOS::Rosen::TestMoveModifier(data, size);
     return 0;
 }
