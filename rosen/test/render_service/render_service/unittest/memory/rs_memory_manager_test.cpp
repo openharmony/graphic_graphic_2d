@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <fstream>
 #include <string>
+#include <fstream>
 #include "gtest/gtest.h"
 #include "memory/rs_memory_manager.h"
 
@@ -798,7 +798,6 @@ HWTEST_F(RSMemoryManagerTest, DumpAllGpuInfo002, testing::ext::TestSize.Level1)
     MemoryManager::DumpAllGpuInfo(log, nullptr, nodeTags);
     ASSERT_TRUE(log.GetString().find("No valid gpu cache instance") != std::string::npos);
 }
-
 
 /**
  * @tc.name: DumpAllGpuInfoNew001
