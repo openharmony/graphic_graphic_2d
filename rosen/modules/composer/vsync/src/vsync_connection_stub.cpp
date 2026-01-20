@@ -152,6 +152,7 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     return 0;
 }
 
+// LCOV_EXCL_START
 bool VSyncConnectionStub::CheckCallingPermission()
 {
     Security::AccessToken::AccessTokenID tokenId = OHOS::IPCSkeleton::GetCallingTokenID();
@@ -163,5 +164,6 @@ bool VSyncConnectionStub::CheckCallingPermission()
     }
     return true;
 }
+// LCOV_EXCL_STOP
 } // namespace Rosen
 } // namespace OHOS

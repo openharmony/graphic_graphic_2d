@@ -24,6 +24,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "sync_fence.h"
 #ifdef RS_ENABLE_VK
+#include "feature/gpuComposition/rs_vk_image_manager.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif

@@ -201,7 +201,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
 
     // check if we can use GPU context
-#if defined(RS_ENABLE_GL)
+#ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL &&
         renderContext_ != nullptr) {
         rsSurface->SetRenderContext(renderContext_);
@@ -243,7 +243,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
         }
     }
 #endif
-#if (defined RS_ENABLE_VK)
+#ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         rsSurface = std::make_shared<RSSurfaceOhosVulkan>(targetSurface);
     }

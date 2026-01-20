@@ -32,7 +32,7 @@
 #include "include/core/SkSurface.h"
 #include "draw/surface.h"
 #include "image/image.h"
-#include "drawing/engine_adapter/skia_adapater/skia_color_space.h"
+#include "drawing/engine_adapter/skia_adapter/skia_color_space.h"
 
 namespace OHOS::Rosen {
 struct DestroySemaphoreInfo {
