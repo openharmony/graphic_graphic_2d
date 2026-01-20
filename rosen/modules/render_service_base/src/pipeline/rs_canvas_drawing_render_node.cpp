@@ -548,10 +548,7 @@ void RSCanvasDrawingRenderNode::DumpSubClassNode(std::string& out) const
 
 void RSCanvasDrawingRenderNode::GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList)
 {
-    // not nullptr when called by AddDirtyType
-    if (drawCmdList == nullptr) {
-        return;
-    }
+    // drawCmdList not nullptr when called by AddDirtyType
     auto cachedReversedOpTypesSize = cachedReversedOpTypes_.size();
     const auto& drawOpItems = drawCmdList->GetDrawOpItems();
     size_t opItemSize = drawOpItems.size();
