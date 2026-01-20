@@ -380,7 +380,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_004, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    sptr<IConsumerSurface> surfaceConsumer = IConsumerSurface::Create("DisplayNode");
+    sptr<IConsumerSurface> surfaceConsumer = IConsumerSurface::Create("ScreenNode");
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(surfaceConsumer);
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -404,6 +404,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
         surfaceHandler.SetAvailableBufferCount(1);
         surfaceHandler.SetHoldBuffer(surfaceBuffer);
         RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, parentNodeId);
+        ASSERT_EQ(surfaceConsumer->GetName(), "DisplayNode");
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
         ASSERT_EQ(surfaceHandler.GetSourceType(), 5);
     }
