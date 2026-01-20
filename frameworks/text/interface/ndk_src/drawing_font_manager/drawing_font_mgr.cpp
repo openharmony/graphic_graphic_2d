@@ -37,6 +37,7 @@ static FontMgr* CastToFontMgr(OH_Drawing_FontMgr* drawingFontMgr)
     if (drawingFontMgr == nullptr) {
         return nullptr;
     }
+    std::lock_guard<std::mutex> lock(g_fontMgrLockMutex);
     FontMgr* fontMgr = reinterpret_cast<FontMgr*>(drawingFontMgr);
     auto it = g_fontMgrMap.find(fontMgr);
     if (it != g_fontMgrMap.end()) {
