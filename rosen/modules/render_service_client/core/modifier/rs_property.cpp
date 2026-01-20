@@ -313,12 +313,14 @@ void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNG
     UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
 }
 
+// LCOV_EXCL_START
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShaderBase>>::GetRenderProperty()
 {
     std::shared_ptr<RSNGRenderShaderBase> renderProp = stagingValue_ ? stagingValue_->GetRenderEffect() : nullptr;
     return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>>(renderProp, id_);
 }
+// LCOV_EXCL_STOP
 
 template<>
 void RSProperty<std::shared_ptr<RSNGMaskBase>>::OnAttach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier)

@@ -193,6 +193,7 @@ void RSScreenRenderNode::HandleCurMainAndLeashSurfaceNodes()
     }
     curMainAndLeashSurfaceNodes_.clear();
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 void RSScreenRenderNode::UpdateRenderParams()
