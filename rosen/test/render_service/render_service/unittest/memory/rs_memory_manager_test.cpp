@@ -960,7 +960,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow003, testing::ext::TestSize.Level1)
     LOG_SetCallback(MyLogCallback);
     pid_t pid = 1434;
     MemoryManager::MemoryOverflow(pid, 1024, false);
-    MemorySnapshot::Instance().AddCpuMemory(pid,2048);
+    MemorySnapshot::Instance().AddCpuMemory(pid, 2048);
     EXPECT_TRUE(g_logMsg.find("RSMemoryOverflow pid[1434]") != std::string::npos);
 }
 
