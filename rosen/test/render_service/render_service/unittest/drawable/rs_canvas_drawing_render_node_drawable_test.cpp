@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "common/rs_common_def.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
@@ -358,6 +359,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushForVKTest, TestSize.Level1)
     drawable->image_ = std::make_shared<Drawing::Image>();
     drawable->FlushForVK(width, height, context, nodeId, rscanvas);
     ASSERT_FALSE(drawable->recordingCanvas_);
+
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(false);
+    ASSERT_FALSE(NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled());
+    drawable->FlushForVK(width, height, context, nodeId, rscanvas);
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
 
     drawable->recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height, false);
     drawable->FlushForVK(width, height, context, nodeId, rscanvas);

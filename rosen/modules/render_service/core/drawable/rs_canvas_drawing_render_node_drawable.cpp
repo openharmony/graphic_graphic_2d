@@ -19,6 +19,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
 #include "memory/rs_tag_tracker.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_canvas_drawing_render_params.h"
@@ -474,7 +475,11 @@ void RSCanvasDrawingRenderNodeDrawable::FlushForVK(float width, float height, st
 {
     if (!recordingCanvas_) {
         REAL_ALLOC_CONFIG_SET_STATUS(true);
-        image_ = GetImageAlias(surface_, GetTextureOrigin());
+        if (NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()) {
+            image_ = GetImageAlias(surface_, GetTextureOrigin());
+        } else {
+            image_ = surface_->GetImageSnapshot();
+        }
         REAL_ALLOC_CONFIG_SET_STATUS(false);
     } else {
         auto cmds = recordingCanvas_->GetDrawCmdList();
