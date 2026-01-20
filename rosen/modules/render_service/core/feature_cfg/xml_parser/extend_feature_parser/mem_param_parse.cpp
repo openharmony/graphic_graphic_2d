@@ -76,7 +76,7 @@ int32_t MEMParamParse::ParseMemInternal(FeatureParamMapType &featureMap, xmlNode
     } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "ReclaimEnabled") {
-            memParam_->SetReclaimEnabled(isEnabled); 
+            memParam_->SetReclaimEnabled(isEnabled);
             RS_LOGI("MEMParamParse parse ReclaimEnabled %{public}d", memParam_->IsReclaimEnabled());
         } else if (name == "KillScbEnabled") {
             MEMParam::SetKillScbEnabled(isEnabled);
