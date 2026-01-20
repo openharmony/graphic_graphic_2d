@@ -19,6 +19,7 @@
 #include "hdi_output.h"
 #include "rs_layer_transaction_data.h"
 #include "screen_manager/rs_screen_property.h"
+#include "surface_buffer_impl.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -128,6 +129,33 @@ HWTEST_F(RsRenderComposerAgentTest, ForwardingMethods_NullAndNonNullBranches, Te
 }
 
 /**
+ * Function: HwcRestored_And_HwcDead_NullAndNonNull
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OnHwcRestored/OnHwcDead on null agent (early return)
+ *                  2. call OnHwcRestored/OnHwcDead on non-null agent (forward tasks)
+ */
+HWTEST_F(RsRenderComposerAgentTest, HwcRestored_And_HwcDead_NullAndNonNull, TestSize.Level1)
+{
+    // Null composer
+    auto nullAgent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    nullAgent->OnHwcRestored(nullptr, nullptr);
+    nullAgent->OnHwcDead();
+
+    // Non-null composer
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_TRUE(agent->rsRenderComposer_ != nullptr);
+    auto out = std::make_shared<HdiOutput>(6u);
+    out->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    agent->OnHwcRestored(out, property);
+    agent->OnHwcDead();
+    // allow async tasks to run
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+}
+
+/**
  * Function: Call_Interface_With_Null_Composer
  * Type: Function
  * Rank: Important(2)
@@ -163,6 +191,94 @@ HWTEST_F(RsRenderComposerAgentTest, Call_Interface_With_Null_Composer, TestSize.
     std::unordered_set<uint64_t> bufferIds;
     agent->ClearRedrawGPUCompositionCache(bufferIds);
     EXPECT_TRUE(bufferIds.empty());
+}
+
+/**
+ * Function: SetComposerToRenderConnection_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. null-composer early return
+ *                  2. non-null composer forwards task with nullptr connection (no crash)
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetComposerToRenderConnection_Branches, TestSize.Level1)
+{
+    // Null composer branch
+    auto nullAgent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    sptr<IRSComposerToRenderConnection> nullConn;
+    nullAgent->SetComposerToRenderConnection(nullConn);
+
+    // Non-null composer branch
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    agent->SetComposerToRenderConnection(nullConn);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+/**
+ * Function: PreAllocProtectedFrameBuffers_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call with nullptr buffer → no submit
+ *                  2. call with non-null buffer → submit path executes without crash
+ */
+HWTEST_F(RsRenderComposerAgentTest, PreAllocProtectedFrameBuffers_Branches, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    // nullptr branch
+    sptr<SurfaceBuffer> nullBuf;
+    agent->PreAllocProtectedFrameBuffers(nullBuf);
+    // non-null branch
+    sptr<SurfaceBuffer> buf = new SurfaceBufferImpl();
+    agent->PreAllocProtectedFrameBuffers(buf);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+/**
+ * Function: SetScreenBacklight_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. null composer → early return
+ *                  2. non-null composer → forward task
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetScreenBacklight_Branches, TestSize.Level1)
+{
+    auto nullAgent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    nullAgent->SetScreenBacklight(10);
+
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    agent->SetScreenBacklight(20);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+/**
+ * Function: MiscForwarding_WithNonNull_Composer
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call CleanLayerBufferBySurfaceId / ClearRedrawGPUCompositionCache
+ *                  2. call SurfaceDump/GetRefreshInfoToSP/FpsDump/ClearFpsDump/HitchsDump/RefreshRateCounts/ClearRefreshRateCounts
+ */
+HWTEST_F(RsRenderComposerAgentTest, MiscForwarding_WithNonNull_Composer, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    agent->CleanLayerBufferBySurfaceId(0u);
+    agent->ClearRedrawGPUCompositionCache({});
+
+    std::string dumpString;
+    std::string layerArg = "layer";
+    agent->SurfaceDump(dumpString);
+    agent->GetRefreshInfoToSP(dumpString, static_cast<NodeId>(0));
+    agent->FpsDump(dumpString, layerArg);
+    agent->ClearFpsDump(dumpString, layerArg);
+    agent->HitchsDump(dumpString, layerArg);
+    agent->RefreshRateCounts(dumpString);
+    agent->ClearRefreshRateCounts(dumpString);
 }
 } // namespace Rosen
 } // namespace OHOS

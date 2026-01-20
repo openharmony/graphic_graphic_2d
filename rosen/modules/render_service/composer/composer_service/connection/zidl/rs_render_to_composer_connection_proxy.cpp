@@ -204,6 +204,10 @@ void RSRenderToComposerConnectionProxy::SetScreenBacklight(uint32_t level)
 void RSRenderToComposerConnectionProxy::SetComposerToRenderConnection(
     const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
+    if (composerToRenderConn == nullptr) {
+        RS_LOGE("%{public}s composerToRenderConn nullptr", __func__);
+        return;
+    }
     MessageOption option;
     MessageParcel reply;
     MessageParcel parcel;
@@ -221,6 +225,10 @@ void RSRenderToComposerConnectionProxy::SetComposerToRenderConnection(
 
 void RSRenderToComposerConnectionProxy::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
 {
+    if (buffer == nullptr) {
+        RS_LOGE("%{public}s buffer nullptr", __func__);
+        return;
+    }
     MessageOption option;
     MessageParcel reply;
     MessageParcel parcel;

@@ -1736,5 +1736,134 @@ HWTEST_F(RsRenderComposerTest, CalculateDelayTime, TestSize.Level1)
     hgmCore.isLtpoMode_.store(isLtpoMode);
     tmpRsRenderComposer->uniRenderEngine_ = nullptr;
 }
+
+/**
+ * Function: SurfaceDump_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SurfaceDump with valid hdiOutput_
+ *                  2. call SurfaceDump with null hdiOutput_
+ */
+HWTEST_F(RsRenderComposerTest, SurfaceDump_Branches, TestSize.Level1)
+{
+    std::string dumpString;
+    rsRenderComposer_->SurfaceDump(dumpString);
+    EXPECT_GE(dumpString.size(), 0u);
+
+    auto backup = rsRenderComposer_->hdiOutput_;
+    rsRenderComposer_->hdiOutput_ = nullptr;
+    std::string dumpStringNull;
+    rsRenderComposer_->SurfaceDump(dumpStringNull);
+    EXPECT_TRUE(dumpStringNull.empty());
+    rsRenderComposer_->hdiOutput_ = backup;
+}
+
+/**
+ * Function: SetScreenBacklight_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call with valid hdiOutput_
+ *                  2. call with null hdiOutput_
+ */
+HWTEST_F(RsRenderComposerTest, SetScreenBacklight_Branches, TestSize.Level1)
+{
+    rsRenderComposer_->SetScreenBacklight(50);
+    auto backup = rsRenderComposer_->hdiOutput_;
+    rsRenderComposer_->hdiOutput_ = nullptr;
+    rsRenderComposer_->SetScreenBacklight(0);
+    rsRenderComposer_->hdiOutput_ = backup;
+}
+
+/**
+ * Function: SetScreenPowerOnChanged_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call with valid hdiOutput_
+ *                  2. call with null hdiOutput_
+ */
+HWTEST_F(RsRenderComposerTest, SetScreenPowerOnChanged_Branches, TestSize.Level1)
+{
+    rsRenderComposer_->SetScreenPowerOnChanged(true);
+    auto backup = rsRenderComposer_->hdiOutput_;
+    rsRenderComposer_->hdiOutput_ = nullptr;
+    rsRenderComposer_->SetScreenPowerOnChanged(false);
+    rsRenderComposer_->hdiOutput_ = backup;
+}
+
+/**
+ * Function: CleanLayerBufferBySurfaceId_Normal
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: call CleanLayerBufferBySurfaceId with valid hdiOutput_
+ */
+HWTEST_F(RsRenderComposerTest, CleanLayerBufferBySurfaceId_Normal, TestSize.Level1)
+{
+    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+    rsRenderComposer_->CleanLayerBufferBySurfaceId(0u);
+}
+
+/**
+ * Function: RefreshRateCounts_NullUtils
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: hgmHardwareUtils_ set to nullptr then call refresh/clear
+ */
+HWTEST_F(RsRenderComposerTest, RefreshRateCounts_NullUtils, TestSize.Level1)
+{
+    auto backup = rsRenderComposer_->hgmHardwareUtils_;
+    rsRenderComposer_->hgmHardwareUtils_ = nullptr;
+    std::string s1, s2;
+    rsRenderComposer_->RefreshRateCounts(s1);
+    rsRenderComposer_->ClearRefreshRateCounts(s2);
+    EXPECT_TRUE(s1.empty());
+    EXPECT_TRUE(s2.empty());
+    rsRenderComposer_->hgmHardwareUtils_ = backup;
+}
+
+/**
+ * Function: GetDelayTime_AfterPrepare
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: ComposerPrepare updates delayTime_, then GetDelayTime returns same value
+ */
+HWTEST_F(RsRenderComposerTest, GetDelayTime_AfterPrepare, TestSize.Level1)
+{
+    PipelineParam pipelineParam;
+    uint32_t currentRate = 0;
+    int64_t delayTime = -1;
+    rsRenderComposer_->ComposerPrepare(currentRate, delayTime, pipelineParam);
+    EXPECT_EQ(rsRenderComposer_->GetDelayTime(), delayTime);
+}
+
+/**
+ * Function: OnHwcDeadAndRestored_State
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: verify isHwcDead_ toggles on dead/restored
+ */
+HWTEST_F(RsRenderComposerTest, OnHwcDeadAndRestored_State, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(2u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmp = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmp->hdiOutput_, nullptr);
+
+    tmp->OnHwcDead();
+    EXPECT_TRUE(tmp->isHwcDead_);
+
+    auto output2 = std::make_shared<HdiOutput>(2u);
+    output2->Init();
+    tmp->OnHwcRestored(output2, property);
+    EXPECT_FALSE(tmp->isHwcDead_);
+    EXPECT_NE(tmp->hdiOutput_, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

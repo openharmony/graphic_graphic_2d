@@ -127,6 +127,52 @@ HWTEST_F(HdiFramebufferSurfaceTest, OnBufferAvailable001, Function | MediumTest|
     EXPECT_EQ(fbSurface->consumerSurface_, nullptr);
     fbSurface->OnBufferAvailable(); // no crash
 }
+
+/**
+ * Function: GetFramebufferEmpty001
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetFramebuffer when no buffers available
+ *                  2. expect nullptr
+ */
+HWTEST_F(HdiFramebufferSurfaceTest, GetFramebufferEmpty001, Function | MediumTest| Level3)
+{
+    sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
+    auto fbEntry = fbSurface->GetFramebuffer();
+    ASSERT_EQ(fbEntry, nullptr);
+}
+
+/**
+ * Function: Dump_NoConsumer001
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call Dump when consumerSurface_ is nullptr
+ *                  2. ensure no crash and result string remains valid
+ */
+HWTEST_F(HdiFramebufferSurfaceTest, Dump_NoConsumer001, Function | MediumTest| Level3)
+{
+    sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
+    std::string result;
+    fbSurface->Dump(result);
+    SUCCEED();
+}
+
+/**
+ * Function: GetSurface_NoProducer001
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetSurface without creating producer
+ *                  2. expect nullptr
+ */
+HWTEST_F(HdiFramebufferSurfaceTest, GetSurface_NoProducer001, Function | MediumTest| Level3)
+{
+    sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
+    auto surface = fbSurface->GetSurface();
+    ASSERT_EQ(surface, nullptr);
+}
 }
 } // namespace Rosen
 } // namespace OHOS

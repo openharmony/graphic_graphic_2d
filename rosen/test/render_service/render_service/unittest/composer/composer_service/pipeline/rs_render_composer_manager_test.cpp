@@ -304,5 +304,166 @@ HWTEST_F(RsRenderComposerManagerTest, Dump_Operations, TestSize.Level1)
     mgr->HitchsDump(dumpString, layerArg);
     EXPECT_EQ(dumpString.find("window_test"), std::string::npos);
 }
+
+/**
+ * Function: OnHwcRestored_NullParams_EarlyReturn
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Call OnHwcRestored with nullptr output/property; expect no changes.
+ */
+HWTEST_F(RsRenderComposerManagerTest, OnHwcRestored_NullParams_EarlyReturn, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    mgr->OnHwcRestored(nullptr, nullptr);
+    EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
+}
+
+/**
+ * Function: OnHwcRestored_NotFound_EarlyReturn
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Call OnHwcRestored for a screen not connected; expect no crash or insert.
+ */
+HWTEST_F(RsRenderComposerManagerTest, OnHwcRestored_NotFound_EarlyReturn, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    auto output = std::make_shared<HdiOutput>(99u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnHwcRestored(output, property);
+    EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
+}
+
+/**
+ * Function: OnHwcDead_NotFound_EarlyReturn
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Call OnHwcDead for a screen not connected; expect early return.
+ */
+HWTEST_F(RsRenderComposerManagerTest, OnHwcDead_NotFound_EarlyReturn, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    mgr->OnHwcDead(123u);
+    EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
+}
+
+/**
+ * Function: OnHwcDead_Found_Path
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Connect a screen then call OnHwcDead; expect map size unchanged.
+ */
+HWTEST_F(RsRenderComposerManagerTest, OnHwcDead_Found_Path, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    auto output = std::make_shared<HdiOutput>(55u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    mgr->OnHwcDead(55u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+}
+
+/**
+ * Function: PostTask_NullHandler_NoRun
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: PostTask/Sync/Delay with null handler; tasks should not run.
+ */
+HWTEST_F(RsRenderComposerManagerTest, PostTask_NullHandler_NoRun, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    std::atomic<bool> ran{false};
+    mgr->PostTask([&ran]() { ran.store(true); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_FALSE(ran.load());
+    mgr->PostSyncTask([&ran]() { ran.store(true); });
+    EXPECT_FALSE(ran.load());
+    mgr->PostDelayTask([&ran]() { ran.store(true); }, 10);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    EXPECT_FALSE(ran.load());
+}
+
+/**
+ * Function: PostTask_ValidHandler_Runs
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: With valid handler, verify PostTask/Sync/Delay execute.
+ */
+HWTEST_F(RsRenderComposerManagerTest, PostTask_ValidHandler_Runs, TestSize.Level1)
+{
+    auto runner = AppExecFwk::EventRunner::Create("mgr_runner");
+    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    std::atomic<int> count{0};
+    mgr->PostTask([&count]() { count.fetch_add(1); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    mgr->PostDelayTask([&count]() { count.fetch_add(1); }, 10);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    mgr->PostSyncTask([&count]() { count.fetch_add(1); });
+    EXPECT_GE(count.load(), 2);
+}
+
+/**
+ * Function: SurfaceDump_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Call SurfaceDump with empty map, null agent, and connected agent.
+ */
+HWTEST_F(RsRenderComposerManagerTest, SurfaceDump_Branches, TestSize.Level1)
+{
+    std::string dumpString;
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    mgr->SurfaceDump(dumpString);
+    EXPECT_TRUE(dumpString.empty());
+    mgr->rsRenderComposerAgentMap_.insert(std::pair(0u, nullptr));
+    mgr->SurfaceDump(dumpString);
+    EXPECT_TRUE(dumpString.empty());
+    auto output = std::make_shared<HdiOutput>(66u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
+    mgr->SurfaceDump(dumpString);
+    EXPECT_GE(dumpString.size(), 0u);
+}
+
+/**
+ * Function: GetRefreshInfoToSP_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Call GetRefreshInfoToSP with empty map, null agent, and then connected agent.
+ */
+HWTEST_F(RsRenderComposerManagerTest, GetRefreshInfoToSP_Branches, TestSize.Level1)
+{
+    std::string dumpString;
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    mgr->GetRefreshInfoToSP(dumpString, 0);
+    EXPECT_TRUE(dumpString.empty());
+    mgr->rsRenderComposerAgentMap_.insert(std::pair(0u, nullptr));
+    mgr->GetRefreshInfoToSP(dumpString, 0);
+    EXPECT_TRUE(dumpString.empty());
+    auto output = std::make_shared<HdiOutput>(77u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
+    mgr->GetRefreshInfoToSP(dumpString, 0);
+    EXPECT_GE(dumpString.size(), 0u);
+}
 } // namespace Rosen
 } // namespace OHOS

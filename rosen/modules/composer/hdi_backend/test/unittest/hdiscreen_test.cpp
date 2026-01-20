@@ -411,6 +411,20 @@ HWTEST_F(HdiScreenTest, GetDisplayPropertyForHardCursor001, Function | MediumTes
     bool res = hdiScreen_->GetDisplayPropertyForHardCursor(screenId);
     EXPECT_FALSE(res);
 }
+
+/**
+ * Function: SetScreenLinearMatrix_SizeInvalid
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetScreenLinearMatrix with wrong size
+ *                  2. expect -1 (invalid parameter)
+ */
+HWTEST_F(HdiScreenTest, SetScreenLinearMatrix_SizeInvalid, Function | MediumTest | Level3)
+{
+    std::vector<float> wrongSizeMatrix = {1.0f, 2.0f};
+    ASSERT_EQ(hdiScreen_->SetScreenLinearMatrix(wrongSizeMatrix), -1);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

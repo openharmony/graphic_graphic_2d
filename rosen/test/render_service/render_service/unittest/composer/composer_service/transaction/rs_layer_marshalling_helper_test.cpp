@@ -105,4 +105,45 @@ HWTEST(RSLayerMarshallingHelperTest, CmdPtr_Marshall_Fail_NullPtr, TestSize.Leve
         << "Marshalling(nullCmd) timed out";
     EXPECT_FALSE(fut.get());
 }
+
+/**
+ * Function: CmdType_Unmarshall_Success
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. write a valid RSLayerCmdType value into parcel
+ *                  2. Unmarshalling into variable succeeds and matches
+ */
+HWTEST(RSLayerMarshallingHelperTest, CmdType_Unmarshall_Success, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::ZORDER)));
+    RSLayerCmdType ty = RSLayerCmdType::INVALID;
+    ASSERT_TRUE(RSLayerMarshallingHelper::Unmarshalling(parcel, ty));
+    EXPECT_EQ(ty, RSLayerCmdType::ZORDER);
+}
+
+/**
+ * Function: CmdPtr_Unmarshall_Success
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. marshal a valid RSRenderLayerCmd into parcel
+ *                  2. Unmarshalling via helper returns true and non-null
+ *                  3. verify command type and property value
+ */
+HWTEST(RSLayerMarshallingHelperTest, CmdPtr_Unmarshall_Success, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(9);
+    auto cmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
+
+    MessageParcel parcel;
+    ASSERT_TRUE(cmd->Marshalling(parcel));
+
+    std::shared_ptr<RSRenderLayerCmd> out;
+    ASSERT_TRUE(RSLayerMarshallingHelper::Unmarshalling(parcel, out));
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::ZORDER);
+    auto outProp = std::static_pointer_cast<RSRenderLayerCmdProperty<int32_t>>(out->GetRSRenderLayerProperty());
+    ASSERT_NE(outProp, nullptr);
+    EXPECT_EQ(outProp->Get(), 9);
+}
 } // namespace OHOS::Rosen

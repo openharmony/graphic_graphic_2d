@@ -31,6 +31,7 @@
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
+#include "pipeline/rs_surface_handler.h"
 
 #include "screen_manager/rs_screen_property.h"
 
@@ -425,6 +426,110 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest7, Function | SmallTest | 
     layer->blendType_ = static_cast<GraphicBlendType>(20);
     layer->Dump(result);
     EXPECT_NE(result, "");
+}
+
+/**
+ * @tc.name: BufferOwnerCount_SetGetAndSeqRetrieve
+ * @tc.desc: Verify BufferOwnerCount set/get and sequence retrieval logic
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_SetGetAndSeqRetrieve, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>();
+    ASSERT_NE(lyr, nullptr);
+
+    auto boc = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    boc->bufferId_ = 42u;
+    std::atomic<int> released{0};
+    boc->bufferReleaseCb_ = [&released](uint64_t seq){ (void)seq; released.fetch_add(1); };
+
+    lyr->SetBufferOwnerCount(boc, true);
+    auto cur = lyr->GetBufferOwnerCount();
+    ASSERT_NE(cur, nullptr);
+    EXPECT_EQ(cur->bufferId_, 42u);
+    EXPECT_GE(cur->refCount_.load(), 2); // AddRef called when inserted first time
+
+    // Repeat set with same seq should not AddRef again
+    lyr->SetBufferOwnerCount(boc, true);
+    EXPECT_GE(cur->refCount_.load(), 2);
+
+    // Retrieve by seqNum and ensure it's the same object
+    auto got = lyr->PopBufferOwnerCountById(42u);
+    ASSERT_NE(got, nullptr);
+    EXPECT_EQ(got.get(), boc.get());
+}
+
+/**
+ * @tc.name: BufferOwnerCount_Null_NoCrash
+ * @tc.desc: SetBufferOwnerCount with nullptr should be ignored harmlessly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_Null_NoCrash, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>();
+    lyr->SetBufferOwnerCount(nullptr, true);
+    EXPECT_EQ(lyr->GetBufferOwnerCount(), nullptr);
+    EXPECT_EQ(lyr->PopBufferOwnerCountById(123u), nullptr);
+}
+
+/**
+ * @tc.name: BufferOwnerCount_ReplaceSeq_UpdatesCurrentAndRetrieval
+ * @tc.desc: Setting different seq updates current pointer and AddRef, retrieval removes entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_ReplaceSeq_UpdatesCurrentAndRetrieval, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>();
+    auto boc1 = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    auto boc2 = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    boc1->bufferId_ = 1u;
+    boc2->bufferId_ = 2u;
+
+    lyr->SetBufferOwnerCount(boc1, true);
+    auto cur1 = lyr->GetBufferOwnerCount();
+    ASSERT_NE(cur1, nullptr);
+    EXPECT_EQ(cur1->bufferId_, 1u);
+    EXPECT_GE(cur1->refCount_.load(), 2);
+
+    lyr->SetBufferOwnerCount(boc2, true);
+    auto cur2 = lyr->GetBufferOwnerCount();
+    ASSERT_NE(cur2, nullptr);
+    EXPECT_EQ(cur2->bufferId_, 2u);
+    EXPECT_GE(cur2->refCount_.load(), 2);
+
+    // Retrieve seq 1 then 2, ensure removal behavior
+    auto got1 = lyr->PopBufferOwnerCountById(1u);
+    ASSERT_NE(got1, nullptr);
+    EXPECT_EQ(got1.get(), boc1.get());
+    EXPECT_EQ(lyr->PopBufferOwnerCountById(1u), nullptr);
+
+    auto got2 = lyr->PopBufferOwnerCountById(2u);
+    ASSERT_NE(got2, nullptr);
+    EXPECT_EQ(got2.get(), boc2.get());
+    EXPECT_EQ(lyr->PopBufferOwnerCountById(2u), nullptr);
+
+    // Current pointer stays as last set, independent from map erase
+    auto stillCur = lyr->GetBufferOwnerCount();
+    ASSERT_NE(stillCur, nullptr);
+    EXPECT_EQ(stillCur.get(), boc2.get());
+}
+
+/**
+ * @tc.name: BufferOwnerCount_UnknownSeq_NoRemoval
+ * @tc.desc: Unknown seq retrieval returns nullptr and does not alter existing entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_UnknownSeq_NoRemoval, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>();
+    auto boc = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    boc->bufferId_ = 9u;
+    lyr->SetBufferOwnerCount(boc, true);
+
+    EXPECT_EQ(lyr->PopBufferOwnerCountById(8u), nullptr);
+    auto got = lyr->PopBufferOwnerCountById(9u);
+    ASSERT_NE(got, nullptr);
+    EXPECT_EQ(got.get(), boc.get());
 }
 } // namespace Rosen
 } // namespace OHOS

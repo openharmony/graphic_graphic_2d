@@ -238,7 +238,7 @@ HWTEST_F(RSRenderComposerClientRemoteTest, CommitLayers001, TestSize.Level0)
     rsLayer->Dump(result);
     rsLayer->DumpCurrentFrameLayer();
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-    rsLayer->SetBufferOwnerCount(bufferOwnerCount);
+    rsLayer->SetBufferOwnerCount(bufferOwnerCount, true);
     ComposerInfo composerInfo;
     composerClient_->CommitLayers(composerInfo);
 }
@@ -415,7 +415,7 @@ HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo001, TestSize.Level0)
     rsLayer->Dump(result);
     rsLayer->DumpCurrentFrameLayer();
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-    rsLayer->SetBufferOwnerCount(bufferOwnerCount);
+    rsLayer->SetBufferOwnerCount(bufferOwnerCount, true);
     EXPECT_EQ(rsLayer->GetBufferOwnerCount() == bufferOwnerCount, true);
 }
 
@@ -572,7 +572,7 @@ HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo002, TestSize.Level0)
     rsLayer->SetIgnoreAlpha(true);
     rsLayer->SetAncoSrcRect(iRect);
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-    rsLayer->SetBufferOwnerCount(bufferOwnerCount);
-    rsLayer->SetBufferOwnerCount(bufferOwnerCount);
+    rsLayer->SetBufferOwnerCount(bufferOwnerCount, true);
+    rsLayer->SetBufferOwnerCount(bufferOwnerCount, true);
 }
 }
