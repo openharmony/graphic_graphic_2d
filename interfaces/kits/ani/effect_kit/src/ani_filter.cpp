@@ -161,10 +161,10 @@ ani_object AniFilter::Grayscale(ani_env* env, ani_object obj)
         env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
 }
 
-ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
+ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj, ani_boolean useCpuRender)
 {
     AniFilter* thisFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
-    bool forceCpu = false;
+    bool forceCpu = useCpuRender;
     if (!thisFilter) {
         EFFECT_LOG_E("thisFilter is null");
         return AniEffectKitUtils::CreateAniUndefined(env);
@@ -385,7 +385,7 @@ ani_status AniFilter::Init(ani_env* env)
             (&OHOS::Rosen::AniFilter::Blur)) },
         ani_native_function { "grayscaleNative", ":C{@ohos.effectKit.effectKit.Filter}",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::Grayscale) },
-        ani_native_function { "getEffectPixelMapNative", ":C{@ohos.multimedia.image.image.PixelMap}",
+        ani_native_function { "getEffectPixelMapNative", "z:C{@ohos.multimedia.image.image.PixelMap}",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetEffectPixelMap) },
         ani_native_function{"blurNative",
             "dC{@ohos.effectKit.effectKit.TileMode}:C{@ohos.effectKit.effectKit.Filter}",
