@@ -567,39 +567,28 @@ static bool IsNumber(const std::string& type)
     return number == type.length();
 }
 
-static bool ExtractDumpInfo(std::unordered_set<std::u16string>& argSets, std::string& dumpInfo, std::u16string title)
-{
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        dumpInfo.append("\n---------------\n Not in UniRender and no information");
-        return false;
-    }
-    if (argSets.size() < 2) {
-        dumpInfo.append("\n---------------\n no need extract info");
-        return false;
-    }
-    argSets.erase(title);
-    if (!argSets.empty()) {
-        dumpInfo = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-    }
-    return true;
-}
-
 void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, bool isLite) const
 {
-    std::string type;
-    bool isSuccess = ExtractDumpInfo(argSets, type, u"dumpMem");
-    if (!isSuccess) {
-        return;
-    }
-    int pid = 0;
-    if (!type.empty() && IsNumber(type) && type.length() < 10) {
-        pid = std::atoi(type.c_str());
-    }
-
-    mainThread_->ScheduleTask(
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        dumpString.append("\n---------------\nNot in UniRender and no information");
+    } else {
+        std::string type;
+        if (argSets.size() > 1) {
+            argSets.erase(u"dumpMem");
+            if (!argSets.empty()) {
+                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+            }
+        }
+        int pid = 0;
+        if (!type.empty() && IsNumber(type)) {
+            pid = std::atoi(type.c_str());
+        }
+        mainThread_->ScheduleTask(
         [this, &argSets, &dumpString, &type, &pid, isLite]() {
             return mainThread_->DumpMem(argSets, dumpString, type, pid, isLite);
         }).wait();
+        return;
+    }
 }
 
 void RSRenderService::DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
