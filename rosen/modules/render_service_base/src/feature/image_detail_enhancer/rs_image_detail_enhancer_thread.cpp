@@ -42,7 +42,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int IMAGE_DIFF_VALUE = 200; // Image size difference
-
+constexpr int MAX_SCALEUP_SIZE = 1920 * 1080; //Max scale up size
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 constexpr float INFO_ALPHA = 0.5f; // Sharpness parameter for SLR
 #endif
@@ -102,17 +102,24 @@ void RSImageDetailEnhancerThread::MarkDirty(uint64_t nodeId)
 
 bool RSImageDetailEnhancerThread::IsSizeSupport(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
-    if (srcWidth > 0 && srcHeight > 0 && srcWidth != dstWidth && srcHeight != dstHeight && dstWidth > params_.minSize &&
-        dstHeight > params_.minSize && dstWidth < params_.maxSize && dstHeight < params_.maxSize) {
-        float scaleX = (dstWidth * 1.0f) / (srcWidth * 1.0f);
-        float scaleY = (dstHeight * 1.0f) / (srcHeight * 1.0f);
+    if (dstWidth <= 0 || dstHeight <= 0 || srcWidth == dstWidth || srcHeight == dstHeight) {
+        return false;
+    }
+    if (srcWidth < dstWidth && srcHeight < dstHeight && srcWidth * srcHeight > MAX_SCALEUP_SIZE) {
+        return false;
+    }
+    if (dstWidth > params_.minSize && dstHeight > params_.minSize &&
+        srcWidth > params_.minSize && srcHeight > params_.minSize && dstWidth < params_.maxSize &&
+        dstHeight < params_.maxSize && srcWidth < params_.maxSize && srcHeight < params_.maxSize) {
+        float scaleX = static_cast<float>(dstWidth) / static_cast<float>(srcWidth);
+        float scaleY = static_cast<float>(dstHeight) / static_cast<float>(srcHeight);
         if ((scaleX > params_.minScaleRatio && scaleY > params_.minScaleRatio) &&
             (scaleX < params_.maxScaleRatio && scaleY < params_.maxScaleRatio)) {
+            RS_LOGD("RSImageDetailEnhancerThread size is supported, srcSize=(%{public}d, %{public}d), \
+                dstSize=(%{public}d, %{public}d)", srcWidth, srcHeight, dstWidth, dstHeight);
             return true;
         }
     }
-    RS_LOGD("RSImageDetailEnhancerThread size is not support, srcSize=(%{public}d, %{public}d), \
-        dstSize=(%{public}d, %{public}d)", srcWidth, srcHeight, dstWidth, dstHeight);
     return false;
 }
 
