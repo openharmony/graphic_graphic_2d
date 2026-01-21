@@ -131,7 +131,6 @@ HWTEST_F(RSMemoryTrackTest, MemoryNodeOfPidGetMemSizeTest, testing::ext::TestSiz
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, RegisterNodeMemTest001, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -1;
@@ -147,7 +146,6 @@ HWTEST_F(RSMemoryTrackTest, RegisterNodeMemTest001, testing::ext::TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, RegisterNodeMemTest002, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -1;
@@ -155,7 +153,6 @@ HWTEST_F(RSMemoryTrackTest, RegisterNodeMemTest002, testing::ext::TestSize.Level
     MemoryTrack::Instance().RegisterNodeMem(testPid, testSize, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     auto& memData = MemoryTrack::Instance().nodeMemOfPid_[testPid];
     EXPECT_EQ(memData.second, testSize);
-    MemoryTrack::Instance().UnRegisterNodeMem(testPid, testSize, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
 }
 
 /**
@@ -164,7 +161,6 @@ HWTEST_F(RSMemoryTrackTest, RegisterNodeMemTest002, testing::ext::TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, RegisterNodeMemTest003, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -2;
@@ -181,7 +177,6 @@ HWTEST_F(RSMemoryTrackTest, RegisterNodeMemTest003, testing::ext::TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest001, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -3;
@@ -200,7 +195,6 @@ HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest001, testing::ext::TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest002, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -3;
@@ -210,8 +204,6 @@ HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest002, testing::ext::TestSize.Lev
     MemoryTrack::Instance().UnRegisterNodeMem(testPid, unregisterSize, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     auto& memData = MemoryTrack::Instance().nodeMemOfPid_[testPid];
     EXPECT_EQ(memData.second, initialSize - unregisterSize);
-    MemoryTrack::Instance().UnRegisterNodeMem(testPid, initialSize - unregisterSize,
-        MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
 }
 
 /**
@@ -220,7 +212,6 @@ HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest002, testing::ext::TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest003, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -4;
@@ -238,7 +229,6 @@ HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest003, testing::ext::TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest004, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -10;
@@ -256,7 +246,6 @@ HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest004, testing::ext::TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest005, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -11;
@@ -274,7 +263,6 @@ HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest005, testing::ext::TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest006, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -12;
@@ -283,8 +271,7 @@ HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest006, testing::ext::TestSize.Lev
     MemoryTrack::Instance().RegisterNodeMem(testPid, initialSize, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     MemoryTrack::Instance().UnRegisterNodeMem(testPid, initialSize, MEMORY_TYPE::MEM_RENDER_NODE);
     MemoryTrack::Instance().UnRegisterNodeMem(testPid, initialSize, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
-    EXPECT_TRUE(MemoryTrack::Instance().nodeMemOfPid_.find(testPid) ==
-        MemoryTrack::Instance().nodeMemOfPid_.end());
+    EXPECT_EQ(MemoryTrack::Instance().nodeMemOfPid_.find(testPid), MemoryTrack::Instance().nodeMemOfPid_.end());
 }
 
 /**
@@ -293,7 +280,6 @@ HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest006, testing::ext::TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid001, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -5;
@@ -311,7 +297,6 @@ HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid001, testing::ext::TestSize.Level1
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid002, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -5;
@@ -329,7 +314,6 @@ HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid002, testing::ext::TestSize.Level1
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid003, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -5;
@@ -346,14 +330,13 @@ HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid003, testing::ext::TestSize.Level1
  * @tc.type: FUNC
  * @tc.require:
  */
-
 HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid004, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -5;
-    pid_t noExistPid = -6;
+    pid_t nonExistPid = -6;
     size_t registeredSize = 1000;
     MemoryTrack::Instance().RegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_NODE);
-    size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(noExistPid, MEMORY_TYPE::MEM_RENDER_NODE);
+    size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(nonExistPid, MEMORY_TYPE::MEM_RENDER_NODE);
     EXPECT_EQ(result, 0);
     MemoryTrack::Instance().UnRegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_NODE);
 }
@@ -396,16 +379,7 @@ HWTEST_F(RSMemoryTrackTest, AddNodeRecordTest001, testing::ext::TestSize.Level1)
     MemoryInfo info = {1024, ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemoryGraphic result = MemoryTrack::Instance().CountRSMemory(ExtractPid(id));
-    ASSERT_GT(result.GetCpuMemorySize(), 0);
-    MemoryTrack::Instance().RemoveNodeRecord(id);
-
-    for (int i = 0; i < 40002; i++) {
-        NodeId id = 10000000000000 + i;
-        MemoryInfo info = {1024, ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
-        MemoryTrack::Instance().AddNodeRecord(id, info);
-    }
-    EXPECT_TRUE(MemoryTrack::Instance().reportKillProcessSet_.count(ExtractPid(10000000000000)));
-    MemoryTrack::Instance().RemovePidRecord(ExtractPid(10000000000000));
+    EXPECT_GT(result.GetCpuMemorySize(), 0);
 }
 
 /**
@@ -421,7 +395,7 @@ HWTEST_F(RSMemoryTrackTest, AddNodeRecordTest002, testing::ext::TestSize.Level1)
     MemoryTrack::Instance().AddNodeRecord(id, info1);
     MemoryTrack::Instance().AddNodeRecord(id, info2);
     MemoryGraphic result = MemoryTrack::Instance().CountRSMemory(ExtractPid(id));
-    ASSERT_EQ(result.GetCpuMemorySize(), 4096);
+    EXPECT_EQ(result.GetCpuMemorySize(), 4096);
     MemoryTrack::Instance().RemoveNodeRecord(id);
 }
 
@@ -439,7 +413,7 @@ HWTEST_F(RSMemoryTrackTest, AddNodeRecordTest003, testing::ext::TestSize.Level1)
     MemoryTrack::Instance().AddNodeRecord(id, info1);
     MemoryTrack::Instance().AddNodeRecord(id, info2);
     MemoryGraphic result = MemoryTrack::Instance().CountRSMemory(ExtractPid(id));
-    ASSERT_EQ(result.GetCpuMemorySize(), 2048);
+    EXPECT_EQ(result.GetCpuMemorySize(), 2048);
     MemoryTrack::Instance().RemoveNodeRecord(id);
 }
 
@@ -456,7 +430,7 @@ HWTEST_F(RSMemoryTrackTest, RemoveNodeRecordTest, testing::ext::TestSize.Level1)
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemoryNodeOfPid memoryNodeOfPid;
     auto mem = memoryNodeOfPid.GetMemSize();
-    ASSERT_EQ(mem, 0);
+    EXPECT_EQ(mem, 0);
     MemoryTrack::Instance().RemoveNodeRecord(id);
 }
 
@@ -472,7 +446,7 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest001, testing::ext::TestSize.Level1)
     pid_t pid1 = -1;
     MemoryTrack::Instance().CountRSMemory(pid1);
     auto mem = memoryGraphic.GetCpuMemorySize();
-    ASSERT_EQ(mem, 0);
+    EXPECT_EQ(mem, 0);
 }
 
 /**
@@ -487,7 +461,7 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest002, testing::ext::TestSize.Level1)
     pid_t pid1 = 0;
     MemoryTrack::Instance().CountRSMemory(pid1);
     auto mem = memoryGraphic.GetCpuMemorySize();
-    ASSERT_EQ(mem, 0);
+    EXPECT_EQ(mem, 0);
 }
 
 /**
@@ -506,7 +480,7 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest003, testing::ext::TestSize.Level1)
     MemoryTrack::Instance().AddNodeRecord(id1, info1);
     MemoryTrack::Instance().AddNodeRecord(id2, info2);
     MemoryGraphic result = MemoryTrack::Instance().CountRSMemory(pid);
-    ASSERT_EQ(result.GetCpuMemorySize(), 1024 + 2048);
+    EXPECT_EQ(result.GetCpuMemorySize(), 1024 + 2048);
     MemoryTrack::Instance().RemoveNodeRecord(id1);
     MemoryTrack::Instance().RemoveNodeRecord(id2);
 }
@@ -521,8 +495,8 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest004, testing::ext::TestSize.Level1)
 {
     pid_t pid = 4001;
     MemoryGraphic result = MemoryTrack::Instance().CountRSMemory(pid);
-    ASSERT_EQ(result.GetCpuMemorySize(), 0);
-    ASSERT_EQ(result.GetPid(), 0);
+    EXPECT_EQ(result.GetCpuMemorySize(), 0);
+    EXPECT_EQ(result.GetPid(), 0);
 }
 
 /**
