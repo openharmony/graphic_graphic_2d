@@ -5095,6 +5095,10 @@ void RSProperties::OnApplyModifiers()
         // planning: temporary fix to calculate relative matrix in OnApplyModifiers, later RSRenderNode::Update will
         // overwrite it.
         boundsGeo_->UpdateByMatrixFromSelf();
+
+        if (GetPixelStretch().has_value() || GetPixelStretchPercent().has_value()) {
+            pixelStretchNeedUpdate_ = true;
+        }
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();
@@ -5106,10 +5110,9 @@ void RSProperties::OnApplyModifiers()
             filterNeedUpdate_ = true;
         }
     }
-    if (pixelStretchNeedUpdate_ || geoDirty_) {
-        filterNeedUpdate_ |= ((pixelStretchNeedUpdate_ || GetPixelStretch().has_value() ||
-            GetPixelStretchPercent().has_value()));
+    if (pixelStretchNeedUpdate_) {
         CalculatePixelStretch();
+        filterNeedUpdate_ = true;
     }
 
     if (bgShaderNeedUpdate_) {
