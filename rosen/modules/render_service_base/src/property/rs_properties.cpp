@@ -5425,6 +5425,14 @@ std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetForegroundShader() const
     return nullptr;
 }
 
+void RSProperties::InternalSetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape)
+{
+    if (ROSEN_EQ(renderSDFShape_, shape)) {
+        return;
+    }
+    renderSDFShape_ = shape;
+}
+
 void RSProperties::SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape)
 {
     if (ROSEN_EQ(renderSDFShape_, shape)) {
