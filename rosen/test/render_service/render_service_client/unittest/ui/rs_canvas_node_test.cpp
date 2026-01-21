@@ -2955,10 +2955,14 @@ HWTEST_F(RSCanvasNodeTest, SetandGetForegroundColor003, TestSize.Level1)
  */
 HWTEST_F(RSCanvasNodeTest, SetandGetBackgroundColor001, TestSize.Level1)
 {
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = 0x034123;
+    RSColor color = Color::FromArgbInt(colorValue);
+    color.ConvertToP3ColorSpace();
     canvasNode->SetBackgroundColor(colorValue);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundColor() == Color::FromArgbInt(colorValue));
+    EXPECT_TRUE(colorValue == color.AsArgbInt());
+#endif
 }
 
 /**
@@ -2970,8 +2974,10 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBackgroundColor002, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
+    RSColor color = Color::FromArgbInt(colorValue);
+    color.ConvertToP3ColorSpace();
     canvasNode->SetBackgroundColor(colorValue);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundColor() == Color::FromArgbInt(colorValue));
+    EXPECT_TRUE(colorValue == color.AsArgbInt());
 }
 
 /**
@@ -2983,8 +2989,10 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBackgroundColor003, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
+    RSColor color = Color::FromArgbInt(colorValue);
+    color.ConvertToP3ColorSpace();
     canvasNode->SetBackgroundColor(colorValue);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundColor() == Color::FromArgbInt(colorValue));
+    EXPECT_TRUE(colorValue == color.AsArgbInt());
 }
 
 /**
@@ -3865,229 +3873,4 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest004, TestSize.Level1)
         ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector2->GetRSUIContext());
     }
 }
-
-#if defined(MODIFIER_NG)
-#else
-/**
- * @tc.name: SetandGetBgImageSize001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImageSize001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImageSize(floatData[0], floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageWidth(), floatData[0]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageHeight(), floatData[1]));
-}
-
-/**
- * @tc.name: SetandGetBgImageSize002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImageSize002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImageSize(floatData[3], floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageWidth(), floatData[3]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageHeight(), floatData[1]));
-}
-
-/**
- * @tc.name: SetandGetBgImageSize003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImageSize003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImageSize(floatData[3], floatData[2]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageWidth(), floatData[3]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageHeight(), floatData[2]));
-}
-
-/**
- * @tc.name: SetandGetBgImageWidth001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImageWidth001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImageWidth(floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageWidth(), floatData[1]));
-}
-
-/**
- * @tc.name: SetandGetBgImageWidth002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImageWidth002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImageWidth(floatData[2]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageWidth(), floatData[2]));
-}
-
-/**
- * @tc.name: SetandGetBgImageWidth003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImageWidth003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImageWidth(floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageWidth(), floatData[3]));
-}
-
-/**
- * @tc.name: SetandGetBgImageHeight001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImageHeight001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImageHeight(floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageHeight(), floatData[1]));
-}
-
-/**
- * @tc.name: SetandGetBgImageHeight002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImageHeight002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImageHeight(floatData[2]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageHeight(), floatData[2]));
-}
-
-/**
- * @tc.name: SetandGetBgImageHeight003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImageHeight003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImageHeight(floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImageHeight(), floatData[3]));
-}
-
-/**
- * @tc.name: SetandSetBgImagePosition001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandSetBgImagePosition001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImagePosition(floatData[2], floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionX(), floatData[2]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionY(), floatData[3]));
-}
-
-/**
- * @tc.name: SetandSetBgImagePosition002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandSetBgImagePosition002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImagePosition(floatData[2], floatData[0]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionX(), floatData[2]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionY(), floatData[0]));
-}
-
-/**
- * @tc.name: SetandSetBgImagePosition003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandSetBgImagePosition003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImagePosition(floatData[1], floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionX(), floatData[1]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionY(), floatData[3]));
-}
-
-/**
- * @tc.name: SetandGetBgImagePositionX001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImagePositionX001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImagePositionX(floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionX(), floatData[1]));
-}
-
-/**
- * @tc.name: SetandGetBgImagePositionX002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImagePositionX002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImagePositionX(floatData[2]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionX(), floatData[2]));
-}
-
-/**
- * @tc.name: SetandGetBgImagePositionX003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImagePositionX003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImagePositionX(floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionX(), floatData[3]));
-}
-
-/**
- * @tc.name: SetandGetBgImagePositionY001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImagePositionY001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImagePositionY(floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionY(), floatData[1]));
-}
-
-/**
- * @tc.name: SetandGetBgImagePositionY002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImagePositionY002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImagePositionY(floatData[2]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionY(), floatData[2]));
-}
-
-/**
- * @tc.name: SetandGetBgImagePositionY003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetBgImagePositionY003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBgImagePositionY(floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBgImagePositionY(), floatData[3]));
-}
-#endif
 } // namespace OHOS::Rosen

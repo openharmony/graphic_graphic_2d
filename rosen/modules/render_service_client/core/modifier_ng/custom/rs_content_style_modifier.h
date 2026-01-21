@@ -27,10 +27,12 @@ public:
     ~RSContentStyleModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::CONTENT_STYLE;
+    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     }
+    // LCOV_EXCL_STOP
 
     void Draw(RSDrawingContext& context) const override
     {
@@ -38,10 +40,12 @@ public:
     }
 
 protected:
+    // LCOV_EXCL_START
     RSPropertyType GetInnerPropertyType() const override
     {
         return RSPropertyType::CONTENT_STYLE;
     }
+    // LCOV_EXCL_STOP
 };
 } // namespace ModifierNG
 } // namespace OHOS::Rosen

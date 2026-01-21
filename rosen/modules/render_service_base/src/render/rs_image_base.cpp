@@ -450,11 +450,7 @@ bool RSImageBase::UnmarshallingDrawingImageAndPixelMap(Parcel& parcel, uint64_t 
             RS_LOGE("RSImageBase::Unmarshalling UnmarshalAndCacheSkImage fail");
             return false;
         }
-        RSMarshallingHelper::SkipPixelMap(parcel);
     } else {
-        if (!RSMarshallingHelper::SkipImage(parcel)) {
-            return false;
-        }
         pixelMap = RSImageCache::Instance().GetPixelMapCache(uniqueId);
         RS_TRACE_NAME_FMT("RSImageBase::Unmarshalling pixelMap uniqueId:%lu, size:[%d %d], cached:%d",
             uniqueId, pixelMap ? pixelMap->GetWidth() : 0, pixelMap ? pixelMap->GetHeight() : 0, pixelMap != nullptr);
@@ -485,7 +481,7 @@ bool RSImageBase::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, dstRect_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
                    RSMarshallingHelper::Marshalling(parcel, versionId) &&
-                   RSMarshallingHelper::Marshalling(parcel, image_) &&
+                   pixelMap_ == nullptr ? RSMarshallingHelper::Marshalling(parcel, image_) :
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_);
     if (!success) {
         RS_LOGE("RSImageBase::Marshalling parcel fail");
@@ -616,8 +612,14 @@ bool RSImageBase::SetCompressedDataForASTC()
     if (pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
         (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
-        sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap_->GetFd()));
-        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+        if (nativeWindowBuffer_ == nullptr) {
+            sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap_->GetFd()));
+            nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+            if (nativeWindowBuffer_ == nullptr) {
+                RS_LOGE("RSImageBase SetCompressedDataForASTC create native window buffer fail");
+                return false;
+            }
+        }
         OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
         if (nativeBuffer == nullptr || !fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap_->GetCapacity())) {
             RS_LOGE("%{public}s data BuildFromOHNativeBuffer fail", __func__);

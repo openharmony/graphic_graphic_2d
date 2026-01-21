@@ -168,8 +168,9 @@
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "feature_cfg/feature_param/feature_param.h"
 
-// HDRHeterogeneous
-#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
+#ifdef HETERO_HDR_ENABLE
+#include "rs_hetero_hdr_manager.h"
+#endif
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
@@ -205,9 +206,7 @@ constexpr uint64_t PERF_PERIOD_BLUR = 1000000000;
 constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
 constexpr uint64_t MAX_DYNAMIC_STATUS_TIME = 5000000000;
 constexpr uint64_t MAX_SYSTEM_SCENE_STATUS_TIME = 800000000;
-constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
-constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t TIME_OF_CAPTURE_TASK_REMAIN = 500;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -227,7 +226,7 @@ constexpr uint32_t EVENT_NAME_MAX_LENGTH = 50;
 constexpr uint32_t EXT_INFO_MAX_LENGTH = 100;
 constexpr uint32_t HIGH_32BIT = 32;
 constexpr uint64_t PERIOD_MAX_OFFSET = 1000000; // 1ms
-constexpr uint64_t FASTCOMPOSE_OFFSET = 300000; // 300us
+constexpr uint64_t FASTCOMPOSE_OFFSET = 600000; // 600us fastcompose threshold
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
@@ -418,13 +417,31 @@ void RSMainThread::MarkNodeDirty(uint64_t nodeId)
     });
 }
 
+void RSMainThread::SendColorPickerCallback(uint64_t nodeId, uint32_t color)
+{
+    RSMainThread::Instance()->PostTask([nodeId, color]() {
+        // Look up the token from the render node
+        uint64_t token = 0;
+        auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        if (auto node = nodeMap.GetRenderNode(nodeId)) {
+            token = node->GetUIContextToken();
+        }
+
+        // Create and send the command with token
+        auto command = std::make_unique<RSColorPickerCallback>(nodeId, ExtractPid(nodeId), token, color);
+        RSMessageProcessor::Instance().AddUIMessage(ExtractPid(nodeId), std::move(command));
+        RSMainThread::Instance()->RequestNextVSync();
+    });
+}
+
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
     return &instance;
 }
 
-RSMainThread::RSMainThread() : rsParallelType_(RSSystemParameters::GetRsParallelType())
+RSMainThread::RSMainThread() : systemAnimatedScenesEnabled_(RSSystemParameters::GetSystemAnimatedScenesEnabled()),
+    rsParallelType_(RSSystemParameters::GetRsParallelType())
 {
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
@@ -476,7 +493,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
         }
         RenderFrameStart(timestamp_);
         RSRenderNodeGC::Instance().SetGCTaskEnable(true);
-        PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
         ConsumeAndUpdateAllNodes();
@@ -558,7 +574,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
     });
     RSSurfaceBufferCallbackManager::Instance().SetIsUniRender(true);
     RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
-        .requestNextVsync = []() {
+        .requestNextVSync = []() {
             RSMainThread::Instance()->RequestNextVSync();
         },
         .isRequestedNextVSync = []() {
@@ -597,6 +613,8 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
         std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
     RSColorPickerThread::Instance().RegisterNodeDirtyCallback(std::bind(&RSMainThread::MarkNodeDirty, this,
         std::placeholders::_1));
+    RSColorPickerThread::Instance().RegisterNotifyClientCallback(
+        std::bind(&RSMainThread::SendColorPickerCallback, this, std::placeholders::_1, std::placeholders::_2));
     RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(DRAWING_CACHE_DFX, OnDrawingCacheDfxSwitchCallback, nullptr);
     if (isUniRender_) {
@@ -1361,6 +1379,7 @@ void RSMainThread::ProcessCommandForUniRender()
         });
     }
 #endif
+    ProcessNeedAttachedNodes();
 }
 
 void RSMainThread::ProcessCommandForDividedRender()
@@ -1511,7 +1530,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         dividedRenderbufferTimestamps_.clear();
     }
     RSDrmUtil::ClearDrmNodes();
+#ifdef HETERO_HDR_ENABLE
     RSHeteroHDRManager::Instance().ClearPendingPostNodes();
+#endif
     const auto& nodeMap = GetContext().GetNodeMap();
     isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
     isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
@@ -1646,7 +1667,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (isColorTemperatureOn_ && surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
                 surfaceNode->SetSdrHasMetadata(RSHdrUtil::CheckIsSurfaceWithMetadata(*surfaceNode));
             }
+#ifdef HETERO_HDR_ENABLE
             RSHeteroHDRManager::Instance().UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
+#endif
         };
     }
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
@@ -1842,14 +1865,16 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool enableHwcForMirrorMode = RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
-    isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ || isFoldScreenSwitching ||
-        hasColorFilter || CheckOverlayDisplayEnable() ||
-        (isMultiDisplay && !hasProtectedLayer_ && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode));
-
-    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
-        "isFoldScreenSwitching:%d doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
-        isHardwareForcedDisabled_, isFoldScreenSwitching, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
-
+    isHardwareForcedDisabled_ =
+        (!hasProtectedLayer_ &&
+ 	     (isHardwareForcedDisabled_ || doWindowAnimate_ || isFoldScreenSwitching ||
+ 	      (isMultiDisplay && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode)) || hasColorFilter)) ||
+ 	    CheckOverlayDisplayEnable();
+    RS_OPTIONAL_TRACE_FMT("hwc debug: CheckIfHardwareForcedDisabled hasProtectedLayer:%d isHardwareForcedDisabled:%d"
+        " doWindowAnimate:%d isFoldScreenSwitching:%d isMultiDisplay:%d isExpandScreenOrWiredProjectionCase:%d"
+        " enableHwcForMirrorMode:%d hasColorFilter:%d overlayDisplayEnable:%d",
+        hasProtectedLayer_, isHardwareForcedDisabled_, doWindowAnimate_.load(), isFoldScreenSwitching, isMultiDisplay,
+        isExpandScreenOrWiredProjectionCase, enableHwcForMirrorMode, hasColorFilter, CheckOverlayDisplayEnable());
     if (isMultiDisplay && !isHardwareForcedDisabled_) {
         // Disable direct composition when hardware composer is enabled for virtual screen
         doDirectComposition_ = false;
@@ -1964,6 +1989,7 @@ void RSMainThread::WaitUntilUnmarshallingTaskFinished()
     }
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUnmarshallingTaskFinished");
     std::unique_lock<std::mutex> lock(unmarshalMutex_);
+    RSUnmarshalThread::Instance().WaitUntilParallelTasksFinished();
     if (unmarshalFinishedCount_ > 0) {
         waitForDVSyncFrame_.store(false);
     } else {
@@ -2279,7 +2305,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
-        systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
         lastWatermarkFlag_ = watermarkFlag_;
         isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
         isDrawingCacheDfxEnabledOfLastFrame_ = isDrawingCacheDfxEnabledOfCurFrame_;
@@ -2323,6 +2348,21 @@ bool RSMainThread::IfStatusBarDirtyOnly()
         }
     }
     return true;
+}
+
+void RSMainThread::ProcessNeedAttachedNodes()
+{
+    // Collect the nodes that need to be re-attached and call AfterTreeStateChanged
+    auto &mutablenodeMap = context_->GetMutableNodeMap();
+    auto needAttachedNodes = mutablenodeMap.GetNeedAttachedNode();
+    if (needAttachedNodes.empty()) {
+        return;
+    }
+    for (auto it = needAttachedNodes.begin(); it != needAttachedNodes.end();) {
+        auto needAttachNode = *it;
+        needAttachNode->AfterTreeStateChanged();
+        it = needAttachedNodes.erase(it);
+    }
 }
 
 namespace {
@@ -4483,24 +4523,6 @@ void RSMainThread::PerfForBlurIfNeeded()
     }
 }
 
-void RSMainThread::PerfMultiWindow()
-{
-    if (!isUniRender_) {
-        return;
-    }
-    static uint64_t lastPerfTimestamp = 0;
-    if (appWindowNum_ >= MULTI_WINDOW_PERF_START_NUM && appWindowNum_ <= MULTI_WINDOW_PERF_END_NUM
-        && timestamp_ - lastPerfTimestamp > PERF_PERIOD_MULTI_WINDOW) {
-        RS_LOGD("PerfMultiWindow soc perf");
-        PerfRequest(PERF_MULTI_WINDOW_REQUESTED_CODE, true);
-        lastPerfTimestamp = timestamp_;
-    } else if ((appWindowNum_ < MULTI_WINDOW_PERF_START_NUM || appWindowNum_ > MULTI_WINDOW_PERF_END_NUM)
-        && timestamp_ - lastPerfTimestamp < PERF_PERIOD_MULTI_WINDOW) {
-        RS_LOGD("PerfMultiWindow soc perf off");
-        PerfRequest(PERF_MULTI_WINDOW_REQUESTED_CODE, false);
-    }
-}
-
 void RSMainThread::RenderFrameStart(uint64_t timestamp)
 {
     uint32_t minBufferCount = UINT32_MAX;
@@ -4517,11 +4539,6 @@ void RSMainThread::RenderFrameStart(uint64_t timestamp)
     RenderFrameTrace::GetInstance().RenderStartFrameTrace(RS_INTERVAL_NAME);
 }
 
-void RSMainThread::SetAppWindowNum(uint32_t num)
-{
-    appWindowNum_ = num;
-}
-
 bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u] threeFingerScenesListSize[%u] "
@@ -4532,8 +4549,11 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
         RS_LOGD("SetSystemAnimatedScenes Out of range.");
         return false;
     }
-    systemAnimatedScenes_ = systemAnimatedScenes;
-    isRegularAnimation_ = isRegularAnimation;
+    {
+        std::lock_guard<std::mutex> lock(systemAndRegularMutex_);
+        systemAnimatedScenes_ = systemAnimatedScenes;
+        isRegularAnimation_ = isRegularAnimation;
+    }
     if (!systemAnimatedScenesEnabled_) {
         return true;
     }
@@ -4576,13 +4596,17 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
 }
 bool RSMainThread::GetIsRegularAnimation() const
 {
-    return (isRegularAnimation_ &&
-        systemAnimatedScenes_ < SystemAnimatedScenes::OTHERS &&
-        RSSystemParameters::GetAnimationOcclusionEnabled()) || IsPCThreeFingerScenesListScene();
+    bool ret = false;
+    {
+        std::lock_guard<std::mutex> lock(systemAndRegularMutex_);
+        ret = isRegularAnimation_ && systemAnimatedScenes_ < SystemAnimatedScenes::OTHERS;
+    }
+    return (ret && RSSystemParameters::GetAnimationOcclusionEnabled()) || IsPCThreeFingerScenesListScene();
 }
 
 SystemAnimatedScenes RSMainThread::GetSystemAnimatedScenes()
 {
+    std::lock_guard<std::mutex> lock(systemAndRegularMutex_);
     return systemAnimatedScenes_;
 }
 

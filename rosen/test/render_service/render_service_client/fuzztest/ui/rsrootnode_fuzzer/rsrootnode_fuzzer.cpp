@@ -62,7 +62,7 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreate(const uint8_t* data, size_t size)
+bool DoCreate()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -70,7 +70,7 @@ bool DoCreate(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetType(const uint8_t* data, size_t size)
+bool DoGetType()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -79,7 +79,7 @@ bool DoGetType(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoAttachRSSurfaceNode(const uint8_t* data, size_t size)
+bool DoAttachRSSurfaceNode()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -90,7 +90,7 @@ bool DoAttachRSSurfaceNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetEnableRender(const uint8_t* data, size_t size)
+bool DoSetEnableRender()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -100,7 +100,7 @@ bool DoSetEnableRender(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoOnBoundsSizeChanged(const uint8_t* data, size_t size)
+bool DoOnBoundsSizeChanged()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -119,11 +119,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     
     /* Run your code on data */
-    OHOS::Rosen::DoCreate(data, size);
-    OHOS::Rosen::DoGetType(data, size);
-    OHOS::Rosen::DoAttachRSSurfaceNode(data, size);
-    OHOS::Rosen::DoSetEnableRender(data, size);
-    OHOS::Rosen::DoOnBoundsSizeChanged(data, size);
+    OHOS::Rosen::DoCreate();
+    OHOS::Rosen::DoGetType();
+    OHOS::Rosen::DoAttachRSSurfaceNode();
+    OHOS::Rosen::DoSetEnableRender();
+    OHOS::Rosen::DoOnBoundsSizeChanged();
     return 0;
 }
 

@@ -247,6 +247,18 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
     params.childHasVisibleFilter_ = true;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(params.ChildHasVisibleFilter());
+
+    drawable->SetCacheType(DrawableCacheType::CONTENT);
+    drawable->isOffScreenWithClipHole_ = true;
+    drawable->CheckCacheTypeAndDraw(canvas, params);
+    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
+    EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), true);
+
+    drawable->SetCanceledByParentRenderGroup(true);
+    drawable->isOffScreenWithClipHole_ = false;
+    drawable->CheckCacheTypeAndDraw(canvas, params);
+    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
+    EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), false);
 }
 
 /**
@@ -264,7 +276,7 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheInfoForDfxTest, TestSize.Level1)
     drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
     drawable->isDrawingCacheDfxEnabled_ = true;
     drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
-    ASSERT_EQ(drawable->isDrawingCacheEnabled_, false);
+    ASSERT_EQ(drawable->isDrawingCacheEnabled_, true);
 }
 
 /**
@@ -281,7 +293,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawDfxForCacheInfoTest, TestSize.Level1)
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     auto renderParams = std::make_unique<RSRenderParams>(0);
     drawable->DrawDfxForCacheInfo(paintFilterCanvas, renderParams);
-    ASSERT_FALSE(drawable->isDrawingCacheEnabled_);
+    ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
     ASSERT_TRUE(drawable->isDrawingCacheDfxEnabled_);
     ASSERT_FALSE(drawable->autoCacheDrawingEnable_);
     ASSERT_FALSE(!drawable->isDrawingCacheDfxEnabled_);
@@ -432,7 +444,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest001, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
@@ -481,6 +493,27 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest, TestSize.Level1)
     updateTimes = 0;
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
     ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: CheckIfNeedUpdateCacheTest002
+ * @tc.desc: Test If CheckIfNeedUpdateCache Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest002, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    int32_t updateTimes = 0;
+    auto result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
+    EXPECT_FALSE(result);
+
+    drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    params.SetHasChildExcludedFromNodeGroup(true);
+    EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -553,7 +586,6 @@ HWTEST_F(RSRenderNodeDrawableTest, TraverseSubTreeAndDrawFilterWithClipTest, Tes
     drawable->TraverseSubTreeAndDrawFilterWithClip(canvas, params);
     ASSERT_FALSE(drawable->filterInfoVec_.empty());
 }
-
 
 /**
  * @tc.name: DrawWithoutNodeGroupCache
@@ -633,6 +665,46 @@ HWTEST_F(RSRenderNodeDrawableTest, ClearDrawingCacheContiUpdateTimeMapTest, Test
     drawable1->ClearDrawingCacheContiUpdateTimeMap();
     EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.count(id), 0);
     EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.count(drawable2->GetId()), 1);
+}
+
+/**
+ * @tc.name: UpdateCurRenderGroupCacheRootFilterStateTest
+ * @tc.desc: Test If UpdateCurRenderGroupCacheRootFilterState Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCurRenderGroupCacheRootFilterStateTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+
+    ASSERT_EQ(drawable->renderGroupCache_, nullptr);
+    EXPECT_FALSE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    auto rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    ASSERT_NE(drawable->renderGroupCache_, nullptr);
+    EXPECT_FALSE(rst);
+
+    params.SetChildHasVisibleFilter(true);
+    EXPECT_FALSE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    EXPECT_TRUE(rst);
+
+    params.SetChildHasVisibleFilter(false);
+    params.SetChildHasVisibleEffect(true);
+    EXPECT_FALSE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    EXPECT_TRUE(rst);
+
+    params.SetChildHasVisibleEffect(false);
+    params.SetHasChildExcludedFromNodeGroup(true);
+    EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    EXPECT_TRUE(rst);
+
+    params.SetHasChildExcludedFromNodeGroup(false);
+    EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    EXPECT_FALSE(rst);
 }
 
 /**
@@ -779,6 +851,24 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
     drawable->opincDrawCache_.isOpincMarkCached_ = true;
     ASSERT_TRUE(drawable->GetOpincDrawCache().OpincGetCachedMark());
     drawable->UpdateCacheSurface(paintFilterCanvas1, params);
+}
+
+/**
+ * @tc.name: GetNodeDebugInfo
+ * @tc.desc: Test GetNodeDebugInfo by default
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, GetNodeDebugInfo001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = nullptr;
+    EXPECT_EQ(drawable->GetRenderParams(), nullptr);
+    EXPECT_EQ(drawable->GetNodeDebugInfo(), "");
+    NodeId nodeId = 1;
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    EXPECT_NE(drawable->GetRenderParams(), nullptr);
+    EXPECT_NE(drawable->GetNodeDebugInfo(), "");
 }
 
 /**

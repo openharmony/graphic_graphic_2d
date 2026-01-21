@@ -444,6 +444,14 @@ HWTEST_F(HdiScreenTest, GetDisplayPropertyForHardCursor001, Function | MediumTes
     EXPECT_FALSE(res);
 }
 
+/*
+ * Function: GetPanelPowerStatus
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetPanelPowerStatus
+ *                  2. check ret
+ */
 HWTEST_F(HdiScreenTest, GetPanelPowerStatus001, Function | MediumTest | Level3)
 {
     GraphicPanelPowerStatus status;

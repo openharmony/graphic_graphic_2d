@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -324,6 +324,10 @@ public:
     CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
     CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
 
+#ifdef RS_ENABLE_VK
+    void AttachPaintWithColor(const Drawing::Paint& paint);
+#endif
+
     void SetParallelThreadIdx(uint32_t idx);
     uint32_t GetParallelThreadIdx() const;
     uint32_t GetParallelThreadId();
@@ -365,6 +369,7 @@ public:
         std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
         Drawing::RectI cachedRect_ = {};
         Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
+        float refractOut_ = 0.f;
         std::shared_ptr<IGECacheProvider> geCacheProvider_ = nullptr;
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
@@ -444,6 +449,8 @@ public:
     bool GetEffectIntersectWithDRM() const;
     void SetDarkColorMode(bool isDark);
     bool GetDarkColorMode() const;
+    void SetFilterClipBounds(const Drawing::RectI& rect);
+    const Drawing::RectI GetFilterClipBounds() const;
 
     struct CacheBehindWindowData {
         CacheBehindWindowData() = default;
@@ -481,12 +488,12 @@ public:
 
     void SaveDamageRegionrects(const std::vector<RectI>& drawAreas)
     {
-        damageRegionRects = drawAreas;
+        damageRegionrects = drawAreas;
     }
 
     const std::vector<RectI>& GetDamageRegionrects() const
     {
-        return damageRegionRects;
+        return damageRegionrects;
     }
 
 protected:
@@ -497,6 +504,9 @@ protected:
         std::shared_ptr<Drawing::Blender> blender_;
         bool hasOffscreenLayer_;
         std::map<ColorPlaceholder, Drawing::ColorQuad> pickedColorMap_;
+        // use as the clip bounds of the filter with a custom snapshot/drawing rect
+        // the value is the clip bounds of the surface render node
+        Drawing::RectI filterClipBounds_;
     };
 
     bool OnFilter() const override;
@@ -539,9 +549,6 @@ private:
     bool multipleScreen_ = false;
     bool isHdrOn_ = false;
     bool isReplacable_ = false;
-    bool isWindowFreezeCapture_ = false;
-    // Drawing window cache or uifirst cache
-    bool isDrawingCache_ = false;
     bool isIntersectWithDRM_ = false;
     bool isDarkColorMode_ = false;
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
@@ -571,38 +578,40 @@ private:
     std::stack<OffscreenData> offscreenDataList_; // store offscreen canvas & surface
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
-
+    bool isWindowFreezeCapture_ = false;
+    // Drawing window cache or uifirst cache
+    bool isDrawingCache_ = false;
     std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
     Occlusion::Region drawnRegion_;
     uint32_t threadId_;
     std::weak_ptr<Drawing::Surface> weakSurface_;
     uint8_t subTreeDrawStatus_ = DEFAULT_STATE;
-    std::vector<RectI> damageRegionRects;
+    std::vector<RectI> damageRegionrects;
 };
 
 #ifdef RS_ENABLE_VK
-class RSHybridRenderPaintFilterCanvas : public RSPaintFilterCanvas {
+class RSB_EXPORT RSHybridRenderPaintFilterCanvas : public RSPaintFilterCanvas {
 public:
-    RSHybridRenderPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f) : RSPaintFilterCanvas(canvas, alpha)
-    {}
+    RSHybridRenderPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f) :
+        RSPaintFilterCanvas(canvas, alpha) {}
 
-    RSHybridRenderPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f) : RSPaintFilterCanvas(surface, alpha)
-    {}
+    RSHybridRenderPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f) :
+        RSPaintFilterCanvas(surface, alpha) {}
 
     //Override the AttachPaint method
     CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
 
     bool IsRenderWithForegroundColor() const
     {
-        return isRenderWithForegroundColor;
+        return isRenderWithForegroundColor_;
     }
 
     void SetRenderWithForegroundColor(bool renderFilterStatus)
     {
-        isRenderWithForegroundColor = renderFilterStatus;
+        isRenderWithForegroundColor_ = renderFilterStatus;
     }
 private:
-    bool isRenderWithForegroundColor = false;
+    bool isRenderWithForegroundColor_ = false;
 };
 #endif
 

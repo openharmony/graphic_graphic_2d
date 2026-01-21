@@ -38,7 +38,6 @@
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
 #else
-#include "render/rs_shader_filter.h"
 #include "src/core/SkOpts.h"
 #endif
 

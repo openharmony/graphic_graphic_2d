@@ -37,7 +37,7 @@ static int64_t SystemTime()
 }
 
 constexpr int PRINT_COUNT_MAX = 1200;
-constexpr int64_t TIME_OUT_INTERVAL = 450000000; // 500000000ns == 450ms
+constexpr int64_t TIME_OUT_INTERVAL = 450000000; // 450000000ns == 450ms
 namespace OHOS {
 namespace Rosen {
 void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)

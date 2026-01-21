@@ -67,6 +67,17 @@ public:
         std::unordered_set<NodeId>& offTreeNodes);
     void PreorderTraversal(std::vector<std::shared_ptr<OcclusionNode>>& result);
     std::string GetOcclusionNodeInfoString();
+
+protected:
+    bool Contains3dTransformation(const RSProperties& renderProperties) const
+    {
+        return !ROSEN_EQ(renderProperties.GetTranslateZ(), 0.f) || !ROSEN_EQ(renderProperties.GetRotationX(), 0.f) ||
+            !ROSEN_EQ(renderProperties.GetRotationY(), 0.f) || !renderProperties.GetQuaternion().IsIdentity() ||
+            !ROSEN_EQ(renderProperties.GetScaleZ(), 1.f) || !ROSEN_EQ(renderProperties.GetSkewZ(), 0.f) ||
+            !ROSEN_EQ(renderProperties.GetPivotZ(), 0.f) || !ROSEN_EQ(renderProperties.GetCameraDistance(), 0.f) ||
+            !ROSEN_EQ(renderProperties.GetPerspZ(), 0.f) || !ROSEN_EQ(renderProperties.GetPerspW(), 1.f);
+    }
+
 private:
     void CalculateDrawRect(const RSRenderNode& node, const RSProperties& renderProperties);
     bool IsOutOfRootRect(const RectI16 &rect);
@@ -81,6 +92,7 @@ private:
     void CheckNodeOcclusion(OcclusionCoverageInfo& coverageInfo, std::unordered_set<NodeId>& culledNodes,
         std::unordered_set<NodeId>& culledEntireSubtree);
     void UpdateCoverageInfo(OcclusionCoverageInfo& globalCoverage, OcclusionCoverageInfo& selfCoverage);
+    RectI16 FindMaxDisjointSubRect(const RectI16& baseRect, const RectI16& clipRect) const;
 
     uint64_t id_ = INVALID_NODEID;
     uint64_t occludedById_ = INVALID_NODEID;
@@ -91,6 +103,7 @@ private:
     bool isOutOfRootRect_ = false;
     bool isAlphaNeed_ = false;
     bool isBgOpaque_ = false;
+    bool needFilter_ = false;
     // Indicates whether the node was inserted or updated in the current frame.
     // Nodes not inserted or updated in the current frame will be removed from the occlusion tree.
     bool isValidInCurrentFrame_ = false;

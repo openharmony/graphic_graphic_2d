@@ -123,7 +123,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, ui
     }
     tf->SetHash(hash);
     tf->SetSize(size);
-    tf->index_ = fontArguments.GetCollectionIndex();
+    tf->index_ = static_cast<uint32_t>(fontArguments.GetCollectionIndex());
     return tf;
 #else
     return nullptr;
@@ -198,7 +198,8 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
     tf->index_ = index;
     return tf;
 #else
-    return nullptr;
+    auto stream = std::make_unique<MemoryStream>(data, size, true);
+    return Typeface::MakeFromStream(std::move(stream), index);
 #endif
 }
 
@@ -228,10 +229,11 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
     }
     tf->SetHash(hash);
     tf->SetSize(size);
-    tf->index_ = fontArguments.GetCollectionIndex();
+    tf->index_ = static_cast<uint32_t>(fontArguments.GetCollectionIndex());
     return tf;
 #else
-    return nullptr;
+    auto stream = std::make_unique<MemoryStream>(data, size, true);
+    return Typeface::MakeFromStream(std::move(stream), fontArguments);
 #endif
 }
 
@@ -255,7 +257,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(std::unique_ptr<MemoryStream>
     tf->index_ = index;
     return tf;
 #else
-    return nullptr;
+    return Typeface::MakeFromStream(std::move(memoryStream), index);
 #endif
 }
 
@@ -381,26 +383,36 @@ std::shared_ptr<Typeface> Typeface::Deserialize(const void* data, size_t size)
     return typeface;
 }
 
-TypefaceRegisterCallback Typeface::registerTypefaceCallBack_ = nullptr;
+static TypefaceRegisterCallback& GetRegisterCallBackHolder()
+{
+    static TypefaceRegisterCallback callback = nullptr;
+    return callback;
+}
+
+static GetByUniqueIdCallback& GetUniqueIdCallBackHolder()
+{
+    static GetByUniqueIdCallback callback = nullptr;
+    return callback;
+}
+
 void Typeface::RegisterCallBackFunc(TypefaceRegisterCallback func)
 {
-    registerTypefaceCallBack_ = func;
+    GetRegisterCallBackHolder() = func;
 }
 
 TypefaceRegisterCallback& Typeface::GetTypefaceRegisterCallBack()
 {
-    return registerTypefaceCallBack_;
+    return GetRegisterCallBackHolder();
 }
 
-std::function<std::shared_ptr<Typeface>(uint64_t)> Typeface::uniqueIdCallBack_ = nullptr;
 void Typeface::RegisterUniqueIdCallBack(std::function<std::shared_ptr<Typeface>(uint64_t)> cb)
 {
-    uniqueIdCallBack_ = cb;
+    GetUniqueIdCallBackHolder() = cb;
 }
 
-std::function<std::shared_ptr<Typeface>(uint64_t)> Typeface::GetUniqueIdCallBack()
+GetByUniqueIdCallback Typeface::GetUniqueIdCallBack()
 {
-    return uniqueIdCallBack_;
+    return GetUniqueIdCallBackHolder();
 }
 
 uint32_t Typeface::GetHash() const

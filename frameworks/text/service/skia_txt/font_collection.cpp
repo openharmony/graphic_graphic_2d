@@ -73,12 +73,12 @@ FontCollection::~FontCollection()
 void FontCollection::EnableGlobalFontMgr()
 {
     fontCollection_->SetGlobalFontManager(FontCollection::Create()->GetFontMgr());
-    enableGlobalFontMgr_ = true;
+    enableGlobalFontMgr_.store(true);
 }
 
-bool FontCollection::IsLocalFontCollection()
+bool FontCollection::IsLocalFontCollection() const
 {
-    return enableGlobalFontMgr_;
+    return enableGlobalFontMgr_.load();
 }
 
 void FontCollection::DisableFallback()
@@ -101,7 +101,7 @@ bool FontCollection::CheckLocalFontCollectionSize(uint64_t size)
     if (!IsLocalFontCollection()) {
         return true;
     }
-    if (localRegisteredSizeCount_ + size <= FontCollectionMgr::GetInstance().GetLocalFontCollectionMaxSize()) {
+    if (localRegisteredSizeCount_.load() + size <= FontCollectionMgr::GetInstance().GetLocalFontCollectionMaxSize()) {
         return true;
     }
     return false;
@@ -113,9 +113,9 @@ void FontCollection::ChangeLocalFontCollectionSize(LocalActionType type, uint64_
         return;
     }
     if (type == LocalActionType::ADD) {
-        localRegisteredSizeCount_ += size;
+        localRegisteredSizeCount_.fetch_add(size);
     } else {
-        localRegisteredSizeCount_ -= size;
+        localRegisteredSizeCount_.fetch_sub(size);
     }
 }
 

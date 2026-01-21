@@ -557,62 +557,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     ASSERT_FALSE(drawableFour->OnUpdate(node));
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSBackgroundFilterDrawable002
- * @tc.desc: Test NeedBehindWindow branch
- * @tc.type: FUNC
- * @tc.require: issueIB0UQV
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.Level1)
-{
-    NodeId id = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    RSSurfaceRenderNode node(id, rsContext);
-    // GetBehindWindowFilter test
-    ASSERT_EQ(DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node), nullptr);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-    node.drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, list);
-    float radius = 0.f;
-    ASSERT_TRUE(DrawableV2::RSBackgroundFilterDrawable::GetModifierProperty(
-        node, RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, radius));
-    ASSERT_EQ(DrawableV2::RSBackgroundFilterDrawable::GetBehindWindowFilter(node), nullptr);
-    auto property2 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property2->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> list2 { std::make_shared<RSDrawCmdListRenderModifier>(property2) };
-    node.drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_SATURATION, list2);
-    ASSERT_EQ(DrawableV2::RSBackgroundFilterDrawable::GetBehindWindowFilter(node), nullptr);
-    auto property3 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property3->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> list3 { std::make_shared<RSDrawCmdListRenderModifier>(property3) };
-    node.drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS, list3);
-    ASSERT_EQ(DrawableV2::RSBackgroundFilterDrawable::GetBehindWindowFilter(node), nullptr);
-    auto property4 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property4->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> list4 { std::make_shared<RSDrawCmdListRenderModifier>(property4) };
-    node.drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR, list4);
-    ASSERT_NE(DrawableV2::RSBackgroundFilterDrawable::GetBehindWindowFilter(node), nullptr);
-    // OnGenerate and OnUpdate test
-    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node);
-    ASSERT_EQ(drawable, nullptr);
-    node.childrenBlurBehindWindow_.emplace(id + 1);
-    drawable = DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node);
-    auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
-    ASSERT_NE(drawable, nullptr);
-    ASSERT_NE(filterDrawable->stagingFilter_, nullptr);
-    ASSERT_TRUE(filterDrawable->needSync_);
-    ASSERT_TRUE(filterDrawable->stagingNeedDrawBehindWindow_);
-    RectI region(0, 0, 1, 1);
-    filterDrawable->stagingDrawBehindWindowRegion_ = region;
-    filterDrawable->OnSync();
-    ASSERT_TRUE(filterDrawable->needDrawBehindWindow_);
-    ASSERT_TRUE(filterDrawable->drawBehindWindowRegion_ == filterDrawable->stagingDrawBehindWindowRegion_);
-}
-#endif
-
 /**
  * @tc.name: RSBackgroundEffectDrawableOnDrawTest001
  * @tc.desc: Test OnDraw

@@ -253,8 +253,10 @@ bool DoSetPhysicalScreenResolution()
     if (rsToServiceConn_ == nullptr) {
         return false;
     }
-    ScreenId id = GetData<uint64_t>();
-    rsToServiceConn_->SetPhysicalScreenResolution(id, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ScreenId id = GetData<ScreenId>();
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
+    rsToServiceConn_->SetPhysicalScreenResolution(id, width, height);
     return true;
 }
 
@@ -331,16 +333,6 @@ bool DoSetScreenGamutMap()
     ScreenGamutMap mode = (ScreenGamutMap)mapMode;
     rsToServiceConn_->SetScreenGamutMap(id, mode);
     rsToServiceConn_->GetScreenGamutMap(id, mode);
-    return true;
-}
-
-bool DoSetAppWindowNum()
-{
-    if (rsToServiceConn_ == nullptr) {
-        return false;
-    }
-    uint32_t num = GetData<uint32_t>();
-    rsToServiceConn_->SetAppWindowNum(num);
     return true;
 }
 
@@ -1570,7 +1562,6 @@ void DoFuzzerTest1()
     DoGetScreenColorGamut();
     DoSetScreenPowerStatus();
     DoSetScreenGamutMap();
-    DoSetAppWindowNum();
     DoCreateVirtualScreen();
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     DoSetPointerColorInversionConfig();

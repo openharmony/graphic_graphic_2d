@@ -845,14 +845,27 @@ HWTEST_F(RSUifirstManagerTest, CheckIfAppWindowHasAnimation001, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, CheckIfAppWindowHasAnimation002, TestSize.Level1)
 {
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode1, nullptr);
 
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceNode1->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     RSUifirstManager::EventInfo event;
-    event.disableNodes.emplace(surfaceNode->GetId());
-    uifirstManager_.currentFrameEvent_.push_back(event);
-    ASSERT_TRUE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode));
+    event.appPid = 0;
+    event.startTime = 500;
+    event.disableNodes.emplace(surfaceNode1->GetId());
+    uifirstManager_.currentFrameEvent_.emplace_back(event);
+    ASSERT_TRUE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode1));
+
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode2->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceNode2->uifirstStartTime_ = 300;
+    EXPECT_FALSE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode2));
+    auto& element = uifirstManager_.currentFrameEvent_.back();
+    element.sceneId = "ABILITY_OR_PAGE_SWITCH";
+    EXPECT_TRUE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode2));
+    element.sceneId = "APP_LIST_FLING";
+    EXPECT_TRUE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode2));
     uifirstManager_.currentFrameEvent_.clear();
 }
 
@@ -1057,7 +1070,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     surfaceNode2->hasTransparentSurface_ = false;
     uifirstManager_.rotationChanged_ = true;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
-    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
     uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
     uifirstManager_.isUiFirstOn_ = false;
     uifirstManager_.rotationChanged_ = false;

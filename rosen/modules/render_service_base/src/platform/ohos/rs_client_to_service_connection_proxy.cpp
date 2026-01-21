@@ -2408,34 +2408,32 @@ void RSClientToServiceConnectionProxy::SetScreenBacklight(ScreenId id, uint32_t 
     }
 }
 
-ErrCode RSClientToServiceConnectionProxy::GetPanelPowerStatus(uint64_t screenId, uint32_t& status)
+ErrCode RSClientToServiceConnectionProxy::GetPanelPowerStatus(uint64_t screenId, PanelPowerStatus& status)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ROSEN_LOGE("GetPanelPowerStatus: WriteInterfaceToken GetDescriptor err.");
-        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(screenId)) {
         ROSEN_LOGE("GetPanelPowerStatus: WriteUint64 id err.");
-        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: sendrequest error: %{public}d", __func__, err);
-        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
         return ERR_INVALID_OPERATION;
     }
-    if (!reply.ReadUint32(status)) {
+    uint32_t readStatus = 0;
+    if (!reply.ReadUint32(readStatus)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::GetPanelPowerStatus Read status failed");
-        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
         return ERR_INVALID_VALUE;
     }
+    status = static_cast<PanelPowerStatus>(readStatus);
     return ERR_OK;
 }
 
@@ -3969,30 +3967,6 @@ int32_t RSClientToServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpda
         return READ_PARCEL_ERR;
     }
     return result;
-}
-
-ErrCode RSClientToServiceConnectionProxy::SetAppWindowNum(uint32_t num)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("SetAppWindowNum: WriteInterfaceToken GetDescriptor err.");
-        return ERR_INVALID_VALUE;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteUint32(num)) {
-        ROSEN_LOGE("SetAppWindowNum: WriteUint32 num err.");
-        return ERR_INVALID_VALUE;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetAppWindowNum: Send Request err.");
-        return ERR_INVALID_VALUE;
-    }
-
-    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnectionProxy::SetSystemAnimatedScenes(

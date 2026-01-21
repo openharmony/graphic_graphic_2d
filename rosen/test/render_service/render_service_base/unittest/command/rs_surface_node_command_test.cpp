@@ -78,30 +78,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestCreateWithConfig, TestSize.Level1)
 }
 
 /**
- * @tc.name: TestCreateWithConfigInRS
- * @tc.desc: CreateWithConfigInRS test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceNodeCommandTest, TestCreateWithConfigInRS, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = 13;
-    NodeId childNodeId = 15;
-    int32_t index = static_cast<int32_t>(0);
-    RSSurfaceRenderNodeConfig config = { .id = nodeId, .nodeType = RSSurfaceNodeType::DEFAULT };
-    std::string name2 = "name2";
-    RSSurfaceNodeType nodeType = RSSurfaceNodeType::DEFAULT;
-    RSSurfaceRenderNodeConfig config2;
-    config2.id = childNodeId;
-    config2.name = name2;
-    config2.nodeType = nodeType;
-    SurfaceNodeCommandHelper::Create(context, nodeId);
-    BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
-    SurfaceNodeCommandHelper::CreateWithConfigInRS(config2, context);
-    ASSERT_EQ(childNodeId, static_cast<NodeId>(15));
-}
-
-/**
  * @tc.name: TestRSSurfaceNodeCommand002
  * @tc.desc: ConnectToNodeInRenderService test.
  * @tc.type: FUNC

@@ -186,6 +186,11 @@ public:
         return childHasVisibleHDRContent_;
     }
 
+    bool SelfOrChildHasHDR() const
+    {
+        return childHasVisibleHDRContent_ || hdrStatus_ != HdrStatus::NO_HDR;
+    }
+
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
 
     GraphicColorGamut GetNodeColorSpace() const
@@ -272,6 +277,7 @@ public:
         return cacheSize_;
     }
 
+    // used for RenderGroup
     void SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced);
     bool GetDrawingCacheChanged() const
     {
@@ -290,18 +296,32 @@ public:
     {
         return isNeedUpdateCache_;
     }
-
     void SetDrawingCacheType(RSDrawingCacheType cacheType);
     RSDrawingCacheType GetDrawingCacheType() const
     {
         return drawingCacheType_;
     }
-
     bool ExcludedFromNodeGroup(bool isExcluded);
     bool IsExcludedFromNodeGroup() const;
-
     void SetHasChildExcludedFromNodeGroup(bool isExcluded);
     bool HasChildExcludedFromNodeGroup() const;
+    void SetRenderGroupExcludedStateChanged(bool isChanged);
+    bool IsRenderGroupExcludedStateChanged() const;
+    void SetRenderGroupSubTreeDirty(bool isDirty);
+    bool IsRenderGroupSubTreeDirty() const;
+    void SetChildHasTranslateOnSqueeze(bool val);
+    bool ChildHasTranslateOnSqueeze() const;
+    void SetDrawingCacheIncludeProperty(bool includeProperty);
+    bool GetDrawingCacheIncludeProperty() const
+    {
+        return drawingCacheIncludeProperty_;
+    }
+    void SetRSFreezeFlag(bool freezeFlag);
+    bool GetRSFreezeFlag() const
+    {
+        return freezeFlag_;
+    }
+    // !used for RenderGroup
 
     void OpincSetIsSuggest(bool isSuggest);
     bool OpincIsSuggest() const
@@ -326,17 +346,6 @@ public:
         return state;
     }
 
-    void SetDrawingCacheIncludeProperty(bool includeProperty);
-    bool GetDrawingCacheIncludeProperty() const
-    {
-        return drawingCacheIncludeProperty_;
-    }
-
-    void SetRSFreezeFlag(bool freezeFlag);
-    bool GetRSFreezeFlag() const
-    {
-        return freezeFlag_;
-    }
     void SetShadowRect(Drawing::Rect rect);
     Drawing::Rect GetShadowRect() const
     {

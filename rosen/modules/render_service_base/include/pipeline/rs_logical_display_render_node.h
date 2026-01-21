@@ -152,8 +152,8 @@ public:
     CompositeType GetCompositeType() const;
 
     void UpdateFixedSize();
-    uint32_t GetFixedWidth() const;
-    uint32_t GetFixedHeight() const;
+    float GetFixedWidth() const;
+    float GetFixedHeight() const;
 
     Occlusion::Region GetTopSurfaceOpaqueRegion() const;
 
@@ -198,8 +198,8 @@ private:
     bool lastRotationChanged_ = false;
     float lastRotation_ = 0.f;
 
-    uint32_t fixedWidth_ = 0;
-    uint32_t fixedHeight_ = 0;
+    float fixedWidth_ = 0;
+    float fixedHeight_ = 0;
     
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;

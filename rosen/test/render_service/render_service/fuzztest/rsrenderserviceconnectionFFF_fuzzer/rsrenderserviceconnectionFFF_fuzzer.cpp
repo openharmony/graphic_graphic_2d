@@ -66,6 +66,7 @@ const uint8_t DO_NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 8;
 const uint8_t DO_SET_BEHIND_WINDOW_FILTER_ENABLED = 9;
 const uint8_t TARGET_SIZE = 10;
 const uint16_t TASK_WAIT_MICROSECONDS = 50000;
+const uint32_t WAIT_TASK_RUN_TIME_NS = 10000;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -409,5 +410,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         default:
             return -1;
     }
+    usleep(OHOS::Rosen::WAIT_TASK_RUN_TIME_NS);
     return 0;
 }

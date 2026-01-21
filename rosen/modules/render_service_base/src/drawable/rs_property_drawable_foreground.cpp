@@ -495,9 +495,10 @@ bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     if (rsFilter == nullptr) {
         return false;
     }
-    const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-    RSPropertyDrawableUtils::ApplySDFShapeToFilter(node.GetRenderProperties(),
-        drawingFilter, node.GetId());
+    if (rsFilter->IsDrawingFilter()) {
+        const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+        RSPropertyDrawableUtils::ApplySDFShapeToFilter(node.GetRenderProperties(), drawingFilter, node.GetId());
+    }
     needSync_ = true;
     stagingBoundsRect_ = node.GetRenderProperties().GetBoundsRect();
     return true;

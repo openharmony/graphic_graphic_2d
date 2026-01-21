@@ -240,8 +240,6 @@ public:
 
     Drawing::RectI GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
         EffectRectType type, const RectF& bound) const override;
-    void CalVisibleRect(const Drawing::Matrix& absMatrix, const std::optional<RectI>& clipRect,
-        const RectF& defaultRelativeRect) override;
 private:
     bool stagingEmptyShape_ = false;
     bool emptyShape_ = false;

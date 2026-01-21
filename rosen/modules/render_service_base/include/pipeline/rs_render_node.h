@@ -616,18 +616,6 @@ public:
         return cacheType_;
     }
 
-    void SetDrawingCacheType(RSDrawingCacheType cacheType);
-    RSDrawingCacheType GetDrawingCacheType() const
-    {
-        return drawingCacheType_;
-    }
-    void SetDrawingCacheChanged(bool cacheChanged);
-    bool GetDrawingCacheChanged() const;
-    void SetForceDisableNodeGroup(bool forceDisable);
-    bool IsForceDisableNodeGroup() const;
-    // manage cache root nodeid
-    void SetDrawingCacheRootId(NodeId id);
-    NodeId GetDrawingCacheRootId() const;
     // record cache geodirty for preparation optimization
     void SetGeoUpdateDelay(bool val);
     void ResetGeoUpdateDelay();
@@ -670,15 +658,16 @@ public:
     OutOfParentType GetOutOfParent() const;
 
     void UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced = false);
-    virtual void MarkFilterHasEffectChildren() {};
-    virtual void OnFilterCacheStateChanged() {};
+    virtual void MarkFilterHasEffectChildren() {}
+    virtual void OnFilterCacheStateChanged() {}
 
     // for blur filter cache
     virtual void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false,
         bool rotationStatusChanged = false);
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
-        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect,
+        const std::optional<RectI>& surfaceClipRect);
     void FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager,
         const RectI& filterRect);
     void MarkFilterStatusChanged(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
@@ -705,6 +694,16 @@ public:
     void MarkForceClearFilterCacheWithInvisible();
     void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
 
+    // used for renderGroup
+    void SetDrawingCacheType(RSDrawingCacheType cacheType);
+    RSDrawingCacheType GetDrawingCacheType() const
+    {
+        return drawingCacheType_;
+    }
+    void SetDrawingCacheChanged(bool cacheChanged);
+    bool GetDrawingCacheChanged() const;
+    void SetForceDisableNodeGroup(bool forceDisable);
+    bool IsForceDisableNodeGroup() const;
     bool IsForcedDrawInGroup() const;
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
@@ -719,13 +718,20 @@ public:
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     void ExcludedFromNodeGroup(bool isExcluded);
     bool IsExcludedFromNodeGroup() const;
-
     void SetHasChildExcludedFromNodeGroup(bool isExcluded);
     bool HasChildExcludedFromNodeGroup() const;
-
+    void SetRenderGroupExcludedStateChanged(bool isChanged);
+    bool IsRenderGroupExcludedStateChanged() const;
+    void SetRenderGroupSubTreeDirty(bool isDirty);
+    bool IsRenderGroupSubTreeDirty() const;
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
+    void SetChildHasTranslateOnSqueeze(bool val);
     bool IsNodeGroupIncludeProperty() const;
+    void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, bool isOnExcludedSubTree);
+    void UpdateDrawingCacheInfoAfterChildren(
+        bool isInBlackList = false, const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
+    // !used for renderGroup
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
@@ -779,15 +785,12 @@ public:
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
     void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn);
-    void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
-    void UpdateDrawingCacheInfoAfterChildren(bool isInBlackList = false,
-        const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
 
     virtual RectI GetFilterRect() const;
     RectI GetAbsRect() const;
-    void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
+    void CalVisibleFilterRect(const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
     void CalVisibleFilterRect(const RectI& absRect, const Drawing::Matrix& matrix,
-        const std::optional<RectI>& clipRect);
+        const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
     void UpdateFilterRectInfo();
     std::shared_ptr<RSFilter> GetRSFilterWithSlot(RSDrawableSlot slot) const;
 
@@ -957,7 +960,7 @@ public:
 
     void SetHdrNum(bool flag, NodeId instanceRootNodeId, NodeId screenNodeId, HDRComponentType hdrType);
 
-    virtual void UpdateNodeColorSpace() {};
+    virtual void UpdateNodeColorSpace() {}
     void ResetNodeColorSpace();
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetNodeColorSpace() const;
@@ -1081,8 +1084,8 @@ protected:
     virtual void InitRenderParams();
     virtual void OnSync();
     virtual void OnSkipSync();
-    virtual void AccumulateLastDirtyTypes() {};
-    virtual void ClearNeverOnTree() {};
+    virtual void AccumulateLastDirtyTypes() {}
+    virtual void ClearNeverOnTree() {}
 
     void AddUIExtensionChild(SharedPtr child);
     void MoveUIExtensionChild(SharedPtr child);

@@ -111,7 +111,7 @@ void RSUniRenderProcessor::PostProcess()
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
-void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
+void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
     const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();

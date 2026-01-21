@@ -39,7 +39,6 @@
 #include "common/rs_exception_check.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
-#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/lpp/lpp_video_handler.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -60,6 +59,10 @@
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "feature/gpuComposition/rs_vk_image_manager.h"
+#endif
+
+#ifdef HETERO_HDR_ENABLE
+#include "rs_hetero_hdr_manager.h"
 #endif
 
 #ifdef RS_ENABLE_EGLIMAGE
@@ -290,7 +293,7 @@ void RSRenderComposer::ComposerPrepare(RefreshRateParam& param, uint32_t& curren
 #endif
     {
         ++acquiredBufferCount_;
-        RS_TRACE_NAME_FMT("Inc Acq BufferCount %d screenId: %" PRIu64 "", acquiredBufferCount_.load(), screenId_);
+        RS_TRACE_NAME_FMT("Inc Acq BufferCount %d screenId: %" PRIu64, acquiredBufferCount_.load(), screenId_);
     }
     unExecuteTaskNum_++;
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
@@ -374,7 +377,9 @@ void RSRenderComposer::ProcessComposerFrame(RefreshRateParam param, uint32_t cur
         unExecuteTaskNum_.load(), COMPOSER_THREAD_TASK_NUM, surfaceName.c_str());
     if (unExecuteTaskNum_ <= COMPOSER_THREAD_TASK_NUM) {
         NotifyComposerCanExecuteTask();
+#ifdef HETERO_HDR_ENABLE
         RSHeteroHDRManager::Instance().NotifyHardwareThreadCanExecuteTask();
+#endif
     }
     RSMainThread::Instance()->SetTaskEndWithTime(SystemTime() - lastActualTime_);
     lastActualTime_ = param.actualTimestamp;
@@ -802,7 +807,7 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const sptr<Surface
 void RSRenderComposer::HandlePowerStatus(ScreenPowerStatus status)
 {
     RS_TRACE_NAME_FMT("%s: screenId: %" PRIu64 " PowerStatus: %d", __func__, screenId_, status);
-    hgmHardwareUtils_.ResetRetryCount(status);
+    PostTask([this, status]() { hgmHardwareUtils_.ResetRetryCount(status); });
 }
 
 void RSRenderComposer::OnScreenVBlankIdleCallback(uint64_t timestamp)
@@ -997,7 +1002,8 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
-    GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    GetDisplayClientTargetProperty(pixelFormat, colorGamut, layers);
     RS_LOGD("Redraw computed target color gamut: %{public}d,"
         "pixel format: %{public}d, frame width: %{public}u, frame height: %{public}u",
         colorGamut, pixelFormat, screenInfo.phyWidth, screenInfo.phyHeight);
@@ -1235,6 +1241,29 @@ bool RSRenderComposer::ConvertColorGamutToSpaceType(const GraphicColorGamut& col
 
     colorSpaceType = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(colorGamut);
     return true;
+}
+
+bool RSRenderComposer::GetDisplayClientTargetProperty(GraphicPixelFormat &pixelFormat, GraphicColorGamut &colorGamut,
+    const std::vector<std::shared_ptr<RSLayer>>& layers)
+{
+    int32_t pixelFormatInt = 0;
+    int32_t dataspaceInt = 0;
+    if (hdiOutput_ != nullptr) {
+        int32_t ret = hdiOutput_->GetDisplayClientTargetProperty(pixelFormatInt, dataspaceInt);
+        if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+            // Direct cast from int32_t to GraphicPixelFormat
+            pixelFormat = static_cast<GraphicPixelFormat>(pixelFormatInt);
+            return true;
+        } else {
+            RS_LOGD("GetDisplayClientTargetProperty failed, ret: %{public}d, fallback to computed values", ret);
+            pixelFormat = ComputeTargetPixelFormat(layers);
+            return false;
+        }
+    } else {
+        RS_LOGD("output returned nullptr, fallback to computed values");
+        pixelFormat = ComputeTargetPixelFormat(layers);
+        return false;
+    }
 }
 #endif
 

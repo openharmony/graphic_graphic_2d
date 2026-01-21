@@ -210,7 +210,6 @@ public:
     void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, const std::string& type);
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
-    void SetAppWindowNum(uint32_t num);
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
     SystemAnimatedScenes GetSystemAnimatedScenes();
     bool GetIsRegularAnimation() const;
@@ -430,6 +429,7 @@ public:
     uint32_t GetVsyncRefreshRate();
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
     void MarkNodeDirty(uint64_t nodeId);
+    void SendColorPickerCallback(uint64_t nodeId, uint32_t color);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
@@ -509,7 +509,6 @@ private:
     void ClearDisplayBuffer();
     void PerfAfterAnim(bool needRequestNextVsync);
     void PerfForBlurIfNeeded();
-    void PerfMultiWindow();
     void RenderFrameStart(uint64_t timestamp);
     void CheckAndUpdateTransactionIndex(
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
@@ -588,6 +587,8 @@ private:
     void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
 
+    void ProcessNeedAttachedNodes();
+
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
     bool clearMemoryFinished_ = true;
@@ -650,11 +651,11 @@ private:
 
     pid_t lastCleanCachePid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
-    uint32_t appWindowNum_ = 0;
     pid_t desktopPidForRotationScene_ = 0;
     int32_t subscribeFailCount_ = 0;
-    SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
-    bool isRegularAnimation_ = false;
+    SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS; // guard by systemAndRegularMutex_
+    bool isRegularAnimation_ = false; // guard by systemAndRegularMutex_
+    mutable std::mutex systemAndRegularMutex_;
     uint32_t leashWindowCount_ = 0;
     pid_t exitedPid_ = -1;
     RsParallelType rsParallelType_;

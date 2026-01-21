@@ -12,20 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "gtest/gtest.h"
 
-#include "skia_image.h"
-#include "skia_image_info.h"
-#include "draw/canvas.h"
+#include "render/rs_hdr_ui_brightness_filter.h"
 #include "draw/color.h"
+#include "draw/canvas.h"
 #include "draw/surface.h"
 #include "image/image_info.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "render/rs_hdr_ui_brightness_filter.h"
+#include "skia_image.h"
+#include "skia_image_info.h"
 
 using namespace testing;
 using namespace testing::ext;
+
 namespace OHOS {
 namespace Rosen {
 
@@ -46,6 +46,7 @@ void RSHDRUIBrightnessFilterTest::TearDown() {}
  * @tc.name: GetDescription
  * @tc.desc: test GetDescription
  * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
  */
 HWTEST_F(RSHDRUIBrightnessFilterTest, GetDescriptionTest, TestSize.Level1)
 {
@@ -59,23 +60,23 @@ HWTEST_F(RSHDRUIBrightnessFilterTest, GetDescriptionTest, TestSize.Level1)
  * @tc.name: GetHDRUIBrightness
  * @tc.desc: test GetHDRUIBrightness
  * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
  */
 HWTEST_F(RSHDRUIBrightnessFilterTest, GetHDRUIBrightnessTest, TestSize.Level1)
 {
     RSHDRUIBrightnessFilter hdrUIBrightnessFilter(1.0f);
     EXPECT_EQ(hdrUIBrightnessFilter.GetHDRUIBrightness(), 1.0f);
-
-    float hdrBrightness = 2.0f; // hdr brightness
-    hdrUIBrightnessFilter.hdrUIBrightness_ = hdrBrightness;
-    EXPECT_EQ(hdrUIBrightnessFilter.GetHDRUIBrightness(), hdrBrightness);
+    hdrUIBrightnessFilter.hdrUIBrightness_ = 2.0f;
+    EXPECT_EQ(hdrUIBrightnessFilter.GetHDRUIBrightness(), 2.0f);
 }
 
 /**
  * @tc.name: DrawImageRect001
  * @tc.desc: test results of DrawImageRect
  * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
  */
-HWTEST_F(RSHDRUIBrightnessFilterTest, DrawImageRect001, TestSize.Level1)
+HWTEST_F(RSHDRUIBrightnessFilterTest, DrawImageRectTest, TestSize.Level1)
 {
     RSHDRUIBrightnessFilter hdrUIBrightnessFilter(1.0f);
     Drawing::Canvas canvas;
@@ -83,8 +84,13 @@ HWTEST_F(RSHDRUIBrightnessFilterTest, DrawImageRect001, TestSize.Level1)
     Drawing::Rect src;
     Drawing::Rect dst;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    hdrUIBrightnessFilter.hdrUIBrightness_ = 1.5f; // hdr brightness
+    hdrUIBrightnessFilter.DrawImageRect(paintFilterCanvas, image, src, dst);
+    EXPECT_FALSE(image);
+
+    hdrUIBrightnessFilter.hdrUIBrightness_ = 1.5f;
     image = std::make_shared<Drawing::Image>();
+    paintFilterCanvas.SetHdrOn(true);
+    hdrUIBrightnessFilter.DrawImageRect(paintFilterCanvas, image, src, dst);
     paintFilterCanvas.SetHdrOn(false);
     hdrUIBrightnessFilter.DrawImageRect(paintFilterCanvas, image, src, dst);
     EXPECT_TRUE(image);

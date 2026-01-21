@@ -93,7 +93,7 @@ std::string GetStringFromData(int strlen)
     return str;
 }
 
-bool RSBorderFuzzTest(const uint8_t* data, size_t size)
+bool RSBorderFuzzTest()
 {
     int16_t red1 = GetData<int16_t>();
     int16_t green1 = GetData<int16_t>();
@@ -140,7 +140,7 @@ bool RSBorderFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSImageCacheFuzzTest(const uint8_t* data, size_t size)
+bool RSImageCacheFuzzTest()
 {
     uint64_t uniqueId = GetData<uint64_t>();
     std::shared_ptr<Drawing::Image> img;
@@ -151,7 +151,7 @@ bool RSImageCacheFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSImageFuzzTest(const uint8_t* data, size_t size)
+bool RSImageFuzzTest()
 {
     RSImage other;
     Drawing::Canvas drawingCanvas;
@@ -218,7 +218,7 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSMaskFuzzTest(const uint8_t* data, size_t size)
+bool RSMaskFuzzTest()
 {
     double x = GetData<double>();
     double y = GetData<double>();
@@ -242,7 +242,7 @@ bool RSMaskFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSPathFuzzTest(const uint8_t* data, size_t size)
+bool RSPathFuzzTest()
 {
     Drawing::Path drPath = Drawing::Path();
     // std::string path = GetStringFromData(STR_LEN);
@@ -259,7 +259,7 @@ bool RSPathFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSShaderFuzzTest(const uint8_t* data, size_t size)
+bool RSShaderFuzzTest()
 {
     std::shared_ptr<RSShader> shaderPtr = RSShader::CreateRSShader();
     auto effectType =
@@ -270,7 +270,7 @@ bool RSShaderFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSShadowFuzzTest(const uint8_t* data, size_t size)
+bool RSShadowFuzzTest()
 {
     uint32_t rgba = GetData<uint32_t>();
     Color color = Color(rgba);
@@ -304,12 +304,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
 
     /* Run your code on data */
-    OHOS::Rosen::RSBorderFuzzTest(data, size);
-    OHOS::Rosen::RSImageCacheFuzzTest(data, size);
-    OHOS::Rosen::RSImageFuzzTest(data, size);
-    OHOS::Rosen::RSMaskFuzzTest(data, size);
-    OHOS::Rosen::RSPathFuzzTest(data, size);
-    OHOS::Rosen::RSShaderFuzzTest(data, size);
-    OHOS::Rosen::RSShadowFuzzTest(data, size);
+    OHOS::Rosen::RSBorderFuzzTest();
+    OHOS::Rosen::RSImageCacheFuzzTest();
+    OHOS::Rosen::RSImageFuzzTest();
+    OHOS::Rosen::RSMaskFuzzTest();
+    OHOS::Rosen::RSPathFuzzTest();
+    OHOS::Rosen::RSShaderFuzzTest();
+    OHOS::Rosen::RSShadowFuzzTest();
     return 0;
 }

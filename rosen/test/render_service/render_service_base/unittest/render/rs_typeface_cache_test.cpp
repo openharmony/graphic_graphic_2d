@@ -516,5 +516,84 @@ HWTEST_F(RSTypefaceCacheTest, UpdateDrawingTypefaceRefTest003, TestSize.Level1) 
     auto result = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
     EXPECT_EQ(result, nullptr);
 }
+
+/**
+ * @tc.name: UpdateDrawingTypefaceRefTest004
+ * @tc.desc: Verify function UpdateDrawingTypefaceRef
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, UpdateDrawingTypefaceRefTest004, TestSize.Level1)
+{
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    pid_t pid = getpid();
+    Drawing::SharedTypeface sharedTypeface(
+        (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetUniqueID()), typeface);
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { {2003265652, 100.0}, {2003072104, 62.5} };
+    auto result = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_EQ(result, nullptr);
+    RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, typeface);
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { {2003265652, 80.0}, {2003072104, 62.5} };
+    auto result1 = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_NE(result1, typeface);
+    EXPECT_NE(result1, nullptr);
+}
+
+/**
+ * @tc.name: UpdateDrawingTypefaceRefTest005
+ * @tc.desc: Verify function RemoveHashMap
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, UpdateDrawingTypefaceRefTest005, TestSize.Level1)
+{
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    pid_t pid = getpid();
+    Drawing::SharedTypeface sharedTypeface(
+        (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetUniqueID()), typeface);
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { {2003265652, 100.0}, {2003072104, 62.5} };
+    auto result = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_NE(result, nullptr);
+    RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, typeface);
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { {2003265652, 80.0}, {2003072104, 62.5}, {2003072104, 72.5} };
+    auto result1 = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_NE(result1, typeface);
+    EXPECT_NE(result1, nullptr);
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { {2003265652, 90.0}, {2003072104, 62.5}, {2003072104, 72.5}, {2003072104, 92.5} };
+    auto result2 = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_NE(result2, typeface);
+    EXPECT_NE(result2, nullptr);
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(sharedTypeface.id_);
+}
+
+/**
+ * @tc.name: UpdateDrawingTypefaceRefTest006
+ * @tc.desc: Verify function RemoveHashMap
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, UpdateDrawingTypefaceRefTest006, TestSize.Level1)
+{
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    pid_t pid = getpid();
+    uint64_t globalID = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(1);
+    std::unordered_map<uint64_t, TypefaceTuple> typefaceHashMap;
+    typefaceHashMap[globalID] = std::make_tuple(typeface, 1);
+    RSTypefaceCache::Instance().RemoveHashMap(pid, typefaceHashMap, globalID);
+}
 } // namespace Rosen
 } // namespace OHOS

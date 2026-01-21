@@ -358,7 +358,7 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
 
 PanelPowerStatus RSRenderServiceClient::GetPanelPowerStatus(ScreenId id)
 {
-    return {};
+    return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
 }
 
 bool RSRenderServiceClient::RegisterBufferAvailableListener(
@@ -603,10 +603,6 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {
     return {};
-}
-
-void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
-{
 }
 
 bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)

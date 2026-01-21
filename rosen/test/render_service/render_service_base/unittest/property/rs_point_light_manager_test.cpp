@@ -387,41 +387,6 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight005, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckIlluminated001
- * @tc.desc: test results of CheckIlluminated
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPointLightManagerTest, CheckIlluminated001, TestSize.Level1)
-{
-    auto instance = RSPointLightManager::Instance();
-    auto lightSourceNode = std::make_shared<RSRenderNode>(1);
-    auto illuminatedNode = std::make_shared<RSRenderNode>(1);
-    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-
-    instance->SetScreenRotation(ScreenRotation::ROTATION_90);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-
-    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
-    illuminatedNode->GetMutableRenderProperties().SetBounds({0, 0, 10, 10});
-    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-    instance->SetScreenRotation(ScreenRotation::ROTATION_90);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-    instance->SetScreenRotation(ScreenRotation::ROTATION_180);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-    instance->SetScreenRotation(ScreenRotation::ROTATION_270);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-}
-
-/**
  * @tc.name: CheckIlluminated002
  * @tc.desc: test results of CheckIlluminated
  * @tc.type: FUNC
@@ -433,35 +398,18 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated002, TestSize.Level1)
     auto lightSourceNode = std::make_shared<RSRenderNode>(0);
     auto illuminatedNode = std::make_shared<RSRenderNode>(0);
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(lightSourceNode != nullptr);
+    EXPECT_FALSE(illuminatedNode->IsDirty());
 
+    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
     illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(lightSourceNode != nullptr);
-
     illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(lightSourceNode != nullptr);
-
-    illuminatedNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    EXPECT_FALSE(illuminatedNode->IsDirty());
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(lightSourceNode != nullptr);
-
-    instance->screenRotation_ = ScreenRotation::ROTATION_0;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(lightSourceNode != nullptr);
-
-    instance->screenRotation_ = ScreenRotation::ROTATION_180;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(lightSourceNode != nullptr);
-
-    instance->screenRotation_ = ScreenRotation::ROTATION_90;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(lightSourceNode != nullptr);
-
-    instance->screenRotation_ = ScreenRotation::ROTATION_270;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(lightSourceNode != nullptr);
+    EXPECT_TRUE(illuminatedNode->IsDirty());
 }
 
 
@@ -489,6 +437,8 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_FALSE(illuminatedNode->IsDirty());
     illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_FALSE(illuminatedNode->IsDirty());
@@ -498,8 +448,8 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
-    instance->previousFrameIlluminatedNodeMap_.emplace(illuminatedNode->GetId(), illuminatedNode);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
@@ -508,7 +458,6 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.clear();
-    illuminatedNode->GetMutableRenderProperties().boundsGeo_->absRect_ = RectI(0, 0, 100, 100);
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_TRUE(illuminatedNode->IsDirty());
 }
@@ -641,69 +590,51 @@ HWTEST_F(RSPointLightManagerTest, HasVisibleIlluminatedTest001, TestSize.Level1)
     EXPECT_TRUE(instance->HasVisibleIlluminated(illuminatedRenderNode));
 }
 /**
- * @tc.name: CalculateLightPosForIlluminated001
- * @tc.desc: test results of CalculateLightPosForIlluminated
+ * @tc.name: CalculateLightRelativePositionTest001
+ * @tc.desc: test results of CacluateLightRelativePosition
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSPointLightManagerTest, CalculateLightPosForIlluminated001, TestSize.Level1)
+HWTEST_F(RSPointLightManagerTest, CalculateLightRelativePositionTest001, TestSize.Level1)
 {
     auto instance = RSPointLightManager::Instance();
-    std::shared_ptr<RSLightSource> lightSourcePtr = std::make_shared<RSLightSource>();
-    lightSourcePtr->SetAbsLightPosition({ 20, 20, 20, 20 });
+    std::shared_ptr<RSRenderNode> illuminatedRenderNode = std::make_shared<RSRenderNode>(0);
+    std::shared_ptr<RSRenderNode> lightSourceRenderNode = std::make_shared<RSRenderNode>(1);
+    auto res = instance->CalculateLightRelativePosition(lightSourceRenderNode, illuminatedRenderNode);
+    EXPECT_FALSE(res.has_value());
+    auto lightGeo = lightSourceRenderNode->GetMutableRenderProperties().GetBoundsGeometry();
+    auto illuminatedGeo = illuminatedRenderNode->GetMutableRenderProperties().GetBoundsGeometry();
+    lightSourceRenderNode->GetMutableRenderProperties().boundsGeo_ = nullptr;
+    res = instance->CalculateLightRelativePosition(lightSourceRenderNode, illuminatedRenderNode);
+    EXPECT_FALSE(res.has_value());
+    lightSourceRenderNode->GetMutableRenderProperties().boundsGeo_ = lightGeo;
+    res = instance->CalculateLightRelativePosition(lightSourceRenderNode, illuminatedRenderNode);
+    EXPECT_FALSE(res.has_value());
+    lightGeo->width_ = 100;
+    lightGeo->height_ = 100;
+    illuminatedRenderNode->GetMutableRenderProperties().boundsGeo_ = nullptr;
+    res = instance->CalculateLightRelativePosition(lightSourceRenderNode, illuminatedRenderNode);
+    EXPECT_FALSE(res.has_value());
+    illuminatedRenderNode->GetMutableRenderProperties().boundsGeo_ = illuminatedGeo;
+    illuminatedGeo->width_ = 100;
+    illuminatedGeo->height_ = 100;
+    res = instance->CalculateLightRelativePosition(lightSourceRenderNode, illuminatedRenderNode);
+    EXPECT_FALSE(res.has_value());
 
-    std::shared_ptr<RSObjAbsGeometry> illuminatedGeoPtr = std::make_shared<RSObjAbsGeometry>();
+    lightSourceRenderNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    Drawing::Matrix matrix;
+    constexpr int matArrLen = 9;
+    std::array<float, matArrLen> setAllBuffer = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+    matrix.SetAll(setAllBuffer);
+    illuminatedGeo->SetAbsMatrix(matrix);
+    res = instance->CalculateLightRelativePosition(lightSourceRenderNode, illuminatedRenderNode);
+    EXPECT_FALSE(res.has_value());
 
-    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
-    auto pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
-    EXPECT_EQ(pos.x_, 20);
-    EXPECT_EQ(pos.y_, 20);
-
-    instance->SetScreenRotation(ScreenRotation::ROTATION_90);
-    pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
-    EXPECT_EQ(pos.x_, -20);
-    EXPECT_EQ(pos.y_, 20);
-
-    instance->SetScreenRotation(ScreenRotation::ROTATION_180);
-    pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
-    EXPECT_EQ(pos.x_, -20);
-    EXPECT_EQ(pos.y_, -20);
-
-    instance->SetScreenRotation(ScreenRotation::ROTATION_270);
-    pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
-    EXPECT_EQ(pos.x_, 20);
-    EXPECT_EQ(pos.y_, -20);
-
-    instance->SetScreenRotation(ScreenRotation::INVALID_SCREEN_ROTATION);
-    pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
-    EXPECT_EQ(pos.x_, 0);
-    EXPECT_EQ(pos.y_, 0);
-}
-/**
- * @tc.name: CalculateLightPosForIlluminated002
- * @tc.desc: test results of CalculateLightPosForIlluminated
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPointLightManagerTest, CalculateLightPosForIlluminated002, TestSize.Level1)
-{
-    auto instance = RSPointLightManager::Instance();
-    std::shared_ptr<RSLightSource> lightSourcePtr = std::make_shared<RSLightSource>();
-    lightSourcePtr->SetAbsLightPosition({ 20, 20, 20, 20 });
-    std::shared_ptr<RSObjAbsGeometry> illuminatedGeoPtr = std::make_shared<RSObjAbsGeometry>();
-    lightSourcePtr->SetLightPosition({ 0, 0, 0, 0 });
-    auto radius = lightSourcePtr->GetLightRadius();
-    EXPECT_EQ(radius, 0.0f);
-    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
-    auto pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
-    EXPECT_EQ(pos.w_, 1.0f);
-
-    lightSourcePtr->SetLightPosition({ 0, 0, 100, 0 });
-    radius = lightSourcePtr->GetLightRadius();
-    EXPECT_NE(radius, 0.0f);
-    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
-    pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
-    EXPECT_NE(pos.w_, 1.0f);
+    setAllBuffer = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    matrix.SetAll(setAllBuffer);
+    illuminatedGeo->SetAbsMatrix(matrix);
+    res = instance->CalculateLightRelativePosition(lightSourceRenderNode, illuminatedRenderNode);
+    EXPECT_TRUE(res.has_value());
 }
 } // namespace Rosen
 } // namespace OHOS

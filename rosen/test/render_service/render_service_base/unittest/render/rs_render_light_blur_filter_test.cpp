@@ -17,6 +17,7 @@
 #include "gtest/gtest.h"
 
 #include "draw/brush.h"
+#include "draw/surface.h"
 #include "image/image.h"
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_light_blur_filter.h"
@@ -26,6 +27,23 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+class MockCanvasLightBlur : public Drawing::Canvas {
+public:
+    explicit MockCanvasLightBlur(Drawing::Surface* surface);
+    Drawing::Surface* GetSurface() const override;
+private:
+    Drawing::Surface* surface_ = nullptr;
+};
+
+MockCanvasLightBlur::MockCanvasLightBlur(Drawing::Surface* surface)
+    : surface_(surface)
+{
+}
+Drawing::Surface* MockCanvasLightBlur::GetSurface() const
+{
+    return surface_;
+}
+
 class RSLightBlurShaderFilterTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -1471,5 +1489,205 @@ HWTEST_F(RSLightBlurShaderFilterTest, RSLightBlurShaderFilterTest009, TestSize.L
     EXPECT_EQ(filter->lightBlurResultCache_[1], nullptr);
 }
 
+/**
+ * @tc.name: InitDownSample4xAndMixShader001
+ * @tc.desc: Verify function InitDownSample4xAndMixShader
+ * @tc.type: FUNC
+ * @tc.require: issuesIBZ4YD
+ */
+HWTEST_F(RSLightBlurShaderFilterTest, InitDownSample4xAndMixShader001, TestSize.Level1)
+{
+    bool ret = RSLightBlurShaderFilter::InitDownSample4xAndMixShader();
+    ASSERT_TRUE(ret);
+    EXPECT_NE(RSLightBlurShaderFilter::downSample4xAndMixShader_, nullptr);
+
+    ret = RSLightBlurShaderFilter::InitDownSample4xAndMixShader();
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: InitDownSample4xShader001
+ * @tc.desc: Verify function InitDownSample4xShader
+ * @tc.type: FUNC
+ * @tc.require: issuesIBZ4YD
+ */
+HWTEST_F(RSLightBlurShaderFilterTest, InitDownSample4xShader001, TestSize.Level1)
+{
+    bool ret = RSLightBlurShaderFilter::InitDownSample4xShader();
+    ASSERT_TRUE(ret);
+    EXPECT_NE(RSLightBlurShaderFilter::downSample4xShader_, nullptr);
+
+    ret = RSLightBlurShaderFilter::InitDownSample4xShader();
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: GetDownSampleImage001
+ * @tc.desc: Verify function GetDownSampleImage
+ * @tc.type: FUNC
+ * @tc.require: issuesIBZ4YD
+ */
+HWTEST_F(RSLightBlurShaderFilterTest, GetDownSampleImage001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSLightBlurShaderFilter>(1.0);
+    auto surface = std::make_unique<Drawing::Surface>();
+    std::shared_ptr<MockCanvasLightBlur> canvas = std::make_shared<MockCanvasLightBlur>(surface.get());
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    Drawing::RectI srcRect(0, 0, 10, 10);
+    Drawing::RectI dstRect(0, 0, 10, 10);
+    auto imageRet = filter->GetDownSampleImage(*image, *surface, srcRect, dstRect);
+    EXPECT_EQ(imageRet, nullptr);
+
+    dstRect.SetRight(0);
+    dstRect.SetBottom(10);
+    imageRet = filter->GetDownSampleImage(*image, *surface, srcRect, dstRect);
+    EXPECT_EQ(imageRet, nullptr);
+
+    dstRect.SetRight(10);
+    dstRect.SetBottom(0);
+    imageRet = filter->GetDownSampleImage(*image, *surface, srcRect, dstRect);
+    EXPECT_EQ(imageRet, nullptr);
+}
+
+/**
+ * @tc.name: GetDownSampleImage4x001
+ * @tc.desc: Verify function GetDownSampleImage4x
+ * @tc.type: FUNC
+ * @tc.require: issuesIBZ4YD
+ */
+HWTEST_F(RSLightBlurShaderFilterTest, GetDownSampleImage4x001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSLightBlurShaderFilter>(1.0);
+    auto surface = std::make_unique<Drawing::Surface>();
+    MockCanvasLightBlur canvas(surface.get());
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    Drawing::RectI srcRect(0, 0, 10, 10);
+    Drawing::RectI dstRect(0, 0, 10, 10);
+    auto imageRet = filter->GetDownSampleImage4x(image, canvas, srcRect, dstRect);
+    EXPECT_EQ(imageRet, nullptr);
+
+    RSLightBlurShaderFilter::downSample4xShader_ = nullptr;
+    image = std::make_shared<Drawing::Image>();
+    imageRet = filter->GetDownSampleImage4x(image, canvas, srcRect, dstRect);
+    EXPECT_EQ(imageRet, nullptr);
+
+    bool ret = RSLightBlurShaderFilter::InitDownSample4xShader();
+    ASSERT_TRUE(ret);
+    imageRet = filter->GetDownSampleImage4x(image, canvas, srcRect, dstRect);
+    EXPECT_EQ(imageRet, nullptr);
+
+    dstRect.SetRight(0);
+    dstRect.SetBottom(10);
+    imageRet = filter->GetDownSampleImage4x(image, canvas, srcRect, dstRect);
+    EXPECT_EQ(imageRet, nullptr);
+
+    dstRect.SetRight(10);
+    dstRect.SetBottom(0);
+    imageRet = filter->GetDownSampleImage4x(image, canvas, srcRect, dstRect);
+    EXPECT_EQ(imageRet, nullptr);
+}
+
+/**
+ * @tc.name: GetDownSample4xAndMixImage001
+ * @tc.desc: Verify function GetDownSample4xAndMixImage
+ * @tc.type: FUNC
+ * @tc.require: issuesIBZ4YD
+ */
+HWTEST_F(RSLightBlurShaderFilterTest, GetDownSample4xAndMixImage001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSLightBlurShaderFilter>(1.0);
+    auto surface = std::make_unique<Drawing::Surface>();
+    MockCanvasLightBlur canvas(surface.get());
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    RSLightBlurShaderFilter::downSample4xAndMixShader_ = nullptr;
+    auto imageRet = filter->GetDownSample4xAndMixImage(canvas, image);
+    EXPECT_EQ(imageRet, nullptr);
+
+    bool ret = RSLightBlurShaderFilter::InitDownSample4xAndMixShader();
+    ASSERT_TRUE(ret);
+    imageRet = filter->GetDownSample4xAndMixImage(canvas, image);
+    EXPECT_EQ(imageRet, nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    imageRet = filter->GetDownSample4xAndMixImage(canvas, image);
+    EXPECT_EQ(imageRet, nullptr);
+
+    filter->lightBlurResultCache_[0] = nullptr;
+    filter->lightBlurResultCache_[1] = image;
+    imageRet = filter->GetDownSample4xAndMixImage(canvas, image);
+    EXPECT_EQ(imageRet, nullptr);
+
+    filter->lightBlurResultCache_[0] = image;
+    filter->lightBlurResultCache_[1] = nullptr;
+    imageRet = filter->GetDownSample4xAndMixImage(canvas, image);
+    EXPECT_EQ(imageRet, nullptr);
+
+    filter->lightBlurResultCache_[1] = image;
+    imageRet = filter->GetDownSample4xAndMixImage(canvas, image);
+    EXPECT_EQ(imageRet, nullptr);
+}
+
+/**
+ * @tc.name: ApplyLightBlur001
+ * @tc.desc: Verify function ApplyLightBlur for image object
+ * @tc.type: FUNC
+ * @tc.require: issuesIBZ4YD
+ */
+HWTEST_F(RSLightBlurShaderFilterTest, ApplyLightBlur001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSLightBlurShaderFilter>(1.0);
+    Drawing::Canvas canvas;
+    LightBlurParameter para;
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    filter->lightBlurResultCache_[1] = nullptr;
+    filter->ApplyLightBlur(canvas, image, para);
+    EXPECT_EQ(filter->lightBlurResultCache_[1], nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    filter->ApplyLightBlur(canvas, image, para);
+    EXPECT_EQ(filter->lightBlurResultCache_[1], nullptr);
+
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap.Build(10, 10, format);
+    ASSERT_TRUE(image->BuildFromBitmap(bitmap));
+    filter->ApplyLightBlur(canvas, image, para);
+    EXPECT_EQ(filter->lightBlurResultCache_[1], nullptr);
+}
+
+/**
+ * @tc.name: ApplyLightBlur002
+ * @tc.desc: Verify function ApplyLightBlur for specal image size
+ * @tc.type: FUNC
+ * @tc.require: issuesIBZ4YD
+ */
+HWTEST_F(RSLightBlurShaderFilterTest, ApplyLightBlur002, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSLightBlurShaderFilter>(1.0);
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap.Build(1, 1, format);
+    ASSERT_TRUE(image->BuildFromBitmap(bitmap));
+
+    filter->lightBlurResultCache_[1] = nullptr;
+    auto surface = std::make_unique<Drawing::Surface>();
+    MockCanvasLightBlur canvas(surface.get());
+    LightBlurParameter para;
+    filter->ApplyLightBlur(canvas, image, para);
+    EXPECT_NE(filter->lightBlurResultCache_[1], nullptr);
+
+    bitmap.Build(10, 1, format);
+    ASSERT_TRUE(image->BuildFromBitmap(bitmap));
+    filter->lightBlurResultCache_[1] = nullptr;
+    filter->ApplyLightBlur(canvas, image, para);
+    EXPECT_NE(filter->lightBlurResultCache_[1], nullptr);
+
+    bitmap.Build(1, 10, format);
+    ASSERT_TRUE(image->BuildFromBitmap(bitmap));
+    filter->lightBlurResultCache_[1] = nullptr;
+    filter->ApplyLightBlur(canvas, image, para);
+    EXPECT_NE(filter->lightBlurResultCache_[1], nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

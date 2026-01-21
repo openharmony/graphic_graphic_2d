@@ -39,7 +39,7 @@ static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
 void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList)
 {
     symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
-    std::unique_lock<std::shared_mutex> writeLock(gradientsMutex_);
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     for (const auto& color : colorList) {
@@ -55,7 +55,7 @@ void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::DrawingSColor>& colo
 void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::Color>& colorList)
 {
     symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
-    std::unique_lock<std::shared_mutex> writeLock(gradientsMutex_);
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     for (auto color : colorList) {
@@ -69,7 +69,7 @@ void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::Color>& colorList)
 void HMSymbolTxt::SetRenderColor(const Drawing::Color& color)
 {
     symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
-    std::unique_lock<std::shared_mutex> writeLock(gradientsMutex_);
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     auto gradient = std::make_shared<SymbolGradient>();
@@ -83,7 +83,7 @@ void HMSymbolTxt::SetRenderColor(const Drawing::Color& color)
 void HMSymbolTxt::SetRenderColor(const Drawing::DrawingSColor& colorList)
 {
     symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
-    std::unique_lock<std::shared_mutex> writeLock(gradientsMutex_);
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     auto gradient = std::make_shared<SymbolGradient>();
@@ -122,7 +122,7 @@ void HMSymbolTxt::SetSymbolEffect(const uint32_t& effectStrategy)
 std::vector<Drawing::DrawingSColor> HMSymbolTxt::GetRenderColor() const
 {
     std::vector<Drawing::DrawingSColor> colorList;
-    std::shared_lock<std::shared_mutex> readLock(gradientsMutex_);
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     for (const auto& gradient : symbolColor_.gradients) {
         bool isInvalid = gradient == nullptr || gradient->GetColors().empty();
         if (isInvalid) {
@@ -138,6 +138,7 @@ std::vector<Drawing::DrawingSColor> HMSymbolTxt::GetRenderColor() const
 std::vector<ColorPlaceholder> HMSymbolTxt::GetRenderColorPlaceholder() const
 {
     std::vector<ColorPlaceholder> placeholderList;
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     for (const auto& gradient : symbolColor_.gradients) {
         if (gradient == nullptr || gradient->GetColors().empty()) {
             continue;
@@ -189,6 +190,7 @@ bool HMSymbolTxt::GetAnimationStart() const
 
 void HMSymbolTxt::SetVisualMode(const VisualMode visual)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     visualMap_.clear();
     if (visual == VisualMode::VISUAL_SMALL) {
         visualMap_["ss01"] = 1;
@@ -201,6 +203,7 @@ void HMSymbolTxt::SetVisualMode(const VisualMode visual)
 
 std::map<std::string, int> HMSymbolTxt::GetVisualMap() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return visualMap_;
 }
 

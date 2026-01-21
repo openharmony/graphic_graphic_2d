@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr int TWO = 2;
 constexpr size_t CLEANUP_THRESHOLD = 500;
 
 RSPointLightManager* RSPointLightManager::Instance()
@@ -160,71 +159,76 @@ void RSPointLightManager::PrepareLight(std::unordered_map<NodeId, std::weak_ptr<
         return false;
     });
 }
+
+static bool IsLightSourceAffectIlluminatedNode(const Vector4f& pos, const RectF& rect, float radius)
+{
+    float closestX = std::max(rect.left_, std::min(pos.x_, rect.GetRight()));
+    float closestY = std::max(rect.top_, std::min(pos.y_, rect.GetBottom()));
+
+    float dx = pos.x_ - closestX;
+    float dy = pos.y_ - closestY;
+    return ROSEN_LE(dx * dx + dy * dy, radius * radius);
+}
+
 void RSPointLightManager::CheckIlluminated(
     const std::shared_ptr<RSRenderNode>& lightSourceNode, const std::shared_ptr<RSRenderNode>& illuminatedNode)
 {
     if (illuminatedNode->GetInstanceRootNodeId() != lightSourceNode->GetInstanceRootNodeId()) {
         return;
     }
-    const auto& geoPtr = (illuminatedNode->GetRenderProperties().GetBoundsGeometry());
     auto lightSourcePtr = lightSourceNode->GetRenderProperties().GetLightSource();
     auto illuminatedPtr = illuminatedNode->GetRenderProperties().GetIlluminated();
-    if (!geoPtr || geoPtr->IsEmpty() || !lightSourcePtr || !illuminatedPtr) {
+    if (!lightSourcePtr || !illuminatedPtr) {
         return;
     }
-    RectI illuminatedAbsRect = geoPtr->GetAbsRect();
-    int radius = static_cast<int>(lightSourcePtr->GetLightRadius());
-    auto illuminatedRange = RectI(illuminatedAbsRect.left_ - radius, illuminatedAbsRect.top_ - radius,
-        illuminatedAbsRect.width_ + TWO * radius, illuminatedAbsRect.height_ + TWO * radius);
-    const auto& lightSourceAbsPosition = lightSourcePtr->GetAbsLightPosition();
-    auto lightAbsPositionX = static_cast<int>(lightSourceAbsPosition[0]);
-    auto lightAbsPositionY = static_cast<int>(lightSourceAbsPosition[1]);
-    auto rotation = GetScreenRotation();
-    auto inIlluminatedRange = false;
-    if (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) {
-        inIlluminatedRange = illuminatedRange.Intersect(lightAbsPositionX, lightAbsPositionY);
-    } else if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
-        inIlluminatedRange = illuminatedRange.Intersect(lightAbsPositionY, lightAbsPositionX);
+    // Calculate the relative position of the light source and illuminable node.
+    auto lightRelativePosOpt = CalculateLightRelativePosition(lightSourceNode, illuminatedNode);
+    if (!lightRelativePosOpt.has_value()) {
+        return;
     }
-
-    if (inIlluminatedRange && !illuminatedPtr->GetLightSourcesAndPosMap().count(lightSourcePtr)) {
-        auto lightPos = CalculateLightPosForIlluminated(*lightSourcePtr, geoPtr->GetAbsRect());
-        illuminatedPtr->AddLightSourcesAndPos(lightSourcePtr, lightPos);
+    const Vector4f lightRelativePos = lightRelativePosOpt.value();
+    // Check if light source affect the illuminable node.
+    bool isIlluminated = IsLightSourceAffectIlluminatedNode(lightRelativePos,
+        illuminatedNode->GetRenderProperties().GetBoundsRect(), lightSourcePtr->GetLightRadius());
+    // Mark the nodes as dirty where light added as dirty.
+    if (isIlluminated && !illuminatedPtr->GetLightSourcesAndPosMap().count(lightSourcePtr)) {
+        illuminatedPtr->AddLightSourcesAndPos(lightSourcePtr, lightRelativePos);
         MarkIlluminatedNodeDirty(illuminatedNode);
     }
 }
-
-Vector4f RSPointLightManager::CalculateLightPosForIlluminated(
-    const RSLightSource& lightSource, const RectI& illuminatedAbsRect)
+std::optional<Vector4f> RSPointLightManager::CalculateLightRelativePosition(
+    const std::shared_ptr<RSRenderNode>& lightSourceNodePtr, const std::shared_ptr<RSRenderNode>& illuminatedNodePtr)
 {
-    Vector4f lightPos;
-    auto lightSourceAbsPosition = lightSource.GetAbsLightPosition();
-    auto lightPosition = lightSource.GetLightPosition();
-    auto rotation = GetScreenRotation();
-    switch (rotation) {
-        case ScreenRotation::ROTATION_0:
-            lightPos.x_ = lightSourceAbsPosition.x_ - illuminatedAbsRect.GetLeft();
-            lightPos.y_ = lightSourceAbsPosition.y_ - illuminatedAbsRect.GetTop();
-            break;
-        case ScreenRotation::ROTATION_90:
-            lightPos.x_ = illuminatedAbsRect.GetBottom() - lightSourceAbsPosition.x_;
-            lightPos.y_ = lightSourceAbsPosition.y_ - illuminatedAbsRect.GetLeft();
-            break;
-        case ScreenRotation::ROTATION_180:
-            lightPos.x_ = illuminatedAbsRect.GetRight() - lightSourceAbsPosition.x_;
-            lightPos.y_ = illuminatedAbsRect.GetBottom() - lightSourceAbsPosition.y_;
-            break;
-        case ScreenRotation::ROTATION_270:
-            lightPos.x_ = lightSourceAbsPosition.x_ - illuminatedAbsRect.GetTop();
-            lightPos.y_ = illuminatedAbsRect.GetRight() - lightSourceAbsPosition.y_;
-            break;
-        default:
-            break;
+    const auto& lightGeoPtr = lightSourceNodePtr->GetRenderProperties().GetBoundsGeometry();
+    const auto& illuminatedGeoPtr = illuminatedNodePtr->GetRenderProperties().GetBoundsGeometry();
+    if (!lightGeoPtr || lightGeoPtr->IsEmpty() || !illuminatedGeoPtr || illuminatedGeoPtr->IsEmpty()) {
+        return std::nullopt;
     }
-    lightPos.z_ = lightPosition.z_;
-    // store the lightRadius at lightPos.w_
-    lightPos.w_ = ROSEN_EQ(lightSource.GetLightRadius(), 0.0f) ? 1.0f : lightSource.GetLightRadius();
-    return lightPos;
+    const auto& lightSourcePtr = lightSourceNodePtr->GetRenderProperties().GetLightSource();
+    if (!lightSourcePtr) {
+        return std::nullopt;
+    }
+    Drawing::Matrix invertMatrix;
+    if (!illuminatedGeoPtr->GetAbsMatrix().Invert(invertMatrix)) {
+        return std::nullopt;
+    }
+    const Vector4f lightLocalPos = lightSourcePtr->GetLightPosition();
+    Drawing::Point lightLocalPoint = { lightLocalPos.x_, lightLocalPos.y_ };
+    std::vector<Drawing::Point> lightLocalPointVec = { lightLocalPoint };
+    constexpr int pointVecSize = 1;
+    std::vector<Drawing::Point> transformedPointVec(pointVecSize);
+    std::vector<Drawing::Point> lightRelativePointVec(pointVecSize);
+    // Transform light position from lightSource node's local coordinates to abs coordinates.
+    lightGeoPtr->GetAbsMatrix().MapPoints(transformedPointVec, lightLocalPointVec, pointVecSize);
+    // Transform light position from lightSource node's abs coordinates to illuminable node's local coordinates, then we
+    // can get the relative position of the light source and illuminatable node.
+    invertMatrix.MapPoints(lightRelativePointVec, transformedPointVec, pointVecSize);
+    Drawing::Point lightRelativePoint = lightRelativePointVec[0];
+    const float radius = lightSourcePtr->GetLightRadius();
+    // store the light radius at lightRelativePosition.w_.
+    Vector4f lightRelativePosition = { lightRelativePoint.GetX(), lightRelativePoint.GetY(), lightLocalPos.z_,
+        ROSEN_EQ(radius, 0.0f) ? 1.0f : radius };
+    return lightRelativePosition;
 }
 
 void RSPointLightManager::CollectPreviousFrameIlluminatedNodes()

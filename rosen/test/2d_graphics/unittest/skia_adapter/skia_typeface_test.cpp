@@ -25,7 +25,9 @@
 using namespace testing;
 using namespace testing::ext;
 
-#define HB_TAG(c1,c2,c3,c4) ((uint32_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)|(((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
+#define HB_TAG(c1, c2, c3, c4) \
+    ((uint32_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)| \
+        (((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
 
 namespace OHOS {
 namespace Rosen {
@@ -553,8 +555,8 @@ HWTEST_F(SkiaTypefaceTest, GetVariationDesignPositionTest002, TestSize.Level1)
     EXPECT_EQ(newCoords.size(), coordsCount);
     EXPECT_EQ(newCoords[0].axis, 2003265652);
     EXPECT_EQ(newCoords[0].value, 100.0);
-    EXPECT_EQ(newCoords[1].axis, 2003072104);
-    EXPECT_EQ(newCoords[1].value, 62.5);
+    EXPECT_EQ(newCoords[0].axis, 2003072104);
+    EXPECT_EQ(newCoords[0].value, 62.5);
 }
 } // namespace Drawing
 } // namespace Rosen

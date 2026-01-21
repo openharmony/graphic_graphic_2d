@@ -822,21 +822,21 @@ HWTEST_F(HdiOutputTest, CheckSupportCopybitMetadata001, Function | MediumTest | 
 }
 
 /*
- * Function: ANCOTransactionOnComplete
+ * Function: AncoTransactionOnComplete
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1.call ANCOTransactionOnComplete()
+ * CaseDescription: 1.call AncoTransactionOnComplete()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, AncoTransactionOnComplete001, Function | MediumTest | Level1)
 {
     std::shared_ptr<RSLayer> rsLayer = nullptr;
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     rsLayer = std::make_shared<RSSurfaceLayer>();
     const uint32_t ancoFlag = 0x0111;
     rsLayer->SetAncoFlags(ancoFlag);
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     ASSERT_EQ(rsLayer->GetAncoFlags(), ancoFlag);
 }
 
@@ -1615,31 +1615,31 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPre002, Function | MediumTest | Level1)
 }
 
 /*
- * Function: ANCOTransactionOnComplete002
+ * Function: AncoTransactionOnComplete002
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1.call ANCOTransactionOnComplete()
+ * CaseDescription: 1.call AncoTransactionOnComplete()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, AncoTransactionOnComplete002, Function | MediumTest | Level1)
 {
     std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
     const uint32_t ancoFlag = 0x0111;
     rsLayer->SetAncoFlags(ancoFlag);
     // no surface no buffer
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     // has surface no buffer
     rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     // no surface has buffer
     rsLayer->SetSurface(nullptr);
     rsLayer->SetBuffer(new SurfaceBufferImpl());
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     // has surface has buffer
     rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
     rsLayer->SetBuffer(new SurfaceBufferImpl());
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
+    HdiOutputTest::hdiOutput_->AncoTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
     ASSERT_EQ(rsLayer->GetAncoFlags(), ancoFlag);
 }
 
@@ -2244,6 +2244,29 @@ HWTEST_F(HdiOutputTest, UpdateInfosAfterCommitVerifyFramePresentFd, Function | M
     ASSERT_EQ(hdiOutput_->UpdateInfosAfterCommit(fbFence), GRAPHIC_DISPLAY_SUCCESS);
     ASSERT_EQ(hdiOutput_->GetCurrentFramePresentFd(), fbFence->Get());
     hdiOutput_->historicalPresentfences_.clear();
+}
+
+/*
+ * Function: GetDisplayClientTargetProperty001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call GetDisplayClientTargetProperty()
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, GetDisplayClientTargetProperty001, Function | MediumTest | Level1)
+{
+    int32_t pixelFormat = 0;
+    int32_t dataspace = 0;
+    ASSERT_NE(hdiOutput_->device_, nullptr);
+    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(_, _, _)).WillRepeatedly(
+            testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    ASSERT_EQ(hdiOutput_->GetDisplayClientTargetProperty(pixelFormat, dataspace),
+              GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(_, _, _)).WillRepeatedly(
+            testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    ASSERT_EQ(hdiOutput_->GetDisplayClientTargetProperty(pixelFormat, dataspace),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 } // namespace
 } // namespace Rosen

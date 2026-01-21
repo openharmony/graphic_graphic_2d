@@ -16,6 +16,7 @@
 #include "feature/occlusion_culling/rs_occlusion_node.h"
 
 #include <sstream>
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -105,6 +106,7 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
     isNeedClip_ = renderProperties.GetClipToBounds() || renderProperties.GetClipToFrame() ||
         renderProperties.GetClipToRRect();
     cornerRadius_ = renderProperties.GetCornerRadius();
+    needFilter_ = renderProperties.NeedFilter();
 
     CalculateDrawRect(node, renderProperties);
 }
@@ -130,10 +132,19 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
         renderProperties.GetClipBounds()) {
         return true;
     }
-
-    // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.
+    // Skip this subtree if node has 3d transformations
+    if (Contains3dTransformation(renderProperties)) {
+        return true;
+    }
+    // Skip this subtree if node's frame is out of it's bounds
     const auto& originBounds = renderProperties.GetBounds();
     const auto drawRect = RectF(originBounds.x_, originBounds.y_, originBounds.z_, originBounds.w_);
+    const auto& originFrame = renderProperties.GetFrame();
+    const auto drawFrameRect = RectF(originFrame.x_, originFrame.y_, originFrame.z_, originFrame.w_);
+    if (!drawFrameRect.IsEmpty() && !drawFrameRect.IsInsideOf(drawRect)) {
+        return true;
+    }
+    // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.
     const auto& drawRegion = renderProperties.GetDrawRegion();
     const auto& outline = renderProperties.GetOutline();
     const auto& pixelStretch = renderProperties.GetPixelStretch();
@@ -351,15 +362,59 @@ void OcclusionNode::CheckNodeOcclusion(OcclusionCoverageInfo& coverageInfo, std:
 
 void OcclusionNode::UpdateCoverageInfo(OcclusionCoverageInfo& globalCoverage, OcclusionCoverageInfo& selfCoverage)
 {
-    // When the node is a opaque node, update the global coverage info
     if (IsOpaque()) {
+        // When the node is a opaque node, update the global coverage info
         selfCoverage.area_ = innerRect_.GetWidth() * innerRect_.GetHeight();
         selfCoverage.rect_ = innerRect_;
         selfCoverage.id_ = id_;
         if (selfCoverage.area_ > globalCoverage.area_) {
+            RS_OPTIONAL_TRACE_FMT("opaque node %" PRIu64 " became the largest coverage. rect: [%d, %d, %d, %d]",
+                id_, innerRect_.GetLeft(), innerRect_.GetTop(), innerRect_.GetWidth(), innerRect_.GetHeight());
             globalCoverage = selfCoverage;
         }
+    } else if (needFilter_ && outerRect_.Intersect(globalCoverage.rect_) &&
+        !outerRect_.IsInsideOf(globalCoverage.rect_)) {
+        // When the node is a filter node that intersects but is not contained by the global coverage,
+        // clip global coverage rect by filter rect.
+        auto maxSubRect = FindMaxDisjointSubRect(globalCoverage.rect_, outerRect_);
+        RS_OPTIONAL_TRACE_FMT("coverage clipped by filter node %" PRIu64 ". src Rect: [%d, %d, %d, %d], "
+            "filter Rect: [%d, %d, %d, %d], dst Rect: [%d, %d, %d, %d]", id_, globalCoverage.rect_.GetLeft(),
+            globalCoverage.rect_.GetTop(), globalCoverage.rect_.GetWidth(), globalCoverage.rect_.GetHeight(),
+            outerRect_.GetLeft(), outerRect_.GetTop(), outerRect_.GetWidth(), outerRect_.GetHeight(),
+            maxSubRect.GetLeft(), maxSubRect.GetTop(), maxSubRect.GetWidth(), maxSubRect.GetHeight());
+        globalCoverage.rect_ = maxSubRect;
+        globalCoverage.area_ = maxSubRect.GetWidth() * maxSubRect.GetHeight();
     }
+}
+
+RectI16 OcclusionNode::FindMaxDisjointSubRect(const RectI16& baseRect, const RectI16& clipRect) const
+{
+    if (baseRect.IsInsideOf(clipRect)) {
+        return RectI16();
+    }
+
+    auto intersectRect = baseRect.IntersectRect(clipRect);
+    // Note: even when baseRect.Intersect(clipRect) returns true,
+    // the intersection rect returned by baseRect.IntersectRect(clipRect) may still be empty
+    if (intersectRect.IsEmpty()) {
+        return baseRect;
+    }
+    constexpr size_t subRectSize{4};
+    std::array<RectI16, subRectSize> subRects{
+        RectI16(baseRect.GetLeft(), baseRect.GetTop(),
+            intersectRect.GetLeft() - baseRect.GetLeft(), baseRect.GetHeight()), // left subrect
+        RectI16(intersectRect.GetRight(), baseRect.GetTop(),
+            baseRect.GetRight() - intersectRect.GetRight(), baseRect.GetHeight()), // right subrect
+        RectI16(baseRect.GetLeft(), baseRect.GetTop(),
+            baseRect.GetWidth(), intersectRect.GetTop() - baseRect.GetTop()), // top subrect
+        RectI16(baseRect.GetLeft(), intersectRect.GetBottom(),
+            baseRect.GetWidth(), baseRect.GetBottom() - intersectRect.GetBottom()) // bottom subrect
+    };
+
+    return *std::max_element(subRects.begin(), subRects.end(),
+        [](const RectI16& left, const RectI16& right) {
+            return left.GetWidth() * left.GetHeight() < right.GetWidth() * right.GetHeight();
+        });
 }
 
 // Used for debugging, comparing rs node tree and occlusion node tree

@@ -253,6 +253,7 @@ HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_Utils, TestSize.Leve
     EXPECT_EQ(surface_, nullptr);
     bool ret = DrawingSurfaceUtils::FlushSurface(nullptr);
     EXPECT_EQ(ret, false);
+    DrawingSurfaceUtils::RemoveSurface(surface.get());
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -206,7 +206,7 @@ void RSSurfaceCaptureTaskParallelTest::SetUpTestCase()
     }
 }
 
-void RSSurfaceCaptureTaskParallelTest::TearDownTestCase() 
+void RSSurfaceCaptureTaskParallelTest::TearDownTestCase()
 {
     surfaceCaptureCb_->Reset();
     surfaceCaptureCb_ = nullptr;
@@ -556,11 +556,60 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
     EXPECT_EQ(ret, true);
 
     ASSERT_EQ(task1.Run(callback, captureParam), true);
-    
+
     task1.finalRotationAngle_ = RS_ROTATION_90;
     ASSERT_EQ(task1.Run(callback, captureParam), true);
     // Reset
     nodeMap.UnregisterRenderNode(nodeId);
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
+
+/*
+ * @tc.name: RunWithDisplayNode
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.RunWithDisplayNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunWithDisplayNode, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayRenderNode, nullptr);
+    auto displayNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayRenderNode));
+    ASSERT_NE(displayNodeDrawable, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    ASSERT_EQ(callback != nullptr, true);
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
+
+    RSSurfaceCaptureConfig captureConfig;
+    auto taskHandle = std::make_shared<RSSurfaceCaptureTaskParallel>(nodeId, captureConfig);
+    taskHandle->pixelMap_ = Media::PixelMap::Create(opts);
+    taskHandle->displayNodeDrawable_ = displayNodeDrawable;
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(true, taskHandle->Run(callback, captureParam));
+
+    captureConfig.mainScreenRect = Drawing::Rect(0, 0, 10, 0);
+    taskHandle = std::make_shared<RSSurfaceCaptureTaskParallel>(nodeId, captureConfig);
+    taskHandle->pixelMap_ = Media::PixelMap::Create(opts);
+    taskHandle->displayNodeDrawable_ = displayNodeDrawable;
+    ASSERT_EQ(true, taskHandle->Run(callback, captureParam));
+
+    captureConfig.mainScreenRect = Drawing::Rect(0, 0, 10, 10);
+    taskHandle = std::make_shared<RSSurfaceCaptureTaskParallel>(nodeId, captureConfig);
+    taskHandle->pixelMap_ = Media::PixelMap::Create(opts);
+    taskHandle->displayNodeDrawable_ = displayNodeDrawable;
+    ASSERT_EQ(true, taskHandle->Run(callback, captureParam));
+
+    // Reset
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
@@ -620,7 +669,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateClientPixelMap, TestSize.Level2
         EXPECT_EQ(pixelMap != nullptr, true);
     }
 
-    // TEST2:: InVaild scalex01
+    // TEST2:: Invalid scalex01
     {
         Drawing::Rect rect = {0, 0, 1260, 2720};
         RSSurfaceCaptureConfig captureConfig;
@@ -630,7 +679,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateClientPixelMap, TestSize.Level2
         EXPECT_EQ(pixelMap == nullptr, true);
     }
 
-    // TESt: invauld scalex01
+    // TESt: Invalid scalex01
 
     {
         Drawing::Rect rect = {0, 0 ,1260, 2720};
@@ -930,6 +979,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR003, TestSize.Level2)
 {
     NodeId nodeId = 111;
     RSSurfaceCaptureConfig captureConfig;
+    captureConfig.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
     captureConfig.isHdrCapture = true;
     RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
     auto node = std::make_shared<RSRenderNode>(nodeId);
@@ -966,8 +1016,6 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR003, TestSize.Level2)
     task.pixelMap_->data_ = static_cast<uint8_t *>(buffer);
     EXPECT_TRUE(task.pixelMap_->data_ != nullptr);
 
-    task.captureConfig_.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
-    task.captureConfig_.isHdrCapture = true;
     task.displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
     EXPECT_EQ(task.RunHDR(callback, captureParam), false);
@@ -1255,7 +1303,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, DrawHDRSurfaceContent001, TestSize.Le
     NodeId nodeId = 111;
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.isHdrCapture = true;
-    RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
+    auto task = std::make_shared<RSSurfaceCaptureTaskParallel>(nodeId, captureConfig);
     auto node = std::make_shared<RSRenderNode>(nodeId);
 
 
@@ -1269,16 +1317,16 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, DrawHDRSurfaceContent001, TestSize.Le
     Drawing::ImageInfo info { pixelmap->GetWidth(), pixelmap->GetHeight(), Drawing::ColorType::COLORTYPE_RGBA_8888,
         Drawing::AlphaType::ALPHATYPE_PREMUL };
     auto surface = Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
-    task.surfaceNodeDrawable_ = nullptr;
-    task.displayNodeDrawable_ = nullptr;
+    task->surfaceNodeDrawable_ = nullptr;
+    task->displayNodeDrawable_ = nullptr;
 
-    task.captureConfig_.mainScreenRect = {0.f, 0.f, -1.f, 1.f};
+    captureConfig.mainScreenRect = {0.f, 0.f, -1.f, 1.f};
 
-    task.captureConfig_.mainScreenRect = {0.f, 0.f, 1.f, -1.f};
+    captureConfig.mainScreenRect = {0.f, 0.f, 1.f, -1.f};
 
 
-    task.captureConfig_.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
-    task.displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+    captureConfig.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
+    task->displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
 }
 /*

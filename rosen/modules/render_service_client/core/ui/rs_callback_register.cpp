@@ -23,15 +23,21 @@ class TypefaceAutoRegister {
 public:
     TypefaceAutoRegister()
     {
-        Drawing::Typeface::RegisterCallBackFunc([](std::shared_ptr<Drawing::Typeface> tf) {
+#ifdef ARKUI_X_ENABLE
+        auto registerCB = [](std::shared_ptr<Drawing::Typeface> tf) { return 1; };
+        auto destroyedCB = [](uint32_t id) {};
+#else
+        auto registerCB = [](std::shared_ptr<Drawing::Typeface> tf) {
             return Rosen::RSInterfaces::GetInstance().RegisterTypeface(tf);
-        });
-
-        Drawing::Typeface::RegisterOnTypefaceDestroyed(
-            [](uint32_t id) { Rosen::RSInterfaces::GetInstance().UnRegisterTypeface(id); });
-
-        Drawing::Typeface::RegisterUniqueIdCallBack(
-            [](uint64_t id) { return TypefaceMap::GetTypefaceByUniqueId(RSTypefaceCache::GetTypefaceId(id)); });
+        };
+        auto destroyedCB = [](uint32_t id) { Rosen::RSInterfaces::GetInstance().UnRegisterTypeface(id); };
+#endif
+        auto uniqueIdCB = [](uint64_t id) {
+            return TypefaceMap::GetTypefaceByUniqueId(RSTypefaceCache::GetTypefaceId(id));
+        };
+        Drawing::Typeface::RegisterCallBackFunc(registerCB);
+        Drawing::Typeface::RegisterOnTypefaceDestroyed(destroyedCB);
+        Drawing::Typeface::RegisterUniqueIdCallBack(uniqueIdCB);
     }
 
     ~TypefaceAutoRegister()
@@ -42,8 +48,5 @@ public:
     }
 };
 
-#ifndef ARKUI_X_ENABLE
-// Prohibiting resigter the callback function in advance when arkui-x use custom's font
-TypefaceAutoRegister g_typefaceAutoRegister;
-#endif
+static TypefaceAutoRegister g_typefaceAutoRegister;
 } // namespace OHOS::Rosen

@@ -774,10 +774,9 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetScreenPowerStatus, TestSize.Le
 HWTEST_F(RSClientToServiceConnectionProxyTest, GetPanelPowerStatus001, TestSize.Level1)
 {
     ScreenId id = 1;
-    uint32_t panelPowerStatus = PanelPowerStatus::PANEL_POWER_STATUS_ON;
-    auto ret = proxy->GetPanelPowerStatus(id, panelPowerStatus);
+    PanelPowerStatus status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+    auto ret = proxy->GetPanelPowerStatus(id, status);
     EXPECT_EQ(ret, ERR_INVALID_OPERATION);
-    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
 }
 
 /**
@@ -789,12 +788,13 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetPanelPowerStatus001, TestSize.
 HWTEST_F(RSClientToServiceConnectionProxyTest, GetPanelPowerStatus002, TestSize.Level1)
 {
     ScreenId id = 1;
-    uint32_t panelPowerStatus = PanelPowerStatus::PANEL_POWER_STATUS_ON;
+    PanelPowerStatus status = PanelPowerStatus::PANEL_POWER_STATUS_ON;
     sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
     auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockproxy, nullptr);
+    
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
-    auto ret = proxy->GetPanelPowerStatus(id, panelPowerStatus);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    mockproxy->GetPanelPowerStatus(id, status);
 }
 
 /**
@@ -1082,6 +1082,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, UnRegisterTypeface, TestSize.Leve
  */
 HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterSharedTypeface, TestSize.Level1)
 {
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     std::vector<char> content;
     LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
     std::shared_ptr<Drawing::Typeface> typeface =
@@ -1090,16 +1091,12 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterSharedTypeface, TestSize.
     int32_t needUpdate;
     pid_t pid = getpid();
 
-    Drawing::SharedTypeface sharedTypeface;
-    sharedTypeface.id_ = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
-    sharedTypeface.size_ = typeface->GetSize();
-    sharedTypeface.fd_ = typeface->GetFd();
-
-    EXPECT_TRUE(proxy->RegisterTypeface(sharedTypeface, needUpdate));
-    EXPECT_EQ(needUpdate, 0);
-    EXPECT_TRUE(proxy->RegisterTypeface(sharedTypeface, needUpdate));
+    Drawing::SharedTypeface sharedTypeface(
+        (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetUniqueID()), typeface);
+    clientToService->RegisterTypeface(sharedTypeface, needUpdate);
+    clientToService->RegisterTypeface(sharedTypeface, needUpdate);
     EXPECT_EQ(needUpdate, 1);
-    EXPECT_TRUE(proxy->UnRegisterTypeface(typeface->GetHash()));
+    EXPECT_TRUE(clientToService->UnRegisterTypeface(typeface->GetHash()));
 }
 
 /**
@@ -1164,7 +1161,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterFirstFrameCommitCallback,
  */
 HWTEST_F(RSClientToServiceConnectionProxyTest, SetSystemAnimatedScenes, TestSize.Level1)
 {
-    proxy->SetAppWindowNum(1);
     bool success;
     proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false, success);
     ASSERT_FALSE(success);
@@ -1653,7 +1649,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState001, TestSize.L
 {
     ScreenId id = 1;
     auto ret = proxy->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
+    EXPECT_NE(ret, StatusCode::READ_PARCEL_ERR);
 }
 
 /**

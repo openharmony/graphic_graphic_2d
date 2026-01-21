@@ -1254,11 +1254,14 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         ConnPostEvent(connection, timestamp, period, vsyncCount);
     }
     // End of DVSync
-    if (isFirstRequest_) {
-        isFirstRequest_ = false;
-        isFirstSend_ = true;
-        VLOGI("First vsync RequestNextVSync conn:%{public}s, rate:%{public}d, highPriorityRate:%{public}d",
-            connection->info_.name_.c_str(), connection->rate_, connection->highPriorityRate_);
+    {
+        std::unique_lock<std::mutex> locker(mutex_);
+        if (isFirstRequest_) {
+            isFirstRequest_ = false;
+            isFirstSend_ = true;
+            VLOGI("First vsync RequestNextVSync conn:%{public}s, rate:%{public}d, highPriorityRate:%{public}d",
+                connection->info_.name_.c_str(), connection->rate_, connection->highPriorityRate_);
+        }
     }
     VLOGD("conn name:%{public}s, rate:%{public}d", connection->info_.name_.c_str(), connection->rate_);
     return VSYNC_ERROR_OK;
@@ -1719,8 +1722,8 @@ VsyncError VSyncDistributor::SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr
 
 uint32_t VSyncDistributor::GetRefreshRate()
 {
-#if defined(RS_ENABLE_DVSYNC)
     std::lock_guard<std::mutex> locker(mutex_);
+#if defined(RS_ENABLE_DVSYNC)
     return dvsync_->GetRefreshRate();
 #else
     return generatorRefreshRate_;

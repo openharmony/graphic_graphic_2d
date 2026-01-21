@@ -318,14 +318,14 @@ public:
         return isDelayMode_;
     }
 
-    int64_t GetRsPhaseOffset(const int64_t orgValue) const
+    int64_t GetRsPhaseOffset(const int64_t defaultValue) const
     {
-        return isVsyncOffsetCustomized_.load() ? rsPhaseOffset_.load() : orgValue;
+        return isVsyncOffsetCustomized_.load() ? rsPhaseOffset_.load() : defaultValue;
     }
 
-    int64_t GetAppPhaseOffset(const int64_t orgValue) const
+    int64_t GetAppPhaseOffset(const int64_t defaultValue) const
     {
-        return isVsyncOffsetCustomized_.load() ? appPhaseOffset_.load() : orgValue;
+        return isVsyncOffsetCustomized_.load() ? appPhaseOffset_.load() : defaultValue;
     }
 
     void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable)
@@ -403,6 +403,8 @@ private:
     bool enableDynamicMode_ = true;
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
+
+    // RS/APP Vsync Offset
     std::atomic<int64_t> rsPhaseOffset_{ 0 };
     std::atomic<int64_t> appPhaseOffset_{ 0 };
     std::atomic<bool> isVsyncOffsetCustomized_{ false };

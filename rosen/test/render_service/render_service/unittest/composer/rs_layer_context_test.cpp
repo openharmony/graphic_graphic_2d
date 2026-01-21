@@ -25,7 +25,9 @@
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "layer_backend/hdi_output.h"
 #include "connection/rs_render_to_composer_connection.h"
+#ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_render_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
@@ -46,7 +48,9 @@ public:
 
 void RSLayerContextTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
+#endif
 }
 
 void RSLayerContextTest::TearDownTestCase()
@@ -75,16 +79,16 @@ HWTEST_F(RSLayerContextTest, InitContextTest, Function | SmallTest | Level2)
     auto renderComposer = std::make_shared<RSRenderComposer>(output);
     auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
     auto connect = sptr<RSRenderToComposerConnection>::MakeSptr("name", screenId, renderComposerAgent);
-    context->SetRSRenderComposerClientConnection(connect);
+    context->SetRenderComposerClientConnection(connect);
 
     context->rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
-    context->SetRSRenderComposerClientConnection(connect);
+    context->SetRenderComposerClientConnection(connect);
     EXPECT_EQ(context->rsLayerTransactionHandler_->rsComposerConnection_, connect);
 }
 
 /**
  * @tc.name: LayerFuncTest
- * @tc.desc: Test Func CommitRSLayer AddRSLayer
+ * @tc.desc: Test Func CommitLayers AddLayer
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
@@ -99,14 +103,14 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
     auto client = std::make_shared<RSRenderComposerClient>(
         RSRenderComposerManager::GetInstance().rsComposerConnectionMap_[0]);
     auto layer = std::make_shared<RSSurfaceLayer>();
-    context->AddRSLayer(layer);
-    context->CommitRSLayer();
+    context->AddLayer(layer);
+    context->CommitLayers();
     EXPECT_EQ(RSRenderComposerManager::GetInstance().rsRenderComposerMap_[0]->unExecuteTaskNum_, 0);
 
     context->rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
-    context->CommitRSLayer();
+    context->CommitLayers();
     context->ClearAllLayers();
-    EXPECT_EQ(RSRenderComposerManager::GetInstance().rsRenderComposerMap_[0]->unExecuteTaskNum_, 0);
+    EXPECT_EQ(context->rsLayerTransactionHandler_->rsLayerTransactionData_->layersVec_.size(), 0);
 }
 } // namespace Rosen
 } // namespace OHOS

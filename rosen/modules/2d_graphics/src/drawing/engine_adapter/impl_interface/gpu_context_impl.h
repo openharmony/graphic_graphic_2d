@@ -35,6 +35,9 @@ namespace Rosen {
 namespace Drawing {
 using pid_t = int;
 using MemoryOverflowCalllback = std::function<bool(pid_t, uint64_t, bool)>;
+using MemoryOverReportCallback = std::function<bool(pid_t, size_t,  // pid, gpu mem size.
+    std::unordered_map<std::string, std::pair<size_t, size_t>>,     // gpu tag, <mem size, num>
+    std::unordered_map<pid_t, size_t>)>;                            // <pid, gpu mem size>
 struct GPUResourceTag;
 struct HpsBlurParameter;
 class GPUContext;
@@ -115,6 +118,8 @@ public:
     virtual void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) = 0;
 
     virtual void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size) = 0;
+
+    virtual void InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size) = 0;
 
 #ifdef RS_ENABLE_VK
     virtual void StoreVkPipelineCacheData() = 0;

@@ -82,6 +82,8 @@
           "ability_runtime",
           "bundle_framework",
           "drivers_interface_display",
+          "drivers_interface_himediacomm",
+          "mhc_client",
           "c_utils",
           "access_token",
           "safwk",

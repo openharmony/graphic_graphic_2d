@@ -407,7 +407,8 @@ public:
     static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
     static bool GetCanvasDrawingNodeRenderDmaEnabled();
     static bool GetDefaultMemClearEnabled();
-
+    static bool GetUnmarshalParallelEnabled();
+    static uint32_t GetUnmarshalParallelMinDataSize();
     static bool GetSceneBoardIsPcMode();
     static bool GetReleaseImageOneByOneFlag();
     static bool GetTransactionDataTraceEnabled();

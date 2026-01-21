@@ -17,6 +17,8 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 
 #include <atomic>
+#include <vector>
+
 #include "draw/pen.h"
 #include "image/bitmap.h"
 #include "metadata_helper.h"
@@ -29,7 +31,6 @@
 #include "sync_fence.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
-#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -100,12 +101,14 @@ struct BufferDrawParam {
     bool isTmoNitsFixed = false;
     bool hasMetadata = false; // SDR has metadata
 #endif
+#ifdef HETERO_HDR_ENABLE
     /*
     * HDR_HETERO = 1U << 0,
     * HDR_HETERO_HDR = 1U << 1,
     * HDR_HETERO_AIHDR = 1U << 2,
     */
     uint32_t hdrHeteroType = 0;
+#endif
     bool colorFollow = false;
     bool preRotation = false;
     Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
@@ -218,7 +221,7 @@ private:
     static bool enableClient;
 
     static inline std::atomic<int> acquiredBufferCount_ = 0;
-    static pid_t lastSendingPid_;
+    static std::atomic<pid_t> lastSendingPid_;
 };
 } // namespace Rosen
 } // namespace OHOS

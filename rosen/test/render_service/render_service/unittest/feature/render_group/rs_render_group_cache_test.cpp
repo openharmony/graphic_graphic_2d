@@ -77,5 +77,104 @@ HWTEST_F(RSRenderGroupCacheTest, SetHasChildExcludedFromNodeGroupTest, TestSize.
     EXPECT_TRUE(renderGroupCache->HasChildExcludedFromNodeGroup());
     EXPECT_TRUE(rst);
 }
+
+/**
+ * @tc.name: SetRenderGroupExcludedStateChangedTest
+ * @tc.desc: Test SetRenderGroupExcludedStateChanged
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderGroupCacheTest, SetRenderGroupExcludedStateChangedTest, TestSize.Level1)
+{
+    auto renderGroupCache = std::make_unique<RSRenderGroupCache>();
+    ASSERT_NE(renderGroupCache, nullptr);
+
+    bool rst = renderGroupCache->SetRenderGroupExcludedStateChanged(false);
+    EXPECT_FALSE(renderGroupCache->IsRenderGroupExcludedStateChanged());
+    EXPECT_FALSE(rst);
+
+    rst = renderGroupCache->SetRenderGroupExcludedStateChanged(true);
+    EXPECT_TRUE(renderGroupCache->IsRenderGroupExcludedStateChanged());
+    EXPECT_TRUE(rst);
+}
+
+/**
+ * @tc.name: SetCachedSubTreeDirtyTest
+ * @tc.desc: Test SetCachedSubTreeDirty
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderGroupCacheTest, SetCachedSubTreeDirtyTest, TestSize.Level1)
+{
+    auto renderGroupCache = std::make_unique<RSRenderGroupCache>();
+    ASSERT_NE(renderGroupCache, nullptr);
+
+    bool rst = renderGroupCache->SetCachedSubTreeDirty(false);
+    EXPECT_FALSE(renderGroupCache->IsCachedSubTreeDirty());
+    EXPECT_FALSE(rst);
+
+    rst = renderGroupCache->SetCachedSubTreeDirty(true);
+    EXPECT_TRUE(renderGroupCache->IsCachedSubTreeDirty());
+    EXPECT_TRUE(rst);
+}
+
+/**
+ * @tc.name: AutoRenderGroupExcludedSubTreeGuardTest
+ * @tc.desc: Test AutoRenderGroupExcludedSubTreeGuard contructor and destructor
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderGroupCacheTest, AutoRenderGroupExcludedSubTreeGuardTest001, TestSize.Level1)
+{
+    NodeId curExcludedRootNodeId = INVALID_NODEID;
+    bool isCurNodeExcluded = false;
+    NodeId curNodeId = 101;
+    {
+        AutoRenderGroupExcludedSubTreeGuard guard(curExcludedRootNodeId, isCurNodeExcluded, curNodeId);
+        EXPECT_EQ(curExcludedRootNodeId, INVALID_NODEID);
+        EXPECT_FALSE(guard.isExcluded_);
+    }
+    EXPECT_EQ(curExcludedRootNodeId, INVALID_NODEID);
+
+    curExcludedRootNodeId = INVALID_NODEID;
+    isCurNodeExcluded = true;
+    curNodeId = 101;
+    {
+        AutoRenderGroupExcludedSubTreeGuard guard(curExcludedRootNodeId, isCurNodeExcluded, curNodeId);
+        EXPECT_EQ(curExcludedRootNodeId, 101);
+        EXPECT_TRUE(guard.isExcluded_);
+    }
+    EXPECT_EQ(curExcludedRootNodeId, INVALID_NODEID);
+
+    curExcludedRootNodeId = 97;
+    isCurNodeExcluded = true;
+    curNodeId = 101;
+    {
+        AutoRenderGroupExcludedSubTreeGuard guard(curExcludedRootNodeId, isCurNodeExcluded, curNodeId);
+        EXPECT_EQ(curExcludedRootNodeId, 97);
+        EXPECT_FALSE(guard.isExcluded_);
+    }
+    EXPECT_EQ(curExcludedRootNodeId, 97);
+}
+
+/**
+ * @tc.name: SetChildHasTranslateOnSqueezeTest
+ * @tc.desc: Test SetChildHasTranslateOnSqueeze
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderGroupCacheTest, SetChildHasTranslateOnSqueezeTest, TestSize.Level1)
+{
+    auto renderGroupCache = std::make_unique<RSRenderGroupCache>();
+    ASSERT_NE(renderGroupCache, nullptr);
+
+    bool rst = renderGroupCache->SetChildHasTranslateOnSqueeze(false);
+    EXPECT_FALSE(renderGroupCache->ChildHasTranslateOnSqueeze());
+    EXPECT_FALSE(rst);
+
+    rst = renderGroupCache->SetChildHasTranslateOnSqueeze(true);
+    EXPECT_TRUE(renderGroupCache->ChildHasTranslateOnSqueeze());
+    EXPECT_TRUE(rst);
+}
 } // namespace Rosen
 } // namespace OHOS

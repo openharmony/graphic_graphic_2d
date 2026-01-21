@@ -145,8 +145,6 @@ public:
 
     void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(RSRenderNode& node);
 
-    void UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node);
-
     void UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node);
 
 private:
@@ -229,7 +227,6 @@ private:
         bool& hasVisibleHwcNodes, bool& needForceUpdateHwcNodes);
     void PrevalidateHwcNode();
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
-    void UpdateInfoForClonedNode(RSSurfaceRenderNode& node);
     void PrepareForCrossNode(RSSurfaceRenderNode& node);
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
@@ -290,8 +287,10 @@ private:
     bool ForcePrepareSubTree()
     {
         return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged() ||
-               isFirstFrameAfterScreenRotation_;
+               isFirstFrameAfterScreenRotation_ || isCurSubTreeForcePrepare_;
     }
+    // Wish to force prepare specific subtrees? Add conditions here
+    bool IsCurrentSubTreeForcePrepare(RSRenderNode& node);
 
     inline bool IsValidInVirtualScreen(const RSSurfaceRenderNode& node) const
     {
@@ -319,6 +318,15 @@ private:
         RSLogicalDisplayRenderNode& node, RSLogicalDisplayRenderNode& mirrorNode);
     void UpdateVirtualDisplayVisibleRectSecurity(
         RSLogicalDisplayRenderNode& node, RSLogicalDisplayRenderNode& mirrorNode);
+
+    // used for renderGroup
+    void UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node);
+    void UpdateDrawingCacheInfoAfterChildren(RSRenderNode& node);
+    void AddRenderGroupCacheRoot(RSCanvasRenderNode& node);
+    void PopRenderGroupCacheRoot(const RSCanvasRenderNode& node);
+    void SetRenderGroupSubTreeDirtyIfNeed(const RSRenderNode& node);
+    bool IsOnRenderGroupExcludedSubTree() const;
+    // !used for renderGroup
 
     /* Check whether gpu overdraw buffer feature can be enabled on the RenderNode
      * 1. is leash window
@@ -411,13 +419,22 @@ private:
     // use for not skip subtree prepare in first frame after screen rotation
     bool isFirstFrameAfterScreenRotation_ = false;
     static bool isLastFrameRotating_;
-    // added for judge if drawing cache changes
+    // used for renderGroup
     bool isDrawingCacheEnabled_ = false;
+    std::unordered_map<NodeId, std::shared_ptr<RSCanvasRenderNode>> renderGroupCacheRoots_;
+    bool hasMarkedRenderGroupSubTreeDirty_ = false;
+    NodeId curExcludedRootNodeId_ = INVALID_NODEID;
+    // !used for renderGroup
     bool unchangeMarkEnable_ = false;
     bool unchangeMarkInApp_ = false;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
+    /*
+     * surfaceRenderNode clip rect used in Prepare.
+     * use as the clip bounds of the filter with a custom snapshot/drawing rect.
+     */
+    std::optional<RectI> prepareFilterClipRect_ = std::nullopt;
     Vector4f curCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     RectI curCornerRect_;
     Drawing::Matrix parentSurfaceNodeMatrix_;
@@ -482,9 +499,8 @@ private:
     bool zoomStateChange_ = false;
 
     uint32_t layerNum_ = 0;
-    
-    // first: cloneSource id; second: cloneSource drawable
-    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> cloneNodeMap_;
+
+    NodeId clonedSourceNodeId_ = INVALID_NODEID;
 
     bool isDumpRsTreeDetailEnabled_ = false;
     uint32_t nodePreparedSeqNum_ = 0;
@@ -510,6 +526,34 @@ private:
 
     // used for finding the first effect render node to check to need to enabled debug
     bool hasEffectNodeInParent_ = false;
+
+    // used for force prepare current subtree this frame
+    bool isCurSubTreeForcePrepare_ = false;
+};
+
+class RSSubTreePrepareController {
+public:
+    /**
+     * @brief Constructor with force-prepare state reference and trigger condition
+     * @param isCurSubTreeForcePrepare
+     *        Reference of the RSUniRenderVisitor::isCurSubTreeForcePrepare_, depends current subtree need force-prepare
+     * @param condition Trigger condition for enabling force-prepare
+     */
+    RSSubTreePrepareController(bool& isCurSubTreeForcePrepare, bool condition);
+    /**
+     * @brief RAII resource release, restore RSUniRenderVisitor::isCurSubTreeForcePrepare_ to false
+     */
+    ~RSSubTreePrepareController();
+
+    RSSubTreePrepareController() = delete;
+    RSSubTreePrepareController(const RSSubTreePrepareController& other) = delete;
+    RSSubTreePrepareController(RSSubTreePrepareController&& other) = delete;
+    RSSubTreePrepareController& operator=(const RSSubTreePrepareController& other) = delete;
+    RSSubTreePrepareController& operator=(RSSubTreePrepareController&& other) = delete;
+
+private:
+    bool& isSubTreeForcePrepare_;
+    bool condition_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

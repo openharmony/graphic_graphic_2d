@@ -1578,7 +1578,7 @@ bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffe
     }
 }
 
-pid_t RSBaseRenderUtil::lastSendingPid_ = 0;
+std::atomic<pid_t> RSBaseRenderUtil::lastSendingPid_ = 0;
 
 std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
     MessageParcel& parcel, uint32_t parcelNumber)
@@ -1592,9 +1592,10 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
         RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber);
         return nullptr;
     }
-    lastSendingPid_ = transactionData->GetSendingPid();
+    const auto& sendingPid = transactionData->GetSendingPid();
+    lastSendingPid_.store(sendingPid, std::memory_order_release);
     transactionData->ProfilerPushOffsets(parcel, parcelNumber);
-    RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(lastSendingPid_));
+    RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(sendingPid));
     RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber);
     std::unique_ptr<RSTransactionData> transData(transactionData);
     return transData;
@@ -1946,7 +1947,7 @@ GraphicTransformType RSBaseRenderUtil::RotateEnumToInt(int angle, GraphicTransfo
 
 pid_t RSBaseRenderUtil::GetLastSendingPid()
 {
-    return lastSendingPid_;
+    return lastSendingPid_.load(std::memory_order_acquire);
 }
 } // namespace Rosen
 } // namespace OHOS

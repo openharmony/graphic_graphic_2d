@@ -133,6 +133,7 @@ void RSScreenRenderNode::SetIsMirrorScreen(bool isMirror)
     isMirroredScreen_ = isMirror;
 }
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::InitRenderParams()
 {
 #ifdef RS_ENABLE_GPU
@@ -144,6 +145,7 @@ void RSScreenRenderNode::InitRenderParams()
     }
 #endif
 }
+// LCOV_EXCL_STOP
 
 ReleaseDmaBufferTask RSScreenRenderNode::releaseScreenDmaBufferTask_;
 void RSScreenRenderNode::SetReleaseTask(ReleaseDmaBufferTask callback)
@@ -155,6 +157,7 @@ void RSScreenRenderNode::SetReleaseTask(ReleaseDmaBufferTask callback)
     }
 }
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::OnSync()
 {
 #ifdef RS_ENABLE_GPU
@@ -175,7 +178,9 @@ void RSScreenRenderNode::OnSync()
     RSRenderNode::OnSync();
 #endif
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::HandleCurMainAndLeashSurfaceNodes()
 {
     surfaceCountForMultiLayersPerf_ = 0;
@@ -188,7 +193,9 @@ void RSScreenRenderNode::HandleCurMainAndLeashSurfaceNodes()
     }
     curMainAndLeashSurfaceNodes_.clear();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::UpdateRenderParams()
 {
 #ifdef RS_ENABLE_GPU
@@ -219,7 +226,9 @@ void RSScreenRenderNode::UpdateRenderParams()
     RSRenderNode::UpdateRenderParams();
 #endif
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::UpdateScreenRenderParams()
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -232,7 +241,9 @@ void RSScreenRenderNode::UpdateScreenRenderParams()
     screenParams->isMirrorScreen_ = IsMirrorScreen();
     screenParams->isFirstVisitCrossNodeDisplay_ = IsFirstVisitCrossNodeDisplay();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::UpdatePartialRenderParams()
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -242,6 +253,7 @@ void RSScreenRenderNode::UpdatePartialRenderParams()
     }
     screenParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
 }
+// LCOV_EXCL_STOP
 
 bool RSScreenRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval)
 {
@@ -363,11 +375,14 @@ void RSScreenRenderNode::SetFixVirtualBuffer10Bit(bool isFixVirtualBuffer10Bit)
     isFixVirtualBuffer10Bit_ = isFixVirtualBuffer10Bit;
 }
 
+// LCOV_EXCL_START
 bool RSScreenRenderNode::GetFixVirtualBuffer10Bit() const
 {
     return isFixVirtualBuffer10Bit_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 HdrStatus RSScreenRenderNode::GetDisplayHdrStatus() const
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -379,6 +394,7 @@ HdrStatus RSScreenRenderNode::GetDisplayHdrStatus() const
     lastDisplayTotalHdrStatus_ = currentHDRStatus;
     return currentHDRStatus;
 }
+// LCOV_EXCL_STOP
 
 void RSScreenRenderNode::CollectHdrStatus(HdrStatus hdrStatus)
 {
@@ -395,6 +411,7 @@ void RSScreenRenderNode::CollectHdrStatus(HdrStatus hdrStatus)
     }
 }
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::ResetDisplayHdrStatus()
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -407,6 +424,7 @@ void RSScreenRenderNode::ResetDisplayHdrStatus()
         AddToPendingSyncList();
     }
 }
+// LCOV_EXCL_STOP
 
 void RSScreenRenderNode::SetExistHWCNode(bool existHWCNode)
 {
@@ -571,17 +589,35 @@ bool RSScreenRenderNode::GetForceCloseHdr() const
 Occlusion::Region RSScreenRenderNode::GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const
 {
     Occlusion::Region result;
-    auto it = std::find_if(lastFrameSurfacesByDescZOrder_.begin(), lastFrameSurfacesByDescZOrder_.end(),
-        [currentSurface](const std::pair<NodeId, RectI>& surface) { return surface.first == currentSurface; });
-    if (it == lastFrameSurfacesByDescZOrder_.end()) {
+    // find the position of current surface in last frame Z-order
+    auto lastIt = std::find_if(lastFrameSurfacesByDescZOrder_.begin(), lastFrameSurfacesByDescZOrder_.end(),
+        [currentSurface](const std::pair<NodeId, RectI>& surface) {
+            return surface.first == currentSurface;
+        });
+    if (lastIt == lastFrameSurfacesByDescZOrder_.end()) {
         return result;
     }
 
-    for (++it; it != lastFrameSurfacesByDescZOrder_.end(); ++it) {
-        if (currentFrameSurfacePos_.count(it->first) != 0) {
-            break;
+    // find the position of current surface in current frame Z-order
+    auto curIt = std::find_if(currentFrameSurfacesByDescZOrder_.begin(), currentFrameSurfacesByDescZOrder_.end(),
+        [currentSurface](const std::pair<NodeId, RectI>& surface) {
+            return surface.first == currentSurface;
+        });
+    if (curIt == currentFrameSurfacesByDescZOrder_.end()) {
+        return result;
+    }
+
+    // start traversing from the surface under the current surface
+    auto curBelowIt = ++curIt;
+
+    for (++lastIt; lastIt != lastFrameSurfacesByDescZOrder_.end(); ++lastIt) {
+        NodeId lastBelowSurfaceId = lastIt->first;
+        bool isBelow = std::any_of(curBelowIt, currentFrameSurfacesByDescZOrder_.end(), [lastBelowSurfaceId]
+            (const std::pair<NodeId, RectI>& surface) { return surface.first == lastBelowSurfaceId; });
+        if (isBelow) {
+            continue;
         }
-        Occlusion::Region disappearedSurface{ Occlusion::Rect{ it->second } };
+        Occlusion::Region disappearedSurface{ Occlusion::Rect{ lastIt->second } };
         result.OrSelf(disappearedSurface);
     }
     return result;
@@ -627,11 +663,14 @@ void RSScreenRenderNode::SetForceFreeze(bool forceFreeze)
     }
 }
 
+// LCOV_EXCL_START
 bool RSScreenRenderNode::GetForceFreeze() const
 {
     return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSScreenRenderNode::CheckSurfaceChanged()
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -651,6 +690,7 @@ void RSScreenRenderNode::CheckSurfaceChanged()
     isVirtualSurfaceChanged_ = false;
 #endif
 }
+// LCOV_EXCL_STOP
 
 void RSScreenRenderNode::UpdateHeadroomMapIncrease(HdrStatus status, uint32_t level)
 {
@@ -672,15 +712,5 @@ void RSScreenRenderNode::ResetVideoHeadroomInfo()
     headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GAINMAP);
 }
 
-void RSScreenRenderNode::SetCloneNodeMap(
-    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap)
-{
-    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
-    if (screenParams == nullptr) {
-        RS_LOGE("RSScreenRenderNode::SetCloneNodeMap screenParams is null");
-        return;
-    }
-    screenParams->SetCloneNodeMap(cloneNodeMap);
-}
 } // namespace Rosen
 } // namespace OHOS

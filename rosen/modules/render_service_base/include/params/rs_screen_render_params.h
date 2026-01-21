@@ -226,25 +226,10 @@ public:
     bool GetHasMirroredScreenChanged() const;
     void SetHasMirroredScreenChanged(bool hasMirroredScreenChanged);
 
-    bool IsVirtualSurfaceChanged() const
-    {
-        return isVirtualSurfaceChanged_;
-    }
+    bool IsVirtualSurfaceChanged() const { return isVirtualSurfaceChanged_; }
 
-    void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod)
-    {
-        isEqualVsyncPeriod_ = isEqualVsyncPeriod;
-    }
-    bool IsEqualVsyncPeriod() const
-    {
-        return isEqualVsyncPeriod_;
-    }
-    void SetCloneNodeMap(
-        const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap);
-    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& GetCloneNodeMap()
-    {
-        return cloneNodeMap_;
-    }
+    void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod) { isEqualVsyncPeriod_ = isEqualVsyncPeriod; }
+    bool IsEqualVsyncPeriod() const { return isEqualVsyncPeriod_; }
 
 private:
 
@@ -293,7 +278,6 @@ private:
     Occlusion::Region drawnRegion_;
     bool forceFreeze_ = false;
     bool hasMirroredScreenChanged_ = false;
-    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> cloneNodeMap_;
 };
 } // namespace OHOS::Rosen
 

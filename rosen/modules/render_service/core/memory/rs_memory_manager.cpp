@@ -85,6 +85,7 @@ const std::string GPUMEM_NODEINFO_PATH = "/proc/gpu_memory";
 const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
 const std::string GPU_RS_LEAK = "ResourceLeak(GpuRsLeak)";
 const std::string SCB_BUNDLE_NAME = "com.ohos.sceneboard";
+const std::string GRAPHIC_MEM_DIR = "/data/service/el0/render_service/";
 constexpr uint32_t MEMUNIT_RATE = 1024;
 constexpr uint32_t MEMORY_REPORT_INTERVAL = 24 * 60 * 60 * 1000; // Each process can report at most once a day.
 constexpr uint32_t FRAME_NUMBER = 10; // Check memory every ten frames.
@@ -96,6 +97,7 @@ constexpr const char* MEM_SNAPSHOT = "snapshot";
 constexpr int DUPM_STRING_BUF_SIZE = 4000;
 constexpr int KILL_PROCESS_TYPE = 301;
 const bool IS_BETA = RSSystemProperties::GetVersionType() == "beta";
+constexpr size_t GPU_REPORT_INTERVAL = 60;   // 60s
 }
 
 std::mutex MemoryManager::mutex_;
@@ -326,6 +328,15 @@ void MemoryManager::CountMemory(
     };
     // Count mem of Skia GPU
     std::for_each(pids.begin(), pids.end(), countMem);
+    float totalMem = 0.0f;
+    for (const auto& mem : mems) {
+        totalMem += mem.GetGpuMemorySize();
+    }
+    const float maxTotalMem = 4.0f * MEMUNIT_RATE * MEMUNIT_RATE * MEMUNIT_RATE;
+    if (totalMem >= maxTotalMem) {
+        RS_LOGE("MemoryManager::CountMemoryTotal may overflow: %.2f GB",
+                totalMem / (MEMUNIT_RATE * MEMUNIT_RATE * MEMUNIT_RATE));
+    }
 }
 
 static std::tuple<uint64_t, std::string, RectI, bool> FindGeoById(uint64_t nodeId)
@@ -374,7 +385,6 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
     if (isLite) {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoByIdLite, isLite);
         RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
-        RSTypefaceCache::Instance().Dump(log);
     } else {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoById);
         RSMainThread::Instance()->RenderServiceAllNodeDump(log);
@@ -467,41 +477,6 @@ float MemoryManager::DumpGpuCacheNew(
     return ret;
 }
 
-void MemoryManager::DumpGpuCacheWithPidInfo(DfxString& log, const Drawing::GPUContext* gpuContext,
-    Drawing::GPUResourceTag* tag, std::string& name, GpuPidInfo& info)
-{
-    if (!gpuContext) {
-        log.AppendFormat("gpuContext is nullptr.\n");
-        return;
-    }
-    /* GPU */
-#if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    log.AppendFormat("\n---------------\nGPU Caches:%s\n", name.c_str());
-    Drawing::TraceMemoryDump gpuTracer("category", true);
-    if (tag) {
-        gpuContext->DumpMemoryStatisticsByTag(&gpuTracer, *tag);
-    } else {
-        gpuContext->DumpMemoryStatistics(&gpuTracer);
-    }
-    gpuTracer.LogOutput(log);
-    log.AppendFormat("Total GPU memory usage:\n");
-    gpuTracer.LogTotals(log);
-    if (tag) {
-        uint32_t pid = tag->fPid;
-        float gpuMemInMB = gpuTracer.GetGpuMemorySizeInMB();
-        std::pair<std::string, float> windowInfo = std::make_pair(name, gpuMemInMB);
-        if (info.find(pid) == info.end()) {
-            std::vector<std::pair<std::string, float>> temp;
-            temp.emplace_back(windowInfo);
-            info[pid] = std::make_tuple(gpuMemInMB, temp);
-        } else {
-            std::get<0>(info[pid]) += gpuMemInMB;
-            std::get<1>(info[pid]).emplace_back(windowInfo);
-        }
-    }
-#endif
-}
-
 void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gpuContext,
     std::vector<std::pair<NodeId, std::string>>& nodeTags)
 {
@@ -509,29 +484,10 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
         log.AppendFormat("No valid gpu cache instance.\n");
         return;
     }
-    GpuPidInfo totalInfo;
 #if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     for (auto& nodeTag : nodeTags) {
         Drawing::GPUResourceTag tag(ExtractPid(nodeTag.first), 0, nodeTag.first, 0, nodeTag.second);
-        DumpGpuCacheWithPidInfo(log, gpuContext, &tag, nodeTag.second, totalInfo);
-    }
-    log.AppendFormat("---------------:\n");
-    log.AppendFormat("AppRenderMem detail:\n");
-    for (auto [pid, info] : totalInfo) {
-        float pidMem = std::get<0>(info);
-        std::vector<std::pair<std::string, float>> infoVec = std::get<1>(info);
-        if (pidMem < 0.001f) {
-            continue;
-        }
-        std::string temp;
-        for (auto appInfo : infoVec) {
-            if (appInfo.second < 0.001f) {
-                continue;
-            }
-            temp.append("   name: " + appInfo.first);
-            temp.append("   size: " + std::to_string(appInfo.second) + "MB\n");
-        }
-        log.AppendFormat("Pid: %d, totalGpuMemSize: %fMB, detail: \n%s", pid, pidMem, temp.c_str());
+        DumpGpuCache(log, gpuContext, &tag, nodeTag.second);
     }
 #endif
 }
@@ -801,6 +757,7 @@ void MemoryManager::SetGpuMemoryLimit(Drawing::GPUContext* gpuContext)
         return;
     }
     gpuContext->InitGpuMemoryLimit(MemoryOverflow, gpuMemoryControl_);
+    gpuContext->InitGpuMemoryReportLimit(GpuMemoryOverReport, GPU_REPORT_INTERVAL, gpuMemoryControl_);
 }
 
 void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
@@ -846,7 +803,8 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
                 }
             }
             if (needReport) {
-                MemoryOverReport(pid, memoryInfo, RSEventName::RENDER_MEMORY_OVER_WARNING, "");
+                std::string filePath = GRAPHIC_MEM_DIR + "renderservice_mem_warning_report.txt";
+                MemoryOverReport(pid, memoryInfo, RSEventName::RENDER_MEMORY_OVER_WARNING, "", filePath);
             }
         }
     };
@@ -890,24 +848,6 @@ static void KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, co
             "killStatus: " + std::to_string(ret) + ", eventWriteStatus: " + std::to_string(eventWriteStatus) +
             ", reason: " + reason;
         RS_LOGE("%{public}s", logInfo.c_str());
-
-        time_t now = time(nullptr);
-        struct tm* time_struct = localtime(&now);
-        char currentTime[80];
-        strftime(currentTime, sizeof(currentTime), "%Y-%m-%d %H:%M:%S", time_struct);
-        std::string timeInfo = "Time is " + std::string(currentTime);
-        std::string filePath = "/data/service/el0/render_service/renderservice_killProcessByPid.txt";
-        std::ofstream tempFile(filePath);
-        if (tempFile.is_open()) {
-            tempFile << "\n******************************\n";
-            tempFile << timeInfo;
-            tempFile << "\n";
-            tempFile << logInfo;
-            tempFile << "\n************ endl ************\n";
-            tempFile.close();
-        } else {
-            RS_LOGE("KillProcessByPid::file open fail!");
-        }
     }
 #endif
 }
@@ -937,10 +877,12 @@ bool MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
             std::string dumpString = "";
             std::string type = MEM_GPU_TYPE;
             RSMainThread::Instance()->DumpMem(argSets, dumpString, type, 0);
-            MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR, dumpString);
+            std::string filePath = GRAPHIC_MEM_DIR + "renderservice_mem_kill_report.txt";
+            MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR, dumpString, filePath);
         });
     } else {
-        MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR, "");
+        std::string filePath = GRAPHIC_MEM_DIR + "renderservice_mem_kill_report.txt";
+        MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR, "", filePath);
     }
     std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory)
         + "], gpu[" + std::to_string(info.gpuMemory) + "], total["
@@ -951,8 +893,36 @@ bool MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     return true;
 }
 
+bool MemoryManager::GpuMemoryOverReport(pid_t pid, size_t overflowMemory,
+    std::unordered_map<std::string, std::pair<size_t, size_t>> typeInfo, std::unordered_map<pid_t, size_t> pidInfo)
+{
+    RS_TRACE_NAME("MemoryManager::GpuMemoryOverReport");
+    std::string gpuInfo = "total gpu info:\n";
+    for (const auto &[type, info] : typeInfo) {
+        gpuInfo += type + ": " + std::to_string(info.first / MEMUNIT_RATE) + "KB (" + std::to_string(info.second) +
+            " entries)\n";
+    }
+    gpuInfo += "\ngpu memory data of pid:\n";
+    for (const auto &[pid, memSize] : pidInfo) {
+        MemorySnapshotInfo info;
+        MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+        info.gpuMemory = memSize;
+        gpuInfo += "pid: " + std::to_string(pid) + ", bundleName: " + info.bundleName +
+            ", gpu: " +  std::to_string(memSize / MEMUNIT_RATE) + "KB\n";
+    }
+    MemorySnapshotInfo maxInfo;
+    MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, maxInfo);
+    maxInfo.gpuMemory = overflowMemory;
+    gpuInfo += "\nRENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(maxInfo.cpuMemory) +
+        "], gpu[" + std::to_string(maxInfo.gpuMemory) + "], total[" + std::to_string(maxInfo.TotalMemory()) + "]" +
+        " KillProcessByPid, pid: " + std::to_string(pid) + ", process name: " + maxInfo.bundleName;
+    std::string filePath = GRAPHIC_MEM_DIR + "renderservice_killProcessByPid.txt";
+    MemoryOverReport(pid, maxInfo, RSEventName::RENDER_MEMORY_OVER_ERROR, gpuInfo, filePath);
+    return true;
+}
+
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
-    const std::string& hidumperReport)
+    const std::string& hidumperReport, const std::string& filePath)
 {
     std::string gpuMemInfo;
     std::ifstream gpuMemInfoFile;
@@ -968,8 +938,6 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
     }
 
     RS_TRACE_NAME("MemoryManager::MemoryOverReport HiSysEventWrite");
-
-    std::string filePath = "/data/service/el0/render_service/renderservice_mem.txt";
     WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
 
     int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
@@ -985,24 +953,27 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
         ret, pid, info.bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
 }
 
-void MemoryManager::WriteInfoToFile(std::string& filePath, std::string& gpuMemInfo, const std::string& hidumperReport)
+void MemoryManager::WriteInfoToFile(
+    const std::string& filePath, std::string& gpuMemInfo, const std::string& hidumperReport)
 {
     std::ofstream tempFile(filePath);
     if (tempFile.is_open()) {
+        auto now = std::chrono::system_clock::now();
+        std::time_t nowTime = std::chrono::system_clock::to_time_t(now);
+        std::tm* localTime = std::localtime(&nowTime);
+        char timeStr[100];
+        std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", localTime);
+        tempFile << "time: " << timeStr << "\n";
+        if (!hidumperReport.empty()) {
+            tempFile << "\n******************************\n";
+            tempFile << "LOGGER_RENDER_SERVICE_MEM\n";
+            tempFile << hidumperReport;
+        }
         tempFile << "\n******************************\n";
         tempFile << gpuMemInfo;
         tempFile << "\n************ endl ************\n";
     } else {
         RS_LOGE("MemoryOverReport::file open fail!");
-    }
-    if (!hidumperReport.empty()) {
-        if (tempFile.is_open()) {
-            tempFile << "\n******************************\n";
-            tempFile << "LOGGER_RENDER_SERVICE_MEM\n";
-            tempFile << hidumperReport;
-        } else {
-            RS_LOGE("MemoryOverReport::file open fail!");
-        }
     }
     tempFile.close();
 }

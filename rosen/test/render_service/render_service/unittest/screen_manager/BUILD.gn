@@ -64,8 +64,6 @@ ohos_unittest("VsyncEnabledScreenIdTest") {
     "hisysevent:libhisysevent",
   ]
 
-  # Add memmgr client dependency when memory manager integration is enabled so
-  # headers like app_state_subscriber.h are available to unit tests.
   if (use_memmgr_plugin || use_memmgr) {
     external_deps += [ "memmgr:memmgrclient" ]
   }

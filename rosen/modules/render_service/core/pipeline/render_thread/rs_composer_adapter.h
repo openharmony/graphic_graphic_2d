@@ -39,15 +39,12 @@ public:
 
     bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
         const FallbackCallback& cb);
-    bool Init(const RSScreenRenderNode& node, const ScreenInfo& screenInfo, const ScreenInfo& mirroredScreenInfo,
-        float mirrorAdaptiveCoefficient, const FallbackCallback& cb);
 
     RSLayerPtr CreateLayer(RSSurfaceRenderNode& node) const;
     RSLayerPtr CreateLayer(RSScreenRenderNode& node) const;
     void CommitLayers(const std::vector<RSLayerPtr>& layers);
     /* only used for mock tests */
     void SetHdiBackendDevice(HdiDevice* device);
-    void SetMirroredScreenInfo(const ScreenInfo& mirroredScreenInfo);
     void SetColorFilterMode(ColorFilterMode colorFilterMode);
 
 private:
@@ -79,7 +76,6 @@ private:
     HdiBackend *hdiBackend_ = nullptr;
     std::shared_ptr<HdiOutput> output_;
     ScreenInfo screenInfo_;
-    ScreenInfo mirroredScreenInfo_;
     ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
 
     // The offset on dst screen for all layers.

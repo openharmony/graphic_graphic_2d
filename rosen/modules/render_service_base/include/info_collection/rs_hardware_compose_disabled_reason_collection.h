@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace Rosen {
-static const size_t HWC_DISABLED_REASON_INFO_MINIMUM_SIZE = 14 * sizeof(int32_t);
 
 enum HwcDisabledReasons {
     DISABLED_BY_FLITER_RECT = 0,
@@ -53,6 +52,8 @@ enum HwcDisabledReasons {
     DISABLED_BY_PREVIOUS_FLITER_RECT = 24,
     DISABLED_REASON_LENGTH = 25,
 };
+
+static const size_t HWC_DISABLED_REASON_INFO_MINIMUM_SIZE = (DISABLED_REASON_LENGTH + 2) * sizeof(int32_t);
 
 struct HwcDisabledReasonInfo {
     int32_t disabledReasonStatistics[HwcDisabledReasons::DISABLED_REASON_LENGTH] = {0};

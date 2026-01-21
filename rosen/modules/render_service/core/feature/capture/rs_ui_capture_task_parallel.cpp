@@ -307,7 +307,6 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     canvas.SetDisableFilterCache(true);
     canvas.SetUICapture(true);
     if (isHdrCapture_) {
-        captureConfig_.useDma = true;
         canvas.SetHdrOn(true);
     }
     const auto& nodeParams = nodeDrawable_->GetRenderParams();
@@ -367,6 +366,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         RSPaintFilterCanvas offScreenCanvas(offScreenSurface.get());
         offScreenCanvas.SetDisableFilterCache(true);
         offScreenCanvas.SetUICapture(true);
+        offScreenCanvas.CopyHDRConfiguration(canvas);
+        offScreenCanvas.CopyConfigurationToOffscreenCanvas(canvas);
         offScreenCanvas.ResetMatrix();
         nodeDrawable_->OnCapture(offScreenCanvas);
         RS_LOGD("RSUiCaptureTaskParallel::Run: offScreenSurface width: %{public}d, height: %{public}d",
@@ -376,11 +377,17 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         RSUniRenderThread::ResetCaptureParam();
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, false, false, false, false, false,
             INVALID_NODEID, false));
-        canvas.SetDisableFilterCache(true);
-        canvas.SetUICapture(true);
-        canvas.CopyHDRConfiguration(offScreenCanvas);
-        canvas.CopyConfigurationToOffscreenCanvas(offScreenCanvas);
-        canvas.ResetMatrix();
+        auto offScreenCardSurface = offScreenSurface->MakeSurface(offScreenSize, offScreenSize);
+        if (offScreenCardSurface == nullptr) {
+            RS_LOGE("RSUiCaptureTaskParallel::Run: offScreenCardSurface is nullptr");
+            return false;
+        }
+        RSPaintFilterCanvas offScreenCardCanvas(offScreenCardSurface.get());
+        offScreenCardCanvas.SetDisableFilterCache(true);
+        offScreenCardCanvas.SetUICapture(true);
+        offScreenCardCanvas.CopyHDRConfiguration(offScreenCanvas);
+        offScreenCardCanvas.CopyConfigurationToOffscreenCanvas(offScreenCanvas);
+        offScreenCardCanvas.ResetMatrix();
         if (effectData != nullptr) {
             RS_LOGI("RSUiCaptureTaskParallel::Run: effectData set matrix");
             Drawing::Matrix endMatrixInvert;
@@ -389,8 +396,16 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
             matrix.PostConcat(endMatrixInvert);
             effectData->cachedMatrix_.PostConcat(matrix);
         }
-        canvas.SetEffectData(effectData);
-        endNodeDrawable_->OnCapture(canvas);
+        offScreenCardCanvas.SetEffectData(effectData);
+        endNodeDrawable_->OnCapture(offScreenCardCanvas);
+        auto cardImage = offScreenCardSurface->GetImageSnapshot();
+        if (!cardImage) {
+            RS_LOGE("RSUiCaptureTaskParallel::Run: cardImage is nullptr");
+            return false;
+        }
+        RS_LOGI("RSUiCaptureTaskParallel::Run: offScreenCardSurface width: %{public}d, height: %{public}d",
+            offScreenCardSurface->Width(), offScreenCardSurface->Height());
+        canvas.DrawImage(*cardImage, 0, 0, Drawing::SamplingOptions());
     } else {
         nodeDrawable_->OnCapture(canvas);
     }
@@ -414,7 +429,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
             &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
         auto copytask =
             RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
-                surface, std::move(pixelMap_), nodeId_, captureConfig_, callback, 0, needDump_, errorCode_);
+                surface, std::move(pixelMap_), nodeId_, captureConfig_, callback, 0, needDump_, errorCode_,
+                isHdrCapture_);
         if (!copytask) {
             RS_LOGE("RSUiCaptureTaskParallel::Run: create capture task failed!");
             return false;
@@ -601,7 +617,7 @@ std::shared_ptr<Drawing::Surface> RSUiCaptureTaskParallel::CreateSurface(
 std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
     std::shared_ptr<Drawing::Surface> surface, std::unique_ptr<Media::PixelMap> pixelMap,
     NodeId id, const RSSurfaceCaptureConfig& captureConfig, sptr<RSISurfaceCaptureCallback> callback,
-    int32_t rotation, bool needDump, CaptureError errorCode)
+    int32_t rotation, bool needDump, CaptureError errorCode, bool isHdrCapture)
 {
     Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
     if (!backendTexture.IsValid()) {
@@ -613,7 +629,8 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
     auto wrapperSf = std::make_shared<std::tuple<std::shared_ptr<Drawing::Surface>>>();
     std::get<0>(*wrapperSf) = std::move(surface);
     std::function<void()> copytask = [
-        wrapper, captureConfig, callback, backendTexture, wrapperSf, id, rotation, needDump, errorCode]() -> void {
+        wrapper, captureConfig, callback, backendTexture, wrapperSf, id, rotation, needDump, errorCode,
+        isHdrCapture]() -> void {
         RS_TRACE_NAME_FMT("copy and send capture useDma:%d", captureConfig.useDma);
         if (!backendTexture.IsValid()) {
             RS_LOGE("RSUiCaptureTaskParallel: Surface bind Image failed: BackendTexture is invalid");
@@ -649,7 +666,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         DmaMem dmaMem;
-        if (captureConfig.useDma && GetFeatureParamValue("UICaptureConfig",
+        if ((captureConfig.useDma || isHdrCapture) && GetFeatureParamValue("UICaptureConfig",
             &UICaptureParam::IsUseDMAProcessEnabled).value_or(false) &&
             (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {

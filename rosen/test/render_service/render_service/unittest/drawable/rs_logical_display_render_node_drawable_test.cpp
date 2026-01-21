@@ -2314,6 +2314,36 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorScreenTest012, TestSi
 }
 
 /**
+ * @tc.name: DrawMirrorScreenTest013
+ * @tc.desc: Test DrawMirrorScreen when mirroredParams
+ * @tc.type: FUNC
+ * @tc.require: issue21104
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorScreenTest013, TestSize.Level1)
+{
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto mirroredScreenParams = static_cast<RSScreenRenderParams*>(mirroredScreenDrawable_->GetRenderParams().get());
+    mirroredScreenParams->SetHDRPresent(false);
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    virtualProcesser->canvas_ = drawingFilterCanvas_;
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(instance.uniRenderEngine_, nullptr);
+    instance.uniRenderEngine_->SetColorFilterMode(ColorFilterMode::INVERT_COLOR_ENABLE_MODE);
+    ASSERT_TRUE(instance.IsColorFilterModeOn());
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    displayDrawable_->DrawMirrorScreen(*renderParams, virtualProcesser);
+    EXPECT_FALSE(virtualProcesser->GetDrawVirtualMirrorCopy());
+ 
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    mirroredScreenParams->SetHDRPresent(true);
+    screenParams->SetHDRPresent(true);
+    displayDrawable_->DrawMirrorScreen(*renderParams, virtualProcesser);
+    EXPECT_FALSE(virtualProcesser->GetDrawVirtualMirrorCopy());
+}
+
+/**
  * @tc.name: DrawMirrorCopyTest001
  * @tc.desc: Test DrawMirrorCopy when curScreenDrawable is nullptr
  * @tc.type: FUNC
@@ -3961,23 +3991,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeedTest, TestSi
     RSUniRenderThread::Instance().Sync(std::move(uniParams2));
     displayDrawable_->DrawWatermarkIfNeed(*drawingFilterCanvas_);
     EXPECT_NE(RSUniRenderThread::Instance().GetWatermarkImg(), nullptr);
-}
-
-/**
- * @tc.name: SetScreenRotationForPointLight
- * @tc.desc: Test SetScreenRotationForPointLight
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, SetScreenRotationForPointLight, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-
-    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    displayDrawable_->SetScreenRotationForPointLight(*params);
 }
 
 /**

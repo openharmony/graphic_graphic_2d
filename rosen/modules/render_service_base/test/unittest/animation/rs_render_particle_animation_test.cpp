@@ -154,55 +154,6 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate002, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate002 end";
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: Animate003
- * @tc.desc: Verify the Animate
- * @tc.type:FUNC
- * @tc.require: issueIA6IWR
- */
-HWTEST_F(RSRenderParticleAnimationTest, Animate003, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate003 start";
-    int emitRate = 20;
-    ShapeType emitShape = ShapeType::RECT;
-    Vector2f position = Vector2f(0.f, 0.f);
-    Vector2f emitSize = Vector2f(10.f, 20.f); // 10.f is width, 20.f is height
-    int particleCount = 0;
-    Range<int64_t> lifeTime = Range<int64_t>(0, 0); // 1000 is lifeTime range start, 3000 is lifeTime range end.
-    ParticleType type = ParticleType::POINTS;
-    float radius = 10.f;
-    std::shared_ptr<RSImage> image;
-    Vector2f imageSize = Vector2f(1.f, 1.f);
-    EmitterConfig emitterConfig =
-        EmitterConfig(emitRate, emitShape, position, emitSize, particleCount, lifeTime, type, radius, image, imageSize);
-
-    param = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
-
-    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams1;
-    particlesRenderParams1.push_back(param);
-
-    NodeId targetId = static_cast<NodeId>(PROPERTY_ID);
-    auto animation =
-        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, std::move(particlesRenderParams1));
-    OHOS::Rosen::RSContext context;
-    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
-    RSRenderParticleVector particles;
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    std::shared_ptr<RSRenderParticle> newParam = std::make_shared<RSRenderParticle>(particleParams);
-    particles.renderParticleVector_.push_back(newParam);
-    auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(particles, PROPERTY_ID);
-    ASSERT_TRUE(animation != nullptr);
-    animation->AttachRenderProperty(property);
-    int64_t leftDelayTime = 0;
-    EXPECT_TRUE(animation->Animate(NS_TO_S, leftDelayTime));
-    animation->particleSystem_ = nullptr;
-    animation->SetPropertyValue(nullptr);
-    EXPECT_TRUE(animation->Animate(NS_TO_S, leftDelayTime));
-    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate003 end";
-}
-#endif // !MODIFIER_NG
-
 /**
  * @tc.name: UpdateEmitter001
  * @tc.desc: Verify the UpdateEmitter

@@ -245,6 +245,11 @@ void GPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t s
     impl_->InitGpuMemoryLimit(callback, size);
 }
 
+void GPUContext::InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size)
+{
+    impl_->InitGpuMemoryReportLimit(callback, intervalLimit, size);
+}
+
 void GPUContext::ResetContext()
 {
     impl_->ResetContext();
@@ -341,16 +346,6 @@ void GPUContextOptions::SetStoreCachePath(const std::string& filePath)
 std::string GPUContextOptions::GetStoreCachePath() const
 {
     return filePath_;
-}
-
-void GPUContextOptions::SetIsUniRender(bool isUniRender)
-{
-    isUniRender_ = isUniRender;
-}
-
-bool GPUContextOptions::GetIsUniRender() const
-{
-    return isUniRender_;
 }
 
 void GPUContext::SetParam(const std::string& name, const std::string& value)

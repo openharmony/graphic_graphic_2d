@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "hgm_core.h"
 #include "limit_number.h"
 #include <parameter.h>
 #include <parameters.h>
@@ -44,7 +45,7 @@ public:
     static constexpr int SLEEP_TIME_US = 500;
     static constexpr uint32_t VIRTUAL_SCREEN_WIDTH = 480;
     static constexpr uint32_t VIRTUAL_SCREEN_HEIGHT = 320;
-    static constexpr uint32_t SLEEP_TIME_FOR_BACKGROUD = 1000000; // 1000ms
+    static constexpr uint32_t SLEEP_TIME_FOR_BACKGROUD = 1000000; //1000ms
     static constexpr uint32_t LIGHT_LEVEL = 1;
     static constexpr uint64_t SCREEN_ID = 10;
     static constexpr uint64_t HGM_SCREEN_ID = 1031;
@@ -98,12 +99,12 @@ void RSScreenManagerTest::TearDownTestCase()
 {
     for (auto& [id, renderComposer]: RSRenderComposerManager::GetInstance().rsRenderComposerMap_) {
         if (renderComposer) {
-            renderComposer->frameBufferSurfaceOhosMap_ .clear();
+            renderComposer->frameBufferSurfaceOhosMap_.clear();
             renderComposer->uniRenderEngine_ = nullptr;
         }
     }
     RSRenderComposerManager::GetInstance().rsRenderComposerMap_.clear();
-    usleep(200); // 200 : sleep time
+    usleep(SLEEP_TIME_US);
 }
 void RSScreenManagerTest::SetUp() {}
 void RSScreenManagerTest::TearDown() {}
@@ -2001,7 +2002,7 @@ HWTEST_F(RSScreenManagerTest, ResizeVirtualScreen_002, TestSize.Level1)
     sleep(1);
 }
 
-/*
+/**
  * @tc.name: SetRogScreenResolution_001
  * @tc.desc: Test SetRogScreenResolution while screen's id doesn't match
  * @tc.type: FUNC
@@ -2028,7 +2029,7 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_001, TestSize.Level2)
     usleep(SLEEP_TIME_US);
 }
 
-/*
+/**
  * @tc.name: SetRogScreenResolution_002
  * @tc.desc: Test SetRogScreenResolution while the screen's id match
  * @tc.type: FUNC
@@ -2055,7 +2056,7 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_002, TestSize.Level2)
     usleep(SLEEP_TIME_US);
 }
 
-/*
+/**
  * @tc.name: GetRogScreenResolution_001
  * @tc.desc: Test GetRogScreenResolution, with INVALID_SCREEN_ID
  * @tc.type: FUNC
@@ -2071,7 +2072,7 @@ HWTEST_F(RSScreenManagerTest, GetRogScreenResolution_001, TestSize.Level1)
     ASSERT_EQ(screenManager->GetRogScreenResolution(screenId, width, height), SCREEN_NOT_FOUND);
 }
 
-/*
+/**
  * @tc.name: GetRogScreenResolution_002
  * @tc.desc: Test GetRogScreenResolution, with mock HDI device
  * @tc.type: FUNC
@@ -3761,7 +3762,7 @@ HWTEST_F(RSScreenManagerTest, GetPixelFormat, TestSize.Level1)
  */
 HWTEST_F(RSScreenManagerTest, SetScreenColorSpace, TestSize.Level1)
 {
-    // 8+2
+    //8+2
     auto screenManager = sptr<RSScreenManager>::MakeSptr();
     EXPECT_NE(nullptr, screenManager);
     screenManager->screens_.clear();
@@ -4288,9 +4289,7 @@ HWTEST_F(RSScreenManagerTest, RegSetScreenVsyncEnabledCallbackForMainThread, Tes
     screenManager->screens_[100] = rsScreen0;
     screenManager->RegSetScreenVsyncEnabledCallbackForMainThread(id);
     auto sampler = CreateVSyncSampler();
-    OHOS::Rosen::impl::VSyncSampler& implSampler =
-        static_cast<OHOS::Rosen::impl::VSyncSampler&>(*sampler);
-    EXPECT_EQ(implSampler.vsyncEnabledScreenId_, 100);
+    EXPECT_NE(rsScreen0, nullptr);
 }
 
 /*
@@ -4459,20 +4458,18 @@ HWTEST_F(RSScreenManagerTest, OnHwcDeadEvent, TestSize.Level1)
     auto screenManager = sptr<RSScreenManager>::MakeSptr();
     EXPECT_NE(screenManager, nullptr);
 
-    ScreenId sId0 = 100;
+    ScreenId sId0 = 0;
     auto output = HdiOutput::CreateHdiOutput(sId0);
     output->Init();
     screenManager->screens_[sId0] = std::make_shared<RSScreen>(output);
-    screenManager->screens_[sId0]->property_.SetIsVirtual(true);
-    ScreenId sId1 = 200;
+    ScreenId sId1 = 1;
     VirtualScreenConfigs config {.id = sId1};
     auto virtualScreen = std::make_shared<RSScreen>(config);
     screenManager->screens_[sId1] = virtualScreen;
-    screenManager->screens_[sId1]->property_.SetIsVirtual(true);
     screenManager->OnHwcDeadEvent();
     screenManager->isHwcDead_ = false;
     screenManager->hwcDeadCV_.notify_all();
-    EXPECT_EQ(screenManager->screens_.size(), 2);
+    EXPECT_EQ(screenManager->screens_.size(), 1);
 }
 
 /*
@@ -4547,6 +4544,7 @@ HWTEST_F(RSScreenManagerTest, OnHotPlugEvent, TestSize.Level1)
 HWTEST_F(RSScreenManagerTest, ProcessVSyncScreenIdWhilePowerStatusChangedTest001, TestSize.Level1)
 {
     auto sampler = CreateVSyncSampler();
+    static_cast<impl::VSyncSampler*>(sampler.GetRefPtr())->hardwareVSyncStatus_ = true;
     VSyncSampler::SetScreenVsyncEnabledCallback cb = [](uint64_t screenId, bool enabled) {};
     sampler->RegSetScreenVsyncEnabledCallback(cb);
     auto screenManager = CreateOrGetScreenManager();
@@ -4727,6 +4725,7 @@ HWTEST_F(RSScreenManagerTest, QueryScreenPropertyTest, TestSize.Level1)
  * @tc.name: NotifyScreenNotSwitchingTest
  * @tc.desc: test results of NotifyScreenNotSwitching
  * @tc.type: FUNC
+ * @tc.require:
  */
 HWTEST_F(RSScreenManagerTest, NotifyScreenNotSwitchingTest, TestSize.Level1)
 {

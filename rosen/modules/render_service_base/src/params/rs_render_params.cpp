@@ -242,6 +242,63 @@ bool RSRenderParams::HasChildExcludedFromNodeGroup() const
     return false;
 }
 
+void RSRenderParams::SetRenderGroupExcludedStateChanged(bool isChanged)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetRenderGroupExcludedStateChanged(isChanged)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::IsRenderGroupExcludedStateChanged() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->IsRenderGroupExcludedStateChanged();
+    }
+    return false;
+}
+
+void RSRenderParams::SetRenderGroupSubTreeDirty(bool isDirty)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetCachedSubTreeDirty(isDirty)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::IsRenderGroupSubTreeDirty() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->IsCachedSubTreeDirty();
+    }
+    return false;
+}
+
+void RSRenderParams::SetChildHasTranslateOnSqueeze(bool val)
+{
+    if (ChildHasTranslateOnSqueeze() == val) {
+        return;
+    }
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetChildHasTranslateOnSqueeze(val)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::ChildHasTranslateOnSqueeze() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->ChildHasTranslateOnSqueeze();
+    }
+    return false;
+}
+
 void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
 {
     if (drawingCacheIncludeProperty_ == includeProperty) {

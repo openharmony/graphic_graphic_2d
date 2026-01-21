@@ -14,6 +14,8 @@
  */
 
 #include <gtest/gtest.h>
+#include <parameters.h>
+
 #include "pipeline/slr_scale/rs_slr_scale.h"
 
 using namespace testing;
@@ -87,21 +89,88 @@ HWTEST_F(RSSLRScaleTest, RefreshColorSpaceTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessCacheImageTest
- * @tc.desc: test ProcessCacheImage
+ * @tc.name: ProcessCacheImageTest1
+ * @tc.desc: test ProcessCacheImage func when close DDGR SLR
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST_F(RSSLRScaleTest, ProcessCacheImageTest, TestSize.Level1)
+HWTEST_F(RSSLRScaleTest, ProcessCacheImageTest1, TestSize.Level1)
 {
+    std::string enable = system::GetParameter("rosen.DDGRSLR.enabled", "0");
+    system::SetParameter("rosen.DDGRSLR.enabled", "0");
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(mainWidth, mainHeight);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    canvas->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     scaleManager_->ProcessCacheImage(*canvas, *image);
+    ASSERT_NE(scaleManager_->slrFilterShader_, nullptr);
+    ASSERT_EQ(scaleManager_->laplaceFilterShader_, nullptr);
+    ASSERT_NE(scaleManager_->slrShaderBuilder_, nullptr);
+    ASSERT_EQ(scaleManager_->laplaceShaderBuilder_, nullptr);
+    system::SetParameter("rosen.DDGRSLR.enabled", enable);
+}
+
+/**
+ * @tc.name: ProcessCacheImageTest2
+ * @tc.desc: test ProcessCacheImage func when open DDGR SLR
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSSLRScaleTest, ProcessCacheImageTest2, TestSize.Level1)
+{
+    std::string enable = system::GetParameter("rosen.DDGRSLR.enabled", "0");
+    system::SetParameter("rosen.DDGRSLR.enabled", "1");
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(mainWidth, mainHeight);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    canvas->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    scaleManager_->ProcessCacheImage(*canvas, *image);
+    ASSERT_NE(scaleManager_->slrFilterShader_, nullptr);
+    ASSERT_EQ(scaleManager_->laplaceFilterShader_, nullptr);
+    ASSERT_NE(scaleManager_->slrShaderBuilder_, nullptr);
+    ASSERT_EQ(scaleManager_->laplaceShaderBuilder_, nullptr);
+    system::SetParameter("rosen.DDGRSLR.enabled", enable);
+}
+
+/**
+ * @tc.name: ProcessOffscreenImage1
+ * @tc.desc: test ProcessOffscreenImage func when close DDGR SLR
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSSLRScaleTest, ProcessOffscreenImage1, TestSize.Level1)
+{
+    std::string enable = system::GetParameter("rosen.DDGRSLR.enabled", "0");
+    system::SetParameter("rosen.DDGRSLR.enabled", "0");
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(mainWidth, mainHeight);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    canvas->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     scaleManager_->ProcessOffscreenImage(*canvas, *image);
     ASSERT_NE(scaleManager_->slrFilterShader_, nullptr);
     ASSERT_EQ(scaleManager_->laplaceFilterShader_, nullptr);
     ASSERT_NE(scaleManager_->slrShaderBuilder_, nullptr);
     ASSERT_EQ(scaleManager_->laplaceShaderBuilder_, nullptr);
+    system::SetParameter("rosen.DDGRSLR.enabled", enable);
+}
+
+/**
+ * @tc.name: ProcessOffscreenImage2
+ * @tc.desc: test ProcessOffscreenImage func when open DDGR SLR
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSSLRScaleTest, ProcessOffscreenImage2, TestSize.Level1)
+{
+    std::string enable = system::GetParameter("rosen.DDGRSLR.enabled", "0");
+    system::SetParameter("rosen.DDGRSLR.enabled", "1");
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(mainWidth, mainHeight);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    canvas->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    scaleManager_->ProcessOffscreenImage(*canvas, *image);
+    ASSERT_NE(scaleManager_->slrFilterShader_, nullptr);
+    ASSERT_EQ(scaleManager_->laplaceFilterShader_, nullptr);
+    system::SetParameter("rosen.DDGRSLR.enabled", enable);
 }
 } // OHOS::Rosen

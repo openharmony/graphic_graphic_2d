@@ -49,6 +49,9 @@
 #include "rs_profiler.h"
 #include "rs_render_composer_manager.h"
 #include "rs_trace.h"
+#ifdef TP_FEATURE_ENABLE
+#include "screen_manager/touch_screen.h"
+#endif
 #include "system/rs_system_parameters.h"
 #include "text/font_mgr.h"
 #include "transaction/rs_client_to_render_connection.h"
@@ -56,10 +59,6 @@
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
-
-#ifdef TP_FEATURE_ENABLE
-#include "screen_manager/touch_screen.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -102,9 +101,9 @@ bool RSRenderService::Init()
         mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
     }
 #ifdef RS_ENABLE_VK
-if (Drawing::SystemProperties::IsUseVulkan()) {
-    RsVulkanContext::SetRecyclable(false);
-}
+    if (Drawing::SystemProperties::IsUseVulkan()) {
+        RsVulkanContext::SetRecyclable(false);
+    }
 #endif
     RSMainThread::Instance();
     RSUniRenderJudgement::InitUniRenderConfig();
@@ -134,8 +133,7 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
 
     // The offset needs to be set
     int64_t offset = 0;
-    auto& hgmCore = HgmCore::Instance();
-    if (!hgmCore.GetLtpoEnabled()) {
+    if (auto& hgmCore = HgmCore::Instance(); !hgmCore.GetLtpoEnabled()) {
         if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
             offset = hgmCore.IsDelayMode() ? UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
         }
@@ -265,6 +263,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
 
     auto tokenObj = token->AsObject();
+
     sptr<RSIClientToServiceConnection> newConn(
         new RSClientToServiceConnection(remotePid, this, mainThread_, screenManager_, tokenObj, appVSyncDistributor_));
 
@@ -292,6 +291,7 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
     }
     // temporarily extending the life cycle
     auto tokenObj = token->AsObject();
+
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = connections_.find(tokenObj);
     if (iter == connections_.end()) {
@@ -302,12 +302,14 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
     if (rsConn != nullptr) {
         rsConn->RemoveToken();
     }
+    // Subsequent sunset
     if (rsRenderConn != nullptr) {
         rsRenderConn->RemoveToken();
     }
-    
+
     connections_.erase(iter);
     lock.unlock();
+
     return true;
 }
 

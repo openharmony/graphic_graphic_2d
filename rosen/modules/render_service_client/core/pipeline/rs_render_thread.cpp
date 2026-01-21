@@ -46,7 +46,11 @@
 #include "ui/rs_ui_director.h"
 
 #ifdef RS_ENABLE_VK
+#ifndef ROSEN_ARKUI_X
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#else
+#include "rs_vulkan_context.h"
+#endif
 #endif
 #ifdef ROSEN_IOS
 #include "render_context/new_render_context/render_context_gl.h"
@@ -142,7 +146,6 @@ RSRenderThread::RSRenderThread()
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
         ReleasePixelMapInBackgroundThread();
-        TrimMemory();
         context_->pendingSyncNodes_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
@@ -182,7 +185,7 @@ RSRenderThread::RSRenderThread()
 #endif
     RSSurfaceBufferCallbackManager::Instance().SetIsUniRender(false);
     RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
-        .requestNextVsync = []() {
+        .requestNextVSync = []() {
             RSRenderThread::Instance().RequestNextVSync();
         },
         .isRequestedNextVSync = [this]() {
@@ -616,25 +619,6 @@ void RSRenderThread::PostPreTask()
     if (handler_ && preTask_) {
         handler_->PostTask(preTask_);
     }
-}
-
-void RSRenderThread::TrimMemory()
-{
-#if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
-    PostSyncTask([this]() {
-        if (!renderContext_) {
-            RS_LOGE("RSRenderThread::renderContext_ is nullptr");
-            return;
-        }
-        auto gpuContext = renderContext_->GetSharedDrGPUContext();
-        if (!gpuContext) {
-            RS_LOGE("RSRenderThread::gpuContext is nullptr");
-            return;
-        }
-        RS_TRACE_NAME_FMT("RSRenderThread::TrimMemory");
-        gpuContext->PurgeUnlockedResources(false);
-    });
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

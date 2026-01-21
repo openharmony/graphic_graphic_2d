@@ -100,17 +100,9 @@ public:
     void SetStoreCachePath(const std::string& filename);
     std::string GetStoreCachePath() const;
 
-    /**
-     * @brief cache small Texture on UnUni devices.
-     * @param isUniRender isUniRender A boolean value indicating whether to use the unified rendering mode.
-     */
-    void SetIsUniRender(bool isUniRender);
-    bool GetIsUniRender() const;
-
 private:
     PersistentCache* persistentCache_ = nullptr;
     bool allowPathMaskCaching_ = true;
-    bool isUniRender_ = true;
     std::string filePath_ = "";
 };
 
@@ -265,7 +257,7 @@ public:
     /**
      * @brief                         Register LeashWindow callback function
      *                                provided callback function when gpu reset with device lost error.
-     * @param LeashWindowCallback     callback function for skia recall
+     * @param vulkanErrorCallback     callback function for skia recall
      */
     void RegisterVulkanErrorCallback(
         const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback);
@@ -340,6 +332,14 @@ public:
      * @param size              Memory size limit.
      */
     void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size);
+
+    /**
+     * @brief                   Init gpu memory limit.
+     * @param callback          Memory over report calllback.
+     * @param intervalLimit     Report time interval limit.
+     * @param size              Memory size limit.
+     */
+    void InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size);
 
 #ifdef RS_ENABLE_VK
     /**

@@ -189,6 +189,7 @@ public:
     ani_method paragraphStyleVerticalAlign;
     ani_method paragraphStyleIncludeFontPadding;
     ani_method paragraphStyleFallbackLineSpacing;
+    ani_method paragraphStyleLineSpacing;
     ani_method strutStyleFontStyle;
     ani_method strutStyleFontWidth;
     ani_method strutStyleFontWeight;
@@ -224,6 +225,9 @@ public:
     ani_method textStyleFontVariations;
     ani_method textStyleBackgroundRect;
     ani_method textStyleBadgeType;
+    ani_method textStyleMaxLineHeight;
+    ani_method textStyleMinLineHeight;
+    ani_method textStyleLineHeightStyle;
     ani_method decorationCtor;
     ani_method decorationDecorationType;
     ani_method decorationDecorationStyle;

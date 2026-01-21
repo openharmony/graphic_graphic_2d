@@ -45,6 +45,7 @@ FontDescriptorCache::~FontDescriptorCache() {}
 
 void FontDescriptorCache::ClearFontFileCache()
 {
+    std::lock_guard guard(mutex_);
     allFontDescriptor_.clear();
     fontFamilyMap_.clear();
     fullNameMap_.clear();

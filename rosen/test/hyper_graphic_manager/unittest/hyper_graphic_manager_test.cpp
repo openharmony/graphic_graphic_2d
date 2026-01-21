@@ -68,6 +68,14 @@ HWTEST_F(HyperGraphicManagerTest, Instance, Function | SmallTest | Level0)
             auto& instance1 = HgmCore::Instance();
             auto& instance2 = HgmCore::Instance();
             STEP("2. check the result of configuration") {
+                auto& hgmCore = HgmCore::Instance();
+                hgmCore.mPolicyConfigData_->defaultRefreshRateMode_ = "errMode";
+                hgmCore.mPolicyConfigVisitor_ = nullptr;
+                hgmCore.Init();
+                RSSystemProperties::SetHgmRefreshRateModesEnabled("1");
+                hgmCore.Init();
+                RSSystemProperties::SetHgmRefreshRateModesEnabled("-1");
+                hgmCore.Init();
                 STEP_ASSERT_EQ(&instance1, &instance2);
             }
         }
@@ -127,6 +135,110 @@ HWTEST_F(HyperGraphicManagerTest, SetAsConfigTest, Function | SmallTest | Level0
     }
 }
 
+/**
+ * @tc.name: SetLtpoConfigTest
+ * @tc.desc: Verify the independency of HgmCore SetLtpoConfigTest
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, SetLtpoConfigTest, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto hgmFrameRateMgr = hgmCore.hgmFrameRateMgr_;
+    auto mPolicyConfigData = hgmCore.mPolicyConfigData_;
+
+    hgmCore.hgmFrameRateMgr_ = nullptr;
+    hgmCore.SetLtpoConfig();
+    EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+    hgmCore.mPolicyConfigData_ = nullptr;
+    hgmCore.SetLtpoConfig();
+    EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+    hgmCore.hgmFrameRateMgr_ = hgmFrameRateMgr;
+    hgmCore.SetLtpoConfig();
+    EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+    hgmCore.mPolicyConfigData_ = mPolicyConfigData;
+    hgmCore.SetLtpoConfig();
+    EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+    auto curScreenStrategyId = hgmCore.hgmFrameRateMgr_->GetCurScreenStrategyId();
+    auto screenConfigIter = mPolicyConfigData->screenConfigs_.find(curScreenStrategyId);
+    if (screenConfigIter != mPolicyConfigData->screenConfigs_.end()) {
+        auto screenConfig = screenConfigIter->second;
+        mPolicyConfigData->screenConfigs_.erase(curScreenStrategyId);
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+        mPolicyConfigData->screenConfigs_[curScreenStrategyId] = screenConfig;
+    }
+}
+
+/**
+ * @tc.name: SetLtpoConfigTest2
+ * @tc.desc: Verify the independency of HgmCore SetLtpoConfigTest
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, SetLtpoConfigTest2, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto hgmFrameRateMgr = hgmCore.hgmFrameRateMgr_;
+    auto mPolicyConfigData = hgmCore.mPolicyConfigData_;
+    auto screenConfigIter = mPolicyConfigData->screenConfigs_.find(hgmFrameRateMgr->GetCurScreenStrategyId());
+    if (screenConfigIter == mPolicyConfigData->screenConfigs_.end()) {
+        return;
+    }
+    auto screenStrategyIter = screenConfigIter->second.find(std::to_string(hgmCore.customFrameRateMode_));
+    if (screenStrategyIter == screenConfigIter->second.end()) {
+        return;
+    }
+    auto& curScreenSetting = screenStrategyIter->second;
+    auto& ltpoConfig = curScreenSetting.ltpoConfig;
+
+    if (auto iter = ltpoConfig.find("switch"); iter != ltpoConfig.end()) {
+        auto switchConfig = iter->second;
+        ltpoConfig.erase("switch");
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+        ltpoConfig["switch"] = "errSwitch";
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.ltpoEnabled_, 0);
+        ltpoConfig["switch"] = switchConfig;
+    }
+
+    if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end()) {
+        auto maxTEConfig = iter->second;
+        ltpoConfig.erase("maxTE");
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.maxTE_, 0);
+        ltpoConfig["maxTE"] = "errMaxTE";
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.maxTE_, 0);
+        ltpoConfig["maxTE"] = maxTEConfig;
+    }
+
+    if (auto iter = ltpoConfig.find("alignRate"); iter != ltpoConfig.end()) {
+        auto alignRateConfig = iter->second;
+        ltpoConfig.erase("alignRate");
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.alignRate_, 0);
+        ltpoConfig["alignRate"] = "errAlignRate";
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.alignRate_, 0);
+        ltpoConfig["alignRate"] = alignRateConfig;
+    }
+
+    if (auto iter = ltpoConfig.find("pipelineOffsetPulseNum"); iter != ltpoConfig.end()) {
+        auto pipelineOffsetPulseNum = iter->second;
+        ltpoConfig.erase("pipelineOffsetPulseNum");
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.pipelineOffsetPulseNum_, 0);
+        ltpoConfig["pipelineOffsetPulseNum"] = "errPipelineOffsetPulseNum";
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.pipelineOffsetPulseNum_, 0);
+        ltpoConfig["pipelineOffsetPulseNum"] = "10";
+        hgmCore.SetLtpoConfig();
+        EXPECT_GE(hgmCore.pipelineOffsetPulseNum_, 0);
+        ltpoConfig["pipelineOffsetPulseNum"] = pipelineOffsetPulseNum;
+    }
+}
 
 /**
  * @tc.name: GetActiveScreenTest
@@ -210,6 +322,15 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level0)
         STEP("5. mark screenIds Size") {
             sizeScreenIds  = instance.GetScreenIds().size();
             STEP_ASSERT_EQ(sizeScreenIds, sizeListAfter);
+        }
+
+        STEP("5. mark screenIds Size") {
+            ScreenId screenId = 2;
+            auto mPolicyConfigData = instance.mPolicyConfigData_;
+            instance.mPolicyConfigData_ = nullptr;
+            auto addScreen = instance.AddScreen(screenId, 0, screenSize);
+            STEP_ASSERT_EQ(addScreen, 0);
+            instance.mPolicyConfigData_ = mPolicyConfigData;
         }
     }
 }
@@ -558,9 +679,11 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level0)
     uint32_t rate3 = -1;
     int32_t mode = 1;
     int32_t mode2 = 2;
+    int32_t mode3 = 3;
     std::vector<GraphicDisplayModeInfo> modeList;
     modeList.push_back({width, height, rate, mode});
     modeList.push_back({width, height, rate2, mode2});
+    modeList.push_back({width, height, rate3, mode3});
     instance.AddScreen(screenId2, 1, screenSize, modeList);
 
     PART("HgmCore") {
@@ -668,6 +791,83 @@ HWTEST_F(HyperGraphicManagerTest, GetLtpoEnabled, Function | SmallTest | Level0)
     EXPECT_EQ(instance.GetSupportedMaxTE(), 360);
     EXPECT_EQ(instance.GetCurrentRefreshRateMode(), static_cast<int32_t>(HGM_REFRESHRATE_MODE_AUTO));
     EXPECT_EQ(instance.GetLtpoEnabled(), true);
+}
+
+/**
+ * @tc.name: SetPerformanceConfigTest001
+ * @tc.desc: Test SetPerformanceConfigTest001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetPerformanceConfigTest001, Function | SmallTest | Level0)
+{
+    int64_t customizedOffset = 500;
+    int64_t invalidOffset = 16000001;
+    auto& instance = HgmCore::Instance();
+    auto curScrnStrategyId = instance.hgmFrameRateMgr_->GetCurScreenStrategyId();
+    if (instance.mPolicyConfigData_->screenConfigs_.count(curScrnStrategyId) == 0 ||
+        instance.mPolicyConfigData_->screenConfigs_[curScrnStrategyId].count(
+            std::to_string(instance.customFrameRateMode_)) == 0) {
+        return;
+    }
+
+    // backup
+    bool orgIsVsyncOffsetCustomized = instance.isVsyncOffsetCustomized_.load();
+    int64_t orgRsPhaseOffset = instance.rsPhaseOffset_.load();
+    int64_t orgAppPhaseOffset = instance.appPhaseOffset_.load();
+
+    // set value not equal to target value, ensure that SetPerformanceConfig works
+    instance.isVsyncOffsetCustomized_.store(false);
+    instance.rsPhaseOffset_.store(customizedOffset + 1);
+    instance.appPhaseOffset_.store(customizedOffset + 1);
+
+    EXPECT_NE(instance.mPolicyConfigData_, nullptr);
+    EXPECT_NE(instance.hgmFrameRateMgr_, nullptr);
+
+    auto& curScreenSetting =
+        instance.mPolicyConfigData_->screenConfigs_[curScrnStrategyId][std::to_string(instance.customFrameRateMode_)];
+    auto it = curScreenSetting.performanceConfig.find("rsPhaseOffset");
+    std::string orgRsPhaseOffsetStr;
+    if (it != curScreenSetting.performanceConfig.end()) {
+        orgRsPhaseOffsetStr = it->second;
+    }
+    std::string orgAppPhaseOffsetStr;
+    it = curScreenSetting.performanceConfig.find("appPhaseOffset");
+    if (it != curScreenSetting.performanceConfig.end()) {
+        orgAppPhaseOffsetStr = it->second;
+    }
+    curScreenSetting.performanceConfig["rsPhaseOffset"] = std::to_string(customizedOffset);
+    curScreenSetting.performanceConfig["appPhaseOffset"] = std::to_string(customizedOffset);
+    instance.SetPerformanceConfig(curScreenSetting);
+    EXPECT_TRUE(instance.isVsyncOffsetCustomized_.load());
+    int64_t offset = 0;
+    EXPECT_EQ(instance.GetRsPhaseOffset(offset), customizedOffset);
+    EXPECT_EQ(instance.GetAppPhaseOffset(offset), customizedOffset);
+
+    curScreenSetting.performanceConfig.erase("rsPhaseOffset");
+    curScreenSetting.performanceConfig.erase("appPhaseOffset");
+    curScreenSetting.performanceConfig["rsPhaseOffset"] = std::to_string(invalidOffset);
+    curScreenSetting.performanceConfig["appPhaseOffset"] = std::to_string(invalidOffset);
+    instance.SetPerformanceConfig(curScreenSetting);
+    EXPECT_TRUE(instance.isVsyncOffsetCustomized_.load());
+    EXPECT_EQ(instance.GetRsPhaseOffset(offset), 0);
+    EXPECT_EQ(instance.GetAppPhaseOffset(offset), 0);
+    EXPECT_EQ(instance.rsPhaseOffset_.load(), 0);
+    EXPECT_EQ(instance.appPhaseOffset_.load(), 0);
+
+    // recover
+    instance.isVsyncOffsetCustomized_.store(orgIsVsyncOffsetCustomized);
+    instance.rsPhaseOffset_.store(orgRsPhaseOffset);
+    instance.appPhaseOffset_.store(orgAppPhaseOffset);
+    curScreenSetting.performanceConfig.erase("rsPhaseOffset");
+    curScreenSetting.performanceConfig.erase("appPhaseOffset");
+    if (!orgRsPhaseOffsetStr.empty()) {
+        curScreenSetting.performanceConfig["rsPhaseOffset"] = orgRsPhaseOffsetStr;
+    }
+    if (!orgAppPhaseOffsetStr.empty()) {
+        curScreenSetting.performanceConfig["appPhaseOffset"] = orgAppPhaseOffsetStr;
+    }
+    instance.SetPerformanceConfig(curScreenSetting);
 }
 
 /**

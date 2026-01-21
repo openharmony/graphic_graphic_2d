@@ -40,6 +40,18 @@ class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable;
 class RSLogicalDisplayRenderNodeDrawable;
+
+struct OffscreenRotationInfo {
+    int releaseCount_ = 0;
+    int maxRenderSize_ = 0;
+    float scaleX_ = 0.f;
+    float scaleY_ = 0.f;
+    std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
+    RSPaintFilterCanvas* canvasBackup_ = nullptr; // backup current canvas before offscreen rende
+    std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas_ = nullptr;
+    std::unique_ptr<RSAutoCanvasRestore> arc_ = nullptr;
+};
+
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSSurfaceRenderNodeDrawable() = default;
@@ -113,21 +125,6 @@ public:
         return RSRenderNodeDrawableType::SURFACE_NODE_DRAWABLE;
     }
 
-    bool GetNeedCacheRelatedSourceNode() const
-    {
-        return needCacheRelatedSourceNode_;
-    }
-    void SetNeedCacheRelatedSourceNode(bool value)
-    {
-        needCacheRelatedSourceNode_ = value;
-    }
-    void SetRelatedSourceNodeCache(std::shared_ptr<Drawing::Image> image);
-    void ClearRelatedSourceCache();
-    bool HasRelatedSourceNodeCache() const
-    {
-        return relatedSourceNodeCache_ != nullptr;
-    }
-
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
@@ -147,7 +144,7 @@ private:
     static Registrar instance_;
 
     bool CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
-        RSRenderThreadParams& uniParams);
+        RSRenderThreadParams& uniParams) const;
     void PreprocessUnobscuredUEC(RSPaintFilterCanvas& canvas);
 
     void EnableGpuOverDrawDrawBufferOptimization(Drawing::Canvas& canvas, RSSurfaceRenderParams* surfaceParams);
@@ -161,12 +158,6 @@ private:
     // Draw cloneNode
     bool DrawCloneNode(RSPaintFilterCanvas& canvas, RSRenderThreadParams& uniParam,
         RSSurfaceRenderParams& surfaceParams, bool isCapture = false);
-    // Draw cloneNode isRelated
-    bool DrawRelatedNode(RSPaintFilterCanvas& canvas, RSRenderThreadParams& uniParam,
-        RSSurfaceRenderParams& surfaceParams, std::shared_ptr<RSSurfaceRenderNodeDrawable> clonedNodeRenderDrawable,
-        bool isCapture = false);
-    // Draw cloneNode source isRelated
-    bool DrawRelatedSourceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
     // Watermark
@@ -201,14 +192,7 @@ private:
     bool uiExtensionNeedToDraw_ = false;
 
     RSPaintFilterCanvas* curCanvas_ = nullptr;
-    std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
-    int releaseCount_ = 0;
-    static constexpr int MAX_RELEASE_FRAME = 10;
-    RSPaintFilterCanvas* canvasBackup_ = nullptr; // backup current canvas before offscreen rende
-    std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas_ = nullptr;
-    int maxRenderSize_ = 0;
-    std::unique_ptr<RSAutoCanvasRestore> arc_ = nullptr;
-
+    std::shared_ptr<OffscreenRotationInfo> offscreenRotationInfo_ = nullptr;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IConsumerSurface> consumerOnDraw_ = nullptr;
 #endif
@@ -234,8 +218,6 @@ private:
 
     Drawing::Region curSurfaceDrawRegion_ {};
     mutable std::mutex drawRegionMutex_;
-    bool needCacheRelatedSourceNode_ = false;
-    std::shared_ptr<Drawing::Image> relatedSourceNodeCache_ = nullptr;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

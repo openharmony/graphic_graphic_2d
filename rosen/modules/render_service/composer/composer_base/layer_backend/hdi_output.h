@@ -109,7 +109,7 @@ public:
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
 
     void SetActiveRectSwitchStatus(bool flag);
-    void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
+    void AncoTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
         const sptr<SyncFence>& previousReleaseFence);
 
     void SetMaskLayer(const std::shared_ptr<HdiLayer>& maskLayer) { maskLayer_ = maskLayer; }
@@ -129,6 +129,7 @@ public:
         return thirdFrameAheadPresentTime_;
     }
     void UpdateThirdFrameAheadPresentFence(sptr<SyncFence> &fbFence);
+    int32_t GetDisplayClientTargetProperty(int32_t& pixelFormat, int32_t& dataspace);
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;

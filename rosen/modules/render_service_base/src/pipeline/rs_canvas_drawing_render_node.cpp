@@ -546,13 +546,12 @@ void RSCanvasDrawingRenderNode::DumpSubClassNode(std::string& out) const
     out += "]";
 }
 
-void RSCanvasDrawingRenderNode::GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList, size_t opItemSize)
+void RSCanvasDrawingRenderNode::GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList)
 {
-    // not nullptr when called by AddDirtyType
-    if (drawCmdList == nullptr) {
-        return;
-    }
+    // drawCmdList not nullptr when called by AddDirtyType
     auto cachedReversedOpTypesSize = cachedReversedOpTypes_.size();
+    const auto& drawOpItems = drawCmdList->GetDrawOpItems();
+    size_t opItemSize = drawOpItems.size();
     RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasDrawingRenderNode::GetDrawOpItemInfo, nodeId:[%" PRIu64 "] opItemSize:[%zu] "
         "cachedReversedOpTypes_ size:[%zu]", GetId(), opItemSize, cachedReversedOpTypesSize);
     if (cachedReversedOpTypesSize >= DRAWCMDLIST_DUMP_LIMIT) {
@@ -569,16 +568,14 @@ void RSCanvasDrawingRenderNode::GetDrawOpItemInfo(const Drawing::DrawCmdListPtr&
     }
     size_t index = 0;
     opInfo.drawOpTypes.reserve(opItemDumpSize);
-    const auto& drawOpItems = drawCmdList->GetDrawOpItems();
     for (auto itemIt = drawOpItems.rbegin(); itemIt != drawOpItems.rend(); ++itemIt) {
         if (index >= opItemDumpSize) {
             break;
         }
-        const auto& item = *itemIt;
-        if (item == nullptr) {
+        if (*itemIt == nullptr) {
             continue;
         }
-        opInfo.drawOpTypes.emplace_back(item->GetType());
+        opInfo.drawOpTypes.emplace_back((*itemIt)->GetType());
         ++index;
     }
 }
@@ -643,7 +640,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
             continue;
         }
         auto opItemSize = drawCmdList->GetOpItemSize();
-        GetDrawOpItemInfo(drawCmdList, opItemSize);
+        GetDrawOpItemInfo(drawCmdList);
 
         if (opCount > OP_COUNT_LIMIT_PER_FRAME) {
             outOfLimitCmdList_.emplace_back(drawCmdList);
@@ -790,10 +787,18 @@ const std::map<ModifierNG::RSModifierType, ModifierCmdList>& RSCanvasDrawingRend
     return drawCmdListsNG_;
 }
 
+void RSCanvasDrawingRenderNode::OnApplyModifiers()
+{
+    modifiersApplied_ = true;
+}
+
 void RSCanvasDrawingRenderNode::OnSync()
 {
     RSRenderNode::OnSync();
-    ClearResource();
+    if (modifiersApplied_) {
+        modifiersApplied_ = false;
+        ClearResource();
+    }
 }
 
 void RSCanvasDrawingRenderNode::AccumulateLastDirtyTypes()
@@ -801,7 +806,7 @@ void RSCanvasDrawingRenderNode::AccumulateLastDirtyTypes()
     if (GetLastFrameSync() || !RSUniRenderJudgement::IsUniRender() || GetIsTextureExportNode()) {
         return;
     }
-    AccumulateDirtyTypes();
+    dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
 }
 
 void RSCanvasDrawingRenderNode::ClearResource()

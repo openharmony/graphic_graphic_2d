@@ -428,6 +428,60 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckFilterCacheFullyCoveredTest002, Te
 }
 
 /**
+ * @tc.name: GetCacheImgForCaptureTest001
+ * @tc.desc: Test GetCacheImgForCapture
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForCaptureTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    screenDrawable_->cacheImgForCapture_ = nullptr;
+    ASSERT_EQ(screenDrawable_->GetCacheImgForCapture(), nullptr);
+}
+
+/**
+ * @tc.name: GetCacheImgForCaptureTest002
+ * @tc.desc: Test GetCacheImgForCapture
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForCaptureTest002, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    auto cacheImg = std::make_shared<Drawing::Image>();
+    screenDrawable_->cacheImgForCapture_ = cacheImg;
+    ASSERT_NE(screenDrawable_->GetCacheImgForCapture(), nullptr);
+}
+
+/**
+ * @tc.name: GetCacheImgForMultiScreenViewTest001
+ * @tc.desc: Test GetCacheImgForMultiScreenView
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForMultiScreenViewTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    screenDrawable_->cacheImgForMultiScreenView_ = nullptr;
+    ASSERT_EQ(screenDrawable_->GetCacheImgForMultiScreenView(), nullptr);
+}
+
+/**
+ * @tc.name: GetCacheImgForMultiScreenViewTest002
+ * @tc.desc: Test GetCacheImgForMultiScreenView
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForMultiScreenViewTest002, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    auto cacheImg = std::make_shared<Drawing::Image>();
+    screenDrawable_->cacheImgForMultiScreenView_ = cacheImg;
+    ASSERT_NE(screenDrawable_->GetCacheImgForMultiScreenView(), nullptr);
+}
+
+/**
  * @tc.name: OnDraw001
  * @tc.desc: Test OnDraw when renderParams_ is/not nullptr
  * @tc.type: FUNC
@@ -1817,6 +1871,27 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusion, Tes
 }
 
 /**
+ * @tc.name: CheckAndUpdateFilterCacheOcclusionTest002
+ * @tc.desc: Test CheckAndUpdateFilterCacheOcclusion when screen has non-empty active rect
+ * @tc.type: FUNC
+ * @tc.require: issue21543
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusionTest002, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    ScreenInfo screenInfo;
+    constexpr int activeSize{10};
+    screenInfo.activeRect = RectI(0, 0, activeSize, activeSize);
+    constexpr int screenSize{100};
+    screenInfo.width = screenSize;
+    screenInfo.height = screenSize;
+    RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
+    EXPECT_EQ(screenInfo.activeRect, RectI(0, 0, activeSize, activeSize));
+}
+
+/**
  * @tc.name: GetBufferAge
  * @tc.desc: Test GetBufferAge
  * @tc.type: FUNC
@@ -2126,40 +2201,4 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, UpdateSurfaceDrawRegionTest, TestSize.L
     screenDrawable_->UpdateSurfaceDrawRegion(canvas, params);
 }
 #endif
-
-/**
- * @tc.name: CheckAndClearRelatedSourceNodeCache
- * @tc.desc: Test CheckAndClearRelatedSourceNodeCache
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, CheckAndClearRelatedSourceNodeCacheTest, TestSize.Level2)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    RSScreenRenderParams* params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    screenDrawable_->CheckAndClearRelatedSourceNodeCache(*params);
-
-    NodeId id = 1;
-    ASSERT_EQ(params->GetCloneNodeMap().size(), 0);
-    params->cloneNodeMap_[id];
-    params->cloneNodeMap_[id + 1];
-    screenDrawable_->CheckAndClearRelatedSourceNodeCache(*params);
-    ASSERT_NE(params->GetCloneNodeMap().size(), 0);
-
-    auto surfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceRenderNode, nullptr);
-    auto surfaceRenderNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
-    ASSERT_NE(surfaceRenderNodeDrawable, nullptr);
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr
-        surfaceNodeRenderDrawableSharedPtr(surfaceRenderNodeDrawable);
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr
-        surfaceNodeRenderDrawableWeakPtr(surfaceNodeRenderDrawableSharedPtr);
-    surfaceRenderNodeDrawable->relatedSourceNodeCache_ = std::make_shared<Drawing::Image>();
-    params->cloneNodeMap_[id] = surfaceNodeRenderDrawableWeakPtr;
-    ASSERT_NE(surfaceRenderNodeDrawable->relatedSourceNodeCache_, nullptr);
-    screenDrawable_->CheckAndClearRelatedSourceNodeCache(*params);
-    ASSERT_EQ(surfaceRenderNodeDrawable->relatedSourceNodeCache_, nullptr);
-}
 } // namespace OHOS::Rosen

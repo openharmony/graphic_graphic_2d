@@ -541,6 +541,85 @@ HWTEST_F(RSRenderParamsTest, SetHasChildExcludedFromNodeGroup, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetRenderGroupExcludedStateChangedTest
+ * @tc.desc: Test SetRenderGroupExcludedStateChanged
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetRenderGroupExcludedStateChangedTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    EXPECT_FALSE(renderParams->IsRenderGroupExcludedStateChanged());
+    ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
+
+    renderParams->SetRenderGroupExcludedStateChanged(false);
+    ASSERT_NE(renderParams->renderGroupCache_, nullptr);
+    EXPECT_FALSE(renderParams->IsRenderGroupExcludedStateChanged());
+    EXPECT_FALSE(renderParams->needSync_);
+
+    renderParams->SetRenderGroupExcludedStateChanged(true);
+    EXPECT_TRUE(renderParams->IsRenderGroupExcludedStateChanged());
+    EXPECT_TRUE(renderParams->needSync_);
+}
+
+/**
+ * @tc.name: SetRenderGroupSubTreeDirtyTest
+ * @tc.desc: Test SetRenderGroupSubTreeDirty
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetRenderGroupSubTreeDirtyTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    EXPECT_FALSE(renderParams->IsRenderGroupSubTreeDirty());
+    ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
+
+    renderParams->SetRenderGroupSubTreeDirty(false);
+    ASSERT_NE(renderParams->renderGroupCache_, nullptr);
+    EXPECT_FALSE(renderParams->IsRenderGroupSubTreeDirty());
+    EXPECT_FALSE(renderParams->needSync_);
+
+    renderParams->SetRenderGroupSubTreeDirty(true);
+    EXPECT_TRUE(renderParams->IsRenderGroupSubTreeDirty());
+    EXPECT_TRUE(renderParams->needSync_);
+}
+
+/**
+ * @tc.name: SetChildHasTranslateOnSqueezeTest
+ * @tc.desc: Test SetChildHasTranslateOnSqueeze
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetChildHasTranslateOnSqueezeTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    renderParams->SetChildHasTranslateOnSqueeze(false);
+
+    EXPECT_FALSE(renderParams->ChildHasTranslateOnSqueeze());
+    ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
+
+    renderParams->SetChildHasTranslateOnSqueeze(true);
+    ASSERT_NE(renderParams->renderGroupCache_, nullptr);
+    EXPECT_TRUE(renderParams->ChildHasTranslateOnSqueeze());
+    EXPECT_TRUE(renderParams->needSync_);
+
+    renderParams->SetChildHasTranslateOnSqueeze(false);
+    EXPECT_FALSE(renderParams->ChildHasTranslateOnSqueeze());
+}
+
+/**
  * @tc.name: SetDrawingCacheIncludeProperty_001
  * @tc.desc: Test function SetDrawingCacheIncludeProperty
  * @tc.type:FUNC
@@ -685,6 +764,7 @@ HWTEST_F(RSRenderParamsTest, HDRStatusTest, TestSize.Level2)
     renderParams->UpdateHDRStatus(hdrStatus, true);
     EXPECT_TRUE(renderParams->needSync_);
     EXPECT_EQ(renderParams->GetHDRStatus(), hdrStatus);
+    EXPECT_TRUE(renderParams->SelfOrChildHasHDR());
 
     renderParams->ClearHDRVideoStatus();
     EXPECT_EQ(renderParams->GetHDRStatus(), HdrStatus::NO_HDR);

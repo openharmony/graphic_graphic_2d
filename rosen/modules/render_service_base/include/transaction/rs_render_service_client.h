@@ -231,6 +231,8 @@ public:
 
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id);
 
+    PanelPowerStatus GetPanelPowerStatus(ScreenId id);
+
     RSScreenData GetScreenData(ScreenId id);
 
     MemoryGraphic GetMemoryGraphic(int pid);
@@ -242,8 +244,6 @@ public:
     int32_t GetScreenBacklight(ScreenId id);
 
     void SetScreenBacklight(ScreenId id, uint32_t level);
-
-    PanelPowerStatus GetPanelPowerStatus(ScreenId id);
 
     bool RegisterBufferAvailableListener(
         NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
@@ -329,8 +329,6 @@ public:
 
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         const FrameRateLinkerExpectedFpsUpdateCallback& callback);
-
-    void SetAppWindowNum(uint32_t num);
 
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
 

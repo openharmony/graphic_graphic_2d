@@ -68,17 +68,21 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
         return;
     }
     ROSEN_LOGI("~RSRenderServiceConnectHub");
-    renderService_->RemoveConnection(token_);
-    conn_ = nullptr;
     renderConn_ = nullptr;
     if (renderService_->AsObject() && deathRecipient_) {
         renderService_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     }
-    int32_t refCount = token_->GetSptrRefCount();
-    ROSEN_LOGI("RefCount: %{public}d", refCount);
-    if ((token_ != nullptr) && (refCount > TOKEN_STRONG_REF_COUNT)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_FOR_DEC_STRONG_REF));
+    if (token_ == nullptr) {
+        ROSEN_LOGI("token_ is deleted");
+        return;
     }
+    ROSEN_LOGI("RefCount: %{public}d", token_->GetSptrRefCount());
+    while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
+        token_->DecStrongRef(this);
+    }
+    renderService_->RemoveConnection(token_);
+    token_ = nullptr;
+    conn_ = nullptr;
 }
 
 sptr<RSIClientToRenderConnection> RSRenderServiceConnectHub::GetClientToRenderConnection()

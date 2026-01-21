@@ -1472,6 +1472,21 @@ HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level0)
     finalRange = {OLED_30_HZ, OLED_90_HZ, OLED_30_HZ};
     ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange), OLED_60_HZ);
     frameRateMgr->stylusVec_.clear();
+
+    frameRateMgr->isLtpo_.store(true);
+    frameRateMgr->isAmbientStatus_ = LightFactorStatus::NORMAL_LOW;
+    frameRateMgr->isAmbientEffect_ = true;
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
+    frameRateMgr->isAmbientStatus_ = LightFactorStatus::HIGH_LEVEL;
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
+    frameRateMgr->isAmbientEffect_ = false;
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
+    frameRateMgr->isLtpo_.store(false);
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
+    frameRateMgr->isAmbientEffect_ = true;
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
+    frameRateMgr->isAmbientStatus_ = LightFactorStatus::NORMAL_LOW;
+    frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange);
 }
 
 /**
@@ -1543,7 +1558,6 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | L
 
     frameRateMgr->frameVoter_.isDragScene_ = true;
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
-    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 120);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
@@ -1832,7 +1846,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckRefreshRateChange, Function | SmallTest |
 
 /**
  * @tc.name: TestUpdateSoftVSync
- * @tc.desc: Verify the result of TestUpdateSoftVSync function
+ * @tc.desc: Verify the result of UpdateSoftVSync function
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1921,23 +1935,32 @@ HWTEST_F(HgmFrameRateMgrTest, TestIsMouseOrTouchPadEvent, Function | SmallTest |
     HgmFrameRateManager mgr;
     int32_t touchStatus = TOUCH_MOVE;
     int32_t sourceType = TouchSourceType::SOURCE_TYPE_MOUSE;
+    mgr.frameVoter_.voterGamesEffective_ = false;
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
-    ASSERT_EQ(mgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
+    ASSERT_EQ(mgr.pointerManager_.GetState(), 0);
     usleep(10);
 
+    mgr.frameVoter_.voterGamesEffective_ = false;
     sourceType = TouchSourceType::SOURCE_TYPE_TOUCHSCREEN;
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);
 
+    mgr.frameVoter_.voterGamesEffective_ = false;
+    mgr.HandleTouchEvent(0, touchStatus, 1, -1);
+    usleep(10);
+
+    mgr.frameVoter_.voterGamesEffective_ = false;
     sourceType = TouchSourceType::SOURCE_TYPE_TOUCHPAD;
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);
 
+    mgr.frameVoter_.voterGamesEffective_ = false;
     touchStatus = AXIS_BEGIN;
     sourceType = TouchSourceType::SOURCE_TYPE_TOUCHSCREEN;
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);
 
+    mgr.frameVoter_.voterGamesEffective_ = false;
     touchStatus = -1;
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);

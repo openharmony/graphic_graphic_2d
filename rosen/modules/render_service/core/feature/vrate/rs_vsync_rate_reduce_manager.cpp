@@ -95,7 +95,7 @@ void RSVsyncRateReduceManager::PushWindowNodeId(NodeId nodeId)
 
 void RSVsyncRateReduceManager::FrameDurationBegin()
 {
-    if (!vRateConditionQualified_) {
+    if (!vRateConditionQualified_.load()) {
         return;
     }
     curTime_ = Now();
@@ -103,7 +103,7 @@ void RSVsyncRateReduceManager::FrameDurationBegin()
 
 void RSVsyncRateReduceManager::FrameDurationEnd()
 {
-    if (!vRateConditionQualified_) {
+    if (!vRateConditionQualified_.load()) {
         return;
     }
     if (oneFramePeriod_ > 0) {
@@ -124,7 +124,7 @@ void RSVsyncRateReduceManager::EnqueueFrameDuration(float duration)
 
 void RSVsyncRateReduceManager::CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& surfaceNode)
 {
-    if (!vRateConditionQualified_) {
+    if (!vRateConditionQualified_.load()) {
         return;
     }
     if (surfaceNode.IsHardwareEnabledTopSurface()) {
@@ -158,7 +158,7 @@ void RSVsyncRateReduceManager::CollectSurfaceVsyncInfo(const ScreenInfo& screenI
 
 void RSVsyncRateReduceManager::SetUniVsync()
 {
-    if (!vRateConditionQualified_) {
+    if (!vRateConditionQualified_.load()) {
         return;
     }
     RS_TRACE_FUNC();
@@ -466,7 +466,7 @@ void RSVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
     vSyncRateMap_.clear();
     curAllMainAndLeashWindowNodesIds_.clear();
     vRateConditionQualified_ = rsRefreshRate > 0 && appVSyncDistributor_ != nullptr;
-    if (!vRateConditionQualified_) {
+    if (!vRateConditionQualified_.load()) {
         return;
     }
     oneFramePeriod_ = PERIOD_CHECK_THRESHOLD / static_cast<int64_t>(rsRefreshRate);

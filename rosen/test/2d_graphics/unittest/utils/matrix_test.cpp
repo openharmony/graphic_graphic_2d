@@ -582,7 +582,7 @@ HWTEST_F(MatrixTest, MapRadius001, TestSize.Level1)
 }
 
 /**
- * @tc.name: isAffine001
+ * @tc.name: IsAffine001
  * @tc.desc: the test a matrix is affine or not.
  * @tc.type: FUNC
  * @tc.require: I73WU0
@@ -595,7 +595,7 @@ HWTEST_F(MatrixTest, isAffine001, TestSize.Level1)
 }
 
 /**
- * @tc.name: rectStaysRect001
+ * @tc.name: RectStaysRect001
  * @tc.desc: the test matrix make rect stay rect or not.
  * @tc.type: FUNC
  * @tc.require: I73WU0

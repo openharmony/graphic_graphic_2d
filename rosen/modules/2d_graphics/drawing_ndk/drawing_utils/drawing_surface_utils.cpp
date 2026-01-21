@@ -327,6 +327,7 @@ void DrawingSurfaceUtils::RemoveSurface(Drawing::Surface* surface)
         if (renderContext != nullptr) {
             EGLSurface eglSurface = (iter->second).second;
             renderContext->DestroyEGLSurface(eglSurface);
+            renderContext->MakeCurrent(EGL_NO_SURFACE);
         } else {
             LOGD("RemoveSurface: get renderContext failed.");
         }

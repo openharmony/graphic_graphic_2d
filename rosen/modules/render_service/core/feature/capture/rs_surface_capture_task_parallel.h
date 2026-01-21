@@ -109,7 +109,7 @@ private:
     NodeId nodeId_;
     ScreenId screenId_ = INVALID_SCREEN_ID;
     bool useScreenShotWithHDR_ = false;
-    RSSurfaceCaptureConfig captureConfig_;
+    const RSSurfaceCaptureConfig captureConfig_;
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     float boundsX_ = 0;

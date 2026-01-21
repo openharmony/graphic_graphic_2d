@@ -39,7 +39,7 @@
 #include "vk_layer_dispatch_table.h"
 #include "swapchain_layer_log.h"
 #include "sync_fence.h"
-#if USE_IGAMESERVICE_PLUGIN
+#ifdef USE_IGAMESERVICE_PLUGIN
 #include "igameservice_plugin.h"
 #endif
 #ifdef VULKAN_USE_APS_PLUGIN
@@ -1250,7 +1250,7 @@ VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
     if (rects != nullptr) {
         defaultAllocator->pfnFree(defaultAllocator->pUserData, rects);
     }
-#if USE_IGAMESERVICE_PLUGIN
+#ifdef USE_IGAMESERVICE_PLUGIN
     OHOS::Rosen::IGameServicePlugin::Instance()->ReportVulkanRender();
 #endif
 #ifdef VULKAN_USE_APS_PLUGIN
@@ -1578,7 +1578,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
     if (result != VK_SUCCESS) {
         return result;
     }
-#if USE_IGAMESERVICE_PLUGIN
+#ifdef USE_IGAMESERVICE_PLUGIN
     OHOS::Rosen::IGameServicePlugin::Instance()->InitVulkanReport();
 #endif
 #ifdef VULKAN_USE_APS_PLUGIN

@@ -18,8 +18,10 @@
 #include <atomic>
 #include <memory>
 #include "common/rs_exception_check.h"
-#include "hetero_hdr/rs_hdr_pattern_manager.h"
-#include "hetero_hdr/rs_hdr_vulkan_task.h"
+#ifdef HETERO_HDR_ENABLE
+#include "rs_hdr_pattern_manager.h"
+#include "rs_hdr_vulkan_task.h"
+#endif
 #ifdef MHC_ENABLE
 #include "rs_mhc_manager.h"
 #endif
@@ -69,9 +71,6 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
     if (mReservedFlushFd != -1) {
         fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
-    }
-    if (cleanUpHelper_) {
-        cleanUpHelper_();
     }
 }
 
@@ -532,8 +531,11 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
 
-    std::vector<GrBackendSemaphore> semaphoreVec = {backendSemaphore};
+    std::vector<GrBackendSemaphore> semaphoreVec = { backendSemaphore };
+#ifdef HETERO_HDR_ENABLE
+    std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface.drawingSurface, frameIdVec);
+#endif
 
 #ifdef MHC_ENABLE
     RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface.drawingSurface);
@@ -575,7 +577,9 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         mSkContext->Submit();
         mSkContext->EndFrame();
     }
+#ifdef HETERO_HDR_ENABLE
     RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);
+#endif
     
 #ifdef MHC_ENABLE
     RSMhcManager::Instance().MHCSubmitTask();
@@ -675,11 +679,6 @@ void RSSurfaceOhosVulkan::ClearBuffer()
 void RSSurfaceOhosVulkan::ResetBufferAge()
 {
     ROSEN_LOGD("RSSurfaceOhosVulkan: Reset Buffer Age!");
-}
-
-void RSSurfaceOhosVulkan::SetCleanUpHelper(std::function<void()> func)
-{
-    cleanUpHelper_ = func;
 }
 
 int RSSurfaceOhosVulkan::DupReservedFlushFd()

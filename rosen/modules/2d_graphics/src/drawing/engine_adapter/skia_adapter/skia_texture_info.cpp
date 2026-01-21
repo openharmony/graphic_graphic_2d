@@ -138,7 +138,7 @@ void SkiaTextureInfo::ConvertToVKTexture(const GrBackendTexture& backendTexture,
     info.SetVKTextureInfo(vkInfo);
 }
 #endif
-#ifdef RS_ENABLE_GPU
+
 GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& info)
 {
 #ifdef RS_ENABLE_VK
@@ -188,7 +188,6 @@ TextureInfo SkiaTextureInfo::ConvertToTextureInfo(const GrBackendTexture& grBack
     delete grGLTextureInfo;
     return textureInfo;
 }
-#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

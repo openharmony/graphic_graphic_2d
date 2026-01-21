@@ -57,6 +57,7 @@ ohos_unittest("RSRenderClientRenderThreadTest") {
 
   subsystem_name = "graphic"
   external_deps = [
+    "ability_base:configuration",
     "ability_runtime:app_manager",
     "c_utils:utils",
     "eventhandler:libeventhandler",

@@ -134,7 +134,7 @@ void RSDumpManager::DoDump(RSDumpID rsDumpId, const std::u16string &cmd, std::un
 // Generate help information
 void RSDumpManager::DumpHelpInfo(std::string &out)
 {
-    out.append("------ Graphic2D--RenderSerice ------\n")
+    out.append("------ Graphic2D--RenderService ------\n")
         .append("Usage:\n");
     for (const auto &entry : cmdMap_) {
         std::u16string cmd = entry.first;

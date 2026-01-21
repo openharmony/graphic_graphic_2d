@@ -52,7 +52,7 @@ private:
     void UnblockMainThread();
     void Sync();
     void Render();
-    void ReleaseDrawingNodeBuffer();
+    void ReleaseSelfDrawingNodeBuffer();
     void NotifyClearGpuCache();
     bool CheckCanvasSkipSync(std::shared_ptr<RSRenderNode>);
     void StartCheck();

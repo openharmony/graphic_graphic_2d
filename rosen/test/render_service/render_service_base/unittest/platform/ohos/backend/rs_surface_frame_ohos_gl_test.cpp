@@ -78,23 +78,6 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvas001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetCanvas002
- * @tc.desc: test results of GetCanvas
- * @tc.type:FUNC
- * @tc.require: issueI9K9FU
- */
-HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvas002, TestSize.Level1)
-{
-    int32_t width = 1;
-    int32_t height = 1;
-    RSSurfaceFrameOhosGl rsSurface(width, height);
-    auto renderContext = std::make_shared<RenderContextGL>();
-    ASSERT_NE(renderContext, nullptr);
-    rsSurface.SetRenderContext(renderContext);
-    ASSERT_NE(rsSurface.GetCanvas(), nullptr);
-}
-
-/**
  * @tc.name: GetSurface001
  * @tc.desc: test results of GetSurface
  * @tc.type:FUNC
@@ -114,24 +97,6 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetSurface001, TestSize.Level1)
         EXPECT_NE(rsSurface.GetSurface(), nullptr);
     }
 #endif
-}
-
-/**
- * @tc.name: GetSurface002
- * @tc.desc: test results of GetSurface
- * @tc.type:FUNC
- * @tc.require: issueI9K9FU
- */
-HWTEST_F(RSSurfaceFrameOhosGlTest, GetSurface002, TestSize.Level1)
-{
-    int32_t width = 1;
-    int32_t height = 1;
-    RSSurfaceFrameOhosGl rsSurface(width, height);
-    auto context = std::make_shared<RenderContextGL>();
-    ASSERT_NE(context, nullptr);
-    rsSurface.SetRenderContext(context);
-    ASSERT_NE(rsSurface.GetSurface(), nullptr);
-    ASSERT_NE(rsSurface.GetSurface(), nullptr);
 }
 
 /**

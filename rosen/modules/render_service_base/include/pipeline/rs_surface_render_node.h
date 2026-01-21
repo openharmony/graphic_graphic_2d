@@ -697,12 +697,7 @@ public:
     {
         return isCloneNode_;
     }
-    bool IsRelated() const;
-    void SetRelated(bool value);
-    void SetRelatedSourceNode(bool value);
-    void SetClonedNodeInfo(NodeId id, bool needOffscreen, bool isRelated);
-    bool CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> currentNode,
-        std::shared_ptr<RSSurfaceRenderNode> clonedNode);
+    void SetClonedNodeInfo(NodeId id, bool needOffscreen);
     void SetIsCloned(bool isCloned);
     void SetIsClonedNodeOnTheTree(bool isOnTheTree)
     {
@@ -998,7 +993,7 @@ public:
 
     void UpdateSurfaceDefaultSize(float width, float height);
 
-    void UpdateInfoForClonedNode(bool isClonedNode);
+    void UpdateInfoForClonedNode(NodeId nodeId);
 
     // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
@@ -1327,8 +1322,6 @@ public:
     void UpdateFilterCacheStatusWithVisible(bool visible);
     void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged);
     void UpdateDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
-    // reset static node's drawing cache status as not changed and get filter rects
-    void ResetDrawingCacheStatusIfNodeStatic(std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects);
 
     void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
 
@@ -1760,9 +1753,9 @@ public:
     void SetSurfaceBufferOpaque(bool isOpaque);
     bool GetSurfaceBufferOpaque() const;
 
-    void AfterTreeStatueChanged() override;
-
     bool IsAncestorScreenFrozen() const;
+    void AfterTreeStateChanged();
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;

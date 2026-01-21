@@ -193,10 +193,6 @@ ohos_source_set("render_service_base_src") {
     #delegate
     "src/delegate/rs_functional_delegate.cpp",
 
-    #hdr_heterogeneous
-    "src/hetero_hdr/rs_hdr_pattern_manager.cpp",
-    "src/hetero_hdr/rs_hdr_vulkan_task.cpp",
-
     #ipc_callbacks
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_available_callback_stub.cpp",
@@ -345,7 +341,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",
     "src/render/rs_skia_filter.cpp",
-    "src/render/rs_sound_wave_filter.cpp",
     "src/render/rs_spherize_effect_filter.cpp",
     "src/render/rs_typeface_cache.cpp",
 
@@ -389,6 +384,7 @@ ohos_source_set("render_service_base_src") {
 
     #feature
     "src/feature/capture/rs_ui_capture_helper.cpp",
+    "src/feature/color_picker/color_pick_alt_manager.cpp",
     "src/feature/color_picker/rs_color_picker_manager.cpp",
     "src/feature/color_picker/rs_color_picker_thread.cpp",
     "src/feature/color_picker/rs_hetero_color_picker.cpp",
@@ -625,6 +621,7 @@ ohos_source_set("render_service_base_src") {
       "lz4:liblz4_shared",
       "init:libbegetutil",
       "ffrt:libffrt",
+      "ability_runtime:app_manager",
     ]
   }
 
@@ -645,6 +642,13 @@ ohos_source_set("render_service_base_src") {
 
   if (graphic_2d_feature_subtree_parallel_enable) {
     include_dirs += [ "$graphic_2d_ext_root/subtree" ]
+  }
+
+  if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable
+      && defined(graphic_2d_hetero_hdr_configs)) {
+    include_dirs += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_include
+    sources += graphic_2d_hetero_hdr_configs.librender_service_base_hetero_hdr_sources
+    external_deps += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_external_deps
   }
 
   if (graphic_2d_feature_mhc_enable) {

@@ -20,6 +20,8 @@
 #include <memory>
 #include <mutex>
 
+#include "i_color_picker_manager.h"
+
 #include "draw/canvas.h"
 #include "draw/color.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -32,7 +34,7 @@ namespace Rosen {
 namespace Drawing {
 class Image;
 }
-class RSColorPickerManager : public std::enable_shared_from_this<RSColorPickerManager> {
+class RSColorPickerManager : public std::enable_shared_from_this<RSColorPickerManager>, public IColorPickerManager {
 public:
     RSColorPickerManager() = default;
     ~RSColorPickerManager() noexcept = default;
@@ -40,8 +42,8 @@ public:
      * @brief Return previously picked color and conditionally schedule a new color pick task on the current canvas.
      * @param strategy Only CONTRAST is currently supported.
      */
-    Drawing::ColorQuad GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId,
-        ColorPickStrategyType strategy, uint64_t interval);
+    std::optional<Drawing::ColorQuad> GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
+        uint64_t nodeId, const ColorPickerParam& params) override;
 
 private:
     void ScheduleColorPick(
@@ -58,9 +60,8 @@ private:
      * @brief Get a contrasting black or white color with hysteresis.
      *
      * @param color input to contrast with, usually the average color of the background.
-     * @param prevDark whether previously picked color was dark.
      */
-    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color, bool prevDark);
+    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color);
 
     std::mutex colorMtx_;
     Drawing::ColorQuad colorPicked_ = Drawing::Color::COLOR_BLACK;

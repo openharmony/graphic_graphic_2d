@@ -36,12 +36,12 @@ static Drawing::Surface* CastToSurface(OH_Drawing_Surface* cSurface)
 {
     return reinterpret_cast<Drawing::Surface*>(cSurface);
 }
-#ifdef RS_ENABLE_GPU
+
 static GPUContext* CastToGpuContext(OH_Drawing_GpuContext* cGpuContext)
 {
     return reinterpret_cast<GPUContext*>(cGpuContext);
 }
-#endif
+
 OH_Drawing_Surface* OH_Drawing_SurfaceCreateFromGpuContext(OH_Drawing_GpuContext* cGpuContext,
     bool budgeted, OH_Drawing_Image_Info cImageInfo)
 {
@@ -116,6 +116,8 @@ void OH_Drawing_SurfaceDestroy(OH_Drawing_Surface* cSurface)
     if (cSurface == nullptr) {
         return;
     }
-    
+
+#ifdef RS_ENABLE_GPU
     DrawingSurfaceUtils::RemoveSurface(CastToSurface(cSurface));
+#endif
 }

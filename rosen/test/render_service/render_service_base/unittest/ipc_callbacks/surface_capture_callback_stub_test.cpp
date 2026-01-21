@@ -311,4 +311,29 @@ HWTEST_F(RSSurfaceCaptureCallbackStubTest, ReadSurfaceCaptureConfig, TestSize.Le
     int res = stub->ReadSurfaceCaptureConfig(captureConfig, data);
     ASSERT_EQ(res, false);
 }
+
+/**
+ * @tc.name: ReadSurfaceCaptureConfigCaptureTypeTest
+ * @tc.desc: Verify the ReadSurfaceCaptureConfig CaptureType limit
+ * @tc.type:FUNC
+ * @tc.require: issue21455
+ */
+HWTEST_F(RSSurfaceCaptureCallbackStubTest, ReadSurfaceCaptureConfigCaptureTypeTest, TestSize.Level1)
+{
+    MessageParcel data;
+    sptr<MockIRemoteObject> remoteMocker = new MockIRemoteObject();
+    ASSERT_TRUE(remoteMocker != nullptr);
+    remoteMocker->sendRequestResult_ = 1;
+    auto rsSurfaceCaptureCallbackProxy = std::make_shared<RSSurfaceCaptureCallbackProxy>(remoteMocker);
+    RSSurfaceCaptureConfig captureConfig;
+    auto ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+    EXPECT_EQ(ret, true);
+    int res = stub->ReadSurfaceCaptureConfig(captureConfig, data);
+    ASSERT_EQ(res, true);
+    captureConfig.captureType = SurfaceCaptureType::SURFACE_CAPTURE_TYPE_BUTT;
+    ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+    res = stub->ReadSurfaceCaptureConfig(captureConfig, data);
+    ASSERT_EQ(res, false);
+}
+
 } // namespace OHOS::Rosen

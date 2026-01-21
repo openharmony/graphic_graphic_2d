@@ -107,12 +107,6 @@ void RSJankStats::SetStartTimeInner(bool doDirectComposition)
     isFirstSetStart_ = false;
 }
 
-bool RSJankStats::IsAnimationEmpty()
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    return implicitAnimationTotal_ + explicitAnimationTotal_ == 0;
-}
-
 void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames, uint32_t dynamicRefreshRate,
                              bool doDirectComposition, bool isReportTaskDelayed)
 {
@@ -1115,80 +1109,6 @@ int32_t RSJankStats::GetTraceIdInit(const DataBaseRs& info, int64_t setTimeStead
     int64_t mappedUniqueId = info.uniqueId * TRACE_ID_SCALE_PARAM + (traceIdRemainder_[info.uniqueId].remainder_++);
     int32_t traceId = static_cast<int32_t>(abs(mappedUniqueId) % INT32_MAX);
     return traceId;
-}
-
-void RSJankStats::AvcodecVideoDump(
-    std::string& dumpString, std::string& type, const std::string& avcodecVideo)
-{
-    std::string func;
-    uint64_t uniqueId;
-    std::string surfaceName = "";
-    uint32_t fps = 0;
-    uint64_t reportTime = UINT64_MAX;
-
-    RS_LOGD("AvcodecVideoDump start. type %{public}s", type.substr(avcodecVideo.length()).c_str());
-    cJSON* jsonObject = cJSON_Parse(type.substr(avcodecVideo.length()).c_str());
-    if (jsonObject == nullptr) {
-        dumpString.append("AvcodecVideoDump can not parse type to json.\n");
-        cJSON_Delete(jsonObject);
-        return;
-    }
-
-    cJSON* jsonItemFunc = cJSON_GetObjectItem(jsonObject, "func");
-    if (jsonItemFunc != nullptr && cJSON_IsString(jsonItemFunc)) {
-        func = jsonItemFunc->valuestring;
-    }
-
-    cJSON* jsonItemUniqueId = cJSON_GetObjectItem(jsonObject, "uniqueId");
-    if (jsonItemUniqueId != nullptr && cJSON_IsString(jsonItemUniqueId)) {
-        std::string strM = jsonItemUniqueId->valuestring;
-        char* end = nullptr;
-        errno = 0;
-        long long sizeM = std::strtoll(strM.c_str(), &end, 10);
-        if (end != nullptr && end != strM.c_str() && errno == 0 && *end == '\0' && sizeM > 0) {
-            uniqueId = static_cast<uint64_t>(sizeM);
-        } else {
-            dumpString.append("AvcodecVideoDump param error : uniqueId.\n");
-            cJSON_Delete(jsonObject);
-            return;
-        }
-    } else {
-        dumpString.append("AvcodecVideoDump param error : uniqueId.\n");
-        cJSON_Delete(jsonObject);
-        return;
-    }
-
-    cJSON* jsonItemSurface = cJSON_GetObjectItem(jsonObject, "surfaceName");
-    if (jsonItemSurface != nullptr && cJSON_IsString(jsonItemSurface)) {
-        surfaceName = jsonItemSurface->valuestring;
-    }
-
-    cJSON* jsonItemFps = cJSON_GetObjectItem(jsonObject, "fps");
-    if (jsonItemFps != nullptr && cJSON_IsNumber(jsonItemFps)) {
-        fps = static_cast<uint32_t>(jsonItemFps->valueint);
-    }
-
-    std::vector<uint64_t> uniqueIdList{uniqueId};
-    std::vector<std::string> surfaceNameList{surfaceName};
-    if (func == "start") {
-        cJSON* jsonItemReportTime = cJSON_GetObjectItem(jsonObject, "reportTime");
-        if (jsonItemReportTime != nullptr && cJSON_IsNumber(jsonItemReportTime)) {
-            reportTime = static_cast<uint64_t>(jsonItemReportTime->valueint);
-        } else {
-            dumpString.append("AvcodecVideoDump param error : reportTime.\n");
-            cJSON_Delete(jsonObject);
-            return;
-        }
-
-        AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
-        dumpString.append("AvcodecVideoStart ");
-    } else {
-        AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
-        dumpString.append("AvcodecVideoStop ");
-    }
-    cJSON_Delete(jsonObject);
-    dumpString.append("[uniqueId:" + std::to_string(uniqueId) + ", surfaceName:" + surfaceName +
-        ", fps:" + std::to_string(fps) + ", reportTime:" + std::to_string(reportTime) + "]\n");
 }
 
 void RSJankStats::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,

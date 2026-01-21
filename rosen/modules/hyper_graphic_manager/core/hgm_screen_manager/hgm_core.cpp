@@ -53,6 +53,11 @@ std::map<uint32_t, int64_t> IDEAL_PERIOD = {
 };
 constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MIN = -16000000; // ns
 constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MAX = 16000000; // ns
+
+int64_t GetFixedVsyncOffset(int64_t value)
+{
+    return (value >= RENDER_VSYNC_OFFSET_DELAY_MIN && value <= RENDER_VSYNC_OFFSET_DELAY_MAX) ? value : 0;
+}
 } // namespace
 
 void HgmCore::SysModeChangeProcess(const char* key, const char* value, void* context)
@@ -99,7 +104,7 @@ void HgmCore::Init()
             customFrameRateMode_ = std::stoi(mPolicyConfigData_->defaultRefreshRateMode_);
         }
     } else {
-        HILOG_COMM_INFO("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
+        HILOG_COMM_INFO("HgmCore customer refreshrate mode found: %{public}d", newRateMode);
         customFrameRateMode_ = newRateMode;
         if (customFrameRateMode_ != HGM_REFRESHRATE_MODE_AUTO &&
             mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
@@ -286,22 +291,14 @@ void HgmCore::SetPerformanceConfig(const PolicyConfigData::ScreenSetting& curScr
         isDelayMode_ = true;
         HGM_LOGW("HgmCore failed to find piplineDelayModeEnable_ strategy for LTPO");
     }
-    if (curScreenSetting.performanceConfig.count("rsPhaseOffset") != 0 &&
-        XMLParser::IsNumber(curScreenSetting.performanceConfig.at("rsPhaseOffset"))) {
-        int64_t rsPhaseOffset = std::stoll(curScreenSetting.performanceConfig.at("rsPhaseOffset"));
-        if (rsPhaseOffset < RENDER_VSYNC_OFFSET_DELAY_MIN || rsPhaseOffset > RENDER_VSYNC_OFFSET_DELAY_MAX) {
-            rsPhaseOffset = 0;
-        }
-        rsPhaseOffset_.store(rsPhaseOffset);
+    auto it = curScreenSetting.performanceConfig.find("rsPhaseOffset");
+    if (it != curScreenSetting.performanceConfig.end() && XMLParser::IsNumber(it->second)) {
+        rsPhaseOffset_.store(GetFixedVsyncOffset(std::stoll(it->second)));
         isVsyncOffsetCustomized_.store(true);
     }
-    if (curScreenSetting.performanceConfig.count("appPhaseOffset") != 0 &&
-        XMLParser::IsNumber(curScreenSetting.performanceConfig.at("appPhaseOffset"))) {
-        int64_t appPhaseOffset = std::stoll(curScreenSetting.performanceConfig.at("appPhaseOffset"));
-        if (appPhaseOffset < RENDER_VSYNC_OFFSET_DELAY_MIN || appPhaseOffset > RENDER_VSYNC_OFFSET_DELAY_MAX) {
-            appPhaseOffset = 0;
-        }
-        appPhaseOffset_.store(appPhaseOffset);
+    it = curScreenSetting.performanceConfig.find("appPhaseOffset");
+    if (it != curScreenSetting.performanceConfig.end() && XMLParser::IsNumber(it->second)) {
+        appPhaseOffset_.store(GetFixedVsyncOffset(std::stoll(it->second)));
         isVsyncOffsetCustomized_.store(true);
     }
 }

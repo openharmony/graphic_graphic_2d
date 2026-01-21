@@ -224,7 +224,7 @@ void RSAnimationTraceUtils::AddAnimationCreateTrace(const uint64_t nodeId, const
     const ModifierNG::RSPropertyType propertyType, const std::shared_ptr<RSRenderPropertyBase>& startValue,
     const std::shared_ptr<RSRenderPropertyBase>& endValue, const int animationDelay, const int animationDur,
     const int repeat, const std::string& interfaceName, const int32_t frameNodeId, const std::string& frameNodeTag,
-    RSUINodeType nodeType,  const FrameRateRange& frameRateRange) const
+    RSUINodeType nodeType, const FrameRateRange& frameRateRange) const
 {
     if (!isDebugEnabled_) {
         return;

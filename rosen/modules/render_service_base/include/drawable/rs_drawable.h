@@ -147,7 +147,7 @@ public:
     // Sync methods, then can access all members and do UI->RT sync
     virtual void OnSync() = 0;
 
-    virtual void OnPurge() {};
+    virtual void OnPurge() {}
 
     virtual bool GetEnableEDR() const
     {

@@ -44,6 +44,10 @@ public:
     NATIVEEXPORT uint32_t GetAverageColor(Drawing::ColorQuad &color) const;
     NATIVEEXPORT bool IsBlackOrWhiteOrGrayColor(uint32_t color) const;
 
+    // Calculate average color directly from pixmap without quantization
+    static uint32_t GetAverageColorDirect(
+        const std::shared_ptr<Drawing::Pixmap>& pixmap, Drawing::ColorQuad &color);
+
 private:
     RSColorPicker(std::shared_ptr<Drawing::Pixmap> pixmap);
     RSColorPicker(std::shared_ptr<Drawing::Pixmap> pixmap, double* coordinates);

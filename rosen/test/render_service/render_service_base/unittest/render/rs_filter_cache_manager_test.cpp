@@ -25,7 +25,6 @@
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_magnifier_filter.h"
-#include "render/rs_shader_filter.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 #include "skia_adapter/skia_surface.h"

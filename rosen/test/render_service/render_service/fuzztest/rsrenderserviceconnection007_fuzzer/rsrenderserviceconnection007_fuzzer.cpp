@@ -52,7 +52,9 @@ const uint8_t DO_SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION = 3;
 const uint8_t DO_SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE = 4;
 const uint8_t DO_SET_GLOBAL_DARK_COLOR_MODE = 5;
 const uint8_t DO_SET_SCREEN_SWITCHING_NOTIFY_CALLBACK = 6;
-const uint8_t TARGET_SIZE = 7;
+const uint8_t DO_ADD_VIRTUAL_SCREEN_WHITE_LIST = 7;
+const uint8_t DO_REMOVE_VIRTUAL_SCREEN_WHITE_LIST = 8;
+const uint8_t TARGET_SIZE = 9;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -244,6 +246,76 @@ void DoSetScreenSwitchingNotifyCallback()
     }
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
+
+ 
+bool DoAddVirtualScreenWhiteList()
+{
+    ScreenId id = GetData<ScreenId>();
+ 
+    // generate whitelist
+    std::vector<NodeId> whiteList;
+    uint8_t whiteListSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < whiteListSize; i++) {
+        NodeId nodeId = GetData<NodeId>();
+        whiteList.push_back(nodeId);
+    }
+ 
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP.WriteUint64(id)) {
+        return false;
+    }
+    if (!dataP.WriteUInt64Vector(whiteList)) {
+        return false;
+    }
+ 
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST);
+    if (toServiceConnectionStub_ == nullptr) {
+        return false;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+ 
+bool DoRemoveVirtualScreenWhiteList()
+{
+    ScreenId id = GetData<ScreenId>();
+ 
+    // generate whitelist
+    std::vector<NodeId> whiteList;
+    uint8_t whiteListSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < whiteListSize; i++) {
+        NodeId nodeId = GetData<NodeId>();
+        whiteList.push_back(nodeId);
+    }
+ 
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP.WriteUint64(id)) {
+        return false;
+    }
+    if (!dataP.WriteUInt64Vector(whiteList)) {
+        return false;
+    }
+ 
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST);
+    if (toServiceConnectionStub_ == nullptr) {
+        return false;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -296,6 +368,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_SCREEN_SWITCHING_NOTIFY_CALLBACK:
             OHOS::Rosen::DoSetScreenSwitchingNotifyCallback();
+            break;
+        case OHOS::Rosen::DO_ADD_VIRTUAL_SCREEN_WHITE_LIST:
+            OHOS::Rosen::DoAddVirtualScreenWhiteList();
+            break;
+        case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_WHITE_LIST:
+            OHOS::Rosen::DoRemoveVirtualScreenWhiteList();
             break;
         default:
             return -1;

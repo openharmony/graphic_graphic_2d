@@ -14,6 +14,7 @@
  */
 
 #include <functional>
+#include <variant>
 #include <vector>
 #include "js_fontdescriptor.h"
 
@@ -35,25 +36,25 @@ FontDescriptorPropertyList GenerateDescriptorPropList(FontDescSharedPtr fd)
         return {};
     }
     FontDescriptorPropertyList propList = {
-        {"path", fd->path},
-        {"postScriptName", fd->postScriptName},
-        {"fullName", fd->fullName},
-        {"fontFamily", fd->fontFamily},
-        {"fontSubfamily", fd->fontSubfamily},
-        {"width", fd->width},
-        {"italic", fd->italic},
-        {"monoSpace", fd->monoSpace},
-        {"symbolic", fd->symbolic},
-        {"localPostscriptName", fd->localPostscriptName},
-        {"localFullName", fd->localFullName},
-        {"localFamilyName", fd->localFamilyName},
-        {"localSubFamilyName", fd->localSubFamilyName},
-        {"version", fd->version},
-        {"manufacture", fd->manufacture},
-        {"copyright", fd->copyright},
-        {"trademark", fd->trademark},
-        {"license", fd->license},
-        {"index", fd->index},
+        {"path", std::ref(fd->path)},
+        {"postScriptName", std::ref(fd->postScriptName)},
+        {"fullName", std::ref(fd->fullName)},
+        {"fontFamily", std::ref(fd->fontFamily)},
+        {"fontSubfamily", std::ref(fd->fontSubfamily)},
+        {"width", std::ref(fd->width)},
+        {"italic", std::ref(fd->italic)},
+        {"monoSpace", std::ref(fd->monoSpace)},
+        {"symbolic", std::ref(fd->symbolic)},
+        {"localPostscriptName", std::ref(fd->localPostscriptName)},
+        {"localFullName", std::ref(fd->localFullName)},
+        {"localFamilyName", std::ref(fd->localFamilyName)},
+        {"localSubFamilyName", std::ref(fd->localSubFamilyName)},
+        {"version", std::ref(fd->version)},
+        {"manufacture", std::ref(fd->manufacture)},
+        {"copyright", std::ref(fd->copyright)},
+        {"trademark", std::ref(fd->trademark)},
+        {"license", std::ref(fd->license)},
+        {"index", std::ref(fd->index)},
     };
     return propList;
 }
@@ -273,7 +274,7 @@ napi_value JsFontDescriptor::GetSystemFontFullNamesByType(napi_env env, napi_cal
     return NapiAsyncWork::Enqueue(env, context, "GetSystemFontFullNamesByType", executor, complete).result;
 }
 
-napi_value JsFontDescriptor::CreateFontList(napi_env env, std::unordered_set<std::string>& fontList)
+napi_value JsFontDescriptor::CreateFontList(napi_env env, const std::unordered_set<std::string>& fontList)
 {
     TEXT_ERROR_CHECK(env != nullptr, return nullptr, "Env is nullptr");
     napi_value fullNameArray = nullptr;
@@ -467,7 +468,7 @@ napi_value JsFontDescriptor::GetFontPathsByType(napi_env env, napi_callback_info
 
     if (!ConvertFromJsValue(env, argv[0], fontType)) {
         TEXT_LOGE("Failed to convert argument to SystemFontType");
-        return NapiThrowError(env, MLB::ERROR_INVALID_PARAM, "Invalid system font type");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid argument");
     }
 
     std::unordered_set<std::string> fontPaths;
@@ -483,7 +484,7 @@ napi_value JsFontDescriptor::IsFontSupported(napi_env env, napi_callback_info in
     if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc != ARGC_ONE ||
         argv[0] == nullptr) {
         TEXT_LOGE("Failed to get argument, argc %{public}zu", argc);
-        return NapiThrowError(env, MLB::ERROR_INVALID_PARAM, "Invalid argument");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid argument");
     }
     std::string fontPath;
 
@@ -505,6 +506,6 @@ napi_value JsFontDescriptor::IsFontSupported(napi_env env, napi_callback_info in
         return CreateJsValue(env, ok);
     }
 
-    return CreateJsValue(env, false);
+    return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid argument");
 }
 }

@@ -40,6 +40,7 @@ namespace Rosen {
 // modify the RSTypefaceCache instance as global to extend life cycle, fix destructor crash
 static RSTypefaceCache gRSTypefaceCacheInstance;
 static const int MAX_CHUNK_SIZE = 20000;
+static constexpr int INVALID_FD = -1;
 
 RSTypefaceCache& RSTypefaceCache::Instance()
 {
@@ -145,8 +146,26 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId, std::shared_ptr<Dr
     if (typefaceHashCode_.find(uniqueId) != typefaceHashCode_.end()) {
         return;
     }
+    uint64_t fullHash = 0;
+    if (typeface->GetFd() != INVALID_FD) {
+        fullHash = CalculateTypefaceFullHash(typeface);
+    } else {
+        fullHash = typeface->GetHash();
+        if (!fullHash) { // fallback to slow path if the adapter does not provide hash
+            std::shared_ptr<Drawing::Data> data = typeface->Serialize();
+            if (!data) {
+                return;
+            }
+            const void* stream = data->GetData();
+            size_t size = data->GetSize();
+#ifdef USE_M133_SKIA
+            fullHash = SkChecksum::Hash32(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)));
+#else
+            fullHash = SkOpts::hash_fn(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)), 0);
+#endif
+        }
+    }
 
-    uint64_t fullHash = CalculateTypefaceFullHash(typeface);
     typefaceHashCode_[uniqueId] = fullHash;
     pid_t pid = GetTypefacePid(uniqueId);
     if (typefaceHashMap_.find(fullHash) != typefaceHashMap_.end()) {
@@ -168,7 +187,20 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId, std::shared_ptr<Dr
     if (pid) {
         MemorySnapshot::Instance().AddCpuMemory(pid, typeface->GetSize());
     }
-    typefaceBaseHashMap_[typeface->GetHash()] = typeface;
+    typefaceBaseHashMap_[typeface->GetHash()] = std::make_tuple(typeface, 1);
+    if (typeface->GetFd() != INVALID_FD) {
+        return;
+    }
+    // register queued entries old ipc
+    auto iterator = typefaceHashQueue_.find(fullHash);
+    if (iterator != typefaceHashQueue_.end()) {
+        for (const uint64_t cacheId: iterator->second) {
+            if (cacheId != uniqueId) {
+                AddIfFound(cacheId, fullHash);
+            }
+        }
+        typefaceHashQueue_.erase(iterator);
+    }
 }
 
 void RemoveHashQueue(
@@ -190,14 +222,23 @@ void RSTypefaceCache::RemoveHashMap(pid_t pid, std::unordered_map<uint64_t, Type
     uint64_t hash_value)
 {
     if (typefaceHashMap.find(hash_value) != typefaceHashMap.end()) {
-        auto [typeface, ref] = typefaceHashMap[hash_value];
+        auto& [typeface, ref] = typefaceHashMap[hash_value];
         if (pid) {
             MemorySnapshot::Instance().RemoveCpuMemory(pid, typeface->GetSize());
         }
-        if (ref <= 1) {
-            typefaceHashMap.erase(hash_value);
-        } else {
-            typefaceHashMap[hash_value] = std::make_tuple(typeface, ref - 1);
+        ref -= 1;
+        if (ref != 0) {
+            return;
+        }
+        typefaceHashMap.erase(hash_value);
+        uint32_t baseHash = static_cast<uint32_t>(0xFFFFFFFF & hash_value);
+        auto baseTypefaceItem = typefaceBaseHashMap_.find(baseHash);
+        if (baseTypefaceItem != typefaceBaseHashMap_.end()) {
+            auto& [baseTypeface, baseRef] = baseTypefaceItem->second;
+            baseRef -= 1;
+            if (baseRef == 0) {
+                typefaceBaseHashMap_.erase(baseHash);
+            }
         }
     }
 }
@@ -236,7 +277,7 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::UpdateDrawingTypefaceRef(Dra
 {
     std::lock_guard lock(mapMutex_);
     uint64_t fullHash = static_cast<uint64_t>(sharedTypeface.hash_);
-    if (sharedTypeface.hasFontArgs_) {
+    if (sharedTypeface.hasFontArgs_ && sharedTypeface.fd_ != INVALID_FD) {
         uint32_t fontArgsHash = CalculateFontArgsHash(sharedTypeface.coords_);
         fullHash = AssembleFullHash(fontArgsHash, sharedTypeface.hash_);
     }
@@ -253,13 +294,17 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::UpdateDrawingTypefaceRef(Dra
         uint32_t baseHash = static_cast<uint32_t>(0xFFFFFFFF & fullHash);
         auto baseTypeface = typefaceBaseHashMap_.find(baseHash);
         if (baseTypeface != typefaceBaseHashMap_.end()) {
+            RS_LOGD("UpdateDrawingTypefaceRef: Find same typeface in base cache, use existed base typeface.");
             Drawing::FontArguments fontArgs;
             fontArgs.SetCollectionIndex(sharedTypeface.index_);
             fontArgs.SetVariationDesignPosition({sharedTypeface.coords_.data(), sharedTypeface.coords_.size()});
-            auto clonedTypeface = baseTypeface->second->MakeClone(fontArgs);
+            auto clonedTypeface = std::get<0>(baseTypeface->second)->MakeClone(fontArgs);
             if(!clonedTypeface) {
                 RS_LOGE("UpdateDrawingTypefaceRef: Typeface clone failed");
+                return nullptr;
             }
+            std::get<1>(baseTypeface->second)++;
+            clonedTypeface->SetFd(std::get<0>(baseTypeface->second)->GetFd());
             typefaceHashCode_[sharedTypeface.id_] = fullHash;
             typefaceHashMap_[fullHash] = std::make_tuple(clonedTypeface, 1);
             return clonedTypeface;

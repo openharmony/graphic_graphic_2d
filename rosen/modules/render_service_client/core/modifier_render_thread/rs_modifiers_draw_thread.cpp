@@ -23,6 +23,7 @@
 #include "qos.h"
 #include "render_context/shader_cache.h"
 #include "concurrent_task_client.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {

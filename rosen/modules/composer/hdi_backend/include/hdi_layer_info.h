@@ -187,6 +187,7 @@ public:
 
     void SetTunnelLayerId(const uint64_t &tunnelLayerId)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         tunnelLayerId_ = tunnelLayerId;
     }
 
@@ -197,6 +198,7 @@ public:
 
     void SetTunnelLayerProperty(uint32_t tunnelLayerProperty)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         tunnelLayerProperty_ = tunnelLayerProperty;
     }
 

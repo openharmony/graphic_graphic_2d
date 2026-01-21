@@ -1104,6 +1104,19 @@ RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Surface* surface, float alpha)
     (void)alpha; // alpha is no longer used, but we keep it for backward compatibility
 }
 
+#ifdef RS_ENABLE_VK
+void RSPaintFilterCanvas::AttachPaintWithColor(const Drawing::Paint& paint)
+{
+    Paint p(paint);
+    Drawing::Filter filter;
+
+    filter.SetColorFilter(ColorFilter::CreateBlendModeColorFilter(this->GetEnvForegroundColor(), BlendMode::SRC_ATOP));
+    p.SetFilter(filter);
+
+    this->AttachPaint(p);
+}
+#endif
+
 Drawing::Surface* RSPaintFilterCanvas::GetSurface() const
 {
     return surface_;
@@ -1149,7 +1162,8 @@ void RSPaintFilterCanvas::ConvertToType(
 
 void RSPaintFilterCanvas::ReplaceSurface(Drawing::Surface* surface)
 {
-    RS_TRACE_NAME_FMT("RSPaintFilterCanvas::ReplaceSurface surface_:%d, surface:%d", surface_, surface);
+    RS_TRACE_NAME_FMT("RSPaintFilterCanvas::ReplaceSurface surface_:%d, surface:%d",
+        surface_ != nullptr, surface != nullptr);
     if (!surface_ || !surface) {
         ROSEN_LOGD("RSPaintFilterCanvas::ReplaceSurface surface_ or surface is nullptr");
         return;
@@ -1631,6 +1645,19 @@ void RSPaintFilterCanvas::SetBehindWindowData(
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanvas::GetBehindWindowData() const
 {
     return envStack_.top().behindWindowData_;
+}
+
+void RSPaintFilterCanvas::SetFilterClipBounds(const Drawing::RectI& rect)
+{
+    if (envStack_.empty()) {
+        return;
+    }
+    envStack_.top().filterClipBounds_ = rect;
+}
+
+const Drawing::RectI RSPaintFilterCanvas::GetFilterClipBounds() const
+{
+    return envStack_.empty() ? Drawing::RectI() : envStack_.top().filterClipBounds_;
 }
 
 void RSPaintFilterCanvas::ReplaceMainScreenData(std::shared_ptr<Drawing::Surface>& offscreenSurface,

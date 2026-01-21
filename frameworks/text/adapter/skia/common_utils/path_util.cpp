@@ -71,12 +71,12 @@ bool TextPathUtil::IsPathClockwise(const Drawing::Path& path)
         // Not enough points or not closed
         return false;
     }
-
+    size_t count = static_cast<size_t>(pointsCount);
     size_t index = FindMinPointIndex(path);
 
-    Drawing::Point prePoint = path.GetPoint(index > 0 ? index - 1 : (pointsCount - 2)); // - 2 means the last point
+    Drawing::Point prePoint = path.GetPoint(index > 0 ? index - 1 : (count - 2)); // - 2 means the last point
     Drawing::Point nextPoint =
-        path.GetPoint(index < (pointsCount - 2) ? index + 1 : 0);  // - 2 means the last point
+        path.GetPoint(index < (count - 2) ? index + 1 : 0);  // - 2 means the last point
     Orientation orientation = ComputeOrientation(prePoint, path.GetPoint(index), nextPoint);
     return orientation == Orientation::CLOCKWISE;
 }

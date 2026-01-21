@@ -79,10 +79,6 @@ std::shared_ptr<RSSurfaceRenderNode> SurfaceNodeCommandHelper::CreateWithConfigI
             "been too many surfaceNodes, nodeId:%{public}" PRIu64 "", config.id);
         return nullptr;
     }
-    if (context.GetMutableNodeMap().UnRegisterUnTreeNode(config.id)) {
-        ROSEN_LOGE("SurfaceNodeCommandHelper::CreateWithConfigInRS create after add, id:%{public}" PRIu64, config.id);
-        RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::CreateWithConfigInRS create after add, id:%" PRIu64, config.id);
-    }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     node->SetUIExtensionUnobscured(unobscured);
@@ -313,10 +309,10 @@ void SurfaceNodeCommandHelper::SetSurfaceId(RSContext& context, NodeId nodeId, S
 }
 
 void SurfaceNodeCommandHelper::SetClonedNodeInfo(
-    RSContext& context, NodeId nodeId, NodeId cloneNodeId, bool needOffscreen, bool isRelated)
+    RSContext& context, NodeId nodeId, NodeId cloneNodeId, bool needOffscreen)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetClonedNodeInfo(cloneNodeId, needOffscreen, isRelated);
+        node->SetClonedNodeInfo(cloneNodeId, needOffscreen);
     }
 }
 

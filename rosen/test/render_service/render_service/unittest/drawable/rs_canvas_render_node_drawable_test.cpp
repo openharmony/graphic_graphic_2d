@@ -69,7 +69,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->GetRenderParams());
 
-    drawable->isOpincDropNodeExt_ = false;
+    DrawableV2::RSOpincDrawCache::SetOpincBlockNodeSkip(false);
     drawable->renderParams_->isOpincStateChanged_ = false;
     drawable->renderParams_->startingWindowFlag_ = false;
     drawable->OnDraw(canvas);
@@ -422,6 +422,39 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCapture005, TestSize.Level2)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     canvasDrawable->OnCapture(canvas);
     ASSERT_FALSE(canvasDrawable->SkipDrawByWhiteList(canvas));
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnDraw005
+ * @tc.desc: Test OnDraw while isDrawingCacheEnabled_ is true
+ * @tc.type: FUNC
+ * @tc.require: issue20602
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest005, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    canvasDrawable->SetOcclusionCullingEnabled(false);
+    RSRenderNodeDrawable::InitDfxForCacheInfo();
+
+    // set render thread param
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvasDrawable->OnDraw(canvas);
+    EXPECT_EQ(canvasDrawable->GetOpincDrawCache().GetNodeCacheType(), NodeStrategyType::CACHE_NONE);
 
     // restore
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());

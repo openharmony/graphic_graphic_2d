@@ -344,7 +344,7 @@ HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap001, TestSize.Level1)
 
     std::vector<uint8_t> dataVec = { 0U, 0U, 0U, 0U};
     pixelmap->SetPixelsAddr(dataVec.data(), surfaceBuffer, 1U, Media::AllocatorType::DEFAULT, false);
-#ifndef ROSEN_CROSS_PLATFORM
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     const uint32_t STATIC_METADATA_SIZE = sizeof(OHOS::HDI::Display::Graphic::Common::V1_0::HdrStaticMetadata);
     std::vector<uint8_t> hdrStaticMetaData{};
     hdrStaticMetaData.resize(STATIC_METADATA_SIZE - 1U);
@@ -362,7 +362,7 @@ HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap001, TestSize.Level1)
  */
 HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap002, TestSize.Level1)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
@@ -414,7 +414,7 @@ HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap002, TestSize.Level1)
  */
 HWTEST_F(RSCanvasRenderNodeTest, OnSetPixelmap003, TestSize.Level1)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     NodeId nodeId = 0;
     auto context = std::make_shared<RSContext>();
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
@@ -469,7 +469,7 @@ HWTEST_F(RSCanvasRenderNodeTest, SetColorGamut001, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
     rsCanvasRenderNode.SetColorGamut(ColorManager::ColorSpaceName::DISPLAY_P3); // 3 is DISPLAY_P3
-    EXPECT_EQ(rsCanvasRenderNode.GetColorGamut(), ColorManager::ColorSpaceName::DISPLAY_P3); // 3 is DISPLAY_P3
+    EXPECT_EQ(rsCanvasRenderNode.colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3); // 3 is DISPLAY_P3
 }
 
 /**
@@ -634,38 +634,6 @@ HWTEST_F(RSCanvasRenderNodeTest, PropertyDrawableRender, TestSize.Level1)
 
     rsCanvasRenderNode.ProcessAnimatePropertyBeforeChildren(canvas, includeProperty);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: ApplyDrawCmdModifier
- * @tc.desc: test results of ApplyDrawCmdModifier
- * @tc.type: FUNC
- * @tc.require: issueI9VPPN
- */
-HWTEST_F(RSCanvasRenderNodeTest, ApplyDrawCmdModifier, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    std::weak_ptr<RSContext> context;
-    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    RSProperties property;
-    RSModifierContext modifierContext(property);
-    RSModifierType type = RSModifierType::INVALID;
-    rsCanvasRenderNode.ApplyDrawCmdModifier(modifierContext, type);
-    EXPECT_TRUE(rsCanvasRenderNode.drawCmdModifiers_.empty());
-
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawCmdList->SetWidth(2024);
-    drawCmdList->SetHeight(2090);
-    auto propertyTwo = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    propertyTwo->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
-        propertyTwo) };
-    type = RSModifierType::FOREGROUND_STYLE;
-    rsCanvasRenderNode.drawCmdModifiers_.emplace(type, listModifier);
-    EXPECT_FALSE(RSSystemProperties::GetSingleFrameComposerEnabled());
-    rsCanvasRenderNode.ApplyDrawCmdModifier(modifierContext, type);
-}
-#endif
 
 /**
  * @tc.name: InternalDrawContent

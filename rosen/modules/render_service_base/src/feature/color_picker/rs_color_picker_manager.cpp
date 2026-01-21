@@ -42,8 +42,8 @@ inline uint64_t NowMs()
 }
 } // namespace
 
-Drawing::ColorQuad RSColorPickerManager::GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
-    uint64_t nodeId, ColorPickStrategyType strategy, uint64_t interval)
+std::optional<Drawing::ColorQuad> RSColorPickerManager::GetColorPicked(
+    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, const ColorPickerParam& params)
 {
     uint64_t currTime = NowMs();
     const auto [prevColor, curColor] = GetColor();
@@ -57,8 +57,9 @@ Drawing::ColorQuad RSColorPickerManager::GetColorPicked(RSPaintFilterCanvas& can
         RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); // continue animation
     }
 
-    if (strategy != ColorPickStrategyType::NONE && currTime >= interval + lastUpdateTime_) { // cooldown check
-        ScheduleColorPick(canvas, rect, nodeId, strategy);
+    if (params.strategy != ColorPickStrategyType::NONE &&
+        currTime >= params.interval + lastUpdateTime_) { // cooldown check
+        ScheduleColorPick(canvas, rect, nodeId, params.strategy);
         lastUpdateTime_ = currTime;
     }
     return res;
@@ -137,7 +138,7 @@ void RSColorPickerManager::HandleColorUpdate(
             nodeId);
         std::lock_guard<std::mutex> lock(colorMtx_);
         if (strategy == ColorPickStrategyType::CONTRAST) {
-            newColor = GetContrastColor(newColor, colorPicked_ == Drawing::Color::COLOR_BLACK);
+            newColor = GetContrastColor(newColor);
         }
         if (newColor == colorPicked_) {
             return;
@@ -193,15 +194,23 @@ constexpr float THRESHOLD_HIGH = 220.0f;
 constexpr float THRESHOLD_LOW = 150.0f;
 } // namespace
 
-Drawing::ColorQuad RSColorPickerManager::GetContrastColor(Drawing::ColorQuad color, bool prevDark)
+Drawing::ColorQuad RSColorPickerManager::GetContrastColor(Drawing::ColorQuad color)
 {
     auto red = Drawing::Color::ColorQuadGetR(color);
     auto green = Drawing::Color::ColorQuadGetG(color);
     auto blue = Drawing::Color::ColorQuadGetB(color);
     float luminance = red * RED_LUMINANCE_COEFF + green * GREEN_LUMINANCE_COEFF + blue * BLUE_LUMINANCE_COEFF;
 
-    // Use hysteresis thresholds based on previous contrast color state
-    const float threshold = prevDark ? THRESHOLD_LOW : THRESHOLD_HIGH;
-    return luminance > threshold ? Drawing::Color::COLOR_BLACK : Drawing::Color::COLOR_WHITE;
+    static std::atomic<Drawing::ColorQuad> g_color = Drawing::Color::COLOR_BLACK;
+    if (luminance <= THRESHOLD_LOW) {
+        g_color = Drawing::Color::COLOR_WHITE;
+        return Drawing::Color::COLOR_WHITE;
+    } else if (luminance >= THRESHOLD_HIGH) {
+        g_color = Drawing::Color::COLOR_BLACK;
+        return Drawing::Color::COLOR_BLACK;
+    }
+    // Stick to previously selected color if luminance is between thresholds
+    // Use a global status to better align color theme
+    return g_color.load(std::memory_order_relaxed);
 }
 } // namespace OHOS::Rosen

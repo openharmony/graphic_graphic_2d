@@ -58,6 +58,7 @@
 #endif
 #include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
+#include "node_mem_release_param.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -188,7 +189,9 @@ void RSClientToServiceConnection::CleanRenderNodes() noexcept
     nodeMap.FilterNodeByPid(remotePid_);
     RS_PROFILER_KILL_PID_END();
 
-    RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+    if (NodeMemReleaseParam::IsRsRenderNodeGCMemReleaseEnabled()) {
+        RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+    }
 }
 
 void RSClientToServiceConnection::CleanFrameRateLinkers() noexcept
@@ -1462,8 +1465,8 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
 #ifdef RS_ENABLE_GPU
         RSRenderComposerManager::GetInstance().PostSyncTask(id, [=]() {
             screenManager_->SetScreenPowerStatus(id, status);
-            RSRenderComposerManager::GetInstance().HandlePowerStatus(id, status);
         });
+        RSRenderComposerManager::GetInstance().HandlePowerStatus(id, status);
         screenManager_->WaitScreenPowerStatusTask();
         mainThread_->SetDiscardJankFrames(true);
         RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(true);
@@ -1805,26 +1808,30 @@ void RSClientToServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level
     }
 }
 
-ErrCode RSClientToServiceConnection::GetPanelPowerStatus(ScreenId screenId, uint32_t& status)
+ErrCode RSClientToServiceConnection::GetPanelPowerStatus(ScreenId screenId, PanelPowerStatus& status)
 {
     if (!screenManager_) {
         RS_LOGE("%{public}s screenManager_ is nullptr.", __func__);
-        status = INVALID_PANEL_POWER_STATUS;
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
         return ERR_INVALID_OPERATION;
     }
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         status = RSRenderComposerManager::GetInstance().PostSyncTask(screenId,
-            [=]() { return screenManager_->GetPanelPowerStatus(screenId); });
+            [screenManager = screenManager_, screenId]() {
+                return screenManager->GetPanelPowerStatus(screenId);
+            });
 #else
-        status = INVALID_PANEL_POWER_STATUS;
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
 #endif
     } else if (mainThread_ != nullptr) {
         status = mainThread_->ScheduleTask(
-            [=]() { return screenManager_->GetPanelPowerStatus(screenId); }).get();
+            [screenManager = screenManager_, screenId]() {
+                return screenManager->GetPanelPowerStatus(screenId);
+            }).get();
     } else {
-        status = INVALID_PANEL_POWER_STATUS;
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
@@ -2646,23 +2653,6 @@ int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCal
     });
 
     return StatusCode::SUCCESS;
-}
-
-ErrCode RSClientToServiceConnection::SetAppWindowNum(uint32_t num)
-{
-    if (!mainThread_) {
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), num]() -> void {
-        sptr<RSClientToServiceConnection> connection = weakThis.promote();
-        if (!connection || !connection->mainThread_) {
-            return;
-        }
-        connection->mainThread_->SetAppWindowNum(num);
-    };
-    mainThread_->PostTask(task);
-
-    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnection::SetSystemAnimatedScenes(

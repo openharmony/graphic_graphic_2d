@@ -411,9 +411,9 @@ HWTEST_F(RsRenderComposerManagerTest, GetReleaseFence, TestSize.Level1)
     if (rsRenderComposer->runner_) {
         rsRenderComposer->runner_->Run();
     }
-    EXPECT_EQ(mgr->GetReleaseFence(0u), nullptr);
+    EXPECT_TRUE(mgr->GetReleaseFence(0u)->Get() == -1);
     mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
-    EXPECT_EQ(mgr->GetReleaseFence(1u), nullptr);
+    EXPECT_TRUE(mgr->GetReleaseFence(1u) == 0);
     EXPECT_NE(mgr->GetReleaseFence(2u), nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 

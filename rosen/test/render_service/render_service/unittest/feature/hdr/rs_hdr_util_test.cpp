@@ -78,6 +78,7 @@ void RSHdrUtilTest::TearDownTestCase() {}
 void RSHdrUtilTest::SetUp() {}
 void RSHdrUtilTest::TearDown() {}
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: CheckIsHdrSurface
  * @tc.desc: Test CheckIsHdrSurface
@@ -935,5 +936,5 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatForHdrEffect001, TestSize.Level2)
     RSHdrUtil::CheckPixelFormatForHdrEffect(*surfaceNode, screenNode);
     EXPECT_EQ(static_cast<int>(screenNode->GetDisplayHdrStatus()), static_cast<int>(HdrStatus::HDR_EFFECT));
 }
-
+#endif
 } // namespace OHOS::Rosen

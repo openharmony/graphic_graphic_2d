@@ -277,18 +277,9 @@ public:
     {
         lightColor_ = lightColor;
     }
-    void SetAbsLightPosition(const Vector4f& absLightPosition)
-    {
-        absLightPosition_ = absLightPosition;
-    }
-
     const Vector4f& GetLightPosition() const
     {
         return lightPosition_;
-    }
-    const Vector4f& GetAbsLightPosition() const
-    {
-        return absLightPosition_;
     }
     float GetLightIntensity() const
     {

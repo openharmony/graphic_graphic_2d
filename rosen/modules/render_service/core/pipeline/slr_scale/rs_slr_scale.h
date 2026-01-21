@@ -72,6 +72,7 @@ private:
     std::shared_ptr<Drawing::ShaderEffect> GetSLRShaderEffect(float coeff, int dstWidth);
     std::shared_ptr<Rosen::Drawing::Image> ProcessSLRImage(RSPaintFilterCanvas& canvas,
         Drawing::Image& cacheImageProcessed);
+    void DDGRDrawImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImage, Drawing::Brush& brush);
     std::shared_ptr<Drawing::RuntimeShaderBuilder> SLRImageShaderBuilder(
         const Drawing::Image& image);
     std::shared_ptr<Drawing::RuntimeShaderBuilder> LaplaceShaderBuilder(const Drawing::Image& image);

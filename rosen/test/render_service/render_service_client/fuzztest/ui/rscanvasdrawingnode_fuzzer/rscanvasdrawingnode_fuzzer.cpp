@@ -70,7 +70,7 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoRSCanvasDrawingNode(const uint8_t* data, size_t size)
+bool DoRSCanvasDrawingNode()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -79,7 +79,7 @@ bool DoRSCanvasDrawingNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreate(const uint8_t* data, size_t size)
+bool DoCreate()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -88,7 +88,7 @@ bool DoCreate(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetBitmap(const uint8_t* data, size_t size)
+bool DoGetBitmap()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -107,7 +107,7 @@ bool DoGetBitmap(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetPixelmap(const uint8_t* data, size_t size)
+bool DoGetPixelmap()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -126,7 +126,7 @@ bool DoGetPixelmap(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoResetSurface(const uint8_t* data, size_t size)
+bool DoResetSurface()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -138,7 +138,7 @@ bool DoResetSurface(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreateTextureExportRenderNodeInRT(const uint8_t* data, size_t size)
+bool DoCreateTextureExportRenderNodeInRT()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -158,12 +158,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     
     /* Run your code on data */
-    OHOS::Rosen::DoRSCanvasDrawingNode(data, size);
-    OHOS::Rosen::DoCreate(data, size);
-    OHOS::Rosen::DoGetBitmap(data, size);
-    OHOS::Rosen::DoGetPixelmap(data, size);
-    OHOS::Rosen::DoResetSurface(data, size);
-    OHOS::Rosen::DoCreateTextureExportRenderNodeInRT(data, size);
+    OHOS::Rosen::DoRSCanvasDrawingNode();
+    OHOS::Rosen::DoCreate();
+    OHOS::Rosen::DoGetBitmap();
+    OHOS::Rosen::DoGetPixelmap();
+    OHOS::Rosen::DoResetSurface();
+    OHOS::Rosen::DoCreateTextureExportRenderNodeInRT();
     return 0;
 }
 

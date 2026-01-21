@@ -169,7 +169,7 @@ HWTEST_F(VSyncCallBackListenerTest, CalculateExpectedEndLocked001, Function | Me
     ASSERT_EQ(timeEnd, res);
     vsyncCallBackListener_->name_ = "testApp";
     res = vsyncCallBackListener_->CalculateExpectedEndLocked(ts);
-    timeEnd = vsyncCallBackListener_->period_ + ts; // rs vsync offset is 5000000ns
+    timeEnd = vsyncCallBackListener_->period_ + ts;
     ASSERT_EQ(timeEnd, res);
 }
 

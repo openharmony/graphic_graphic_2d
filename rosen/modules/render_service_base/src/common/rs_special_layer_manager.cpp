@@ -201,7 +201,7 @@ std::unordered_set<NodeId> RSSpecialLayerManager::GetIdsWithScreen(ScreenId scre
         return currentTypeIds;
     }
     type >>= SPECIAL_TYPE_NUM;
-    uint32_t currentType = SpecialLayerType::IS_BLACK_LIST;
+    uint32_t currentType = SpecialLayerType::SECURITY;
     while (type != 0) {
         bool isSpecial = (type & 1) != 0;
         if (isSpecial) {

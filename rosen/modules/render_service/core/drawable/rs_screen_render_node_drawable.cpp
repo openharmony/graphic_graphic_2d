@@ -394,7 +394,7 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
 void RSScreenRenderNodeDrawable::PostClearMemoryTask() const
 {
     auto& unirenderThread = RSUniRenderThread::Instance();
-    if (unirenderThread.IsDefaultClearMemroyFinished()) {
+    if (unirenderThread.IsDefaultClearMemoryFinished()) {
         unirenderThread.DefaultClearMemoryCache(); //default clean with no rendering in 5s
         unirenderThread.SetDefaultClearMemoryFinished(false);
     }
@@ -473,7 +473,8 @@ void RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(
         return;
     }
     bool isScreenOccluded = false;
-    RectI screenRect = {0, 0, screenInfo.width, screenInfo.height};
+    RectI screenRect = (screenInfo.activeRect.IsEmpty() ?
+        RectI(0, 0, screenInfo.width, screenInfo.height) : screenInfo.activeRect);
     // top-down traversal all mainsurface
     // if upper surface reuse filter cache which fully cover whole screen
     // mark lower layers for process skip
@@ -524,6 +525,8 @@ void RSScreenRenderNodeDrawable::SetAccumulateDirtyInSkipFrame(bool accumulateDi
 
 void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    // Clear cacheImgForCapture of each frame at first, only assign it when necessary
+    cacheImgForCapture_ = nullptr;
     RSSpecialLayerManager::ClearWhiteListRootIds();
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     SetDrawSkipType(DrawSkipType::NONE);
@@ -772,11 +775,13 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             params->ResetVirtualExpandAccumulatedParams();
             auto targetSurfaceRenderNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
                 params->GetTargetSurfaceRenderNodeDrawable().lock());
+            // Clear cacheImgForMultiScreenView here, do not put it earlier
+            cacheImgForMultiScreenView_ = nullptr;
+            // Sometimes may require setting cacheImg, such as MultiScreenView and SingleAppCast
             if ((targetSurfaceRenderNodeDrawable || params->HasMirrorScreen()) && curCanvas_->GetSurface()) {
-                RS_TRACE_NAME("DrawExpandScreen cacheImgForMultiScreenView");
-                cacheImgForMultiScreenView_ = curCanvas_->GetSurface()->GetImageSnapshot();
-            } else {
-                cacheImgForMultiScreenView_ = nullptr;
+                RS_TRACE_NAME("DrawExpandScreen cacheImg for capture and multiscreenview");
+                cacheImgForCapture_ = curCanvas_->GetSurface()->GetImageSnapshot();
+                cacheImgForMultiScreenView_ = cacheImgForCapture_;
             }
             // Restore the initial state of the canvas to avoid state accumulation
             curCanvas_->RestoreToCount(0);
@@ -959,13 +964,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
         if (RSSystemProperties::GetDrawMirrorCacheImageEnabled() && params->HasMirrorScreen() &&
             curCanvas_->GetSurface() != nullptr) {
-            cacheImgForMultiScreenView_ = curCanvas_->GetSurface()->GetImageSnapshot();
-        } else {
-            cacheImgForMultiScreenView_ = nullptr;
+            cacheImgForCapture_ = curCanvas_->GetSurface()->GetImageSnapshot();
         }
     }
     RenderOverDraw();
-    CheckAndClearRelatedSourceNodeCache(*params);
     RSMainThread::Instance()->SetDirtyFlag(false);
 
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
@@ -1233,18 +1235,4 @@ bool RSScreenRenderNodeDrawable::CheckScreenFreezeSkip(RSScreenRenderParams& par
     return false;
 }
 
-void RSScreenRenderNodeDrawable::CheckAndClearRelatedSourceNodeCache(RSScreenRenderParams& params)
-{
-    auto cloneNodeMap = params.GetCloneNodeMap();
-    for (auto &iter : cloneNodeMap) {
-        auto surfaceDrawable =
-            std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(iter.second.lock());
-        if (!surfaceDrawable) {
-            RS_LOGE("RSScreenRenderNodeDrawable::CheckAndClearRelatedSourceNodeCache"
-                " surfaceDrawable is nullptr");
-            continue;
-        }
-        surfaceDrawable->ClearRelatedSourceCache();
-    }
-}
 } // namespace OHOS::Rosen::DrawableV2

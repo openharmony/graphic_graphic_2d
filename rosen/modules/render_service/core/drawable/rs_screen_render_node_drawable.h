@@ -41,15 +41,12 @@ public:
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
-        return cacheImgForMultiScreenView_;
+        return cacheImgForCapture_;
     }
 
-    void SetCacheImgForCapture(std::shared_ptr<Drawing::Image> cacheImgForCapture)
+    std::shared_ptr<Drawing::Image> GetCacheImgForMultiScreenView() const
     {
-        if (cacheImgForMultiScreenView_ == cacheImgForCapture) {
-            return;
-        }
-        cacheImgForMultiScreenView_ = cacheImgForCapture;
+        return cacheImgForMultiScreenView_;
     }
 
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandlerOnDraw() const
@@ -162,7 +159,6 @@ private:
     bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
     void UpdateSurfaceDrawRegion(std::shared_ptr<RSPaintFilterCanvas>& mainCanvas,
         RSScreenRenderParams* params);
-    void CheckAndClearRelatedSourceNodeCache(RSScreenRenderParams& params);
 
     static void UpdateSlrScale(ScreenInfo& screenInfo);
 
@@ -182,6 +178,7 @@ private:
     std::unique_ptr<RSRenderFrame> expandRenderFrame_ = nullptr;
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporarily holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen render
+    std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
     std::shared_ptr<Drawing::Image> cacheImgForMultiScreenView_ = nullptr;
     GraphicPixelFormat lastPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     bool isScreenNodeSkip_ = false;

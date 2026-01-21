@@ -979,9 +979,9 @@ PanelPowerStatus RSRenderServiceClient::GetPanelPowerStatus(ScreenId id)
         return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
     }
 
-    uint32_t status{static_cast<uint32_t>(PanelPowerStatus::INVALID_PANEL_POWER_STATUS)};
+    PanelPowerStatus status{PanelPowerStatus::INVALID_PANEL_POWER_STATUS};
     clientToService->GetPanelPowerStatus(id, status);
-    return static_cast<PanelPowerStatus>(status);
+    return status;
 }
 
 class CustomBufferAvailableCallback : public RSBufferAvailableCallbackStub
@@ -1689,14 +1689,6 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
 
     ROSEN_LOGD("RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback called");
     return clientToService->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, cb);
-}
-
-void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService != nullptr) {
-        clientToService->SetAppWindowNum(num);
-    }
 }
 
 bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)

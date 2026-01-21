@@ -30,7 +30,6 @@
 #include "property/rs_point_light_manager.h"
 #include "render/rs_pixel_map_util.h"
 #include "static_factory.h"
-#include "memory/rs_tag_tracker.h"
 
 // dfx
 #include "drawable/dfx/rs_refresh_rate_dfx.h"
@@ -153,7 +152,6 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::OnDraw params is nullptr!");
         return;
     }
-    SetScreenRotationForPointLight(*params);
     RSAutoCanvasRestore acr(curCanvas_, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
@@ -940,16 +938,11 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
     auto specialLayerType = RSSpecialLayerUtils::GetSpecialLayerStateInVisibleRect(
         &params, screenParams);
     uniParam->SetScreenInfo(screenParams->GetScreenInfo());
-    // When mirrorSource is paused, mirrorScreen needs to redraw to avoid using an expired cacheImage
-    bool mirroredScreenIsPause =
-        mirroredScreenParams->GetScreenProperty().GetVirtualScreenStatus() == VIRTUAL_SCREEN_PAUSE ||
-        mirroredScreenDrawable->IsRenderSkipIfScreenOff();
     // if specialLayer is visible and no CacheImg
     bool needRedraw = (mirroredParams->IsSecurityDisplay() != params.IsSecurityDisplay() &&
         specialLayerType == DisplaySpecialLayerState::HAS_SPECIAL_LAYER);
     if (RSUniRenderThread::Instance().IsColorFilterModeOn() || mirroredScreenParams->GetHDRPresent()
-        || !cacheImage || params.GetVirtualScreenMuteStatus() || mirroredScreenIsPause ||
-        screenParams->GetHDRPresent() || needRedraw) {
+        || !cacheImage || params.GetVirtualScreenMuteStatus() || screenParams->GetHDRPresent() || needRedraw) {
         MirrorRedrawDFX(true, params.GetScreenId());
         virtualProcesser->SetDrawVirtualMirrorCopy(false);
         DrawMirror(params, virtualProcesser, *uniParam);
@@ -1441,12 +1434,10 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
     bool createOffscreenSurface = !params->GetNeedOffscreen() || !useFixedOffscreenSurfaceSize_ || !offscreenSurface_ ||
         ((screenParams->GetHDRPresent() || curCanvas_->GetHDREnabledVirtualScreen()) &&
         offscreenSurface_->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16);
-    bool hdrOrScRGB = screenParams->GetHDRPresent() || EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace()) ||
-        curCanvas_->GetHDREnabledVirtualScreen();
-    RSTagTracker tagTracker(curCanvas_->GetGPUContext(),
-        hdrOrScRGB ? RSTagTracker::TAGTYPE::TAG_HDR_OFFSCREEN : RSTagTracker::TAGTYPE::TAG_COMMON_OFFSCREEN);
     bool canvasReplacable = false;
     if (createOffscreenSurface) {
+        bool hdrOrScRGB = screenParams->GetHDRPresent() || curCanvas_->GetHDREnabledVirtualScreen() ||
+            EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace());
         RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d], HDR:%d", offscreenWidth, offscreenHeight,
             hdrOrScRGB);
         if (hdrOrScRGB) {
@@ -1583,7 +1574,9 @@ std::shared_ptr<Drawing::ShaderEffect> RSLogicalDisplayRenderNodeDrawable::MakeB
         }
     )");
     if (brightnessAdjustmentShaderEffect_ == nullptr) {
-        brightnessAdjustmentShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(shaderString);
+        Drawing::RuntimeEffectOptions runtimeEffectOptions;
+        runtimeEffectOptions.useHighpLocalCoords = true;
+        brightnessAdjustmentShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(shaderString, runtimeEffectOptions);
         if (brightnessAdjustmentShaderEffect_ == nullptr) {
             ROSEN_LOGE("RSLogicalDisplayRenderNodeDrawable::MakeBrightnessAdjustmentShaderBuilder effect is null");
             return nullptr;
@@ -1608,23 +1601,6 @@ void RSLogicalDisplayRenderNodeDrawable::MirrorRedrawDFX(bool mirrorRedraw, Scre
         RS_LOGI("RSLogicalDisplayRenderNodeDrawable::%{public}s mirror screenId: %{public}" PRIu64
             " drawing path changed, mirrorRedraw_: %{public}d", __func__, screenId, mirrorRedraw);
     }
-}
-
-void RSLogicalDisplayRenderNodeDrawable::SetScreenRotationForPointLight(RSLogicalDisplayRenderParams& params)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    auto [mirroredDrawable, mirroredParams, _, __] = GetMirrorSourceParams(params);
-    ScreenId screenId = params.GetScreenId();
-    ScreenRotation screenRotation = params.GetScreenRotation();
-    if (mirroredParams) {
-        screenId = mirroredParams->GetScreenId();
-        screenRotation = mirroredParams->GetScreenRotation();
-    }
-    auto screenCorrection = screenManager->GetScreenCorrection(screenId);
-    screenRotation = static_cast<ScreenRotation>(
-        (static_cast<int>(screenRotation) + SCREEN_ROTATION_NUM - static_cast<int>(screenCorrection)) %
-        SCREEN_ROTATION_NUM);
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
 }
 
 RSLogicalDisplayRenderNodeDrawable::AncestorParams RSLogicalDisplayRenderNodeDrawable::GetScreenParams(
