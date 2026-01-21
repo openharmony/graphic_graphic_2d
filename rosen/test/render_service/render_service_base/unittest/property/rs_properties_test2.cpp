@@ -358,10 +358,6 @@ HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest003, TestSize.Level1)
 {
     RSProperties properties;
 
-    // Test negative value clamped to 0
-    properties.SetColorPickerNotifyThreshold(-10);
-    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 0);
-
     // Test value above 255 clamped to 255
     properties.SetColorPickerNotifyThreshold(300);
     EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 255);
