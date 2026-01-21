@@ -1083,8 +1083,42 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode, TestS
     virtualProcessor_->CanvasClipRegionForUniscaleMode();
     system::SetParameter("rosen.SLRScale.enabled", "0");
     virtualProcessor_->CanvasClipRegionForUniscaleMode();
-    
+
     screenManager->RemoveVirtualScreen(screenId);
+}
+
+/**
+ * @tc.name: ProcessCacheImage
+ * @tc.desc: draw virtual screen by cache image.
+ * @tc.type:FUNC
+ * @tc.require:issuesIBIPST
+ */ 
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessCacheImage, TestSize.Level2)
+{ 
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
+        UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    ASSERT_NE(nullptr, virtualProcessor);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintCanvase(&canvas);
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    BufferDrawParam params;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    Drawing::Rect srcRect(0.0f, 0.0f, 10, 20);
+    Drawing::Rect dstRect(0.0f, 0.0f, 10, 20);
+    Drawing::Brush paint;
+    params.srcRect = srcRect;
+    params.dstRect = dstRect;
+    params.paint = paint;
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+    renderEngine->DrawImageRect(paintCanvase, image, params, samplingOptions);
+    ASSERT_NE(image, nullptr);
+
+    virtualProcessor->ProcessCacheImage(*image);
 }
 
 /**
