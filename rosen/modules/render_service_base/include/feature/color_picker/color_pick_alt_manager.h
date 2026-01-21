@@ -95,7 +95,7 @@ private:
         RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId);
     void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId);
 
-    std::atomic<Drawing::ColorQuad> pickedColor_ = Drawing::Color::COLOR_BLACK;
+    std::atomic<uint32_t> pickedLuminance_ = 0;
     uint64_t lastUpdateTime_ = 0;
     std::atomic<uint32_t> notifyThreshold_ = 0;
 };

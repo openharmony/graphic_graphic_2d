@@ -18,10 +18,13 @@
 #include <chrono>
 #include <memory>
 
-#include "common/rs_optional_trace.h"
-#include "drawable/rs_property_drawable_utils.h"
+#include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
 #include "feature/color_picker/rs_hetero_color_picker.h"
 #include "rs_trace.h"
+
+#include "common/rs_optional_trace.h"
+#include "drawable/rs_property_drawable_utils.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -84,7 +87,7 @@ void RSColorPickerManager::ScheduleColorPick(
 
     auto ptr = std::static_pointer_cast<RSColorPickerManager>(shared_from_this());
     if (RSHeteroColorPicker::Instance().GetColor(
-        [ptr, nodeId, strategy](
+            [ptr, nodeId, strategy](
                 Drawing::ColorQuad& newColor) { ptr->HandleColorUpdate(newColor, nodeId, strategy); },
             drawingSurface, snapshot)) {
         return; // accelerated color picker
@@ -96,8 +99,8 @@ void RSColorPickerManager::ScheduleColorPick(
     Drawing::BitmapFormat bitmapFormat = { imageInfo.GetColorType(), imageInfo.GetAlphaType() };
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
     auto backendTexture = snapshot->GetBackendTexture(false, &origin);
-    ColorPickerInfo* colorPickerInfo = new ColorPickerInfo(colorSpace, bitmapFormat, backendTexture, nodeId, weakThis,
-        strategy);
+    ColorPickerInfo* colorPickerInfo =
+        new ColorPickerInfo(colorSpace, bitmapFormat, backendTexture, nodeId, weakThis, strategy);
 
     Drawing::FlushInfo drawingFlushInfo;
     drawingFlushInfo.backendSurfaceAccess = true;
@@ -185,19 +188,13 @@ inline std::pair<Drawing::ColorQuad, Drawing::ColorQuad> RSColorPickerManager::G
 }
 
 namespace {
-constexpr float RED_LUMINANCE_COEFF = 0.299f;
-constexpr float GREEN_LUMINANCE_COEFF = 0.587f;
-constexpr float BLUE_LUMINANCE_COEFF = 0.114f;
 constexpr float THRESHOLD_HIGH = 220.0f;
 constexpr float THRESHOLD_LOW = 150.0f;
 } // namespace
 
 Drawing::ColorQuad RSColorPickerManager::GetContrastColor(Drawing::ColorQuad color)
 {
-    auto red = Drawing::Color::ColorQuadGetR(color);
-    auto green = Drawing::Color::ColorQuadGetG(color);
-    auto blue = Drawing::Color::ColorQuadGetB(color);
-    float luminance = red * RED_LUMINANCE_COEFF + green * GREEN_LUMINANCE_COEFF + blue * BLUE_LUMINANCE_COEFF;
+    float luminance = RSColorPickerUtils::CalculateLuminance(color);
 
     static std::atomic<Drawing::ColorQuad> g_color = Drawing::Color::COLOR_BLACK;
     if (luminance <= THRESHOLD_LOW) {
