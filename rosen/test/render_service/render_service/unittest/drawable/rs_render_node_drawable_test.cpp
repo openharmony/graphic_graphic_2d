@@ -162,10 +162,12 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
     ASSERT_FALSE(!params.ChildHasVisibleEffect());
 
     drawable->CheckCacheTypeAndDraw(canvas, params);
-    ASSERT_FALSE(drawable->HasFilterOrEffect());
+    ASSERT_FALSE(drawable->HasFilterOrEffect(params));
     drawable->drawCmdIndex_.shadowIndex_ = 1;
+    Drawing::RectI rect;
+    params.SetShadowRect(rect);
     drawable->CheckCacheTypeAndDraw(canvas, params);
-    ASSERT_TRUE(drawable->HasFilterOrEffect());
+    ASSERT_TRUE(drawable->HasFilterOrEffect(params));
     RSRenderNodeDrawable::isOffScreenWithClipHole_ = true;
     params.foregroundFilterCache_ = std::make_shared<RSFilter>();
     drawable->CheckCacheTypeAndDraw(canvas, params);

@@ -311,6 +311,11 @@ void RSRenderNodeDrawableAdapter::DrawBackground(Drawing::Canvas& canvas, const 
     DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.backgroundEndIndex_);
 }
 
+void RSRenderNodeDrawableAdapter::DrawBackgroundWithOutSaveAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    DrawRangeImpl(canvas, rect, 1, drawCmdIndex_.backgroundEndIndex_);
+}
+
 void RSRenderNodeDrawableAdapter::DrawLeashWindowBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     bool isStencilPixelOcclusionCullingEnabled, int64_t stencilVal) const
 {
@@ -381,6 +386,12 @@ void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& ca
 void RSRenderNodeDrawableAdapter::DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
     DrawRangeImpl(canvas, rect, drawCmdIndex_.foregroundBeginIndex_, drawCmdIndex_.endIndex_);
+}
+
+void RSRenderNodeDrawableAdapter::DrawForegroundWithOutRestoreAll(
+    Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    DrawRangeImpl(canvas, rect, drawCmdIndex_.foregroundBeginIndex_, drawCmdIndex_.foregroundFilterEndIndex_);
 }
 
 void RSRenderNodeDrawableAdapter::DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
@@ -513,58 +524,26 @@ void RSRenderNodeDrawableAdapter::CollectInfoForUnobscuredUEC(Drawing::Canvas& c
     }
 }
 
-void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
+void RSRenderNodeDrawableAdapter::SkipDrawBackGroundAndClipHoleForBlur(
     Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    if (uifirstDrawCmdList_.empty()) {
+    if (drawCmdList_.empty()) {
         return;
     }
-
-    auto backgroundIndex = drawCmdIndex_.backgroundEndIndex_;
-    auto bounds = params.GetBounds();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!curCanvas) {
-        RS_LOGD("RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect curCanvas is null");
+        RS_LOGD("RSRenderNodeDrawableAdapter::SkipDrawBackGroundAndClipHoleForBlur curCanvas is null");
         return;
     }
-    for (auto index = 0; index < backgroundIndex; ++index) {
-        if (index == drawCmdIndex_.shadowIndex_) {
-            if (!params.GetShadowRect().IsEmpty()) {
-                auto shadowRect = params.GetShadowRect();
-                RS_OPTIONAL_TRACE_NAME_FMT("ClipHoleForBlur shadowRect:[%.2f, %.2f, %.2f, %.2f]", shadowRect.GetLeft(),
-                    shadowRect.GetTop(), shadowRect.GetWidth(), shadowRect.GetHeight());
-                Drawing::AutoCanvasRestore arc(*curCanvas, true);
-                curCanvas->ResetClip();
-                curCanvas->ClipRect(shadowRect);
-                curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-                UpdateFilterInfoForNodeGroup(curCanvas);
-            } else {
-                CollectInfoForNodeWithoutFilter(canvas);
-                drawCmdList_[index]->OnDraw(&canvas, &bounds);
-            }
-            continue;
-        }
-        if (index == drawCmdIndex_.useEffectIndex_ || index == drawCmdIndex_.backgroundFilterIndex_ ||
-            index == drawCmdIndex_.backgroundNgShaderIndex_) {
-            RS_OPTIONAL_TRACE_NAME_FMT(
-                "ClipHoleForBlur filterRect:[%.2f, %.2f]", bounds.GetWidth(), bounds.GetHeight());
-            Drawing::AutoCanvasRestore arc(*curCanvas, true);
-            curCanvas->ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
-            curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-            UpdateFilterInfoForNodeGroup(curCanvas);
-        } else if (index == drawCmdIndex_.materialFilterIndex_) {
-            auto filterRect = GetFilterRelativeRect(bounds);
-            RS_OPTIONAL_TRACE_NAME_FMT(
-                "ClipHoleForMaterialFilter filterRect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
-            Drawing::AutoCanvasRestore arc(*curCanvas, true);
-            curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
-            curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-            UpdateFilterInfoForNodeGroup(curCanvas);
-            return;
-        } else {
-            drawCmdList_[index]->OnDraw(&canvas, &bounds);
-        }
-    }
+    auto shadowRect = params.GetShadowRect();
+    auto filterRect = GetFilterRelativeRect(params.GetBounds());
+    filterRect.Join(shacowRect);
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "ClipHoleForBlur filterRect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
+    Drawing::AutoCanvasRestore arc(*curCanvas, true);
+    curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
+    curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    UpdateFilterInfoForNodeGroup(curCanvas);
 }
 
 void RSRenderNodeDrawableAdapter::UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas)
@@ -595,25 +574,6 @@ Drawing::Rect RSRenderNodeDrawableAdapter::GetFilterRelativeRect(const Drawing::
     }
 
     return dst;
-}
-
-void RSRenderNodeDrawableAdapter::CheckShadowRectAndDrawBackground(
-    Drawing::Canvas& canvas, const RSRenderParams& params)
-{
-    if (params.IsExcludedFromNodeGroup()) {
-        // excluded node do not draw its background here
-        return;
-    }
-    // The shadow without shadowRect has drawn in Nodegroup's cache, so we can't draw it again
-    if (!params.GetShadowRect().IsEmpty()) {
-        DrawBackground(canvas, params.GetBounds());
-    } else if (drawCmdIndex_.materialFilterIndex_ != -1) {
-        DrawRangeImpl(
-            canvas, params.GetBounds(), drawCmdIndex_.materialFilterIndex_, drawCmdIndex_.backgroundEndIndex_);
-    } else {
-        DrawRangeImpl(
-            canvas, params.GetBounds(), drawCmdIndex_.foregroundFilterBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
-    }
 }
 
 void RSRenderNodeDrawableAdapter::DrawBeforeCacheWithForegroundFilter(Drawing::Canvas& canvas,
@@ -653,10 +613,10 @@ void RSRenderNodeDrawableAdapter::DrawAfterCacheWithProperty(Drawing::Canvas& ca
         drawCmdIndex_.endIndex_);
 }
 
-bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
+bool RSRenderNodeDrawableAdapter::HasFilterOrEffect(const RSRenderParams& params) const
 {
     return drawCmdIndex_.materialFilterIndex_ != -1 ||
-           drawCmdIndex_.shadowIndex_ != -1 ||
+           (drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty()) ||
            drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1 ||
            drawCmdIndex_.backgroundNgShaderIndex_ != -1;
