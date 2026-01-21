@@ -77,7 +77,6 @@ HWTEST_F(RSMemorySnapshotTest, RemoveCpuMemoryTest001, testing::ext::TestSize.Le
  * @tc.name: RemoveCpuMemoryTest002
  * @tc.desc: Test cpuMemory after adding memory
  * @tc.type: FUNC
- * @tc.require:
  */
 HWTEST_F(RSMemorySnapshotTest, RemoveCpuMemoryTest002, testing::ext::TestSize.Level1)
 {
@@ -277,7 +276,7 @@ HWTEST_F(RSMemorySnapshotTest, GetTotalMemoryTest001, testing::ext::TestSize.Lev
 HWTEST_F(RSMemorySnapshotTest, InitMemoryLimitTest001, testing::ext::TestSize.Level1)
 {
     auto callback = [](pid_t, size_t, bool){return true;};
-    MemorySnapshot::Instance().InitMemoryLimit(callback,1000,2000,3000);
+    MemorySnapshot::Instance().InitMemoryLimit(callback, 1000, 2000, 3000);
     MemorySnapshot::Instance().InitMemoryLimit(nullptr,5000,6000,7000);
     ASSERT_EQ(MemorySnapshot::Instance().singleMemoryWarning_, 1000);
     ASSERT_EQ(MemorySnapshot::Instance().totalMemoryLimit_, 3000);
