@@ -818,6 +818,10 @@ GSError RSRenderComposer::ClearFrameBuffersInner(bool isNeedResetContext)
 
 GSError RSRenderComposer::ClearFrameBuffers(bool isNeedResetContext)
 {
+    if (hdiOutput_ == nullptr || hdiOutput_->GetBufferCacheSize() <= 0) {
+        RS_LOGE("%{public}s buffer cache size less 0");
+        return COMPOSITOR_ERROR_NULLPTR;
+    }
     return ClearFrameBuffersInner(isNeedResetContext);
 }
 
