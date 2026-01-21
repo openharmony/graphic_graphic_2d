@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
+#include "ext/gex_complex_shader.h"
+#include "ge_external_dynamic_loader.h"
+#include "ge_visual_effect_impl.h"
 #include "gtest/gtest.h"
 
-#include "render/rs_complex_shader.h"
 #include "common/rs_common_def.h"
 #include "effect/runtime_shader_builder.h"
-#include "ge_visual_effect_impl.h"
 #include "platform/common/rs_log.h"
-#include "ge_external_dynamic_loader.h"
-#include "ext/gex_complex_shader.h"
+#include "render/rs_complex_shader.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -49,7 +49,7 @@ HWTEST_F(RSComplexShaderTest, MakeDrawingShaderTest001, TestSize.Level0)
 {
     auto rsComplexShader = std::make_shared<RSComplexShader>(GexComplexShaderType::NONE);
     const OHOS::Rosen::RectF boundsRect(0.0f, 0.0f, 1.0f, 1.0f);
-    std::vector<float> tempVec = {0.5f, 0.5f, 0.5f, 0.5f};
+    std::vector<float> tempVec = { 0.5f, 0.5f, 0.5f, 0.5f };
     rsComplexShader->MakeDrawingShader(boundsRect, tempVec);
     EXPECT_EQ(rsComplexShader->shaderEffect_, nullptr);
 }
@@ -63,7 +63,8 @@ HWTEST_F(RSComplexShaderTest, MakeDrawingShaderTest002, TestSize.Level0)
 {
     auto rsComplexShader = std::make_shared<RSComplexShader>(GexComplexShaderType::COLOR_GRADIENT);
     const OHOS::Rosen::RectF boundsRect(0.0f, 0.0f, 1.0f, 1.0f);
-    std::vector<float> tempVec = {0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f};
+    std::vector<float> tempVec = { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f };
     rsComplexShader->MakeDrawingShader(boundsRect, tempVec);
     EXPECT_NE(rsComplexShader->shaderEffect_, nullptr);
 }
@@ -112,7 +113,7 @@ HWTEST_F(RSComplexShaderTest, UnmarshallingTest001, TestSize.Level1)
 HWTEST_F(RSComplexShaderTest, GetShaderEffectTest001, TestSize.Level1)
 {
     auto rsComplexShader = std::make_shared<RSComplexShader>(GexComplexShaderType::NONE);
-    std::vector<float> effectParam = {0.0f, 1.0f};
+    std::vector<float> effectParam = { 0.0f, 1.0f };
     const Drawing::RectF boundsRect(0.0f, 0.0f, 1.0f, 1.0f);
     auto shaderEffect = rsComplexShader->GetShaderEffect(effectParam, boundsRect);
     EXPECT_EQ(shaderEffect, nullptr);

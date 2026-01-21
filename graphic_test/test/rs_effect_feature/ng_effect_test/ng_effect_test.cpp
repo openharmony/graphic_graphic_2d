@@ -367,7 +367,7 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = 0.0f,
         .progress = 0.0f
     },
-    //Test different width
+    //Test different widths
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
         .cornerRadius = 0.1f,
