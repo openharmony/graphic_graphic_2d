@@ -537,7 +537,7 @@ void RSRenderNodeDrawableAdapter::SkipDrawBackGroundAndClipHoleForBlur(
     }
     auto shadowRect = params.GetShadowRect();
     auto filterRect = GetFilterRelativeRect(params.GetBounds());
-    filterRect.Join(shacowRect);
+    filterRect.Join(shadowRect);
     RS_OPTIONAL_TRACE_NAME_FMT(
         "ClipHoleForBlur filterRect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
     Drawing::AutoCanvasRestore arc(*curCanvas, true);
