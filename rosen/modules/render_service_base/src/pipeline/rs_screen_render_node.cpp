@@ -571,17 +571,35 @@ bool RSScreenRenderNode::GetForceCloseHdr() const
 Occlusion::Region RSScreenRenderNode::GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const
 {
     Occlusion::Region result;
-    auto it = std::find_if(lastFrameSurfacesByDescZOrder_.begin(), lastFrameSurfacesByDescZOrder_.end(),
-        [currentSurface](const std::pair<NodeId, RectI>& surface) { return surface.first == currentSurface; });
-    if (it == lastFrameSurfacesByDescZOrder_.end()) {
+    // find the position of current surface in last frame Z-order
+    auto lastIt = std::find_if(lastFrameSurfacesByDescZOrder_.begin(), lastFrameSurfacesByDescZOrder_.end(),
+        [currentSurface](const std::pair<NodeId, RectI>& surface) {
+            return surface.first == currentSurface;
+        });
+    if (lastIt == lastFrameSurfacesByDescZOrder_.end()) {
         return result;
     }
 
-    for (++it; it != lastFrameSurfacesByDescZOrder_.end(); ++it) {
-        if (currentFrameSurfacePos_.count(it->first) != 0) {
-            break;
+    // find the position of current surface in current frame Z-order
+    auto curIt = std::find_if(currentFrameSurfacesByDescZOrder_.begin(), currentFrameSurfacesByDescZOrder_.end(),
+        [currentSurface](const std::pair<NodeId, RectI>& surface) {
+            return surface.first == currentSurface;
+        });
+    if (curIt == currentFrameSurfacesByDescZOrder_.end()) {
+        return result;
+    }
+
+    // start traversing from the surface under the current surface
+    auto curBelowIt = ++curIt;
+
+    for (++lastIt; lastIt != lastFrameSurfacesByDescZOrder_.end(); ++lastIt) {
+        NodeId lastBelowSurfaceId = lastIt->first;
+        bool isBelow = std::any_of(curBelowIt, currentFrameSurfacesByDescZOrder_.end(), [lastBelowSurfaceId]
+            (const std::pair<NodeId, RectI>& surface) { return surface.first == lastBelowSurfaceId; });
+        if (isBelow) {
+            continue;
         }
-        Occlusion::Region disappearedSurface{ Occlusion::Rect{ it->second } };
+        Occlusion::Region disappearedSurface{ Occlusion::Rect{ lastIt->second } };
         result.OrSelf(disappearedSurface);
     }
     return result;

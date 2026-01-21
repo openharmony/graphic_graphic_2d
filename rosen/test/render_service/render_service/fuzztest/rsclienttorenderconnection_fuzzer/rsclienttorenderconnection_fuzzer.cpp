@@ -73,8 +73,9 @@ const uint8_t DO_TAKE_SURFACE_CAPTURE_WITH_ALLWINDOWS = 12;
 const uint8_t DO_FREEZE_SCREEN = 13;
 const uint8_t DO_REGISTER_CANVAS_CALLBACK = 14;
 const uint8_t DO_SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER = 15;
-const uint8_t DO_SET_SCREEN_FRAME_GRAVITY = 16;
-const uint8_t TARGET_SIZE = 17;
+const uint8_t DO_GET_SCREEN_HDR_STATUS = 16;
+const uint8_t DO_SET_SCREEN_FRAME_GRAVITY = 17;
+const uint8_t TARGET_SIZE = 18;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -662,6 +663,42 @@ bool DoFreezeScreen()
     return true;
 }
 
+bool DoGetScreenHDRStatus()
+{
+    auto newPid = getpid();
+    bool hasMainThread = GetData<bool>();
+    auto mainThread = hasMainThread ? RSMainThread::Instance() : nullptr;
+    if (mainThread) {
+        auto context = std::make_shared<RSContext>();
+        auto screenNode = std::make_shared<RSScreenRenderNode>(1, 1, context);
+        auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+        nodeMap.RegisterRenderNode(screenNode);
+    }
+    auto screenManagerPtr = RSScreenManager::GetInstance();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =
+        new RSClientToRenderConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    bool hasScreenId = GetData<bool>();
+    if (hasScreenId) {
+        static constexpr uint64_t idFactor = 3; // Restrict the value range of id.
+        dataParcel.WriteUint64(GetData<uint64_t>() % idFactor);
+    } else {
+        dataParcel.WriteBool(hasScreenId);
+    }
+    dataParcel.RewindRead(0);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void DoRegisterCanvasCallback()
 {
@@ -783,6 +820,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_FREEZE_SCREEN:
             OHOS::Rosen::DoFreezeScreen();
+            break;
+        case OHOS::Rosen::DO_GET_SCREEN_HDR_STATUS:
+            OHOS::Rosen::DoGetScreenHDRStatus();
             break;
         case OHOS::Rosen::DO_REGISTER_CANVAS_CALLBACK:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
