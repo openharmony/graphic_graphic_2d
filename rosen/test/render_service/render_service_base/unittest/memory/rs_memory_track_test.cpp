@@ -1031,11 +1031,11 @@ HWTEST_F(RSMemoryTrackTest, GetNodeOnTreeStatusTest001, testing::ext::TestSize.L
 
 /**
  * @tc.name: SetNodeOnTreeStatusTest002
- * @tc.desc: Test getting node on tree status and get it.
+ * @tc.desc: Test setting node on tree status and get it.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryTrackTest, SetNodeOnTreeStatusTest002, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryTrackTest, GetNodeOnTreeStatusTest002, testing::ext::TestSize.Level1)
 {
     NodeId invalidId = 9999;
     bool isRootNodeOnTreeChanged = true;

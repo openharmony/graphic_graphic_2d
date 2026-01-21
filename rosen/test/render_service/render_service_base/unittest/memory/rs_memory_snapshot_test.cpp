@@ -75,7 +75,7 @@ HWTEST_F(RSMemorySnapshotTest, RemoveCpuMemoryTest001, testing::ext::TestSize.Le
 
 /**
  * @tc.name: RemoveCpuMemoryTest002
- * @tc.desc: Test cpuMemory after adding/removing memory
+ * @tc.desc: Test cpuMemory after adding/removing memory 
  * @tc.type: FUNC
  */
 HWTEST_F(RSMemorySnapshotTest, RemoveCpuMemoryTest002, testing::ext::TestSize.Level1)
