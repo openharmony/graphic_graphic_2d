@@ -132,6 +132,8 @@ constexpr CacheKey LINEMETRICS_KEY{ANI_CLASS_LINEMETRICS, "<ctor>", "iiddddddidC
 constexpr CacheKey TEXT_STYLE_COLOR_KEY{ANI_INTERFACE_TEXT_STYLE, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR)};
 constexpr CacheKey TEXT_STYLE_FONT_WEIGHT_KEY{
     ANI_INTERFACE_TEXT_STYLE, "<get>fontWeight", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WEIGHT)};
+constexpr CacheKey TEXT_STYLE_FONT_WIDTH_KEY{
+    ANI_INTERFACE_TEXT_STYLE, "<get>fontWidth", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WIDTH)};
 constexpr CacheKey TEXT_STYLE_FONT_STYLE_KEY{
     ANI_INTERFACE_TEXT_STYLE, "<get>fontStyle", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_STYLE)};
 constexpr CacheKey TEXT_STYLE_BASELINE_KEY{
@@ -298,6 +300,7 @@ void AniGlobalClass::Init(ani_env* env)
 void AniGlobalEnum::Init(ani_env* env)
 {
     fontWeight = AniFindEnum(env, ANI_ENUM_FONT_WEIGHT);
+    fontWidth = AniFindEnum(env, ANI_ENUM_FONT_WIDTH);
     affinity = AniFindEnum(env, ANI_ENUM_AFFINITY);
     textDirection = AniFindEnum(env, ANI_ENUM_TEXT_DIRECTION);
     fontStyle = AniFindEnum(env, ANI_ENUM_FONT_STYLE);
@@ -456,6 +459,7 @@ void AniGlobalMethod::InitTextStyleMethod(ani_env* env)
     textStyleCtor = AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_KEY);
     textStyleColor = AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_COLOR_KEY);
     textStyleFontWeight = AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_FONT_WEIGHT_KEY);
+    textStyleFontWidth = AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_FONT_WIDTH_KEY);
     textStyleFontStyle = AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_FONT_STYLE_KEY);
     textStyleBaseline = AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_BASELINE_KEY);
     textStyleFontFamilies =

@@ -63,6 +63,8 @@ void AniTextStyleConverter::ParseEnumTextStyleToNative(ani_env* env, ani_object 
         env, obj, AniTextEnum::textBadgeType, AniGlobalMethod::GetInstance().textStyleBadgeType, textStyle.badgeType);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::lineHeightStyle,
         AniGlobalMethod::GetInstance().textStyleLineHeightStyle, textStyle.lineHeightStyle);
+    AniTextUtils::ReadOptionalEnumField(
+        env, obj, AniTextEnum::fontWidth, AniGlobalMethod::GetInstance().textStyleFontWidth, textStyle.fontWidth);
 }
 
 void AniTextStyleConverter::ParseDoubleTextStyleToNative(
@@ -339,7 +341,9 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
             }),
         AniTextStyleConverter::ParseRectStyleToAni(env, textStyle.backgroundRect),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textBadgeType,
-            aniGetEnumIndex(AniTextEnum::textBadgeType, static_cast<uint32_t>(textStyle.badgeType)))
+            aniGetEnumIndex(AniTextEnum::textBadgeType, static_cast<uint32_t>(textStyle.badgeType))),
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontWidth,
+            aniGetEnumIndex(AniTextEnum::fontWidth, static_cast<uint32_t>(textStyle.fontWidth)))
     );
     return aniObj;
 }

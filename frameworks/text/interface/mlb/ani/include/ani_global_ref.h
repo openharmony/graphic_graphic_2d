@@ -109,6 +109,7 @@ public:
     void Init(ani_env* env);
 
     ani_enum fontWeight;
+    ani_enum fontWidth;
     ani_enum affinity;
     ani_enum textDirection;
     ani_enum fontStyle;
@@ -206,6 +207,7 @@ public:
     ani_method textStyleCtor;
     ani_method textStyleColor;
     ani_method textStyleFontWeight;
+    ani_method textStyleFontWidth;
     ani_method textStyleFontStyle;
     ani_method textStyleBaseline;
     ani_method textStyleFontFamilies;
