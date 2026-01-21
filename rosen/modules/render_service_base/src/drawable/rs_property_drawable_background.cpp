@@ -364,6 +364,13 @@ void RSBackgroundNGShaderDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing
     }
     auto effectData = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
     if (effectData != nullptr) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
+            RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, paintFilterCanvas->GetDarkColorMode(),
+                visualEffectContainer_, Drawing::GE_SHADER_FROSTED_GLASS_EFFECT,
+                Drawing::GE_SHADER_FROSTED_GLASS_EFFECT_SHAPE);
+            return;
+        }
         visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_,
             effectData->cachedRect_.GetLeft(), effectData->cachedRect_.GetTop());
         visualEffectContainer_->UpdateTotalMatrix(effectData->cachedMatrix_);
@@ -1001,6 +1008,11 @@ void RSMaterialFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
         return;
     }
     auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
+    if (renderIntersectWithDRM_) {
+        RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, renderIsDarkColorMode_,
+            filter->GetGEContainer(), Drawing::GE_FILTER_FROSTED_GLASS, Drawing::GE_FILTER_FROSTED_GLASS_SHAPE);
+            return;
+    }
     RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter);
     RectF bound = (rect != nullptr ?
         RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());

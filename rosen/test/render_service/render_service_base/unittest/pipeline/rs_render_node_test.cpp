@@ -1309,6 +1309,28 @@ HWTEST_F(RSRenderNodeTest, SetChildrenHasSharedTransitionTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HasBlurFilterTest
+ * @tc.desc: HasBlurFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, HasBlurFilterTest, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    EXPECT_FALSE(node.HasBlurFilter());
+    node.renderProperties_.effect_ = std::make_unique<RSProperties::CommonEffectParams>();
+
+    node.renderProperties_.effect_->materialFilter_ = std::make_shared<RSFilter>();
+    EXPECT_TRUE(node.HasBlurFilter());
+
+    node.renderProperties_.effect_->filter_ = std::make_shared<RSFilter>();
+    EXPECT_TRUE(node.HasBlurFilter());
+
+    node.renderProperties_.effect_->backgroundFilter_ = std::make_shared<RSFilter>();
+    EXPECT_TRUE(node.HasBlurFilter());
+    EXPECT_TRUE(node.renderProperties_.GetBackgroundFilter());
+}
+
+/**
  * @tc.name: GetPairedNodeTest
  * @tc.desc:
  * @tc.type: FUNC
