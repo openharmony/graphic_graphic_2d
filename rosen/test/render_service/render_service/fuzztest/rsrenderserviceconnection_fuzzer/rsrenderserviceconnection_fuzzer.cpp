@@ -253,8 +253,10 @@ bool DoSetPhysicalScreenResolution()
     if (rsToServiceConn_ == nullptr) {
         return false;
     }
-    ScreenId id = GetData<uint64_t>();
-    rsToServiceConn_->SetPhysicalScreenResolution(id, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ScreenId id = GetData<ScreenId>();
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
+    rsToServiceConn_->SetPhysicalScreenResolution(id, width, height);
     return true;
 }
 
