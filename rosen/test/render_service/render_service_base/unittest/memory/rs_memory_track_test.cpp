@@ -941,9 +941,9 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsTest002, testing::ext::TestSi
  */
 HWTEST_F(RSMemoryTrackTest, RemovePidRecordTest, testing::ext::TestSize.Level1)
 {
-   pid_t pidTest = -1;
-   MemoryTrack::Instance().RemovePidRecord(pidTest);
-   EXPECT_EQ(-1, pidTest); //for test
+    pid_t pidTest = -1;
+    MemoryTrack::Instance().RemovePidRecord(pidTest);
+    EXPECT_EQ(-1, pidTest); //for test
 }
 
 /**
@@ -1046,17 +1046,19 @@ HWTEST_F(RSMemoryTrackTest, SetNodeOnTreeStatusTest002, testing::ext::TestSize.L
     MemoryTrack::Instance().AddPictureRecord(addr, info);
     EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_INVALID);
     MemoryTrack::Instance().AddNodeRecord(invalidId, info);
-    MemoryTrack::Instance().AddPictureRecord(addr, info);
     MemoryTrack::Instance().SetNodeOnTreeStatus(invalidId, isRootNodeOnTreeChanged, isOnTree);
     EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_ON_TREE_IN_ROOT);
     isRootNodeOnTreeChanged = false;
     isOnTree = true;
+    MemoryTrack::Instance().SetNodeOnTreeStatus(invalidId, isRootNodeOnTreeChanged, isOnTree);
     EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_ON_TREE);
     isRootNodeOnTreeChanged = true;
     isOnTree = false;
+    MemoryTrack::Instance().SetNodeOnTreeStatus(invalidId, isRootNodeOnTreeChanged, isOnTree);
     EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE_IN_ROOT);
     isRootNodeOnTreeChanged = false;
     isOnTree = false;
+    MemoryTrack::Instance().SetNodeOnTreeStatus(invalidId, isRootNodeOnTreeChanged, isOnTree);
     EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE);
 }
 #endif
