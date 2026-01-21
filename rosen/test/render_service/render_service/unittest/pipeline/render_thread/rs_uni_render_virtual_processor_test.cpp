@@ -1596,4 +1596,27 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CancelCurrentFrame, TestSize.Level1)
     ASSERT_NE(virtualProcessor->renderFrame_, nullptr);
 }
 #endif // RS_ENABLE_VK
+
+/**
+* @tc.name: SetVirtualScreenSizeTest
+* @tc.desc: test SetVirtualScreenSize
+* @tc.type:FUNC
+* @tc.require:
+*/
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetVirtualScreenSizeTest, TestSize.Level1)
+{
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    ASSERT_EQ(virtualProcessor->renderFrame_, nullptr);
+
+    auto screenNode = std::make_shared<RSScreenRenderNode>(10, 20);
+    screenNode->InitRenderParams();
+    ASSERT_NE(screenNode->renderDrawable_, nullptr);
+    ASSERT_NE(screenNode->renderDrawable_->renderParams_, nullptr);
+    auto screenDrawable = static_cast<RSScreenRenderNodeDrawable*>(screenNode->renderDrawable_.get());
+
+    screenDrawable->renderParams_ = nullptr;
+    virtualProcessor->SetVirtualScreenSize(*screenDrawable);
+}
+
 } // namespace OHOS::Rosen
