@@ -288,7 +288,6 @@ HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid001, testing::ext::TestSize.Level1
     MemoryTrack::Instance().RegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_NODE);
     size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(testPid, MEMORY_TYPE::MEM_RENDER_NODE);
     EXPECT_EQ(result, expectedSize);
-    MemoryTrack::Instance().UnRegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_NODE);
 }
 
 /**
@@ -305,7 +304,6 @@ HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid002, testing::ext::TestSize.Level1
     MemoryTrack::Instance().RegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(testPid, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     EXPECT_EQ(result, expectedSize);
-    MemoryTrack::Instance().UnRegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
 }
 
 /**
@@ -321,7 +319,6 @@ HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid003, testing::ext::TestSize.Level1
     MemoryTrack::Instance().RegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_NODE);
     size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(testPid, static_cast<MEMORY_TYPE>(999));
     EXPECT_EQ(result, 0);
-    MemoryTrack::Instance().UnRegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_NODE);
 }
 
 /**
@@ -333,10 +330,10 @@ HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid003, testing::ext::TestSize.Level1
 HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid004, testing::ext::TestSize.Level1)
 {
     pid_t testPid = -5;
-    pid_t nonExistPid = -6;
+    pid_t nonExistendPid = -6;
     size_t registeredSize = 1000;
     MemoryTrack::Instance().RegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_NODE);
-    size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(nonExistPid, MEMORY_TYPE::MEM_RENDER_NODE);
+    size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(nonExistendPid, MEMORY_TYPE::MEM_RENDER_NODE);
     EXPECT_EQ(result, 0);
     MemoryTrack::Instance().UnRegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_NODE);
 }
@@ -365,7 +362,7 @@ HWTEST_F(RSMemoryTrackTest, MemoryNodeOfPidOperatorEqualTest, testing::ext::Test
     NodeId id = 1;
     MemoryNodeOfPid node1(size, id);
     MemoryNodeOfPid node2(size, id);
-    EXPECT_EQ(node1 == node2);
+    EXPECT_TRUE(node1 == node2);
 }
 
 /**
@@ -480,7 +477,7 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest003, testing::ext::TestSize.Level1)
     MemoryTrack::Instance().AddNodeRecord(id1, info1);
     MemoryTrack::Instance().AddNodeRecord(id2, info2);
     MemoryGraphic result = MemoryTrack::Instance().CountRSMemory(pid);
-    EXPECT_EQ(result.GetCpuMemorySize(), 1024 + 2048);
+    ASSERT_EQ(result.GetCpuMemorySize(), 1024 + 2048);
     MemoryTrack::Instance().RemoveNodeRecord(id1);
     MemoryTrack::Instance().RemoveNodeRecord(id2);
 }
@@ -495,8 +492,8 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest004, testing::ext::TestSize.Level1)
 {
     pid_t pid = 4001;
     MemoryGraphic result = MemoryTrack::Instance().CountRSMemory(pid);
-    EXPECT_EQ(result.GetCpuMemorySize(), 0);
-    EXPECT_EQ(result.GetPid(), 0);
+    ASSERT_EQ(result.GetCpuMemorySize(), 0);
+    ASSERT_EQ(result.GetPid(), 0);
 }
 
 /**
@@ -729,6 +726,36 @@ HWTEST_F(RSMemoryTrackTest, KillProcessByPid, testing::ext::TestSize.Level1)
 }
 
 /**
+ * @tc.name: FdOverReport
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, FdOverReport, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 1234;
+    std::string hidumperReport = "report";
+    MemoryTrack::Instance().FdOverReport(pid, "RENDER_MEMORY_OVER_WARNING", hidumperReport);
+    std::string filePath = "/data/service/el0/render_service/renderservice_fdem.txt";
+    ASSERT_TRUE(std::ifstream(filePath).good());
+}
+
+/**
+ * @tc.name: WriteInfoToFile
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, WriteInfoToFile, testing::ext::TestSize.Level1)
+{
+    std::string meminfo = "info";
+    std::string hidumperReport = "";
+    std::string filePath = "/data/service/el0/render_service/renderservice_fdem.txt";
+    MemoryTrack::Instance().WriteInfoToFile(filePath, meminfo, hidumperReport);
+    ASSERT_TRUE(std::ifstream(filePath).good());
+}
+
+/**
  * @tc.name: UpdatePictureInfoTest
  * @tc.desc: test
  * @tc.type: FUNC
@@ -757,7 +784,7 @@ HWTEST_F(RSMemoryTrackTest, UpdatePictureInfoTest, testing::ext::TestSize.Level1
 HWTEST_F(RSMemoryTrackTest, GetAppMemorySizeInMBTest, testing::ext::TestSize.Level1)
 {
     float ret = MemoryTrack::Instance().GetAppMemorySizeInMB();
-    ASSERT_EQ(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
 /**
@@ -790,7 +817,7 @@ HWTEST_F(RSMemoryTrackTest, MemoryType2StringTest001, testing::ext::TestSize.Lev
 {
     MEMORY_TYPE type = MEMORY_TYPE::MEM_PIXELMAP;
     const char* ret = MemoryTrack::Instance().MemoryType2String(type);
-    ASSERT_EQ(ret, "pixelmap");
+    EXPECT_EQ(ret, "pixelmap");
 }
 
 /**
@@ -803,7 +830,7 @@ HWTEST_F(RSMemoryTrackTest, MemoryType2StringTest002, testing::ext::TestSize.Lev
 {
     MEMORY_TYPE type = MEMORY_TYPE::MEM_SKIMAGE;
     const char* ret = MemoryTrack::Instance().MemoryType2String(type);
-    ASSERT_EQ(ret, "skimage");
+    EXPECT_EQ(ret, "skimage");
 }
 
 /**
@@ -816,7 +843,7 @@ HWTEST_F(RSMemoryTrackTest, MemoryType2StringTest003, testing::ext::TestSize.Lev
 {
     MEMORY_TYPE type = MEMORY_TYPE::MEM_RENDER_NODE;
     const char* ret = MemoryTrack::Instance().MemoryType2String(type);
-    ASSERT_EQ(ret, "");
+    EXPECT_EQ(ret, "");
 }
 
 /**
@@ -833,9 +860,9 @@ HWTEST_F(RSMemoryTrackTest, GenerateDumpTitleTest, testing::ext::TestSize.Level1
     std::string windowName = "My Window";
     RectI nodeFrameRect;
     std::string ret = MemoryTrack::Instance().GenerateDumpTitle();
-    ASSERT_TRUE(!ret.empty());
+    EXPECT_TRUE(!ret.empty());
     ret = MemoryTrack::Instance().GenerateDetail(info, windowId, windowName, nodeFrameRect);
-    ASSERT_TRUE(!ret.empty());
+    EXPECT_TRUE(!ret.empty());
 }
 
 /**
