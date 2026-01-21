@@ -1369,7 +1369,7 @@ HWTEST_F(RSImageTest, CalcRepeatBoundsTest002, TestSize.Level1)
     auto rsImage = std::make_shared<RSImage>();
     RectF srcRf(10, 10, 0, 0);
     rsImage->dstRect_ = srcRf;
-    rsImage->frameRect_ = {0, 0, 100, 100};
+    rsImage->frameRect_ = { 0, 0, 100, 100 };
     rsImage->imageRepeat_ = ImageRepeat::REPEAT;
     int minX = 0;
     int maxX = 0;
