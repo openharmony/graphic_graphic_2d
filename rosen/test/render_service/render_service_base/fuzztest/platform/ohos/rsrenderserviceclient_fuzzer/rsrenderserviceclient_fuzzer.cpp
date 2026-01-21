@@ -935,12 +935,15 @@ bool DoNotifyPackageEvent(const uint8_t* data, size_t size)
 bool DONotifyAppStrategyConfigChangeEvent(const uint8_t* data, size_t size)
 {
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    std::string pkgName = GetData<std::string>();
-    uint32_t listSize = GetData<uint32_t>();
-    std::string configKey = GetData<std::string>();
-    std::string configValue = GetData<std::string>();
+    uint32_t strlen = GetData<uint32_t>() % 20;
+    std::string pkgName = GetStringFromData(strlen);
+    uint32_t listSize = GetData<uint32_t>() % 10;
     std::vector<std::pair<std::string, std::string>> newConfig;
-    newConfig.push_back(make_pair(configKey, configValue));
+    for (auto i = 0; i < listSize; i++) {
+        std::string configKey = GetStringFromData(strlen);
+        std::string configValue = GetStringFromData(strlen);
+        newConfig.push_back(make_pair(configKey, configValue));
+    }
     renderServiceClient->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
     return true;
 }
