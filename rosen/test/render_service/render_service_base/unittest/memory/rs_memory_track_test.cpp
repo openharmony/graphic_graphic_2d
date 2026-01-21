@@ -748,10 +748,10 @@ HWTEST_F(RSMemoryTrackTest, FdOverReport, testing::ext::TestSize.Level1)
  */
 HWTEST_F(RSMemoryTrackTest, WriteInfoToFile, testing::ext::TestSize.Level1)
 {
-    std::string meminfo = "info";
+    std::string memInfo = "info";
     std::string hidumperReport = "";
     std::string filePath = "/data/service/el0/render_service/renderservice_fdmem.txt";
-    MemoryTrack::Instance().WriteInfoToFile(filePath, meminfo, hidumperReport);
+    MemoryTrack::Instance().WriteInfoToFile(filePath, memInfo, hidumperReport);
     ASSERT_TRUE(std::ifstream(filePath).good());
 }
 
@@ -934,12 +934,12 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsTest002, testing::ext::TestSi
 }
 
 /**
- * @tc.name: RemovePidRecordTest001
+ * @tc.name: RemovePidRecordTest
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryTrackTest, RemovePidRecordTest001, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryTrackTest, RemovePidRecordTest, testing::ext::TestSize.Level1)
 {
    pid_t pidTest = -1;
    MemoryTrack::Instance().RemovePidRecord(pidTest);
@@ -955,13 +955,13 @@ HWTEST_F(RSMemoryTrackTest, RemovePidRecordTest001, testing::ext::TestSize.Level
 HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest001, testing::ext::TestSize.Level1)
 {
     MemoryInfo info = {.pid = -1, .size = sizeof(10)}; //for test
-    const NodeId id = -1; // fot test
+    const NodeId id = 1; // fot test
     MemoryTrack& test1 = MemoryTrack::Instance();
     test1.AddNodeRecord(id, info);
     pid_t pidTest;
     size_t sizeTest;
     test1.RemoveNodeFromMap(id, pidTest, sizeTest);
-    EXPECT_EQ(1, pidTest); //for test
+    EXPECT_EQ(-1, pidTest); //for test
     EXPECT_EQ(sizeof(10), sizeTest); //for test
 }
 
@@ -1011,9 +1011,9 @@ HWTEST_F(RSMemoryTrackTest, SetNodeOnTreeStatusTest001, testing::ext::TestSize.L
     NodeId invalidId = 9999;
     bool isRootNodeOnTreeChanged = true;
     bool isOnTree = true;
+    const void* addr = &invalidId;
     MemoryTrack::Instance().SetNodeOnTreeStatus(invalidId, isRootNodeOnTreeChanged, isOnTree);
-    int ret = 0;
-    ASSERT_EQ(ret, 0);
+    EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_INVALID);
 }
 
 /**
@@ -1026,16 +1026,16 @@ HWTEST_F(RSMemoryTrackTest, GetNodeOnTreeStatusTest001, testing::ext::TestSize.L
 {
     NodeId invalidId = 9999;
     const void* addr = &invalidId;
-    ASSERT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_INVALID);
+    EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_INVALID);
 }
 
 /**
- * @tc.name: GetNodeOnTreeStatusTest002
+ * @tc.name: SetNodeOnTreeStatusTest002
  * @tc.desc: Test getting node on tree status and get it.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryTrackTest, GetNodeOnTreeStatusTest002, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryTrackTest, SetNodeOnTreeStatusTest002, testing::ext::TestSize.Level1)
 {
     NodeId invalidId = 9999;
     bool isRootNodeOnTreeChanged = true;
@@ -1043,19 +1043,21 @@ HWTEST_F(RSMemoryTrackTest, GetNodeOnTreeStatusTest002, testing::ext::TestSize.L
     MemoryInfo info;
     info.nid = invalidId;
     const void* addr = &invalidId;
+    MemoryTrack::Instance().AddPictureRecord(addr, info);
+    EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_INVALID);
     MemoryTrack::Instance().AddNodeRecord(invalidId, info);
     MemoryTrack::Instance().AddPictureRecord(addr, info);
     MemoryTrack::Instance().SetNodeOnTreeStatus(invalidId, isRootNodeOnTreeChanged, isOnTree);
-    ASSERT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_ON_TREE_IN_ROOT);
+    EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_ON_TREE_IN_ROOT);
     isRootNodeOnTreeChanged = false;
     isOnTree = true;
-    ASSERT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_ON_TREE);
+    EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_ON_TREE);
     isRootNodeOnTreeChanged = true;
     isOnTree = false;
-    ASSERT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE_IN_ROOT);
+    EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE_IN_ROOT);
     isRootNodeOnTreeChanged = false;
     isOnTree = false;
-    ASSERT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE);
+    EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE);
 }
 #endif
 } // namespace OHOS::Rosen
