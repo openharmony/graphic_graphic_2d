@@ -1092,9 +1092,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode, TestS
  * @tc.desc: draw virtual screen by cache image.
  * @tc.type:FUNC
  * @tc.require:issuesIBIPST
- */ 
+ */
 HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessCacheImage, TestSize.Level2)
-{ 
+{
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
