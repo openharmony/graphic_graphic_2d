@@ -19,6 +19,7 @@
 #include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_test_util.h"
+#include "screen_manager/rs_screen.h"
 #include "surface_buffer_impl.h"
 #include "system/rs_system_parameters.h"
 
@@ -1393,32 +1394,35 @@ HWTEST_F(RSBaseRenderUtilTest, GenerateDrawingBitmapFormatTest, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParamTest001, TestSize.Level2)
 {
-    NodeId id = 0;
-    auto rsContext = std::make_shared<RSContext>();
-    RSSurfaceRenderNode node(1, rsContext);
-    node.InitRenderParams();
-    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
-    screenNode->InitRenderParams();
+    NodeId id = 2;
+    ScreenId screenId = 0;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    RSBaseRenderUtil::GetRotationLockParam(node, screenNode, screenManager);
-    
-    screenManager->SetScreenCorrection(0, ScreenRotation::ROTATION_180);
+    screenManager->screens_[screenId] = std::make_shared<RSScreen>(nullptr);
+    screenManager->defaultScreenId_ = screenId;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(5, rsContext);
+    node->InitRenderParams();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    screenNode->InitRenderParams();
+
+    screenManager->SetScreenCorrection(screenId, ScreenRotation::ROTATION_180);
+    EXPECT_EQ(screenManager->GetScreenCorrection(screenId), ScreenRotation::ROTATION_180);
+
     auto screenNodeParams =
         static_cast<RSScreenRenderParams*>(screenNode->GetStagingRenderParams().get());
-    screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_0);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
-    surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
-
-    RSBaseRenderUtil::GetRotationLockParam(node, screenNode, screenManager);
-    ASSERT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
-
     screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
-    RSBaseRenderUtil::GetRotationLockParam(node, screenNode, screenManager);
-    ASSERT_EQ(surfaceParams->GetRotationCorrectionDegree(), 90);
+    EXPECT_EQ(screenNodeParams->GetLogicalCameraRotationCorrection(), ScreenRotation::ROTATION_90);
 
-    screenNode = nullptr;
-    screenManager = nullptr;
-    RSBaseRenderUtil::GetRotationLockParam(node, screenNode, screenManager);
-    EXPECT_EQ(screenManager, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+    surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+    EXPECT_EQ(surfaceParams->GetAppRotationCorrection(), ScreenRotation::ROTATION_180);
+
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode, screenManager);
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 90);
+
+    screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_180);
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode, screenManager);
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
 }
 } // namespace OHOS::Rosen
