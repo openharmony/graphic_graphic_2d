@@ -1795,12 +1795,6 @@ bool RSSystemProperties::GetNodeMemClearEnabled()
     return enable;
 }
 
-bool RSSystemProperties::GetRSNodeExceedKillEnabled()
-{
-    static bool isPhone = system::GetParameter("const.product.devicetype", "phone") == "phone";
-    return isPhone;
-}
-
 bool RSSystemProperties::GetScaleImageAsyncEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.isEnabledScaleImageAsync.enabled", "1");
