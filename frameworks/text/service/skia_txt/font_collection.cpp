@@ -188,11 +188,11 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
 LoadSymbolErrorCode FontCollection::LoadSymbolFont(const std::string& familyName, const uint8_t* data, size_t datalen)
 {
     TEXT_TRACE_FUNC();
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
     if (typeface == nullptr) {
         return LoadSymbolErrorCode::LOAD_FAILED;
     }
-    std::unique_lock<std::shared_mutex> lock(mutex_);
     TypefaceWithAlias ta(familyName, typeface);
     FontCallbackGuard cb(this, familyName, loadFontStartCallback_, loadFontFinishCallback_);
     if (typefaceSet_.count(ta)) {
