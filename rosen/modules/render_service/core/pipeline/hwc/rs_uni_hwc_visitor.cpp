@@ -812,7 +812,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
             isHardwareEnableByBackgroundAlpha = true;
             backgroundAlphaRect = hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
             continue;
-        } else {
+        } else if (!hwcNodePtr->IsHardwareForcedDisabled()) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
             auto parentNode = hwcNodePtr->GetParent().lock();
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
@@ -1322,8 +1322,8 @@ void RSUniHwcVisitor::PrintHiperfLog(const std::shared_ptr<RSSurfaceRenderNode>&
 void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     const Drawing::Matrix& absMatrix, bool subTreeSkipped)
 {
-    node.SetHardwareForcedDisabledState(node.HwcSurfaceRecorder().IsIntersectWithPreviousFilter());
-    if (node.HwcSurfaceRecorder().IsIntersectWithPreviousFilter()) {
+    if (!node.IsHardwareForcedDisabled() && node.HwcSurfaceRecorder().IsIntersectWithPreviousFilter()) {
+        node.SetHardwareForcedDisabledState(true);
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by node intersect with previous filter",
             node.GetName().c_str(), node.GetId());
         Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),

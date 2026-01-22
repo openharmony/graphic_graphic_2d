@@ -386,31 +386,20 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
         return;
     }
 
-    std::unique_ptr<Point[]> positionsPoint = std::unique_ptr<Point[]>(new(std::nothrow) Point[vertexCount]);
-    if (positionsPoint == nullptr) {
-        LOGE("OH_Drawing_CanvasDrawVertices: new position point failed.");
-        return;
-    }
+    std::unique_ptr<Point[]> positionsPoint = std::make_unique<Point[]>(vertexCount);
     for (int32_t i = 0; i < vertexCount; ++i) {
         positionsPoint[i] = CastToPoint(positions[i]);
     }
 
     std::unique_ptr<Point[]> texsPoint = nullptr;
     if (texs != nullptr) {
-        texsPoint = std::unique_ptr<Point[]>(new(std::nothrow) Point[vertexCount]);
-        if (texsPoint == nullptr) {
-            LOGE("OH_Drawing_CanvasDrawVertices: new texs point failed.");
-            return;
-        }
+        texsPoint = std::make_unique<Point[]>(vertexCount);
         for (int32_t i = 0; i < vertexCount; i++) {
             texsPoint[i] = CastToPoint(texs[i]);
         }
     }
 
-    std::unique_ptr<Vertices> vertices = std::unique_ptr<Vertices>(new(std::nothrow) Vertices());
-    if (vertices == nullptr) {
-        return;
-    }
+    std::unique_ptr<Vertices> vertices = std::make_unique<Vertices>();
     bool result = vertices->MakeCopy(static_cast<VertexMode>(vertexMode), vertexCount, positionsPoint.get(),
         texsPoint.get(), colors, indices ? indexCount : 0, indices);
     if (result) {

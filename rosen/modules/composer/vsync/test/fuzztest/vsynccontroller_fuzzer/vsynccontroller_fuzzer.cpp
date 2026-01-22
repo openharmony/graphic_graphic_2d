@@ -75,10 +75,11 @@ namespace OHOS {
 
         // get data
         bool enable = GetData<bool>();
-        int64_t offset = GetData<int64_t>();
         int64_t now = GetData<int64_t>();
         int64_t period = GetData<int64_t>();
         uint32_t refreshRate = GetData<uint32_t>();
+        // 1000 is limit the random number used to set the refresh rate
+        refreshRate %= 1000;
         uint32_t vsyncMaxRefreshRate = GetData<uint32_t>();
         VSyncMode vsyncMode = GetData<VSyncMode>();
         int64_t phaseOffset = GetData<int64_t>();
@@ -87,9 +88,9 @@ namespace OHOS {
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
-        sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
+        sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, 0);
         vsyncController->SetEnable(enable, enable);
-        vsyncController->SetPhaseOffset(offset);
+        vsyncController->SetPhaseOffset(0);
         sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
         vsyncController->SetCallback(vsyncDistributor);
         vsyncController->OnVSyncEvent(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);

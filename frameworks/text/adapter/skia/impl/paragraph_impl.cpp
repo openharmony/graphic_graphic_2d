@@ -559,6 +559,11 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
     
     skt::SkRange<size_t> range{start, end};
     std::vector<skt::PathInfo> pathInfos = paragraph_->getTextPathByClusterRange(range);
+    if (pathInfos.empty()) {
+        TEXT_LOGD("No path info found for range: [%{public}zu, %{public}zu)", start, end);
+        return nullptr;
+    }
+    
     if (fill) {
         for (size_t i = 0; i < pathInfos.size(); i++) {
             auto& pathInfo = pathInfos[i];

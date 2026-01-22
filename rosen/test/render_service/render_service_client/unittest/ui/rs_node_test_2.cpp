@@ -31,6 +31,7 @@
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_blend_modifier.h"
 #include "modifier_ng/appearance/rs_border_modifier.h"
+#include "modifier_ng/appearance/rs_color_picker_modifier.h"
 #include "modifier_ng/appearance/rs_compositing_filter_modifier.h"
 #include "modifier_ng/appearance/rs_dynamic_light_up_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
@@ -211,6 +212,187 @@ HWTEST_F(RSNodeTest2, SetUIForegroundFilter, TestSize.Level1)
     filterObj->AddPara(para);
     rsNode->SetUIForegroundFilter(filterObj.get());
     EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundEffectRadius() == FLOAT_DATA[1]);
+}
+
+/**
+ * @tc.name: RegisterColorPickerCallbackTest001
+ * @tc.desc: Test RegisterColorPickerCallback with null callback returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, RegisterColorPickerCallbackTest001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    bool result = node->RegisterColorPickerCallback(100, nullptr, 50);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: RegisterColorPickerCallbackTest002
+ * @tc.desc: Test RegisterColorPickerCallback with valid callback returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, RegisterColorPickerCallbackTest002, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    bool callbackInvoked = false;
+    auto callback = [&callbackInvoked](uint32_t color) { callbackInvoked = true; };
+
+    bool result = node->RegisterColorPickerCallback(100, callback, 50);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: RegisterColorPickerCallbackTest003
+ * @tc.desc: Test RegisterColorPickerCallback sets correct parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, RegisterColorPickerCallbackTest003, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    uint32_t receivedColor = 0;
+    auto callback = [&](uint32_t color) { receivedColor = color; };
+
+    uint64_t interval = 500;
+    uint32_t threshold = 75;
+
+    bool result = node->RegisterColorPickerCallback(interval, callback, threshold);
+    EXPECT_TRUE(result);
+
+    // Verify color picker params are set
+    auto modifier = node->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
+    ASSERT_NE(modifier, nullptr);
+    auto colorPickerModifier = std::static_pointer_cast<ModifierNG::RSColorPickerModifier>(modifier);
+
+    EXPECT_EQ(colorPickerModifier->GetColorPickerStrategy(), ColorPickStrategyType::CLIENT_CALLBACK);
+    EXPECT_EQ(colorPickerModifier->GetColorPickerInterval(), interval);
+    EXPECT_EQ(colorPickerModifier->GetColorPickerNotifyThreshold(), threshold);
+}
+
+/**
+ * @tc.name: UnregisterColorPickerCallbackTest001
+ * @tc.desc: Test UnregisterColorPickerCallback clears callback
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, UnregisterColorPickerCallbackTest001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    auto callback = [](uint32_t color) {};
+    node->RegisterColorPickerCallback(100, callback, 50);
+
+    bool result = node->UnregisterColorPickerCallback();
+    EXPECT_TRUE(result);
+    auto modifier = node->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
+    ASSERT_NE(modifier, nullptr);
+    auto colorPickerModifier = std::static_pointer_cast<ModifierNG::RSColorPickerModifier>(modifier);
+    ASSERT_NE(colorPickerModifier, nullptr);
+    EXPECT_EQ(colorPickerModifier->GetColorPickerStrategy(), ColorPickStrategyType::NONE);
+}
+
+/**
+ * @tc.name: UnregisterColorPickerCallbackTest002
+ * @tc.desc: Test UnregisterColorPickerCallback without prior registration
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, UnregisterColorPickerCallbackTest002, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    bool result = node->UnregisterColorPickerCallback();
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: FireColorPickerCallbackTest001
+ * @tc.desc: Test FireColorPickerCallback with no registered callback returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, FireColorPickerCallbackTest001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    bool result = node->FireColorPickerCallback(0xFF0000FF);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: FireColorPickerCallbackTest002
+ * @tc.desc: Test FireColorPickerCallback invokes registered callback
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, FireColorPickerCallbackTest002, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    bool callbackInvoked = false;
+    uint32_t receivedColor = 0;
+    auto callback = [&](uint32_t color) {
+        callbackInvoked = true;
+        receivedColor = color;
+    };
+
+    node->RegisterColorPickerCallback(100, callback, 50);
+
+    uint32_t testColor = 0xFF00FF00;
+    bool result = node->FireColorPickerCallback(testColor);
+
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(callbackInvoked);
+    EXPECT_EQ(receivedColor, testColor);
+}
+
+/**
+ * @tc.name: FireColorPickerCallbackTest003
+ * @tc.desc: Test FireColorPickerCallback after unregister returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, FireColorPickerCallbackTest003, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    auto callback = [](uint32_t color) {};
+    node->RegisterColorPickerCallback(100, callback, 50);
+    node->UnregisterColorPickerCallback();
+
+    bool result = node->FireColorPickerCallback(0xFF0000FF);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: ColorPickerCallbackMultipleRegistrationTest
+ * @tc.desc: Test multiple registrations overwrite previous callback
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, ColorPickerCallbackMultipleRegistrationTest, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    bool firstCallbackInvoked = false;
+    bool secondCallbackInvoked = false;
+
+    auto firstCallback = [&](uint32_t color) { firstCallbackInvoked = true; };
+    auto secondCallback = [&](uint32_t color) { secondCallbackInvoked = true; };
+
+    node->RegisterColorPickerCallback(100, firstCallback, 50);
+    node->RegisterColorPickerCallback(200, secondCallback, 75);
+
+    node->FireColorPickerCallback(0xFF0000FF);
+
+    // Only the second callback should be invoked
+    EXPECT_FALSE(firstCallbackInvoked);
+    EXPECT_TRUE(secondCallbackInvoked);
 }
 
 /**

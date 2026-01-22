@@ -246,6 +246,22 @@ HWTEST(RSProfilerBaseTest, RSLOGW2, Level1)
 }
 
 /*
+ * @tc.name: TimeNanoTest
+ * @tc.desc: Test Profiler TimeNano
+ * @tc.type: FUNC
+ * @tc.require: 21658
+ */
+HWTEST(RSProfilerBaseTest, TimeNanoTest, Level1)
+{
+    RSProfiler::SetReplayStartTimeNano(0);
+    ASSERT_EQ(RSProfiler::GetReplayStartTimeNano(), 0);
+
+    RSProfiler::SetReplayStartTimeNano(Utils::ToNanoseconds(1));
+    RSProfiler::SetTransactionTimeCorrection(1);
+    ASSERT_EQ(RSProfiler::GetReplayStartTimeNano(), Utils::ToNanoseconds(1));
+}
+
+/*
  * @tc.name: LightBlurMetrics
  * @tc.desc: Test LightBlurMetrics
  * @tc.type: FUNC

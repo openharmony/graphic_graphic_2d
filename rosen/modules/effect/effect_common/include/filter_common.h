@@ -16,8 +16,8 @@
 #ifndef FILTER_COMMON_H
 #define FILTER_COMMON_H
 
-#include "pixel_map.h"
 #include "effect_image_render.h"
+#include "pixel_map.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,6 +32,13 @@ public:
     static bool CreateSDF(int spreadFactor, bool generateDerivs = true);
     static bool SetColorMatrix(std::vector<float> cjcolorMatrix, uint32_t& code);
     static std::shared_ptr<OHOS::Media::PixelMap> GetEffectPixelMap(bool forceCPU = false);
+
+    /**
+     * @brief manually clear data in FilterCommon, since sConstructor is persistent across calls.
+     *
+     */
+    void Clear();
+
     static thread_local std::shared_ptr<FilterCommon> sConstructor_;
     void AddNextFilter(std::shared_ptr<EffectImageFilter> filter);
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();

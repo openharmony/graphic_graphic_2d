@@ -151,8 +151,8 @@ uint32_t RSColorPicker::GetAverageColorDirect(const std::shared_ptr<Drawing::Pix
     constexpr int MAX_PIXELS = 1000000; // 1 megapixel limit (e.g., 1000x1000)
     int64_t totalPixels = static_cast<int64_t>(width) * height;
     if (totalPixels > MAX_PIXELS) {
-        ROSEN_LOGW("RSColorPicker::GetAverageColorDirect: pixmap too large (%dx%d=%lld pixels), limit is %d", width,
-            height, static_cast<long long>(totalPixels), MAX_PIXELS);
+        ROSEN_LOGW("RSColorPicker::GetAverageColorDirect: pixmap too large (%dx%d=%" PRId64 " pixels), limit is %d",
+            width, height, totalPixels, MAX_PIXELS);
         return RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE;
     }
 

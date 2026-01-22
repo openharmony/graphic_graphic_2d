@@ -183,8 +183,7 @@ std::shared_ptr<VkImageResource> RSVkImageManager::CreateImageCacheFromBuffer(co
     auto bufferId = buffer->GetBufferId();
     auto imageCache = VkImageResource::Create(buffer);
     if (imageCache == nullptr) {
-        ROSEN_LOGE(
-            "RSVkImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for bufferId:"
+        ROSEN_LOGE("RSVkImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for bufferId:"
             "%{public}" PRIu64 ".", bufferId);
         return nullptr;
     }

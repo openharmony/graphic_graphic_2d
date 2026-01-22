@@ -286,6 +286,27 @@ HWTEST_F(ShaderCacheTest, load_test_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: cleanAllShaders_test_001
+ * @tc.desc: Imporve Coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ShaderCacheTest, cleanAllShaders_test_001, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    cache.CleanAllShaders();
+    const char* identity = nullptr;
+    cache.InitShaderCache(identity, 0, false);
+    const char* testKey1 = "testKey1";
+    const char* testValue1 = "testValue1";
+    cache.cacheData_->Rewrite(testKey1, 8, testValue1, 8);
+    EXPECT_NE(0, cache.cacheData_->GetShaderNum());
+    cache.CleanAllShaders();
+    EXPECT_EQ(0, cache.cacheData_->GetShaderNum());
+}
+
+/**
  * @tc.name: querryShaderNum_test_001
  * @tc.desc: Imporve Coverage
  * @tc.type: FUNC
@@ -338,8 +359,10 @@ HWTEST_F(ShaderCacheTest, storeShader_test_001, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, InitShaderCacheTest, TestSize.Level1)
 {
     auto &cache = ShaderCache::Instance();
+    cache.initialized_ = false;
     cache.filePath_ = "";
     cache.InitShaderCache(nullptr, 0, false);
+    cache.initialized_ = false;
     cache.filePath_ = "test";
     cache.InitShaderCache(nullptr, 0, false);
     EXPECT_NE(cache.cacheData_, nullptr);
@@ -355,20 +378,21 @@ HWTEST_F(ShaderCacheTest, InitShaderCacheTest, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, StoreTest, TestSize.Level1)
 {
     auto &cache = ShaderCache::Instance();
+    cache.initialized_ = false;
     cache.InitShaderCache();
     cache.CleanAllShaders();
     Drawing::Data key;
     Drawing::Data value;
     cache.Store(key, value);
-    size_t test1 = cache.QuerryShaderSize();
-    EXPECT_EQ(0, test1);
+    size_t shaderSize = cache.QuerryShaderSize();
+    EXPECT_EQ(0, shaderSize);
     // for test
     size_t size = 4;
     key.BuildUninitialized(size);
     value.BuildUninitialized(size);
     cache.Store(key, value);
-    size_t test2 = cache.QuerryShaderSize();
-    EXPECT_NE(0, test2);
+    size_t shaderSize2 = cache.QuerryShaderSize();
+    EXPECT_NE(0, shaderSize2);
 }
 
 /**
@@ -418,6 +442,5 @@ HWTEST_F(ShaderCacheTest, GetAndCalMaxUniRenderSizeTest_003, TestSize.Level1)
     size_t result = cache.CalMaxUniRenderSize();
     EXPECT_EQ(ShaderCache::MAX_UNIRENDER_SIZE, result);
 }
-
 } // namespace Rosen
 } // namespace OHOS

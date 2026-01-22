@@ -40,8 +40,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        auto size = GetScreenSize();
-        SetSurfaceBounds({0, 0, size.x_ / 2.0f, size.y_ / 2.0f});
+        SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         SetSurfaceColor(RSColor(0xffff0000));
     }
 
@@ -91,11 +90,22 @@ GRAPHIC_TEST(
 {
     std::shared_ptr<RSUIDirector> rsUiDirector = RSGraphicTestDirector::Instance().rsUiDirector_;
     auto rsUIContext = rsUiDirector->GetRSUIContext();
-
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 300, 300 });
         canvasNode->SetFrame({ 0, 0, 300, 300 });
@@ -103,19 +113,10 @@ GRAPHIC_TEST(
         rootNode->AddChild(canvasNode, -1);
         RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
         usleep(SLEEP_TIME_FOR_PROXY);
-
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -128,11 +129,22 @@ GRAPHIC_TEST(
 {
     std::shared_ptr<RSUIDirector> rsUiDirector = RSGraphicTestDirector::Instance().rsUiDirector_;
     auto rsUIContext = rsUiDirector->GetRSUIContext();
-
-    auto surfaceNode = CreateTestSurfaceNode();
+auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 300, 300 });
         canvasNode->SetFrame({ 0, 0, 300, 300 });
@@ -141,19 +153,10 @@ GRAPHIC_TEST(
         rootNode->AddChild(canvasNode, -1);
         RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
         usleep(SLEEP_TIME_FOR_PROXY);
-        
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -168,9 +171,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 100, 100, 500, 700 });
         canvasNode->SetFrame({ 100, 100, 500, 700 });
@@ -182,16 +197,8 @@ GRAPHIC_TEST(
         
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -206,9 +213,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 100, 100, 300, 300 });
         canvasNode->SetFrame({ 100, 100, 300, 300 });
@@ -220,16 +239,8 @@ GRAPHIC_TEST(
         
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -244,9 +255,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 700, 700 });
         canvasNode->SetFrame({ 0, 0, 700, 700 });
@@ -275,16 +298,8 @@ GRAPHIC_TEST(
 
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -299,9 +314,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 800, 800 });
         canvasNode->SetFrame({ 0, 0, 800, 800 });
@@ -324,16 +351,8 @@ GRAPHIC_TEST(
         
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -348,9 +367,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -378,16 +409,8 @@ GRAPHIC_TEST(
         
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -402,9 +425,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -416,16 +451,8 @@ GRAPHIC_TEST(
         
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -440,9 +467,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 300, 300 });
         canvasNode->SetFrame({ 0, 0, 300, 300 });
@@ -470,16 +509,8 @@ GRAPHIC_TEST(
         
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -494,9 +525,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 300, 300 });
         canvasNode->SetFrame({ 0, 0, 300, 300 });
@@ -510,16 +553,8 @@ GRAPHIC_TEST(
         
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -534,9 +569,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 600, 600 });
         canvasNode->SetFrame({ 0, 0, 600, 600 });
@@ -555,16 +602,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(childNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -579,9 +618,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 600, 600 });
         canvasNode->SetFrame({ 0, 0, 600, 600 });
@@ -600,16 +651,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(childNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -624,9 +667,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -669,16 +724,8 @@ GRAPHIC_TEST(
         RegisterNode(canvasNode);
         RegisterNode(effectNode);
         RegisterNode(childNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -693,9 +740,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -717,16 +776,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -741,9 +792,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -765,16 +828,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -789,9 +844,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -818,16 +885,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -842,9 +901,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -871,16 +942,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -895,9 +958,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -924,16 +999,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -948,9 +1015,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 700, 700 });
         canvasNode->SetFrame({ 0, 0, 700, 700 });
@@ -979,16 +1058,8 @@ GRAPHIC_TEST(
 
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1003,9 +1074,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 600, 600 });
         canvasNode->SetFrame({ 0, 0, 600, 600 });
@@ -1031,16 +1114,8 @@ GRAPHIC_TEST(
         RegisterNode(canvasNode);
         RegisterNode(childNode);
         RegisterNode(childNode1);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1055,9 +1130,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1084,16 +1171,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1108,9 +1187,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1137,16 +1228,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1161,9 +1244,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1190,16 +1285,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1214,9 +1301,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1243,16 +1342,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1267,9 +1358,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1296,16 +1399,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1320,9 +1415,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1350,16 +1457,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1374,9 +1473,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1404,16 +1515,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1428,9 +1531,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1458,16 +1573,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1482,9 +1589,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1512,16 +1631,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1536,9 +1647,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1560,16 +1683,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1584,9 +1699,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1608,16 +1735,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1632,9 +1751,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1656,16 +1787,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1680,9 +1803,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1704,16 +1839,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1728,9 +1855,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1753,16 +1892,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1777,9 +1908,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1802,16 +1945,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1826,9 +1961,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1851,16 +1998,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1875,9 +2014,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1900,16 +2051,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1924,9 +2067,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1949,16 +2104,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -1973,9 +2120,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -1998,16 +2157,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2022,9 +2173,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2047,16 +2210,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2071,9 +2226,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2095,16 +2262,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2119,9 +2278,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2143,16 +2314,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2167,9 +2330,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2191,16 +2366,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2215,9 +2382,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2239,16 +2418,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2263,9 +2434,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2287,16 +2470,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2311,9 +2486,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2335,16 +2522,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2359,9 +2538,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2383,16 +2574,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2407,9 +2590,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2431,16 +2626,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2455,9 +2642,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2479,16 +2678,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2503,9 +2694,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2527,16 +2730,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2551,9 +2746,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2575,16 +2782,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2599,9 +2798,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2623,16 +2834,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2647,9 +2850,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2671,16 +2886,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2695,9 +2902,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2719,16 +2938,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 /*
@@ -2743,9 +2954,21 @@ GRAPHIC_TEST(
     auto rsUIContext = rsUiDirector->GetRSUIContext();
 
     auto surfaceNode = CreateTestSurfaceNode();
+    GetRootNode()->SetTestSurface(surfaceNode);
     auto rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
-
-    auto cb = [this, surfaceNode, rootNode]() {
+    bool execute = false;
+    auto cb = [&execute]() {
+        execute = true;
+        std::cout<< "callback!" << std::endl;
+    };
+    surfaceNode->SetBufferAvailableCallback(cb);
+    rootNode->SetBounds(0, 0, 1000, 1000);
+    rootNode->SetFrame(0, 0, 1000, 1000);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
+    GetRootNode()->AddChild(rootNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    if (execute) {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
@@ -2767,16 +2990,8 @@ GRAPHIC_TEST(
         // created node should be registered to preserve ref_count
         RegisterNode(canvasNode);
         RegisterNode(testNodeBackGround);
-    };
-    surfaceNode->SetBufferAvailableCallback(cb);
-
-    rootNode->SetBounds(0, 0, 1000, 1000);
-    rootNode->SetFrame(0, 0, 1000, 1000);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
-
-    rootNode->AttachRSSurfaceNode(surfaceNode);
-
-    GetRootNode()->SetTestSurface(surfaceNode);
+    }
+    RegisterNode(rootNode);
 }
 
 }

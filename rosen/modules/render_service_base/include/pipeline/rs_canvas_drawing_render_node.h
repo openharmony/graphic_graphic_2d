@@ -64,7 +64,7 @@ public:
     void ContentStyleSlotUpdate();
     void SetNeedProcess(bool needProcess);
     const std::map<ModifierNG::RSModifierType, ModifierCmdList>& GetDrawCmdListsNG() const;
-    void ClearResource() override;
+    void AccumulateLastDirtyTypes() override;
     void ClearNeverOnTree() override;
     void CheckCanvasDrawingPostPlaybacked();
     bool GetIsPostPlaybacked();
@@ -72,6 +72,10 @@ public:
     void ApplyModifiers() override;
     bool CheckCachedOp();
     bool HasCachedOp() const;
+
+protected:
+    void OnSync() override;
+    void OnApplyModifiers() override;
 
 private:
     explicit RSCanvasDrawingRenderNode(
@@ -85,6 +89,7 @@ private:
     void ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists) const;
     void SplitDrawCmdList(size_t firstOpCount, Drawing::DrawCmdListPtr drawCmdList, bool splitOrigin);
     size_t ApplyCachedCmdList();
+    void ClearResource();
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif
@@ -112,6 +117,8 @@ private:
     int64_t lastResetSurfaceTime_ = 0;
     size_t opCountAfterReset_ = 0;
 
+    bool modifiersApplied_ = false;
+
     struct CachedReversedOpInfo {
         std::vector<uint32_t> drawOpTypes;
         int32_t width = 0;
@@ -121,8 +128,7 @@ private:
     };
     std::deque<CachedReversedOpInfo> cachedReversedOpTypes_;
     void DumpSubClassNode(std::string& out) const override;
-    void GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList, size_t opItemSize);
-
+    void GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList);
 
     friend class RSCanvasDrawingNodeCommandHelper;
     friend class RSRenderNode;

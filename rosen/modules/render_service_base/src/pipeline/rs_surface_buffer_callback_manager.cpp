@@ -176,8 +176,8 @@ void RSSurfaceBufferCallbackManager::EnqueueSurfaceBufferId(
 void RSSurfaceBufferCallbackManager::RequestNextVSync()
 {
     if (vSyncFuncs_.isRequestedNextVSync && !std::invoke(vSyncFuncs_.isRequestedNextVSync)) {
-        if (vSyncFuncs_.requestNextVsync) {
-            std::invoke(vSyncFuncs_.requestNextVsync);
+        if (vSyncFuncs_.requestNextVSync) {
+            std::invoke(vSyncFuncs_.requestNextVSync);
         }
     }
 }
@@ -269,8 +269,8 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
         }
     }
 }
- 
-#ifdef RS_ENABLE_VK
+
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId)
 {
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&

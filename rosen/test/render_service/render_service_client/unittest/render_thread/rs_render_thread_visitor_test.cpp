@@ -801,6 +801,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
 {
+#if defined(RS_ENABLE_UNI_RENDER)
     RSSurfaceRenderNodeConfig config;
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     RSRenderThreadVisitor rsRenderThreadVisitor;
@@ -829,6 +830,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1
     rsRenderThreadVisitor.childSurfaceNodeIds_.push_back(0);
     rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
     EXPECT_TRUE(!rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
+#endif
 }
 
 /**

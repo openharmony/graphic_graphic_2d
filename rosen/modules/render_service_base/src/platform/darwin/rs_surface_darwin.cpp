@@ -199,9 +199,5 @@ void RSSurfaceDarwin::ResetBufferAge()
 {
     ROSEN_LOGD("RSSurfaceDarwin: Reset Buffer Age!");
 }
-
-void RSSurfaceDarwin::SetCleanUpHelper(std::function<void()> func)
-{
-}
 } // namespace Rosen
 } // namespace OHOS

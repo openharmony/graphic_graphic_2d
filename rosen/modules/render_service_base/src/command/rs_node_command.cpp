@@ -24,6 +24,7 @@ namespace Rosen {
 namespace {
 RSNodeCommandHelper::DumpNodeTreeProcessor gDumpNodeTreeProcessor = nullptr;
 RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = nullptr;
+RSNodeCommandHelper::ColorPickerCallbackProcessor gColorPickerCallbackProcessor = nullptr;
 }
 
 void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze)
@@ -323,6 +324,19 @@ void RSNodeCommandHelper::RemoveAllModifiersNG(RSContext& context, NodeId nodeId
     if (node) {
         node->RemoveAllModifiersNG();
     }
+}
+
+void RSNodeCommandHelper::ColorPickerCallback(
+    RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t color)
+{
+    if (gColorPickerCallbackProcessor != nullptr) {
+        gColorPickerCallbackProcessor(nodeId, token, color);
+    }
+}
+
+void RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor)
+{
+    gColorPickerCallbackProcessor = processor;
 }
 } // namespace Rosen
 } // namespace OHOS

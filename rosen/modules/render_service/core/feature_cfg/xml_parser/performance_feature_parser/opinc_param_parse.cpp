@@ -49,6 +49,9 @@ int32_t OPIncParamParse::ParseOPIncInternal(xmlNode &node)
         if (name == "OPIncEnabled") {
             OPIncParam::SetOPIncEnable(isEnabled);
             RS_LOGI("OPIncParamParse parse OPIncEnabled %{public}d", OPIncParam::IsOPIncEnable());
+        } else if (name == "ImageAliasEnabled") {
+            OPIncParam::SetImageAliasEnable(isEnabled);
+            RS_LOGI("OPIncParamParse parse ImageAliasEnabled %{public}d", OPIncParam::IsImageAliasEnable());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
         if (name == "CacheWidthThresholdPercentValue" && IsNumber(val)) {

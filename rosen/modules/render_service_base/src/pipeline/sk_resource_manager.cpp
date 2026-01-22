@@ -102,7 +102,7 @@ bool SKResourceManager::HaveReleaseableResourceCheck(const std::list<std::shared
 #endif
 }
 
-
+// LCOV_EXCL_START
 void SKResourceManager::ReleaseResource()
 {
 #ifdef ROSEN_OHOS
@@ -147,4 +147,5 @@ void SKResourceManager::ReleaseResource()
     }
 #endif
 }
+// LCOV_EXCL_STOP
 } // OHOS::Rosen

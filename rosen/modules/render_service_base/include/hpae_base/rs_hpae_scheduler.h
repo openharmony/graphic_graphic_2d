@@ -20,6 +20,7 @@
 #include <map>
 #include <mutex>
 #include <vector>
+
 #include "hpae_base/rs_hpae_base_types.h"
 
 namespace OHOS::Rosen {

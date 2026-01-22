@@ -15,7 +15,6 @@
 
 #ifndef ROSEN_RENDER_SERVICE_PIPELINE_RS_LPP_VIDEO_H
 #define ROSEN_RENDER_SERVICE_PIPELINE_RS_LPP_VIDEO_H
-#include <set>
 #include <string>
 #include <vector>
 

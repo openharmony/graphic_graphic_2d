@@ -1846,7 +1846,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckRefreshRateChange, Function | SmallTest |
 
 /**
  * @tc.name: TestUpdateSoftVSync
- * @tc.desc: Verify the result of TestUpdateSoftVSync function
+ * @tc.desc: Verify the result of UpdateSoftVSync function
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1954,11 +1954,13 @@ HWTEST_F(HgmFrameRateMgrTest, TestIsMouseOrTouchPadEvent, Function | SmallTest |
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);
 
+    mgr.frameVoter_.voterGamesEffective_ = false;
     touchStatus = AXIS_BEGIN;
     sourceType = TouchSourceType::SOURCE_TYPE_TOUCHSCREEN;
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);
 
+    mgr.frameVoter_.voterGamesEffective_ = false;
     touchStatus = -1;
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);

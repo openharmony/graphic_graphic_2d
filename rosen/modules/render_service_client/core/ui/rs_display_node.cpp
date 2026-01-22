@@ -78,6 +78,7 @@ bool RSDisplayNode::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, Nod
         CreateNode(displayNodeConfig, nodeId);
 }
 
+// LCOV_EXCL_START
 void RSDisplayNode::RegisterNodeMap()
 {
     auto rsContext = GetRSUIContext();
@@ -87,7 +88,9 @@ void RSDisplayNode::RegisterNodeMap()
     auto& nodeMap = rsContext->GetMutableNodeMap();
     nodeMap.RegisterNode(shared_from_this());
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSDisplayNode::AddDisplayNodeToTree()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeAddToTree>(GetId());
@@ -95,7 +98,9 @@ void RSDisplayNode::AddDisplayNodeToTree()
     SetIsOnTheTree(true);
     HILOG_COMM_INFO("RSDisplayNode::AddDisplayNodeToTree, id:%{public}" PRIu64, GetId());
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSDisplayNode::RemoveDisplayNodeFromTree()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeRemoveFromTree>(GetId());
@@ -103,6 +108,7 @@ void RSDisplayNode::RemoveDisplayNodeFromTree()
     SetIsOnTheTree(false);
     HILOG_COMM_INFO("RSDisplayNode::RemoveDisplayNodeFromTree, id:%{public}" PRIu64, GetId());
 }
+// LCOV_EXCL_STOP
 
 bool RSDisplayNode::Marshalling(Parcel& parcel) const
 {
@@ -148,11 +154,14 @@ void RSDisplayNode::SetSecurityDisplay(bool isSecurityDisplay)
         " isSecurityDisplay:[%{public}s]", GetId(), isSecurityDisplay ? "true" : "false");
 }
 
+// LCOV_EXCL_START
 bool RSDisplayNode::GetSecurityDisplay() const
 {
     return isSecurityDisplay_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void RSDisplayNode::ClearChildren()
 {
     auto children = GetChildren();
@@ -162,6 +171,7 @@ void RSDisplayNode::ClearChildren()
         }
     }
 }
+// LCOV_EXCL_STOP
 
 void RSDisplayNode::SetScreenId(uint64_t screenId)
 {
@@ -202,10 +212,12 @@ void RSDisplayNode::SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displa
         " isMirror:[%{public}d]", GetId(), displayNodeConfig.isMirrored);
 }
 
+// LCOV_EXCL_START
 bool RSDisplayNode::IsMirrorDisplay() const
 {
     return isMirrorDisplay_;
 }
+// LCOV_EXCL_STOP
 
 void RSDisplayNode::SetScreenRotation(const uint32_t& rotation)
 {
@@ -248,10 +260,12 @@ void RSDisplayNode::SetBootAnimation(bool isBootAnimation)
     AddCommand(command, true);
 }
 
+// LCOV_EXCL_START
 bool RSDisplayNode::GetBootAnimation() const
 {
     return isBootAnimation_;
 }
+// LCOV_EXCL_STOP
 
 void RSDisplayNode::ClearModifierByPid(pid_t pid)
 {
@@ -277,9 +291,7 @@ void RSDisplayNode::OnBoundsSizeChanged() const
                __func__, screenId_, GetId(), bounds.x_, bounds.y_, bounds.z_, bounds.w_);
 }
 
-RSDisplayNode::~RSDisplayNode()
-{
-    RS_LOGI("%{public}s, NodeId:[%{public}" PRIu64 "]", __func__, GetId());
-}
+RSDisplayNode::~RSDisplayNode() = default;
+
 } // namespace Rosen
 } // namespace OHOS

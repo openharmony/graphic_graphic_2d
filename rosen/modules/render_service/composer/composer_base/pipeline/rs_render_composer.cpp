@@ -293,7 +293,7 @@ void RSRenderComposer::ComposerPrepare(RefreshRateParam& param, uint32_t& curren
 #endif
     {
         ++acquiredBufferCount_;
-        RS_TRACE_NAME_FMT("Inc Acq BufferCount %d screenId: %" PRIu64 "", acquiredBufferCount_.load(), screenId_);
+        RS_TRACE_NAME_FMT("Inc Acq BufferCount %d screenId: %" PRIu64, acquiredBufferCount_.load(), screenId_);
     }
     unExecuteTaskNum_++;
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
@@ -807,7 +807,7 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const sptr<Surface
 void RSRenderComposer::HandlePowerStatus(ScreenPowerStatus status)
 {
     RS_TRACE_NAME_FMT("%s: screenId: %" PRIu64 " PowerStatus: %d", __func__, screenId_, status);
-    hgmHardwareUtils_.ResetRetryCount(status);
+    PostTask([this, status]() { hgmHardwareUtils_.ResetRetryCount(status); });
 }
 
 void RSRenderComposer::OnScreenVBlankIdleCallback(uint64_t timestamp)

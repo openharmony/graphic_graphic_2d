@@ -403,6 +403,7 @@ public:
     void SetColorPickerPlaceholder(int placeholder);
     void SetColorPickerStrategy(int strategy);
     void SetColorPickerInterval(int interval);
+    void SetColorPickerNotifyThreshold(int threshold);
     std::shared_ptr<ColorPickerParam> GetColorPicker() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
@@ -579,7 +580,7 @@ public:
     bool GetFgBlurDisableSystemAdaptation() const;
 
     bool IsBackgroundMaterialFilterValid() const;
-    bool IsForegroundMaterialFilterVaild() const;
+    bool IsForegroundMaterialFilterValid() const;
     bool IsBackgroundLightBlurFilterValid() const;
     bool IsForegroundLightBlurFilterValid() const;
 
@@ -1110,6 +1111,12 @@ private:
 
     std::optional<RectI> lastRect_;
 
+    //Hisysevent params and funcs for GenerateBack/ForegroundFilter and UpdateForegroundFilter
+    std::bitset<3> hasReportedServerXXFilterCascade_ = 0b000;
+    void StatBackgroundFilter();
+    void StatCompositingFilter();
+    void StatForegroundFilter();
+    
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
     void GenerateColorFilter();

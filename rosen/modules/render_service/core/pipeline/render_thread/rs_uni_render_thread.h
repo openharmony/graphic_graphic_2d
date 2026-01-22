@@ -78,7 +78,7 @@ public:
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
     uint64_t GetFastComposeTimeStampDiff() const;
-    sptr<SyncFence> GetAcquireFence();
+
     void PurgeCacheBetweenFrames();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
     void DefaultClearMemoryCache();
@@ -88,7 +88,6 @@ public:
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
     void ResetClearMemoryTask(bool isDoDirectComposition = false);
-    void PurgeShaderCacheAfterAnimate();
     void SetTimeToReclaim(bool isTimeToReclaim);
     bool IsTimeToReclaim();
     void SetDefaultClearMemoryFinished(bool isFinished);
@@ -256,9 +255,7 @@ private:
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
     bool isDefaultCleanTaskFinished_ = true;
-    bool hasPurgeShaderCacheTask_ = false;
     bool postImageReleaseTaskFlag_ = false;
-    bool isReclaimMemoryFinished_ = true;
     std::atomic_bool isTimeToReclaim_ = false;
     // vma cache
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
@@ -315,7 +312,7 @@ private:
 #endif
 
     std::atomic<bool> screenPowerOnChanged_ = false;
-    uint32_t totalProcessNodeNum_ = 0;
+    std::atomic<uint32_t> totalProcessNodeNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

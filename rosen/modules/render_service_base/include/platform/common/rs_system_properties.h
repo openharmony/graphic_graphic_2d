@@ -402,8 +402,6 @@ public:
 
     static bool GetNodeMemClearEnabled();
 
-    static bool GetRSNodeExceedKillEnabled();
-
     static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
     static bool GetCanvasDrawingNodeRenderDmaEnabled();
     static bool GetDefaultMemClearEnabled();

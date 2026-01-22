@@ -66,7 +66,7 @@ public:
 
     void GenerateGEVisualEffect() override
     {
-        RS_OPTIONAL_TRACE_FMT("RSNGRenderFilterTemplate::GenerateGEVisualEffect, Type: %s paramStr: %s",
+        RS_OPTIONAL_TRACE_FMT("RSRenderFilter, Type: %s paramStr: %s",
             RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(),
             EffectTemplateBase::DumpProperties().c_str());
         auto geFilter = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);

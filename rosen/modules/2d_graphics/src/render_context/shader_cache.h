@@ -67,14 +67,10 @@ public:
 
     void CleanAllShaders() const;
 
-    bool CheckShaderCacheOverSoftLimit() const;
-
-    void PurgeShaderCacheAfterAnimate(const std::function<bool(void)>& nextFrameHasArrived);
-
     void SetMaxUniRenderSize(int maxUniRenderSize);
  
     int GetMaxUniRenderSize();
-
+    
 private:
     ShaderCache() = default;
     ~ShaderCache();

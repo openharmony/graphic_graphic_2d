@@ -95,7 +95,7 @@ GraphicColorGamut RSColorSpaceUtil::ColorSpaceNameToGraphicGamut(OHOS::ColorMana
         {ColorSpaceName::BT2020, GRAPHIC_COLOR_GAMUT_BT2020},
         {ColorSpaceName::BT2020_PQ, GRAPHIC_COLOR_GAMUT_BT2100_PQ},
         {ColorSpaceName::BT2020_HLG, GRAPHIC_COLOR_GAMUT_BT2100_HLG},
-        {ColorSpaceName::DISPLAY_BT2020_SRGB, GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020},
+        {ColorSpaceName::DISPLAY_BT2020_SRGB, GRAPHIC_COLOR_GAMUT_BT2020},
     };
     if (auto itr = RS_COLORSPACE_TO_GRAPHIC_GAMUT_MAP.find(name); itr != RS_COLORSPACE_TO_GRAPHIC_GAMUT_MAP.end()) {
         return itr->second;

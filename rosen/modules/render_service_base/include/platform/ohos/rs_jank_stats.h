@@ -155,8 +155,6 @@ public:
     void SetAppFirstFrame(pid_t appPid);
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd);
     void SetAccumulatedBufferCount(int accumulatedBufferCount);
-    bool IsAnimationEmpty();
-    void AvcodecVideoDump(std::string& dumpString, std::string& type, const std::string& avcodecVideo);
     void AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime);
     void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,

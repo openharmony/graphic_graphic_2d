@@ -612,8 +612,14 @@ bool RSImageBase::SetCompressedDataForASTC()
     if (pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
         (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
-        sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap_->GetFd()));
-        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+        if (nativeWindowBuffer_ == nullptr) {
+            sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap_->GetFd()));
+            nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+            if (nativeWindowBuffer_ == nullptr) {
+                RS_LOGE("RSImageBase SetCompressedDataForASTC create native window buffer fail");
+                return false;
+            }
+        }
         OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
         if (nativeBuffer == nullptr || !fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap_->GetCapacity())) {
             RS_LOGE("%{public}s data BuildFromOHNativeBuffer fail", __func__);

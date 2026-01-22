@@ -77,7 +77,7 @@ HWTEST(RSProfilerPixelMapTest, UnmarshalPixelMap, TestSize.Level1)
     EXPECT_EQ(pixelMap, nullptr);
 }
 
-#ifndef MODIFIER_NG
+#ifdef USE_VIDEO_PROCESSING_ENGINE
 HWTEST(RSProfilerPixelMapTest, PlaybackParcel, TestSize.Level1)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");

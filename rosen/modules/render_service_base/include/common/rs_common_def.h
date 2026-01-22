@@ -398,6 +398,9 @@ struct RSSurfaceCaptureConfig {
     std::pair<uint32_t, bool> colorSpace = {OHOS::ColorManager::ColorSpaceName::SRGB, false};
     // {dynamicRangeMode, isAutoAjust}
     std::pair<uint32_t, bool> dynamicRangeMode = {DEFAULT_DYNAMIC_RANGE_MODE_STANDARD, false};
+
+    // When adding new members, please ensure to add the corresponding comparison logic in the operator== and
+    // serialization/deserialization logic in the OnSurfaceCapture method.
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
         return ROSEN_EQ(scaleX, config.scaleX) && ROSEN_EQ(scaleY, config.scaleY) &&

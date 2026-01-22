@@ -71,7 +71,7 @@ public:
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
         std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         sptr<RSISurfaceCaptureCallback> callback, int32_t rotation = 0, bool needDump = false,
-        CaptureError errorCode = CaptureError::CAPTURE_OK);
+        CaptureError errorCode = CaptureError::CAPTURE_OK, bool isHdrCapture = false);
 #endif
 
     static int32_t GetCaptureCount()
@@ -102,7 +102,7 @@ private:
     NodeId endNodeId_ = INVALID_NODEID;
     Drawing::Matrix startMatrix_;
     Drawing::Matrix endMatrix_;
-    RSSurfaceCaptureConfig captureConfig_ = {};
+    const RSSurfaceCaptureConfig captureConfig_ = {};
     static inline std::atomic<int32_t> captureCount_ = 0;
     RectI startRect_ = {};
     RectI endRect_ = {};

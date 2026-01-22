@@ -294,7 +294,7 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::UpdateDrawingTypefaceRef(Dra
         uint32_t baseHash = static_cast<uint32_t>(0xFFFFFFFF & fullHash);
         auto baseTypeface = typefaceBaseHashMap_.find(baseHash);
         if (baseTypeface != typefaceBaseHashMap_.end()) {
-            RS_LOGI("UpdateDrawingTypefaceRef: Find same typeface in base cache, use existed base typeface.");
+            RS_LOGD("UpdateDrawingTypefaceRef: Find same typeface in base cache, use existed base typeface.");
             Drawing::FontArguments fontArgs;
             fontArgs.SetCollectionIndex(sharedTypeface.index_);
             fontArgs.SetVariationDesignPosition({sharedTypeface.coords_.data(), sharedTypeface.coords_.size()});

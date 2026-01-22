@@ -184,6 +184,7 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getPixelMapAsync", GetPixelMapAsync),
         DECLARE_NAPI_FUNCTION("getEffectPixelMap", GetPixelMapAsync),
         DECLARE_NAPI_FUNCTION("getEffectPixelMapSync", GetPixelMap),
+        DECLARE_NAPI_FUNCTION("getEffectPixelMapHighPriority", GetPixelMapAsyncHighPriority),
     };
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createEffect", CreateEffect),
@@ -398,12 +399,12 @@ static void GetPixelMapAsyncErrorComplete(napi_env env, napi_status status, void
     FilterAsyncCommonComplete(env, ctx, result);
 }
 
-napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
+napi_value FilterNapi::GetPixelMapAsyncCommon(napi_env env, napi_callback_info info, bool isHighPriority)
 {
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
-    size_t argc = NUM_1;
-    napi_value argv[NUM_1];
+    size_t argc = 1;
+    napi_value argv[1];
     napi_status status;
     std::unique_ptr<FilterAsyncContext> ctx = std::make_unique<FilterAsyncContext>();
     EFFECT_JS_ARGS(env, info, status, argc, argv, ctx->this_);
@@ -411,11 +412,11 @@ napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_unwrap(env, ctx->this_, reinterpret_cast<void**>(&(ctx->filterNapi))));
     BuildMsgOnError(env, ctx, (ctx->filterNapi != nullptr), "FilterNapi GetPixelMapAsync filter is nullptr");
     if (EffectKitNapiUtils::GetInstance().GetType(env, argv[0]) == napi_boolean) {
-        EFFECT_NAPI_CHECK_RET_D(napi_get_value_bool(env, argv[NUM_0], &(ctx->forceCPU)) == napi_ok, nullptr,
+        EFFECT_NAPI_CHECK_RET_D(napi_get_value_bool(env, argv[0], &(ctx->forceCPU)) == napi_ok, nullptr,
             EFFECT_LOG_E("FilterNapi: GetPixelMapAsync parsing forceCPU fail"));
     }
 
-    if (argc >= NUM_1) {
+    if (argc >= 1) {
         if (EffectKitNapiUtils::GetInstance().GetType(env, argv[argc - 1]) == napi_function) {
             napi_create_reference(env, argv[argc - 1], 1, &(ctx->callback));
         }
@@ -429,27 +430,42 @@ napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
         filterNapiManager[ctx->filterNapi].store(false);
     }
 
+    const char* workName = isHighPriority ? "GetPixelMapAsyncHighPrio" : "GetPixelMapAsync";
+    napi_qos_t qos = isHighPriority ? napi_qos_user_initiated : napi_qos_default;
+    
     if (ctx->errorMsg != nullptr) {
         EffectKitNapiUtils::GetInstance().CreateAsyncWork(
             env, status, "GetPixelMapAsyncError",
             [](napi_env env, void* data) { EFFECT_LOG_E("FilterNapi GetPixelMapAsync extracting param fail"); },
-            GetPixelMapAsyncErrorComplete, ctx, ctx->work);
+            GetPixelMapAsyncErrorComplete, ctx, ctx->work, qos);
     } else {
         EffectKitNapiUtils::GetInstance().CreateAsyncWork(
-            env, status, "GetPixelMapAsync", GetPixelMapAsyncExecute, GetPixelMapAsyncComplete, ctx, ctx->work);
+            env, status, workName, GetPixelMapAsyncExecute, GetPixelMapAsyncComplete,
+            ctx, ctx->work, qos);
     }
     if (status != napi_ok) {
         if (ctx->callback != nullptr) {
             napi_delete_reference(env, ctx->callback);
         }
         if (ctx->deferred != nullptr) {
-            napi_create_string_utf8(
-                env, "FilterNapi GetPixelMapAsync creating async work fail", NAPI_AUTO_LENGTH, &result);
+            const char* errorStr = isHighPriority ? "FilterNapi GetPixelMapAsyncHighPrio creating async work fail"
+                : "FilterNapi GetPixelMapAsync creating async work fail";
+            napi_create_string_utf8(env, errorStr, NAPI_AUTO_LENGTH, &result);
             napi_reject_deferred(env, ctx->deferred, result);
         }
-        EFFECT_LOG_E("FilterNapi GetPixelMapAsync creating async work fail");
+        EFFECT_LOG_E("FilterNapi %{public}s creating async work fail", workName);
     }
     return result;
+}
+ 
+napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
+{
+    return GetPixelMapAsyncCommon(env, info, false);
+}
+ 
+napi_value FilterNapi::GetPixelMapAsyncHighPriority(napi_env env, napi_callback_info info)
+{
+    return GetPixelMapAsyncCommon(env, info, true);
 }
 
 napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)

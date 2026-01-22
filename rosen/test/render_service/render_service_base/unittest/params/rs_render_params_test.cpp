@@ -593,6 +593,33 @@ HWTEST_F(RSRenderParamsTest, SetRenderGroupSubTreeDirtyTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetChildHasTranslateOnSqueezeTest
+ * @tc.desc: Test SetChildHasTranslateOnSqueeze
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetChildHasTranslateOnSqueezeTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    renderParams->SetChildHasTranslateOnSqueeze(false);
+
+    EXPECT_FALSE(renderParams->ChildHasTranslateOnSqueeze());
+    ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
+
+    renderParams->SetChildHasTranslateOnSqueeze(true);
+    ASSERT_NE(renderParams->renderGroupCache_, nullptr);
+    EXPECT_TRUE(renderParams->ChildHasTranslateOnSqueeze());
+    EXPECT_TRUE(renderParams->needSync_);
+
+    renderParams->SetChildHasTranslateOnSqueeze(false);
+    EXPECT_FALSE(renderParams->ChildHasTranslateOnSqueeze());
+}
+
+/**
  * @tc.name: SetDrawingCacheIncludeProperty_001
  * @tc.desc: Test function SetDrawingCacheIncludeProperty
  * @tc.type:FUNC

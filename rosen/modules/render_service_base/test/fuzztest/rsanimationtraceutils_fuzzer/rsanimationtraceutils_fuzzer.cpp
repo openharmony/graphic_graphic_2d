@@ -175,10 +175,6 @@ namespace OHOS {
         data_ = data;
         size_ = size;
         pos = 0;
-#ifndef MODIFIER_NG
-        RSAnimationTraceUtilsFuzzerTest();
-        RSAnimationTraceUtilsFuzzerTest2();
-#endif
         ParseRenderPropertyValueTest();
         return true;
     }

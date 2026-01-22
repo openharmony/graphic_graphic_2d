@@ -1426,37 +1426,6 @@ HWTEST_F(RSSubThreadCacheTest, GetSurfaceSkipPriorityTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSubAppNodeIdTest
- * @tc.desc: GetSubAppNodeId
- * @tc.type: FUNC
- * @tc.require: issuesICFWAC
- */
-HWTEST_F(RSSubThreadCacheTest, GetSubAppNodeIdTest, TestSize.Level1)
-{
-    RsSubThreadCache subCache;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(100);
-    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
-    NodeId nodeId = subCache.GetSubAppNodeId(surfaceDrawable.get());
-    ASSERT_EQ(nodeId, 100);
-
-    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(101);
-    auto surfaceDrawable1 = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode1));
-    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(102);
-    auto surfaceDrawable2 = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode2));
-    auto surfaceParams2 = static_cast<RSSurfaceRenderParams*>(surfaceDrawable2->GetRenderParams().get());
-    surfaceParams2->SetWindowInfo(true, true, true);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-    surfaceParams->allSubSurfaceNodeIds_.insert(surfaceNode1->GetId());
-    surfaceParams->allSubSurfaceNodeIds_.insert(surfaceNode2->GetId());
-    surfaceParams->allSubSurfaceNodeIds_.insert(102);
-    NodeId nodeId1 = subCache.GetSubAppNodeId(surfaceDrawable.get());
-    ASSERT_EQ(nodeId1, 102);
-}
-
-/**
  * @tc.name: CacheReuseCountTest
  * @tc.desc: Test uifirst cache reuse count
  * @tc.type: FUNC

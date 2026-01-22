@@ -81,6 +81,10 @@ if (graphic_2d_feature_product == "phone" ||
   graphic_2d_feature_enable_stack_culling = true
 }
 
+if (is_ios && is_arkui_x) {
+  graphic_2d_feature_enable_vulkan = false
+}
+
 if (graphic_2d_feature_product == "phone" ||
     graphic_2d_feature_product == "tablet" ||
     graphic_2d_feature_product == "wearable") {

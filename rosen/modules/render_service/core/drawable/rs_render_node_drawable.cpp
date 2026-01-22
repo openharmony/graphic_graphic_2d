@@ -20,6 +20,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature_cfg/feature_param/performance_feature/opinc_param.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "memory/rs_tag_tracker.h"
@@ -526,7 +527,8 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
     }
     if (IsIntersectedWithFilter(filterBegin, filterInfoVec, dstRect)) {
         RSRenderNodeDrawable::OnDraw(canvas);
-    } else if (params.ChildHasVisibleEffect() || params.ChildHasVisibleFilter()) {
+    } else if (params.ChildHasTranslateOnSqueeze() &&
+               (params.ChildHasVisibleEffect() || params.ChildHasVisibleFilter())) {
         DrawChildren(canvas, params.GetBounds());
     }
 }
@@ -1123,7 +1125,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
             tagTracer.emplace(curCanvas->GetGPUContext(), params.GetInstanceRootNodeId(),
                 RSTagTracker::TAGTYPE::TAG_RENDER_GROUP, params.GetInstanceRootNodeName());
         }
-        if (RSSystemProperties::GetOpincCacheMemThresholdEnabled()) {
+        if (OPIncParam::IsImageAliasEnable()) {
             cachedImage_ = GetImageAlias(cacheSurface);
         } else {
             cachedImage_ = cacheSurface->GetImageSnapshot();

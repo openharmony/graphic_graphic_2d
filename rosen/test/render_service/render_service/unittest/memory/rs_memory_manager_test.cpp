@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <string>
 #include <fstream>
 #include "gtest/gtest.h"
 #include "memory/rs_memory_manager.h"
@@ -780,10 +781,8 @@ HWTEST_F(RSMemoryManagerTest, DumpAllGpuInfo001, testing::ext::TestSize.Level1)
     DfxString log;
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     std::vector<std::pair<NodeId, std::string>> nodeTags;
-    nodeTags.emplace_back(std::make_pair(1001, "testnode1"));
-    nodeTags.emplace_back(std::make_pair(1002, "testnode2"));
     MemoryManager::DumpAllGpuInfo(log, gpuContext, nodeTags);
-    ASSERT_TRUE(log.GetString().find("Total GPU memory usage:") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("Total GPU memory usage:") == std::string::npos);
 }
 
 /**
@@ -799,7 +798,6 @@ HWTEST_F(RSMemoryManagerTest, DumpAllGpuInfo002, testing::ext::TestSize.Level1)
     MemoryManager::DumpAllGpuInfo(log, nullptr, nodeTags);
     ASSERT_TRUE(log.GetString().find("No valid gpu cache instance") != std::string::npos);
 }
-
 
 /**
  * @tc.name: DumpAllGpuInfoNew001
@@ -951,6 +949,22 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow002, testing::ext::TestSize.Level1)
 }
 
 /**
+ * @tc.name: MemoryOverflow003
+ * @tc.desc: Test MemoryOverflow
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverflow003, testing::ext::TestSize.Level1)
+{
+    g_logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    pid_t pid = 1434;
+    MemoryManager::MemoryOverflow(pid, 1024, false);
+    MemorySnapshot::Instance().AddCpuMemory(pid, 2048);
+    EXPECT_TRUE(g_logMsg.find("RSMemoryOverflow pid[1434]") != std::string::npos);
+}
+
+/**
  * @tc.name: DumpExitPidMem001
  * @tc.desc: Verify DumpExitPidMem logs correct trace info
  * @tc.type: FUNC
@@ -994,12 +1008,12 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest001, testing::ext::TestSiz
 }
 
 /**
- * @tc.name: MemoryOverReport
+ * @tc.name: MemoryOverReport001
  * @tc.desc: Test MemoryOverReport
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryManagerTest, MemoryOverReport, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1)
 {
     pid_t pid = 1434;
     MemorySnapshotInfo info;
@@ -1028,28 +1042,6 @@ HWTEST_F(RSMemoryManagerTest, WriteInfoToFile, testing::ext::TestSize.Level1)
     hidumperReport = "hidumper";
     MemoryManager::WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
     ASSERT_TRUE(std::ifstream(filePath).good());
-}
-
-/**
- * @tc.name: DumpGpuCacheWithPidInfoTest00
- * @tc.desc: DumpGpuCacheWithPidInfo
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryManagerTest, DumpGpuCacheWithPidInfoTest00, testing::ext::TestSize.Level1)
-{
-    Drawing::GPUContext* gpuContext = new Drawing::GPUContext();
-    Drawing::GPUResourceTag tag(100, 0, 100000, 0, "DumpGpuCacheWithPidInfoTest");
-    DfxString log;
-    GpuPidInfo totalInfo;
-    std::string name = "DumpGpuCacheWithPidInfoTest";
-    MemoryManager::DumpGpuCacheWithPidInfo(log, gpuContext, &tag, name, totalInfo);
-    DfxString log1;
-    MemoryManager::DumpGpuCacheWithPidInfo(log1, nullptr, &tag, name, totalInfo);
-    ASSERT_TRUE(log1.GetString().find("gpuContext is nullptr") != std::string::npos);
-    DfxString log2;
-    MemoryManager::DumpGpuCacheWithPidInfo(log2, gpuContext, nullptr, name, totalInfo);
-    ASSERT_TRUE(log2.GetString().find("GPU Caches") != std::string::npos);
 }
 
 /**

@@ -48,7 +48,7 @@ namespace Drawing {
 static constexpr int TEXTURE_SAMPLE_COUNT = 0;
 static constexpr int FB_SAMPLE_COUNT = 0;
 static constexpr uint32_t SURFACE_PROPS_FLAGS = 0;
-
+#endif
 namespace {
 SkSurface::BackendHandleAccess ConvertToSkiaBackendAccess(BackendAccess access)
 {
@@ -65,12 +65,11 @@ SkSurface::BackendHandleAccess ConvertToSkiaBackendAccess(BackendAccess access)
     return SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess;
 }
 }
-#endif
+
 SkiaSurface::SkiaSurface() {}
 
 void SkiaSurface::PostSkSurfaceToTargetThread()
 {
-#ifdef RS_ENABLE_GPU
     auto canvas = GetCanvas();
     if (canvas == nullptr) {
         return;
@@ -94,7 +93,6 @@ void SkiaSurface::PostSkSurfaceToTargetThread()
             SkSafeUnref(image);
         });
     }
-#endif
 }
 
 SkiaSurface::~SkiaSurface()

@@ -2742,7 +2742,7 @@ HWTEST_F(RSPropertiesTest, GenerateForegroundFilter001, TestSize.Level1)
 
     properties.GetEffect().foregroundBlurRadius_ = 2.f;
     properties.GenerateForegroundFilter();
-    EXPECT_TRUE(properties.IsForegroundMaterialFilterVaild());
+    EXPECT_TRUE(properties.IsForegroundMaterialFilterValid());
 
     std::vector<std::pair<float, float>> fractionStops;
     GradientDirection direction;
@@ -3579,5 +3579,191 @@ HWTEST_F(RSPropertiesTest, SetAndGetProperties001, TestSize.Level1)
     properties.SetPersp(Vector4f(2.0f, 2.0f, 2.0f, 2.0f));
     EXPECT_EQ(properties.GetPersp(), Vector4f(2.0f, 2.0f, 2.0f, 2.0f));
 }
+
+/**
+ * @tc.name: StatBackground_Variants
+ * @tc.desc: cover different combinations that make Stat* methods choose to report
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesTest, StatBackground_Variants, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    // Background variant
+    RSProperties props;
+    props.backref_ = node;
+    props.hasReportedServerXXFilterCascade_.reset();
+    props.SetAiInvert(Vector4f(0.1f, 0.1f, 0.1f, 0.1f));
+    props.SetMagnifierParams(std::make_shared<RSMagnifierParams>());
+    props.SetAlwaysSnapshot(true);
+    props.SetBackgroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
+    props.SetSystemBarEffect(true);
+    props.SetBackgroundBlurRadiusX(1.5f);
+    props.SetBackgroundBlurRadiusY(1.5f);
+    props.SetBackgroundBlurRadius(2.0f);
+    RSWaterRipplePara rs_water_ripple_param_bg = { 2, 0.25f, 0.5f, 1 };
+    float progress = 0.5f;
+    props.SetWaterRippleProgress(progress);
+    props.SetWaterRippleParams(rs_water_ripple_param_bg);
+    props.GenerateBackgroundFilter();
+    EXPECT_TRUE(props.hasReportedServerXXFilterCascade_.test(0));
+    props.GenerateBackgroundFilter();
+
+    auto node1 = std::make_shared<RSRenderNode>(1);
+    RSProperties props1;
+    props1.backref_ = node1;
+    props1.hasReportedServerXXFilterCascade_.reset();
+    props1.SetSystemBarEffect(true);
+    auto magnifierPara = std::make_shared<RSMagnifierParams>();
+    magnifierPara->factor_ = 1.0f;
+    props1.SetMagnifierParams(magnifierPara);
+    props1.GenerateBackgroundMaterialBlurFilter();
+    props1.SetBackgroundBlurRadiusX(1.5f);
+    props1.GenerateBackgroundFilter();
+    EXPECT_TRUE(props1.hasReportedServerXXFilterCascade_.test(0));
+
+    auto node2 = std::make_shared<RSRenderNode>(2);
+    RSProperties props2;
+    props2.backref_ = node2;
+    props2.hasReportedServerXXFilterCascade_.reset();
+    props2.SetSystemBarEffect(true);
+    props2.SetBackgroundBlurRadiusY(1.5f);
+    props2.GenerateBackgroundFilter();
+    EXPECT_FALSE(props2.hasReportedServerXXFilterCascade_.test(0));
+}
+
+/**
+ * @tc.name: StatCompositing_Variants
+ * @tc.desc: cover different combinations that make Stat* methods choose to report
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesTest, StatCompositing_Variants, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    RSProperties props;
+    props.backref_ = node;
+    props.hasReportedServerXXFilterCascade_.reset();
+    std::vector<std::pair<float, float>> fractionStops;
+    GradientDirection direction;
+    props.SetLinearGradientBlurPara(std::make_shared<RSLinearGradientBlurPara>(-1.f, fractionStops, direction));
+    props.SetForegroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
+    props.SetForegroundBlurRadiusX(1.5f);
+    props.SetForegroundBlurRadiusY(1.5f);
+    props.SetForegroundBlurRadius(2.0f);
+    props.GenerateForegroundFilter();
+    EXPECT_TRUE(props.hasReportedServerXXFilterCascade_.test(1));
+    props.GenerateForegroundFilter();
+
+    auto node1 = std::make_shared<RSRenderNode>(1);
+    RSProperties props1;
+    props1.backref_ = node1;
+    props1.hasReportedServerXXFilterCascade_.reset();
+    props1.SetForegroundBlurRadiusX(1.5f);
+    props1.GenerateForegroundFilter();
+    EXPECT_FALSE(props1.hasReportedServerXXFilterCascade_.test(1));
+
+    auto node2 = std::make_shared<RSRenderNode>(2);
+    RSProperties props2;
+    props2.backref_ = node2;
+    props2.hasReportedServerXXFilterCascade_.reset();
+    props2.SetForegroundBlurRadiusY(1.5f);
+    props2.GenerateForegroundFilter();
+    EXPECT_FALSE(props2.hasReportedServerXXFilterCascade_.test(1));
+}
+
+/**
+ * @tc.name: StatForeground_Variants
+ * @tc.desc: cover different combinations that make Stat* methods choose to report
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesTest, StatForeground_Variants, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    RSProperties props;
+    props.backref_ = node;
+    props.hasReportedServerXXFilterCascade_.reset();
+
+    Vector2f pfScaleAnchor(0.f, 0.f);
+    props.SetMotionBlurPara(std::make_shared<MotionBlurParam>(2.0f, pfScaleAnchor));
+    props.SetForegroundEffectRadius(2.5f);
+    props.SetSpherize(1.0f);
+    RSFlyOutPara rs_flyout_para {};
+    props.SetFlyOutParams(rs_flyout_para);
+    props.SetAttractionFraction(0.5f);
+    props.SetAttractionDstPoint(Vector2f(1.0f, 1.0f));
+    props.SetShadowMask(1);
+    props.SetShadowIsFilled(true);
+    props.SetDistortionK(0.8f);
+    props.SetHDRUIBrightness(1.2f);
+    props.SetForegroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
+    props.SetAdaptive(true);
+    props.UpdateForegroundFilter();
+    EXPECT_TRUE(props.hasReportedServerXXFilterCascade_.test(2));
+    props.UpdateForegroundFilter();
+
+    auto node1 = std::make_shared<RSRenderNode>(1);
+    RSProperties props1;
+    props1.backref_ = node1;
+    props1.hasReportedServerXXFilterCascade_.reset();
+    props1.SetMotionBlurPara(std::make_shared<MotionBlurParam>(-2.0f, pfScaleAnchor));
+    props1.UpdateForegroundFilter();
+    EXPECT_FALSE(props1.hasReportedServerXXFilterCascade_.test(2));
+}
+
+/**
+ * @tc.name: ReportServerXXFilterCascadeCheck_NullVsNode
+ * @tc.desc: ensure calling generate methods with nullptr backref is safe and with node exercises background task branch
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesTest, ReportServerXXFilterCascadeCheck_NullVsNode, TestSize.Level1)
+{
+    RSProperties pnull;
+    pnull.backref_.reset();
+    pnull.hasReportedServerXXFilterCascade_.reset(0);
+    // should not crash or post background task when backref is null
+    pnull.GenerateBackgroundFilter();
+    auto node = std::make_shared<RSRenderNode>(111);
+    RSProperties pnode;
+    pnode.SetSystemBarEffect(true);
+    pnode.SetBackgroundBlurRadiusX(1.5f);
+    pnode.SetBackgroundBlurRadiusY(1.5f);
+    pnode.SetBackgroundBlurRadius(2.0f);
+    pnode.backref_ = node;
+    pnode.hasReportedServerXXFilterCascade_.reset(0);
+
+    // call multiple times to exercise rate-limiter (hourly bound will short-circuit after 5)
+    for (int i = 0; i < 6; ++i) {
+        pnode.hasReportedServerXXFilterCascade_.reset();
+        pnode.GenerateBackgroundFilter();
+    }
+
+    EXPECT_TRUE(pnode.hasReportedServerXXFilterCascade_.test(0));
+}
+
+/**
+ * @tc.name: ReportServerXXFilterCascadeCheck_DailyAttempt
+ * @tc.desc: attempt to trigger daily limit by repeated calls; note: hourly limit may prevent reaching day limit without
+ * time travel
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesTest, ReportServerXXFilterCascadeCheck_DailyAttempt, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(222);
+    RSProperties props;
+    props.SetSystemBarEffect(true);
+    props.SetBackgroundBlurRadiusX(1.5f);
+    props.SetBackgroundBlurRadiusY(1.5f);
+    props.SetBackgroundBlurRadius(2.0f);
+    props.backref_ = node;
+    props.hasReportedServerXXFilterCascade_.reset(0);
+
+    // perform a larger number of attempts; hourly limit will likely short-circuit, but loop covers counter increments
+    for (int i = 0; i < 21; ++i) {
+        props.hasReportedServerXXFilterCascade_.reset();
+        props.GenerateBackgroundFilter();
+    }
+
+    EXPECT_TRUE(props.hasReportedServerXXFilterCascade_.test(0));
+}
+
 } // namespace Rosen
 } // namespace OHOS

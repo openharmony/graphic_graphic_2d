@@ -1608,7 +1608,7 @@
   {
     "testCaseDesc": "GET_PANEL_POWER_STATUS_TEST_001",
     "interfaceName": "GET_PANEL_POWER_STATUS",
-    "inputParams": "WriteUint64;",
+    "inputParams": "WriteUint64",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
@@ -2868,6 +2868,15 @@
     "inputParams": "WriteInt32;WriteString;WriteBool;WritePixelMapSharedPtr;WriteUint64Vector;WriteUint8",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_182",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSColorPickerCallback*10000",
+    "commandListRepeat": 1
   }
 
 ]

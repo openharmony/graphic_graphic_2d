@@ -95,6 +95,8 @@ const std::vector<struct JsEnumInt> ELLIPSIS_MODAL = {
     { "START", static_cast<size_t>(EllipsisModal::HEAD) },
     { "MIDDLE", static_cast<size_t>(EllipsisModal::MIDDLE) },
     { "END", static_cast<size_t>(EllipsisModal::TAIL) },
+    { "MULTILINE_START", static_cast<size_t>(EllipsisModal::MULTILINE_HEAD) },
+    { "MULTILINE_MIDDLE", static_cast<size_t>(EllipsisModal::MULTILINE_MIDDLE) },
 };
 
 const std::vector<struct JsEnumInt> TEXT_DECORATION = {

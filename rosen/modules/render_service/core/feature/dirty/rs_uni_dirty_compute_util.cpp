@@ -433,17 +433,17 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
     auto mirrorScreenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
     auto mainDrawable = mirrorScreenParams->GetMirrorSourceDrawable().lock();
     if (mainDrawable == nullptr) {
-        RS_LOGE("CheckCurrentFrameHasDirtyInVirtual, failed to get mainDrawable!");
+        RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get mainDrawable!");
         return false;
     }
     auto mainScreenParams = static_cast<RSScreenRenderParams*>(mainDrawable->GetRenderParams().get());
     if (mainScreenParams == nullptr) {
-        RS_LOGE("CheckCurrentFrameHasDirtyInVirtual, failed to get mirroredRenderParams!");
+        RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get mirroredRenderParams!");
         return false;
     }
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
-        RS_LOGE("CheckCurrentFrameHasDirtyInVirtual, failed to get screen manager!");
+        RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get screen manager!");
         return false;
     }
 

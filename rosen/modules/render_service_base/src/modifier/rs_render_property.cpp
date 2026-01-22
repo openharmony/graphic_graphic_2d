@@ -742,6 +742,11 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
     if (value == stagingValue_) {
         return;
     }
+
+    if (type == UPDATE_TYPE_ONLY_VALUE) {
+        stagingValue_ = value;
+        return;
+    }
     // PLANNING: node_ is only used in this function, find alternative way detach/attach values, and remove the node_
     // member variable.
     auto node = node_.lock();
@@ -777,6 +782,11 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
     const std::shared_ptr<RSNGRenderShaderBase>& value, PropertyUpdateType type)
 {
     if (value == stagingValue_) {
+        return;
+    }
+
+    if (type == UPDATE_TYPE_ONLY_VALUE) {
+        stagingValue_ = value;
         return;
     }
     // PLANNING: node_ is only used in this function, find alternative way detach/attach values, and remove the node_
@@ -816,6 +826,11 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
     if (value == stagingValue_) {
         return;
     }
+
+    if (type == UPDATE_TYPE_ONLY_VALUE) {
+        stagingValue_ = value;
+        return;
+    }
     // PLANNING: node_ is only used in this function, find alternative way detach/attach values, and remove the node_
     // member variable.
     auto node = node_.lock();
@@ -851,6 +866,11 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::Set(
     const std::shared_ptr<RSNGRenderShapeBase>& value, PropertyUpdateType type)
 {
     if (value == stagingValue_) {
+        return;
+    }
+
+    if (type == UPDATE_TYPE_ONLY_VALUE) {
+        stagingValue_ = value;
         return;
     }
     // PLANNING: node_ is only used in this function, find alternative way detach/attach values, and remove the node_

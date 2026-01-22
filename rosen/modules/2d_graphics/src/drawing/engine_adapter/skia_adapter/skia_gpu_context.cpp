@@ -107,9 +107,6 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
-#ifdef SKIA_OHOS
-    grOptions.clearSmallTexture = options.GetIsUniRender();
-#endif
 #ifdef USE_M133_SKIA
     grContext_ = GrDirectContexts::MakeGL(std::move(glInterface), grOptions);
 #else
@@ -509,7 +506,10 @@ void SkiaGPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64
 }
 
 void SkiaGPUContext::InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size)
-{}
+{
+    // Skia Not Implement InitGpuMemoryReportLimit
+    LOGD("SkiaGPUContext::InitGpuMemoryReportLimit, not implement");
+}
 
 #ifdef RS_ENABLE_VK
 void SkiaGPUContext::StoreVkPipelineCacheData()

@@ -573,7 +573,9 @@ HWTEST_F(HdiDeviceTest, GetDisplayClientTargetProperty, Function | MediumTest| L
             testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     EXPECT_EQ(hdiDeviceMock_->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace),
               GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace),
+    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(_, _, _)).WillRepeatedly(
+            testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 } // namespace

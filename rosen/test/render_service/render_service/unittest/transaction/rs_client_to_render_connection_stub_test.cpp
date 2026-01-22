@@ -23,6 +23,7 @@
 #include "mock_hdi_device.h"
 #include "sandbox_utils.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
 #endif
@@ -404,6 +405,63 @@ HWTEST_F(RSClientToRenderConnectionStubTest, DropFrameByPid001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: TakeUICaptureInRangeTest001
+ * @tc.desc: Test TakeUICaptureInRange under different node states
+ * @tc.type: FUNC
+ * @tc.require: issue21623
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest001, TestSize.Level2)
+{
+    constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
+    auto mainThread = RSMainThread::Instance();
+    auto runner = mainThread->runner_;
+    auto handler = mainThread->handler_;
+    mainThread->runner_ = AppExecFwk::EventRunner::Create("TakeUICaptureInRangeTest001");
+    ASSERT_NE(mainThread->runner_, nullptr);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    ASSERT_NE(mainThread->handler_, nullptr);
+    mainThread->runner_->Run();
+
+    auto screenManagerPtr = RSScreenManager::GetInstance();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToRenderConnection> toRenderConnection =
+        new RSClientToRenderConnection(getpid(), nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    ASSERT_NE(toRenderConnection, nullptr);
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    ASSERT_NE(callback, nullptr);
+    RSSurfaceCaptureConfig config;
+    config.isSync = false;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    NodeId id{std::numeric_limits<NodeId>::max()};
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    nodeMap.RegisterRenderNode(node);
+    node->isOnTheTree_ = true;
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->renderProperties_.isDirty_ = false;
+    node->isSubTreeDirty_ = false;
+    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    node->isSubTreeDirty_ = true;
+    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    node->renderProperties_.isDirty_ = true;
+    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    node->isOnTheTree_ = false;
+    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    nodeMap.UnregisterRenderNode(id);
+    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
+    usleep(TIME_OF_CAPTURE_TASK);
+    EXPECT_EQ(nodeMap.GetRenderNode<RSRenderNode>(id), nullptr);
+
+    mainThread->runner_ = runner;
+    mainThread->handler_ = handler;
+}
+
+/**
  * @tc.name: GetScreenHDRStatus001
  * @tc.desc: Test GetScreenHDRStatus
  * @tc.type: FUNC
@@ -503,7 +561,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data.WriteUint32(captureConfig.backGroundColor);
     auto res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+#ifdef RS_ENABLE_UNI_RENDER
     EXPECT_LE(res, ERR_PERMISSION_DENIED);
+#else
+    EXPECT_LE(res, ERR_INVALID_DATA);
+#endif
 }
 
 /**
@@ -897,6 +959,16 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterCanvasCallbackTest, TestSiz
     data5.WriteBool(true);
     res = toRenderConnectionStub_->OnRemoteRequest(code, data5, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(false);
+    MessageParcel data6;
+    data6.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data6.WriteBool(true);
+    callback = new RSCanvasSurfaceBufferCallbackStubMock();
+    data6.WriteRemoteObject(callback->AsObject());
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data6, reply, option);
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
+    ASSERT_EQ(res, ERR_NONE);
 }
 
 /**
@@ -966,6 +1038,22 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
  */
 HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest002, TestSize.Level1)
 {
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(false);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint64(3); // Write nodeId
+    data.WriteUint32(3); // Write resetSurfaceIndex
+    data.WriteUint32(1); // Write sequence
+    data.WriteBool(true); // Whether has buffer
+    auto buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(1, 100, 100);
+    buffer->WriteToMessageParcel(data);
+    auto ret = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
+    ASSERT_EQ(ret, 0);
+
     auto newPid = getpid();
     auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
@@ -974,8 +1062,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
         new RSClientToRenderConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     ASSERT_EQ(toRenderConnection != nullptr, true);
     toRenderConnection->mainThread_ = nullptr;
-    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
-    auto ret = toRenderConnection->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
+    buffer = SurfaceBuffer::Create();
+    ret = toRenderConnection->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
     ASSERT_NE(ret, 0);
     toRenderConnection->mainThread_ = mainThread;
     toRenderConnection->remotePid_ = 1;

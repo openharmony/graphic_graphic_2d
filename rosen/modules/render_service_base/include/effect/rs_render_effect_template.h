@@ -303,12 +303,12 @@ public:
     }
 
     template<typename Tag>
-    constexpr void Setter(typename Tag::ValueType value)
+    constexpr void Setter(typename Tag::ValueType value, PropertyUpdateType type = UPDATE_TYPE_OVERWRITE)
     {
         static_assert(is_render_property_tag_v<Tag>, "Tag must be a render property tag");
         static_assert(sizeof...(PropertyTags) > 0, "Cannot call Setter: No properties are defined in this group.");
         static_assert(Contains<Tag>(), "Target property not registered.");
-        return std::get<Tag>(properties_).value_->Set(value);
+        return std::get<Tag>(properties_).value_->Set(value, type);
     }
 
     template<typename Tag>
@@ -321,9 +321,7 @@ public:
             tagName = tagName.substr(pos + 1);
         }
         out += tagName;
-        out += "[";
         Getter<Tag>()->Dump(out);
-        out += "]";
     }
 
     bool Marshalling(Parcel& parcel) const override
@@ -377,9 +375,10 @@ public:
 
     void Dump(std::string& out) const override
     {
-        std::string descStr = ": ";
+        std::string descStr = ":";
         std::string splitStr = "--";
 
+        out += "[";
         out += RSNGRenderEffectHelper::GetEffectTypeString(GetType());
         out += descStr;
         DumpProperties(out);
@@ -387,6 +386,7 @@ public:
             out += splitStr;
             Base::nextEffect_->Dump(out);
         }
+        out += "]";
     }
 
     std::string Dump() const override
@@ -433,7 +433,7 @@ protected:
     void DumpProperties(std::string& out) const override
     {
         std::string startStr = "[";
-        std::string splitStr = ", ";
+        std::string splitStr = ",";
         std::string endStr = "]";
 
         out += startStr;

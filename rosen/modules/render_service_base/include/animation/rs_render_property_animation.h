@@ -65,9 +65,9 @@ protected:
 
     void RecordLastAnimateValue() override;
 
-    void UpdateAnimateVelocity(float frameInterval) override;
+    void UpdateAnimateVelocity(double frameInterval) override;
 
-    void ProcessAnimateVelocityUnderAngleRotation(float frameInterval) override;
+    void ProcessAnimateVelocityUnderAngleRotation(double frameInterval) override;
 
     virtual void InitValueEstimator() {}
 

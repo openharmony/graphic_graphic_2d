@@ -658,15 +658,16 @@ public:
     OutOfParentType GetOutOfParent() const;
 
     void UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced = false);
-    virtual void MarkFilterHasEffectChildren() {};
-    virtual void OnFilterCacheStateChanged() {};
+    virtual void MarkFilterHasEffectChildren() {}
+    virtual void OnFilterCacheStateChanged() {}
 
     // for blur filter cache
     virtual void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false,
         bool rotationStatusChanged = false);
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
-        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect,
+        const std::optional<RectI>& surfaceClipRect);
     void FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager,
         const RectI& filterRect);
     void MarkFilterStatusChanged(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
@@ -725,6 +726,7 @@ public:
     bool IsRenderGroupSubTreeDirty() const;
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
+    void SetChildHasTranslateOnSqueeze(bool val);
     bool IsNodeGroupIncludeProperty() const;
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, bool isOnExcludedSubTree);
     void UpdateDrawingCacheInfoAfterChildren(
@@ -786,9 +788,9 @@ public:
 
     virtual RectI GetFilterRect() const;
     RectI GetAbsRect() const;
-    void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
+    void CalVisibleFilterRect(const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
     void CalVisibleFilterRect(const RectI& absRect, const Drawing::Matrix& matrix,
-        const std::optional<RectI>& clipRect);
+        const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
     void UpdateFilterRectInfo();
     std::shared_ptr<RSFilter> GetRSFilterWithSlot(RSDrawableSlot slot) const;
 
@@ -958,7 +960,7 @@ public:
 
     void SetHdrNum(bool flag, NodeId instanceRootNodeId, NodeId screenNodeId, HDRComponentType hdrType);
 
-    virtual void UpdateNodeColorSpace() {};
+    virtual void UpdateNodeColorSpace() {}
     void ResetNodeColorSpace();
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetNodeColorSpace() const;
@@ -1082,8 +1084,8 @@ protected:
     virtual void InitRenderParams();
     virtual void OnSync();
     virtual void OnSkipSync();
-    virtual void ClearResource() {};
-    virtual void ClearNeverOnTree() {};
+    virtual void AccumulateLastDirtyTypes() {}
+    virtual void ClearNeverOnTree() {}
 
     void AddUIExtensionChild(SharedPtr child);
     void MoveUIExtensionChild(SharedPtr child);
