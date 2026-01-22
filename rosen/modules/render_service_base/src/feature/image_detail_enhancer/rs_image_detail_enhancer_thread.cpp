@@ -111,7 +111,6 @@ void RSImageDetailEnhancerThread::MarkScaledImageDirty(uint64_t nodeId)
 
 bool RSImageDetailEnhancerThread::IsSizeSupported(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
-<<<<<<< master
     // Return if target size is invalid or unchanged
     if (dstWidth <= 0 || dstHeight <= 0 || srcWidth == dstWidth || srcHeight == dstHeight) {
         return false;
@@ -123,14 +122,6 @@ bool RSImageDetailEnhancerThread::IsSizeSupported(int srcWidth, int srcHeight, i
     }
 
     // Check if source and target sizes fall within supported config range
-=======
-    if (dstWidth <= 0 || dstHeight <= 0 || srcWidth == dstWidth || srcHeight == dstHeight) {
-        return false;
-    }
-    if (srcWidth < dstWidth && srcHeight < dstHeight && srcWidth * srcHeight > MAX_SCALEUP_SIZE) {
-        return false;
-    }
->>>>>>> master
     if (dstWidth > params_.minSize && dstHeight > params_.minSize &&
         srcWidth > params_.minSize && srcHeight > params_.minSize && dstWidth < params_.maxSize &&
         dstHeight < params_.maxSize && srcWidth < params_.maxSize && srcHeight < params_.maxSize) {
