@@ -140,6 +140,9 @@ std::string FontMetaDataCollector::GetFirstAvailableString(const std::shared_ptr
     if (hbNameId == HB_OT_NAME_ID_INVALID || typeface == nullptr) {
         return "";
     }
+#ifdef CURRENT_OS_MAC
+    return "";
+#endif
     unsigned int count = 0;
     HBFace hbFace = FontHarfbuzz::CreateHbFace(*typeface);
     const hb_ot_name_entry_t* entries = hb_ot_name_list_names(hbFace.get(), &count);
@@ -153,6 +156,9 @@ std::string FontMetaDataCollector::GetFirstAvailableString(const std::shared_ptr
 
 std::string FontMetaDataCollector::ExtractString(hb_face_t* face, const hb_ot_name_entry_t& entry)
 {
+#ifdef CURRENT_OS_MAC
+    return "";
+#endif
     char buffer[BUF_SIZE];
     unsigned int size = BUF_SIZE;
     unsigned int len = hb_ot_name_get_utf8(face, entry.name_id, entry.language, &size, buffer);
