@@ -40,8 +40,8 @@ typedef struct RequestLayerInfo {
     int compressType;                     /**< CompressType of Surface Buffer */
     uint64_t bufferUsage;                 /**< Usage of Surface Buffer */
     uint64_t layerUsage;                  /**< Usage of RequestLayerInfo */
-    /**< Extra parameters of frame, format: [key, parameter] */
-    std::unordered_map<std::string, std::vector<int8_t>> perFrameParameters;
+    /**< Extra parameters of frame, format: [key, parameter], modified in 6.1 (unorded_map->map) */
+    std::map<std::string, std::vector<int8_t>> perFrameParameters;
     CldInfo cldInfo;
     uint32_t fps = 120;
     BufferHandle* bufferHandle = nullptr;

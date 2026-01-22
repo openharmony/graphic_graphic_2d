@@ -48,9 +48,17 @@ RSUniHwcPrevalidateUtil& RSUniHwcPrevalidateUtil::GetInstance()
 
 RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
 {
-    preValidateHandle_ = dlopen("libdss_enhance.z.so", RTLD_NOW);
+    preValidateHandle_ = dlopen("libprevalidate_client.z.so", RTLD_NOW);
     if (preValidateHandle_ == nullptr) {
         RS_LOGW("[%{public}s_%{public}d]:load library failed, reason: %{public}s", __func__, __LINE__, dlerror());
+        return;
+    }
+    PreValidateInitFunc initFunc_ = reinterpret_cast<PreValidateInitFunc>(dlsym(preValidateHandle_, "InitPrevalidate"));
+    bool initSucc = ((initFunc_ != nullptr) && (initFunc_() == 0));
+    if (!initSucc) {
+        RS_LOGW("[%{public}s_%{public}d]:prevalidate init failed", __func__, __LINE__);
+        dlclose(preValidateHandle_);
+        initFunc_ = nullptr;
         return;
     }
     preValidateFunc_ = reinterpret_cast<PreValidateFunc>(dlsym(preValidateHandle_, "RequestLayerStrategy"));
@@ -81,7 +89,7 @@ void RSUniHwcPrevalidateUtil::Init()
         RS_LOGW("[%{public}s]:Failed to register OnHwcEvent Func", __func__);
     }
 }
- 
+
 void RSUniHwcPrevalidateUtil::OnHwcEvent(
     uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data)
 {
@@ -242,7 +250,7 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     if (!node || !node->GetConsumer() || !node->GetBuffer()) {
         return false;
     }
-    
+
     info.id = node->GetId();
     auto src = node->GetSrcRect();
     info.srcRect = {src.left_, src.top_, src.width_, src.height_};

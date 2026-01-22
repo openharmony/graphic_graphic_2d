@@ -79,9 +79,18 @@ bool RSHpaeOfflineProcessor::LoadPreProcessHandle()
 {
     loadSuccess_ = false;
     RS_TRACE_NAME_FMT("hpae_offline: LoadPreProcessHandle");
-    preProcessHandle_ = dlopen("libdss_enhance.z.so", RTLD_NOW);
+    preProcessHandle_ = dlopen("libprevalidate_client.z.so", RTLD_NOW);
     if (preProcessHandle_ == nullptr) {
         RS_OFFLINE_LOGW("[%{public}s]: load library failed, reason: %{public}s", __func__, dlerror());
+        return false;
+    }
+
+    PreValidateInitFunc initFunc_ = reinterpret_cast<PreValidateInitFunc>(dlsym(preProcessHandle_, "InitPrevalidate"));
+    bool initSucc = ((initFunc_ != nullptr) && (initFunc_() == 0));
+    if (!initSucc) {
+        RS_OFFLINE_LOGW("prevalidate init failed");
+        dlclose(preProcessHandle_);
+        initFunc_ = nullptr;
         return false;
     }
 
