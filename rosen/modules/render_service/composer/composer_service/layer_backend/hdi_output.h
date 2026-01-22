@@ -155,7 +155,7 @@ private:
     std::vector<GraphicIRect> outputDamages_;
     bool directClientCompositionEnabled_ = true;
 
-    std::vector<sptr<SurfaceBuffer> > bufferCache_;
+    std::vector<sptr<SurfaceBuffer>> bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
     mutable std::mutex mutex_;
 
