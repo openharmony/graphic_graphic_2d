@@ -130,7 +130,21 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
 ohos_unittest("RSProcessorTest") {
   module_out_path = module_output_path
   sources = [ "render_thread/rs_processor_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+  ]
+  defines = []
+  defines += gpu_defines
+  # Expose protected/private members for tests via build config
+  defines += [ "private=public", "protected=public" ]
 }
 
 ## Build RSRenderServiceUnitTest

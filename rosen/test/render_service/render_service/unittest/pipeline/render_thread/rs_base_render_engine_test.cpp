@@ -27,6 +27,7 @@
 #include "rs_surface_layer.h"
 #include "v2_1/cm_color_space.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -812,9 +813,14 @@ HWTEST_F(RSBaseRenderEngineUnitTest, SetUiTimeStamp_Normal, TestSize.Level1)
     int64_t ts = 0;
     auto framePtr = rf->GetFrame().get();
     ASSERT_NE(framePtr, nullptr);
-    auto buf = framePtr->GetBuffer();
+    // Avoid RTTI: use type tag guard then static_cast
+    ASSERT_EQ(framePtr->GetType(), RSSurfaceFrameType::RS_SURFACE_FRAME_OHOS_RASTER);
+    auto frameRaster = static_cast<RSSurfaceFrameOhosRaster*>(framePtr);
+    auto buf = frameRaster->GetBuffer();
     ASSERT_NE(buf, nullptr);
-    buf->GetExtraData()->ExtraGet("timeStamp", ts);
+    auto extra = buf->GetExtraData();
+    ASSERT_NE(extra, nullptr);
+    extra->ExtraGet("timeStamp", ts);
     EXPECT_GT(ts, 0);
 }
 }

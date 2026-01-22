@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "pipeline/rs_processor.h"
+#include "pipeline/render_thread/rs_uni_render_processor.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 
@@ -8,23 +9,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-
-class TestProcessor : public RSProcessor {
-public:
-    // Expose wrappers for protected methods/state needed by tests
-    using RSProcessor::CalculateMirrorAdaptiveCoefficient;
-    using RSProcessor::CalculateMirrorAdaptiveMatrix;
-    using RSProcessor::screenInfo_;
-    using RSProcessor::mirroredScreenInfo_;
-    using RSProcessor::mirrorAdaptiveCoefficient_;
-    using RSProcessor::renderEngine_;
-    using RSProcessor::renderFrameConfig_;
-
-    void ProcessSurface(RSSurfaceRenderNode&) override {}
-    void ProcessScreenSurface(RSScreenRenderNode&) override {}
-    void PostProcess() override {}
-    void ProcessRcdSurface(RSRcdSurfaceRenderNode&) override {}
-};
 
 class RSProcessorTest : public Test {};
 
@@ -36,7 +20,7 @@ class RSProcessorTest : public Test {};
 HWTEST_F(RSProcessorTest, Init_SetsScreenInfoAndFrameConfig, TestSize.Level1)
 {
     auto engine = std::make_shared<RSRenderEngine>();
-    TestProcessor proc;
+    RSUniRenderProcessor proc;
     // Prepare screen node with non-zero width/height
     ScreenInfo info;
     info.width = 800;
@@ -46,6 +30,7 @@ HWTEST_F(RSProcessorTest, Init_SetsScreenInfoAndFrameConfig, TestSize.Level1)
     node.SetScreenInfo(info);
     ASSERT_TRUE(proc.Init(node, engine));
     EXPECT_EQ(proc.screenInfo_.width, 800u);
+    EXPECT_NE(proc.renderEngine_, nullptr);
 }
 
 /**
@@ -55,7 +40,7 @@ HWTEST_F(RSProcessorTest, Init_SetsScreenInfoAndFrameConfig, TestSize.Level1)
  */
 HWTEST_F(RSProcessorTest, MirrorAdaptiveCoefficient_ZeroMirroredDims_NoChange, TestSize.Level1)
 {
-    TestProcessor proc;
+    RSUniRenderProcessor proc;
     proc.mirrorAdaptiveCoefficient_ = 1.0f;
     proc.CalculateMirrorAdaptiveCoefficient(1920.0f, 1080.0f, 0.0f, 1080.0f);
     EXPECT_FLOAT_EQ(proc.mirrorAdaptiveCoefficient_, 1.0f);
@@ -68,7 +53,7 @@ HWTEST_F(RSProcessorTest, MirrorAdaptiveCoefficient_ZeroMirroredDims_NoChange, T
  */
 HWTEST_F(RSProcessorTest, MirrorAdaptiveMatrix_ComputesScaleAndOffsets, TestSize.Level1)
 {
-    TestProcessor proc;
+    RSUniRenderProcessor proc;
     proc.screenInfo_.width = 1920;
     proc.screenInfo_.height = 1080;
     proc.mirroredScreenInfo_.width = 1280;
@@ -86,7 +71,7 @@ HWTEST_F(RSProcessorTest, MirrorAdaptiveMatrix_ComputesScaleAndOffsets, TestSize
  */
 HWTEST_F(RSProcessorTest, SecurityDisplayAndSecSurface_FlagsSet, TestSize.Level1)
 {
-    TestProcessor proc;
+    RSUniRenderProcessor proc;
     proc.SetSecurityDisplay(true);
     proc.SetDisplayHasSecSurface(true);
     // Access protected flags through subclass
@@ -101,7 +86,7 @@ HWTEST_F(RSProcessorTest, SecurityDisplayAndSecSurface_FlagsSet, TestSize.Level1
  */
 HWTEST_F(RSProcessorTest, IsInstanceOf_SelfType_True, TestSize.Level1)
 {
-    auto proc = std::make_shared<TestProcessor>();
+    auto proc = std::make_shared<RSUniRenderProcessor>();
     EXPECT_TRUE(proc->IsInstanceOf<RSProcessor>());
     auto casted = proc->ReinterpretCastTo<RSProcessor>();
     EXPECT_NE(casted, nullptr);
