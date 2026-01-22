@@ -19,6 +19,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "surface_buffer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -216,6 +217,48 @@ HWTEST_F(RSSurfaceHandlerTest, SetBufferTransformTypeChanged001, TestSize.Level1
     rSSurfaceHandlerPtr_->SetBufferTransformTypeChanged(false);
     EXPECT_FALSE(rSSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
     rSSurfaceHandlerPtr_->RegisterDeleteBufferListener(BufferDeleteCbFunc);
+#endif
+}
+
+/**
+ * @tc.name: IncreaseReduceAndZOrder
+ * @tc.desc: test IncreaseAvailableBuffer/ReduceAvailableBuffer and GlobalZOrder setters/getters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceHandlerTest, IncreaseReduceAndZOrder, TestSize.Level1)
+{
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    auto base = rSSurfaceHandlerPtr_->GetAvailableBufferCount();
+    rSSurfaceHandlerPtr_->IncreaseAvailableBuffer();
+    EXPECT_EQ(rSSurfaceHandlerPtr_->GetAvailableBufferCount(), base + 1);
+    rSSurfaceHandlerPtr_->ReduceAvailableBuffer();
+    EXPECT_EQ(rSSurfaceHandlerPtr_->GetAvailableBufferCount(), base);
+
+    rSSurfaceHandlerPtr_->SetGlobalZOrder(3.14f);
+    EXPECT_FLOAT_EQ(rSSurfaceHandlerPtr_->GetGlobalZOrder(), 3.14f);
+}
+
+/**
+ * @tc.name: UpdateBuffer_SetOwnerBufferId
+ * @tc.desc: UpdateBuffer with non-null ownerCount sets bufferOwnerCount_->bufferId_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceHandlerTest, UpdateBuffer_SetOwnerBufferId, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<SurfaceBuffer> buffer;
+    int32_t releaseFence = 0;
+    int64_t timestamp = 0;
+    Rect damage = { 0 };
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+
+    auto ret = surfacePtr_->RequestBuffer(buffer, releaseFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+
+    auto owner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    rSSurfaceHandlerPtr_->UpdateBuffer(buffer, acquireFence, damage, timestamp, owner);
+    ASSERT_NE(rSSurfaceHandlerPtr_->GetBufferOwnerCount(), nullptr);
+    EXPECT_EQ(rSSurfaceHandlerPtr_->GetBufferOwnerCount()->bufferId_, buffer->GetBufferId());
 #endif
 }
 

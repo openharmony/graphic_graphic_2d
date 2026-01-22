@@ -26,6 +26,7 @@
 #include "recording/recording_canvas.h"
 #include "rs_surface_layer.h"
 #include "v2_1/cm_color_space.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -680,5 +681,140 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ShrinkCachesIfNeededTest002, TestSize.Level
     renderEngine->Init();
     renderEngine->ShrinkCachesIfNeeded();
     EXPECT_NE(renderEngine, nullptr);
+}
+
+/**
+ * @tc.name: RequestFrame_RSSurfaceNull
+ * @tc.desc: RSBaseRenderEngine::RequestFrame(shared_ptr) returns nullptr when rsSurface is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_RSSurfaceNull, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    BufferRequestConfig config { 16, 16, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE, 0, GRAPHIC_COLOR_GAMUT_SRGB,
+        GraphicTransformType::GRAPHIC_ROTATE_NONE };
+    auto frame = renderEngine->RequestFrame(std::shared_ptr<RSSurfaceOhos>(nullptr), config, false);
+    ASSERT_EQ(frame, nullptr);
+}
+
+/**
+ * @tc.name: RequestFrame_WithFakeSurface
+ * @tc.desc: RSBaseRenderEngine::RequestFrame(shared_ptr) returns a valid RSRenderFrame using fake surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_WithRasterSurface, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    // use raster surface to avoid GPU dependencies
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rasterSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    BufferRequestConfig config { 32, 24, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE, 0, GRAPHIC_COLOR_GAMUT_SRGB,
+        GraphicTransformType::GRAPHIC_ROTATE_NONE };
+    FrameContextConfig frameCtx(false);
+    frameCtx.isVirtual = true;
+    frameCtx.timeOut = 0;
+    auto frame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rasterSurface),
+        config, true, true, frameCtx);
+    ASSERT_NE(frame, nullptr);
+}
+
+/**
+ * @tc.name: RequestFrame_TargetSurfaceNull
+ * @tc.desc: RSBaseRenderEngine::RequestFrame(sptr<Surface>) returns nullptr when targetSurface is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_TargetSurfaceNull, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    BufferRequestConfig config { 8, 8, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE, 0, GRAPHIC_COLOR_GAMUT_SRGB,
+        GraphicTransformType::GRAPHIC_ROTATE_NONE };
+    auto frame = renderEngine->RequestFrame(sptr<Surface>(nullptr), config, false);
+    ASSERT_EQ(frame, nullptr);
+}
+
+/**
+ * @tc.name: RequestFrame_TargetSurfaceValid
+ * @tc.desc: RSBaseRenderEngine::RequestFrame(sptr<Surface>) returns a frame for valid surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_TargetSurfaceValid, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    BufferRequestConfig config { 12, 10, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE, 0, GRAPHIC_COLOR_GAMUT_SRGB,
+        GraphicTransformType::GRAPHIC_ROTATE_NONE };
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto frame = renderEngine->RequestFrame(pSurface, config, true);
+    ASSERT_NE(frame, nullptr);
+}
+
+/**
+ * @tc.name: MakeRSSurface_NullAndValid
+ * @tc.desc: RSBaseRenderEngine::MakeRSSurface handles null and valid surfaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, MakeRSSurface_NullAndValid, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    auto nullRs = renderEngine->MakeRSSurface(sptr<Surface>(nullptr), false);
+    ASSERT_EQ(nullRs, nullptr);
+
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rs = renderEngine->MakeRSSurface(pSurface, false);
+    ASSERT_NE(rs, nullptr);
+}
+
+/**
+ * @tc.name: SetUiTimeStamp_NullArgs
+ * @tc.desc: RSBaseRenderEngine::SetUiTimeStamp handles null surface/renderFrame gracefully
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, SetUiTimeStamp_NullArgs, TestSize.Level1)
+{
+    std::unique_ptr<RSRenderFrame> rfNull;
+    RSBaseRenderEngine::SetUiTimeStamp(rfNull, nullptr);
+    // with a valid raster surface but null frame
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rasterSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    RSBaseRenderEngine::SetUiTimeStamp(rfNull, rasterSurface);
+    ASSERT_EQ(rfNull, nullptr);
+    ASSERT_NE(rasterSurface, nullptr);
+}
+
+/**
+ * @tc.name: SetUiTimeStamp_Normal
+ * @tc.desc: RSBaseRenderEngine::SetUiTimeStamp invokes surface SetUiTimeStamp
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, SetUiTimeStamp_Normal, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rasterSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    // request a real frame from raster surface
+    auto rawFrame = rasterSurface->RequestFrame(16, 16, 0, true, false);
+    ASSERT_NE(rawFrame, nullptr);
+    auto rf = std::make_unique<RSRenderFrame>(rasterSurface, std::move(rawFrame));
+    RSBaseRenderEngine::SetUiTimeStamp(rf, rasterSurface);
+    // assert ExtraData contains a valid timeStamp (> 0)
+    int64_t ts = 0;
+    auto framePtr = rf->GetFrame().get();
+    ASSERT_NE(framePtr, nullptr);
+    auto buf = framePtr->GetBuffer();
+    ASSERT_NE(buf, nullptr);
+    buf->GetExtraData()->ExtraGet("timeStamp", ts);
+    EXPECT_GT(ts, 0);
 }
 }

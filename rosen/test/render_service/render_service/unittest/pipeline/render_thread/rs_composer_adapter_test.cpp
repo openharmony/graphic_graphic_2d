@@ -27,6 +27,7 @@
 #include "surface_buffer_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "rs_layer.h"
+#include <parameters.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -480,6 +481,114 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer011, Function | SmallTest | Level2)
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
     screenDrawable->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
     ASSERT_NE(composerAdapter_->CreateLayer(*node), nullptr);
+}
+
+/**
+ * @tc.name: CommitLayers_DumpEnabled
+ * @tc.desc: RSComposerAdapter.CommitLayers triggers DumpLayersToFile when enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerAdapterTest, CommitLayers_DumpEnabled, Function | SmallTest | Level2)
+{
+    // Enable dumping layers to file via system parameter
+    OHOS::system::SetParameter("rosen.dumplayer.enabled", "1");
+
+    CreateComposerAdapterWithScreenInfo(2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN,
+        ScreenRotation::ROTATION_0);
+    composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto layer = composerAdapter_->CreateLayer(*surfaceNode);
+    ASSERT_NE(layer, nullptr);
+
+    std::vector<RSLayerPtr> layers;
+    layers.emplace_back(layer);
+    // Should go through DumpLayersToFile path; file open may fail but path executes
+    composerAdapter_->CommitLayers(layers);
+
+    // Reset parameter to avoid side effects
+    OHOS::system::SetParameter("rosen.dumplayer.enabled", "0");
+    RSTestUtil::UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: CreateLayer_InvertColor_ClientComposition
+ * @tc.desc: Invert color filter forces client composition type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerAdapterTest, CreateLayer_InvertColor_ClientComposition, Function | SmallTest | Level2)
+{
+    CreateComposerAdapterWithScreenInfo(2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN,
+        ScreenRotation::ROTATION_0);
+    composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
+    composerAdapter_->SetColorFilterMode(ColorFilterMode::INVERT_COLOR_ENABLE_MODE);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto layer = composerAdapter_->CreateLayer(*surfaceNode);
+    ASSERT_NE(layer, nullptr);
+    // With invert color enabled, needClient should be true → client composition
+    EXPECT_EQ(layer->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    RSTestUtil::UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: InitWithMirroredScreenInfo_Path
+ * @tc.desc: Init overload with mirrored screen info executes mirrored branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerAdapterTest, InitWithMirroredScreenInfo_Path, Function | SmallTest | Level2)
+{
+    uint32_t width = 2160;
+    uint32_t height = 1080;
+    // Prepare screen node with default properties
+    auto rsContext = std::make_shared<RSContext>();
+    constexpr NodeId nodeId = 1001;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(nodeId, 0, rsContext->weak_from_this());
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(screenNode);
+
+    // Prepare surface buffer for screen node drawable path used later
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("screen-test");
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(screenNode->GetRenderDrawable());
+    screenDrawable->GetRSSurfaceHandlerOnDraw()->SetConsumer(consumer);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    Rect damage;
+    sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    screenDrawable->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+
+    // Build screen infos
+    ScreenInfo screenInfo;
+    screenInfo.id = 10;
+    screenInfo.width = width;
+    screenInfo.height = height;
+    screenInfo.phyWidth = width;
+    screenInfo.phyHeight = height;
+    screenInfo.rotation = ScreenRotation::ROTATION_0;
+
+    ScreenInfo mirroredInfo;
+    mirroredInfo.id = 11; // non-invalid to trigger mirrored path
+    mirroredInfo.width = width / 2;
+    mirroredInfo.height = height / 2;
+    mirroredInfo.phyWidth = width / 2;
+    mirroredInfo.phyHeight = height / 2;
+    mirroredInfo.rotation = ScreenRotation::ROTATION_0;
+
+    float mirrorAdaptiveCoefficient = 0.8f;
+
+    // Init via mirrored overload
+    bool ok = composerAdapter_->Init(*screenNode, screenInfo, mirroredInfo, mirrorAdaptiveCoefficient, nullptr, hdiOutput_);
+    ASSERT_TRUE(ok);
+    composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
+
+    // Create a regular surface node and layer to exercise BuildComposeInfo mirrored offsets
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto layer = composerAdapter_->CreateLayer(*surfaceNode);
+    ASSERT_NE(layer, nullptr);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
