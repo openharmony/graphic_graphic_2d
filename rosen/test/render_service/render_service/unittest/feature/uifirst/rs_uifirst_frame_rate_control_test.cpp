@@ -45,7 +45,7 @@ void RSUifirstFrameRateControlTest::TearDown() {}
  * @tc.name: InstanceTest001
  * @tc.desc: Test Instance
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#ICBWNQ
  */
 HWTEST_F(RSUifirstFrameRateControlTest, InstanceTest001, TestSize.Level1)
 {
@@ -57,7 +57,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, InstanceTest001, TestSize.Level1)
  * @tc.name: InstanceTest002
  * @tc.desc: Test Instance
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#ICBWNQ
  */
 HWTEST_F(RSUifirstFrameRateControlTest, InstanceTest002, TestSize.Level1)
 {
@@ -70,7 +70,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, InstanceTest002, TestSize.Level1)
  * @tc.name: GetSceneIdTest001
  * @tc.desc: Test GetSceneId
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#ICBWNQ
  */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest001, TestSize.Level1)
 {
@@ -84,7 +84,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest001, TestSize.Level1)
 * @tc.name: GetSceneIdTest002
 * @tc.desc: Test GetSceneId
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest002, TestSize.Level1)
 {
@@ -98,7 +98,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest002, TestSize.Level1)
 * @tc.name: GetSceneIdTest003
 * @tc.desc: Test GetSceneId
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest003, TestSize.Level1)
 {
@@ -112,7 +112,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest003, TestSize.Level1)
 * @tc.name: GetSceneIdTest004
 * @tc.desc: Test GetSceneId
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest004, TestSize.Level1)
 {
@@ -126,7 +126,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest004, TestSize.Level1)
 * @tc.name: GetSceneIdTest005
 * @tc.desc: Test GetSceneId
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest005, TestSize.Level1)
 {
@@ -140,7 +140,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest005, TestSize.Level1)
 * @tc.name: GetSceneIdTest006
 * @tc.desc: Test GetSceneId
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest006, TestSize.Level1)
 {
@@ -154,7 +154,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest006, TestSize.Level1)
 * @tc.name: GetSceneIdTest007
 * @tc.desc: Test GetSceneId
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest007, TestSize.Level1)
 {
@@ -168,7 +168,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest007, TestSize.Level1)
 * @tc.name: GetSceneIdTest008
 * @tc.desc: Test GetSceneId
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest008, TestSize.Level1)
 {
@@ -182,7 +182,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest008, TestSize.Level1)
 * @tc.name: GetSceneIdTest009
 * @tc.desc: Test GetSceneId
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest009, TestSize.Level1)
 {
@@ -196,7 +196,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest009, TestSize.Level1)
 * @tc.name: GetSceneIdTest0010
 * @tc.desc: Test GetSceneId
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest010, TestSize.Level1)
 {
@@ -210,7 +210,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdTest010, TestSize.Level1)
 * @tc.name: SetAnimationStartInfo001
 * @tc.desc: Test SetAnimationStartInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo001, TestSize.Level1)
 {
@@ -225,7 +225,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo001, TestSize.Level
 * @tc.name: SetAnimationStartInfo002
 * @tc.desc: Test SetAnimationStartInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo002, TestSize.Level1)
 {
@@ -240,7 +240,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo002, TestSize.Level
 * @tc.name: SetAnimationStartInfo003
 * @tc.desc: Test SetAnimationStartInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo003, TestSize.Level1)
 {
@@ -255,7 +255,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo003, TestSize.Level
 * @tc.name: SetAnimationStartInfo004
 * @tc.desc: Test SetAnimationStartInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo004, TestSize.Level1)
 {
@@ -270,7 +270,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo004, TestSize.Level
 * @tc.name: SetAnimationStartInfo005
 * @tc.desc: Test SetAnimationStartInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo005, TestSize.Level1)
 {
@@ -285,7 +285,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo005, TestSize.Level
 * @tc.name: SetAnimationStartInfo006
 * @tc.desc: Test SetAnimationStartInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo006, TestSize.Level1)
 {
@@ -300,7 +300,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo006, TestSize.Level
 * @tc.name: SetAnimationStartInfo007
 * @tc.desc: Test SetAnimationStartInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo007, TestSize.Level1)
 {
@@ -315,7 +315,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo007, TestSize.Level
 * @tc.name: SetAnimationStartInfo008
 * @tc.desc: Test SetAnimationStartInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo008, TestSize.Level1)
 {
@@ -330,7 +330,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo008, TestSize.Level
 * @tc.name: SetAnimationStartInfo009
 * @tc.desc: Test SetAnimationStartInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo009, TestSize.Level1)
 {
@@ -345,7 +345,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo009, TestSize.Level
 * @tc.name: SetAnimationEndInfo001
 * @tc.desc: Test SetAnimationEndInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo001, TestSize.Level1)
 {
@@ -360,7 +360,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo001, TestSize.Level1)
 * @tc.name: SetAnimationEndInfo002
 * @tc.desc: Test SetAnimationEndInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo002, TestSize.Level1)
 {
@@ -375,7 +375,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo002, TestSize.Level1)
 * @tc.name: SetAnimationEndInfo003
 * @tc.desc: Test SetAnimationEndInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo003, TestSize.Level1)
 {
@@ -390,7 +390,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo003, TestSize.Level1)
 * @tc.name: SetAnimationEndInfo004
 * @tc.desc: Test SetAnimationEndInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo004, TestSize.Level1)
 {
@@ -405,7 +405,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo004, TestSize.Level1)
 * @tc.name: SetAnimationEndInfo005
 * @tc.desc: Test SetAnimationEndInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo005, TestSize.Level1)
 {
@@ -420,7 +420,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo005, TestSize.Level1)
 * @tc.name: SetAnimationEndInfo006
 * @tc.desc: Test SetAnimationEndInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo006, TestSize.Level1)
 {
@@ -435,7 +435,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo006, TestSize.Level1)
 * @tc.name: SetAnimationEndInfo007
 * @tc.desc: Test SetAnimationEndInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo007, TestSize.Level1)
 {
@@ -450,7 +450,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo007, TestSize.Level1)
 * @tc.name: SetAnimationEndInfo001
 * @tc.desc: Test SetAnimationEndInfo
 * @tc.type: FUNC
-* @tc.require:
+* @tc.require:#ICBWNQ
 */
 HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo008, TestSize.Level1)
 {
@@ -465,7 +465,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationEndInfo008, TestSize.Level1)
  * @tc.name: JudgeMultiSubSurfaceTest
  * @tc.desc: Test Judge Multi SubSurface
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#ICBWNQ
  */
 HWTEST_F(RSUifirstFrameRateControlTest, JudgeMultiSubSurfaceTest, TestSize.Level1)
 {
@@ -479,7 +479,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, JudgeMultiSubSurfaceTest, TestSize.Level
  * @tc.name: GetUifirstFrameDropInternalTest
  * @tc.desc: Test Get Uifirst Frame Drop Internal
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#ICBWNQ
  */
 HWTEST_F(RSUifirstFrameRateControlTest, GetUifirstFrameDropInternalTest, TestSize.Level1)
 {
@@ -494,7 +494,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetUifirstFrameDropInternalTest, TestSiz
  * @tc.name: SubThreadFrameDropDecisionTest
  * @tc.desc: Test Sub Thread Frame Drop Decision and Need RS Uifirst Control Frame Drop
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#ICBWNQ
  */
 HWTEST_F(RSUifirstFrameRateControlTest, SubThreadFrameDropDecisionTest, TestSize.Level1)
 {
@@ -509,7 +509,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SubThreadFrameDropDecisionTest, TestSize
  * @tc.name: StartAnimationTest
  * @tc.desc: Test Set and Judge Start Animation
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#ICBWNQ
  */
 HWTEST_F(RSUifirstFrameRateControlTest, StartAnimationTest, TestSize.Level1)
 {
@@ -524,7 +524,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, StartAnimationTest, TestSize.Level1)
  * @tc.name: StopAnimationTest
  * @tc.desc: Test Set and Judge StopAnimation
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#ICBWNQ
  */
 HWTEST_F(RSUifirstFrameRateControlTest, StopAnimationTest, TestSize.Level1)
 {
@@ -539,7 +539,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, StopAnimationTest, TestSize.Level1)
  * @tc.name: MultTaskAnimationTest
  * @tc.desc: Test Set and Judge MultTaskAnimation
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#ICBWNQ
  */
 HWTEST_F(RSUifirstFrameRateControlTest, MultTaskAnimationTest, TestSize.Level1)
 {
