@@ -1312,13 +1312,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool enableVisibleRect = RSUniRenderThread::Instance().GetEnableVisibleRect();
     if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
         enableVisibleRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
-        // if its sub tree has a blacklist, skip drawing in UIFirst scenario
-        const auto& screenId = RSUniRenderThread::GetCaptureParam().virtualScreenId_;
-        if (RSUniRenderThread::GetCaptureParam().isMirror_ &&
-            specialLayerManager.FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST) &&
-            surfaceParams.GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE) {
-            return;
-        }
         // not use uifirst when dirty in window capture process
         bool surfaceCapNotUsingUIFirst = RSUniRenderThread::GetCaptureParam().hasDirtyContent_;
         if (surfaceCapNotUsingUIFirst) {
