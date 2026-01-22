@@ -942,7 +942,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
     bool needRedraw = (mirroredParams->IsSecurityDisplay() != params.IsSecurityDisplay() &&
         specialLayerType == DisplaySpecialLayerState::HAS_SPECIAL_LAYER);
     if (RSUniRenderThread::Instance().IsColorFilterModeOn() || mirroredScreenParams->GetHDRPresent()
-        || !cacheImage || params.GetVirtualScreenMuteStatus() || screenParams->GetHDRPresent() || needRedraw) {
+        || !cacheImage || params.GetVirtualScreenMuteStatus() || mirroredScreenDrawable->IsRenderSkipIfScreenOff()
+        || screenParams->GetHDRPresent() || needRedraw) {
         MirrorRedrawDFX(true, params.GetScreenId());
         virtualProcesser->SetDrawVirtualMirrorCopy(false);
         DrawMirror(params, virtualProcesser, *uniParam);
