@@ -186,6 +186,7 @@ public:
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static int32_t GetScreenRotationOffset(RSSurfaceRenderParams* nodeParams);
+    // collect the rotation lock correction degree
     static void GetRotationLockParam(RSSurfaceRenderNode& node, std::shared_ptr<RSScreenRenderNode> screenRenderNode,
         sptr<RSScreenManager> screenManager);
 #ifdef RS_ENABLE_GPU
