@@ -334,19 +334,32 @@ napi_value JsFontDescriptor::GetFontDescriptorsFromPath(napi_env env, napi_callb
     return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorsFromPath", executor, complete).result;
 }
 
+void GetFontUnicodeSetParamFromJs(napi_env env, sptr<FontUnicodeSetListContext> context,
+    size_t argc, napi_value* argv)
+{
+    TEXT_ERROR_CHECK(context != nullptr, return, "Fail to get parser, Context is null");
+    TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is nullptr");
+    NAPI_CHECK_ARGS(context, argc == ARGC_TWO, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return,
+        "Argc is invalid %{public}zu", argc);
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[ARGC_ZERO], &valueType);
+    bool typeIsValid = (valueType == napi_object || valueType == napi_string);
+    NAPI_CHECK_ARGS(context, typeIsValid, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM,
+        return, "Fail to convert path");
+    TEXT_ERROR_CHECK(context->status == napi_ok, return, "Status error, status=%{public}d",
+        static_cast<int>(context->status));
+    if (!ParseContextFilePath(env, argv, context, ARGC_ZERO)) {
+        TEXT_ERROR_CHECK(ParseResourceType(env, argv[ARGC_ZERO], context->info), return, "Parse resource error");
+    }
+    NAPI_CHECK_ARGS(context, ConvertFromJsValue(env, argv[ARGC_ONE], context->index), napi_invalid_arg,
+        TextErrorCode::ERROR_INVALID_PARAM, return, "Fail to convert index");
+}
+
 napi_value JsFontDescriptor::GetFontUnicodeSet(napi_env env, napi_callback_info info)
 {
     sptr<FontUnicodeSetListContext> context = sptr<FontUnicodeSetListContext>::MakeSptr();
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
-        TEXT_ERROR_CHECK(context != nullptr, return, "Fail to get parser, Context is null");
-        TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is nullptr");
-        TEXT_ERROR_CHECK(context->status == napi_ok, return, "Status error, status=%{public}d",
-            static_cast<int>(context->status));
-        TEXT_ERROR_CHECK(argc == ARGC_TWO, return, "Argc is invalid %{public}zu", argc);
-        if (!ParseContextFilePath(env, argv, context, ARGC_ZERO)) {
-            TEXT_ERROR_CHECK(ParseResourceType(env, argv[ARGC_ZERO], context->info), return, "Parse resource error");
-        }
-        ConvertFromJsValue(env, argv[ARGC_ONE], context->index);
+        GetFontUnicodeSetParamFromJs(env, context, argc, argv);
     };
 
     context->GetCbInfo(env, info, inputParser);
@@ -412,8 +425,9 @@ napi_value JsFontDescriptor::GetFontCount(napi_env env, napi_callback_info info)
             return true;
         };
         ProcessResource(resourceInfo, pathCB, fileCB);
+        return CreateJsNumber(env, fileCount);
     }
-    return CreateJsNumber(env, fileCount);
+    return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid argument");
 }
 
 napi_value JsFontDescriptor::GetFontDescriptorByFullName(napi_env env, napi_callback_info info)
