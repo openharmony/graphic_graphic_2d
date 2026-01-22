@@ -137,7 +137,7 @@ std::string FontMetaDataCollector::GetFirstAvailableString(const std::shared_ptr
     Drawing::OtNameId nameId)
 {
     const hb_ot_name_id_t hbNameId = OtNameIdMapper::ToHarfBuzzNameId(nameId);
-    if (hbNameId == HB_OT_NAME_ID_INVALID || typeface == nullptr) {
+    if (typeface == nullptr) {
         return "";
     }
 #ifdef CURRENT_OS_MAC
@@ -151,6 +151,7 @@ std::string FontMetaDataCollector::GetFirstAvailableString(const std::shared_ptr
             return ExtractString(hbFace.get(), entries[i]);
         }
     }
+    return "";
 }
 
 std::string FontMetaDataCollector::ExtractString(hb_face_t* face, const hb_ot_name_entry_t& entry)
