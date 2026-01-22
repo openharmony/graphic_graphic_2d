@@ -68,9 +68,9 @@ constexpr int64_t REMAINING_TIME_THRESHOLD_LARGER = 500000; // 500000ns == 0.5ms
 constexpr int64_t ONE_SECOND_FOR_CALCUTE_FREQUENCY = 1000000000; // 1000000000ns == 1s
 constexpr uint32_t MAX_LISTENERS_AMOUNT = 2;
 constexpr uint32_t MAX_ADAPTIVE_PERIOD = 2;
-constexpr uint32_t BLOCK_ADAPTIVE_SYNC_COUNT = 1;
-constexpr uint32_t LAST_VSYNC_TIME_THRESHOLD = 2;
-constexpr int64_t VSYNC_RS_OFFSET_FOR_AS = 1620000; // 2.7ms * 0.6 == 1.62ms
+constexpr uint32_t BLOCK_ADAPTIVE_SYNC_COUNT = 1; // threshold of prohibited periods for triggering AdaptiveSync
+constexpr uint32_t LAST_VSYNC_TIME_THRESHOLD = 2; // threshold between the now and lastVsyncTime
+constexpr int64_t VSYNC_RS_OFFSET_FOR_AS = 1620000; // threshold between Vsync interval and period 2.7ms * 0.6 = 1.62ms
 
 // minimum ratio of dvsync thread
 constexpr double DVSYNC_PERIOD_MIN_INTERVAL = 0.6;

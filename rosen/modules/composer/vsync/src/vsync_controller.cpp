@@ -111,8 +111,7 @@ void VSyncController::OnVSyncEvent(int64_t now, int64_t period,
         cb = callback_;
     }
     if (cb != nullptr) {
-        int64_t lastVsyncRsTime = isRS_ ? now : lastVsyncTime_.load();
-        lastVsyncTime_.store(lastVsyncRsTime);
+        lastVsyncTime_.store(now);
         cb->OnVSyncEvent(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
     }
 }

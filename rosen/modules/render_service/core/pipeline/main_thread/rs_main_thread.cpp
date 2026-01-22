@@ -4417,7 +4417,7 @@ bool RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
 bool RSMainThread::CheckAdaptiveCompose()
 {
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-    if (frameRateMgr == nullptr || !context_) {
+    if (frameRateMgr == nullptr) {
         return false;
     }
     auto adaptiveStatus = frameRateMgr->AdaptiveStatus();
