@@ -19,7 +19,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 subsystem_name = "graphic"
 part_name = "graphic_2d"
 taihe_generated_file_path =
-    "$taihe_file_path/out/$subsystem_name/$part_name/uiEffect"
+    "$taihe_file_path/out/$subsystem_name/$part_name"
 rosen_is_ohos = current_os == "ohos"
 
 copy_taihe_idl("copy_uieffect_taihe") {

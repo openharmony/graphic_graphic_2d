@@ -164,6 +164,43 @@ std::vector<std::array<std::variant<Vector2f, float, Vector4f>, ROUNDED_RECT_FLO
     }
 };
 
+// Frosted Glass Default values
+const Vector2f DEFAULT_WEIGHTS_EMBOSS = Vector2f(1.0f, 0.5f);
+const Vector2f DEFAULT_WEIGHTS_EDL = Vector2f(1.0f, 1.0f);
+// Background darken parameters
+const Vector2f DEFAULT_BG_RATES = Vector2f(-1.8792225f, 2.7626955f);
+const Vector3f DEFAULT_BG_KBS = Vector3f(0.0073494f, 0.0998859f, 1.2f);
+const Vector3f DEFAULT_BG_POS = Vector3f(0.3f, 0.5f, 0.5f);
+const Vector3f DEFAULT_BG_NEG = Vector3f(0.5f, 1.0f, 1.0f);
+// Refraction parameters
+const Vector3f DEFAULT_REFRACT_PARAMS = Vector3f(1.0f, 0.3f, 0.3f);
+// Inner shadow parameters
+const Vector3f DEFAULT_SD_PARAMS = Vector3f(-50.0f, 6.0f, 6.62f);
+const Vector2f DEFAULT_SD_RATES = Vector2f(0.0f, 0.0f);
+const Vector3f DEFAULT_SD_KBS = Vector3f(0.9f, 0.0f, 1.0f);
+const Vector3f DEFAULT_SD_POS = Vector3f(1.0f, 1.7f, 1.5f);
+const Vector3f DEFAULT_SD_NEG = Vector3f(3.0f, 2.0f, 1.0f);
+// Env refraction parameters
+const Vector2f DEFAULT_ENV_LIGHT_PARAMS = Vector2f(20.0f, 5.0f); // envB, envS
+const Vector2f DEFAULT_ENV_LIGHT_RATES = Vector2f(0.0f, 0.0f);
+const Vector3f DEFAULT_ENV_LIGHT_KBS = Vector3f(0.8f, 0.27451f, 2.0f);
+const Vector3f DEFAULT_ENV_LIGHT_POS = Vector3f(1.0f, 1.7f, 1.5f);
+const Vector3f DEFAULT_ENV_LIGHT_NEG = Vector3f(3.0f, 2.0f, 1.0f);
+// Edge highlights parameters
+const Vector2f DEFAULT_ED_LIGHT_PARAMS = Vector2f(2.0f, 2.0f);
+const Vector2f DEFAULT_ED_LIGHT_ANGLES = Vector2f(40.0f, 20.0f);
+const Vector2f DEFAULT_ED_LIGHT_DIR = Vector2f(2.5f, 2.5f);
+const Vector2f DEFAULT_ED_LIGHT_RATES = Vector2f(0.0f, 0.0f);
+const Vector3f DEFAULT_ED_LIGHT_KBS = Vector3f(0.6027f, 0.627451f, 2.0f);
+const Vector3f DEFAULT_ED_LIGHT_POS = Vector3f(1.0f, 1.7f, 1.5f);
+const Vector3f DEFAULT_ED_LIGHT_NEG = Vector3f(3.2f, 2.0f, 1.0f);
+const Vector4f DEFAULT_MATERIAL_COLOR = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+ 
+// Blur parameters
+const float DEFAULT_BLUR_RADIUS = 48.0f;
+const float DEFAULT_BLUR_PARAMS = 1.0f; // K times downsample
+const float DEFAULT_BLUR_REFRACT_OUT_PX = 0.010834f;
+
 struct ColorGradientEffectParams {
     Vector4f color0;
     Vector4f color1;
@@ -195,6 +232,7 @@ struct NoisyFrameGradientMaskParams {
 };
 
 std::vector<ColorGradientEffectParams> colorGradientEffectParams = {
+    //Test invalid color
     {
         .color0 = Vector4f{0.0f, 0.0f, -1.0f, 1.0f},
         .color1 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
@@ -212,6 +250,7 @@ std::vector<ColorGradientEffectParams> colorGradientEffectParams = {
         .blend = 6.0f,
         .blendK = 20.0f
     },
+    //Test valid data1
     {
         .color0 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
         .color1 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
@@ -229,6 +268,7 @@ std::vector<ColorGradientEffectParams> colorGradientEffectParams = {
         .blend = 6.0f,
         .blendK = 20.0f
     },
+    //Test different positions
     {
         .color0 = Vector4f{1.0f, 0.0f, 0.0f, 1.0f},
         .color1 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
@@ -246,6 +286,7 @@ std::vector<ColorGradientEffectParams> colorGradientEffectParams = {
         .blend = 6.0f,
         .blendK = 20.0f
     },
+    //Test different colors
     {
         .color0 = Vector4f{0.0f, 1.0f, 0.0f, 1.0f},
         .color1 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
@@ -263,6 +304,7 @@ std::vector<ColorGradientEffectParams> colorGradientEffectParams = {
         .blend = 6.0f,
         .blendK = 20.0f
     },
+    //Test invalid position
     {
         .color0 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
         .color1 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
@@ -280,6 +322,7 @@ std::vector<ColorGradientEffectParams> colorGradientEffectParams = {
         .blend = 6.0f,
         .blendK = 20.0f
     },
+    //Test different strengths
     {
         .color0 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
         .color1 = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
@@ -300,6 +343,7 @@ std::vector<ColorGradientEffectParams> colorGradientEffectParams = {
 };
 
 std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
+    //Test invalid width
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
         .cornerRadius = 0.1f,
@@ -311,6 +355,7 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = 0.0f,
         .progress = 0.0f
     },
+    //Test valid data1
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
         .cornerRadius = 0.1f,
@@ -322,6 +367,7 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = 0.0f,
         .progress = 0.0f
     },
+    //Test different widths
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
         .cornerRadius = 0.1f,
@@ -333,6 +379,7 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = 0.2f,
         .progress = 0.0f
     },
+    //Test different rrectWH
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
         .cornerRadius = 0.4f,
@@ -344,6 +391,7 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = 0.0f,
         .progress = 0.0f
     },
+    //Test invalid slope
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
         .cornerRadius = 0.1f,
@@ -355,6 +403,7 @@ std::vector<NoisyFrameGradientMaskParams> noisyFrameGradientMaskParams = {
         .slope = -1.0f,
         .progress = 0.0f
     },
+    //Test invalid rrectWH and rrectPos
     {
         .gradientBezierControlPoints = Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
         .cornerRadius = 0.1f,
@@ -477,42 +526,6 @@ std::vector<std::array<std::variant<Vector4f, Vector2f, float>, ROUNDED_RECT_AIB
     }
 };
 
-// Frosted Glass Default values
-const Vector2f DEFAULT_WEIGHTS_EMBOSS = Vector2f(1.0f, 0.5f);
-const Vector2f DEFAULT_WEIGHTS_EDL = Vector2f(1.0f, 1.0f);
-// Background darken parameters
-const Vector2f DEFAULT_BG_RATES = Vector2f(-1.8792225f, 2.7626955f);
-const Vector3f DEFAULT_BG_KBS = Vector3f(0.0073494f, 0.0998859f, 1.2f);
-const Vector3f DEFAULT_BG_POS = Vector3f(0.3f, 0.5f, 0.5f);
-const Vector3f DEFAULT_BG_NEG = Vector3f(0.5f, 1.0f, 1.0f);
-// Refraction parameters
-const Vector3f DEFAULT_REFRACT_PARAMS = Vector3f(1.0f, 0.3f, 0.3f);
-// Inner shadow parameters
-const Vector3f DEFAULT_SD_PARAMS = Vector3f(-50.0f, 6.0f, 6.62f);
-const Vector2f DEFAULT_SD_RATES = Vector2f(0.0f, 0.0f);
-const Vector3f DEFAULT_SD_KBS = Vector3f(0.9f, 0.0f, 1.0f);
-const Vector3f DEFAULT_SD_POS = Vector3f(1.0f, 1.7f, 1.5f);
-const Vector3f DEFAULT_SD_NEG = Vector3f(3.0f, 2.0f, 1.0f);
-// Env refraction parameters
-const Vector2f DEFAULT_ENV_LIGHT_PARAMS = Vector2f(20.0f, 5.0f); // envB, envS
-const Vector2f DEFAULT_ENV_LIGHT_RATES = Vector2f(0.0f, 0.0f);
-const Vector3f DEFAULT_ENV_LIGHT_KBS = Vector3f(0.8f, 0.27451f, 2.0f);
-const Vector3f DEFAULT_ENV_LIGHT_POS = Vector3f(1.0f, 1.7f, 1.5f);
-const Vector3f DEFAULT_ENV_LIGHT_NEG = Vector3f(3.0f, 2.0f, 1.0f);
-// Edge highlights parameters
-const Vector2f DEFAULT_ED_LIGHT_PARAMS = Vector2f(2.0f, 2.0f);
-const Vector2f DEFAULT_ED_LIGHT_ANGLES = Vector2f(40.0f, 20.0f);
-const Vector2f DEFAULT_ED_LIGHT_DIR = Vector2f(2.5f, 2.5f);
-const Vector2f DEFAULT_ED_LIGHT_RATES = Vector2f(0.0f, 0.0f);
-const Vector3f DEFAULT_ED_LIGHT_KBS = Vector3f(0.6027f, 0.627451f, 2.0f);
-const Vector3f DEFAULT_ED_LIGHT_POS = Vector3f(1.0f, 1.7f, 1.5f);
-const Vector3f DEFAULT_ED_LIGHT_NEG = Vector3f(3.2f, 2.0f, 1.0f);
-const Vector4f DEFAULT_MATERIAL_COLOR = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
- 
-// Blur parameters
-const float DEFAULT_BLUR_RADIUS = 48.0f;
-const float DEFAULT_BLUR_REFRACT_OUT_PX = 0.010834f;
-
 enum class TestDataGroupParamsType {
     INVALID_DATA_MIN,
     VALID_DATA1,
@@ -553,7 +566,7 @@ public:
         RegisterNode(backgroundTestNode);
         return backgroundTestNode;
     }
- 
+
     std::shared_ptr<RSEffectNode> SetDefaultFrostedGlassBlurEffectNode()
     {
         auto effectNode = RSEffectNode::Create();
@@ -563,7 +576,8 @@ public:
         auto frostedGlassBlurFilter = std::make_shared<RSNGFrostedGlassBlurFilter>();
         frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(DEFAULT_BLUR_RADIUS);
         frostedGlassBlurFilter->Setter<FrostedGlassBlurRefractOutPxTag>(DEFAULT_BLUR_REFRACT_OUT_PX);
- 
+        frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusScaleKTag>(DEFAULT_BLUR_PARAMS);
+
         effectNode->SetBackgroundNGFilter(frostedGlassBlurFilter);
         effectNode->SetClipToBounds(true);
         GetRootNode()->AddChild(effectNode);
@@ -571,7 +585,7 @@ public:
  
         return effectNode;
     }
- 
+
     void SetEffectChildNode(const int i, const int columnCount, const int rowCount,
         std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlassEffect)
     {
@@ -580,12 +594,12 @@ public:
 
         int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
         int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
- 
+
         // set effect child node
         auto effectChildNode = RSCanvasNode::Create();
         effectChildNode->SetBounds(x, y, sizeX, sizeY);
         effectChildNode->SetFrame(x, y, sizeX, sizeY);
- 
+
         //  apply sdf on effect effect child node
         const RRect defaultRectParam = {
             RectT<float>{sizeX / 4, sizeY / 4, sizeX / 2, sizeY / 2}, sizeX / 16, sizeX / 16
@@ -593,10 +607,10 @@ public:
         std::shared_ptr<RSNGShapeBase> sdfShape;
         InitSmoothUnionShapes(sdfShape, defaultRectParam, defaultRectParam, 0.0);
         effectChildNode->SetSDFShape(sdfShape);
- 
+
         // apply frostedGlassEffect on child node
         effectChildNode->SetBackgroundNGShader(frostedGlassEffect);
- 
+
         effectNode->AddChild(effectChildNode);
         RegisterNode(effectChildNode);
     }
@@ -671,9 +685,25 @@ void SetCircleFlowlightParams(const std::shared_ptr<RSNGCircleFlowlight>& flowli
     flowlight->Setter<CircleFlowlightProgressTag>(0.0f);
 }
 
+static void SetAIBarRectHaloParams(const std::shared_ptr<RSNGAIBarRectHalo>& aiBarRectHalo, int index)
+{
+    aiBarRectHalo->Setter<AIBarRectHaloLTWHTag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_0]));
+    aiBarRectHalo->Setter<AIBarRectHaloColor0Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_1]));
+    aiBarRectHalo->Setter<AIBarRectHaloColor1Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_2]));
+    aiBarRectHalo->Setter<AIBarRectHaloColor2Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_3]));
+    aiBarRectHalo->Setter<AIBarRectHaloColor3Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_4]));
+    aiBarRectHalo->Setter<AIBarRectHaloPosition0Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_5]));
+    aiBarRectHalo->Setter<AIBarRectHaloPosition1Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_6]));
+    aiBarRectHalo->Setter<AIBarRectHaloPosition2Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_7]));
+    aiBarRectHalo->Setter<AIBarRectHaloPosition3Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_8]));
+    aiBarRectHalo->Setter<AIBarRectHaloStrengthTag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_9]));
+    aiBarRectHalo->Setter<AIBarRectHaloBrightnessTag>(std::get<float>(aibarRectHaloParams[index][NUM_10]));
+    aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(std::get<float>(aibarRectHaloParams[index][NUM_11]));
+}
+
 void SetColorGradientEffectParams(const std::shared_ptr<RSNGColorGradientEffect>& colorGradient, int index)
 {
-    if (!colorGradient) {
+    if (!colorGradient || index >= colorGradientEffectParams.size()) {
         return;
     }
     const auto& params = colorGradientEffectParams[index];
@@ -696,11 +726,10 @@ void SetColorGradientEffectParams(const std::shared_ptr<RSNGColorGradientEffect>
 
 void SetNoisyFrameGradientMaskParams(const std::shared_ptr<RSNGNoisyFrameGradientMask>& mask, int index, float height)
 {
-    if (!mask) {
+    if (!mask || index >= noisyFrameGradientMaskParams.size()) {
         return;
     }
     const auto params = noisyFrameGradientMaskParams[index];
-    
     mask->Setter<NoisyFrameGradientMaskGradientBezierControlPointsTag>(params.gradientBezierControlPoints);
     mask->Setter<NoisyFrameGradientMaskCornerRadiusTag>(params.cornerRadius * height / 2.0f);
     Vector2f adjustedInnerFramerWidth = params.innerFrameWidth;
@@ -719,22 +748,6 @@ void SetNoisyFrameGradientMaskParams(const std::shared_ptr<RSNGNoisyFrameGradien
     mask->Setter<NoisyFrameGradientMaskRRectPosTag>(params.rrectPos);
     mask->Setter<NoisyFrameGradientMaskSlopeTag>(params.slope);
     mask->Setter<NoisyFrameGradientMaskProgressTag>(params.progress);
-}
-
-static void SetAIBarRectHaloParams(const std::shared_ptr<RSNGAIBarRectHalo>& aiBarRectHalo, int index)
-{
-    aiBarRectHalo->Setter<AIBarRectHaloLTWHTag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_0]));
-    aiBarRectHalo->Setter<AIBarRectHaloColor0Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_1]));
-    aiBarRectHalo->Setter<AIBarRectHaloColor1Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_2]));
-    aiBarRectHalo->Setter<AIBarRectHaloColor2Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_3]));
-    aiBarRectHalo->Setter<AIBarRectHaloColor3Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_4]));
-    aiBarRectHalo->Setter<AIBarRectHaloPosition0Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_5]));
-    aiBarRectHalo->Setter<AIBarRectHaloPosition1Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_6]));
-    aiBarRectHalo->Setter<AIBarRectHaloPosition2Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_7]));
-    aiBarRectHalo->Setter<AIBarRectHaloPosition3Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_8]));
-    aiBarRectHalo->Setter<AIBarRectHaloStrengthTag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_9]));
-    aiBarRectHalo->Setter<AIBarRectHaloBrightnessTag>(std::get<float>(aibarRectHaloParams[index][NUM_10]));
-    aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(std::get<float>(aibarRectHaloParams[index][NUM_11]));
 }
 
 static void InitFrostedGlassEffect(std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlassEffect)
@@ -804,7 +817,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Backgroun
         auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
         auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
         SetDoubleRippleMaskParams(doubleRippleMask, i);
-        
+
         // Create circle flowLight effect
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
         SetCircleFlowlightParams(circleFlowlight, i);
@@ -833,7 +846,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
         auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
         auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
         SetDoubleRippleMaskParams(doubleRippleMask, i);
-        
+
         // Create circle flowLight effect
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
         SetCircleFlowlightParams(circleFlowlight, i);
@@ -871,7 +884,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
         SetCircleFlowlightParams(circleFlowlight, i);
         circleFlowlight->Setter<CircleFlowlightMaskTag>(
             std::static_pointer_cast<RSNGMaskBase>(doubleRippleMask));
-        
+
         // Create rounded rect flowlight effect
         auto roundedRectFlowlight = std::make_shared<RSNGRoundedRectFlowlight>();
         SetRoundedRectFlowlightParams(roundedRectFlowlight, i);
@@ -954,6 +967,77 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
     }
 }
 
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Test_1)
+{
+    const int columnCount = 2;
+    const int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+
+        // Create circle flowLight effect
+        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        SetAIBarRectHaloParams(aiBarRectHalo, i);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto node = Rosen::RSCanvasNode::Create();
+        node->SetBounds({ x, y, sizeX, sizeY });
+        node->SetFrame({ x, y, sizeX, sizeY });
+        node->SetBackgroundNGShader(aiBarRectHalo);
+        node->SetBackgroundColor(0x88888888);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+}
+
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Test_2)
+{
+    const int columnCount = 2;
+    const int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+
+        // Create circle flowLight effect
+        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        SetAIBarRectHaloParams(aiBarRectHalo, 4 + i); // invalid LTWH params
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto node = Rosen::RSCanvasNode::Create();
+        node->SetBounds({ x, y, sizeX, sizeY });
+        node->SetFrame({ x, y, sizeX, sizeY });
+        node->SetBackgroundNGShader(aiBarRectHalo);
+        node->SetBackgroundColor(0x88888888);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+}
+
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Foreground_Test)
+{
+    const int columnCount = 2;
+    const int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+
+        // Create circle flowLight effect
+        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        SetAIBarRectHaloParams(aiBarRectHalo, i);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto node = Rosen::RSCanvasNode::Create();
+        node->SetBounds({ x, y, sizeX, sizeY });
+        node->SetFrame({ x, y, sizeX, sizeY });
+        node->SetForegroundShader(aiBarRectHalo);
+        node->SetBackgroundColor(0x88888888);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+}
+
 // Test Background Noisy Frame Gradient Mask and Color Gradient Effect
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Background_Test)
 {
@@ -978,30 +1062,6 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Backgro
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
         node->SetBackgroundNGShader(colorGradient);
-        GetRootNode()->AddChild(node);
-        RegisterNode(node);
-    }
-}
-
-GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Test_1)
-{
-    int columnCount = 2;
-    int rowCount = 4;
-    auto sizeX = screenWidth / columnCount;
-    auto sizeY = screenHeight * columnCount / rowCount;
-    for (int i = 0; i < rowCount; i++) {
-
-        // Create circle flowLight effect
-        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
-        SetAIBarRectHaloParams(aiBarRectHalo, i);
-
-        int x = (i % columnCount) * sizeX;
-        int y = (i / columnCount) * sizeY;
-        auto node = Rosen::RSCanvasNode::Create();
-        node->SetBounds({ x, y, sizeX, sizeY });
-        node->SetFrame({ x, y, sizeX, sizeY });
-        node->SetBackgroundNGShader(aiBarRectHalo);
-        node->SetBackgroundColor(0x88888888);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
@@ -1032,53 +1092,6 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Foregro
         foregroundTestNode->SetForegroundShader(colorGradient);
         GetRootNode()->AddChild(foregroundTestNode);
         RegisterNode(foregroundTestNode);
-    }
-}
-
-GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Test_2)
-{
-    int columnCount = 2;
-    int rowCount = 4;
-    auto sizeX = screenWidth / columnCount;
-    auto sizeY = screenHeight * columnCount / rowCount;
-    for (int i = 0; i < rowCount; i++) {
-
-        // Create circle flowLight effect
-        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
-        SetAIBarRectHaloParams(aiBarRectHalo, 4 + i); // invalid LTWH params
-        int x = (i % columnCount) * sizeX;
-        int y = (i / columnCount) * sizeY;
-        auto node = Rosen::RSCanvasNode::Create();
-        node->SetBounds({ x, y, sizeX, sizeY });
-        node->SetFrame({ x, y, sizeX, sizeY });
-        node->SetBackgroundNGShader(aiBarRectHalo);
-        node->SetBackgroundColor(0x88888888);
-        GetRootNode()->AddChild(node);
-        RegisterNode(node);
-    }
-}
-
-GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Foreground_Test)
-{
-    int columnCount = 2;
-    int rowCount = 4;
-    auto sizeX = screenWidth / columnCount;
-    auto sizeY = screenHeight * columnCount / rowCount;
-    for (int i = 0; i < rowCount; i++) {
-
-        // Create circle flowLight effect
-        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
-        SetAIBarRectHaloParams(aiBarRectHalo, i);
-
-        int x = (i % columnCount) * sizeX;
-        int y = (i / columnCount) * sizeY;
-        auto node = Rosen::RSCanvasNode::Create();
-        node->SetBounds({ x, y, sizeX, sizeY });
-        node->SetFrame({ x, y, sizeX, sizeY });
-        node->SetForegroundShader(aiBarRectHalo);
-        node->SetBackgroundColor(0x88888888);
-        GetRootNode()->AddChild(node);
-        RegisterNode(node);
     }
 }
 
