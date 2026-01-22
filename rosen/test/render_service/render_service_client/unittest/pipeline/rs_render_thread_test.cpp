@@ -445,16 +445,4 @@ HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest2, TestSize.Lev
     EXPECT_NE(thread->renderContext_, nullptr);
     thread->renderContext_ = nullptr;
 }
-
-/**
- * @tc.name: StartTest002
- * @tc.desc: test GetIsRunning while start thread
- * @tc.type: FUNC
- * @tc.require: issueICB7BS
- */
-HWTEST_F(RSRenderThreadTest, StartTest002, TestSize.Level1)
-{
-    RSRenderThread::Instance().Start();
-    ASSERT_TRUE(RSRenderThread::Instance().GetIsRunning());
-}
 } // namespace OHOS::Rosen

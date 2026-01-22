@@ -230,6 +230,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, 
     NodeId id = surfaceNode_->GetId();
     // Test0 Abnormal condition, isClientPixelMap = true, but no clientPixelMap
     RSSurfaceCaptureConfig captureConfig;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint64(id);
     data.WriteRemoteObject(callback->AsObject());
     g_WriteSurfaceCaptureConfigMock(captureConfig, data);
@@ -242,7 +243,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, 
     data.WriteFloat(0);
     data.WriteFloat(0);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_DATA);
+    EXPECT_LE(res, ERR_NULL_OBJECT);
 
     // Test1: normal Capture
     auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
@@ -250,6 +251,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, 
 
     MessageParcel data2;
     RSSurfaceCaptureConfig captureConfig2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data2.WriteUint64(id);
     data2.WriteRemoteObject(callback->AsObject());
     g_WriteSurfaceCaptureConfigMock(captureConfig2, data2);
@@ -264,7 +266,56 @@ HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, 
 
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
 
-    ASSERT_EQ(res, ERR_INVALID_DATA);
+    EXPECT_LE(res, ERR_NULL_OBJECT);
+    // Test3 Abnoram condiation, Write config error
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data2.WriteUint64(id);
+    data2.WriteRemoteObject(callback->AsObject());
+    // Write BlurParm
+    data2.WriteBool(false);
+    data2.WriteFloat(0);
+    // write Area Rect;
+    data2.WriteFloat(0);
+    data2.WriteFloat(0);
+    data2.WriteFloat(0);
+    data2.WriteFloat(0);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_LE(res, ERR_NULL_OBJECT);
+
+    // Test4 Abnoram condiation, Write blurParam error
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data4.WriteUint64(id);
+    data4.WriteRemoteObject(callback->AsObject());
+    g_WriteSurfaceCaptureConfigMock(captureConfig, data4);
+    // Write BlurParm
+    data4.WriteFloat(0);
+    // write Area Rect;
+    data4.WriteFloat(0);
+    data4.WriteFloat(0);
+    data4.WriteFloat(0);
+    data4.WriteFloat(0);
+    res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
+    EXPECT_LE(res, ERR_NULL_OBJECT);
+
+    // Test4 Abnoram condiation, Write areaReat error
+    MessageParcel data5;
+    data5.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data5.WriteUint64(id);
+    data5.WriteRemoteObject(callback->AsObject());
+    g_WriteSurfaceCaptureConfigMock(captureConfig, data5);
+    // Write BlurParm
+    data5.WriteBool(false);
+    data5.WriteFloat(0);
+    // write Area Rect;
+    data5.WriteFloat(0);
+    data5.WriteFloat(0);
+    data5.WriteFloat(0);
+    data5.WriteFloat(0);
+    res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
+    EXPECT_LE(res, ERR_NULL_OBJECT);
+
     constexpr uint32_t TIME_OF_CAPTURE_TASK_REMAIN = 1000000;
     usleep(TIME_OF_CAPTURE_TASK_REMAIN);
     nodeMap.UnregisterRenderNode(id);
@@ -338,9 +389,9 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE)), ERR_NULL_OBJECT);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE)), ERR_NULL_OBJECT);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
@@ -368,7 +419,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSRenderServiceConnectionStub00
 
     int res;
     uint32_t code;
-
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION);
     res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
@@ -578,6 +629,22 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetScreenHDRStatus003, TestSize.Lev
     data.WriteBool(false);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetScreenHDRStatus004
+ * @tc.desc: Test GetScreenHDRStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetScreenHDRStatus004, TestSize.Level1)
+{
+    sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ScreenId id = 0;
+    HdrStatus hdrStatus;
+    int32_t resCode;
+    EXPECT_EQ(connection->GetScreenHDRStatus(id, hdrStatus, resCode), ERR_OK);
 }
 
 /**

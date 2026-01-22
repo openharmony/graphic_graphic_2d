@@ -34,6 +34,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "screen_manager/screen_types.h"
@@ -100,7 +101,11 @@ public:
         serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
         composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
 
-        // step3:
+        renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_ =
+            std::make_shared<OHOS::Rosen::RSRenderEngine>();
+        renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_->renderContext_ =
+            OHOS::Rosen::RenderContext::Create();
+        // step2:
         connectToRenderConnection_ = sptr<RSConnectToRenderProcess>::MakeSptr(renderPipelineAgent);
     }
 
@@ -252,6 +257,7 @@ void RSClientToServiceConnectionStubTest::TearDownTestCase()
 
     renderService_.renderPipeline_->uniRenderThread_->handler_ = nullptr;
     renderService_.renderPipeline_->uniRenderThread_->runner_ = nullptr;
+    renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
     renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderService_.renderPipeline_->uniRenderThread_ = nullptr;
     renderService_.renderPipeline_ = nullptr;
@@ -562,8 +568,8 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS)), ERR_INVALID_REPLY);
-    // ASSERT_EQ(OnRemoteRequestTest(
-    //     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE)), ERR_NONE);
+    ASSERT_EQ(OnRemoteRequestTest(
+         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_JANK_STATS)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
