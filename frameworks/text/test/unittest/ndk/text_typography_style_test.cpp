@@ -238,7 +238,7 @@ HWTEST_F(NdkTypographyStyleTest, OH_Drawing_GetTypographyStyleAttributeBool001, 
     OH_Drawing_ErrorCode errCodeSet = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle_,
         TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, true);
     EXPECT_EQ(errCodeSet, 0);
-
+    
     bool value = false;
     OH_Drawing_ErrorCode errCodeGet = OH_Drawing_GetTypographyStyleAttributeBool(typoStyle_,
         TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, &value);
