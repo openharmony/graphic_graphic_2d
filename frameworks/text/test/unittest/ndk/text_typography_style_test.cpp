@@ -207,6 +207,55 @@ HWTEST_F(NdkTypographyStyleTest, ParagraphTestGlyphPositionAtCoordinateWithClust
 }
 
 /*
+ * @tc.name: OH_Drawing_SetTypographyStyleAttributeBool001
+ * @tc.desc: test for set typography style descriptor attribute bool and error code.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, OH_Drawing_SetTypographyStyleAttributeBool001, TestSize.Level0)
+{
+    typoStyle_ = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle_, nullptr);
+    OH_Drawing_ErrorCode errCodeSet = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle_,
+        TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, true);
+    EXPECT_EQ(errCodeSet, 0);
+    errCodeSet = OH_Drawing_SetTypographyStyleAttributeBool(nullptr,
+        TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, true);
+    EXPECT_EQ(errCodeSet, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    errCodeSet = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle_,
+        TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, true);
+    EXPECT_EQ(errCodeSet, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+}
+
+/*
+ * @tc.name: OH_Drawing_GetTypographyStyleAttributeBool001
+ * @tc.desc: test for get typography style descriptor attribute bool and error code.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, OH_Drawing_GetTypographyStyleAttributeBool001, TestSize.Level0)
+{
+    typoStyle_ = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle_, nullptr);
+    OH_Drawing_ErrorCode errCodeSet = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle_,
+        TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, true);
+    EXPECT_EQ(errCodeSet, 0);
+    
+    bool value = false;
+    OH_Drawing_ErrorCode errCodeGet = OH_Drawing_GetTypographyStyleAttributeBool(typoStyle_,
+        TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, &value);
+    EXPECT_EQ(errCodeGet, 0);
+    EXPECT_TRUE(value);
+    errCodeGet = OH_Drawing_GetTypographyStyleAttributeBool(nullptr,
+        TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, &value);
+    EXPECT_EQ(errCodeGet, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    errCodeGet = OH_Drawing_GetTypographyStyleAttributeBool(typoStyle_,
+        TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, nullptr);
+    EXPECT_EQ(errCodeGet, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    errCodeGet = OH_Drawing_GetTypographyStyleAttributeBool(typoStyle_,
+        TYPOGRAPHY_STYLE_ATTR_I_FONT_WIDTH, &value);
+    EXPECT_EQ(errCodeGet, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+}
+
+/*
  * @tc.name: TypographyCompressPunctuation001
  * @tc.desc: test for compress punctuation:《【『「『（〈【〖〔［｛
  * @tc.type: FUNC
@@ -478,6 +527,112 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation009, TestSize.Leve
     double longeslineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
     double longeslineFalse = OH_Drawing_TypographyGetLongestLine(typography2_);
     EXPECT_GT(longeslineTrue, longeslineFalse);
+}
+
+/*
+ * @tc.name: TypographyCompressPunctuation010
+ * @tc.desc: test for compress punctuation with single punctuation.
+ * ss08 cannot compress all head punctuation marks.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation010, TestSize.Level0)
+{
+    std::string text = "【";
+
+    PrepareWorkForCompressPunctuationTest(text, DEFAULT_LAYOUT_WIDTH1);
+    size_t lineNumberTrue = OH_Drawing_TypographyGetLineCount(typography_);
+    size_t lineNumberFalse = OH_Drawing_TypographyGetLineCount(typography2_);
+    EXPECT_EQ(lineNumberTrue, lineNumberFalse);
+
+    double lineTrue = OH_Drawing_TypographyGetLineWidth(typography_, 0);
+    double lineFalse = OH_Drawing_TypographyGetLineWidth(typography2_, 0);
+    EXPECT_LT(lineTrue, lineFalse);
+    double longeslineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
+    double longeslineFalse = OH_Drawing_TypographyGetLongestLine(typography2_);
+    EXPECT_LT(longeslineTrue, longeslineFalse);
+}
+
+/*
+ * @tc.name: TypographyCompressPunctuation011
+ * @tc.desc: test for paragraph cache with single punctuation when open compress punctuation.
+ * ss08 cannot compress all head punctuation marks.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation011, TestSize.Level0)
+{
+    std::string text = "【";
+    PrepareWorkForTypographyStyleTest();
+    // paragraph1 with compressPunctuation
+    typoStyle_ = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle_, nullptr);
+    OH_Drawing_SetTypographyStyleAttributeBool(typoStyle_, TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, true);
+    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
+    ASSERT_NE(handler_, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle_, DEFAULT_FONT_SIZE1);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
+    OH_Drawing_TypographyHandlerAddText(handler_, text.c_str());
+    typography_ = OH_Drawing_CreateTypography(handler_);
+    ASSERT_NE(typography_, nullptr);
+    // first layout
+    OH_Drawing_TypographyLayout(typography_, DEFAULT_LAYOUT_WIDTH1);
+    size_t lineNumberFirst = OH_Drawing_TypographyGetLineCount(typography_);
+    double lineFirst = OH_Drawing_TypographyGetLineWidth(typography_, 0);
+    double longeslineFirst = OH_Drawing_TypographyGetLongestLine(typography_);
+    // re layout
+    OH_Drawing_TypographyLayout(typography_, DEFAULT_LAYOUT_WIDTH1);
+    size_t lineNumberSecond = OH_Drawing_TypographyGetLineCount(typography_);
+    double lineSecond = OH_Drawing_TypographyGetLineWidth(typography_, 0);
+    double longeslineSecond = OH_Drawing_TypographyGetLongestLine(typography_);
+    EXPECT_EQ(lineNumberFirst, lineNumberSecond);
+    EXPECT_NEAR(lineFirst, lineSecond, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(longeslineFirst, longeslineSecond, FLOAT_DATA_EPSILON);
+}
+
+/*
+ * @tc.name: TypographyCompressPunctuation012
+ * @tc.desc: test for paragraph cache with multi line when open compress punctuation.
+ * ss08 cannot compress all head punctuation marks.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation012, TestSize.Level0)
+{
+    std::string text = "《围城【测试『你好「哈哈（可以〈很好【丰盛〖盛打〔给你［极速｛自己";
+    constexpr double lineWidthComp1 = 124.999878;
+    constexpr double lineWidthComp2 = 124.999847;
+    constexpr double lineWidthComp3 = 124.999908;
+    constexpr double lineWidthComp4 = 124.999969;
+    constexpr size_t lineNum = 11;
+    double lineWidthsTrue[lineNum] = { lineWidthComp1, lineWidthComp1, lineWidthComp2, lineWidthComp2, lineWidthComp2,
+        lineWidthComp2, lineWidthComp3, lineWidthComp4, lineWidthComp4, lineWidthComp4, lineWidthComp4 };
+
+    PrepareWorkForTypographyStyleTest();
+    // paragraph1 with compressPunctuation
+    typoStyle_ = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle_, nullptr);
+    OH_Drawing_SetTypographyStyleAttributeBool(typoStyle_, TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, true);
+    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
+    ASSERT_NE(handler_, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle_, DEFAULT_FONT_SIZE1);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
+    OH_Drawing_TypographyHandlerAddText(handler_, text.c_str());
+    typography_ = OH_Drawing_CreateTypography(handler_);
+    ASSERT_NE(typography_, nullptr);
+    // first layout
+    OH_Drawing_TypographyLayout(typography_, DEFAULT_LAYOUT_WIDTH1);
+    size_t lineNumberFirst = OH_Drawing_TypographyGetLineCount(typography_);
+    double longeslineFirst = OH_Drawing_TypographyGetLongestLine(typography_);
+    // re layout
+    OH_Drawing_TypographyLayout(typography_, DEFAULT_LAYOUT_WIDTH1);
+    size_t lineNumberSecond = OH_Drawing_TypographyGetLineCount(typography_);
+    double longeslineSecond = OH_Drawing_TypographyGetLongestLine(typography_);
+
+    EXPECT_EQ(lineNumberFirst, lineNumberSecond);
+    EXPECT_EQ(lineNumberFirst, lineNum);
+    EXPECT_NEAR(longeslineFirst, longeslineSecond, FLOAT_DATA_EPSILON);
+    for (int i = 0; i < lineNum; i++) {
+        double lineTrue = OH_Drawing_TypographyGetLineWidth(typography_, i);
+        EXPECT_NEAR(lineTrue, lineWidthsTrue[i], FLOAT_DATA_EPSILON);
+    }
 }
 
 /*
