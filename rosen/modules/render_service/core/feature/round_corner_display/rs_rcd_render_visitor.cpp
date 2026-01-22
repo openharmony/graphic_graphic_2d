@@ -105,18 +105,24 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
         return true;
     }
 
-    auto surfaceNodePtr = node.ReinterpretCastTo<RSRcdSurfaceRenderNode>();
-    if (surfaceNodePtr == nullptr || (!node.IsSurfaceCreated())) {
+    // Get shared_ptr for listener creation
+    // Node is managed by shared_ptr (created via std::make_shared) and
+    // bottomPtr/topPtr hold the reference during function execution.
+    // Use RSRenderNode::shared_from_this() to avoid ambiguity from multiple inheritance.
+    RSRcdSurfaceRenderNode::SharedPtr surfaceNodePtr =
+        std::static_pointer_cast<RSRcdSurfaceRenderNode>(node.RSRenderNode::shared_from_this());
+
+    if (!node.IsSurfaceCreated()) {
         sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNodePtr);
         if (listener == nullptr || (!node.CreateSurface(listener))) {
-            RS_LOGE("RSRcdRenderVisitor::RenderExpandedFrame CreateSurface failed");
+            RS_LOGE("RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode CreateSurface failed");
             return false;
         }
     }
 
     auto rsSurface = std::static_pointer_cast<RSSurfaceOhos>(node.GetRSSurface());
     if (rsSurface == nullptr) {
-        RS_LOGE("RSRcdRenderVisitor::RenderExpandedFrame no RSSurface found");
+        RS_LOGE("RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode no RSSurface found");
         return false;
     }
 

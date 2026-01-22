@@ -136,6 +136,15 @@ void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::un
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
+
+    // Check if UniRenderThread is ready for RCD rendering
+    bool isRcdTaskDelayed = !RSUniRenderThread::Instance().IsMainLooping();
+    if (isRcdTaskDelayed) {
+        RS_LOGW("DoScreenRcdTask: UniRenderThread not ready, skip RCD rendering for screen %{public}llu",
+            static_cast<unsigned long long>(id));
+        return;
+    }
+
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
             [id, &processor, &rcdInfo](void) {
