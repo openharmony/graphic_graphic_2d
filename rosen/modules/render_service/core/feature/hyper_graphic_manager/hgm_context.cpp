@@ -16,7 +16,6 @@
 #include "hgm_context.h"
 
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
-#include "hfbc_param.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
 #include "rs_frame_report.h"
@@ -65,7 +64,6 @@ void HgmContext::InitHgmTaskHandleThread(
         frameRateManager->Init(rsVSyncController, appVSyncController, vsyncGenerator, appVSyncDistributor);
     });
     InitHgmUpdateCallback();
-    InitHfbcConfig();
 }
 
 void HgmContext::InitHgmUpdateCallback()
@@ -94,18 +92,6 @@ void HgmContext::InitHgmUpdateCallback()
         frameRateManager->SetHgmConfigUpdateCallback(hgmTask);
         frameRateManager->SetAdaptiveVsyncUpdateCallback(adaptiveTask);
     });
-}
-
-void HgmContext::InitHfbcConfig()
-{
-    if (!HFBCParam::GetHfbcConfigMap().empty()) {
-        HgmTaskHandleThread::Instance().PostTask([this] {
-            HgmHfbcConfig& hfbcConfig = hgmCore_.GetHfbcConfig();
-            HGM_LOGI("postTask about hfbcConfig");
-            hfbcConfig.SetHfbcConfigMap(HFBCParam::GetHfbcConfigMap());
-            hfbcConfig.SetHfbcControlMode(HFBCParam::GetHfbcControlMode());
-        });
-    }
 }
 
 void HgmContext::HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info)

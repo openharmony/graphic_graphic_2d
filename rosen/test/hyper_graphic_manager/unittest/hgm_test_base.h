@@ -154,9 +154,6 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     <Params name="rs_solid_color_layer_config">
         <App name="aaa" value="1"/>
     </Params>
-    <Params name="hfbc_config">
-        <App name="aaa" value="1"/>
-    </Params>
     <Params name="timeout_strategy_config">
         <App name="aaa" value="1"/>
     </Params>
@@ -308,9 +305,6 @@ const std::string TEST_XML_CONTENT_1 = (R"(<?xml version="1.0" encoding="UTF-8" 
         <Vrate name="aaa" value="1"/>
     </Params>
     <Params name="rs_solid_color_layer_config">
-        <App name="aaa" value="1"/>
-    </Params>
-    <Params name="hfbc_config">
         <App name="aaa" value="1"/>
     </Params>
     <Params name="timeout_strategy_config">

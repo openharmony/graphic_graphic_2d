@@ -26,6 +26,7 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
@@ -206,12 +207,16 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
         OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
         screenManagerAgent_, token_->AsObject(), appVSyncDistributor_);
 
+    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ =
+        std::make_shared<OHOS::Rosen::RSRenderEngine>();
+    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_->renderContext_ =
+        OHOS::Rosen::RenderContext::Create();
+
     // reset recevier, otherwise maybe crash
     OHOS::Rosen::renderService_->rsVSyncDistributor_->connections_.clear();
     OHOS::Rosen::renderService_->rsVSyncDistributor_->connMap_.clear();
     OHOS::Rosen::renderService_->rsVSyncDistributor_->connectionsMap_.clear();
     OHOS::Rosen::renderService_->rsVSyncDistributor_ = nullptr;
-    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
     
     OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
     OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;

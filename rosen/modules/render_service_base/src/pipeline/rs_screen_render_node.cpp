@@ -198,7 +198,6 @@ void RSScreenRenderNode::UpdateRenderParams()
     screenParams->screenProperty_ = screenProperty_;
     screenParams->logicalDisplayNodeDrawables_ = std::move(logicalDisplayNodeDrawables_);
     screenParams->SetHasMirroredScreenChanged(hasMirroredScreenChanged_);
-    screenParams->isVirtualSurfaceChanged_ = isVirtualSurfaceChanged_;
     screenParams->roundCornerSurfaceDrawables_.clear();
     if (rcdSurfaceNodeTop_ && rcdSurfaceNodeTop_->GetRenderDrawable() != nullptr) {
         screenParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeTop_->GetRenderDrawable());
@@ -582,37 +581,17 @@ bool RSScreenRenderNode::GetForceFreeze() const
     return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
 }
 
-void RSScreenRenderNode::CheckVirtualScreenStatusChanged()
+void RSScreenRenderNode::SetVirtualSurfaceChanged(bool isChanged)
 {
-#ifndef ROSEN_CROSS_PLATFORM
-    if (!screenProperty_.IsVirtual()) {
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::%{public}s screenParams is null", __func__);
         return;
     }
-    auto& [lastHasSurface, lastSurfaceId] = virtualSurfaceState_;
-    auto curSurface = screenProperty_.GetProducerSurface();
-    bool curHasSurface = (curSurface != nullptr);
-    if (lastHasSurface != curHasSurface || (curHasSurface && lastSurfaceId != curSurface->GetUniqueId())) {
-        lastHasSurface = curHasSurface;
-        lastSurfaceId = curSurface ? curSurface->GetUniqueId() : UINT64_MAX;
-        isVirtualSurfaceChanged_ = true;
-    } else {
-        isVirtualSurfaceChanged_ = false;
+    screenParams->SetVirtualSurfaceChanged(isChanged);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
     }
-#endif
-
-    virtualScreenStatusChanged_ = lastStatus_ != VIRTUAL_SCREEN_PLAY &&
-        screenProperty_.GetVirtualScreenStatus() == VIRTUAL_SCREEN_PLAY;
-    lastStatus_ = screenProperty_.GetVirtualScreenStatus();
-}
-
-bool RSScreenRenderNode::IsVirtualSurfaceChanged() const
-{
-    return isVirtualSurfaceChanged_;
-}
-
-bool RSScreenRenderNode::IsVirtualScreenStatusChanged() const
-{
-    return virtualScreenStatusChanged_;
 }
 
 } // namespace Rosen

@@ -90,8 +90,6 @@ private:
     void HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info);
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
 
-    void InitHfbcConfig();
-
     const std::shared_ptr<AppExecFwk::EventHandler> renderServiceHandler_;
     const sptr<VSyncDistributor> appVSyncDistributor_;
     const sptr<VSyncDistributor> rsVSyncDistributor_;

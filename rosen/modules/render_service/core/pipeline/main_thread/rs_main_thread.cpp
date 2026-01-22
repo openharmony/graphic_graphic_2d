@@ -850,7 +850,7 @@ void RSMainThread::OnScreenPropertyChanged(
         RS_LOGE("%{public}s, property is nullptr.", __func__);
         return;
     }
-    HandleScreenPropertyRefreshOneFrame(type);
+    HandleScreenPropertyRefreshOneFrame(id, type);
     HandlePowerStatusChanged(id, type, property);
     UpdateScreenProperty(id, type, property);
     RequestNextVSync();
@@ -1630,6 +1630,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         dividedRenderbufferTimestamps_.clear();
     }
     RSDrmUtil::ClearDrmNodes();
+    RSUniRenderThread::Instance().ClearScreenHasProtectedLayerSet();
     const auto& nodeMap = GetContext().GetNodeMap();
     isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
     isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
@@ -5321,15 +5322,36 @@ void RSMainThread::CreateScreenNode(const sptr<RSScreenProperty>& property)
     UpdateGpuContextCacheSize();
 }
 
-void RSMainThread::HandleScreenPropertyRefreshOneFrame(ScreenPropertyType type)
+static bool NeedForceRefreshOneFrame(ScreenPropertyType type)
 {
-    bool needForceRefreshOneFrame = type == ScreenPropertyType::RENDER_RESOLUTION ||
-                                    type == ScreenPropertyType::PRODUCER_SURFACE ||
-                                    type == ScreenPropertyType::GAMUT_MAP;
-    if (needForceRefreshOneFrame) {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::%{public}s: type:%u", __func__, static_cast<uint32_t>(type));
+    switch (type) {
+        case ScreenPropertyType::RENDER_RESOLUTION:
+        case ScreenPropertyType::PRODUCER_SURFACE:
+        case ScreenPropertyType::GAMUT_MAP:
+        case ScreenPropertyType::SCREEN_STATUS:
+        case ScreenPropertyType::SCREEN_SWITCH_STATUS:
+            return true;
+        default:
+            return false;
+    }
+}
+
+void RSMainThread::HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type)
+{
+    if (NeedForceRefreshOneFrame(type)) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::%s: type:%u", __func__, static_cast<uint32_t>(type));
         RS_LOGI("RSMainThread::%{public}s: type:%{public}u", __func__, static_cast<uint32_t>(type));
-        SetDirtyFlag();
+        auto& nodeMap = context_->GetNodeMap();
+        nodeMap.TraverseScreenNodes([id, type](auto& node) {
+            if (node->GetScreenId() != id) {
+                return;
+            }
+            node->SetScreenDirtyFlag(true);
+            if (type == ScreenPropertyType::PRODUCER_SURFACE) {
+                node->SetVirtualSurfaceChanged(true);
+            }
+        });
+
         ForceRefreshForUni();
     }
 }
@@ -5363,7 +5385,8 @@ void RSMainThread::HandlePowerStatusChanged(ScreenId id,
         if (lastStatus == curStatus) {
             return;
         }
-        SetDirtyFlag();
+
+        node->SetScreenDirtyFlag(true);
         SetScreenPowerOnChanged(true);
         if (lastStatus == ScreenPowerStatus::POWER_STATUS_OFF ||
             lastStatus == ScreenPowerStatus::POWER_STATUS_OFF_FAKE ||

@@ -73,6 +73,8 @@ public:
     void TearDown() override;
 
     static inline NodeId id = DEFAULT_ID;
+private:
+    bool clientHasSet = false;
 };
 
 void RSScreenRenderNodeDrawableTest::SetUpTestCase()
@@ -80,11 +82,20 @@ void RSScreenRenderNodeDrawableTest::SetUpTestCase()
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
+    // init vsync, default 60hz
+    auto receiver = std::make_shared<VSyncReceiver>(nullptr, nullptr, nullptr, "generator_test");
+    receiver->init_ = true;
+    RSMainThread::Instance()->receiver_ = receiver;
 }
 
 void RSScreenRenderNodeDrawableTest::TearDownTestCase() {}
 void RSScreenRenderNodeDrawableTest::SetUp()
 {
+    if (!clientHasSet) {
+        clientHasSet = true;
+        // Instance() can't be invoked in SetUpTestCase(), that will cause process crashed.
+        RSUniRenderThread().Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
+    }
     id++;
     auto context = std::make_shared<RSContext>();
     renderNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, DEFAULT_SCREEN_ID, context);
@@ -226,8 +237,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     ASSERT_NE(screenDrawable_->renderParams_, nullptr);
 
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
     auto result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
@@ -281,8 +290,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
 
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     auto result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
@@ -566,27 +573,30 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest006, TestSize.Level1)
     ASSERT_NE(screenDrawable_, nullptr);
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ScreenInfo screenInfo;
-    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_INTERVAL;
-    auto currentTime1 =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
-            .count();
-    screenDrawable_->lastRefreshTime_ = currentTime1;
-    screenInfo.skipFrameInterval = 1;
-    params->screenInfo_ = screenInfo;
-    screenDrawable_->OnDraw(canvas);
-    EXPECT_FALSE(screenDrawable_->SkipFrameByInterval(
-        RSMainThread::Instance()->GetVsyncRefreshRate(), screenInfo.skipFrameInterval));
-
-    auto currentTime2 =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
-            .count();
-    screenDrawable_->lastRefreshTime_ = currentTime2;
-    screenInfo.skipFrameInterval = 100;
-    params->screenInfo_ = screenInfo;
-    screenDrawable_->OnDraw(canvas);
-    EXPECT_TRUE(screenDrawable_->SkipFrameByInterval(
-        RSMainThread::Instance()->GetVsyncRefreshRate(), screenInfo.skipFrameInterval));
+    RSMainThread::Instance()->receiver_->listener_->period_ = 15000001;
+    RSMainThread::Instance()->receiver_->listener_->timeStamp_ = 1;
+    {
+        uint32_t skipFrameInterval = 1;
+        auto&& skipOption = std::make_tuple(skipFrameInterval, 0, static_cast<uint8_t>(SKIP_FRAME_BY_INTERVAL));
+        params->screenProperty_.Set<ScreenPropertyType::SKIP_FRAME_OPTION>(skipOption);
+        auto currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        screenDrawable_->lastRefreshTime_ = currentTime;
+        screenDrawable_->OnDraw(canvas);
+        EXPECT_FALSE(screenDrawable_->SkipFrameByInterval(
+            RSMainThread::Instance()->GetVsyncRefreshRate(), skipFrameInterval));
+    }
+    {
+        uint32_t skipFrameInterval = 100;
+        auto&& skipOption = std::make_tuple(skipFrameInterval, 0, static_cast<uint8_t>(SKIP_FRAME_BY_INTERVAL));
+        params->screenProperty_.Set<ScreenPropertyType::SKIP_FRAME_OPTION>(skipOption);
+        auto currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        screenDrawable_->lastRefreshTime_ = currentTime;
+        screenDrawable_->OnDraw(canvas);
+        EXPECT_TRUE(screenDrawable_->SkipFrameByInterval(
+            RSMainThread::Instance()->GetVsyncRefreshRate(), skipFrameInterval));
+    }
 }
 
 /**
@@ -600,17 +610,23 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest007, TestSize.Level1)
     ASSERT_NE(screenDrawable_, nullptr);
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ScreenInfo screenInfo;
-    // when isEqualVsyncPeriod is false;
-    screenInfo.skipFrameInterval = 2;
-    params->screenInfo_ = screenInfo;
-    screenDrawable_->OnDraw(canvas);
-    EXPECT_FALSE(params->IsEqualVsyncPeriod());
-    // when isEqualVsyncPeriod is true;
-    screenInfo.skipFrameInterval = 1;
-    params->screenInfo_ = screenInfo;
-    screenDrawable_->OnDraw(canvas);
-    EXPECT_TRUE(params->IsEqualVsyncPeriod());
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+    {
+        // when isEqualVsyncPeriod is false;
+        uint32_t skipFrameInterval = 2;
+        auto&& skipOption = std::make_tuple(skipFrameInterval, 0, static_cast<uint8_t>(SKIP_FRAME_BY_INTERVAL));
+        params->screenProperty_.Set<ScreenPropertyType::SKIP_FRAME_OPTION>(skipOption);
+        screenDrawable_->OnDraw(canvas);
+        EXPECT_FALSE(params->IsEqualVsyncPeriod());
+    }
+    {
+        // when isEqualVsyncPeriod is true;
+        uint32_t skipFrameInterval = 1;
+        auto&& skipOption = std::make_tuple(skipFrameInterval, 0, static_cast<uint8_t>(SKIP_FRAME_BY_INTERVAL));
+        params->screenProperty_.Set<ScreenPropertyType::SKIP_FRAME_OPTION>(skipOption);
+        screenDrawable_->OnDraw(canvas);
+        EXPECT_TRUE(params->IsEqualVsyncPeriod());
+    }
 }
 
 /**
@@ -738,9 +754,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest014, TestSize.Level1)
 
     ASSERT_NE(screenDrawable_->GetDrawSkipType(), DrawSkipType::SCREEN_STATE_INVALID);
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ScreenInfo screenInfo;
-    screenInfo.state = ScreenState::DISABLED;
-    params->screenInfo_ = screenInfo;
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::DISABLED));
     screenDrawable_->OnDraw(canvas);
     ASSERT_EQ(screenDrawable_->GetDrawSkipType(), DrawSkipType::SCREEN_STATE_INVALID);
 }
@@ -825,7 +839,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Lev
     ASSERT_NE(mirroredNode_, nullptr);
 
     auto& rtThread = RSUniRenderThread::Instance();
-    rtThread.composerClientManager_ = std::make_shared<RSComposerClientManager>();
     if (!rtThread.GetRSRenderThreadParams()) {
         rtThread.Sync(std::make_unique<RSRenderThreadParams>());
     }
@@ -1671,8 +1684,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrame_NullRenderEngine, TestSize
     // ensure render engine is null
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     auto renderFrame = screenDrawable_->RequestFrame(*params, processor);
     EXPECT_EQ(renderFrame, nullptr);
@@ -1694,8 +1705,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkip_DirtyFrame, TestSiz
     // set dirty flag
     RSMainThread::Instance()->SetDirtyFlag(true);
 
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     bool result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     EXPECT_FALSE(result);
@@ -1720,8 +1729,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkip_HDRStausChanged, Te
     // set hdr status changed
     params->isHDRStatusChanged_ = true;
 
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     bool result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     EXPECT_FALSE(result);

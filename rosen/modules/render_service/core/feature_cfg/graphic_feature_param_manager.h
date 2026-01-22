@@ -33,8 +33,6 @@
 #include "drm_param.h"
 #include "color_gamut_param_parse.h"
 #include "color_gamut_param.h"
-#include "hfbc_param_parse.h"
-#include "hfbc_param.h"
 #include "hwc_param_parse.h"
 #include "hwc_param.h"
 #include "mem_param_parse.h"
@@ -88,8 +86,6 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
     {FEATURE_CONFIGS[DRM], [] { return std::make_unique<DRMParamParse>(); },
         [] { return std::make_unique<DRMParam>(); }},
     {FEATURE_CONFIGS[HWC], [] {return std::make_unique<HWCParamParse>(); }, [] {return std::make_unique<HWCParam>(); }},
-    {FEATURE_CONFIGS[HFBC], [] {return std::make_unique<HFBCParamParse>(); },
-        [] {return std::make_unique<HFBCParam>(); }},
     {FEATURE_CONFIGS[MEM], [] { return std::make_unique<MEMParamParse>(); },
         [] { return std::make_unique<MEMParam>(); }},
     {FEATURE_CONFIGS[SPECIALLAYER], [] { return std::make_unique<SpecialLayerParamParse>(); },

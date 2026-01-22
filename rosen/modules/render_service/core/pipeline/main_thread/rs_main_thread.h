@@ -499,7 +499,7 @@ private:
     void ProcessCommand();
     void CreateScreenNode(const sptr<RSScreenProperty>& property);
     void DestroyScreenNode(ScreenId screenId);
-    void HandleScreenPropertyRefreshOneFrame(ScreenPropertyType type);
+    void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();

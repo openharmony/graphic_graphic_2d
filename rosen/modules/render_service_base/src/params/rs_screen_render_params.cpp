@@ -264,7 +264,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->logicalDisplayNodeDrawables_ =  std::move(logicalDisplayNodeDrawables_);
     targetScreenParams->forceFreeze_ = forceFreeze_;
     targetScreenParams->hasMirroredScreenChanged_ = hasMirroredScreenChanged_;
-    targetScreenParams->isVirtualSurfaceChanged_ = isVirtualSurfaceChanged_;
+    targetScreenParams->isVirtualSurfaceChanged_ = std::exchange(isVirtualSurfaceChanged_, false);
     RSRenderParams::OnSync(target);
 }
 

@@ -26,7 +26,6 @@
 #include <vector>
 
 #include "hgm_frame_rate_manager.h"
-#include "hgm_hfbc_config.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
 #include "vsync_generator.h"
@@ -131,8 +130,6 @@ public:
     bool GetMultiSelfOwnedScreenEnable() const { return multiSelfOwnedScreenEnable_.load(); }
     void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable);
 
-    HgmHfbcConfig& GetHfbcConfig() { return hfbcConfig_; }
-
     RSScreenManager* GetScreenManager() { return screenManager_; }
     void SetScreenManager(RSScreenManager* screenManager) { screenManager_ = screenManager; }
 
@@ -195,7 +192,6 @@ private:
     bool enableDynamicMode_ = true;
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
-    HgmHfbcConfig hfbcConfig_;
 
     // RS/APP Vsync Offset
     std::atomic<int64_t> rsPhaseOffset_{ 0 };

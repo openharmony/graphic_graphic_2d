@@ -560,7 +560,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     if (curScreenNode_ == nullptr) {
         return;
     }
-    bool ret = CheckScreenPowerChange() ||
+    bool ret = curScreenNode_->GetAndResetScreenDirtyFlag() ||
         CheckCurtainScreenUsingStatusChange() ||
         curScreenDirtyManager_->GetEnabledChanged() ||
         IsWatermarkFlagChanged() ||
@@ -571,8 +571,6 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
         IsAccessibilityConfigChanged() ||
         curScreenNode_->HasMirroredScreenChanged() ||
-        curScreenNode_->IsVirtualSurfaceChanged() ||
-        curScreenNode_->IsVirtualScreenStatusChanged() ||
         curScreenNode_->IsScreenResolutionChanged();
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -588,15 +586,6 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
 bool RSUniRenderVisitor::IsAccessibilityConfigChanged() const
 {
     return RSMainThread::Instance()->IsAccessibilityConfigChanged();
-}
-
-bool RSUniRenderVisitor::CheckScreenPowerChange() const
-{
-    if (!RSMainThread::Instance()->GetScreenPowerOnChanged()) {
-        return false;
-    }
-    RS_LOGD("CheckScreenPowerChange changed");
-    return true;
 }
 
 bool RSUniRenderVisitor::CheckCurtainScreenUsingStatusChange() const
@@ -2030,7 +2019,6 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     node.SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
     node.SetExistHWCNode(false);
     CheckLuminanceStatusChange(curScreenNode_->GetScreenId());
-    node.CheckVirtualScreenStatusChanged();
 
     // 2 init screenManager info
     const auto& screenProperty = curScreenNode_->GetScreenProperty();
