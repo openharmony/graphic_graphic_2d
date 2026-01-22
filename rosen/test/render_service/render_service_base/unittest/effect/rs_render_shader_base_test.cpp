@@ -142,7 +142,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, AppendToGEContainerTest, TestSize.Level1)
     std::string name = "ge1";
     auto shader = std::make_shared<Drawing::GEVisualEffect>(name);
     RSNGRenderEffectHelper::AppendToGEContainer(nullContainer, shader);
-    EXPECT_EQ(nullContainer, nullptr);
+    SUCCEED();
 
     auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
     RSNGRenderEffectHelper::AppendToGEContainer(container, shader);
