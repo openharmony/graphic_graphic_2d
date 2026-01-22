@@ -1125,7 +1125,7 @@ public:
      * the client via callback.
      *
      * @param interval Cooldown interval between two color picking tasks in ms.
-     * @param callback Only called when the change of background luminance > @c notifyThreshold.
+     * @param callback Only called when the change of background luminance > @p notifyThreshold.
      * @param notifyThreshold Luminance threshold for notification (0-255).
      * @return true if registration is successful.
      */
