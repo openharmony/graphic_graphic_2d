@@ -14,7 +14,6 @@
  */
 
 #include "hgm_frame_rate_manager.h"
-
 #include <algorithm>
 #include <chrono>
 #include <ctime>
@@ -394,7 +393,7 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
-    frameVoter_.SetDragScene(finalRange.type_ & ACE_COMPONENT_FRAME_RATE_TYPE);
+    frameVoter_.SetDragScene(finalRange.type_ & DRAG_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
         auto allTypeDescription = finalRange.GetAllTypeDescription();
