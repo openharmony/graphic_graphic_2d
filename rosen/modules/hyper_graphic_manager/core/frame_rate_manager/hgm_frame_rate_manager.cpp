@@ -14,6 +14,7 @@
  */
 
 #include "hgm_frame_rate_manager.h"
+
 #include <algorithm>
 #include <chrono>
 #include <ctime>
