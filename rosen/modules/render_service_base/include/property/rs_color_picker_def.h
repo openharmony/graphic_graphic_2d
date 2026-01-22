@@ -43,7 +43,8 @@ struct ColorPickerParam {
     ColorPlaceholder placeholder = ColorPlaceholder::NONE;
     ColorPickStrategyType strategy = ColorPickStrategyType::NONE;
     uint64_t interval = 0;
-    uint32_t notifyThreshold = 0; // minimum luminance difference to trigger notification (0-255, 0=always notify)
+    uint32_t notifyThreshold = 0; // minimum luminance difference to trigger notification (0-255, 0 = always notify).
+                                  // Skip notification if difference is less than this value.
 
     ColorPickerParam() = default;
     ColorPickerParam(ColorPlaceholder ph, ColorPickStrategyType st, uint64_t itv)
@@ -53,7 +54,7 @@ struct ColorPickerParam {
     bool operator==(const ColorPickerParam& other) const
     {
         return placeholder == other.placeholder && strategy == other.strategy && interval == other.interval &&
-            notifyThreshold == other.notifyThreshold;
+               notifyThreshold == other.notifyThreshold;
     }
 };
 } // namespace Rosen
