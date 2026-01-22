@@ -342,6 +342,9 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
         AniTextStyleConverter::ParseRectStyleToAni(env, textStyle.backgroundRect),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textBadgeType,
             aniGetEnumIndex(AniTextEnum::textBadgeType, static_cast<uint32_t>(textStyle.badgeType))),
+        textStyle.maxLineHeight, textStyle.minLineHeight,
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().lineHeightStyle,
+            aniGetEnumIndex(AniTextEnum::lineHeightStyle, static_cast<uint32_t>(textStyle.lineHeightStyle))),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontWidth,
             aniGetEnumIndex(AniTextEnum::fontWidth, static_cast<uint32_t>(textStyle.fontWidth)))
     );

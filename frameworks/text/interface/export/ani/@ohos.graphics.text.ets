@@ -281,7 +281,7 @@ export default namespace text {
 
   export enum LineHeightStyle {
     FONT_SIZE = 0,
-    FONT_HEIGHT = 1
+    FONT_HEIGHT = 1,
   }
 
   export interface StrutStyle {
