@@ -29,6 +29,15 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
+public:
+    explicit MockRSBrightnessInfoChangeCallback() : IRemoteProxy<RSIBrightnessInfoChangeCallback>(nullptr) {};
+    virtual ~MockRSBrightnessInfoChangeCallback() noexcept = default;
+
+    void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
+};
+} // namespace
 class RSServiceToRenderConnectionProxyTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -89,5 +98,20 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetShowRefreshRateEnabledTest, Te
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetRealtimeRefreshRateTest, TestSize.Level1)
 {
     EXPECT_EQ(proxy->GetRealtimeRefreshRate(INVALID_SCREEN_ID), 0);
+}
+
+/**
+ * @tc.name: SetBrightnessInfoChangeCallbackTest
+ * @tc.desc: Test SetBrightnessInfoChangeCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    sptr<MockRSBrightnessInfoChangeCallback> callback = new MockRSBrightnessInfoChangeCallback();
+    EXPECT_NE(proxy->SetBrightnessInfoChangeCallback(0, callback), SUCCESS);
+    pid_t pid = getpid();
+    EXPECT_NE(proxy->SetBrightnessInfoChangeCallback(pid, callback), SUCCESS);
 }
 } // namespace OHOS::Rosen
