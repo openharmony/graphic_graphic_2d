@@ -243,6 +243,7 @@ void RSDrmUtil::PreAllocProtectedFrameBuffers(const std::shared_ptr<RSSurfaceRen
         const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSComposerClientManager>& clientManager)
 {
     if (auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock())) {
+        RSUniRenderThread::Instance().AddScreenHasProtectedLayerSet(screenNode->GetScreenId());
         if (clientManager != nullptr) {
             RS_TRACE_NAME_FMT("PreAllocProtectedFrameBuffers screenId:%" PRIu64, screenNode->GetScreenId());
             clientManager->PreAllocProtectedFrameBuffers(screenNode->GetScreenId(), buffer);
