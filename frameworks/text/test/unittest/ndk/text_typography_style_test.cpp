@@ -206,7 +206,7 @@ HWTEST_F(NdkTypographyStyleTest, ParagraphTestGlyphPositionAtCoordinateWithClust
     }
 }
 
-/**
+/*
  * @tc.name: OH_Drawing_SetTypographyStyleAttributeBool001
  * @tc.desc: test for set typography style descriptor attribute bool and error code.
  * @tc.type: FUNC
@@ -226,7 +226,7 @@ HWTEST_F(NdkTypographyStyleTest, OH_Drawing_SetTypographyStyleAttributeBool001, 
     EXPECT_EQ(errCodeSet, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
 }
 
-/**
+/*
  * @tc.name: OH_Drawing_GetTypographyStyleAttributeBool001
  * @tc.desc: test for get typography style descriptor attribute bool and error code.
  * @tc.type: FUNC
@@ -546,10 +546,10 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation010, TestSize.Leve
 
     double lineTrue = OH_Drawing_TypographyGetLineWidth(typography_, 0);
     double lineFalse = OH_Drawing_TypographyGetLineWidth(typography2_, 0);
-    EXPECT_GT(lineTrue, lineFalse);
+    EXPECT_LT(lineTrue, lineFalse);
     double longeslineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
     double longeslineFalse = OH_Drawing_TypographyGetLongestLine(typography2_);
-    EXPECT_GT(longeslineTrue, longeslineFalse);
+    EXPECT_LT(longeslineTrue, longeslineFalse);
 }
 
 /*
@@ -569,7 +569,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation011, TestSize.Leve
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
     ASSERT_NE(handler_, nullptr);
     OH_Drawing_SetTextStyleFontSize(txtStyle_, DEFAULT_FONT_SIZE1);
-    OH_Drawing_TypographyHandlerSetTextStyle(handler_, txtStyle_);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
     OH_Drawing_TypographyHandlerAddText(handler_, text.c_str());
     typography_ = OH_Drawing_CreateTypography(handler_);
     ASSERT_NE(typography_, nullptr);
@@ -590,7 +590,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation011, TestSize.Leve
 
 /*
  * @tc.name: TypographyCompressPunctuation012
- * @tc.desc: test for paragraphy cache with multi line when open compress punctuation.
+ * @tc.desc: test for paragraph cache with multi line when open compress punctuation.
  * ss08 cannot compress all head punctuation marks.
  * @tc.type: FUNC
  */
@@ -605,7 +605,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation012, TestSize.Leve
     double lineWidthsTrue[lineNum] = { lineWidthComp1, lineWidthComp1, lineWidthComp2, lineWidthComp2, lineWidthComp2,
         lineWidthComp2, lineWidthComp3, lineWidthComp4, lineWidthComp4, lineWidthComp4, lineWidthComp4 };
 
-    prepareWorkForTypographyStyleTest();
+    PrepareWorkForTypographyStyleTest();
     // paragraph1 with compressPunctuation
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle_, nullptr);
@@ -620,7 +620,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation012, TestSize.Leve
     // first layout
     OH_Drawing_TypographyLayout(typography_, DEFAULT_LAYOUT_WIDTH1);
     size_t lineNumberFirst = OH_Drawing_TypographyGetLineCount(typography_);
-    double longesLineFirst = OH_Drawing_TypographyGetLongestLine(typography_);
+    double longeslineFirst = OH_Drawing_TypographyGetLongestLine(typography_);
     // re layout
     OH_Drawing_TypographyLayout(typography_, DEFAULT_LAYOUT_WIDTH1);
     size_t lineNumberSecond = OH_Drawing_TypographyGetLineCount(typography_);
@@ -628,8 +628,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation012, TestSize.Leve
 
     EXPECT_EQ(lineNumberFirst, lineNumberSecond);
     EXPECT_EQ(lineNumberFirst, lineNum);
-    EXPECT_NEAR(longesLineFirst, longeslineSecond, FLOAT_DATA_EPSILON);
-    for (int i = 0; i < lineNumb; i++) {
+    EXPECT_NEAR(longeslineFirst, longeslineSecond, FLOAT_DATA_EPSILON);
+    for (int i = 0; i < lineNum; i++) {
         double lineTrue = OH_Drawing_TypographyGetLineWidth(typography_, i);
         EXPECT_NEAR(lineTrue, lineWidthsTrue[i], FLOAT_DATA_EPSILON);
     }
