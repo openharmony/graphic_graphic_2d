@@ -1947,7 +1947,10 @@ GraphicTransformType RSBaseRenderUtil::RotateEnumToInt(int angle, GraphicTransfo
 
 pid_t RSBaseRenderUtil::GetLastSendingPid()
 {
-    return lastSendingPid_.load(std::memory_order_acquire);
+    pid_t pid = 0;
+    pid = lastSendingPid_.load(std::memory_order_acquire);
+    lastSendingPid_.store(0, std::memory_order_release);
+    return pid;
 }
 } // namespace Rosen
 } // namespace OHOS
