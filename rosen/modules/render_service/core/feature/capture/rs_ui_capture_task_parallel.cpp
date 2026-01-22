@@ -308,6 +308,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     canvas.SetUICapture(true);
     if (isHdrCapture_) {
         canvas.SetHdrOn(true);
+        RS_TRACE_NAME_FMT("RSUiCaptureTaskParallel::Run: isHdrCapture_: %d, SetHdrOn", isHdrCapture_);
     }
     const auto& nodeParams = nodeDrawable_->GetRenderParams();
     if (UNLIKELY(!nodeParams)) {
@@ -553,6 +554,11 @@ bool RSUiCaptureTaskParallel::IsHdrCapture(ColorManager::ColorSpaceName colorSpa
         colorSpace != ColorManager::BT2020_PQ_LIMIT) {
         RS_LOGW("RSUiCaptureTaskParallel::IsHdrUiCapture colorSpace %{public}d not support", colorSpace);
         return false;
+    }
+    // not on tree, not auto, set HDR, can't be detected in main loop, so use HDR as user wishes
+    if (captureConfig_.isSync && !isAutoAdjust && (dynamicRangeMode == DYNAMIC_RANGE_MODE_HIGH ||
+        dynamicRangeMode == DYNAMIC_RANGE_MODE_CONSTRAINT)) {
+        return true;
     }
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
     if (node != nullptr && (node->GetHDRStatus() || node->ChildHasVisibleHDRContent())) {
