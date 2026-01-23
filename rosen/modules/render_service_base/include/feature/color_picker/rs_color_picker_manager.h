@@ -20,19 +20,17 @@
 #include <memory>
 #include <mutex>
 
-#include "draw/canvas.h"
-#include "draw/color.h"
+#include "feature/color_picker/rs_color_picker_thread.h"
+#include "i_color_picker_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "property/rs_color_picker_def.h"
-#include "property/rs_properties_def.h"
-#include "utils/rect.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class Image;
 }
-class RSColorPickerManager : public std::enable_shared_from_this<RSColorPickerManager> {
+class RSColorPickerManager : public std::enable_shared_from_this<RSColorPickerManager>, public IColorPickerManager {
 public:
     RSColorPickerManager() = default;
     ~RSColorPickerManager() noexcept = default;
@@ -40,10 +38,60 @@ public:
      * @brief Return previously picked color and conditionally schedule a new color pick task on the current canvas.
      * @param strategy Only CONTRAST is currently supported.
      */
-    Drawing::ColorQuad GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId,
-        ColorPickStrategyType strategy, uint64_t interval);
+    std::optional<Drawing::ColorQuad> GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
+        uint64_t nodeId, const ColorPickerParam& params) override;
 
 private:
+struct ColorPickerInfo {
+        std::shared_ptr<Drawing::ColorSpace> colorSpace_;
+        Drawing::BitmapFormat bitmapFormat_;
+        Drawing::BackendTexture backendTexture_;
+        NodeId nodeId_;
+        std::weak_ptr<RSColorPickerManager> manager_;
+        ColorPickStrategyType strategy_;
+
+        ColorPickerInfo(std::shared_ptr<Drawing::ColorSpace> colorSpace, Drawing::BitmapFormat bitmapFormat,
+            Drawing::BackendTexture backendTexture, NodeId nodeId, std::weak_ptr<RSColorPickerManager> manager,
+            ColorPickStrategyType strategy)
+            : colorSpace_(colorSpace), bitmapFormat_(bitmapFormat), backendTexture_(backendTexture),
+              nodeId_(nodeId), manager_(manager), strategy_(strategy) {}
+
+        static void PickColor(void* context)
+        {
+            ColorPickerInfo* colorPickerInfo = static_cast<ColorPickerInfo*>(context);
+            if (colorPickerInfo == nullptr) {
+                RS_LOGE("ColorPickerInfo::PickColor context nullptr");
+                return;
+            }
+            std::shared_ptr<ColorPickerInfo> info(colorPickerInfo);
+            auto task = [info]() {
+                auto manager = info->manager_.lock();
+                if (manager == nullptr) {
+                    RS_LOGE("ColorPickerInfo::PickColor manager nullptr");
+                    return;
+                }
+#if defined(RS_ENABLE_UNI_RENDER)
+                auto gpuCtx = RSColorPickerThread::Instance().GetShareGPUContext();
+
+#else
+                std::shared_ptr<Drawing::GPUContext> gpuCtx = nullptr;
+#endif
+                if (gpuCtx == nullptr) {
+                    RS_LOGE("ColorPickerInfo::PickColor GPUContext nullptr");
+                    return;
+                }
+                auto image = std::make_shared<Drawing::Image>();
+                Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+                if (!image->BuildFromTexture(*gpuCtx, info->backendTexture_.GetTextureInfo(), origin,
+                    info->bitmapFormat_, info->colorSpace_)) {
+                    RS_LOGE("ColorPickerInfo::PickColor BuildFromTexture failed");
+                    return;
+                }
+                manager->PickColor(image, info->nodeId_, info->strategy_);
+            };
+            RSColorPickerThread::Instance().PostTask(task, 0);
+        }
+    };
     void ScheduleColorPick(
         RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, ColorPickStrategyType strategy);
     void PickColor(const std::shared_ptr<Drawing::Image>& snapshot, uint64_t nodeId, ColorPickStrategyType strategy);

@@ -93,7 +93,13 @@ void RSBaseRenderEngine::Init()
         RS_LOGI("RSRenderEngine::RSRenderEngine set new cacheDir");
         renderContext_->SetUniRenderMode(true);
     }
-    renderContext_->SetUpGpuContext();
+#if defined(RS_ENABLE_VK)
+    if (RSSystemProperties::IsUseVulkan()) {
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        renderContext_->SetUpGpuContext(skContext_);
+    } else {
+        renderContext_->SetUpGpuContext();
+    }
     if (renderContext_->GetDrGPUContext()) {
         renderContext_->GetDrGPUContext()->SetParam(
             "IsSmartCacheEnabled", SmartCacheParam::IsEnabled());
@@ -102,6 +108,9 @@ void RSBaseRenderEngine::Init()
         renderContext_->GetDrGPUContext()->SetParam(
             "SmartCacheTimeInterval", SmartCacheParam::GetTimeInterval());
     }
+#else
+    renderContext_->SetUpGpuContext();
+#endif
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
     imageManager_ = RSImageManager::Create(renderContext_);
@@ -155,10 +164,11 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
         if (renderContext_ == nullptr) {
             return nullptr;
         }
-        renderContext_->SetUpGpuContext();
+        renderContext_->SetUpGpuContext(skContext_);
     }
 #endif
     if (rsSurface == nullptr) {
@@ -167,7 +177,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     }
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(RSSurface)");
 #ifdef RS_ENABLE_VK
-    RSTagTracker tagTracker(GetSkContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
+    RSTagTracker tagTracker(skContext_, RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 #endif
     rsSurface->SetColorSpace(config.colorGamut);
     rsSurface->SetSurfacePixelFormat(config.format);
@@ -189,14 +199,15 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
 
     // check if we can use GPU context
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (renderContext_ != nullptr) {
+#if defined(RS_ENABLE_GL)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL &&
+        renderContext_ != nullptr) {
         rsSurface->SetRenderContext(renderContext_);
     }
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan() && renderContext_->GetSharedDrGPUContext() != nullptr) {
-        std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetSkContext(renderContext_->GetSharedDrGPUContext());
+    if (RSSystemProperties::IsUseVulkan() && skContext_ != nullptr) {
+        std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetSkContext(skContext_);
     }
 #endif
     auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC,
@@ -238,6 +249,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     if (rsSurface == nullptr) {
         rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
     }
+
     RS_OPTIONAL_TRACE_END();
     return RequestFrame(rsSurface, config, forceCPU, useAFBC, frameContextConfig);
 }
@@ -612,7 +624,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
         return nullptr;
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
-        "  - Buffer info: width=%{public}d, height=%{public}d, format=%{public}d, seqNum=%{public}" PRIu64,
+        "  - Buffer info: width=%{public}u, height=%{public}u, format=%{public}u, seqNum=%{public}" PRIu64,
         params.buffer->GetWidth(), params.buffer->GetHeight(),
         params.buffer->GetFormat(), params.buffer->GetBufferId());
     videoInfo.drawingColorSpace_ = Drawing::ColorSpace::CreateSRGB();
@@ -770,7 +782,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     }
     matrix.SetScaleTranslate(sx, sy, tx, ty);
 
-    RS_LOGD_IF(DEBUG_COMPOSER, "- Image shader transformation:"
+    RS_LOGD_IF(DEBUG_COMPOSER, "- Image shader transformation: "
         "sx=%{public}.2f, sy=%{public}.2f, tx=%{public}.2f, ty=%{public}.2f", sx, sy, tx, ty);
 
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(

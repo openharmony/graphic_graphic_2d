@@ -170,16 +170,17 @@ int FontConfigJson::ParseFile(const char* fname)
         fname = FONT_DEFAULT_CONFIG;
     }
 
-    TEXT_LOGI("ParseFile fname is: %{public}s", fname);
     fontPtr = std::make_shared<FontConfigJsonInfo>();
     indexMap = std::make_shared<std::unordered_map<std::string, size_t>>();
     fontPtr->fallbackGroupSet.emplace_back();
     fontPtr->fallbackGroupSet[0].groupName = "";
     int err = ParseConfigList(fname);
-    // only for compatible with old version
-    fontPtr->genericSet[0].adjustSet = { { 50, 100 }, { 80, 400 }, { 100, 700 }, { 200, 900 } };
+    if (!fontPtr->genericSet.empty()) {
+        // only for compatible with old version
+        fontPtr->genericSet[0].adjustSet = { { 50, 100 }, { 80, 400 }, { 100, 700 }, { 200, 900 } };
+    }
     if (err != 0) {
-        TEXT_LOGE("Failed to ParseFile ParseConfigList");
+        TEXT_LOGE("Failed to ParseFile ParseConfigList, fname: %{public}s", fname);
         return err;
     }
     return SUCCESSED;

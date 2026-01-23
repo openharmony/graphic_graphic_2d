@@ -278,7 +278,7 @@ HWTEST_F(RSUniRenderProcessorTest, InitForRenderThread002, TestSize.Level1)
         auto renderEngine = std::make_shared<RSRenderEngine>();
         ASSERT_NE(renderEngine, nullptr);
         bool result = renderProcessor->InitForRenderThread(*screenDrawable, renderEngine);
-        ASSERT_EQ(result, true);
+        ASSERT_EQ(result, false);
     }
 }
 
@@ -333,7 +333,6 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread003, TestS
         DrawableV2::RSScreenRenderNodeDrawable drawable(node);
         drawable.renderParams_= std::make_unique<RSRenderParams>(0);
 
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
         auto output = std::make_shared<HdiOutput>(1);
         ASSERT_NE(output, nullptr);
@@ -483,7 +482,6 @@ HWTEST_F(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
     ScreenId screenId = 0;
     std::weak_ptr<RSContext> context = {};
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
         RSSurfaceRenderParams params(0);
         params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);

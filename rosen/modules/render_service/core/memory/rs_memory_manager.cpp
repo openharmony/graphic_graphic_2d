@@ -328,6 +328,15 @@ void MemoryManager::CountMemory(
     };
     // Count mem of Skia GPU
     std::for_each(pids.begin(), pids.end(), countMem);
+    float totalMem = 0.0f;
+    for (const auto& mem : mems) {
+        totalMem += mem.GetGpuMemorySize();
+    }
+    const float maxTotalMem = 4.0f * MEMUNIT_RATE * MEMUNIT_RATE * MEMUNIT_RATE;
+    if (totalMem >= maxTotalMem) {
+        RS_LOGE("MemoryManager::CountMemoryTotal may overflow: %.2f GB",
+                totalMem / (MEMUNIT_RATE * MEMUNIT_RATE * MEMUNIT_RATE));
+    }
 }
 
 static std::tuple<uint64_t, std::string, RectI, bool> FindGeoById(uint64_t nodeId)
@@ -376,7 +385,6 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
     if (isLite) {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoByIdLite, isLite);
         RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
-        RSTypefaceCache::Instance().Dump(log);
     } else {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoById);
         RSMainThread::Instance()->RenderServiceAllNodeDump(log);

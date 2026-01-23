@@ -1691,14 +1691,6 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     return clientToService->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, cb);
 }
 
-void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService != nullptr) {
-        clientToService->SetAppWindowNum(num);
-    }
-}
-
 bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();

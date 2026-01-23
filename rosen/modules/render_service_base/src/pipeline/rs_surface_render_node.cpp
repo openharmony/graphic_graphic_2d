@@ -433,7 +433,7 @@ void RSSurfaceRenderNode::FindScreenId()
     }
 }
 
-void RSSurfaceRenderNode::AfterTreeStatueChanged()
+void RSSurfaceRenderNode::AfterTreeStateChanged()
 {
     if (!IsOnTheTree() && attachedInfo_.has_value()) {
         if (auto context = GetContext().lock()) {
@@ -455,7 +455,10 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     NotifyTreeStateChange();
     RSRenderNode::OnTreeStateChanged();
     if (!IsOnTheTree() && attachedInfo_.has_value()) {
-        return;
+        if (auto context = GetContext().lock()) {
+            context->GetMutableNodeMap().RegisterNeedAttachedNode(
+                std::static_pointer_cast<RSSurfaceRenderNode>(shared_from_this()));
+        }
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!IsOnTheTree()) {
@@ -2162,20 +2165,6 @@ void RSSurfaceRenderNode::UpdateDrawingCacheNodes(const std::shared_ptr<RSRender
         return;
     }
     drawingCacheNodes_.emplace(nodePtr->GetId(), nodePtr);
-}
-
-void RSSurfaceRenderNode::ResetDrawingCacheStatusIfNodeStatic(
-    std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects)
-{
-    // traversal drawing cache nodes including app window
-    EraseIf(drawingCacheNodes_, [this, &allRects](const auto& pair) {
-        auto node = pair.second.lock();
-        if (node == nullptr || !node->IsOnTheTree()) {
-            return true;
-        }
-        node->SetDrawingCacheChanged(false);
-        return false;
-    });
 }
 
 void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)

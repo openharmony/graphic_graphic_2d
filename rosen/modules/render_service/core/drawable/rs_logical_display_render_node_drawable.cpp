@@ -179,8 +179,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
         uniParam->SetSecurityDisplay(params->IsSecurityDisplay());
-        const auto& screenProperty = screenParams->GetScreenProperty();
-        currentBlackList_ = screenProperty.GetBlackList();
+        currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
         RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
         if (mirroredRenderParams) {
             curVisibleRect_ = RSUniRenderThread::Instance().GetVisibleRect();
@@ -193,7 +192,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 uniParam->SetSecurityDisplay(false);
                 return;
             }
-            currentTypeBlackList_ = screenProperty.GetTypeBlackList();
+            currentTypeBlackList_ = screenManager->GetVirtualScreenTypeBlackList(paramScreenId);
             RSUniRenderThread::Instance().SetTypeBlackList(currentTypeBlackList_);
             RSUniRenderThread::Instance().SetWhiteList(screenInfo.whiteList);
             curSecExemption_ = params->GetSecurityExemption();
@@ -939,16 +938,12 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
     auto specialLayerType = RSSpecialLayerUtils::GetSpecialLayerStateInVisibleRect(
         &params, screenParams);
     uniParam->SetScreenInfo(screenParams->GetScreenInfo());
-    // When mirrorSource is paused, mirrorScreen needs to redraw to avoid using an expired cacheImage
-    bool mirroredScreenIsPause =
-        mirroredScreenParams->GetScreenProperty().GetVirtualScreenStatus() == VIRTUAL_SCREEN_PAUSE ||
-        mirroredScreenDrawable->IsRenderSkipIfScreenOff();
     // if specialLayer is visible and no CacheImg
     bool needRedraw = (mirroredParams->IsSecurityDisplay() != params.IsSecurityDisplay() &&
         specialLayerType == DisplaySpecialLayerState::HAS_SPECIAL_LAYER);
     if (RSUniRenderThread::Instance().IsColorFilterModeOn() || mirroredScreenParams->GetHDRPresent()
-        || !cacheImage || params.GetVirtualScreenMuteStatus() || mirroredScreenIsPause ||
-        screenParams->GetHDRPresent() || needRedraw) {
+        || !cacheImage || params.GetVirtualScreenMuteStatus() || mirroredScreenDrawable->IsRenderSkipIfScreenOff()
+        || screenParams->GetHDRPresent() || needRedraw) {
         MirrorRedrawDFX(true, params.GetScreenId());
         virtualProcesser->SetDrawVirtualMirrorCopy(false);
         DrawMirror(params, virtualProcesser, *uniParam);
@@ -1580,7 +1575,9 @@ std::shared_ptr<Drawing::ShaderEffect> RSLogicalDisplayRenderNodeDrawable::MakeB
         }
     )");
     if (brightnessAdjustmentShaderEffect_ == nullptr) {
-        brightnessAdjustmentShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(shaderString);
+        Drawing::RuntimeEffectOptions runtimeEffectOptions;
+        runtimeEffectOptions.useHighpLocalCoords = true;
+        brightnessAdjustmentShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(shaderString, runtimeEffectOptions);
         if (brightnessAdjustmentShaderEffect_ == nullptr) {
             ROSEN_LOGE("RSLogicalDisplayRenderNodeDrawable::MakeBrightnessAdjustmentShaderBuilder effect is null");
             return nullptr;

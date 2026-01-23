@@ -26,6 +26,8 @@ const RSColorPickerRenderModifier::LegacyPropertyApplierMap
             &RSProperties::SetColorPickerStrategy> },
         { RSPropertyType::COLOR_PICKER_INTERVAL, RSRenderModifier::PropertyApplyHelper<int,
             &RSProperties::SetColorPickerInterval> },
+        { RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD, RSRenderModifier::PropertyApplyHelper<int,
+            &RSProperties::SetColorPickerNotifyThreshold> },
     };
 
 void RSColorPickerRenderModifier::ResetProperties(RSProperties& properties)
@@ -33,5 +35,6 @@ void RSColorPickerRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::NONE));
     properties.SetColorPickerStrategy(static_cast<int>(ColorPickStrategyType::NONE));
     properties.SetColorPickerStrategy(0);
+    properties.SetColorPickerNotifyThreshold(0);
 }
 } // namespace OHOS::Rosen::ModifierNG

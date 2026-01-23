@@ -108,7 +108,10 @@ ani_object AniTextUtils::CreateAniOptionalEnum(ani_env* env, const ani_enum enum
 ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const ani_enum enumType, ani_size index)
 {
     ani_enum_item enumItem;
-    env->Enum_GetEnumItemByIndex(enumType, index, &enumItem);
+    ani_status status = env->Enum_GetEnumItemByIndex(enumType, index, &enumItem);
+    if (status != ANI_OK) {
+        TEXT_LOGE("Failed to create ani enum");
+    }
     return enumItem;
 }
 

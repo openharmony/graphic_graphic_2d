@@ -24,7 +24,7 @@ export interface BrightnessBlenderParam {
   fraction: double;
 }
 namespace uiEffect {
-  loadLibraryWithPermissionCheck('uiEffect_ani', "@ohos.graphics.uiEffect")
+  loadLibrary('uiEffect_ani')
   export type Blender = BrightnessBlender | HdrBrightnessBlender;
   export enum TileMode {
     CLAMP,

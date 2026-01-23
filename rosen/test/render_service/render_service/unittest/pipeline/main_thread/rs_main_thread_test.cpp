@@ -58,8 +58,6 @@ constexpr int32_t INVALID_VALUE = -1;
 constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
 constexpr int32_t SCREEN_PHYSICAL_WIDTH = 10;
 constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
-constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
-constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
@@ -3541,45 +3539,6 @@ HWTEST_F(RSMainThreadTest, PerfForBlurIfNeeded, TestSize.Level1)
 }
 
 /**
- * @tc.name: PerfMultiWindow001
- * @tc.desc: PerfMultiWindow Test, not unirender
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, PerfMultiWindow001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = false;
-    mainThread->PerfMultiWindow();
-    mainThread->isUniRender_ = isUniRender;
-}
-
-/**
- * @tc.name: PerfMultiWindow002
- * @tc.desc: PerfMultiWindow Test, unirender
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, PerfMultiWindow002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = true;
-    auto appWindowNum = mainThread->appWindowNum_;
-    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_START_NUM - 1;
-    mainThread->PerfMultiWindow();
-    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_START_NUM;
-    mainThread->PerfMultiWindow();
-    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_END_NUM + 1;
-    mainThread->PerfMultiWindow();
-    mainThread->isUniRender_ = isUniRender;
-    mainThread->appWindowNum_ = appWindowNum;
-}
-
-/**
  * @tc.name: RenderFrameStart
  * @tc.desc: RenderFrameStart Test
  * @tc.type: FUNC
@@ -5346,6 +5305,26 @@ HWTEST_F(RSMainThreadTest, CountMem, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CountMem002
+ * @tc.desc: test CountMem when memory overflow
+ * @tc.type: FUNC
+ * @tc.require: issueIB5RAM
+ */
+HWTEST_F(RSMainThreadTest, CountMem002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    float size = 4.5f * 1024 * 1024 * 1024;
+    std::vector<MemoryGraphic> memoryGraphic;
+    MemoryGraphic singleMemoryGraphic;
+    singleMemoryGraphic.SetGpuMemorySize(size);
+    memoryGraphic.emplace_back(singleMemoryGraphic);
+
+    mainThread->CountMem(memoryGraphic);
+}
+
+/**
  * @tc.name: UpdateSubSurfaceCnt001
  * @tc.desc: test UpdateSubSurfaceCnt when info empty
  * @tc.type: FUNC
@@ -6501,5 +6480,35 @@ HWTEST_F(RSMainThreadTest, DisableHdrDirectCompositionTest001, TestSize.Level1)
     mainThread->isUniRender_ = isUniRender;
     mainThread->doDirectComposition_ = doDirectComposition;
     RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
+}
+
+/**
+ * @tc.name: ProcessNeedAttachedNodesTest001
+ * @tc.desc: Test ProcessNeedAttachedNodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessNeedAttachedNodesTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ProcessNeedAttachedNodes();
+}
+ 
+/**
+ * @tc.name: ProcessNeedAttachedNodesTest002
+ * @tc.desc: Test ProcessNeedAttachedNodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessNeedAttachedNodesTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto &mutablenodeMap = mainThread->context_->GetMutableNodeMap();
+    mutablenodeMap.RegisterNeedAttachedNode(node);
+    mainThread->ProcessNeedAttachedNodes();
 }
 } // namespace OHOS::Rosen

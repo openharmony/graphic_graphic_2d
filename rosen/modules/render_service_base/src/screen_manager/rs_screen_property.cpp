@@ -21,6 +21,7 @@ namespace Rosen {
 RSScreenProperty::RSScreenProperty() {}
 RSScreenProperty::~RSScreenProperty() {}
 
+// LCOV_EXCL_START
 ScreenId RSScreenProperty::GetScreenId() const
 {
     return id_;
@@ -299,6 +300,7 @@ ScreenInfo RSScreenProperty::GetScreenInfo() const
     info.activeRefreshRate = refreshRate_;
     return info;
 }
+// LCOV_EXCL_STOP
 
 bool RSScreenProperty::Marshalling(Parcel& data) const
 {

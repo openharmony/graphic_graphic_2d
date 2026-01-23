@@ -964,6 +964,15 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
         value[Drawing::Matrix::Index::SCALE_X]) * (RS_ROTATION_180 / PI)));
 }
 
+std::tuple<float, float> RSUniRenderUtil::GetScaleFromMatrix(Drawing::Matrix matrix)
+{
+    float scaleX = sqrt(matrix.Get(Drawing::Matrix::SCALE_X) * matrix.Get(Drawing::Matrix::SCALE_X) +
+        matrix.Get(Drawing::Matrix::SKEW_Y) * matrix.Get(Drawing::Matrix::SKEW_Y));
+    float scaleY = sqrt(matrix.Get(Drawing::Matrix::SKEW_X) * matrix.Get(Drawing::Matrix::SKEW_X) +
+        matrix.Get(Drawing::Matrix::SCALE_Y) * matrix.Get(Drawing::Matrix::SCALE_Y));
+    return std::make_tuple(scaleX, scaleY);
+}
+
 Drawing::Matrix RSUniRenderUtil::GetMatrixByDegree(int degree, const RectF& bounds)
 {
     Drawing::Matrix matrix;

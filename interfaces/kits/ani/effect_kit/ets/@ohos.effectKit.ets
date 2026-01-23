@@ -116,6 +116,24 @@ namespace effectKit {
     * @since 12
     */
     getEffectPixelMap(): Promise<image.PixelMap>;
+
+    /**
+    * Gets the PixelMap where all filter effects have been added to the image.
+    * @param { boolean } useCpuRender - The value indicates whether to use CPU rendering.
+    * @returns { Promise<image.PixelMap> } - returns the PixelMap generated.
+    * @syscap SystemCapability.Multimedia.Image.Core
+    * @since 11
+    */
+    /**
+    * Gets the PixelMap where all filter effects have been added to the image.
+    * @param { boolean } useCpuRender - The value indicates whether to use CPU rendering.
+    * @returns { Promise<image.PixelMap> } - returns the PixelMap generated.
+    * @syscap SystemCapability.Multimedia.Image.Core
+    * @form
+    * @atomicservice
+    * @since 12
+    */
+    getEffectPixelMap(useCpuRender: boolean): Promise<image.PixelMap>;
     
     /**
      * Adds the blur effect to the filter linked list, and returns the head node of the linked list.
@@ -224,7 +242,7 @@ namespace effectKit {
 
     public native grayscaleNative(): Filter;
 
-    public native getEffectPixelMapNative(): image.PixelMap;
+    public native getEffectPixelMapNative(useCpuRender: boolean): image.PixelMap;
 
     public native blurNative(radius: double, tileMode: TileMode): Filter;
 
@@ -252,7 +270,21 @@ namespace effectKit {
       return new Promise<image.PixelMap>((resolve: (value: image.PixelMap) => void,
         reject: (error: BusinessError) => void) => {
         taskpool.execute((): image.PixelMap => {
-          let pixelMap = this.getEffectPixelMapNative();
+          let pixelMap = this.getEffectPixelMapNative(false);
+          return pixelMap;
+        }).then((ret: Any) => {
+          resolve(ret as image.PixelMap);
+        }).catch((err: Any) => {
+          reject(err as BusinessError);
+        });
+      });
+    }
+
+    public getEffectPixelMap(useCpuRender: boolean): Promise<image.PixelMap> {
+      return new Promise<image.PixelMap>((resolve: (value: image.PixelMap) => void,
+        reject: (error: BusinessError) => void) => {
+        taskpool.execute((): image.PixelMap => {
+          let pixelMap = this.getEffectPixelMapNative(useCpuRender);
           return pixelMap;
         }).then((ret: Any) => {
           resolve(ret as image.PixelMap);

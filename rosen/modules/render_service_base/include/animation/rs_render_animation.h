@@ -213,9 +213,9 @@ protected:
 
     virtual void RecordLastAnimateValue() {}
 
-    virtual void UpdateAnimateVelocity(float frameInterval) {}
+    virtual void UpdateAnimateVelocity(double frameInterval) {}
 
-    virtual void ProcessAnimateVelocityUnderAngleRotation(float frameInterval) {}
+    virtual void ProcessAnimateVelocityUnderAngleRotation(double frameInterval) {}
 
     void FinishOnCurrentPosition();
 

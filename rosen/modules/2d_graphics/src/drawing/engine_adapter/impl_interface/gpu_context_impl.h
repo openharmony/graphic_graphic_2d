@@ -35,8 +35,9 @@ namespace Rosen {
 namespace Drawing {
 using pid_t = int;
 using MemoryOverflowCalllback = std::function<bool(pid_t, uint64_t, bool)>;
-using MemoryOverReportCallback = std::function<bool(pid_t, size_t,
-    std::unordered_map<std::string, std::pair<size_t, size_t>>, std::unordered_map<pid_t, size_t>)>;
+using MemoryOverReportCallback = std::function<bool(pid_t, size_t,  // pid, gpu mem size.
+    std::unordered_map<std::string, std::pair<size_t, size_t>>,     // gpu tag, <mem size, num>
+    std::unordered_map<pid_t, size_t>)>;                            // <pid, gpu mem size>
 struct GPUResourceTag;
 struct HpsBlurParameter;
 class GPUContext;

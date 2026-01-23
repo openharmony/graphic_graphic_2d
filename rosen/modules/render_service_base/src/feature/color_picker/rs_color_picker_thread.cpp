@@ -14,6 +14,9 @@
  */
 
 #include "feature/color_picker/rs_color_picker_thread.h"
+
+#include <chrono>
+
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -42,11 +45,37 @@ RSColorPickerThread::RSColorPickerThread()
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
 }
 
+namespace {
+constexpr uint32_t ONE_SECOND = 1000;
+constexpr uint32_t MAX_TASKS_PER_SECOND = 20;
+} // namespace
+
 void RSColorPickerThread::PostTask(const std::function<void()>& task, int64_t delayTime)
 {
-    if (handler_) {
-        handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    if (!handler_) {
+        return;
     }
+
+    const auto now =
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count();
+    int64_t lastReset = lastResetTime_.load(std::memory_order_relaxed);
+    // Reset counter if more than 1 second has passed
+    if (now - lastReset >= ONE_SECOND) {
+        // Try to update the reset time atomically
+        if (lastResetTime_.compare_exchange_strong(lastReset, now, std::memory_order_relaxed)) {
+            taskCount_.store(0, std::memory_order_relaxed);
+        }
+    }
+
+    // Check if we've exceeded the rate limit
+    uint32_t currentCount = taskCount_.fetch_add(1, std::memory_order_relaxed);
+    if (currentCount >= MAX_TASKS_PER_SECOND) {
+        RS_LOGD("RSColorPickerThread: Task dropped due to rate limit (count: %{public}u)", currentCount + 1);
+        return;
+    }
+
+    handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 void RSColorPickerThread::RegisterNodeDirtyCallback(const NodeDirtyCallback& callback)
@@ -57,10 +86,25 @@ void RSColorPickerThread::RegisterNodeDirtyCallback(const NodeDirtyCallback& cal
     callback_ = callback;
 }
 
+void RSColorPickerThread::RegisterNotifyClientCallback(const NotifyClientCallback& callback)
+{
+    if (callback == nullptr) {
+        RS_LOGE("RSColorPickerThread RegisterColorPickerCallback, callback invalid!");
+    }
+    notifyClient_ = callback;
+}
+
 void RSColorPickerThread::NotifyNodeDirty(uint64_t nodeId)
 {
     if (callback_) {
         callback_(nodeId);
+    }
+}
+
+void RSColorPickerThread::NotifyClient(uint64_t nodeId, uint32_t color)
+{
+    if (notifyClient_) {
+        notifyClient_(nodeId, color);
     }
 }
 
@@ -73,9 +117,8 @@ void RSColorPickerThread::InitRenderContext(std::shared_ptr<RenderContext> conte
         if (gpuContext_ == nullptr) {
             return;
         }
-        gpuContext_->RegisterPostFunc([](const std::function<void()>& task) {
-            RSColorPickerThread::Instance().PostTask(task);
-        });
+        gpuContext_->RegisterPostFunc(
+            [](const std::function<void()>& task) { RSColorPickerThread::Instance().PostTask(task); });
     });
 }
 
@@ -121,4 +164,4 @@ std::shared_ptr<Drawing::GPUContext> RSColorPickerThread::CreateShareGPUContext(
     return nullptr;
 }
 #endif
-} // OHOS::Rosen
+} // namespace OHOS::Rosen

@@ -64,34 +64,6 @@ HWTEST_F(RSAnimationCommandTest, TestRSAnimationCommand001, TestSize.Level1)
     ASSERT_EQ(token_, token);
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: CreateParticleAnimation001
- * @tc.desc: CreateParticleAnimation test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId targetId = static_cast<NodeId>(-1);
-    std::shared_ptr<RSRenderParticleAnimation> animation = nullptr;
-    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
-    ASSERT_TRUE(targetId);
-
-    NodeId id = static_cast<NodeId>(1);
-    RSContext context2;
-
-    std::shared_ptr<RSBaseRenderNode> node = std::make_shared<RSBaseRenderNode>(id);
-    context2.GetMutableNodeMap().RegisterRenderNode(node);
-    AnimationCommandHelper::CreateParticleAnimation(context2, id, nullptr);
-
-    std::shared_ptr<RSRenderParticleAnimation> animation2 = std::make_shared<RSRenderParticleAnimation>();
-    AnimationCommandHelper::CreateParticleAnimation(context2, id, animation2);
-
-    AnimationCommandHelper::CancelAnimation(context2, id, 0);
-}
-#endif
-
 /**
  * @tc.name: AnimationCallback001
  * @tc.desc: test results of AnimationCallback
@@ -111,66 +83,6 @@ HWTEST_F(RSAnimationCommandTest, AnimationCallback001, TestSize.Level1)
     AnimationCommandHelper::AnimationCallback(context, targetId, animId, token, event);
     EXPECT_TRUE(targetId == -1);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: CreateAnimation001
- * @tc.desc: test results of CreateAnimation
- * @tc.type: FUNC
- * @tc.require: issueIA61E9
- */
-HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId targetId = 1;
-    std::shared_ptr<RSRenderAnimation> animation = nullptr;
-    AnimationCommandHelper::CreateAnimation(context, targetId, animation);
-    EXPECT_TRUE(targetId);
-
-    animation = std::make_shared<RSRenderAnimation>();
-    AnimationCommandHelper::CreateAnimation(context, targetId, animation);
-    auto nod = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
-    EXPECT_TRUE(targetId);
-
-    targetId = 0;
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
-    PropertyId id = 0;
-    auto property = std::shared_ptr<RSRenderProperty<Drawing::Matrix>>();
-    auto modifier = std::make_shared<RSGeometryTransRenderModifier>(property);
-    node->modifiers_[id] = modifier;
-    AnimationCommandHelper::CreateAnimation(context, targetId, animation);
-    EXPECT_TRUE(modifier);
-
-    node->modifiers_.clear();
-    id = 1;
-    node->modifiers_[id] = modifier;
-    AnimationCommandHelper::CreateAnimation(context, targetId, animation);
-    EXPECT_TRUE(modifier);
-}
-
-/**
- * @tc.name: CreateParticleAnimation002
- * @tc.desc: test results of CreateParticleAnimation
- * @tc.type: FUNC
- * @tc.require: issueIA61E9
- */
-HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation002, TestSize.Level1)
-{
-    RSContext context;
-    NodeId targetId = 1;
-    std::shared_ptr<RSRenderParticleAnimation> animation = nullptr;
-    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
-    EXPECT_TRUE(targetId);
-
-    animation = std::make_shared<RSRenderParticleAnimation>();
-    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
-    EXPECT_TRUE(targetId);
-
-    targetId = 0;
-    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
-    EXPECT_TRUE(animation != nullptr);
-}
-#endif
 
 /**
  * @tc.name: CancelAnimation001

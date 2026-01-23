@@ -78,7 +78,7 @@ public:
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
     uint64_t GetFastComposeTimeStampDiff() const;
-    sptr<SyncFence> GetAcquireFence();
+
     void PurgeCacheBetweenFrames();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
     void DefaultClearMemoryCache();
@@ -256,7 +256,6 @@ private:
     bool clearMemDeeply_ = false;
     bool isDefaultCleanTaskFinished_ = true;
     bool postImageReleaseTaskFlag_ = false;
-    bool isReclaimMemoryFinished_ = true;
     std::atomic_bool isTimeToReclaim_ = false;
     // vma cache
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
@@ -313,7 +312,7 @@ private:
 #endif
 
     std::atomic<bool> screenPowerOnChanged_ = false;
-    uint32_t totalProcessNodeNum_ = 0;
+    std::atomic<uint32_t> totalProcessNodeNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

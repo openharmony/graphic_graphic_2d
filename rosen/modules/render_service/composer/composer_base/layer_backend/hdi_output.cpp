@@ -286,12 +286,6 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<R
         return GRAPHIC_DISPLAY_FAILURE;
     }
 
-    if (rsLayer->GetSurface() == nullptr && rsLayer->GetCompositionType() !=
-        GRAPHIC_COMPOSITION_SOLID_COLOR) {
-        HLOGE("CreateLayerLocked failed because the surface is null");
-        return GRAPHIC_DISPLAY_FAILURE;
-    }
-
     hdiLayer->UpdateRSLayer(rsLayer);
 
     if (rsLayer->IsMaskLayer()) {

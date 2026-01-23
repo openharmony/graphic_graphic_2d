@@ -309,6 +309,8 @@ public:
     bool IsRenderGroupExcludedStateChanged() const;
     void SetRenderGroupSubTreeDirty(bool isDirty);
     bool IsRenderGroupSubTreeDirty() const;
+    void SetChildHasTranslateOnSqueeze(bool val);
+    bool ChildHasTranslateOnSqueeze() const;
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const
     {

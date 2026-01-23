@@ -65,10 +65,6 @@ public:
     void ClearBuffer() override;
     void ResetBufferAge() override;
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
-    void SetSkContext(std::shared_ptr<Drawing::GPUContext> skContext)
-    {
-        mSkContext = skContext;
-    }
     void WaitSurfaceClear()
     {
         if (mSkContext) {
@@ -101,7 +97,6 @@ private:
     std::list<std::pair<NativeWindowBuffer*, int>> hpaeSurfaceBufferList_;
     std::mutex hpaeSurfaceBufferListMutex_;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
-    std::shared_ptr<Drawing::GPUContext> mSkContext = nullptr;
     void CreateVkSemaphore(VkSemaphore& semaphore,
         RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
 #if defined(ROSEN_OHOS)

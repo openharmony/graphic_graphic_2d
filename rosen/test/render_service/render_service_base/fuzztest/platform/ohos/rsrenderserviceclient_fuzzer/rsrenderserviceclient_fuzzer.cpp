@@ -817,15 +817,6 @@ bool DoUnRegisterFrameRateLinkerExpectedFpsUpdateCallback(const uint8_t* data, s
     return true;
 }
 
-bool DoSetAppWindowNum(const uint8_t* data, size_t size)
-{
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    uint32_t num = GetData<uint32_t>();
-    renderServiceClient->SetAppWindowNum(num);
-
-    return true;
-}
-
 bool DoSetSystemAnimatedScenes()
 {
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
@@ -944,12 +935,15 @@ bool DoNotifyPackageEvent(const uint8_t* data, size_t size)
 bool DONotifyAppStrategyConfigChangeEvent(const uint8_t* data, size_t size)
 {
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    std::string pkgName = GetData<std::string>();
-    uint32_t listSize = GetData<uint32_t>();
-    std::string configKey = GetData<std::string>();
-    std::string configValue = GetData<std::string>();
+    uint32_t strlen = GetData<uint32_t>() % 20;
+    std::string pkgName = GetStringFromData(strlen);
+    uint32_t listSize = GetData<uint32_t>() % 10;
     std::vector<std::pair<std::string, std::string>> newConfig;
-    newConfig.push_back(make_pair(configKey, configValue));
+    for (auto i = 0; i < listSize; i++) {
+        std::string configKey = GetStringFromData(strlen);
+        std::string configValue = GetStringFromData(strlen);
+        newConfig.push_back(make_pair(configKey, configValue));
+    }
     renderServiceClient->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
     return true;
 }
@@ -1702,7 +1696,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetGlobalDarkColorMode002(data, size);
     OHOS::Rosen::DoGetScreenType002(data, size);
     OHOS::Rosen::DoRegisterOcclusionChangeCallback002(data, size);
-    OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoSetHidePrivacyContent002(data, size);
     OHOS::Rosen::DoSetBehindWindowFilterEnabled(data, size);
     OHOS::Rosen::DoGetBehindWindowFilterEnabled(data, size);

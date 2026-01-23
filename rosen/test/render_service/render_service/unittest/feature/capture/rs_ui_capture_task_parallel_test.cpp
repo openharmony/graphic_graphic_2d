@@ -826,11 +826,14 @@ HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture001, Function | SmallTest | Le
     nodeMap.RegisterRenderNode(renderNode);
     auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
     ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
-    renderNodeHandle->captureConfig_.dynamicRangeMode.first = DEFAULT_DYNAMIC_RANGE_MODE_STANDARD;
+    captureConfig.dynamicRangeMode.first = DEFAULT_DYNAMIC_RANGE_MODE_STANDARD;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
     ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
-    renderNodeHandle->captureConfig_.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_HIGH;
+    captureConfig.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_HIGH;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
     ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
-    renderNodeHandle->captureConfig_.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_CONSTRAINT;
+    captureConfig.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_CONSTRAINT;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
     ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
 }
 
@@ -854,7 +857,8 @@ HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture002, Function | SmallTest | Le
     nodeMap.RegisterRenderNode(renderNode);
     auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
     ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
-    renderNodeHandle->captureConfig_.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_HIGH;
+    captureConfig.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_HIGH;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
     ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
 }
 
@@ -903,6 +907,41 @@ HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture003, Function | SmallTest | Le
         node->stagingRenderParams_->hdrStatus_ = HdrStatus::HDR_PHOTO;
         node->SetChildHasVisibleHDRContent(false);
     }
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), true);
+}
+
+/*
+ * @tc.name: IsHdrCapture004
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsHdrCapture
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture004, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId nodeId = 126;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.dynamicRangeMode.first = DEFAULT_DYNAMIC_RANGE_MODE_STANDARD;
+    captureConfig.dynamicRangeMode.second = true;
+    captureConfig.isSync = false;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(500.f);
+    renderNode->renderProperties_.SetBoundsHeight(500.f);
+    renderNode->InitRenderParams();
+    nodeMap.RegisterRenderNode(renderNode);
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), false);
+    captureConfig.isSync = true;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), false);
+    captureConfig.dynamicRangeMode.second = false;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), false);
+    captureConfig.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_HIGH;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), true);
+    captureConfig.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_CONSTRAINT;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
     ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), true);
 }
 
@@ -1027,24 +1066,49 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RunForHdr001, Function | SmallTest | Level
 HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateSurfaceSyncCopyTask, Function | SmallTest | Level2)
 {
     auto node = RSTestUtil::CreateSurfaceNode();
-    auto mainThread = RSMainThread::Instance();
 
-    mainThread->context_->nodeMap.RegisterRenderNode(node);
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
 
     auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
     RSSurfaceCaptureConfig captureConfig;
-    auto pixelMap = std::make_unique<Media::PixelMap>();
-    ASSERT_NE(pixelMap, nullptr);
-    auto surface = std::make_shared<Drawing::Surface>();
-    ASSERT_NE(surface, nullptr);
-#ifdef RS_ENABLE_UNI_RENDER
-    auto copytask =
-        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap),
-            node->GetId(), captureConfig, mockCallback);
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(node->GetId(), captureConfig);
 
-    ASSERT_FALSE(copytask);
-    mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());
+    Media::InitializationOptions opts;
+    opts.size.width = 480;
+    opts.size.height = 320;
+    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    auto surface = renderNodeHandle->CreateSurface(pixelmap);
+    ASSERT_NE(surface, nullptr);
+
+#ifdef RS_ENABLE_UNI_RENDER
+    RSBackgroundThread::Instance().gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    auto copytask =
+        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelmap),
+            node->GetId(), captureConfig, mockCallback);
+    ASSERT_NE(copytask, nullptr);
+    copytask();
+
+    pixelmap = Media::PixelMap::Create(opts);
+    copytask =
+        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelmap),
+            node->GetId(), captureConfig, mockCallback, 0, false, CaptureError::CAPTURE_OK, true);
+    ASSERT_NE(copytask, nullptr);
+    copytask();
+
+    captureConfig.useDma = true;
+    pixelmap = Media::PixelMap::Create(opts);
+    copytask =
+        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelmap),
+            node->GetId(), captureConfig, mockCallback, 0, false, CaptureError::CAPTURE_OK, true);
+    ASSERT_NE(copytask, nullptr);
+    copytask();
+
+    RSBackgroundThread::Instance().gpuContext_ = nullptr;
 #endif
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
 /*

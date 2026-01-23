@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -164,6 +164,20 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(MaskTransition, Inverse, bool);
 DECLARE_ANIMATABLE_PROPERTY_TAG(VariableRadiusBlur, Radius, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(VariableRadiusBlur, Mask, MASK_PTR);
 
+// Gasify
+DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Scale, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyBlur, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(Gasify, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, Mask, std::shared_ptr<Media::PixelMap>);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Color0, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Color1, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Color2, Vector4f);
@@ -204,6 +218,7 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Mask, MASK_PTR);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradientEffect, ColorNumber, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Blend, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, BlendK, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Brightness, float);
 
 DECLARE_NONANIMATABLE_PROPERTY_TAG(HarmoniumEffect, Mask, MASK_PTR);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(HarmoniumEffect, MaskClock, MASK_PTR);
@@ -227,6 +242,25 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, Saturation, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, PosRGB, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, NegRGB, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, Fraction, float);
+
+// SDFUnionOpShape
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFUnionOpShape, ShapeX, SHAPE_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFUnionOpShape, ShapeY, SHAPE_PTR);
+
+// SDFSmoothUnionOpShape
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, Spacing, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeX, SHAPE_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeY, SHAPE_PTR);
+
+// SDFRRectShape
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFRRectShape, RRect, RRect);
+
+// SDFTransformShape
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, Matrix, Matrix3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, Shape, SHAPE_PTR);
+
+// SDFPixelmapShape
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFPixelmapShape, Image, std::shared_ptr<Media::PixelMap>);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, LTWH, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, StretchFactor, float);
@@ -282,39 +316,6 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, GradientEnd, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, EffectAlpha, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Progress, float);
 
-// SDFUnionOpShape
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFUnionOpShape, ShapeX, SHAPE_PTR);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFUnionOpShape, ShapeY, SHAPE_PTR);
-
-// SDFSmoothUnionOpShape
-DECLARE_ANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, Spacing, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeX, SHAPE_PTR);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeY, SHAPE_PTR);
-
-// SDFRRectShape
-DECLARE_ANIMATABLE_PROPERTY_TAG(SDFRRectShape, RRect, RRect);
-
-// SDFTransformShape
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, Matrix, Matrix3f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, Shape, SHAPE_PTR);
-
-// SDFPixelmapShape
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFPixelmapShape, Image, std::shared_ptr<Media::PixelMap>);
-
-// Gasify
-DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Progress, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, SourceImage, std::shared_ptr<Media::PixelMap>);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Scale, Vector2f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Mask, std::shared_ptr<Media::PixelMap>);
-
-DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyBlur, Progress, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, SourceImage, std::shared_ptr<Media::PixelMap>);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, Mask, std::shared_ptr<Media::PixelMap>);
-
-DECLARE_ANIMATABLE_PROPERTY_TAG(Gasify, Progress, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, SourceImage, std::shared_ptr<Media::PixelMap>);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, Mask, std::shared_ptr<Media::PixelMap>);
-
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BlurParams, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, WeightsEmboss, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, WeightsEdl, Vector2f);
@@ -346,16 +347,10 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgRates, Vector2f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgKBS, Vector3f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgPos, Vector3f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg, Vector3f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeEdLightAngles, Vector2f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeEdLightKBS, Vector3f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, Shape, std::shared_ptr<RSNGRenderShapeBase>);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, BaseVibrancyEnabled, bool);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, BaseMaterialType, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, MaterialColor, Vector4f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, RefractEnabled, bool);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, InnerShadowEnabled, bool);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, EnvLightEnabled, bool);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, HighLightEnabled, bool);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SamplingScale, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color0, Vector4f);
@@ -372,6 +367,37 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Strength, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, DistortStrength, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, BlendGradient, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(CircleFlowlight, Mask, MASK_PTR);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgRates, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgKBS, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgPos, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgNeg, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, RefractParams, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, SdParams, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, SdRates, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, SdKBS, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, SdPos, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, SdNeg, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EnvLightParams, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EnvLightRates, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EnvLightKBS, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EnvLightPos, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EnvLightNeg, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightParams, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightAngles, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightDir, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightRates, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightKBS, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightPos, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightNeg, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, Shape, std::shared_ptr<RSNGRenderShapeBase>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, MaterialColor, Vector4f);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, SpreadFactor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, BloomIntensityCutoff, float);
@@ -405,43 +431,6 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle6, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle7, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle8, Vector2f);
 
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgRates, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgKBS, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgPos, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgNeg, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, RefractParams, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, SdParams, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, SdRates, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, SdKBS, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, SdPos, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, SdNeg, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EnvLightParams, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EnvLightRates, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EnvLightKBS, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EnvLightPos, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EnvLightNeg, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightParams, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightAngles, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightDir, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightRates, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightKBS, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightPos, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, EdLightNeg, Vector3f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, Shape, std::shared_ptr<RSNGRenderShapeBase>);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, MaterialColor, Vector4f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeWeightsEmboss, Vector2f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgRates, Vector2f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgKBS, Vector3f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgPos, Vector3f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeBgNeg, Vector3f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeEdLightAngles, Vector2f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, DarkModeEdLightKBS, Vector3f);
-
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, Radius, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, Progress, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(DistortChroma, TurbulentMask, MASK_PTR);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(DistortChroma, Mask, MASK_PTR);

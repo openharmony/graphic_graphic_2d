@@ -31,7 +31,9 @@
 #endif
 
 #ifdef RS_ENABLE_VK
+#ifndef ROSEN_ARKUI_X
 #include "platform/ohos/backend/native_buffer_utils.h"
+#endif
 #endif
 
 namespace OHOS {
@@ -65,6 +67,7 @@ void RSCapturePixelMapManager::LoadCheckFunc()
     checkHandle_[uint32UniRenderEnableType_][uint32UiCaptureType_] = [](const Drawing::Rect& areaRect,
         const RSSurfaceCaptureConfig& captureConfig) {
 #ifdef RS_ENABLE_VK
+#ifndef ROSEN_ARKUI_X
         int32_t width = ceil(areaRect.GetWidth() * captureConfig.scaleX);
         int32_t height = ceil(areaRect.GetHeight() * captureConfig.scaleY);
         if (width > 0 && static_cast<int32_t>(OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) / width < height) {
@@ -72,6 +75,7 @@ void RSCapturePixelMapManager::LoadCheckFunc()
                 width, height);
             return false;
         }
+#endif
 #endif
         return true;
     };

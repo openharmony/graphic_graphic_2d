@@ -31,7 +31,7 @@
 
 namespace OHOS {
 namespace Rosen {
-using OnDeleteBufferFunc = std::function<void(uint32_t)>;
+using OnDeleteBufferFunc = std::function<void(uint64_t)>;
 class RSB_EXPORT RSSurfaceHandler {
 public:
     // indicates which node this handler belongs to.

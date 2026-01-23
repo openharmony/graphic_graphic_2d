@@ -18,21 +18,14 @@
 #include <chrono>
 #include <memory>
 
-#include "feature/color_picker/rs_color_picker_thread.h"
+#include "common/rs_optional_trace.h"
+#include "drawable/rs_property_drawable_utils.h"
 #include "feature/color_picker/rs_hetero_color_picker.h"
 #include "rs_trace.h"
-
-#include "common/rs_color.h"
-#include "common/rs_optional_trace.h"
-#include "draw/color.h"
-#include "drawable/rs_property_drawable_utils.h"
-#include "platform/common/rs_log.h"
-#include "property/rs_color_picker_def.h"
 
 namespace OHOS::Rosen {
 namespace {
 constexpr int32_t TRACE_LEVEL_TWO = 2;
-constexpr int64_t TASK_DELAY_TIME = 16;                 // 16ms
 constexpr float COLOR_PICKER_ANIMATE_DURATION = 350.0f; // 350ms
 
 inline uint64_t NowMs()
@@ -42,8 +35,8 @@ inline uint64_t NowMs()
 }
 } // namespace
 
-Drawing::ColorQuad RSColorPickerManager::GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
-    uint64_t nodeId, ColorPickStrategyType strategy, uint64_t interval)
+std::optional<Drawing::ColorQuad> RSColorPickerManager::GetColorPicked(
+    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, const ColorPickerParam& params)
 {
     uint64_t currTime = NowMs();
     const auto [prevColor, curColor] = GetColor();
@@ -57,8 +50,9 @@ Drawing::ColorQuad RSColorPickerManager::GetColorPicked(RSPaintFilterCanvas& can
         RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); // continue animation
     }
 
-    if (strategy != ColorPickStrategyType::NONE && currTime >= interval + lastUpdateTime_) { // cooldown check
-        ScheduleColorPick(canvas, rect, nodeId, strategy);
+    if (params.strategy != ColorPickStrategyType::NONE &&
+        currTime >= params.interval + lastUpdateTime_) { // cooldown check
+        ScheduleColorPick(canvas, rect, nodeId, params.strategy);
         lastUpdateTime_ = currTime;
     }
     return res;
@@ -96,15 +90,20 @@ void RSColorPickerManager::ScheduleColorPick(
         return; // accelerated color picker
     }
 
-    auto colorPickTask = [snapshot, nodeId, strategy, weakThis = weak_from_this()]() {
-        auto manager = weakThis.lock();
-        if (!manager) {
-            RS_LOGD("RSColorPickerThread manager not valid, return");
-            return;
-        }
-        manager->PickColor(snapshot, nodeId, strategy);
-    };
-    RSColorPickerThread::Instance().PostTask(colorPickTask, TASK_DELAY_TIME);
+    auto weakThis = weak_from_this();
+    auto imageInfo = drawingSurface->GetImageInfo();
+    auto colorSpace = imageInfo.GetColorSpace();
+    Drawing::BitmapFormat bitmapFormat = { imageInfo.GetColorType(), imageInfo.GetAlphaType() };
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    auto backendTexture = snapshot->GetBackendTexture(false, &origin);
+    ColorPickerInfo* colorPickerInfo = new ColorPickerInfo(colorSpace, bitmapFormat, backendTexture, nodeId, weakThis,
+        strategy);
+
+    Drawing::FlushInfo drawingFlushInfo;
+    drawingFlushInfo.backendSurfaceAccess = true;
+    drawingFlushInfo.finishedProc = [](void* context) { ColorPickerInfo::PickColor(context); };
+    drawingFlushInfo.finishedContext = colorPickerInfo;
+    drawingSurface->Flush(&drawingFlushInfo);
 }
 
 void RSColorPickerManager::PickColor(

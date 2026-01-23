@@ -97,9 +97,6 @@ private:
         0.0,    0.0,    0.0,    1.0, 0.0
     };
 
-    // Save original values for restoration
-    static inline UniRenderEnabledType originalUniRenderType_;
-    static inline std::string originalControlBufferConsume_;
 };
 std::shared_ptr<RSSurfaceRenderNode> node_ = nullptr;
 
@@ -117,23 +114,9 @@ void RSBaseRenderUtilTest::TearDownTestCase()
     node_ = nullptr;
 }
 
-void RSBaseRenderUtilTest::SetUp()
-{
-    // Save original values
-    originalUniRenderType_ = RSUniRenderJudgement::uniRenderEnabledType_;
-    originalControlBufferConsume_ = system::GetParameter("persist.sys.graphic.controlBufferConsume.Enabled", "1");
+void RSBaseRenderUtilTest::SetUp() {}
 
-    // Enable UniRender for tests
-    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
-    system::SetParameter("persist.sys.graphic.controlBufferConsume.Enabled", "1");
-}
-
-void RSBaseRenderUtilTest::TearDown()
-{
-    // Restore original values
-    RSUniRenderJudgement::uniRenderEnabledType_ = originalUniRenderType_;
-    system::SetParameter("persist.sys.graphic.controlBufferConsume.Enabled", originalControlBufferConsume_);
-}
+void RSBaseRenderUtilTest::TearDown() {}
 
 void RSBaseRenderUtilTest::CompareMatrix(float mat1[], float mat2[])
 {
@@ -1442,6 +1425,19 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_001, TestSi
     // Set queue size to 3
     psurf->SetQueueSize(3);
 
+    // Use local config to avoid static variable issues
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
+    };
+
     // Produce 3 buffers
     sptr<SurfaceBuffer> buffer1;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
@@ -1570,6 +1566,22 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_003, TestSi
     psurf = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurf, nullptr);
 
+    // Set queue size to 3
+    psurf->SetQueueSize(3);
+
+    // Use local config to avoid static variable issues
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
+    };
+
     // Produce 3 buffers
     sptr<SurfaceBuffer> buffer1;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
@@ -1683,7 +1695,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_004, TestSi
 
 /*
  * @tc.name: ConsumeAndUpdateBuffer_DropFrameLevel_005
- * @tc.desc: Verify SetDropFrameLevel(dropFrameConfig.level) branch actually executes and drops frames
+ * @tc.desc: Verify SetDropFrameLevel + AcquireBuffer(with PTS) triggers DropBuffersByLevel
  * @tc.type: FUNC
  * @tc.require: issueI7HDVG
  */
@@ -1701,8 +1713,20 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_005, TestSi
     // Set queue size to 5
     psurf->SetQueueSize(5);
 
+    // Use local config
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
+    };
+
     // Produce 5 buffers
-    std::vector<sptr<SurfaceBuffer>> producedBuffers;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
 
@@ -1712,38 +1736,32 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_005, TestSi
         ASSERT_EQ(ret, GSERROR_OK);
         ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
         ASSERT_EQ(ret, GSERROR_OK);
-        producedBuffers.push_back(buffer);
     }
 
-    // Consume with dropFrameLevel = 2 (should keep only latest 2)
-    auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
-    surfaceHandler.SetConsumer(surfaceConsumer);
-    surfaceHandler.SetAvailableBufferCount(5);
-    uint64_t presentWhen = 100;
-    int32_t dropFrameLevel = 2; // Keep latest 2, drop first 3
+    // Verify 5 buffers in dirty list
+    uint32_t beforeCount = surfaceConsumer->GetAvailableBufferCount();
+    ASSERT_EQ(beforeCount, 5u);
 
-    RSBaseRenderUtil::DropFrameConfig config;
-    config.enable = true;
-    config.level = dropFrameLevel;
+    // Directly call SetDropFrameLevel + AcquireBuffer(with PTS > 0) to trigger DropBuffersByLevel
+    // This bypasses ConsumeAndUpdateBuffer's acqiureWithPTSEnable check
+    GSError setRet = surfaceConsumer->SetDropFrameLevel(2); // Keep latest 2, drop first 3
+    ASSERT_EQ(setRet, GSERROR_OK);
 
-    // First call: should consume buffer (latest one, buffer 5), buffers 1-3 dropped internally
-    bool result1 = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
-    ASSERT_EQ(true, result1);
+    // AcquireBuffer with expectPresentTimestamp > 0 triggers DropBuffersByLevel in BufferQueue
+    IConsumerSurface::AcquireBufferReturnValue returnValue;
+    int64_t expectPresentTimestamp = INT64_MAX; // Use max to ensure all buffers are "ready"
+    GSError acquireRet = surfaceConsumer->AcquireBuffer(returnValue, expectPresentTimestamp, true);
+    ASSERT_EQ(acquireRet, GSERROR_OK);
+    ASSERT_NE(returnValue.buffer, nullptr);
 
-    // After first consume, available count should be 1 (buffer 5 consumed, buffer 4 remains)
-    int32_t availableCount = surfaceConsumer->GetAvailableBufferCount();
-    ASSERT_EQ(1, availableCount);
+    // After DropBuffersByLevel(level=2): 5 buffers -> drop 3, keep 2 in dirtyList
+    // Then while loop drops 1 more (PTS-based), keep 1 in dirtyList
+    // Then AcquireBuffer takes 1 from remaining -> 0 left in dirtyList
+    uint32_t afterCount = surfaceConsumer->GetAvailableBufferCount();
+    ASSERT_EQ(afterCount, 0u);
 
-    // Second call: should consume remaining buffer (buffer 4)
-    surfaceHandler.SetAvailableBufferCount(1);
-    bool result2 = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
-    ASSERT_EQ(true, result2);
-
-    // After second consume, no buffers left
-    availableCount = surfaceConsumer->GetAvailableBufferCount();
-    ASSERT_EQ(0, availableCount);
-
-    // This confirms SetDropFrameLevel(2) branch executed and dropped 3 buffers
+    // Reset drop frame level
+    surfaceConsumer->SetDropFrameLevel(0);
 }
 
 /*
@@ -1762,6 +1780,22 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_006, TestSi
     ASSERT_NE(producer, nullptr);
     psurf = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurf, nullptr);
+
+    // Set queue size to 3
+    psurf->SetQueueSize(3);
+
+    // Use local config to avoid static variable issues
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
+    };
 
     // Produce 3 buffers
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;

@@ -154,6 +154,8 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     surfaceNode->AddChild(canvasNode, -1);
     RSSurfaceCaptureConfig captureConfig;
     auto surfaceCaptureCallback = std::make_shared<CustomizedSurfaceCapture>();
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().SetWindowFreezeImmediately(surfaceNode, true, surfaceCaptureCallback, captureConfig);
     CheckSurfaceCaptureCallback(surfaceCaptureCallback);
@@ -194,6 +196,8 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     surfaceNode->RSNode::AddChild(surfaceNode1);
     surfaceNode0->RSNode::AddChild(canvasNode0);
     surfaceNode1->RSNode::AddChild(canvasNode1);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.blackList.push_back(surfaceNode0->GetId());
@@ -620,20 +624,20 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetBounds({0, 0, 400, 500});
     canvasNode->SetFrame({0, 0, 400, 500});
-    canvasNode->SetBackgroundColor(SK_ColorYELLOW);
+    canvasNode->SetBackgroundColor(SK_ColorLTGRAY);
 
     auto canvasNode02 = RSCanvasNode::Create();
     canvasNode02->SetBounds({100, 100, 600, 600});
     canvasNode02->SetFrame({100, 100, 600, 600});
-    canvasNode02->SetBackgroundColor(SK_ColorBLACK);
+    canvasNode02->SetBackgroundColor(SK_ColorRED);
     surfaceNode->AddChild(canvasNode, -1);
     canvasNode->AddChild(canvasNode02, -1);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = 1.5f;
-    captureConfig.scaleY = 1.5f;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
     auto surfaceCaptureCallback = std::make_shared<CustomizedSurfaceCapture>();
     RSInterfaces::GetInstance().SetWindowFreezeImmediately(surfaceNode, true, surfaceCaptureCallback, captureConfig);
     CheckSurfaceCaptureCallback(surfaceCaptureCallback);

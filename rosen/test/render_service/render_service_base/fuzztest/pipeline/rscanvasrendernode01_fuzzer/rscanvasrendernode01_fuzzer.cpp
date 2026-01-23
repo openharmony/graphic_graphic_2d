@@ -89,72 +89,6 @@ struct DrawBuffer {
     int32_t w;
     int32_t h;
 };
-
-#ifndef MODIFIER_NG
-bool RSCanvasRenderNode01FuzzTest(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // getdata
-    Drawing::Canvas tmpCanvas;
-    float alpha = GetData<float>();
-    RSPaintFilterCanvas canvas(&tmpCanvas, alpha);
-
-    Drawing::Canvas canvasChildren;
-    float alphaChildren = GetData<float>();
-    RSPaintFilterCanvas canvasChi(&canvasChildren, alphaChildren);
-
-    Drawing::Canvas canvasContents;
-    float alphaContents = GetData<float>();
-    RSPaintFilterCanvas canvasCon(&canvasContents, alphaContents);
-
-    Drawing::Canvas canvasTransition;
-    float alphaTransition = GetData<float>();
-    RSPaintFilterCanvas canvasTra(&canvasTransition, alphaTransition);
-
-    Drawing::Canvas canvasProperty;
-    float alphaProperty = GetData<float>();
-    RSPaintFilterCanvas canvasPro(&canvasProperty, alphaProperty);
-
-    NodeId id = GetData<NodeId>();
-    RSCanvasRenderNode node(id);
-    bool includeProperty = GetData<bool>();
-    std::shared_ptr<RSNodeVisitor> visitor;
-    std::shared_ptr<RSNodeVisitor> visitorQuick;
-    std::shared_ptr<RSNodeVisitor> visitorProcess;
-
-    // create drawCmdList
-    size_t length = GetData<size_t>() % STR_LEN + 1;
-    char* dataText = new char[length];
-    for (size_t i = 0; i < length; i++) {
-        dataText[i] = GetData<char>();
-    }
-    std::pair<const void*, size_t> cmdListData;
-    cmdListData.first = static_cast<const void*>(dataText);
-    cmdListData.second = length;
-    bool isCopy = GetData<bool>();
-    static std::shared_ptr<Drawing::DrawCmdList> drawCmds = Drawing::DrawCmdList::CreateFromData(cmdListData, isCopy);
-    RSModifierType type = GetData<RSModifierType>();
-    // test
-    node.UpdateRecording(drawCmds, type);
-    node.ProcessRenderAfterChildren(canvas);
-    node.ProcessRenderBeforeChildren(canvasChi);
-    node.ProcessRenderContents(canvasCon);
-    node.ProcessTransitionBeforeChildren(canvasTra);
-    node.PropertyDrawableRender(canvasPro, includeProperty);
-    node.Prepare(visitor);
-    node.QuickPrepare(visitorQuick);
-    node.Prepare(visitorProcess);
-    return true;
-}
-#endif // MODIFIER_NG
 } // namespace Rosen
 } // namespace OHOS
 
@@ -162,8 +96,5 @@ bool RSCanvasRenderNode01FuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-#ifndef MODIFIER_NG
-    OHOS::Rosen::RSCanvasRenderNode01FuzzTest(data, size);
-#endif
     return 0;
 }

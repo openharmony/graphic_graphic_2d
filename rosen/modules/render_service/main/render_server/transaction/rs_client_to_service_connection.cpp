@@ -1466,8 +1466,8 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
 #ifdef RS_ENABLE_GPU
         RSRenderComposerManager::GetInstance().PostSyncTask(id, [=]() {
             screenManager_->SetScreenPowerStatus(id, status);
-            RSRenderComposerManager::GetInstance().HandlePowerStatus(id, status);
         });
+        RSRenderComposerManager::GetInstance().HandlePowerStatus(id, status);
         screenManager_->WaitScreenPowerStatusTask();
         mainThread_->SetDiscardJankFrames(true);
         RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(true);
@@ -2654,23 +2654,6 @@ int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCal
     });
 
     return StatusCode::SUCCESS;
-}
-
-ErrCode RSClientToServiceConnection::SetAppWindowNum(uint32_t num)
-{
-    if (!mainThread_) {
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), num]() -> void {
-        sptr<RSClientToServiceConnection> connection = weakThis.promote();
-        if (!connection || !connection->mainThread_) {
-            return;
-        }
-        connection->mainThread_->SetAppWindowNum(num);
-    };
-    mainThread_->PostTask(task);
-
-    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnection::SetSystemAnimatedScenes(

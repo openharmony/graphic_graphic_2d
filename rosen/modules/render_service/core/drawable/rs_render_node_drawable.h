@@ -136,7 +136,7 @@ protected:
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
     void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture = false);
 
-    static inline bool isDrawingCacheEnabled_ = false;
+    static thread_local inline bool isDrawingCacheEnabled_ = true;
     static inline bool isDrawingCacheDfxEnabled_ = false;
     static inline std::mutex drawingCacheInfoMutex_;
     static inline std::unordered_map<NodeId, std::pair<RectI, int32_t>> drawingCacheInfos_; // (id, <rect, updateTimes>)

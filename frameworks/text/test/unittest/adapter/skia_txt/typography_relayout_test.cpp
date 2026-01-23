@@ -1286,5 +1286,264 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest031, TestSize.Le
     auto paragraphImpl = reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(typography->GetParagraph());
     EXPECT_TRUE(paragraphImpl->isRunCombinated());
 }
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0032
+ * @tc.desc: test for relayout paragraph style ellipsis modal(TAIL and MULTILINE_HEAD) when ellipsis is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0032, TestSize.Level0)
+{
+    constexpr double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.ellipsisModal = EllipsisModal::TAIL;
+    typographyStyle.maxLines = 1;
+    typographyStyle.ellipsis = u"";
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"测试relayout test";
+    OHOS::Rosen::TextStyle textStyle;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    typographyStyle.ellipsisModal = EllipsisModal::MULTILINE_HEAD;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::ELLIPSIS_MODAL));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    // When ellipsis is null, changing MULTILINE_HEAD and TAIL has no effect in longestLineWithIndent.
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0033
+ * @tc.desc: test for relayout paragraph style ellipsis modal(MULTILINE_MIDDLE and MIDDLE) when ellipsis is not set
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0033, TestSize.Level0)
+{
+    constexpr double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.ellipsisModal = EllipsisModal::MIDDLE;
+    typographyStyle.maxLines = 1;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"测试relayout test when ellipsis is not set.";
+    OHOS::Rosen::TextStyle textStyle;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    typographyStyle.ellipsisModal = EllipsisModal::MULTILINE_MIDDLE;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::ELLIPSIS_MODAL));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    // When ellipsis is not set, changing MULTILINE_MIDDLE and MIDDLE has no effect in longestLineWithIndent.
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0034
+ * @tc.desc: test for relayout paragraph style breakStrategy(BALANCED) and ellipsis modal(MULTILINE_HEAD and TAIL)
+ * when ellipsis is not set.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0034, TestSize.Level0)
+{
+    constexpr double maxWidth = 100;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.ellipsisModal = EllipsisModal::TAIL;
+    typographyStyle.breakStrategy = BreakStrategy::BALANCED;
+    typographyStyle.wordBreakType = WordBreakType::BREAK_WORD;
+    typographyStyle.maxLines = 1;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"测试relayout test when ellipsis is not set and breakStrategy is BALANCED.";
+    OHOS::Rosen::TextStyle textStyle;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    typographyStyle.ellipsisModal = EllipsisModal::MULTILINE_HEAD;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::ELLIPSIS_MODAL));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0035
+ * @tc.desc: test for relayout paragraph style breakStrategy(BALANCED) and ellipsis modal(MULTILINE_MIDDLE and MIDDLE)
+ * when ellipsis is not set.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0035, TestSize.Level0)
+{
+    constexpr double maxWidth = 100;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.ellipsisModal = EllipsisModal::MIDDLE;
+    typographyStyle.breakStrategy = BreakStrategy::BALANCED;
+    typographyStyle.wordBreakType = WordBreakType::BREAK_WORD;
+    typographyStyle.maxLines = 1;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"测试relayout test when ellipsis is not set and breakStrategy is BALANCED.";
+    OHOS::Rosen::TextStyle textStyle;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    typographyStyle.ellipsisModal = EllipsisModal::MULTILINE_MIDDLE;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::ELLIPSIS_MODAL));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0036
+ * @tc.desc: test for relayout paragraph style breakStrategy(BALANCED) and ellipsis modal(MULTILINE_HEAD and HEAD)
+ * when ellipsis is not set.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0036, TestSize.Level0)
+{
+    constexpr double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.ellipsisModal = EllipsisModal::HEAD;
+    typographyStyle.maxLines = 1;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"测试relayout test when ellipsis is not set and breakStrategy is BALANCED.";
+    OHOS::Rosen::TextStyle textStyle;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    typographyStyle.ellipsisModal = EllipsisModal::MULTILINE_HEAD;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::ELLIPSIS_MODAL));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0037
+ * @tc.desc: test for relayout paragraph style ellipsis modal(MIDDLE and MULTILINE_MIDDLE) when ellipsis is set.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0037, TestSize.Level0)
+{
+    constexpr double maxWidth = 100;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.ellipsisModal = EllipsisModal::HEAD;
+    typographyStyle.ellipsis = u"...";
+    typographyStyle.maxLines = 1;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"测试relayout test MULTILINE_HEAD and HEAD when ellipsis is set.";
+    OHOS::Rosen::TextStyle textStyle;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    typographyStyle.ellipsisModal = EllipsisModal::MULTILINE_HEAD;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::ELLIPSIS_MODAL));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    // MULTILINE_HEAD's longestLineWithIndent is fixed correctly, but HEAD's is not.
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0038
+ * @tc.desc: test for relayout paragraph style ellipsis modal(MIDDLE and MULTILINE_MIDDLE) when ellipsis is set.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0038, TestSize.Level0)
+{
+    constexpr double maxWidth = 100;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.ellipsisModal = EllipsisModal::MIDDLE;
+    typographyStyle.ellipsis = u"...";
+    typographyStyle.maxLines = 1;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"测试relayout test MULTILINE_MIDDLE and MIDDLE when ellipsis is set.";
+    OHOS::Rosen::TextStyle textStyle;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    typographyStyle.ellipsisModal = EllipsisModal::MULTILINE_MIDDLE;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::ELLIPSIS_MODAL));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
 } // namespace Rosen
 } // namespace OHOS

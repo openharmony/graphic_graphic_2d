@@ -67,7 +67,12 @@ struct MappedFile {
 
     explicit MappedFile(const std::string& path)
     {
-        fd = open(path.c_str(), O_RDONLY);
+        char realPath[PATH_MAX] = {0};
+        if (realpath(path.c_str(), realPath) == nullptr) {
+            LOGE("Invalid filePath, file path is %{public}s.", path.c_str());
+            return;
+        }
+        fd = open(realPath, O_RDONLY);
         if (fd < 0) {
             LOGE("Map file failed, file path is %{public}s.", path.c_str());
             return;
@@ -227,7 +232,7 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromCurrent(const OH_Drawing_Typef
     }
     FontArguments fontArguments;
     ConvertToDrawingFontArguments(*fontArgumentsHelper, fontArguments);
-    int currentTypefaceSize = const_cast<Typeface*>(currentTypeface)->GetSize();
+    uint32_t currentTypefaceSize = const_cast<Typeface*>(currentTypeface)->GetSize();
     if (fontArguments.GetCollectionIndex() == 0 && fontArguments.GetVariationDesignPosition().coordinateCount == 0) {
         return nullptr;
     }

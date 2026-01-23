@@ -34,6 +34,7 @@ const uint8_t NO_REGISTER = 0;
 const uint8_t REGISTERING = 1;
 const uint8_t REGISTERED = 2;
 using TypefaceRegisterCallback = std::function<int32_t(std::shared_ptr<Typeface>)>;
+using GetByUniqueIdCallback = std::function<std::shared_ptr<Typeface>(uint64_t)>;
 struct SharedTypeface;
 class DRAWING_API Typeface {
 public:
@@ -183,8 +184,6 @@ public:
     uint32_t GetIndex() const;
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
-    inline static TypefaceRegisterCallback registerTypefaceCallBack_ = nullptr;
-    inline static std::function<std::shared_ptr<Typeface>(uint64_t)> uniqueIdCallBack_ = nullptr;
     uint32_t size_ = 0;
     uint32_t index_ = 0;
 };

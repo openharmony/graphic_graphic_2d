@@ -16,8 +16,12 @@
 #include "property/rs_properties.h"
 
 #include <algorithm>
+#include <array>
+#include <chrono>
 #include <math.h>
 #include <memory>
+#include <mutex>
+#include <numeric>
 #include <optional>
 #include <securec.h>
 
@@ -26,14 +30,15 @@
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_particle_animation.h"
+#include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
 #include "draw/color.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_filter_base.h"
-#include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "effect/runtime_blender_builder.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -74,6 +79,11 @@
 #include "src/core/SkChecksum.h"
 #else
 #include "src/core/SkOpts.h"
+#endif
+
+#ifdef ROSEN_OHOS
+#include "app_mgr_client.h"
+#include "hisysevent.h"
 #endif
 
 namespace OHOS {
@@ -1283,7 +1293,17 @@ void RSProperties::SetColorPickerInterval(int interval)
     if (!colorPicker_) {
         colorPicker_ = std::make_shared<ColorPickerParam>();
     }
-    colorPicker_->interval = static_cast<uint64_t>(interval);
+    static constexpr uint64_t MIN_INTERVAL = 180; // unit: ms
+    colorPicker_->interval = std::max(static_cast<uint64_t>(interval), MIN_INTERVAL);
+    SetDirty();
+}
+
+void RSProperties::SetColorPickerNotifyThreshold(int threshold)
+{
+    if (!colorPicker_) {
+        colorPicker_ = std::make_shared<ColorPickerParam>();
+    }
+    colorPicker_->notifyThreshold = std::clamp(static_cast<uint32_t>(threshold), 0u, RGBA_MAX);
     SetDirty();
 }
 
@@ -3035,7 +3055,7 @@ bool RSProperties::IsBackgroundMaterialFilterValid() const
     return IsBackgroundBlurRadiusValid() || IsBackgroundBlurBrightnessValid() || IsBackgroundBlurSaturationValid();
 }
 
-bool RSProperties::IsForegroundMaterialFilterVaild() const
+bool RSProperties::IsForegroundMaterialFilterValid() const
 {
     return IsForegroundBlurRadiusValid();
 }
@@ -3522,8 +3542,275 @@ void RSProperties::ComposeNGRenderFilter(
     originFilter = originDrawingFilter;
 }
 
+struct FilterCascadeBundleInfo {
+    std::string bundleName = "";
+    std::string versionName = "";
+    int32_t versionCode = 0;
+};
+
+enum class ServerXXFilterCascadeType : size_t {
+    AIBAR = 0,
+    MAGNIFIER,
+    BG_MATERIALBLUR,
+    BG_BLUR,
+    WATERRIPPLE,
+    BG_NGFILTER,
+    ALWAYSSNAPSHOT,
+    LINEARGRADIENTBLUR,
+    CP_MATERIALBLUR,
+    CP_BLUR,
+    MOTIONBLUR,
+    FG_BLUR,
+    SPHERIZE,
+    FLY,
+    ATTRACTION,
+    SHADOW,
+    DISTORTIONK,
+    HDRUIBRIGHTNESS,
+    FG_NGFILTER,
+    COLORADAPTIVE,
+    MAX_TYPE
+};
+
+enum class ServerFilterFunctionType : uint16_t {
+    BACKGROUND_FILTER = 0,
+    COMPOSITING_FILTER,
+    FOREGROUND_FILTER,
+    MAX_TYPE
+};
+
+struct ServerXXFilterCascadeParams {
+    struct FilterCascadeBundleInfo bundleInfo;
+    ServerFilterFunctionType functionType = ServerFilterFunctionType::BACKGROUND_FILTER;
+    std::array<uint16_t, static_cast<size_t>(ServerXXFilterCascadeType::MAX_TYPE)> paramCounts = { 0 };
+};
+
+void ReportServerXXFilterCascade(ServerXXFilterCascadeParams params)
+{
+    switch (params.functionType) {
+        // background filter
+        case ServerFilterFunctionType::BACKGROUND_FILTER: {
+            RS_TRACE_NAME("ReportServerXXFilterCascade BackgroundFilter HiSysEventWrite");
+#ifdef ROSEN_OHOS
+            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RS_SERVER_XXFILTER_CASCADE",
+                OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "BUNDLE_NAME", params.bundleInfo.bundleName,
+                "VERSION_NAME", params.bundleInfo.versionName, "VERSION_CODE", params.bundleInfo.versionCode,
+                "FUNCTION_TYPE", static_cast<uint16_t>(params.functionType),
+                "AIBAR_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::AIBAR)],
+                "MAGNIFIER_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::MAGNIFIER)],
+                "BG_MATERIALBLUR_COUNT",
+                params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::BG_MATERIALBLUR)],
+                "BG_BLUR_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::BG_BLUR)],
+                "WATERRIPPLE_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::WATERRIPPLE)],
+                "BG_NGFILTER_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::BG_NGFILTER)],
+                "ALWAYSSNAPSHOT_COUNT",
+                params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::ALWAYSSNAPSHOT)]);
+#endif
+            break;
+        }
+        // compositing filter
+        case ServerFilterFunctionType::COMPOSITING_FILTER: {
+            RS_TRACE_NAME("ReportServerXXFilterCascade CompositingFilter HiSysEventWrite");
+#ifdef ROSEN_OHOS
+            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RS_SERVER_XXFILTER_CASCADE",
+                OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "BUNDLE_NAME", params.bundleInfo.bundleName,
+                "VERSION_NAME", params.bundleInfo.versionName, "VERSION_CODE", params.bundleInfo.versionCode,
+                "FUNCTION_TYPE", static_cast<uint16_t>(params.functionType),
+                "LINEARGRADIENTBLUR_COUNT",
+                params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::LINEARGRADIENTBLUR)],
+                "CP_MATERIALBLUR_COUNT",
+                params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::CP_MATERIALBLUR)],
+                "CP_BLUR_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::CP_BLUR)]);
+#endif
+            break;
+        }
+        // foreground filter
+        case ServerFilterFunctionType::FOREGROUND_FILTER: {
+            RS_TRACE_NAME("ReportServerXXFilterCascade ForegroundFilter HiSysEventWrite");
+#ifdef ROSEN_OHOS
+            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RS_SERVER_XXFILTER_CASCADE",
+                OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "BUNDLE_NAME", params.bundleInfo.bundleName,
+                "VERSION_NAME", params.bundleInfo.versionName, "VERSION_CODE", params.bundleInfo.versionCode,
+                "FUNCTION_TYPE", static_cast<uint16_t>(params.functionType),
+                "MOTIONBLUR_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::MOTIONBLUR)],
+                "FG_BLUR_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::FG_BLUR)],
+                "SPHERIZE_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::SPHERIZE)],
+                "FLY_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::FLY)],
+                "ATTRACTION_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::ATTRACTION)],
+                "SHADOW_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::SHADOW)],
+                "DISTORTIONK_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::DISTORTIONK)],
+                "HDRUIBRIGHTNESS_COUNT",
+                params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::HDRUIBRIGHTNESS)],
+                "FG_NGFILTER_COUNT", params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::FG_NGFILTER)],
+                "COLORADAPTIVE_COUNT",
+                params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::COLORADAPTIVE)]);
+#endif
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void ReportServerXXFilterCascadeCheck(
+    ServerXXFilterCascadeParams params, const std::shared_ptr<RSRenderNode>& renderNode = nullptr)
+{
+    const int kMaxEventsPerHour = 5;
+    const int64_t kHourMs = 60LL * 60LL * 1000LL; // 1 hour
+    const int kMaxEventsPerDay = 20;
+    const int64_t kDayMs = 24LL * 60LL * 60LL * 1000LL; // 24 hours
+
+    // If caller provides a render node, perform bundle name lookup on background thread
+    if (renderNode != nullptr) {
+        // Rate limit: at most 5 reports per hour and 20 reports per 24 hours
+        static std::mutex sRateMutex;
+        static int sEventCountHour = 0;
+        static int64_t sWindowStartMsHour = 0;
+        static int sEventCountDay = 0;
+        static int64_t sWindowStartMsDay = 0;
+
+        std::lock_guard<std::mutex> lock(sRateMutex);
+        int64_t nowMs =
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+                .count();
+        if (sWindowStartMsHour == 0 || nowMs - sWindowStartMsHour >= kHourMs) {
+            sWindowStartMsHour = nowMs;
+            sEventCountHour = 0;
+        }
+        if (sWindowStartMsDay == 0 || nowMs - sWindowStartMsDay >= kDayMs) {
+            sWindowStartMsDay = nowMs;
+            sEventCountDay = 0;
+        }
+        if (sEventCountHour >= kMaxEventsPerHour || sEventCountDay >= kMaxEventsPerDay) {
+            return;
+        }
+        ++sEventCountHour;
+        ++sEventCountDay;
+#ifdef ROSEN_OHOS
+        RSBackgroundThread::Instance().PostTask([params, renderNode]() mutable {
+            auto nodeId = renderNode->GetId();
+            pid_t pid = ExtractPid(nodeId);
+            static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
+            if (appMgrClient != nullptr) {
+                std::string bundleName;
+                int32_t uid = 0;
+                int32_t ret = appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
+                if ((ret == ERR_OK) && !bundleName.empty()) {
+                    params.bundleInfo.bundleName = bundleName;
+                }
+            }
+            ReportServerXXFilterCascade(params);
+        });
+#endif
+    }
+    return;
+}
+
+void RSProperties::StatBackgroundFilter()
+{
+    ServerXXFilterCascadeParams params;
+    params.functionType = ServerFilterFunctionType::BACKGROUND_FILTER;
+    if (GetAiInvert().has_value() || GetSystemBarEffect()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::AIBAR)]++;
+    }
+    if (GetMagnifierPara() && ROSEN_GNE(GetMagnifierPara()->factor_, 0.f)) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::MAGNIFIER)]++;
+    }
+    if (IsBackgroundMaterialFilterValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::BG_MATERIALBLUR)]++;
+    }
+    if (IsBackgroundBlurRadiusXValid() && IsBackgroundBlurRadiusYValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::BG_BLUR)]++;
+    }
+    if (IsWaterRippleValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::WATERRIPPLE)]++;
+    }
+    if (GetBackgroundNGFilter()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::BG_NGFILTER)]++;
+    }
+    if (GetAlwaysSnapshot()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::ALWAYSSNAPSHOT)]++;
+    }
+    if (std::accumulate(params.paramCounts.begin(), params.paramCounts.end(), 0) > 1) {
+        auto renderNode = backref_.lock();
+        if (renderNode != nullptr) {
+            hasReportedServerXXFilterCascade_[static_cast<size_t>(ServerFilterFunctionType::BACKGROUND_FILTER)] = true;
+            ReportServerXXFilterCascadeCheck(params, renderNode);
+        }
+    }
+}
+
+void RSProperties::StatCompositingFilter()
+{
+    ServerXXFilterCascadeParams params;
+    params.functionType = ServerFilterFunctionType::COMPOSITING_FILTER;
+    if (GetLinearGradientBlurPara()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::LINEARGRADIENTBLUR)]++;
+    }
+    if (IsForegroundMaterialFilterValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::CP_MATERIALBLUR)]++;
+    }
+    if (IsForegroundBlurRadiusXValid() && IsForegroundBlurRadiusYValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::CP_BLUR)]++;
+    }
+    if (std::accumulate(params.paramCounts.begin(), params.paramCounts.end(), 0) > 1) {
+        auto renderNode = backref_.lock();
+        if (renderNode != nullptr) {
+            hasReportedServerXXFilterCascade_[static_cast<size_t>(ServerFilterFunctionType::COMPOSITING_FILTER)] = true;
+            ReportServerXXFilterCascadeCheck(params, renderNode);
+        }
+    }
+}
+
+void RSProperties::StatForegroundFilter()
+{
+    ServerXXFilterCascadeParams params;
+    params.functionType = ServerFilterFunctionType::FOREGROUND_FILTER;
+    auto motionBlurPara = RSProperties::GetMotionBlurPara();
+    if (motionBlurPara && ROSEN_GNE(motionBlurPara->radius, 0.0)) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::MOTIONBLUR)]++;
+    }
+    if (IsForegroundEffectRadiusValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::FG_BLUR)]++;
+    }
+    if (IsSpherizeValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::SPHERIZE)]++;
+    }
+    if (IsFlyOutValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::FLY)]++;
+    }
+    if (IsAttractionValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::ATTRACTION)]++;
+    }
+    if (IsShadowMaskValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::SHADOW)]++;
+    }
+    if (IsDistortionKValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::DISTORTIONK)]++;
+    }
+    if (IsHDRUIBrightnessValid()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::HDRUIBRIGHTNESS)]++;
+    }
+    if (GetForegroundNGFilter()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::FG_NGFILTER)]++;
+    }
+    if (GetColorAdaptive()) {
+        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::COLORADAPTIVE)]++;
+    }
+    if (std::accumulate(params.paramCounts.begin(), params.paramCounts.end(), 0) > 1) {
+        auto renderNode = backref_.lock();
+        if (renderNode != nullptr) {
+            hasReportedServerXXFilterCascade_[static_cast<size_t>(ServerFilterFunctionType::FOREGROUND_FILTER)] = true;
+            ReportServerXXFilterCascadeCheck(params, renderNode);
+        }
+    }
+}
+
 void RSProperties::GenerateBackgroundFilter()
 {
+    if (!hasReportedServerXXFilterCascade_[static_cast<size_t>(ServerFilterFunctionType::BACKGROUND_FILTER)]) {
+        StatBackgroundFilter();
+    }
     if (GetAiInvert().has_value() || GetSystemBarEffect()) {
         GenerateAIBarFilter();
     } else if (GetMagnifierPara() && ROSEN_GNE(GetMagnifierPara()->factor_, 0.f)) {
@@ -3555,9 +3842,12 @@ void RSProperties::GenerateBackgroundFilter()
 void RSProperties::GenerateForegroundFilter()
 {
     IfLinearGradientBlurInvalid();
+    if (!hasReportedServerXXFilterCascade_[static_cast<size_t>(ServerFilterFunctionType::COMPOSITING_FILTER)]) {
+        StatCompositingFilter();
+    }
     if (GetLinearGradientBlurPara()) {
         GenerateLinearGradientBlurFilter();
-    } else if (IsForegroundMaterialFilterVaild()) {
+    } else if (IsForegroundMaterialFilterValid()) {
         GenerateForegroundMaterialBlurFilter();
     } else if (IsForegroundBlurRadiusXValid() && IsForegroundBlurRadiusYValid()) {
         GenerateForegroundBlurFilter();
@@ -4900,6 +5190,9 @@ void RSProperties::UpdateForegroundFilter()
 {
     GetEffect().foregroundFilter_.reset();
     GetEffect().foregroundFilterCache_.reset();
+    if (!hasReportedServerXXFilterCascade_[static_cast<size_t>(ServerFilterFunctionType::FOREGROUND_FILTER)]) {
+        StatForegroundFilter();
+    }
     auto motionBlurPara = GetMotionBlurPara();
     if (motionBlurPara && ROSEN_GNE(motionBlurPara->radius, 0.0)) {
         auto motionBlurFilter = std::make_shared<RSMotionBlurFilter>(motionBlurPara);
@@ -4954,7 +5247,7 @@ void RSProperties::UpdateBackgroundShader()
     if (bgShader) {
         const auto &param = GetComplexShaderParam();
         if (param.has_value()) {
-            const auto & paramValue = param.value();
+            const auto &paramValue = param.value();
             bgShader->MakeDrawingShader(GetBoundsRect(), paramValue);
         }
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
@@ -5130,6 +5423,14 @@ std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetForegroundShader() const
         return effect_->fgRenderShader_;
     }
     return nullptr;
+}
+
+void RSProperties::InternalSetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape)
+{
+    if (ROSEN_EQ(renderSDFShape_, shape)) {
+        return;
+    }
+    renderSDFShape_ = shape;
 }
 
 void RSProperties::SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape)

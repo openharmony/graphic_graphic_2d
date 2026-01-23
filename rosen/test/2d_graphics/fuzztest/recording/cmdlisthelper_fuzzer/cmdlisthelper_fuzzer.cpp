@@ -106,7 +106,7 @@ bool CmdListHelperFuzzTest002(const uint8_t* data, size_t size)
     }
     vertices.MakeCopy(vertexMode, arr_size, positions, texs, colors, arr_size, indices);
     CmdListHelper::AddVerticesToCmdList(*cmdList, vertices);
-    OpDataHandle opDataHandle { GetObject<uint32_t>(), GetObject<size_t>() };
+    OpDataHandle opDataHandle { GetObject<uint32_t>(), length };
     CmdListHelper::GetVerticesFromCmdList(*cmdList, opDataHandle);
     if (dataText != nullptr) {
         delete [] dataText;

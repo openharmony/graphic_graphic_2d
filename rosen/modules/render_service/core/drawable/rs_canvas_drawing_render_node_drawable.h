@@ -98,6 +98,8 @@ private:
 #ifdef ROSEN_OHOS
     bool CreateDmaBackendTexture(pid_t pid, int width, int height);
 
+    void ReleaseDmaSurfaceBuffer(bool notifyOnly);
+
     // DMA allocation statistics counter
     std::atomic<uint32_t> dmaAllocationCount_ = 0;
     // DMA fallback statistics counter

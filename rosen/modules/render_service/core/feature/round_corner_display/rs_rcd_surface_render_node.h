@@ -141,6 +141,7 @@ private:
     float GetSurfaceWidth() const;
     float GetSurfaceHeight() const;
     bool FillHardwareResource(HardwareLayerInfo &cldLayerInfo, int height, int width);
+    bool SetRCDMetaData() const;
     HardwareLayerInfo cldLayerInfo;
     Drawing::Bitmap layerBitmap;
 

@@ -1018,3 +1018,30 @@ ohos_executable("render_service_client_content_transition_demo") {
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
+
+ohos_executable("screen_special_layer_demo") {
+  sources = [
+    "screen_special_layer_demo_utils.cpp",
+    "screen_special_layer_demo.cpp"
+  ]
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+  
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

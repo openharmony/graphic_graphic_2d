@@ -122,6 +122,7 @@ void RSClientToServiceConnectionStubTestExt::TearDown() {}
  */
 HWTEST_F(RSClientToServiceConnectionStubTestExt, SetSurfaceWatermarkSub001, TestSize.Level1)
 {
+#if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_NE(connectionStub_, nullptr);
     MessageParcel data;
     MessageParcel reply;
@@ -188,6 +189,7 @@ HWTEST_F(RSClientToServiceConnectionStubTestExt, SetSurfaceWatermarkSub001, Test
     data5.WriteUInt64Vector(nodeList);
     data5.WriteUint8(static_cast<uint8_t>(0));
     res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
+#endif
 }
 
 /**

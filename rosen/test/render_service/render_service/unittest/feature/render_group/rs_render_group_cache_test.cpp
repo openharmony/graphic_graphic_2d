@@ -156,5 +156,25 @@ HWTEST_F(RSRenderGroupCacheTest, AutoRenderGroupExcludedSubTreeGuardTest001, Tes
     }
     EXPECT_EQ(curExcludedRootNodeId, 97);
 }
+
+/**
+ * @tc.name: SetChildHasTranslateOnSqueezeTest
+ * @tc.desc: Test SetChildHasTranslateOnSqueeze
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderGroupCacheTest, SetChildHasTranslateOnSqueezeTest, TestSize.Level1)
+{
+    auto renderGroupCache = std::make_unique<RSRenderGroupCache>();
+    ASSERT_NE(renderGroupCache, nullptr);
+
+    bool rst = renderGroupCache->SetChildHasTranslateOnSqueeze(false);
+    EXPECT_FALSE(renderGroupCache->ChildHasTranslateOnSqueeze());
+    EXPECT_FALSE(rst);
+
+    rst = renderGroupCache->SetChildHasTranslateOnSqueeze(true);
+    EXPECT_TRUE(renderGroupCache->ChildHasTranslateOnSqueeze());
+    EXPECT_TRUE(rst);
+}
 } // namespace Rosen
 } // namespace OHOS

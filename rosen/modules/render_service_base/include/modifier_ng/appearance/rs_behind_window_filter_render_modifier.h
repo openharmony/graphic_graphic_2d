@@ -25,10 +25,12 @@ public:
     ~RSBehindWindowFilterRenderModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::BEHIND_WINDOW_FILTER;
+    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     };
+    // LCOV_EXCL_STOP
 
 private:
     void OnSetDirty() override;

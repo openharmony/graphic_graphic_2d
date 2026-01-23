@@ -16,18 +16,26 @@
 #include "ohos.graphics.uiEffect.ani.hpp"
 #include "ohos.graphics.uiEffect.uiEffect.ani.hpp"
 
+#include "ui_effect_taihe_utils.h"
+
 ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 {
+    if (vm == nullptr || result == nullptr) {
+        UIEFFECT_LOG_E("Error from ohos::graphics::uiEffect::ANIRegister vm or result is nullptr");
+        return ANI_ERROR;
+    }
+
     ani_env *env;
     if (ANI_OK != vm->GetEnv(ANI_VERSION_1, &env)) {
+        UIEFFECT_LOG_E("Error from ohos::graphics::uiEffect::ANIRegister get env failed");
         return ANI_ERROR;
     }
     if (ANI_OK != ohos::graphics::uiEffect::ANIRegister(env)) {
-        std::cerr << "Error from ohos::graphics::uiEffect::ANIRegister" << std::endl;
+        UIEFFECT_LOG_E("Error from ohos::graphics::uiEffect::ANIRegister");
         return ANI_ERROR;
     }
     if (ANI_OK != ohos::graphics::uiEffect::uiEffect::ANIRegister(env)) {
-        std::cerr << "Error from ohos::graphics::uiEffect::uiEffect::ANIRegister" << std::endl;
+        UIEFFECT_LOG_E("Error from ohos::graphics::uiEffect::uiEffect::ANIRegister");
         return ANI_ERROR;
     }
     *result = ANI_VERSION_1;

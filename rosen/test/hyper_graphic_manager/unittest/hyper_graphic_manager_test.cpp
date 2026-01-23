@@ -867,14 +867,6 @@ HWTEST_F(HyperGraphicManagerTest, SetPerformanceConfigTest001, Function | SmallT
     if (!orgAppPhaseOffsetStr.empty()) {
         curScreenSetting.performanceConfig["appPhaseOffset"] = orgAppPhaseOffsetStr;
     }
-    GTEST_LOG_(INFO) << "orgIsVsyncOffsetCustomized:" << orgIsVsyncOffsetCustomized
-                     << "orgRsPhaseOffset: " << orgRsPhaseOffset << ",orgAppPhaseOffset: " << orgAppPhaseOffset;
-    if (curScreenSetting.performanceConfig.count("rsPhaseOffset") != 0) {
-        GTEST_LOG_(INFO) << "rsPhaseOffset:" << curScreenSetting.performanceConfig["rsPhaseOffset"];
-    }
-    if (curScreenSetting.performanceConfig.count("appPhaseOffset") != 0) {
-        GTEST_LOG_(INFO) << "appPhaseOffset:" << curScreenSetting.performanceConfig["appPhaseOffset"];
-    }
     instance.SetPerformanceConfig(curScreenSetting);
 }
 

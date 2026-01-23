@@ -261,13 +261,6 @@ bool RSSurfaceCaptureTaskParallel::Run(
 
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
-    const Drawing::Rect& rect = captureConfig_.mainScreenRect;
-    if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
-        canvas.ClipRect({0, 0, rect.GetWidth(), rect.GetHeight()});
-        canvas.Translate(-rect.GetLeft(), -rect.GetTop());
-    } else {
-        canvas.Translate(-boundsX_, -boundsY_);
-    }
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     if (surfaceNodeDrawable_) {
@@ -296,6 +289,13 @@ bool RSSurfaceCaptureTaskParallel::Run(
             AddBlur(canvas, surface, captureParam.blurParam.blurRadius);
         }
     } else if (displayNodeDrawable_) {
+        const Drawing::Rect& rect = captureConfig_.mainScreenRect;
+        if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
+            canvas.ClipRect({0, 0, rect.GetWidth(), rect.GetHeight()});
+            canvas.Translate(-rect.GetLeft(), -rect.GetTop());
+        } else {
+            canvas.Translate(-boundsX_, -boundsY_);
+        }
         auto type = RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
         CaptureDisplayNode(*displayNodeDrawable_, canvas, captureParam, type);
     } else {
@@ -459,8 +459,6 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     }
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
-    // Surface Node currently does not support regional screenshot
-    captureConfig_.mainScreenRect = {};
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"

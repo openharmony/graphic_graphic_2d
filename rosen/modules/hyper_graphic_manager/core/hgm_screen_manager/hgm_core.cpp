@@ -104,7 +104,7 @@ void HgmCore::Init()
             customFrameRateMode_ = std::stoi(mPolicyConfigData_->defaultRefreshRateMode_);
         }
     } else {
-        HILOG_COMM_INFO("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
+        HILOG_COMM_INFO("HgmCore customer refreshrate mode found: %{public}d", newRateMode);
         customFrameRateMode_ = newRateMode;
         if (customFrameRateMode_ != HGM_REFRESHRATE_MODE_AUTO &&
             mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {

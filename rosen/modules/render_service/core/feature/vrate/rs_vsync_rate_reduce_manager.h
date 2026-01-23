@@ -93,7 +93,7 @@ private:
     }
 private:
     bool vRateReduceEnabled_ = false;
-    bool vRateConditionQualified_ = false;
+    std::atomic<bool> vRateConditionQualified_ = false;
     bool vSyncRatesChanged_ = false;
     std::map<NodeId, int> vSyncRateMap_;
     std::map<NodeId, int> lastVSyncRateMap_;

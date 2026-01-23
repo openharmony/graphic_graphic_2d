@@ -50,13 +50,15 @@ public:
 
     /**
      * @brief Get the type of the RSUINode.
-     * 
+     *
      * @return The type of the RSUINode.
      */
+    // LCOV_EXCL_START
     RSUINodeType GetType() const override
     {
         return Type;
     }
+    // LCOV_EXCL_STOP
 
     /**
      * @brief Destructor for RSDisplayNode.
@@ -106,7 +108,7 @@ public:
 
     /**
      * @brief Sets the screen ID.
-     * 
+     *
      * @param screenId Indicates the unique identifier of the screen.
      */
     void SetScreenId(uint64_t screenId);

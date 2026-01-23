@@ -34,7 +34,10 @@ void RsChipsetVsyncTest::SetUpTestCase() {}
 void RsChipsetVsyncTest::TearDownTestCase() {}
 void RsChipsetVsyncTest::SetUp() {}
 void RsChipsetVsyncTest::TearDown() {}
-
+int32_t EmptyInitFunction()
+{
+    return 0;
+}
 /*
  * @tc.name: LoadLibrary_001
  * @tc.desc: Test LoadLibrary
@@ -43,9 +46,9 @@ void RsChipsetVsyncTest::TearDown() {}
  */
 HWTEST_F(RsChipsetVsyncTest, LoadLibrary001, TestSize.Level1)
 {
-    RsChipsetVsync::instance().chipsetVsyncLibHandle_ = nullptr;
-    RsChipsetVsync::instance().LoadLibrary();
-    ASSERT_NE(RsChipsetVsync::instance().chipsetVsyncLibHandle_, nullptr);
+    RsChipsetVsync::Instance().chipsetVsyncLibHandle_ = nullptr;
+    RsChipsetVsync::Instance().LoadLibrary();
+    ASSERT_NE(RsChipsetVsync::Instance().chipsetVsyncLibHandle_, nullptr);
 }
 
 /*
@@ -56,9 +59,9 @@ HWTEST_F(RsChipsetVsyncTest, LoadLibrary001, TestSize.Level1)
  */
 HWTEST_F(RsChipsetVsyncTest, CloseLibrary001, TestSize.Level1)
 {
-    RsChipsetVsync::instance().LoadLibrary();
-    RsChipsetVsync::instance().CloseLibrary();
-    ASSERT_EQ(RsChipsetVsync::instance().chipsetVsyncLibHandle_, nullptr);
+    RsChipsetVsync::Instance().LoadLibrary();
+    RsChipsetVsync::Instance().CloseLibrary();
+    ASSERT_EQ(RsChipsetVsync::Instance().chipsetVsyncLibHandle_, nullptr);
 }
 /*
  * @tc.name: InitChipsetVsync_001
@@ -68,12 +71,13 @@ HWTEST_F(RsChipsetVsyncTest, CloseLibrary001, TestSize.Level1)
  */
 HWTEST_F(RsChipsetVsyncTest, InitChipsetVsync001, TestSize.Level1)
 {
-    RsChipsetVsync::instance().LoadLibrary();
-    RsChipsetVsync::instance().InitChipsetVsync();
-    ASSERT_NE(RsChipsetVsync::instance().chipsetVsyncLibHandle_, nullptr);
-    RsChipsetVsync::instance().CloseLibrary();
-    RsChipsetVsync::instance().InitChipsetVsync();
-    ASSERT_EQ(RsChipsetVsync::instance().chipsetVsyncLibHandle_, nullptr);
+    RsChipsetVsync::Instance().LoadLibrary();
+    RsChipsetVsync::Instance().initChipsetVsyncFunc_ = EmptyInitFunction;
+    RsChipsetVsync::Instance().InitChipsetVsync();
+    ASSERT_NE(RsChipsetVsync::Instance().chipsetVsyncLibHandle_, nullptr);
+    RsChipsetVsync::Instance().CloseLibrary();
+    RsChipsetVsync::Instance().InitChipsetVsync();
+    ASSERT_EQ(RsChipsetVsync::Instance().chipsetVsyncLibHandle_, nullptr);
 }
 /*
  * @tc.name: SetVsync_001
@@ -83,12 +87,12 @@ HWTEST_F(RsChipsetVsyncTest, InitChipsetVsync001, TestSize.Level1)
  */
 HWTEST_F(RsChipsetVsyncTest, SetVsync001, TestSize.Level1)
 {
-    RsChipsetVsync::instance().LoadLibrary();
-    RsChipsetVsync::instance().SetVsync(0, 0, 16666666, false);
-    ASSERT_NE(RsChipsetVsync::instance().chipsetVsyncLibHandle_, nullptr);
-    RsChipsetVsync::instance().CloseLibrary();
-    RsChipsetVsync::instance().SetVsync(0, 0, 16666666, false);
-    ASSERT_EQ(RsChipsetVsync::instance().chipsetVsyncLibHandle_, nullptr);
+    RsChipsetVsync::Instance().LoadLibrary();
+    RsChipsetVsync::Instance().SetVsync(0, 0, 16666666, false);
+    ASSERT_NE(RsChipsetVsync::Instance().chipsetVsyncLibHandle_, nullptr);
+    RsChipsetVsync::Instance().CloseLibrary();
+    RsChipsetVsync::Instance().SetVsync(0, 0, 16666666, false);
+    ASSERT_EQ(RsChipsetVsync::Instance().chipsetVsyncLibHandle_, nullptr);
 }
 
 }

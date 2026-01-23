@@ -114,6 +114,7 @@ protected:
     void* imagePixelAddr_ = nullptr;
     std::shared_ptr<Media::PixelMap> pixelMap_;
     // used for astc render
+    mutable std::mutex compressDataMutex_;
     std::shared_ptr<Drawing::Data> compressData_;
 
     RectF srcRect_;

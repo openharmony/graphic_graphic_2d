@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -90,20 +90,20 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderFrostedGlassFilter>();
         }
     },
-    {RSNGEffectType::GRID_WARP, [] {
-            return std::make_shared<RSNGRenderGridWarpFilter>();
-        }
-    },
     {RSNGEffectType::FROSTED_GLASS_BLUR, [] {
             return std::make_shared<RSNGRenderFrostedGlassBlurFilter>();
         }
     },
-    {RSNGEffectType::MAGNIFIER, [] {
-            return std::make_shared<RSNGRenderMagnifierFilter>();
+    {RSNGEffectType::GRID_WARP, [] {
+            return std::make_shared<RSNGRenderGridWarpFilter>();
         }
     },
     {RSNGEffectType::SDF_EDGE_LIGHT, [] {
             return std::make_shared<RSNGRenderSDFEdgeLightFilter>();
+        }
+    },
+    {RSNGEffectType::MAGNIFIER, [] {
+            return std::make_shared<RSNGRenderMagnifierFilter>();
         }
     },
 };
@@ -111,10 +111,29 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
 using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
 static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRectLUT = {
     {
+        RSNGEffectType::FROSTED_GLASS, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
+            auto frostedGlass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(filter);
+            auto blurRadius = frostedGlass->Getter<OHOS::Rosen::FrostedGlassBlurParamsRenderTag>()->Get();
+            auto tmp = frostedGlass->Getter<OHOS::Rosen::FrostedGlassEnvLightParamsRenderTag>()->Get();
+            auto samplingScale = frostedGlass->Getter<OHOS::Rosen::FrostedGlassSamplingScaleRenderTag>()->Get();
+            auto refractOutPx = tmp[0];
+            const float maxRefractOutPx = 500.0f;
+            float outStep = std::max(blurRadius[0] +
+                std::max(std::min(refractOutPx, maxRefractOutPx), 0.0f), 0.0f) * samplingScale;
+            auto snapshotRect = rect;
+            snapshotRect.SetAll(rect.GetLeft() - outStep, rect.GetTop() - outStep, rect.GetWidth() + outStep * 2,
+                rect.GetHeight() + outStep * 2);
+            return snapshotRect;
+        }
+    },
+    {
         RSNGEffectType::FROSTED_GLASS_BLUR, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
             auto frostedGlassBlur = std::static_pointer_cast<RSNGRenderFrostedGlassBlurFilter>(filter);
             auto blurRadius = frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurRadiusRenderTag>()->Get();
             auto refractOutPx = frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurRefractOutPxRenderTag>()->Get();
+            if (ROSEN_LE(refractOutPx, 0.0f)) {
+                return rect;
+            }
             const float maxRefractOutPx = 500.0f;
             float outStep = std::max(blurRadius + std::max(std::min(refractOutPx, maxRefractOutPx), 0.0f), 0.0f);
             auto snapshotRect = rect;
@@ -229,6 +248,7 @@ void RSNGRenderFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEf
         RS_LOGE("RSNGRenderFilterHelper::UpdateCacheData: dest is nullptr");
         return;
     }
+
     auto srcImpl = src->GetImpl();
     auto destImpl = dest->GetImpl();
     bool typeMismatch = srcImpl == nullptr || destImpl == nullptr ||

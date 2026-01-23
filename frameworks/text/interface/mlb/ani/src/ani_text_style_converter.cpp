@@ -46,11 +46,8 @@ ani_status ParseDrawingColorToNative(
 }
 } // namespace
 
-ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
+void AniTextStyleConverter::ParseEnumTextStyleToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextStyle& textStyle)
 {
-    ParseTextStyleDecorationToNative(env, obj, false, textStyle);
-    ParseDrawingColorToNative(env, obj, true, AniGlobalMethod::GetInstance().textStyleColor, textStyle.color);
-
     AniTextUtils::ReadOptionalEnumField(
         env, obj, AniTextEnum::fontWeight, AniGlobalMethod::GetInstance().textStyleFontWeight, textStyle.fontWeight);
     AniTextUtils::ReadOptionalEnumField(
@@ -60,39 +57,65 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     }
     AniTextUtils::ReadOptionalEnumField(
         env, obj, AniTextEnum::textBaseLine, AniGlobalMethod::GetInstance().textStyleBaseline, textStyle.baseline);
+    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::ellipsisModal,
+        AniGlobalMethod::GetInstance().textStyleEllipsisMode, textStyle.ellipsisModal);
+    AniTextUtils::ReadOptionalEnumField(
+        env, obj, AniTextEnum::textBadgeType, AniGlobalMethod::GetInstance().textStyleBadgeType, textStyle.badgeType);
+    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::lineHeightStyle,
+        AniGlobalMethod::GetInstance().textStyleLineHeightStyle, textStyle.lineHeightStyle);
+    AniTextUtils::ReadOptionalEnumField(
+        env, obj, AniTextEnum::fontWidth, AniGlobalMethod::GetInstance().textStyleFontWidth, textStyle.fontWidth);
+}
 
-    AniTextUtils::ReadOptionalArrayField<std::string>(env, obj, AniGlobalMethod::GetInstance().textStyleFontFamilies,
-        textStyle.fontFamilies, [](ani_env* env, ani_ref ref) {
-            std::string utf8Str;
-            AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
-            return utf8Str;
-        });
+void AniTextStyleConverter::ParseDoubleTextStyleToNative(
+    ani_env* env, ani_object obj, OHOS::Rosen::TextStyle& textStyle)
+{
     AniTextUtils::ReadOptionalDoubleField(
         env, obj, AniGlobalMethod::GetInstance().textStyleFontSize, textStyle.fontSize);
     AniTextUtils::ReadOptionalDoubleField(
         env, obj, AniGlobalMethod::GetInstance().textStyleLetterSpacing, textStyle.letterSpacing);
     AniTextUtils::ReadOptionalDoubleField(
         env, obj, AniGlobalMethod::GetInstance().textStyleWordSpacing, textStyle.wordSpacing);
+    textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
     AniTextUtils::ReadOptionalDoubleField(
         env, obj, AniGlobalMethod::GetInstance().textStyleHeightScale, textStyle.heightScale);
-    textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
+    AniTextUtils::ReadOptionalDoubleField(
+        env, obj, AniGlobalMethod::GetInstance().textStyleBaselineShift, textStyle.baseLineShift);
+    AniTextUtils::ReadOptionalDoubleField(
+        env, obj, AniGlobalMethod::GetInstance().textStyleMaxLineHeight, textStyle.maxLineHeight);
+    AniTextUtils::ReadOptionalDoubleField(
+        env, obj, AniGlobalMethod::GetInstance().textStyleMinLineHeight, textStyle.minLineHeight);
+}
+
+void AniTextStyleConverter::ParseBoolTextStyleToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextStyle& textStyle)
+{
     AniTextUtils::ReadOptionalBoolField(
         env, obj, AniGlobalMethod::GetInstance().textStyleHalfLeading, textStyle.halfLeading);
     AniTextUtils::ReadOptionalBoolField(
         env, obj, AniGlobalMethod::GetInstance().textStyleHeightOnly, textStyle.heightOnly);
+}
+
+ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
+{
+    ParseTextStyleDecorationToNative(env, obj, false, textStyle);
+    ParseDrawingColorToNative(env, obj, true, AniGlobalMethod::GetInstance().textStyleColor, textStyle.color);
+    AniTextUtils::ReadOptionalArrayField<std::string>(env, obj, AniGlobalMethod::GetInstance().textStyleFontFamilies,
+        textStyle.fontFamilies, [](ani_env* env, ani_ref ref) {
+            std::string utf8Str;
+            AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
+            return utf8Str;
+        });
     AniTextUtils::ReadOptionalU16StringField(
         env, obj, AniGlobalMethod::GetInstance().textStyleEllipsis, textStyle.ellipsis);
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::ellipsisModal,
-        AniGlobalMethod::GetInstance().textStyleEllipsisMode, textStyle.ellipsisModal);
     AniTextUtils::ReadOptionalStringField(env, obj, AniGlobalMethod::GetInstance().textStyleLocale, textStyle.locale);
-    AniTextUtils::ReadOptionalDoubleField(
-        env, obj, AniGlobalMethod::GetInstance().textStyleBaselineShift, textStyle.baseLineShift);
     ParseTextShadowToNative(env, obj, textStyle.shadows);
     ParseFontFeatureToNative(env, obj, textStyle.fontFeatures);
     ParseFontVariationToNative(env, obj, textStyle.fontVariations);
     ParseRectStyleToNative(env, obj, textStyle.backgroundRect);
-    AniTextUtils::ReadOptionalEnumField(
-        env, obj, AniTextEnum::textBadgeType, AniGlobalMethod::GetInstance().textStyleBadgeType, textStyle.badgeType);
+
+    ParseBoolTextStyleToNative(env, obj, textStyle);
+    ParseDoubleTextStyleToNative(env, obj, textStyle);
+    ParseEnumTextStyleToNative(env, obj, textStyle);
     return ANI_OK;
 }
 
@@ -318,7 +341,12 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
             }),
         AniTextStyleConverter::ParseRectStyleToAni(env, textStyle.backgroundRect),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textBadgeType,
-            aniGetEnumIndex(AniTextEnum::textBadgeType, static_cast<uint32_t>(textStyle.badgeType)))
+            aniGetEnumIndex(AniTextEnum::textBadgeType, static_cast<uint32_t>(textStyle.badgeType))),
+        textStyle.maxLineHeight, textStyle.minLineHeight,
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().lineHeightStyle,
+            aniGetEnumIndex(AniTextEnum::lineHeightStyle, static_cast<uint32_t>(textStyle.lineHeightStyle))),
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontWidth,
+            aniGetEnumIndex(AniTextEnum::fontWidth, static_cast<uint32_t>(textStyle.fontWidth)))
     );
     return aniObj;
 }

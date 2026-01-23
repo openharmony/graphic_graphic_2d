@@ -17,32 +17,6 @@
 
 namespace OHOS {
 namespace ColorManager {
-const ColorSpacePrimaries CSP_ADOBE_RGB = {0.640f, 0.330f, 0.210f, 0.710f, 0.150f, 0.060f, 0.3127f, 0.3290f};
-const ColorSpacePrimaries CSP_P3_DCI = {0.680f, 0.320f, 0.265f, 0.690f, 0.150f, 0.060f, 0.314f, 0.351f};
-const ColorSpacePrimaries CSP_P3_D65 = {0.680f, 0.320f, 0.265f, 0.690f, 0.150f, 0.060f, 0.3127f, 0.3290f};
-const ColorSpacePrimaries CSP_BT709 = {0.640f, 0.330f, 0.300f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f};
-const ColorSpacePrimaries CSP_BT601_P = {0.640f, 0.330f, 0.290f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f};
-const ColorSpacePrimaries CSP_BT601_N = {0.630f, 0.340f, 0.310f, 0.595f, 0.155f, 0.070f, 0.3127f, 0.3290f};
-const ColorSpacePrimaries CSP_BT2020 = {0.708f, 0.292f, 0.170f, 0.797f, 0.131f, 0.046f, 0.3127f, 0.3290f};
-const ColorSpacePrimaries CSP_NTSC_1953 = {0.670f, 0.330f, 0.210f, 0.710f, 0.140f, 0.080f, 0.310f, 0.316f};
-const ColorSpacePrimaries CSP_PRO_PHOTO_RGB = {0.7347f, 0.2653f, 0.1596f, 0.8404f, 0.0366f, 0.0001f, 0.34567f,
-    0.35850f};
-
-// use unique g value to represent HLG and PG transfer function
-constexpr float HLG_G = -3.0f;
-constexpr float PQ_G = -2.0f;
-constexpr float LOG_G = -100.0f;
-
-const TransferFunc TF_ADOBE_RGB = {2.2f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-const TransferFunc TF_GAMMA_2_6 = {2.6f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-const TransferFunc TF_SRGB = {2.4f, 1 / 1.055f, 0.055f / 1.055f, 1 / 12.92f, 0.04045f, 0.0f, 0.0f};
-const TransferFunc TF_BT709 = {1 / 0.45f, 1 / 1.099f, 0.099f / 1.099f, 1 / 4.5f, 0.081f, 0.0f, 0.0f};
-const TransferFunc TF_HLG = {HLG_G, 2.0f, 2.0f, 1 / 0.17883277f, 0.28466892f, 0.55991073f, 0.0f};
-const TransferFunc TF_PQ = {PQ_G, -107 / 128.0f, 1.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f};
-const TransferFunc TF_LINEAR = {1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-const TransferFunc TF_PRO_PHOTO_RGB = {1.8f, 1.0f, 0.0f, 1 / 16.0f, 0.031248f, 0.0f, 0.0f};
-const TransferFunc TF_LOG = {LOG_G, 5.555556f, 0.050943f, 0.130233f, 0.452962f, 6.842619f, 0.092864f};
-
 const ColorSpace CS_ADOBE_RGB = {CSP_ADOBE_RGB, TF_ADOBE_RGB};
 const ColorSpace CS_DCI_P3 = {CSP_P3_DCI, TF_GAMMA_2_6};
 const ColorSpace CS_DISPLAY_P3 = {CSP_P3_D65, TF_SRGB};
@@ -215,6 +189,9 @@ Matrix3x3 operator/(const Vector3& a, const Vector3& b)
 {
     Matrix3x3 diag = {};
     for (size_t i = 0; i < a.size(); ++i) {
+        if (FloatNearlyEqualZero(b[i])) {
+            return {};
+        }
         diag[i][i] += a[i] / b[i];
     }
     return diag;
@@ -222,30 +199,37 @@ Matrix3x3 operator/(const Vector3& a, const Vector3& b)
 
 Matrix3x3 ComputeXYZD50(const ColorSpacePrimaries& primaries)
 {
+    if (FloatNearlyEqualZero(primaries.rY) || FloatNearlyEqualZero(primaries.gY) ||
+        FloatNearlyEqualZero(primaries.bY) || FloatNearlyEqualZero(primaries.wY)) {
+        return {};
+    }
     float oneRxRy = (1 - primaries.rX) / primaries.rY;
     float oneGxGy = (1 - primaries.gX) / primaries.gY;
     float oneBxBy = (1 - primaries.bX) / primaries.bY;
     float oneWxWy = (1 - primaries.wX) / primaries.wY;
 
-    float RxRy = primaries.rX / primaries.rY;
-    float GxGy = primaries.gX / primaries.gY;
-    float BxBy = primaries.bX / primaries.bY;
-    float WxWy = primaries.wX / primaries.wY;
+    float rxRy = primaries.rX / primaries.rY;
+    float gxGy = primaries.gX / primaries.gY;
+    float bxBy = primaries.bX / primaries.bY;
+    float wxWy = primaries.wX / primaries.wY;
 
-    float BY = ((oneWxWy - oneRxRy) * (GxGy - RxRy) - (WxWy - RxRy) * (oneGxGy - oneRxRy)) /
-        ((oneBxBy - oneRxRy) * (GxGy - RxRy) - (BxBy - RxRy) * (oneGxGy - oneRxRy));
-    float GY = (WxWy - RxRy - BY * (BxBy - RxRy)) / (GxGy - RxRy);
-    float RY = 1 - GY - BY;
+    float tmp = (oneBxBy - oneRxRy) * (gxGy - rxRy) - (bxBy - rxRy) * (oneGxGy - oneRxRy);
+    if (FloatNearlyEqualZero(tmp) || FloatNearlyEqualZero((gxGy - rxRy))) {
+        return {};
+    }
+    float bY = ((oneWxWy - oneRxRy) * (gxGy - rxRy) - (wxWy - rxRy) * (oneGxGy - oneRxRy)) / tmp;
+    float gY = (wxWy - rxRy - bY * (bxBy - rxRy)) / (gxGy - rxRy);
+    float rY = 1 - gY - bY;
 
-    float RYRy = RY / primaries.rY;
-    float GYGy = GY / primaries.gY;
-    float BYBy = BY / primaries.bY;
+    float ryRy = rY / primaries.rY;
+    float gyGy = gY / primaries.gY;
+    float byBy = bY / primaries.bY;
 
-    Matrix3x3 toXYZ = {{{RYRy * primaries.rX, GYGy * primaries.gX, BYBy * primaries.bX},
-        {RY, GY, BY},
-        {RYRy * (1 - primaries.rX - primaries.rY),
-         GYGy * (1 - primaries.gX - primaries.gY),
-         BYBy * (1 - primaries.bX - primaries.bY)}}};
+    Matrix3x3 toXYZ = {{{ryRy * primaries.rX, gyGy * primaries.gX, byBy * primaries.bX},
+        {rY, gY, bY},
+        {ryRy * (1 - primaries.rX - primaries.rY),
+         gyGy * (1 - primaries.gX - primaries.gY),
+         byBy * (1 - primaries.bX - primaries.bY)}}};
     std::array<float, DIMES_2> wp = {primaries.wX, primaries.wY};
 
     return DXToD50(toXYZ, wp);
@@ -294,7 +278,7 @@ Matrix3x3 Invert(const Matrix3x3& src)
 
     double determinant = b0 * b5 - b1 * b4 + b2 * b3;
 
-    if (determinant == 0) {
+    if (FloatNearlyEqualZero(determinant)) {
         return {};
     }
 
@@ -338,14 +322,29 @@ Vector3 ColorSpace::ToLinear(Vector3 v) const
     Vector3 res = v;
     for (auto& n : res) {
         if (FloatEqual(p.g, HLG_G)) {
+            if (FloatNearlyEqualZero(p.a) || FloatNearlyEqualZero(p.b)) {
+                return {};
+            }
             float coef = -1 / (p.g * p.a * p.b);
             n = n > 1 / p.a ? coef * (std::exp(p.c * (n - p.e)) + p.d) : n * n / -p.g;
         } else if (FloatEqual(p.g, PQ_G)) {
             float tmp = std::pow(n, p.c);
+            if (FloatNearlyEqualZero(p.d + p.e * tmp)) {
+                return {};
+            }
             n = std::pow(std::max(p.a + p.b * tmp, 0.0f) / (p.d + p.e * tmp), p.f);
         } else if (FloatEqual(p.g, LOG_G)) {
+            if (FloatNearlyEqualZero(p.a) || FloatNearlyEqualZero(p.c)) {
+                return {};
+            }
             float coef = p.e * (1 / -p.g) + p.f;
-            n = n > coef ? std::exp(n / p.c - p.d / p.c) / p.a - p.b / p.a : (n - p.f) / p.e;
+            if (n > coef) {
+                n = std::exp(n / p.c - p.d / p.c) / p.a - p.b / p.a;
+            } else if (!FloatNearlyEqualZero(p.e)) {
+                n = (n - p.f) / p.e;
+            } else {
+                return {};
+            }
         } else {
             n = n >= p.d ? std::pow(p.a * n + p.b, p.g) + p.e : p.c * n + p.f;
         }
@@ -360,14 +359,33 @@ Vector3 ColorSpace::ToNonLinear(Vector3 v) const
     for (auto& n : res) {
         if (FloatEqual(p.g, HLG_G)) {
             float coef = -p.g * p.a * p.b;
+            if (FloatNearlyEqualZero(coef) || FloatNearlyEqualZero(p.c)) {
+                return {};
+            }
             n = n > 1 / coef ? std::log(coef * n - p.d) / p.c + p.e : std::sqrt(-p.g * n);
         } else if (FloatEqual(p.g, PQ_G)) {
+            if (FloatNearlyEqualZero(p.f)) {
+                return {};
+            }
             float tmp = std::pow(n, 1 / p.f);
-            n = std::pow((-p.a + p.d * tmp) / (p.b - p.e * tmp), 1 / p.c);
+            float tmp2 = (p.b - p.e * tmp);
+            if (FloatNearlyEqualZero(tmp2) || FloatNearlyEqualZero(p.c)) {
+                return {};
+            }
+            n = std::pow((-p.a + p.d * tmp) / tmp2, 1 / p.c);
         } else if (FloatEqual(p.g, LOG_G)) {
             n = n > 1 / -p.g ? std::log(p.a * n + p.b) * p.c + p.d : p.e * n + p.f;
         } else {
-            n = n >= p.d * p.c ? (std::pow(n - p.e, 1.0f / p.g) - p.b) / p.a : (n - p.f) / p.c;
+            if (FloatNearlyEqualZero(p.g) || FloatNearlyEqualZero(p.a)) {
+                return {};
+            }
+            if (n >= p.d * p.c) {
+                n = (std::pow(n - p.e, 1.0f / p.g) - p.b) / p.a;
+            } else if (!FloatNearlyEqualZero(p.c)) {
+                n = (n - p.f) / p.c;
+            } else {
+                return {};
+            }
         }
     }
     return res;

@@ -29,7 +29,7 @@ static std::unique_ptr<OHOS::Media::PixelMap> CreateRawPixelMap(const ImageOptio
     int32_t height = options.height;
 
     OHOS::Media::InitializationOptions opts;
-    opts.pixelFormat = OHOS::Media::PixelFormat::RGBA_8888;
+    opts.pixelFormat = OHOS::Media::PixelFormat::RGBA_F16;
     opts.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL;
     opts.size.width = width;
     opts.size.height = height;
@@ -49,7 +49,7 @@ static void RenderPaths(uint8_t* pixel, const ImageOptions& options,
     int32_t height = options.height;
 
     Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat format{Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    Drawing::BitmapFormat format{Drawing::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL};
     bitmap.Build(width, height, format);
     bitmap.SetPixels(pixel);
     std::shared_ptr<Drawing::Canvas> bitmapCanvas = std::make_shared<Drawing::Canvas>();

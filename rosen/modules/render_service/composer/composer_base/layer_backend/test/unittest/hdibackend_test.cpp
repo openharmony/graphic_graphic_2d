@@ -83,7 +83,7 @@ HWTEST_F(HdiBackendTest, RegScreenHotplug001, Function | MediumTest| Level3)
 HWTEST_F(HdiBackendTest, RegScreenHotplug002, Function | MediumTest| Level3)
 {
     HdiBackendTest::hdiBackend_->device_ = HdiBackendTest::hdiDeviceMock_;
-    auto func = [](OutputPtr &output, bool connected, void* data) -> void {
+    auto func = [](OutputPtr& output, bool connected, void* data) -> void {
         (void)output;
         (void)connected;
         (void)data;

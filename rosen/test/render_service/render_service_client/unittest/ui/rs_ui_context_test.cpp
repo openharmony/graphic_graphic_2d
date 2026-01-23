@@ -15,9 +15,9 @@
 
 #include "gtest/gtest.h"
 
+#include "command/rs_animation_command.h"
 #include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "transaction/rs_transaction.h"
-
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
@@ -38,6 +38,38 @@ void RSUIContextTest::SetUpTestCase() {}
 void RSUIContextTest::TearDownTestCase() {}
 void RSUIContextTest::SetUp() {}
 void RSUIContextTest::TearDown() {}
+
+/**
+ * @tc.name: AnimationCallbackTest
+ * @tc.desc: Test the cases of different envent for AnimationCallback
+ * @tc.type:FUNC
+ *
+ */
+HWTEST_F(RSUIContextTest, AnimationCallbackTest, TestSize.Level1)
+{
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    AnimationId animationId = 1;
+    AnimationCallbackEvent event = AnimationCallbackEvent::FINISHED;
+    bool res = uiContext->AnimationCallback(animationId, event);
+    EXPECT_FALSE(res);
+
+    auto animation = std::make_shared<RSAnimation>();
+    uiContext->animations_.insert({ animationId, animation });
+    res = uiContext->AnimationCallback(animationId, event);
+    EXPECT_TRUE(res);
+
+    event = AnimationCallbackEvent::REPEAT_FINISHED;
+    res = uiContext->AnimationCallback(animationId, event);
+    EXPECT_TRUE(res);
+
+    event = AnimationCallbackEvent::LOGICALLY_FINISHED;
+    res = uiContext->AnimationCallback(animationId, event);
+    EXPECT_TRUE(res);
+
+    event = static_cast<AnimationCallbackEvent>(10000);
+    res = uiContext->AnimationCallback(animationId, event);
+    EXPECT_FALSE(res);
+}
 
 /**
  * @tc.name: PostDelayTaskTest001

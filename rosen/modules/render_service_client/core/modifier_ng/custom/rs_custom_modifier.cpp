@@ -36,7 +36,6 @@ RSDrawingContext RSCustomModifierHelper::CreateDrawingContext(std::shared_ptr<RS
     auto canvasNode = std::static_pointer_cast<RSCanvasNode>(node);
     auto recordingCanvas = new ExtendRecordingCanvas(canvasNode->GetPaintWidth(), canvasNode->GetPaintHeight());
     recordingCanvas->SetIsCustomTextType(canvasNode->GetIsCustomTextType());
-    recordingCanvas->SetIsCustomTypeface(canvasNode->GetIsCustomTypeface());
     return { recordingCanvas, canvasNode->GetPaintWidth(), canvasNode->GetPaintHeight() };
 }
 

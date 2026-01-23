@@ -179,7 +179,7 @@ void RSRenderComposerManager::PostTask(ScreenId screenId, const std::function<vo
     renderComposerAgent->PostTask(task);
 }
 
-void RSRenderComposerManager::PostTaskWithInnerDelay(ScreenId screenId, const std::function<void()>& task)
+bool RSRenderComposerManager::PostTaskWithInnerDelay(ScreenId screenId, const std::function<void()>& task)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::PostTaskWithInnerDelay screenId %u", screenId);
     std::shared_ptr<RSRenderComposer> renderComposer;
@@ -188,12 +188,13 @@ void RSRenderComposerManager::PostTaskWithInnerDelay(ScreenId screenId, const st
         auto iter = rsRenderComposerMap_.find(screenId);
         if (iter == rsRenderComposerMap_.end()) {
             RS_LOGE("PostTaskWithInnerDelay not find screenId:%{public}" PRIu64, screenId);
-            return;
+            return false;
         }
         renderComposer = iter->second;
     }
     auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
     renderComposerAgent->PostTaskWithInnerDelay(task);
+    return true;
 }
 
 GSError RSRenderComposerManager::ClearFrameBuffers(ScreenId screenId, bool isNeedResetContext)
@@ -317,7 +318,7 @@ sptr<SyncFence> RSRenderComposerManager::GetReleaseFence(ScreenId screenId)
         auto iter = rsRenderComposerMap_.find(screenId);
         if (iter == rsRenderComposerMap_.end()) {
             RS_LOGE("GetReleaseFence not find screenId:%{public}" PRIu64, screenId);
-            return nullptr;
+            return releaseFence;
         }
         renderComposer = iter->second;
     }

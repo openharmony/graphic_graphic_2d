@@ -128,7 +128,7 @@ private:
     };
     std::deque<CachedReversedOpInfo> cachedReversedOpTypes_;
     void DumpSubClassNode(std::string& out) const override;
-    void GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList, size_t opItemSize);
+    void GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList);
 
     friend class RSCanvasDrawingNodeCommandHelper;
     friend class RSRenderNode;

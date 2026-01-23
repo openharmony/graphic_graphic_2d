@@ -666,7 +666,8 @@ public:
         bool rotationStatusChanged = false);
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
-        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect,
+        const std::optional<RectI>& surfaceClipRect);
     void FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager,
         const RectI& filterRect);
     void MarkFilterStatusChanged(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
@@ -725,6 +726,7 @@ public:
     bool IsRenderGroupSubTreeDirty() const;
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
+    void SetChildHasTranslateOnSqueeze(bool val);
     bool IsNodeGroupIncludeProperty() const;
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, bool isOnExcludedSubTree);
     void UpdateDrawingCacheInfoAfterChildren(
@@ -786,9 +788,9 @@ public:
 
     virtual RectI GetFilterRect() const;
     RectI GetAbsRect() const;
-    void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
+    void CalVisibleFilterRect(const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
     void CalVisibleFilterRect(const RectI& absRect, const Drawing::Matrix& matrix,
-        const std::optional<RectI>& clipRect);
+        const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
     void UpdateFilterRectInfo();
     std::shared_ptr<RSFilter> GetRSFilterWithSlot(RSDrawableSlot slot) const;
 

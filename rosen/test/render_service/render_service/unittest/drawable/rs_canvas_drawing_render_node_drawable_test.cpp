@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "common/rs_common_def.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
@@ -358,6 +359,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushForVKTest, TestSize.Level1)
     drawable->image_ = std::make_shared<Drawing::Image>();
     drawable->FlushForVK(width, height, context, nodeId, rscanvas);
     ASSERT_FALSE(drawable->recordingCanvas_);
+
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(false);
+    ASSERT_FALSE(NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled());
+    drawable->FlushForVK(width, height, context, nodeId, rscanvas);
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
 
     drawable->recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height, false);
     drawable->FlushForVK(width, height, context, nodeId, rscanvas);
@@ -1061,6 +1067,31 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest002, 
     ASSERT_EQ(ret, true);
     drawable->ResetSurface();
     ASSERT_EQ(drawable->surface_, nullptr);
+}
+
+/**
+ * @tc.name: ReleaseDmaSurfaceBufferTest
+ * @tc.desc: Test If ReleaseDmaSurfaceBuffer Can Run
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseDmaSurfaceBufferTest, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    bufferCache.AddPendingBuffer(1, buffer, 1);
+    auto& nodeBufferMap = bufferCache.pendingBufferMap_[1].second;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    drawable->ReleaseDmaSurfaceBuffer(true);
+    ASSERT_EQ(drawable->renderParams_, nullptr);
+    ASSERT_EQ(nodeBufferMap.empty(), false);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(1);
+    drawable->renderParams_->SetCanvasDrawingResetSurfaceIndex(1);
+    drawable->ReleaseDmaSurfaceBuffer(true);
+    ASSERT_NE(drawable->renderParams_, nullptr);
+    ASSERT_EQ(nodeBufferMap.empty(), false);
+    drawable->ReleaseDmaSurfaceBuffer(false);
+    ASSERT_EQ(nodeBufferMap.empty(), RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled());
 }
 #endif
 }

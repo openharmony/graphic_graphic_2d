@@ -850,11 +850,6 @@ bool RSSystemProperties::GetNodeMemClearEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetRSNodeExceedKillEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
 {
     return false;

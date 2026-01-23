@@ -158,47 +158,6 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable002, TestSize.Level1)
     ASSERT_TRUE(childrenDrawable.OnSharedTransition(node));
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSCustomModifierDrawable001
- * @tc.desc: Test OnGenerate
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSCanvasDrawingRenderNode node(id);
-    ASSERT_EQ(DrawableV2::RSCustomModifierDrawable::OnGenerate(node, RSModifierType::BOUNDS), nullptr);
-
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-
-    auto propertyTwo = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    propertyTwo->GetRef() = std::make_shared<Drawing::DrawCmdList>(1, 1);
-    list.emplace_back(std::make_shared<RSDrawCmdListRenderModifier>(propertyTwo));
-
-    node.drawCmdModifiers_.emplace(RSModifierType::BOUNDS, list);
-    node.AddDirtyType(RSModifierType::BOUNDS);
-    auto drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, RSModifierType::BOUNDS));
-    ASSERT_NE(drawable, nullptr);
-
-    drawable->OnSync();
-    ASSERT_FALSE(drawable->needSync_);
-    drawable->OnSync();
-    ASSERT_FALSE(drawable->needSync_);
-
-    NodeId idTwo = 2;
-    RSRenderNode nodeTwo(idTwo);
-    nodeTwo.drawCmdModifiers_.emplace(RSModifierType::BOUNDS, list);
-    drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(nodeTwo, RSModifierType::BOUNDS));
-    ASSERT_NE(drawable, nullptr);
-}
-#else
 /**
  * @tc.name: RSCustomModifierDrawable002
  * @tc.desc: Test OnDraw for RSCustomModifierDrawable
@@ -332,7 +291,6 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable003, TestSize.Level1)
     drawable->OnDraw(canvas.get(), rect.get());
     ASSERT_NE(drawable, nullptr);
 }
-#endif
 
 /**
  * @tc.name: RSBeginBlenderDrawable001
@@ -545,33 +503,6 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorStrategyDrawable002, TestSize.Level
     ASSERT_TRUE(true);
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSCustomClipToFrameDrawable001
- * @tc.desc: Test OnGenerate
- * @tc.type:FUNC
- * @tc.require: issueIASGKZ
- */
-HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    ASSERT_EQ(DrawableV2::RSCustomClipToFrameDrawable::OnGenerate(node), nullptr);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-    node.drawCmdModifiers_.emplace(RSModifierType::CUSTOM_CLIP_TO_FRAME, list);
-    auto drawable = std::static_pointer_cast<DrawableV2::RSCustomClipToFrameDrawable>(
-        DrawableV2::RSCustomClipToFrameDrawable::OnGenerate(node));
-    ASSERT_NE(drawable, nullptr);
-    drawable->OnSync();
-    ASSERT_FALSE(drawable->needSync_);
-    drawable->OnSync();
-    ASSERT_FALSE(drawable->needSync_);
-}
-#endif
-
 /**
  * @tc.name: RSCustomClipToFrameDrawable002
  * @tc.desc: Test OnDraw
@@ -619,6 +550,149 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable001, TestSize.Level1)
     ASSERT_TRUE(true);
 
     drawable->colorPickerManager_ = nullptr;
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable002
+ * @tc.desc: Test RSColorPickerDrawable with CLIENT_CALLBACK strategy (useAlt = true)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    // Set CLIENT_CALLBACK strategy to trigger useAlt = true branch
+    node.GetMutableRenderProperties().SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::SURFACE));
+    node.GetMutableRenderProperties().SetColorPickerStrategy(static_cast<int>(ColorPickStrategyType::CLIENT_CALLBACK));
+    node.GetMutableRenderProperties().SetColorPickerInterval(500);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(
+        DrawableV2::RSColorPickerDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+    ASSERT_NE(drawable->colorPickerManager_, nullptr);
+
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable003
+ * @tc.desc: Test OnSync when needSync_ is false (early return branch)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable003, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    node.GetMutableRenderProperties().SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::ACCENT));
+    node.GetMutableRenderProperties().SetColorPickerStrategy(static_cast<int>(ColorPickStrategyType::DOMINANT));
+    node.GetMutableRenderProperties().SetColorPickerInterval(2000);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(
+        DrawableV2::RSColorPickerDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    // First sync should work
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+
+    // Second sync should hit early return branch (needSync_ is false)
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable004
+ * @tc.desc: Test OnSync when stagingColorPicker_ is nullptr
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable004, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    node.GetMutableRenderProperties().SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::FOREGROUND));
+    node.GetMutableRenderProperties().SetColorPickerStrategy(static_cast<int>(ColorPickStrategyType::CONTRAST));
+    node.GetMutableRenderProperties().SetColorPickerInterval(1500);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(
+        DrawableV2::RSColorPickerDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    // Clear stagingColorPicker_ to test nullptr branch
+    drawable->stagingColorPicker_ = nullptr;
+    drawable->needSync_ = true;
+
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+    // params_ should be default constructed when stagingColorPicker_ is nullptr
+    EXPECT_EQ(drawable->params_.placeholder, ColorPlaceholder::NONE);
+    EXPECT_EQ(drawable->params_.strategy, ColorPickStrategyType::NONE);
+    EXPECT_EQ(drawable->params_.interval, 0);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable005
+ * @tc.desc: Test OnUpdate returns false when colorPicker is nullptr
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable005, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    // Don't set any color picker properties, so GetColorPicker() returns nullptr
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    ASSERT_NE(drawable, nullptr);
+
+    // OnUpdate should return false when stagingColorPicker_ is nullptr
+    bool result = drawable->OnUpdate(node);
+    EXPECT_FALSE(result);
+    EXPECT_TRUE(drawable->needSync_);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable006
+ * @tc.desc: Test different ColorPlaceholder and ColorPickStrategyType combinations
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable006, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    // Test SURFACE_CONTRAST placeholder with CONTRAST strategy
+    node.GetMutableRenderProperties().SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::SURFACE_CONTRAST));
+    node.GetMutableRenderProperties().SetColorPickerStrategy(static_cast<int>(ColorPickStrategyType::CONTRAST));
+    node.GetMutableRenderProperties().SetColorPickerInterval(3000);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(
+        DrawableV2::RSColorPickerDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->OnSync();
+    EXPECT_EQ(drawable->params_.placeholder, ColorPlaceholder::SURFACE_CONTRAST);
+    EXPECT_EQ(drawable->params_.strategy, ColorPickStrategyType::CONTRAST);
+    EXPECT_EQ(drawable->params_.interval, 3000);
+
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>();
     drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }

@@ -1156,8 +1156,9 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     NotifyScreenNodeChange(newId, true);
     RSSpecialLayerUtils::DumpScreenSpecialLayer(
         __func__, SpecialLayerType::IS_WHITE_LIST, newId, screen->GetWhiteList());
-    RS_LOGI("%{public}s: create virtual screen(id %{public}" PRIu64 "), width %{public}u, height %{public}u.",
-        __func__, newId, width, height);
+    RS_LOGI("%{public}s: create virtual screen, name %{public}s, screenId %{public}" PRIu64 ", width %{public}u, "
+        "height %{public}u, hasSurface %{public}d, associatedScreenId %{public}" PRIu64 ", flags %{public}d",
+        __func__, name.c_str(), newId, width, height, surface != nullptr, associatedScreenId, flags);
     return newId;
 }
 
@@ -1683,6 +1684,7 @@ int32_t RSScreenManager::SetDualScreenState(ScreenId id, DualScreenStatus status
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
+    RSLuminanceControl::Get().SetDualScreenStatus(id, status);
     return screen->SetDualScreenState(status);
 }
 

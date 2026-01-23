@@ -21,7 +21,6 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread.h"
-#include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "graphic_feature_param_manager.h"
 #include "memory/rs_memory_manager.h"
 #include "params/rs_surface_render_params.h"
@@ -366,7 +365,7 @@ HWTEST_F(RSUniRenderThreadTest, ResetClearMemoryTask001, TestSize.Level1)
 /**
  * @tc.name: ResetClearMemoryTask002
  * @tc.desc: Test ResetClearMemoryTask check new branch added by IfStatusBarDirtyOnly:
- *           isTimeToReclaimm and ifStatusBarDirtyOnly
+ *           isTimeToReclaim and ifStatusBarDirtyOnly
  * @tc.type: FUNC
  * @tc.require: issueICUBUG
  */
@@ -608,15 +607,18 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
     params->preBuffer_ = SurfaceBuffer::Create();
     instance.ReleaseSelfDrawingNodeBuffer();
     ASSERT_EQ(params->GetPreBuffer(), nullptr);
+    params->isOnTheTree_ = false;
+    instance.ReleaseSelfDrawingNodeBuffer();
+    ASSERT_EQ(params->GetPreBuffer(), nullptr);
 
     params->isOnTheTree_ = false;
     params->isHardwareEnabled_ = true;
     params->isLastFrameHardwareEnabled_ = true;
     params->preBuffer_ = SurfaceBuffer::Create();
+    params->screenId_ = 0;
     instance.ReleaseSelfDrawingNodeBuffer();
     ASSERT_EQ(params->GetPreBuffer(), nullptr);
 
-    // RSHardwareThread::Instance().delayTime_ = 1;
     instance.ReleaseSelfDrawingNodeBuffer();
     params->isHardwareEnabled_ = true;
     params->layerCreated_ = true;
@@ -901,13 +903,13 @@ HWTEST_F(RSUniRenderThreadTest, IsTaskQueueEmpty, TestSize.Level1)
     EXPECT_TRUE(atleastOneTimeQueueEmpty) << "task queue was not empty " << loops << " times";
 }
 
-#ifdef ROSEN_OHOS
 /**
  * @tc.name: RSSurfaceBufferCallbackManagerTest
  * @tc.desc: Test RSSurfaceBufferCallbackManagerTest
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ROSEN_OHOS
 HWTEST_F(RSUniRenderThreadTest, RSSurfaceBufferCallbackManagerTest, TestSize.Level1)
 {
     auto &surfaceBufferCallbackMgr = RSSurfaceBufferCallbackManager::Instance();
@@ -937,14 +939,16 @@ HWTEST_F(RSUniRenderThreadTest, RSSurfaceBufferCallbackManagerTest, TestSize.Lev
     surfaceBufferCallbackMgr.RunSurfaceBufferCallback();
     EXPECT_EQ(surfaceBufferCallbackMgr.stagingSurfaceBufferIds_.size(), 0);
 }
+#endif
 
 /**
- * @tc.name: RegisterSurfaceBufferCallback
+ * @tc.name: RegisterSurfaceBufferCallbackTest
  * @tc.desc: Test RegisterSurfaceBufferCallback
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUniRenderThreadTest, RegisterSurfaceBufferCallback, TestSize.Level1)
+#ifdef ROSEN_OHOS
+HWTEST_F(RSUniRenderThreadTest, RegisterSurfaceBufferCallbackTest, TestSize.Level1)
 {
     constexpr uint64_t SURFACE_BUFFER_CALLBACK_LIMIT = 100001;
     pid_t pid = 1000;
@@ -989,6 +993,7 @@ HWTEST_F(RSUniRenderThreadTest, RegisterSurfaceBufferCallback, TestSize.Level1)
     surfaceBufferCallbackMgr.UnregisterSurfaceBufferCallback(pid, uid);
     EXPECT_EQ(surfaceBufferCallbackMgr.processCallbackCount_[pid], tmpCount);
 }
+#endif
 
 /**
  * @tc.name: ReleaseSurfaceOpItemBufferTest04
@@ -996,6 +1001,7 @@ HWTEST_F(RSUniRenderThreadTest, RegisterSurfaceBufferCallback, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ROSEN_OHOS
 HWTEST_F(RSUniRenderThreadTest, ReleaseSurfaceOpItemBufferTest04, TestSize.Level1)
 {
     auto& instance = RSUniRenderThread::Instance();

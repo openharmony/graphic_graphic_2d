@@ -113,6 +113,8 @@ enum RSNodeCommandType : uint16_t {
     REMOVE_ALL_MODIFIERS_NG = 0x0b04,
 
     MARK_REPAINT_BOUNDARY = 0x0c00,
+
+    COLOR_PICKER_CALLBACK = 0x0e00,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -179,6 +181,10 @@ public:
     static void ModifierNGDetachProperty(RSContext& context, NodeId nodeId, ModifierId modifierId,
         ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType type);
     static void RemoveAllModifiersNG(RSContext& context, NodeId nodeId);
+
+    using ColorPickerCallbackProcessor = void (*)(NodeId, uint64_t, uint32_t);
+    static void ColorPickerCallback(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t color);
+    static RSB_EXPORT void SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor);
 };
 
 ADD_COMMAND(RSUpdatePropertyBool,
@@ -418,6 +424,10 @@ ADD_COMMAND(RSModifierNGDetachProperty,
 ADD_COMMAND(RSRemoveAllModifiersNG,
     ARG(PERMISSION_APP, RS_NODE, REMOVE_ALL_MODIFIERS_NG,
         RSNodeCommandHelper::RemoveAllModifiersNG, NodeId))
+
+ADD_COMMAND(RSColorPickerCallback,
+    ARG(PERMISSION_APP, RS_NODE, COLOR_PICKER_CALLBACK,
+        RSNodeCommandHelper::ColorPickerCallback, NodeId, pid_t, uint64_t, uint32_t))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_NODE_COMMAND_H

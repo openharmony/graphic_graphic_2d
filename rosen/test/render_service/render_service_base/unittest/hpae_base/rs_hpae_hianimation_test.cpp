@@ -104,24 +104,6 @@ void RSHpaeHianimationTest::SetUp() {}
 void RSHpaeHianimationTest::TearDown() {}
 
 /**
- * @tc.name: OpenDeviceTest
- * @tc.desc: Verify function OpenDevice
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSHpaeHianimationTest, OpenDeviceTest, TestSize.Level1)
-{
-    HianimationManager hianimationManager;
-
-    hianimationManager.libHandle_ = reinterpret_cast<void *>(0x1234);
-    hianimationManager.OpenDevice();
-    EXPECT_NE(hianimationManager.hianimationDevice_, nullptr);
-
-    hianimationManager.OpenDevice();
-    EXPECT_NE(hianimationManager.hianimationDevice_, nullptr);
-}
-
-/**
  * @tc.name: HianimationInputCheckTest
  * @tc.desc: Verify function HianimationInputCheck
  * @tc.type:FUNC

@@ -18,7 +18,11 @@
 #include "rs_mhc_manager.h"
 #endif
 #ifdef RS_ENABLE_VK
+#ifndef ROSEN_ARKUI_X
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#else
+#include "rs_vulkan_context.h"
+#endif
 #endif
 #include "draw/surface.h"
 #include "image/bitmap.h"

@@ -61,33 +61,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     g_data = data;
     g_size = size;
     g_pos = 0;
-#ifndef MODIFIER_NG
-    int16_t value = GetData<int16_t>();
-    int ipcThreadId = GetData<int>();
-    int pid = GetData<int>();
-    RSModifierType type = (RSModifierType)value;
-    std::list<std::shared_ptr<RSRenderModifier>> modifierList;
-
-    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
-    std::shared_ptr<RSDrawCmdListRenderModifier> modifier = std::make_shared<RSDrawCmdListRenderModifier>(property_);
-    modifier->SetType(type);
-    modifier->SetSingleFrameModifier(true);
-    modifierList.emplace_back(modifier);
-
-    RSSingleFrameComposer rSSingleFrameComposer;
-    rSSingleFrameComposer.singleFrameDrawCmdModifiers_[type].emplace_back(modifier);
-    rSSingleFrameComposer.SingleFrameModifierAddToList(type, modifierList);
-    rSSingleFrameComposer.SingleFrameIsNeedSkip(true, modifier);
-    rSSingleFrameComposer.SingleFrameAddModifier(modifier);
-
-    RSSingleFrameComposer::SetSingleFrameFlag(ipcThreadId);
-    RSSingleFrameComposer::IsShouldSingleFrameComposer();
-    RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
-    RSSingleFrameComposer::IsShouldProcessByIpcThread(pid);
-    rSSingleFrameComposer.FindSingleFrameModifier(modifierList);
-    rSSingleFrameComposer.EraseSingleFrameModifier(modifierList);
-    rSSingleFrameComposer.SingleFrameModifierAdd(modifierList, modifierList);
-#endif
     return true;
 }
 } // namespace Rosen
