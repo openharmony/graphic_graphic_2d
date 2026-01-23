@@ -52,7 +52,6 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_attraction_effect_filter.h"
-#include "render/rs_border_light_shader.h"
 #include "render/rs_color_adaptive_filter.h"
 #include "render/rs_colorful_shadow_filter.h"
 #include "render/rs_distortion_shader_filter.h"

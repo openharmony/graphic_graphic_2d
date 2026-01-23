@@ -286,13 +286,13 @@ bool RSRcdSurfaceRenderNode::SetRCDMetaData() const
     cldInfoMetaData.resize(sizeof(cldInfo_));
     errno_t ret = memcpy_s(cldInfoMetaData.data(), cldInfoMetaData.size(), &cldInfo_, sizeof(cldInfo_));
     if (ret != EOK) {
-        RS_LOGE("[%s] cldInfoMetaData memcpy_s failed, error code[%{public}d]", __func__, ret);
+        RS_LOGE("RSRcdSurfaceRenderNode cldInfoMetaData memcpy_s failed error number: %{public}d", ret);
         return false;
     }
     GSError setValueErr =
         nodeBuffer->SetMetadata(HDI::Display::Graphic::Common::V2_3::ATTRKEY_CLD_METADATA, cldInfoMetaData);
     if (setValueErr != GSERROR_OK) {
-        RS_LOGE("[%s] set cldInfoMetaData failed, error code[%{public}d]", __func__, setValueErr);
+        RS_LOGE("RSRcdSurfaceRenderNode set cldInfoMetaData failed with %{public}d", setValueErr);
         return false;
     }
     return true;
