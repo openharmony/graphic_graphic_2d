@@ -174,7 +174,8 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
     const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, uint32_t index)
 {
 #ifdef ENABLE_OHOS_ENHANCE
-    int32_t fd = OHOS::AshmemCreate(name.c_str(), size);
+    std::string ashmemName = name + "[custom font]";
+    int32_t fd = OHOS::AshmemCreate(ashmemName.c_str(), size);
     auto ashmem = std::make_unique<Ashmem>(fd, size);
     bool mapResult = ashmem->MapReadAndWriteAshmem();
     bool writeResult = ashmem->WriteToAshmem(data, size, 0);
@@ -207,7 +208,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
     const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, const FontArguments& fontArguments)
 {
 #ifdef ENABLE_OHOS_ENHANCE
-    std::string ashmemName = name + "[cunstom font]";
+    std::string ashmemName = name + "[custom font]";
     int32_t fd = OHOS::AshmemCreate(ashmemName.c_str(), size);
     auto ashmem = std::make_unique<Ashmem>(fd, size);
     bool mapResult = ashmem->MapReadAndWriteAshmem();
@@ -523,7 +524,6 @@ uint32_t Typeface::CalculateHash(const uint8_t* data, size_t datalen, uint32_t i
             }
         }
         size_t size = extraOffset + STATIC_HEADER_LEN;
-        // prevent reading beyond the data length
         if (datalen >= extraOffset + TABLE_COUNT + sizeof(uint16_t)) {
             size += TABLE_ENTRY_LEN * read<uint16_t>(data + extraOffset + TABLE_COUNT);
         }

@@ -159,7 +159,7 @@ bool SkiaFontMgr::LoadDynamicFont(const std::string& familyName, std::shared_ptr
 {
     auto dynamicFontMgr = static_cast<txt::DynamicFontManager*>(skFontMgr_.get());
     if (dynamicFontMgr == nullptr || tf == nullptr) {
-        LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
+        LOGD("SkiaFontMgr::LoadDynamicFont, dynamicFontMgr nullptr");
         return false;
     }
     auto skiaTypeface = tf->GetImpl<SkiaTypeface>();
