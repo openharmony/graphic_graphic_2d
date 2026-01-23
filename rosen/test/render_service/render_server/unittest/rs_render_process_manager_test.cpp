@@ -126,7 +126,7 @@ public:
 };
 } // namespace
 
-class RSRenderSingleProcessManagerTest : public testing::Test {
+class RSRenderProcessManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -137,9 +137,9 @@ private:
     static inline RSRenderService renderService_;
 };
 
-uint32_t RSRenderSingleProcessManagerTest::screenId_ = 0;
+uint32_t RSRenderProcessManagerTest::screenId_ = 0;
 
-void RSRenderSingleProcessManagerTest::SetUpTestCase()
+void RSRenderProcessManagerTest::SetUpTestCase()
 {
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     renderService_.handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
@@ -147,49 +147,106 @@ void RSRenderSingleProcessManagerTest::SetUpTestCase()
     renderService_.rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(
         renderService_.handler_, nullptr);
 }
-void RSRenderSingleProcessManagerTest::TearDownTestCase()
+void RSRenderProcessManagerTest::TearDownTestCase()
 {
     RSUniRenderThread::Instance().uniRenderEngine_->GetRenderContext()->drGPUContext_ = nullptr;
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
-void RSRenderSingleProcessManagerTest::SetUp() {}
-void RSRenderSingleProcessManagerTest::TearDown() {}
+void RSRenderProcessManagerTest::SetUp() {}
+void RSRenderProcessManagerTest::TearDown() {}
 
 /**
- * @tc.name: OnScreenConnectedTest
+ * @tc.name: OnVBlankIdleTest
  * @tc.desc: Test
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSRenderSingleProcessManagerTest, OnScreenConnectedTest, TestSize.Level1)
+HWTEST_F(RSRenderProcessManagerTest, OnVBlankIdleTest, TestSize.Level1)
 {
-    renderService_.renderProcessManager_->OnScreenDisconnected(screenId_);
-    renderService_.renderProcessManager_->OnScreenRefresh(screenId_);
-    auto output = std::make_shared<HdiOutput>(screenId_);
-    output->Init();
-    sptr<ScreenProperty> property = sptr<ScreenProperty>::MakeSptr();
-    renderService_.renderProcessManager_->OnScreenConnected(screenId_, output, property);
-    sptr<ScreenPropertyBase> propertyBase = sptr<ScreenProperty<bool>>::MakeSptr();
-    renderService_.renderProcessManager_->OnScreenPropertyChanged(
-        screenId_, ScreenPropertyType::IS_VIRTUAL, propertyBase);
+    uint64_t ns = 0;
+    renderService_.renderProcessManager_->OnVBlankIdle(screenId_, ns);
     ASSERT_TRUE(renderService_.renderProcessManager_);
 }
 
 /**
- * @tc.name: OnVirtualScreenConnectedTest
+ * @tc.name: OnActiveScreenIdChangedTest
  * @tc.desc: Test
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSRenderSingleProcessManagerTest, OnVirtualScreenConnectedTest, TestSize.Level1)
+HWTEST_F(RSRenderProcessManagerTest, OnActiveScreenIdChangedTest, TestSize.Level1)
 {
-    renderService_.renderProcessManager_->OnVirtualScreenDisconnected(screenId_);
-    renderService_.renderProcessManager_->GetServiceToRenderConn(screenId_);
-    renderService_.renderProcessManager_->GetServiceToRenderConns();
-    renderService_.renderProcessManager_->GetConnectToRenderConnection(screenId_);
-    sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
-    property->Set<ScreenPropertyType::IS_VIRTUAL>(true);
-    renderService_.renderProcessManager_->OnVirtualScreenConnected(screenId_, INVALID_SCREEN_ID , property);
+    renderService_.renderProcessManager_->OnActiveScreenIdChanged(screenId_);
+    ASSERT_TRUE(renderService_.renderProcessManager_);
+}
+
+/**
+ * @tc.name: OnHwcRestoredTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderProcessManagerTest, OnHwcRestoredTest, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(screenId_);
+    output->Init();
+    sptr<ScreenProperty> property = sptr<ScreenProperty>::MakeSptr();
+    renderService_.renderProcessManager_->OnHwcRestored(screenId_, output, property);
+    ASSERT_TRUE(renderService_.renderProcessManager_);
+}
+
+/**
+ * @tc.name: OnHwcDeadTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderProcessManagerTest, OnHwcDeadTest, TestSize.Level1)
+{
+    renderService_.renderProcessManager_->OnHwcDead(screenId_);
+    ASSERT_TRUE(renderService_.renderProcessManager_);
+}
+
+/**
+ * @tc.name:OnHwcEventTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderProcessManagerTest, OnHwcEventTest, TestSize.Level1)
+{
+    uint32_t deviceId = 100;
+    uint32_t eventId = 100;
+    std::vector<int32_t> eventData;
+    renderService_.renderProcessManager_->OnHwcEvent(deviceId, eventId, eventData);
+    ASSERT_TRUE(renderService_.renderProcessManager_);
+}
+
+/**
+ * @tc.name:OnScreenBacklightChangedTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderProcessManagerTest, OnScreenBacklightChangedTest, TestSize.Level1)
+{
+    uint32_t level = 100;
+    renderService_.renderProcessManager_->OnScreenBacklightChanged(screenId_, level);
+    ASSERT_TRUE(renderService_.renderProcessManager_);
+}
+
+
+
+/**
+ * @tc.name: OnGlobalBlacklistChangedTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderProcessManagerTest, OnGlobalBlacklistChangedTest, TestSize.Level1)
+{
+    std::unordered_set<NodeId> globalBlackList;
+    renderService_.renderProcessManager_->OnGlobalBlacklistChanged(globalBlackList);
     ASSERT_TRUE(renderService_.renderProcessManager_);
 }
 } // namespace OHOS::Rosen
