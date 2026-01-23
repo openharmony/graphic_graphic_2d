@@ -1202,6 +1202,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirrorOrScreenshot
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = true;
     RSUniRenderThread::GetCaptureParam().isSingleSurface_ = false;
     ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams, *canvas_));
+    RSUniRenderThread::Instance().SetBlackList({});
 }
 
 /**
@@ -1223,6 +1224,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirrorOrScreenshot
     RSUniRenderThread::Instance().Sync(std::move(params));
     ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams, *canvas_));
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    RSUniRenderThread::Instance().SetWhiteList({});
 }
 
 /**
@@ -2138,6 +2140,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirrorOrScreenshot
     AutoSpecialLayerStateRecover whiteListRecover(surfaceParams->leashPersistentId_);
     ASSERT_FALSE(surfaceDrawable_->CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams, *canvas_));
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    RSUniRenderThread::Instance().SetWhiteList({});
 }
 
 /**
