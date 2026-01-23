@@ -254,7 +254,7 @@ HWTEST_F(FontMetaDataTest, GenerateFontIdentificationValid, TestSize.Level1)
  * @tc.name: GetFirstAvailableString01
  * @tc.desc: Test GetFirstAvailableString
  * @tc.type: FUNC
- * @tc.require: SR20250918053090
+ * @tc.require:
  */
 HWTEST_F(FontMetaDataTest, GetFirstAvailableString01, TestSize.Level1)
 {
