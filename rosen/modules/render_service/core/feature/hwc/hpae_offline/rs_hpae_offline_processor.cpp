@@ -85,12 +85,11 @@ bool RSHpaeOfflineProcessor::LoadPreProcessHandle()
         return false;
     }
 
-    PreValidateInitFunc initFunc_ = reinterpret_cast<PreValidateInitFunc>(dlsym(preProcessHandle_, "InitPrevalidate"));
-    bool initSucc = ((initFunc_ != nullptr) && (initFunc_() == 0));
-    if (!initSucc) {
+    PreValidateInitFunc initFunc = reinterpret_cast<PreValidateInitFunc>(dlsym(preProcessHandle_, "InitPrevalidate"));
+    if (!((initFunc != nullptr) && (initFunc() == 0))) {
         RS_OFFLINE_LOGW("prevalidate init failed");
         dlclose(preProcessHandle_);
-        initFunc_ = nullptr;
+        initFunc = nullptr;
         return false;
     }
 

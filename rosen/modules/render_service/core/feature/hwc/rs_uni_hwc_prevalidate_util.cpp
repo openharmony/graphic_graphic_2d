@@ -53,12 +53,11 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
         RS_LOGW("[%{public}s_%{public}d]:load library failed, reason: %{public}s", __func__, __LINE__, dlerror());
         return;
     }
-    PreValidateInitFunc initFunc_ = reinterpret_cast<PreValidateInitFunc>(dlsym(preValidateHandle_, "InitPrevalidate"));
-    bool initSucc = ((initFunc_ != nullptr) && (initFunc_() == 0));
-    if (!initSucc) {
-        RS_LOGW("[%{public}s_%{public}d]:prevalidate init failed", __func__, __LINE__);
+    PreValidateInitFunc initFunc = reinterpret_cast<PreValidateInitFunc>(dlsym(preValidateHandle_, "InitPrevalidate"));
+    if (!((initFunc != nullptr) && (initFunc() == 0))) {
+        RS_LOGW("[%{public}s]:prevalidate init failed", __func__);
         dlclose(preValidateHandle_);
-        initFunc_ = nullptr;
+        initFunc = nullptr;
         return;
     }
     preValidateFunc_ = reinterpret_cast<PreValidateFunc>(dlsym(preValidateHandle_, "RequestLayerStrategy"));
