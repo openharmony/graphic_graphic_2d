@@ -240,7 +240,7 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(std::shar
         return nullptr;
     }
 
-    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::SamplingOptions linear(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
     std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBuilder =
         std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
     Drawing::ImageInfo pcInfo;
