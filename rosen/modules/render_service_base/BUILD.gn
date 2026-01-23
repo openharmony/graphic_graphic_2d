@@ -387,6 +387,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/color_picker/color_pick_alt_manager.cpp",
     "src/feature/color_picker/rs_color_picker_manager.cpp",
     "src/feature/color_picker/rs_color_picker_thread.cpp",
+    "src/feature/color_picker/rs_color_picker_utils.cpp",
     "src/feature/color_picker/rs_hetero_color_picker.cpp",
     "src/feature/hdr/rs_colorspace_util.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",

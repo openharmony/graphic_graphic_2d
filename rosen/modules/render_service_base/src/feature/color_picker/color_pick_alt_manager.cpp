@@ -18,8 +18,11 @@
 #include <chrono>
 #include <cstdint>
 
-#include "common/rs_optional_trace.h"
+#include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
 #include "feature/color_picker/rs_hetero_color_picker.h"
+
+#include "common/rs_optional_trace.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -31,7 +34,7 @@ inline uint64_t NowMs()
     return static_cast<uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
-template <typename T>
+template<typename T>
 [[nodiscard]] inline bool IsNull(T* p, const char* msg)
 {
     if (!p) {
@@ -104,36 +107,25 @@ void ColorPickAltManager::ScheduleColorPick(RSPaintFilterCanvas& canvas, const D
 
 void ColorPickAltManager::HandleColorUpdate(Drawing::ColorQuad newColor, NodeId nodeId)
 {
-    Drawing::ColorQuad prevColor = pickedColor_.load(std::memory_order_relaxed);
+    const auto newLuminance = static_cast<uint32_t>(std::round(RSColorPickerUtils::CalculateLuminance(newColor)));
+    const uint32_t prevLuminance = pickedLuminance_.load(std::memory_order_relaxed);
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
-        "RSColorPickerManager::extracted background color = %x, prevColor = %x, nodeId = %lu", newColor, prevColor,
-        nodeId);
+        "ColorPickAltManager::extracted background luminance = %u, prevLuminance = %u, nodeId = %lu", newLuminance,
+        prevLuminance, nodeId);
 
-    const uint32_t threshold = notifyThreshold_.load(std::memory_order_relaxed);
-    // Check if color change exceeds threshold
-    if (notifyThreshold_ > 0) {
-        uint8_t prevR = (prevColor >> 16) & 0xFF;
-        uint8_t prevG = (prevColor >> 8) & 0xFF;
-        uint8_t prevB = prevColor & 0xFF;
-        uint8_t prevA = (prevColor >> 24) & 0xFF;
-
-        uint8_t newR = (newColor >> 16) & 0xFF;
-        uint8_t newG = (newColor >> 8) & 0xFF;
-        uint8_t newB = newColor & 0xFF;
-        uint8_t newA = (newColor >> 24) & 0xFF;
-
-        uint32_t diffR = std::abs(static_cast<int>(newR) - static_cast<int>(prevR));
-        uint32_t diffG = std::abs(static_cast<int>(newG) - static_cast<int>(prevG));
-        uint32_t diffB = std::abs(static_cast<int>(newB) - static_cast<int>(prevB));
-        uint32_t diffA = std::abs(static_cast<int>(newA) - static_cast<int>(prevA));
-        // Only notify if any channel difference exceeds threshold
-        if (diffR <= threshold && diffG <= threshold && diffB <= threshold && diffA <= threshold) {
+    const auto threshold = notifyThreshold_.load(std::memory_order_relaxed);
+    // Check if luminance change exceeds threshold
+    if (threshold > 0) {
+        uint32_t diffLuminance =
+            (newLuminance > prevLuminance) ? (newLuminance - prevLuminance) : (prevLuminance - newLuminance);
+        // Only notify if luminance difference exceeds threshold
+        if (diffLuminance < threshold) {
             return;
         }
     }
 
-    if (pickedColor_.exchange(newColor, std::memory_order_relaxed) != newColor) {
-        RSColorPickerThread::Instance().NotifyClient(nodeId, newColor);
+    if (pickedLuminance_.exchange(newLuminance, std::memory_order_relaxed) != newLuminance) {
+        RSColorPickerThread::Instance().NotifyClient(nodeId, std::clamp(static_cast<uint32_t>(newLuminance), 0u, 255u));
     }
 }
 
