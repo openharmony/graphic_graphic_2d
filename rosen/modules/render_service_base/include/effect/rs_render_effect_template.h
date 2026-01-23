@@ -83,34 +83,34 @@ public:
             case RSNGEffectType::LIGHT_CAVE: return "LightCave";
             case RSNGEffectType::CONTENT_LIGHT: return "ContentLight";
             case RSNGEffectType::BORDER_LIGHT: return "BorderLight";
+            case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
+            case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
+            case RSNGEffectType::GASIFY: return "Gasify";
+            case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
+            case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
+            case RSNGEffectType::SDF_UNION_OP_SHAPE: return "SDFUnionOpShape";
+            case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE: return "SDFSmoothUnionOpShape";
+            case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
+            case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
+            case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
+            case RSNGEffectType::SDF_EMPTY_SHAPE: return "SDFEmptyShape";
+            case RSNGEffectType::IMAGE_MASK: return "ImageMask";
+            case RSNGEffectType::USE_EFFECT_MASK: return "UseEffectMask";
             case RSNGEffectType::AIBAR_GLOW: return "AIBarGlow";
             case RSNGEffectType::AIBAR_RECT_HALO: return "AIBarRectHalo";
             case RSNGEffectType::ROUNDED_RECT_FLOWLIGHT: return "RoundedRectFlowlight";
             case RSNGEffectType::FRAME_GRADIENT_MASK: return "FrameGradientMask";
             case RSNGEffectType::GRADIENT_FLOW_COLORS: return "GradientFlowColors";
-            case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
-            case RSNGEffectType::SDF_UNION_OP_SHAPE: return "SDFUnionOpShape";
-            case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE: return "SDFSmoothUnionOpShape";
-            case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
-            case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
-            case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
-            case RSNGEffectType::SDF_EMPTY_SHAPE: return "SDFEmptyShape";
-            case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
-            case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
-            case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
-            case RSNGEffectType::GASIFY: return "Gasify";
-            case RSNGEffectType::IMAGE_MASK: return "ImageMask";
-            case RSNGEffectType::USE_EFFECT_MASK: return "UseEffectMask";
             case RSNGEffectType::FROSTED_GLASS: return "FrostedGlass";
             case RSNGEffectType::CIRCLE_FLOWLIGHT: return "CircleFlowlight";
-            case RSNGEffectType::GRID_WARP: return "GridWarp";
             case RSNGEffectType::FROSTED_GLASS_EFFECT: return "FrostedGlassEffect";
             case RSNGEffectType::FROSTED_GLASS_BLUR: return "FrostedGlassBlur";
+            case RSNGEffectType::GRID_WARP: return "GridWarp";
             case RSNGEffectType::DISTORT_CHROMA : return "DistortChroma";
             case RSNGEffectType::DUPOLI_NOISE_MASK : return "DupoliNoiseMask";
             case RSNGEffectType::NOISY_FRAME_GRADIENT_MASK: return "NoisyFrameGradientMask";
-            case RSNGEffectType::MAGNIFIER: return "Magnifier";
             case RSNGEffectType::SDF_EDGE_LIGHT: return "SDFEdgeLight";
+            case RSNGEffectType::MAGNIFIER: return "Magnifier";
             default: return "UNKNOWN";
         }
     }
@@ -157,6 +157,9 @@ private:
         const std::string& desc, const std::vector<float>& value);
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, std::shared_ptr<Drawing::Image> value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, const RRect& value);
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
@@ -164,9 +167,6 @@ private:
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, const RSColor& value);
-
-    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, std::shared_ptr<Drawing::Image> value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, int value);
 
@@ -192,11 +192,11 @@ private:
 
     static void CalculatePropTagHashImpl(uint32_t& hash, const std::vector<float>& value);
 
-    static void CalculatePropTagHashImpl(uint32_t& hash, const RRect& value);
-
     static void CalculatePropTagHashImpl(uint32_t& hash, const Matrix3f& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Drawing::Image> value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const RRect& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, const RSColor& value);
 
@@ -236,7 +236,6 @@ public:
 
 protected:
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
-
     virtual void DumpProperties(std::string& out) const {}
     virtual std::string DumpProperties() const = 0;
 
@@ -321,7 +320,9 @@ public:
             tagName = tagName.substr(pos + 1);
         }
         out += tagName;
+        out += "[";
         Getter<Tag>()->Dump(out);
+        out += "]";
     }
 
     bool Marshalling(Parcel& parcel) const override
@@ -375,10 +376,9 @@ public:
 
     void Dump(std::string& out) const override
     {
-        std::string descStr = ":";
+        std::string descStr = ": ";
         std::string splitStr = "--";
 
-        out += "[";
         out += RSNGRenderEffectHelper::GetEffectTypeString(GetType());
         out += descStr;
         DumpProperties(out);
@@ -386,7 +386,6 @@ public:
             out += splitStr;
             Base::nextEffect_->Dump(out);
         }
-        out += "]";
     }
 
     std::string Dump() const override
@@ -433,7 +432,7 @@ protected:
     void DumpProperties(std::string& out) const override
     {
         std::string startStr = "[";
-        std::string splitStr = ",";
+        std::string splitStr = ", ";
         std::string endStr = "]";
 
         out += startStr;

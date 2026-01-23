@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -172,12 +172,6 @@ DECLARE_FILTER(GridWarp, GRID_WARP,
     ADD_PROPERTY_TAG(GridWarp, RotationAngle8)
 );
 
-DECLARE_FILTER(FrostedGlassBlur, FROSTED_GLASS_BLUR,
-    ADD_PROPERTY_TAG(FrostedGlassBlur, Radius),
-    ADD_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK),
-    ADD_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx)
-);
-
 DECLARE_FILTER(Magnifier, MAGNIFIER,
     ADD_PROPERTY_TAG(Magnifier, Factor),
     ADD_PROPERTY_TAG(Magnifier, Width),
@@ -196,6 +190,12 @@ DECLARE_FILTER(Magnifier, MAGNIFIER,
     ADD_PROPERTY_TAG(Magnifier, GradientMaskColor2),
     ADD_PROPERTY_TAG(Magnifier, OuterContourColor1),
     ADD_PROPERTY_TAG(Magnifier, OuterContourColor2)
+);
+
+DECLARE_FILTER(FrostedGlassBlur, FROSTED_GLASS_BLUR,
+    ADD_PROPERTY_TAG(FrostedGlassBlur, Radius),
+    ADD_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK),
+    ADD_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx)
 );
 
 DECLARE_FILTER(SDFEdgeLight, SDF_EDGE_LIGHT,
