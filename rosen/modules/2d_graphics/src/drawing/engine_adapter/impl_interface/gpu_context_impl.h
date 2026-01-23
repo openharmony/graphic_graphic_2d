@@ -59,14 +59,11 @@ public:
 #endif
     virtual void Flush() = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
-
+    virtual void Submit() = 0;
+    virtual void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) = 0;
     virtual void FlushCommands(bool isMainCtx) {}
     virtual void RegisterWaitSemCallback(const std::function<void(int seq)>& callBack, int seq) {}
     virtual void UnRegisterWaitSemCallback() {}
-
-    virtual void Submit() = 0;
-    virtual void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) = 0;
-
     virtual void GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const = 0;
     virtual void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes) = 0;
     virtual void SetPurgeableResourceLimit(int purgeableMaxCount) = 0;
@@ -106,8 +103,6 @@ public:
     virtual void ResetContext() = 0;
 
     virtual void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) = 0;
-
-    virtual uint64_t NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) = 0;
 
     virtual void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) = 0;
 

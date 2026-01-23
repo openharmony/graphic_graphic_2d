@@ -694,6 +694,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     targetSurfaceParams->isSurfaceBufferOpaque_ = isSurfaceBufferOpaque_;
     targetSurfaceParams->uiFirstVisibleFilterRect_ = uiFirstVisibleFilterRect_;
+    targetSurfaceParams->appRotationCorrection_ = appRotationCorrection_;
+    targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
     RSRenderParams::OnSync(target);
 }
 
@@ -781,5 +783,33 @@ void RSSurfaceRenderParams::SetScreenId(ScreenId screenId)
 ScreenId RSSurfaceRenderParams::GetScreenId() const
 {
     return screenId_;
+}
+
+void RSSurfaceRenderParams::SetAppRotationCorrection(ScreenRotation appRotationCorrection)
+{
+    if (appRotationCorrection_ == appRotationCorrection) {
+        return;
+    }
+    appRotationCorrection_ = appRotationCorrection;
+    needSync_ = true;
+}
+
+ScreenRotation RSSurfaceRenderParams::GetAppRotationCorrection() const
+{
+    return appRotationCorrection_;
+}
+
+void RSSurfaceRenderParams::SetRotationCorrectionDegree(int32_t rotationCorrectionDegree)
+{
+    if (rotationCorrectionDegree_ == rotationCorrectionDegree) {
+        return;
+    }
+    rotationCorrectionDegree_ = rotationCorrectionDegree;
+    needSync_ = true;
+}
+
+int32_t RSSurfaceRenderParams::GetRotationCorrectionDegree() const
+{
+    return rotationCorrectionDegree_;
 }
 } // namespace OHOS::Rosen

@@ -27,6 +27,7 @@ const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 const uint32_t usleepTime = 1000;
+constexpr size_t SCREEN_ROTATION_SIZE = 5;
 
 /*
  * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
@@ -399,6 +400,18 @@ bool DoFreezeScreen(const uint8_t* data, size_t size)
     rsRenderInterfaces.FreezeScreen(displayNode, isFreeze);
     return true;
 }
+
+bool DoSetLogicalCameraRotationCorrection(const uint8_t* data, size_t size)
+{
+    // get data
+    ScreenId id = GetData<ScreenId>();
+    ScreenRotation logicalCorrection = static_cast<ScreenRotation>(GetData<uint8_t>() % SCREEN_ROTATION_SIZE);
+
+    // test
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.SetLogicalCameraRotationCorrection(id, logicalCorrection);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -426,5 +439,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoClearUifirstCache(data, size);
     OHOS::Rosen::DoTakeSurfaceCaptureWithAllWindows(data, size);
     OHOS::Rosen::DoFreezeScreen(data, size);
+    OHOS::Rosen::DoSetLogicalCameraRotationCorrection(data, size);
     return 0;
 }

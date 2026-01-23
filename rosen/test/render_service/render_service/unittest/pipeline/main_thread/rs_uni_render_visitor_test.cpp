@@ -7803,4 +7803,5 @@ HWTEST_F(RSUniRenderVisitorTest, SubSurfaceOpaqueRegionFromAccumulatedDirtyRegio
     origin.SubSelf(surfaceNode->opaqueRegion_);
     EXPECT_EQ(accumulatedDirtyRegion.GetRegionInfo(), origin.GetRegionInfo());
 }
+
 } // OHOS::Rosen

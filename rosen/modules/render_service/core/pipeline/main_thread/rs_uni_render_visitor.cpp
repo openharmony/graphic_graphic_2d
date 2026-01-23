@@ -1174,6 +1174,11 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         node.SetAppWindowZOrder(appWindowZOrder_--);
     }
 
+    // collect rotation lock correction degree for xcomponent lock node
+    if (node.GetFixRotationByUser()) {
+        RSBaseRenderUtil::GetRotationLockParam(node, curScreenNode_, screenManager_);
+    }
+
     // avoid cross node subtree visited twice or more
     DealWithSpecialLayer(node);
     if (CheckSkipAndPrepareForCrossNode(node)) {

@@ -408,5 +408,10 @@ int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
     return renderPiplineClient_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif
+
+int32_t RSRenderInterface::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
+{
+    return renderPiplineClient_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+}
 }
 }

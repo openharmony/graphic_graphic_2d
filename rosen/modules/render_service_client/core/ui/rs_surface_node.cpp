@@ -1084,5 +1084,19 @@ void RSSurfaceNode::SetContainerWindowTransparent(bool isContainerWindowTranspar
         std::make_unique<RSSurfaceNodeSetContainerWindowTransparent>(GetId(), isContainerWindowTransparent);
     AddCommand(command, true);
 }
+
+void RSSurfaceNode::SetAppRotationCorrection(ScreenRotation appRotationCorrection)
+{
+    if (appRotationCorrection > ScreenRotation::INVALID_SCREEN_ROTATION) {
+        RS_LOGE(
+            "RSSurfaceNode::SetAppRotationCorrection %{public}" PRIu64 " set invalid AppRotationCorrection", GetId());
+        return;
+    }
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetAppRotationCorrection>(GetId(), appRotationCorrection);
+    AddCommand(command, true);
+    RS_LOGD("RSSurfaceNode::SetAppRotationCorrection: Node: %{public}" PRIu64 ", appRotationCorrection: %{public}u",
+        GetId(), appRotationCorrection);
+}
 } // namespace Rosen
 } // namespace OHOS

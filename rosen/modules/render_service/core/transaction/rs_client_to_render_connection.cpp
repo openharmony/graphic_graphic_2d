@@ -812,5 +812,29 @@ int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
     return mainThread_->ScheduleTask(task).get();
 }
 #endif
+
+int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
+    ScreenId screenId, ScreenRotation logicalCorrection)
+{
+    if (!mainThread_) {
+        return INVALID_ARGUMENTS;
+    }
+    auto task = [weakThis = wptr<RSClientToRenderConnection>(this), screenId, logicalCorrection]() -> void {
+        sptr<RSClientToRenderConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto& nodeMap = connection->mainThread_->GetContext().GetNodeMap();
+        nodeMap.TraverseScreenNodes([screenId, logicalCorrection](const std::shared_ptr<RSScreenRenderNode>& node) {
+            if (node && node->GetScreenId() == screenId) {
+                RS_LOGD("SetLogicalCameraRotationCorrection nodeId: %{public}" PRIu64 ", logicalCorrection: %{public}u",
+                    node->GetId(), logicalCorrection);
+                node->SetLogicalCameraRotationCorrection(logicalCorrection);
+            }
+        });
+    };
+    mainThread_->PostTask(task);
+    return SUCCESS;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -1273,4 +1273,23 @@ HWTEST_F(RSScreenRenderNodeTest, ResetVideoHeadroomInfo, TestSize.Level1)
     CheckWithStatusLevel(map, HdrStatus::HDR_UICOMPONENT, level);
 }
 
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrectionTest
+ * @tc.desc: test results of SetLogicalCameraRotationCorrection
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetLogicalCameraRotationCorrectionTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    auto screenParams = static_cast<RSScreenRenderParams*>(node->stagingRenderParams_.get());
+    node->stagingRenderParams_->SetNeedSync(true);
+    node->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
+    EXPECT_EQ(screenParams->GetLogicalCameraRotationCorrection(), ScreenRotation::ROTATION_90);
+    node->stagingRenderParams_ = nullptr;
+    node->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
+}
 } // namespace OHOS::Rosen

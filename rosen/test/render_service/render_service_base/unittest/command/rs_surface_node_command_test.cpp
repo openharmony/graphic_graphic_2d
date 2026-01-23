@@ -923,4 +923,18 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetContainerWindowTransparent, TestSize.Level
     SurfaceNodeCommandHelper::SetContainerWindowTransparent(context, InvalidNodeId, false);
     ASSERT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(InvalidNodeId) == nullptr);
 }
+
+/**
+ * @tc.name: SetAppRotationCorrectionTest
+ * @tc.desc: Verify function SetAppRotationCorrection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetAppRotationCorrectionTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetAppRotationCorrection(context, nodeId, ScreenRotation::ROTATION_180);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
 } // namespace OHOS::Rosen

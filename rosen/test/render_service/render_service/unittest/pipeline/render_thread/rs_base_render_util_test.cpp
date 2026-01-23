@@ -16,9 +16,11 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "parameters.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "screen_manager/rs_screen.h"
 #include "surface_buffer_impl.h"
 #include "system/rs_system_parameters.h"
 
@@ -667,20 +669,6 @@ HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_001, TestSize.Level2)
 {
     ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
     ASSERT_EQ(true, RSBaseRenderUtil::IsColorFilterModeValid(colorFilterMode));
-}
-
-/*
- * @tc.name: GetScreenIdFromSurfaceRenderParamsTest
- * @tc.desc: Test GetScreenIdFromSurfaceRenderParams
- * @tc.type: FUNC
- * @tc.require: issueI605F4
- */
-HWTEST_F(RSBaseRenderUtilTest, GetScreenIdFromSurfaceRenderParamsTest, TestSize.Level2)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
-    auto screenId = RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(surfaceParams);
-    ASSERT_EQ(screenId, 0);
 }
 
 /*
@@ -1622,4 +1610,43 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_006, TestSi
     }
 }
 
+/**
+ * @tc.name: GetRotationLockParamTest001
+ * @tc.desc: Test GetRotationLockParam
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParamTest001, TestSize.Level2)
+{
+    NodeId id = 2;
+    ScreenId screenId = 0;
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    screenManager->screens_[screenId] = std::make_shared<RSScreen>(nullptr);
+    screenManager->defaultScreenId_ = screenId;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    node->InitRenderParams();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    screenNode->InitRenderParams();
+
+    screenManager->SetScreenCorrection(screenId, ScreenRotation::ROTATION_180);
+    EXPECT_EQ(screenManager->GetScreenCorrection(screenId), ScreenRotation::ROTATION_180);
+
+    auto screenNodeParams =
+        static_cast<RSScreenRenderParams*>(screenNode->GetStagingRenderParams().get());
+    screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
+    EXPECT_EQ(screenNodeParams->GetLogicalCameraRotationCorrection(), ScreenRotation::ROTATION_90);
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+    surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+    EXPECT_EQ(surfaceParams->GetAppRotationCorrection(), ScreenRotation::ROTATION_180);
+
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode, screenManager);
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 90);
+
+    screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_180);
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode, screenManager);
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
+}
 } // namespace OHOS::Rosen

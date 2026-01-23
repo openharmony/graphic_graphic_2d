@@ -426,10 +426,11 @@ HWTEST_F(ColorPickAltManagerTest, AltManagerHandleColorUpdateWithZeroThreshold, 
     manager->GetColorPicked(canvas, &rect, 1, params);
 
     // Simulate color update - should always update with threshold 0
+    // WHITE has luminance ~255, BLACK has luminance ~0
     Drawing::ColorQuad newColor = Drawing::Color::COLOR_WHITE;
     manager->HandleColorUpdate(newColor, 1);
 
-    // Verify update occurred (color changed from default BLACK)
+    // Verify update occurred (luminance changed from default 0 to ~255)
     EXPECT_TRUE(true); // Internal state verified through async callback
 }
 
@@ -445,17 +446,19 @@ HWTEST_F(ColorPickAltManagerTest, AltManagerHandleColorUpdateBelowThreshold, Tes
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
 
-    // Set high threshold
+    // Set high threshold (200 luminance units)
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     params.notifyThreshold = 200;
     manager->GetColorPicked(canvas, &rect, 1, params);
 
     // First update to establish baseline
+    // RGB(100, 100, 100) has luminance = 0.299*100 + 0.587*100 + 0.114*100 = 100
     Drawing::ColorQuad baseColor = Drawing::Color::ColorQuadSetARGB(0xFF, 100, 100, 100);
     manager->HandleColorUpdate(baseColor, 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     // Small change (below threshold) - should be ignored
+    // RGB(105, 105, 105) has luminance = 105, difference = 5 < 200
     Drawing::ColorQuad similarColor = Drawing::Color::ColorQuadSetARGB(0xFF, 105, 105, 105);
     manager->HandleColorUpdate(similarColor, 1);
 
@@ -474,17 +477,19 @@ HWTEST_F(ColorPickAltManagerTest, AltManagerHandleColorUpdateAboveThreshold, Tes
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
 
-    // Set moderate threshold
+    // Set moderate threshold (50 luminance units)
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     params.notifyThreshold = 50;
     manager->GetColorPicked(canvas, &rect, 1, params);
 
     // First update to establish baseline
+    // RGB(100, 100, 100) has luminance = 100
     Drawing::ColorQuad baseColor = Drawing::Color::ColorQuadSetARGB(0xFF, 100, 100, 100);
     manager->HandleColorUpdate(baseColor, 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     // Large change (above threshold) - should be processed
+    // RGB(200, 200, 200) has luminance = 200, difference = 100 > 50
     Drawing::ColorQuad differentColor = Drawing::Color::ColorQuadSetARGB(0xFF, 200, 200, 200);
     manager->HandleColorUpdate(differentColor, 1);
 
@@ -493,7 +498,7 @@ HWTEST_F(ColorPickAltManagerTest, AltManagerHandleColorUpdateAboveThreshold, Tes
 
 /**
  * @tc.name: AltManagerHandleColorUpdateAlphaChannel
- * @tc.desc: HandleColorUpdate considers alpha channel in threshold check
+ * @tc.desc: HandleColorUpdate uses luminance calculation which doesn't consider alpha
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickAltManagerTest, AltManagerHandleColorUpdateAlphaChannel, TestSize.Level1)
@@ -509,20 +514,22 @@ HWTEST_F(ColorPickAltManagerTest, AltManagerHandleColorUpdateAlphaChannel, TestS
     manager->GetColorPicked(canvas, &rect, 1, params);
 
     // First update with full alpha
+    // RGB(100, 100, 100) has luminance = 100 (alpha doesn't affect luminance)
     Drawing::ColorQuad baseColor = Drawing::Color::ColorQuadSetARGB(0xFF, 100, 100, 100);
     manager->HandleColorUpdate(baseColor, 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    // Change only alpha channel significantly
+    // Change only alpha channel - luminance stays the same (100)
+    // Since luminance is unchanged, this should NOT trigger update
     Drawing::ColorQuad alphaChanged = Drawing::Color::ColorQuadSetARGB(0x80, 100, 100, 100);
     manager->HandleColorUpdate(alphaChanged, 1);
 
-    EXPECT_TRUE(true); // Alpha change should trigger update
+    EXPECT_TRUE(true); // Alpha change alone doesn't affect luminance
 }
 
 /**
  * @tc.name: AltManagerHandleColorUpdateRGBChannels
- * @tc.desc: HandleColorUpdate checks all RGB channels against threshold
+ * @tc.desc: HandleColorUpdate checks luminance difference against threshold
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickAltManagerTest, AltManagerHandleColorUpdateRGBChannels, TestSize.Level1)
@@ -532,26 +539,28 @@ HWTEST_F(ColorPickAltManagerTest, AltManagerHandleColorUpdateRGBChannels, TestSi
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
 
-    // Set threshold
+    // Set threshold (30 luminance units)
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     params.notifyThreshold = 30;
     manager->GetColorPicked(canvas, &rect, 1, params);
 
-    // Baseline color
+    // Baseline color: RGB(100, 100, 100) has luminance = 100
     Drawing::ColorQuad baseColor = Drawing::Color::ColorQuadSetARGB(0xFF, 100, 100, 100);
     manager->HandleColorUpdate(baseColor, 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    // Change only red channel above threshold
+    // Change only red channel significantly
+    // RGB(150, 100, 100) has luminance = 0.299*150 + 0.587*100 + 0.114*100 = 115
+    // Difference = 15 < 30, should NOT trigger update
     Drawing::ColorQuad redChanged = Drawing::Color::ColorQuadSetARGB(0xFF, 150, 100, 100);
     manager->HandleColorUpdate(redChanged, 1);
 
-    EXPECT_TRUE(true); // Single channel change should trigger update
+    EXPECT_TRUE(true); // Luminance difference below threshold
 }
 
 /**
  * @tc.name: AltManagerHandleColorUpdateSameColor
- * @tc.desc: HandleColorUpdate does not notify when color is unchanged
+ * @tc.desc: HandleColorUpdate does not notify when luminance is unchanged
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickAltManagerTest, AltManagerHandleColorUpdateSameColor, TestSize.Level1)
@@ -564,15 +573,15 @@ HWTEST_F(ColorPickAltManagerTest, AltManagerHandleColorUpdateSameColor, TestSize
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     manager->GetColorPicked(canvas, &rect, 1, params);
 
-    // Update to white
+    // Update to white (luminance ~255)
     Drawing::ColorQuad white = Drawing::Color::COLOR_WHITE;
     manager->HandleColorUpdate(white, 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    // Update with same color - should not trigger notification
+    // Update with same color - luminance unchanged, should not trigger notification
     manager->HandleColorUpdate(white, 1);
 
-    EXPECT_TRUE(true); // No notification for unchanged color
+    EXPECT_TRUE(true); // No notification for unchanged luminance
 }
 
 /**

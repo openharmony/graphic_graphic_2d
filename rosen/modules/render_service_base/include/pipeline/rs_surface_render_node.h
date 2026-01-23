@@ -1754,8 +1754,11 @@ public:
     bool GetSurfaceBufferOpaque() const;
 
     bool IsAncestorScreenFrozen() const;
+
     void AfterTreeStateChanged();
 
+    void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
+    void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);
 protected:
     void OnSync() override;
     void OnSkipSync() override;

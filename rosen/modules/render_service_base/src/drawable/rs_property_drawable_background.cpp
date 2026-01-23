@@ -1043,8 +1043,8 @@ Drawing::RectI RSMaterialFilterDrawable::GetAbsRenderEffectRect(const Drawing::C
     Drawing::RectI absRectI = absRect.RoundOut();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas const*>(&canvas);
     auto filterClipBounds = paintFilterCanvas->GetFilterClipBounds();
-    Drawing::RectI clipBound = renderRelativeRectInfo_ == nullptr || filterClipBounds.IsEmpty() ?
-        Drawing::RectI(0, 0, surface->Width(), surface->Height()) : filterClipBounds;
+    Drawing::RectI clipBound =
+        filterClipBounds.IsEmpty() ? Drawing::RectI(0, 0, surface->Width(), surface->Height()) : filterClipBounds;
     // if absRectI.Intersect(deviceRect) is true,
     // it means that absRectI intersects with deviceRect, and absRectI has been set to their intersection.
     return absRectI.Intersect(clipBound) ? absRectI : Drawing::RectI();

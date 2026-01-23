@@ -289,6 +289,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->forceFreeze_ = forceFreeze_;
     targetScreenParams->hasMirroredScreenChanged_ = hasMirroredScreenChanged_;
     targetScreenParams->isVirtualSurfaceChanged_ = isVirtualSurfaceChanged_;
+    targetScreenParams->logicalCameraRotationCorrection_ = logicalCameraRotationCorrection_;
 
     RSRenderParams::OnSync(target);
 }
@@ -366,5 +367,19 @@ void RSScreenRenderParams::SetHasMirroredScreenChanged(bool hasMirroredScreenCha
 bool RSScreenRenderParams::GetHasMirroredScreenChanged() const
 {
     return hasMirroredScreenChanged_;
+}
+
+void RSScreenRenderParams::SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection)
+{
+    if (logicalCameraRotationCorrection_ == logicalCorrection) {
+        return;
+    }
+    logicalCameraRotationCorrection_ = logicalCorrection;
+    needSync_ = true;
+}
+
+ScreenRotation RSScreenRenderParams::GetLogicalCameraRotationCorrection() const
+{
+    return logicalCameraRotationCorrection_;
 }
 } // namespace OHOS::Rosen

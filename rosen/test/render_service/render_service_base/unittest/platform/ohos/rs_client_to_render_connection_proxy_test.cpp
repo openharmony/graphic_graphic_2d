@@ -374,5 +374,20 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SubmitCanvasPreAllocatedBufferTest
     ASSERT_NE(ret, 0);
 }
 #endif
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrectionTest001
+ * @tc.desc: SetLogicalCameraRotationCorrection test to write legal degree.
+ * @tc.type:FUNC
+ * @tc.require: issueICS2J8
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SetLogicalCameraRotationCorrection001, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    ScreenId screenId = 0;
+    ScreenRotation logicalCorrection = ScreenRotation::ROTATION_90;
+    auto ret = proxy->SetLogicalCameraRotationCorrection(screenId, logicalCorrection);
+    EXPECT_EQ(ret, 2);
+}
 } // namespace Rosen
 } // namespace OHOS

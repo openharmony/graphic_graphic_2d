@@ -688,7 +688,7 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest002, TestSize
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
-    rsImageDetailEnhancerThread.SetOutImage(123, img);
+    rsImageDetailEnhancerThread.SetScaledImage(123, img);
     imageCache.ReleaseDrawingImageCacheByPixelMapId(123);
     EXPECT_TRUE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
 

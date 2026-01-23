@@ -79,6 +79,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_ANCO_SRC_CROP = 44,
     SURFACE_NODE_SET_SURFACE_BUFFER_OPAQUE = 45,
     SURFACE_NODE_SET_CONTAINER_WINDOW_TRANSPARENT = 46,
+    SURFACE_NODE_SET_APP_ROTATION_CORRECTION = 47,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -136,6 +137,7 @@ public:
     static void SetAncoSrcCrop(RSContext& context, NodeId nodeId, const Rect& srcCrop);
     static void SetSurfaceBufferOpaque(RSContext& context, NodeId nodeId, bool isOpaque);
     static void SetContainerWindowTransparent(RSContext& context, NodeId nodeId, bool isContainerWindowTransparent);
+    static void SetAppRotationCorrection(RSContext& context, NodeId nodeId, ScreenRotation appRotationCorrection);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -282,6 +284,9 @@ ADD_COMMAND(RSSurfaceNodeSetSurfaceBufferOpaque,
 ADD_COMMAND(RSSurfaceNodeSetContainerWindowTransparent,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW_TRANSPARENT,
         SurfaceNodeCommandHelper::SetContainerWindowTransparent, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetAppRotationCorrection,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_APP_ROTATION_CORRECTION,
+        SurfaceNodeCommandHelper::SetAppRotationCorrection, NodeId, ScreenRotation))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

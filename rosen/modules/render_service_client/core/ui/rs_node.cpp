@@ -95,7 +95,6 @@
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
-#include "render/rs_border_light_shader.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"

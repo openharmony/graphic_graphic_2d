@@ -201,6 +201,9 @@ public:
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static int32_t GetScreenRotationOffset(RSSurfaceRenderParams* nodeParams);
+    // collect the rotation lock correction degree
+    static void GetRotationLockParam(RSSurfaceRenderNode& node, std::shared_ptr<RSScreenRenderNode> screenRenderNode,
+        sptr<RSScreenManager> screenManager);
 #ifdef RS_ENABLE_GPU
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
         RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
@@ -231,7 +234,6 @@ private:
         const std::vector<GraphicHDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap);
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
-    static ScreenId GetScreenIdFromSurfaceRenderParams(RSSurfaceRenderParams* nodeParams);
 
     static bool enableClient;
 

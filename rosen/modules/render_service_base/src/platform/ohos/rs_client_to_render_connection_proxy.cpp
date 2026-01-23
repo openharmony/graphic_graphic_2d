@@ -815,5 +815,38 @@ int32_t RSClientToRenderConnectionProxy::SubmitCanvasPreAllocatedBuffer(
     return result;
 }
 #endif // ROSEN_OHOS && RS_ENABLE_VK
+
+int32_t RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection(
+    ScreenId id, ScreenRotation logicalCorrection)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetLogicalCameraRotationCorrection: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetLogicalCameraRotationCorrection: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(logicalCorrection))) {
+        ROSEN_LOGE("SetLogicalCameraRotationCorrection: WriteUint32 logicalCorrection err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
 } // namespace Rosen
 } // namespace OHOS

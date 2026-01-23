@@ -692,6 +692,21 @@ void RSScreenRenderNode::CheckSurfaceChanged()
 }
 // LCOV_EXCL_STOP
 
+void RSScreenRenderNode::SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection)
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::SetLogicalCameraRotationCorrection screenParams is null");
+        return;
+    }
+    screenParams->SetLogicalCameraRotationCorrection(logicalCorrection);
+    RS_LOGD("RSScreenRenderNode::SetLogicalCameraRotationCorrection: Node: %{public}" PRIu64
+            ", appRotationCorrection: %{public}u", GetId(), logicalCorrection);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
 void RSScreenRenderNode::UpdateHeadroomMapIncrease(HdrStatus status, uint32_t level)
 {
     headroomCounts_[status][level]++;

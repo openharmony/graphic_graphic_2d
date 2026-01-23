@@ -3837,5 +3837,33 @@ bool RSSurfaceRenderNode::IsAncestorScreenFrozen() const
     screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(firstLevelNode->GetAncestorScreenNode().lock());
     return screenNode == nullptr ? false : screenNode->GetForceFreeze();
 }
+
+void RSSurfaceRenderNode::SetAppRotationCorrection(ScreenRotation appRotationCorrection)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetAppRotationCorrection(appRotationCorrection);
+    RS_LOGD("RSSurfaceRenderNode::SetAppRotationCorrection: Node: %{public}" PRIu64
+            ", appRotationCorrection: %{public}u", GetId(), appRotationCorrection);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+void RSSurfaceRenderNode::SetRotationCorrectionDegree(int32_t rotationCorrectionDegree)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetRotationCorrectionDegree(rotationCorrectionDegree);
+    RS_LOGD("RSSurfaceRenderNode::SetRotationCorrectionDegree: Node: %{public}" PRIu64
+            ", rotationCorrectionDegree: %{public}d", GetId(), rotationCorrectionDegree);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
