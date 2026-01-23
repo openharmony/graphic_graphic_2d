@@ -107,6 +107,8 @@ void RSBaseRenderEngine::Init()
             "SmartCacheUMDPoolSize", SmartCacheParam::GetUMDPoolSize());
         renderContext_->GetDrGPUContext()->SetParam(
             "SmartCacheTimeInterval", SmartCacheParam::GetTimeInterval());
+        renderContext_->GetDrGPUContext()->SetParam(
+            "IsVMABlockEnabled", VMABlockParam::IsEnabled());
     }
 #else
     renderContext_->SetUpGpuContext();
