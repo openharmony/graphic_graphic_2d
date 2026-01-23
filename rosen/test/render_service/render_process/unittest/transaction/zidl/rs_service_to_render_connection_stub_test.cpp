@@ -43,6 +43,14 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
+class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
+public:
+    explicit MockRSBrightnessInfoChangeCallback() : IRemoteProxy<RSIBrightnessInfoChangeCallback>(nullptr) {};
+    virtual ~MockRSBrightnessInfoChangeCallback() noexcept = default;
+
+    void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
+};
+
 RSRenderService renderService;
 sptr<RSServiceToRenderConnectionStub> g_connectionStub = nullptr;
 }
@@ -393,5 +401,52 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSurfaceOcclusionChangeCa
         RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetBrightnessInfoChangeCallbackTest
+ * @tc.desc: Test SetBrightnessInfoChangeCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level2)
+{
+    // case 1: no data
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        auto interfaceCode = RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = g_connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_STATE);
+    }
+
+    // case 2: remoteObject null
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteInt32(getpid());
+        data.WriteRemoteObject(nullptr);
+        auto interfaceCode = RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = g_connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_STATE);
+    }
+
+    // case 3: remoteObject not null
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteInt32(getpid());
+        MockRSBrightnessInfoChangeCallback callback;
+        data.WriteRemoteObject(callback.AsObject());
+        auto interfaceCode = RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = g_connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_STATE);
+    }
 }
 } // namespace OHOS::Rosen

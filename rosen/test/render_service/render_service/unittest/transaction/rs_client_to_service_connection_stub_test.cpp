@@ -1636,69 +1636,189 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenGamutMapTest004, TestSize
     ASSERT_EQ(res, ERR_OK);
 }
 
-// /**
-//  * @tc.name: SetBrightnessInfoChangeCallbackTest
-//  * @tc.desc: Test SetBrightnessInfoChangeCallback
-//  * @tc.type: FUNC
-//  * @tc.require:
-//  */
-// HWTEST_F(RSClientToServiceConnectionStubTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level2)
-// {
-//     sptr<RSClientToServiceConnectionStub> connectionStub =
-//         new RSClientToServiceConnection(0, renderServiceAgent_, renderProcessManagerAgent_,
-//             screenManagerAgent_, token_->AsObject(), nullptr);
-//     ASSERT_NE(connectionStub, nullptr);
+/**
+ * @tc.name: SetBrightnessInfoChangeCallbackTest
+ * @tc.desc: Test SetBrightnessInfoChangeCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level2)
+{
+    // case 1: no data
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        auto code = RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
 
-//     // case 1: no data
-//     {
-//         MessageParcel data;
-//         MessageParcel reply;
-//         MessageOption option;
-//         data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-//         auto interfaceCode = RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
-//         auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
-//         EXPECT_EQ(res, ERR_INVALID_DATA);
-//     }
+    // case 2: readRemoteObject false
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteBool(false);
+        auto code = RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
 
-//     // case 2: readRemoteObject false
-//     {
-//         MessageParcel data;
-//         MessageParcel reply;
-//         MessageOption option;
-//         data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-//         data.WriteBool(false);
-//         auto interfaceCode = RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
-//         auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
-//         EXPECT_EQ(res, ERR_NONE);
-//     }
+    // case 3: remoteObject null
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteBool(true);
+        data.WriteRemoteObject(nullptr);
+        auto code = RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
 
-//     // case 3: remoteObject null
-//     {
-//         MessageParcel data;
-//         MessageParcel reply;
-//         MessageOption option;
-//         data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-//         data.WriteBool(true);
-//         data.WriteRemoteObject(nullptr);
-//         auto interfaceCode = RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
-//         auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
-//         EXPECT_EQ(res, ERR_NONE);
-//     }
+    // case 4: remoteObject not null
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteBool(true);
+        MockRSBrightnessInfoChangeCallback callback;
+        data.WriteRemoteObject(callback.AsObject());
+        auto code = RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+}
 
-//     // case 4: remoteObject not null
-//     {
-//         MessageParcel data;
-//         MessageParcel reply;
-//         MessageOption option;
-//         data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-//         data.WriteBool(true);
-//         MockRSBrightnessInfoChangeCallback callback;
-//         data.WriteRemoteObject(callback.AsObject());
-//         auto interfaceCode = RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
-//         auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
-//         EXPECT_EQ(res, ERR_NONE);
-//     }
-// }
+/**
+ * @tc.name: GetPixelFormatTest001
+ * @tc.desc: Test GetPixelFormat
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetPixelFormatTest001, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto code = RSIClientToServiceConnectionInterfaceCode::GET_PIXEL_FORMAT;
+    auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetPixelFormatTest003
+ * @tc.desc: Test GetPixelFormat
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetPixelFormatTest003, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(screenId_);
+    auto code = RSIClientToServiceConnectionInterfaceCode::GET_PIXEL_FORMAT;
+    auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetPixelFormatTest001
+ * @tc.desc: Test SetPixelFormat
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPixelFormatTest001, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto code = RSIClientToServiceConnectionInterfaceCode::SET_PIXEL_FORMAT;
+    auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetPixelFormatTest003
+ * @tc.desc: Test SetPixelFormat
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPixelFormatTest003, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(screenId_);
+    data.WriteBool(false);
+    auto code = RSIClientToServiceConnectionInterfaceCode::SET_PIXEL_FORMAT;
+    auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetPixelFormatTest004
+ * @tc.desc: Test SetPixelFormat
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPixelFormatTest004, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(screenId_);
+    data.WriteInt32(static_cast<int32_t>(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888));
+    auto code = RSIClientToServiceConnectionInterfaceCode::SET_PIXEL_FORMAT;
+    auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetScreenHDRFormat001
+ * @tc.desc: Test GetScreenHDRFormat
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetScreenHDRFormat001, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto code = RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_FORMAT;
+    auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetScreenHDRFormat002
+ * @tc.desc: Test GetScreenHDRFormat
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetScreenHDRFormat002, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(screenId_);
+    auto code = RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_FORMAT;
+    auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
 
 // /**
 //  * @tc.name: SetScreenCorrectionTest001
