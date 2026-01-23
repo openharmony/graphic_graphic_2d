@@ -42,18 +42,19 @@ public:
         uint64_t nodeId, const ColorPickerParam& params) override;
 
 private:
-struct ColorPickerInfo {
+    struct ColorPickerInfo {
         std::shared_ptr<Drawing::ColorSpace> colorSpace_;
         Drawing::BitmapFormat bitmapFormat_;
         Drawing::BackendTexture backendTexture_;
+        std::shared_ptr<Drawing::Image> oldImage_;
         NodeId nodeId_;
         std::weak_ptr<RSColorPickerManager> manager_;
         ColorPickStrategyType strategy_;
 
         ColorPickerInfo(std::shared_ptr<Drawing::ColorSpace> colorSpace, Drawing::BitmapFormat bitmapFormat,
-            Drawing::BackendTexture backendTexture, NodeId nodeId, std::weak_ptr<RSColorPickerManager> manager,
-            ColorPickStrategyType strategy)
-            : colorSpace_(colorSpace), bitmapFormat_(bitmapFormat), backendTexture_(backendTexture),
+            Drawing::BackendTexture backendTexture, std::shared_ptr<Drawing::Image> image, NodeId nodeId,
+            std::weak_ptr<RSColorPickerManager> manager, ColorPickStrategyType strategy)
+            : colorSpace_(colorSpace), bitmapFormat_(bitmapFormat), backendTexture_(backendTexture), oldImage_(image),
               nodeId_(nodeId), manager_(manager), strategy_(strategy) {}
 
         static void PickColor(void* context)
@@ -76,8 +77,8 @@ struct ColorPickerInfo {
 #else
                 std::shared_ptr<Drawing::GPUContext> gpuCtx = nullptr;
 #endif
-                if (gpuCtx == nullptr) {
-                    RS_LOGE("ColorPickerInfo::PickColor GPUContext nullptr");
+                if (gpuCtx == nullptr || info->oldImage_ == nullptr) {
+                    RS_LOGE("ColorPickerInfo::PickColor param invalid");
                     return;
                 }
                 auto image = std::make_shared<Drawing::Image>();
@@ -88,6 +89,8 @@ struct ColorPickerInfo {
                     return;
                 }
                 manager->PickColor(image, info->nodeId_, info->strategy_);
+                image = nullptr;
+                info->oldImage_ = nullptr;
             };
             RSColorPickerThread::Instance().PostTask(task, 0);
         }

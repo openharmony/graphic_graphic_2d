@@ -92,15 +92,18 @@ void RSColorPickerManager::ScheduleColorPick(
             drawingSurface, snapshot)) {
         return; // accelerated color picker
     }
-
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    auto backendTexture = snapshot->GetBackendTexture(false, &origin);
+    if (!backendTexture.IsValid()) {
+        RS_LOGE("RSColorPickerManager::ScheduleColorPick backendTexture invalid");
+        return;
+    }
     auto weakThis = weak_from_this();
     auto imageInfo = drawingSurface->GetImageInfo();
     auto colorSpace = imageInfo.GetColorSpace();
     Drawing::BitmapFormat bitmapFormat = { imageInfo.GetColorType(), imageInfo.GetAlphaType() };
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    auto backendTexture = snapshot->GetBackendTexture(false, &origin);
     ColorPickerInfo* colorPickerInfo =
-        new ColorPickerInfo(colorSpace, bitmapFormat, backendTexture, nodeId, weakThis, strategy);
+        new ColorPickerInfo(colorSpace, bitmapFormat, backendTexture, snapshot, nodeId, weakThis, strategy);
 
     Drawing::FlushInfo drawingFlushInfo;
     drawingFlushInfo.backendSurfaceAccess = true;

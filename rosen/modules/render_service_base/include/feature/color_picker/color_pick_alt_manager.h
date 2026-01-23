@@ -41,13 +41,15 @@ private:
         std::shared_ptr<Drawing::ColorSpace> colorSpace_;
         Drawing::BitmapFormat bitmapFormat_;
         Drawing::BackendTexture backendTexture_;
+        std::shared_ptr<Drawing::Image> oldImage_;
         NodeId nodeId_;
         std::weak_ptr<ColorPickAltManager> manager_;
 
         ColorPickerInfo(std::shared_ptr<Drawing::ColorSpace> colorSpace, Drawing::BitmapFormat bitmapFormat,
-            Drawing::BackendTexture backendTexture, NodeId nodeId, std::weak_ptr<ColorPickAltManager> manager)
-            : colorSpace_(colorSpace), bitmapFormat_(bitmapFormat), backendTexture_(backendTexture), nodeId_(nodeId),
-              manager_(manager) {}
+            Drawing::BackendTexture backendTexture, std::shared_ptr<Drawing::Image> image, NodeId nodeId,
+            std::weak_ptr<ColorPickAltManager> manager)
+            : colorSpace_(colorSpace), bitmapFormat_(bitmapFormat), backendTexture_(backendTexture), oldImage_(image),
+              nodeId_(nodeId), manager_(manager) {}
 
         static void PickColor(void* context)
         {
@@ -69,8 +71,8 @@ private:
 #else
                 std::shared_ptr<Drawing::GPUContext> gpuCtx = nullptr;
 #endif
-                if (gpuCtx == nullptr) {
-                    RS_LOGE("ColorPickerInfo::PickColor GPUContext nullptr");
+                if (gpuCtx == nullptr || info->oldImage_ == nullptr) {
+                    RS_LOGE("ColorPickerInfo::PickColor param invalid");
                     return;
                 }
                 auto image = std::make_shared<Drawing::Image>();
@@ -86,6 +88,8 @@ private:
                 } else {
                     RS_LOGE("ColorPickAltManager: PickColor failed");
                 }
+                image = nullptr;
+                info->oldImage_ = nullptr;
             };
             RSColorPickerThread::Instance().PostTask(task, 0);
         }
