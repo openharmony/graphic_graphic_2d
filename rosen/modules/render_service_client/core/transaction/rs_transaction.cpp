@@ -48,7 +48,7 @@ void RSTransaction::OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler
             "OpenSyncTransaction syncId:%{public}" PRIu64 ", isInnerProcess:%{public}d", syncId_, isInnerProcess);
         rsTransactionHandler_->FlushImplicitTransaction();
         rsTransactionHandler_->StartSyncTransaction();
-        rsTransactionHandler_->Begin();
+        rsTransactionHandler_->Begin(syncId_);
         isOpenSyncTransaction_ = true;
         transactionCount_ = 0;
         isInnerProcess_ = isInnerProcess;

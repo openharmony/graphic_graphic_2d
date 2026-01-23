@@ -35,6 +35,21 @@ public:
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override {};
 };
 
+// Mock client to track committed transactions
+class MockRenderClient : public RSIRenderClient {
+public:
+    MockRenderClient() = default;
+    ~MockRenderClient() = default;
+
+    void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override
+    {
+        committedTransactions.push_back(transactionData.get());
+    }
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override {};
+
+    std::vector<RSTransactionData*> committedTransactions;
+};
+
 class RSTransactionHandlerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -561,6 +576,116 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction005, TestSize.Level1)
     ASSERT_EQ(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
     transaction->SetRenderServiceClient(renderServiceClient);
+    transaction->Begin();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
+    transaction->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
+    transaction->CommitSyncTransaction(0, timestamp, "abilityName");
+}
+
+/**
+ * @tc.name: CommitSyncTransaction006
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction006, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    transaction->Begin();
+    transaction->Begin();
+    transaction->CommitSyncTransaction(0, timestamp, "abilityName");
+    EXPECT_EQ(transaction->timestamp_, timestamp);
+}
+
+/**
+ * @tc.name: CommitSyncTransaction007
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction007, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(renderServiceClient, nullptr);
+    transaction->SetRenderThreadClient(renderThreadClient);
+    transaction->SetRenderServiceClient(renderServiceClient);
+    transaction->Begin();
+    transaction->Begin();
+    transaction->CommitSyncTransaction(0, timestamp, "abilityName");
+}
+
+/**
+ * @tc.name: CommitSyncTransaction008
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction008, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(renderServiceClient, nullptr);
+    transaction->SetRenderThreadClient(renderThreadClient);
+    transaction->SetRenderServiceClient(renderServiceClient);
+    transaction->Begin();
+    transaction->Begin();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
+    transaction->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
+    transaction->CommitSyncTransaction(0, timestamp, "abilityName");
+}
+
+/**
+ * @tc.name: CommitSyncTransaction09
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction09, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(renderServiceClient, nullptr);
+    transaction->SetRenderThreadClient(renderThreadClient);
+    transaction->SetRenderServiceClient(renderServiceClient);
+    transaction->Begin();
+    transaction->Begin();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
+    transaction->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
+    transaction->CommitSyncTransaction(0, timestamp, "abilityName");
+}
+
+/**
+ * @tc.name: CommitSyncTransaction010
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction010, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient.reset();
+    ASSERT_EQ(renderServiceClient, nullptr);
+    transaction->SetRenderThreadClient(renderThreadClient);
+    transaction->SetRenderServiceClient(renderServiceClient);
+    transaction->Begin();
     transaction->Begin();
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
@@ -1604,6 +1729,280 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction010, TestSize.Level1)
     transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     EXPECT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
     transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack001
+ * @tc.desc: test ProcessSyncTransactionStack with empty stack
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack001, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> emptyStack;
+    transaction->ProcessSyncTransactionStack(emptyStack, mockClient, 0, 100, 1234, "testAbility");
+
+    EXPECT_EQ(mockClient.committedTransactions.size(), 0);
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack002
+ * @tc.desc: test ProcessSyncTransactionStack with single element stack (no flip)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack002, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> singleStack;
+    singleStack.emplace(std::make_unique<RSTransactionData>());
+
+    transaction->ProcessSyncTransactionStack(singleStack, mockClient, 1, 100, 1234, "testAbility");
+
+    // Empty element should not be committed
+    EXPECT_EQ(mockClient.committedTransactions.size(), 0);
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack003
+ * @tc.desc: test ProcessSyncTransactionStack with single non-empty element
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack003, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> singleStack;
+    auto data = std::make_unique<RSTransactionData>();
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    data->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    singleStack.emplace(std::move(data));
+
+    transaction->ProcessSyncTransactionStack(singleStack, mockClient, 1, 100, 1234, "testAbility");
+
+    EXPECT_EQ(mockClient.committedTransactions.size(), 1);
+    EXPECT_EQ(mockClient.committedTransactions[0]->tid_, 1234);
+    EXPECT_EQ(mockClient.committedTransactions[0]->abilityName_, "testAbility");
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack004
+ * @tc.desc: test ProcessSyncTransactionStack with single element marked as NeedSync
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack004, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> singleStack;
+    auto data = std::make_unique<RSTransactionData>();
+    data->MarkNeedSync();
+    singleStack.emplace(std::move(data));
+
+    transaction->ProcessSyncTransactionStack(singleStack, mockClient, 2, 100, 1234, "testAbility");
+
+    EXPECT_EQ(mockClient.committedTransactions.size(), 1);
+    EXPECT_EQ(mockClient.committedTransactions[0]->tid_, 1234);
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack005
+ * @tc.desc: test ProcessSyncTransactionStack with multiple elements (FIFO order)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack005, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> multiStack;
+    // Push elements in order: first, second, third
+    for (int i = 1; i <= 3; i++) {
+        auto data = std::make_unique<RSTransactionData>();
+        NodeId nodeId = i;
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSAnimationCallback>(nodeId, i, i, AnimationCallbackEvent::FINISHED);
+        data->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+        multiStack.emplace(std::move(data));
+    }
+
+    transaction->ProcessSyncTransactionStack(multiStack, mockClient, 3, 100, 1234, "testAbility");
+
+    // All 3 elements should be committed in FIFO order
+    EXPECT_EQ(mockClient.committedTransactions.size(), 3);
+    // Verify they were processed in FIFO (first-in first-out) order
+    for (size_t i = 0; i < mockClient.committedTransactions.size(); i++) {
+        EXPECT_EQ(mockClient.committedTransactions[i]->tid_, 1234);
+    }
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack006
+ * @tc.desc: test ProcessSyncTransactionStack with multiple elements, some empty
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack006, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> multiStack;
+    // Push: empty, non-empty, empty
+    multiStack.emplace(std::make_unique<RSTransactionData>());
+
+    auto data1 = std::make_unique<RSTransactionData>();
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    data1->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    multiStack.emplace(std::move(data1));
+
+    multiStack.emplace(std::make_unique<RSTransactionData>());
+
+    transaction->ProcessSyncTransactionStack(multiStack, mockClient, 4, 100, 1234, "testAbility");
+
+    // Only non-empty elements should be committed
+    EXPECT_EQ(mockClient.committedTransactions.size(), 1);
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack007
+ * @tc.desc: test ProcessSyncTransactionStack with multiple elements, some marked NeedSync
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack007, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> multiStack;
+    // Push: empty, needSync, non-empty
+    multiStack.emplace(std::make_unique<RSTransactionData>());
+
+    auto data1 = std::make_unique<RSTransactionData>();
+    data1->MarkNeedSync();
+    multiStack.emplace(std::move(data1));
+
+    auto data2 = std::make_unique<RSTransactionData>();
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    data2->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    multiStack.emplace(std::move(data2));
+
+    transaction->ProcessSyncTransactionStack(multiStack, mockClient, 5, 100, 1234, "testAbility");
+
+    // Both needSync and non-empty should be committed
+    EXPECT_EQ(mockClient.committedTransactions.size(), 2);
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack008
+ * @tc.desc: test ProcessSyncTransactionStack with empty ability name
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack008, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> singleStack;
+    auto data = std::make_unique<RSTransactionData>();
+    data->MarkNeedSync();
+    singleStack.emplace(std::move(data));
+
+    transaction->ProcessSyncTransactionStack(singleStack, mockClient, 6, 100, 1234, "");
+
+    EXPECT_EQ(mockClient.committedTransactions.size(), 1);
+    EXPECT_EQ(mockClient.committedTransactions[0]->abilityName_, "");
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack009
+ * @tc.desc: test ProcessSyncTransactionStack verifies stack is emptied after processing
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack009, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> multiStack;
+    for (int i = 0; i < 3; i++) {
+        auto data = std::make_unique<RSTransactionData>();
+        data->MarkNeedSync();
+        multiStack.emplace(std::move(data));
+    }
+
+    EXPECT_EQ(multiStack.size(), 3);
+
+    transaction->ProcessSyncTransactionStack(multiStack, mockClient, 7, 100, 1234, "test");
+
+    EXPECT_TRUE(multiStack.empty());
+    EXPECT_EQ(mockClient.committedTransactions.size(), 3);
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack010
+ * @tc.desc: test ProcessSyncTransactionStack with large number of elements
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack010, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> largeStack;
+    for (int i = 0; i < 10; i++) {
+        auto data = std::make_unique<RSTransactionData>();
+        data->MarkNeedSync();
+        largeStack.emplace(std::move(data));
+    }
+
+    transaction->ProcessSyncTransactionStack(largeStack, mockClient, 8, 100, 1234, "test");
+
+    EXPECT_EQ(mockClient.committedTransactions.size(), 10);
+    EXPECT_TRUE(largeStack.empty());
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionStack011
+ * @tc.desc: test ProcessSyncTransactionStack with all empty elements
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, ProcessSyncTransactionStack011, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    MockRenderClient mockClient;
+
+    std::stack<std::unique_ptr<RSTransactionData>> multiStack;
+    for (int i = 0; i < 3; i++) {
+        multiStack.emplace(std::make_unique<RSTransactionData>());
+    }
+
+    transaction->ProcessSyncTransactionStack(multiStack, mockClient, 9, 100, 1234, "test");
+
+    // No elements should be committed if all are empty and none need sync
+    EXPECT_EQ(mockClient.committedTransactions.size(), 0);
+    EXPECT_TRUE(multiStack.empty());
 }
 
 /**
