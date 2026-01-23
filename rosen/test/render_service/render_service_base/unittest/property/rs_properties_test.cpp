@@ -3414,6 +3414,22 @@ HWTEST_F(RSPropertiesTest, SetColorBlendMode001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InternalSetSDFShape001
+ * @tc.desc: test results of InternalSetSDFShape
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, InternalSetSDFShape001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.InternalSetSDFShape(nullptr);
+    ASSERT_EQ(properties.renderSDFShape_, nullptr);
+    auto sdfShape = std::make_shared<RSNGRenderSDFRRectShape>();
+    properties.InternalSetSDFShape(sdfShape);
+    ASSERT_NE(properties.renderSDFShape_, nullptr);
+}
+
+/**
  * @tc.name: SetSDFShape001
  * @tc.desc: test results of SetSDFShape
  * @tc.type:FUNC
