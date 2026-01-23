@@ -138,6 +138,7 @@ std::string FontMetaDataCollector::GetFirstAvailableString(const std::shared_ptr
 {
     const hb_ot_name_id_t hbNameId = OtNameIdMapper::ToHarfBuzzNameId(nameId);
     if (typeface == nullptr) {
+        LOGD("Drawing_Text [GetFirstAvailableString] typeface is nullptr!");
         return "";
     }
 #ifdef CURRENT_OS_MAC
