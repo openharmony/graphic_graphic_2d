@@ -50,9 +50,9 @@ bool PropertiesTest::IsForegroundFilter(RSProperties& properties)
 {
     bool isUniRender = RSProperties::IS_UNI_RENDER;
     if (isUniRender) {
-        return properties.GetEffect().foregroundFilterCache_ != nullptr;
+        return properties.foregroundFilterCache_ != nullptr;
     } else {
-        return properties.GetEffect().foregroundFilter_ != nullptr;
+        return properties.foregroundFilter_ != nullptr;
     }
 }
 
@@ -143,15 +143,15 @@ HWTEST_F(PropertiesTest, CreateFilterCacheManagerIfNeedTest, TestSize.Level1)
     RSProperties properties;
     properties.CreateFilterCacheManagerIfNeed();
 
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
     properties.CreateFilterCacheManagerIfNeed();
 
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     properties.CreateFilterCacheManagerIfNeed();
-    EXPECT_TRUE(properties.GetEffect().filter_ != nullptr);
+    EXPECT_TRUE(properties.filter_ != nullptr);
 
     properties.CreateFilterCacheManagerIfNeed();
-    EXPECT_TRUE(properties.GetEffect().filter_ != nullptr);
+    EXPECT_TRUE(properties.filter_ != nullptr);
 }
 #endif
 
@@ -201,13 +201,13 @@ HWTEST_F(PropertiesTest, OnApplyModifiersTest, TestSize.Level1)
 
     properties.GetEffect().shadow_ = std::make_optional<RSShadow>();
     properties.GetEffect().shadow_->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     properties.GetEffect().foregroundEffectRadius_ = 1.f;
     Vector2f scaleAnchor = Vector2f(0.f, 0.f);
     properties.GetEffect().motionBlurPara_ = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     properties.OnApplyModifiers();
-    EXPECT_TRUE(properties.GetEffect().filter_ != nullptr);
+    EXPECT_TRUE(properties.filter_ != nullptr);
 
     properties.geoDirty_ = true;
     properties.frameGeo_.SetX(INFINITY);
@@ -237,36 +237,36 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
 
     properties.GetEffect().foregroundEffectRadius_ = 0.1f;
     properties.UpdateFilter();
-    EXPECT_FALSE(properties.GetEffect().foregroundFilter_);
+    EXPECT_FALSE(properties.foregroundFilter_);
 
     properties.GetEffect().foregroundEffectRadius_ = -0.1f;
     properties.GetEffect().isSpherizeValid_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.GetEffect().foregroundFilter_);
+    EXPECT_TRUE(properties.foregroundFilter_);
 
     properties.GetEffect().isSpherizeValid_ = false;
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.GetEffect().foregroundFilter_);
+    EXPECT_TRUE(properties.foregroundFilter_);
 
     properties.GetEffect().foregroundEffectRadius_ = -0.1f;
     properties.GetEffect().isAttractionValid_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.GetEffect().foregroundFilter_);
+    EXPECT_TRUE(properties.foregroundFilter_);
 
     properties.GetEffect().isAttractionValid_ = false;
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.GetEffect().foregroundFilter_);
+    EXPECT_TRUE(properties.foregroundFilter_);
 
     properties.GetEffect().shadow_->imageMask_ = false;
     properties.UpdateFilter();
-    EXPECT_TRUE(!properties.GetEffect().foregroundFilter_);
+    EXPECT_TRUE(!properties.foregroundFilter_);
 
     Vector2f scaleAnchor = Vector2f(0.f, 0.f);
     properties.GetEffect().motionBlurPara_ = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.GetEffect().foregroundFilter_);
+    EXPECT_TRUE(properties.foregroundFilter_);
 
     uint32_t flyMode = 0;
     RSFlyOutPara rs_fly_out_param = {
@@ -276,17 +276,17 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.GetEffect().foregroundEffectRadius_ = -0.1f;
     properties.GetEffect().flyOutDegree_ = 0.5;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.GetEffect().foregroundFilter_);
+    EXPECT_TRUE(properties.foregroundFilter_);
 
     properties.GetEffect().flyOutDegree_ = 0.5;
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.GetEffect().foregroundFilter_);
+    EXPECT_TRUE(properties.foregroundFilter_);
 
     properties.GetEffect().distortionK_ = 0.7;
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.GetEffect().foregroundFilter_);
+    EXPECT_TRUE(properties.foregroundFilter_);
 }
 
 /**
@@ -301,9 +301,9 @@ HWTEST_F(PropertiesTest, UpdateForegroundFilterTest, TestSize.Level1)
     properties.UpdateForegroundFilter();
     bool isUniRender = RSProperties::IS_UNI_RENDER;
     if (isUniRender) {
-        EXPECT_FALSE(properties.GetEffect().foregroundFilterCache_ == nullptr);
+        EXPECT_FALSE(properties.foregroundFilterCache_ == nullptr);
     } else {
-        EXPECT_FALSE(properties.GetEffect().foregroundFilter_ == nullptr);
+        EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
     }
 }
 
@@ -471,13 +471,13 @@ HWTEST_F(PropertiesTest, GetFgBrightnessDescriptionTest, TestSize.Level1)
 HWTEST_F(PropertiesTest, GetBgBrightnessDescriptionTest, TestSize.Level1)
 {
     RSProperties properties;
-    properties.GetEffect().bgBrightnessParams_ = std::nullopt;
+    properties.bgBrightnessParams_ = std::nullopt;
     properties.GetBgBrightnessDescription();
 
     RSDynamicBrightnessPara value;
-    properties.GetEffect().bgBrightnessParams_ = value;
+    properties.bgBrightnessParams_ = value;
     properties.GetBgBrightnessDescription();
-    EXPECT_TRUE(properties.GetEffect().bgBrightnessParams_ != std::nullopt);
+    EXPECT_TRUE(properties.bgBrightnessParams_ != std::nullopt);
 }
 
 /**
@@ -537,9 +537,9 @@ HWTEST_F(PropertiesTest, CreateHDRUIBrightnessFilterTest, TestSize.Level1)
     properties.CreateHDRUIBrightnessFilter();
     bool isUniRender = RSProperties::IS_UNI_RENDER;
     if (isUniRender) {
-        EXPECT_FALSE(properties.GetEffect().foregroundFilterCache_ == nullptr);
+        EXPECT_FALSE(properties.foregroundFilterCache_ == nullptr);
     } else {
-        EXPECT_FALSE(properties.GetEffect().foregroundFilter_ == nullptr);
+        EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
     }
 }
 
@@ -1336,13 +1336,13 @@ HWTEST_F(PropertiesTest, SetAlwaysSnapshotTest, TestSize.Level1)
 {
     RSProperties properties;
     properties.GenerateBackgroundFilter();
-    EXPECT_EQ(properties.GetEffect().backgroundFilter_, nullptr);
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
 
     properties.SetAlwaysSnapshot(true);
     EXPECT_EQ(properties.GetAlwaysSnapshot(), true);
     properties.GenerateBackgroundFilter();
-    ASSERT_NE(properties.GetEffect().backgroundFilter_, nullptr);
-    EXPECT_EQ(properties.GetEffect().backgroundFilter_->GetFilterType(), RSFilter::ALWAYS_SNAPSHOT);
+    ASSERT_NE(properties.backgroundFilter_, nullptr);
+    EXPECT_EQ(properties.backgroundFilter_->GetFilterType(), RSFilter::ALWAYS_SNAPSHOT);
 }
 
 /**
@@ -1354,8 +1354,8 @@ HWTEST_F(PropertiesTest,  GenerateAlwaysSnapshotFilterTest, TestSize.Level1)
 {
     RSProperties properties;
     properties.GenerateAlwaysSnapshotFilter();
-    ASSERT_NE(properties.GetEffect().backgroundFilter_, nullptr);
-    EXPECT_EQ(properties.GetEffect().backgroundFilter_->GetFilterType(), RSFilter::ALWAYS_SNAPSHOT);
+    ASSERT_NE(properties.backgroundFilter_, nullptr);
+    EXPECT_EQ(properties.backgroundFilter_->GetFilterType(), RSFilter::ALWAYS_SNAPSHOT);
 }
 
 /**
@@ -1398,7 +1398,7 @@ HWTEST_F(PropertiesTest,  UpdateForegroundFilterTest_RenderFilter001, TestSize.L
     RSProperties properties;
     properties.SetForegroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
     properties.UpdateForegroundFilter();
-    EXPECT_FALSE(properties.GetEffect().foregroundFilter_ == nullptr);
+    EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
 }
 
 /**
