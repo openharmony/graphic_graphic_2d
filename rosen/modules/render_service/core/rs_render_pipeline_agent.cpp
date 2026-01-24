@@ -27,6 +27,7 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #ifdef RS_ENABLE_GPU
+#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -1117,7 +1118,15 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
 #ifdef RS_ENABLE_GPU
-    node->GetRSSurfaceHandler()->EnableGPUCacheCleanupOnDelete();
+    // Use GPUCacheManager to register buffer delete callback (avoids circular reference)
+    auto renderEngine = rsRenderPipeline_->GetUniRenderThread()->GetRenderEngine();
+    if (renderEngine) {
+        auto gpuCacheManager = renderEngine->GetGPUCacheManager();
+        if (gpuCacheManager) {
+            node->GetRSSurfaceHandler()->RegisterDeleteBufferListener(
+                gpuCacheManager->CreateBufferDeleteCallback());
+        }
+    }
 #endif
     std::function<void()> registerNode = [node, renderPipeline = rsRenderPipeline_]() -> void {
         if (auto preNode = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(node->GetId())) {

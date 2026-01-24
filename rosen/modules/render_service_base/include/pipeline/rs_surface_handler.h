@@ -56,7 +56,7 @@ using GPUCacheCleanupCallback = std::function<void(const std::set<uint64_t>&)>;
 using ConsumerDeleteBufferListenerCallback = std::function<void(const sptr<IConsumerSurface>&)>;
 #endif
 
-class RSB_EXPORT RSSurfaceHandler : public std::enable_shared_from_this<RSSurfaceHandler> {
+class RSB_EXPORT RSSurfaceHandler {
 public:
     // indicates which node this handler belongs to.
     explicit RSSurfaceHandler(NodeId id) : id_(id) {}
@@ -498,19 +498,6 @@ public:
             buffer_.RegisterDeleteBufferListener(bufferDeleteCb);
             preBuffer_.RegisterDeleteBufferListener(bufferDeleteCb);
         }
-    }
-
-    /**
-     * @brief Enable automatic GPU cache cleanup when buffer is deleted.
-     */
-    void EnableGPUCacheCleanupOnDelete()
-    {
-        std::weak_ptr<RSSurfaceHandler> weakThis = weak_from_this();
-        RegisterDeleteBufferListener([weakThis](uint64_t bufferId) {
-            if (auto handler = weakThis.lock()) {
-                handler->AddGPUCacheToCleanupSet(bufferId);
-            }
-        });
     }
 
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);

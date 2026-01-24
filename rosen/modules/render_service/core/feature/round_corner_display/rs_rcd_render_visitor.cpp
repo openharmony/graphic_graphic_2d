@@ -71,7 +71,8 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     return true;
 }
 
-void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged)
+void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(
+    RSRcdSurfaceRenderNode& node, bool resourceChanged)
 {
     if (uniProcessor_ == nullptr || node.IsInvalidSurface() || resourceChanged) {
         RS_LOGE("RSRcdRenderVisitor RSProcessor null, node invalid, resource changed %{public}d %{public}d %{public}d",
@@ -89,7 +90,8 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRende
 }
 
 bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
-    RSRcdSurfaceRenderNode &node, const std::shared_ptr<rs_rcd::RoundCornerLayer> &layerInfo, bool resourceChanged)
+    RSRcdSurfaceRenderNode& node, const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo,
+    bool resourceChanged)
 {
     std::lock_guard<std::mutex> lock(bufferMut_);
     if (uniProcessor_ == nullptr || node.IsInvalidSurface() || renderEngine_ == nullptr) {
@@ -105,14 +107,8 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
         return true;
     }
 
-    // Get shared_ptr for listener creation
-    // Node is managed by shared_ptr (created via std::make_shared) and
-    // bottomPtr/topPtr hold the reference during function execution.
-    // Use RSRenderNode::shared_from_this() to avoid ambiguity from multiple inheritance.
-    RSRcdSurfaceRenderNode::SharedPtr surfaceNodePtr =
-        std::static_pointer_cast<RSRcdSurfaceRenderNode>(node.RSRenderNode::shared_from_this());
-
-    if (!node.IsSurfaceCreated()) {
+    auto surfaceNodePtr = node.ReinterpretCastTo<RSRcdSurfaceRenderNode>();
+    if (surfaceNodePtr == nullptr || (!node.IsSurfaceCreated())) {
         sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNodePtr);
         if (listener == nullptr || (!node.CreateSurface(listener))) {
             RS_LOGE("RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode CreateSurface failed");

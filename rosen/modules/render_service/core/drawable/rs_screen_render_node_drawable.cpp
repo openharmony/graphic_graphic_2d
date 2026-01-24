@@ -50,6 +50,9 @@
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#ifdef RS_ENABLE_GPU
+#include "feature/gpuComposition/rs_gpu_cache_manager.h"
+#endif
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -1121,7 +1124,14 @@ bool RSScreenRenderNodeDrawable::CreateSurface(sptr<IBufferConsumerListener> lis
     surfaceCreated_ = true;
     surfaceHandler_->SetConsumer(consumer);
 #ifdef RS_ENABLE_GPU
-    surfaceHandler_->EnableGPUCacheCleanupOnDelete();
+    // Use GPUCacheManager to register buffer delete callback (avoids circular reference)
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (renderEngine) {
+        auto gpuCacheManager = renderEngine->GetGPUCacheManager();
+        if (gpuCacheManager) {
+            surfaceHandler_->RegisterDeleteBufferListener(gpuCacheManager->CreateBufferDeleteCallback());
+        }
+    }
 #endif
     return true;
 }

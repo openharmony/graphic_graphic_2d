@@ -227,45 +227,17 @@ void RSRcdRenderManager::DrawRoundCorner(RSPaintFilterCanvas& canvas, const std:
 void RSRcdRenderManager::DoProcessRenderTask(NodeId id, const RcdProcessInfo& info)
 {
     RS_TRACE_BEGIN("RSUniRender:DoRCDProcessTask");
-
-    // Check if UniRenderThread is ready (defensive check)
-    if (!RSUniRenderThread::Instance().IsMainLooping()) {
-        RS_LOGW("RCD: UniRenderThread not ready, skip RCD rendering");
-        RS_TRACE_END();
-        return;
-    }
-
-    // Check RenderEngine availability
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (renderEngine == nullptr) {
-        RS_LOGW("RCD: RenderEngine not initialized, skip RCD rendering");
-        RS_TRACE_END();
-        return;
-    }
-
     if (!IsRcdProcessInfoValid(info)) {
         RS_LOGE("RCD: RcdProcessInfo is incorrect");
         RS_TRACE_END();
         return;
     }
-
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
     visitor->SetUniProcessor(info.uniProcessor);
     RSRcdSurfaceRenderNodePtr bottomPtr = GetBottomRenderNode(id);
     RSRcdSurfaceRenderNodePtr topPtr = GetTopRenderNode(id);
-
-    // Validate node pointers before dereferencing
-    if (bottomPtr == nullptr || topPtr == nullptr) {
-        RS_LOGE("RCD: Failed to get RCD render nodes (bottom=%{public}s, top=%{public}s)",
-            bottomPtr == nullptr ? "null" : "valid",
-            topPtr == nullptr ? "null" : "valid");
-        RS_TRACE_END();
-        return;
-    }
-
     bottomPtr->SetRenderDisplayRect(info.displayRect);
     topPtr->SetRenderDisplayRect(info.displayRect);
-
     auto bottomRes = visitor->ProcessRcdSurfaceRenderNode(*bottomPtr, info.bottomLayer,
         info.resourceChanged);
     auto topRes = visitor->ProcessRcdSurfaceRenderNode(*topPtr, info.topLayer, info.resourceChanged);
