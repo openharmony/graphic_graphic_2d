@@ -552,6 +552,9 @@ ohos_shared_library("librender_service") {
       && defined(graphic_2d_hetero_hdr_configs)) {
     external_deps += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_external_deps
   }
+  if (graphic_2d_feature_mhc_enable) {
+    external_deps += [ "mhc_client:libmhc_client" ]
+  }
 
   if (defined(ddgr_ext_configs)) {
     libs = ddgr_ext_configs.ddgr_libs

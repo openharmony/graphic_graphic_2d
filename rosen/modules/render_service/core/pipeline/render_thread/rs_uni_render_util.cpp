@@ -57,6 +57,10 @@
 #include "rs_hetero_hdr_util.h"
 #endif
 
+#ifdef MHC_ENABLE
+#include "rs_mhc_manager.h"
+#endif
+
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
@@ -1108,6 +1112,9 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
         RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
 #endif
+#ifdef MHC_ENABLE
+        bool pendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface);
+#endif
         Drawing::FlushInfo drawingFlushInfo;
         drawingFlushInfo.backendSurfaceAccess = true;
         drawingFlushInfo.numSemaphores = semaphoreVec.size();
@@ -1119,6 +1126,11 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
 #ifdef HETERO_HDR_ENABLE
         RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);
+#endif
+#ifdef MHC_ENABLE
+        if (pendingSubmit) {
+            RSMhcManager::Instance().MHCSubmitTask();
+        }
 #endif
     } else {
         surface->FlushAndSubmit(true);

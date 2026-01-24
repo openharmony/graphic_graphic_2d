@@ -246,6 +246,7 @@ private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
     void Inittcache();
+    void InitMhc();
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
     void CollectReleaseTasks(std::map<ScreenId, std::vector<std::function<void()>>>& releaseTasks);
