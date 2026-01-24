@@ -15,6 +15,7 @@
 
 #include "hdi_device_impl.h"
 #include "hdi_log.h"
+#include <cinttypes>
 #include <cstddef>
 #include <cstdlib>
 #include <mutex>
@@ -135,7 +136,7 @@ int32_t HdiDeviceImpl::SetScreenConstraint(uint32_t screenId, uint64_t frameId, 
 
 int32_t HdiDeviceImpl::SetDisplayProperty(uint32_t screenId, uint32_t propertyId, uint64_t propertyValue)
 {
-    HLOGI("SetDisplayProperty, screenId:%{public}u, propertyId:%{public}u, propertyValue:%{public}llu",
+    HLOGI("SetDisplayProperty, screenId:%{public}u, propertyId:%{public}u, propertyValue:%{public}" PRIu64 "",
           screenId, propertyId, propertyValue);
     CHECK_FUNC(g_composer);
     return g_composer->SetDisplayProperty(screenId, propertyId, propertyValue);

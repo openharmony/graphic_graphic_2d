@@ -47,6 +47,7 @@ void HdiScreenSysTest::SetUpTestCase()
     EXPECT_CALL(*mockDevice_, SetScreenPowerStatus(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenBacklight(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenBacklight(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetDisplayProperty(_, _, _)).WillRepeatedly(testing::Return(0));
 
     hdiScreen_->SetHdiDevice(mockDevice_);
 }
@@ -85,6 +86,8 @@ HWTEST_F(HdiScreenSysTest, TestHdiScreen001, Function | MediumTest| Level3)
     uint32_t level = 0;
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->SetScreenBacklight(level), 0);
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenBacklight(level), 0);
+    uint64_t propertyValue = 0;
+    ASSERT_EQ(HdiScreenSysTest::hdiScreen_->SetDisplayProperty(propertyValue), 0);
 }
 } // namespace
 } // namespace Rosen
