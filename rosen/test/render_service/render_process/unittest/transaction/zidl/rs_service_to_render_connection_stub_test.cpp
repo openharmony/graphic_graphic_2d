@@ -413,7 +413,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSurfaceOcclusionChangeCa
  * @tc.name: HgmForceUpdateTaskTest
  * @tc.desc: Test HgmForceUpdateTask
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, HgmForceUpdateTaskTest, TestSize.Level1)
 {
