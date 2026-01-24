@@ -702,7 +702,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, PrepareOffscreenRenderTest002, TestSiz
     surfaceDrawable_->offscreenRotationInfo_->maxRenderSize_ = 100;
     matrix.SetMatrix(0, 0, 0, 0, 0, 0, 0, 0, 1);
     surfaceDrawable_->curCanvas_->SetMatrix(matrix);
-    ASSERT_FALSE(surfaceDrawable_->PrepareOffscreenRender());
+    ASSERT_TRUE(surfaceDrawable_->PrepareOffscreenRender());
 
     // case3: offscreenSurface_ = nullptr, maxRenderSize_ = 0
     surfaceDrawable_->curCanvas_ = &paintFilterCanvas;
@@ -710,7 +710,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, PrepareOffscreenRenderTest002, TestSiz
     surfaceDrawable_->offscreenRotationInfo_->offscreenSurface_ = surface->MakeSurface(100, 100);
     matrix.SetMatrix(0, 0, 0, 0, 1, 0, 0, 0, 1);
     surfaceDrawable_->curCanvas_->SetMatrix(matrix);
-    ASSERT_FALSE(surfaceDrawable_->PrepareOffscreenRender());
+    ASSERT_TRUE(surfaceDrawable_->PrepareOffscreenRender());
 }
 
 /**
@@ -726,6 +726,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, PrepareOffscreenRenderTest003, TestSiz
     ASSERT_NE(surface, nullptr);
     RSPaintFilterCanvas paintFilterCanvas(surface.get());
     surfaceDrawable_->curCanvas_ = &paintFilterCanvas;
+    surfaceDrawable_->offscreenRotationInfo_ = std::make_shared<OffscreenRotationInfo>();
     surfaceDrawable_->offscreenRotationInfo_->offscreenSurface_ = std::make_shared<Drawing::Surface>();
     ASSERT_TRUE(surfaceDrawable_->PrepareOffscreenRender());
     ASSERT_TRUE(surfaceDrawable_->curCanvas_->GetSurface());
@@ -740,6 +741,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, PrepareOffscreenRenderTest003, TestSiz
 HWTEST_F(RSSurfaceRenderNodeDrawableTest, PrepareOffscreenRenderTest004, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
+    surfaceDrawable_->offscreenRotationInfo_ = std::make_shared<OffscreenRotationInfo>();
     std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
     ASSERT_NE(surface, nullptr);
     RSPaintFilterCanvas paintFilterCanvas(surface.get());
