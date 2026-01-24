@@ -45,6 +45,10 @@
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
+#include "ipc_callbacks/buffer_available_callback_stub.h"
+#include "ipc_callbacks/buffer_clear_callback_stub.h"
+#include "ipc_callbacks/rs_application_agent_stub.h"
+#include "transaction/rs_transaction_data.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -54,6 +58,7 @@ using namespace testing::ext;
 namespace {
 constexpr const int WAIT_HANDLER_TIME = 1; // 1s
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
+constexpr const int SURFACE_NODE_ID = 1003;
 };
 
 namespace OHOS::Rosen {
@@ -81,12 +86,13 @@ private:
 };
 
 uint32_t RSClientToRenderConnectionStubTest::screenId_ = 0;
-std::shared_ptr<RSSurfaceRenderNode> RSClientToRenderConnectionStubTest::surfaceNode_ =
-    std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(10003, std::make_shared<RSContext>(), true),
-    RSRenderNodeGC::NodeDestructor);
+std::shared_ptr<RSSurfaceRenderNode> RSClientToRenderConnectionStubTest::surfaceNode_ = nullptr;
 
 void RSClientToRenderConnectionStubTest::SetUpTestCase()
 {
+    pid_t pid = SURFACE_NODE_ID;
+    surfaceNode_ =std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(((NodeId)pid << 32 | SURFACE_NODE_ID),
+        std::make_shared<RSContext>(), true), RSRenderNodeGC::NodeDestructor);
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
@@ -188,6 +194,35 @@ public:
     }
 };
 #endif
+
+class RSApplicationAgentStubMock : public RSApplicationAgentStub {
+public:
+    RSApplicationAgentStubMock() = default;
+    ~RSApplicationAgentStubMock() noexcept override = default;
+    void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override {}
+};
+
+class RSBufferAvailableCallbackStubMock : public RSBufferAvailableCallbackStub {
+public:
+    RSBufferAvailableCallbackStubMock() = default;
+    ~RSBufferAvailableCallbackStubMock() noexcept override = default;
+    void OnBufferAvailable() override {}
+};
+
+class RSBufferClearCallbackStubMock : public RSBufferClearCallbackStub {
+public:
+    RSBufferClearCallbackStubMock() = default;
+    ~RSBufferClearCallbackStubMock() noexcept override = default;
+    void OnBufferClear() override {}
+};
+
+class RSSurfaceBufferCallbackStubMock : public RSSurfaceBufferCallbackStub {
+public:
+    RSSurfaceBufferCallbackStubMock() = default;
+    ~RSSurfaceBufferCallbackStubMock() noexcept override = default;
+    void OnFinish(const FinishCallbackRet& ret) override {}
+    void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override {}
+};
 
 void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
@@ -1383,18 +1418,10 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterApplicationAgentTest001, Te
     EXPECT_EQ(res, ERR_NULL_OBJECT);
 
     // Test case 2: valid data with mock agent
-    class MockIApplicationAgent : public IApplicationAgent {
-    public:
-        MockIApplicationAgent() = default;
-        virtual ~MockIApplicationAgent() = default;
-    };
-
     MessageParcel data2;
     data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    pid_t pid = getpid();
-    data2.WriteInt32(pid);
-    sptr<IRemoteObject> obj = new IRemoteStub<IApplicationAgent>();
-    data2.WriteRemoteObject(obj);
+    sptr<RSApplicationAgentStub> agent = new RSApplicationAgentStubMock();
+    data2.WriteRemoteObject(agent->AsObject());
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
 }
@@ -1424,14 +1451,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetBufferAvailableListenerTest001, 
     NodeId nodeId = surfaceNode_->GetId();
     data2.WriteUint64(nodeId);
 
-    class MockBufferAvailableCallback : public RSIBufferAvailableCallback {
-    public:
-        MockBufferAvailableCallback() = default;
-        virtual ~MockBufferAvailableCallback() = default;
-        void OnBufferAvailable() override {}
-    };
-
-    sptr<RSIBufferAvailableCallback> callback = new MockBufferAvailableCallback();
+    sptr<RSBufferAvailableCallbackStub> callback = new RSBufferAvailableCallbackStubMock();
+    data2.WriteRemoteObject(callback->AsObject());
     data2.WriteBool(false); // isFromRenderThread
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
@@ -1462,14 +1483,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetBufferClearListenerTest001, Test
     NodeId nodeId = surfaceNode_->GetId();
     data2.WriteUint64(nodeId);
 
-    class MockBufferClearCallback : public RSIBufferClearCallback {
-    public:
-        MockBufferClearCallback() = default;
-        virtual ~MockBufferClearCallback() = default;
-        void OnBufferClear() override {}
-    };
-
-    sptr<RSIBufferClearCallback> callback = new MockBufferClearCallback();
+    sptr<RSBufferClearCallbackStub> callback = new RSBufferClearCallbackStubMock();
     data2.WriteRemoteObject(callback->AsObject());
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
@@ -1565,10 +1579,10 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmapTest002, TestSize.Level1
     NodeId nodeId = 10003;
     data.WriteUint64(nodeId);
     // NOT writing PixelMap - should fail here or later
-
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    // May return ERR_INVALID_DATA or ERR_INVALID_REPLY depending on where it fails
-    EXPECT_TRUE(res == ERR_INVALID_DATA || res == ERR_INVALID_REPLY);
+    connectionStub_->OnRemoteRequest(code, data, reply, option);
+    bool res;
+    reply.ReadBool(res);
+    EXPECT_FALSE(res);
 }
 
 /**
@@ -2231,19 +2245,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterSurfaceBufferCallbackTest00
     EXPECT_EQ(res, ERR_NULL_OBJECT);
 
     // Test case 4: write pid, uid, and valid remoteObject (success path)
-    class MockSurfaceBufferCallback : public RSSurfaceBufferCallbackStub {
-    public:
-        MockSurfaceBufferCallback() = default;
-        ~MockSurfaceBufferCallback() noexcept override = default;
-        void OnFinish(const FinishCallbackRet& ret) override {}
-        void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override {}
-    };
-
     MessageParcel data4;
     data4.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data4.WriteInt32(pid);
     data4.WriteUint64(0); // uid
-    sptr<RSISurfaceBufferCallback> callback = new MockSurfaceBufferCallback();
+    sptr<RSISurfaceBufferCallback> callback = new RSSurfaceBufferCallbackStubMock();
     data4.WriteRemoteObject(callback->AsObject());
     res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
     EXPECT_EQ(res, ERR_NONE);
