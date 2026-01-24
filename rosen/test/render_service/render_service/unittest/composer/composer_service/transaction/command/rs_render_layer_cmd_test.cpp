@@ -1171,3 +1171,1595 @@ HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_MetaData_PartialVector, TestSize.Le
     auto out = RSRenderLayerCmd::Unmarshalling(parcel);
     EXPECT_EQ(out, nullptr);
 }
+
+/**
+ * Function: Unmarshall_Fail_BaseCmds_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: For each base command, write type only and verify Unmarshalling fails.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_RSLayerId_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::ID)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_Alpha_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for Alpha; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_Alpha_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::ALPHA)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_Zorder_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for Zorder; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_Zorder_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::ZORDER)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_Type_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for Type; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_Type_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::TYPE)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_Transform_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for Transform; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_Transform_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::TRANSFORM)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_CompositionType_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for CompositionType; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_CompositionType_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::COMPOSITION_TYPE)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_Gravity_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for Gravity; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_Gravity_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::GRAVITY)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_BlendType_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for BlendType; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_BlendType_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::BLEND_TYPE)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_PreMulti_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for PreMulti; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_PreMulti_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::PRE_MULTI)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_UniRenderFlag_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for UniRenderFlag; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_UniRenderFlag_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::UNI_RENDER_FLAG)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_TunnelHandleChange_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for TunnelHandleChange; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_TunnelHandleChange_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::TUNNEL_HANDLE_CHANGE)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_RotationFixed_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for RotationFixed; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_RotationFixed_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::ROTATION_FIXED)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_LayerArsr_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for LayerArsr; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_LayerArsr_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::LAYER_ARSR)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_LayerCopybit_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for LayerCopybit; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_LayerCopybit_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::LAYER_COPYBIT)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_NeedBilinearInterpolation_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for NeedBilinearInterpolation; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_NeedBilinearInterpolation_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::NEED_BILINEAR_INTERPOLATION)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_IsMaskLayer_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for IsMaskLayer; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_IsMaskLayer_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::IS_MASK_LAYER)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_IsNeedComposition_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for IsNeedComposition; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_IsNeedComposition_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::IS_NEED_COMPOSITION)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_UseDeviceOffline_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for UseDeviceOffline; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_UseDeviceOffline_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::USE_DEVICE_OFFLINE)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_IgnoreAlpha_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for IgnoreAlpha; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_IgnoreAlpha_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::IGNORE_ALPHA)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_SdrNit_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for SdrNit; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_SdrNit_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::SDR_NIT)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_DisplayNit_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for DisplayNit; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_DisplayNit_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::DISPLAY_NIT)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_BrightnessRatio_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for BrightnessRatio; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_BrightnessRatio_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::BRIGHTNESS_RATIO)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_NodeId_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for NodeId; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_NodeId_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::NODE_ID)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_TunnelLayerId_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for TunnelLayerId; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_TunnelLayerId_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::TUNNEL_LAYER_ID)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_TunnelLayerProperty_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for TunnelLayerProperty; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_TunnelLayerProperty_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::TUNNEL_LAYER_PROPERTY)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_AncoFlags_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for AncoFlags; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_AncoFlags_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::ANCO_FLAGS)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_LayerSourceTuning_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for LayerSourceTuning; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_LayerSourceTuning_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::LAYER_SOURCE_TUNING)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_CycleBuffersNum_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for CycleBuffersNum; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_CycleBuffersNum_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::CYCLE_BUFFERS_NUM)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_SurfaceUniqueId_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for SurfaceUniqueId; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_SurfaceUniqueId_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::SURFACE_UNIQUE_ID)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_LayerSize_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for LayerSize; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_LayerSize_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::LAYER_SIZE)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_BoundSize_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for BoundSize; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_BoundSize_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::BOUND_SIZE)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_CropRect_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for CropRect; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_CropRect_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::CROP_RECT)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_AncoSrcRect_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for AncoSrcRect; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_AncoSrcRect_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::ANCO_SRC_RECT)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_VisibleRegions_PartialVector
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write VisibleRegions length but omit rect payload; expect nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_VisibleRegions_PartialVector, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::VISIBLE_REGIONS)));
+    ASSERT_TRUE(parcel.WriteUint32(1));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_DirtyRegions_PartialVector
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write DirtyRegions length but omit rect payload; expect nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_DirtyRegions_PartialVector, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::DIRTY_REGIONS)));
+    ASSERT_TRUE(parcel.WriteUint32(1));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_Matrix_PartialPayload
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write partial GraphicMatrix payload; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_Matrix_PartialPayload, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::MATRIX)));
+    ASSERT_TRUE(parcel.WriteFloat(1.0f));
+    ASSERT_TRUE(parcel.WriteFloat(0.0f));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_ColorTransform_PartialVector
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write float vector length then omit values; expect nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_ColorTransform_PartialVector, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::COLOR_TRANSFORM)));
+    ASSERT_TRUE(parcel.WriteUint32(2));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_LayerLinearMatrix_PartialVector
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write float vector length then omit values; expect nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_LayerLinearMatrix_PartialVector, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::LAYER_LINEAR_MATRIX)));
+    ASSERT_TRUE(parcel.WriteUint32(3));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_CornerRadiusInfoForDRM_PartialVector
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write float vector length then omit values; expect nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_CornerRadiusInfoForDRM_PartialVector, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::CORNER_RADIUS_INFO_FOR_DRM)));
+    ASSERT_TRUE(parcel.WriteUint32(1));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_LayerColor_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for LayerColor; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_LayerColor_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::LAYER_COLOR)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_BackgroundColor_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for BackgroundColor; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_BackgroundColor_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::BACKGROUND_COLOR)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_SolidColorLayerProperty_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for SolidColorLayerProperty; expect nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_SolidColorLayerProperty_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::SOLID_COLOR_LAYER_PROPERTY)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_WindowsName_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write WindowsName length but omit string payload; expect nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_WindowsName_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::WINDOWS_NAME)));
+    ASSERT_TRUE(parcel.WriteUint32(1));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_SurfaceName_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for SurfaceName; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_SurfaceName_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::SURFACE_NAME)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_LayerMaskInfo_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for LayerMaskInfo; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_LayerMaskInfo_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::LAYER_MASK_INFO)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Unmarshall_Fail_AcquireFence_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for AcquireFence; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_AcquireFence_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::ACQUIRE_FENCE)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
+ * Function: Marshall_Zorder_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. build Zorder command and marshal into parcel
+ *                  2. verify result
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Zorder_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(5);
+    auto cmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
+
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_RSLayerId_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: RSLayerId command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_RSLayerId_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<uint64_t>>(123u);
+    auto cmd = std::make_shared<RSRenderLayerRSLayerIdCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_Alpha_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Alpha command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Alpha_Fail, TestSize.Level1)
+{
+    GraphicLayerAlpha a{true, true, 0, 255, 128};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerAlpha>>(a);
+    auto cmd = std::make_shared<RSRenderLayerAlphaCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_Type_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Type command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Type_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerType>>(GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+    auto cmd = std::make_shared<RSRenderLayerTypeCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_Transform_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Transform command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Transform_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicTransformType>>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    auto cmd = std::make_shared<RSRenderLayerTransformCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_CompositionType_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: CompositionType command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_CompositionType_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicCompositionType>>(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    auto cmd = std::make_shared<RSRenderLayerCompositionTypeCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_Gravity_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Gravity command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Gravity_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(0);
+    auto cmd = std::make_shared<RSRenderLayerGravityCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_BlendType_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: BlendType command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_BlendType_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicBlendType>>(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
+    auto cmd = std::make_shared<RSRenderLayerBlendTypeCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_PreMulti_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: PreMulti command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_PreMulti_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+    auto cmd = std::make_shared<RSRenderLayerPreMultiCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_UniRenderFlag_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: UniRenderFlag command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_UniRenderFlag_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(false);
+    auto cmd = std::make_shared<RSRenderLayerUniRenderFlagCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_TunnelHandleChange_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: TunnelHandleChange command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_TunnelHandleChange_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(false);
+    auto cmd = std::make_shared<RSRenderLayerTunnelHandleChangeCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_IsSupportedPresentTimestamp_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: IsSupportedPresentTimestamp command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_IsSupportedPresentTimestamp_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+    auto cmd = std::make_shared<RSRenderLayerIsSupportedPresentTimestampCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_RotationFixed_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: RotationFixed command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_RotationFixed_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+    auto cmd = std::make_shared<RSRenderLayerRotationFixedCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_LayerArsr_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: LayerArsr command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_LayerArsr_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(false);
+    auto cmd = std::make_shared<RSRenderLayerLayerArsrCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_LayerCopybit_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: LayerCopybit command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_LayerCopybit_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(false);
+    auto cmd = std::make_shared<RSRenderLayerLayerCopybitCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_NeedBilinearInterpolation_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: NeedBilinearInterpolation command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_NeedBilinearInterpolation_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+    auto cmd = std::make_shared<RSRenderLayerNeedBilinearInterpolationCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_IsMaskLayer_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: IsMaskLayer command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_IsMaskLayer_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(false);
+    auto cmd = std::make_shared<RSRenderLayerIsMaskLayerCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_IsNeedComposition_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: IsNeedComposition command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_IsNeedComposition_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+    auto cmd = std::make_shared<RSRenderLayerIsNeedCompositionCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_UseDeviceOffline_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: UseDeviceOffline command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_UseDeviceOffline_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(false);
+    auto cmd = std::make_shared<RSRenderLayerUseDeviceOfflineCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_IgnoreAlpha_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: IgnoreAlpha command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_IgnoreAlpha_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+    auto cmd = std::make_shared<RSRenderLayerIgnoreAlphaCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+// float commands
+/**
+ * Function: Marshall_SdrNit_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: SdrNit command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_SdrNit_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<float>>(100.0f);
+    auto cmd = std::make_shared<RSRenderLayerSdrNitCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_DisplayNit_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: DisplayNit command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_DisplayNit_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<float>>(200.0f);
+    auto cmd = std::make_shared<RSRenderLayerDisplayNitCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_BrightnessRatio_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: BrightnessRatio command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_BrightnessRatio_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<float>>(0.5f);
+    auto cmd = std::make_shared<RSRenderLayerBrightnessRatioCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_NodeId_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: NodeId command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_NodeId_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<uint64_t>>(1u);
+    auto cmd = std::make_shared<RSRenderLayerNodeIdCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_TunnelLayerId_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: TunnelLayerId command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_TunnelLayerId_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<uint64_t>>(2u);
+    auto cmd = std::make_shared<RSRenderLayerTunnelLayerIdCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_TunnelLayerProperty_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: TunnelLayerProperty command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_TunnelLayerProperty_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<uint32_t>>(0u);
+    auto cmd = std::make_shared<RSRenderLayerTunnelLayerPropertyCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_AncoFlags_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: AncoFlags command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_AncoFlags_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<uint32_t>>(0u);
+    auto cmd = std::make_shared<RSRenderLayerAncoFlagsCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_LayerSourceTuning_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: LayerSourceTuning command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_LayerSourceTuning_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(0);
+    auto cmd = std::make_shared<RSRenderLayerLayerSourceTuningCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_CycleBuffersNum_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: CycleBuffersNum command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_CycleBuffersNum_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<uint32_t>>(3u);
+    auto cmd = std::make_shared<RSRenderLayerCycleBuffersNumCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_SurfaceUniqueId_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: SurfaceUniqueId command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_SurfaceUniqueId_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<uint64_t>>(999u);
+    auto cmd = std::make_shared<RSRenderLayerSurfaceUniqueIdCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_LayerSize_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: LayerSize command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_LayerSize_Fail, TestSize.Level1)
+{
+    GraphicIRect r{0,0,0,0};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
+    auto cmd = std::make_shared<RSRenderLayerLayerSizeCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_BoundSize_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: BoundSize command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_BoundSize_Fail, TestSize.Level1)
+{
+    GraphicIRect r{0,0,0,0};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
+    auto cmd = std::make_shared<RSRenderLayerBoundSizeCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_CropRect_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: CropRect command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_CropRect_Fail, TestSize.Level1)
+{
+    GraphicIRect r{0,0,0,0};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
+    auto cmd = std::make_shared<RSRenderLayerCropRectCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_AncoSrcRect_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: AncoSrcRect command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_AncoSrcRect_Fail, TestSize.Level1)
+{
+    GraphicIRect r{0,0,0,0};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
+    auto cmd = std::make_shared<RSRenderLayerAncoSrcRectCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_VisibleRegions_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: VisibleRegions command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_VisibleRegions_Fail, TestSize.Level1)
+{
+    std::vector<GraphicIRect> v{};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(v);
+    auto cmd = std::make_shared<RSRenderLayerVisibleRegionsCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_DirtyRegions_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: DirtyRegions command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_DirtyRegions_Fail, TestSize.Level1)
+{
+    std::vector<GraphicIRect> v{};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(v);
+    auto cmd = std::make_shared<RSRenderLayerDirtyRegionsCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_Matrix_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Matrix command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Matrix_Fail, TestSize.Level1)
+{
+    GraphicMatrix m{1,0,0,0,1,0,0,0,1};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicMatrix>>(m);
+    auto cmd = std::make_shared<RSRenderLayerMatrixCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_ColorTransform_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: ColorTransform command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_ColorTransform_Fail, TestSize.Level1)
+{
+    std::vector<float> v{};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<float>>>(v);
+    auto cmd = std::make_shared<RSRenderLayerColorTransformCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_LayerLinearMatrix_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: LayerLinearMatrix command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_LayerLinearMatrix_Fail, TestSize.Level1)
+{
+    std::vector<float> v{};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<float>>>(v);
+    auto cmd = std::make_shared<RSRenderLayerLayerLinearMatrixCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_CornerRadiusInfoForDRM_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: CornerRadiusInfoForDRM command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_CornerRadiusInfoForDRM_Fail, TestSize.Level1)
+{
+    std::vector<float> v{};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<float>>>(v);
+    auto cmd = std::make_shared<RSRenderLayerCornerRadiusInfoForDRMCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_LayerColor_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: LayerColor command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_LayerColor_Fail, TestSize.Level1)
+{
+    GraphicLayerColor c{1,2,3,4};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerColor>>(c);
+    auto cmd = std::make_shared<RSRenderLayerLayerColorCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_BackgroundColor_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: BackgroundColor command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_BackgroundColor_Fail, TestSize.Level1)
+{
+    GraphicLayerColor c{5,6,7,8};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerColor>>(c);
+    auto cmd = std::make_shared<RSRenderLayerBackgroundColorCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_ColorDataSpace_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: ColorDataSpace command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_ColorDataSpace_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicColorDataSpace>>(GraphicColorDataSpace::GRAPHIC_BT709_SRGB_FULL);
+    auto cmd = std::make_shared<RSRenderLayerColorDataSpaceCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_MetaData_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: MetaData command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_MetaData_Fail, TestSize.Level1)
+{
+    std::vector<GraphicHDRMetaData> metas{};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicHDRMetaData>>>(metas);
+    auto cmd = std::make_shared<RSRenderLayerMetaDataCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_MetaDataSet_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: MetaDataSet command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_MetaDataSet_Fail, TestSize.Level1)
+{
+    GraphicHDRMetaDataSet set{};
+    set.key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X;
+    set.metaData = {};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicHDRMetaDataSet>>(set);
+    auto cmd = std::make_shared<RSRenderLayerMetaDataSetCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_PresentTimestamp_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: PresentTimestamp command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_PresentTimestamp_Fail, TestSize.Level1)
+{
+    GraphicPresentTimestamp ts{GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_TIMESTAMP, 1234567};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicPresentTimestamp>>(ts);
+    auto cmd = std::make_shared<RSRenderLayerPresentTimestampCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_SolidColorLayerProperty_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: SolidColorLayerProperty command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_SolidColorLayerProperty_Fail, TestSize.Level1)
+{
+    GraphicSolidColorLayerProperty scp;
+    scp.zOrder = 1;
+    scp.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicSolidColorLayerProperty>>(scp);
+    auto cmd = std::make_shared<RSRenderLayerSolidColorLayerPropertyCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_WindowsName_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: WindowsName command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_WindowsName_Fail, TestSize.Level1)
+{
+    std::vector<std::string> ws{};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<std::string>>>(ws);
+    auto cmd = std::make_shared<RSRenderLayerWindowsNameCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_SurfaceName_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: SurfaceName command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_SurfaceName_Fail, TestSize.Level1)
+{
+    std::string name;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::string>>(name);
+    auto cmd = std::make_shared<RSRenderLayerSurfaceNameCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_TunnelHandle_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: TunnelHandle command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_TunnelHandle_Fail, TestSize.Level1)
+{
+    sptr<SurfaceTunnelHandle> handle = nullptr;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<sptr<SurfaceTunnelHandle>>>(handle);
+    auto cmd = std::make_shared<RSRenderLayerTunnelHandleCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_LayerMaskInfo_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: LayerMaskInfo command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_LayerMaskInfo_Fail, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<LayerMask>>(LayerMask::LAYER_MASK_NORMAL);
+    auto cmd = std::make_shared<RSRenderLayerLayerMaskInfoCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_Buffer_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Buffer command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Buffer_Fail, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buf = nullptr;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<sptr<SurfaceBuffer>>>(buf);
+    auto cmd = std::make_shared<RSRenderLayerBufferCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_AcquireFence_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: AcquireFence command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_AcquireFence_Fail, TestSize.Level1)
+{
+    sptr<SyncFence> fence = nullptr;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<sptr<SyncFence>>>(fence);
+    auto cmd = std::make_shared<RSRenderLayerAcquireFenceCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_PreBuffer_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: PreBuffer command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_PreBuffer_Fail, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> pre = nullptr;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<sptr<SurfaceBuffer>>>(pre);
+    auto cmd = std::make_shared<RSRenderLayerPreBufferCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
