@@ -15,6 +15,7 @@
 
 
 #include <gtest/gtest.h>
+#include <limits>
 #include "rs_render_surface_layer.h"
 #include "rs_render_layer_cmd.h"
 
@@ -482,6 +483,166 @@ HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_TunnelHandle_NullPtr_Applied, 
 }
 
 /**
+ * Function: UpdateRSLayerCmd_BackgroundColor_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply BackgroundColor and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_BackgroundColor_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    GraphicLayerColor bg { .r = 11, .g = 22, .b = 33, .a = 44 };
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerColor>>(bg);
+    auto cmd = std::make_shared<RSRenderLayerBackgroundColorCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetBackgroundColor().g, 22);
+    EXPECT_EQ(layer->GetBackgroundColor().a, 44);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_BoundSize_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply BoundSize and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_BoundSize_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    GraphicIRect r {7, 8, 9, 10};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
+    auto cmd = std::make_shared<RSRenderLayerBoundSizeCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetBoundSize().x, 7);
+    EXPECT_EQ(layer->GetBoundSize().h, 10);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_CropRect_Command_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply CropRect via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_CropRect_Command_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    GraphicIRect r {3, 4, 5, 6};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
+    auto cmd = std::make_shared<RSRenderLayerCropRectCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetCropRect().y, 4);
+    EXPECT_EQ(layer->GetCropRect().w, 5);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_TunnelLayerId_And_Property_Command_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply TunnelLayerId & TunnelLayerProperty via commands and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_TunnelLayerId_And_Property_Command_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    auto propId = std::make_shared<RSRenderLayerCmdProperty<uint64_t>>(888u);
+    auto cmdId = std::make_shared<RSRenderLayerTunnelLayerIdCmd>(propId);
+    layer->UpdateRSLayerCmd(cmdId);
+    EXPECT_EQ(layer->GetTunnelLayerId(), 888u);
+
+    auto propProp = std::make_shared<RSRenderLayerCmdProperty<uint32_t>>(0x1234u);
+    auto cmdProp = std::make_shared<RSRenderLayerTunnelLayerPropertyCmd>(propProp);
+    layer->UpdateRSLayerCmd(cmdProp);
+    EXPECT_EQ(layer->GetTunnelLayerProperty(), 0x1234u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_IsNeedComposition_Toggle
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: toggle IsNeedComposition true/false via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_IsNeedComposition_Toggle, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    {
+        auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+        auto cmd = std::make_shared<RSRenderLayerIsNeedCompositionCmd>(prop);
+        layer->UpdateRSLayerCmd(cmd);
+        EXPECT_TRUE(layer->GetIsNeedComposition());
+    }
+    {
+        auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(false);
+        auto cmd = std::make_shared<RSRenderLayerIsNeedCompositionCmd>(prop);
+        layer->UpdateRSLayerCmd(cmd);
+        EXPECT_FALSE(layer->GetIsNeedComposition());
+    }
+}
+
+/**
+ * Function: UpdateRSLayerCmd_LayerSize_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply LayerSize via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_LayerSize_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    GraphicIRect r {12, 13, 100, 200};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
+    auto cmd = std::make_shared<RSRenderLayerLayerSizeCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetLayerSize().x, 12);
+    EXPECT_EQ(layer->GetLayerSize().w, 100);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_Rotation_Arsr_Copybit_Bilinear_Cmds_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply RotationFixed/LayerArsr/LayerCopybit/NeedBilinearInterpolation via command
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_Rotation_Arsr_Copybit_Bilinear_Cmds_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerRotationFixedCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<bool>>(true)));
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerLayerArsrCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<bool>>(false)));
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerLayerCopybitCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<bool>>(true)));
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerNeedBilinearInterpolationCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<bool>>(true)));
+
+    EXPECT_TRUE(layer->GetRotationFixed());
+    EXPECT_FALSE(layer->GetLayerArsr());
+    EXPECT_TRUE(layer->GetLayerCopybit());
+    EXPECT_TRUE(layer->GetNeedBilinearInterpolation());
+}
+
+/**
+ * Function: UpdateRSLayerCmd_Buffer_And_PreBuffer_Null_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply Buffer/PreBuffer with nullptr via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_Buffer_And_PreBuffer_Null_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    {
+        sptr<SurfaceBuffer> sb = nullptr;
+        auto prop = std::make_shared<RSRenderLayerCmdProperty<sptr<SurfaceBuffer>>>(sb);
+        auto cmd = std::make_shared<RSRenderLayerBufferCmd>(prop);
+        layer->UpdateRSLayerCmd(cmd);
+        EXPECT_EQ(layer->GetBuffer(), sb);
+    }
+    {
+        sptr<SurfaceBuffer> pre = nullptr;
+        auto prop = std::make_shared<RSRenderLayerCmdProperty<sptr<SurfaceBuffer>>>(pre);
+        auto cmd = std::make_shared<RSRenderLayerPreBufferCmd>(prop);
+        layer->UpdateRSLayerCmd(cmd);
+        EXPECT_EQ(layer->GetPreBuffer(), pre);
+    }
+}
+
+/**
  * Function: IsAncoNative_FlagTrueAndFalse
  * Type: Function
  * Rank: Important(2)
@@ -707,4 +868,375 @@ HWTEST(RSRenderSurfaceLayerTest, AcquireFence_And_Buffer_Set_Get, TestSize.Level
     sptr<SurfaceBuffer> pre = nullptr;
     layer->SetPreBuffer(pre);
     EXPECT_EQ(layer->GetPreBuffer(), pre);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_AcquireFence_Command_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply AcquireFence via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_AcquireFence_Command_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<sptr<SyncFence>>>(fence);
+    auto cmd = std::make_shared<RSRenderLayerAcquireFenceCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetAcquireFence(), fence);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_VisibleRegions_Empty_Command_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply empty VisibleRegions via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_VisibleRegions_Empty_Command_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::vector<GraphicIRect> vis; // empty
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(vis);
+    auto cmd = std::make_shared<RSRenderLayerVisibleRegionsCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    ASSERT_EQ(layer->GetVisibleRegions().size(), 0u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_DirtyRegions_Empty_Command_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply empty DirtyRegions via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_DirtyRegions_Empty_Command_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::vector<GraphicIRect> dirty; // empty
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(dirty);
+    auto cmd = std::make_shared<RSRenderLayerDirtyRegionsCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    ASSERT_EQ(layer->GetDirtyRegions().size(), 0u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_WindowsName_Empty_Command_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply empty WindowsName via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_WindowsName_Empty_Command_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::vector<std::string> windowsName; // empty
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<std::string>>>(windowsName);
+    auto cmd = std::make_shared<RSRenderLayerWindowsNameCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    ASSERT_EQ(layer->GetWindowsName().size(), 0u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_SurfaceName_Empty_Command_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply empty SurfaceName via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_SurfaceName_Empty_Command_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::string name; // empty
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::string>>(name);
+    auto cmd = std::make_shared<RSRenderLayerSurfaceNameCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetSurfaceName(), "");
+}
+
+/**
+ * Function: UpdateRSLayerCmd_ColorTransform_Empty_Command_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply empty ColorTransform via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_ColorTransform_Empty_Command_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::vector<float> ct; // empty
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<float>>>(ct);
+    auto cmd = std::make_shared<RSRenderLayerColorTransformCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    ASSERT_EQ(layer->GetColorTransform().size(), 0u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_LayerLinearMatrix_Empty_Command_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply empty LayerLinearMatrix via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_LayerLinearMatrix_Empty_Command_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::vector<float> lm; // empty
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<float>>>(lm);
+    auto cmd = std::make_shared<RSRenderLayerLayerLinearMatrixCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    ASSERT_EQ(layer->GetLayerLinearMatrix().size(), 0u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_RSLayerId_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply RSLayerId via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_RSLayerId_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<uint64_t>>(1001u);
+    auto cmd = std::make_shared<RSRenderLayerRSLayerIdCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetRSLayerId(), 1001u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_LayerSourceTuning_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply LayerSourceTuning via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_LayerSourceTuning_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(15);
+    auto cmd = std::make_shared<RSRenderLayerLayerSourceTuningCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetLayerSourceTuning(), 15);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_UniRenderFlag_Toggle
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: toggle UniRenderFlag true/false via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_UniRenderFlag_Toggle, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    {
+        auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+        auto cmd = std::make_shared<RSRenderLayerUniRenderFlagCmd>(prop);
+        layer->UpdateRSLayerCmd(cmd);
+        EXPECT_TRUE(layer->GetUniRenderFlag());
+    }
+    {
+        auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(false);
+        auto cmd = std::make_shared<RSRenderLayerUniRenderFlagCmd>(prop);
+        layer->UpdateRSLayerCmd(cmd);
+        EXPECT_FALSE(layer->GetUniRenderFlag());
+    }
+}
+
+/**
+ * Function: UpdateRSLayerCmd_MetaData_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply MetaData via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_MetaData_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::vector<GraphicHDRMetaData> metas(2); // default entries
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicHDRMetaData>>>(metas);
+    auto cmd = std::make_shared<RSRenderLayerMetaDataCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    ASSERT_EQ(layer->GetMetaData().size(), 2u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_MetaDataSet_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply MetaDataSet via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_MetaDataSet_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    GraphicHDRMetaDataSet set{};
+    set.key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X;
+    set.metaData = {1, 2, 3};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicHDRMetaDataSet>>(set);
+    auto cmd = std::make_shared<RSRenderLayerMetaDataSetCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetMetaDataSet().key, GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X);
+    ASSERT_EQ(layer->GetMetaDataSet().metaData.size(), 3u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_MetaData_Empty_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply empty MetaData via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_MetaData_Empty_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::vector<GraphicHDRMetaData> metas; // empty
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicHDRMetaData>>>(metas);
+    auto cmd = std::make_shared<RSRenderLayerMetaDataCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    ASSERT_EQ(layer->GetMetaData().size(), 0u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_MetaDataSet_EmptyData_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply MetaDataSet with empty data and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_MetaDataSet_EmptyData_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    GraphicHDRMetaDataSet set{};
+    set.key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_BLUE_PRIMARY_X;
+    set.metaData = {}; // empty
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicHDRMetaDataSet>>(set);
+    auto cmd = std::make_shared<RSRenderLayerMetaDataSetCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetMetaDataSet().key, GraphicHDRMetadataKey::GRAPHIC_MATAKEY_BLUE_PRIMARY_X);
+    ASSERT_EQ(layer->GetMetaDataSet().metaData.size(), 0u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_AcquireFence_Null_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply AcquireFence with nullptr via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_AcquireFence_Null_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    sptr<SyncFence> fence = nullptr;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<sptr<SyncFence>>>(fence);
+    auto cmd = std::make_shared<RSRenderLayerAcquireFenceCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetAcquireFence(), nullptr);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_SurfaceName_Long_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply very long SurfaceName via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_SurfaceName_Long_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::string longName(1024, 'X');
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::string>>(longName);
+    auto cmd = std::make_shared<RSRenderLayerSurfaceNameCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetSurfaceName().size(), 1024u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_WindowsName_Long_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply very long WindowsName entry via command and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_WindowsName_Long_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::string longEntry(512, 'W');
+    std::vector<std::string> windowsName { longEntry };
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<std::string>>>(windowsName);
+    auto cmd = std::make_shared<RSRenderLayerWindowsNameCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    ASSERT_EQ(layer->GetWindowsName().size(), 1u);
+    EXPECT_EQ(layer->GetWindowsName()[0].size(), 512u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_ColorTransform_LargeVector_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply large ColorTransform vector and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_ColorTransform_LargeVector_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    std::vector<float> ct(64, 0.5f);
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<float>>>(ct);
+    auto cmd = std::make_shared<RSRenderLayerColorTransformCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    ASSERT_EQ(layer->GetColorTransform().size(), 64u);
+    EXPECT_FLOAT_EQ(layer->GetColorTransform()[63], 0.5f);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_Rect_Negative_And_Zero_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply negative/zero rects for LayerSize/BoundSize/CropRect
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_Rect_Negative_And_Zero_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerLayerSizeCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(GraphicIRect{-10, -20, 0, 0})));
+    EXPECT_EQ(layer->GetLayerSize().x, -10);
+    EXPECT_EQ(layer->GetLayerSize().w, 0);
+
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerBoundSizeCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(GraphicIRect{-5, -6, 1, 0})));
+    EXPECT_EQ(layer->GetBoundSize().y, -6);
+    EXPECT_EQ(layer->GetBoundSize().h, 0);
+
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerCropRectCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(GraphicIRect{-1, -2, -3, -4})));
+    EXPECT_EQ(layer->GetCropRect().x, -1);
+    EXPECT_EQ(layer->GetCropRect().w, -3);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_BrightnessRatio_EdgeValues_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply BrightnessRatio 0.0 and 1.0 and verify
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_BrightnessRatio_EdgeValues_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerBrightnessRatioCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<float>>(0.0f)));
+    EXPECT_FLOAT_EQ(layer->GetBrightnessRatio(), 0.0f);
+
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerBrightnessRatioCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<float>>(1.0f)));
+    EXPECT_FLOAT_EQ(layer->GetBrightnessRatio(), 1.0f);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_CycleBuffersNum_And_Ids_Boundary_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply boundary values for CycleBuffersNum, RSLayerId, SurfaceUniqueId, NodeId
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_CycleBuffersNum_And_Ids_Boundary_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerCycleBuffersNumCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<uint32_t>>(0u)));
+    EXPECT_EQ(layer->GetCycleBuffersNum(), 0u);
+
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerRSLayerIdCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<uint64_t>>(0ull)));
+    EXPECT_EQ(layer->GetRSLayerId(), 0ull);
+
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerSurfaceUniqueIdCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<uint64_t>>(std::numeric_limits<uint64_t>::max())));
+    EXPECT_EQ(layer->GetSurfaceUniqueId(), std::numeric_limits<uint64_t>::max());
+
+    layer->UpdateRSLayerCmd(std::make_shared<RSRenderLayerNodeIdCmd>(
+        std::make_shared<RSRenderLayerCmdProperty<uint64_t>>(std::numeric_limits<uint64_t>::max())));
+    EXPECT_EQ(layer->GetNodeId(), std::numeric_limits<uint64_t>::max());
 }
