@@ -770,6 +770,30 @@ HWTEST_F(HdiLayerTest, ClearBufferCache002, Function | MediumTest| Level1)
 }
 
 /**
+ * Function: SetTunnelLayerParametersTest
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetTunnelLayerParameters()
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto rsLayer = std::make_shared<RSSurfaceLayer>();
+    rsLayer->SetTunnelLayerId(1);
+    rsLayer->SetTunnelLayerProperty(1);
+    hdiLayer_->rsLayer_ = rsLayer;
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(_, _, _)).WillRepeatedly(testing::Return(-1));
+    auto ret = hdiLayer_->SetTunnelLayerParameters();
+    EXPECT_EQ(ret, -1);
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(_, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(_, _, _)).WillRepeatedly(testing::Return(-1));
+    ret = hdiLayer_->SetTunnelLayerParameters();
+    EXPECT_EQ(ret, -1);
+}
+
+/**
  * Function: ResetBufferCache001
  * Type: Function
  * Rank: Important(1)
