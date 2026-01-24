@@ -961,6 +961,8 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation, TestS
 {
     std::vector<std::string> packageList;
     proxy->NotifyPackageEvent(1, packageList);
+    packageList.push_back("test:1:1");
+    proxy->NotifyPackageEvent(1, packageList);
     std::vector<std::pair<std::string, std::string>> newConfig;
     proxy->NotifyAppStrategyConfigChangeEvent("test", 1, newConfig);
     EventInfo eventInfo;

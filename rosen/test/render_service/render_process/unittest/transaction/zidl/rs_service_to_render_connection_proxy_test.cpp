@@ -59,6 +59,18 @@ void RSServiceToRenderConnectionProxyTest::SetUp() {}
 void RSServiceToRenderConnectionProxyTest::TearDown() {}
 
 /**
+ * @tc.name: HgmForceUpdateTaskTest
+ * @tc.desc: Test HgmForceUpdateTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, HgmForceUpdateTaskTest, TestSize.Level1)
+{
+    ASSERT_TRUE(proxy);
+    proxy->HgmForceUpdateTask(true, "test");
+}
+
+/**
  * @tc.name: GetShowRefreshRateEnabledTest
  * @tc.desc: Test
  * @tc.type: FUNC
@@ -66,11 +78,11 @@ void RSServiceToRenderConnectionProxyTest::TearDown() {}
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetShowRefreshRateEnabledTest, TestSize.Level1)
 {
+    ASSERT_TRUE(proxy);
     bool enabled = false;
     bool enabled1 = true;
     proxy->GetShowRefreshRateEnabled(enabled);
     proxy->GetShowRefreshRateEnabled(enabled1);
-    ASSERT_TRUE(proxy);
 }
 
 /**
@@ -81,12 +93,11 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetShowRefreshRateEnabledTest, Te
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, SetShowRefreshRateEnabledTest, TestSize.Level1)
 {
+    ASSERT_TRUE(proxy);
     bool enabled = false;
     bool enabled1 = true;
-
     proxy->SetShowRefreshRateEnabled(enabled, 0);
     proxy->SetShowRefreshRateEnabled(enabled1, 0);
-    ASSERT_TRUE(proxy);
 }
 
 /**
@@ -97,6 +108,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetShowRefreshRateEnabledTest, Te
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetRealtimeRefreshRateTest, TestSize.Level1)
 {
+    ASSERT_TRUE(proxy);
     EXPECT_EQ(proxy->GetRealtimeRefreshRate(INVALID_SCREEN_ID), 0);
 }
 
