@@ -215,12 +215,12 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     renderService_.handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    if (auto mgr = HgmCore::Instance::GetFrameRateMgr){
+    if (auto mgr = HgmCore::Instance().GetFrameRateMgr()) {
         auto func = [](bool forceUpdate, ScreenId activeScreenId) {};
         auto rsDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "rs");
         auto appDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "app");
         auto runner2 = OHOS::AppExecFwk::EventRunner::Create(true);
-        auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+        auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner2);
         renderService_.hgmContext_ = std::make_shared<HgmContext>(handler, mgr, func, appDistributor, rsDistributor);
     }
     runner->Run();
