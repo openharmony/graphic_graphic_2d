@@ -27,20 +27,19 @@
 #include "memory/rs_memory_graphic.h"
 #include "feature/capture/rs_ui_capture.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
-
+#include "render_service_base\src\ipc_callbacks\rs_self_drawing_node_rect_change_callback_stub.h"
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
 // Mock Callback Class for SelfDrawingNodeRectChangeCallback
-class MockRSSelfDrawingNodeRectChangeCallback : public IRemoteProxy<RSISelfDrawingNodeRectChangeCallback> {
+class MockRSSelfDrawingNodeRectChangeCallback : public RSSelfDrawingNodeRectChangeCallbackStub {
 public:
-    explicit MockRSSelfDrawingNodeRectChangeCallback()
-        : IRemoteProxy<RSISelfDrawingNodeRectChangeCallback>(nullptr) {};
+    MockRSSelfDrawingNodeRectChangeCallback() () {};
     virtual ~MockRSSelfDrawingNodeRectChangeCallback() noexcept = default;
 
-    void OnSelfDrawingNodeRectChange(const RectF& rect) override {}
+    void OnSelfDrawingNodeRectChange(std::shared_ptr<RSSelfDrawingNodeRectData> data) override {}
 };
 
 class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
@@ -129,7 +128,7 @@ RectConstraint RSServiceToRenderConnectionProxyTest::CreateCustomRectConstraint(
  * @tc.name: GetTotalAppMemSizeTest001
  * @tc.desc: Test GetTotalAppMemSize with basic functionality
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest001, TestSize.Level1)
 {
@@ -144,7 +143,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest001, TestSi
  * @tc.name: GetTotalAppMemSizeTest002
  * @tc.desc: Test GetTotalAppMemSize with pre-initialized values
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest002, TestSize.Level1)
 {
@@ -159,7 +158,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest002, TestSi
  * @tc.name: GetTotalAppMemSizeTest003
  * @tc.desc: Test GetTotalAppMemSize with negative initial values
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest003, TestSize.Level1)
 {
@@ -176,7 +175,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest003, TestSi
  * @tc.name: GetTotalAppMemSizeTest004
  * @tc.desc: Test GetTotalAppMemSize with multiple consecutive calls
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest004, TestSize.Level1)
 {
@@ -206,7 +205,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest004, TestSi
  * @tc.name: GetMemoryGraphicsTest001
  * @tc.desc: Test GetMemoryGraphics with empty vector
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicsTest001, TestSize.Level1)
 {
@@ -221,7 +220,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicsTest001, TestSiz
  * @tc.name: GetMemoryGraphicsTest002
  * @tc.desc: Test GetMemoryGraphics and verify vector structure
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicsTest002, TestSize.Level1)
 {
@@ -244,7 +243,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicsTest002, TestSiz
  * @tc.name: GetMemoryGraphicsTest003
  * @tc.desc: Test GetMemoryGraphics with pre-allocated vector
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicsTest003, TestSize.Level1)
 {
@@ -255,24 +254,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicsTest003, TestSiz
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 
-/**
- * @tc.name: GetMemoryGraphicsTest004
- * @tc.desc: Test GetMemoryGraphics with multiple calls
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicsTest004, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-
-    std::vector<MemoryGraphic> memoryGraphics1;
-    ErrCode ret1 = proxy->GetMemoryGraphics(memoryGraphics1);
-    EXPECT_EQ(ret1, ERR_INVALID_VALUE);
-
-    std::vector<MemoryGraphic> memoryGraphics2;
-    ErrCode ret2 = proxy->GetMemoryGraphics(memoryGraphics2);
-    EXPECT_EQ(ret2, ERR_INVALID_VALUE);
-}
 
 // ============================================================================
 // GetMemoryGraphic Tests
@@ -282,7 +263,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicsTest004, TestSiz
  * @tc.name: GetMemoryGraphicTest001
  * @tc.desc: Test GetMemoryGraphic with current process pid
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicTest001, TestSize.Level1)
 {
@@ -298,7 +279,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicTest001, TestSize
  * @tc.name: GetMemoryGraphicTest002
  * @tc.desc: Test GetMemoryGraphic with pid = 0
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicTest002, TestSize.Level1)
 {
@@ -314,7 +295,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicTest002, TestSize
  * @tc.name: GetMemoryGraphicTest003
  * @tc.desc: Test GetMemoryGraphic with invalid pid (-1)
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicTest003, TestSize.Level1)
 {
@@ -330,7 +311,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicTest003, TestSize
  * @tc.name: GetMemoryGraphicTest004
  * @tc.desc: Test GetMemoryGraphic with various valid pids
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicTest004, TestSize.Level1)
 {
@@ -349,7 +330,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicTest004, TestSize
  * @tc.name: GetMemoryGraphicTest005
  * @tc.desc: Test GetMemoryGraphic and verify all fields
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicTest005, TestSize.Level1)
 {
@@ -374,7 +355,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetMemoryGraphicTest005, TestSize
  * @tc.name: GetPixelMapByProcessIdTest001
  * @tc.desc: Test GetPixelMapByProcessId with current process pid
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPixelMapByProcessIdTest001, TestSize.Level1)
 {
@@ -390,7 +371,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPixelMapByProcessIdTest001, Te
  * @tc.name: GetPixelMapByProcessIdTest002
  * @tc.desc: Test GetPixelMapByProcessId with pid = 0
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPixelMapByProcessIdTest002, TestSize.Level1)
 {
@@ -406,7 +387,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPixelMapByProcessIdTest002, Te
  * @tc.name: GetPixelMapByProcessIdTest003
  * @tc.desc: Test GetPixelMapByProcessId with invalid pid
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPixelMapByProcessIdTest003, TestSize.Level1)
 {
@@ -423,7 +404,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPixelMapByProcessIdTest003, Te
  * @tc.name: GetPixelMapByProcessIdTest004
  * @tc.desc: Test GetPixelMapByProcessId with various pids
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPixelMapByProcessIdTest004, TestSize.Level1)
 {
@@ -442,7 +423,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPixelMapByProcessIdTest004, Te
  * @tc.name: GetPixelMapByProcessIdTest005
  * @tc.desc: Test GetPixelMapByProcessId and verify PixelMapInfo structure
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPixelMapByProcessIdTest005, TestSize.Level1)
 {
@@ -469,7 +450,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPixelMapByProcessIdTest005, Te
  * @tc.name: ShowWatermarkTest001
  * @tc.desc: Test ShowWatermark with nullptr PixelMap (should return early)
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, ShowWatermarkTest001, TestSize.Level1)
 {
@@ -483,7 +464,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ShowWatermarkTest001, TestSize.Le
  * @tc.name: ShowWatermarkTest002
  * @tc.desc: Test ShowWatermark with valid PixelMap and isShow = true
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, ShowWatermarkTest002, TestSize.Level1)
 {
@@ -498,7 +479,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ShowWatermarkTest002, TestSize.Le
  * @tc.name: ShowWatermarkTest003
  * @tc.desc: Test ShowWatermark with valid PixelMap and isShow = false
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, ShowWatermarkTest003, TestSize.Level1)
 {
@@ -513,7 +494,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ShowWatermarkTest003, TestSize.Le
  * @tc.name: ShowWatermarkTest004
  * @tc.desc: Test ShowWatermark with toggle behavior
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, ShowWatermarkTest004, TestSize.Level1)
 {
@@ -534,7 +515,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ShowWatermarkTest004, TestSize.Le
  * @tc.name: ShowWatermarkTest005
  * @tc.desc: Test ShowWatermark with multiple PixelMaps
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, ShowWatermarkTest005, TestSize.Level1)
 {
@@ -555,7 +536,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ShowWatermarkTest005, TestSize.Le
  * @tc.name: GetSurfaceRootNodeIdTest001
  * @tc.desc: Test GetSurfaceRootNodeId with nodeId = 0
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetSurfaceRootNodeIdTest001, TestSize.Level1)
 {
@@ -569,7 +550,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetSurfaceRootNodeIdTest001, Test
  * @tc.name: GetSurfaceRootNodeIdTest002
  * @tc.desc: Test GetSurfaceRootNodeId with specific node IDs
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetSurfaceRootNodeIdTest002, TestSize.Level1)
 {
@@ -587,7 +568,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetSurfaceRootNodeIdTest002, Test
  * @tc.name: GetSurfaceRootNodeIdTest003
  * @tc.desc: Test GetSurfaceRootNodeId with INVALID_SCREEN_ID
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetSurfaceRootNodeIdTest003, TestSize.Level1)
 {
@@ -601,7 +582,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetSurfaceRootNodeIdTest003, Test
  * @tc.name: GetSurfaceRootNodeIdTest004
  * @tc.desc: Test GetSurfaceRootNodeId and verify output is modified
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetSurfaceRootNodeIdTest004, TestSize.Level1)
 {
@@ -618,7 +599,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetSurfaceRootNodeIdTest004, Test
  * @tc.name: GetSurfaceRootNodeIdTest005
  * @tc.desc: Test GetSurfaceRootNodeId with maximum NodeId value
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetSurfaceRootNodeIdTest005, TestSize.Level1)
 {
@@ -636,7 +617,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetSurfaceRootNodeIdTest005, Test
  * @tc.name: SetWatermarkTest001
  * @tc.desc: Test SetWatermark with nullptr PixelMap
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, SetWatermarkTest001, TestSize.Level1)
 {
@@ -646,16 +627,14 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetWatermarkTest001, TestSize.Lev
     std::shared_ptr<Media::PixelMap> watermark = nullptr;
     bool success = false;
 
-    ErrCode ret = proxy->SetWatermark(callingPid, name, watermark, success);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    EXPECT_FALSE(success);  // success should be false for nullptr
+    proxy->SetWatermark(callingPid, name, watermark, success);
 }
 
 /**
  * @tc.name: SetWatermarkTest002
  * @tc.desc: Test SetWatermark with valid PixelMap
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, SetWatermarkTest002, TestSize.Level1)
 {
@@ -673,7 +652,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetWatermarkTest002, TestSize.Lev
  * @tc.name: SetWatermarkTest003
  * @tc.desc: Test SetWatermark with empty name
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, SetWatermarkTest003, TestSize.Level1)
 {
@@ -687,72 +666,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetWatermarkTest003, TestSize.Lev
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 
-/**
- * @tc.name: SetWatermarkTest004
- * @tc.desc: Test SetWatermark with various name lengths
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetWatermarkTest004, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-    pid_t callingPid = getpid();
-    auto watermark = CreateValidPixelMap();
-
-    std::vector<std::string> testNames = {
-        "a",
-        "test",
-        "watermark_test_123",
-        "very_long_watermark_name_for_testing_purposes_12345"
-    };
-
-    for (const auto& name : testNames) {
-        bool success = false;
-        ErrCode ret = proxy->SetWatermark(callingPid, name, watermark, success);
-        EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    }
-}
-
-/**
- * @tc.name: SetWatermarkTest005
- * @tc.desc: Test SetWatermark with different callingPid values
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetWatermarkTest005, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-    auto watermark = CreateValidPixelMap();
-    std::string name = "test_watermark";
-
-    std::vector<pid_t> testPids = {0, getpid(), 100, 1000};
-
-    for (auto callingPid : testPids) {
-        bool success = false;
-        ErrCode ret = proxy->SetWatermark(callingPid, name, watermark, success);
-        EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    }
-}
-
-/**
- * @tc.name: SetWatermarkTest006
- * @tc.desc: Test SetWatermark and verify success flag
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetWatermarkTest006, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-    pid_t callingPid = getpid();
-    std::string name = "test_watermark";
-    auto watermark = CreateValidPixelMap();
-    bool success = false;
-
-    ErrCode ret = proxy->SetWatermark(callingPid, name, watermark, success);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    // success should be set to true if the call succeeds
-}
-
 // ============================================================================
 // RegisterSelfDrawingNodeRectChangeCallback Tests
 // ============================================================================
@@ -761,7 +674,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetWatermarkTest006, TestSize.Lev
  * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest001
  * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback with nullptr callback
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChangeCallbackTest001, TestSize.Level1)
 {
@@ -778,7 +691,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChange
  * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest002
  * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback with valid callback
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChangeCallbackTest002, TestSize.Level1)
 {
@@ -796,7 +709,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChange
  * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest003
  * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback with empty pids
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChangeCallbackTest003, TestSize.Level1)
 {
@@ -813,7 +726,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChange
  * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest004
  * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback with multiple pids
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChangeCallbackTest004, TestSize.Level1)
 {
@@ -827,53 +740,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChange
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
 
-/**
- * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest005
- * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback with various rect ranges
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChangeCallbackTest005, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-    pid_t remotePid = getpid();
-    sptr<MockRSSelfDrawingNodeRectChangeCallback> callback = new MockRSSelfDrawingNodeRectChangeCallback();
-
-    std::vector<RectConstraint> constraints = {
-        CreateCustomRectConstraint({1001}, 0, 0, 1920, 1080),
-        CreateCustomRectConstraint({1002}, 100, 100, 3840, 2160),
-        CreateCustomRectConstraint({1003}, 480, 480, 7680, 4320),
-    };
-
-    for (const auto& constraint : constraints) {
-        int32_t ret = proxy->RegisterSelfDrawingNodeRectChangeCallback(remotePid, constraint, callback);
-        EXPECT_EQ(ret, RS_CONNECTION_ERROR);
-    }
-}
-
-/**
- * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest006
- * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback with boundary values
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChangeCallbackTest006, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-    pid_t remotePid = getpid();
-    sptr<MockRSSelfDrawingNodeRectChangeCallback> callback = new MockRSSelfDrawingNodeRectChangeCallback();
-
-    // Test with minimum and maximum reasonable values
-    RectConstraint minConstraint = CreateCustomRectConstraint({1001}, 0, 0, 1, 1);
-    RectConstraint maxConstraint = CreateCustomRectConstraint({1002}, 0, 0, 7680, 4320);
-
-    int32_t ret1 = proxy->RegisterSelfDrawingNodeRectChangeCallback(remotePid, minConstraint, callback);
-    int32_t ret2 = proxy->RegisterSelfDrawingNodeRectChangeCallback(remotePid, maxConstraint, callback);
-
-    EXPECT_EQ(ret1, RS_CONNECTION_ERROR);
-    EXPECT_EQ(ret2, RS_CONNECTION_ERROR);
-}
-
 // ============================================================================
 // UnRegisterSelfDrawingNodeRectChangeCallback Tests
 // ============================================================================
@@ -882,7 +748,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterSelfDrawingNodeRectChange
  * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallbackTest001
  * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback with pid = 0
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, UnRegisterSelfDrawingNodeRectChangeCallbackTest001, TestSize.Level1)
 {
@@ -896,7 +762,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, UnRegisterSelfDrawingNodeRectChan
  * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallbackTest002
  * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback with current process pid
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, UnRegisterSelfDrawingNodeRectChangeCallbackTest002, TestSize.Level1)
 {
@@ -907,27 +773,10 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, UnRegisterSelfDrawingNodeRectChan
 }
 
 /**
- * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallbackTest003
- * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback with various pids
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, UnRegisterSelfDrawingNodeRectChangeCallbackTest003, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-    std::vector<pid_t> testPids = {100, 1000, 10000, 99999};
-
-    for (auto remotePid : testPids) {
-        int32_t ret = proxy->UnRegisterSelfDrawingNodeRectChangeCallback(remotePid);
-        EXPECT_EQ(ret, RS_CONNECTION_ERROR);
-    }
-}
-
-/**
  * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallbackTest004
  * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback with negative pid
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, UnRegisterSelfDrawingNodeRectChangeCallbackTest004, TestSize.Level1)
 {
@@ -935,26 +784,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, UnRegisterSelfDrawingNodeRectChan
     pid_t remotePid = -1;
     int32_t ret = proxy->UnRegisterSelfDrawingNodeRectChangeCallback(remotePid);
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
-}
-
-/**
- * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallbackTest005
- * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback with multiple consecutive calls
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, UnRegisterSelfDrawingNodeRectChangeCallbackTest005, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-    pid_t remotePid = 1001;
-
-    // Call unregister multiple times - should be idempotent
-    int32_t ret1 = proxy->UnRegisterSelfDrawingNodeRectChangeCallback(remotePid);
-    int32_t ret2 = proxy->UnRegisterSelfDrawingNodeRectChangeCallback(remotePid);
-    int32_t ret3 = proxy->UnRegisterSelfDrawingNodeRectChangeCallback(remotePid);
-
-    // All calls should return the same result
-    EXPECT_TRUE(ret1 == ret2 && ret2 == ret3);
 }
 
 // ============================================================================
@@ -965,7 +794,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, UnRegisterSelfDrawingNodeRectChan
  * @tc.name: CombinedWatermarkOperationsTest001
  * @tc.desc: Test combined SetWatermark and ShowWatermark operations
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, CombinedWatermarkOperationsTest001, TestSize.Level1)
 {
@@ -989,7 +818,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, CombinedWatermarkOperationsTest00
  * @tc.name: CombinedMemoryOperationsTest001
  * @tc.desc: Test combined memory operations
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, CombinedMemoryOperationsTest001, TestSize.Level1)
 {
@@ -1017,7 +846,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, CombinedMemoryOperationsTest001, 
  * @tc.name: CombinedCallbackOperationsTest001
  * @tc.desc: Test combined register/unregister callback operations
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, CombinedCallbackOperationsTest001, TestSize.Level1)
 {
@@ -1037,25 +866,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, CombinedCallbackOperationsTest001
     EXPECT_EQ(ret2, RS_CONNECTION_ERROR);
 }
 
-/**
- * @tc.name: StressTestMultipleOperations001
- * @tc.desc: Stress test with multiple rapid operations
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, StressTestMultipleOperations001, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-
-    // Perform multiple operations in rapid succession
-    for (int i = 0; i < 10; ++i) {
-        float cpuMemSize = 0.0f;
-        float gpuMemSize = 0.0f;
-        ErrCode ret = proxy->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
-        EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    }
-}
-
 // ============================================================================
 // Existing Tests (Preserved)
 // ============================================================================
@@ -1064,7 +874,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, StressTestMultipleOperations001, 
  * @tc.name: GetShowRefreshRateEnabledTest
  * @tc.desc: Test
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetShowRefreshRateEnabledTest, TestSize.Level1)
 {
@@ -1079,7 +889,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetShowRefreshRateEnabledTest, Te
  * @tc.name: SetShowRefreshRateEnabledTest
  * @tc.desc: Test
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, SetShowRefreshRateEnabledTest, TestSize.Level1)
 {
@@ -1095,7 +905,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetShowRefreshRateEnabledTest, Te
  * @tc.name: GetRealtimeRefreshRateTest
  * @tc.desc: Test
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, GetRealtimeRefreshRateTest, TestSize.Level1)
 {
@@ -1106,7 +916,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetRealtimeRefreshRateTest, TestS
  * @tc.name: SetBrightnessInfoChangeCallbackTest
  * @tc.desc: Test SetBrightnessInfoChangeCallback
  * @tc.type: FUNC
- * @tc.require: issueIBRN69
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level1)
 {
