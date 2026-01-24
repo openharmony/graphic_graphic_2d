@@ -826,8 +826,14 @@ void VSyncGenerator::SetAdaptive(bool isAdaptive)
 bool VSyncGenerator::IsNeedAdaptiveAfterUpdateMode()
 {
     std::lock_guard<std::mutex> locker(mutex_);
+    if (period_ == 0) {
+        return false;
+    }
     int64_t now = SystemTime();
-    bool needAS = std::abs(lastVsyncRsInterval_ - period_) < VSYNC_RS_OFFSET_FOR_AS ||
+    int64_t curPeriod = std::abs(lastVsyncRsInterval_ - period_);
+    int64_t k = curPeriod / period_;
+    bool needAS = std::abs(curPeriod - k * period_) < VSYNC_RS_OFFSET_FOR_AS ||
+                  std::abs(curPeriod - (k + 1) * period_) < VSYNC_RS_OFFSET_FOR_AS ||
                   now - lastVsyncRsTime_ > static_cast<int64_t>(BLOCK_ADAPTIVE_SYNC_COUNT) * period_;
     if (!needAS) {
         RS_TRACE_NAME_FMT("block AS, lastVsyncRsInterval: %" PRId64 ", period: %" PRId64 ", lastVsyncTime: "
