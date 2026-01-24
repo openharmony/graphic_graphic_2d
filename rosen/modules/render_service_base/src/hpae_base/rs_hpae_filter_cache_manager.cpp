@@ -438,17 +438,12 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
         return resultTask;
     }
 
-    struct HaeImage srcLayer;
-    struct HaeImage dstLayer;
-    srcLayer.handle = inputBuffer.bufferHandle;
-    srcLayer.rect = HaeRect(0, 0, srcWidth, srcHeight);
-    dstLayer.handle = outputBuffer.bufferHandle;
-    dstLayer.rect = HaeRect(0, 0, outputBuffer.canvas->GetWidth(), outputBuffer.canvas->GetHeight());
-
     HaeBlurBasicAttr basicInfo;
-    basicInfo.srcLayer = &srcLayer;
-    basicInfo.dstLayer = &dstLayer;
-    basicInfo.perfLevel = 4;        // 4 for the highest level
+    basicInfo.srcLayer.handle = inputBuffer.bufferHandle;
+    basicInfo.srcLayer.rect = HaeRect(0, 0, srcWidth, srcHeight);
+    basicInfo.dstLayer.handle = outputBuffer.bufferHandle;
+    basicInfo.dstLayer.rect = HaeRect(0, 0, outputBuffer.canvas->GetWidth(), outputBuffer.canvas->GetHeight());
+    basicInfo.perfLevel = 1;        // 4 for the highest level, 1 for low level
     basicInfo.expectRunTime = 2000; // us
     basicInfo.timeoutMs = 0;
     basicInfo.sigmaNum = radius;
@@ -459,7 +454,11 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
     effectInfo.effectCaps = BLPP_COLOR_MASK_EN | BLPP_COLOR_MATRIX_EN | BLPP_NOISE_EN;
     effectInfo.alphaReplaceVal = 0;
     effectInfo.colorMaskPara = RSHpaeFusionOperator::GetHaePixel(filter);
-    RSHpaeFusionOperator::GetColorMatrixCoef(filter, effectInfo.colorMatrixCoef);
+    float colorMatrix[HAE_COLOR_MATRIX_COEF_COUNT];
+    RSHpaeFusionOperator::GetColorMatrixCoef(filter, colorMatrix);
+    for (auto i = 0; i < HAE_COLOR_MATRIX_COEF_COUNT; ++i) {
+        effectInfo.colorMatrixCoef.push_back(colorMatrix[i]);
+    }
 
     HianimationManager::GetInstance().HianimationBuildTask(
         &basicInfo, &effectInfo, &resultTask.taskId, &resultTask.taskPtr);

@@ -213,16 +213,16 @@ HWTEST_F(RSHpaeFusionOperatorTest, ProcessGreyAndStretchTest02, TestSize.Level1)
 HWTEST_F(RSHpaeFusionOperatorTest, GetColorMatrixCoefTest, TestSize.Level1)
 {
     auto filter = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    HaeBlurEffectAttr effectInfo;
+    float colorMatrixCoef[HAE_COLOR_MATRIX_COEF_COUNT];
 
     RSHpaeBaseData::GetInstance().hpaeStatus_.brightness = 2.0f;
     RSHpaeBaseData::GetInstance().hpaeStatus_.saturation = 3.0f;
 
-    RSHpaeFusionOperator::GetColorMatrixCoef(filter, effectInfo.colorMatrixCoef);
+    RSHpaeFusionOperator::GetColorMatrixCoef(filter, colorMatrixCoef);
 
-    EXPECT_TRUE(FloatEqual(effectInfo.colorMatrixCoef[Drawing::ColorMatrix::TRANS_FOR_R], 1.0f));
-    EXPECT_TRUE(FloatEqual(effectInfo.colorMatrixCoef[Drawing::ColorMatrix::TRANS_FOR_G], 1.0f));
-    EXPECT_TRUE(FloatEqual(effectInfo.colorMatrixCoef[Drawing::ColorMatrix::TRANS_FOR_B], 1.0f));
+    EXPECT_TRUE(FloatEqual(colorMatrixCoef[Drawing::ColorMatrix::TRANS_FOR_R], 1.0f));
+    EXPECT_TRUE(FloatEqual(colorMatrixCoef[Drawing::ColorMatrix::TRANS_FOR_G], 1.0f));
+    EXPECT_TRUE(FloatEqual(colorMatrixCoef[Drawing::ColorMatrix::TRANS_FOR_B], 1.0f));
 }
 
 /**

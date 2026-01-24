@@ -21,6 +21,7 @@
 
 #include "hpae_base/rs_hpae_hianimation.h"
 #include "hpae_base/rs_hpae_base_types.h"
+#include "mock_dlfcn.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,7 +35,7 @@ public:
     void SetUp() override;
     void TearDown() override;
 
-    static inline hianimation_algo_device_t *mockHianimationDevice_;
+    static inline hianimation_algo_device_t mockHianimationDevice_;
     static inline std::string hpaeSwitch;
     static inline std::string hpaeAaeSwitch;
 };
@@ -42,9 +43,19 @@ public:
 static constexpr int32_t HIANIMATION_SUCC = 0;
 static constexpr int32_t HIANIMATION_FAIL = -1;
 
-bool MockHianimationInputCheck(const struct BlurImgParam *imgInfo, const struct HaeNoiseValue *noisePara)
+void* MockHianimationOpenDevice()
 {
-    return true;
+    return reinterpret_cast<void*>(0x5678);
+}
+
+void MockHianimationCloseDevice()
+{
+    return;
+}
+
+int32_t MockHianimationInputCheck(const struct BlurImgParam *imgInfo, const struct HaeNoiseValue *noisePara)
+{
+    return HIANIMATION_SUCC;
 }
 int32_t MockHianimationAlgoInit(uint32_t imgWeight, uint32_t imgHeight, float maxSigma, uint32_t format)
 {
@@ -64,29 +75,24 @@ int32_t MockHianimationBuildTaskFail(const struct HaeBlurBasicAttr *basicInfo,
 {
     return HIANIMATION_FAIL;
 }
-int32_t MockHianimationSyncProcess(const struct HaeBlurBasicAttr *basicInfo,
-    const struct HaeBlurEffectAttr *effectInfo)
-{
-    return HIANIMATION_SUCC;
-}
 int32_t MockHianimationDestroyTask(uint32_t taskId)
 {
     return HIANIMATION_SUCC;
 }
-void MockHianimationDumpDebugInfo(uint32_t taskId)
+int32_t MockHianimationDumpDebugInfo(uint32_t taskId)
 {
+    return HIANIMATION_SUCC;
 }
 
 void RSHpaeHianimationTest::SetUpTestCase()
 {
-    mockHianimationDevice_ = new hianimation_algo_device_t;
-    mockHianimationDevice_->hianimationInputCheck = MockHianimationInputCheck;
-    mockHianimationDevice_->hianimationAlgoInit = MockHianimationAlgoInit;
-    mockHianimationDevice_->hianimationAlgoDeInit = MockHianimationAlgoDeInit;
-    mockHianimationDevice_->hianimationBuildTask = MockHianimationBuildTask;
-    mockHianimationDevice_->hianimationSyncProcess = MockHianimationSyncProcess;
-    mockHianimationDevice_->hianimationDestroyTask = MockHianimationDestroyTask;
-    mockHianimationDevice_->hianimationDumpDebugInfo = MockHianimationDumpDebugInfo;
+    mockHianimationDevice_.device = reinterpret_cast<void*>(0x5678);
+    mockHianimationDevice_.hianimationInputCheck = MockHianimationInputCheck;
+    mockHianimationDevice_.hianimationAlgoInit = MockHianimationAlgoInit;
+    mockHianimationDevice_.hianimationAlgoDeInit = MockHianimationAlgoDeInit;
+    mockHianimationDevice_.hianimationBuildTask = MockHianimationBuildTask;
+    mockHianimationDevice_.hianimationDestroyTask = MockHianimationDestroyTask;
+    mockHianimationDevice_.hianimationDumpDebugInfo = MockHianimationDumpDebugInfo;
 
     hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.blur.enabled", "0");
     hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled", "0");
@@ -95,8 +101,7 @@ void RSHpaeHianimationTest::SetUpTestCase()
 }
 void RSHpaeHianimationTest::TearDownTestCase()
 {
-    delete mockHianimationDevice_;
-    mockHianimationDevice_ = nullptr;
+    mockHianimationDevice_.device = nullptr;
     OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);
     OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
 }
@@ -123,7 +128,7 @@ HWTEST_F(RSHpaeHianimationTest, HianimationInputCheckTest, TestSize.Level1)
     ret = hianimationManager.HianimationInputCheck(&imgInfo, &noisePara);
     EXPECT_TRUE(ret);
 
-    hianimationManager.hianimationDevice_ = nullptr;
+    hianimationManager.hianimationDevice_ = {};
     ret = hianimationManager.HianimationInputCheck(&imgInfo, &noisePara);
     EXPECT_FALSE(ret);
 }
@@ -145,7 +150,7 @@ HWTEST_F(RSHpaeHianimationTest, HianimationAlgoInitTest, TestSize.Level1)
     ret = hianimationManager.HianimationAlgoInit(100, 100, 1.0, 0);
     EXPECT_EQ(ret, HIANIMATION_SUCC);
 
-    hianimationManager.hianimationDevice_ = nullptr;
+    hianimationManager.hianimationDevice_ = {};
     ret = hianimationManager.HianimationAlgoInit(100, 100, 1.0, 0);
     EXPECT_EQ(ret, HIANIMATION_FAIL);
 }
@@ -168,7 +173,7 @@ HWTEST_F(RSHpaeHianimationTest, HianimationAlgoDeInitTest, TestSize.Level1)
     ret = hianimationManager.HianimationAlgoDeInit();
     EXPECT_EQ(ret, HIANIMATION_SUCC);
 
-    hianimationManager.hianimationDevice_ = nullptr;
+    hianimationManager.hianimationDevice_ = {};
     ret = hianimationManager.HianimationAlgoDeInit();
     EXPECT_EQ(ret, HIANIMATION_FAIL);
 }
@@ -193,14 +198,14 @@ HWTEST_F(RSHpaeHianimationTest, HianimationBuildTaskTest, TestSize.Level1)
     ret = hianimationManager.HianimationBuildTask(&basicInfo, &effectInfo, nullptr, &taskPtr);
     EXPECT_EQ(ret, HIANIMATION_SUCC);
 
-    hianimationManager.hianimationDevice_->hianimationBuildTask = MockHianimationBuildTaskFail;
+    hianimationManager.hianimationDevice_.hianimationBuildTask = MockHianimationBuildTaskFail;
     ret = hianimationManager.HianimationBuildTask(&basicInfo, &effectInfo, &taskId, &taskPtr);
     EXPECT_EQ(ret, HIANIMATION_FAIL);
 
     ret = hianimationManager.HianimationBuildTask(&basicInfo, &effectInfo, nullptr, &taskPtr);
     EXPECT_EQ(ret, HIANIMATION_FAIL);
 
-    hianimationManager.hianimationDevice_ = nullptr;
+    hianimationManager.hianimationDevice_ = {};
     ret = hianimationManager.HianimationBuildTask(&basicInfo, &effectInfo, &taskId, &taskPtr);
     EXPECT_EQ(ret, HIANIMATION_FAIL);
 }
@@ -219,7 +224,7 @@ HWTEST_F(RSHpaeHianimationTest, HianimationDestroyTaskTest, TestSize.Level1)
     int32_t ret = hianimationManager.HianimationDestroyTask(0);
     EXPECT_EQ(ret, HIANIMATION_SUCC);
 
-    hianimationManager.hianimationDevice_ = nullptr;
+    hianimationManager.hianimationDevice_ = {};
     ret = hianimationManager.HianimationDestroyTask(0);
     EXPECT_EQ(ret, HIANIMATION_FAIL);
 }
@@ -251,7 +256,7 @@ HWTEST_F(RSHpaeHianimationTest, HianimationDestroyTaskAndNotifyTest, TestSize.Le
     int32_t ret = hianimationManager.HianimationDestroyTaskAndNotify(0);
     EXPECT_EQ(ret, HIANIMATION_SUCC);
 
-    hianimationManager.hianimationDevice_ = nullptr;
+    hianimationManager.hianimationDevice_ = {};
     ret = hianimationManager.HianimationDestroyTaskAndNotify(0);
     EXPECT_EQ(ret, HIANIMATION_FAIL);
 }
