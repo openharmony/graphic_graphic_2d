@@ -1125,10 +1125,8 @@ bool RSScreenRenderNodeDrawable::CreateSurface(sptr<IBufferConsumerListener> lis
     surfaceHandler_->SetConsumer(consumer);
 #ifdef RS_ENABLE_GPU
     // Use GPUCacheManager to register buffer delete callback (avoids circular reference)
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (renderEngine) {
-        auto gpuCacheManager = renderEngine->GetGPUCacheManager();
-        if (gpuCacheManager) {
+    if (auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine()) {
+        if (auto gpuCacheManager = renderEngine->GetGPUCacheManager()) {
             surfaceHandler_->RegisterDeleteBufferListener(gpuCacheManager->CreateBufferDeleteCallback());
         }
     }

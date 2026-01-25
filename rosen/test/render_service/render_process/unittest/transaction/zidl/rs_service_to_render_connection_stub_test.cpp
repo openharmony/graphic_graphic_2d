@@ -87,7 +87,12 @@ void RSServiceToRenderConnectionStubTest::SetUpTestCase()
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline);
     g_connectionStub = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
 }
-void RSServiceToRenderConnectionStubTest::TearDownTestCase() {}
+
+void RSServiceToRenderConnectionStubTest::TearDownTestCase()
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(110));
+}
+
 void RSServiceToRenderConnectionStubTest::SetUp() {}
 void RSServiceToRenderConnectionStubTest::TearDown() {}
 
@@ -401,6 +406,38 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSurfaceOcclusionChangeCa
         RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_NONE);
+}
+
+
+/**
+ * @tc.name: HgmForceUpdateTaskTest
+ * @tc.desc: Test HgmForceUpdateTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, HgmForceUpdateTaskTest, TestSize.Level1)
+{
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HGM_FORCE_UPDATE_TASK);
+    MessageParcel reply;
+    MessageOption option;
+
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor());
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor());
+    data2.WriteBool(true);
+    ret = g_connectionStub->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor());
+    data3.WriteBool(true);
+    data3.WriteString("test");
+    ret = g_connectionStub->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
 }
 
 /**

@@ -215,6 +215,14 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     renderService_.handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    if (auto mgr = HgmCore::Instance().GetFrameRateMgr()) {
+        auto func = [](bool forceUpdate, ScreenId activeScreenId) {};
+        auto rsDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "rs");
+        auto appDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "app");
+        auto runner2 = OHOS::AppExecFwk::EventRunner::Create(true);
+        auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner2);
+        renderService_.hgmContext_ = std::make_shared<HgmContext>(handler, mgr, func, appDistributor, rsDistributor);
+    }
     runner->Run();
     renderService_.renderProcessManager_ = sptr<RSSingleRenderProcessManagerMock>::MakeSptr(renderService_);
     
@@ -230,6 +238,7 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
 
 void RSClientToServiceConnectionStubTest::TearDownTestCase()
 {
+    std::this_thread::sleep_for(std::chrono::milliseconds(110));
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     RSBackgroundThread::Instance().gpuContext_ = nullptr;
     RSBackgroundThread::Instance().renderContext_ = nullptr;
@@ -2129,5 +2138,48 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenStatusTest004, Tes
     data.WriteUint32(static_cast<uint32_t>(VirtualScreenStatus::VIRTUAL_SCREEN_INVALID_STATUS));
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: NotifyHgmConfigEventTest
+ * @tc.desc: Test NotifyHgmConfigEvent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, NotifyHgmConfigEventTest, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_HGMCONFIG_EVENT);
+    std::string eventName = "test";
+    MessageParcel reply;
+    MessageOption option;
+
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteString(eventName);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data3.WriteString(eventName);
+    data3.WriteBool(true);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_OK);
+
+    auto orgHgmContext = renderService_.hgmContext_;
+    renderService_.hgmContext_ = nullptr;
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data4.WriteString(eventName);
+    data4.WriteBool(true);
+    res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
+    EXPECT_EQ(res, ERR_OK);
+    renderService_.hgmContext_ = orgHgmContext;
 }
 } // namespace OHOS::Rosen
