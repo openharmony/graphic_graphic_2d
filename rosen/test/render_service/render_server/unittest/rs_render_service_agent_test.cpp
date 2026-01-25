@@ -90,20 +90,6 @@ HWTEST_F(RSRenderServiceAgentTest, PostSyncTaskImmediate001, TestSize.Level1)
 }
 
 /**
- * @tc.name: HandleTouchEventTest
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSRenderServiceAgentTest, HandleTouchEventTest, TestSize.Level1)
-{
-    int32_t touchStatus = 1;
-    int32_t touchCnt = 1;
-    g_rsAgent->HandleTouchEvent(touchStatus, touchCnt);
-    ASSERT_TRUE(g_rsAgent);
-}
-
-/**
  * @tc.name: ProcessHgmFrameRateTest
  * @tc.desc: Test
  * @tc.type: FUNC

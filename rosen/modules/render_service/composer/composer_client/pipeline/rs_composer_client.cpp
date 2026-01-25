@@ -25,25 +25,21 @@ constexpr uint32_t COMPOSER_THREAD_TASK_NUM = 2;
 constexpr uint32_t WAIT_FOR_COMPOSER_THREAD_TASK_TIMEOUT = 3000;
 };
 
-RSComposerClient::RSComposerClient(
-    const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
-    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
+RSComposerClient::RSComposerClient(const sptr<IRSRenderToComposerConnection>& renderToComposerConn)
 {
     rsComposerContext_ = std::make_shared<RSComposerContext>(renderToComposerConn);
     renderToComposerConn_ = renderToComposerConn;
-    rsVsyncManagerAgent_ = rsVsyncManagerAgent;
 }
 
 std::shared_ptr<RSComposerClient> RSComposerClient::Create(
     const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
-    const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
-    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
+    const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
     RS_TRACE_NAME_FMT("RSComposerClient::Create");
     if (renderToComposerConn != nullptr) {
         renderToComposerConn->SetComposerToRenderConnection(composerToRenderConn);
     }
-    return std::make_shared<RSComposerClient>(renderToComposerConn, rsVsyncManagerAgent);
+    return std::make_shared<RSComposerClient>(renderToComposerConn);
 }
 
 void RSComposerClient::SetOutput(const std::shared_ptr<HdiOutput>& output)
@@ -73,9 +69,6 @@ void RSComposerClient::CommitLayers(ComposerInfo& composerInfo)
     if (!rsComposerContext_->CommitLayers(composerInfo)) {
         SubUnExecuteTaskNum();
         RS_LOGE("%{public}s failed, restore task count", __func__);
-    }
-    if (rsVsyncManagerAgent_ != nullptr) {
-        rsVsyncManagerAgent_->SetHardwareTaskNum(GetUnExecuteTaskNum());
     }
 }
 

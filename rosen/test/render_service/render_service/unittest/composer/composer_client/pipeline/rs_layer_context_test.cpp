@@ -109,7 +109,7 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
     sMgr->OnScreenConnected(output, property);
     auto conn = sMgr->GetRSComposerConnection(0);
     sptr<IRSRenderToComposerConnection> ifaceConn = conn;
-    auto client = RSComposerClient::Create(ifaceConn, nullptr, nullptr);
+    auto client = RSComposerClient::Create(ifaceConn, nullptr);
     auto context = std::make_shared<RSComposerContext>(ifaceConn);
     EXPECT_NE(context, nullptr);
     std::shared_ptr<RSSurfaceLayer> layer = nullptr;

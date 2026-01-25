@@ -28,7 +28,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "zidl/rs_client_to_service_connection_stub.h"
 #include "screen_manager/public/rs_screen_manager_agent.h"
-#include "vsync_distributor.h"
+#include "vsync/vsync_manager.h"
 #include "iremote_object.h"
 #include "render_server/rs_render_service_agent.h"
 #include "render_server/rs_render_process_manager_agent.h"
@@ -44,7 +44,7 @@ public:
         sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
         sptr<RSScreenManagerAgent> screenManagerAgent,
         sptr<IRemoteObject> token,
-        sptr<VSyncDistributor> distributor);
+        sptr<RSVsyncManagerAgent> vsyncManagerAgent);
     ~RSClientToServiceConnection() noexcept;
     RSClientToServiceConnection(const RSClientToServiceConnection&) = delete;
     RSClientToServiceConnection& operator=(const RSClientToServiceConnection&) = delete;
@@ -400,8 +400,7 @@ private:
     bool cleanDone_ = false;
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
-    
-    sptr<VSyncDistributor> appVSyncDistributor_;
+    sptr<RSVsyncManagerAgent> vsyncManagerAgent_ = nullptr;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

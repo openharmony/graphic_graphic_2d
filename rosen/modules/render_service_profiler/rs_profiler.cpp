@@ -487,7 +487,7 @@ void RSProfiler::CreateMockConnection(pid_t pid)
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(g_renderService->renderProcessManager_);
     sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(pid, renderServiceAgent,
-        renderProcessManagerAgent, screenManagerAgent, tokenObj, g_renderService->appVSyncDistributor_));
+        renderProcessManagerAgent, screenManagerAgent, tokenObj, g_renderService->vsyncManager_->GetVsyncManagerAgent()));
 
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(g_renderService->renderPipeline_);
     sptr<RSIClientToRenderConnection> newRenderConn(

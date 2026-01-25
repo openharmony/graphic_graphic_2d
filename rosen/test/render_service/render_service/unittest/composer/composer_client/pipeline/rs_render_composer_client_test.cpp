@@ -80,7 +80,7 @@ HWTEST_F(RSRenderComposerClientTest, ClientCreateTest, Function | SmallTest | Le
     auto conn = mgr->GetRSComposerConnection(screenId);
     sptr<IRSRenderToComposerConnection> ifaceConn = conn;
 
-    client = RSComposerClient::Create(ifaceConn, nullptr, nullptr);
+    client = RSComposerClient::Create(ifaceConn, nullptr);
     EXPECT_NE(client, nullptr);
 }
 
@@ -186,10 +186,7 @@ HWTEST_F(RSRenderComposerClientTest, ClearRedrawGPUCompositionCacheTest, Functio
     sptr<IRSRenderToComposerConnection> renderToComposerConn =
         sptr<RSRenderToComposerConnection>::MakeSptr("test", 0, rsRenderComposerAgent);
     sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
-    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent =
-        sptr<RSVsyncManagerAgent>::MakeSptr(nullptr, nullptr);
-    auto clientNormal = RSComposerClient::Create(renderToComposerConn,
-        composerToRenderConn, rsVsyncManagerAgent);
+    auto clientNormal = RSComposerClient::Create(renderToComposerConn, composerToRenderConn);
     EXPECT_NE(clientNormal, nullptr);
     clientNormal->ClearRedrawGPUCompositionCache(bufferIds);
 }
@@ -212,10 +209,7 @@ HWTEST_F(RSRenderComposerClientTest, SetScreenBacklightTest, Function | SmallTes
     sptr<IRSRenderToComposerConnection> renderToComposerConn =
         sptr<RSRenderToComposerConnection>::MakeSptr("test", 0, rsRenderComposerAgent);
     sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
-    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent =
-        sptr<RSVsyncManagerAgent>::MakeSptr(nullptr, nullptr);
-    auto clientNormal = RSComposerClient::Create(renderToComposerConn,
-        composerToRenderConn, rsVsyncManagerAgent);
+    auto clientNormal = RSComposerClient::Create(renderToComposerConn, composerToRenderConn);
     EXPECT_NE(clientNormal, nullptr);
     clientNormal->SetScreenBacklight(0);
 }

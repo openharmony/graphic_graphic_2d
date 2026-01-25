@@ -67,7 +67,7 @@ void RSSurfaceLayerTest::SetUpTestCase()
     sMgr->OnScreenConnected(output, property);
     auto conn = sMgr->GetRSComposerConnection(screenId);
     sptr<IRSRenderToComposerConnection> ifaceConn = conn;
-    client = RSComposerClient::Create(ifaceConn, nullptr, nullptr);
+    client = RSComposerClient::Create(ifaceConn, nullptr);
 }
 
 void RSSurfaceLayerTest::TearDownTestCase()

@@ -18,8 +18,9 @@
 namespace OHOS {
 namespace Rosen {
 RSVsyncManagerAgent::RSVsyncManagerAgent(sptr<VSyncGenerator> vsyncGenerator,
-    sptr<VSyncDistributor> rsVsyncDistributor)
-: vsyncGenerator_(vsyncGenerator), rsVsyncDistributor_(rsVsyncDistributor)
+    sptr<VSyncDistributor> rsVsyncDistributor, sptr<VSyncDistributor> appVSyncDistributor)
+: vsyncGenerator_(vsyncGenerator), rsVsyncDistributor_(rsVsyncDistributor),
+    appVSyncDistributor_(appVSyncDistributor)
 {
 
 }
@@ -166,6 +167,44 @@ bool RSVsyncManagerAgent::GetWaitForDvsyncFrame()
 void RSVsyncManagerAgent::SetWaitForDvsyncFrame(bool wait)
 {
     waitForDVSyncFrame_.store(wait);
+}
+
+VsyncError RSVsyncManagerAgent::SetQosVSyncAppRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene)
+{
+    if (appVSyncDistributor_ != nullptr) {
+        auto ret = appVSyncDistributor_->SetQosVSyncRateByPidPublic(pid, rate, isSystemAnimateScene);
+        return ret;
+    }
+    return VSYNC_ERROR_API_FAILED;
+}
+
+VsyncError RSVsyncManagerAgent::AddAppVsyncConnection(const sptr<VSyncConnection>& connection, uint64_t windowNodeId)
+{
+    if (appVSyncDistributor_ != nullptr) {
+        auto ret = appVSyncDistributor_->AddConnection(connection, windowNodeId);
+        return ret;
+    }
+    return VSYNC_ERROR_API_FAILED;
+}
+
+sptr<VSyncConnection> RSVsyncManagerAgent::CreateAppVsyncConnection(std::string name,
+    const sptr<VSyncIConnectionToken>& token, uint64_t id, uint64_t windowNodeId)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), id, windowNodeId);
+    return conn;
+}
+
+void RSVsyncManagerAgent::VsyncRSDistributorHandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
+{
+    if (rsVsyncDistributor_ == nullptr) {
+        return;
+    }
+    rsVsyncDistributor_->HandleTouchEvent(touchStatus, touchCnt);
+}
+
+bool RSVsyncManagerAgent::IsVsyncAppDistributorExist()
+{
+    return appVSyncDistributor_ != nullptr;
 }
 
 } // namespace Rosen

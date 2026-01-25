@@ -124,7 +124,7 @@ void RSRenderComposerClientRemoteTest::SetUpTestCase()
         robj_ = sam->GetSystemAbility(systemAbilityID_);
         sptr<IRSRenderToComposerConnection> renderToComposer = iface_cast<IRSRenderToComposerConnection>(robj_);
         sptr<IRSComposerToRenderConnection> composerToRender = sptr<RSComposerToRenderConnection>::MakeSptr();
-        composerClient_ = RSComposerClient::Create(renderToComposer, composerToRender, nullptr);
+        composerClient_ = RSComposerClient::Create(renderToComposer, composerToRender);
     }
 }
 

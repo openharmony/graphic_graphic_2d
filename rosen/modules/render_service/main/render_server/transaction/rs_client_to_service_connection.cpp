@@ -113,14 +113,14 @@ RSClientToServiceConnection::RSClientToServiceConnection(
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
     sptr<RSScreenManagerAgent> screenManagerAgent,
     sptr<IRemoteObject> token,
-    sptr<VSyncDistributor> distributor)
+    sptr<RSVsyncManagerAgent> vsyncManagerAgent)
     : remotePid_(remotePid),
       renderServiceAgent_(renderServiceAgent),
       renderProcessManagerAgent_(renderProcessManagerAgent),
       screenManagerAgent_(screenManagerAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
-      appVSyncDistributor_(distributor)
+      vsyncManagerAgent_(vsyncManagerAgent)
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSClientToServiceConnection: Failed to set death recipient.");
@@ -134,8 +134,8 @@ RSClientToServiceConnection::RSClientToServiceConnection(
         RS_LOGW("RSClientToServiceConnection: screenManagerAgent_ is nullptr");
     }
 
-    if (appVSyncDistributor_ == nullptr) {
-        RS_LOGW("RSClientToServiceConnection: appVSyncDistributor_ is nullptr");
+    if (!vsyncManagerAgent_->IsVsyncAppDistributorExist()) {
+        RS_LOGW("RSClientToServiceConnection: appVSyncDistributor is nullptr");
     }
 }
 
@@ -262,7 +262,7 @@ ErrCode RSClientToServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection
                                                          const sptr<VSyncIConnectionToken>& token,
                                                          VSyncConnParam vsyncConnParam)
 {
-    if (appVSyncDistributor_ == nullptr) {
+    if (!vsyncManagerAgent_->IsVsyncAppDistributorExist()) {
         vsyncConn = nullptr;
         return ERR_INVALID_VALUE;
     }
@@ -271,13 +271,13 @@ ErrCode RSClientToServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection
     if (vsyncConnParam.fromXcomponent) {
         GetSurfaceRootNodeId(windowNodeId);
     }
-    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
+    sptr<VSyncConnection> conn = vsyncManagerAgent_->CreateAppVsyncConnection(name, token, 0, windowNodeId);
     bool isLinkerPid = ExtractPid(id) == remotePid_;
     if (isLinkerPid) {
         conn->id_ = id;
         RS_LOGD("%{public}s connect id: %{public}" PRIu64, __func__, id);
     }
-    auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
+    auto ret = vsyncManagerAgent_->AddAppVsyncConnection(conn, windowNodeId);
     if (ret != VSYNC_ERROR_OK) {
         vsyncConn = nullptr;
         return ERR_INVALID_VALUE;
@@ -1521,10 +1521,9 @@ void RSClientToServiceConnection::SetWindowExpectedRefreshRate(
 
 ErrCode RSClientToServiceConnection::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
 {
-    if (!appVSyncDistributor_) {
-        return ERR_INVALID_VALUE;
+    if (vsyncManagerAgent_ != nullptr) {
+        return vsyncManagerAgent_->SetQosVSyncAppRateByPidPublic(pid, rateDiscount, true);
     }
-    appVSyncDistributor_->SetQosVSyncRateByPidPublic(pid, rateDiscount, true);
     return ERR_OK;
 }
 
@@ -1540,11 +1539,9 @@ bool RSClientToServiceConnection::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
 
 ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    if (renderServiceAgent_ == nullptr) {
-        RS_LOGE("%{public}s renderServiceAgent is nullptr", __func__);
-        return ERR_INVALID_VALUE;
+    if (vsyncManagerAgent_ != nullptr) {
+        vsyncManagerAgent_->VsyncRSDistributorHandleTouchEvent(touchStatus, touchCnt);
     }
-    renderServiceAgent_->HandleTouchEvent(touchStatus, touchCnt);
 
     if (hgmContext_ != nullptr) {
         hgmContext_->HandleTouchEvent(remotePid_, touchStatus, touchCnt);

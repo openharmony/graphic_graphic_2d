@@ -199,7 +199,9 @@ ohos_shared_library("librender_service") {
     "screen_manager/rs_screen.cpp",
     "screen_manager/rs_screen_manager.cpp",
     "screen_manager/rs_screen_preprocessor.cpp",
-    "screen_manager/rs_screen_thread_safe_property.cpp"
+    "screen_manager/rs_screen_thread_safe_property.cpp",
+    "vsync/vsync_manager.cpp",
+    "vsync/vsync_manager_agent.cpp"
   ]
 
   #feature_cfg
@@ -426,6 +428,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     # composer file end
+    "$graphic_2d_root/rosen/modules/render_service/vsync"
   ]
 
   public_deps += [
@@ -662,6 +665,19 @@ ohos_executable("render_service") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "core/feature_cfg",
+    "core/feature_cfg/feature_param",
+    "core/feature_cfg/feature_param/extend_feature",
+    "core/feature_cfg/feature_param/performance_feature",
+    "core/feature_cfg/xml_parser",
+    "core/feature_cfg/xml_parser/extend_feature_parser",
+    "core/feature_cfg/xml_parser/performance_feature_parser",
   ]
 
   deps = [

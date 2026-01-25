@@ -22,15 +22,14 @@
 
 #include "rs_render_pipeline.h"
 #include "rs_render_single_process_manager.h"
-#include "vsync_controller.h"
-#include "vsync_distributor.h"
-#include "vsync_manager_agent.h"
+#include "vsync/vsync_manager_agent.h"
 #include "vsync_iconnection_token.h"
 #include "vsync_receiver.h"
 #include "dfx/rs_service_dumper.h"
 #include "dfx/rs_service_dump_manager.h"
 
 #include "screen_manager/rs_screen_manager.h"
+#include "vsync/vsync_manager.h"
 #include "transaction/zidl/rs_render_service_stub.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 
@@ -87,15 +86,10 @@ private:
     // Initialization related
     void InitCCMConfig();
     void CoreComponentsInit();
-    void VsyncComponentInit();
     void HgmInit();
     void FeatureComponentInit();
     void RenderProcessManagerInit();
     bool SAMgrRegister();
-
-    // VSync related
-    DVSyncFeatureParam InitDVSyncParams();
-    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     // Dfx related
     int Dump(int fd, const std::vector<std::u16string>& args) override;
@@ -109,17 +103,10 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 
     sptr<RSScreenManager> screenManager_ = nullptr;
+    sptr<RSVsyncManager> vsyncManager_ = nullptr;
     sptr<RSRenderProcessManager> renderProcessManager_ = nullptr;
     std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager_ = nullptr;
     std::shared_ptr<HgmContext> hgmContext_ = nullptr;
-
-    sptr<VSyncGenerator> vsyncGenerator_ = nullptr;
-    sptr<VSyncSampler> vsyncSampler_ = nullptr;
-    sptr<VSyncController> rsVSyncController_ = nullptr;
-    sptr<VSyncController> appVSyncController_ = nullptr;
-    sptr<VSyncDistributor> rsVSyncDistributor_ = nullptr;
-    sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
-    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
     std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
     std::shared_ptr<RSServiceDumpManager> rsDumpManager_ = nullptr;
 

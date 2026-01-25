@@ -188,8 +188,8 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
 
     OHOS::Rosen::renderService_ = OHOS::sptr<OHOS::Rosen::RSRenderService>::MakeSptr();
-    OHOS::Rosen::renderService_->rsVSyncDistributor_ =
-        new OHOS::Rosen::VSyncDistributor(nullptr, "rs_test", dvsyncParam);
+    auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;
 
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     runner->Run();
@@ -205,7 +205,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 
     OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
         OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
-        screenManagerAgent_, token_->AsObject(), appVSyncDistributor_);
+        screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
 
     OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ =
         std::make_shared<OHOS::Rosen::RSRenderEngine>();
@@ -213,10 +213,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
         OHOS::Rosen::RenderContext::Create();
 
     // reset recevier, otherwise maybe crash
-    OHOS::Rosen::renderService_->rsVSyncDistributor_->connections_.clear();
-    OHOS::Rosen::renderService_->rsVSyncDistributor_->connMap_.clear();
-    OHOS::Rosen::renderService_->rsVSyncDistributor_->connectionsMap_.clear();
-    OHOS::Rosen::renderService_->rsVSyncDistributor_ = nullptr;
     
     OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
     OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;

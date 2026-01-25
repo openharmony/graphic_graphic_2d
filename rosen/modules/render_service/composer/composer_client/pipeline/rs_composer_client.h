@@ -27,21 +27,17 @@
 #include "irs_render_to_composer_connection.h"
 #include "rs_composer_context.h"
 #include "screen_manager/rs_screen_info.h"
-#include "vsync_manager_agent.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSComposerClient {
 public:
-    RSComposerClient(
-        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
-        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+    RSComposerClient(const sptr<IRSRenderToComposerConnection>& renderToComposerConn);
     ~RSComposerClient() = default;
 
     static std::shared_ptr<RSComposerClient> Create(
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
-        const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
-        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
     std::shared_ptr<RSLayer> GetRSLayer(RSLayerId rsLayerId);
     void CommitLayers(ComposerInfo& composerInfo);
     void ReleaseLayerBuffers(uint64_t screenId,
@@ -77,7 +73,6 @@ private:
     std::atomic<int> acquiredBufferCount_ = 0;
     bool isPreAllocProtectedFrameBuffer_ = false;
     PipelineParam pipelineParam_;
-    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
     std::shared_ptr<HdiOutput> output_ = nullptr;
 };
 } // namespace Rosen

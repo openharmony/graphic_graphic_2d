@@ -115,8 +115,7 @@ public:
         const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
     {
         auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(property->GetScreenId());
-        renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_,
-            renderService_.rsVsyncManagerAgent_, output);
+        renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_, output);
         return connectToRenderConnection_->AsObject();
     }
 
@@ -139,7 +138,7 @@ public:
     void OnVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId,
         const sptr<RSScreenProperty>& property)
     {
-        renderService_.renderPipeline_->OnScreenConnected(property, nullptr, nullptr, nullptr, nullptr);
+        renderService_.renderPipeline_->OnScreenConnected(property, nullptr, nullptr, nullptr);
     }
 
     void OnVirtualScreenDisconnected(ScreenId id)
@@ -194,7 +193,6 @@ private:
     static inline sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_;
     static inline RSRenderService renderService_;
     static inline sptr<RSScreenManagerAgent> screenManagerAgent_;
-    static inline sptr<VSyncDistributor> appVSyncDistributor_;
 };
 
 uint32_t RSClientToServiceConnectionStubTest::screenId_ = 0;
@@ -270,7 +268,6 @@ void RSClientToServiceConnectionStubTest::TearDownTestCase()
     renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderService_.renderPipeline_->uniRenderThread_ = nullptr;
     renderService_.renderPipeline_ = nullptr;
-    renderService_.rsVSyncDistributor_ = nullptr;
     hdiOutput_ = nullptr;
     composerAdapter_ = nullptr;
     screenManager_ = nullptr;

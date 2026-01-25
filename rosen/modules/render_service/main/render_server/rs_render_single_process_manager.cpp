@@ -37,8 +37,8 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
 {
     // step1: Create Vsync Connection and Receiver
     sptr<VSyncIConnectionToken> vsyncToken = new IRemoteStub<VSyncIConnectionToken>();
-    sptr<VSyncConnection> conn = new VSyncConnection(renderService.rsVSyncDistributor_, "rs", vsyncToken->AsObject());
-    renderService.rsVSyncDistributor_->AddConnection(conn);
+    sptr<VSyncConnection> conn = renderService_.vsyncManager_->CreateRSVSyncConnection("rs", vsyncToken->AsObject());
+    renderService_.vsyncManager_->AddRSVsyncConnection(conn);
     auto receiver = std::make_shared<VSyncReceiver>(conn, vsyncToken->AsObject(), renderService.handler_, "rs");
     receiver->Init();
 
@@ -50,7 +50,7 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
     renderToServiceConnection_ =
         sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
     renderService.renderPipeline_ = RSRenderPipeline::Create(renderService.handler_,
-        receiver, renderToServiceConnection_, renderService_.rsVsyncManagerAgent_);
+        receiver, renderToServiceConnection_, renderService_.vsyncManager_->GetVsyncManagerAgent());
     auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderService_.renderPipeline_);
     serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
     composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
@@ -65,8 +65,7 @@ sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId scr
     const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
 {
     auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(property->GetScreenId());
-    renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_,
-        renderService_.rsVsyncManagerAgent_, output);
+    renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_, output);
     return connectToRenderConnection_->AsObject();
 }
 
@@ -89,7 +88,7 @@ void RSSingleRenderProcessManager::OnScreenRefresh(ScreenId id)
 void RSSingleRenderProcessManager::OnVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId,
     const sptr<RSScreenProperty>& property)
 {
-    renderService_.renderPipeline_->OnScreenConnected(property, nullptr, nullptr, nullptr, nullptr);
+    renderService_.renderPipeline_->OnScreenConnected(property, nullptr, nullptr, nullptr);
 }
 
 void RSSingleRenderProcessManager::OnVirtualScreenDisconnected(ScreenId id)

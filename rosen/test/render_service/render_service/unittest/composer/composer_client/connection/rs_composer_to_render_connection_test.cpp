@@ -55,7 +55,7 @@ HWTEST_F(RSComposerToRenderConnectionTest, Connection_ReleaseLayerBuffers_Normal
 {
     RSComposerToRenderConnection conn;
     uint64_t screenId = 102u;
-    auto client = RSComposerClient::Create(nullptr, nullptr, nullptr);
+    auto client = RSComposerClient::Create(nullptr, nullptr);
     RSUniRenderThread::Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
     RSUniRenderThread::Instance().GetComposerClientManager()->AddComposerClient(screenId, client);
 
@@ -79,7 +79,7 @@ HWTEST_F(RSComposerToRenderConnectionTest, Connection_ReleaseLayerBuffers_Normal
 {
     RSComposerToRenderConnection conn;
     uint64_t screenId = 103u;
-    auto client = RSComposerClient::Create(nullptr, nullptr, nullptr);
+    auto client = RSComposerClient::Create(nullptr, nullptr);
     RSUniRenderThread::Instance().GetComposerClientManager()->AddComposerClient(screenId, client);
 
     // Activate game scene to hit SetLastSwapBufferTime branch

@@ -64,6 +64,7 @@ ohos_unittest("VsyncEnabledScreenIdTest") {
     "$graphic_2d_root/rosen/modules/render_service/screen_manager",
     "$graphic_2d_root/rosen/modules/render_service/screen_manager/callback",
     "$graphic_2d_root/rosen/modules/render_service/screen_manager/public",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
   deps = [
@@ -143,6 +144,7 @@ ohos_unittest("RSScreenManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
   deps = [
@@ -278,6 +280,7 @@ ohos_unittest("RSScreenManagerAgentTest") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
   deps = [
@@ -358,6 +361,7 @@ ohos_unittest("RSScreenPreprocessorTest") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
   deps = [

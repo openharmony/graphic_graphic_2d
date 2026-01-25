@@ -23,8 +23,7 @@ class RSComposerClientManagerTest : public Test {};
 static std::shared_ptr<RSComposerClient> MakeClient()
 {
     sptr<IRSRenderToComposerConnection> conn = nullptr; // keep nullptr to avoid remote interactions
-    sptr<RSVsyncManagerAgent> vsync = nullptr;
-    return std::make_shared<RSComposerClient>(conn, vsync);
+    return std::make_shared<RSComposerClient>(conn);
 }
 
 /**

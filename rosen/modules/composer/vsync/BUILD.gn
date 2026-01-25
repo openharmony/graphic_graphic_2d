@@ -83,7 +83,6 @@ ohos_shared_library("libvsync") {
     "src/vsync_controller.cpp",
     "src/vsync_distributor.cpp",
     "src/vsync_generator.cpp",
-    "src/vsync_manager_agent.cpp",
     "src/vsync_receiver.cpp",
     "src/vsync_sampler.cpp",
     "src/vsync_system_ability_listener.cpp",

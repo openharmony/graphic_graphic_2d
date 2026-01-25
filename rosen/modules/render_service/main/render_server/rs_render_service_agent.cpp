@@ -64,11 +64,6 @@ void RSRenderServiceAgent::FpsDump(std::string& dumpString, const std::string& a
     renderService_.FpsDump(dumpString, arg);
 }
 
-void RSRenderServiceAgent::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
-{
-    renderService_.HandleTouchEvent(touchStatus, touchCnt);
-}
-
 void RSRenderServiceAgent::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
     const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
     const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo)

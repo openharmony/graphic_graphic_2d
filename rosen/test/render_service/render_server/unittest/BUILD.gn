@@ -63,6 +63,7 @@ ohos_unittest("RSRenderServiceAgentTest") {
         "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
+        "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
     deps = [
@@ -138,6 +139,7 @@ ohos_unittest("RenderServiceTest") {
         "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
+        "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
     deps = [
@@ -226,6 +228,7 @@ ohos_unittest("RSRenderProcessManagerAgentTest") {
         "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
+        "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
     deps = [
@@ -302,6 +305,7 @@ ohos_unittest("RSRenderSingleProcessManagerTest") {
         "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
+        "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
     deps = [

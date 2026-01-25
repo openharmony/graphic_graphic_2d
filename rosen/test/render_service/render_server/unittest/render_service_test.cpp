@@ -52,18 +52,4 @@ void RenderServiceTest::SetUpTestCase()
 void RenderServiceTest::TearDownTestCase() {}
 void RenderServiceTest::SetUp() {}
 void RenderServiceTest::TearDown() {}
-
-/**
- * @tc.name: HandleTouchEventTest
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RenderServiceTest, HandleTouchEventTest, TestSize.Level1)
-{
-    int32_t touchStatus = 1;
-    int32_t touchCnt = 1;
-    renderService.HandleTouchEvent(touchStatus, touchCnt);
-    ASSERT_TRUE(renderService.rsVSyncDistributor_);
-}
 } // namespace OHOS::Rosen

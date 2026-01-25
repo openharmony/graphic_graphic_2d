@@ -18,12 +18,14 @@
 
 #include "vsync_generator.h"
 #include "vsync_distributor.h"
+#include "vsync_iconnection_token.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSVsyncManagerAgent : public RefBase {
 public:
-    RSVsyncManagerAgent(sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> rsVsyncDistributor);
+    RSVsyncManagerAgent(sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> rsVsyncDistributor,
+        sptr<VSyncDistributor> appVSyncDistributor);
     ~RSVsyncManagerAgent();
     void ForceRsDVsync(const std::string& sceneId);
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
@@ -44,10 +46,16 @@ public:
     bool IsUiDvsyncOn();
     bool GetWaitForDvsyncFrame();
     void SetWaitForDvsyncFrame(bool wait);
-
+    VsyncError SetQosVSyncAppRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene);
+    VsyncError AddAppVsyncConnection(const sptr<VSyncConnection>& connection, uint64_t windowNodeId);
+    sptr<VSyncConnection> CreateAppVsyncConnection(std::string name,
+        const sptr<VSyncIConnectionToken>& token, uint64_t id, uint64_t windowNodeId);
+    void VsyncRSDistributorHandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    bool IsVsyncAppDistributorExist();
 private:
     sptr<VSyncGenerator> vsyncGenerator_ = nullptr;
     sptr<VSyncDistributor> rsVsyncDistributor_ = nullptr;
+    sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     std::atomic<bool> waitForDVSyncFrame_ = false;
 };
 } // namespace Rosen

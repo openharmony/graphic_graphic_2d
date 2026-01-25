@@ -36,6 +36,7 @@
 #include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
 #include "rs_composer_client_manager.h"
 #include "vsync_receiver.h"
+#include "vsync/vsync_manager_agent.h"
 #include "screen_manager/rs_screen_property.h"
 #include "screen_manager/screen_types.h"
 #include "memory/rs_memory_manager.h"
@@ -97,7 +98,6 @@ public:
     void OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
-        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent,
         const std::shared_ptr<HdiOutput>& output);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);

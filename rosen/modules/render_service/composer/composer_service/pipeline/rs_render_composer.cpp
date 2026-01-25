@@ -236,6 +236,9 @@ void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
 #endif
     unExecuteTaskNum_++;
+    if (rsVsyncManagerAgent_ != nullptr) {
+        rsVsyncManagerAgent_->SetHardwareTaskNum(unExecuteTaskNum_.load());
+    }
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     delayTime = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
     delayTime_ = delayTime;

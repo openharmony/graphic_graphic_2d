@@ -50,6 +50,15 @@ ohos_unittest("RSRenderToServiceConnectionProxyTest") {
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+        "$graphic_2d_root/rosen/modules/render_service/core/",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
     deps = [
@@ -131,6 +140,7 @@ ohos_unittest("RSRenderToServiceConnectionStubTest") {
         "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
+        "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
     deps = [
@@ -213,7 +223,8 @@ ohos_unittest("RSRenderToServiceConnectionTest") {
         "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
         "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
-        "../../../../../../../../../../resourceschedule/memmgr/interface/innerkits/include"
+        "../../../../../../../../../../resourceschedule/memmgr/interface/innerkits/include",
+        "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
     deps = [

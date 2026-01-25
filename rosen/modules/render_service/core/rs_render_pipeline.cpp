@@ -152,7 +152,6 @@ void RSRenderPipeline::AddTransactionDataPidInfo(pid_t remotePid)
 void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
-        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent,
         const std::shared_ptr<HdiOutput>& output)
 {
     RS_LOGI("RSRenderPipeline %{public}s, screen id: %{public}" PRIu64, __func__,
@@ -176,8 +175,7 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         composerToRenderConn->RegisterReleaseLayerBuffersCB(
             std::bind(&RSUniRenderThread::ReleaseLayerBuffers, uniRenderThread_, std::placeholders::_1));
         RegisterJudgeLppLayerCB(composerToRenderConn);
-        composerClient = RSComposerClient::Create(renderToComposerConn, composerToRenderConn,
-            rsVsyncManagerAgent);
+        composerClient = RSComposerClient::Create(renderToComposerConn, composerToRenderConn);
         composerClient->RegisterOnReleaseLayerBuffersCB(std::bind(&RSUniRenderThread::OnReleaseLayerBuffers,
             uniRenderThread_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {

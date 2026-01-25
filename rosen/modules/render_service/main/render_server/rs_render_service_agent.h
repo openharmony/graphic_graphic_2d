@@ -62,7 +62,6 @@ public:
     void RemoveToken(const sptr<RSIConnectionToken>& token);
 
     // Hgm
-    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
         const sptr<HgmServiceToProcessInfo>& ServiceToProcessInfo);
