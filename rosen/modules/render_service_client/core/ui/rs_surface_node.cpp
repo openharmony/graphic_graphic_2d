@@ -982,7 +982,7 @@ void RSSurfaceNode::SetApiCompatibleVersion(uint32_t version)
 void RSSurfaceNode::SetSourceVirtualDisplayId(ScreenId screenId)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetSourceVirtualDisplayId>(GetId(), screenId);
+        std::make_unique<RSSurfaceNodeSetSourceVirtualScreenId>(GetId(), screenId);
     AddCommand(command, true);
 }
 

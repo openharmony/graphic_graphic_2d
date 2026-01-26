@@ -1382,7 +1382,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "RSSurfaceNodeSetSourceVirtualDisplayId*100",
+    "commandList": "RSSurfaceNodeSetSourceVirtualScreenId*100",
     "commandListRepeat": 1
   },
   {

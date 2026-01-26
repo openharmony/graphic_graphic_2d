@@ -129,8 +129,8 @@ public:
     static void SetAbilityState(RSContext& context, NodeId nodeId, RSSurfaceNodeAbilityState abilityState);
     static void SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion);
     static void SetHardwareEnableHint(RSContext& context, NodeId nodeId, bool enable);
+    static void SetSourceVirtualScreenId(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void SetRegionToBeMagnified(RSContext& context, NodeId nodeId, const Vector4<int>& regionToBeMagnified);
-    static void SetSourceVirtualDisplayId(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void AttachToWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void SetFrameGravityNewVersionEnabled(RSContext& context, NodeId nodeId, bool isEnabled);
@@ -269,9 +269,9 @@ ADD_COMMAND(RSSurfaceNodeAttachToWindowContainer,
 ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
         SurfaceNodeCommandHelper::DetachFromWindowContainer, NodeId, ScreenId))
-ADD_COMMAND(RSSurfaceNodeSetSourceVirtualDisplayId,
+ADD_COMMAND(RSSurfaceNodeSetSourceVirtualScreenId,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID,
-        SurfaceNodeCommandHelper::SetSourceVirtualDisplayId, NodeId, ScreenId))
+        SurfaceNodeCommandHelper::SetSourceVirtualScreenId, NodeId, ScreenId))
 ADD_COMMAND(RSSurfaceNodeSetFrameGravityNewVersionEnabled,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED,
         SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled, NodeId, bool))
