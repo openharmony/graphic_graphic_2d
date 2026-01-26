@@ -1276,7 +1276,7 @@ void RSProfiler::FilterAnimationForPlayback(RSAnimationManager& manager)
 
 void RSProfiler::SetReplayStartTimeNano(uint64_t replayStartTimeNano)
 {
-    g_replayStartTimeNano = replayStartTimeNano;
+    g_replayStartTimeNano = static_cast<int64_t>(replayStartTimeNano);
 }
 
 uint64_t RSProfiler::GetReplayStartTimeNano()
