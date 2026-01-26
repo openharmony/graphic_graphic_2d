@@ -591,6 +591,32 @@ std::vector<std::string> FontParser::GetBcpTagList()
     return it->second;
 }
 
+void FontParser::FillFontDescriptorWithFallback(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc)
+{
+    struct FieldMapping {
+        std::string* targetField;
+        Drawing::OtNameId nameId;
+    };
+
+    const FieldMapping fields[] = {
+        {&desc.localFamilyName, Drawing::OtNameId::FONT_FAMILY},
+        {&desc.localSubFamilyName, Drawing::OtNameId::FONT_SUBFAMILY},
+        {&desc.localFullName, Drawing::OtNameId::FULL_NAME},
+        {&desc.localPostscriptName, Drawing::OtNameId::POSTSCRIPT_NAME},
+        {&desc.version, Drawing::OtNameId::VERSION_STRING},
+        {&desc.manufacture, Drawing::OtNameId::MANUFACTURER},
+        {&desc.copyright, Drawing::OtNameId::COPYRIGHT},
+        {&desc.trademark, Drawing::OtNameId::TRADEMARK},
+        {&desc.license, Drawing::OtNameId::LICENSE},
+    };
+
+    for (const auto& field : fields) {
+        if (field.targetField->empty()) {
+            *field.targetField = Drawing::FontMetaDataCollector::GetFirstAvailableString(typeface, field.nameId);
+        }
+    }
+}
+
 void FontParser::FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc)
 {
     std::vector<std::string> bcpTagList = GetBcpTagList();
@@ -622,6 +648,8 @@ void FontParser::FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typefa
         desc.trademark = desc.trademark.empty() ? info.trademark : desc.trademark;
         desc.license = desc.license.empty() ? info.license : desc.license;
     }
+
+    FillFontDescriptorWithFallback(typeface, desc);
 }
 
 int32_t FontParser::GetFontCount(const std::string& path)
