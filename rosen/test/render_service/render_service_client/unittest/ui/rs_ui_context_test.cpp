@@ -150,6 +150,7 @@ HWTEST_F(RSUIContextTest, RequestVsyncCallback, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto transaction = uiContext->GetRSTransaction();
     ASSERT_NE(transaction, nullptr);
@@ -158,6 +159,7 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
     uiContext->DumpNodeTreeProcessor(canvasNode->GetId(), 0, 0, out);
     ASSERT_TRUE(out.find("transactionFlags") != std::string::npos);
     ASSERT_TRUE(out.find("UIContext") != std::string::npos);
+#endif
 }
 
 /**
@@ -167,6 +169,7 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto transaction = uiContext->GetRSTransaction();
     ASSERT_NE(transaction, nullptr);
@@ -174,6 +177,7 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest002, TestSize.Level1)
     uiContext->DumpNodeTreeProcessor(0, 0, 0, out);
     ASSERT_TRUE(out.find("transactionFlags") == std::string::npos);
     ASSERT_TRUE(out.find("UIContext") == std::string::npos);
+#endif
 }
 
 /**
