@@ -109,5 +109,8 @@ HWTEST_F(RSComposerToRenderConnectionTest, Connection_NotifyLppLayerToRender_Nor
     std::unordered_set<uint64_t> ids { 1u, 2u, 3u };
     int32_t ret = conn.NotifyLppLayerToRender(555u, ids);
     EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+    conn.RegisterJudgeLppLayerCB([](uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds) {});
+    ret = conn.NotifyLppLayerToRender(555u, ids);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
 }
 } // namespace OHOS::Rosen

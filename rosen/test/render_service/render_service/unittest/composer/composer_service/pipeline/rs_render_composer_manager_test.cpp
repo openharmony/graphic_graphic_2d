@@ -87,6 +87,12 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_InsertNew, TestSize.Leve
     EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
     auto conn = mgr->GetRSComposerConnection(10u);
     EXPECT_NE(conn, nullptr);
+
+    auto uniRenderEnabledType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+    mgr->OnScreenConnected(output, property);
+    mgr->OnScreenDisconnected(0);
+    RSUniRenderJudgement::uniRenderEnabledType_ = uniRenderEnabledType;
 }
 
 /**
@@ -317,6 +323,8 @@ HWTEST_F(RsRenderComposerManagerTest, OnHwcRestored_NullParams_EarlyReturn, Test
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
     auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     mgr->OnHwcRestored(nullptr, nullptr);
+    auto output = std::make_shared<HdiOutput>(99u);
+    mgr->OnHwcRestored(output, nullptr);
     EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
 }
 
@@ -336,6 +344,10 @@ HWTEST_F(RsRenderComposerManagerTest, OnHwcRestored_NotFound_EarlyReturn, TestSi
     sptr<RSScreenProperty> property = new RSScreenProperty();
     mgr->OnHwcRestored(output, property);
     EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
+
+    mgr->OnScreenConnected(output, property);
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    mgr->OnHwcRestored(output, property);
 }
 
 /**

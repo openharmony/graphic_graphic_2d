@@ -1127,6 +1127,77 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_IsSupportedPresentTimestamp_Suc
 }
 
 /**
+ * Function: Marshall_Unmarshall_Gravity_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Round-trip bool command for GRAVITY
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Gravity_Success, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(100);
+    auto cmd = std::make_shared<RSRenderLayerGravityCmd>(prop);
+
+    MessageParcel parcel;
+    ASSERT_TRUE(cmd->Marshalling(parcel));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::GRAVITY);
+}
+
+/**
+ * Function: Marshall_Unmarshall_LayerLinearMatrix_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Round-trip bool command for LAYER_LINEAR_MATRIX
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_LayerLinearMatrix_Success, TestSize.Level1)
+{
+    std::vector<float> mat {1.0f, 0.5f, 0.0f};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<float>>>(mat);
+    auto cmd = std::make_shared<RSRenderLayerLayerLinearMatrixCmd>(prop);
+
+    MessageParcel parcel;
+    ASSERT_TRUE(cmd->Marshalling(parcel));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::LAYER_LINEAR_MATRIX);
+    auto outProp = std::static_pointer_cast<RSRenderLayerCmdProperty<std::vector<float>>>(out->GetRSRenderLayerProperty());
+    ASSERT_NE(outProp, nullptr);
+    ASSERT_EQ(outProp->Get().size(), 3u);
+    EXPECT_FLOAT_EQ(outProp->Get()[0], 1.0f);
+    EXPECT_FLOAT_EQ(outProp->Get()[1], 0.5f);
+    EXPECT_FLOAT_EQ(outProp->Get()[2], 0.0f);
+}
+
+/**
+ * Function: Marshall_Unmarshall_CornerRadiusInfoForDRM_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Round-trip bool command for CORNER_RADIUS_INFO_FOR_DRM
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_CornerRadiusInfoForDRM_Success, TestSize.Level1)
+{
+    std::vector<float> mat {1.0f, 0.5f, 0.0f};
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<float>>>(mat);
+    auto cmd = std::make_shared<RSRenderLayerCornerRadiusInfoForDRMCmd>(prop);
+
+    MessageParcel parcel;
+    ASSERT_TRUE(cmd->Marshalling(parcel));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::CORNER_RADIUS_INFO_FOR_DRM);
+    auto outProp = std::static_pointer_cast<RSRenderLayerCmdProperty<std::vector<float>>>(out->GetRSRenderLayerProperty());
+    ASSERT_NE(outProp, nullptr);
+    ASSERT_EQ(outProp->Get().size(), 3u);
+    EXPECT_FLOAT_EQ(outProp->Get()[0], 1.0f);
+    EXPECT_FLOAT_EQ(outProp->Get()[1], 0.5f);
+    EXPECT_FLOAT_EQ(outProp->Get()[2], 0.0f);
+}
+
+/**
  * Function: Unmarshall_Fail_PresentTimestamp_PayloadMissing
  * Type: Function
  * Rank: Important(2)

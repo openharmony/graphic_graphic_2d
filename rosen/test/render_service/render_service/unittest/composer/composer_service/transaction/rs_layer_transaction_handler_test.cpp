@@ -58,6 +58,8 @@ HWTEST(RSLayerTransactionHandlerTest, AddRSLayerParcel_Null_Ignored, TestSize.Le
     std::shared_ptr<RSLayerParcel> nullParcel;
     handler.AddRSLayerParcel(nullParcel, 0);
     EXPECT_TRUE(handler.IsEmpty());
+    handler.rsLayerTransactionData_ = std::make_unique<RSLayerTransactionData>();
+    handler.AddRSLayerParcel(nullParcel, 0);
 }
 
 /**
@@ -72,6 +74,7 @@ HWTEST(RSLayerTransactionHandlerTest, AddRSLayerParcel_Null_Ignored, TestSize.Le
 HWTEST(RSLayerTransactionHandlerTest, Commit_WithNonEmpty_WithoutConnection_Fails, TestSize.Level1)
 {
     RSLayerTransactionHandler handler;
+    EXPECT_TRUE(handler.IsEmpty());
     auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(1);
     auto zCmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
     RSLayerId id = static_cast<RSLayerId>(100u);

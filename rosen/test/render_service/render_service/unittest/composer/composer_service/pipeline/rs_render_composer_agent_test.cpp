@@ -233,6 +233,8 @@ HWTEST_F(RsRenderComposerAgentTest, PreAllocProtectedFrameBuffers_Branches, Test
     // non-null branch
     sptr<SurfaceBuffer> buf = new SurfaceBufferImpl();
     agent->PreAllocProtectedFrameBuffers(buf);
+    agent->rsRenderComposer_ = nullptr;
+    agent->PreAllocProtectedFrameBuffers(buf);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
@@ -272,6 +274,15 @@ HWTEST_F(RsRenderComposerAgentTest, MiscForwarding_WithNonNull_Composer, TestSiz
 
     std::string dumpString;
     std::string layerArg = "layer";
+    agent->SurfaceDump(dumpString);
+    agent->GetRefreshInfoToSP(dumpString, static_cast<NodeId>(0));
+    agent->FpsDump(dumpString, layerArg);
+    agent->ClearFpsDump(dumpString, layerArg);
+    agent->HitchsDump(dumpString, layerArg);
+    agent->RefreshRateCounts(dumpString);
+    agent->ClearRefreshRateCounts(dumpString);
+
+    agent->rsRenderComposer_ = nullptr;
     agent->SurfaceDump(dumpString);
     agent->GetRefreshInfoToSP(dumpString, static_cast<NodeId>(0));
     agent->FpsDump(dumpString, layerArg);

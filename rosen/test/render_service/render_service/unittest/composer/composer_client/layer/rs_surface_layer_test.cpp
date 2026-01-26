@@ -81,6 +81,18 @@ void RSSurfaceLayerTest::SetUp() {}
 void RSSurfaceLayerTest::TearDown() {}
 
 /**
+ * @tc.name: CreateTest
+ * @tc.desc: Test RSSurfaceLayer::Create
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceLayerTest, CreateTest, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSComposerContext> context = nullptr;
+    EXPECT_EQ(RSSurfaceLayer::Create(context, 0), nullptr);
+}
+
+/**
  * @tc.name: CreateLayerTest
  * @tc.desc: Test RSSurfaceLayer::Create
  * @tc.type: FUNC
