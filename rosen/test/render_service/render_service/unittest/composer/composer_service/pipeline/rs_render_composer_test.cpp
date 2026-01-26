@@ -2023,7 +2023,7 @@ HWTEST_F(RsRenderComposerTest, OnHwcDeadAndRestored_State, TestSize.Level1)
     ASSERT_EQ(tmp->hdiOutput_, nullptr);
     tmp->OnHwcDead();
 
-    auto output = std::make_shared<HdiOutput>(2u);
+    output = std::make_shared<HdiOutput>(2u);
     output->Init();
     tmp = std::make_shared<RSRenderComposer>(output, property);
     ASSERT_NE(tmp->hdiOutput_, nullptr);
