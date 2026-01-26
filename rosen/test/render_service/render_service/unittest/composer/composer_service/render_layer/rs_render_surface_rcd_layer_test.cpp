@@ -52,7 +52,7 @@ HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_PixelMap_Null_NoCrash, Test
     auto prop = std::make_shared<RSRenderLayerCmdProperty<std::shared_ptr<Media::PixelMap>>>(pm);
     auto cmd = std::make_shared<RSRenderLayerPixelMapCmd>(prop);
     layer->UpdateRSLayerCmd(cmd);
-    SUCCEED();
+    EXPECT_EQ(layer->GetPixelMap(), nullptr);
 }
 
 /**

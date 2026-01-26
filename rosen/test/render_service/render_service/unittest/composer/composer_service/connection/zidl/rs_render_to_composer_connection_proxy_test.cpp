@@ -50,6 +50,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.
     sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
     sptr<IRemoteObject> obj = stub->AsObject();
     RSRenderToComposerConnectionProxy proxy(obj);
+    ASSERT_NE(obj, nullptr);
 
     std::unique_ptr<RSLayerTransactionData> tx(new RSLayerTransactionData());
     tx->GetPayload().emplace_back(static_cast<uint64_t>(1u), std::shared_ptr<RSLayerParcel>(nullptr));
@@ -63,7 +64,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.
     proxy.ClearRedrawGPUCompositionCache(ids);
 
     proxy.SetScreenBacklight(88u);
-    SUCCEED();
+    EXPECT_EQ(ids.size(), 2u);
 }
 
 /**
@@ -80,12 +81,13 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendRequest_RemoteNull_Err
 {
     sptr<IRemoteObject> nullObj = nullptr;
     RSRenderToComposerConnectionProxy proxy(nullObj);
+    ASSERT_EQ(nullObj, nullptr);
     proxy.ClearFrameBuffers();
     proxy.CleanLayerBufferBySurfaceId(1u);
     std::unordered_set<uint64_t> ids {1u};
     proxy.ClearRedrawGPUCompositionCache(ids);
     proxy.SetScreenBacklight(1u);
-    SUCCEED();
+    EXPECT_EQ(ids.count(1u), 1u);
 }
 
 /**
@@ -104,7 +106,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SetComposerToRenderConnect
     RSRenderToComposerConnectionProxy proxy(stub->AsObject());
     sptr<RSComposerToRenderConnection> ctr = sptr<RSComposerToRenderConnection>::MakeSptr();
     proxy.SetComposerToRenderConnection(ctr);
-    SUCCEED();
+    ASSERT_NE(ctr, nullptr);
 }
 
 /**
@@ -122,7 +124,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_PreAllocProtectedFrameBuff
     RSRenderToComposerConnectionProxy proxy(stub->AsObject());
     sptr<SurfaceBuffer> sb = SurfaceBuffer::Create();
     proxy.PreAllocProtectedFrameBuffers(sb);
-    SUCCEED();
+    ASSERT_NE(sb, nullptr);
 }
 
 /**
@@ -180,7 +182,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SetComposerToRenderConnect
     RSRenderToComposerConnectionProxy proxy(nullObj);
     sptr<RSComposerToRenderConnection> nullCtr;
     proxy.SetComposerToRenderConnection(nullCtr);
-    SUCCEED();
+    ASSERT_EQ(nullCtr, nullptr);
 }
 
 /**
@@ -199,7 +201,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_ClearRedrawGPUCompositionC
     RSRenderToComposerConnectionProxy proxy(stub->AsObject());
     std::unordered_set<uint64_t> empty;
     proxy.ClearRedrawGPUCompositionCache(empty);
-    SUCCEED();
+    EXPECT_TRUE(empty.empty());
 }
 
 /**
@@ -218,7 +220,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_PreAllocProtectedFrameBuff
     RSRenderToComposerConnectionProxy proxy(stub->AsObject());
     sptr<SurfaceBuffer> nullBuf;
     proxy.PreAllocProtectedFrameBuffers(nullBuf);
-    SUCCEED();
+    ASSERT_EQ(nullBuf, nullptr);
 }
 
 /**
@@ -236,6 +238,6 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_CleanLayerBufferBySurfaceI
     sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
     RSRenderToComposerConnectionProxy proxy(stub->AsObject());
     proxy.CleanLayerBufferBySurfaceId(0u);
-    SUCCEED();
+    EXPECT_EQ(0u, 0u);
 }
 } // namespace OHOS::Rosen

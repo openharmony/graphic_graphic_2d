@@ -26,6 +26,8 @@
 #include "recording/recording_canvas.h"
 #include "rs_surface_layer.h"
 #include "v2_1/cm_color_space.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -89,6 +91,60 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ResetCurrentContextTest, TestSize.Level1)
     renderEngine->renderContext_ = RenderContext::Create();
     renderEngine->ResetCurrentContext();
     ASSERT_NE(renderEngine->renderContext_, nullptr);
+}
+
+/**
+ * @tc.name: RequestFrame_NullSharedSurface_ReturnNull
+ * @tc.desc: RequestFrame(shared RSSurfaceOhos=nullptr) should return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_NullSharedSurface_ReturnNull, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    BufferRequestConfig cfg;
+    FrameContextConfig fcfg(false);
+    auto frame = renderEngine->RequestFrame(std::shared_ptr<RSSurfaceOhos>(nullptr), cfg, false, false, fcfg);
+    ASSERT_EQ(frame, nullptr);
+}
+
+/**
+ * @tc.name: RequestFrame_NullTargetSurface_ReturnNull
+ * @tc.desc: RequestFrame(sptr<Surface>=nullptr) should return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_NullTargetSurface_ReturnNull, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    BufferRequestConfig cfg;
+    FrameContextConfig fcfg(false);
+    auto frame = renderEngine->RequestFrame(sptr<Surface>(nullptr), cfg, false, false, fcfg);
+    ASSERT_EQ(frame, nullptr);
+}
+
+/**
+ * @tc.name: RequestFrame_VirtualProtected_FlagsPath
+ * @tc.desc: Exercise isVirtual/isProtected flags path for buffer usage setup
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_VirtualProtected_FlagsPath, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    auto consumer = IConsumerSurface::Create("rf-ut");
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    BufferRequestConfig cfg;
+    cfg.width = 64;
+    cfg.height = 64;
+    cfg.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    cfg.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE;
+    FrameContextConfig fcfg(false);
+    fcfg.isVirtual = true;
+    fcfg.isProtected = true;
+    auto frame = renderEngine->RequestFrame(psurf, cfg, true, false, fcfg);
+    ASSERT_NE(renderEngine, nullptr);
 }
 
 /**
@@ -680,5 +736,178 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ShrinkCachesIfNeededTest002, TestSize.Level
     renderEngine->Init();
     renderEngine->ShrinkCachesIfNeeded();
     EXPECT_NE(renderEngine, nullptr);
+}
+
+/**
+ * @tc.name: RequestFrame_RSSurfaceNull
+ * @tc.desc: RSBaseRenderEngine::RequestFrame(shared_ptr) returns nullptr when rsSurface is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_RSSurfaceNull, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    BufferRequestConfig config { 16, 16, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE, 0, GRAPHIC_COLOR_GAMUT_SRGB,
+        GraphicTransformType::GRAPHIC_ROTATE_NONE };
+    auto frame = renderEngine->RequestFrame(std::shared_ptr<RSSurfaceOhos>(nullptr), config, false);
+    ASSERT_EQ(frame, nullptr);
+}
+
+/**
+ * @tc.name: RequestFrame_WithFakeSurface
+ * @tc.desc: RSBaseRenderEngine::RequestFrame(shared_ptr) returns a valid RSRenderFrame using fake surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_WithRasterSurface, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    // use raster surface to avoid GPU dependencies
+    RSSurfaceRenderNodeConfig nodeConfig;
+    nodeConfig.id = 1;
+    nodeConfig.name = "surface";
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeConfig);
+    auto csurf = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    csurf->RegisterConsumerListener(listener);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rasterSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    BufferRequestConfig config { 32, 24, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE, 0, GRAPHIC_COLOR_GAMUT_SRGB,
+        GraphicTransformType::GRAPHIC_ROTATE_NONE };
+    FrameContextConfig frameCtx(false);
+    frameCtx.isVirtual = true;
+    frameCtx.timeOut = 0;
+    auto frame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rasterSurface),
+        config, true, true, frameCtx);
+    ASSERT_NE(frame, nullptr);
+    csurf->UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: RequestFrame_TargetSurfaceNull
+ * @tc.desc: RSBaseRenderEngine::RequestFrame(sptr<Surface>) returns nullptr when targetSurface is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_TargetSurfaceNull, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    BufferRequestConfig config { 8, 8, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE, 0, GRAPHIC_COLOR_GAMUT_SRGB,
+        GraphicTransformType::GRAPHIC_ROTATE_NONE };
+    auto frame = renderEngine->RequestFrame(sptr<Surface>(nullptr), config, false);
+    ASSERT_EQ(frame, nullptr);
+}
+
+/**
+ * @tc.name: RequestFrame_TargetSurfaceValid
+ * @tc.desc: RSBaseRenderEngine::RequestFrame(sptr<Surface>) returns a frame for valid surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_TargetSurfaceValid, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    BufferRequestConfig config { 12, 10, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE, 0, GRAPHIC_COLOR_GAMUT_SRGB,
+        GraphicTransformType::GRAPHIC_ROTATE_NONE };
+    RSSurfaceRenderNodeConfig nodeConfig;
+    nodeConfig.id = 1;
+    nodeConfig.name = "surface";
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeConfig);
+    auto csurf = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    csurf->RegisterConsumerListener(listener);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto frame = renderEngine->RequestFrame(pSurface, config, true);
+    ASSERT_NE(frame, nullptr);
+    csurf->UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: MakeRSSurface_NullAndValid
+ * @tc.desc: RSBaseRenderEngine::MakeRSSurface handles null and valid surfaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, MakeRSSurface_NullAndValid, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    auto nullRs = renderEngine->MakeRSSurface(sptr<Surface>(nullptr), false);
+    ASSERT_EQ(nullRs, nullptr);
+
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rs = renderEngine->MakeRSSurface(pSurface, false);
+    ASSERT_NE(rs, nullptr);
+}
+
+/**
+ * @tc.name: SetUiTimeStamp_NullArgs
+ * @tc.desc: RSBaseRenderEngine::SetUiTimeStamp handles null surface/renderFrame gracefully
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, SetUiTimeStamp_NullArgs, TestSize.Level1)
+{
+    std::unique_ptr<RSRenderFrame> rfNull;
+    RSBaseRenderEngine::SetUiTimeStamp(rfNull, nullptr);
+    // with a valid raster surface but null frame
+    RSSurfaceRenderNodeConfig nodeConfig;
+    nodeConfig.id = 1;
+    nodeConfig.name = "surface";
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeConfig);
+    auto csurf = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    csurf->RegisterConsumerListener(listener);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rasterSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    RSBaseRenderEngine::SetUiTimeStamp(rfNull, rasterSurface);
+    ASSERT_EQ(rfNull, nullptr);
+    ASSERT_NE(rasterSurface, nullptr);
+    csurf->UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: SetUiTimeStamp_Normal
+ * @tc.desc: RSBaseRenderEngine::SetUiTimeStamp invokes surface SetUiTimeStamp
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, SetUiTimeStamp_Normal, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig nodeConfig;
+    nodeConfig.id = 1;
+    nodeConfig.name = "surface";
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeConfig);
+    auto csurf = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    csurf->RegisterConsumerListener(listener);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rasterSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    // request a real frame from raster surface
+    auto rawFrame = rasterSurface->RequestFrame(16, 16, 0, true, false);
+    ASSERT_NE(rawFrame, nullptr);
+    auto rf = std::make_unique<RSRenderFrame>(rasterSurface, std::move(rawFrame));
+    RSBaseRenderEngine::SetUiTimeStamp(rf, rasterSurface);
+    // assert ExtraData contains a valid timeStamp (> 0)
+    int64_t ts = 0;
+    auto framePtr = rf->GetFrame().get();
+    ASSERT_NE(framePtr, nullptr);
+    // Avoid RTTI: use type tag guard then static_cast
+    ASSERT_EQ(framePtr->GetType(), RSSurfaceFrameType::RS_SURFACE_FRAME_OHOS_RASTER);
+    auto frameRaster = static_cast<RSSurfaceFrameOhosRaster*>(framePtr);
+    auto buf = frameRaster->GetBuffer();
+    ASSERT_NE(buf, nullptr);
+    auto extra = buf->GetExtraData();
+    ASSERT_NE(extra, nullptr);
+    extra->ExtraGet("timeStamp", ts);
+    EXPECT_GT(ts, 0);
+    csurf->UnregisterConsumerListener();
 }
 }

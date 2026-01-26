@@ -27,6 +27,7 @@
 #include "surface_buffer_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "rs_layer.h"
+#include <parameters.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -208,6 +209,20 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest001, Function | SmallTest | Leve
     auto infoPtr2 = composerAdapter_->CreateLayer(*surfaceNode2);
     auto infoPtr3 = composerAdapter_->CreateLayer(*surfaceNode3);
     RSTestUtil::UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: Init_ReturnFalse_WhenOutputNull
+ * @tc.desc: RSComposerAdapter::Init should return false when output is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerAdapterTest, Init_ReturnFalse_WhenOutputNull, Function | SmallTest | Level2)
+{
+    ScreenInfo info;
+    float coeff = 1.0f;
+    RSComposerAdapter adapter;
+    auto ok = adapter.Init(info, coeff, nullptr, nullptr);
+    ASSERT_FALSE(ok);
 }
 
 /**
@@ -480,6 +495,65 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer011, Function | SmallTest | Level2)
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
     screenDrawable->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
     ASSERT_NE(composerAdapter_->CreateLayer(*node), nullptr);
+}
+
+/**
+ * @tc.name: CommitLayers_DumpEnabled
+ * @tc.desc: RSComposerAdapter.CommitLayers triggers DumpLayersToFile when enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerAdapterTest, CommitLayers_DumpEnabled, Function | SmallTest | Level2)
+{
+    // Enable dumping layers to file via system parameter
+    OHOS::system::SetParameter("rosen.dumplayer.enabled", "1");
+
+    CreateComposerAdapterWithScreenInfo(2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN,
+        ScreenRotation::ROTATION_0);
+    composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
+    composerAdapter_->output_ = HdiOutput::CreateHdiOutput(screenId_);
+    composerAdapter_->output_->Init();
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    surfaceNode->SetSrcRect(RectI(0, 80, 2560, 1600));
+    surfaceNode->SetDstRect(RectI(0, 80, 2560, 1600));
+    ASSERT_NE(surfaceNode, nullptr);
+    auto layer = composerAdapter_->CreateLayer(*surfaceNode);
+    ASSERT_NE(layer, nullptr);
+
+    std::vector<RSLayerPtr> layers;
+    layers.emplace_back(layer);
+    // Should go through DumpLayersToFile path; file open may fail but path executes
+    composerAdapter_->CommitLayers(layers);
+
+    // Reset parameter to avoid side effects
+    OHOS::system::SetParameter("rosen.dumplayer.enabled", "0");
+    RSTestUtil::UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: CreateLayer_InvertColor_ClientComposition
+ * @tc.desc: Invert color filter forces client composition type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerAdapterTest, CreateLayer_InvertColor_ClientComposition, Function | SmallTest | Level2)
+{
+    CreateComposerAdapterWithScreenInfo(2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN,
+        ScreenRotation::ROTATION_0);
+    composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
+    composerAdapter_->SetColorFilterMode(ColorFilterMode::INVERT_COLOR_ENABLE_MODE);
+
+    composerAdapter_->output_ = HdiOutput::CreateHdiOutput(screenId_);
+    composerAdapter_->output_->Init();
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    surfaceNode->SetSrcRect(RectI(0, 80, 2560, 1600));
+    surfaceNode->SetDstRect(RectI(0, 80, 2560, 1600));
+    ASSERT_NE(surfaceNode, nullptr);
+    auto layer = composerAdapter_->CreateLayer(*surfaceNode);
+    ASSERT_NE(layer, nullptr);
+    // With invert color enabled, needClient should be true → client composition
+    EXPECT_EQ(layer->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**

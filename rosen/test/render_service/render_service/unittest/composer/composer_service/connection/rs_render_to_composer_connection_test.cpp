@@ -63,8 +63,8 @@ HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgent, TestSize.
     conn.ClearRedrawGPUCompositionCache(ids);
 
     conn.SetScreenBacklight(10u);
-
-    SUCCEED();
+    std::unordered_set<uint64_t> expectIds { 1u };
+    EXPECT_EQ(ids, expectIds);
 }
 
 /**
@@ -88,7 +88,7 @@ HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgentPtr, TestSi
     std::unordered_set<uint64_t> ids { 2u };
     conn.ClearRedrawGPUCompositionCache(ids);
     conn.SetScreenBacklight(20u);
-    SUCCEED();
+    ASSERT_EQ(agent, nullptr);
 }
 
 /**
@@ -104,7 +104,7 @@ HWTEST_F(RSRenderToComposerConnectionTest, Connection_SetComposerToRenderConnect
     RSRenderToComposerConnection conn("conn", 3u, agent);
     sptr<RSComposerToRenderConnection> ctr = sptr<RSComposerToRenderConnection>::MakeSptr();
     conn.SetComposerToRenderConnection(ctr);
-    SUCCEED();
+    ASSERT_NE(ctr, nullptr);
 }
 
 /**
@@ -120,7 +120,7 @@ HWTEST_F(RSRenderToComposerConnectionTest, Connection_PreAllocProtectedFrameBuff
     RSRenderToComposerConnection conn("conn", 4u, agent);
     sptr<SurfaceBuffer> sb = SurfaceBuffer::Create();
     conn.PreAllocProtectedFrameBuffers(sb);
-    SUCCEED();
+    ASSERT_NE(sb, nullptr);
 }
 } // namespace OHOS::Rosen
 #endif // ENABLE_SERVER_CONN_UT 

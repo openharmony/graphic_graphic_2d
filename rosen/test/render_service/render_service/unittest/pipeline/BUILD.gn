@@ -78,7 +78,19 @@ config("pipeline_test") {
 ohos_unittest("RSBufferManagerTest") {
   module_out_path = module_output_path
   sources = [ "buffer_thread/rs_buffer_manager_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+  ]
+  defines = []
+  defines += gpu_defines
 }
 
 ## Build RSVirtualScreenProcessorTest
@@ -412,6 +424,7 @@ ohos_unittest("RSProcessorFactoryTest") {
   }
   defines = []
   defines += gpu_defines
+  defines += [ "private=public", "protected=public" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
