@@ -361,6 +361,7 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
             node.SetColorSpace(mirrorNode->GetColorSpace());
         }
     }
+
 }
 
 void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
