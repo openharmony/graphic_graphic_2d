@@ -812,7 +812,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
             isHardwareEnableByBackgroundAlpha = true;
             backgroundAlphaRect = hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
             continue;
-        } else if (!hwcNodePtr->IsHardwareForcedDisabled()){
+        } else if (!hwcNodePtr->IsHardwareForcedDisabled()) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
             auto parentNode = hwcNodePtr->GetParent().lock();
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
