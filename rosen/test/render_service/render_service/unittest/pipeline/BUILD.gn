@@ -419,9 +419,6 @@ ohos_unittest("RSProcessorFactoryTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
-  defines = []
-  defines += gpu_defines
-  # Expose protected/private members for tests via build config
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
