@@ -50,9 +50,6 @@ public:
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> hgmServiceToProcessInfo,
         uint32_t& pendingScreenRefreshRate, uint64_t& pendingConstraintRelativeTime);
 
-    void AddScreenId(ScreenId screenId);
-    void RemoveScreenId(ScreenId screenId);
-
     std::shared_ptr<HgmRPEnergy> GetHgmRPEnergy() { return hgmRPEnergy_; }
 
     bool AdaptiveStatus() const { return isAdaptive_; }

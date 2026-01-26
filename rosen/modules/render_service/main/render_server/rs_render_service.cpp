@@ -225,8 +225,6 @@ void RSRenderService::VsyncComponentInit()
 void RSRenderService::RenderProcessManagerInit()
 {
     RS_LOGI("%{public}s: renderProcessManager_ init", __func__);
-    // TODO: mainThread_ need to be removed in render_service asap
-    mainThread_ = RSMainThread::Instance();
     renderProcessManager_ = RSRenderProcessManager::Create(*this);
     auto screenManagerListener = sptr<ScreenManagerListener>::MakeSptr(*this);
     screenManager_->RegisterCoreListener(screenManagerListener);

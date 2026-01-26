@@ -43,15 +43,8 @@ void RSRenderServiceUnitTest::TearDown() {}
 
 sptr<RSRenderService> GetAndInitRenderService()
 {
-    sptr<RSRenderService> renderService(new RSRenderService());
-    if (renderService) {
-        renderService->mainThread_ = RSMainThread::Instance();
-        renderService->screenManager_ = sptr<RSScreenManager>::MakeSptr();
-    }
-    if (renderService->mainThread_) {
-        renderService->mainThread_->handler_ =
-            std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(true));
-    }
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    renderService->screenManager_ = sptr<RSScreenManager>::MakeSptr();
     return renderService;
 }
 
@@ -72,7 +65,6 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
 {
     auto renderService = GetAndInitRenderService();
     ASSERT_NE(renderService, nullptr);
-    ASSERT_NE(renderService->mainThread_, nullptr);
     ASSERT_NE(renderService->screenManager_, nullptr);
 }
 
