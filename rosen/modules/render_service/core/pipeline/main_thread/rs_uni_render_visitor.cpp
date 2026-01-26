@@ -362,6 +362,17 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
         }
     }
 
+    if (screenManager_->GetScreenConnectionType(node.GetScreenId()) ==
+        ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL) {
+        ScreenColorGamut screenColorGamut;
+        if (screenManager_->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
+            RS_LOGD("HandleColorGamuts get screen color gamut failed.");
+            return;
+        }
+        if (static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_SRGB) {
+            node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+        }
+    }
 }
 
 void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)

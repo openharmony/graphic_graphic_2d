@@ -1887,7 +1887,7 @@ HWTEST_F(RSUniRenderVisitorTest, ResetCrossNodesVisitedStatusTest, TestSize.Leve
 
 /**
  * @tc.name: HandleColorGamuts001
- * @tc.desc: HandleColorGamuts for virtual screen
+ * @tc.desc: Test HandleColorGamuts
  * @tc.type: FUNC
  * @tc.require: issueIAJJ43
  */
@@ -1911,6 +1911,29 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts001, TestSize.Level2)
     ASSERT_EQ(displayNode->GetColorSpace(), static_cast<GraphicColorGamut>(screenColorGamut));
 
     screenManager->RemoveVirtualScreen(virtualScreenId);
+}
+
+/**
+ * @tc.name: HandleColorGamuts002
+ * @tc.desc: HandleColorGamuts for virtual screen
+ * @tc.type: FUNC
+ * @tc.require: issueIAJJ43
+ */
+HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
+    rsUniRenderVisitor->HandleColorGamuts(*screenNode);
+ 
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+ 
+    screenNode->screenInfo_ = {};
+    screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+    screenNode->SetConnectionType(DISPLAY_CONNECTION_TYPE_EXTERNAL);
+    rsUniRenderVisitor->HandleColorGamuts(*screenNode);
+    ASSERT_EQ(screenNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 /**
