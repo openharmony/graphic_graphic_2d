@@ -4910,24 +4910,25 @@ HWTEST_F(RSMainThreadTest, OnUniRenderDraw001, TestSize.Level2)
     mainThread->doDirectComposition_ = doDirectComposition;
 }
 
-// /**
-//  * @tc.name: OnUniRenderDraw
-//  * @tc.desc: test OnUniRenderDraw002, doDirectComposition_ = true
-//  * @tc.type: FUNC
-//  * @tc.require: issueIAIPI3
-//  */
-// HWTEST_F(RSMainThreadTest, OnUniRenderDraw002, TestSize.Level2)
-// {
-//     auto mainThread = RSMainThread::Instance();
-//     ASSERT_NE(mainThread, nullptr);
-//     auto isUniRender = mainThread->isUniRender_;
-//     auto doDirectComposition = mainThread->doDirectComposition_;
-//     mainThread->isUniRender_ = true;
-//     mainThread->doDirectComposition_ = true;
-//     mainThread->OnUniRenderDraw();
-//     mainThread->isUniRender_ = isUniRender;
-//     mainThread->doDirectComposition_ = doDirectComposition;
-// }
+/**
+ * @tc.name: OnUniRenderDraw
+ * @tc.desc: test OnUniRenderDraw002, doDirectComposition_ = true
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPI3
+ */
+HWTEST_F(RSMainThreadTest, OnUniRenderDraw002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    auto isUniRender = mainThread->isUniRender_;
+    auto doDirectComposition = mainThread->doDirectComposition_;
+    mainThread->isUniRender_ = true;
+    mainThread->doDirectComposition_ = true;
+    mainThread->OnUniRenderDraw();
+    mainThread->isUniRender_ = isUniRender;
+    mainThread->doDirectComposition_ = doDirectComposition;
+}
 
 /**
  * @tc.name: RSJankStatsOnVsyncStart
