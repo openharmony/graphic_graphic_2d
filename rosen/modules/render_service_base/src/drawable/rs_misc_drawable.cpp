@@ -274,8 +274,8 @@ void RSCustomModifierDrawable::OnPurge()
 void RSCustomModifierDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
 #ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-        RSTagTracker::SOURCETYPE::SOURCE_RSCUSTOMMODIFIERDRAWABLE);
+    RSTagTracker tagTracker(
+        canvas ? canvas->GetGPUContext() : nullptr, RSTagTracker::SOURCETYPE::SOURCE_RSCUSTOMMODIFIERDRAWABLE);
 #endif
     for (size_t i = 0; i < drawCmdListVec_.size(); i++) {
 #ifdef RS_ENABLE_PREFETCH
@@ -286,9 +286,8 @@ void RSCustomModifierDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
 #endif
         const auto& drawCmdList = drawCmdListVec_[i];
         Drawing::Matrix mat;
-        if (isCanvasNode_ &&
-            RSPropertyDrawableUtils::GetGravityMatrix(gravity_, *rect, drawCmdList->GetWidth(),
-                drawCmdList->GetHeight(), mat)) {
+        if (isCanvasNode_ && RSPropertyDrawableUtils::GetGravityMatrix(
+            gravity_, *rect, drawCmdList->GetWidth(), drawCmdList->GetHeight(), mat)) {
             canvas->ConcatMatrix(mat);
         }
         drawCmdList->Playback(*canvas, rect);
@@ -414,13 +413,12 @@ void RSBeginBlenderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
+    RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSBEGINBLENDERDRAWABLE);
 #endif
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSBeginBlenderDrawable:: %s, bounds: %s",
         propertyDescription_.c_str(), rect->ToString().c_str());
-    RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, blender_, blendApplyType_,
-        isDangerous_);
+    RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, blender_, blendApplyType_, isDangerous_);
 }
 
 RSDrawable::Ptr RSEndBlenderDrawable::OnGenerate(const RSRenderNode& node)
@@ -545,8 +543,8 @@ void RSEnvFGColorStrategyDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing
     switch (envFGColorStrategy_) {
         case ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR: {
             // calculate the color by screebshot
-            Color color = RSPropertyDrawableUtils::GetInvertBackgroundColor(*paintFilterCanvas, needClipToBounds_,
-                boundsRect_, backgroundColor_);
+            Color color = RSPropertyDrawableUtils::GetInvertBackgroundColor(
+                *paintFilterCanvas, needClipToBounds_, boundsRect_, backgroundColor_);
             paintFilterCanvas->SetEnvForegroundColor(color);
             break;
         }
