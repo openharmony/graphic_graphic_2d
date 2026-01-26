@@ -1776,23 +1776,26 @@ HWTEST_F(RSUniRenderVisitorTest, ResetCrossNodesVisitedStatusTest, TestSize.Leve
  */
 HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts001, TestSize.Level2)
 {
-    ASSERT_NE(screenManager_, nullptr);
-    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
-    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
-
-    auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
-    
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    displayNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
-    rsUniRenderVisitor->HandleColorGamuts(*displayNode);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
+    rsUniRenderVisitor->HandleColorGamuts(*screenNode);
 
+    ASSERT_NE(screenManager_, nullptr);
+
+    screenNode->screenInfo_ = {};
+    screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    rsUniRenderVisitor->HandleColorGamuts(*screenNode);
+    ASSERT_EQ(screenNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
+    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
+    screenNode->screenId_ = virtualScreenId;
+
+    rsUniRenderVisitor->HandleColorGamuts(*screenNode);
     ScreenColorGamut screenColorGamut;
-    screenManager_->GetScreenColorGamut(displayNode->GetScreenId(), screenColorGamut);
-    ASSERT_EQ(displayNode->GetColorSpace(), static_cast<GraphicColorGamut>(screenColorGamut));
-
-    screenManager_->RemoveVirtualScreen(virtualScreenId);
+    screenManager_->GetScreenColorGamut(screenNode->GetScreenId(), screenColorGamut);
+    ASSERT_EQ(screenNode->GetColorSpace(), static_cast<GraphicColorGamut>(screenColorGamut));
 }
 
 /**
