@@ -524,7 +524,7 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffers_Branches_NoCrash_002, TestSize.
     std::shared_ptr<RSSurfaceOhos> rsSurface1 = std::make_shared<RSSurfaceOhosRaster>(pSurface);
     EXPECT_NE(nullptr, rsSurface1);
     rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({0, rsSurface1});
-    EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffers(true), GSERROR_OK);
+    EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffers(true), SURFACE_ERROR_CONSUMER_DISCONNECTED);
 }
 
 /**
@@ -2016,8 +2016,10 @@ HWTEST_F(RsRenderComposerTest, GetDelayTime_AfterPrepare, TestSize.Level1)
  */
 HWTEST_F(RsRenderComposerTest, OnHwcDeadAndRestored_State, TestSize.Level1)
 {
+    auto output = std::make_shared<HdiOutput>(1u);
     sptr<RSScreenProperty> property = new RSScreenProperty();
-    auto tmp = std::make_shared<RSRenderComposer>(nullptr, property);
+    auto tmp = std::make_shared<RSRenderComposer>(output, property);
+    tmp->hdiOutput_ = nullptr;
     ASSERT_EQ(tmp->hdiOutput_, nullptr);
     tmp->OnHwcDead();
 
