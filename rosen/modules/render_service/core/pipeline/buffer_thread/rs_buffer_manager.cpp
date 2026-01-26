@@ -89,12 +89,12 @@ void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
 
 void RSBufferManager::AddPendingReleaseBuffer(uint64_t bufferId, sptr<SyncFence> fence)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::AddPendingReleaseBuffer(without consumer) bufferId %" PRIu64
-        " fence %d", bufferId, fence->Get());
     if (fence == nullptr) {
         RS_LOGE("RSBufferManager::AddPendingReleaseBuffer(without consumer) fence is null");
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::AddPendingReleaseBuffer(without consumer) bufferId %" PRIu64
+        " fence %d", bufferId, fence->Get());
     std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
     auto iter = pendingReleaseBuffers_.find(bufferId);
     if (iter == pendingReleaseBuffers_.end()) {
