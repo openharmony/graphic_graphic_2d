@@ -22,7 +22,7 @@
 #include "pipeline/rs_render_node_gc.h"
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-#include "rs_parallel_manager.h
+#include "rs_parallel_manager.h"
 #include "rs_parallel_misc.h"
 #include "rs_parallel_multiwin_policy.h"
 #endif
@@ -38,13 +38,6 @@ constexpr NodeId DEFAULT_ID = 0xFFFF;
 
 class RSEffectRenderNodeDrawableTest : public testing::Test {
 public:
-    std::shared_ptr<RSEffectRenderNode> renderNode_;
-    RSRenderNodeDrawableAdapter* drawable_ = nullptr;
-    RSEffectRenderNodeDrawable* effectDrawable_ = nullptr;
-
-    std::shared_ptr<Drawing::Canvas> drawingCanvas_;
-    std::shared_ptr<RSPaintFilterCanvas> canvas_;
-      
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -57,26 +50,10 @@ void RSEffectRenderNodeDrawableTest::SetUpTestCase()
     renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
     renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
 }
+
 void RSEffectRenderNodeDrawableTest::TearDownTestCase() {}
 void RSEffectRenderNodeDrawableTest::SetUp()
 {
-    renderNode_ = std::make_shared<RSEffectRenderNode>(DEFAULT_ID);
-    if (!renderNode_) {
-        RS_LOGE("RSEffectRenderNodeDrawableTest:failed to create effect node.");
-    }
-    drawable_ = RSEffectRenderNodeDrawable::OnGenerate(renderNode_);
-    if (drawable_) {
-        drawable_->renderParams_ = std::make_unique<RSEffectRenderParams>(DEFAULT_ID);
-        effectDrawable_ = static_cast<RSEffectRenderNodeDrawable*>(drawable_);
-        if (!drawable_->renderParams_) {
-            RS_LOGE("RSEffectRenderNodeDrawableTest:failed to init effect render params.");
-        }
-    }
-    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    if (drawingCanvas_) {
-        canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
-    }
-
     // set render thread param
     auto uniParams = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
@@ -85,7 +62,7 @@ void RSEffectRenderNodeDrawableTest::TearDown() {}
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 /**
- * @tc.name: OnDrawTest
+ * @tc.name: OnDraw
  * @tc.desc: Test OnDraw
  * @tc.type: FUNC
  * @tc.require: #ICEF7K
@@ -97,7 +74,6 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     auto effectDrawable = static_cast<RSEffectRenderNodeDrawable*>(
         RSRenderNodeDrawableAdapter::OnGenerate(effectNode).get());
     ASSERT_NE(effectDrawable->renderParams_, nullptr);
-
     auto canvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto rsPaintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
 
