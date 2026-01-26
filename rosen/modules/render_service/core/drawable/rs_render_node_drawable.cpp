@@ -380,7 +380,7 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     }
     // resume the inner render group after outer render group is canceled
     if (params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE && IsCanceledByParentRenderGroup() &&
-        (!isOffScreenWithClipHole_ || !IsDrawingBlurForCache())) {
+        !isOffScreenWithClipHole_ && !IsDrawingBlurForCache()) {
         RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu resume inner group drawable cache", nodeId_);
         SetCacheType(DrawableCacheType::CONTENT);
         SetCanceledByParentRenderGroup(false);
