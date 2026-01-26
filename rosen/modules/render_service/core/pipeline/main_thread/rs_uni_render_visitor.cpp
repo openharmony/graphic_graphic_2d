@@ -318,31 +318,35 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
     }
 
     if (screenType == VIRTUAL_TYPE_SCREEN) {
-        ScreenColorGamut screenColorGamut;
-        if (screenManager_->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
-            RS_LOGD("HandleColorGamuts get screen color gamut failed.");
-            return;
-        }
-        node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
-        return;
-    } else if (ColorGamutParam::DisableP3OnWiredExtendedScreen() &&
-        !RSMainThread::Instance()->HasWiredMirrorDisplay() && node.GetScreenId() != 0) {
-        // Current PC external screen do not support P3.
-        // The wired extended screen is fixed to sRGB color space.
-        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
-        return;
-    }
-    std::vector<ScreenColorGamut> mode{};
-    int32_t ret = screenManager_->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
-    if (ret != SUCCESS) {
-        RS_LOGD("HandleColorGamuts GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
-        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+        HandleVirtualScreenColorGamut(node);
+    } else if (IsWiredMirrorScreen(node)) {
+        HandleWiredMirrorScreenColorGamut(node);
+    } else if (IsWiredExtendedScreen(node)) {
+        HandleWiredExtendedScreenColorGamut(node);
     } else {
-        RSLuminanceControl::Get().HandleGamutSpecialRender(mode);
-        node.SelectBestGamut(mode);
+        HandleMainScreenColorGamut(node);
     }
+}
 
-    if (RSMainThread::Instance()->HasWiredMirrorDisplay() && !MultiScreenParam::IsMirrorDisplayCloseP3()) {
+void RSUniRenderVisitor::HandleVirtualScreenColorGamut(RSScreenRenderNode& node)
+{
+    ScreenColorGamut screenColorGamut;
+    if (screenManager_->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
+        RS_LOGD("HandleVirtualScreenColorGamut get screen color gamut failed.");
+        return;
+    }
+    node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
+}
+
+bool RSUniRenderVisitor::IsWiredMirrorScreen(RSScreenRenderNode& node)
+{
+    std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
+    return RSMainThread::Instance()->HasWiredMirrorDisplay() && mirrorNode != nullptr;
+}
+
+void RSUniRenderVisitor::HandleWiredMirrorScreenColorGamut(RSScreenRenderNode& node)
+{
+    if (!MultiScreenParam::IsMirrorDisplayCloseP3()) {
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
         if (!mirrorNode) {
             return;
@@ -362,16 +366,43 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
         }
     }
 
-    if (screenManager_->GetScreenConnectionType(node.GetScreenId()) ==
-        ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL) {
-        ScreenColorGamut screenColorGamut;
-        if (screenManager_->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
-            RS_LOGD("HandleColorGamuts get screen color gamut failed.");
-            return;
-        }
-        if (static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_SRGB) {
-            node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
-        }
+    ScreenColorGamut screenColorGamut;
+    if (screenManager_->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
+        RS_LOGD("HandleWiredMirrorScreenGamut get screen color gamut failed.");
+        return;
+    }
+    if (static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_SRGB) {
+        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+    }
+}
+
+bool RSUniRenderVisitor::IsWiredExtendedScreen(RSScreenRenderNode& node)
+{
+    return screenManager_->GetScreenConnectionType(node.GetScreenId()) ==
+        ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL && !IsWiredMirrorScreen(node);
+}
+
+void RSUniRenderVisitor::HandleWiredExtendedScreenColorGamut(RSScreenRenderNode& node)
+{
+    if (ColorGamutParam::DisableP3OnWiredExtendedScreen()) {
+        // Current PC external screen do not support P3.
+        // The wired extended screen is fixed to sRGB color space.
+        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+        return;
+    }
+    HandleMainScreenColorGamut(node);
+}
+
+void RSUniRenderVisitor::HandleMainScreenColorGamut(RSScreenRenderNode& node)
+{
+    std::vector<ScreenColorGamut> mode{};
+    int32_t ret = screenManager_->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
+    if (ret != SUCCESS) {
+        RS_LOGD("HandleColorGamuts GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
+        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+    } else {
+        RSLuminanceControl::Get().HandleGamutSpecialRender(mode);
+        node.SelectBestGamut(mode);
     }
 }
 
