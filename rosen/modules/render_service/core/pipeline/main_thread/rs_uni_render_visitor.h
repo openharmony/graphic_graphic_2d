@@ -26,12 +26,12 @@
 #include "system/rs_system_parameters.h"
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -189,7 +189,6 @@ private:
     void UpdateSurfaceDirtyAndGlobalDirty();
     // should ensure that the surface size of dirty region manager has been set
     void ResetDisplayDirtyRegion();
-    bool CheckScreenPowerChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
     bool CheckLuminanceStatusChange(ScreenId id);
     bool CheckSkipCrossNode(RSSurfaceRenderNode& node);
@@ -492,8 +491,6 @@ private:
     int32_t rsScreenNodeChildNum_ = 0;
     size_t rsScreenNodeNum_ = 0;
 
-    ScreenState screenState_ = ScreenState::UNKNOWN;
-    
     bool isSkipDrawInVirtualScreen_ = false;
 
     // used for finding the first effect render node to check to need to enabled debug

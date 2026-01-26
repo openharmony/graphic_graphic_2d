@@ -48,7 +48,7 @@
 #include "pipeline/hwc/rs_hwc_context.h"
 #include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
-#include "feature/vrate/rp_vsync_rate_reduce_manager.h"
+#include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "platform/common/rs_event_manager.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -98,7 +98,8 @@ public:
 
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
-        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent,
+        const std::shared_ptr<RSComposerClientManager>& composerClientManager);
     void OnScreenConnected(const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
@@ -365,9 +366,9 @@ public:
         return systemAnimatedScenesList_.empty();
     }
 
-    RPVsyncRateReduceManager& GetRPVsyncRateReduceManager()
+    RSVsyncRateReduceManager& GetRSVsyncRateReduceManager()
     {
-        return rpVsyncRateReduceManager_;
+        return rsVsyncRateReduceManager_;
     }
 
     bool IsFirstFrameOfOverdrawSwitch() const
@@ -498,7 +499,7 @@ private:
     void ProcessCommand();
     void CreateScreenNode(const sptr<RSScreenProperty>& property);
     void DestroyScreenNode(ScreenId screenId);
-    void HandleScreenPropertyRefreshOneFrame(ScreenPropertyType type);
+    void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();
@@ -747,7 +748,7 @@ private:
      * if an image is found in this set, it means that the image is no longer needed and can be safely
      * removed from the GPU cache.
      */
-    std::set<uint64_t> unmappedCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
+    std::unordered_set<uint64_t> unmappedCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
     std::mutex unmappedCacheSetMutex_;
 
     /**
@@ -860,7 +861,7 @@ private:
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
-    RPVsyncRateReduceManager rpVsyncRateReduceManager_;
+    RSVsyncRateReduceManager rsVsyncRateReduceManager_;
     RSSurfaceWatermarkHelper surfaceWatermarkHelper_;
 
     // for record fastcompose time change
@@ -882,6 +883,7 @@ private:
     bool hasCanvasDrawingNodeCachedOp_ = false;
 
     std::shared_ptr<HgmRPContext> hgmRPContext_ = nullptr;
+    std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

@@ -115,7 +115,7 @@ public:
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; }
     void SetLastCurScreenId(ScreenId screenId) { lastCurScreenId_.store(screenId); }
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
-    void HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect);
+    void HandleScreenRectFrameRate(ScreenId id, const Rect& activeRect);
     void HandleScreenExtStrategyChange(bool status, const std::string& suffix);
     std::string GetCurScreenExtStrategyId();
     void UpdateScreenExtStrategyConfig(const PolicyConfigData::ScreenConfigMap& screenConfigs);

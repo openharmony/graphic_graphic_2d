@@ -391,6 +391,8 @@ HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, ProcessRcdSurfaceRenderNode1, TestS
     std::shared_ptr<RSProcessor> processor = nullptr;
     EXPECT_TRUE(!bottomDrawable->ProcessRcdSurfaceRenderNode(processor));
 
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_TRUE(!bottomDrawable->ProcessRcdSurfaceRenderNode(processor));
 
@@ -426,6 +428,8 @@ HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, ConsumeAndUpdateBufferTest1, TestSi
     std::shared_ptr<RSProcessor> processor = nullptr;
     EXPECT_TRUE(!bottomDrawable->ProcessRcdSurfaceRenderNode(processor));
 
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_TRUE(!bottomDrawable->ProcessRcdSurfaceRenderNode(processor));
 

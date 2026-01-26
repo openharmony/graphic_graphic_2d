@@ -27,7 +27,7 @@ public:
         OHOS::MessageParcel& reply, MessageOption& option) override;
 
 private:
-    std::set<uint64_t> ParseClearRedrawCacheBufferIds(OHOS::MessageParcel& parcel);
+    std::unordered_set<uint64_t> ParseClearRedrawCacheBufferIds(OHOS::MessageParcel& parcel);
     std::unique_ptr<RSLayerTransactionData> ParseTransactionData(OHOS::MessageParcel& parcel);
     int32_t GetCleanLayerBufferSurfaceId(OHOS::MessageParcel& parcel, uint64_t& surfaceId);
     int32_t GetBacklightLevel(OHOS::MessageParcel& parcel, uint32_t& level);

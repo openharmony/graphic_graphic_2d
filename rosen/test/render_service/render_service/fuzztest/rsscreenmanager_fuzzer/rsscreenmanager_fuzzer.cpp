@@ -229,7 +229,7 @@ void SetScreenActiveMode()
 void SetScreenActiveRect()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
-    GraphicIRect activeRect;
+    Rect activeRect;
     screenManager_->SetScreenActiveRect(screenId, activeRect);
 }
 

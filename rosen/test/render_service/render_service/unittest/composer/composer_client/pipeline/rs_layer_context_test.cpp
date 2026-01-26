@@ -22,6 +22,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "consumer_surface.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "layer_backend/hdi_output.h"
 #include "connection/rs_render_to_composer_connection.h"
@@ -29,11 +30,13 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 #include "pipeline/rs_render_composer_agent.h"
-#include "pipeline/rs_render_composer_client.h"
+#include "pipeline/rs_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
-#include "screen_manager/rs_screen_property.h"
-#include "transaction/rs_layer_transaction_data.h"
+#include "rs_render_surface_layer.h"
 #include "rs_surface_layer.h"
+#include "screen_manager/rs_screen_property.h"
+#include "surface_buffer_impl.h"
+#include "transaction/rs_layer_transaction_data.h"
 
 using namespace testing::ext;
 
@@ -87,6 +90,8 @@ HWTEST_F(RSLayerContextTest, InitContextTest, Function | SmallTest | Level2)
     auto handle = context->GetRSLayerTransaction();
     EXPECT_NE(handle, nullptr);
     context->rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
+    sptr<IRSRenderToComposerConnection> connection = sptr<RSRenderToComposerConnection>::MakeSptr("test", 0, nullptr);
+    context->rsLayerTransactionHandler_->SetRSComposerConnectionProxy(connection);
     EXPECT_NE(context->rsLayerTransactionHandler_->rsComposerConnection_, nullptr);
 }
 
@@ -104,12 +109,16 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
     sMgr->OnScreenConnected(output, property);
     auto conn = sMgr->GetRSComposerConnection(0);
     sptr<IRSRenderToComposerConnection> ifaceConn = conn;
-    auto client = RSRenderComposerClient::Create(ifaceConn, nullptr, nullptr);
-    auto layer = std::make_shared<RSSurfaceLayer>();
+    auto client = RSComposerClient::Create(ifaceConn, nullptr, nullptr);
     auto context = std::make_shared<RSComposerContext>(ifaceConn);
     EXPECT_NE(context, nullptr);
+    std::shared_ptr<RSSurfaceLayer> layer = nullptr;
+    context->AddRSLayer(layer);
+    context->RemoveRSLayer(0);
+    layer = std::make_shared<RSSurfaceLayer>();
 
     context->rsLayerTransactionHandler_ = nullptr;
+    context->AddRSLayer(layer);
     context->AddRSLayer(layer);
     ComposerInfo composerInfo;
     EXPECT_FALSE(context->CommitLayers(composerInfo));
@@ -138,6 +147,149 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
     EXPECT_EQ(client->GetUnExecuteTaskNum(), 0u);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     rsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: DumpLayersInfoTest
+ * @tc.desc: Test Func DumpLayersInfo
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLayerContextTest, DumpLayersInfoTest, Function | SmallTest | Level2)
+{
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto renderComposer = std::make_shared<RSRenderComposer>(output, property);
+    auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
+    auto connect = sptr<RSRenderToComposerConnection>::MakeSptr("name", screenId, renderComposerAgent);
+    // RSComposerContext API renamed
+    auto context = std::make_shared<RSComposerContext>(connect);
+    EXPECT_NE(context, nullptr);
+
+    std::string dumpString;
+    context->DumpLayersInfo(dumpString);
+    std::shared_ptr<RSSurfaceLayer> layer = std::make_shared<RSSurfaceLayer>();
+    layer->SetNodeId(0);
+    context->AddRSLayer(layer);
+    context->DumpLayersInfo(dumpString);
+    context->lastCommitLayersId_.push_back(0);
+    context->DumpLayersInfo(dumpString);
+}
+
+/**
+ * @tc.name: DumpCurrentFrameLayersTest
+ * @tc.desc: Test Func DumpCurrentFrameLayers
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLayerContextTest, DumpCurrentFrameLayersTest, Function | SmallTest | Level2)
+{
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto renderComposer = std::make_shared<RSRenderComposer>(output, property);
+    auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
+    auto connect = sptr<RSRenderToComposerConnection>::MakeSptr("name", screenId, renderComposerAgent);
+    // RSComposerContext API renamed
+    auto context = std::make_shared<RSComposerContext>(connect);
+    EXPECT_NE(context, nullptr);
+    context->DumpCurrentFrameLayers();
+    std::shared_ptr<RSSurfaceLayer> layer = std::make_shared<RSSurfaceLayer>();
+    layer->SetNodeId(0);
+    context->AddRSLayer(layer);
+    context->DumpCurrentFrameLayers();
+}
+
+/**
+ * @tc.name: ANCOTransactionOnCompleteTest
+ * @tc.desc: Test Func ANCOTransactionOnComplete
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLayerContextTest, ANCOTransactionOnCompleteTest, Function | SmallTest | Level2)
+{
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto renderComposer = std::make_shared<RSRenderComposer>(output, property);
+    auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
+    auto connect = sptr<RSRenderToComposerConnection>::MakeSptr("name", screenId, renderComposerAgent);
+    // RSComposerContext API renamed
+    auto context = std::make_shared<RSComposerContext>(connect);
+    EXPECT_NE(context, nullptr);
+
+    std::shared_ptr<RSLayer> rsLayer = nullptr;
+    sptr<SyncFence> previousReleaseFence = nullptr;
+    context->ANCOTransactionOnComplete(rsLayer, previousReleaseFence);
+    rsLayer = std::make_shared<RSRenderSurfaceLayer>();
+    context->ANCOTransactionOnComplete(rsLayer, previousReleaseFence);
+    rsLayer->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE));
+    context->ANCOTransactionOnComplete(rsLayer, previousReleaseFence);
+    sptr<IConsumerSurface> surface = sptr<ConsumerSurface>::MakeSptr("test");
+    rsLayer->SetSurface(surface);
+    context->ANCOTransactionOnComplete(rsLayer, previousReleaseFence);
+    sptr<SurfaceBuffer> sbuffer = sptr<SurfaceBufferImpl>::MakeSptr();
+    rsLayer->SetBuffer(sbuffer);
+    context->ANCOTransactionOnComplete(rsLayer, previousReleaseFence);
+}
+
+/**
+ * @tc.name: ReleaseLayerBuffersTest
+ * @tc.desc: Test Func ReleaseLayerBuffers
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLayerContextTest, ReleaseLayerBuffersTest, Function | SmallTest | Level2)
+{
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto renderComposer = std::make_shared<RSRenderComposer>(output, property);
+    auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
+    auto connect = sptr<RSRenderToComposerConnection>::MakeSptr("name", screenId, renderComposerAgent);
+    // RSComposerContext API renamed
+    auto context = std::make_shared<RSComposerContext>(connect);
+    EXPECT_NE(context, nullptr);
+
+    GraphicPresentTimestamp timeStamp;
+    std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>> timestampVec;
+    timestampVec.push_back({0, false, timeStamp});
+
+    std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>> releaseBufferFenceVec;
+    releaseBufferFenceVec.push_back({0, nullptr, nullptr});
+    context->ReleaseLayerBuffers(0, timestampVec, releaseBufferFenceVec);
+
+    std::shared_ptr<RSSurfaceLayer> layer = std::make_shared<RSSurfaceLayer>();
+    layer->SetRSLayerId(0);
+    context->AddRSLayer(layer);
+    sptr<IConsumerSurface> surface = sptr<ConsumerSurface>::MakeSptr("test");
+    layer->SetSurface(surface);
+    context->ReleaseLayerBuffers(0, timestampVec, releaseBufferFenceVec);
+}
+
+/**
+ * @tc.name: ClearFrameBuffersTest
+ * @tc.desc: Test Func ClearFrameBuffers
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLayerContextTest, ClearFrameBuffersTest, Function | SmallTest | Level2)
+{
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto renderComposer = std::make_shared<RSRenderComposer>(output, property);
+    auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
+    auto connect = sptr<RSRenderToComposerConnection>::MakeSptr("name", screenId, renderComposerAgent);
+    // RSComposerContext API renamed
+    auto context = std::make_shared<RSComposerContext>(connect);
+    EXPECT_NE(context, nullptr);
+
+    context->ClearFrameBuffers();
+    context->CleanLayerBufferBySurfaceId(0);
+    sptr<SurfaceBuffer> sbuffer = sptr<SurfaceBufferImpl>::MakeSptr();
+    context->PreAllocProtectedFrameBuffers(sbuffer);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -4111,17 +4111,10 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType() const
     return NodeGroupType::NONE;
 }
 
-void RSRenderNode::UpdateVirtualScreenWhiteListInfo()
+void RSRenderNode::SyncWhiteListInfoToParent()
 {
-    if (IsInstanceOf<RSSurfaceRenderNode>()) {
-        return;
-    }
-    auto nodeParent = GetParent().lock();
-    if (nodeParent == nullptr) {
-        return;
-    }
-    for (const auto& [screenId, ret] : hasVirtualScreenWhiteList_) {
-        nodeParent->SetHasWhiteListNode(screenId, ret);
+    if (auto nodeParent = GetParent().lock()) {
+        nodeParent->AddScreensWithSubTreeWhitelist(screensWithSubTreeWhitelist_);
     }
 }
 
@@ -4171,7 +4164,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
     stagingRenderParams_->SetFirstLevelCrossNode(isFirstLevelCrossNode_);
     stagingRenderParams_->SetAbsRotation(absRotation_);
-    stagingRenderParams_->SetVirtualScreenWhiteListInfo(hasVirtualScreenWhiteList_);
+    stagingRenderParams_->SetScreensWithSubTreeWhitelist(screensWithSubTreeWhitelist_);
     auto cloneSourceNode = GetSourceCrossNode().lock();
     if (cloneSourceNode) {
         stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());
@@ -5056,8 +5049,9 @@ void RSRenderNode::NodePostPrepare(
     UpdateAbsDrawRect();
     ResetChangeState();
     SetHasUnobscuredUEC();
+    // only container nodes outside the surfaceNode need to mark whitelist info
     if (curSurfaceNode == nullptr) {
-        UpdateVirtualScreenWhiteListInfo();
+        SyncWhiteListInfoToParent();
     }
 }
 

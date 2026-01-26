@@ -28,28 +28,6 @@ HWTEST_F(RSLayerParcelTemplateTest, Template_Marshalling_Unmarshalling_Basic, Te
 }
 
 /**
- * Function: Template_Marshalling_Unmarshalling_ValidCmd
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create RSUpdateRSLayerCmd with a valid zorder cmd
- *                  2. marshalling and unmarshalling back succeeds
- */
-HWTEST_F(RSLayerParcelTemplateTest, Template_Marshalling_Unmarshalling_ValidCmd, TestSize.Level1)
-{
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(5);
-    auto zCmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
-    RSLayerId id = static_cast<RSLayerId>(123u);
-    RSUpdateRSLayerCmd cmd(id, zCmd);
-
-    MessageParcel parcel;
-    ASSERT_TRUE(cmd.Marshalling(parcel));
-    RSLayerParcel* out = RSUpdateRSLayerCmd::Unmarshalling(parcel);
-    ASSERT_NE(out, nullptr);
-    delete out;
-}
-
-/**
  * Function: Template_Unmarshalling_Fail_EmptyParcel
  * Type: Function
  * Rank: Important(2)
@@ -60,7 +38,7 @@ HWTEST_F(RSLayerParcelTemplateTest, Template_Marshalling_Unmarshalling_ValidCmd,
 HWTEST_F(RSLayerParcelTemplateTest, Template_Unmarshalling_Fail_EmptyParcel, TestSize.Level1)
 {
     MessageParcel empty;
-    RSLayerParcel* out = RSUpdateRSLayerCmd::Unmarshalling(empty);
+    std::unique_ptr<RSLayerParcel> out(RSUpdateRSLayerCmd::Unmarshalling(empty));
     ASSERT_EQ(out, nullptr);
 }
 

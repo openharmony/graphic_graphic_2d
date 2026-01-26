@@ -17,7 +17,7 @@
 #include <parameter.h>
 #include <parameters.h>
 #include "param/sys_param.h"
-#include "screen_manager/product_feature/fold/rs_foldable_screen_manager.h"
+#include "screen_manager/product_feature/fold/rs_fold_screen_manager.h"
 #include "screen_manager/rs_screen_preprocessor.h"
 #include "screen_manager/rs_screen_manager.h"
 
@@ -26,7 +26,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
-class RSFoldableScreenManagerTest : public testing::Test {
+class RSFoldScreenManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -34,36 +34,36 @@ public:
     void TearDown() override;
 
 private:
-    static inline RSFoldableScreenManager* foldScreenManager_;
+    static inline RSFoldScreenManager* foldScreenManager_;
     static inline RSScreenPreprocessor* rsScreenPreprocessor_;
     static inline RSScreenManager* rsScreenManager_;
     static inline RSScreenCallbackManager* callbackMgr_;
 };
 
-void RSFoldableScreenManagerTest::SetUpTestCase()
+void RSFoldScreenManagerTest::SetUpTestCase()
 {
     rsScreenManager_ = new RSScreenManager();
-    rsScreenPreprocessor_ = new RSScreenPreprocessor(*rsScreenManager_, *rs_ScreenManager_->callbackMgr_, nullptr,
-                                                    rsScreenManager_->isFoldScreenFlag_);
-    foldScreenManager_ = new RSFoldableScreenManager(*rsScreenPreprocessor_);
+    rsScreenPreprocessor_ = new RSScreenPreprocessor(*rsScreenManager_, *rsScreenManager_->callbackMgr_, nullptr,
+                                                     rsScreenManager_->isFoldScreenFlag_);
+    foldScreenManager_ = new RSFoldScreenManager(*rsScreenPreprocessor_);
 }
 
-void RSFoldableScreenManagerTest::TearDownTestCase()
+void RSFoldScreenManagerTest::TearDownTestCase()
 {
     delete foldScreenManager_;
     delete rsScreenPreprocessor_;
     delete rsScreenManager_;
 }
 
-void RSFoldableScreenManagerTest::SetUp() {}
-void RSFoldableScreenManagerTest::TearDown() {}
+void RSFoldScreenManagerTest::SetUp() {}
+void RSFoldScreenManagerTest::TearDown() {}
 
 /*
  * @tc.name: HandleSensorDataTest
  * @tc.desc: Test HandleSensorData
  * @tc.type: FUNC
  */
-HWTEST_F(RSFoldableScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
 {
     ASSERT_NE(nullptr, foldScreenManager_);
     foldScreenManager_->HandleSensorData(0.f);
@@ -91,7 +91,7 @@ HWTEST_F(RSFoldableScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI8ECTE
  */
-HWTEST_F(RSFoldableScreenManagerTest, GetActiveScreenId_001, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, GetActiveScreenId_001, TestSize.Level1)
 {
     ASSERT_NE(nullptr, foldScreenManager_);
     auto activeScreenId = foldScreenManager_->GetActiveScreenId();
@@ -112,7 +112,7 @@ HWTEST_F(RSFoldableScreenManagerTest, GetActiveScreenId_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, RegisterSensorCallbackTest001, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, RegisterSensorCallbackTest001, TestSize.Level1)
 {
     foldScreenManager_->hasRegisterSensorCallback_ = true;
     foldScreenManager_->RegisterSensorCallback();
@@ -125,7 +125,7 @@ HWTEST_F(RSFoldableScreenManagerTest, RegisterSensorCallbackTest001, TestSize.Le
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, RegisterSensorCallbackTest002, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, RegisterSensorCallbackTest002, TestSize.Level1)
 {
     foldScreenManager_->hasRegisterSensorCallback_ = false;
     foldScreenManager_->RegisterSensorCallback();
@@ -138,7 +138,7 @@ HWTEST_F(RSFoldableScreenManagerTest, RegisterSensorCallbackTest002, TestSize.Le
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, UnRegisterSensorCallbackTest001, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, UnRegisterSensorCallbackTest001, TestSize.Level1)
 {
     foldScreenManager_->hasRegisterSensorCallback_ = false;
     foldScreenManager_->UnRegisterSensorCallback();
@@ -151,7 +151,7 @@ HWTEST_F(RSFoldableScreenManagerTest, UnRegisterSensorCallbackTest001, TestSize.
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, UnRegisterSensorCallbackTest002, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, UnRegisterSensorCallbackTest002, TestSize.Level1)
 {
     foldScreenManager_->hasRegisterSensorCallback_ = true;
     foldScreenManager_->UnRegisterSensorCallback();
@@ -164,7 +164,7 @@ HWTEST_F(RSFoldableScreenManagerTest, UnRegisterSensorCallbackTest002, TestSize.
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, OnBootCompleteTest001, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, OnBootCompleteTest001, TestSize.Level1)
 {
     string key = "bootevent.boot.completed";
     string value = "false";
@@ -178,7 +178,7 @@ HWTEST_F(RSFoldableScreenManagerTest, OnBootCompleteTest001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, OnBootCompleteTest002, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, OnBootCompleteTest002, TestSize.Level1)
 {
     string key = "bootevent.boot.uncompleted";
     string value = "false";
@@ -192,7 +192,7 @@ HWTEST_F(RSFoldableScreenManagerTest, OnBootCompleteTest002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, OnBootCompleteTest003, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, OnBootCompleteTest003, TestSize.Level1)
 {
     string key = "bootevent.boot.uncompleted";
     string value = "true";
@@ -206,7 +206,7 @@ HWTEST_F(RSFoldableScreenManagerTest, OnBootCompleteTest003, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, OnBootCompleteTest004, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, OnBootCompleteTest004, TestSize.Level1)
 {
     string key = "bootevent.boot.completed";
     string value = "true";
@@ -220,7 +220,7 @@ HWTEST_F(RSFoldableScreenManagerTest, OnBootCompleteTest004, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, OnBootCompleteTest005, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, OnBootCompleteTest005, TestSize.Level1)
 {
     string key = "bootevent.boot.completed";
     string value = "true";
@@ -234,7 +234,7 @@ HWTEST_F(RSFoldableScreenManagerTest, OnBootCompleteTest005, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, HandlePostureDataTest001, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, HandlePostureDataTest001, TestSize.Level1)
 {
     foldScreenManager_->HandlePostureData(nullptr);
     ASSERT_NE(foldScreenManager_, nullptr);
@@ -246,7 +246,7 @@ HWTEST_F(RSFoldableScreenManagerTest, HandlePostureDataTest001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, HandlePostureDataTest002, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, HandlePostureDataTest002, TestSize.Level1)
 {
     auto event = std::make_shared<SensorEvent>();
     foldScreenManager_->HandlePostureData(event.get());
@@ -259,7 +259,7 @@ HWTEST_F(RSFoldableScreenManagerTest, HandlePostureDataTest002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, HandlePostureDataTest003, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, HandlePostureDataTest003, TestSize.Level1)
 {
     auto data = std::make_shared<uint8_t>(1000);
     auto event = std::make_shared<SensorEvent>();
@@ -274,7 +274,7 @@ HWTEST_F(RSFoldableScreenManagerTest, HandlePostureDataTest003, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
-HWTEST_F(RSFoldableScreenManagerTest, HandlePostureDataTest004, TestSize.Level1)
+HWTEST_F(RSFoldScreenManagerTest, HandlePostureDataTest004, TestSize.Level1)
 {
     auto data = std::make_shared<uint8_t>(1000);
     auto event = std::make_shared<SensorEvent>();

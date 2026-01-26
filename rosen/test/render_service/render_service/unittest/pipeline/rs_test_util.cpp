@@ -24,6 +24,7 @@
 
 namespace OHOS::Rosen {
 NodeId RSTestUtil::id = 0;
+std::shared_ptr<RSUniRenderThread> RSTestUtil::uniRenderThread_ = nullptr;
 std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode(const RSSurfaceRenderNodeConfig surfaceConfig)
 {
     id++;
@@ -39,10 +40,19 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode(const RSSurfa
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     rsSurfaceRenderNode->InitRenderParams();
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
-    auto renderThread = std::make_shared<RSUniRenderThread>();
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode, renderThread.get());
+    if (uniRenderThread_ == nullptr) {
+        uniRenderThread_ = std::make_shared<RSUniRenderThread>();
+        uniRenderThread_->composerClientManager_ = std::make_shared<RSComposerClientManager>();
+    }
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode,
+        uniRenderThread_->GetComposerClientManager());
     csurf->RegisterConsumerListener(listener);
     return rsSurfaceRenderNode;
+}
+
+void RSTestUtil::UnregisterConsumerListener()
+{
+    csurf->UnregisterConsumerListener();
 }
 
 std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()

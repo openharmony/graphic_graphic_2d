@@ -116,6 +116,8 @@ HWTEST_F(RSMagicPointerRenderManagerTest, ColorPickerWithImage, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas paintFilterCanvas(&drawingCanvas);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto rsUniRenderProcessor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, 0);
 
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
@@ -161,6 +163,8 @@ HWTEST_F(RSMagicPointerRenderManagerTest, ColorPickerWithoutImage, TestSize.Leve
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas paintFilterCanvas(&drawingCanvas);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto rsUniRenderProcessor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, 0);
 
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();

@@ -38,27 +38,7 @@ int RSRenderToServiceConnectionStub::OnRemoteRequest(
     }
     switch (code) {
         case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_PROCESS_FRAME_RATE): {
-            uint64_t timestamp = 0;
-            uint64_t vsyncId = 0;
-            if (!data.ReadUint64(timestamp) || !data.ReadUint64(vsyncId)) {
-                RS_LOGE("%{public}s::NOTIFY_PROCESS_FRAME_RATE ReadTimestamp or ReadVsyncId failed.", __func__);
-                return ERR_INVALID_STATE;
-            }
-            sptr<HgmProcessToServiceInfo> processToServiceInfo = data.ReadParcelable<HgmProcessToServiceInfo>();
-            if (processToServiceInfo == nullptr) {
-                RS_LOGE("%{public}s::NOTIFY_PROCESS_FRAME_RATE ReadParcelable failed.", __func__);
-                return ERR_INVALID_STATE;
-            }
-            uint32_t size = 0;
-            if (!data.ReadUint32(size) || size > MAX_SCREEN_ID_COUNT) {
-                RS_LOGE("%{public}s::NOTIFY_PROCESS_FRAME_RATE ReadSize failed.", __func__);
-                return ERR_INVALID_STATE;
-            }
-            auto serviceToProcessInfo = NotifyRpHgmFrameRate(timestamp, vsyncId, processToServiceInfo);
-            if (serviceToProcessInfo == nullptr || !reply.WriteParcelable(serviceToProcessInfo.GetRefPtr())) {
-                RS_LOGE("%{public}s::NOTIFY_PROCESS_FRAME_RATE WriteParcelable failed.", __func__);
-                return ERR_INVALID_STATE;
-            }
+            return ERR_INVALID_STATE;
             break;
         }
         case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCH_FINISHED): {

@@ -271,7 +271,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsTaskMan
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, TaskSurfaceCaptureWithAllWindows,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
         RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
@@ -287,7 +287,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, TaskSurfa
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, FreezeScreen,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = static_cast<CodeUnderlyingType>(RSIClientToRenderConnectionInterfaceCode::FREEZE_SCREEN);
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, true);

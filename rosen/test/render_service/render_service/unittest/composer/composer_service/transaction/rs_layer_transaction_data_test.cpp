@@ -247,4 +247,89 @@ HWTEST_F(RSLayerTransactionDataTest, Marshalling_Unmarshalling_PipelineParam_Sur
     EXPECT_EQ(pp.SurfaceFpsOpList[1].surfaceFpsOpType, SURFACE_FPS_REMOVE);
     delete out;
 }
+
+/**
+ * Function: Marshalling_Unmarshalling_Metadata_Preserved
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set index/sendingPid/timestamp and rich PipelineParam
+ *                  2. marshal/unmarshal and verify fields preserved
+ */
+HWTEST_F(RSLayerTransactionDataTest, Marshalling_Unmarshalling_Metadata_Preserved, TestSize.Level1)
+{
+    RSLayerTransactionData data;
+    data.SetIndex(123u);
+    data.SetSendingPid(456);
+    data.SetTimestamp(789u);
+    ComposerInfo info {};
+    info.composerScreenInfo.id = 9u;
+    info.composerScreenInfo.width = 1280;
+    info.composerScreenInfo.height = 720;
+    info.pipelineParam.vsyncId = 11u;
+    info.pipelineParam.isForceRefresh = true;
+    info.pipelineParam.hasGameScene = true;
+    info.pipelineParam.pendingScreenRefreshRate = 120u;
+    info.pipelineParam.pendingConstraintRelativeTime = 33u;
+    info.pipelineParam.SurfaceFpsOpNum = 0u;
+    data.SetComposerInfo(info);
+
+    std::shared_ptr<MessageParcel> mp = std::make_shared<MessageParcel>();
+    ASSERT_TRUE(data.Marshalling(mp));
+    RSLayerTransactionData* out = RSLayerTransactionData::Unmarshalling(*mp);
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(out->GetIndex(), 123u);
+    EXPECT_EQ(out->GetSendingPid(), 456);
+    EXPECT_EQ(out->GetTimestamp(), 789u);
+    auto screenInfo = out->GetComposerScreenInfo();
+    EXPECT_EQ(screenInfo.id, 9u);
+    EXPECT_EQ(screenInfo.width, 1280);
+    EXPECT_EQ(screenInfo.height, 720);
+    auto pp = out->GetPipelineParam();
+    EXPECT_EQ(pp.vsyncId, 11u);
+    EXPECT_TRUE(pp.isForceRefresh);
+    EXPECT_TRUE(pp.hasGameScene);
+    EXPECT_EQ(pp.pendingScreenRefreshRate, 120u);
+    EXPECT_EQ(pp.pendingConstraintRelativeTime, 33u);
+    EXPECT_EQ(pp.GetSurfaceFpsOpNum(), 0u);
+    delete out;
+}
+
+/**
+ * Function: Unmarshalling_FullSuccess_MultiParcels
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add two valid RSLayerParcel entries with different commands
+ *                  2. marshal/unmarshal and verify command count is 2
+ */
+HWTEST_F(RSLayerTransactionDataTest, Unmarshalling_FullSuccess_MultiParcels, TestSize.Level1)
+{
+    RSLayerTransactionData data;
+    RSLayerId id1 = static_cast<RSLayerId>(10u);
+    RSLayerId id2 = static_cast<RSLayerId>(11u);
+
+    auto propZ = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(100);
+    auto zCmd = std::make_shared<RSRenderLayerZorderCmd>(propZ);
+    std::shared_ptr<RSLayerParcel> parcel1 = std::make_shared<RSUpdateRSLayerCmd>(id1, zCmd);
+    data.AddRSLayerParcel(parcel1, id1);
+
+    GraphicIRect rect {1, 2, 3, 4};
+    auto propRect = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(rect);
+    auto sizeCmd = std::make_shared<RSRenderLayerLayerSizeCmd>(propRect);
+    std::shared_ptr<RSLayerParcel> parcel2 = std::make_shared<RSUpdateRSLayerCmd>(id2, sizeCmd);
+    data.AddRSLayerParcel(parcel2, id2);
+
+    ComposerInfo info {};
+    info.composerScreenInfo.id = 1u;
+    info.pipelineParam.vsyncId = 1u;
+    data.SetComposerInfo(info);
+
+    std::shared_ptr<MessageParcel> mp = std::make_shared<MessageParcel>();
+    ASSERT_TRUE(data.Marshalling(mp));
+    RSLayerTransactionData* out = RSLayerTransactionData::Unmarshalling(*mp);
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(out->GetCommandCount(), 2u);
+    delete out;
+}
 } // namespace OHOS::Rosen

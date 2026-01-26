@@ -1113,14 +1113,8 @@ void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo()
     }
     auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
         SpecialLayerType::IS_WHITE_LIST, {GetId(), GetLeashPersistentId()});
-    for (const auto screenId : screenIds) {
-        SetHasWhiteListNode(screenId, true);
-        auto nodeParent = GetParent().lock();
-        if (nodeParent == nullptr) {
-            continue;
-        }
-        nodeParent->SetHasWhiteListNode(screenId, true);
-    }
+    SetScreensWithSubTreeWhitelist(screenIds);
+    RSRenderNode::SyncWhiteListInfoToParent();
 }
 
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
@@ -1524,8 +1518,8 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
             bufferOwnerCount->DecRef();
          }
     } else {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateBufferInfo SetPreBuffer %u",
-            uint32_t(preBufferOwnerCount ? preBufferOwnerCount->seqNum_ : 0));
+        RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateBufferInfo SetPreBuffer %" PRIu64,
+            uint32_t(preBufferOwnerCount ? preBufferOwnerCount->bufferId_ : 0));
         surfaceParams->SetPreBuffer(preBuffer, preBufferOwnerCount);
     }
 

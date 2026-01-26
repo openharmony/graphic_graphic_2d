@@ -17,6 +17,8 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSRenderToComposerConnection"
 namespace OHOS {
 namespace Rosen {
 RSRenderToComposerConnection::RSRenderToComposerConnection(const std::string& name, uint64_t screenId,
@@ -28,7 +30,7 @@ bool RSRenderToComposerConnection::CommitLayers(std::unique_ptr<RSLayerTransacti
 {
     RS_TRACE_NAME_FMT("RSRenderToComposerConnection::CommitLayers screenId:%" PRIu64, screenId_);
     if (transactionData.get() == nullptr) {
-        RS_LOGE("RSRenderToComposerConnection::CommitLayers param nullptr");
+        RS_LOGE("%{public}s param nullptr", __func__);
         return false;
     }
     return rsRenderComposerAgent_->ComposerProcess(std::move(transactionData));
@@ -38,7 +40,7 @@ void RSRenderToComposerConnection::ClearFrameBuffers()
 {
     RS_TRACE_NAME_FMT("RSRenderToComposerConnection::ClearFrameBuffers screenId:" PRIu64, screenId_);
     if (rsRenderComposerAgent_ == nullptr) {
-        RS_LOGE("RSRenderToComposerConnection::ClearFrameBuffers param illegal");
+        RS_LOGE("%{public}s param illegal", __func__);
         return;
     }
     rsRenderComposerAgent_->ClearFrameBuffers();
@@ -48,7 +50,7 @@ void RSRenderToComposerConnection::CleanLayerBufferBySurfaceId(uint64_t surfaceI
 {
     RS_TRACE_NAME_FMT("RSRenderToComposerConnection::CleanLayerBufferBySurfaceId screenId:" PRIu64, screenId_);
     if (surfaceId == 0 || rsRenderComposerAgent_ == nullptr) {
-        RS_LOGE("RSRenderToComposerConnection::CleanLayerBufferBySurfaceId param illegal");
+        RS_LOGE("%{public}s param illegal", __func__);
         return;
     }
     rsRenderComposerAgent_->CleanLayerBufferBySurfaceId(surfaceId);
@@ -58,18 +60,18 @@ void RSRenderToComposerConnection::OnScreenVBlankIdleCallback(ScreenId screenId,
 {
     RS_TRACE_NAME_FMT("RSComposerConnection::OnScreenVBlankIdleCallback screenId:" PRIu64, screenId);
     if (rsRenderComposerAgent_ == nullptr) {
-        RS_LOGE("RSRenderToComposerConnection::OnScreenVBlankIdleCallback param nullptr");
+        RS_LOGE("%{public}s param nullptr", __func__);
         return;
     }
     rsRenderComposerAgent_->OnScreenVBlankIdleCallback(screenId, timestamp);
 }
 
-void RSRenderToComposerConnection::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
+void RSRenderToComposerConnection::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
     RS_TRACE_NAME_FMT("RSRenderToComposerConnection::ClearRedrawGPUCompositionCache screenId:%" PRIu64"",
         screenId_);
     if (rsRenderComposerAgent_ == nullptr) {
-        RS_LOGE("RSRenderToComposerConnection::ClearRedrawGPUCompositionCache param illegal");
+        RS_LOGE("%{public}s param illegal", __func__);
         return;
     }
     rsRenderComposerAgent_->ClearRedrawGPUCompositionCache(bufferIds);
@@ -79,7 +81,7 @@ void RSRenderToComposerConnection::SetScreenBacklight(uint32_t level)
 {
     RS_TRACE_NAME_FMT("RSComposerConnection::SetScreenBacklight level:%" PRIu32"", level);
     if (rsRenderComposerAgent_ == nullptr) {
-        RS_LOGE("RSRenderToComposerConnection::SetScreenBacklight param illegal");
+        RS_LOGE("%{public}s param illegal", __func__);
         return;
     }
     rsRenderComposerAgent_->SetScreenBacklight(level);
@@ -90,7 +92,7 @@ void RSRenderToComposerConnection::SetComposerToRenderConnection(
 {
     RS_TRACE_NAME_FMT("RSComposerConnection::SetComposerToRenderConnection");
     if (rsRenderComposerAgent_ == nullptr) {
-        RS_LOGE("RSRenderToComposerConnection::SetComposerToRenderConnection param illegal");
+        RS_LOGE("%{public}s param illegal", __func__);
         return;
     }
     rsRenderComposerAgent_->SetComposerToRenderConnection(composerToRenderConn);
@@ -100,7 +102,7 @@ void RSRenderToComposerConnection::PreAllocProtectedFrameBuffers(const sptr<Surf
 {
     RS_TRACE_NAME_FMT("RSRenderToComposerConnection::PreAllocProtectedFrameBuffers");
     if (rsRenderComposerAgent_ == nullptr) {
-        RS_LOGE("RSRenderToComposerConnection::PreAllocProtectedFrameBuffers param illegal");
+        RS_LOGE("%{public}s param illegal", __func__);
         return;
     }
     rsRenderComposerAgent_->PreAllocProtectedFrameBuffers(buffer);

@@ -84,4 +84,58 @@ HWTEST(RSLayerTransactionHandlerTest, Commit_WithNonEmpty_WithoutConnection_Fail
     EXPECT_FALSE(ok);
     EXPECT_FALSE(handler.IsEmpty());
 }
+
+/**
+ * Function: SetProxy_NonNull_CommitFail_KeepsData
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. add a valid RSLayerParcel
+ *                  2. set a non-null proxy connection (remote=null)
+ *                  3. commit and expect false; handler keeps data
+ */
+HWTEST(RSLayerTransactionHandlerTest, SetProxy_NonNull_CommitFail_KeepsData, TestSize.Level1)
+{
+    RSLayerTransactionHandler handler;
+    RSLayerId id = static_cast<RSLayerId>(777u);
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(3);
+    auto zCmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
+    std::shared_ptr<RSLayerParcel> parcel = std::make_shared<RSUpdateRSLayerCmd>(id, zCmd);
+    handler.AddRSLayerParcel(parcel, id);
+    ASSERT_FALSE(handler.IsEmpty());
+
+    class MockRemoteLocal : public IRemoteObject {
+    public:
+        MockRemoteLocal() : IRemoteObject(IRSComposerToRenderConnection::GetDescriptor()) {}
+        int32_t GetObjectRefCount() override { return 1; }
+        int SendRequest(uint32_t, MessageParcel &, MessageParcel &, MessageOption &) override { return 1; }
+        bool AddDeathRecipient(const sptr<DeathRecipient> &) override { return false; }
+        bool RemoveDeathRecipient(const sptr<DeathRecipient> &) override { return false; }
+        int Dump(int, const std::vector<std::u16string> &) override { return 0; }
+    };
+    sptr<IRemoteObject> nullRemote = sptr<MockRemoteLocal>::MakeSptr();
+    auto proxy = sptr<RSRenderToComposerConnectionProxy>::MakeSptr(nullRemote);
+    handler.SetRSComposerConnectionProxy(proxy);
+
+    ComposerInfo info {};
+    bool ok = handler.CommitRSLayerTransaction(info, 0u, "");
+    EXPECT_FALSE(ok);
+    EXPECT_FALSE(handler.IsEmpty());
+}
+
+/**
+ * Function: SetProxy_Null_Ignored
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. call SetRSComposerConnectionProxy(nullptr)
+ *                  2. expect no crash and connection remains unset
+ */
+HWTEST(RSLayerTransactionHandlerTest, SetProxy_Null_Ignored, TestSize.Level1)
+{
+    RSLayerTransactionHandler handler;
+    sptr<IRSRenderToComposerConnection> nullConn;
+    handler.SetRSComposerConnectionProxy(nullConn);
+    ComposerInfo info {};
+    bool ok = handler.CommitRSLayerTransaction(info, 0u, "");
+    EXPECT_FALSE(ok);
+}
 }

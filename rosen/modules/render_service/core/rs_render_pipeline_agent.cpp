@@ -40,6 +40,7 @@
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -52,7 +53,6 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
-#include "pipeline/rs_pointer_window_manager.h"
 #include "rs_profiler.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
@@ -989,16 +989,6 @@ ErrCode RSRenderPipelineAgent::GetPixelmap(NodeId id, const std::shared_ptr<Medi
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::SetDiscardJankFrames(bool discardJankFrames)
-{
-    if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
-    }
-    rsRenderPipeline_->GetMainThread()->SetDiscardJankFrames(discardJankFrames);
-    RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(discardJankFrames);
-    return ERR_OK;
-}
-
 ErrCode RSRenderPipelineAgent::ReportJankStats()
 {
     if (rsRenderPipeline_ == nullptr) {
@@ -1148,7 +1138,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     }
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(node);
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(surfaceRenderNode, rsRenderPipeline_->GetUniRenderThread());
+        new RSRenderServiceListener(surfaceRenderNode, rsRenderPipeline_->GetComposerClientManager());
     SurfaceError ret = surface->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
@@ -1834,10 +1824,7 @@ void RSRenderPipelineAgent::OnScreenBacklightChanged(ScreenId screenId, uint32_t
         return;
     }
     if (rsRenderPipeline_->GetUniRenderThread() != nullptr) {
-        auto client = rsRenderPipeline_->GetUniRenderThread()->GetRSRenderComposerClient(screenId);
-        if (client != nullptr) {
-            client->SetScreenBacklight(level);
-        }
+        rsRenderPipeline_->GetComposerClientManager()->SetScreenBacklight(screenId, level);
     }
 }
 
@@ -1847,9 +1834,9 @@ void RSRenderPipelineAgent::OnGlobalBlacklistChanged(const std::unordered_set<No
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return;
     }
-    auto task = [globalBlackList]() { 
+    auto task = [globalBlackList, mainThread = rsRenderPipeline_->GetMainThread()]() { 
         ScreenSpecialLayerInfo::SetGlobalBlackList(globalBlackList);
-        RSSpecialLayerUtils::UpdateScreenSpecialLayer();
+        RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
     };
     rsRenderPipeline_->PostMainThreadTask(task);
 }

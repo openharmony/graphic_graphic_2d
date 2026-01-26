@@ -27,7 +27,6 @@
 #include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
 #include "hgm_event.h"
-#include "hgm_hfbc_config.h"
 #include "hgm_log.h"
 #include "hgm_screen_info.h"
 #include "parameters.h"
@@ -106,8 +105,6 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController, sptr<VSyncCon
     appPageUrlStrategy_.RegisterPageUrlVoterCallback([this](pid_t pid, std::string strategy, const bool isAddVoter) {
         ProcessPageUrlVote(pid, strategy, isAddVoter);
     });
-    HgmHfbcConfig& hfbcConfig = hgmCore.GetHfbcConfig();
-    hfbcConfig.HandleHfbcConfig({ "" });
     FrameRateReportTask(FRAME_RATE_REPORT_MAX_RETRY_TIMES);
     userDefine_.Init();
 }
@@ -754,9 +751,6 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
         cleanPidCallback_[pid].insert(CleanPidCallbackType::PACKAGE_EVENT);
     }
     isLowPowerSlide_ = false;
-    // check whether to enable HFBC
-    HgmHfbcConfig& hfbcConfig = HgmCore::Instance().GetHfbcConfig();
-    hfbcConfig.HandleHfbcConfig(packageList);
     multiAppStrategy_.HandlePkgsEvent(packageList);
     HgmEventDistributor::Instance()->HandlePackageEvent(packageList);
     MarkVoteChange("VOTER_SCENE");
@@ -948,7 +942,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     HandlePageUrlEvent();
 }
 
-void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect)
+void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& activeRect)
 {
     RS_TRACE_NAME_FMT("%s: screenId:%d activeRect(%d, %d, %d, %d)",
         __func__, id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);

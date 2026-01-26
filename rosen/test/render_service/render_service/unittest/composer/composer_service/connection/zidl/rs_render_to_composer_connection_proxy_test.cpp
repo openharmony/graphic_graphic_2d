@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <set>
+#include <unordered_set>
 #include <vector>
 #include "rs_render_to_composer_connection_stub.h"
 #include "rs_render_to_composer_connection.h"
@@ -58,7 +59,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.
 
     proxy.CleanLayerBufferBySurfaceId(123u);
 
-    std::set<uint64_t> ids { 7u, 8u };
+    std::unordered_set<uint64_t> ids { 7u, 8u };
     proxy.ClearRedrawGPUCompositionCache(ids);
 
     proxy.SetScreenBacklight(88u);
@@ -81,7 +82,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendRequest_RemoteNull_Err
     RSRenderToComposerConnectionProxy proxy(nullObj);
     proxy.ClearFrameBuffers();
     proxy.CleanLayerBufferBySurfaceId(1u);
-    std::set<uint64_t> ids {1u};
+    std::unordered_set<uint64_t> ids {1u};
     proxy.ClearRedrawGPUCompositionCache(ids);
     proxy.SetScreenBacklight(1u);
     SUCCEED();
@@ -121,6 +122,120 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_PreAllocProtectedFrameBuff
     RSRenderToComposerConnectionProxy proxy(stub->AsObject());
     sptr<SurfaceBuffer> sb = SurfaceBuffer::Create();
     proxy.PreAllocProtectedFrameBuffers(sb);
+    SUCCEED();
+}
+
+/**
+ * Function: Proxy_CommitLayers_NullTransaction_ReturnsFalse
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create stub/proxy pair
+ *                  2. call CommitLayers with nullptr transaction data
+ *                  3. expect CommitLayers returns false (guard branch)
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_CommitLayers_NullTransaction_ReturnsFalse, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+    std::unique_ptr<RSLayerTransactionData> tx(nullptr);
+    EXPECT_FALSE(proxy.CommitLayers(tx));
+}
+
+/**
+ * Function: Proxy_CommitLayers_MultipleParcels_FillLoop
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create stub/proxy pair
+ *                  2. prepare transaction data with two payload entries (nullptr parcels)
+ *                  3. call CommitLayers and expect false after attempting to send multiple parcels
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_CommitLayers_MultipleParcels_FillLoop, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+
+    std::unique_ptr<RSLayerTransactionData> tx(new RSLayerTransactionData());
+    tx->GetPayload().emplace_back(static_cast<uint64_t>(101u), std::shared_ptr<RSLayerParcel>(nullptr));
+    tx->GetPayload().emplace_back(static_cast<uint64_t>(102u), std::shared_ptr<RSLayerParcel>(nullptr));
+
+    EXPECT_FALSE(proxy.CommitLayers(tx));
+}
+
+/**
+ * Function: Proxy_SetComposerToRenderConnection_RemoteNull
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with nullptr remote
+ *                  2. call SetComposerToRenderConnection with nullptr
+ *                  3. ensure no crash to cover send path guard
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SetComposerToRenderConnection_RemoteNull, TestSize.Level1)
+{
+    sptr<IRemoteObject> nullObj = nullptr;
+    RSRenderToComposerConnectionProxy proxy(nullObj);
+    sptr<RSComposerToRenderConnection> nullCtr;
+    proxy.SetComposerToRenderConnection(nullCtr);
+    SUCCEED();
+}
+
+/**
+ * Function: Proxy_ClearRedrawGPUCompositionCache_EmptySet
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create proxy/stub pair
+ *                  2. call ClearRedrawGPUCompositionCache with empty set
+ *                  3. ensure no crash
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_ClearRedrawGPUCompositionCache_EmptySet, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+    std::unordered_set<uint64_t> empty;
+    proxy.ClearRedrawGPUCompositionCache(empty);
+    SUCCEED();
+}
+
+/**
+ * Function: Proxy_PreAllocProtectedFrameBuffers_NullBuffer_NoCrash
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create proxy
+ *                  2. call PreAllocProtectedFrameBuffers with nullptr buffer
+ *                  3. ensure no crash (guard branch)
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_PreAllocProtectedFrameBuffers_NullBuffer_NoCrash, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+    sptr<SurfaceBuffer> nullBuf;
+    proxy.PreAllocProtectedFrameBuffers(nullBuf);
+    SUCCEED();
+}
+
+/**
+ * Function: Proxy_CleanLayerBufferBySurfaceId_ZeroId
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create proxy with valid remote
+ *                  2. call CleanLayerBufferBySurfaceId with 0
+ *                  3. ensure path executes
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_CleanLayerBufferBySurfaceId_ZeroId, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+    proxy.CleanLayerBufferBySurfaceId(0u);
     SUCCEED();
 }
 } // namespace OHOS::Rosen

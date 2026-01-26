@@ -28,9 +28,8 @@ group("unittest") {
     ":RSDividedRenderUtilTest",
     ":RSDrawFrameTest",
     ":RSDropFrameProcessorTest",
-    # ":RSMainThreadTest",
+    ":RSMainThreadTest",
     ":RSPhysicalScreenProcessorTest",
-    ":RSPointerWindowManagerTest",
     ":RSProcessorFactoryTest",
     ":RSRealtimeRefreshRateManagerTest",
     ":RSRenderEngineTest",
@@ -64,7 +63,6 @@ group("unittest") {
   if (graphic_2d_feature_product == "pc") {
     deps += [
       ":RSDrawWindowCacheTest",
-      ":RSPointerWindowManagerTest",
     ]
   }
 }
@@ -669,6 +667,7 @@ ohos_unittest("RSUniRenderVisitorTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
+    "eventhandler:libeventhandler",
     "samgr:samgr_proxy",
   ]
   include_dirs =
@@ -690,39 +689,6 @@ ohos_unittest("RSUniRenderVisitorTest") {
   }
 }
 
-## Build RSPointerWindowManagerTest
-ohos_unittest("RSPointerWindowManagerTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_pointer_window_manager_test.cpp" ]
-  deps = [
-    ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
-  ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "init:libbegetutil",
-    "samgr:samgr_proxy",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  include_dirs = []
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    external_deps += [
-      "drivers_interface_display:display_commontype_idl_headers",
-      "video_processing_engine:videoprocessingengine",
-    ]
-  }
-}
 
 ## Build RSMainThreadTest
 ohos_unittest("RSMainThreadTest") {
@@ -735,6 +701,8 @@ ohos_unittest("RSMainThreadTest") {
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",

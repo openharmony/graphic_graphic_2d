@@ -30,7 +30,7 @@
 #include "graphic_common.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
-#include "rs_frame_report_ext.h"
+#include "rs_frame_report.h"
 #include "vsync_log.h"
 #include "sandbox_utils.h"
 #include <rs_trace.h>
@@ -168,9 +168,7 @@ VsyncError VSyncReceiver::RequestNextVSync(
     listener_->SetCallback(callback);
     listener_->SetRNVFlag(true);
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
-    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
-        OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
-    }
+    RsFrameReport::RequestNextVSync();
     if (listener_->GetType() == AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC) {
         looper_->RequestVsyncNotification(listener_->GetTimeStamp(), listener_->GetPeriod());
     }
@@ -187,9 +185,7 @@ VsyncError VSyncReceiver::RequestNextVSyncWithMultiCallback(FrameCallback callba
     listener_->AddCallback(callback);
     listener_->SetRNVFlag(true);
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
-    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
-        OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
-    }
+    RsFrameReport::RequestNextVSync();
     if (listener_->GetType() == AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC) {
         looper_->RequestVsyncNotification(listener_->GetTimeStamp(), listener_->GetPeriod());
     }

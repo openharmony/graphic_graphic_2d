@@ -22,6 +22,8 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSRenderToComposerConnectionStub"
 namespace OHOS {
 namespace Rosen {
 int32_t RSRenderToComposerConnectionStub::OnRemoteRequest(uint32_t code, OHOS::MessageParcel& data,
@@ -29,7 +31,7 @@ int32_t RSRenderToComposerConnectionStub::OnRemoteRequest(uint32_t code, OHOS::M
 {
     auto remoteDescriptor = data.ReadInterfaceToken();
     if (GetDescriptor() != remoteDescriptor) {
-        RS_LOGE("RSRenderToComposerConnectionStub::OnRemoteRequest ReadInterfaceToken failed.");
+        RS_LOGE("%{public}s ReadInterfaceToken failed.", __func__);
         return ERR_INVALID_STATE;
     }
     int32_t ret = COMPOSITOR_ERROR_OK;
@@ -97,18 +99,18 @@ std::unique_ptr<RSLayerTransactionData> RSRenderToComposerConnectionStub::ParseT
 int32_t RSRenderToComposerConnectionStub::GetCleanLayerBufferSurfaceId(OHOS::MessageParcel& parcel, uint64_t& surfaceId)
 {
     if (!parcel.ReadUint64(surfaceId)) {
-        RS_LOGE("RSRenderToComposerConnectionStub::GetCleanLayerBufferSurfaceId read surface id failed.");
+        RS_LOGE("%{public}s read surface id failed.", __func__);
         return COMPOSITOR_ERROR_BINDER_ERROR;
     }
     return COMPOSITOR_ERROR_OK;
 }
 
-std::set<uint64_t> RSRenderToComposerConnectionStub::ParseClearRedrawCacheBufferIds(OHOS::MessageParcel& parcel)
+std::unordered_set<uint64_t> RSRenderToComposerConnectionStub::ParseClearRedrawCacheBufferIds(OHOS::MessageParcel& parcel)
 {
     std::vector<uint64_t> bufferIdsVector;
-    std::set<uint64_t> bufferIds;
+    std::unordered_set<uint64_t> bufferIds;
     if (!parcel.ReadUInt64Vector(&bufferIdsVector)) {
-        RS_LOGE("RSRenderToComposerConnectionStub::ParseClearRedrawCacheBufferIds read buffer ids failed.");
+        RS_LOGE("%{public}s read buffer ids failed.", __func__);
         return bufferIds;
     }
     bufferIds.insert(bufferIdsVector.begin(), bufferIdsVector.end());
@@ -118,7 +120,7 @@ std::set<uint64_t> RSRenderToComposerConnectionStub::ParseClearRedrawCacheBuffer
 int32_t RSRenderToComposerConnectionStub::GetBacklightLevel(OHOS::MessageParcel& parcel, uint32_t& level)
 {
     if (!parcel.ReadUint32(level)) {
-        RS_LOGE("RSRenderToComposerConnectionStub::GetBacklightLevel failed.");
+        RS_LOGE("%{public}s failed.", __func__);
         return COMPOSITOR_ERROR_BINDER_ERROR;
     }
     return COMPOSITOR_ERROR_OK;
@@ -144,7 +146,7 @@ int32_t RSRenderToComposerConnectionStub::PreAllocProtectedFrameBuffersStub(OHOS
     uint32_t sequence;
     sptr<SurfaceBuffer> buffer = nullptr;
     auto readSafeFdFunc = [](OHOS::MessageParcel& messageParcel,
-                                std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
+                             std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
         return messageParcel.ReadFileDescriptor();
     };
     if (ReadSurfaceBufferImpl(parcel, sequence, buffer, readSafeFdFunc) != GSERROR_OK) {

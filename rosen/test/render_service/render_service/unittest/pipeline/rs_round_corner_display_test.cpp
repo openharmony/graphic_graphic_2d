@@ -507,6 +507,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
     visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode, true);
 
     // 2 invalid node
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     processorPtr =
         RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     visitor->SetUniProcessor(processorPtr);
@@ -1497,6 +1499,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
     rs_rcd::RoundCornerLayer layerTmp{"top.png", 0, 0, "top.bin", 8112, 2028, 1, bitMap.get()};
     std::shared_ptr<rs_rcd::RoundCornerLayer> topPtr = std::make_shared<rs_rcd::RoundCornerLayer>(layerTmp);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto rsHardwareProcessor =
         RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     RectU displayRect{0, 0, 896, 1848};

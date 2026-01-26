@@ -54,6 +54,7 @@ void RSPhysicalScreenProcessorTest::TearDown() {}
 HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create RSHardwareProcessor.
+    RSUniRenderThread::Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
     auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_NE(p.get(), nullptr);
 }
@@ -353,7 +354,7 @@ HWTEST_F(RSPhysicalScreenProcessorTest, CalculateMirrorAdaptiveCoefficient, Test
  * @tc.require: issueI9JY8B
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, SetDisplayHasSecSurface, TestSize.Level1)
-{   
+{
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     processor->SetSecurityDisplay(true);
     ASSERT_TRUE(processor->isSecurityDisplay_);

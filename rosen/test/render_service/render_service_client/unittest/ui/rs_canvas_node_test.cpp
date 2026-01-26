@@ -3756,6 +3756,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest001, TestSize.Level1)
     if (enable) {
         auto uiDirector1 = RSUIDirector::Create();
         auto uiDirector2 = RSUIDirector::Create();
+        uiDirector1->Init(true, true);
+        uiDirector2->Init(true, true);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3781,6 +3783,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest002, TestSize.Level1)
     if (enable) {
         auto uiDirector1 = RSUIDirector::Create();
         auto uiDirector2 = RSUIDirector::Create();
+        uiDirector1->Init(true, true);
+        uiDirector2->Init(true, true);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3805,6 +3809,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest003, TestSize.Level1)
     if (enable) {
         auto uiDirector1 = RSUIDirector::Create();
         auto uiDirector2 = RSUIDirector::Create();
+        uiDirector1->Init(true, true);
+        uiDirector2->Init(true, true);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3829,6 +3835,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest004, TestSize.Level1)
     if (enable) {
         auto uiDirector1 = RSUIDirector::Create();
         auto uiDirector2 = RSUIDirector::Create();
+        uiDirector1->Init(true, true);
+        uiDirector2->Init(true, true);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);

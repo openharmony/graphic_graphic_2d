@@ -61,7 +61,7 @@ std::string RectVectorToString(const std::vector<GraphicIRect>& dirtyRects)
 }
 
 bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo,
-    const std::shared_ptr<RSRenderComposerClient>& composerClient)
+    const std::shared_ptr<RSComposerClient>& composerClient)
 {
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::initialize id:%{public}" PRIu64, screenInfo.id);
 
@@ -80,7 +80,7 @@ void RSUniRenderComposerAdapter::CommitLayers()
 {
     if (composerClient_ != nullptr) {
         ComposerInfo composerInfo;
-        RSRenderComposerClient::ConvertScreenInfo(screenInfo_, composerInfo.composerScreenInfo);
+        RSComposerClient::ConvertScreenInfo(screenInfo_, composerInfo.composerScreenInfo);
         composerClient_->CommitLayers(composerInfo);
         RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame(screenInfo_.id);
     }
@@ -141,11 +141,10 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSScreenRen
     info.preBufferOwnerCount = surfaceHandler->GetPreBufferOwnerCount();
     auto preBufferOwnerCount = surfaceHandler->GetPreBufferOwnerCount();
     if (surfaceHandler->IsCurrentFrameBufferConsumed() && preBufferOwnerCount) {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderComposerAdapter::BuildComposeInfo RSScreenRenderNodeDrawable DecRef preBuf "
-            "seqNum %u", uint32_t(preBufferOwnerCount->seqNum_));
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderComposerAdapter::BuildComposeInfo RSScreenRenderNodeDrawable DecRef "
+            "preBuf bufferId %" PRIu64, preBufferOwnerCount->bufferId_);
         preBufferOwnerCount->DecRef();
     }
-    RS_TRACE_NAME_FMT("pre:[%lu] cur[%lu]", info.preBuffer == nullptr ? -1 : info.preBuffer ->GetSeqNum(), info.buffer == nullptr ? -1 : info.buffer ->GetSeqNum());
 
     info.fence = surfaceHandler->GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
@@ -215,7 +214,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
     auto preBufferOwnerCount = node.GetPreBufferOwnerCount();
     if (node.IsCurrentFrameBufferConsumed() && preBufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderComposerAdapter::BuildComposeInfo RSRcdSurfaceRenderNode DecRef preBuf "
-            "seqNum %u", uint32_t(preBufferOwnerCount->seqNum_));
+            "bufferId %" PRIu64, preBufferOwnerCount->bufferId_);
         preBufferOwnerCount->DecRef();
     }
     RS_LOGD_IF(DEBUG_COMPOSER,

@@ -42,7 +42,7 @@ private:
 
     std::unique_ptr<RSComposerAdapter> composerAdapter_ = nullptr;
     std::vector<RSLayerPtr> layers_;
-    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
+    std::shared_ptr<RSComposerClient> composerClient_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

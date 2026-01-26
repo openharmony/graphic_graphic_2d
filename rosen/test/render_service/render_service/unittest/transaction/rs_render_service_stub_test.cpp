@@ -99,6 +99,6 @@ HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub003, TestSize.Level1)
     MessageOption option;
 
     int res = stub_->OnRemoteRequest(-1, data, reply, option);
-    ASSERT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 } // namespace OHOS::Rosen

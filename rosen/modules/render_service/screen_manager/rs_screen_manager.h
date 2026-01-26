@@ -43,7 +43,7 @@
 #include <screen_manager/rs_screen_info.h>
 #include <screen_manager/rs_screen_property.h>
 #include "rs_screen_preprocessor.h"
-#include "product_feature/fold/rs_foldable_screen_manager.h"
+#include "product_feature/fold/rs_fold_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -122,7 +122,7 @@ public:
 
     void SetScreenSwitchStatus(ScreenId id, bool status);
 
-    uint32_t SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect);
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
     int32_t SetScreenLinearMatrix(ScreenId id, const std::vector<float>& matrix);
 
     // virtual screen
@@ -246,7 +246,7 @@ private:
     std::atomic<bool> isScreenSwitching_ = false;
 
     bool isFoldScreenFlag_ = false;
-    std::unique_ptr<RSFoldableScreenManager> foldableScreenManager_;
+    std::unique_ptr<RSFoldScreenManager> foldScreenManager_;
     struct FoldScreenStatus {
         bool isConnected;
         bool isPowerOn;

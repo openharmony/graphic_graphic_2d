@@ -31,16 +31,16 @@ void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>
     const sptr<RSScreenProperty>& property)
 {
     if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        RS_LOGE("OnScreenConnected not uni render");
+        RS_LOGE("%{public}s not uni render", __func__);
         return;
     }
     if (output == nullptr || property == nullptr) {
-        RS_LOGE("OnScreenConnected output or property is nullptr");
+        RS_LOGE("%{public}s output or property is nullptr", __func__);
         return;
     }
     auto screenId = output->GetScreenId();
     RS_TRACE_NAME_FMT("RSRenderComposerManager::OnScreenConnected screenId %u", screenId);
-    RS_LOGI("OnScreenConnected screenId:%{public}u", screenId);
+    RS_LOGI("%{public}s screenId:%{public}u", __func__, screenId);
     std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
     bool isReuseComposer = false;
     {
@@ -67,9 +67,9 @@ void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>
 void RSRenderComposerManager::OnScreenDisconnected(ScreenId screenId)
 {
     RS_TRACE_NAME_FMT("RSRenderComposerManager::OnScreenDisconnected screenId %u", screenId);
-    RS_LOGI("OnScreenDisconnected screenId:%{public}" PRIu64, screenId);
+    RS_LOGI("%{public}s screenId:%{public}" PRIu64, __func__, screenId);
     if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        RS_LOGE("OnScreenDisconnected not uni render");
+        RS_LOGE("%{public}s not uni render", __func__);
         return;
     }
     std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
@@ -77,7 +77,7 @@ void RSRenderComposerManager::OnScreenDisconnected(ScreenId screenId)
         std::lock_guard<std::mutex> lock(mutex_);
         auto iter = rsRenderComposerAgentMap_.find(screenId);
         if (iter == rsRenderComposerAgentMap_.end()) {
-            RS_LOGE("OnScreenDisconnected not find screenId:%{public}" PRIu64, screenId);
+            RS_LOGE("%{public}s not find screenId:%{public}" PRIu64, __func__, screenId);
             return;
         }
         renderComposerAgent = iter->second;
@@ -89,12 +89,12 @@ void RSRenderComposerManager::OnHwcRestored(const std::shared_ptr<HdiOutput>& ou
     const sptr<RSScreenProperty>& property)
 {
     if (output == nullptr || property == nullptr) {
-        RS_LOGE("OnScreenConnected output or property is nullptr");
+        RS_LOGE("%{public}s output or property is nullptr", __func__);
         return;
     }
     auto screenId = output->GetScreenId();
     RS_TRACE_NAME_FMT("RSRenderComposerManager::OnHwcRestored screenId %u", screenId);
-    RS_LOGI("OnHwcRestored screenId:%{public}u", screenId);
+    RS_LOGI("%{public}s screenId:%{public}u", __func__, screenId);
     std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -112,13 +112,13 @@ void RSRenderComposerManager::OnHwcRestored(const std::shared_ptr<HdiOutput>& ou
 void RSRenderComposerManager::OnHwcDead(ScreenId screenId)
 {
     RS_TRACE_NAME_FMT("RSRenderComposerManager::OnHwcDead screenId %u", screenId);
-    RS_LOGI("OnHwcDead screenId:%{public}" PRIu64, screenId);
+    RS_LOGI("%{public}s screenId:%{public}" PRIu64, __func__, screenId);
     std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         auto iter = rsRenderComposerAgentMap_.find(screenId);
         if (iter == rsRenderComposerAgentMap_.end()) {
-            RS_LOGE("OnHwcDead not find screenId:%{public}" PRIu64, screenId);
+            RS_LOGE("%{public}s not find screenId:%{public}" PRIu64, __func__, screenId);
             return;
         }
         renderComposerAgent = iter->second;
@@ -132,7 +132,7 @@ sptr<RSRenderToComposerConnection> RSRenderComposerManager::GetRSComposerConnect
     std::lock_guard<std::mutex> lock(mutex_);
     auto iter = rsComposerConnectionMap_.find(screenId);
     if (iter == rsComposerConnectionMap_.end()) {
-        RS_LOGE("GetRSComposerConnection not find screenId:%{public}" PRIu64, screenId);
+        RS_LOGE("%{public}s not find screenId:%{public}" PRIu64, __func__, screenId);
         return nullptr;
     }
     return iter->second;

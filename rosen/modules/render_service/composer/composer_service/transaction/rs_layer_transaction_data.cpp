@@ -21,6 +21,8 @@
 #include "rs_surface_layer_parcel.h"
 #include "rs_trace.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSLayerTransactionData"
 namespace OHOS {
 namespace Rosen {
 static constexpr size_t PARCEL_MAX_CPACITY = 4000 * 1024; // upper bound of parcel capacity
@@ -94,14 +96,14 @@ bool RSLayerTransactionData::UnMarshallingPipelineParam(OHOS::MessageParcel& par
 
     composerInfo_.pipelineParam.SurfaceFpsOpList = std::vector<SurfaceFpsOp>(
         composerInfo_.pipelineParam.SurfaceFpsOpNum);
-    for (int i = 0; i < composerInfo_.pipelineParam.SurfaceFpsOpNum; i++) {
+    for (uint32_t i = 0; i < composerInfo_.pipelineParam.SurfaceFpsOpNum; i++) {
         flag = flag && parcel.ReadUint32(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType) &&
         parcel.ReadUint64(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceNodeId) &&
         parcel.ReadString(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceName);
     }
 
     if (!flag) {
-        RS_LOGE("RSLayerTransactionData::UnMarshallingPipelineParam failed");
+        RS_LOGE("%{public}s failed", __func__);
     }
     return flag;
 }
@@ -119,14 +121,14 @@ bool RSLayerTransactionData::MarshallingPipelineParam(std::shared_ptr<OHOS::Mess
         parcel->WriteBool(composerInfo_.pipelineParam.hasLppVideo) &&
         parcel->WriteUint32(composerInfo_.pipelineParam.SurfaceFpsOpNum);
 
-    for (int i = 0; i < composerInfo_.pipelineParam.GetSurfaceFpsOpNum(); i++) {
+    for (uint32_t i = 0; i < composerInfo_.pipelineParam.GetSurfaceFpsOpNum(); i++) {
         flag = flag && parcel->WriteUint32(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType) &&
         parcel->WriteUint64(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceNodeId) &&
         parcel->WriteString(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceName);
     }
 
     if (!flag) {
-        RS_LOGE("RSLayerTransactionData::MarshallingPipelineParam failed");
+        RS_LOGE("%{public}s failed", __func__);
     }
     return flag;
 }
@@ -134,7 +136,7 @@ bool RSLayerTransactionData::MarshallingPipelineParam(std::shared_ptr<OHOS::Mess
 bool RSLayerTransactionData::Marshalling(std::shared_ptr<OHOS::MessageParcel>& parcel)
 {
     if (parcel == nullptr) {
-        RS_LOGE("RSLayerTransactionData::Marshalling parcel nullptr");
+        RS_LOGE("%{public}s parcel nullptr", __func__);
         return false;
     }
     parcel->SetMaxCapacity(PARCEL_MAX_CPACITY);
@@ -145,16 +147,16 @@ bool RSLayerTransactionData::Marshalling(std::shared_ptr<OHOS::MessageParcel>& p
         success = success && parcel->WriteUint64(layerId);
         if (!rsLayerParcel) {
             parcel->WriteUint8(0);  // has not rsLayerParcel
-            RS_LOGE("RSLayerTransactionData::Marshalling rsLayerParcel is nullptr");
+            RS_LOGE("%{public}s rsLayerParcel is nullptr", __func__);
         } else if (rsLayerParcel->indexVerifier_ != marshallingIndex_) {
             parcel->WriteUint8(0);  // has not rsLayerParcel
-            RS_LOGE("RSLayerTransactionData::Marshalling indexVerifier is wrong");
+            RS_LOGE("%{public}s indexVerifier is wrong",__func__);
         } else {
             parcel->WriteUint8(1);
             success = success && rsLayerParcel->Marshalling(*parcel);
         }
         if (!success) {
-            RS_LOGE("RSLayerTransactionData::Marshalling parcel write error");
+            RS_LOGE("%{public}s parcel write error", __func__);
             return false;
         }
         ++marshallingIndex_;
@@ -165,7 +167,7 @@ bool RSLayerTransactionData::Marshalling(std::shared_ptr<OHOS::MessageParcel>& p
     success = success && MarshallingComposerScreenInfo(parcel);
     success = success && MarshallingPipelineParam(parcel);
     if (!success) {
-        RS_LOGE("RSLayerTransactionData::Marshalling failed");
+        RS_LOGE("%{public}s failed", __func__);
     }
     return success;
 }
@@ -177,13 +179,13 @@ RSLayerTransactionData* RSLayerTransactionData::Unmarshalling(OHOS::MessageParce
         uint64_t now = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
         if (transactionData->timestamp_ > now + MAX_ADVANCE_TIME) {
-            RS_LOGE("RSLayerTransactionData::Unmarshalling limit timestamps from %{public}" PRIu64 " to "
-                "%{public}" PRIu64 " ", transactionData->timestamp_, now + MAX_ADVANCE_TIME);
+            RS_LOGE("%{public}s limit timestamps from %{public}" PRIu64 " to "
+                "%{public}" PRIu64, __func__, transactionData->timestamp_, now + MAX_ADVANCE_TIME);
         }
         transactionData->timestamp_ = std::min(now + MAX_ADVANCE_TIME, transactionData->timestamp_);
         return transactionData;
     }
-    RS_LOGE("RSLayerTransactionData::Unmarshalling failed.");
+    RS_LOGE("%{public}s failed.",__func__);
     delete transactionData;
     return nullptr;
 }
@@ -193,7 +195,7 @@ bool RSLayerTransactionData::UnmarshallingRsLayerParcel(OHOS::MessageParcel& par
     Clear();
     int32_t payloadSize = 0;
     if (!parcel.ReadInt32(payloadSize)) {
-        RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel read payloadSize failed");
+        RS_LOGE("%{public}s read payloadSize failed", __func__);
         return false;
     }
     RSLayerId layerId = 0;
@@ -202,13 +204,13 @@ bool RSLayerTransactionData::UnmarshallingRsLayerParcel(OHOS::MessageParcel& par
 
     size_t len = static_cast<size_t>(payloadSize);
     if (len > PARCEL_MAX_CPACITY) {
-        RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel fail read vector, size:%{public}zu", len);
+        RS_LOGE("%{public}s fail read vector, size:%{public}zu", __func__, len);
         return false;
     }
     std::unique_lock<std::mutex> payloadLock(rsLayerParcelMutex_, std::defer_lock);
     for (size_t i = 0; i < len; i++) {
         if (!parcel.ReadUint64(layerId) || !parcel.ReadUint8(hasRsLayerParcel)) {
-            RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel cannot read layerId or hasRsLayerParcel");
+            RS_LOGE("%{public}s cannot read layerId or hasRsLayerParcel", __func__);
             return false;
         }
         if (hasRsLayerParcel) {
@@ -217,12 +219,12 @@ bool RSLayerTransactionData::UnmarshallingRsLayerParcel(OHOS::MessageParcel& par
             }
             auto func = RSLayerParcelFactory::Instance().GetUnmarshallingFunc(rsLayerParcelType);
             if (func == nullptr) {
-                RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel func is nullptr, type:%{public}d", rsLayerParcelType);
+                RS_LOGE("%{public}s func is nullptr, type:%{public}d", __func__, rsLayerParcelType);
                 return false;
             }
             auto rsLayerParcel = (*func)(parcel);
             if (rsLayerParcel == nullptr) {
-                RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel func failed, type:%{public}d", rsLayerParcelType);
+                RS_LOGE("%{public}s func failed, type:%{public}d", __func__, rsLayerParcelType);
                 return false;
             }
             payloadLock.lock();
@@ -235,7 +237,7 @@ bool RSLayerTransactionData::UnmarshallingRsLayerParcel(OHOS::MessageParcel& par
     bool flag = parcel.ReadUint64(timestamp_) && parcel.ReadInt32(pid_) &&
         parcel.ReadUint64(index_) && UnMarshallingComposerScreenInfo(parcel) && UnMarshallingPipelineParam(parcel);
     if (!flag) {
-        RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel failed");
+        RS_LOGE("%{public}s failed", __func__);
     }
     return flag;
 }

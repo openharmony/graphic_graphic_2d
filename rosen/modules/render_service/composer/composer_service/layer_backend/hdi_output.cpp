@@ -309,7 +309,7 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<R
     layerIdMap_[layerId] = hdiLayer;
 
     if (rsLayer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
-        // solid layer's surfaceId is unique, use solidLayerCount as key, to avoid conflict with normal layer
+        // solid hdiLayer's surfaceId is unique, use solidLayerCount as key, to avoid conflict with normal hdiLayer
         solidSurfaceIdMap_[surfaceId] = hdiLayer;
     } else {
         surfaceIdMap_[surfaceId] = hdiLayer;
@@ -611,10 +611,10 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         for (const auto& [id, layer] : layerIdMap_) {
             if (layer) {
-                layer->ResetBufferCache();
+                layer->ClearBufferCache();
             }
         }
-        bufferCache_.clear();
+        ClearBufferCache();
     }
     return ret;
 }
@@ -645,7 +645,6 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     }
     thirdFrameAheadPresentFenceFd_ = -1;
     thirdFrameAheadPresentTime_ = SyncFence::FENCE_PENDING_TIMESTAMP;
-
     RS_TRACE_BEGIN("HdiOutput::SyncFileReadTimestamp");
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
     RS_TRACE_END();
@@ -678,7 +677,9 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
         ret = StartVSyncSampler();
     }
     UpdateThirdFrameAheadPresentFence(fbFence);
-    curPresentFd_ = fbFence->Get();
+    if (fbFence != nullptr) {
+        curPresentFd_ = fbFence->Get();
+    }
     return ret;
 }
 
@@ -751,10 +752,11 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
         for (const auto& [rsLayer, fence] : layersReleaseFence) {
             if (rsLayer != nullptr) {
                 releaseBufferFenceMap[rsLayer->GetRSLayerId()] = fence;
-                RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager releaseBufferFenceVec SeqNum %u Fence %d",
-                    uint32_t(rsLayer->GetPreBuffer() ? rsLayer->GetPreBuffer()->GetSeqNum() : 0),
+                RS_OPTIONAL_TRACE_NAME_FMT("HdiOutput::ReleaseLayers releaseBufferFenceVec bufferId %" PRIu64
+                    " Fence %d", rsLayer->GetPreBuffer() ? rsLayer->GetPreBuffer()->GetBufferId() : 0,
                     fence ? fence->Get() : -1);
-                releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(rsLayer->GetRSLayerId(), rsLayer->GetPreBuffer(), fence));
+                releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(rsLayer->GetRSLayerId(),
+                    rsLayer->GetPreBuffer(), fence));
             }
         }
     }
@@ -1056,6 +1058,7 @@ void HdiOutput::Repaint()
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
     }
+
     if (screenPowerOnChanged_) {
         HLOGI("Power On First Frame commit finish");
         screenPowerOnChanged_ = false;

@@ -269,12 +269,10 @@ template("graphics2d_source_set") {
         defines += [ "RES_SCHED_ENABLE" ]
         include_dirs += [ "$rosen_root/modules/frame_report/include" ]
         if (rosen_is_ohos) {
-          sources +=
-              [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
+          sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
+          external_deps += [ "frame_aware_sched:frame_ui_intf"]
         } else {
-          sources += [
-            "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp",
-          ]
+          sources += [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
         }
       }
     }

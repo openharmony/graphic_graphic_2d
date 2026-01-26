@@ -109,8 +109,9 @@ ohos_shared_library("librender_composer") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl/rs_composer_to_render_connection_stub.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_layer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_rcd_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_client_manager.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_client.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_context.cpp",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_render_composer_client.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl/rs_render_to_composer_connection_proxy.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl/rs_render_to_composer_connection_stub.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_backend.cpp",
@@ -137,7 +138,6 @@ ohos_shared_library("librender_composer") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/utils",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
-    #"$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
@@ -189,6 +189,7 @@ ohos_shared_library("librender_composer") {
 
   if (rosen_is_ohos) {
     sources += [ "$graphic_2d_root/rosen/modules/frame_report/src/rs_frame_report.cpp" ]
+    external_deps += [ "frame_aware_sched:frame_ui_intf"]
   } else {
     sources +=
         [ "$graphic_2d_root/rosen/modules/frame_report/src/mingw/rs_frame_report.cpp" ]

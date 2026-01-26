@@ -16,7 +16,7 @@
 #include "rs_composer_to_render_connection.h"
 #include "frame_report.h"
 #include "platform/common/rs_log.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client.h"
 #include "rs_trace.h"
 
 #undef LOG_TAG
@@ -26,7 +26,7 @@ namespace OHOS {
 namespace Rosen {
 int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo)
 {
-    RS_LOGD("RSComposerToRenderConnection::ReleaseLayerBuffers, screenId:%{public}" PRIu64, releaseLayerInfo.screenId);
+    RS_LOGD("%{public}s, screenId:%{public}" PRIu64, __func__, releaseLayerInfo.screenId);
     if (releaseLayerBuffersCB_ != nullptr) {
         releaseLayerBuffersCB_(releaseLayerInfo);
     }

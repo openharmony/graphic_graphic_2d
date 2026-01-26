@@ -96,17 +96,16 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     id_ = surfaceNode->GetId();
 
     if (IsSelfDrawingType()) {
-        std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(curDisplayScreenId_);
-        if (composerClient != nullptr) {
-            PipelineParam param = composerClient->GetPipelineParam();
+        if (auto composerClientMgr = RSUniRenderThread::Instance().GetComposerClientManager()) {
             SurfaceFpsOp op {
                 static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD),
                 id_,
                 name_,
             };
+            PipelineParam param = composerClientMgr->GetPipelineParam(curDisplayScreenId_);
             param.SurfaceFpsOpList.push_back(op);
             param.SurfaceFpsOpNum++;
-            composerClient->UpdatePipelineParam(param);
+            composerClientMgr->UpdatePipelineParam(curDisplayScreenId_, param);
             RS_LOGD("update pipelineParam for surfaceFps op add id: %{public}" PRIu64 ", name: %{public}s", id_, name_.c_str());
         }
     }
@@ -115,17 +114,16 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
 RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
 {
     if (IsSelfDrawingType()) {
-        std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(curDisplayScreenId_);
-        if (composerClient != nullptr) {
-            PipelineParam param = composerClient->GetPipelineParam();
+        if (auto composerClientMgr = RSUniRenderThread::Instance().GetComposerClientManager()) {
             SurfaceFpsOp op {
                 static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE),
                 id_,
                 name_,
             };
+            PipelineParam param = composerClientMgr->GetPipelineParam(curDisplayScreenId_);
             param.SurfaceFpsOpList.push_back(op);
             param.SurfaceFpsOpNum++;
-            composerClient->UpdatePipelineParam(param);
+            composerClientMgr->UpdatePipelineParam(curDisplayScreenId_, param);
             RS_LOGD("update pipelineParam for surfaceFps op remove id: %{public}" PRIu64 ", name: %{public}s", id_, name_.c_str());
         }
     }
@@ -1042,10 +1040,12 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    bool isScreenshot = RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
+        !RSUniRenderThread::GetCaptureParam().isSingleSurface_;
     const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
     if (uniParam->IsOcclusionEnabled() && surfaceParams->IsMainWindowType() &&
         surfaceParams->GetVisibleRegionInVirtual().IsEmpty() && whiteList.empty() &&
-        UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
+        UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_ || isScreenshot)) {
         RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture occlusion skip :[" + name_ + "] " +
             surfaceParams->GetAbsDrawRect().ToString());
         return;

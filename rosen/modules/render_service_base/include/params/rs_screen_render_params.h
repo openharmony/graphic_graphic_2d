@@ -223,10 +223,8 @@ public:
     bool GetHasMirroredScreenChanged() const;
     void SetHasMirroredScreenChanged(bool hasMirroredScreenChanged);
 
-    bool IsVirtualSurfaceChanged() const
-    {
-        return isVirtualSurfaceChanged_;
-    }
+    void SetVirtualSurfaceChanged(bool isChanged) { isVirtualSurfaceChanged_ = isChanged; }
+    bool IsVirtualSurfaceChanged() const { return isVirtualSurfaceChanged_; }
 
     void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod)
     {

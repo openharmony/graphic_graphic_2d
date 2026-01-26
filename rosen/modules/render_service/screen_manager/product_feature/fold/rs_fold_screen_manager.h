@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RS_FOLDABLE_SCREEN_MANAGER_H
-#define RS_FOLDABLE_SCREEN_MANAGER_H
+#ifndef RS_FOLD_SCREEN_MANAGER_H
+#define RS_FOLD_SCREEN_MANAGER_H
 #include <mutex>
 #include <screen_manager/screen_types.h>
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
@@ -31,11 +31,11 @@ enum class FoldState : uint32_t {
     EXPAND
 };
 
-class RSFoldableScreenManager {
+class RSFoldScreenManager {
 public:
-    RSFoldableScreenManager(RSScreenPreprocessor& screenPreprocessor)
+    RSFoldScreenManager(RSScreenPreprocessor& screenPreprocessor)
         : screenPreprocessor_(screenPreprocessor) {}
-    ~RSFoldableScreenManager() noexcept;
+    ~RSFoldScreenManager() noexcept;
     ScreenId GetActiveScreenId();
     void SetExternalScreenId(ScreenId externalScreenId);
     void Init();
@@ -65,4 +65,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RS_FOLDABLE_SCREEN_MANAGER_H
+#endif // RS_FOLD_SCREEN_MANAGER_H

@@ -161,7 +161,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLppLayerToRender_Lar
     }
 
     int32_t r = proxy.NotifyLppLayerToRender(999u, ids);
-    EXPECT_EQ(r, COMPOSITOR_ERROR_OK);
+    EXPECT_EQ(r, -1);
 }
 /**
  * Function: Proxy_ReleaseLayerBuffers_EmptyVectors

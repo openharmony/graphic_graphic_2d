@@ -17,6 +17,7 @@
 
 #include "rs_render_composer_context.h"
 #include "rs_layer.h"
+#include "rs_render_surface_layer.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -44,210 +45,6 @@ void RsRenderComposerContextTest::TearDownTestCase() {}
 void RsRenderComposerContextTest::SetUp() {}
 void RsRenderComposerContextTest::TearDown() {}
 
-// Fake RSLayer for testing
-class FakeRSLayer : public RSLayer {
-public:
-    explicit FakeRSLayer(RSLayerId id, bool usingFlag, const std::string& name = "L")
-        : id_(id), isNeedComposition_(usingFlag), surfaceName_(name) {}
-    ~FakeRSLayer() override = default;
-
-    RSLayerId GetRSLayerId() const override { return id_; }
-    void SetRSLayerId(RSLayerId rsLayerId) override { id_ = rsLayerId; }
-    void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) override { (void)command; }
-
-    void SetAlpha(const GraphicLayerAlpha &alpha) override { alpha_ = alpha; }
-    const GraphicLayerAlpha &GetAlpha() const override { return alpha_; }
-    void SetZorder(int32_t zOrder) override { zOrder_ = zOrder; }
-    uint32_t GetZorder() const override { return static_cast<uint32_t>(zOrder_); }
-    void SetType(const GraphicLayerType layerType) override { layerType_ = layerType; }
-    GraphicLayerType GetType() const override { return layerType_; }
-    void SetTransform(GraphicTransformType type) override { transform_ = type; }
-    GraphicTransformType GetTransform() const override { return transform_; }
-    void SetCompositionType(GraphicCompositionType type) override { compType_ = type; }
-    GraphicCompositionType GetCompositionType() const override { return compType_; }
-    void SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions) override
-    { visibleRegions_ = visibleRegions; }
-    const std::vector<GraphicIRect>& GetVisibleRegions() const override { return visibleRegions_; }
-    void SetDirtyRegions(const std::vector<GraphicIRect>& dirtyRegions) override { dirtyRegions_ = dirtyRegions; }
-    const std::vector<GraphicIRect>& GetDirtyRegions() const override { return dirtyRegions_; }
-    void SetBlendType(GraphicBlendType type) override { blendType_ = type; }
-    GraphicBlendType GetBlendType() const override { return blendType_; }
-    void SetCropRect(const GraphicIRect &crop) override { cropRect_ = crop; }
-    const GraphicIRect &GetCropRect() const override { return cropRect_; }
-    void SetPreMulti(bool preMulti) override { preMulti_ = preMulti; }
-    bool IsPreMulti() const override { return preMulti_; }
-    void SetLayerSize(const GraphicIRect &layerRect) override { layerSize_ = layerRect; }
-    const GraphicIRect &GetLayerSize() const override { return layerSize_; }
-    void SetBoundSize(const GraphicIRect &boundRect) override { boundSize_ = boundRect; }
-    const GraphicIRect& GetBoundSize() const override { return boundSize_; }
-    void SetLayerColor(GraphicLayerColor layerColor) override { layerColor_ = layerColor; }
-    const GraphicLayerColor& GetLayerColor() const override { return layerColor_; }
-    void SetBackgroundColor(GraphicLayerColor backgroundColor) override { backgroundColor_ = backgroundColor; }
-    const GraphicLayerColor& GetBackgroundColor() const override { return backgroundColor_; }
-    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo) override
-    { cornerRadiusInfo_ = drmCornerRadiusInfo; }
-    const std::vector<float>& GetCornerRadiusInfoForDRM() const override { return cornerRadiusInfo_; }
-    void SetColorTransform(const std::vector<float>& matrix) override { colorTransform_ = matrix; }
-    const std::vector<float>& GetColorTransform() const override { return colorTransform_; }
-    void SetColorDataSpace(GraphicColorDataSpace colorSpace) override { colorSpace_ = colorSpace; }
-    GraphicColorDataSpace GetColorDataSpace() const override { return colorSpace_; }
-    void SetMetaData(const std::vector<GraphicHDRMetaData>& metaData) override { metaData_ = metaData; }
-    const std::vector<GraphicHDRMetaData>& GetMetaData() const override { return metaData_; }
-    void SetMetaDataSet(const GraphicHDRMetaDataSet& metaDataSet) override { metaDataSet_ = metaDataSet; }
-    const GraphicHDRMetaDataSet& GetMetaDataSet() const override { return metaDataSet_; }
-    void SetMatrix(const GraphicMatrix& matrix) override { matrix_ = matrix; }
-    const GraphicMatrix& GetMatrix() const override { return matrix_; }
-    void SetGravity(int32_t gravity) override { gravity_ = gravity; }
-    int32_t GetGravity() const override { return gravity_; }
-    void SetUniRenderFlag(bool isUniRender) override { uniRender_ = isUniRender; }
-    bool GetUniRenderFlag() const override { return uniRender_; }
-    void SetTunnelHandleChange(bool change) override { tunnelHandleChange_ = change; }
-    bool GetTunnelHandleChange() const override { return tunnelHandleChange_; }
-    void SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle) override { tunnelHandle_ = handle; }
-    sptr<SurfaceTunnelHandle> GetTunnelHandle() const override { return tunnelHandle_; }
-    void SetTunnelLayerId(const uint64_t tunnelLayerId) override { tunnelLayerId_ = tunnelLayerId; }
-    uint64_t GetTunnelLayerId() const override { return tunnelLayerId_; }
-    void SetTunnelLayerProperty(uint32_t tunnelLayerProperty) override
-    { tunnelLayerProperty_ = tunnelLayerProperty; }
-    uint32_t GetTunnelLayerProperty() const override { return tunnelLayerProperty_; }
-    void SetIsSupportedPresentTimestamp(bool isSupported) override { supportedPresentTimestamp_ = isSupported; }
-    bool GetIsSupportedPresentTimestamp() const override { return supportedPresentTimestamp_; }
-    void SetPresentTimestamp(const GraphicPresentTimestamp &timestamp) override { presentTimestamp_ = timestamp; }
-    const GraphicPresentTimestamp &GetPresentTimestamp() const override { return presentTimestamp_; }
-    void SetSdrNit(float sdrNit) override { sdrNit_ = sdrNit; }
-    float GetSdrNit() const override { return sdrNit_; }
-    void SetDisplayNit(float displayNit) override { displayNit_ = displayNit; }
-    float GetDisplayNit() const override { return displayNit_; }
-    void SetBrightnessRatio(float brightnessRatio) override { brightnessRatio_ = brightnessRatio; }
-    float GetBrightnessRatio() const override { return brightnessRatio_; }
-    void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix) override
-    { layerLinearMatrix_ = layerLinearMatrix; }
-    const std::vector<float>& GetLayerLinearMatrix() const override { return layerLinearMatrix_; }
-    void SetLayerSourceTuning(int32_t layerSouce) override { layerSourceTuning_ = layerSouce; }
-    int32_t GetLayerSourceTuning() const override { return layerSourceTuning_; }
-    void SetWindowsName(std::vector<std::string>& windowsName) override { windowsName_ = windowsName; }
-    const std::vector<std::string>& GetWindowsName() const override { return windowsName_; }
-    void SetRotationFixed(bool rotationFixed) override { rotationFixed_ = rotationFixed; }
-    bool GetRotationFixed() const override { return rotationFixed_; }
-    void SetLayerArsr(bool arsrTag) override { layerArsr_ = arsrTag; }
-    bool GetLayerArsr() const override { return layerArsr_; }
-    void SetLayerCopybit(bool copybitTag) override { layerCopybit_ = copybitTag; }
-    bool GetLayerCopybit() const override { return layerCopybit_; }
-    void SetNeedBilinearInterpolation(bool need) override { needBilinear_ = need; }
-    bool GetNeedBilinearInterpolation() const override { return needBilinear_; }
-    void SetIsMaskLayer(bool isMaskLayer) override { isMaskLayer_ = isMaskLayer; }
-    bool GetIsMaskLayer() const override { return isMaskLayer_; }
-    void SetIgnoreAlpha(bool ignoreAlpha) override { ignoreAlpha_ = ignoreAlpha; }
-    bool GetIgnoreAlpha() const override { return ignoreAlpha_; }
-    void SetNodeId(uint64_t nodeId) override { nodeId_ = nodeId; }
-    uint64_t GetNodeId() const override { return nodeId_; }
-    void SetAncoFlags(const uint32_t ancoFlags) override { ancoFlags_ = ancoFlags; }
-    uint32_t GetAncoFlags() const override { return ancoFlags_; }
-    bool IsAncoNative() const override { return false; }
-    void SetLayerMaskInfo(LayerMask mask) override { layerMask_ = mask; }
-    LayerMask GetLayerMaskInfo() const override { return layerMask_; }
-
-    void SetSurface(const sptr<IConsumerSurface>& surface) override { surface_ = surface; }
-    sptr<IConsumerSurface> GetSurface() const override { return surface_; }
-    void SetSurfaceUniqueId(uint64_t uniqueId) override { surfaceUniqueId_ = uniqueId; }
-    uint64_t GetSurfaceUniqueId() const override { return surfaceUniqueId_; }
-    void SetBuffer(const sptr<SurfaceBuffer>& sbuffer, const sptr<SyncFence>& acquireFence) override
-    {
-        buffer_ = sbuffer;
-        acquireFence_ = acquireFence;
-    }
-    void SetBuffer(const sptr<SurfaceBuffer>& sbuffer) override { buffer_ = sbuffer; }
-    sptr<SurfaceBuffer> GetBuffer() const override { return buffer_; }
-    void SetPreBuffer(const sptr<SurfaceBuffer>& buffer) override { preBuffer_ = buffer; }
-    sptr<SurfaceBuffer> GetPreBuffer() const override { return preBuffer_; }
-    void SetAcquireFence(const sptr<SyncFence>& acquireFence) override { acquireFence_ = acquireFence; }
-    sptr<SyncFence> GetAcquireFence() const override { return acquireFence_; }
-    void SetCycleBuffersNum(uint32_t cycleBuffersNum) override { cycleBuffersNum_ = cycleBuffersNum; }
-    uint32_t GetCycleBuffersNum() const override { return cycleBuffersNum_; }
-    void SetSurfaceName(std::string name) override { surfaceName_ = name; }
-    std::string GetSurfaceName() const override { return surfaceName_; }
-    void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) override
-    { solidColorLayerProperty_ = solidColorLayerProperty; }
-    GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override { return solidColorLayerProperty_; }
-    void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> boc) override { bufferOwnerCount_ = boc; }
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetSeqNumFromBufferOwnerCounts(uint64_t seqNum) override
-    {
-        (void)seqNum;
-        return bufferOwnerCount_;
-    }
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override { return bufferOwnerCount_; }
-
-    // Provide overrides to avoid undefined reference to base default implementations during linking
-    void SetUseDeviceOffline(bool useOffline) override { useDeviceOffline_ = useOffline; }
-    bool GetUseDeviceOffline() const override { return useDeviceOffline_; }
-    void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override { ancoSrcRect_ = ancoSrcRect; }
-    const GraphicIRect& GetAncoSrcRect() const override { return ancoSrcRect_; }
-
-    void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) override { (void)rsLayer; }
-    void Dump(std::string& result) const override { (void)result; }
-    void DumpCurrentFrameLayer() const override {}
-    bool GetIsNeedComposition() const override { return isNeedComposition_; }
-    void SetIsNeedComposition(bool isNeedComposition) override { isNeedComposition_ = isNeedComposition; }
-
-private:
-    RSLayerId id_ = 0;
-    bool isNeedComposition_ = false;
-    std::string surfaceName_;
-
-    GraphicLayerAlpha alpha_ {};
-    int32_t zOrder_ = 0;
-    GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_BUTT;
-    GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    GraphicCompositionType compType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT;
-    std::vector<GraphicIRect> visibleRegions_;
-    std::vector<GraphicIRect> dirtyRegions_;
-    GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;
-    GraphicIRect cropRect_ {0, 0, 0, 0};
-    bool preMulti_ = false;
-    GraphicIRect layerSize_ {0, 0, 0, 0};
-    GraphicIRect boundSize_ {0, 0, 0, 0};
-    GraphicLayerColor layerColor_ {};
-    GraphicLayerColor backgroundColor_ {};
-    std::vector<float> cornerRadiusInfo_;
-    std::vector<float> colorTransform_;
-    GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
-    std::vector<GraphicHDRMetaData> metaData_;
-    GraphicHDRMetaDataSet metaDataSet_ {};
-    GraphicMatrix matrix_ {};
-    int32_t gravity_ = 0;
-    bool uniRender_ = false;
-    bool tunnelHandleChange_ = false;
-    sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
-    uint64_t tunnelLayerId_ = 0;
-    uint32_t tunnelLayerProperty_ = 0;
-    bool supportedPresentTimestamp_ = false;
-    GraphicPresentTimestamp presentTimestamp_ {};
-    float sdrNit_ = 0.0f;
-    float displayNit_ = 0.0f;
-    float brightnessRatio_ = 0.0f;
-    std::vector<float> layerLinearMatrix_;
-    int32_t layerSourceTuning_ = 0;
-    std::vector<std::string> windowsName_;
-    bool rotationFixed_ = false;
-    bool layerArsr_ = false;
-    bool layerCopybit_ = false;
-    bool needBilinear_ = false;
-    bool isMaskLayer_ = false;
-    uint64_t nodeId_ = 0;
-    uint32_t ancoFlags_ = 0;
-    LayerMask layerMask_ {};
-    sptr<IConsumerSurface> surface_ = nullptr;
-    uint64_t surfaceUniqueId_ = 0;
-    sptr<SurfaceBuffer> buffer_ = nullptr;
-    sptr<SurfaceBuffer> preBuffer_ = nullptr;
-    sptr<SyncFence> acquireFence_ = nullptr;
-    uint32_t cycleBuffersNum_ = 0;
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
-    GraphicSolidColorLayerProperty solidColorLayerProperty_ {};
-    bool ignoreAlpha_ {false};
-    bool useDeviceOffline_ {false};
-    GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
-};
 
 /**
  * Function: GetRSLayersVec_Empty_ReturnsEmpty
@@ -277,8 +74,12 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_Empty_ReturnsEmpty, TestSiz
 HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_FiltersByisNeedComposition, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
-    std::shared_ptr<RSLayer> l1 = std::make_shared<FakeRSLayer>(1, false, "L1");
-    std::shared_ptr<RSLayer> l2 = std::make_shared<FakeRSLayer>(2, true, "L2");
+    auto l1 = std::make_shared<RSRenderSurfaceLayer>();
+    l1->SetIsNeedComposition(false);
+    l1->SetSurfaceName("L1");
+    auto l2 = std::make_shared<RSRenderSurfaceLayer>();
+    l2->SetIsNeedComposition(true);
+    l2->SetSurfaceName("L2");
     ctx->AddRSRenderLayer(1, l1);
     ctx->AddRSRenderLayer(2, l2);
 
@@ -296,12 +97,24 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_FiltersByisNeedComposition,
  *                  2. call GetRSRenderLayer() with id 100 and 200
  *                  3. check found 100 and not found 200
  */
-HWTEST_F(RsRenderComposerContextTest, ClearAllRSLayers_EmptiesVector, TestSize.Level1)
+/**
+ * Function: GetRSRenderLayer_Found_And_NotFound
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add layer id=100
+ *                  2. GetRSRenderLayer(100)!=nullptr, GetRSRenderLayer(200)==nullptr
+ */
+HWTEST_F(RsRenderComposerContextTest, GetRSRenderLayer_Found_And_NotFound, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
-    ctx->AddRSRenderLayer(1, std::make_shared<FakeRSLayer>(1, true));
-    ctx->AddRSRenderLayer(2, std::make_shared<FakeRSLayer>(2, true));
-    ASSERT_EQ(ctx->GetRSLayersVec().size(), 2u);
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetIsNeedComposition(true);
+    ctx->AddRSRenderLayer(100, layer);
+    auto found = ctx->GetRSRenderLayer(100);
+    auto notFound = ctx->GetRSRenderLayer(200);
+    ASSERT_NE(found, nullptr);
+    EXPECT_EQ(notFound, nullptr);
 }
 
 /**
@@ -313,20 +126,83 @@ HWTEST_F(RsRenderComposerContextTest, ClearAllRSLayers_EmptiesVector, TestSize.L
  *                  2. re-add layer with same id but different instance
  *                  3. find layer id when first add, and check it's the new instance after override
  */
-HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_CopySemantics, TestSize.Level1)
+/**
+ * Function: RemoveRSRenderLayer_Existing_And_NonExisting
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add two layers
+ *                  2. remove existing id then non-existing id; verify counts
+ */
+HWTEST_F(RsRenderComposerContextTest, RemoveRSRenderLayer_Existing_And_NonExisting, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
-    ctx->AddRSRenderLayer(1, std::make_shared<FakeRSLayer>(1, true));
-    ctx->AddRSRenderLayer(2, std::make_shared<FakeRSLayer>(2, true));
+    auto l1 = std::make_shared<RSRenderSurfaceLayer>();
+    l1->SetIsNeedComposition(true);
+    auto l2 = std::make_shared<RSRenderSurfaceLayer>();
+    l2->SetIsNeedComposition(true);
+    ctx->AddRSRenderLayer(1, l1);
+    ctx->AddRSRenderLayer(2, l2);
+    ASSERT_EQ(ctx->GetRSRenderLayerCount(), 2u);
+    ctx->RemoveRSRenderLayer(1);
+    EXPECT_EQ(ctx->GetRSRenderLayerCount(), 1u);
+    // removing non-existing should keep count unchanged
+    ctx->RemoveRSRenderLayer(1000);
+    EXPECT_EQ(ctx->GetRSRenderLayerCount(), 1u);
+}
 
-    auto vecA = ctx->GetRSLayersVec();
-    ASSERT_EQ(vecA.size(), 2u);
-    // mutate the returned copy
-    vecA.pop_back();
+/**
+ * Function: AddRSRenderLayer_OverrideExisting
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add a layer with id=10
+ *                  2. add another different instance with same id
+ *                  3. verify count remains 1 and stored pointer is the new instance
+ */
+HWTEST_F(RsRenderComposerContextTest, AddRSRenderLayer_OverrideExisting, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
+    auto first = std::make_shared<RSRenderSurfaceLayer>();
+    first->SetIsNeedComposition(true);
+    first->SetSurfaceName("first");
+    ctx->AddRSRenderLayer(10, first);
+    ASSERT_EQ(ctx->GetRSRenderLayerCount(), 1u);
+    auto stored1 = ctx->GetRSRenderLayer(10);
+    ASSERT_EQ(stored1, first);
 
-    // internal storage should remain unchanged
-    auto vecB = ctx->GetRSLayersVec();
-    EXPECT_EQ(vecB.size(), 2u);
+    auto second = std::make_shared<RSRenderSurfaceLayer>();
+    second->SetIsNeedComposition(true);
+    second->SetSurfaceName("second");
+    ctx->AddRSRenderLayer(10, second);
+
+    // override should not increase count
+    EXPECT_EQ(ctx->GetRSRenderLayerCount(), 1u);
+    auto stored2 = ctx->GetRSRenderLayer(10);
+    EXPECT_EQ(stored2, second);
+}
+
+/**
+ * Function: GetRSLayersVec_AllUnused_ReturnsEmpty
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add two layers both with isNeedComposition=false
+ *                  2. GetRSLayersVec returns empty
+ */
+HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_AllUnused_ReturnsEmpty, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
+    auto a = std::make_shared<RSRenderSurfaceLayer>();
+    a->SetIsNeedComposition(false);
+    a->SetSurfaceName("A");
+    auto b = std::make_shared<RSRenderSurfaceLayer>();
+    b->SetIsNeedComposition(false);
+    b->SetSurfaceName("B");
+    ctx->AddRSRenderLayer(1, a);
+    ctx->AddRSRenderLayer(2, b);
+    auto vec = ctx->GetRSLayersVec();
+    EXPECT_TRUE(vec.empty());
 }
 
 /**
@@ -341,13 +217,19 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_CopySemantics, TestSize.Lev
 HWTEST_F(RsRenderComposerContextTest, SetRSLayersVec_Override, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
-    ctx->AddRSRenderLayer(1, std::make_shared<FakeRSLayer>(1, true));
+    auto base = std::make_shared<RSRenderSurfaceLayer>();
+    base->SetIsNeedComposition(true);
+    ctx->AddRSRenderLayer(1, base);
     ASSERT_EQ(ctx->GetRSRenderLayerCount(), 1u);
 
     // override by removing old and adding new layers
     ctx->RemoveRSRenderLayer(1);
-    ctx->AddRSRenderLayer(2, std::make_shared<FakeRSLayer>(2, true));
-    ctx->AddRSRenderLayer(3, std::make_shared<FakeRSLayer>(3, true));
+    auto a = std::make_shared<RSRenderSurfaceLayer>();
+    a->SetIsNeedComposition(true);
+    auto b = std::make_shared<RSRenderSurfaceLayer>();
+    b->SetIsNeedComposition(true);
+    ctx->AddRSRenderLayer(2, a);
+    ctx->AddRSRenderLayer(3, b);
     auto vec = ctx->GetRSLayersVec();
     EXPECT_EQ(vec.size(), 2u);
 }
@@ -366,6 +248,31 @@ HWTEST_F(RsRenderComposerContextTest, SetRSLayersVec_WithEmptyVector, TestSize.L
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
     // without adding any layers, returned vector should be empty
     EXPECT_TRUE(ctx->GetRSLayersVec().empty());
+}
+
+/**
+ * Function: GetRSLayersVec_ToggleNeedComposition
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add one layer with needComposition=true
+ *                  2. verify it appears in vector
+ *                  3. set needComposition=false and verify it is filtered out
+ */
+HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_ToggleNeedComposition, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSRenderComposerContext>();
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetSurfaceName("toggle");
+    layer->SetIsNeedComposition(true);
+    ctx->AddRSRenderLayer(77, layer);
+    auto vec1 = ctx->GetRSLayersVec();
+    ASSERT_EQ(vec1.size(), 1u);
+    EXPECT_EQ(vec1[0], layer);
+
+    layer->SetIsNeedComposition(false);
+    auto vec2 = ctx->GetRSLayersVec();
+    EXPECT_TRUE(vec2.empty());
 }
 
 } // namespace Rosen

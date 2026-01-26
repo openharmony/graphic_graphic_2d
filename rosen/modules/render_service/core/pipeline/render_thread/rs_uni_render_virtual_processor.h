@@ -86,7 +86,7 @@ public:
     void CalculateTransform(ScreenRotation rotation);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
     void CanvasClipRegionForUniscaleMode(const Drawing::Matrix& visibleClipRectMatrix = Drawing::Matrix(),
-        const ScreenInfo& mainScreenInfo = ScreenInfo());
+        bool isSamplingOn = false);
     void ProcessCacheImage(Drawing::Image& cacheImage);
     void SetDrawVirtualMirrorCopy(bool drawMirrorCopy)
     {

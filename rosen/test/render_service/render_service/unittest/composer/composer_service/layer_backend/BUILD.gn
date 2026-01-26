@@ -109,8 +109,8 @@ if (use_memmgr_plugin || use_memmgr) {
 ohos_static_library("layer_backend_test_impl") {
   sources = [
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_client.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_context.cpp",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_render_composer_client.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_backend.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_layer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_output.cpp",

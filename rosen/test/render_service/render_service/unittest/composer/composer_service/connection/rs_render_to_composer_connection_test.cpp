@@ -59,7 +59,7 @@ HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgent, TestSize.
 
     conn.OnScreenVBlankIdleCallback(1u, 0u);
 
-    std::set<uint64_t> ids { 1u };
+    std::unordered_set<uint64_t> ids { 1u };
     conn.ClearRedrawGPUCompositionCache(ids);
 
     conn.SetScreenBacklight(10u);
@@ -85,7 +85,7 @@ HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgentPtr, TestSi
     conn.ClearFrameBuffers();
     conn.CleanLayerBufferBySurfaceId(1u);
     conn.OnScreenVBlankIdleCallback(2u, 0u);
-    std::set<uint64_t> ids { 2u };
+    std::unordered_set<uint64_t> ids { 2u };
     conn.ClearRedrawGPUCompositionCache(ids);
     conn.SetScreenBacklight(20u);
     SUCCEED();

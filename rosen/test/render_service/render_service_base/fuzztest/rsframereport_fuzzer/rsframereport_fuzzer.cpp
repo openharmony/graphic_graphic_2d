@@ -61,19 +61,13 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint64_t timestamp = GetData<uint64_t>();
     int requestId = GetData<int>();
     int load = GetData<int>();
     int schedFrameNum = GetData<int>();
     int value = GetData<int>();
-    RsFrameReport::GetInstance().frameSchedSoLoaded_ = GetData<bool>();
-
-    RsFrameReport::GetInstance().GetEnable();
-    RsFrameReport::GetInstance().RenderStart(timestamp);
-    RsFrameReport::GetInstance().SendCommandsStart();
-    RsFrameReport::GetInstance().SetFrameParam(requestId, load, schedFrameNum, value);
-    RsFrameReport::GetInstance().LoadLibrary();
-    RsFrameReport::GetInstance().RenderEnd();
+    
+    RsFrameReport::SendCommandsStart();
+    RsFrameReport::SetFrameParam(requestId, load, schedFrameNum, value);
     return true;
 }
 } // namespace Rosen

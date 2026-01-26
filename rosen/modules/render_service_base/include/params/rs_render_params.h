@@ -86,7 +86,7 @@ struct PipelineParam {
 
     void ResetSurfaceFpsOp() {
         SurfaceFpsOpNum = 0;
-        SurfaceFpsOpList = std::vector<SurfaceFpsOp>();
+        SurfaceFpsOpList.clear();
     }
 
     uint32_t GetSurfaceFpsOpNum() const {
@@ -562,10 +562,10 @@ public:
         hasUnobscuredUEC_ = flag;
     }
 
-    void SetVirtualScreenWhiteListInfo(const std::unordered_map<ScreenId, bool>& info);
-    const std::unordered_map<ScreenId, bool>& GetVirtualScreenWhiteListInfo() const
+    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
+    const std::unordered_set<ScreenId>& GetScreensWithSubTreeWhitelist() const
     {
-        return hasVirtualScreenWhiteList_;
+        return screensWithSubTreeWhitelist_;
     }
 
     // [Attention] Only used in PC window resize scene now
@@ -645,7 +645,7 @@ private:
     // used for DFX
     bool isOnTheTree_ = false;
 
-    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
+    std::unordered_set<ScreenId> screensWithSubTreeWhitelist_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

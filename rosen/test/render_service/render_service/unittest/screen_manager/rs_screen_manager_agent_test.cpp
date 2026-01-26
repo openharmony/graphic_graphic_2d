@@ -120,8 +120,9 @@ HWTEST_F(RSScreenManagerAgentTest, GetActiveScreenId001, TestSize.Level1)
     // screenManager_->activeScreenId_ = GenerateScreenId();
     screenManager_->isFoldScreenFlag_ = true;
     ScreenId activeScreenId = INVALID_SCREEN_ID;
+    screenManagerAgent_->screenManager_ = nullptr;
     screenManagerAgent_->GetActiveScreenId(activeScreenId);
-    ASSERT_EQ(activeScreenId, testScreenId);
+    ASSERT_EQ(activeScreenId, INVALID_SCREEN_ID);
 }
 
 /*
@@ -972,7 +973,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenActiveRect001, TestSize.Level1)
     ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
-    GraphicIRect activeRect {
+    Rect activeRect {
         .x = 0,
         .y = 0,
         .w = 0,

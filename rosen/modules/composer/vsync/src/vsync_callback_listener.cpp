@@ -25,7 +25,7 @@
 #include "dvsync_lib_manager.h"
 #endif
 #include "graphic_common.h"
-#include "rs_frame_report_ext.h"
+#include "rs_frame_report.h"
 #include "vsync_log.h"
 #include <rs_trace.h>
 
@@ -152,9 +152,7 @@ void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCou
             cb.callbackWithId_(now, data[2], cb.userData_); // data[2] is vsyncId
         }
     }
-    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
-        OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();
-    }
+    RsFrameReport::ReceiveVSync();
 }
 
 void VSyncCallBackListener::PrintRequestTs(int64_t fromRsTs)

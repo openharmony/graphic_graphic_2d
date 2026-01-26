@@ -18,14 +18,14 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("PerformanceCaculateFuzzTest") {
+ohos_fuzztest("PerfmonitorReporterFuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file =
-      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/utils/performance_caculate_fuzzer"
+      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/utils/perfmonitorreporter_fuzzer"
 
   sources = [
     "get_object.h",
-    "performance_caculate_fuzzer.cpp",
+    "perfmonitor_reporter_fuzzer.cpp",
   ]
 
   cflags = [
@@ -43,7 +43,6 @@ ohos_fuzztest("PerformanceCaculateFuzzTest") {
 
   deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   external_deps = [ "bounds_checking_function:libsec_shared" ]
-
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -55,7 +54,7 @@ group("fuzztest") {
 
   deps += [
     # deps file
-    ":PerformanceCaculateFuzzTest",
+    ":PerfmonitorReporterFuzzTest",
   ]
 }
 ###############################################################################

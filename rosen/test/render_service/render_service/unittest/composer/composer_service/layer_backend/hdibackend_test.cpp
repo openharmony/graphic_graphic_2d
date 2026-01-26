@@ -307,6 +307,26 @@ HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent, Function | MediumTest| Level3
 }
 
 /*
+ * Function: OnHdiBackendHotPlugEvent_ConnectCreatesOutput
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: connected=true creates output in backend map
+ */
+HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_ConnectCreatesOutput, Function | MediumTest| Level3)
+{
+    auto backend = HdiBackend::GetInstance();
+    backend->outputs_.clear();
+    backend->OnHdiBackendHotPlugEvent(99, true, backend);
+    auto it = backend->outputs_.find(99);
+    EXPECT_NE(it, backend->outputs_.end());
+    // disconnect removes entry
+    backend->onScreenHotplugCb_ = nullptr;
+    backend->OnHdiBackendHotPlugEvent(99, false, backend);
+    EXPECT_EQ(backend->outputs_.find(99), backend->outputs_.end());
+}
+
+/*
  * Function: OnHdiBackendRefreshEvent
  * Type: Function
  * Rank: Important(1)

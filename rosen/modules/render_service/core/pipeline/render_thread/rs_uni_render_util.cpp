@@ -1019,7 +1019,14 @@ std::vector<GrBackendSemaphore> RSUniRenderUtil::PrepareHdrSemaphoreVector(GrBac
 #endif
 
 void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
-    Drawing::GPUContext* const grContext, bool optFenceWait, sptr<SyncFence>& acquireFence)
+    Drawing::GPUContext* const grContext, bool optFenceWait)
+{
+    auto acquireFence = SyncFence::InvalidFence();
+    OptimizedFlushAndSubmit(surface, grContext, acquireFence, optFenceWait);
+}
+
+void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
+    Drawing::GPUContext* const grContext, sptr<SyncFence>& acquireFence, bool optFenceWait)
 {
     if (!surface || !grContext) {
         RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");

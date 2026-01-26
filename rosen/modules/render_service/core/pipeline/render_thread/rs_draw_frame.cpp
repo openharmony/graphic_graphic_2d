@@ -82,7 +82,7 @@ void RSDrawFrame::RenderFrame()
     StartCheck();
     // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
     RSMainThread::GPUCompositonCacheGuard guard;
-    RsFrameReport::GetInstance().UniRenderStart();
+    RsFrameReport::UniRenderStart();
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsStart();
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
@@ -97,7 +97,7 @@ void RSDrawFrame::RenderFrame()
 #endif
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
-    RsFrameReport::GetInstance().CheckUnblockMainThreadPoint();
+    RsFrameReport::CheckUnblockMainThreadPoint();
     Render();
 #ifdef SUBTREE_PARALLEL_ENABLE
     RSParallelManager::Singleton().Clear();
@@ -115,7 +115,7 @@ void RSDrawFrame::RenderFrame()
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsEnd(unirenderInstance_.GetDynamicRefreshRate());
     SetEarlyZEnabled(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     RSPerfMonitorReporter::GetInstance().ReportAtRsFrameEnd();
-    RsFrameReport::GetInstance().UniRenderEnd();
+    RsFrameReport::UniRenderEnd();
     EndCheck();
 }
 
@@ -169,11 +169,9 @@ void RSDrawFrame::ReleaseDrawingNodeBuffer()
 void RSDrawFrame::PostAndWait()
 {
     RS_TRACE_NAME_FMT("PostAndWait, parallel type %d", static_cast<int>(rsParallelType_));
-    RsFrameReport& fr = RsFrameReport::GetInstance();
-    if (fr.GetEnable()) {
-        fr.SendCommandsStart();
-        fr.RenderEnd();
-    }
+
+    RsFrameReport::SendCommandsStart();
+    RsFrameReport::RenderEnd();
  
     uint32_t renderFrameNumber = RS_PROFILER_GET_FRAME_NUMBER();
     switch (rsParallelType_) {
@@ -200,10 +198,10 @@ void RSDrawFrame::PostAndWait()
             unirenderInstance_.PostTask([this, renderFrameNumber]() {
                 unirenderInstance_.SetMainLooping(true);
                 RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
-                RSMainThread::Instance()->GetRPVsyncRateReduceManager().FrameDurationBegin();
+                RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationBegin();
                 RenderFrame();
                 unirenderInstance_.ClearResource();
-                RSMainThread::Instance()->GetRPVsyncRateReduceManager().FrameDurationEnd();
+                RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationEnd();
                 RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
                 unirenderInstance_.SetMainLooping(false);
             });

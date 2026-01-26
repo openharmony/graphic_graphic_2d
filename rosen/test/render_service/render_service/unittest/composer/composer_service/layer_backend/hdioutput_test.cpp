@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 #include "mock_hdi_device.h"
 #include "surface_buffer_impl.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client.h"
 #include "rs_surface_layer.h"
 
 using namespace testing;
@@ -1973,6 +1973,7 @@ HWTEST_F(HdiOutputTest, SetAncoSrcRect, Function | MediumTest | Level3)
     EXPECT_EQ(srcRect.w, srcRectRet.w);
     EXPECT_EQ(srcRect.h, srcRectRet.h);
 }
+
 /*
  * Function: UpdateInfosAfterCommit
  * Type: Function
@@ -1995,6 +1996,210 @@ HWTEST_F(HdiOutputTest, UpdateInfosAfterCommitVerifyFramePresentFd, Function | M
     EXPECT_CALL(*fbFence, SyncFileReadTimestamp()).WillRepeatedly(testing::Return(timeStamp));
     ASSERT_EQ(hdiOutput_->UpdateInfosAfterCommit(fbFence), GRAPHIC_DISPLAY_SUCCESS);
     ASSERT_EQ(hdiOutput_->GetCurrentFramePresentFd(), fbFence->Get());
+}
+
+/*
+ * Function: SetActiveRectSwitchStatus_Toggle
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: toggle active-rect switching on/off; ensure no crash and flag set
+ */
+HWTEST_F(HdiOutputTest, SetActiveRectSwitchStatus_Toggle, Function | MediumTest | Level1)
+{
+    GraphicIRect rect {1, 2, 3, 4};
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenActiveRect(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    hdiOutput_->device_ = nullptr;
+    hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    hdiOutput_->SetActiveRectSwitchStatus(true, rect);
+    EXPECT_TRUE(hdiOutput_->isActiveRectSwitching_);
+    hdiOutput_->SetActiveRectSwitchStatus(false, rect);
+    EXPECT_FALSE(hdiOutput_->isActiveRectSwitching_);
+}
+
+/*
+ * Function: RegPrepareComplete_ValidCallback
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: register valid callback and verify invocation via OnPrepareComplete
+ */
+HWTEST_F(HdiOutputTest, RegPrepareComplete_ValidCallback, Function | MediumTest | Level1)
+{
+    auto out = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(out, nullptr);
+    out->Init();
+    bool called = false;
+    auto cb = [](sptr<Surface>& fb, const PrepareCompleteParam& param, void* data) {
+        (void)fb;
+        auto flagPtr = reinterpret_cast<bool*>(data);
+        *flagPtr = param.needFlushFramebuffer;
+    };
+    ASSERT_EQ(out->RegPrepareComplete(cb, &called), ROSEN_ERROR_OK);
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    layers.emplace_back(std::make_shared<RSSurfaceLayer>());
+    out->OnPrepareComplete(true, layers);
+    EXPECT_TRUE(called);
+}
+
+/*
+ * Function: UpdateInfosAfterCommit_ThirdFenceNull
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: when thirdFrameAheadPresentFence is null, returns GRAPHIC_DISPLAY_NULL_PTR
+ */
+HWTEST_F(HdiOutputTest, UpdateInfosAfterCommit_ThirdFenceNull, Function | MediumTest | Level1)
+{
+    hdiOutput_->historicalPresentfences_.clear();
+    hdiOutput_->thirdFrameAheadPresentFence_ = nullptr;
+    sptr<SyncFence> fbFence = SyncFence::InvalidFence();
+    ASSERT_EQ(hdiOutput_->UpdateInfosAfterCommit(fbFence), GRAPHIC_DISPLAY_NULL_PTR);
+}
+
+/*
+ * Function: DumpFps_ComposerBranch
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: DumpFps with arg="composer" prints composition records
+ */
+HWTEST_F(HdiOutputTest, DumpFps_ComposerBranch, Function | MediumTest | Level1)
+{
+    std::string result;
+    hdiOutput_->compositionTimeRecords_.fill(123);
+    hdiOutput_->DumpFps(result, "composer");
+    EXPECT_NE(result.find("The fps of screen"), std::string::npos);
+}
+
+/*
+ * Function: FlushScreen_BufferCacheCountZero
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: bufferCacheCountMax_=0 triggers ClearBufferCache without crash
+ */
+HWTEST_F(HdiOutputTest, FlushScreen_BufferCacheCountZero, Function | MediumTest | Level1)
+{
+    auto preFbSurface = hdiOutput_->fbSurface_;
+    hdiOutput_->fbSurface_ = HdiFramebufferSurface::CreateFramebufferSurface();
+    int64_t timestamp = 0;
+    Rect damage {};
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    while (!hdiOutput_->fbSurface_->availableBuffers_.empty()) {
+        hdiOutput_->fbSurface_->availableBuffers_.pop();
+    }
+    hdiOutput_->fbSurface_->availableBuffers_.push(std::make_unique<FrameBufferEntry>(buffer, acquireFence, timestamp, damage));
+    hdiOutput_->bufferCache_.clear();
+    hdiOutput_->bufferCache_.push_back(buffer);
+    hdiOutput_->bufferCacheCountMax_ = 0;
+
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientDamage(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    hdiOutput_->device_ = nullptr;
+    hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+
+    std::vector<std::shared_ptr<HdiLayer>> compClientLayers;
+    ASSERT_EQ(hdiOutput_->FlushScreen(compClientLayers), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(hdiOutput_->bufferCache_.size(), 0u);
+    hdiOutput_->fbSurface_ = preFbSurface;
+}
+
+/*
+ * Function: SetScreenBacklight_And_PowerOnChanged
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: set backlight and toggle power-on-changed flag without crash
+ */
+HWTEST_F(HdiOutputTest, SetScreenBacklight_And_PowerOnChanged, Function | MediumTest | Level1)
+{
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    hdiOutput_->device_ = nullptr;
+    hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    hdiOutput_->SetScreenBacklight(80u);
+    hdiOutput_->SetScreenPowerOnChanged(true);
+    hdiOutput_->SetScreenPowerOnChanged(false);
+}
+
+/*
+ * Function: SetHdiOutputDevice_Nullptr_InvalidArgs
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: SetHdiOutputDevice with nullptr returns invalid arguments
+ */
+HWTEST_F(HdiOutputTest, SetHdiOutputDevice_Nullptr_InvalidArgs, Function | MediumTest | Level1)
+{
+    auto out = HdiOutput::CreateHdiOutput(0);
+    ASSERT_EQ(out->SetHdiOutputDevice(nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
+}
+
+/*
+ * Function: GetComposeClientLayers_ClientClear_And_Tunnel
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: client layers include CLIENT_CLEAR and TUNNEL types
+ */
+HWTEST_F(HdiOutputTest, GetComposeClientLayers_ClientClear_And_Tunnel, Function | MediumTest | Level1)
+{
+    auto out = HdiOutput::CreateHdiOutput(0);
+    out->layerIdMap_.clear();
+    // CLIENT_CLEAR
+    auto l1 = HdiLayer::CreateHdiLayer(1);
+    auto rs1 = std::make_shared<RSSurfaceLayer>();
+    rs1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR);
+    l1->UpdateRSLayer(rs1);
+    out->layerIdMap_[1] = l1;
+    // TUNNEL
+    auto l2 = HdiLayer::CreateHdiLayer(2);
+    auto rs2 = std::make_shared<RSSurfaceLayer>();
+    rs2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL);
+    l2->UpdateRSLayer(rs2);
+    out->layerIdMap_[2] = l2;
+
+    std::vector<std::shared_ptr<HdiLayer>> clientLayers;
+    out->GetComposeClientLayers(clientLayers);
+    ASSERT_EQ(clientLayers.size(), 2u);
+}
+
+/*
+ * Function: PrepareCompleteIfNeed_FlushWhenClientLayersExist
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: compClientLayers non-empty triggers flush and returns success
+ */
+HWTEST_F(HdiOutputTest, PrepareCompleteIfNeed_FlushWhenClientLayersExist, Function | MediumTest | Level1)
+{
+    auto out = HdiOutput::CreateHdiOutput(0);
+    out->fbSurface_ = HdiFramebufferSurface::CreateFramebufferSurface();
+    // setup client layer
+    auto l1 = HdiLayer::CreateHdiLayer(1);
+    auto rs1 = std::make_shared<RSSurfaceLayer>();
+    rs1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    l1->UpdateRSLayer(rs1);
+    out->layerIdMap_[1] = l1;
+
+    // supply one framebuffer entry so FlushScreen can proceed
+    int64_t timestamp = 0;
+    Rect damage {};
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    while (!out->fbSurface_->availableBuffers_.empty()) {
+        out->fbSurface_->availableBuffers_.pop();
+    }
+    out->fbSurface_->availableBuffers_.push(std::make_unique<FrameBufferEntry>(buffer, acquireFence, timestamp, damage));
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientDamage(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    out->device_ = nullptr;
+    out->SetHdiOutputDevice(hdiDeviceMock_);
+
+    // needFlush param starts false; inside it becomes true
+    auto ret = out->PrepareCompleteIfNeed(false);
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
 } // namespace
 } // namespace Rosen

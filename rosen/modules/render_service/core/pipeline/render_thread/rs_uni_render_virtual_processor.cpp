@@ -619,7 +619,7 @@ void RSUniRenderVirtualProcessor::ProcessCacheImage(Drawing::Image& cacheImage)
 }
 
 void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode(const Drawing::Matrix& visibleClipRectMatrix,
-    const ScreenInfo& mainScreenInfo)
+    bool isSamplingOn)
 {
     if (canvas_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::CanvasClipRegion: Canvas is null!");
@@ -637,7 +637,7 @@ void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode(const Drawing:
             rect = Drawing::Rect(0, 0, visibleRect_.GetWidth(), visibleRect_.GetHeight());
         } else {
             rect = visibleRect_;
-            if (mainScreenInfo.isSamplingOn && !RSSystemProperties::GetSLRScaleEnabled()) {
+            if (isSamplingOn && !RSSystemProperties::GetSLRScaleEnabled()) {
                 // If SLR scaling is not enabled, apply visibleClipRectMatrix to rect to exclude sampling operation.
                 matrix = visibleClipRectMatrix;
             }

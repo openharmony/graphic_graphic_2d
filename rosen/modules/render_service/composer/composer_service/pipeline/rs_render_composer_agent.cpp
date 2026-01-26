@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "ffrt.h"
 #include "ffrt_inner.h"
 #include "rs_render_composer_agent.h"
@@ -20,7 +21,7 @@
 #include "rs_trace.h"
 
 #undef LOG_TAG
-#define LOG_TAG "ComposerAgent"
+#define LOG_TAG "RSRenderComposerAgent"
 
 namespace OHOS {
 namespace Rosen {
@@ -178,7 +179,7 @@ void RSRenderComposerAgent::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     );
 }
 
-void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
+void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
     if (rsRenderComposer_ == nullptr) {
         return;

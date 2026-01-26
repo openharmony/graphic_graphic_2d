@@ -28,7 +28,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client_manager.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -43,14 +43,6 @@ public:
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
         return cacheImgForMultiScreenView_;
-    }
-
-    void SetCacheImgForCapture(std::shared_ptr<Drawing::Image> cacheImgForCapture)
-    {
-        if (cacheImgForMultiScreenView_ == cacheImgForCapture) {
-            return;
-        }
-        cacheImgForMultiScreenView_ = cacheImgForCapture;
     }
 
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandlerOnDraw() const
@@ -110,7 +102,7 @@ public:
     {
         return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
     }
-    bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
+    bool SkipFrame(uint32_t refreshRate, const RSScreenProperty& screenProperty);
     bool IsRenderSkipIfScreenOff() const
     {
         return isRenderSkipIfScreenOff_;

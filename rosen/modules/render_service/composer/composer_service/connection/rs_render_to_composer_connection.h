@@ -29,7 +29,7 @@ public:
     void ClearFrameBuffers() override;
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override;
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
-    void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds) override;
+    void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds) override;
     void SetScreenBacklight(uint32_t level) override;
     void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override;
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override;

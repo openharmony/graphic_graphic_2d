@@ -42,6 +42,7 @@
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
@@ -59,7 +60,6 @@
 #include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
-#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -820,16 +820,6 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         screenManagerAgent_->SetScreenPowerStatus(id, status);
-        if (!renderProcessManagerAgent_) {
-            RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr.", __func__);
-        } else {
-            auto serviceToRenderConn = renderProcessManagerAgent_->GetServiceToRenderConn(id);
-            if (!serviceToRenderConn) {
-                RS_LOGE("%{public}s serviceToRenderConn is nullptr.", __func__);
-            } else {
-                serviceToRenderConn->SetDiscardJankFrames(true);
-            }
-        }
         HgmTaskHandleThread::Instance().PostTask([id, status]() {
             HgmCore::Instance().NotifyScreenPowerStatus(id, status);
         });
@@ -1285,27 +1275,9 @@ ErrCode RSClientToServiceConnection::SetScreenActiveRect(ScreenId id, const Rect
         repCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    GraphicIRect dstActiveRect {
-        .x = activeRect.x,
-        .y = activeRect.y,
-        .w = activeRect.w,
-        .h = activeRect.h,
-    };
-    if (!renderServiceAgent_) {
-        repCode = StatusCode::INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [weakScreenManager = wptr<RSScreenManager>(screenManagerAgent_), id, dstActiveRect]() -> void {
-        sptr<RSScreenManager> screenManager = weakScreenManager.promote();
-        if (!screenManager) {
-            return;
-        }
-        screenManager->SetScreenActiveRect(id, dstActiveRect);
-    };
-    renderServiceAgent_->ScheduleTask(std::move(task)).wait();
-
-    HgmTaskHandleThread::Instance().PostTask([id, dstActiveRect]() {
-        HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
+    screenManagerAgent_->SetScreenActiveRect(id, activeRect);
+    HgmTaskHandleThread::Instance().PostTask([id, activeRect]() {
+        HgmCore::Instance().NotifyScreenRectFrameRateChange(id, activeRect);
     });
     repCode = StatusCode::SUCCESS;
     return ERR_OK;
@@ -1477,10 +1449,12 @@ ErrCode RSClientToServiceConnection::ReportJankStats()
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportJankStats();
+        int32_t retTmp = conn->ReportJankStats();
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::NotifyLightFactorStatus(int32_t lightFactorStatus)
@@ -1620,10 +1594,12 @@ ErrCode RSClientToServiceConnection::ReportEventResponse(DataBaseRs info)
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportEventResponse(info);
+        int32_t retTmp = conn->ReportEventResponse(info);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::ReportEventComplete(DataBaseRs info)
@@ -1637,10 +1613,12 @@ ErrCode RSClientToServiceConnection::ReportEventComplete(DataBaseRs info)
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportEventComplete(info);
+        int32_t retTmp = conn->ReportEventComplete(info);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::ReportEventJankFrame(DataBaseRs info)
@@ -1654,10 +1632,12 @@ ErrCode RSClientToServiceConnection::ReportEventJankFrame(DataBaseRs info)
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportEventJankFrame(info);
+        int32_t retTmp = conn->ReportEventJankFrame(info);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::ReportRsSceneJankStart(AppInfo info)
@@ -1671,10 +1651,12 @@ ErrCode RSClientToServiceConnection::ReportRsSceneJankStart(AppInfo info)
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportRsSceneJankStart(info);
+        int32_t retTmp = conn->ReportRsSceneJankStart(info);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::ReportRsSceneJankEnd(AppInfo info)
@@ -1688,10 +1670,12 @@ ErrCode RSClientToServiceConnection::ReportRsSceneJankEnd(AppInfo info)
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->ReportRsSceneJankEnd(info);
+        int32_t retTmp = conn->ReportRsSceneJankEnd(info);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 void RSClientToServiceConnection::ReportGameStateData(GameStateData info)
@@ -1797,12 +1781,14 @@ ErrCode RSClientToServiceConnection::GetHdrOnDuration(int64_t& hdrOnDuration)
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    ErrCode ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
         int64_t hdrOnDurationTemp = 0;
-        conn->GetHdrOnDuration(hdrOnDurationTemp);
+        ErrCode tmpRet = conn->GetHdrOnDuration(hdrOnDurationTemp);
         hdrOnDuration += hdrOnDurationTemp;
+        ret = (ret != ERR_OK) ? ret : tmpRet;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::SetVmaCacheStatus(bool flag)
@@ -1824,6 +1810,10 @@ ErrCode RSClientToServiceConnection::SetTpFeatureConfig(int32_t feature, const c
 {
     switch (tpFeatureConfigType) {
         case TpFeatureConfigType::DEFAULT_TP_FEATURE: {
+            if (!TOUCH_SCREEN->IsSetFeatureConfigHandleValid()) {
+                RS_LOGW("SetTpFeatureConfig: SetFeatureConfigHandl is nullptr");
+                return ERR_INVALID_VALUE;
+            }
             if (TOUCH_SCREEN->SetFeatureConfig(feature, config) < 0) {
                 RS_LOGW("SetTpFeatureConfig: SetFeatureConfig failed");
                 return ERR_INVALID_VALUE;
@@ -1831,6 +1821,10 @@ ErrCode RSClientToServiceConnection::SetTpFeatureConfig(int32_t feature, const c
             return ERR_OK;
         }
         case TpFeatureConfigType::AFT_TP_FEATURE: {
+            if (!TOUCH_SCREEN->IsSetAftConfigHandleValid()) {
+                RS_LOGW("SetTpFeatureConfig: SetAftConfigHandl is nullptr");
+                return ERR_INVALID_VALUE;
+            }
             if (TOUCH_SCREEN->SetAftConfig(config) < 0) {
                 RS_LOGW("SetTpFeatureConfig: SetAftConfig failed");
                 return ERR_INVALID_VALUE;
@@ -1899,10 +1893,12 @@ ErrCode RSClientToServiceConnection::SetOptimizeCanvasDirtyPidList(const std::ve
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    ErrCode ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->SetOptimizeCanvasDirtyPidList(pidList);
+        ErrCode tmpRet = conn->SetOptimizeCanvasDirtyPidList(pidList);
+        ret = (ret != ERR_OK) ? ret : tmpRet;
     }
-    return ERR_OK;
+    return ret;
 }
 
 int32_t RSClientToServiceConnection::RegisterUIExtensionCallback(uint64_t userId,
@@ -2087,10 +2083,12 @@ ErrCode RSClientToServiceConnection::AvcodecVideoStart(const std::vector<uint64_
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+        int32_t retTmp = conn->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode RSClientToServiceConnection::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
@@ -2105,10 +2103,12 @@ ErrCode RSClientToServiceConnection::AvcodecVideoStop(const std::vector<uint64_t
         RS_LOGE("%s{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    int32_t ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
-        conn->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+        int32_t retTmp = conn->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+        ret = (ret != ERR_OK) ? ret : retTmp;
     }
-    return ERR_OK;
+    return ret;
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

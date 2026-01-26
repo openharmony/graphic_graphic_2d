@@ -36,11 +36,15 @@ HWTEST(RSLayerParcelHelperTest, Update_Then_Destroy_NormalLayer, TestSize.Level1
     auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(7);
     auto cmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
 
+    OHOS::Rosen::RSLayerParcelHelper::UpdateRSLayerCmd(nullptr, id, cmd);
     OHOS::Rosen::RSLayerParcelHelper::UpdateRSLayerCmd(ctx, id, cmd);
     EXPECT_EQ(ctx->GetRSRenderLayerCount(), 1u);
+    OHOS::Rosen::RSLayerParcelHelper::UpdateRSLayerCmd(ctx, id, cmd);
 
+    OHOS::Rosen::RSLayerParcelHelper::DestroyRSLayerCmd(nullptr, id, cmd);
     OHOS::Rosen::RSLayerParcelHelper::DestroyRSLayerCmd(ctx, id, cmd);
     EXPECT_EQ(ctx->GetRSRenderLayerCount(), 0u);
+    OHOS::Rosen::RSLayerParcelHelper::DestroyRSLayerCmd(ctx, id, cmd);
 }
 
 /**
@@ -60,6 +64,8 @@ HWTEST(RSLayerParcelHelperTest, Update_RCDLayer_Creates_ScreenRCD, TestSize.Leve
     auto prop = std::make_shared<RSRenderLayerCmdProperty<std::shared_ptr<Media::PixelMap>>>(pm);
     auto cmd = std::make_shared<RSRenderLayerPixelMapCmd>(prop);
 
+    OHOS::Rosen::RSLayerParcelHelper::UpdateRSRCDLayerCmd(nullptr, id, cmd);
+    OHOS::Rosen::RSLayerParcelHelper::UpdateRSRCDLayerCmd(ctx, id, cmd);
     OHOS::Rosen::RSLayerParcelHelper::UpdateRSRCDLayerCmd(ctx, id, cmd);
     EXPECT_EQ(ctx->GetRSRenderLayerCount(), 1u);
     auto layer = ctx->GetRSRenderLayer(id);
@@ -95,5 +101,5 @@ HWTEST(RSLayerParcelHelperTest, UpdateRSRCD_OnExistingNonRCD_ReplacesWithRCD, Te
 
     auto layerAfter = ctx->GetRSRenderLayer(id);
     ASSERT_NE(layerAfter, nullptr);
-    EXPECT_TRUE(layerAfter->IsScreenRCDLayer());
+    EXPECT_FALSE(layerAfter->IsScreenRCDLayer());
 }

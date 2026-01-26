@@ -22,6 +22,22 @@
 
 namespace OHOS {
 namespace Rosen {
+using GetFunc = std::function<std::unordered_set<NodeId>(const RSScreenProperty&)>;
+namespace {
+const std::map<ScreenPropertyType, SpecialLayerType> SCREEN_SPECIAL_LAYER_PROPERTY = {
+    {ScreenPropertyType::ENABLE_SKIP_WINDOW, SpecialLayerType::IS_BLACK_LIST},
+    {ScreenPropertyType::BLACK_LIST, SpecialLayerType::IS_BLACK_LIST},
+    {ScreenPropertyType::WHITE_LIST, SpecialLayerType::IS_WHITE_LIST}
+};
+
+const GetFunc GET_WHITE_LIST = [](const auto& screenProperty) { return screenProperty.GetWhiteList(); };
+
+const std::map<SpecialLayerType, GetFunc> GET_SCREEN_SPECIAL_LAYER = {
+    {SpecialLayerType::IS_BLACK_LIST, RSSpecialLayerUtils::GetMergeBlackList},
+    {SpecialLayerType::IS_WHITE_LIST, GET_WHITE_LIST}
+};
+}
+
 std::unordered_set<uint64_t> RSSpecialLayerUtils::GetAllBlackList(const RSRenderNodeMap& nodeMap)
 {
     std::unordered_set<uint64_t> allBlackList;
@@ -48,6 +64,17 @@ std::unordered_set<uint64_t> RSSpecialLayerUtils::GetAllWhiteList(const RSRender
     return allWhiteList;
 }
 
+std::unordered_set<NodeId> RSSpecialLayerUtils::GetMergeBlackList(const RSScreenProperty& screenProperty)
+{
+    if (!screenProperty.EnableSkipWindow()) {
+        return screenProperty.GetBlackList();
+    }
+    std::unordered_set<NodeId> blackList = screenProperty.GetBlackList();
+    const auto& globalBlackList = ScreenSpecialLayerInfo::GetGlobalBlackList();
+    blackList.insert(globalBlackList.begin(), globalBlackList.end());
+    return blackList;
+}
+
 void RSSpecialLayerUtils::DumpScreenSpecialLayer(const std::string& funcName,
     SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds)
 {
@@ -59,40 +86,51 @@ void RSSpecialLayerUtils::DumpScreenSpecialLayer(const std::string& funcName,
         funcName.c_str(), type, screenId, out.str().c_str());
 }
 
-void RSSpecialLayerUtils::UpdateScreenSpecialLayer(
-    const RSScreenProperty& curProperty, const RSScreenProperty& preProperty)
+void RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(const RSRenderNodeMap& nodeMap)
 {
-    std::unordered_map<SpecialLayerType, std::unordered_set<NodeId>> screenSpecialLayerInfos;
-    
-    // check black list
-    auto preBlackList = GetMergeBlackList(preProperty);
-    auto curBlackList = GetMergeBlackList(curProperty);
-    if (preBlackList != curBlackList) {
-        screenSpecialLayerInfos[SpecialLayerType::IS_BLACK_LIST] = curBlackList;
-    }
-
-    // check white list
-    auto preWhiteList = preProperty.GetWhiteList();
-    auto curWhiteList = curProperty.GetWhiteList();
-    if (preWhiteList != curWhiteList) {
-        screenSpecialLayerInfos[SpecialLayerType::IS_WHITE_LIST] = curWhiteList;
-    }
-    
-    auto screenId = curProperty.GetScreenId();
-    for (const auto& [type, nodeIds]: screenSpecialLayerInfos) {
-        ScreenSpecialLayerInfo::Update(type, screenId, nodeIds);
-    }
+    nodeMap.TraverseScreenNodes(
+        [](std::shared_ptr<RSScreenRenderNode> screenRenderNode) {
+            if (screenRenderNode == nullptr) {
+                return;
+            }
+            auto screenProperty = screenRenderNode->GetScreenProperty();
+            if (!screenProperty.EnableSkipWindow()) {
+                return;
+            }
+            ScreenSpecialLayerInfo::Update(
+                SpecialLayerType::IS_BLACK_LIST, screenProperty.GetScreenId(), GetMergeBlackList(screenProperty));
+        }
+    );
+    NotifyScreenSpecialLayerChange();
 }
 
-std::unordered_set<NodeId> RSSpecialLayerUtils::GetMergeBlackList(const RSScreenProperty& screenProperty)
+void RSSpecialLayerUtils::UpdateScreenSpecialLayer(const RSScreenProperty& screenProperty)
 {
-    if (!screenProperty.EnableSkipWindow()) {
-        return screenProperty.GetBlackList();
+    for (auto [type, getFunc] : GET_SCREEN_SPECIAL_LAYER) {
+        ScreenSpecialLayerInfo::Update(type, screenProperty.GetScreenId(), getFunc(screenProperty));
     }
-    std::unordered_set<NodeId> blackList = screenProperty.GetBlackList();
-    const auto& globalBlackList = ScreenSpecialLayerInfo::GetGlobalBlackList();
-    blackList.insert(globalBlackList.begin(), globalBlackList.end());
-    return blackList;
+    NotifyScreenSpecialLayerChange();
+}
+
+void RSSpecialLayerUtils::UpdateScreenSpecialLayer(const RSScreenProperty& screenProperty, ScreenPropertyType type)
+{
+    auto propertIter = SCREEN_SPECIAL_LAYER_PROPERTY.find(type);
+    if (propertIter == SCREEN_SPECIAL_LAYER_PROPERTY.end()) {
+        return;
+    }
+    SpecialLayerType specialLayerType = propertIter->second;
+    auto funcIter = GET_SCREEN_SPECIAL_LAYER.find(specialLayerType);
+    if (funcIter == GET_SCREEN_SPECIAL_LAYER.end()) {
+        return;
+    }
+    GetFunc getfunc = funcIter->second;
+    ScreenSpecialLayerInfo::Update(specialLayerType, screenProperty.GetScreenId(), getfunc(screenProperty));
+    NotifyScreenSpecialLayerChange();
+}
+
+void RSSpecialLayerUtils::NotifyScreenSpecialLayerChange()
+{
+    // used to mark changes in special layers for other features
 }
 
 void RSSpecialLayerUtils::DealWithSpecialLayer(

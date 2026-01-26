@@ -14,11 +14,11 @@
  */
 
 #include "gtest/gtest.h"
-#include "rs_test_util.h"
 
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "pipeline/render_thread/rs_uni_render_processor.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_pointer_window_manager.h"
+#include "pipeline/rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -425,6 +425,8 @@ HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayer001, TestSize.Level1)
 
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
     ASSERT_NE(rsPointerWindowManager.GetHardCursorDrawable(screenId), nullptr);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsPointerWindowManager.HardCursorCreateLayer(processor, screenId);
 }

@@ -63,7 +63,7 @@ bool RSProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& sc
 
     // set default render frame config
     ComposerScreenInfo composerScreenInfo;
-    RSRenderComposerClient::ConvertScreenInfo(screenInfo_, composerScreenInfo);
+    RSComposerClient::ConvertScreenInfo(screenInfo_, composerScreenInfo);
     renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(composerScreenInfo);
 #endif
     return true;
@@ -131,7 +131,7 @@ bool RSProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEng
 
     // set default render frame config
     ComposerScreenInfo composerScreenInfo;
-    RSRenderComposerClient::ConvertScreenInfo(screenInfo_, composerScreenInfo);
+    RSComposerClient::ConvertScreenInfo(screenInfo_, composerScreenInfo);
     renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(composerScreenInfo);
     return true;
 }

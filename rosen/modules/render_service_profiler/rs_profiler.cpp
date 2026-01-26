@@ -428,39 +428,38 @@ uint64_t RSProfiler::WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel&
 uint64_t RSProfiler::OnRemoteRequest(RSIClientToRenderConnection* connection, uint32_t code,
     MessageParcel& parcel, MessageParcel& /*reply*/, MessageOption& option)
 {
-    // ToDo Car
-    // g_counterOnRemoteRequest++;
-    // if (!IsEnabled()) {
-    //     return 0;
-    // }
+    g_counterOnRemoteRequest++;
+    if (!IsEnabled()) {
+        return 0;
+    }
 
-    // if (IsRecording()) {
-    //     constexpr size_t BYTE_SIZE_FOR_ASHMEM = 4;
-    //     if (code == static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::COMMIT_TRANSACTION) &&
-    //         parcel.GetDataSize() >= BYTE_SIZE_FOR_ASHMEM) {
-    //         const uint32_t *data = reinterpret_cast<const uint32_t*>(parcel.GetData());
-    //         if (data && *data) {
-    //             // ashmem parcel - don't save
-    //             return 0;
-    //         }
-    //     }
-    //     const pid_t pid = GetConnectionPid(connection);
-    //     const auto& pids = g_recordFile.GetHeaderPids();
-    //     if (std::find(std::begin(pids), std::end(pids), pid) != std::end(pids)) {
-    //         return WriteRemoteRequest(pid, code, parcel, option);
-    //     }
-    // } else {
-    //     g_recordParcelNumber = 0;
-    // }
+    if (IsRecording()) {
+        constexpr size_t BYTE_SIZE_FOR_ASHMEM = 4;
+        if (code == static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION) &&
+            parcel.GetDataSize() >= BYTE_SIZE_FOR_ASHMEM) {
+            const uint32_t *data = reinterpret_cast<const uint32_t*>(parcel.GetData());
+            if (data && *data) {
+                // ashmem parcel - don't save
+                return 0;
+            }
+        }
+        const pid_t pid = GetConnectionPid(connection);
+        const auto& pids = g_recordFile.GetHeaderPids();
+        if (std::find(std::begin(pids), std::end(pids), pid) != std::end(pids)) {
+            return WriteRemoteRequest(pid, code, parcel, option);
+        }
+    } else {
+        g_recordParcelNumber = 0;
+    }
 
-    // if (IsLoadSaveFirstScreenInProgress()) {
-    //     // saving screen right now
-    // }
-    // if (IsPlaying()) {
-    //     SetTransactionTimeCorrection(g_playbackStartTime, g_playbackFile.GetWriteTime());
-    //     SetSubstitutingPid(g_playbackFile.GetHeaderPids(), g_playbackPid, g_playbackParentNodeId);
-    //     SetMode(Mode::READ);
-    // }
+    if (IsLoadSaveFirstScreenInProgress()) {
+        // saving screen right now
+    }
+    if (IsPlaying()) {
+        SetTransactionTimeCorrection(g_playbackStartTime, g_playbackFile.GetWriteTime());
+        SetSubstitutingPid(g_playbackFile.GetHeaderPids(), g_playbackPid, g_playbackParentNodeId);
+        SetMode(Mode::READ);
+    }
     return 0;
 }
 
@@ -477,67 +476,59 @@ void RSProfiler::OnRecvParcel(const MessageParcel* parcel, RSTransactionData* da
 
 void RSProfiler::CreateMockConnection(pid_t pid)
 {
-    // TODO Car
-    // if (!IsEnabled() || !g_renderService) {
-    //     return;
-    // }
+    if (!IsEnabled() || !g_renderService) {
+        return;
+    }
 
-    // auto tokenObj = new IRemoteStub<RSIConnectionToken>();
+    auto tokenObj = new IRemoteStub<RSIConnectionToken>();
 
-    // sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(pid, g_renderService,
-    //     g_mainThread, g_renderService->screenManager_, tokenObj, g_renderService->appVSyncDistributor_));
+    sptr<RSScreenManagerAgent> screenManagerAgent = new RSScreenManagerAgent(g_renderService->screenManager_);
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*g_renderService);
+    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
+        sptr<RSRenderProcessManagerAgent>::MakeSptr(g_renderService->renderProcessManager_);
+    sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(pid, renderServiceAgent,
+        renderProcessManagerAgent, screenManagerAgent, tokenObj, g_renderService->appVSyncDistributor_));
 
-    // sptr<RSIClientToRenderConnection> newRenderConn(
-    //     new RSClientToRenderConnection(pid, g_renderService, g_mainThread, g_renderService->screenManager_,
-    //     tokenObj, g_renderService->appVSyncDistributor_));
- 
-    // std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
-
-    // std::unique_lock<std::mutex> lock(g_renderService->mutex_);
-    // // if connections_ has the same token one, replace it.
-    // if (g_renderService->connections_.count(tokenObj) > 0) {
-    //     tmp = g_renderService->connections_.at(tokenObj);
-    // }
-    // g_renderService->connections_[tokenObj] = {newConn, newRenderConn};
-    // lock.unlock();
-    // g_mainThread->AddTransactionDataPidInfo(pid);
+    sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(g_renderService->renderPipeline_);
+    sptr<RSIClientToRenderConnection> newRenderConn(
+        new RSClientToRenderConnection(pid, renderPipelineAgent, tokenObj));
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
+    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    auto it = g_renderService->connections_.find(tokenObj);
+    if (it != g_renderService->connections_.end()) {
+        tmp = it->second;
+    }
+    g_renderService->connections_[tokenObj] = {newConn, newRenderConn};
 }
 
-RSClientToServiceConnection* RSProfiler::GetConnection(pid_t pid)
+RSClientToRenderConnection* RSProfiler::GetConnection(pid_t pid)
 {
-    // TODO Car
-    // if (!g_renderService) {
-    //     return nullptr;
-    // }
+    if (!g_renderService) {
+        return nullptr;
+    }
 
-    // std::unique_lock<std::mutex> lock(g_renderService->mutex_);
-
-    // for (const auto& pair : g_renderService->connections_) {
-    //     auto connection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
-    //     if (connection->remotePid_ == pid) {
-    //         return connection;
-    //     }
-    // }
-
+    const std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    for (const auto& pair : g_renderService->connections_) {
+        auto connection = static_cast<RSClientToRenderConnection*>(pair.second.second.GetRefPtr());
+        if (connection->remotePid_ == pid) {
+            return connection;
+        }
+    }
     return nullptr;
 }
 
-pid_t RSProfiler::GetConnectionPid(RSIClientToServiceConnection* connection)
+pid_t RSProfiler::GetConnectionPid(RSIClientToRenderConnection* connection)
 {
-    // TODO Car
-    // if (!g_renderService || !connection) {
-    //     return 0;
-    // }
+    if (!g_renderService || !connection) {
+        return 0;
+    }
 
-    // std::unique_lock<std::mutex> lock(g_renderService->mutex_);
-
-    // for (const auto& pair : g_renderService->connections_) {
-    //     auto renderServiceConnection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
-    //     if (renderServiceConnection == connection) {
-    //         return renderServiceConnection->remotePid_;
-    //     }
-    // }
-
+    const std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    for (const auto& pair : g_renderService->connections_) {
+        if (pair.second.second.GetRefPtr() == connection) {
+            return static_cast<RSClientToRenderConnection*>(connection)->remotePid_;
+        }
+    }
     return 0;
 }
 
@@ -547,12 +538,12 @@ std::vector<pid_t> RSProfiler::GetConnectionsPids()
         return {};
     }
 
-    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    const std::unique_lock<std::mutex> lock(g_renderService->mutex_);
     std::vector<pid_t> pids;
-    // pids.reserve(g_renderService->connections_.size());
-    // for (const auto& pair : g_renderService->connections_) {
-    //     pids.push_back(static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr())->remotePid_);
-    // }
+    pids.reserve(g_renderService->connections_.size());
+    for (const auto& pair : g_renderService->connections_) {
+        pids.push_back(static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr())->remotePid_);
+    }
     return pids;
 }
 
@@ -1567,14 +1558,11 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     }
 }
 
-
 void RSProfiler::DumpNodeSurface(const ArgList& args)
 {
-    if (g_renderService) {
-        std::string out;
-        // TODO Car
-        // g_renderService->DumpSurfaceNode(out, Utils::GetRootNodeId(args.Node()));
-        Respond(out);
+    if (context_) {
+        const auto node = context_->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(Utils::GetRootNodeId(args.Node()));
+        SendMessage("%s", node ? DumpSurfaceNode(*node).data() : "Invalid node id");
     }
 }
 
@@ -2228,7 +2216,7 @@ double RSProfiler::PlaybackUpdate(double deltaTime)
         pid_t pid = 0;
         stream.read(reinterpret_cast<char*>(&pid), sizeof(pid));
 
-        RSClientToServiceConnection* connection = GetConnection(Utils::GetMockPid(pid));
+        auto connection = GetConnection(Utils::GetMockPid(pid));
         if (!connection) {
             const std::vector<pid_t>& pids = g_playbackFile.GetHeaderPids();
             if (!pids.empty()) {
@@ -2262,9 +2250,8 @@ double RSProfiler::PlaybackUpdate(double deltaTime)
             option.SetFlags(flags);
             option.SetWaitTime(waitTime);
 
-            // TODO Car
-            // MessageParcel reply;
-            // connection->OnRemoteRequest(code, parcel.parcel, reply, option);
+            MessageParcel reply;
+            connection->OnRemoteRequest(code, parcel.parcel, reply, option);
         }
     }
 

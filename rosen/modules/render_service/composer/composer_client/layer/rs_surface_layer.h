@@ -21,7 +21,7 @@
 #include "hdi_display_type.h"
 #include "iconsumer_surface.h"
 #include "rs_layer.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client.h"
 #include "rs_render_layer_cmd.h"
 #include "rs_render_layer_cmd_property.h"
 #include "surface.h"
@@ -145,8 +145,9 @@ public:
     uint32_t GetCycleBuffersNum() const override;
     void SetSurfaceName(std::string surfaceName) override;
     std::string GetSurfaceName() const override;
-    void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount) override;
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetSeqNumFromBufferOwnerCounts(uint64_t seqNum) override;
+    void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount,
+        bool needUpdate) override;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) override;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override;
     void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) override;
     GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override;

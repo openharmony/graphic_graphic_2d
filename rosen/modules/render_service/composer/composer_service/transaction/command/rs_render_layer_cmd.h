@@ -22,7 +22,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSComposerContext;
 class RSB_EXPORT RSRenderLayerCmd {
 public:
     RSRenderLayerCmd() = default;

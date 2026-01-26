@@ -512,9 +512,9 @@ public:
     void SetForceFreeze(bool forceFreeze);
     bool GetForceFreeze() const;
 
-    void CheckVirtualScreenStatusChanged();
-    bool IsVirtualSurfaceChanged() const;
-    bool IsVirtualScreenStatusChanged() const;
+    void SetScreenDirtyFlag(bool flag) { screenDirtyFlag_ = flag; }
+    bool GetAndResetScreenDirtyFlag() { return std::exchange(screenDirtyFlag_, false); }
+    void SetVirtualSurfaceChanged(bool isChanged);
 
 protected:
     void OnSync() override;
@@ -579,15 +579,9 @@ private:
     std::map<NodeId, RectI> surfaceDstRects_;
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
 
-    std::vector<NodeId> lastSurfaceIds_;
+    bool screenDirtyFlag_ = false;
 
-    bool hasMirrorDisplay_ = false;
     bool screenResolutionChanged_ = false;
-
-    VirtualScreenStatus lastStatus_ = VIRTUAL_SCREEN_PLAY;
-    bool virtualScreenStatusChanged_ = false;
-    std::pair<bool, uint64_t> virtualSurfaceState_ = { false, UINT64_MAX };
-    bool isVirtualSurfaceChanged_ = false;
 
     // Use in round corner display
     // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring

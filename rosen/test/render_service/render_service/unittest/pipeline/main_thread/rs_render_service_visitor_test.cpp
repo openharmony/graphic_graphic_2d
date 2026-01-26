@@ -709,6 +709,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessChildren002, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode001, TestSize.Level1)
 {
+    RSUniRenderThread::Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     auto rsContext = std::make_shared<RSContext>();
@@ -921,6 +922,8 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     rsRenderServiceVisitor->processor_ =
         RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
@@ -938,6 +941,8 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     rsRenderServiceVisitor->processor_ =
         RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsRenderServiceVisitor->isSecurityDisplay_ = true;
@@ -957,6 +962,8 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     rsRenderServiceVisitor->processor_ =
         RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(0.0f);
@@ -975,6 +982,8 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     rsRenderServiceVisitor->processor_ =
         RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);

@@ -64,31 +64,31 @@ const std::string testScene = "TestScene";
 const std::string pkgName0 = "com.pkg.other:0:-1";
 const std::string pkgName1 = "com.ss.hm.ugc.aweme:1001:10067";
 const std::string pkgName2 = "com.wedobest.fivechess.harm:1002:10110";
-const GraphicIRect rectF {
+const Rect rectF {
     .x = 0,
     .y = 0,
     .w = 2232,
     .h = 1008,
 };
-const GraphicIRect rectM {
+const Rect rectM {
     .x = 0,
     .y = 1136,
     .w = 2232,
     .h = 2048,
 };
-const GraphicIRect rectG {
+const Rect rectG {
     .x = 0,
     .y = 0,
     .w = 2232,
     .h = 3184,
 };
-const GraphicIRect rectNeg {
+const Rect rectNeg {
     .x = -1,
     .y = -1,
     .w = -1,
     .h = -1,
 };
-const GraphicIRect rectMax {
+const Rect rectMax {
     .x = INT_MAX,
     .y = INT_MAX,
     .w = INT_MAX,
@@ -191,150 +191,6 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager& frameRate
     }
     frameRateMgr.ReportHiSysEvent({ .extInfo = "ON" });
 }
-
-// /**
-//  * @tc.name: HandleGameNodeTest
-//  * @tc.desc: Verify the result of HandleGameNodeTest function
-//  * @tc.type: FUNC
-//  * @tc.require:
-//  */
-// HWTEST_F(HgmFrameRateMgrTest, HandleGameNodeTest, Function | SmallTest | Level0)
-// {
-//     HgmFrameRateManager frameRateMgr;
-//     frameRateMgr.curGameNodeName_ = "gameNode";
-//     RSRenderNodeMap nodeMap;
-//     RSSurfaceRenderNodeConfig config;
-
-//     PART("HandleGameNodeTest") {
-//         STEP("1. Test empty surfaceMap") {
-//             frameRateMgr.HandleGameNode(nodeMap);
-//             ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
-//         }
-//         STEP("2. Test with a normal surfaceNode on tree") {
-//             config.id = 1;
-//             config.name = "normalNode";
-//             auto normalNode = std::make_shared<RSSurfaceRenderNode>(config);
-//             normalNode->SetIsOnTheTree(true);
-//             nodeMap.RegisterRenderNode(normalNode);
-//             frameRateMgr.HandleGameNode(nodeMap);
-//             ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
-//         }
-//         STEP("3. Test with a game surfaceNode not on tree") {
-//             config.id = 2;
-//             config.name = "gameNode";
-//             config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-//             auto gameNode1 = std::make_shared<RSSurfaceRenderNode>(config);
-//             gameNode1->SetIsOnTheTree(false);
-//             nodeMap.RegisterRenderNode(gameNode1);
-//             frameRateMgr.HandleGameNode(nodeMap);
-//             ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
-//         }
-//         STEP("4. Test with a game surfaceNode on tree") {
-//             config.id = 3;
-//             auto gameNode2 = std::make_shared<RSSurfaceRenderNode>(config);
-//             gameNode2->SetIsOnTheTree(true);
-//             nodeMap.RegisterRenderNode(gameNode2);
-//             frameRateMgr.HandleGameNode(nodeMap);
-//             ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), true);
-//         }
-//         STEP("5. Test with a game surfaceNode on tree and other self node on tree") {
-//             config.id = 4;
-//             config.name = "other";
-//             auto otherNode = std::make_shared<RSSurfaceRenderNode>(config);
-//             otherNode->SetIsOnTheTree(true);
-//             nodeMap.RegisterRenderNode(otherNode);
-//             frameRateMgr.HandleGameNode(nodeMap);
-//             ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
-//         }
-//     }
-//     sleep(1);
-// }
-
-// /**
-//  * @tc.name: HandleGameNodeTest2
-//  * @tc.desc: Verify the result of HandleGameNodeTest function
-//  * @tc.type: FUNC
-//  * @tc.require:
-//  */
-// HWTEST_F(HgmFrameRateMgrTest, HandleGameNodeTest2, Function | SmallTest | Level0)
-// {
-//     HgmFrameRateManager frameRateMgr;
-//     frameRateMgr.curGameNodeName_ = "gameNode";
-//     RSRenderNodeMap nodeMap;
-//     RSSurfaceRenderNodeConfig config;
-
-//     config.id = 5;
-//     config.name = "gameNode";
-//     config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-//     auto gameNode = std::make_shared<RSSurfaceRenderNode>(config);
-//     gameNode->SetIsOnTheTree(true);
-//     nodeMap.RegisterRenderNode(gameNode);
-
-//     RSSurfaceRenderNodeConfig windowConfig;
-//     windowConfig.id = 6;
-//     windowConfig.name = "window";
-//     auto windowNode = std::make_shared<RSSurfaceRenderNode>(windowConfig);
-//     // test with non-empty region
-//     auto windowRegion = Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000});
-//     windowNode->SetVisibleRegion(windowRegion);
-//     windowNode->SetIsOnTheTree(true);
-//     nodeMap.RegisterRenderNode(windowNode);
-
-//     RSSurfaceRenderNodeConfig visibleConfig;
-//     visibleConfig.id = 7;
-//     visibleConfig.name = "other";
-//     visibleConfig.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-//     auto otherNode = std::make_shared<RSSurfaceRenderNode>(visibleConfig);
-//     otherNode->SetIsOnTheTree(true, 6);
-//     nodeMap.RegisterRenderNode(otherNode);
-//     frameRateMgr.HandleGameNode(nodeMap);
-//     ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
-
-//     sleep(1);
-// }
-
-// /**
-//  * @tc.name: HandleGameNodeTest3
-//  * @tc.desc: Verify the result of HandleGameNodeTest function
-//  * @tc.type: FUNC
-//  * @tc.require:
-//  */
-// HWTEST_F(HgmFrameRateMgrTest, HandleGameNodeTest3, Function | SmallTest | Level0)
-// {
-//     HgmFrameRateManager frameRateMgr;
-//     frameRateMgr.curGameNodeName_ = "gameNode";
-//     RSRenderNodeMap nodeMap;
-//     RSSurfaceRenderNodeConfig config;
-
-//     config.id = 5;
-//     config.name = "gameNode";
-//     config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-//     auto gameNode = std::make_shared<RSSurfaceRenderNode>(config);
-//     gameNode->SetIsOnTheTree(true);
-//     nodeMap.RegisterRenderNode(gameNode);
-
-//     RSSurfaceRenderNodeConfig windowConfig;
-//     windowConfig.id = 6;
-//     windowConfig.name = "window";
-//     auto windowNode = std::make_shared<RSSurfaceRenderNode>(windowConfig);
-//     auto emptyRegion = Occlusion::Region();
-//     windowNode->SetVisibleRegion(emptyRegion);
-//     windowNode->SetIsOnTheTree(true);
-//     nodeMap.RegisterRenderNode(windowNode);
-
-//     RSSurfaceRenderNodeConfig invisibleConfig;
-//     invisibleConfig.id = 7;
-//     invisibleConfig.name = "other";
-//     invisibleConfig.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-//     auto invisibleNode = std::make_shared<RSSurfaceRenderNode>(invisibleConfig);
-//     invisibleNode->SetIsOnTheTree(true, 6);
-//     nodeMap.RegisterRenderNode(invisibleNode);
-
-//     frameRateMgr.HandleGameNode(nodeMap);
-//     ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), true);
-
-//     sleep(1);
-// }
 
 /**
  * @tc.name: ProcessPendingRefreshRate
@@ -1303,13 +1159,7 @@ HWTEST_F(HgmFrameRateMgrTest, NotifyScreenRectFrameRateChange, Function | SmallT
     auto& hgmCore = HgmCore::Instance();
     Rect activeRect;
     ScreenId id = 0;
-    GraphicIRect dstActiveRect {
-        .x = activeRect.x,
-        .y = activeRect.y,
-        .w = activeRect.w,
-        .h = activeRect.h,
-    };
-    hgmCore.NotifyScreenRectFrameRateChange(id, dstActiveRect);
+    hgmCore.NotifyScreenRectFrameRateChange(id, activeRect);
     EXPECT_NE(hgmCore.hgmFrameRateMgr_, nullptr);
 }
 

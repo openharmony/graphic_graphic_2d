@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_processor_factory.h"
 #include "screen_manager/rs_screen_manager.h"
 
@@ -46,6 +47,8 @@ HWTEST_F(RSProcessorFactoryTest, CreateAndDestroy001, TestSize.Level1)
     // The using of RSProcessorFactory destructor is not suggested, but allowed.
     // Use its static function by :: first.
     RSProcessorFactory f;
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto p = f.CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_FALSE(nullptr == p);
 }
@@ -58,6 +61,8 @@ HWTEST_F(RSProcessorFactoryTest, CreateAndDestroy001, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor001, TestSize.Level1)
 {
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_FALSE(nullptr == p);
 }
@@ -70,6 +75,8 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor001, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
 {
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_FALSE(nullptr == p);
 }
@@ -82,6 +89,8 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor003, TestSize.Level1)
 {
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_TRUE(nullptr != p);
 }

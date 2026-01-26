@@ -131,7 +131,7 @@ private:
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer);
     GSError ClearFrameBuffers(bool isNeedResetContext = true);
     GSError ClearFrameBuffersInner(bool isNeedResetContext = true);
-    void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
+    void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void UpdateForSurfaceFps(const PipelineParam&);
     void AddSolidColorLayer(std::vector<std::shared_ptr<RSLayer>>& layers);
@@ -146,7 +146,7 @@ private:
     std::shared_ptr<RSRenderComposerContext> rsRenderComposerContext_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<HgmHardwareUtils> hgmHardwareUtils_;
-    LppLayerColletor lppLayerColletor_;
+    LppLayerCollector lppLayerCollector_;
     ComposerFallbackCallback redrawCb_;
     std::mutex frameBufferSurfaceOhosMapMutex_;
     std::mutex surfaceMutex_;

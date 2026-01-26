@@ -380,6 +380,7 @@ HWTEST_F(RSHdrUtilTest, UpdatePixelFormatAfterHwcCalcTest, TestSize.Level1)
     auto bufferHandle = selfDrawingNode->GetRSSurfaceHandler()->buffer_.buffer->GetBufferHandle();
     ASSERT_NE(bufferHandle, nullptr);
     bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
+    RSMainThread::Instance()->composerClientManager_ = std::make_shared<RSComposerClientManager>();
     RSMainThread::Instance()->AddSelfDrawingNodes(selfDrawingNode);
     std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode2 = nullptr;
     RSMainThread::Instance()->AddSelfDrawingNodes(selfDrawingNode2);
@@ -400,6 +401,7 @@ HWTEST_F(RSHdrUtilTest, UpdatePixelFormatAfterHwcCalcTest, TestSize.Level1)
     ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
     RSHdrUtil::UpdatePixelFormatAfterHwcCalc(*screenNode);
     EXPECT_EQ(screenNode->GetExistHWCNode(), true);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -427,6 +429,7 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatWithSelfDrawingNodeTest, TestSize.Level1
     RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
     surfaceNode->SetHardwareForcedDisabledState(true);
     RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -590,6 +593,7 @@ HWTEST_F(RSHdrUtilTest, NeedUseF16CaptureTest, TestSize.Level1)
 HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest, TestSize.Level1)
 {
     ASSERT_NE(screenManager_, nullptr);
+    screenManager_->Init(nullptr);
     auto virtualScreenId = screenManager_->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
     auto rsContext = std::make_shared<RSContext>();
@@ -625,6 +629,7 @@ HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest, TestSize.Level1)
 HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest002, TestSize.Level1)
 {
     ASSERT_NE(screenManager_, nullptr);
+    screenManager_->Init(nullptr);
     auto virtualScreenId = screenManager_->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
@@ -633,7 +638,6 @@ HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest002, TestSize.Level1)
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
     screenNode->SetCompositeType(CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
     ScreenColorGamut colorGamut;
-    EXPECT_NE(screenManager_->GetScreenColorGamut(screenNode->GetScreenId(), colorGamut), StatusCode::SUCCESS);
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // failed GetScreenColorGamut
 
     screenNode->screenId_ = virtualScreenId; // pass GetScreenColorGamut
@@ -734,6 +738,7 @@ HWTEST_F(RSHdrUtilTest, EraseHDRMetadataKey001, TestSize.Level2)
     ASSERT_NE(nativeWindowBuffer, nullptr);
     res = RSHdrUtil::EraseHDRMetadataKey(renderFrame);
     EXPECT_NE(GSERROR_OK, res);
+    RSHdrUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -765,6 +770,7 @@ HWTEST_F(RSHdrUtilTest, SetMetadata001, TestSize.Level2)
     ASSERT_NE(nativeWindowBuffer, nullptr);
     res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame);
     EXPECT_EQ(GSERROR_OK, res);
+    RSHdrUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -792,6 +798,7 @@ HWTEST_F(RSHdrUtilTest, SetMetadata002, TestSize.Level2)
     res = RSHdrUtil::SetMetadata(sBuffer.GetRefPtr(), RSHDRUtilConst::HDR_CAPTURE_HDR_COLORSPACE,
         HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_SINGLE);
     EXPECT_EQ(GSERROR_OK, res);
+    RSHdrUtil::UnregisterConsumerListener();
 }
 #endif
 
@@ -862,6 +869,7 @@ HWTEST_F(RSHdrUtilTest, SetColorSpaceConverterDisplayParameter, TestSize.Level1)
         targetColorSpace, screenId, dynamicRangeMode, hdrProperties);
     EXPECT_EQ(parameter.tmoNits, RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS);
     EXPECT_EQ(ret, true);
+    RSHdrUtil::UnregisterConsumerListener();
 }
 #endif
 

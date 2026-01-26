@@ -922,6 +922,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceforPlaybackTest, Tes
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest, TestSize.Level1)
 {
+    RSMainThread::Instance()->composerClientManager_ = std::make_shared<RSComposerClientManager>();
     auto& context = RSMainThread::Instance()->GetContext();
     auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);

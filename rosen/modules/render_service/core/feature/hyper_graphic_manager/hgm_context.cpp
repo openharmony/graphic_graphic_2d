@@ -15,8 +15,7 @@
 
 #include "hgm_context.h"
 
-#include "feature/vrate/rp_vsync_rate_reduce_manager.h"
-#include "hfbc_param.h"
+#include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
 #include "rs_frame_report.h"
@@ -65,7 +64,6 @@ void HgmContext::InitHgmTaskHandleThread(
         frameRateManager->Init(rsVSyncController, appVSyncController, vsyncGenerator, appVSyncDistributor);
     });
     InitHgmUpdateCallback();
-    InitHfbcConfig();
 }
 
 void HgmContext::InitHgmUpdateCallback()
@@ -96,18 +94,6 @@ void HgmContext::InitHgmUpdateCallback()
     });
 }
 
-void HgmContext::InitHfbcConfig()
-{
-    if (!HFBCParam::GetHfbcConfigMap().empty()) {
-        HgmTaskHandleThread::Instance().PostTask([this] {
-            HgmHfbcConfig& hfbcConfig = hgmCore_.GetHfbcConfig();
-            HGM_LOGI("postTask about hfbcConfig");
-            hfbcConfig.SetHfbcConfigMap(HFBCParam::GetHfbcConfigMap());
-            hfbcConfig.SetHfbcControlMode(HFBCParam::GetHfbcControlMode());
-        });
-    }
-}
-
 void HgmContext::HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info)
 {
     if (info == nullptr) {
@@ -118,7 +104,7 @@ void HgmContext::HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info)
     frameRateLinkerMap_.UnregisterFrameRateLinker(info->frameRateLinkerDestroyIds);
     frameRateLinkerMap_.UpdateFrameRateLinkers(info->frameRateLinkerUpdateInfoMap);
 
-    RSVsyncRateReduceManager::TransformNodeToLinkersRateMap(info->vRateMap, info->isNeedRefreshVRate,
+    RSVsyncRateReduceUtil::TransformNodeToLinkersRateMap(info->vRateMap, info->isNeedRefreshVRate,
         appVSyncDistributor_);
 
     rsCurrRange_ = info->rsCurrRange;
@@ -184,7 +170,7 @@ void HgmContext::ProcessHgmFrameRate(
         processToServiceInfo->uiFrameworkDirtyNodeNameMap, timestamp);
     bool setHgmTaskFlag = hgmCore_.SetHgmTaskFlag(false);
 
-    bool vrateStatusChange = RSVsyncRateReduceManager::SetVSyncRatesChangeStatus(false);
+    bool vrateStatusChange = RSVsyncRateReduceUtil::SetVSyncRatesChangeStatus(false);
     bool isVideoCallVsyncChange = HgmEnergyConsumptionPolicy::Instance().GetVideoCallVsyncChange();
     if (!vrateStatusChange && !setHgmTaskFlag && !needRefresh && !isVideoCallVsyncChange &&
         hgmCore_.GetPendingScreenRefreshRate() == frameRateManager_->GetCurrRefreshRate()) {
@@ -193,7 +179,7 @@ void HgmContext::ProcessHgmFrameRate(
 
     HgmTaskHandleThread::Instance().PostTask([frameRateManager = frameRateManager_, timestamp,
         rsFrameRateLinker = rsFrameRateLinker_, appFrameRateLinkers = frameRateLinkerMap_.Get(),
-        linkersRateMap = RSVsyncRateReduceManager::GetLinkersRateMap()] {
+        linkersRateMap = RSVsyncRateReduceUtil::GetLinkersRateMap()] {
         RS_TRACE_NAME("ProcessHgmFrameRate");
         frameRateManager->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkersRateMap);
     });
@@ -383,7 +369,7 @@ void HgmContext::NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
     }
 
     if (VOTER_SCENE_GPU == eventInfo.eventName) {
-        RsFrameReport::GetInstance().ReportScbSceneInfo(eventInfo.description, eventInfo.eventStatus);
+        RsFrameReport::ReportScbSceneInfo(eventInfo.description, eventInfo.eventStatus);
         return;
     }
 

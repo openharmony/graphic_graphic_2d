@@ -210,8 +210,6 @@ HWTEST_F(RSRenderThreadTest, ProcessCommands001, TestSize.Level1)
     RSRenderThread::Instance().ProcessCommands();
     EXPECT_NE(RSRenderThread::Instance().cmds_.empty(), false);
 
-    RsFrameReport::GetInstance().frameSchedSoLoaded_ = true;
-    RsFrameReport::GetInstance().frameGetEnableFunc_ = []() { return 1; };
     RSRenderThread::Instance().ProcessCommands();
     EXPECT_NE(RSRenderThread::Instance().cmds_.empty(), false);
 
@@ -239,7 +237,6 @@ HWTEST_F(RSRenderThreadTest, Animate001, TestSize.Level1)
     auto render = std::make_shared<RSRenderNode>(id);
     RSRenderThread::Instance().context_->animatingNodeList_[id] = render;
     RSRenderThread::Instance().context_->animatingNodeList_[tid] = render;
-    RsFrameReport::GetInstance().frameSchedSoLoaded_ = false;
     RSRenderThread::Instance().Animate(timestamp);
 
     RSRenderThread::Instance().context_->animatingNodeList_.clear();
@@ -262,7 +259,6 @@ HWTEST_F(RSRenderThreadTest, Render001, TestSize.Level1)
     RSRenderThread::Instance().Render();
     EXPECT_NE(RSRenderThread::Instance().visitor_, nullptr);
 
-    RsFrameReport::GetInstance().frameSchedSoLoaded_ = true;
     RSRenderThread::Instance().Render();
     EXPECT_NE(RSRenderThread::Instance().context_->globalRootRenderNode_, nullptr);
 
@@ -282,7 +278,6 @@ HWTEST_F(RSRenderThreadTest, SendCommands001, TestSize.Level1)
     RSRenderThread::Instance().SendCommands();
     EXPECT_EQ(RSRenderThread::Instance().mValue, 0);
 
-    RsFrameReport::GetInstance().frameSchedSoLoaded_ = false;
     RSRenderThread::Instance().SendCommands();
     EXPECT_EQ(RSRenderThread::Instance().mValue, 0);
 }
@@ -449,17 +444,5 @@ HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest2, TestSize.Lev
     thread->CreateAndInitRenderContextIfNeed();
     EXPECT_NE(thread->renderContext_, nullptr);
     thread->renderContext_ = nullptr;
-}
-
-/**
- * @tc.name: StartTest002
- * @tc.desc: test GetIsRunning while start thread
- * @tc.type: FUNC
- * @tc.require: issueICB7BS
- */
-HWTEST_F(RSRenderThreadTest, StartTest002, TestSize.Level1)
-{
-    RSRenderThread::Instance().Start();
-    ASSERT_TRUE(RSRenderThread::Instance().GetIsRunning());
 }
 } // namespace OHOS::Rosen

@@ -16,27 +16,8 @@
 #include "rs_frame_report.h"
 
 namespace OHOS::Rosen {
-RsFrameReport& RsFrameReport::GetInstance()
+void RsFrameReport::InitDeadline()
 {
-    static RsFrameReport instance;
-    return instance;
-}
-
-RsFrameReport::RsFrameReport()
-{
-}
-
-RsFrameReport::~RsFrameReport()
-{
-}
-
-void RsFrameReport::Init()
-{
-}
-
-int RsFrameReport::GetEnable()
-{
-    return 0;
 }
 
 void RsFrameReport::RenderStart(uint64_t timestamp, int skipFirstFrame)
@@ -52,6 +33,14 @@ void RsFrameReport::SendCommandsStart()
 }
 
 void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, int value)
+{
+}
+
+void RsFrameReport::ReceiveVSync()
+{
+}
+ 
+void RsFrameReport::RequestNextVSync()
 {
 }
 } // namespace OHOS::Rosen

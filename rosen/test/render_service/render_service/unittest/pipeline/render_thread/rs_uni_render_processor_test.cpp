@@ -77,6 +77,7 @@ void RSUniRenderProcessorTest::SetUpTestCase()
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
+    RSUniRenderThread::Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
     RSTestUtil::InitRenderNodeGC();
     auto output = std::make_shared<HdiOutput>(screenId_);
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
@@ -89,7 +90,7 @@ void RSUniRenderProcessorTest::SetUpTestCase()
     NodeId nodeId = 1;
     RSScreenRenderNode node(nodeId, screenId_);
     auto renderEngine = std::make_shared<RSUniRenderEngine>();
-    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr, nullptr);
     renderProcessor->composerClient_ = composerClient;
     renderProcessor->Init(node, renderEngine);
     EXPECT_NE(renderProcessor->composerClient_, nullptr);
@@ -113,6 +114,8 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
     ScreenId screenId = 0;
     std::weak_ptr<RSContext> context = {};
     if (RSUniRenderJudgement::IsUniRender()) {
+        std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+        RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
         auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, screenId);
         RSScreenRenderNode node(nodeId, screenId, context);
         EXPECT_EQ(processor->Init(node, nullptr), false);
@@ -131,6 +134,8 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
     ScreenId screenId = 0;
     std::weak_ptr<RSContext> context = {};
     if (RSUniRenderJudgement::IsUniRender()) {
+        std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+        RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
         auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, screenId);
         ASSERT_NE(processor, nullptr);
         RSScreenRenderNode node(nodeId, screenId, context);
@@ -184,7 +189,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
         renderProcessor->Init(screenNode, renderEngine);
-        auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+        auto composerClient = RSComposerClient::Create(nullptr, nullptr, nullptr);
         renderProcessor->composerClient_ = composerClient;
         renderProcessor->CreateLayer(*surfaceNode, *params);
         EXPECT_TRUE(params->GetLayerCreated());
@@ -576,7 +581,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     sptr<SyncFence> acquireFence = nullptr;
-    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr, nullptr);
     renderProcessor->composerClient_ = composerClient;
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
@@ -602,7 +607,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo003, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     sptr<SyncFence> acquireFence = nullptr;
-    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr, nullptr);
     renderProcessor->composerClient_ = composerClient;
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
@@ -628,7 +633,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo004, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     sptr<SyncFence> acquireFence = nullptr;
-    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr, nullptr);
     renderProcessor->composerClient_ = composerClient;
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
@@ -655,7 +660,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     sptr<SyncFence> acquireFence = nullptr;
-    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr, nullptr);
     renderProcessor->composerClient_ = composerClient;
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
@@ -670,7 +675,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
 HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
 {
     ASSERT_NE(renderProcessor, nullptr);
-    auto composerClient = RSRenderComposerClient::Create(nullptr, nullptr, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr, nullptr);
     renderProcessor->composerClient_ = composerClient;
     RSSurfaceRenderParams params(0);
     params.SetTunnelLayerId(1);

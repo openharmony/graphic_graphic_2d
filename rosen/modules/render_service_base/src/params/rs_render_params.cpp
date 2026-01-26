@@ -413,12 +413,12 @@ void RSRenderParams::SetGlobalAlpha(float alpha)
     needSync_ = true;
 }
 
-void RSRenderParams::SetVirtualScreenWhiteListInfo(const std::unordered_map<ScreenId, bool>& info)
+void RSRenderParams::SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
 {
-    if (info == hasVirtualScreenWhiteList_) {
+    if (screensWithSubTreeWhitelist_ == screenIds) {
         return;
     }
-    hasVirtualScreenWhiteList_ = info;
+    screensWithSubTreeWhitelist_ = screenIds;
     needSync_ = true;
 }
 
@@ -553,7 +553,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     // used for DFX
     target->isOnTheTree_ = isOnTheTree_;
 
-    target->hasVirtualScreenWhiteList_ = hasVirtualScreenWhiteList_;
+    target->screensWithSubTreeWhitelist_ = screensWithSubTreeWhitelist_;
     needSync_ = false;
 }
 

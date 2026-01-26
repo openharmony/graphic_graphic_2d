@@ -27,8 +27,9 @@ namespace Rosen {
 
 RSRenderServiceListener::~RSRenderServiceListener() {}
 
-RSRenderServiceListener::RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode, RSUniRenderThread* uniRenderThread)
-    : surfaceRenderNode_(surfaceRenderNode), uniRenderThread_(uniRenderThread)
+RSRenderServiceListener::RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode,
+    std::shared_ptr<RSComposerClientManager> composerClientManager)
+    : surfaceRenderNode_(std::move(surfaceRenderNode)), composerClientManager_(std::move(composerClientManager))
 {}
 
 void RSRenderServiceListener::OnBufferAvailable()
@@ -169,14 +170,7 @@ void RSRenderServiceListener::CleanLayerBufferCache()
         RS_LOGD("%{public}s get consumer fail", __func__);
         return;
     }
-    uint64_t surfaceId = consumer->GetUniqueId();
-    auto rsRenderComposerClientMap = uniRenderThread_->GetRSRenderComposerClientMap();
-    for (auto iter = rsRenderComposerClientMap.begin(); iter != rsRenderComposerClientMap.end(); iter++) {
-        if (iter->second->GetRSLayer(node->GetId()) != nullptr) {
-            iter->second->CleanLayerBufferBySurfaceId(surfaceId);
-            break;
-        }
-    }
+    composerClientManager_->CleanLayerBufferBySurfaceId(consumer->GetUniqueId(), node->GetId());
 }
 
 void RSRenderServiceListener::OnGoBackground()

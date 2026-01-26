@@ -17,7 +17,7 @@
 #define GRAPHIC_2D_COMPOSER_LAYER_CONTEXT_MOCK_H
 
 #include "hdi_layer_info.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client.h"
 #include "rs_surface_layer.h"
 
 namespace OHOS {

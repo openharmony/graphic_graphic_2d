@@ -22,6 +22,8 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_ashmem_helper.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSRenderToComposerConnectionProxy"
 namespace OHOS {
 namespace Rosen {
 // static constexpr int32_t MAX_RETRY = 3;
@@ -35,7 +37,7 @@ RSRenderToComposerConnectionProxy::RSRenderToComposerConnectionProxy(const sptr<
 bool RSRenderToComposerConnectionProxy::CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData)
 {
     if (transactionData == nullptr) {
-        RS_LOGE("RSRenderToComposerConnectionProxy::CommitLayers transactionData nullptr");
+        RS_LOGE("%{public}s transactionData nullptr", __func__);
         return false;
     }
     transactionData->SetSendingPid(pid_);
@@ -64,7 +66,7 @@ bool RSRenderToComposerConnectionProxy::FillParcelWithTransactionData(
     std::unique_ptr<RSLayerTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data)
 {
     if (!data->WriteInterfaceToken(GetDescriptor())) {
-        RS_LOGE("FillParcelWithTransactionData WriteInterfaceToken failed");
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
         return false;
     }
     RS_TRACE_NAME_FMT("MarshRSLayerTransactionData cmdCount: %lu, transactionFlag:[%d, %" PRIu64 "], "
@@ -92,17 +94,18 @@ RSComposerError RSRenderToComposerConnectionProxy::SendLayers(std::vector<std::s
                 retryCount++;
                 usleep(RETRY_WAIT_TIME_US);
             } else if (err != NO_ERROR) {
-                RS_LOGE("SendLayers SendRequest failed, err:%{public}d, data size:%{public}zu", err, parcel->GetDataSize());
+                RS_LOGE("%{public}s SendRequest failed, err:%{public}d, data size:%{public}zu",
+                    __func__, err, parcel->GetDataSize());
                 return COMPOSITOR_ERROR_BINDER_ERROR;
             }
         } while (err != NO_ERROR);
         int32_t serverRet = reply.ReadInt32();
         if (serverRet != COMPOSITOR_ERROR_OK) {
-            RS_LOGE("SendLayers server returned error:%{public}d", serverRet);
+            RS_LOGE("%{public}s server returned error:%{public}d", __func__, serverRet);
             return static_cast<RSComposerError>(serverRet);
         }
     }
-    RS_LOGI("SendLayers success.");
+    RS_LOGI("%{public}s success.", __func__);
     return COMPOSITOR_ERROR_OK;
 }
 
@@ -113,7 +116,7 @@ void RSRenderToComposerConnectionProxy::ClearFrameBuffers()
     MessageParcel parcel;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!parcel.WriteInterfaceToken(GetDescriptor())) {
-        RS_LOGE("ClearFrameBuffers WriteInterfaceToken failed");
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
         return;
     }
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_CLEAR_FRAME_BUFFERS, parcel, reply, option);
@@ -152,19 +155,19 @@ void RSRenderToComposerConnectionProxy::CleanLayerBufferBySurfaceId(uint64_t sur
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_CLEAN_LAYER_BUFFER_BY_SURFACE_ID, parcel, reply, option);
 }
 
-void RSRenderToComposerConnectionProxy::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
+void RSRenderToComposerConnectionProxy::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
     MessageOption option;
     MessageParcel reply;
     MessageParcel parcel;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!parcel.WriteInterfaceToken(GetDescriptor())) {
-        RS_LOGE("ClearRedrawGPUCompositionCache WriteInterfaceToken failed");
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
         return;
     }
     std::vector<uint64_t> bufferIdsVector(bufferIds.begin(), bufferIds.end());
     if (!parcel.WriteUInt64Vector(bufferIdsVector)) {
-        RS_LOGE("ClearRedrawGPUCompositionCache WriteUInt64 failed");
+        RS_LOGE("%{public}s WriteUInt64 failed", __func__);
         return;
     }
     int32_t err = 0;
@@ -175,7 +178,7 @@ void RSRenderToComposerConnectionProxy::ClearRedrawGPUCompositionCache(const std
             retryCount++;
             usleep(RETRY_WAIT_TIME_US);
         } else if (err != NO_ERROR) {
-            RS_LOGE("ClearRedrawGPUCompositionCache SendRequest failed, err:%{public}d", err);
+            RS_LOGE("%{public}s SendRequest failed, err:%{public}d", __func__, err);
             break;
         }
     } while (err != NO_ERROR);
@@ -188,11 +191,11 @@ void RSRenderToComposerConnectionProxy::SetScreenBacklight(uint32_t level)
     MessageParcel parcel;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!parcel.WriteInterfaceToken(GetDescriptor())) {
-        RS_LOGE("SetScreenBacklight WriteInterfaceToken failed");
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
         return;
     }
     if (!parcel.WriteUint32(level)) {
-        RS_LOGE("SetScreenBacklight WriteUint32 failed");
+        RS_LOGE("%{public}s WriteUint32 failed", __func__);
         return;
     }
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_BACKLIGHT_LEVEL, parcel, reply, option);
@@ -201,16 +204,20 @@ void RSRenderToComposerConnectionProxy::SetScreenBacklight(uint32_t level)
 void RSRenderToComposerConnectionProxy::SetComposerToRenderConnection(
     const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
+    if (composerToRenderConn == nullptr) {
+        RS_LOGE("%{public}s composerToRenderConn nullptr", __func__);
+        return;
+    }
     MessageOption option;
     MessageParcel reply;
     MessageParcel parcel;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!parcel.WriteInterfaceToken(GetDescriptor())) {
-        RS_LOGE("SetComposerToRenderConnection WriteInterfaceToken failed");
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
         return;
     }
     if (!parcel.WriteRemoteObject(composerToRenderConn->AsObject())) {
-        RS_LOGE("SetComposerToRenderConnection object failed");
+        RS_LOGE("%{public}s object failed", __func__);
         return;
     }
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_COMPOSER_TO_RENDER_CONNECTION, parcel, reply, option);
@@ -218,18 +225,22 @@ void RSRenderToComposerConnectionProxy::SetComposerToRenderConnection(
 
 void RSRenderToComposerConnectionProxy::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
 {
+    if (buffer == nullptr) {
+        RS_LOGE("%{public}s buffer nullptr", __func__);
+        return;
+    }
     MessageOption option;
     MessageParcel reply;
     MessageParcel parcel;
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!parcel.WriteInterfaceToken(GetDescriptor())) {
-        RS_LOGE("PreAllocProtectedFrameBuffers WriteInterfaceToken failed");
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
         return;
     }
     uint32_t sequence = buffer->GetSeqNum();
     GSError ret = WriteSurfaceBufferImpl(parcel, sequence, buffer);
     if (ret != GSERROR_OK) {
-        RS_LOGE("PreAllocProtectedFrameBuffers WriteToMessageParcel err, ret = %{public}d", ret);
+        RS_LOGE("%{public}s WriteToMessageParcel err, ret = %{public}d", __func__, ret);
         return;
     }
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_PREALLOC_PROTECTED_FRAME_BUFFERS, parcel, reply, option);

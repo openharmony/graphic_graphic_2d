@@ -142,11 +142,10 @@ void RSUniHwcVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const 
         node.GetName().find("RenderFitSurface") != std::string::npos ||
         node.GetFrameGravityNewVersionEnabled()) ?
         RSUniHwcComputeUtil::DealWithNodeGravity(node, totalMatrix) :
-        RSUniHwcComputeUtil::DealWithNodeGravityOldVersion(node, uniRenderVisitor_.curScreenNode_->GetScreenInfo());
+        RSUniHwcComputeUtil::DealWithNodeGravityOldVersion(node, uniRenderVisitor_.curScreenNode_->GetScreenProperty());
     RSUniHwcComputeUtil::DealWithScalingMode(node, totalMatrix);
-    RSUniHwcComputeUtil::LayerRotate(node, uniRenderVisitor_.curScreenNode_->GetScreenInfo());
-    RSUniHwcComputeUtil::LayerCrop(node, uniRenderVisitor_.curScreenNode_->GetScreenInfo());
-    RSUniHwcComputeUtil::CalcSrcRectByBufferFlip(node, uniRenderVisitor_.curScreenNode_->GetScreenInfo());
+    RSUniHwcComputeUtil::LayerCrop(node, uniRenderVisitor_.curScreenNode_->GetScreenProperty());
+    RSUniHwcComputeUtil::CalcSrcRectByBufferFlip(node, uniRenderVisitor_.curScreenNode_->GetScreenProperty());
     node.SetCalcRectInPrepare(true);
 }
 

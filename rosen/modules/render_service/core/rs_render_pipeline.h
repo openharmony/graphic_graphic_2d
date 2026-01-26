@@ -24,6 +24,7 @@
 #include "dfx/rs_pipline_dump_manager.h"
 #include "dfx/rs_pipline_dumper.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
+#include "feature/image_enhance/image_enhance_manager.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
@@ -32,9 +33,8 @@
 #include "info_collection/rs_layer_compose_collection.h"
 #include "irs_render_to_composer_connection.h"
 #include "memory/rs_memory_manager.h"
-#include "pipeline/image_enhance/image_enhance_manager.h"
 #include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
-#include "rs_render_composer_client.h"
+#include "rs_composer_client_manager.h"
 #include "vsync_receiver.h"
 #include "screen_manager/rs_screen_property.h"
 #include "screen_manager/screen_types.h"
@@ -103,6 +103,7 @@ public:
     void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void OnScreenRefresh(ScreenId screenId);
     void RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn);
+    std::shared_ptr<RSComposerClientManager> GetComposerClientManager() const;
 
 private:
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
@@ -131,6 +132,7 @@ private:
     {
         return uniRenderThread_;
     }
+
     // LPP
     void RegisterJudgeLppLayerCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
     RSMainThread* mainThread_ = nullptr;
@@ -140,6 +142,7 @@ private:
     std::shared_ptr<ImageEnhanceManager> imageEnhanceManager_ = nullptr;
     std::shared_ptr<RSPiplineDumper> rpDumper_ = nullptr;
     std::shared_ptr<RSPiplineDumpManager> rpDumpManager_ = nullptr;
+    std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
 
     friend class RSServiceToRenderConnection;
     friend class RSRenderProcessAgent;

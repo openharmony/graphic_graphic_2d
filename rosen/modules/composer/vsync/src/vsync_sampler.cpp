@@ -547,7 +547,7 @@ void VSyncSampler::Dump(std::string &result)
     }
     result += "]";
     result += "\npresentFenceTimeOffset:" + std::to_string(presentFenceTimeOffset_);
-    result += "\nvsyncEnabledScreenId:" + std::to_string(vsyncEnabledScreenId_);
+    result += "\nvsyncEnabledScreenId:" + std::to_string(vsyncEnabledScreenId_) + "\n";
 }
 
 VSyncSampler::~VSyncSampler()

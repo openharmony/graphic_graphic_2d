@@ -122,7 +122,7 @@ void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& o
 {
     hdiOutput_ = output;
     screenId_ = hdiOutput_->GetScreenId();
-    RS_LOGI("StartComposerThread screenId:%{public}" PRIu64, screenId_);
+    RS_LOGI("%{public}s screenId:%{public}" PRIu64, __func__, screenId_);
     GraphicIRect damageRect {
         0, 0, static_cast<int32_t>(property->GetWidth()), static_cast<int32_t>(property->GetHeight())
     };
@@ -161,12 +161,11 @@ void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& o
 #ifdef RES_SCHED_ENABLE
     int qosRes = OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().SetSystemQoS(threadTid_,
         OHOS::ConcurrentTask::SystemQoSLevel::SYSTEM_QOS_EIGHT);
-    RS_LOGI("RSRenderComposer SetSystemQoS qosRes = %{public}d", qosRes);
+    RS_LOGI("%{public}s SetSystemQoS qosRes = %{public}d", __func__, qosRes);
 #endif
 #ifdef RS_ENABLE_GPU
-    // todo
     // report composer tid to sched deadline
-    RsFrameReport::GetInstance().ReportComposerInfo(screenId_, threadTid_);
+    RsFrameReport::ReportComposerInfo(screenId_, threadTid_);
 #endif
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
         OnPrepareComplete(surface, param, data);
@@ -195,12 +194,11 @@ void RSRenderComposer::PostDelayTask(const std::function<void()>& task, int64_t 
     }
 }
 
-void RSRenderComposer::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
+void RSRenderComposer::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
     std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
     if (auto engine = uniRenderEngine.lock()) {
-        RS_LOGD("ClearRedrawGPUCompositionCache, bufferId size %{public}d",
-            static_cast<int32_t>(bufferIds.size()));
+        RS_LOGD("%{public}s, bufferId size %{public}d", __func__, static_cast<int32_t>(bufferIds.size()));
         engine->ClearCacheSet(bufferIds);
     }
 }
@@ -279,12 +277,12 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
         if (!isHwcDead_) {
             hdiOutput_->SetRSLayers(reviseLayers);
         }
-        lppLayerColletor_.AddLppLayerId(reviseLayers);
+        lppLayerCollector_.AddLppLayerId(reviseLayers);
     } else {
         if (!isHwcDead_) {
             hdiOutput_->SetRSLayers(layers);
         }
-        lppLayerColletor_.AddLppLayerId(layers);
+        lppLayerCollector_.AddLppLayerId(layers);
     }
     bool doRepaint = hdiOutput_->IsDeviceValid() && !shouldDropFrame && !isHwcDead_;
     if (doRepaint) {
@@ -324,7 +322,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
             "FRAME_RATE", frameRate, "MISSED_FRAMES", missedFrames, "FRAME_TIME", frameTime);
     }
     if (composerToRenderConnection_ != nullptr && pipelineParam.hasLppVideo) {
-        composerToRenderConnection_->NotifyLppLayerToRender(pipelineParam.vsyncId, lppLayerColletor_.GetLppLayerId());
+        composerToRenderConnection_->NotifyLppLayerToRender(pipelineParam.vsyncId, lppLayerCollector_.GetLppLayerId());
     }
     EndCheck(timer);
     if (isDisconnected_ && unExecuteTaskNum_ == 0) {
@@ -369,7 +367,7 @@ void RSRenderComposer::ComposerProcess(uint32_t currentRate, std::shared_ptr<RSL
 {
     if (hdiOutput_ == nullptr || rsRenderComposerContext_ == nullptr) {
         unExecuteTaskNum_--;
-        RS_LOGE("ComposerProcess output or context is nullptr, screenId:%{public}" PRIu64, screenId_);
+        RS_LOGE("%{public}s output or context is nullptr, screenId:%{public}" PRIu64, __func__, screenId_);
         return;
     }
     UpdateTransactionData(transactionData);
@@ -397,9 +395,9 @@ void RSRenderComposer::EndCheck(RSTimer timer)
         exceptionCheck_.exceptionCnt_ = exceptionCnt_;
         exceptionCheck_.exceptionMoment_ = timer.GetSeconds();
         exceptionCheck_.UploadRenderExceptionData();
-        RS_LOGE("EndCheck PID:%{public}d, UID:%{public}u, PROCESS_NAME:%{public}s, \
+        RS_LOGE("%{public}s PID:%{public}d, UID:%{public}u, PROCESS_NAME:%{public}s, \
             EXCEPTION_CNT:%{public}d, EXCEPTION_TIME:%{public}" PRId64", EXCEPTION_POINT:%{public}s",
-            getpid(), getuid(), PROCESS_NAME_FOR_HISYSEVENT.c_str(), exceptionCnt_,
+            __func__, getpid(), getuid(), PROCESS_NAME_FOR_HISYSEVENT.c_str(), exceptionCnt_,
             exceptionCheck_.exceptionMoment_, COMPOSER_PIPELINE_TIMEOUT.c_str());
     }
 }
@@ -791,7 +789,7 @@ GSError RSRenderComposer::ClearFrameBuffersInner(bool isNeedResetContext)
     }
     auto surface = hdiOutput_->GetFrameBufferSurface();
     if (surface == nullptr) {
-        RS_LOGE("GetFrameBufferSurface surface is nullptr");
+        RS_LOGE("%{public}s surface is nullptr", __func__);
         return GSERROR_INVALID_ARGUMENTS;
     }
     auto surfaceId = surface->GetUniqueId();
@@ -820,6 +818,10 @@ GSError RSRenderComposer::ClearFrameBuffersInner(bool isNeedResetContext)
 
 GSError RSRenderComposer::ClearFrameBuffers(bool isNeedResetContext)
 {
+    if (hdiOutput_ == nullptr || hdiOutput_->GetBufferCacheSize() <= 0) {
+        RS_LOGE("%{public}s buffer cache size less 0", __func__);
+        return COMPOSITOR_ERROR_NULLPTR;
+    }
     return ClearFrameBuffersInner(isNeedResetContext);
 }
 
@@ -870,7 +872,7 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
         RS_LOGE("Redraw: surface or uniRenderEngine is null.");
         return;
     }
-    lppLayerColletor_.RemoveLayerId(layers);
+    lppLayerCollector_.RemoveLayerId(layers);
     bool isProtected = false;
 
 #ifdef RS_ENABLE_VK
@@ -960,7 +962,6 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
 #ifdef RES_SCHED_ENABLE
 void RSRenderComposer::SubScribeSystemAbility()
 {
-    // todo
     RS_LOGI("%{public}s", __func__);
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -989,24 +990,23 @@ GraphicColorGamut RSRenderComposer::ComputeTargetColorGamut(const std::vector<st
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
     for (auto& layer : layers) {
         if (layer == nullptr) {
-            RS_LOGE("ComputeTargetColorGamut layer is nullptr");
+            RS_LOGE("%{public}s layer is nullptr", __func__);
             continue;
         }
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
-            RS_LOGW("ComputeTargetColorGamut The buffer of layer is nullptr");
+            RS_LOGW("%{public}s The buffer of layer is nullptr", __func__);
             continue;
         }
 
         CM_ColorSpaceInfo colorSpaceInfo;
         if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-            RS_LOGD("ComputeTargetColorGamut Get color space failed");
+            RS_LOGD("%{public}s Get color space failed", __func__);
             continue;
         }
 
         if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
-            RS_LOGD("ComputeTargetColorData fail, primaries is %{public}d",
-                colorSpaceInfo.primaries);
+            RS_LOGD("%{public}s fail, primaries is %{public}d", __func__, colorSpaceInfo.primaries);
             colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
             break;
         }
@@ -1022,18 +1022,18 @@ bool RSRenderComposer::IsAllRedraw(const std::vector<std::shared_ptr<RSLayer>>& 
             continue;
         }
         if (layer->IsScreenRCDLayer()) {
-            RS_LOGD("IsAllRedraw skip RCD layer");
+            RS_LOGD("%{public}s skip RCD layer", __func__);
             continue;
         }
         // skip hard cursor
         if (layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
-            RS_LOGD("IsAllRedraw skip cursor");
+            RS_LOGD("%{public}s skip cursor", __func__);
             continue;
         }
         if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
             layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
             layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
-            RS_LOGD("IsAllRedraw not all layers are redraw");
+            RS_LOGD("%{public}s not all layers are redraw", __func__);
             return false;
         }
     }
@@ -1056,7 +1056,7 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const std::vector<
         }
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
-            RS_LOGW("ComputeTargetPixelFormat The buffer of layer is nullptr");
+            RS_LOGW("%{public}s The buffer of layer is nullptr", __func__);
             continue;
         }
 
@@ -1065,7 +1065,7 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const std::vector<
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
             if (!allRedraw && RSHdrUtil::GetRGBA1010108Enabled()) {
                 pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010108;
-                RS_LOGD("ComputeTargetPixelFormat pixelformat is set to GRAPHIC_PIXEL_FMT_RGBA_1010108");
+                RS_LOGD("%{public}s pixelformat is set to GRAPHIC_PIXEL_FMT_RGBA_1010108", __func__);
             }
             break;
         }
@@ -1073,7 +1073,7 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const std::vector<
             bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
             bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-            RS_LOGD("ComputeTargetPixelFormat pixelformat is set to 1010102 for 10bit buffer");
+            RS_LOGD("%{public}s pixelformat is set to 1010102 for 10bit buffer", __func__);
         }
     }
 
@@ -1149,7 +1149,7 @@ void RSRenderComposer::OnScreenConnected(const std::shared_ptr<HdiOutput>& outpu
     const sptr<RSScreenProperty>& property)
 {
     RS_TRACE_NAME("RSRenderComposer::OnScreenConnected");
-    RS_LOGI("RSRenderComposer::OnScreenConnected screenId: %{public}" PRIu64, screenId_);
+    RS_LOGI("%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
     isDisconnected_ = false;
     ReInit(output, property);
     rsRenderComposerContext_ = std::make_shared<RSRenderComposerContext>();
@@ -1158,7 +1158,7 @@ void RSRenderComposer::OnScreenConnected(const std::shared_ptr<HdiOutput>& outpu
 void RSRenderComposer::OnScreenDisconnected()
 {
     RS_TRACE_NAME("RSRenderComposer::OnScreenDisconnected");
-    RS_LOGI("RSRenderComposer::OnScreenDisconnected screenId: %{public}" PRIu64, screenId_);
+    RS_LOGI("%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
     if (unExecuteTaskNum_ == 0) {
         RS_TRACE_NAME_FMT("OnScreenDisconnected Clear output, screenId : %" PRIu64, screenId_);
         ClearFrameBuffersInner();
@@ -1172,7 +1172,7 @@ void RSRenderComposer::OnHwcRestored(const std::shared_ptr<HdiOutput>& output,
     const sptr<RSScreenProperty>& property)
 {
     RS_TRACE_NAME("RSRenderComposer::OnHwcRestored");
-    RS_LOGI("RSRenderComposer::OnHwcRestored screenId: %{public}" PRIu64, screenId_);
+    RS_LOGI("%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
     isHwcDead_ = false;
     ReInit(output, property);
 }
@@ -1180,7 +1180,7 @@ void RSRenderComposer::OnHwcRestored(const std::shared_ptr<HdiOutput>& output,
 void RSRenderComposer::OnHwcDead()
 {
     RS_TRACE_NAME("RSRenderComposer::OnHwcDead");
-    RS_LOGI("RSRenderComposer::OnHwcDead screenId: %{public}" PRIu64, screenId_);
+    RS_LOGI("%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
     ClearFrameBuffersInner();
     isHwcDead_ = true;
     if (hdiOutput_) {
@@ -1191,7 +1191,7 @@ void RSRenderComposer::OnHwcDead()
 void RSRenderComposer::DestroyComposerLayer(std::shared_ptr<RSLayerParcel> rsLayerParcel)
 {
     RS_TRACE_NAME_FMT("DestroyComposerLayer screenId: %" PRIu64, screenId_);
-    RS_LOGI("DestroyComposerLayer screenId: %{public}" PRIu64, screenId_);
+    RS_LOGI("%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
     rsLayerParcel->ApplyRSLayerCmd(rsRenderComposerContext_);
 }
 
@@ -1222,7 +1222,7 @@ void RSRenderComposer::UpdateTransactionData(std::shared_ptr<RSLayerTransactionD
                 break;
             }
             default: {
-                RS_LOGE("UpdateTransactionData pacel type:%{public}d", rsLayerParcelType);
+                RS_LOGE("%{public}s pacel type:%{public}d", __func__, rsLayerParcelType);
                 break;
             }
         }
@@ -1286,7 +1286,7 @@ void RSRenderComposer::AddSolidColorLayer(std::vector<std::shared_ptr<RSLayer>>&
 void RSRenderComposer::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
     if (hdiOutput_ == nullptr) {
-        RS_LOGE("ComposerProcess output is nullptr, screenId:%{public}" PRIu64, screenId_);
+        RS_LOGE("%{public}s output is nullptr, screenId:%{public}" PRIu64, __func__, screenId_);
         return;
     }
     hdiOutput_->CleanLayerBufferBySurfaceId(surfaceId);

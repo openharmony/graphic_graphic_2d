@@ -16,6 +16,8 @@
 #include "rs_layer_parcel_factory.h"
 #include "platform/common/rs_log.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSLayerParcelFactory"
 namespace OHOS {
 namespace Rosen {
 inline uint32_t MakeKey(uint16_t commandType)
@@ -33,7 +35,7 @@ void RSLayerParcelFactory::Register(uint16_t type, UnmarshallingFunc func)
 {
     auto result = unmarshallingFuncLUT_.try_emplace(MakeKey(type), func);
     if (!result.second) {
-        ROSEN_LOGD("RSLayerParcelFactory Register faile, type:%{public}d", type);
+        ROSEN_LOGD("%{public}s faile, type:%{public}d", __func__, type);
     }
 }
 
@@ -41,7 +43,7 @@ UnmarshallingFunc RSLayerParcelFactory::GetUnmarshallingFunc(uint16_t type)
 {
     auto it = unmarshallingFuncLUT_.find(MakeKey(type));
     if (it == unmarshallingFuncLUT_.end()) {
-        ROSEN_LOGE("RSLayerParcelFactory GetUnmarshallingFunc type:%{public}d not found", type);
+        ROSEN_LOGE("%{public}s type:%{public}d not found", __func__, type);
         return nullptr;
     }
     return it->second;

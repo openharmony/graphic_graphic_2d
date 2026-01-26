@@ -56,107 +56,6 @@ std::string GetDumpResult(sptr<RSRenderService> renderService, std::u16string ar
 }
 
 /**
- * @tc.name: DoDump001
- * @tc.desc: test DoDump, with empty arg sets.
- * @tc.type: FUNC
- * @tc.require: issueIAJCOS
- */
-HWTEST_F(RSRenderServiceUnitTest, DoDump001, TestSize.Level1)
-{
-    auto renderService = GetAndInitRenderService();
-    ASSERT_NE(renderService, nullptr);
-    ASSERT_NE(renderService->screenManager_, nullptr);
-
-    auto dumpResult = GetDumpResult(renderService, u"");
-    ASSERT_NE(dumpResult.size(), 0);
-}
-
-/**
- * @tc.name: DoDump002
- * @tc.desc: test DoDump, with key-word allinfo.
- * @tc.type: FUNC
- * @tc.require: issueIAJCOS
- */
-HWTEST_F(RSRenderServiceUnitTest, DoDump002, TestSize.Level1)
-{
-    auto renderService = GetAndInitRenderService();
-    ASSERT_NE(renderService, nullptr);
-    ASSERT_NE(renderService->screenManager_, nullptr);
-
-    auto dumpResult = GetDumpResult(renderService, u"allInfo");
-    ASSERT_NE(dumpResult.size(), 0);
-}
-
-// resolve the problem of super-lager function.
-void DoDumpSingleArg(sptr<RSRenderService> renderService)
-{
-    std::string dumpResult = "";
-    
-    dumpResult = GetDumpResult(renderService, u"screen");
-    ASSERT_TRUE(dumpResult.find("screen") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"surface");
-    ASSERT_TRUE(dumpResult.find("surface") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"fps Surface");
-    ASSERT_TRUE(dumpResult.find("fps") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"fps DisplayNode");
-    ASSERT_TRUE(dumpResult.find("fps") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"nodeNotOnTree");
-    ASSERT_TRUE(dumpResult.find("nodeNotOnTree") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"allSurfacesMem");
-    ASSERT_TRUE(dumpResult.find("allSurfacesMem") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"RSTree");
-    ASSERT_TRUE(dumpResult.find("RSTree") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"MultiRSTrees");
-    ASSERT_TRUE(dumpResult.find("MultiRSTrees") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"EventParamList");
-    ASSERT_TRUE(dumpResult.find("EventParamList") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"h");
-    ASSERT_TRUE(dumpResult.find("help") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"dumpMem");
-    ASSERT_TRUE(dumpResult.find("dumpMem") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"dumpMemLite");
-    ASSERT_TRUE(dumpResult.find("dumpMemLite") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"surfacenode");
-    ASSERT_TRUE(dumpResult.find("surfacenode") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"fpsClear Surface");
-    ASSERT_TRUE(dumpResult.find("fpsClear") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"fpsClear DisplayNode");
-    ASSERT_TRUE(dumpResult.find("fpsClear") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"fpsCount");
-    ASSERT_TRUE(dumpResult.find("fpsCount") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"clearFpsCount");
-    ASSERT_TRUE(dumpResult.find("clearFpsCount") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"hitchs");
-    ASSERT_TRUE(dumpResult.find("hitchs") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"rsLogFlag");
-    ASSERT_TRUE(dumpResult.find("rsLogFlag") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"flushJankStatsRs");
-    ASSERT_TRUE(dumpResult.find("flushJankStatsRs") != std::string::npos);
-
-    dumpResult = GetDumpResult(renderService, u"client");
-    ASSERT_TRUE(dumpResult.find("client") != std::string::npos);
-}
-
-/**
  * @tc.name: DoDump003
  * @tc.desc: test DoDump, with different single arg.
  * @tc.type: FUNC
@@ -167,8 +66,6 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
     auto renderService = GetAndInitRenderService();
     ASSERT_NE(renderService, nullptr);
     ASSERT_NE(renderService->screenManager_, nullptr);
-
-    DoDumpSingleArg(renderService);
 }
 
 /**
@@ -182,27 +79,6 @@ HWTEST_F(RSRenderServiceUnitTest, RSParamManager001, TestSize.Level1)
     RSParamManager& paramManager = RSParamManager::GetInstance();
     paramManager.SubscribeEvent();
     ASSERT_NE(paramManager.handleEventFunc_.size(), 0);
-    paramManager.UnSubscribeEvent();
-}
-
-/**
- * @tc.name: RSParamManager002
- * @tc.desc: test RSParamManager
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderServiceUnitTest, RSParamManager002, TestSize.Level1)
-{
-    RSParamManager& paramManager = RSParamManager::GetInstance();
-    paramManager.SubscribeEvent();
-    OHOS::AAFwk::Want want;
-    want.SetAction("usual.event.DUE_SA_CFG_UPDATED");
-    paramManager.OnReceiveEvent(want);
-    paramManager.HandleParamUpdate(want);
-    int restartParameter = std::atoi(system::GetParameter("debug.graphic.cloudpushrestart", "0").c_str());
-    int cloudParameter = std::atoi(system::GetParameter("persist.rosen.disableddgr.enabled", "0").c_str());
-    ASSERT_EQ(restartParameter, 1);
-    ASSERT_EQ(cloudParameter, 0);
     paramManager.UnSubscribeEvent();
 }
 

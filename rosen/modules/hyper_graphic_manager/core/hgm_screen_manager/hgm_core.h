@@ -26,7 +26,6 @@
 #include <vector>
 
 #include "hgm_frame_rate_manager.h"
-#include "hgm_hfbc_config.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
 #include "vsync_generator.h"
@@ -94,7 +93,7 @@ public:
     int32_t SetRefreshRateMode(int32_t refreshRateMode);
 
     void NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
-    void NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& activeRect);
+    void NotifyScreenRectFrameRateChange(ScreenId id, const Rect& activeRect);
 
     // screen interface
     int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize, bool& isSelfOwnedScreen, 
@@ -130,8 +129,6 @@ public:
 
     bool GetMultiSelfOwnedScreenEnable() const { return multiSelfOwnedScreenEnable_.load(); }
     void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable);
-
-    HgmHfbcConfig& GetHfbcConfig() { return hfbcConfig_; }
 
     RSScreenManager* GetScreenManager() { return screenManager_; }
     void SetScreenManager(RSScreenManager* screenManager) { screenManager_ = screenManager; }
@@ -192,11 +189,9 @@ private:
     std::atomic<bool> lowRateToHighQuickSwitch_{ false };
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
     RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
-    std::atomic<bool> doDirectComposition_{ false };
     bool enableDynamicMode_ = true;
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
-    HgmHfbcConfig hfbcConfig_;
 
     // RS/APP Vsync Offset
     std::atomic<int64_t> rsPhaseOffset_{ 0 };
@@ -204,8 +199,6 @@ private:
     std::atomic<bool> isVsyncOffsetCustomized_{ false };
 
     RSScreenManager* screenManager_;
-
-    friend class HWCParam;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H
