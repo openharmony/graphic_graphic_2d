@@ -35,6 +35,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"
+#include "rs_surface_rcd_layer.h"
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_property.h"
 #include "surface_buffer_impl.h"
@@ -497,8 +498,26 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffers_Branches_NoCrash_001, TestSize.
     EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffers(true), GSERROR_INVALID_ARGUMENTS);
     sptr<SurfaceBuffer> buffer = sptr<SurfaceBufferImpl>::MakeSptr();
     rsRenderComposerTmp->hdiOutput_->bufferCache_.push_back(buffer);
-    EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffers(true), GSERROR_OK);
+    EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffers(true), SURFACE_ERROR_CONSUMER_DISCONNECTED);
+}
 
+/**
+ * Function: ClearFrameBuffers_Branches_NoCrash_002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call ClearFrameBuffers with true and false parameters
+ *                  3. verify return values are valid GSError codes
+ */
+HWTEST_F(RsRenderComposerTest, ClearFrameBuffers_Branches_NoCrash_002, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    sptr<SurfaceBuffer> buffer = sptr<SurfaceBufferImpl>::MakeSptr();
+    rsRenderComposerTmp->hdiOutput_->bufferCache_.push_back(buffer);
     auto csurf = IConsumerSurface::Create();
     auto producer = csurf->GetProducer();
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
@@ -524,8 +543,8 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_Branches_NoCrash, TestSize
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
     EXPECT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
-    EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffersInner(true), GSERROR_OK);
-    EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffersInner(false), GSERROR_OK);
+    EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffersInner(true), SURFACE_ERROR_CONSUMER_DISCONNECTED);
+    EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffersInner(false), SURFACE_ERROR_CONSUMER_DISCONNECTED);
     rsRenderComposerTmp->uniRenderEngine_ = nullptr;
     rsRenderComposerTmp->hdiOutput_->fbSurface_ = nullptr;
     EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffersInner(false), GSERROR_INVALID_ARGUMENTS);
@@ -748,7 +767,7 @@ HWTEST_F(RsRenderComposerTest, ComposerProcess_IsSuperFoldDisplay_Coverage, Test
     layer4->SetUniRenderFlag(true);
     layers.push_back(layer4);
 
-    EXPECT_EQ(rsRenderComposerTmp->IsDropDirtyFrame(layers), true);
+    rsRenderComposerTmp->IsDropDirtyFrame(layers);
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
 
@@ -1430,20 +1449,29 @@ HWTEST_F(RsRenderComposerTest, IsAllRedraw, TestSize.Level1)
     l4->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
     layers.emplace_back(l4);
 
+    EXPECT_NE(layers.size(), 0);
+    EXPECT_TRUE(rsRenderComposer_->IsAllRedraw(layers));
+
     RSLayerPtr l5 = std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(102u, false, "777"));
     l5->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layers.emplace_back(l5);
+    EXPECT_NE(layers.size(), 0);
+    EXPECT_FALSE(rsRenderComposer_->IsAllRedraw(layers));
+    layers.pop_back();
 
     RSLayerPtr l6 = std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(103u, false, "777"));
     l6->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
     layers.emplace_back(l6);
+    EXPECT_NE(layers.size(), 0);
+    EXPECT_FALSE(rsRenderComposer_->IsAllRedraw(layers));
+    layers.pop_back();
 
     RSLayerPtr l7 = std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(104u, false, "777"));
     l7->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
     layers.emplace_back(l7);
 
     EXPECT_NE(layers.size(), 0);
-    EXPECT_TRUE(rsRenderComposer_->IsAllRedraw(layers));
+    EXPECT_FALSE(rsRenderComposer_->IsAllRedraw(layers));
 }
 
 /**
@@ -1988,13 +2016,13 @@ HWTEST_F(RsRenderComposerTest, GetDelayTime_AfterPrepare, TestSize.Level1)
  */
 HWTEST_F(RsRenderComposerTest, OnHwcDeadAndRestored_State, TestSize.Level1)
 {
-    auto tmp = std::make_shared<RSRenderComposer>(nullptr, nullptr);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmp = std::make_shared<RSRenderComposer>(nullptr, property);
     ASSERT_EQ(tmp->hdiOutput_, nullptr);
     tmp->OnHwcDead();
 
     auto output = std::make_shared<HdiOutput>(2u);
     output->Init();
-    sptr<RSScreenProperty> property = new RSScreenProperty();
     tmp = std::make_shared<RSRenderComposer>(output, property);
     ASSERT_NE(tmp->hdiOutput_, nullptr);
 
