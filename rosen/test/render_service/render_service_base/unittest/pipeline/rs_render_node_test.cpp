@@ -3035,14 +3035,12 @@ HWTEST_F(RSRenderNodeTest, UpdateAbsDirtyRegion001, TestSize.Level1)
     node.oldClipRect_ = RectI(0, 0, defaultWidth, defaultHeight);
 
     RectI clipRect(0, 0, surfaceWidth, surfaceHeight);
-    RectI selfDrawingNodeAbsDirtyRect{0, 0, 1000, 2000};
-    RectI absCmdlistDrawRect{0, 0, 0, 0};
-    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
     EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), node.oldChildrenRect_.IntersectRect(node.oldClipRect_));
 
     rsDirtyManager->Clear();
     node.isFirstLevelCrossNode_ = true;
-    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
     EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), node.oldChildrenRect_);
 }
 
