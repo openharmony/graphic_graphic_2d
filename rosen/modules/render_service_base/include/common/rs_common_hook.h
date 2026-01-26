@@ -69,8 +69,6 @@ public:
     std::string GetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName);
 
     // DISPLAY ENGINE
-    void SetCurrentPkgName(const std::string& pkgName);
-    std::string GetCurrentPkgName() const;
     void SetImageEnhancePidList(const std::unordered_set<pid_t>& imageEnhancePidList);
     std::unordered_set<pid_t> GetImageEnhancePidList() const;
     void SetImageEnhanceParams(const RSImageDetailEnhanceParams& imageEnhanceParams);
@@ -79,7 +77,6 @@ public:
         const std::unordered_map<std::string, RSImageDetailEnhanceAlgoParams>& imageEnhanceAlgoParams);
     RSImageDetailEnhanceAlgoParams GetImageEnhanceAlgoParams(const std::string& key) const;
     bool IsImageEnhanceParamsValid();
-
 private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
     // source crop tuning
@@ -94,7 +91,7 @@ private:
 
     std::unordered_map<std::string, std::string> overlappedHwcNodeInAppEnabledConfig_;
 
-    // use in updating hwc node hardware state with background alpha
+    // use in updating hwcnode hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
     std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
     std::atomic<bool> isWhiteListForSolidColorLayerFlag_{false};
@@ -105,7 +102,6 @@ private:
     std::unordered_map<std::string, std::string> hwcSolidLayerConfigFromHgm_;
     
     // DISPLAY ENGINE
-    std::string pkgName_{};
     mutable std::mutex mutexLock_{};
     std::unordered_set<pid_t> imageEnhancePidList_{};
     RSImageDetailEnhanceParams imageEnhanceParams_{};
