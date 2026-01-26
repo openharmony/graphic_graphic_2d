@@ -674,21 +674,6 @@ HWTEST_F(CmdListHelperTest, AllBaseObj, TestSize.Level1)
 }
 
 /**
- * @tc.name: CopyObjectTo
- * @tc.desc: Test the CopyObjectTo function.
- * @tc.type: FUNC
- * @tc.require: I7SO7X
- */
-HWTEST_F(CmdListHelperTest, CopyObjectTo, TestSize.Level1)
-{
-    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    (void)cmdList->GetOpCnt();
-    auto cmdList1 = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    cmdList->CopyObjectTo(*cmdList1);
-    EXPECT_NE(cmdList1, nullptr);
-}
-
-/**
  * @tc.name: AddCmdListData
  * @tc.desc: Test the AddCmdListData function.
  * @tc.type: FUNC

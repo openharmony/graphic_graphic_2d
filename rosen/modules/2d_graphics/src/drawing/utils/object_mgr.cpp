@@ -63,11 +63,6 @@ bool ObjectMgr::RemoveObject(void* obj)
     return removed;
 }
 
-size_t ObjectMgr::ObjectCount()
-{
-    return vector_.size();
-}
-
 TypefaceMgr& TypefaceMgr::GetInstance()
 {
     static TypefaceMgr instance;

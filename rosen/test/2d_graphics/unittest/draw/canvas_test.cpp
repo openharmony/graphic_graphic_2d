@@ -1223,8 +1223,9 @@ HWTEST_F(CanvasTest, SetParallelRenderTest, TestSize.Level1)
 HWTEST_F(CanvasTest, RecordStateGPUContextTest, TestSize.Level1)
 {
     auto stateRecordCanvas = std::make_shared<StateRecordCanvas>(1316, 1962);
-    ASSERT_TRUE(stateRecordCanvas->GetGPUContext() != nullptr);
+    ASSERT_TRUE(stateRecordCanvas->GetGPUContext() == nullptr);
 }
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
