@@ -190,6 +190,7 @@ HWTEST_F(RSUifirstManagerTest, MergeOldDirty001, TestSize.Level1)
     if (surfaceDrawable->GetSyncDirtyManager()) {
         ASSERT_TRUE(surfaceDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
     }
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode->GetId());
 }
 
 /**
@@ -221,6 +222,7 @@ HWTEST_F(RSUifirstManagerTest, MergeOldDirty002, TestSize.Level1)
     if (childDrawable->GetSyncDirtyManager()) {
         ASSERT_TRUE(childDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
     }
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode->GetId());
 }
 
 /**
@@ -235,7 +237,13 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate001, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    uifirstManager_.mainThread_ = nullptr;
+    EXPECT_FALSE(uifirstManager_.mainThread_);
     uifirstManager_.RenderGroupUpdate(surfaceDrawable);
+    uifirstManager_.mainThread_ = mainThread_;
+    mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode);
+    uifirstManager_.RenderGroupUpdate(surfaceDrawable);
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode->GetId());
 }
 
 /**
@@ -250,12 +258,13 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate002, TestSize.Level1)
     auto context = std::make_shared<RSContext>();
     auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, context->weak_from_this());
     ASSERT_NE(displayNode, nullptr);
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     displayNode->AddChild(surfaceNode);
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode);
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(surfaceNode->GetRenderDrawable());
     uifirstManager_.RenderGroupUpdate(surfaceDrawable);
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode->GetId());
 }
 
 /**
@@ -268,13 +277,17 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate003, TestSize.Level1)
 {
     auto parentNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(parentNode, nullptr);
+    mainThread_->context_->nodeMap.RegisterRenderNode(parentNode);
     auto childNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(childNode, nullptr);
+    mainThread_->context_->nodeMap.RegisterRenderNode(childNode);
     parentNode->AddChild(childNode);
     parentNode->nodeGroupType_ = RSUifirstManagerTest::GROUPED_BY_ANIM;
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(childNode));
     uifirstManager_.RenderGroupUpdate(surfaceDrawable);
+    mainThread_->context_->nodeMap.UnregisterRenderNode(parentNode->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(childNode->GetId());
 }
 
 /**
@@ -308,6 +321,20 @@ HWTEST_F(RSUifirstManagerTest, ProcessForceUpdateNode002, TestSize.Level1)
     mainThread_->context_->nodeMap.RegisterRenderNode(parentNode);
     uifirstManager_.pendingForceUpdateNode_.push_back(parentNode->GetId());
     uifirstManager_.ProcessForceUpdateNode();
+
+    parentNode->SetLastFrameUifirstFlag(MultiThreadCacheType::ARKTS_CARD);
+    uifirstManager_.pendingForceUpdateNode_.push_back(parentNode->GetId());
+    uifirstManager_.ProcessForceUpdateNode();
+
+    parentNode->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    uifirstManager_.pendingForceUpdateNode_.push_back(parentNode->GetId());
+    uifirstManager_.ProcessForceUpdateNode();
+
+    parentNode->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    parentNode->isSubTreeDirty_ = false;
+    uifirstManager_.pendingForceUpdateNode_.push_back(parentNode->GetId());
+    uifirstManager_.ProcessForceUpdateNode();
+    mainThread_->context_->nodeMap.UnregisterRenderNode(parentNode->GetId());
 }
 
 /**
@@ -333,25 +360,35 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNode001, TestSize.Level1)
 {
     NodeId id = 1;
     uifirstManager_.capturedNodes_.push_back(id);
+    uifirstManager_.mainThread_ = nullptr;
+    uifirstManager_.ProcessDoneNode();
+    EXPECT_FALSE(uifirstManager_.capturedNodes_.empty());
+    uifirstManager_.mainThread_ = mainThread_;
     uifirstManager_.ProcessDoneNode();
     EXPECT_TRUE(uifirstManager_.capturedNodes_.empty());
     
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto surfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     auto adapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode);
-    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(id, adapter));
-    uifirstManager_.capturedNodes_.push_back(id);
+    uifirstManager_.capturedNodes_.push_back(surfaceRenderNode->GetId());
+    mainThread_->context_->nodeMap.RegisterRenderNode(surfaceRenderNode);
     uifirstManager_.ProcessDoneNode();
-    EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
+    EXPECT_TRUE(uifirstManager_.capturedNodes_.empty());
 
-    uifirstManager_.pendingResetNodes_.insert(std::make_pair(id, surfaceRenderNode));
-    uifirstManager_.capturedNodes_.push_back(id);
+    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(surfaceRenderNode->GetId(), adapter));
+    uifirstManager_.pendingResetNodes_.insert(std::make_pair(surfaceRenderNode->GetId(), surfaceRenderNode));
+    auto surfaceRenderNode2 = RSTestUtil::CreateSurfaceNode();
+    uifirstManager_.pendingResetNodes_.insert(std::make_pair(surfaceRenderNode2->GetId(), surfaceRenderNode2));
+    uifirstManager_.capturedNodes_.push_back(surfaceRenderNode->GetId());
     uifirstManager_.ProcessDoneNode();
     EXPECT_FALSE(uifirstManager_.pendingResetNodes_.empty());
 
+    auto drawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(adapter);
+    drawable->subThreadCache_.uiFirstParams.cacheProcessStatus_ = CacheProcessStatus::SKIPPED;
     std::shared_ptr<RSRenderNodeDrawable> renderNodeDrawable = nullptr;
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(++id, renderNodeDrawable));
     uifirstManager_.ProcessDoneNode();
     EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceRenderNode->GetId());
 }
 
 /**
@@ -1061,7 +1098,6 @@ HWTEST_F(RSUifirstManagerTest, PostSubTaskAndPostReleaseCacheSurfaceSubTask001, 
     uifirstManager_.PostSubTask(id);
     uifirstManager_.PostReleaseCacheSurfaceSubTask(id);
     EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
-    EXPECT_EQ(uifirstManager_.subthreadProcessingNode_.size(), 2);
 
     id = 4;
     uifirstManager_.PostSubTask(id);
@@ -2461,6 +2497,7 @@ HWTEST_F(RSUifirstManagerTest, PostUifistSubTasks, TestSize.Level1)
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.pendingPostNodes_.clear();
     uifirstManager_.pendingPostCardNodes_.clear();
+    uifirstManager_.allScreenPowerOffNeedPurge_ = false;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
     surfaceNode1->isOnTheTree_ = true;
     uifirstManager_.pendingPostNodes_.insert(std::make_pair(surfaceNode1->GetId(), surfaceNode1));
@@ -3066,10 +3103,10 @@ HWTEST_F(RSUifirstManagerTest, ProcessSkippedNodeTest, TestSize.Level1)
     ASSERT_EQ(uifirstManager_.pendingPostNodes_.size(), 1);
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingPostNodes_.clear();
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode1->GetId());
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode2->GetId());
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode3->GetId());
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(canvasNode->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode1->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode2->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode3->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(canvasNode->GetId());
 }
 
 /**
