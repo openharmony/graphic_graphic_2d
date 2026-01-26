@@ -430,7 +430,7 @@ void RSFilterCacheManager::InvalidateFilterCache(FilterCacheType clearType)
     auto invalidateCache = [](std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& cache) {
         if (cache) {
             RSFilterCacheMemoryController::Instance().ReduceFilterCacheMem(
-                cache->cachedRect_.GetHeight() * cache->cachedRect_.GetWidth());
+                static_cast<int64_t>(cache->cachedRect_.GetHeight()) * cache->cachedRect_.GetWidth());
             cache.reset();
         }
     };
@@ -458,8 +458,9 @@ void RSFilterCacheManager::ReplaceCachedEffectData(std::shared_ptr<Drawing::Imag
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& targetCache,
     std::shared_ptr<IGECacheProvider> cacheProvider)
 {
-    int64_t oldMem = targetCache ? (targetCache->cachedRect_.GetHeight() * targetCache->cachedRect_.GetWidth()) : 0;
-    int64_t newMem = rect.GetHeight() * rect.GetWidth();
+    int64_t oldMem = targetCache ? (static_cast<int64_t>(targetCache->cachedRect_.GetHeight()) *
+        targetCache->cachedRect_.GetWidth()) : 0;
+    int64_t newMem = static_cast<int64_t>(rect.GetHeight()) * rect.GetWidth();
     if (cacheProvider) {
         targetCache = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(image), rect, cacheProvider);
     } else {
