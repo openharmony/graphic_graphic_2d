@@ -475,7 +475,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .isSync = true,
             };
             bool success;
-            if (CreateNode(config, id, success) != ERR_OK || reply.WriteBool(success)) {
+            if (CreateNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
