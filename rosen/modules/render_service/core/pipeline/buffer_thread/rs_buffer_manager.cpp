@@ -118,11 +118,12 @@ void RSBufferManager::OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::w
     sptr<SyncFence> uniFence = nullptr;
     std::set<uint32_t> decedSet = {};
     for (const auto& [id, buffer, fence] : releaseBufferFenceVec) {
-        if (rsLayers.count(id) == 0) {
+        auto iter = rsLayers.find(id);
+        if (iter == rsLayers.end()) {
             RS_LOGE("RSBufferManager::OnReleaseLayerBuffers has no id: %{public}" PRIu64 " layer", id);
             continue;
         }
-        auto layer = rsLayers[id].lock();
+        auto layer = iter->second.lock();
         if (layer == nullptr) {
             RS_LOGE("RSBufferManager::OnReleaseLayerBuffers layer is nullptr");
             continue;
@@ -159,33 +160,40 @@ void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::
         return;
     }
     std::lock_guard<std::mutex> lock(uniBufferCount->mapMutex_);
-    for (auto [id, bufferId] : uniBufferCount->uniOnDrawBufferMap_) {
-        if (decedSet.find(bufferId) != decedSet.end()) {
+    for (const auto& [layerId, bufferIdSet] : uniBufferCount->uniOnDrawBuffersMap_) {
+        auto iter = rsLayers.find(layerId);
+        if (iter == rsLayers.end()) {
+            RS_LOGE("RSBufferManager::ReleaseUniOnDrawBuffers has no layer: %{public}" PRIu64 " layer", layerId);
             continue;
         }
-        if (rsLayers.count(id) == 0) {
-            RS_LOGE("RSBufferManager::ReleaseUniOnDrawBuffers has no id: %{public}" PRIu64 " layer", id);
-            continue;
-        }
-        auto layer = rsLayers[id].lock();
+        auto layer = iter->second.lock();
         if (layer == nullptr) {
-            RS_LOGE("RSBufferManager::ReleaseUniOnDrawBuffers layer is nullptr");
+            RS_LOGE("RSBufferManager::ReleaseUniOnDrawBuffers layer: %{public}" PRIu64 " has been released", layerId);
             continue;
         }
 
-        auto bufferOwnerCount = layer->PopBufferOwnerCountById(bufferId);
-        if (bufferOwnerCount == nullptr) {
-            continue;
-        }
+        for (const auto& bufferId : bufferIdSet) {
+            if (decedSet.find(bufferId) != decedSet.end()) {
+                continue;
+            }
 
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseUniOnDrawBuffers bufferId %" PRIu64, bufferId);
-        AddPendingReleaseBuffer(bufferOwnerCount->bufferId_, uniFence);
-        if (!bufferOwnerCount->CheckLastUniBufferOwner(uniBufferCount->bufferId_, screenId)) {
-            layer->SetBufferOwnerCount(bufferOwnerCount, false);
+            auto bufferOwnerCount = layer->PopBufferOwnerCountById(bufferId);
+            if (bufferOwnerCount == nullptr) {
+                RS_LOGE("RSBufferManager::ReleaseUniOnDrawBuffers not buffer: %{public}" PRIu64
+                    " in layer:%{public}" PRIu64, bufferId, layerId);
+                continue;
+            }
+
+            RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseUniOnDrawBuffers bufferId %" PRIu64
+                " in layer:%" PRIu64, bufferId, layerId);
+            AddPendingReleaseBuffer(bufferOwnerCount->bufferId_, uniFence);
+            if (!bufferOwnerCount->CheckLastUniBufferOwner(uniBufferCount->bufferId_, screenId)) {
+                layer->SetBufferOwnerCount(bufferOwnerCount, false);
+            }
+            bufferOwnerCount->OnBufferReleased();
         }
-        bufferOwnerCount->OnBufferReleased();
     }
-    uniBufferCount->uniOnDrawBufferMap_.clear();
+    uniBufferCount->uniOnDrawBuffersMap_.clear();
 }
 
 void RSBufferManager::ReleaseBufferById(uint64_t bufferId)

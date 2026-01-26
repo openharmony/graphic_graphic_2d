@@ -91,8 +91,15 @@ public:
 
         void InsertUniOnDrawSet(uint64_t layerId, uint64_t bufferId)
         {
+            RS_OPTIONAL_TRACE_NAME_FMT("InsertUniOnDrawSet layerId:%" PRIu64 " bufferId:%" PRIu64,
+                layerId, bufferId);
             std::lock_guard<std::mutex> lock(mapMutex_);
-            uniOnDrawBufferMap_[layerId] = bufferId;
+            auto iter = uniOnDrawBuffersMap_.find(layerId);
+            if (iter != uniOnDrawBuffersMap_.end()) {
+                iter->second.insert(bufferId);
+            } else {
+                uniOnDrawBuffersMap_.emplace(layerId, std::set<uint64_t>{bufferId});
+            }
         }
 
         void SetUniBufferOwner(uint64_t bufferId, uint64_t screenId)
@@ -107,15 +114,12 @@ public:
         {
             std::lock_guard<std::mutex> lock(mapMutex_);
             auto iter = uniBufferOwnerSeqNumMap_.find(screenId);
-            if (iter == uniBufferOwnerSeqNumMap_.end()) {
-                // If an exception occurs, true is returned to release the buffer
-                return true;
-            }
-            return iter->second == bufferId;
+            // If not find screenId, true is returned to release the buffer
+            return iter == uniBufferOwnerSeqNumMap_.end() || iter->second == bufferId;
         }
 
         std::mutex mapMutex_;
-        std::map<uint64_t, uint64_t> uniOnDrawBufferMap_;
+        std::map<uint64_t, std::set<uint64_t>> uniOnDrawBuffersMap_;
         std::atomic<int32_t> refCount_{1};
         uint64_t bufferId_ = 0;
         OnReleaseBufferFunc bufferReleaseCb_ = nullptr;

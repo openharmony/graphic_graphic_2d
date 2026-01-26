@@ -305,8 +305,9 @@ bool RSSurfaceCaptureTaskParallel::Run(
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
-    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
-        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false), acquireFence);
+    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), acquireFence,
+        GetFeatureParamValue("CaptureConfig",
+            &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
     bufferGuard.SetAcquireFence(acquireFence);
     if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
         RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
