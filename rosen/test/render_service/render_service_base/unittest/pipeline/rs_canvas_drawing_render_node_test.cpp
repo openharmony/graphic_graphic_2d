@@ -670,12 +670,12 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest001, TestSize.Level
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId_ + 1);
 
     node->cachedReversedOpTypes_.clear();
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList0 = nullptr;
+    auto drawCmdList0 = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     node->GetDrawOpItemInfo(drawCmdList0);
-    EXPECT_EQ(node->cachedReversedOpTypes_.size(), 0);
+    EXPECT_EQ(node->cachedReversedOpTypes_.size(), 1);
     std::string outTest1;
     node->DumpSubClassNode(outTest1);
-    EXPECT_EQ(outTest1, ", lastResetSurfaceTime: 0, opCountAfterReset: 0, drawOpInfo: []");
+    EXPECT_EQ(outTest1, ", lastResetSurfaceTime: 0, opCountAfterReset: 0, drawOpInfo: [[0,0,0][]]");
 }
 
 /**

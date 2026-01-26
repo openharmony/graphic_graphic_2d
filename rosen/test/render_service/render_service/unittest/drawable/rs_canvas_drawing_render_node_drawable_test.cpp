@@ -430,7 +430,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushTest, TestSize.Level1)
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ProcessCPURenderInBackgroundThreadTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    RSRenderNodeDrawable::Registrar registrar;
+    auto node = std::make_shared<RSRenderNode>(1);
     node->GetRenderParams();
     EXPECT_NE(node->renderDrawable_, nullptr);
 

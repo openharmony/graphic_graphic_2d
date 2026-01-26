@@ -705,6 +705,7 @@ HWTEST_F(RSBaseRenderNodeTest, ResetParent, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, DumpTree001, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     int32_t depth = 0;
     std::string out = "string";
     node->DumpTree(depth, out);
@@ -720,6 +721,7 @@ HWTEST_F(RSBaseRenderNodeTest, DumpTree001, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, DumpTree002, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     int32_t depth = 0;
     std::string out = "";
     node->oldDirty_ = DEFAULT_RECT;
