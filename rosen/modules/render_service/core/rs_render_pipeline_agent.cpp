@@ -1582,7 +1582,7 @@ bool RSRenderPipelineAgent::UnRegisterTypeface(uint64_t globalUniqueId)
 void RSRenderPipelineAgent::HgmForceUpdateTask(bool flag, const std::string& fromWhom)
 {
     if (rsRenderPipeline_ == nullptr || rsRenderPipeline_->GetMainThread() == nullptr) {
-        RS_LOGE("${public}s: rsRenderPipeline or mainThread is nullptr", __func__);
+        RS_LOGE("%{public}s: rsRenderPipeline or mainThread is nullptr", __func__);
         return;
     }
     rsRenderPipeline_->GetMainThread()->SetForceUpdateUniRenderFlag(flag);
