@@ -44,6 +44,11 @@
 #include "screen_manager/rs_screen.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
+#include "ipc_callbacks/buffer_available_callback_stub.h"
+#include "ipc_callbacks/buffer_clear_callback_stub.h"
+#include "ipc_callbacks/rs_application_agent_stub.h"
+#include "transaction/rs_transaction_data.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -53,6 +58,7 @@ using namespace testing::ext;
 namespace {
 constexpr const int WAIT_HANDLER_TIME = 1; // 1s
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
+constexpr const int SURFACE_NODE_ID = 1003;
 };
 
 namespace OHOS::Rosen {
@@ -80,12 +86,13 @@ private:
 };
 
 uint32_t RSClientToRenderConnectionStubTest::screenId_ = 0;
-std::shared_ptr<RSSurfaceRenderNode> RSClientToRenderConnectionStubTest::surfaceNode_ =
-    std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(10003, std::make_shared<RSContext>(), true),
-    RSRenderNodeGC::NodeDestructor);
+std::shared_ptr<RSSurfaceRenderNode> RSClientToRenderConnectionStubTest::surfaceNode_ = nullptr;
 
 void RSClientToRenderConnectionStubTest::SetUpTestCase()
 {
+    pid_t pid = SURFACE_NODE_ID;
+    surfaceNode_ =std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(((NodeId)pid << 32 | SURFACE_NODE_ID),
+        std::make_shared<RSContext>(), true), RSRenderNodeGC::NodeDestructor);
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
@@ -187,6 +194,35 @@ public:
     }
 };
 #endif
+
+class RSApplicationAgentStubMock : public RSApplicationAgentStub {
+public:
+    RSApplicationAgentStubMock() = default;
+    ~RSApplicationAgentStubMock() noexcept override = default;
+    void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override {}
+};
+
+class RSBufferAvailableCallbackStubMock : public RSBufferAvailableCallbackStub {
+public:
+    RSBufferAvailableCallbackStubMock() = default;
+    ~RSBufferAvailableCallbackStubMock() noexcept override = default;
+    void OnBufferAvailable() override {}
+};
+
+class RSBufferClearCallbackStubMock : public RSBufferClearCallbackStub {
+public:
+    RSBufferClearCallbackStubMock() = default;
+    ~RSBufferClearCallbackStubMock() noexcept override = default;
+    void OnBufferClear() override {}
+};
+
+class RSSurfaceBufferCallbackStubMock : public RSSurfaceBufferCallbackStub {
+public:
+    RSSurfaceBufferCallbackStubMock() = default;
+    ~RSSurfaceBufferCallbackStubMock() noexcept override = default;
+    void OnFinish(const FinishCallbackRet& ret) override {}
+    void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override {}
+};
 
 void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
@@ -1233,4 +1269,1026 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkStub001, TestS
     data2.WriteString(name);
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
 }
+
+/**
+ * @tc.name: CreateNodeTest001
+ * @tc.desc: Test CREATE_NODE interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CreateNodeTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE);
+
+    // Test case 1: missing nodeId
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: missing surfaceName (branch coverage)
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10001;
+    data2.WriteUint64(nodeId);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 3: valid data with nodeId and surfaceName
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data3.WriteUint64(nodeId);
+    data3.WriteString("TestSurface");
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: CreateDisplayNodeTest001
+ * @tc.desc: Test CREATE_DISPLAY_NODE interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
+
+    // Test case 1: missing id
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: missing mirrorId/screenId/isMirrored (branch coverage)
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId displayNodeId = 10002;
+    data2.WriteUint64(displayNodeId);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 3: valid data
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data3.WriteUint64(displayNodeId);
+    data3.WriteUint64(0); // mirrorId
+    data3.WriteUint64(screenId_); // screenId
+    data3.WriteBool(false); // isMirrored
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: CreateDisplayNodeTest002
+ * @tc.desc: Test CREATE_DISPLAY_NODE with missing screenId (independent Read* condition)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
+
+    // Test case: write id and mirrorId, but NOT screenId
+    // This should fail at !data.ReadUint64(screenId) condition
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId displayNodeId = 10002;
+    data.WriteUint64(displayNodeId);
+    data.WriteUint64(0); // mirrorId
+    // NOT writing screenId - should fail here
+    // NOT writing isMirrored
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: CreateDisplayNodeTest003
+ * @tc.desc: Test CREATE_DISPLAY_NODE with missing isMirrored (independent Read* condition)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest003, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
+
+    // Test case: write id, mirrorId, and screenId, but NOT isMirrored
+    // This should fail at !data.ReadBool(isMirrored) condition
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId displayNodeId = 10002;
+    data.WriteUint64(displayNodeId);
+    data.WriteUint64(0); // mirrorId
+    data.WriteUint64(screenId_); // screenId
+    // NOT writing isMirrored - should fail here
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: RegisterApplicationAgentTest001
+ * @tc.desc: Test REGISTER_APPLICATION_AGENT interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RegisterApplicationAgentTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_APPLICATION_AGENT);
+
+    // Test case 1: missing remote object
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
+
+    // Test case 2: valid data with mock agent
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    sptr<RSApplicationAgentStub> agent = new RSApplicationAgentStubMock();
+    data2.WriteRemoteObject(agent->AsObject());
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetBufferAvailableListenerTest001
+ * @tc.desc: Test SET_BUFFER_AVAILABLE_LISTENER interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetBufferAvailableListenerTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER);
+
+    // Test case 1: missing nodeId
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: valid data with callback
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = surfaceNode_->GetId();
+    data2.WriteUint64(nodeId);
+
+    sptr<RSBufferAvailableCallbackStub> callback = new RSBufferAvailableCallbackStubMock();
+    data2.WriteRemoteObject(callback->AsObject());
+    data2.WriteBool(false); // isFromRenderThread
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetBufferClearListenerTest001
+ * @tc.desc: Test SET_BUFFER_CLEAR_LISTENER interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetBufferClearListenerTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER);
+
+    // Test case 1: missing nodeId
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: valid data with callback
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = surfaceNode_->GetId();
+    data2.WriteUint64(nodeId);
+
+    sptr<RSBufferClearCallbackStub> callback = new RSBufferClearCallbackStubMock();
+    data2.WriteRemoteObject(callback->AsObject());
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetBufferClearListenerTest002
+ * @tc.desc: Test SET_BUFFER_CLEAR_LISTENER with missing callback (branch coverage)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetBufferClearListenerTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER);
+
+    // Test case: missing callback (branch coverage)
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = surfaceNode_->GetId();
+    data.WriteUint64(nodeId);
+    // Not writing callback - should return ERR_NULL_OBJECT
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
+}
+
+/**
+ * @tc.name: GetPixelmapTest001
+ * @tc.desc: Test GET_PIXELMAP interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmapTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
+
+    // Test case 1: missing nodeId
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: valid data
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10003;
+    data2.WriteUint64(nodeId);
+
+    // Create mock PixelMap
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    data2.WriteParcelable(pixelmap.get());
+
+    // Write Rect
+    Drawing::Rect rect;
+    data2.WriteFloat(rect.left_);
+    data2.WriteFloat(rect.top_);
+    data2.WriteFloat(rect.right_);
+    data2.WriteFloat(rect.bottom_);
+
+    // Write DrawCmdList (nullptr)
+    data2.WriteUint64(0);
+
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    // Note: This might return ERR_INVALID_REPLY if pixelmap cannot be created
+    EXPECT_TRUE(res == ERR_NONE || res == ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: GetPixelmapTest002
+ * @tc.desc: Test GET_PIXELMAP with missing PixelMap (independent Read* condition)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmapTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
+
+    // Test case: write nodeId, but NOT PixelMap
+    // This should fail when reading PixelMap or subsequent data
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10003;
+    data.WriteUint64(nodeId);
+    // NOT writing PixelMap - should fail here or later
+    connectionStub_->OnRemoteRequest(code, data, reply, option);
+    bool res;
+    reply.ReadBool(res);
+    EXPECT_FALSE(res);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureSoloTest001
+ * @tc.desc: Test TAKE_SURFACE_CAPTURE_SOLO interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureSoloTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO);
+
+    // Test case 1: missing nodeId
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: valid data with capture config
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = surfaceNode_->GetId();
+    data2.WriteUint64(nodeId);
+
+    RSSurfaceCaptureConfig captureConfig;
+    data2.WriteFloat(captureConfig.scaleX);
+    data2.WriteFloat(captureConfig.scaleY);
+    data2.WriteBool(captureConfig.useDma);
+    data2.WriteBool(captureConfig.useCurWindow);
+    data2.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
+    data2.WriteBool(captureConfig.isSync);
+    data2.WriteBool(captureConfig.isHdrCapture);
+    data2.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data2.WriteFloat(captureConfig.mainScreenRect.left_);
+    data2.WriteFloat(captureConfig.mainScreenRect.top_);
+    data2.WriteFloat(captureConfig.mainScreenRect.right_);
+    data2.WriteFloat(captureConfig.mainScreenRect.bottom_);
+    data2.WriteUInt64Vector(captureConfig.blackList);
+    data2.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
+    data2.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.left_);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.top_);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.right_);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
+    data2.WriteUint32(captureConfig.backGroundColor);
+
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureSoloTest002
+ * @tc.desc: Test TAKE_SURFACE_CAPTURE_SOLO with missing captureConfig (independent Read* condition)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureSoloTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO);
+
+    // Test case: write nodeId, but NOT captureConfig
+    // This should fail at !ReadSurfaceCaptureConfig(captureConfig, data) condition
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = surfaceNode_->GetId();
+    data.WriteUint64(nodeId);
+    // NOT writing captureConfig - should fail here
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: TakeSelfSurfaceCaptureTest001
+ * @tc.desc: Test TAKE_SELF_SURFACE_CAPTURE interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SELF_SURFACE_CAPTURE);
+
+    // Test case 1: missing nodeId
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: valid data with callback and config
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = surfaceNode_->GetId();
+    data2.WriteUint64(nodeId);
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    data2.WriteRemoteObject(callback->AsObject());
+
+    RSSurfaceCaptureConfig captureConfig;
+    data2.WriteFloat(captureConfig.scaleX);
+    data2.WriteFloat(captureConfig.scaleY);
+    data2.WriteBool(captureConfig.useDma);
+    data2.WriteBool(captureConfig.useCurWindow);
+    data2.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
+    data2.WriteBool(captureConfig.isSync);
+    data2.WriteBool(captureConfig.isHdrCapture);
+    data2.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data2.WriteFloat(captureConfig.mainScreenRect.left_);
+    data2.WriteFloat(captureConfig.mainScreenRect.top_);
+    data2.WriteFloat(captureConfig.mainScreenRect.right_);
+    data2.WriteFloat(captureConfig.mainScreenRect.bottom_);
+    data2.WriteUInt64Vector(captureConfig.blackList);
+    data2.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
+    data2.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.left_);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.top_);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.right_);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
+    data2.WriteUint32(captureConfig.backGroundColor);
+
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: TakeSelfSurfaceCaptureTest002
+ * @tc.desc: Test TAKE_SELF_SURFACE_CAPTURE with missing callback (branch coverage)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SELF_SURFACE_CAPTURE);
+
+    // Test case: valid nodeId but missing callback (branch coverage)
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = surfaceNode_->GetId();
+    data.WriteUint64(nodeId);
+    // Not writing callback - should return ERR_NULL_OBJECT
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
+}
+
+/**
+ * @tc.name: TakeSelfSurfaceCaptureTest003
+ * @tc.desc: Test TAKE_SELF_SURFACE_CAPTURE with missing captureConfig (branch coverage)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest003, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SELF_SURFACE_CAPTURE);
+
+    // Test case: valid callback but missing captureConfig (branch coverage)
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = surfaceNode_->GetId();
+    data.WriteUint64(nodeId);
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+    // Not writing captureConfig - should return ERR_INVALID_DATA
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetWindowFreezeImmediatelyTest001
+ * @tc.desc: Test SET_WINDOW_FREEZE_IMMEDIATELY interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetWindowFreezeImmediatelyTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
+
+    // Test case 1: missing nodeId
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: unfreeze (isFreeze = false)
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10004;
+    data2.WriteUint64(nodeId);
+    data2.WriteBool(false); // isFreeze
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+
+    // Test case 3: freeze (isFreeze = true) with callback and config
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data3.WriteUint64(nodeId);
+    data3.WriteBool(true); // isFreeze
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    data3.WriteRemoteObject(callback->AsObject());
+
+    RSSurfaceCaptureConfig captureConfig;
+    data3.WriteFloat(captureConfig.scaleX);
+    data3.WriteFloat(captureConfig.scaleY);
+    data3.WriteBool(captureConfig.useDma);
+    data3.WriteBool(captureConfig.useCurWindow);
+    data3.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
+    data3.WriteBool(captureConfig.isSync);
+    data3.WriteBool(captureConfig.isHdrCapture);
+    data3.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data3.WriteFloat(captureConfig.mainScreenRect.left_);
+    data3.WriteFloat(captureConfig.mainScreenRect.top_);
+    data3.WriteFloat(captureConfig.mainScreenRect.right_);
+    data3.WriteFloat(captureConfig.mainScreenRect.bottom_);
+    data3.WriteUInt64Vector(captureConfig.blackList);
+    data3.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
+    data3.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data3.WriteFloat(captureConfig.specifiedAreaRect.left_);
+    data3.WriteFloat(captureConfig.specifiedAreaRect.top_);
+    data3.WriteFloat(captureConfig.specifiedAreaRect.right_);
+    data3.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
+    data3.WriteUint32(captureConfig.backGroundColor);
+
+    // Write blurParam
+    data3.WriteBool(false); // isNeedBlur
+    data3.WriteFloat(0.0f); // blurRadius
+
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetWindowFreezeImmediatelyTest002
+ * @tc.desc: Test SET_WINDOW_FREEZE_IMMEDIATELY with missing callback when freezing (branch coverage)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetWindowFreezeImmediatelyTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
+
+    // Test case: isFreeze=true but missing callback (branch coverage)
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10004;
+    data.WriteUint64(nodeId);
+    data.WriteBool(true); // isFreeze = true
+    // Not writing callback when isFreeze is true - should return ERR_NULL_OBJECT
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
+}
+
+/**
+ * @tc.name: SetWindowFreezeImmediatelyTest003
+ * @tc.desc: Test SET_WINDOW_FREEZE_IMMEDIATELY with missing captureConfig when freezing (branch coverage)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetWindowFreezeImmediatelyTest003, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
+
+    // Test case: valid callback but missing captureConfig (branch coverage)
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10004;
+    data.WriteUint64(nodeId);
+    data.WriteBool(true); // isFreeze = true
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+    // Not writing captureConfig when isFreeze is true - should return ERR_INVALID_DATA
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetWindowFreezeImmediatelyTest004
+ * @tc.desc: Test SET_WINDOW_FREEZE_IMMEDIATELY with missing blurParam when freezing (branch coverage)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetWindowFreezeImmediatelyTest004, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
+
+    // Test case: valid captureConfig but missing blurParam (branch coverage)
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10004;
+    data.WriteUint64(nodeId);
+    data.WriteBool(true); // isFreeze = true
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+
+    RSSurfaceCaptureConfig captureConfig;
+    data.WriteFloat(captureConfig.scaleX);
+    data.WriteFloat(captureConfig.scaleY);
+    data.WriteBool(captureConfig.useDma);
+    data.WriteBool(captureConfig.useCurWindow);
+    data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
+    data.WriteBool(captureConfig.isSync);
+    data.WriteBool(captureConfig.isHdrCapture);
+    data.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data.WriteFloat(captureConfig.mainScreenRect.left_);
+    data.WriteFloat(captureConfig.mainScreenRect.top_);
+    data.WriteFloat(captureConfig.mainScreenRect.right_);
+    data.WriteFloat(captureConfig.mainScreenRect.bottom_);
+    data.WriteUInt64Vector(captureConfig.blackList);
+    data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
+    data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data.WriteFloat(captureConfig.specifiedAreaRect.left_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.top_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.right_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
+    data.WriteUint32(captureConfig.backGroundColor);
+    // Not writing blurParam when isFreeze is true - should return ERR_INVALID_DATA
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: TakeUICaptureInRangeTest001
+ * @tc.desc: Test TAKE_UI_CAPTURE_IN_RANGE interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE);
+
+    // Test case 1: missing nodeId
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: valid data with callback and config
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10005;
+    data2.WriteUint64(nodeId);
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    data2.WriteRemoteObject(callback->AsObject());
+
+    RSSurfaceCaptureConfig captureConfig;
+    data2.WriteFloat(captureConfig.scaleX);
+    data2.WriteFloat(captureConfig.scaleY);
+    data2.WriteBool(captureConfig.useDma);
+    data2.WriteBool(captureConfig.useCurWindow);
+    data2.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
+    data2.WriteBool(captureConfig.isSync);
+    data2.WriteBool(captureConfig.isHdrCapture);
+    data2.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data2.WriteFloat(captureConfig.mainScreenRect.left_);
+    data2.WriteFloat(captureConfig.mainScreenRect.top_);
+    data2.WriteFloat(captureConfig.mainScreenRect.right_);
+    data2.WriteFloat(captureConfig.mainScreenRect.bottom_);
+    data2.WriteUInt64Vector(captureConfig.blackList);
+    data2.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
+    data2.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.left_);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.top_);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.right_);
+    data2.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
+    data2.WriteUint32(captureConfig.backGroundColor);
+
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: TakeUICaptureInRangeTest002
+ * @tc.desc: Test TAKE_UI_CAPTURE_IN_RANGE with missing callback (branch coverage)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE);
+
+    // Test case: valid nodeId but missing callback (branch coverage)
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10005;
+    data.WriteUint64(nodeId);
+    // Not writing callback - should return ERR_NULL_OBJECT
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
+}
+
+/**
+ * @tc.name: TakeUICaptureInRangeTest003
+ * @tc.desc: Test TAKE_UI_CAPTURE_IN_RANGE with missing captureConfig (branch coverage)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest003, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE);
+
+    // Test case: valid callback but missing captureConfig (branch coverage)
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10005;
+    data.WriteUint64(nodeId);
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+    // Not writing captureConfig - should return ERR_INVALID_DATA
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: CommitTransactionTest001
+ * @tc.desc: Test COMMIT_TRANSACTION interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransactionTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION);
+
+    // Test case 1: normal parcel with readData = 0
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteInt32(0); // readData = 0 (normal parcel)
+    // Write minimal transaction data
+    data.WriteUint64(1); // timestamp
+    data.WriteInt32(0); // follower count
+    data.WriteInt32(0); // command count
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    // Should succeed or return invalid data if parsing fails
+    EXPECT_TRUE(res == ERR_NONE || res == ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: CommitTransactionTest002
+ * @tc.desc: Test COMMIT_TRANSACTION with missing data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransactionTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION);
+
+    // Test case: missing readData flag
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ClearSurfaceWatermarkForNodesTest002
+ * @tc.desc: Test CLEAR_SURFACE_WATERMARK_FOR_NODES with complete data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkForNodesTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+
+    // Test case: complete data with pid, name and nodeList
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    pid_t pid = getpid();
+    data.WriteInt32(pid);
+    std::string name = "testWatermark";
+    data.WriteString(name);
+    std::vector<NodeId> nodeList = {10001, 10002};
+    data.WriteUInt64Vector(nodeList);
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: ClearSurfaceWatermarkForNodesTest003
+ * @tc.desc: Test CLEAR_SURFACE_WATERMARK_FOR_NODES with missing name (independent Read* condition)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkForNodesTest003, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+
+    // Test case: write pid, but NOT name
+    // This should fail at !data.ReadString(name) condition
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    pid_t pid = getpid();
+    data.WriteInt32(pid);
+    // NOT writing name - should fail here
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ClearSurfaceWatermarkForNodesTest004
+ * @tc.desc: Test CLEAR_SURFACE_WATERMARK_FOR_NODES with missing nodeList (independent Read* condition)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkForNodesTest004, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+
+    // Test case: write pid and name, but NOT nodeList
+    // This should fail at !data.ReadUInt64Vector(&nodeIdList) condition
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    pid_t pid = getpid();
+    data.WriteInt32(pid);
+    std::string name = "testWatermark";
+    data.WriteString(name);
+    // NOT writing nodeList - should fail here
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ClearSurfaceWatermarkTest002
+ * @tc.desc: Test CLEAR_SURFACE_WATERMARK with complete data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK);
+
+    // Test case: complete data with pid and name
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    pid_t pid = getpid();
+    data.WriteInt32(pid);
+    std::string name = "testWatermark";
+    data.WriteString(name);
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: ClearSurfaceWatermarkTest003
+ * @tc.desc: Test CLEAR_SURFACE_WATERMARK with missing name (independent Read* condition)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkTest003, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK);
+
+    // Test case: write pid, but NOT name
+    // This should fail at !data.ReadString(name) condition
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    pid_t pid = getpid();
+    data.WriteInt32(pid);
+    // NOT writing name - should fail here
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: RegisterSurfaceBufferCallbackTest001
+ * @tc.desc: Test REGISTER_SURFACE_BUFFER_CALLBACK interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RegisterSurfaceBufferCallbackTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK);
+
+    // Test case 1: missing pid (should fail at ReadInt32)
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: write pid, but NOT uid (should fail at ReadUint64)
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int32_t pid = getpid();
+    data2.WriteInt32(pid);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 3: write pid and uid, but NOT remoteObject
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data3.WriteInt32(pid);
+    data3.WriteUint64(0); // uid
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
+
+    // Test case 4: write pid, uid, and valid remoteObject (success path)
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data4.WriteInt32(pid);
+    data4.WriteUint64(0); // uid
+    sptr<RSISurfaceBufferCallback> callback = new RSSurfaceBufferCallbackStubMock();
+    data4.WriteRemoteObject(callback->AsObject());
+    res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: UnregisterSurfaceBufferCallbackTest001
+ * @tc.desc: Test UNREGISTER_SURFACE_BUFFER_CALLBACK interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, UnregisterSurfaceBufferCallbackTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK);
+
+    // Test case 1: missing pid (should fail at ReadInt32)
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 2: write pid, but NOT uid (should fail at ReadUint64)
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int32_t pid = getpid();
+    data2.WriteInt32(pid);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    // Test case 3: valid data with pid and uid
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data3.WriteInt32(pid);
+    data3.WriteUint64(0); // uid
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
 } // namespace OHOS::Rosen
