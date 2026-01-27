@@ -2928,7 +2928,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             const uint32_t MAX_LIST_SIZE = 50;
             if (listSize > MAX_LIST_SIZE) {
-                ret = ERR_INVALID_STATE;
+                ret = ERR_INVALID_DATA;
                 break;
             }
 
@@ -2946,7 +2946,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 newConfig.push_back(make_pair(key, value));
             }
             if (errFlag) {
-                ret = ERR_INVALID_STATE;
+                ret = ERR_INVALID_DATA;
                 break;
             }
             NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);

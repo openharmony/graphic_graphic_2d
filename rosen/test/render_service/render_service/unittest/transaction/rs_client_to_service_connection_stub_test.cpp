@@ -2980,6 +2980,280 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenTypeBlackList001, 
 }
 
 /**
+ * @tc.name: NotifyAppStrategyConfigChangeEvent001
+ * @tc.desc: Test NotifyAppStrategyConfigChangeEvent001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, NotifyAppStrategyConfigChangeEvent001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    std::string pkgName = "testpkg";
+    uint32_t listSize = 1;
+    uint32_t errListSize = 100;
+    std::string key = "testkey";
+    std::string value = "testvalue";
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteString(pkgName);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data3.WriteString(pkgName);
+    data3.WriteUint32(errListSize);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data5;
+    data5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data5.WriteString(pkgName);
+    data5.WriteUint32(listSize);
+    data5.WriteString(key);
+    res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data6;
+    data6.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data6.WriteString(pkgName);
+    data6.WriteUint32(listSize);
+    data6.WriteString(key);
+    data6.WriteString(value);
+    res = connectionStub_->OnRemoteRequest(code, data6, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: NotifySoftVsyncRateDiscountEvent001
+ * @tc.desc: Test NotifySoftVsyncRateDiscountEvent001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, NotifySoftVsyncRateDiscountEvent001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    uint32_t pid = 0;
+    std::string name = "test";
+    uint32_t rateDiscount = 0;
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint32(pid);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data3.WriteUint32(pid);
+    data3.WriteString(name);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data4.WriteUint32(pid);
+    data4.WriteString(name);
+    data4.WriteUint32(rateDiscount);
+    connectionStub_->OnRemoteRequest(code, data4, reply, option);
+}
+
+/**
+ * @tc.name: SetWindowExpectedRefreshRate001
+ * @tc.desc: Test SetWindowExpectedRefreshRate001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+    uint32_t mapSize = 1;
+    uint32_t errMapSize = 200;
+    uint64_t windowId = 0;
+    std::string eventName = "testEvent";
+    bool eventStatus = false;
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint32(errMapSize);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data3.WriteUint32(mapSize);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data4.WriteUint32(mapSize);
+    data4.WriteUint64(windowId);
+    res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data5;
+    data5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data5.WriteUint32(mapSize);
+    data5.WriteUint64(windowId);
+    data5.WriteString(eventName);
+    res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data6;
+    data6.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data6.WriteUint32(mapSize);
+    data6.WriteUint64(windowId);
+    data6.WriteString(eventName);
+    data6.WriteBool(eventStatus);
+    res = connectionStub_->OnRemoteRequest(code, data6, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetWindowExpectedRefreshRate002
+ * @tc.desc: Test SetWindowExpectedRefreshRate002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate002, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID);
+
+    uint32_t mapSize = 1;
+    uint64_t windowId = 0;
+    std::string eventName = "testEvent";
+    bool eventStatus = false;
+    uint32_t minRefreshRate = 60;
+    uint32_t maxRefreshRate = 120;
+    std::string description = "test";
+
+    MessageParcel data7;
+    data7.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data7.WriteUint32(mapSize);
+    data7.WriteUint64(windowId);
+    data7.WriteString(eventName);
+    data7.WriteBool(eventStatus);
+    data7.WriteUint32(minRefreshRate);
+    auto res = connectionStub_->OnRemoteRequest(code, data7, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data8;
+    data8.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data8.WriteUint32(mapSize);
+    data8.WriteUint64(windowId);
+    data8.WriteString(eventName);
+    data8.WriteBool(eventStatus);
+    data8.WriteUint32(minRefreshRate);
+    data8.WriteUint32(maxRefreshRate);
+    res = connectionStub_->OnRemoteRequest(code, data8, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data9;
+    data9.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data9.WriteUint32(mapSize);
+    data9.WriteUint64(windowId);
+    data9.WriteString(eventName);
+    data9.WriteBool(eventStatus);
+    data9.WriteUint32(minRefreshRate);
+    data9.WriteUint32(maxRefreshRate);
+    data9.WriteString(description);
+    res = connectionStub_->OnRemoteRequest(code, data9, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetWindowExpectedRefreshRate003
+ * @tc.desc: Test SetWindowExpectedRefreshRate003
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate003, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    uint32_t mapSize = 1;
+    uint32_t errMapSize = 200;
+    std::string vsyncName = "testVsync";
+    std::string eventName = "testEvent";
+    bool eventStatus = false;
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint32(errMapSize);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data3.WriteUint32(mapSize);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data4.WriteUint32(mapSize);
+    data4.WriteString(vsyncName);
+    res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data5;
+    data5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data5.WriteUint32(mapSize);
+    data5.WriteString(vsyncName);
+    data5.WriteString(eventName);
+    res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data6;
+    data6.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data6.WriteUint32(mapSize);
+    data6.WriteString(vsyncName);
+    data6.WriteString(eventName);
+    data6.WriteBool(eventStatus);
+    res = connectionStub_->OnRemoteRequest(code, data6, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: NotifyTouchEventTest001
  * @tc.desc: Test NotifyTouchEvent when mainThread_ is nullptr
  * @tc.type: FUNC
