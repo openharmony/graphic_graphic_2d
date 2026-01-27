@@ -2065,7 +2065,7 @@ FilterCascadeBundleInfo GetBundleInfo()
     }
     filterCascadeBundleInfo.bundleName = bundleInfo.applicationInfo.bundleName;
     filterCascadeBundleInfo.versionName = bundleInfo.applicationInfo.versionName;
-    filterCascadeBundleInfo.versionCode = bundleInfo.applicationInfo.versionCode;
+    filterCascadeBundleInfo.versionCode = static_cast<int32_t>(bundleInfo.applicationInfo.versionCode);
 #endif
     return filterCascadeBundleInfo;
 }
