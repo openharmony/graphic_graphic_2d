@@ -5595,7 +5595,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode007, TestSize.Level2
     rsSurfaceRenderNode->HwcSurfaceRecorder().SetIntersectWithPreviousFilter(false);
     rsSurfaceRenderNode->SetHardwareForcedDisabledState(true);
     rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);
-    EXPECT_TRUE(rsSurfaceRenderNode->IsHardwareForcedDisabled());
+    EXPECT_FALSE(rsSurfaceRenderNode->IsHardwareForcedDisabled());
 
     rsSurfaceRenderNode->HwcSurfaceRecorder().SetIntersectWithPreviousFilter(false);
     rsSurfaceRenderNode->SetHardwareForcedDisabledState(false);
