@@ -200,6 +200,7 @@ std::shared_ptr<RSNGShaderBase> ConvertFrostedGlassEffectPara(std::shared_ptr<Vi
     frostedGlassEffect->Setter<FrostedGlassEffectBgKBSTag>(frostedGlassEffectPara->GetBgKBS());
     frostedGlassEffect->Setter<FrostedGlassEffectBgPosTag>(frostedGlassEffectPara->GetBgPos());
     frostedGlassEffect->Setter<FrostedGlassEffectBgNegTag>(frostedGlassEffectPara->GetBgNeg());
+    frostedGlassEffect->Setter<FrostedGlassEffectBgAlphaTag>(frostedGlassEffectPara->GetBgAlpha());
     frostedGlassEffect->Setter<FrostedGlassEffectRefractParamsTag>(frostedGlassEffectPara->GetRefractParams());
     frostedGlassEffect->Setter<FrostedGlassEffectSdParamsTag>(frostedGlassEffectPara->GetSdParams());
     frostedGlassEffect->Setter<FrostedGlassEffectSdRatesTag>(frostedGlassEffectPara->GetSdRates());

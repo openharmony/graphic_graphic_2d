@@ -334,6 +334,7 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(frostedGlassFilterPara->GetBgKBS());
     frostedGlassFilter->Setter<FrostedGlassBgPosTag>(frostedGlassFilterPara->GetBgPos());
     frostedGlassFilter->Setter<FrostedGlassBgNegTag>(frostedGlassFilterPara->GetBgNeg());
+    frostedGlassFilter->Setter<FrostedGlassBgAlphaTag>(frostedGlassFilterPara->GetBgAlpha());
     frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(frostedGlassFilterPara->GetRefractParams());
     frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(frostedGlassFilterPara->GetSdParams());
     frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(frostedGlassFilterPara->GetSdRates());
