@@ -357,7 +357,7 @@ void RSRenderComposer::ProcessComposerFrame(RefreshRateParam param, uint32_t cur
         RSTvMetadataManager::CombineMetadataForAllLayers(layers);
 #endif
         hdiOutput_->Repaint();
-        RecordTimestamp(param.vsyncId, hdiOutput_, layers);
+        RecordTimestamp(param.vsyncId, hdiOutput_);
     }
     hdiOutput_->ReleaseLayers(releaseFence_);
     RSUniRenderThread::Instance().NotifyScreenNodeBufferReleased(screenId_);
@@ -481,29 +481,12 @@ void RSRenderComposer::EndCheck(RSTimer timer)
     }
 }
 
-void RSRenderComposer::RecordTimestamp(uint64_t vsyncId,
-    const std::shared_ptr<HdiOutput> output,
-    const std::vector<std::shared_ptr<RSLayer>>& layers)
+void RSRenderComposer::RecordTimestamp(uint64_t vsyncId, const std::shared_ptr<HdiOutput> output)
 {
-    for (const auto& layer : layers) {
-        if (layer == nullptr) {
-            continue;
-        }
-        uint64_t id = layer->GetNodeId();
-        auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-        if (layer->GetBuffer() == nullptr) {
-            continue;
-        }
-        if (layer->GetUniRenderFlag()) {
-            surfaceFpsManager.RecordPresentFdForUniRender(vsyncId, output->GetCurrentFramePresentFd());
-            surfaceFpsManager.RecordPresentTimeForUniRender(output->GetThirdFrameAheadPresentFd(),
-                output->GetThirdFrameAheadPresentTime());
-        } else {
-            surfaceFpsManager.RecordPresentFd(id, vsyncId, output->GetCurrentFramePresentFd());
-            surfaceFpsManager.RecordPresentTime(id, output->GetThirdFrameAheadPresentFd(),
-                output->GetThirdFrameAheadPresentTime());
-        }
-    }
+    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    surfaceFpsManager.RecordPresentFd(vsyncId, output->GetCurrentFramePresentFd());
+    surfaceFpsManager.RecordPresentTime(output->GetThirdFrameAheadPresentFd(),
+        output->GetThirdFrameAheadPresentTime());
 }
 
 void RSRenderComposer::ChangeLayersForActiveRectOutside(std::vector<std::shared_ptr<RSLayer>>& layers,

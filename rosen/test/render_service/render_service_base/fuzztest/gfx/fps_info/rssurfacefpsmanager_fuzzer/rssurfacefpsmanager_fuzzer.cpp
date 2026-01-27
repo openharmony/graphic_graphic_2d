@@ -80,8 +80,8 @@ void RSSurfaceFpsManagerRecordTimeFuzzTest()
     int32_t presentFd = GetData<int32_t>();
     RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
     surfaceFpsManager.RecordFlushTime(id, vsyncId, flushTimestamp);
-    surfaceFpsManager.RecordPresentFd(id, vsyncId, presentFd);
-    surfaceFpsManager.RecordPresentTime(id, presentFd, timestamp);
+    surfaceFpsManager.RecordPresentFd(vsyncId, presentFd);
+    surfaceFpsManager.RecordPresentTime(presentFd, timestamp);
 }
 bool RSSurfaceFpsManagerFuzzTest(const uint8_t* data, size_t size)
 {

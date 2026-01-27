@@ -1037,11 +1037,11 @@ HWTEST_F(RsRenderComposerTest, RecordTimestamp, TestSize.Level1)
 
     uint64_t vsyncId = 1;
     auto output = HdiOutput::CreateHdiOutput(0);
-    rsRenderComposer_->RecordTimestamp(vsyncId, output, layers);
+    rsRenderComposer_->RecordTimestamp(vsyncId, output);
     ASSERT_EQ(layers.size(), 4);
 
     l3->SetUniRenderFlag(true);
-    rsRenderComposer_->RecordTimestamp(vsyncId, output, layers);
+    rsRenderComposer_->RecordTimestamp(vsyncId, output);
     EXPECT_EQ(layers.size(), 4);
 }
 

@@ -665,7 +665,10 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
         ret = StartVSyncSampler();
     }
     UpdateThirdFrameAheadPresentFence(fbFence);
-    curPresentFd_ = fbFence->Get();
+    if (fbFence != nullptr) {
+        curPresentFd_ = fbFence->Get();
+    }
+
     return ret;
 }
 
