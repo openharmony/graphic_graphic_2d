@@ -1691,7 +1691,8 @@ bool RSUifirstManager::CheckHasTransAndFilter(RSSurfaceRenderNode& node)
                 childSurface->IsTransparent(), isBgColorTrans, hasTransparent);
             continue;
         }
-        if (childSurface->IsTransparent() && !childSurface->GetAbsDrawRect().IsInsideOf(mainAppSurfaceRect)) {
+        if (childSurface->IsTransparent() && childSurface->ChildHasVisibleFilter() &&
+            !childSurface->GetAbsDrawRect().IsInsideOf(mainAppSurfaceRect)) {
             RS_OPTIONAL_TRACE_NAME_FMT("Id:%" PRIu64 " name[%s] absDrawRect is outof mainAppNode",
                 childSurface->GetId(), childSurface->GetName().c_str());
             hasChildOutOfMainAppSurface = true;
