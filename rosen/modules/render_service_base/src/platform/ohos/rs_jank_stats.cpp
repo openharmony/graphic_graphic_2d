@@ -1253,7 +1253,7 @@ bool RSJankStats::AvcodecVideoJankReport()
     videoReportNum_++;
     auto task = [frameTime, now, surfaceName, uniqueId = recentUniqueId_]() {
         RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoJankReport RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG "
-                          "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 ", now: %" PRIu64 "",
+            "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 ", now: %" PRIu64 "",
             uniqueId, frameTime, now);
         int32_t domainId = 5;
         int32_t eventId = 0;
@@ -1374,7 +1374,7 @@ bool RSJankStats::AvcodecVideoGetInternal(uint64_t uniqueId)
     uint64_t prevFrameTime = it->second.previousFrameTime;
     auto task = [uniqueId, prevFrameTime, now]() {
         RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoGet RS_NOTIFY_XPERF_QUERIED_VIDEO_FRAME_MSG "
-                          "uniqueId: %" PRIu64 ", prevframeTime: %" PRIu64 "",
+            "uniqueId: %" PRIu64 ", prevframeTime: %" PRIu64 "",
             uniqueId, prevFrameTime);
         int32_t domainId = 5;
         int32_t eventId = 0;
