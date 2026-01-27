@@ -3000,8 +3000,8 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifyAppStrategyConfigChangeEvent
     std::string pkgName = "testpkg";
     uint32_t listSize = 1;
     uint32_t errListSize = 100;
-    std::string key = "testkey"
-    std::string value = "testvalue"
+    std::string key = "testkey";
+    std::string value = "testvalue";
 
     MessageParcel data2;
     data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
@@ -3157,7 +3157,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate002, T
     uint32_t minRefreshRate = 60;
     uint32_t maxRefreshRate = 120;
     std::string description = "test";
-    
+
     MessageParcel data7;
     data7.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data7.WriteUint32(mapSize);
@@ -3167,7 +3167,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate002, T
     data7.WriteUint32(minRefreshRate);
     res = connectionStub_->OnRemoteRequest(code, data7, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
-    
+
     MessageParcel data8;
     data8.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data8.WriteUint32(mapSize);
@@ -3224,14 +3224,14 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate003, T
 
     MessageParcel data3;
     data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data2.WriteUint32(mapSize);
+    data3.WriteUint32(mapSize);
     res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
 
     MessageParcel data4;
     data4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data4.WriteUint32(mapSize);
-    data5.WriteString(vsyncName);
+    data4.WriteString(vsyncName);
     res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
 
@@ -3246,7 +3246,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate003, T
     MessageParcel data6;
     data6.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data6.WriteUint32(mapSize);
-    data5.WriteString(vsyncName);
+    data6.WriteString(vsyncName);
     data6.WriteString(eventName);
     data6.WriteBool(eventStatus);
     res = connectionStub_->OnRemoteRequest(code, data6, reply, option);
