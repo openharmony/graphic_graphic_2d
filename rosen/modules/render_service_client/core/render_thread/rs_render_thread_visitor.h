@@ -58,10 +58,6 @@ public:
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
-    void AddSurfaceChangedCallBack(uint64_t id,
-        const std::function<void(float, float, float, float)>& callback) override;
-    void RemoveSurfaceChangedCallBack(uint64_t id) override;
-
     // Partial render status and renderForce flag should be updated by rt thread
     void SetPartialRenderStatus(PartialRenderType status, bool isRenderForced);
 
@@ -79,10 +75,11 @@ private:
     // Reset and update children node's info like outOfParent and isRemoveChild
     void ResetAndPrepareChildrenNode(RSRenderNode& node, std::shared_ptr<RSBaseRenderNode> nodeParent);
     void ProcessSurfaceViewInRT(RSSurfaceRenderNode& node);
+#ifdef ROSEN_OHOS
     Drawing::Matrix CacRotationFromTransformType(GraphicTransformType transform, RectF& bounds);
     GraphicTransformType GetFlipTransform(GraphicTransformType transform);
     void FlipMatrix(GraphicTransformType transform, Drawing::Matrix& matrix, const RectF& bounds);
-
+#endif
     void ProcessShadowFirst(RSRenderNode& node);
 
     std::shared_ptr<RSDirtyRegionManager> curDirtyManager_;
