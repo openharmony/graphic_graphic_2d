@@ -1260,7 +1260,7 @@ bool RSJankStats::AvcodecVideoJankReport()
         std::stringstream s;
         // RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG
         s << "#UNIQUEID:" << uniqueId << "#FAULT_ID:" << domainId << "#FAULT_CODE:" << 0
-          << "#MAX_FRAME_TIME:" << frameTime << "#HAPPEN_TIME:" << now << "#SUFACE_NAME:" << surfaceName;
+          << "#MAX_FRAME_TIME:" << frameTime << "#HAPPEN_TIME:" << now << "#SURFACE_NAME:" << surfaceName;
 #ifdef NOT_BUILD_FOR_OHOS_SDK
         OHOS::HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(domainId, eventId, s.str());
 #endif
