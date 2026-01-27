@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -407,6 +408,8 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, ChildrenBlurBehindWindowTest, TestSize.Lev
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    auto modifier = std::make_shared<ModifierNG::RSBehindWindowFilterRenderModifier>();
+    node->AddModifier(modifier);
     NodeId idOne = 1;
     NodeId idTwo = 2;
     node->AddChildBlurBehindWindow(idOne);
