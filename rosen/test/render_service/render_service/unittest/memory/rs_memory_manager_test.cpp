@@ -17,6 +17,8 @@
 #include <fstream>
 #include "gtest/gtest.h"
 #include "memory/rs_memory_manager.h"
+#include "pipeline/rs_test_util.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -46,8 +48,24 @@ void RSMemoryManagerTest::SetUpTestCase()
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
+    RSTestUtil::InitRenderNodeGC();
 }
-void RSMemoryManagerTest::TearDownTestCase() {}
+
+void RSMemoryManagerTest::TearDownTestCase()
+{
+    auto mainThread = RSMainThread::Instance();
+    if (!mainThread || !mainThread->context_) {
+        return;
+    }
+    auto& renderNodeMap = mainThread->context_->GetMutableNodeMap();
+    renderNodeMap.renderNodeMap_.clear();
+    renderNodeMap.surfaceNodeMap_.clear();
+    renderNodeMap.residentSurfaceNodeMap_.clear();
+    renderNodeMap.screenNodeMap_.clear();
+    renderNodeMap.canvasDrawingNodeMap_.clear();
+    renderNodeMap.uiExtensionSurfaceNodes_.clear();
+}
+
 void RSMemoryManagerTest::SetUp() {}
 void RSMemoryManagerTest::TearDown() {}
 
@@ -1072,5 +1090,244 @@ HWTEST_F(RSMemoryManagerTest, GpuMemoryOverReportTest, testing::ext::TestSize.Le
     MemoryManager::GpuMemoryOverReport(1, 10000, typeInfo, pidInfo);
     std::string filePath = "/data/service/el0/render_service/renderservice_killProcessByPid.txt";
     ASSERT_TRUE(std::ifstream(filePath).good());
+}
+
+/**
+ * @tc.name: GetNodeInfo001
+ * @tc.desc: GetNodeInfo001 Test
+ * @tc.type: FUNC
+ * @tc.require: ICVK6I
+ */
+HWTEST_F(RSMemoryManagerTest, GetNodeInfo001, TestSize.Level1)
+{
+    std::unordered_map<int, std::pair<int, int>> nodeInfo;
+    std::unordered_map<int, int> nullNodeInfo;
+    std::unordered_map<pid_t, size_t> modifierSize;
+    NodeId id = 1024;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    ASSERT_TRUE(nodeInfo.empty());
+}
+
+/**
+ * @tc.name: GetNodeInfo002
+ * @tc.desc: GetNodeInfo002 Test
+ * @tc.type: FUNC
+ * @tc.require: ICVK6I
+ */
+HWTEST_F(RSMemoryManagerTest, GetNodeInfo002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::unordered_map<int, std::pair<int, int>> nodeInfo;
+    std::unordered_map<int, int> nullNodeInfo;
+    std::unordered_map<pid_t, size_t> modifierSize;
+    NodeId id = 1025;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+    auto node = std::make_shared<RSRenderNode>(id);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    ASSERT_TRUE(nodeInfo.size() > 0);
+}
+
+/**
+ * @tc.name: GetNodeInfo003
+ * @tc.desc: GetNodeInfo003 Test
+ * @tc.type: FUNC
+ * @tc.require: ICVK6I
+ */
+HWTEST_F(RSMemoryManagerTest, GetNodeInfo003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::unordered_map<int, std::pair<int, int>> nodeInfo;
+    std::unordered_map<int, int> nullNodeInfo;
+    std::unordered_map<pid_t, size_t> modifierSize;
+    NodeId id = 1026;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+    auto node = std::make_shared<RSRenderNode>(id);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+    nodeInfo.insert({ExtractPid(id), std::make_pair(0, 0)});
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    ASSERT_TRUE(nodeInfo.size() > 0);
+}
+/**
+ * @tc.name: GetNodeInfo003
+ * @tc.desc: GetNodeInfo003 Test
+ * @tc.type: FUNC
+ * @tc.require: ICVK6I
+ */
+HWTEST_F(RSMemoryManagerTest, GetNodeInfo004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::unordered_map<int, std::pair<int, int>> nodeInfo;
+    std::unordered_map<int, int> nullNodeInfo;
+    std::unordered_map<pid_t, size_t> modifierSize;
+    NodeId id = 1027;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+    nullNodeInfo.insert({ExtractPid(id), 0});
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    ASSERT_TRUE(nullNodeInfo.size() > 0);
+}
+
+/**
+ * @tc.name: RenderServiceAllNodeDump001
+ * @tc.desc: RenderServiceAllNodeDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMemoryManagerTest, RenderServiceAllNodeDump001, TestSize.Level1)
+{
+    DfxString log;
+    MemoryManager::RenderServiceAllNodeDump(log);
+    ASSERT_TRUE(log.GetString().find("OnTree") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem001
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpMem001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "";
+    std::string type = "";
+    pid_t pid = 0;
+    bool isLite = false;
+    MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem002
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpMem002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "x";
+    std::string type = "x";
+    pid_t pid = 0;
+    bool isLite = true;
+    MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem003
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpMem003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "";
+    std::string type = "gpu";
+    pid_t pid = 1;
+    bool isLite = false;
+    MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpGpuMem001
+ * @tc.desc: test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpGpuMem001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "";
+    std::string type = "gpu";
+    MemoryManager::DumpGpuMem(argSets, dumpString, type);
+    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpGpuMem002
+ * @tc.desc: test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpGpuMem002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "";
+    std::string type = "";
+    MemoryManager::DumpGpuMem(argSets, dumpString, type);
+    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpGpuMem003
+ * @tc.desc: test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpGpuMem003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "x";
+    std::string type = "x";
+    MemoryManager::DumpGpuMem(argSets, dumpString, type);
+    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
+}
+
+/**
+ * @tc.name: RenderServiceAllSurfaceDump001
+ * @tc.desc: RenderServiceAllSurfaceDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    //create some surface nodes && register them
+    RSSurfaceRenderNodeConfig configwithNoComsumer;
+    configwithNoComsumer.id = 11;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(configwithNoComsumer);
+    node1->SetIsOnTheTree(true);
+    RSSurfaceRenderNodeConfig configwithComsumer;
+    configwithComsumer.id = 12;
+    auto node2 = RSTestUtil::CreateSurfaceNode(configwithComsumer);
+    node2->SetIsOnTheTree(true);
+    auto node3 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node1);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node2);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node3);
+
+    DfxString log;
+    MemoryManager::RenderServiceAllSurfaceDump(log);
+    ASSERT_TRUE(log.GetString().find("memory") != std::string::npos);
 }
 } // namespace OHOS::Rosen

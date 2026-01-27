@@ -1621,7 +1621,11 @@ ErrCode RSClientToServiceConnection::GetScreenActiveMode(uint64_t id, RSScreenMo
 ErrCode RSClientToServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
 #ifdef RS_ENABLE_GPU
-    RSMainThread::Instance()->GetAppMemoryInMB(cpuMemSize, gpuMemSize);
+    RSUniRenderThread::Instance().PostSyncTask([&cpuMemSize, &gpuMemSize] {
+        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(
+            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+        cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
+    });
     gpuMemSize += RSSubThreadManager::Instance()->GetAppGpuMemoryInMB();
 #endif
     return ERR_OK;

@@ -114,18 +114,13 @@ public:
     void TransactionDataMapDump(const TransactionDataMap& transactionDataMap, std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true,
         bool needUpdateJankStats = false);
-    void RenderServiceAllNodeDump(DfxString& log);
-    void RenderServiceAllSurafceDump(DfxString& log);
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
     void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
     void UpdateAnimateNodeFlag();
     void ResetAnimateNodeFlag();
-    void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
     void SetForceRsDVsync(const std::string& sceneId);
-    void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
-        std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -205,9 +200,6 @@ public:
     bool CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type,
-        pid_t pid = 0, bool isLite = false);
-    void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, const std::string& type);
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);

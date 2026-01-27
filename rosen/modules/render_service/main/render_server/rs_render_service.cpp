@@ -588,7 +588,7 @@ void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::
         }
         mainThread_->ScheduleTask(
         [this, &argSets, &dumpString, &type, &pid, isLite]() {
-            return mainThread_->DumpMem(argSets, dumpString, type, pid, isLite);
+            return MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
         }).wait();
         return;
     }
@@ -608,7 +608,7 @@ void RSRenderService::DumpGpuMem(std::unordered_set<std::u16string>& argSets, st
         }
         mainThread_->ScheduleTask(
             [this, &argSets, &dumpString, &type]() {
-                return mainThread_->DumpGpuMem(argSets, dumpString, type);
+                return MemoryManager::DumpGpuMem(argSets, dumpString, type);
             }).wait();
     }
 }

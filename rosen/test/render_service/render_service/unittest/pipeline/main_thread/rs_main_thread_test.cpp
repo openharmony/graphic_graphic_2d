@@ -4847,39 +4847,6 @@ HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodes, TestSize.Level2)
 }
 
 /**
- * @tc.name: GetNodeInfo001
- * @tc.desc: GetNodeInfo001 Test
- * @tc.type: FUNC
- * @tc.require: ICVK6I
- */
-HWTEST_F(RSMainThreadTest, GetNodeInfo001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    std::unordered_map<int, std::pair<int, int>> nodeInfo;
-    std::unordered_map<int, int> nullNodeInfo;
-    std::unordered_map<pid_t, size_t> modifierSize;
-    mainThread->GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
-}
-
-/**
- * @tc.name: RenderServiceAllNodeDump01
- * @tc.desc: RenderServiceAllNodeDump Test
- * @tc.type: FUNC
- * @tc.require: issueIB57QP
- */
-HWTEST_F(RSMainThreadTest, RenderServiceAllNodeDump01, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    NodeId id = 1;
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
-    MemoryTrack::Instance().AddNodeRecord(id, info);
-    DfxString log;
-    mainThread->RenderServiceAllNodeDump(log);
-}
-
-/**
  * @tc.name: ConnectChipsetVsyncSer
  * @tc.desc: test ConnectChipsetVsyncSer
  * @tc.type: FUNC
@@ -5042,128 +5009,6 @@ HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus001, TestSize.Level2)
     ASSERT_EQ(mainThread->isCurtainScreenOn_, true);
 
     mainThread->SetCurtainScreenUsingStatus(isCurtainScreenOn);
-}
-
-/**
- * @tc.name: DumpMem001
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "";
-    pid_t pid = 0;
-    bool isLite = false;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpMem002
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem002, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "";
-    pid_t pid = 0;
-    bool isLite = true;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpMem003
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem003, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "gpu";
-    pid_t pid = 0;
-    bool isLite = false;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpMem004
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem004, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "gpu";
-    pid_t pid = 0;
-    bool isLite = true;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpGpuMem001
- * @tc.desc: test DumpGpuMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpGpuMem001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "gpu";
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_NE(renderNode, nullptr);
-    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
-    mainThread->DumpGpuMem(argSets, dumpString, type);
-    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpGpuMem002
- * @tc.desc: test DumpGpuMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpGpuMem002, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "";
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_NE(renderNode, nullptr);
-    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
-    mainThread->DumpGpuMem(argSets, dumpString, type);
-    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
 }
 
 /**
@@ -5609,31 +5454,6 @@ HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback002, TestSize.Level1)
     pidsToKill.push_back(1);
     std::string pidsToKillDesc = MergeToString<pid_t>(pidsToKill);
     ASSERT_NE(pidsToKillDesc.size(), 0);
-}
-
-/**
- * @tc.name: RenderServiceAllSurafceDump01
- * @tc.desc: RenderServiceAllSurafceDump Test
- * @tc.type: FUNC
- * @tc.require: issueIB57QP
- */
-HWTEST_F(RSMainThreadTest, RenderServiceAllSurafceDump01, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    //prepare nodemap
-    RSSurfaceRenderNodeConfig config;
-    config.id = 1;
-    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
-    node1->SetIsOnTheTree(true);
-    config.id = 2;
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
-    node2->SetIsOnTheTree(true);
-    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
-    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
-
-    DfxString log;
-    mainThread->RenderServiceAllSurafceDump(log);
 }
 
 /**

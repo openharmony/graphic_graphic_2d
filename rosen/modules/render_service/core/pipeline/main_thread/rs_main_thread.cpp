@@ -214,7 +214,6 @@ constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_SURFACE_CAPTURE_PROCESS_TIMEOUT = 1000;
 constexpr uint32_t WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT = 4000;
 constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
-constexpr uint32_t NODE_DUMP_STRING_LEN = 8;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
@@ -3830,110 +3829,6 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
     }
 }
 
-static std::string Data2String(std::string data, uint32_t tagetNumber)
-{
-    if (data.length() < tagetNumber) {
-        return std::string(tagetNumber - data.length(), ' ') + data;
-    } else {
-        return data;
-    }
-}
-
-void RSMainThread::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
-    std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize)
-{
-    for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
-        auto node = context_->GetMutableNodeMap().GetRenderNode(nodeId);
-        int pid = info.pid;
-        if (node) {
-            if (node_info.count(pid)) {
-                node_info[pid].first++;
-                node_info[pid].second += node->IsOnTheTree() ? 1 : 0;
-            } else {
-                node_info[pid].first = 1;
-                node_info[pid].second = node->IsOnTheTree() ? 1 : 0;
-            }
-            modifierSize[pid] += node->GetAllModifierSize();
-        } else {
-            if (nullnode_info.count(pid)) {
-                nullnode_info[pid]++;
-            } else {
-                nullnode_info[pid] = 1;
-            }
-        }
-    }
-}
-
-void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
-{
-    std::unordered_map<int, std::pair<int, int>> node_info; // [pid, [count, ontreecount]]
-    std::unordered_map<int, int> nullnode_info; // [pid, count]
-    std::unordered_map<pid_t, size_t> modifierSize; // [pid, modifiersize]
-
-    GetNodeInfo(node_info, nullnode_info, modifierSize);
-    std::string log_str = Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String("Count", NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String("OnTree", NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String("NodeMemSize", NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String("DrawableMem", NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String("ModifierMem", NODE_DUMP_STRING_LEN);
-    log.AppendFormat("%s\n", log_str.c_str());
-    size_t totalNodeSize = 0;
-    for (auto& [pid, info]: node_info) {
-        size_t renderNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid, MEMORY_TYPE::MEM_RENDER_NODE);
-        size_t drawableNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid,
-            MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
-        size_t modifierNodeSize = modifierNodeSize = modifierSize[pid] / BYTE_CONVERT;
-        log_str = Data2String(std::to_string(pid), NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String(std::to_string(info.first), NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String(std::to_string(info.second), NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String(std::to_string(renderNodeSize), NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String(std::to_string(drawableNodeSize), NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String(std::to_string(modifierNodeSize), NODE_DUMP_STRING_LEN);
-        log.AppendFormat("%s\n", log_str.c_str());
-        totalNodeSize += renderNodeSize + drawableNodeSize + modifierNodeSize;
-    }
-    log_str = Data2String("Total Node Size(RenderNode/Drawable/Modifier)", NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String(std::to_string(totalNodeSize), NODE_DUMP_STRING_LEN);
-    log.AppendFormat("%s\n", log_str.c_str());
-    if (!nullnode_info.empty()) {
-        log_str = "Purgeable node: \n" +
-            Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +
-            Data2String("Count", NODE_DUMP_STRING_LEN);
-        log.AppendFormat("%s\n", log_str.c_str());
-        for (auto& [pid, info]: nullnode_info) {
-            log_str = Data2String(std::to_string(pid), NODE_DUMP_STRING_LEN) + "\t" +
-                Data2String(std::to_string(info), NODE_DUMP_STRING_LEN);
-            log.AppendFormat("%s\n", log_str.c_str());
-        }
-    }
-    node_info.clear();
-    nullnode_info.clear();
-}
-
-void RSMainThread::RenderServiceAllSurafceDump(DfxString& log)
-{
-    log.AppendFormat("%s\n", "the memory of size of all surfaces buffer: ");
-    const auto& nodeMap = context_->GetNodeMap();
-    nodeMap.TraversalNodes([&log](const std::shared_ptr<RSBaseRenderNode>& node) {
-        if (node == nullptr || !node->IsInstanceOf<RSSurfaceRenderNode>()) {
-            return;
-        }
-        const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
-        const auto& surfaceConsumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
-        if (surfaceConsumer == nullptr) {
-            return;
-        }
-        std::string dumpSurfaceInfo;
-        surfaceConsumer->Dump(dumpSurfaceInfo);
-        if (dumpSurfaceInfo.find("sequence") == std::string::npos) {
-            return;
-        }
-        log.AppendFormat("pid = %d nodeId:%llu", ExtractPid(node->GetId()), node->GetId());
-        log.AppendFormat("%s\n", dumpSurfaceInfo.c_str());
-    });
-}
-
 void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
 {
     RS_TRACE_NAME_FMT("DumpClientNodeTree start task[%u]", taskId);
@@ -4146,73 +4041,6 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
 bool RSMainThread::IsResidentProcess(pid_t pid) const
 {
     return pid == ExtractPid(context_->GetNodeMap().GetEntryViewNodeId());
-}
-
-void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
-    std::string& type, pid_t pid, bool isLite)
-{
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    DfxString log;
-    if (pid != 0) {
-        RSUniRenderThread::Instance().PostSyncTask([&log, pid] {
-            RS_TRACE_NAME_FMT("Dumping memory of pid[%d]", pid);
-            MemoryManager::DumpPidMemory(log, pid,
-                RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
-        });
-    } else {
-        MemoryManager::DumpMemoryUsage(log, type, isLite);
-    }
-
-    if ((type.empty() || type == MEM_GPU_TYPE) && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        auto subThreadManager = RSSubThreadManager::Instance();
-        if (subThreadManager) {
-            subThreadManager->DumpMem(log, isLite);
-        }
-    }
-    dumpString.append("dumpMem: " + type + "\n");
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("DumpMem screenManager is nullptr");
-        return;
-    }
-    auto maxScreenInfo = screenManager->GetActualScreenMaxResolution();
-    dumpString.append("ScreenResolution = " + std::to_string(maxScreenInfo.phyWidth) +
-        "x" + std::to_string(maxScreenInfo.phyHeight) + "\n");
-    dumpString.append(log.GetString());
-    if (!isLite) {
-        RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
-        RSRenderComposerManager::GetInstance().DumpVkImageInfo(dumpString);
-    }
-#else
-    dumpString.append("No GPU in this device");
-#endif
-}
-
-void RSMainThread::DumpGpuMem(std::unordered_set<std::u16string>& argSets,
-    std::string& dumpString, const std::string& type)
-{
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    DfxString log;
-    std::vector<std::pair<NodeId, std::string>> nodeTags;
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
-        nodeTags.push_back({node->GetId(), ""});
-    });
-    auto status = type.empty() || type == MEM_GPU_TYPE;
-    if (status) {
-        RSUniRenderThread::Instance().DumpGpuMem(log, nodeTags);
-    }
-    if (status && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        auto subThreadManager = RSSubThreadManager::Instance();
-        if (subThreadManager) {
-            subThreadManager->DumpGpuMem(log, nodeTags);
-        }
-    }
-    MemoryManager::DumpGpuNodeMemory(log);
-    dumpString.append(log.GetString());
-#else
-    dumpString.append("No GPU in this device");
-#endif
 }
 
 void RSMainThread::CountMem(int pid, MemoryGraphic& mem)
@@ -4879,17 +4707,6 @@ void RSMainThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface
 {
     std::lock_guard<std::mutex> lock(mutex_);
     tmpSurfaces_.push(std::move(surface));
-}
-
-void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
-{
-#ifdef RS_ENABLE_GPU
-    RSUniRenderThread::Instance().PostSyncTask([&cpuMemSize, &gpuMemSize] {
-        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(
-            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
-        cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
-    });
-#endif
 }
 
 void RSMainThread::SubscribeAppState()
