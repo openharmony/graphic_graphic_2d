@@ -1110,6 +1110,7 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
     }
     bool isQuickSkip = false;
     if (isBgWindowTraversalStarted_) {
+        node.SetStableSkipReached(false);
         isQuickSkip = CheckSkipBackgroundSurfaceRenderNode(node);
     } else {
         isQuickSkip = CheckSkipAndUpdateForegroundSurfaceRenderNode(node);
