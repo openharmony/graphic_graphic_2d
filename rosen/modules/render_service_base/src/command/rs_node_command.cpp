@@ -249,8 +249,9 @@ void RSNodeCommandHelper::AddModifierNG(RSContext& context, NodeId nodeId,
     if (node) {
         node->AddModifier(modifier);
     } else {
-        ROSEN_LOGE("RSNodeCommandHelper::AddModifierNG Invalid NodeId %{public}" PRIu64 ", ModifierId %{public}" PRIu64
-            ", ModifierType %{public}hu", nodeId, modifier->GetId(), modifier->GetType());
+        ROSEN_LOGE("RSNodeCommandHelper::AddModifierNG Invalid NodeId %{public}" PRIu64 ", ModifierId %{public}" PRId64
+            ", ModifierType %{public}d", nodeId, modifier ? modifier->GetId() : -1,
+            modifier ? static_cast<int>(modifier->GetType()) : -1);
     }
 }
 
