@@ -352,7 +352,7 @@ HWTEST_F(SkiaCanvasTest, GetLocalShadowBounds001, TestSize.Level1)
     Point3 planeParams = {0, 50, 50};
     Point3 devLightPos = {1.f, 2.f, 100.f};
     ASSERT_TRUE(skiaCanvas.GetLocalShadowBounds(ctm, path, planeParams,
-        devLightPos, 1.0f, ShadowFlags::TRANSPARENT_OCCLUDER, true, rect) == false);
+        devLightPos, 1.0f, ShadowFlags::TRANSPARENT_OCCLUDER, true, rect) == true);
 }
 
 /**

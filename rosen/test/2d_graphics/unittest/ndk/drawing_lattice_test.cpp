@@ -97,14 +97,14 @@ HWTEST_F(NativeDrawingLatticeTest, NativeDrawingLatticeTest_LatticeCreate001, Te
     EXPECT_EQ(OH_Drawing_LatticeCreate(xDivs1, yDivs1, 2, 2, nullptr, nullptr, 0, colors, 9, &lattice),
         OH_DRAWING_SUCCESS);
     EXPECT_EQ(OH_Drawing_LatticeDestroy(lattice), OH_DRAWING_SUCCESS);
-    EXPECT_EQ(OH_Drawing_LatticeCreate(xDivs1, yDivs1, 2, 2, rect, rectTypes1, 9, colors, 0, &lattice),
+    EXPECT_EQ(OH_Drawing_LatticeCreate(xDivs1, yDivs1, 2, 2, rect, rectTypes1, 9, nullptr, 0, &lattice),
         OH_DRAWING_SUCCESS);
     EXPECT_EQ(OH_Drawing_LatticeDestroy(lattice), OH_DRAWING_SUCCESS);
     EXPECT_EQ(OH_Drawing_LatticeCreate(xDivs1, yDivs1, 2, 2, rect, nullptr, 0, colors, 9, &lattice),
         OH_DRAWING_SUCCESS);
     EXPECT_EQ(OH_Drawing_LatticeDestroy(lattice), OH_DRAWING_SUCCESS);
     int zeroDivs[] = {};
-    EXPECT_EQ(OH_Drawing_LatticeCreate(zeroDivs, zeroDivs, 0, 0, nullptr, nullptr, 0, colors, 0, &lattice),
+    EXPECT_EQ(OH_Drawing_LatticeCreate(zeroDivs, zeroDivs, 0, 0, nullptr, nullptr, 0, nullptr, 0, &lattice),
         OH_DRAWING_SUCCESS);
     EXPECT_EQ(OH_Drawing_LatticeDestroy(lattice), OH_DRAWING_SUCCESS);
     OH_Drawing_RectDestroy(rect);

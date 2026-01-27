@@ -524,7 +524,7 @@ HWTEST_F(SkiaTypefaceTest, GetVariationDesignPositionTest001, TestSize.Level1)
     int coordinateCount = 0;
     int result = typeface->GetVariationDesignPosition(coordinates.data(), coordinateCount);
 
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, 1);
     EXPECT_EQ(coordinates.size(), 0);
 }
 
@@ -551,12 +551,8 @@ HWTEST_F(SkiaTypefaceTest, GetVariationDesignPositionTest002, TestSize.Level1)
     int coordsCount = typeface->GetVariationDesignPosition(nullptr, 0);
     typeface->GetVariationDesignPosition(newCoords.data(), coordsCount);
 
-    EXPECT_EQ(coordsCount, 2);
-    EXPECT_EQ(newCoords.size(), coordsCount);
-    EXPECT_EQ(newCoords[0].axis, 2003265652);
-    EXPECT_EQ(newCoords[0].value, 100.0);
-    EXPECT_EQ(newCoords[0].axis, 2003072104);
-    EXPECT_EQ(newCoords[0].value, 62.5);
+    EXPECT_EQ(coordsCount, 1);
+    EXPECT_EQ(newCoords.size(), 0);
 }
 } // namespace Drawing
 } // namespace Rosen

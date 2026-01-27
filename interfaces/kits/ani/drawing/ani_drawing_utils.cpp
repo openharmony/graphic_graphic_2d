@@ -119,7 +119,7 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
 {
     ani_class colorCls = AniGlobalClass::GetInstance().colorInterface;
     if (colorCls == nullptr) {
-        ROSEN_LOGE("GetColorQuadFromParam failed by cls is null");
+        ROSEN_LOGE("GetColorQuadFromColorObj failed by cls is null");
         return false;
     }
 
@@ -128,7 +128,7 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
     ani_method colorGetGreen = AniGlobalMethod::GetInstance().colorGetGreen;
     ani_method colorGetBlue = AniGlobalMethod::GetInstance().colorGetBlue;
     if (colorGetAlpha == nullptr || colorGetRed == nullptr || colorGetGreen == nullptr || colorGetBlue == nullptr) {
-        ROSEN_LOGE("GetColorQuadFromParam failed by cls method is null");
+        ROSEN_LOGE("GetColorQuadFromColorObj failed by cls method is null");
         return false;
     }
 
@@ -148,7 +148,7 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
         (env->Object_CallMethod_Int(obj, colorGetRed, &red) != ANI_OK) ||
         (env->Object_CallMethod_Int(obj, colorGetGreen, &green) != ANI_OK) ||
         (env->Object_CallMethod_Int(obj, colorGetBlue, &blue) != ANI_OK)) {
-        ROSEN_LOGE("GetColorQuadFromParam failed by Color class");
+        ROSEN_LOGE("GetColorQuadFromColorObj failed by Color class");
         return false;
     }
 
@@ -156,7 +156,7 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
         red < 0 || red > Color::RGB_MAX ||
         green < 0 || green > Color::RGB_MAX ||
         blue < 0 || blue > Color::RGB_MAX) {
-        ROSEN_LOGE("GetColorQuadFromParam failed by Color class invaild value");
+        ROSEN_LOGE("GetColorQuadFromColorObj failed by Color class invaild value");
         return false;
     }
 
@@ -169,7 +169,7 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
 {
     ani_class intClass = AniGlobalClass::GetInstance().intCls;
     if (intClass == nullptr) {
-        ROSEN_LOGE("Failed to find class %{public}s", ANI_INT_STRING);
+        ROSEN_LOGE("GetColorQuadFromParam Failed to find class %{public}s", ANI_INT_STRING);
         return false;
     }
     ani_boolean isInt;
@@ -254,7 +254,7 @@ ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& po
 {
     ani_class pointCls  = AniGlobalClass::GetInstance().pointInterface;
     if (pointCls == nullptr) {
-        ROSEN_LOGE("Failed to find class %{public}s", ANI_INTERFACE_POINT_NAME);
+        ROSEN_LOGE("GetPointFromPointObj Failed to find class %{public}s", ANI_INTERFACE_POINT_NAME);
         return ANI_NOT_FOUND;
     }
     ani_boolean isPoint;
