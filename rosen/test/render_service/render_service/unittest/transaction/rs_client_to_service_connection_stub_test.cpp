@@ -3006,7 +3006,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifyAppStrategyConfigChangeEvent
     MessageParcel data2;
     data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data2.WriteString(pkgName);
-    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
 
     MessageParcel data3;
@@ -3059,7 +3059,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifySoftVsyncRateDiscountEvent00
     MessageParcel data2;
     data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data2.WriteUint32(pid);
-    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
 
     MessageParcel data3;
@@ -3074,7 +3074,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifySoftVsyncRateDiscountEvent00
     data4.WriteUint32(pid);
     data4.WriteString(name);
     data4.WriteUint32(rateDiscount);
-    res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
+    connectionStub_->OnRemoteRequest(code, data4, reply, option);
 }
 
 /**
@@ -3107,7 +3107,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate001, T
 
     MessageParcel data3;
     data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data2.WriteUint32(mapSize);
+    data3.WriteUint32(mapSize);
     res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
 
@@ -3165,7 +3165,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate002, T
     data7.WriteString(eventName);
     data7.WriteBool(eventStatus);
     data7.WriteUint32(minRefreshRate);
-    res = connectionStub_->OnRemoteRequest(code, data7, reply, option);
+    auto res = connectionStub_->OnRemoteRequest(code, data7, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
 
     MessageParcel data8;
