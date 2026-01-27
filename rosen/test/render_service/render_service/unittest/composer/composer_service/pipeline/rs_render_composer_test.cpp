@@ -35,6 +35,10 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"
+#define UnmarshallingFunc RSLayerParcelFactory_UnmarshallingFunc
+#include "rs_surface_layer_parcel.h"
+#undef UnmarshallingFunc
+#include "rs_render_layer_cmd.h"
 #include "rs_surface_rcd_layer.h"
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_property.h"
@@ -973,6 +977,10 @@ HWTEST_F(RsRenderComposerTest, RecordTimestamp, TestSize.Level1)
 
     l3->SetUniRenderFlag(true);
     rsRenderComposer_->RecordTimestamp(vsyncId, layers);
+    l3->SetUniRenderFlag(false);
+    rsRenderComposer_->RecordTimestamp(vsyncId, layers);
+    l3->SetBuffer(nullptr);
+    rsRenderComposer_->RecordTimestamp(vsyncId, layers);
     EXPECT_EQ(layers.size(), 4);
     csurf->UnregisterConsumerListener();
 }
@@ -1062,12 +1070,18 @@ HWTEST_F(RsRenderComposerTest, CreateFrameBufferSurfaceOhos, TestSize.Level1)
  */
 HWTEST_F(RsRenderComposerTest, Redraw, TestSize.Level1)
 {
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
+
     BufferRequestConfig requestConfig = {
         .width = 0x100,
         .height = 0x100,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_PROTECTED,
         .timeout = 0,
     };
 
@@ -1083,12 +1097,24 @@ HWTEST_F(RsRenderComposerTest, Redraw, TestSize.Level1)
     EXPECT_EQ(psurface->RequestBuffer(buffer, requestFence, requestConfig), GSERROR_OK);
 
     std::vector<RSLayerPtr> layers;
+    layers.emplace_back(nullptr);
     RSLayerPtr layer = std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(1, false, "L1"));
     layers.emplace_back(layer);
     EXPECT_NE(layers.size(), 0);
 
-    rsRenderComposer_->Redraw(psurface, layers);
-    rsRenderComposer_->Redraw(nullptr, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(nullptr, layers);
+    auto uniRenderEngine = rsRenderComposerTmp->uniRenderEngine_;
+    rsRenderComposerTmp->uniRenderEngine_ = nullptr;
+    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->uniRenderEngine_ = uniRenderEngine;
+    rsRenderComposerTmp->Redraw(psurface, layers);
+
+    RSLayerPtr layer1 = std::static_pointer_cast<RSLayer>(std::make_shared<RSRenderSurfaceLayer>());
+    layer1->SetBuffer(buffer);
+    layers.emplace_back(layer1);
+    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({0, nullptr});
+    rsRenderComposerTmp->Redraw(psurface, layers);
     csurface->UnregisterConsumerListener();
 }
 
@@ -1682,6 +1708,8 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD, TestSize.Level1)
         RSRcdManager::GetInstance().AddLayer(rcdLayerNames[i], i + 10, rcLayerTypes[i]);
         layers.emplace_back(rcdLayer);
     }
+    auto rcdLayer1 = std::static_pointer_cast<RSLayer>(std::make_shared<RSSurfaceRCDLayer>(100u, nullptr));
+    layers.emplace_back(rcdLayer1);
     EXPECT_NE(layers.size(), 0u);
     rsRenderComposer_->RedrawScreenRCD(paintFilterCanvas, layers);
 }
@@ -2101,6 +2129,82 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_Coverage, TestSi
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
+}
+
+/**
+ * Function: ContextRegisterPostTask_Coverage
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: ContextRegisterPostTask test
+ */
+HWTEST_F(RsRenderComposerTest, ContextRegisterPostTask_Coverage, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
+    rsRenderComposerTmp->ContextRegisterPostTask();
+}
+
+/**
+ * Function: UpdateTransactionData_Coverage
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: UpdateTransactionData test
+ */
+HWTEST_F(RsRenderComposerTest, UpdateTransactionData_Coverage, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
+    std::shared_ptr<RSLayerTransactionData> transactionData = std::make_shared<RSLayerTransactionData>();
+    transactionData->payload_.push_back({0, nullptr});
+    rsRenderComposerTmp->UpdateTransactionData(transactionData);
+
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(1);
+    auto zCmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
+    RSLayerId id = static_cast<RSLayerId>(100u);
+    std::shared_ptr<RSLayerParcel> parcel1 = std::make_shared<RSUpdateRSLayerCmd>(id, zCmd);
+    std::shared_ptr<RSLayerParcel> parcel2 = std::make_shared<RSDestroyRSLayerCmd>(id, zCmd);
+    std::shared_ptr<RSLayerParcel> parcel3 = std::make_shared<RSUpdateRSRCDLayerCmd>(id, zCmd);
+    transactionData->payload_.push_back({id, parcel1});
+    transactionData->payload_.push_back({id, parcel2});
+    transactionData->payload_.push_back({id, parcel3});
+    rsRenderComposerTmp->UpdateTransactionData(transactionData);
+}
+
+/**
+ * Function: UpdateForSurfaceFps_Coverage
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: UpdateForSurfaceFps test
+ */
+HWTEST_F(RsRenderComposerTest, UpdateForSurfaceFps_Coverage, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
+
+    PipelineParam pipelineParam;
+    pipelineParam.SurfaceFpsOpNum = 3;
+    SurfaceFpsOp surfaceFpsOp1;
+    surfaceFpsOp1.surfaceFpsOpType = static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD);
+    SurfaceFpsOp surfaceFpsOp2;
+    surfaceFpsOp2.surfaceFpsOpType = static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE);
+    SurfaceFpsOp surfaceFpsOp3;
+    surfaceFpsOp3.surfaceFpsOpType = static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_DEFAULT);
+    pipelineParam.SurfaceFpsOpList.push_back(surfaceFpsOp1);
+    pipelineParam.SurfaceFpsOpList.push_back(surfaceFpsOp2);
+    pipelineParam.SurfaceFpsOpList.push_back(surfaceFpsOp3);
+    rsRenderComposerTmp->UpdateForSurfaceFps(pipelineParam);
 }
 } // namespace Rosen
 } // namespace OHOS
