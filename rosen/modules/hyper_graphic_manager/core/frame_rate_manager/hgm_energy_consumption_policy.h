@@ -28,12 +28,12 @@
 #include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
-class HgmEnergyConsumptionPolicy {
 
 static constexpr uint32_t DRAG_FRAME_RATE_TYPE = REFRESH_DRAG_FRAME_RATE_TYPE | SWIPER_DRAG_FRAME_RATE_TYPE |
     SCROLLABLE_DRAG_FRAME_RATE_TYPE | SCROLLBAR_DRAG_FRAME_RATE_TYPE | SPLIT_DRAG_FRAME_RATE_TYPE |
     PICKER_DRAG_FRAME_RATE_TYPE | SCROLLABLE_MULTI_TASK_FRAME_RATE_TYPE;
 
+class HgmEnergyConsumptionPolicy {
 public:
     static HgmEnergyConsumptionPolicy& Instance();
     void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
