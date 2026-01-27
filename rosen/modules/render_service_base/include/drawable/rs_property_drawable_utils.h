@@ -43,6 +43,9 @@ enum class RoundingStrategyType : uint8_t {
     ROUND_STATIC_CAST_INT,
     ROUND_BUTT,
 };
+namespace Drawing {
+class GEVisualEffectContainer;
+}
 
 class RSPropertyDrawableUtils {
 public:
@@ -117,6 +120,9 @@ public:
     static bool RSFilterSetPixelStretch(const RSProperties& property, const std::shared_ptr<RSFilter>& filter);
     static void RSFilterRemovePixelStretch(const std::shared_ptr<RSFilter>& filter);
     static void DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark);
+    static void DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
+        const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
+        const std::string& shapeTag);
 
     static std::shared_ptr<RSFilter> GenerateBehindWindowFilter(float radius, float saturation, float brightness,
         RSColor maskColor);

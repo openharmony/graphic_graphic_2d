@@ -345,6 +345,9 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable004, TestSize
     rspaintfiltercanvas->SetEffectData(effectData);
     drawable->OnDraw(rspaintfiltercanvas.get(), rect.get());
     ASSERT_TRUE(true);
+
+    rspaintfiltercanvas->SetEffectIntersectWithDRM(true);
+    drawable->OnDraw(rspaintfiltercanvas.get(), rect.get());
 }
 
 /**
@@ -1118,6 +1121,18 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnDraw001, TestSi
 
     drawable->OnDraw(&canvas, &rect);
     ASSERT_TRUE(drawable->emptyShape_);
+
+    drawable->emptyShape_ = false;
+    std::vector<std::pair<float, float>> fractionStops;
+    auto para = std::make_shared<RSLinearGradientBlurPara>(1.0f, fractionStops, GradientDirection::LEFT);
+    auto shaderFilter = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.0f, 1.0f);
+    drawable->stagingFilter_ = std::make_shared<RSDrawingFilter>(shaderFilter);
+    drawable->stagingFilter_->SetFilterType(RSFilter::LINEAR_GRADIENT_BLUR);
+    drawable->OnSync();
+    drawable->filter_ = std::make_shared<RSDrawingFilter>(shaderFilter);
+    drawable->renderIntersectWithDRM_ = true;
+    drawable->OnDraw(&canvas, &rect);
+    ASSERT_FALSE(drawable->emptyShape_);
 }
 
 /**
