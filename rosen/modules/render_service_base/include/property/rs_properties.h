@@ -384,7 +384,7 @@ public:
     void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
     const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const
     {
-        foregroundFilterCache_;
+        return foregroundFilterCache_;
     }
 
     // filter properties
