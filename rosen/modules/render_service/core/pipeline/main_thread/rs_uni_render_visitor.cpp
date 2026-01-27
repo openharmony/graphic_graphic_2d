@@ -2783,13 +2783,13 @@ void RSUniRenderVisitor::UpdateIfHwcNodesHaveVisibleRegion(
         }
         if (surfaceNode->GetVisibleRegion().IsEmpty()) {
             RS_TRACE_NAME_FMT("surfaceNode visibleRegion is empty, node id is %" PRIu64" name is %s",
-                surfaceNode->GetId(), surfaceNode->GetNme().c_str());
+                surfaceNode->GetId(), surfaceNode->GetName().c_str());
             continue;
         }
         const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
         if (hwcNodes.empty()) {
             RS_TRACE_NAME_FMT("hwcNodes is empty, surfaceNode id is %" PRIu64" name is %s",
-                surfaceNode->GetId(), surfaceNode->GetNme().c_str());
+                surfaceNode->GetId(), surfaceNode->GetName().c_str());
             continue;
         }
         UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes, needForceUpdateHwcNodes);
