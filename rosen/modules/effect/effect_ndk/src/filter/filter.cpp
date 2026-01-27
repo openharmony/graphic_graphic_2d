@@ -55,6 +55,16 @@ bool Filter::Blur(float radius, Drawing::TileMode tileMode)
     return true;
 }
 
+bool Filter::Blur(float radius, float angle, Drawing::TileMode tileMode)
+{
+    auto blur = EffectImageFilter::Blur(radius, angle, tileMode);
+    if (!blur) {
+        return false;
+    }
+    AddNextFilter(blur);
+    return true;
+}
+
 bool Filter::Brightness(float brightness)
 {
     auto bright = EffectImageFilter::Brightness(brightness);
@@ -82,6 +92,26 @@ bool Filter::Invert()
         return false;
     }
     AddNextFilter(invert);
+    return true;
+}
+
+bool Filter::ColorRemap(const std::vector<Vector4f>& colors, const std::vector<float>& positions)
+{
+    auto filter = EffectImageFilter::ColorRemap(colors, positions);
+    if (!filter) {
+        return false;
+    }
+    AddNextFilter(filter);
+    return true;
+}
+
+bool Filter::GammaCorrection(float gamma)
+{
+    auto filter = EffectImageFilter::GammaCorrection(gamma);
+    if (!filter) {
+        return false;
+    }
+    AddNextFilter(filter);
     return true;
 }
 

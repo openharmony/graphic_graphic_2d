@@ -71,6 +71,44 @@ struct OH_Filter_ColorMatrix {
 };
 
 /**
+ * @brief Defines 4-channel Color.
+ *
+ * @since 24
+ * @version 1.0
+ */
+typedef struct {
+    /** red channel */
+    float red;
+    /** green channel */
+    float green;
+    /** blue channel */
+    float blue;
+    /** alpha channel */
+    float alpha;
+} OH_Filter_Color;
+
+/**
+ * @brief Defines MapColorByBrightness params for create effect filter.
+ *
+ * @since 24
+ * @version 1.0
+ */
+typedef struct {
+    /** The numbers of colors and positions must be the same,
+     *  the red, green, blur and alpha of OH_Filter_Color must be > 0.
+     */
+    OH_Filter_Color* colors;
+    /** Specify the position where the color map brightness is set,
+     *  the value rangle 0 to 1, < 0 set to 0, > 1 set to 1.
+     */
+    float* positions;
+    /** The number of available colors and position, must to be > 0, otherwise no effect,
+     *  take first 5 value of color and position if number > 5 . 
+     */
+    uint8_t colorsNum;
+} OH_Filter_MapColorByBrightnessParams;
+
+/**
  * @brief Defines a effect filter error code.
  *
  * @since 12

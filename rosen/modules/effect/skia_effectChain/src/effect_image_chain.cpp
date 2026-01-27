@@ -16,6 +16,9 @@
 #include "effect_image_chain.h"
 
 #include "effect_utils.h"
+#include "ge_color_remap_shader_filter.h"
+#include "ge_external_dynamic_loader.h"
+#include "ge_gamma_correction_filter.h"
 #include "ge_mesa_blur_shader_filter.h"
 #include "ge_radial_gradient_shader_mask.h"
 #include "ge_variable_radius_blur_shader_filter.h"
@@ -153,7 +156,8 @@ DrawingError EffectImageChain::ApplyDrawingFilter(const std::shared_ptr<Drawing:
     return DrawingError::ERR_OK;
 }
 
-DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& tileMode)
+DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& tileMode,
+    bool isDirection, float angle)
 {
     if (radius < 0.0f) { // invalid radius
         return DrawingError::ERR_ILLEGAL_INPUT;
@@ -166,7 +170,9 @@ DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& 
     }
 
     if (forceCPU_) {
-        auto filter = Drawing::ImageFilter::CreateBlurImageFilter(radius, radius, tileMode, nullptr);
+        float radiusX = isDirection ? 0.0 : radius;
+        float radiusY = 1.0;
+        auto filter = Drawing::ImageFilter::CreateBlurImageFilter(radiusX, radiusY, tileMode, nullptr);
         filters_ = (filters_ == nullptr) ? filter : Drawing::ImageFilter::CreateComposeImageFilter(filter, filters_);
         return DrawingError::ERR_OK;
     }
@@ -178,12 +184,12 @@ DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& 
     }
 
     auto isHpsApplied = (RSSystemProperties::GetHpsBlurEnabled() && tileMode == Drawing::TileMode::CLAMP &&
-        (ApplyHpsBlur(radius) == DrawingError::ERR_OK));
+        (ApplyHpsBlur(radius) == DrawingError::ERR_OK) && !isDirection);
     if (isHpsApplied) { // apply hps blur success
         return DrawingError::ERR_OK;
     }
 
-    return ApplyMesaBlur(radius, tileMode);
+    return ApplyMesaBlur(radius, tileMode, isDirection, angle);
 }
 
 DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,
@@ -234,15 +240,79 @@ DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, flo
     return DrawingError::ERR_OK;
 }
 
-DrawingError EffectImageChain::ApplyMesaBlur(float radius, const Drawing::TileMode& tileMode)
+DrawingError EffectImageChain::ApplyColorRemap(
+    const std::vector<Vector4f>& colors, const std::vector<float>& positions)
+{
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    if (!prepared_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyColorRemap: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+
+    // CPU not supported
+    if (forceCPU_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyColorRemap: Not support CPU.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    if (filters_ != nullptr) {
+        DrawOnFilter(); // need draw first to ensure cascading
+        image_ = surface_->GetImageSnapshot();
+        filters_ = nullptr; // clear filters_ to avoid apply again
+    }
+
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyColorRemap");
+    Drawing::GEColorRemapFilterParams params = {colors, positions};
+    auto colorRemapShader = std::make_shared<GEColorRemapShaderFilter>(params);
+    auto width = srcPixelMap_->GetWidth();
+    auto height = srcPixelMap_->GetHeight();
+    image_ = colorRemapShader->ProcessImage(*canvas_, image_,
+        Drawing::Rect(0, 0, width, height), Drawing::Rect(0, 0, width, height));
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return DrawingError::ERR_OK;
+}
+
+DrawingError EffectImageChain::ApplyGammaCorrection(float gamma)
+{
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    if (!prepared_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyGammaCorrection: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+
+    // CPU not supported
+    if (forceCPU_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyGammaCorrection: Not support CPU.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    if (filters_ != nullptr) {
+        DrawOnFilter(); // need draw first to ensure cascading
+        image_ = surface_->GetImageSnapshot();
+        filters_ = nullptr; // clear filters_ to avoid apply again
+    }
+
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyGammaCorrection");
+    auto gammaCorrectionShader = std::make_shared<GEGammaCorrectionFilter>(gamma);
+    auto width = srcPixelMap_->GetWidth();
+    auto height = srcPixelMap_->GetHeight();
+    image_ = gammaCorrectionShader->ProcessImage(*canvas_, image_,
+        Drawing::Rect(0, 0, width, height), Drawing::Rect(0, 0, width, height));
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return DrawingError::ERR_OK;
+}
+
+DrawingError EffectImageChain::ApplyMesaBlur(float radius, const Drawing::TileMode& tileMode,
+    bool isDirection, float angle)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyMesaBlur");
     Drawing::GEMESABlurShaderFilterParams params { radius, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, static_cast<int>(tileMode),
-        0.f, 0.f };
+        0.f, 0.f, isDirection, angle};
     auto mesaBlurFilter = std::make_shared<GEMESABlurShaderFilter>(params);
+    auto width = srcPixelMap_->GetWidth();
+    auto height = srcPixelMap_->GetHeight();
     image_ = mesaBlurFilter->ProcessImage(*canvas_, image_,
-        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
-        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
+        Drawing::Rect(0, 0, width, height), Drawing::Rect(0, 0, width, height));
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawingError::ERR_OK;
 }

@@ -179,5 +179,112 @@ HWTEST_F(EffectImageRenderUnittest, EllipticalGradientBlurApplyTest, TestSize.Le
     ret = imageRender.Render(nullptr, imageFilter, false, dstPixelMap);
     ASSERT_NE(ret, DrawingError::ERR_OK);
 }
+
+/**
+ * @tc.name: DirectionBlurTest
+ * @tc.desc: Test Render widht direction blur
+* @tc.type: FUNC
+ */
+HWTEST_F(EffectImageRenderUnittest, DirectionBlurTest, TestSize.Level1)
+{
+    float radius = -1.5f; // invalid value
+    float angle = 0.0;
+    auto flag = EffectImageFilter::Blur(radius, angle);
+    EXPECT_EQ(flag, nullptr);
+
+    radius = 1.5f; // valid value
+    flag = EffectImageFilter::Blur(radius, angle);
+    EXPECT_NE(flag, nullptr);
+}
+
+
+/**
+ * @tc.name: ColorRemapTest
+ * @tc.desc: Test ColorRemap by invalid params
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectImageRenderUnittest, ColorRemapTest, TestSize.Level1)
+{
+    std::vector<Vector4f> colors = {};
+    std::vector<float> positions = {};
+    auto flag = EffectImageFilter::ColorRemap(colors, positions);
+    EXPECT_EQ(flag, nullptr);
+
+    Vector4f color1 = {1.0f, 0.0f, 0.5f, 1.0f}; // color rgba
+    Vector4f color2 = {1.0f, 0.5f, 0.5f, 1.0f}; // color rgba
+    Vector4f color3 = {0.0f, 0.5f, 0.5f, 1.0f}; // color rgba
+    colors = {color1, color3, color3};
+    flag = EffectImageFilter::ColorRemap(colors, positions);
+    EXPECT_EQ(flag, nullptr);
+
+    positions = {0.2f, -0.5f, 1.5f};
+    flag = EffectImageFilter::ColorRemap(colors, positions);
+    EXPECT_NE(flag, nullptr);
+
+    colors = {};
+    flag = EffectImageFilter::ColorRemap(colors, positions);
+    EXPECT_EQ(flag, nullptr);
+}
+
+/**
+ * @tc.name: EffectImageColorRemapFilterTest
+ * @tc.desc: Test EffectImageColorRemapFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectImageRenderUnittest, EffectImageColorRemapFilterTest, TestSize.Level1)
+{
+    std::vector<Vector4f> colors = {{1.0f, 0.0f, 0.5f, 1.0f}}; // color rgba
+    std::vector<float> positions = {0.5};
+    auto filterColorRemap = EffectImageFilter::ColorRemap(colors, positions);
+    ASSERT_NE(filterColorRemap, nullptr);
+
+    std::shared_ptr<EffectImageChain> image = nullptr;
+    auto ret = filterColorRemap->Apply(nullptr);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    image = std::make_shared<EffectImageChain>();
+    ret = filterColorRemap->Apply(image);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: GammaCorrectionTest
+ * @tc.desc: Test GammaCorrection
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectImageRenderUnittest, GammaCorrectionTest, TestSize.Level1)
+{
+    float gamma = -1.5f; // invalid value
+    auto flag = EffectImageFilter::GammaCorrection(gamma);
+    EXPECT_EQ(flag, nullptr);
+
+    gamma = 0.0f; // boundary value
+    flag = EffectImageFilter::GammaCorrection(gamma);
+    EXPECT_EQ(flag, nullptr);
+
+    gamma = 1.5f; // valid value
+    flag = EffectImageFilter::GammaCorrection(gamma);
+    EXPECT_NE(flag, nullptr);
+}
+
+/**
+ * @tc.name: EffectImageGammaCorrectionFilterTest
+ * @tc.desc: Test EffectImageGammaCorrectionFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectImageRenderUnittest, EffectImageGammaCorrectionFilterTest, TestSize.Level1)
+{
+    float gamma = 1.5f; // valid value
+    auto filter = EffectImageFilter::GammaCorrection(gamma);
+    ASSERT_NE(filter, nullptr);
+
+    std::shared_ptr<EffectImageChain> image = nullptr;
+    auto ret = filter->Apply(nullptr);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    image = std::make_shared<EffectImageChain>();
+    ret = filter->Apply(image);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+}
 } // namespace Rosen
 } // namespace OHOS
