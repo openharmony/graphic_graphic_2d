@@ -1338,7 +1338,7 @@ void RSJankStats::AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t se
                     "#FAULT_CODE:" << 0 <<
                     "#MAX_FRAME_TIME:" << frameTime <<
                     "#HAPPEN_TIME:" << now <<
-                    "#SUFACE_NAME:" << surfaceName;
+                    "#SURFACE_NAME:" << surfaceName;
 #ifdef NOT_BUILD_FOR_OHOS_SDK
                 OHOS::HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(domainId, eventId, s.str());
 #endif
