@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -606,8 +606,8 @@ HWTEST_F(RSRenderComposerManagerTest, OnScreenConnected_Existing_Forward, TestSi
  * EnvConditions: N/A
  * CaseDescription: 1. create RSRenderComposerManager with null EventHandler, hdiOutput, and new RSScreenProperty
  *                  2. call OnScreenConnected with non null output and call GetRSComposerConnection to get connection
- *                  3. check manager->rsRenderComposerMap_ and manager->rsComposerConnectionMap_ size is 1 after connect,
- *                      GetRSComposerConnection by output's screen id is not null
+ *                  3. check manager->rsRenderComposerMap_ and manager->rsComposerConnectionMap_ size is 1 after
+ *                     connect, GetRSComposerConnection by output's screen id is not null
  */
 HWTEST_F(RSRenderComposerManagerTest, OnScreenConnected_InsertNew, TestSize.Level1)
 {
