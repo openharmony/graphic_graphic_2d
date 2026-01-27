@@ -362,13 +362,13 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             payloadLock.lock();
             RS_OPTIONAL_TRACE_NAME_FMT("UnmarshallingCommand [nodeId:%zu], cmd is [%s]", command->GetNodeId(),
                 command->PrintType().c_str());
-            payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             bool isUiCapSyncCmd = ((commandType == RSCommandType::RS_NODE) &&
                 (commandSubType == RSNodeCommandType::SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG));
             if (isUiCapSyncCmd) {
                 RS_LOGW("OffScreenIsSync RSTransactionData::UnmarshallingCmd finished, cmdSize: [%{public}d], "
                     "nodeId:[%{public}" PRIu64 "]", commandSize, command->GetNodeId());
             }
+            payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             payloadLock.unlock();
         } else {
             continue;
