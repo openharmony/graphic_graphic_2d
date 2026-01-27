@@ -49,23 +49,23 @@ constexpr const float RATIO_OTHER = 800.0f;
 constexpr const float RATIO_PHONE_HEIGHT = 780.0f;
 
 constexpr const char* FILE_PREFIX = "file:/";
-const std::string BOOT_PIC_CONFIG_FILE = "config.json";
-const std::string BOOT_SOUND_PATH = "file://system/etc/graphic/bootsound.wav";
-const std::string BOOT_VIDEO_PATH = "file://system/etc/graphic/bootvideo.mp4";
-const std::string TYPE_VIDEO = "video";
-const std::string TYPE_SOUND = "sound";
+inline const std::string BOOT_PIC_CONFIG_FILE = "config.json";
+inline const std::string BOOT_SOUND_PATH = "file://system/etc/graphic/bootsound.wav";
+inline const std::string BOOT_VIDEO_PATH = "file://system/etc/graphic/bootvideo.mp4";
+inline const std::string TYPE_VIDEO = "video";
+inline const std::string TYPE_SOUND = "sound";
 
-const std::string HING_STATUS_INFO_PATH = "/sys/class/sensors/hinge_sensor/hinge_status_info";
+inline const std::string HING_STATUS_INFO_PATH = "/sys/class/sensors/hinge_sensor/hinge_status_info";
 
 constexpr const char* BOOT_ANIMATION_STARTED = "bootevent.bootanimation.started";
 constexpr const char* BOOT_ANIMATION_READY = "bootevent.bootanimation.ready";
 constexpr const char* BOOT_ANIMATION_FINISHED = "bootevent.bootanimation.finished";
 constexpr const char* BOOT_COMPLETED = "bootevent.boot.completed";
 constexpr const char* BOOT_SOUND = "const.bootanimation.bootsound";
-const std::string DEVICE_TYPE_PHONE = "phone";
-const std::string DEVICE_TYPE_WEARABLE = "wearable";
+inline const std::string DEVICE_TYPE_PHONE = "phone";
+inline const std::string DEVICE_TYPE_WEARABLE = "wearable";
 
-const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "");
+inline const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "");
 
 const int MAX_LENGTH = 9;
 
