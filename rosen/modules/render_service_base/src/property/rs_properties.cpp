@@ -2459,6 +2459,23 @@ std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetForegroundNGFilter() cons
     return nullptr;
 }
 
+void RSProperties::SetCompositingNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter)
+{
+    GetEffect().cgNGRenderFilter_ = renderFilter;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetCompositingNGFilter() const
+{
+    if (effect_) {
+        return effect_->cgNGRenderFilter_;
+    }
+    return nullptr;
+}
+
 void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
 {
     if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(backref_.lock())) {

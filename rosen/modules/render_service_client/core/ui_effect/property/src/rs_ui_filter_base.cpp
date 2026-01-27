@@ -52,6 +52,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGBlurFilter>();
         }
     },
+    {RSNGEffectType::MATERIAL_BLUR, [] {
+            return std::make_shared<RSNGMaterialBlurFilter>();
+        }
+    },
     {RSNGEffectType::DISPLACEMENT_DISTORT, [] {
             return std::make_shared<RSNGDispDistortFilter>();
         }
@@ -431,5 +435,34 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(std::shared_ptr<FilterPar
     return it != convertorLUT.end() ? it->second(filterPara) : nullptr;
 }
 
+std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGBlurFilter(
+    float blurRadiusX, float blurRadiusY, bool disableSystemAdaptation)
+{
+    auto filter = std::static_pointer_cast<RSNGBlurFilter>(RSNGFilterBase::Create(RSNGEffectType::BLUR));
+    if (filter == nullptr) {
+        return nullptr;
+    }
+    filter->Setter<BlurRadiusXTag>(blurRadiusX);
+    filter->Setter<BlurRadiusYTag>(blurRadiusY);
+    filter->Setter<BlurDisableSystemAdaptationTag>(disableSystemAdaptation);
+    return filter;
+}
+
+std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGMaterialBlurFilter(
+    const MaterialParam& materialParam, BLUR_COLOR_MODE mode)
+{
+    auto filter = std::static_pointer_cast<RSNGMaterialBlurFilter>(
+        RSNGFilterBase::Create(RSNGEffectType::MATERIAL_BLUR));
+    if (filter == nullptr) {
+        return nullptr;
+    }
+    filter->Setter<MaterialBlurRadiusTag>(materialParam.radius);
+    filter->Setter<MaterialBlurSaturationTag>(materialParam.saturation);
+    filter->Setter<MaterialBlurBrightnessTag>(materialParam.brightness);
+    filter->Setter<MaterialBlurColorModeTag>(static_cast<int>(mode));
+    filter->Setter<MaterialBlurMaskColorTag>(materialParam.maskColor);
+    filter->Setter<MaterialBlurDisableSystemAdaptationTag>(materialParam.disableSystemAdaptation);
+    return filter;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -23,6 +23,7 @@
 #include "effect/rs_render_filter_base.h"
 #include "modifier/rs_property.h"
 #include "render/rs_render_filter_base.h"
+#include "render/rs_material_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -49,6 +50,14 @@ using RSNGFilterTemplate = RSNGEffectTemplate<RSNGFilterBase, Type, PropertyTags
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_FILTER
 
+class RSNGFilterHelper {
+public:
+    RSC_EXPORT static std::shared_ptr<RSNGFilterBase> CreateNGBlurFilter(
+        float blurRadiusX, float blurRadiusY, bool disableSystemAdaptation = false);
+
+    RSC_EXPORT static std::shared_ptr<RSNGFilterBase> CreateNGMaterialBlurFilter(
+        const MaterialParam& materialParam, BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT);
+};
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_BASE_H

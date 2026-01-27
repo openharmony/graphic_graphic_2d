@@ -3781,5 +3781,21 @@ HWTEST_F(RSPropertiesTest, ReportServerXXFilterCascadeCheck_DailyAttempt, TestSi
     EXPECT_TRUE(props.hasReportedServerXXFilterCascade_.test(0));
 }
 
+/**
+ * @tc.name: SetAndGetCompositingNGFilter
+ * @tc.desc: test results of SetCompositingNGFilter, GetCompositingNGFilter
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSPropertiesTest, SetAndGetCompositingNGFilter, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetCompositingNGFilter(), nullptr); // for coverage nullptr
+    auto blurFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.SetCompositingNGFilter(blurFilter);
+    properties.SetCompositingNGFilter(blurFilter);  // for coverage
+    auto testFilter = properties.GetCompositingNGFilter();
+    EXPECT_EQ(blurFilter, testFilter);
+}
 } // namespace Rosen
 } // namespace OHOS

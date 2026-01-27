@@ -34,6 +34,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderBlurFilter>();
         }
     },
+    {RSNGEffectType::MATERIAL_BLUR, [] {
+            return std::make_shared<RSNGRenderMaterialBlurFilter>();
+        }
+    },
     {RSNGEffectType::DISPLACEMENT_DISTORT, [] {
             return std::make_shared<RSNGRenderDispDistortFilter>();
         }
