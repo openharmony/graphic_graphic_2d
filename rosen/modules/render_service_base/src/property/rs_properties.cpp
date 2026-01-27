@@ -2528,7 +2528,7 @@ bool RSProperties::IsSpherizeValid() const
 
 void RSProperties::CreateFlyOutShaderFilter()
 {
-    uint32_t flyMode = GetFlyOutParams()->flyMode;
+    uint32_t flyMode = GetFlyOutParams() ? GetFlyOutParams()->flyMode : 0;
     auto flyOutShaderFilter = std::make_shared<RSFlyOutShaderFilter>(GetFlyOutDegree(), flyMode);
     foregroundFilter_ = flyOutShaderFilter;
 }
