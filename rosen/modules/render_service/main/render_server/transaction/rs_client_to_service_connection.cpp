@@ -250,6 +250,7 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             }
             RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", connection->remotePid_);
             connection->mainThread_->ClearTransactionDataPidInfo(connection->remotePid_);
+            connection->mainThread_->RemoveDropFramePid(connection->remotePid_);
             if (connection->mainThread_->IsRequestedNextVSync()) {
                 connection->mainThread_->SetDirtyFlag();
             }

@@ -19,6 +19,7 @@
 #include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_test_util.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "screen_manager/rs_screen.h"
 #include "surface_buffer_impl.h"
 #include "system/rs_system_parameters.h"
@@ -39,6 +40,21 @@ public:
     void TearDown() override;
     void CompareMatrix(float mat1[], float mat2[]);
 
+    // Helper struct for DropFrame tests
+    struct DropFrameTestContext {
+        std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode;
+        sptr<IConsumerSurface> surfaceConsumer;
+        sptr<Surface> producerSurface;
+        std::vector<sptr<SurfaceBuffer>> buffers;
+    };
+
+    // Helper: Initialize DropFrame test context
+    static bool InitDropFrameTestContext(DropFrameTestContext& ctx, uint32_t queueSize);
+    // Helper: Produce multiple buffers
+    static bool ProduceBuffers(DropFrameTestContext& ctx, uint32_t count);
+    // Helper: Release all buffers in context
+    static void ReleaseBuffers(DropFrameTestContext& ctx);
+
 private:
     static inline sptr<Surface> psurf = nullptr;
     static inline BufferRequestConfig requestConfig = {
@@ -46,6 +62,14 @@ private:
         .height = 0x100,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    static inline BufferRequestConfig requestConfigRGBA = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
@@ -115,6 +139,7 @@ void RSBaseRenderUtilTest::TearDownTestCase()
 }
 
 void RSBaseRenderUtilTest::SetUp() {}
+
 void RSBaseRenderUtilTest::TearDown() {}
 
 void RSBaseRenderUtilTest::CompareMatrix(float mat1[], float mat2[])
@@ -122,6 +147,58 @@ void RSBaseRenderUtilTest::CompareMatrix(float mat1[], float mat2[])
     for (uint32_t i = 0; i < MATRIX_SIZE; i++) {
         ASSERT_EQ(mat1[i], mat2[i]);
     }
+}
+
+bool RSBaseRenderUtilTest::InitDropFrameTestContext(DropFrameTestContext& ctx, uint32_t queueSize)
+{
+    ctx.surfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    if (ctx.surfaceRenderNode == nullptr) {
+        return false;
+    }
+    ctx.surfaceConsumer = ctx.surfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    if (ctx.surfaceConsumer == nullptr) {
+        return false;
+    }
+    auto producer = ctx.surfaceConsumer->GetProducer();
+    if (producer == nullptr) {
+        return false;
+    }
+    ctx.producerSurface = Surface::CreateSurfaceAsProducer(producer);
+    if (ctx.producerSurface == nullptr) {
+        return false;
+    }
+    ctx.producerSurface->SetQueueSize(queueSize);
+    ctx.buffers.clear();
+    return true;
+}
+
+bool RSBaseRenderUtilTest::ProduceBuffers(DropFrameTestContext& ctx, uint32_t count)
+{
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    for (uint32_t i = 0; i < count; i++) {
+        sptr<SurfaceBuffer> buffer;
+        GSError ret = ctx.producerSurface->RequestBuffer(buffer, requestFence, requestConfigRGBA);
+        if (ret != GSERROR_OK) {
+            return false;
+        }
+        ret = ctx.producerSurface->FlushBuffer(buffer, flushFence, flushConfig);
+        if (ret != GSERROR_OK) {
+            return false;
+        }
+        ctx.buffers.push_back(buffer);
+    }
+    return true;
+}
+
+void RSBaseRenderUtilTest::ReleaseBuffers(DropFrameTestContext& ctx)
+{
+    for (auto& buffer : ctx.buffers) {
+        if (buffer != nullptr && ctx.surfaceConsumer != nullptr) {
+            ctx.surfaceConsumer->ReleaseBuffer(buffer, SyncFence::INVALID_FENCE);
+        }
+    }
+    ctx.buffers.clear();
 }
 
 /*
@@ -313,7 +390,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
         auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
         surfaceHandler.SetConsumer(surfaceConsumer);
         uint64_t presentWhen = 100; // let presentWhen smaller than INT64_MAX
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true);
+        RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
     }
 
@@ -359,7 +437,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_004, TestSize.Level2)
         uint64_t parentNodeId = 0;
         const auto& consumer = surfaceHandler.GetConsumer();
         consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, parentNodeId);
+        RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId);
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
         ASSERT_EQ(surfaceHandler.GetSourceType(), 5);
     }
@@ -399,7 +478,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
         consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
         surfaceHandler.SetAvailableBufferCount(1);
         surfaceHandler.SetHoldBuffer(surfaceBuffer);
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, parentNodeId);
+        RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId);
         ASSERT_EQ(surfaceConsumer->GetName(), "DisplayNode");
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
     }
@@ -432,12 +512,13 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
     surfaceHandler.SetConsumer(surfaceConsumer);
     surfaceHandler.SetAvailableBufferCount(1);
-    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, false));
-    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, true));
+    RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
+    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
+    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, true));
     IConsumerSurface::AcquireBufferReturnValue holdReturnValue;
     holdReturnValue.buffer = sptr<SurfaceBufferImpl>::MakeSptr();
     surfaceHandler.SetHoldReturnValue(holdReturnValue);
-    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, false));
+    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
 
     // produce buffer
     sptr<SurfaceBuffer> buffer1 = sptr<SurfaceBufferImpl>::MakeSptr();
@@ -451,7 +532,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     // consume buffer
     surfaceHandler.ResetHoldReturnValue();
     surfaceHandler.SetAvailableBufferCount(1);
-    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, false));
+    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
     RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
 
     // produce buffer
@@ -463,7 +544,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     // consume buffer
     surfaceHandler.SetHoldReturnValue(holdReturnValue);
     surfaceHandler.SetAvailableBufferCount(1);
-    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, true));
+    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, true));
 }
 
 /*
@@ -1384,6 +1465,149 @@ HWTEST_F(RSBaseRenderUtilTest, GenerateDrawingBitmapFormatTest, TestSize.Level2)
     bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
     ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGBA_1010102);
     ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_DropFrameLevel_001
+ * @tc.desc: Test basic drop frame behavior (dropFrameLevel=1 with 3 buffers)
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_001, TestSize.Level2)
+{
+    DropFrameTestContext ctx;
+    ASSERT_TRUE(InitDropFrameTestContext(ctx, 3));
+    ASSERT_TRUE(ProduceBuffers(ctx, 3));
+
+    auto& surfaceHandler = *(ctx.surfaceRenderNode->GetRSSurfaceHandler());
+    surfaceHandler.SetConsumer(ctx.surfaceConsumer);
+    surfaceHandler.SetAvailableBufferCount(3);
+
+    RSBaseRenderUtil::DropFrameConfig config { .enable = true, .level = 1 };
+    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
+    ASSERT_TRUE(result);
+
+    ReleaseBuffers(ctx);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_DropFrameLevel_002
+ * @tc.desc: Test ConsumeAndUpdateBuffer with dropFrameLevel >= availableBufferCount (no drop)
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_002, TestSize.Level2)
+{
+    DropFrameTestContext ctx;
+    ASSERT_TRUE(InitDropFrameTestContext(ctx, 3));
+    ASSERT_TRUE(ProduceBuffers(ctx, 2));
+
+    auto& surfaceHandler = *(ctx.surfaceRenderNode->GetRSSurfaceHandler());
+    surfaceHandler.SetConsumer(ctx.surfaceConsumer);
+    surfaceHandler.SetAvailableBufferCount(2);
+
+    RSBaseRenderUtil::DropFrameConfig config { .enable = true, .level = 5 };
+    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
+    ASSERT_TRUE(result);
+
+    ReleaseBuffers(ctx);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_DropFrameLevel_003
+ * @tc.desc: Test ConsumeAndUpdateBuffer with enable=false (no drop even with dropFrameLevel > 0)
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_003, TestSize.Level2)
+{
+    DropFrameTestContext ctx;
+    ASSERT_TRUE(InitDropFrameTestContext(ctx, 3));
+    ASSERT_TRUE(ProduceBuffers(ctx, 3));
+
+    auto& surfaceHandler = *(ctx.surfaceRenderNode->GetRSSurfaceHandler());
+    surfaceHandler.SetConsumer(ctx.surfaceConsumer);
+    surfaceHandler.SetAvailableBufferCount(3);
+
+    RSBaseRenderUtil::DropFrameConfig config { .enable = false, .level = 1 };
+    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
+    ASSERT_TRUE(result);
+
+    ReleaseBuffers(ctx);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_DropFrameLevel_004
+ * @tc.desc: Test ConsumeAndUpdateBuffer with negative dropFrameLevel (should not drop)
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_004, TestSize.Level2)
+{
+    DropFrameTestContext ctx;
+    ASSERT_TRUE(InitDropFrameTestContext(ctx, 3));
+    ASSERT_TRUE(ProduceBuffers(ctx, 2));
+
+    auto& surfaceHandler = *(ctx.surfaceRenderNode->GetRSSurfaceHandler());
+    surfaceHandler.SetConsumer(ctx.surfaceConsumer);
+    surfaceHandler.SetAvailableBufferCount(2);
+
+    RSBaseRenderUtil::DropFrameConfig config { .enable = true, .level = -1 };
+    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
+    ASSERT_TRUE(result);
+
+    ReleaseBuffers(ctx);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_DropFrameLevel_005
+ * @tc.desc: Verify SetDropFrameLevel + AcquireBuffer(with PTS) triggers DropBuffersByLevel
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_005, TestSize.Level2)
+{
+    DropFrameTestContext ctx;
+    ASSERT_TRUE(InitDropFrameTestContext(ctx, 5));
+    ASSERT_TRUE(ProduceBuffers(ctx, 5));
+    ASSERT_EQ(ctx.surfaceConsumer->GetAvailableBufferCount(), 5u);
+
+    // SetDropFrameLevel + AcquireBuffer(with PTS) triggers DropBuffersByLevel
+    GSError setRet = ctx.surfaceConsumer->SetDropFrameLevel(2);
+    ASSERT_EQ(setRet, GSERROR_OK);
+
+    IConsumerSurface::AcquireBufferReturnValue returnValue;
+    GSError acquireRet = ctx.surfaceConsumer->AcquireBuffer(returnValue, INT64_MAX, true);
+    ASSERT_EQ(acquireRet, GSERROR_OK);
+    ASSERT_NE(returnValue.buffer, nullptr);
+    ASSERT_EQ(ctx.surfaceConsumer->GetAvailableBufferCount(), 0u);
+
+    ctx.surfaceConsumer->SetDropFrameLevel(0);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_DropFrameLevel_006
+ * @tc.desc: Verify SetDropFrameLevel(0) reset branch executes (no dropping when level=0)
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_006, TestSize.Level2)
+{
+    DropFrameTestContext ctx;
+    ASSERT_TRUE(InitDropFrameTestContext(ctx, 3));
+    ASSERT_TRUE(ProduceBuffers(ctx, 3));
+
+    auto& surfaceHandler = *(ctx.surfaceRenderNode->GetRSSurfaceHandler());
+    surfaceHandler.SetConsumer(ctx.surfaceConsumer);
+
+    RSBaseRenderUtil::DropFrameConfig config { .enable = true, .level = 0 };
+
+    // Consume all 3 buffers one by one (no dropping when level=0)
+    for (int32_t expectedRemain = 2; expectedRemain >= 0; --expectedRemain) {
+        surfaceHandler.SetAvailableBufferCount(expectedRemain + 1);
+        ASSERT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config));
+        ASSERT_EQ(ctx.surfaceConsumer->GetAvailableBufferCount(), expectedRemain);
+    }
 }
 
 /**

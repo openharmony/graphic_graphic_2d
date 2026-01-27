@@ -1881,6 +1881,46 @@ HWTEST_F(RSInterfacesTest, DropFrameByPid002, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: DropFrameByPid003
+ * @tc.desc: Test DropFrameByPid with dropFrameLevel parameter
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid003, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    // Test with dropFrameLevel = 1 (keep latest 1 frame)
+    rsInterfaces->DropFrameByPid({getpid()}, 1);
+}
+
+/*
+ * @tc.name: DropFrameByPid004
+ * @tc.desc: Test DropFrameByPid with dropFrameLevel = 0 (no drop)
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid004, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    // Test with dropFrameLevel = 0 (no frame dropping)
+    rsInterfaces->DropFrameByPid({getpid()}, 0);
+}
+
+/*
+ * @tc.name: DropFrameByPid005
+ * @tc.desc: Test DropFrameByPid with multiple pids and dropFrameLevel
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid005, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    // Test with multiple PIDs and dropFrameLevel = 2
+    std::vector<int32_t> pidList = {getpid(), 1000, 2000};
+    rsInterfaces->DropFrameByPid(pidList, 2);
+}
+
+/*
  * @tc.name: SetVirtualScreenUsingStatus001
  * @tc.desc: Test SetVirtualScreenUsingStatus interface while input is true.
  * @tc.type: FUNC

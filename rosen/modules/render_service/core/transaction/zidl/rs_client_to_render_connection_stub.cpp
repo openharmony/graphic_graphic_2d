@@ -785,7 +785,14 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            DropFrameByPid(pidList);
+            int32_t dropFrameLevel = 0;
+            if (!data.ReadInt32(dropFrameLevel)) {
+                RS_LOGE("RSClientToRenderConnectionStub::DROP_FRAME_BY_PID Read "
+                        "dropFrameLevel failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            DropFrameByPid(pidList, dropFrameLevel);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT) : {

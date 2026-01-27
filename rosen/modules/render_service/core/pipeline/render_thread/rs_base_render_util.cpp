@@ -969,7 +969,7 @@ void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector
 }
 
 CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    bool dropFrameByPidEnable, uint64_t parentNodeId, bool dropFrameByScreenFrozen)
+    const DropFrameConfig& dropFrameConfig, uint64_t parentNodeId, bool dropFrameByScreenFrozen)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -980,10 +980,16 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         return false;
     }
 
-    // check presentWhen conversion validation range
-    bool presentWhenValid = presentWhen <= static_cast<uint64_t>(INT64_MAX);
     bool acqiureWithPTSEnable =
         RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
+    if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
+        consumer->SetDropFrameLevel(dropFrameConfig.level);
+        RS_LOGD("RsDebug RSBaseRenderUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
+            "), set drop frame level=%{public}d", surfaceHandler.GetNodeId(), dropFrameConfig.level);
+    }
+
+    // check presentWhen conversion validation range
+    bool presentWhenValid = presentWhen <= static_cast<uint64_t>(INT64_MAX);
     uint64_t acquireTimeStamp = presentWhen;
     if (!presentWhenValid || !acqiureWithPTSEnable) {
         acquireTimeStamp = CONSUME_DIRECTLY;
@@ -994,12 +1000,13 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     std::shared_ptr<RSSurfaceHandler::SurfaceBufferEntry> surfaceBuffer;
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
         IConsumerSurface::AcquireBufferReturnValue returnValue;
-        int32_t ret;
-        if (acqiureWithPTSEnable && dropFrameByPidEnable) {
-            ret = consumer->AcquireBuffer(returnValue, INT64_MAX, true);
-        } else {
-            ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
+        int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
+
+        // Reset drop frame level after acquire to avoid affecting subsequent acquires
+        if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
+            consumer->SetDropFrameLevel(0);
         }
+
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
             if (LIKELY(!dropFrameByScreenFrozen) && UNLIKELY(holdReturnValue)) {
@@ -1082,7 +1089,9 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     surfaceBuffer = nullptr;
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
     // should drop frame after acquire buffer to avoid drop key frame
-    DropFrameProcess(surfaceHandler, acquireTimeStamp);
+    if (!dropFrameConfig.enable) {
+        DropFrameProcess(surfaceHandler, acquireTimeStamp);
+    }
 #ifdef RS_ENABLE_GPU
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {

@@ -267,9 +267,11 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
-    void AddPidNeedDropFrame(std::vector<int32_t> pid);
+    void AddPidNeedDropFrame(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0);
     void ClearNeedDropframePidList();
+    void RemoveDropFramePid(pid_t pid);
     bool IsNeedDropFrameByPid(NodeId nodeId);
+    int32_t GetDropFrameLevelByPid(NodeId nodeId);
     void SetLuminanceChangingStatus(ScreenId id, bool isLuminanceChanged);
     bool ExchangeLuminanceChangingStatus(ScreenId id);
 
@@ -812,7 +814,7 @@ private:
     RSDrawFrame drawFrame_;
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
-    std::unordered_set<int32_t> surfacePidNeedDropFrame_;
+    std::unordered_map<int32_t, int32_t> surfacePidNeedDropFrame_;  // pid -> dropFrameLevel
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
     RSSurfaceWatermarkHelper surfaceWatermarkHelper_;
 

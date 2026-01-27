@@ -65,7 +65,7 @@ public:
     
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
 
-    ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;
+    ErrCode DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0) override;
 
     ErrCode RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback) override;

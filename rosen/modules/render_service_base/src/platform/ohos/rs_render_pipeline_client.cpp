@@ -369,11 +369,11 @@ int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSt
     return resCode;
 }
 
-void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t> pidList)
+void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
     auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline != nullptr) {
-        renderPipeline->DropFrameByPid(pidList);
+        renderPipeline->DropFrameByPid(pidList, dropFrameLevel);
     }
 }
 

@@ -1571,8 +1571,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
             surfaceHandler->ResetCurrentFrameBufferConsumed();
             auto parentNode = surfaceNode->GetParent().lock();
+            RSBaseRenderUtil::DropFrameConfig dropFrameConfig;
+            dropFrameConfig.enable = IsNeedDropFrameByPid(surfaceHandler->GetNodeId());
+            dropFrameConfig.level = GetDropFrameLevelByPid(surfaceHandler->GetNodeId());
             auto comsumeResult = RSBaseRenderUtil::ConsumeAndUpdateBuffer(
-                *surfaceHandler, timestamp_, IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
+                *surfaceHandler, timestamp_, dropFrameConfig,
                 parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
             if (surfaceHandler->GetSourceType() ==
                 static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
@@ -4780,26 +4783,46 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 #endif
 }
 
-void RSMainThread::AddPidNeedDropFrame(std::vector<int32_t> pidList)
+void RSMainThread::AddPidNeedDropFrame(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
     if (surfacePidNeedDropFrame_.size() > MAX_DROP_FRAME_PID_LIST_SIZE) {
         surfacePidNeedDropFrame_.clear();
     }
 
     for (const auto& pid: pidList) {
-        surfacePidNeedDropFrame_.insert(pid);
+        surfacePidNeedDropFrame_[pid] = dropFrameLevel;
     }
 }
 
 void RSMainThread::ClearNeedDropframePidList()
 {
-    surfacePidNeedDropFrame_.clear();
+    // Reset all dropFrameLevel to 0 instead of clearing the map
+    // The entry will be erased when the surface render node is destroyed
+    for (auto& [pid, dropFrameLevel] : surfacePidNeedDropFrame_) {
+        dropFrameLevel = 0;
+    }
+}
+
+void RSMainThread::RemoveDropFramePid(pid_t pid)
+{
+    surfacePidNeedDropFrame_.erase(pid);
 }
 
 bool RSMainThread::IsNeedDropFrameByPid(NodeId nodeId)
 {
     int32_t pid = ExtractPid(nodeId);
-    return surfacePidNeedDropFrame_.find(pid) != surfacePidNeedDropFrame_.end();
+    auto it = surfacePidNeedDropFrame_.find(pid);
+    return it != surfacePidNeedDropFrame_.end();
+}
+
+int32_t RSMainThread::GetDropFrameLevelByPid(NodeId nodeId)
+{
+    int32_t pid = ExtractPid(nodeId);
+    auto it = surfacePidNeedDropFrame_.find(pid);
+    if (it != surfacePidNeedDropFrame_.end()) {
+        return it->second;
+    }
+    return 0;
 }
 
 void RSMainThread::SetLuminanceChangingStatus(ScreenId id, bool isLuminanceChanged)

@@ -589,7 +589,7 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo002, TestSize.Level2)
 
 /**
  * @tc.name: AddPidNeedDropFrame
- * @tc.desc: Test AddPidNeedDropFrame
+ * @tc.desc: Test AddPidNeedDropFrame with dropFrameLevel parameter
  * @tc.type: FUNC
  * @tc.require: issueIB612L
  */
@@ -600,13 +600,51 @@ HWTEST_F(RSMainThreadTest, AddPidNeedDropFrame, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with dropFrameLevel = 2
+    mainThread->AddPidNeedDropFrame({pid}, 2);
     ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 2);
+    ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
+}
+
+/**
+ * @tc.name: AddPidNeedDropFrame002
+ * @tc.desc: Test AddPidNeedDropFrame with default dropFrameLevel (0)
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, AddPidNeedDropFrame002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with default dropFrameLevel (0)
+    mainThread->AddPidNeedDropFrame({pid});
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
 }
 
 /**
  * @tc.name: ClearNeedDropframePidList
- * @tc.desc: Test ClearNeedDropframePidList
+ * @tc.desc: Test ClearNeedDropframePidList resets dropFrameLevel to 0
  * @tc.type: FUNC
  * @tc.require: issueIB612L
  */
@@ -617,9 +655,79 @@ HWTEST_F(RSMainThreadTest, ClearNeedDropframePidList, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Add PID with dropFrameLevel = 5
+    mainThread->AddPidNeedDropFrame({pid}, 5);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 5);
+
+    // Clear should reset level to 0, but not remove entry
     mainThread->ClearNeedDropframePidList();
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);  // Entry still exists
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);  // Level reset to 0
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
+}
+
+/**
+ * @tc.name: RemoveDropFramePid
+ * @tc.desc: Test RemoveDropFramePid removes specific PID
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, RemoveDropFramePid, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Add PID
+    mainThread->AddPidNeedDropFrame({pid}, 2);
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+    ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+
+    // Remove PID
+    mainThread->RemoveDropFramePid(pid);
     ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 0);
+    ASSERT_FALSE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+}
+
+/**
+ * @tc.name: GetDropFrameLevelByPid
+ * @tc.desc: Test GetDropFrameLevelByPid returns correct level
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, GetDropFrameLevelByPid, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test default level (0)
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+
+    // Test after adding with level = 3
+    mainThread->AddPidNeedDropFrame({pid}, 3);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 3);
+
+    // Test after clear (should be 0)
+    mainThread->ClearNeedDropframePidList();
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
 }
 
 /**
@@ -635,10 +743,17 @@ HWTEST_F(RSMainThreadTest, IsNeedDropFrameByPid001, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with dropFrameLevel > 0
+    mainThread->AddPidNeedDropFrame({pid}, 1);
     ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
 
-    mainThread->ClearNeedDropframePidList();
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
 }
 
 /**
@@ -654,10 +769,14 @@ HWTEST_F(RSMainThreadTest, IsNeedDropFrameByPid002, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with empty pidList
     mainThread->AddPidNeedDropFrame({});
     ASSERT_FALSE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
-
-    mainThread->ClearNeedDropframePidList();
 }
 
 /**

@@ -1031,9 +1031,9 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     renderServiceClient_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
 }
 
-void RSInterfaces::DropFrameByPid(const std::vector<int32_t> pidList)
+void RSInterfaces::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
-    RSRenderInterface::GetInstance().DropFrameByPid(pidList);
+    RSRenderInterface::GetInstance().DropFrameByPid(pidList, dropFrameLevel);
 }
 
 int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured)

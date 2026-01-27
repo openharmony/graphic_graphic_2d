@@ -108,7 +108,7 @@ public:
 
     virtual ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) = 0;
 
-    virtual ErrCode DropFrameByPid(const std::vector<int32_t> pidList) = 0;
+    virtual ErrCode DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0) = 0;
 
     virtual ErrCode RegisterSurfaceBufferCallback(
         pid_t pid, uint64_t uid, sptr<RSISurfaceBufferCallback> callback) = 0;

@@ -651,19 +651,19 @@ ErrCode RSClientToRenderConnection::GetScreenHDRStatus(ScreenId id, HdrStatus& h
     return ERR_OK;
 }
 
-ErrCode RSClientToRenderConnection::DropFrameByPid(const std::vector<int32_t> pidList)
+ErrCode RSClientToRenderConnection::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
     if (!mainThread_) {
         return ERR_INVALID_VALUE;
     }
     mainThread_->ScheduleTask(
-        [weakThis = wptr<RSClientToRenderConnection>(this), pidList]() {
+        [weakThis = wptr<RSClientToRenderConnection>(this), pidList, dropFrameLevel]() {
             // don't use 'this' directly
             sptr<RSClientToRenderConnection> connection = weakThis.promote();
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;
             }
-            connection->mainThread_->AddPidNeedDropFrame(pidList);
+            connection->mainThread_->AddPidNeedDropFrame(pidList, dropFrameLevel);
         }
     );
     return ERR_OK;

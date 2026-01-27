@@ -364,13 +364,13 @@ bool RSRenderInterface::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode
         node->GetId(), isFreeze, callback, captureConfig, blurParam);
 }
 
-void RSRenderInterface::DropFrameByPid(const std::vector<int32_t> pidList)
+void RSRenderInterface::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
     if (pidList.empty()) {
         return;
     }
     RS_TRACE_NAME("DropFrameByPid");
-    renderPiplineClient_->DropFrameByPid(pidList);
+    renderPiplineClient_->DropFrameByPid(pidList, dropFrameLevel);
 }
 
 void RSRenderInterface::SetWindowContainer(NodeId nodeId, bool value)
