@@ -43,11 +43,11 @@ public:
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override
     {
-        committedTransactions.push_back(transactionData.get());
+        committedTransactions.push_back(std::move(transactionData));
     }
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override {};
 
-    std::vector<RSTransactionData*> committedTransactions;
+    std::vector<std::unique_ptr<RSTransactionData>> committedTransactions;
 };
 
 class RSTransactionHandlerTest : public testing::Test {
