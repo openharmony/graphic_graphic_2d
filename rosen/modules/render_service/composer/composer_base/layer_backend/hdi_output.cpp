@@ -113,21 +113,6 @@ RosenError HdiOutput::Init()
     return ROSEN_ERROR_OK;
 }
 
-RosenError HdiOutput::SetHdiOutputDevice(HdiDevice* device)
-{
-    if (device == nullptr) {
-        HLOGE("Input HdiDevice is null");
-        return ROSEN_ERROR_INVALID_ARGUMENTS;
-    }
-
-    if (device_ != nullptr) {
-        HLOGW("HdiDevice has been changed");
-        return ROSEN_ERROR_OK;
-    }
-    device_ = device;
-    return ROSEN_ERROR_OK;
-}
-
 void HdiOutput::SetRSLayers(const std::vector<std::shared_ptr<RSLayer>>& rsLayers)
 {
     uint32_t solidLayerCount = 0;

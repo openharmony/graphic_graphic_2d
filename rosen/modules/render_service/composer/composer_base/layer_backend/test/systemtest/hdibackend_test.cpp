@@ -40,7 +40,7 @@ void HdiBackendSysTest::SetUpTestCase()
     mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
     uint32_t screenId = 0;
     output_ = HdiOutput::CreateHdiOutput(screenId);
-    output_->SetHdiOutputDevice(mockDevice_);
+    output_->device_ = mockDevice_;
     output_->Init();
     EXPECT_CALL(*mockDevice_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
 

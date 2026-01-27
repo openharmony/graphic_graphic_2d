@@ -82,8 +82,6 @@ public:
     GSError ClearFrameBuffer();
 
     RosenError InitDevice();
-    /* only used for mock tests */
-    RosenError SetHdiOutputDevice(HdiDevice* device);
     int32_t PreProcessLayersComp();
     int32_t UpdateLayerCompType();
     int32_t FlushScreen(std::vector<std::shared_ptr<HdiLayer>>& compClientLayers);
