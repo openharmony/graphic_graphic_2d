@@ -98,6 +98,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_POINTER_POSITION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
@@ -1392,6 +1395,92 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             ClearSurfaceWatermark(pid, name);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                RS_LOGE("RSClientToRenderConnectionStub::REGISTER_OCCLUSION_CHANGE_CALLBACK Read "
+                    "remoteObject failed!");
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
+            if (callback == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            int32_t status = RegisterOcclusionChangeCallback(callback);
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE("RSClientToRenderConnectionStub::REGISTER_OCCLUSION_CHANGE_CALLBACK Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
+            NodeId id{0};
+            if (!RSMarshallingHelper::UnmarshallingPidPlusId(data, id)) {
+                RS_LOGE("RSClientToRenderConnectionStub::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Read "
+                    "id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
+                RS_LOGW("The RegisterSurfaceOcclusionChangeCallback isn't legal, nodeId:%{public}" PRIu64 ", "
+                    "callingPid:%{public}d", id, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                RS_LOGE("RSClientToRenderConnectionStub::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Read remoteObject "
+                        "failed!");
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            sptr<RSISurfaceOcclusionChangeCallback> callback =
+                iface_cast<RSISurfaceOcclusionChangeCallback>(remoteObject);
+            if (callback == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            std::vector<float> partitionPoints;
+            if (!data.ReadFloatVector(&partitionPoints)) {
+                RS_LOGE("RSClientToRenderConnectionStub::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Read "
+                        "partitionPoints failed!");
+                ret = ERR_TRANSACTION_FAILED;
+                break;
+            }
+            int32_t status = RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE("RSClientToRenderConnectionStub::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Write "
+                    "status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
+            NodeId id{0};
+            if (!RSMarshallingHelper::UnmarshallingPidPlusId(data, id)) {
+                RS_LOGE("RSClientToRenderConnectionStub::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK: "
+                    "Read id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
+                RS_LOGW("The UnRegisterSurfaceOcclusionChangeCallback isn't legal, nodeId:%{public}" PRIu64 ", "
+                    "callingPid:%{public}d", id, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t status = UnRegisterSurfaceOcclusionChangeCallback(id);
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE(
+                    "RSClientToRenderConnectionStub::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         default: {

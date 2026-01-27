@@ -521,38 +521,6 @@ ErrCode RSServiceToRenderConnectionProxy::GetMemoryGraphics(std::vector<MemoryGr
     return ERR_OK;
 }
 
-int32_t RSServiceToRenderConnectionProxy::RegisterOcclusionChangeCallback(
-    pid_t pid, sptr<RSIOcclusionChangeCallback> callback)
-{
-    if (callback == nullptr) {
-        ROSEN_LOGE("%{public}s: callback is nullptr.", __func__);
-        return INVALID_ARGUMENTS;
-    }
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("%{public}s WriteInterfaceToken GetDescriptor err.", __func__);
-        return RS_CONNECTION_ERROR;
-    }
-    if (!data.WriteInt32(static_cast<int32_t>(pid))) {
-        ROSEN_LOGE("%{public}s WriteInt32 failed.", __func__);
-        return INVALID_ARGUMENTS;
-    }
-    if (!data.WriteRemoteObject(callback->AsObject())) {
-        ROSEN_LOGE("%{public}s WriteRemoteObject callback->AsObject() err.", __func__);
-        return WRITE_PARCEL_ERR;
-    }
-    uint32_t code = static_cast<uint32_t>(
-            RSIServiceToRenderConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
-    }
-    return SUCCESS;
-}
-
 int32_t RSServiceToRenderConnectionProxy::SetBrightnessInfoChangeCallback(pid_t pid,
     sptr<RSIBrightnessInfoChangeCallback> callback)
 {
@@ -579,77 +547,6 @@ int32_t RSServiceToRenderConnectionProxy::SetBrightnessInfoChangeCallback(pid_t 
         return RS_CONNECTION_ERROR;
     }
     return SUCCESS;
-}
-
-int32_t RSServiceToRenderConnectionProxy::RegisterSurfaceOcclusionChangeCallback(
-    NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
-{
-    if (callback == nullptr) {
-        ROSEN_LOGE("%{public}s callback is nullptr.", __func__);
-        return INVALID_ARGUMENTS;
-    }
-
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("%{public}s WriteInterfaceToken GetDescriptor err.", __func__);
-        return RS_CONNECTION_ERROR;
-    }
-    if (!data.WriteUint64(id)) {
-        ROSEN_LOGE("%{public}s WriteUint64 id err.", __func__);
-        return WRITE_PARCEL_ERR;
-    }
-    if (!data.WriteRemoteObject(callback->AsObject())) {
-        ROSEN_LOGE("%{public}s WriteRemoteObject callback->AsObject() err.", __func__);
-        return WRITE_PARCEL_ERR;
-    }
-    if (!data.WriteFloatVector(partitionPoints)) {
-        ROSEN_LOGE("%{public}s WriteFloatVector partitionPoints err.", __func__);
-        return WRITE_PARCEL_ERR;
-    }
-
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
-    }
-    int32_t result{0};
-    if (!reply.ReadInt32(result)) {
-        ROSEN_LOGE("%{public}s Read result failed", __func__);
-        return READ_PARCEL_ERR;
-    }
-    return result;
-}
-
-int32_t RSServiceToRenderConnectionProxy::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("%{public}s WriteInterfaceToken GetDescriptor err.", __func__);
-        return RS_CONNECTION_ERROR;
-    }
-    if (!data.WriteUint64(id)) {
-        ROSEN_LOGE("%{public}s WriteUint64 id err.", __func__);
-        return WRITE_PARCEL_ERR;
-    }
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
-    }
-    int32_t result{0};
-    if (!reply.ReadInt32(result)) {
-        ROSEN_LOGE("%{public}s Read result failed", __func__);
-        return READ_PARCEL_ERR;
-    }
-    return result;
 }
 
 ErrCode RSServiceToRenderConnectionProxy::GetPixelMapByProcessId(

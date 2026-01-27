@@ -23,6 +23,8 @@
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
@@ -456,6 +458,22 @@ void RSRenderInterface::ClearSurfaceWatermark(pid_t pid, const std::string &name
     }
     return renderPipelineClient_->ClearSurfaceWatermark(pid, name);
 #endif
+}
+
+int32_t RSRenderInterface::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return renderPipelineClient_->RegisterOcclusionChangeCallback(callback);
+}
+
+int32_t RSRenderInterface::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
+{
+    return renderPipelineClient_->RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
+}
+
+int32_t RSRenderInterface::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    return renderPipelineClient_->UnRegisterSurfaceOcclusionChangeCallback(id);
 }
 }
 }

@@ -263,13 +263,6 @@ public:
 
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
-    int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
-
-    int32_t RegisterSurfaceOcclusionChangeCallback(
-        NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
-
-    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
-
     int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(const HgmRefreshRateModeChangeCallback& callback);

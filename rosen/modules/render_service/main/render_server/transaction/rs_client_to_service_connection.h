@@ -243,13 +243,6 @@ private:
 
     void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
 
-    ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
-
-    int32_t RegisterSurfaceOcclusionChangeCallback(
-        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
-
-    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
-
     int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;

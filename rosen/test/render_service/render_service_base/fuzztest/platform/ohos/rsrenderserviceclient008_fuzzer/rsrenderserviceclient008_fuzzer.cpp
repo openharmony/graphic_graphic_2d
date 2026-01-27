@@ -431,7 +431,6 @@ bool DoRegisterOcclusionChangeCallback002()
     std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     OcclusionChangeCallback occlusionChangeCallback;
     SurfaceOcclusionChangeCallback surfaceOcclusionChangeCallback;
-    NodeId nodeId = GetData<NodeId>();
     std::vector<float> partitionPoints;
     HgmConfigChangeCallback hgmConfigChangeCallback;
     HgmRefreshRateModeChangeCallback hgmRefreshRateModeChangeCallback;
@@ -442,10 +441,6 @@ bool DoRegisterOcclusionChangeCallback002()
     uint32_t height = GetData<uint32_t>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
 
-    renderServiceClient->RegisterOcclusionChangeCallback(occlusionChangeCallback);
-    renderServiceClient->RegisterSurfaceOcclusionChangeCallback(
-        nodeId, surfaceOcclusionChangeCallback, partitionPoints);
-    renderServiceClient->UnRegisterSurfaceOcclusionChangeCallback(nodeId);
     renderServiceClient->RegisterHgmConfigChangeCallback(hgmConfigChangeCallback);
     renderServiceClient->RegisterHgmRefreshRateModeChangeCallback(hgmRefreshRateModeChangeCallback);
     renderServiceClient->RegisterHgmRefreshRateUpdateCallback(hgmRefreshRateUpdateCallback);

@@ -761,25 +761,6 @@ bool DoSetVirtualScreenRefreshRate(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoRegisterOcclusionChangeCallback()
-{
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    OcclusionChangeCallback callback;
-    renderServiceClient->RegisterOcclusionChangeCallback(callback);
-    return true;
-}
-
-bool DoRegisterSurfaceOcclusionChangeCallback(const uint8_t* data, size_t size)
-{
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    SurfaceOcclusionChangeCallback callback;
-    NodeId id = GetData<NodeId>();
-    std::vector<float> partitionPoints;
-    renderServiceClient->RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
-    renderServiceClient->UnRegisterSurfaceOcclusionChangeCallback(id);
-    return true;
-}
-
 bool DoRegisterHgmConfigChangeCallback(const uint8_t* data, size_t size)
 {
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
@@ -1463,7 +1444,6 @@ bool DoRegisterOcclusionChangeCallback002(const uint8_t *data, size_t size)
     std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     OcclusionChangeCallback occlusionChangeCallback;
     SurfaceOcclusionChangeCallback surfaceOcclusionChangeCallback;
-    NodeId nodeId = GetData<NodeId>();
     std::vector<float> partitionPoints;
     HgmConfigChangeCallback hgmConfigChangeCallback;
     HgmRefreshRateModeChangeCallback hgmRefreshRateModeChangeCallback;
@@ -1474,10 +1454,6 @@ bool DoRegisterOcclusionChangeCallback002(const uint8_t *data, size_t size)
     uint32_t height = GetData<uint32_t>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
 
-    renderServiceClient->RegisterOcclusionChangeCallback(occlusionChangeCallback);
-    renderServiceClient->RegisterSurfaceOcclusionChangeCallback(
-        nodeId, surfaceOcclusionChangeCallback, partitionPoints);
-    renderServiceClient->UnRegisterSurfaceOcclusionChangeCallback(nodeId);
     renderServiceClient->RegisterHgmConfigChangeCallback(hgmConfigChangeCallback);
     renderServiceClient->RegisterHgmRefreshRateModeChangeCallback(hgmRefreshRateModeChangeCallback);
     renderServiceClient->RegisterHgmRefreshRateUpdateCallback(hgmRefreshRateUpdateCallback);
@@ -1646,8 +1622,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetScreenSupportedColorSpaces(data, size);
     OHOS::Rosen::DoGetScreenType(data, size);
     OHOS::Rosen::DoSetVirtualScreenRefreshRate(data, size);
-    OHOS::Rosen::DoRegisterOcclusionChangeCallback();
-    OHOS::Rosen::DoRegisterSurfaceOcclusionChangeCallback(data, size);
     OHOS::Rosen::DoRegisterHgmConfigChangeCallback(data, size);
     OHOS::Rosen::DoSetSystemAnimatedScenes();
     OHOS::Rosen::DoRegisterFrameRateLinkerExpectedFpsUpdateCallback(data, size);

@@ -852,28 +852,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterSharedTypeface, TestSize.
 }
 
 /**
- * @tc.name: RegisterSurfaceOcclusionChangeCallback Test
- * @tc.desc: RegisterSurfaceOcclusionChangeCallback Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterSurfaceOcclusionChangeCallback, TestSize.Level1)
-{
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_NE(samgr, nullptr);
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
-    int32_t repCode;
-    proxy->RegisterOcclusionChangeCallback(callback, repCode);
-    EXPECT_NE(repCode, -1);
-    NodeId id = 1;
-    proxy->UnRegisterSurfaceOcclusionChangeCallback(id);
-    sptr<RSISurfaceOcclusionChangeCallback> callbackTwo = iface_cast<RSISurfaceOcclusionChangeCallback>(remoteObject);
-    std::vector<float> partitionPoints;
-    ASSERT_EQ(proxy->RegisterSurfaceOcclusionChangeCallback(id, callbackTwo, partitionPoints), 2);
-}
-
-/**
  * @tc.name: RegisterHgmRefreshRateUpdateCallback Test
  * @tc.desc: RegisterHgmRefreshRateUpdateCallback Test
  * @tc.type:FUNC

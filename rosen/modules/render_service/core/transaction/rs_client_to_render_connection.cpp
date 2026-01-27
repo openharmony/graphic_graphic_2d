@@ -604,6 +604,31 @@ void RSClientToRenderConnection::ClearSurfaceWatermark(pid_t pid, const std::str
     renderPipelineAgent_->ClearSurfaceWatermark(pid, name, isSystemCalling);
 }
 
+ErrCode RSClientToRenderConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->RegisterOcclusionChangeCallback(remotePid_, callback);
+}
+
+int32_t RSClientToRenderConnection::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->RegisterSurfaceOcclusionChangeCallback(id, remotePid_, callback, partitionPoints);
+}
+
+int32_t RSClientToRenderConnection::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->UnRegisterSurfaceOcclusionChangeCallback(id);
+}
+
 std::string RSClientToRenderConnection::GetBundleName(pid_t pid)
 {
     if (!renderPipelineAgent_) {

@@ -156,6 +156,13 @@ private:
         
     void ClearSurfaceWatermark(pid_t pid, const std::string &name) override;
 
+    ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
+
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
+
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
+
     ErrCode ForceRefreshOneFrameWithNextVSync() override;
 
     ErrCode SetAppWindowNum(uint32_t num) override;

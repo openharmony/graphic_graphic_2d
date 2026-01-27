@@ -254,13 +254,6 @@ public:
 
     virtual void SetScreenFrameGravity(ScreenId id, int32_t gravity) = 0;
 
-    virtual ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) = 0;
-
-    virtual int32_t RegisterSurfaceOcclusionChangeCallback(
-        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) = 0;
-
-    virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
-
     virtual int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
     virtual int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;

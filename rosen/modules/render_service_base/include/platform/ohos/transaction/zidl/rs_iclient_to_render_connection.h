@@ -180,6 +180,14 @@ public:
         const std::vector<NodeId> &nodeIdList) = 0;
         
     virtual void ClearSurfaceWatermark(pid_t pid, const std::string &name) = 0;
+
+    virtual ErrCode RegisterOcclusionChangeCallback(
+        sptr<RSIOcclusionChangeCallback> callback) = 0;
+
+    virtual int32_t RegisterSurfaceOcclusionChangeCallback(NodeId id,
+        sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) = 0;
+
+    virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
 };
 
 } // namespace Rosen

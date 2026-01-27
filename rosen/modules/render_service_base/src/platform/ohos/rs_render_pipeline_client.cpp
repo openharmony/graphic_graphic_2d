@@ -924,5 +924,69 @@ void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string 
     }
     clientToRender->ClearSurfaceWatermark(pid, name);
 }
+
+class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub
+{
+public:
+    explicit CustomOcclusionChangeCallback(const OcclusionChangeCallback &callback) : cb_(callback) {}
+    ~CustomOcclusionChangeCallback() override {};
+
+    void OnOcclusionVisibleChanged(std::shared_ptr<RSOcclusionData> occlusionData) override
+    {
+        if (cb_ != nullptr) {
+            cb_(occlusionData);
+        }
+    }
+
+private:
+    OcclusionChangeCallback cb_;
+};
+
+class CustomSurfaceOcclusionChangeCallback : public RSSurfaceOcclusionChangeCallbackStub
+{
+public:
+    explicit CustomSurfaceOcclusionChangeCallback(const SurfaceOcclusionChangeCallback &callback) : cb_(callback) {}
+    ~CustomSurfaceOcclusionChangeCallback() override {};
+
+    void OnSurfaceOcclusionVisibleChanged(float visibleAreaRatio) override
+    {
+        if (cb_ != nullptr) {
+            cb_(visibleAreaRatio);
+        }
+    }
+
+private:
+    SurfaceOcclusionChangeCallback cb_;
+};
+
+ErrCode RSRenderPipelineClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
+    return clientToRender->RegisterOcclusionChangeCallback(cb);
+}
+
+int32_t RSRenderPipelineClient::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    sptr<CustomSurfaceOcclusionChangeCallback> cb = new CustomSurfaceOcclusionChangeCallback(callback);
+    return clientToRender->RegisterSurfaceOcclusionChangeCallback(id, cb, partitionPoints);
+}
+
+int32_t RSRenderPipelineClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToRender->UnRegisterSurfaceOcclusionChangeCallback(id);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -20,6 +20,7 @@
 #include <map>
 
 #include "common/rs_common_def.h"
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "transaction/rs_render_pipeline_client.h"
 #include "platform/drawing/rs_surface.h"
 #include "ui/rs_display_node.h"
@@ -27,7 +28,8 @@
 
 namespace OHOS {
 namespace Rosen {
-
+using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
+using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 class RSC_EXPORT RSRenderInterface {
 public:
     RSRenderInterface();
@@ -317,6 +319,28 @@ public:
      */
     void ClearSurfaceWatermark(pid_t pid, const std::string &name);
 
+    /**
+     * @brief Register window occlusion change callback.
+     * @param callback callback fuction.
+     * @return 0 success, else failed.
+     */
+    int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    /**
+     * @brief Register web surface occlusion change callback.
+     * @param callback callback fuction.
+     * @param partitionPoints is a vector of area ratio.
+     * @return 0 success, else failed.
+     */
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+         NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
+
+    /**
+     * @brief UnRegister web surface occlusion change callback.
+     * @param id is the node id indicates which surface occlusion change callback needs to be unRegister.
+     * @return 0 success, else failed.
+     */
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
 private:
     std::unique_ptr<RSRenderPipelineClient> renderPipelineClient_;
     friend class RSUIContext;

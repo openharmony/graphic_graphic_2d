@@ -39,11 +39,7 @@ public:
     virtual void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) = 0;
 
     // Partial Render
-    virtual int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback) = 0;
     virtual int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback) = 0;
-    virtual int32_t RegisterSurfaceOcclusionChangeCallback( NodeId id, pid_t pid,
-        sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) = 0;
-    virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
     
     // Performance Logging
     virtual ErrCode ReportJankStats() = 0;

@@ -116,22 +116,6 @@ int32_t RSServiceToRenderConnection::SetBrightnessInfoChangeCallback(pid_t pid,
     return renderPipelineAgent_->SetBrightnessInfoChangeCallback(pid, callback);
 }
 
-int32_t RSServiceToRenderConnection::RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback)
-{
-    return renderPipelineAgent_->RegisterOcclusionChangeCallback(pid, callback);
-}
-
-int32_t RSServiceToRenderConnection::RegisterSurfaceOcclusionChangeCallback(
-    NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
-{
-    return renderPipelineAgent_->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
-}
-
-int32_t RSServiceToRenderConnection::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
-{
-  return renderPipelineAgent_->UnRegisterSurfaceOcclusionChangeCallback(id);
-}
-
 ErrCode RSServiceToRenderConnection::GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic)
 {
     return renderPipelineAgent_->GetMemoryGraphic(pid, memoryGraphic);

@@ -532,34 +532,6 @@ bool DoGetScreenHDRCapability()
     return true;
 }
 
-class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub {
-public:
-    explicit CustomOcclusionChangeCallback(const OcclusionChangeCallback& callback) : cb_(callback) {}
-    ~CustomOcclusionChangeCallback() override {};
-
-    void OnOcclusionVisibleChanged(std::shared_ptr<RSOcclusionData> occlusionData) override
-    {
-        if (cb_ != nullptr) {
-            cb_(occlusionData);
-        }
-    }
-
-private:
-    OcclusionChangeCallback cb_;
-};
-
-bool DoRegisterOcclusionChangeCallback()
-{
-    if (rsToServiceConn_ == nullptr) {
-        return false;
-    }
-    OcclusionChangeCallback callback = [](std::shared_ptr<RSOcclusionData> data) {};
-    sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
-    int32_t repCode = GetData<int32_t>();
-    rsToServiceConn_->RegisterOcclusionChangeCallback(cb, repCode);
-    return true;
-}
-
 bool DoShowWatermark()
 {
 #ifdef SUPPORT_ACCESS_TOKEN
@@ -1574,7 +1546,6 @@ void DoFuzzerTest1()
     DoGetScreenCapability();
     DoGetScreenData();
     DoGetScreenHDRCapability();
-    DoRegisterOcclusionChangeCallback();
 #ifdef SUPPORT_ACCESS_TOKEN
     DoShowWatermark();
 #endif

@@ -260,9 +260,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.RegisterTypeface(id1, id2, screenId, resCode, id1);
     rsClientToServiceConnectionProxy.UnRegisterTypeface(id1);
     rsClientToServiceConnectionProxy.SetScreenSkipFrameInterval(id1, width, resCode);
-    rsClientToServiceConnectionProxy.RegisterOcclusionChangeCallback(rsIOcclusionChangeCallback, repCode);
-    rsClientToServiceConnectionProxy.RegisterSurfaceOcclusionChangeCallback(id1, callbackTwo, partitionPoints);
-    rsClientToServiceConnectionProxy.UnRegisterSurfaceOcclusionChangeCallback(id1);
     rsClientToServiceConnectionProxy.RegisterHgmConfigChangeCallback(rsIHgmConfigChangeCallback);
     rsClientToServiceConnectionProxy.RegisterHgmRefreshRateModeChangeCallback(rsIHgmConfigChangeCallback);
     rsClientToServiceConnectionProxy.RegisterHgmRefreshRateUpdateCallback(rsIHgmConfigChangeCallback);

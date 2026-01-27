@@ -665,18 +665,18 @@ bool RSInterfaces::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
 
 int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
-    return renderServiceClient_->RegisterOcclusionChangeCallback(callback);
+    return renderInterface_->RegisterOcclusionChangeCallback(callback);
 }
 
 int32_t RSInterfaces::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
 {
-    return renderServiceClient_->RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
+    return renderInterface_->RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
 }
 
 int32_t RSInterfaces::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
 {
-    return renderServiceClient_->UnRegisterSurfaceOcclusionChangeCallback(id);
+    return renderInterface_->UnRegisterSurfaceOcclusionChangeCallback(id);
 }
 
 int32_t RSInterfaces::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)

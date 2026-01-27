@@ -192,6 +192,13 @@ public:
         const std::vector<NodeId> &nodeIdList);
         
     void ClearSurfaceWatermark(pid_t pid, const std::string &name);
+    
+    ErrCode RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+        NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
+
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);

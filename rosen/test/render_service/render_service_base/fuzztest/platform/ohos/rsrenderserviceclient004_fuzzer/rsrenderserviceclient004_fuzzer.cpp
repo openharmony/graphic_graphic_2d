@@ -41,8 +41,6 @@ const uint8_t DO_GET_SCREEN_SUPPORTED_HDR_FORMATS = 4;
 const uint8_t DO_GET_SCREEN_SUPPORTED_COLORSPACES = 5;
 const uint8_t DO_GET_SCREEN_TYPE = 6;
 const uint8_t DO_SET_VIRTUAL_SCREEN_REFRESH_RATE = 7;
-const uint8_t DO_REGISTER_OCCLUSION_CHANGE_CALLBACK = 8;
-const uint8_t DO_REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK = 9;
 const uint8_t DO_REGISTER_HGM_CONFIG_CHANGE_CALLBACK = 10;
 const uint8_t DO_SET_SYSTEM_ANIMATED_SCENES = 11;
 const uint8_t DO_REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK = 12;
@@ -192,25 +190,6 @@ bool DoSetVirtualScreenRefreshRate()
     uint32_t maxRefreshRate = GetData<uint32_t>();
     uint32_t actualRefreshRate = GetData<uint32_t>();
     renderServiceClient->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
-    return true;
-}
-
-bool DoRegisterOcclusionChangeCallback()
-{
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    OcclusionChangeCallback callback;
-    renderServiceClient->RegisterOcclusionChangeCallback(callback);
-    return true;
-}
-
-bool DoRegisterSurfaceOcclusionChangeCallback()
-{
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    SurfaceOcclusionChangeCallback callback;
-    NodeId id = GetData<NodeId>();
-    std::vector<float> partitionPoints;
-    renderServiceClient->RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
-    renderServiceClient->UnRegisterSurfaceOcclusionChangeCallback(id);
     return true;
 }
 
@@ -387,12 +366,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_VIRTUAL_SCREEN_REFRESH_RATE:
             OHOS::Rosen::DoSetVirtualScreenRefreshRate();
-            break;
-        case OHOS::Rosen::DO_REGISTER_OCCLUSION_CHANGE_CALLBACK:
-            OHOS::Rosen::DoRegisterOcclusionChangeCallback();
-            break;
-        case OHOS::Rosen::DO_REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK:
-            OHOS::Rosen::DoRegisterSurfaceOcclusionChangeCallback();
             break;
         case OHOS::Rosen::DO_REGISTER_HGM_CONFIG_CHANGE_CALLBACK:
             OHOS::Rosen::DoRegisterHgmConfigChangeCallback();
