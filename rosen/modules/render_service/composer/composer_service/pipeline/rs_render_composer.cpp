@@ -593,10 +593,10 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         if (periodNum * idealPeriod + vsyncOffset + IDEAL_PULSE < idealPipelineOffset) {
             periodNum = periodNum + 1;
         }
-        frameOffset = periodNum * idealPeriod + vsyncOffset +
-            static_cast<int64_t>(dvsyncOffset) - static_cast<int64_t>(pipelineParam.fastComposeTimeStampDiff);
+        frameOffset = periodNum * idealPeriod + vsyncOffset
+            - static_cast<int64_t>(pipelineParam.fastComposeTimeStampDiff);
     }
-    expectCommitTime = pipelineParam.actualTimestamp + frameOffset - compositionTime - RESERVE_TIME;
+    expectCommitTime = pipelineParam.frameTimestamp + frameOffset - compositionTime - RESERVE_TIME;
     int64_t diffTime = expectCommitTime - currTime;
     if (diffTime > 0 && period > 0) {
         delayTime = std::round(diffTime * 1.0f / NS_MS_UNIT_CONVERSION);
@@ -604,10 +604,11 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
     RS_TRACE_NAME_FMT("CalculateDelayTime pipelineOffset: %" PRId64 ", actualTimestamp: %" PRId64 ", " \
         "expectCommitTime: %" PRId64 ", currTime: %" PRId64 ", diffTime: %" PRId64 ", delayTime: %" PRId64 ", " \
         "frameOffset: %" PRId64 ", dvsyncOffset: %" PRIu64 ", vsyncOffset: %" PRId64 ", idealPeriod: %" PRId64 ", " \
-        "period: %" PRId64 ", idealPipelineOffset: %" PRId64 ", fastComposeTimeStampDiff: %" PRIu64 "",
+        "period: %" PRId64 ", idealPipelineOffset: %" PRId64 ", fastComposeTimeStampDiff: %" PRIu64 ", " \
+        "frameTimestamp: %" PRId64 "",
         pipelineOffset, pipelineParam.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime,
         frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period,
-        idealPipelineOffset, pipelineParam.fastComposeTimeStampDiff);
+        idealPipelineOffset, pipelineParam.fastComposeTimeStampDiff, pipelineParam.frameTimestamp);
     RS_LOGD_IF(DEBUG_PIPELINE, "CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64 "", period,
         delayTime);
     return delayTime;
