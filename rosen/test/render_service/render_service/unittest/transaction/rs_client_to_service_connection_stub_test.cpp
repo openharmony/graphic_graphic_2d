@@ -3078,12 +3078,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifySoftVsyncRateDiscountEvent00
 }
 
 /**
- * @tc.name: SetWindowExpectRefreshRate001
- * @tc.desc: Test SetWindowExpectRefreshRate001
+ * @tc.name: SetWindowExpectedRefreshRate001
+ * @tc.desc: Test SetWindowExpectedRefreshRate001
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectRefreshRate001, TestSize.Level2)
+HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate001, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
     MessageParcel data;
@@ -3137,12 +3137,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectRefreshRate001, Tes
 }
 
 /**
- * @tc.name: SetWindowExpectRefreshRate002
- * @tc.desc: Test SetWindowExpectRefreshRate002
+ * @tc.name: SetWindowExpectedRefreshRate002
+ * @tc.desc: Test SetWindowExpectedRefreshRate002
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectRefreshRate002, TestSize.Level2)
+HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate002, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
     MessageParcel reply;
@@ -3193,12 +3193,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectRefreshRate002, Tes
 }
 
 /**
- * @tc.name: SetWindowExpectRefreshRate003
- * @tc.desc: Test SetWindowExpectRefreshRate003
+ * @tc.name: SetWindowExpectedRefreshRate003
+ * @tc.desc: Test SetWindowExpectedRefreshRate003
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectRefreshRate003, TestSize.Level2)
+HWTEST_F(RSClientToServiceConnectionStubTest, SetWindowExpectedRefreshRate003, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
     MessageParcel data;
