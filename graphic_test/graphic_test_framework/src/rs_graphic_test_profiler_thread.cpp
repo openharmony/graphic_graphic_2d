@@ -49,8 +49,8 @@ RSGraphicTestProfilerThread::~RSGraphicTestProfilerThread()
 
 void RSGraphicTestProfilerThread::Start()
 {
- 	system("param set persist.graphic.profiler.enabled 0");
- 	WaitTimeout(INIT_WAIT_TIME);
+    system("param set persist.graphic.profiler.enabled 0");
+    WaitTimeout(INIT_WAIT_TIME);
     system("param set persist.graphic.profiler.enabled 1");
     WaitTimeout(INIT_WAIT_TIME);
     runnig_ = true;
