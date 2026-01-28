@@ -1012,7 +1012,7 @@ static void KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, co
             RS_TRACE_NAME("KillProcessByPid HiSysEventWrite");
             eventWriteStatus = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
                 HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", info.bundleName,
-                "MSG", reason, "FOREGROUND", false, "UID", info.uid, "BUNDLE_NAME", info.bundleName,
+                "MSG", reason, "FOREGROUND", true, "UID", info.uid, "BUNDLE_NAME", info.bundleName,
                 "REASON", GPU_RS_LEAK);
         }
         // To prevent the print from being filtered, use RS_LOGE.
