@@ -620,4 +620,226 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_UNION_OP_Test)
         RegisterNode(childNode);
     }
 }
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Basic_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(rectXParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        // 创建 UnionOpShape
+        auto rootShape = CreateShape(RSNGEffectType::SDF_UNION_OP_SHAPE);
+        auto unionOpShape = std::static_pointer_cast<RSNGSDFUnionOpShape>(rootShape);
+
+        // 设置第一个子形状
+        auto childShapeX = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+        auto rRectChildShapeX = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeX);
+        rRectChildShapeX->Setter<SDFRRectShapeRRectTag>(rectXParams[i]);
+        unionOpShape->Setter<SDFUnionOpShapeShapeXTag>(childShapeX);
+
+        // 设置第二个子形状
+        auto childShapeY = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+        auto rRectChildShapeY = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeY);
+        rRectChildShapeY->Setter<SDFRRectShapeRRectTag>(rectYParams[i]);
+        unionOpShape->Setter<SDFUnionOpShapeShapeYTag>(childShapeY);
+
+        backgroundTestNode->SetSDFShape(rootShape);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_W_Transform_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(matrix3fParams1.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+
+    RRect rrectX{RectT<float>{100, 100, 200, 200}, 20.0f, 20.0f};
+    RRect rrectY{RectT<float>{150, 150, 200, 200}, 20.0f, 20.0f};
+
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        // 创建 UnionOpShape
+        auto unionShape = CreateShape(RSNGEffectType::SDF_UNION_OP_SHAPE);
+        auto unionOpShape = std::static_pointer_cast<RSNGSDFUnionOpShape>(unionShape);
+
+        // 设置第一个子形状
+        auto childShapeX = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+        auto rRectChildShapeX = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeX);
+        rRectChildShapeX->Setter<SDFRRectShapeRRectTag>(rrectX);
+        unionOpShape->Setter<SDFUnionOpShapeShapeXTag>(childShapeX);
+
+        // 设置第二个子形状
+        auto childShapeY = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+        auto rRectChildShapeY = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeY);
+        rRectChildShapeY->Setter<SDFRRectShapeRRectTag>(rrectY);
+        unionOpShape->Setter<SDFUnionOpShapeShapeYTag>(childShapeY);
+
+        // 创建 Transform 包裹 UnionOpShape
+        auto transformShape = CreateShape(RSNGEffectType::SDF_TRANSFORM_SHAPE);
+        auto sdfTransformShape = std::static_pointer_cast<RSNGSDFTransformShape>(transformShape);
+        sdfTransformShape->Setter<SDFTransformShapeMatrixTag>(matrix3fParams1[i].Inverse());
+        sdfTransformShape->Setter<SDFTransformShapeShapeTag>(unionShape);
+
+        backgroundTestNode->SetSDFShape(transformShape);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Pixelmap_Test)
+{
+    int columnCount = 1;
+    int rowCount = 2; // 测试不同的 pixelmap 组合
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        // 创建 UnionOpShape
+        auto unionShape = CreateShape(RSNGEffectType::SDF_UNION_OP_SHAPE);
+        auto unionOpShape = std::static_pointer_cast<RSNGSDFUnionOpShape>(unionShape);
+
+        // 设置第一个 Pixelmap 子形状
+        auto childShapeX = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+        auto pixelmapChildShapeX = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShapeX);
+        std::shared_ptr<Media::PixelMap> pixelmapX =
+            DecodePixelMap(sdfPixelmapShapePath[i % sdfPixelmapShapePath.size()],
+                          Media::AllocatorType::SHARE_MEM_ALLOC);
+        pixelmapChildShapeX->Setter<SDFPixelmapShapeImageTag>(pixelmapX);
+        unionOpShape->Setter<SDFUnionOpShapeShapeXTag>(childShapeX);
+
+        // 设置第二个 Pixelmap 子形状
+        auto childShapeY = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+        auto pixelmapChildShapeY = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShapeY);
+        std::shared_ptr<Media::PixelMap> pixelmapY =
+            DecodePixelMap(sdfPixelmapShapePath[(i + 1) % sdfPixelmapShapePath.size()],
+                          Media::AllocatorType::SHARE_MEM_ALLOC);
+        pixelmapChildShapeY->Setter<SDFPixelmapShapeImageTag>(pixelmapY);
+        unionOpShape->Setter<SDFUnionOpShapeShapeYTag>(childShapeY);
+
+        backgroundTestNode->SetSDFShape(unionShape);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOp_Comparison_Test)
+{
+    int columnCount = 2; // 左边 UNION_OP，右边 SMOOTH_UNION_OP
+    int rowCount = static_cast<int>(rectXParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+
+    for (int i = 0; i < rowCount; i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+
+        // 测试 UNION_OP（左列）
+        {
+            auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+            InitFrostedGlassFilter(frostedGlassFilter);
+
+            auto backgroundTestNode = RSCanvasNode::Create();
+            Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+            backgroundTestNode->SetBounds(bounds);
+            backgroundTestNode->SetFrame(bounds);
+            backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+            auto unionShape = CreateShape(RSNGEffectType::SDF_UNION_OP_SHAPE);
+            auto unionOpShape = std::static_pointer_cast<RSNGSDFUnionOpShape>(unionShape);
+
+            auto childShapeX = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+            auto rRectChildShapeX = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeX);
+            rRectChildShapeX->Setter<SDFRRectShapeRRectTag>(rectXParams[i]);
+            unionOpShape->Setter<SDFUnionOpShapeShapeXTag>(childShapeX);
+
+            auto childShapeY = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+            auto rRectChildShapeY = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeY);
+            rRectChildShapeY->Setter<SDFRRectShapeRRectTag>(rectYParams[i]);
+            unionOpShape->Setter<SDFUnionOpShapeShapeYTag>(childShapeY);
+
+            backgroundTestNode->SetSDFShape(unionShape);
+
+            auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+            childNode->AddChild(backgroundTestNode);
+            RegisterNode(backgroundTestNode);
+            GetRootNode()->AddChild(childNode);
+            RegisterNode(childNode);
+        }
+
+        // 测试 SMOOTH_UNION_OP（右列，用于对比）
+        {
+            auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+            InitFrostedGlassFilter(frostedGlassFilter);
+
+            auto backgroundTestNode = RSCanvasNode::Create();
+            Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+            backgroundTestNode->SetBounds(bounds);
+            backgroundTestNode->SetFrame(bounds);
+            backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+            std::shared_ptr<RSNGShapeBase> smoothUnionShape;
+            InitSmoothUnionShapes(smoothUnionShape, rectXParams[i], rectYParams[i], 30.0f);
+
+            backgroundTestNode->SetSDFShape(smoothUnionShape);
+
+            auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+            childNode->AddChild(backgroundTestNode);
+            RegisterNode(backgroundTestNode);
+            GetRootNode()->AddChild(childNode);
+            RegisterNode(childNode);
+        }
+    }
+}
 }  // namespace OHOS::Rosen
