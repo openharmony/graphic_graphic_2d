@@ -40,11 +40,11 @@ void TypographyFuzzTest(const uint8_t* data, size_t size)
     auto paragraph = paragraphBuilder->Build();
     paragraph->Layout(1000.0f);
 
-    int32_t width = fdp.ConsumeIntegralInRange<int32_t>(1, 4096);
-    int32_t height = fdp.ConsumeIntegralInRange<int32_t>(1, 4096);
+    int32_t width = fdp.ConsumeIntegralInRange<int32_t>(-4096, 4096);
+    int32_t height = fdp.ConsumeIntegralInRange<int32_t>(-4096, 4096);
 
-    ImageOptions options{width, height, fdp.ConsumeFloatingPointInRange<float>(0.0f, 1000.0f),
-        fdp.ConsumeFloatingPointInRange<float>(0.0f, 1000.0f)};
+    ImageOptions options{width, height, fdp.ConsumeFloatingPointInRange<float>(-1000.0f, 1000.0f),
+        fdp.ConsumeFloatingPointInRange<float>(-1000.0f, 1000.0f)};
 
     std::shared_ptr<OHOS::Media::PixelMap> pixelMap = paragraph->GetTextPathImageByIndex(
         fdp.ConsumeIntegral<size_t>(), fdp.ConsumeIntegral<size_t>(), options, fdp.ConsumeBool());
