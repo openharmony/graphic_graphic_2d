@@ -368,7 +368,7 @@ void RSUniRenderVisitor::HandleWiredMirrorScreenColorGamut(RSScreenRenderNode& n
 
     ScreenColorGamut screenColorGamut;
     if (screenManager_->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
-        RS_LOGD("HandleWiredMirrorScreenGamut get screen color gamut failed.");
+        RS_LOGD("HandleWiredMirrorScreenColorGamut get screen color gamut failed.");
         return;
     }
     if (static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_SRGB) {

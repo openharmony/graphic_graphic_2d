@@ -7948,34 +7948,34 @@ HWTEST_F(RSUniRenderVisitorTest, IsWiredMirrorScreen001, TestSize.Level2)
 }
 
 /**
- * @tc.name: HandleWiredMirrorScreenGamut001
- * @tc.desc: Test HandleWiredMirrorScreenGamut with P3 disabled
+ * @tc.name: HandleWiredMirrorScreenColorGamut001
+ * @tc.desc: Test HandleWiredMirrorScreenColorGamut with P3 disabled
  * @tc.type: FUNC
  */
-HWTEST_F(RSUniRenderVisitorTest, HandleWiredMirrorScreenGamut001, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, HandleWiredMirrorScreenColorGamut001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
     screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
-    rsUniRenderVisitor->HandleWiredMirrorScreenGamut(*screenNode);
+    rsUniRenderVisitor->HandleWiredMirrorScreenColorGamut(*screenNode);
     EXPECT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
 
 /**
- * @tc.name: HandleWiredMirrorScreenGamut002
- * @tc.desc: Test HandleWiredMirrorScreenGamut without mirror source
+ * @tc.name: HandleWiredMirrorScreenColorGamut002
+ * @tc.desc: Test HandleWiredMirrorScreenColorGamut without mirror source
  * @tc.type: FUNC
  */
-HWTEST_F(RSUniRenderVisitorTest, HandleWiredMirrorScreenGamut002, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, HandleWiredMirrorScreenColorGamut002, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
     screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
 
-    rsUniRenderVisitor->HandleWiredMirrorScreenGamut(*screenNode);
+    rsUniRenderVisitor->HandleWiredMirrorScreenColorGamut(*screenNode);
     EXPECT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
@@ -8028,27 +8028,27 @@ HWTEST_F(RSUniRenderVisitorTest, IsWiredExtendedScreen002, TestSize.Level2)
 }
 
 /**
- * @tc.name: HandleWiredExtendedScreenGamut001
- * @tc.desc: Test HandleWiredExtendedScreenGamut with P3 disabled
+ * @tc.name: HandleWiredExtendedScreenColorGamut001
+ * @tc.desc: Test HandleWiredExtendedScreenColorGamut with P3 disabled
  * @tc.type: FUNC
  */
-HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenGamut001, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenColorGamut001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(1, 0);
     screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
-    rsUniRenderVisitor->HandleWiredExtendedScreenGamut(*screenNode);
+    rsUniRenderVisitor->HandleWiredExtendedScreenColorGamut(*screenNode);
     EXPECT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 /**
- * @tc.name: HandleWiredExtendedScreenGamut002
- * @tc.desc: Test HandleWiredExtendedScreenGamut with main screen (screenId = 0)
+ * @tc.name: HandleWiredExtendedScreenColorGamut002
+ * @tc.desc: Test HandleWiredExtendedScreenColorGamut with main screen (screenId = 0)
  * @tc.type: FUNC
  */
-HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenGamut002, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenColorGamut002, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -8065,7 +8065,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenGamut002, TestSize.Lev
     screenNode->screenId_ = screenId;
 
     GraphicColorGamut originalColorSpace = screenNode->GetColorSpace();
-    rsUniRenderVisitor->HandleWiredExtendedScreenGamut(*screenNode);
+    rsUniRenderVisitor->HandleWiredExtendedScreenColorGamut(*screenNode);
     EXPECT_EQ(screenNode->GetColorSpace(), originalColorSpace);
 }
 
