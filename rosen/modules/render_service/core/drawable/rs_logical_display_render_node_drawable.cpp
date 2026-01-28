@@ -458,6 +458,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
     if (drawRegion.IsValid()) {
         canvas.DrawImageRect(*image, srcRect, drawRegion, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+        return;
     }
 
     RSAutoCanvasRestore acr(&canvas);
