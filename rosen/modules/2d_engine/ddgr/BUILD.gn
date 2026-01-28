@@ -113,6 +113,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
     cflags_cc = ddgr_src_set.cflags_cc
     defines = ddgr_src_set.defines
     include_dirs = ddgr_src_set.include_dirs
+    inputs = ddgr_src_set.inputs
   }
 
   config("public_ddgr_config") {
