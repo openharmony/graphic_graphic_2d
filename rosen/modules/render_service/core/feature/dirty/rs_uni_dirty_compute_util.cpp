@@ -47,7 +47,7 @@
 namespace OHOS {
 namespace Rosen {
 std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
-    DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable, ScreenInfo& screenInfo, RSScreenRenderParams& params)
+    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, ScreenInfo& screenInfo, RSScreenRenderParams& params)
 {
     Occlusion::Region damageRegions;
     auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
@@ -68,7 +68,7 @@ std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
         if (!surfaceParams->IsLeashOrMainWindow() || surfaceParams->GetDstRect().IsEmpty()) {
             continue;
         }
-        // for cross-screen surface, only consider the dirty region on the first display (use global dirty for others).
+        // for cross-screen surface, only consider the dirty region on the first screen (use global dirty for others).
         if (surfaceParams->IsFirstLevelCrossNode() &&
             !RSUniRenderThread::Instance().GetRSRenderThreadParams()->IsFirstVisitCrossNodeDisplay()) {
             continue;
@@ -84,13 +84,13 @@ std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
         damageRegions.OrSelf(surfaceFilterCollector.GetPureCleanFilterDirtyRegion());
         surfaceFilterCollector.ClearPureCleanFilterDirtyRegion();
     }
-    auto screenDirtyManager = screenNodeDrawable.GetSyncDirtyManager();
+    auto screenDirtyManager = screenDrawable.GetSyncDirtyManager();
     if (screenDirtyManager == nullptr) {
         return {};
     }
-    auto& screenFilterCollector = screenDirtyManager->GetFilterCollector();
-    damageRegions.OrSelf(screenFilterCollector.GetPureCleanFilterDirtyRegion());
-    screenFilterCollector.ClearPureCleanFilterDirtyRegion();
+    auto& displayFilterCollector = screenDirtyManager->GetFilterCollector();
+    damageRegions.OrSelf(displayFilterCollector.GetPureCleanFilterDirtyRegion());
+    displayFilterCollector.ClearPureCleanFilterDirtyRegion();
     auto rects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegions, screenInfo);
     RectI rect = screenDirtyManager->GetDirtyRegionFlipWithinSurface();
     if (!rect.IsEmpty()) {
@@ -164,14 +164,14 @@ GraphicIRect RSUniDirtyComputeUtil::IntersectRect(const GraphicIRect& first, con
 }
 
 void RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(Occlusion::Region& damageRegion,
-    Occlusion::Region& drawRegion, DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable,
+    Occlusion::Region& drawRegion, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
     const std::optional<Drawing::Matrix>& matrix, bool dirtyAlign)
 {
     dirtyAlignEnabled_ = dirtyAlign;
-    if (UNLIKELY(screenNodeDrawable.GetRenderParams() == nullptr)) {
+    if (UNLIKELY(screenDrawable.GetRenderParams() == nullptr)) {
         return;
     }
-    auto screenParams = static_cast<RSScreenRenderParams*>(screenNodeDrawable.GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
     // If screen zoomed, filter cache is globally disabled, thus partial render of filter cache should be disabled.
     RSFilterDirtyCollector::SetValidCachePartialRender(!screenParams->GetZoomed());
     auto& surfaceDrawables = screenParams->GetAllMainAndLeashSurfaceDrawables();
@@ -179,17 +179,17 @@ void RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(Occlusion::Region& d
     bool elementChanged = false;
     do {
         elementChanged = false;
-        elementChanged |= DealWithFilterDirtyForScreen(damageRegion, drawRegion, screenNodeDrawable, matrix);
+        elementChanged |= DealWithFilterDirtyForScreen(damageRegion, drawRegion, screenDrawable, matrix);
         elementChanged |= DealWithFilterDirtyForSurface(damageRegion, drawRegion, surfaceDrawables, matrix);
     } while (elementChanged);
-    ResetFilterInfoStatus(screenNodeDrawable, surfaceDrawables);
+    ResetFilterInfoStatus(screenDrawable, surfaceDrawables);
 }
 
 bool RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForScreen(Occlusion::Region& damageRegion,
-    Occlusion::Region& drawRegion, DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable,
+    Occlusion::Region& drawRegion, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
     const std::optional<Drawing::Matrix>& matrix)
 {
-    auto screenDirtyManager = screenNodeDrawable.GetSyncDirtyManager();
+    auto screenDirtyManager = screenDrawable.GetSyncDirtyManager();
     if (UNLIKELY(screenDirtyManager == nullptr)) {
         return false;
     }
@@ -270,11 +270,11 @@ bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damag
     return std::find_if(filterList.begin(), filterList.end(), addDirtyInIntersect) != filterList.end();
 }
 
-void RSUniFilterDirtyComputeUtil::ResetFilterInfoStatus(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable,
+void RSUniFilterDirtyComputeUtil::ResetFilterInfoStatus(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& surfaceDrawables)
 {
     auto resetFilterStatus = [] (FilterDirtyRegionInfo& filterInfo) { filterInfo.addToDirty_ = false; };
-    if (auto screenDirtyManager = screenNodeDrawable.GetSyncDirtyManager()) {
+    if (auto screenDirtyManager = screenDrawable.GetSyncDirtyManager()) {
         auto& screenFilterList = screenDirtyManager->GetFilterCollector().GetFilterDirtyRegionInfoList(true);
         std::for_each(screenFilterList.begin(), screenFilterList.end(), resetFilterStatus);
     }
@@ -359,13 +359,13 @@ RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSSurfaceRenderNod
 }
 
 void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
-    RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable,
+    RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
     const sptr<RSScreenManager>& screenManager)
 {
-    // All other factors that may prevent skipping virtual expand screen need to be considered
+    // All other factors that may prevent skipping virtual expand display need to be considered
     // update accumulated dirty region
     params.SetAccumulatedDirty(params.GetAccumulatedDirty() ||
-        (screenNodeDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
+        (screenDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
 
     // update accumulated hdr status changed
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
@@ -402,7 +402,7 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
 }
 
 bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
-    RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable)
+    RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
 {
     // Regardless of whether the current frame is skipped, the state needs to be accumulated
     if (!RSSystemProperties::GetVirtualExpandScreenSkipEnabled()) {
