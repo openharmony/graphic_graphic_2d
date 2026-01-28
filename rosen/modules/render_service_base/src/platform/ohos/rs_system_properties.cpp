@@ -911,27 +911,7 @@ uint32_t RSSystemProperties::GetSubtreeDebugOption()
 
 bool RSSystemProperties::GetUIFirstEnabled()
 {
-#ifdef ROSEN_EMULATOR
-    return false;
-#else
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-#endif
-}
-
-bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.optSchedule.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
-bool RSSystemProperties::GetUIFirstBehindWindowEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindwindow.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -988,6 +968,22 @@ bool RSSystemProperties::GetUIFirstDebugEnabled()
 {
     static bool debugEnable = system::GetIntParameter("persist.sys.graphic.uifirstDebugEnabled", 0) != 0;
     return debugEnable;
+}
+
+bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.optSchedule.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetUIFirstBehindWindowEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindwindow.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetSingleDrawableLockerEnabled()
