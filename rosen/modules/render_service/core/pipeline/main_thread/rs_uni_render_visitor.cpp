@@ -2606,14 +2606,13 @@ void RSUniRenderVisitor::UpdateTopLayersDirtyStatus(const std::vector<std::share
             }
             topLayer->SetCalcRectInPrepare(false);
             bool hwcDisabled = !IsHardwareComposerEnabled() || !topLayer->ShouldPaint() ||
-                curScreenNode_->GetHasUniRenderHdrSurface() || !drmNodes_.empty() ||
-                hwcVisitor_->IsDisableHwcOnExpandScreen();
+                !drmNodes_.empty() || hwcVisitor_->IsDisableHwcOnExpandScreen();
             topLayer->SetHardwareForcedDisabledState(hwcDisabled);
             if (hwcDisabled) {
                 RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by toplayers dirty status, "
-                    "IsHardwareComposerEnabled[%d],TopLayerShouldPaint[%d],HasUniRenderHdrSurface[%d],DrmNodeEmpty[%d]",
+                    "IsHardwareComposerEnabled[%d],TopLayerShouldPaint[%d],DrmNodeEmpty[%d]",
                     topLayer->GetName().c_str(), topLayer->GetId(), IsHardwareComposerEnabled(),
-                    topLayer->ShouldPaint(), curScreenNode_->GetHasUniRenderHdrSurface(), drmNodes_.empty());
+                    topLayer->ShouldPaint(), drmNodes_.empty());
                 hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(topLayer->GetId(),
                     HwcDisabledReasons::DISABLED_BY_TOP_LAYERS, topLayer->GetName());
             }

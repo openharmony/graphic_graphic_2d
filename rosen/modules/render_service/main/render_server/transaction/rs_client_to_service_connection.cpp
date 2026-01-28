@@ -3257,7 +3257,7 @@ ErrCode RSClientToServiceConnection::SetLayerTop(const std::string &nodeIdStr, b
             [&nodeIdStr, &isTop](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
                 (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
-                surfaceNode->SetLayerTop(isTop);
+                surfaceNode->SetLayerTop(isTop, false);
                 return;
             }
         });
