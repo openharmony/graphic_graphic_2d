@@ -859,7 +859,8 @@ void HgmFrameRateManager::HandlePointerTask(pid_t pid, int32_t pointerStatus, in
     if (pointerStatus ==  TOUCH_MOVE || pointerStatus ==  TOUCH_BUTTON_DOWN || pointerStatus ==  TOUCH_BUTTON_UP) {
         PolicyConfigData::StrategyConfig strategyRes;
         if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
-            strategyRes.pointerMode != PointerModeType::POINTER_DISENABLED) {
+            (strategyRes.pointerMode == PointerModeType::POINTER_ENABLED ||
+             (pointerStatus != TOUCH_MOVE && strategyRes.pointerMode == PointerModeType::POINTER_ENABLED_EX_MOVE))) {
             HGM_LOGD("[pointer manager] active");
             pointerManager_.HandleTimerReset();
             pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");

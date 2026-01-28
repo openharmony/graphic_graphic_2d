@@ -91,6 +91,7 @@ enum class SceneType {
 enum class PointerModeType : int32_t {
     POINTER_DISENABLED = 0,
     POINTER_ENABLED = 1,
+    POINTER_ENABLED_EX_MOVE = 2,
 };
 
 enum class DynamicModeType : int32_t {
