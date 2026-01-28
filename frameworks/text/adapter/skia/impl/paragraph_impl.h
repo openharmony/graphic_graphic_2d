@@ -170,6 +170,8 @@ public:
 
     std::string GetDumpInfo() const override;
 
+    TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) override;
+
 #ifdef ENABLE_OHOS_ENHANCE
     /**
      * Get the text path image by index.
@@ -211,6 +213,8 @@ private:
 
     void UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
         skt::InternalState& state, size_t index);
+
+    void BuildFitStrRange(std::vector<TextRange>& fitRanges);
 
     std::unique_ptr<skt::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;

@@ -86,6 +86,7 @@ NapiTextResult ParseRangeAndEncodingFromJs(napi_env env, napi_value rangeObj,
 }
 
 napi_property_descriptor properties[] = {
+    DECLARE_NAPI_FUNCTION("layoutWithConstraints", JsParagraph::LayoutWithConstraints),
     DECLARE_NAPI_FUNCTION("layoutSync", JsParagraph::Layout),
     DECLARE_NAPI_FUNCTION("paint", JsParagraph::Paint),
     DECLARE_NAPI_FUNCTION("paintOnPath", JsParagraph::PaintOnPath),
@@ -188,7 +189,6 @@ bool JsParagraph::CreateConstructor(napi_env env)
     if (constructor_) {
         return true;
     }
-
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
@@ -1137,6 +1137,31 @@ napi_value JsParagraph::OnUpdateDecoration(napi_env env, napi_callback_info info
     GetDecorationFromJSForUpdate(env, argv[0], textStyleTemplate);
     paragraph_->UpdateAllTextStyles(textStyleTemplate);
     return NapiGetUndefined(env);
+}
+
+napi_value JsParagraph::LayoutWithConstraints(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnLayoutWithConstraints(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnLayoutWithConstraints(napi_env env, napi_callback_info info)
+{
+    NAPI_CHECK_AND_THROW_ERROR(paragraph_ != nullptr, TextErrorCode::ERROR_INVALID_PARAM, "Paragraph is null");
+
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    TextRectSize textRect;
+    if (!GetTextRectFromJS(env, argv[0], textRect)) {
+        return NapiGetUndefined(env);
+    }
+    TextLayoutResult layoutResult = paragraph_->LayoutWithConstraints(textRect);
+    return CreateLayoutResultJsValue(env, layoutResult);
 }
 
 napi_value JsParagraph::IsStrutStyleEqual(napi_env env, napi_callback_info info)

@@ -211,6 +211,7 @@ public:
     virtual std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;
 #endif
+    virtual TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

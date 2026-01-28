@@ -96,6 +96,7 @@ public:
     bool GetTextEffectAssociation() const override { return textEffectAssociation_; }
     bool CanPaintAllText() const override;
     std::string GetDumpInfo() const override;
+    TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) override;
 #ifdef ENABLE_OHOS_ENHANCE
     std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const override;

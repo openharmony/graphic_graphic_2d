@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <cstddef>
+
 #ifndef ARRAY_MGR_H
 #define ARRAY_MGR_H
 
@@ -25,6 +27,7 @@ enum ObjectType {
     TEXT_RUN = 2,
     DRAWING_RECT = 3,
     FONT_FULL_DESCRIPTOR = 4,
+    TEXT_RANGE = 5,
 };
 
 struct ObjectArray {
@@ -36,6 +39,11 @@ struct ObjectArray {
 struct LineObject {
     void* line = nullptr;
     bool isArray = false;
+};
+
+struct RangeObject {
+    size_t start;
+    size_t end;
 };
 } // namespace Rosen
 } // namespace OHOS

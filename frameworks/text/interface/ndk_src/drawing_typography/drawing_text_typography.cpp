@@ -24,6 +24,10 @@
 
 #include "array_mgr.h"
 #include "common_utils/string_util.h"
+#include "drawing_text_font_descriptor.h"
+#include "drawing_text_line.h"
+#include "drawing_text_run.h"
+#include "drawing_rect.h"
 #include "font_config.h"
 #include "font_parser.h"
 #include "font_utils.h"
@@ -34,6 +38,7 @@
 #include "rosen_text/typography_create.h"
 #include "txt/text_bundle_config_parser.h"
 #include "typography_style.h"
+#include "typography_types.h"
 #include "unicode/putil.h"
 
 #include "utils/log.h"
@@ -513,6 +518,112 @@ void OH_Drawing_TypographyLayout(OH_Drawing_Typography* typography, double maxWi
         return;
     }
     ConvertToOriginalText<Typography>(typography)->Layout(maxWidth);
+}
+
+OH_Drawing_RectSize OH_Drawing_TypographyLayoutWithConstraints(OH_Drawing_Typography* typography,
+    OH_Drawing_RectSize size, OH_Drawing_Array** fitStrRangeArr, size_t* fitStrRangeArrayLen)
+{
+    if (!typography || !fitStrRangeArrayLen || !fitStrRangeArr) {
+        TEXT_LOGE("Failed to layout text with constraints, invalid parameters");
+        return OH_Drawing_RectSize();
+    }
+
+    TextLayoutResult result =
+        ConvertToOriginalText<Typography>(typography)->LayoutWithConstraints({size.width, size.height});
+    *fitStrRangeArrayLen = result.fitStrRange.size();
+    RangeObject* data = new (std::nothrow) RangeObject[*fitStrRangeArrayLen];
+    if (data == nullptr) {
+        TEXT_LOGE("Failed to create fitStrRange array");
+        return OH_Drawing_RectSize();
+    }
+    for (size_t rangeIndex = 0; rangeIndex < *fitStrRangeArrayLen; ++rangeIndex) {
+        TextRange range = result.fitStrRange[rangeIndex];
+        data[rangeIndex].start = range.start;
+        data[rangeIndex].end = range.end;
+    }
+    ObjectArray* array = new (std::nothrow) ObjectArray();
+    array->addr = data;
+    array->num = *fitStrRangeArrayLen;
+    array->type = ObjectType::TEXT_RANGE;
+    *fitStrRangeArr = reinterpret_cast<OH_Drawing_Array*>(array);
+
+    return OH_Drawing_RectSize{result.correctRect.width, result.correctRect.height};
+}
+
+OH_Drawing_Range* OH_Drawing_GetRangeByArrayIndex(OH_Drawing_Array* array, size_t index)
+{
+    if (array == nullptr) {
+        TEXT_LOGE("Null text range array");
+        return nullptr;
+    }
+
+    ObjectArray* arrayRanges = reinterpret_cast<ObjectArray*>(array);
+    if (arrayRanges != nullptr &&  arrayRanges->addr != nullptr &&
+        arrayRanges->type == ObjectType::TEXT_RANGE && index < arrayRanges->num) {
+        RangeObject* rangeObjectArr = reinterpret_cast<RangeObject*>(arrayRanges->addr);
+        return reinterpret_cast<OH_Drawing_Range*>(&rangeObjectArr[index]);
+    }
+
+    return nullptr;
+}
+
+void OH_Drawing_DestroyStringRangeArray(OH_Drawing_Array* array)
+{
+    ObjectArray* textRangeArray = ConvertToOriginalText<ObjectArray>(array);
+    if (textRangeArray == nullptr || textRangeArray->type != ObjectType::TEXT_RANGE) {
+        return;
+    }
+    RangeObject* textRanges = reinterpret_cast<RangeObject*>(textRangeArray->addr);
+    if (textRanges == nullptr) {
+        return;
+    }
+    delete[] textRanges;
+    textRangeArray->addr = nullptr;
+    textRangeArray->num = 0;
+    textRangeArray->type = ObjectType::INVALID;
+    delete textRangeArray;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_DestroyArray(OH_Drawing_Array* array)
+{
+    if (!array) {
+        return OH_Drawing_ErrorCode::OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+
+    ObjectArray* obj = reinterpret_cast<ObjectArray*>(array);
+    if (!obj->addr) {
+        TEXT_LOGE("Failed to destroy array: illegal array");
+        return OH_Drawing_ErrorCode::OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+
+    switch (ObjectType(obj->type)) {
+        case ObjectType::STRING:
+            OH_Drawing_DestroySystemFontFullNames(array);
+            break;
+        case ObjectType::TEXT_LINE:
+            OH_Drawing_DestroyTextLines(array);
+            break;
+        case ObjectType::TEXT_RUN:
+            OH_Drawing_DestroyRunStringIndices(array);
+            break;
+        case ObjectType::DRAWING_RECT:
+            OH_Drawing_RectDestroyArray(array);
+            break;
+        case ObjectType::FONT_FULL_DESCRIPTOR:
+            OH_Drawing_DestroyFontFullDescriptors(array);
+            break;
+        case ObjectType::TEXT_RANGE:
+            OH_Drawing_DestroyStringRangeArray(array);
+            break;
+        case ObjectType::INVALID:
+            TEXT_LOGE("Failed to destroy array: invalid array");
+            return OH_Drawing_ErrorCode::OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+        default:
+            TEXT_LOGE("Failed to destroy array: not supported array");
+            return OH_Drawing_ErrorCode::OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+
+    return OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS;
 }
 
 void OH_Drawing_TypographyPaint(
