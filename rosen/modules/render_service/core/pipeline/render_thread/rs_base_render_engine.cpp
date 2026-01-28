@@ -109,6 +109,8 @@ void RSBaseRenderEngine::Init()
             "SmartCacheTimeInterval", SmartCacheParam::GetTimeInterval());
         renderContext_->GetDrGPUContext()->SetParam(
             "IsVMABlockEnabled", VMABlockParam::IsEnabled());
+        renderContext_->GetDrGPUContext()->SetParam(
+            "SpirvCacheSize", SpirvCacheParam::GetSpirvCacheSize());
     }
 #else
     renderContext_->SetUpGpuContext();

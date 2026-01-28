@@ -76,6 +76,8 @@
 #include "gpu_cache_param_parse.h"
 #include "vma_block_param_parse.h"
 #include "vma_block_param.h"
+#include "spirv_cache_param_parse.h"
+#include "spirv_cache_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -138,6 +140,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<NodeMemReleaseParam>(); }},
     {FEATURE_CONFIGS[VMA_BLOCK], [] { return std::make_unique<VMABlockParamParse>(); },
         [] { return std::make_unique<VMABlockParam>(); }},
+    {FEATURE_CONFIGS[SPIRV_CACHE], [] { return std::make_unique<SpirvCacheParamParse>(); },
+        [] { return std::make_unique<SpirvCacheParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {
