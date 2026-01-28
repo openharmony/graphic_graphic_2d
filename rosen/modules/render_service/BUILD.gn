@@ -295,6 +295,7 @@ ohos_shared_library("librender_service") {
       "core/feature/capture/rs_ui_capture_task_parallel.cpp",
       "core/feature/capture/rs_uni_ui_capture.cpp",
       "core/feature/hwc/rs_uni_hwc_prevalidate_util.cpp",
+      "core/feature/hwc_event/rs_uni_hwc_event_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_render_listener.cpp",
       "core/feature/round_corner_display/rs_rcd_render_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_render_visitor.cpp",

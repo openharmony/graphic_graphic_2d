@@ -2574,7 +2574,7 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
         if (!curScreenNode_) {
             return;
         }
-        bool isHardCursor = curScreenNode_->GetScreenProperty().IsHardCursorSupport();
+        bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curScreenNode_);
         if (isHardCursor) {
             // Set the highest z-order for hardCursor
             pointSurfaceHandler->SetGlobalZOrder(static_cast<float>(TopLayerZOrder::POINTER_WINDOW));
@@ -2966,7 +2966,7 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByZorderChanged(RSSurfaceRenderNo
 
 void RSUniRenderVisitor::CheckMergeDisplayDirtyByPosChanged(RSSurfaceRenderNode& surfaceNode) const
 {
-    bool isHardCursor = curScreenNode_->GetScreenProperty().IsHardCursorSupport();
+    bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curScreenNode_);
     if (isHardCursor && surfaceNode.IsHardwareEnabledTopSurface() && surfaceNode.GetHardCursorStatus()) {
         return;
     }

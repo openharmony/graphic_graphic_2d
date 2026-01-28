@@ -57,6 +57,7 @@
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/hwc_event/rs_uni_hwc_event_manager.h"
 #include "feature/lpp/lpp_video_handler.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
@@ -5206,13 +5207,13 @@ bool RSMainThread::IsReadyForSyncTask() const
 
 void RSMainThread::RegisterHwcEvent()
 {
-    RSUniHwcPrevalidateUtil::GetInstance().Init();
+    RSUniHwcEventManager::GetInstance().Init();
 #ifdef RS_ENABLE_GPU
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager != nullptr) {
         screenManager->RegisterHwcEvent([]() {
             RSMainThread::Instance()->PostTask([]() {
-                RSUniHwcPrevalidateUtil::GetInstance().Init();
+                RSUniHwcEventManager::GetInstance().Init();
             });
         });
     }

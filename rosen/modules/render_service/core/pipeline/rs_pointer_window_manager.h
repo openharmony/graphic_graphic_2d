@@ -133,6 +133,16 @@ public:
         bound_.w = bound.w;
     }
 
+    void SetTuiEnabled(bool isTuiEnabled)
+    {
+        isTuiEnabled_ = isTuiEnabled;
+    }
+ 
+    bool IsTuiEnabled() const
+    {
+        return isTuiEnabled_;
+    }
+
     void UpdatePointerInfo();
     void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
@@ -143,7 +153,7 @@ public:
     void HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor, NodeId screenNodeId);
     bool GetHardCursorNeedCommit(NodeId screenNodeId);
 
-    bool CheckHardCursorSupport(ScreenId screenId);
+    bool CheckHardCursorSupport(const std::shared_ptr<RSScreenRenderNode>& screenNode);
     bool HasMirrorDisplay() const;
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> GetHardCursorDrawable(NodeId id);
     static void CheckHardCursorValid(const RSSurfaceRenderNode& node);
@@ -160,6 +170,7 @@ private:
     std::atomic<bool> boundHasUpdate_ = false;
     BoundParam bound_ = {0.0f, 0.0f, 0.0f, 0.0f};
     int64_t rsNodeId_ = -1;
+    bool isTuiEnabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
