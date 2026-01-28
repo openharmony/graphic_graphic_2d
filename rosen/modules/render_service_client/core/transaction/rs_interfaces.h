@@ -1384,6 +1384,10 @@ public:
     void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps);
 
+    bool AvcodecVideoGet(uint64_t uniqueId);
+
+    bool AvcodecVideoGetRecent();
+
     /**
      * @brief Set logical camera rotation correction, used to correct logical rotation.
      * @param id Screen id.

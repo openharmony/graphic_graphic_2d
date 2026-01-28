@@ -592,6 +592,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::AVCODEC_VIDEO_STOP");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::AVCODEC_VIDEO_GET): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::AVCODEC_VIDEO_GET");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::AVCODEC_VIDEO_GET_RECENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::AVCODEC_VIDEO_GET_RECENT");
+            break;
+        }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_OVERLAY_DISPLAY_MODE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_OVERLAY_DISPLAY_MODE");

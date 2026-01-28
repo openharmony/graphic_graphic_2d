@@ -423,6 +423,10 @@ public:
     virtual ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) = 0;
 
+    virtual ErrCode AvcodecVideoGet(uint64_t uniqueId) = 0;
+ 
+    virtual ErrCode AvcodecVideoGetRecent() = 0;
+
     virtual bool GetHighContrastTextState() = 0;
 
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;

@@ -1177,6 +1177,16 @@ void RSInterfaces::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
     renderServiceClient_->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
 }
 
+bool RSInterfaces::AvcodecVideoGet(uint64_t uniqueId)
+{
+    return renderServiceClient_->AvcodecVideoGet(uniqueId);
+}
+ 
+bool RSInterfaces::AvcodecVideoGetRecent()
+{
+    return renderServiceClient_->AvcodecVideoGetRecent();
+}
+
 int32_t RSInterfaces::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {
     return RSRenderInterface::GetInstance().SetLogicalCameraRotationCorrection(id, logicalCorrection);

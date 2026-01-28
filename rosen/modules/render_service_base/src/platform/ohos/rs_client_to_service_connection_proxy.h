@@ -371,6 +371,10 @@ public:
     ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
 
+    ErrCode AvcodecVideoGet(uint64_t uniqueId) override;
+ 
+    ErrCode AvcodecVideoGetRecent() override;
+
     bool GetHighContrastTextState() override;
 
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;

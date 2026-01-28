@@ -1640,6 +1640,31 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, AvcodecVideoStopTest, TestSize.Le
 }
 
 /**
+ * @tc.name: AvcodecVideoGet Test
+ * @tc.desc: AvcodecVideoGet Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, AvcodecVideoGetTest, TestSize.Level1)
+{
+    uint64_t uniqueId = 1;
+    proxy->AvcodecVideoGet(uniqueId);
+    ASSERT_TRUE(proxy);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoGetRecent Test
+ * @tc.desc: AvcodecVideoGetRecent Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, AvcodecVideoGetRecentTest, TestSize.Level1)
+{
+    proxy->AvcodecVideoGetRecent();
+    ASSERT_TRUE(proxy);
+}
+
+/**
  * @tc.name: SetDualScreenState Test
  * @tc.desc: Test SetDualScreenState
  * @tc.type:FUNC

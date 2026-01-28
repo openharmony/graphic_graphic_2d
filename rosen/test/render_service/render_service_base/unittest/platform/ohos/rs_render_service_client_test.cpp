@@ -1197,6 +1197,31 @@ HWTEST_F(RSServiceClientTest, AvcodecVideoStopTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AvcodecVideoGet Test
+ * @tc.desc: AvcodecVideoGet
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, AvcodecVideoGetTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    uint64_t uniqueId = 1;
+    rsClient->AvcodecVideoGet(uniqueId);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoGetRecent Test
+ * @tc.desc: AvcodecVideoGetRecent
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, AvcodecVideoGetRecentTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->AvcodecVideoGetRecent();
+}
+
+/**
 * @tc.name: ProfilerIsSecureScreenTest
 * @tc.desc: ProfilerIsSecureScreenTest
 * @tc.type: FUNC

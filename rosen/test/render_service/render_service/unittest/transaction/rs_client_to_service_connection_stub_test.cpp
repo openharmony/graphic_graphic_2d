@@ -1907,6 +1907,42 @@ HWTEST_F(RSClientToServiceConnectionStubTest, AvcodecVideoStopTest004, TestSize.
 }
 
 /**
+ * @tc.name: AvcodecVideoGetTest001
+ * @tc.desc: Test AvcodecVideoGet
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, AvcodecVideoGetTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint64_t uniqueId = 1;
+    data.WriteUint64(uniqueId);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoGetRecentTest001
+ * @tc.desc: Test AvcodecVideoGetRecent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, AvcodecVideoGetRecentTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+
+/**
  * @tc.name: ProfilerServiceOpenFileTest
  * @tc.desc: ProfilerServiceOpenFileTest
  * @tc.type: FUNC

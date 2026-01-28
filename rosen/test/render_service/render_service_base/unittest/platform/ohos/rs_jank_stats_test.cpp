@@ -804,6 +804,106 @@ HWTEST_F(RSJankStatsTest, AvcodecVideoCollectTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AvcodecVideoGet001
+ * @tc.desc: AvcodecVideoGet test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, AvcodecVideoGet001, TestSize.Level1)
+{
+    auto& inst = RSJankStats::GetInstance();
+    inst.AvcodecVideoStart({1111}, {"surfaceName"}, 60, 20);
+    bool res = inst.AvcodecVideoGet(1111);
+    inst.AvcodecVideoStop({1111}, {"surfaceName"}, 60);
+    EXPECT_TRUE(res);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoGet002
+ * @tc.desc: AvcodecVideoGet test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, AvcodecVideoGet002, TestSize.Level1)
+{
+    auto& inst = RSJankStats::GetInstance();
+    inst.AvcodecVideoStart({1111}, {"surfaceName"}, 60, 20);
+    bool res = inst.AvcodecVideoGet(2222);
+    inst.AvcodecVideoStop({1111}, {"surfaceName"}, 60);
+    EXPECT_FALSE(res);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoGetRecent001
+ * @tc.desc: AvcodecVideoGetRecent test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, AvcodecVideoGetRecent001, TestSize.Level1)
+{
+    auto& inst = RSJankStats::GetInstance();
+    inst.AvcodecVideoStart({1111}, {"surfaceName"}, 60, 20);
+    bool res = inst.AvcodecVideoGetRecent();
+    inst.AvcodecVideoStop({1111}, {"surfaceName"}, 60);
+    EXPECT_FALSE(res);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoGetRecent002
+ * @tc.desc: AvcodecVideoGetRecent test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, AvcodecVideoGetRecent002, TestSize.Level1)
+{
+    auto& inst = RSJankStats::GetInstance();
+    inst.AvcodecVideoStart({1111}, {"surfaceName"}, 60, 20);
+    inst.AvcodecVideoCollect(1111, 0111);
+    bool res = inst.AvcodecVideoGetRecent();
+    inst.AvcodecVideoStop({1111}, {"surfaceName"}, 60);
+    EXPECT_TRUE(res);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoJankReport001
+ * @tc.desc: AvcodecVideoJankReport test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, AvcodecVideoJankReport001, TestSize.Level1)
+{
+    auto& inst = RSJankStats::GetInstance();
+    uint64_t uniqueId = 1111;
+    inst.AvcodecVideoStart({uniqueId}, {"surfaceName"}, 60, 20);
+    bool res = inst.AvcodecVideoJankReport();
+    inst.AvcodecVideoStop({uniqueId}, {"surfaceName"}, 60);
+    EXPECT_FALSE(res);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoJankReport002
+ * @tc.desc: AvcodecVideoJankReport test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, AvcodecVideoJankReport002, TestSize.Level1)
+{
+    auto& inst = RSJankStats::GetInstance();
+    uint64_t uniqueId = 1111;
+    inst.AvcodecVideoStart({uniqueId}, {"surfaceName"}, 60, 20);
+    auto it = inst.avcodecVideoMap_.find(uniqueId);
+    EXPECT_FALSE(it == inst.avcodecVideoMap_.end()) << "Failed to get uniqueid.";
+ 
+    inst.recentUniqueId_ = uniqueId;
+    uint64_t now = static_cast<uint64_t>(inst.GetCurrentSystimeMs());
+    uint64_t jankTime = 500;
+    it->second.previousFrameTime = now - jankTime;
+    bool res = inst.AvcodecVideoJankReport();
+    inst.AvcodecVideoStop({uniqueId}, {"surfaceName"}, 60);
+    EXPECT_TRUE(res);
+}
+
+/**
  * @tc.name: SetEarlyZFlagTest011
  * @tc.desc: SetEarlyZFlag test
  * @tc.type:FUNC

@@ -3152,6 +3152,31 @@ HWTEST_F(RSInterfacesTest, AvcodecVideoStop001, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: AvcodecVideoGet001
+ * @tc.desc: Test AvcodecVideoGet
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, AvcodecVideoGet001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint64_t uniqueId = 1;
+    rsInterfaces->AvcodecVideoGet(uniqueId);
+}
+ 
+/*
+ * @tc.name: AvcodecVideoGetRecent001
+ * @tc.desc: Test AvcodecVideoGetRecent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, AvcodecVideoGetRecent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->AvcodecVideoGetRecent();
+}
+
+/*
 * Function: SetDualScreenState
 * Type: Function
 * Rank: Important(2)

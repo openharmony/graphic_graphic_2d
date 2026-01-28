@@ -832,5 +832,15 @@ void RSRenderServiceClient::AvcodecVideoStop(const std::vector<uint64_t>& unique
     const std::vector<std::string>& surfaceNameList, uint32_t fps)
 {
 }
+
+bool RSRenderServiceClient::AvcodecVideoGet(uint64_t uniqueId)
+{
+    return false;
+}
+ 
+bool RSRenderServiceClient::AvcodecVideoGetRecent()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

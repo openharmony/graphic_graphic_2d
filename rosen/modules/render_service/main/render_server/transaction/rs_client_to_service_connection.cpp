@@ -3413,6 +3413,24 @@ ErrCode RSClientToServiceConnection::AvcodecVideoStop(const std::vector<uint64_t
     return ERR_OK;
 }
 
+ErrCode RSClientToServiceConnection::AvcodecVideoGet(uint64_t uniqueId)
+{
+    auto task = [uniqueId]() -> void {
+        RSJankStats::GetInstance().AvcodecVideoGet(uniqueId);
+    };
+    mainThread_->PostTask(task);
+    return ERR_OK;
+}
+ 
+ErrCode RSClientToServiceConnection::AvcodecVideoGetRecent()
+{
+    auto task = []() -> void {
+        RSJankStats::GetInstance().AvcodecVideoGetRecent();
+    };
+    mainThread_->PostTask(task);
+    return ERR_OK;
+}
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 ErrCode RSClientToServiceConnection::SetOverlayDisplayMode(int32_t mode)
 {

@@ -2715,6 +2715,20 @@
     "messageOption": "TF_SYNC"
   },
   {
+    "testCaseDesc": "AVCODEC_VIDEO_GET_TEST_001",
+    "interfaceName": "AVCODEC_VIDEO_GET",
+    "inputParams": "WriteUint64",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "AVCODEC_VIDEO_GET_RECENT_TEST_001",
+    "interfaceName": "AVCODEC_VIDEO_GET_RECENT",
+    "inputParams": "",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "PROFILER_SERVICE_OPEN_FILE_TEST_001",
     "interfaceName": "PROFILER_SERVICE_OPEN_FILE",
     "inputParams": "WriteUint32;WriteString;WriteString;WriteString;WriteInt32",

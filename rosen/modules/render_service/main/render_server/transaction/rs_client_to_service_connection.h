@@ -432,6 +432,10 @@ private:
     ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
 
+    ErrCode AvcodecVideoGet(uint64_t uniqueId) override;
+ 
+    ErrCode AvcodecVideoGetRecent() override;
+
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
 
     RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,

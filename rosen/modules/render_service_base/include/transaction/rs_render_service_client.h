@@ -447,6 +447,10 @@ public:
     void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps);
 
+    bool AvcodecVideoGet(uint64_t uniqueId);
+ 
+    bool AvcodecVideoGetRecent();
+
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
 private:
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
