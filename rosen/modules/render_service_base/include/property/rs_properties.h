@@ -56,22 +56,6 @@ class RSShadowDrawable;
 class RSFilterDrawable;
 #endif
 }
-
-/**
- * Usage:
- * WITH_EFFECT(optionalMember.reset());
- * WITH_EFFECT(rawPointer = nullptr);
- * WITH_EFFECT(optionalMem = std::nullopt);
- * WITH_EFFECT(container.clear());
- */
-#undef WITH_EFFECT
-#define WITH_EFFECT(expr) \
-    do { \
-        if (effect_) { \
-            (effect_->expr); \
-        } \
-    } while(0)
-
 class RSB_EXPORT RSProperties final {
 public:
     RSProperties();
