@@ -2839,13 +2839,15 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
         auto newRegionRect = Occlusion::Rect(visibleRectI, true);
         newRegionRect.Expand(EXPAND_ONE_PIX, EXPAND_ONE_PIX, EXPAND_ONE_PIX, EXPAND_ONE_PIX);
         Occlusion::Rect dstRect(hwcNodePtr->GetDstRect());
-        RS_TRACE_NAME_FMT("newRegionRect is %s, dstRect is %s", newRegionRect.GetRectInfo().c_str(),
-            dstRect.GetRectInfo().c_str());
+        RS_TRACE_NAME_FMT("newRegionRect is %s, dstRect is %s, surface node id %" PRIu64 " name %s"
+            "hwc node id %" PRIu64 " name %s", newRegionRect.GetRectInfo().c_str(),
+            dstRect.GetRectInfo().c_str(), surfaceNode->GeId(), surfaceNode->GetName().c_str(),
+            hwcNodePtr->GeId(), hwcNodePtr->GetName().c_str());
         if (newRegionRect.IsIntersect(dstRect)) {
             hwcNodePtr->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true); // visible Region
             hasVisibleHwcNodes = true;
             if (hwcNodePtr->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed()) {
-                RS_TRACE_NAME_FMT("hwcNode consumed");
+                RS_TRACE_NAME_FMT("hwcNode consumed,hwc node id %" PRIu64 "",hwcNodePtr->GeId());
                 needForceUpdateHwcNodes = true;
             }
         } else {
