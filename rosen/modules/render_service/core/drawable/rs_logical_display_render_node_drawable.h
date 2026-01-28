@@ -103,7 +103,7 @@ private:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas, RSLogicalDisplayRenderParams& params,
         sptr<SurfaceBuffer> virtualBuffer = nullptr, sptr<SyncFence> virtualFence = nullptr);
     void DrawAdditionalContent(RSPaintFilterCanvas& canvas);
-    void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas);
+    void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, const Drawing::Rect& drawRegion = {0.f, 0.f, 0.f, 0.f});
 
     void MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId);
 
