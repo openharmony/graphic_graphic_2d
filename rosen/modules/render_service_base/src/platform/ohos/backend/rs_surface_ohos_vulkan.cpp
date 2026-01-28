@@ -402,12 +402,13 @@ void RSSurfaceOhosVulkan::SubmitHapeTask(const uint64_t& curFrameId)
 
     auto hpaePostFunc = [curFrameId, taskId = hpaeTask.taskId, this] () {
         std::lock_guard<std::mutex> lock(taskHandleMapMutex_);
-        int32_t ret = HianimationManager::GetInstance().HianimationDestroyTaskAndNotify(taskId);
-        HPAE_LOGD("GP aae postfunc deinit[%u], retusn[%d]", taskId, ret);
+        int32_t ret = RSHpaeFfrtPatternManager::Instance().MHCQueryTask(curFrameId, MHC_PatternTaskName::BLUR_HPAE);
+        HPAE_LOGD("GP aae postfunc deinit: taskId[%u], return[%d]", taskId, ret);
         if (UNLIKELY(ret == MHC_ERROR_HPAE_BLUR)) {
             HPAE_LOGE("HPAE task error: %{public}d", ret);
             HianimationManager::GetInstance().HianimationDumpDebugInfo(taskId);
         }
+        HianimationManager::GetInstance().HianimationDestroyTaskAndNotify(taskId);
         taskHandleMap_.erase(curFrameId);
     };
     RSHpaeFfrtPatternManager::Instance().MHCSubmitTask(curFrameId, MHC_PatternTaskName::BLUR_HPAE,
