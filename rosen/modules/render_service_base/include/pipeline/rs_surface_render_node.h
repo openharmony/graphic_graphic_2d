@@ -228,7 +228,7 @@ public:
         return isHardwareEnableHint_;
     }
 
-    void SetSourceDisplayRenderNodeId(NodeId nodeId)
+    void SetSourceScreenRenderNodeId(NodeId nodeId)
     {
         sourceDisplayRenderNodeId_ = nodeId;
     }

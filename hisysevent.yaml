@@ -224,7 +224,7 @@ RS_HARDWARE_THREAD_LOAD_WARNING:
   MISSED_FRAMES: {type: UINT32, desc: number of dropped frames}
   FRAME_TIME: {type: UINT64, desc: frame length}
 
-RENDERFIT_TYPE_RT_MONITORING:
+RNEDERFIT_TYPE_RT_MONITORING:
   __BASE: {type: BEHAVIOR, level: MINOR, desc: renderfit usage statistics}
   RENDERFIT_INFO: {type: STRING, desc: renderfit info for rt}
 

@@ -391,7 +391,7 @@ void SurfaceNodeCommandHelper::SetSourceVirtualDisplayId(RSContext& context, Nod
         nodeMap.TraverseScreenNodes(
             [surfaceRenderNode, screenId](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
                 if (screenRenderNode != nullptr && screenRenderNode->GetScreenId() == screenId) {
-                    surfaceRenderNode->SetSourceDisplayRenderNodeId(screenRenderNode->GetId());
+                    surfaceRenderNode->SetSourceScreenRenderNodeId(screenRenderNode->GetId());
                 }
             }
         );

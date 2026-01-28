@@ -2770,7 +2770,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
     NodeId sourceDisplayRenderNodeId = 1;
-    testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
+    testNode->SetSourceScreenRenderNodeId(sourceDisplayRenderNodeId);
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
 
