@@ -62,6 +62,7 @@ public:
     bool GetHasHpaeBlurNode();
     NodeId GetBlurNodeId();
     Vector4f GetPixelStretch();
+    void SwapPixelStretch();
     Vector2f GetGreyCoef();
     int GetTileMode();
     float GetBlurRadius();
