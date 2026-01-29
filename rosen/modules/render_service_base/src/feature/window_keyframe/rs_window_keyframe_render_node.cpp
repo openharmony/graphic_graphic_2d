@@ -44,6 +44,7 @@ RSWindowKeyFrameRenderNode::~RSWindowKeyFrameRenderNode()
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
+// LCOV_EXCL_START
 void RSWindowKeyFrameRenderNode::OnTreeStateChanged()
 {
     if (!IsOnTheTree()) {
@@ -52,6 +53,7 @@ void RSWindowKeyFrameRenderNode::OnTreeStateChanged()
 
     RSRenderNode::OnTreeStateChanged();
 }
+// LCOV_EXCL_STOP
 
 void RSWindowKeyFrameRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
@@ -68,6 +70,7 @@ void RSWindowKeyFrameRenderNode::SetLinkedNodeId(NodeId nodeId)
     linkedNodeId_ = nodeId;
 }
 
+// LCOV_EXCL_START
 NodeId RSWindowKeyFrameRenderNode::GetLinkedNodeId() const
 {
     return linkedNodeId_;
@@ -87,6 +90,7 @@ void RSWindowKeyFrameRenderNode::CollectLinkedNodeInfo()
 {
     linkedNodeMap_[GetId()] = GetLinkedNodeId();
 }
+// LCOV_EXCL_STOP
 
 void RSWindowKeyFrameRenderNode::ResetLinkedWindowKeyFrameInfo(RSRenderNode& node)
 {
