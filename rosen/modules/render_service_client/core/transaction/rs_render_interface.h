@@ -275,7 +275,7 @@ public:
      * @param positionZ Indicates z coordinate position.
      * @param positionW Indicates w coordinate position.
      * @return return true if set success, else return false
-     */ 
+     */
     bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
 
