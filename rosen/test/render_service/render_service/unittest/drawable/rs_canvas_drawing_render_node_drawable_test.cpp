@@ -225,6 +225,10 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, 
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_TRUE(drawable->canvas_);
 
+    canvas->gpuContext = std::make_shared<Drawing::GPUContext>();
+    drawable->PostPlaybackInCorrespondThread();
+    ASSERT_FALSE(drawable->canvas_);
+
     auto surface_ = std::make_shared<Drawing::Surface>();
     drawable->curThreadInfo_.second(surface_);
     ASSERT_TRUE(surface_);
