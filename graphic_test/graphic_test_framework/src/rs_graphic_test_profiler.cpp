@@ -47,6 +47,7 @@ constexpr int PLAY_BACK_REPLAY_TIME_OUT_TIME = 10000;
 constexpr int DEFAULT_TIME_INTERVAL = 250;
 constexpr int PLAYBACK_PAUSE_OUT_TIME = 5000;
 constexpr int PLAYBACK_OPERATE_INTERVAL_TIME = 100;
+constexpr int PLAYBACK_FRAME_WAIT_TIME = 30;
 constexpr int SCREEN_WIDTH = 1316;
 constexpr int SCREEN_HEIGHT = 2832;
 constexpr int FRAME_WIDTH_NUM = 6;
@@ -175,14 +176,20 @@ void RSGraphicTestProfiler::PlayBackPauseAtVsync(
 {
     int frame = 1;
     for (int time = startTime; time <= endTime; time += timeInterval) {
+        RS_TRACE_BEGIN("RSGraphicTestProfiler::LoadPlayBackProfilerFiles");
+        auto start = std::chrono::high_resolution_clock::now();
         if (frame != 1) {
             float pauseTime = static_cast<float>(time) / static_cast<float>(UNIT_SEC_TO_MS);
             std::string command = "rsrecord_pause_at " + std::to_string(pauseTime);
             std::cout << "Playback Pause At: " << command << std::endl;
             RSGraphicTestDirector::Instance().SendProfilerCommand(command, PLAYBACK_PAUSE_OUT_TIME);
         }
+        RS_TRACE_END();
+        WaitTimeout(PLAYBACK_FRAME_WAIT_TIME);
+        auto sendCommand_end = std::chrono::high_resolution_clock::now();
+        auto elapsed1 = std::chrono::duration_cast<std::chrono::microseconds>(sendCommand_end - start);
+        std::cout << "---------------SendProfilerCommand cost: " << elapsed1.count() / MS_TO_S << std::endl;
 
-        WaitTimeout(NORMAL_WAIT_TIME);
         std::string filename;
         size_t lastDotPos = savePath.find_last_of(".");
         if (lastDotPos == std::string::npos || lastDotPos == 0) {
@@ -198,7 +205,11 @@ void RSGraphicTestProfiler::PlayBackPauseAtVsync(
         } else {
             TestCaseCapture(true, filename);
         }
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        std::cout << "---------------One Frame total cost: " << elapsed.count() / MS_TO_S << std::endl;
         frame++;
+        std::cout << "------------------------one frame end----------------------" << std::endl;
     }
 }
 
