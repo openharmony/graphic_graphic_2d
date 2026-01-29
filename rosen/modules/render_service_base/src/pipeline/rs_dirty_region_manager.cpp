@@ -187,7 +187,7 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
         return;
     }
     // Tell the compiler there is no alias and to select wider load/store
-    // instructions
+    // instructions.
     RSDirtyRegionManager *ptr = targetManager.get();
     ptr->lastActiveSurfaceRect_ = lastActiveSurfaceRect_;
     ptr->activeSurfaceRect_ = activeSurfaceRect_;
@@ -235,7 +235,6 @@ RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
 RectI RSDirtyRegionManager::GetRectFlipWithinSurface(const RectI& rect) const
 {
     RectI glRect = rect;
-
     if (!RSSystemProperties::IsUseVulkan()) {
         // left-top to left-bottom corner(in current surface)
         glRect.top_ = surfaceRect_.height_ - rect.top_ - rect.height_;

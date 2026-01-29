@@ -482,7 +482,7 @@ ErrCode RSClientToRenderConnectionProxy::GetScreenHDRStatus(ScreenId id, HdrStat
     return ERR_OK;
 }
 
-ErrCode RSClientToRenderConnectionProxy::DropFrameByPid(const std::vector<int32_t> pidList)
+ErrCode RSClientToRenderConnectionProxy::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -497,6 +497,10 @@ ErrCode RSClientToRenderConnectionProxy::DropFrameByPid(const std::vector<int32_
         return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInt32(dropFrameLevel)) {
+        ROSEN_LOGE("DropFrameByPid: WriteInt32 dropFrameLevel err.");
+        return ERR_INVALID_VALUE;
+    }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DROP_FRAME_BY_PID);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -811,5 +815,38 @@ int32_t RSClientToRenderConnectionProxy::SubmitCanvasPreAllocatedBuffer(
     return result;
 }
 #endif // ROSEN_OHOS && RS_ENABLE_VK
+
+int32_t RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection(
+    ScreenId id, ScreenRotation logicalCorrection)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetLogicalCameraRotationCorrection: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetLogicalCameraRotationCorrection: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(logicalCorrection))) {
+        ROSEN_LOGE("SetLogicalCameraRotationCorrection: WriteUint32 logicalCorrection err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
 } // namespace Rosen
 } // namespace OHOS

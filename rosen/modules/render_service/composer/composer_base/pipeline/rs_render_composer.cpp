@@ -293,7 +293,7 @@ void RSRenderComposer::ComposerPrepare(RefreshRateParam& param, uint32_t& curren
 #endif
     {
         ++acquiredBufferCount_;
-        RS_TRACE_NAME_FMT("Inc Acq BufferCount %d screenId: %" PRIu64 "", acquiredBufferCount_.load(), screenId_);
+        RS_TRACE_NAME_FMT("Inc Acq BufferCount %d screenId: %" PRIu64, acquiredBufferCount_.load(), screenId_);
     }
     unExecuteTaskNum_++;
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
@@ -357,7 +357,7 @@ void RSRenderComposer::ProcessComposerFrame(RefreshRateParam param, uint32_t cur
         RSTvMetadataManager::CombineMetadataForAllLayers(layers);
 #endif
         hdiOutput_->Repaint();
-        RecordTimestamp(param.vsyncId, hdiOutput_, layers);
+        RecordTimestamp(param.vsyncId, hdiOutput_);
     }
     hdiOutput_->ReleaseLayers(releaseFence_);
     RSUniRenderThread::Instance().NotifyScreenNodeBufferReleased(screenId_);
@@ -481,29 +481,12 @@ void RSRenderComposer::EndCheck(RSTimer timer)
     }
 }
 
-void RSRenderComposer::RecordTimestamp(uint64_t vsyncId,
-    const std::shared_ptr<HdiOutput> output,
-    const std::vector<std::shared_ptr<RSLayer>>& layers)
+void RSRenderComposer::RecordTimestamp(uint64_t vsyncId, const std::shared_ptr<HdiOutput> output)
 {
-    for (const auto& layer : layers) {
-        if (layer == nullptr) {
-            continue;
-        }
-        uint64_t id = layer->GetNodeId();
-        auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-        if (layer->GetBuffer() == nullptr) {
-            continue;
-        }
-        if (layer->GetUniRenderFlag()) {
-            surfaceFpsManager.RecordPresentFdForUniRender(vsyncId, output->GetCurrentFramePresentFd());
-            surfaceFpsManager.RecordPresentTimeForUniRender(output->GetThirdFrameAheadPresentFd(),
-                output->GetThirdFrameAheadPresentTime());
-        } else {
-            surfaceFpsManager.RecordPresentFd(id, vsyncId, output->GetCurrentFramePresentFd());
-            surfaceFpsManager.RecordPresentTime(id, output->GetThirdFrameAheadPresentFd(),
-                output->GetThirdFrameAheadPresentTime());
-        }
-    }
+    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    surfaceFpsManager.RecordPresentFd(vsyncId, output->GetCurrentFramePresentFd());
+    surfaceFpsManager.RecordPresentTime(output->GetThirdFrameAheadPresentFd(),
+        output->GetThirdFrameAheadPresentTime());
 }
 
 void RSRenderComposer::ChangeLayersForActiveRectOutside(std::vector<std::shared_ptr<RSLayer>>& layers,
@@ -807,7 +790,7 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const sptr<Surface
 void RSRenderComposer::HandlePowerStatus(ScreenPowerStatus status)
 {
     RS_TRACE_NAME_FMT("%s: screenId: %" PRIu64 " PowerStatus: %d", __func__, screenId_, status);
-    hgmHardwareUtils_.ResetRetryCount(status);
+    PostTask([this, status]() { hgmHardwareUtils_.ResetRetryCount(status); });
 }
 
 void RSRenderComposer::OnScreenVBlankIdleCallback(uint64_t timestamp)

@@ -26,7 +26,7 @@ import hilog from '@ohos.hilog';
 const TEXT_LOG_DOMAIN = 0xD001408;
 const TEXT_LOG_TAG = "Text";
 
-namespace text {
+export default namespace text {
   loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text");
   const ERROR_INVALID_PARAM = 401;
 
@@ -279,6 +279,11 @@ namespace text {
     BREAK_HYPHEN,
   }
 
+  export enum LineHeightStyle {
+    FONT_SIZE = 0,
+    FONT_HEIGHT = 1,
+  }
+
   export interface StrutStyle {
     fontFamilies?: Array<string>;
     fontStyle?: FontStyle;
@@ -314,6 +319,7 @@ namespace text {
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
+    lineSpacing?: double;
   }
 
   export interface TextShadow {
@@ -359,6 +365,10 @@ namespace text {
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
     badgeType?: TextBadgeType;
+    lineHeightMaximum?: double;
+    lineHeightMinimum?: double;
+    lineHeightStyle?: LineHeightStyle;
+    fontWidth?: FontWidth;
   }
 
   class TextStyleInternal implements TextStyle {
@@ -383,6 +393,10 @@ namespace text {
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
     badgeType?: TextBadgeType;
+    lineHeightMaximum?: double;
+    lineHeightMinimum?: double;
+    lineHeightStyle?: LineHeightStyle;
+    fontWidth?: FontWidth;
     constructor(
       decoration: Decoration,
       color: common2D.Color,
@@ -403,7 +417,11 @@ namespace text {
       fontFeatures: Array<FontFeature>,
       textShadows: Array<TextShadow>,
       backgroundRect: RectStyle,
-      badgeType: TextBadgeType
+      badgeType: TextBadgeType,
+      lineHeightMaximum: double,
+      lineHeightMinimum: double,
+      lineHeightStyle: LineHeightStyle,
+      fontWidth: FontWidth
     ) {
       this.decoration = decoration;
       this.color = color;
@@ -425,6 +443,10 @@ namespace text {
       this.textShadows = textShadows;
       this.backgroundRect = backgroundRect;
       this.badgeType = badgeType;
+      this.lineHeightMaximum = lineHeightMaximum;
+      this.lineHeightMinimum = lineHeightMinimum;
+      this.lineHeightStyle = lineHeightStyle;
+      this.fontWidth = fontWidth;
     }
   }
 
@@ -508,6 +530,8 @@ namespace text {
     START,
     MIDDLE,
     END,
+    MULTILINE_START,
+    MULTILINE_MIDDLE,
   }
 
   export interface Decoration {

@@ -108,7 +108,7 @@ public:
 
     virtual ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) = 0;
 
-    virtual ErrCode DropFrameByPid(const std::vector<int32_t> pidList) = 0;
+    virtual ErrCode DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0) = 0;
 
     virtual ErrCode RegisterSurfaceBufferCallback(
         pid_t pid, uint64_t uid, sptr<RSISurfaceBufferCallback> callback) = 0;
@@ -136,6 +136,7 @@ public:
     virtual int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) = 0;
 #endif
+    virtual int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) = 0;
 };
 
 } // namespace Rosen

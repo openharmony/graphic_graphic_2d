@@ -247,7 +247,11 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface003, TestSize.Level1)
     typeface->UpdateStream(std::move(stream));
     typeface->SetFd(fd);
     int32_t result = instance.RegisterTypeface(typeface);
-    EXPECT_EQ(result, -1);
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        EXPECT_EQ(result, INVALID_FD);
+    } else {
+        EXPECT_EQ(result, fd);
+    }
 }
 
 
@@ -299,20 +303,6 @@ HWTEST_F(RSInterfacesTest, GetTotalAppMemSize001, TestSize.Level1)
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     bool res = instance.GetTotalAppMemSize(cpuMemSize, gpuMemSize);
     EXPECT_TRUE(res);
-}
-
-/**
- * @tc.name: SetAppWindowNum001
- * @tc.desc: test results of SetAppWindowNum
- * @tc.type: FUNC
- * @tc.require: issueI9N0I9
- */
-HWTEST_F(RSInterfacesTest, SetAppWindowNum001, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    instance.SetAppWindowNum(1);
-    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 
 /**
@@ -615,6 +605,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark003, TestSize.Level1)
 {
+#if defined(RS_ENABLE_UNI_RENDER)
     RSInterfaces& instance = RSInterfaces::GetInstance();
     int width = 10;
     int height = 10;
@@ -629,6 +620,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark003, TestSize.Level1)
     pixelmap->SetAstc(false);
     res = instance.SetWatermark("test", pixelmap);
     EXPECT_FALSE(res);
+#endif
 }
 
 /**
@@ -1015,5 +1007,19 @@ HWTEST_F(RSInterfacesTest, ClearSurfaceWatermarkForNodes001, TestSize.Level1)
     instance.ClearSurfaceWatermarkForNodes(0, name2, {});
 
     instance.ClearSurfaceWatermarkForNodes(0, "name", {});
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrection
+ * @tc.desc: SetLogicalCameraRotationCorrection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetLogicalCameraRotationCorrectionTest001, TestSize.Level1)
+{
+    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    ScreenId screenId = 0;
+    ScreenRotation logicalRotation = ScreenRotation::ROTATION_90;
+    EXPECT_EQ(instance.SetLogicalCameraRotationCorrection(screenId, logicalRotation), SUCCESS);
 }
 } // namespace OHOS::Rosen

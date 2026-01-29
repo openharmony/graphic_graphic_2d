@@ -348,120 +348,6 @@ public:
     }
 };
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: AnimationSupplementTest005
- * @tc.desc: Verify the setcallback of Animation
- * @tc.type: FUNC
- */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest005, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest005 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    Vector4f data(1.f, 1.f, 1.f, 1.f);
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
-    std::shared_ptr<RSPath> path;
-    auto animation = std::make_shared<RSPathAnimationMock>(property, path);
-    EXPECT_TRUE(animation != nullptr);
-    animation->SetTimingCurve(RSAnimationTimingCurve::LINEAR);
-    auto curve = animation->GetTimingCurve();
-    animation->SetTimingCurve(curve);
-    animation->SetRotationMode(RotationMode::ROTATE_AUTO);
-    animation->SetBeginFraction(-0.1f);
-    animation->SetEndFraction(-0.1f);
-    animation->SetEndFraction(1.0f);
-    animation->SetBeginFraction(0.1f);
-    animation->SetPathNeedAddOrigin(true);
-    auto begin = animation->GetBeginFraction();
-    auto end = animation->GetEndFraction();
-    animation->SetBeginFraction(begin);
-    animation->SetEndFraction(end);
-    auto needAddOrigin = animation->GetPathNeedAddOrigin();
-    animation->SetPathNeedAddOrigin(needAddOrigin);
-    animation->OnStart();
-    std::shared_ptr<RSNode> node = RSCanvasNode::Create();
-    animation->Start(node);
-    animation->SetRotationMode(RotationMode::ROTATE_AUTO);
-    animation->SetEndFraction(1.f);
-    animation->SetBeginFraction(0.1f);
-    animation->SetPathNeedAddOrigin(true);
-    animation->InitInterpolationValue();
-    animation->OnStart();
-
-    Vector4f startData(0.f, 1.f, 2.f, 3.f);
-    auto startValue = std::make_shared<RSAnimatableProperty<Vector4f>>(startData);
-    Vector4f endData(5.f, 6.f, 2.f, 3.f);
-    auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(endData);
-    auto animation2 = std::make_shared<RSPathAnimationMock>(property, "abc", startValue, endValue);
-    animation2->InitInterpolationValue();
-    animation2->OnUpdateStagingValue(true);
-    animation2->SetDirection(false);
-    animation2->Start(node);
-    animation2->OnStart();
-    animation2->OnUpdateStagingValue(false);
-    animation2->SetAutoReverse(true);
-    animation2->SetRepeatCount(2);
-    animation2->OnUpdateStagingValue(false);
-    animation2->SetRotationMode(RotationMode::ROTATE_NONE);
-    animation2->OnUpdateStagingValue(false);
-    animation2->SetRotationMode(RotationMode::ROTATE_AUTO);
-    animation2->OnUpdateStagingValue(false);
-    animation2->SetRotationMode(RotationMode::ROTATE_AUTO_REVERSE);
-    animation2->OnUpdateStagingValue(false);
-    animation2->SetDirection(true);
-    animation2->OnUpdateStagingValue(false);
-
-    auto id = animation2->GetRotationPropertyId(node);
-    animation2->InitRotationId(node);
-    animation2->SetRotation(node, 1.f);
-    auto rotationProperty = std::make_shared<RSAnimatableProperty<float>>(10.f);
-    auto rotationModifier = std::make_shared<RSRotationModifier>(rotationProperty);
-    node->AddModifier(rotationModifier);
-    auto alphaProperty = std::make_shared<RSAnimatableProperty<float>>(0.1f);
-    auto alphaModifier = std::make_shared<RSRotationModifier>(rotationProperty);
-    node->AddModifier(alphaModifier);
-    id = animation2->GetRotationPropertyId(node);
-    EXPECT_TRUE(id != rotationModifier->GetPropertyId());
-    animation2->SetRotation(node, 1.f);
-    animation2->InitRotationId(node);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest005 end";
-}
-
-/**
- * @tc.name: AnimationSupplementTest006
- * @tc.desc: Verify the setcallback of Animation
- * @tc.type: FUNC
- */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest006, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest006 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto property = std::make_shared<RSAnimatableProperty<float>>(10.f);
-    auto modifier = std::make_shared<RSAlphaModifier>(property);
-    auto modifierManager = std::make_shared<RSModifierManager>();
-    modifierManager->AddModifier(modifier);
-    auto animation = std::make_shared<RSAnimationMock>();
-    auto renderAnimation = std::make_shared<RSRenderAnimationMock>(animation->GetId());
-    EXPECT_TRUE(animation != nullptr);
-    modifierManager->RemoveAnimation(animation->GetId());
-    modifierManager->AddAnimation(renderAnimation);
-    modifierManager->Animate(0);
-    modifierManager->Draw();
-    modifierManager->RemoveAnimation(animation->GetId());
-    modifierManager->AddAnimation(renderAnimation);
-    modifierManager->AddAnimation(renderAnimation);
-    auto uiAnimation2 = std::make_shared<RSAnimationMock>();
-    auto animation2 = std::make_shared<RSRenderAnimationMock>(uiAnimation2->GetId());
-    modifierManager->RemoveAnimation(uiAnimation2->GetId());
-    modifierManager->RemoveAnimation(animation->GetId());
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest006 end";
-}
-#endif
-
 /**
  * @tc.name: AnimationSupplementTest007
  * @tc.desc: Verify the setcallback of Animation
@@ -675,47 +561,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest015, TestSize.Level1)
     EXPECT_TRUE(animation1 != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest015 end";
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: AnimationSupplementTest016
- * @tc.desc: Verify the setcallback of Animation
- * @tc.type: FUNC
- */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest016, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest016 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    Vector4f data(1.f, 1.f, 1.f, 1.f);
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
-    Vector4f startData(0.f, 1.f, 2.f, 3.f);
-    auto startValue = std::make_shared<RSAnimatableProperty<Vector4f>>(startData);
-    Vector4f endData(0.f, 1.f, 2.f, 3.f);
-    auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(endData);
-    auto animation = std::make_shared<RSPathAnimationMock>(property, "abc", startValue, endValue);
-    animation->InitInterpolationValue();
-    animation->OnUpdateStagingValue(true);
-    animation->SetDirection(false);
-    std::shared_ptr<RSNode> node = RSCanvasNode::Create();
-    animation->Start(node);
-    animation->OnStart();
-    animation->OnUpdateStagingValue(false);
-    animation->SetAutoReverse(true);
-    animation->SetRepeatCount(2);
-    animation->OnUpdateStagingValue(false);
-    animation->InitInterpolationValue();
-    auto rotationProperty = std::make_shared<RSAnimatableProperty<float>>(10.f);
-    auto rotationModifier = std::make_shared<RSRotationModifier>(rotationProperty);
-    node->AddModifier(rotationModifier);
-    animation->GetRotationPropertyId(node);
-    animation->SetRotation(node, 1.f);
-    animation->InitInterpolationValue();
-    EXPECT_TRUE(animation->GetAutoReverse());
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest016 end";
-}
-#endif
 
 /**
  * @tc.name: AnimationSupplementTest017
@@ -990,7 +835,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 end";
 }
 
-#ifndef MODIFIER_NG
 /**
  * @tc.name: AnimationSupplementTest022
  * @tc.desc: Verify the setcallback of Animation
@@ -1011,9 +855,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     auto propertyUnit_ { RSPropertyUnit::UNKNOWN };
     property->SetPropertyUnit(propertyUnit_);
     auto base = std::make_shared<RSRenderProperty<bool>>();
-    base->SetModifierType(RSModifierType::BOUNDS);
-    auto type = base->GetModifierType();
-    EXPECT_TRUE(type == RSModifierType::BOUNDS);
     property->SetValueFromRender(base);
     property->SetUpdateCallback(nullptr);
     RSAnimationTimingProtocol timingProtocol;
@@ -1023,6 +864,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     property->AnimateWithInitialVelocity(timingProtocol, timingCurve, targetValue);
 
     std::shared_ptr<RSNode> node = RSCanvasNode::Create();
+    EXPECT_TRUE(node != nullptr);
     node->SetShadowMask(true);
     node->IsImplicitAnimationOpen();
     node->GetChildByIndex(1);
@@ -1041,7 +883,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     node->SetSandBox(vec);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 end";
 }
-#endif
 
 /**
  * @tc.name: AnimationSupplementTest023

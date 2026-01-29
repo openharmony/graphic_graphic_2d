@@ -314,8 +314,6 @@ public:
 
     virtual int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
-    virtual ErrCode SetAppWindowNum(uint32_t num) = 0;
-
     virtual int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
     virtual int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) = 0;
@@ -424,6 +422,10 @@ public:
 
     virtual ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) = 0;
+
+    virtual ErrCode AvcodecVideoGet(uint64_t uniqueId) = 0;
+ 
+    virtual ErrCode AvcodecVideoGetRecent() = 0;
 
     virtual bool GetHighContrastTextState() = 0;
 

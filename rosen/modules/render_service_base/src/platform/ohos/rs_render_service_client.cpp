@@ -1691,14 +1691,6 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     return clientToService->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, cb);
 }
 
-void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService != nullptr) {
-        clientToService->SetAppWindowNum(num);
-    }
-}
-
 bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
@@ -2321,6 +2313,36 @@ void RSRenderServiceClient::AvcodecVideoStop(const std::vector<uint64_t>& unique
         return;
     }
     clientToService->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+}
+
+bool RSRenderServiceClient::AvcodecVideoGet(uint64_t uniqueId)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (!clientToService) {
+        ROSEN_LOGE("RSRenderServiceClient::AvcodecVideoGet clientToService == nullptr!");
+        return false;
+    }
+    auto ret = clientToService->AvcodecVideoGet(uniqueId);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::AvcodecVideoGet fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
+}
+ 
+bool RSRenderServiceClient::AvcodecVideoGetRecent()
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (!clientToService) {
+        ROSEN_LOGE("RSRenderServiceClient::AvcodecVideoGetRecent clientToService == nullptr!");
+        return false;
+    }
+    auto ret = clientToService->AvcodecVideoGetRecent();
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::AvcodecVideoGetRecent fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

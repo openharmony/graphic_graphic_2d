@@ -1274,10 +1274,20 @@ void RSProfiler::FilterAnimationForPlayback(RSAnimationManager& manager)
     });
 }
 
-void RSProfiler::SetTransactionTimeCorrection(double replayStartTime, double recordStartTime)
+void RSProfiler::SetReplayStartTimeNano(uint64_t replayStartTimeNano)
 {
-    g_transactionTimeCorrection = static_cast<int64_t>((replayStartTime - recordStartTime) * NS_TO_S);
-    g_replayStartTimeNano = replayStartTime * NS_TO_S;
+    g_replayStartTimeNano = static_cast<int64_t>(replayStartTimeNano);
+}
+
+uint64_t RSProfiler::GetReplayStartTimeNano()
+{
+    return g_replayStartTimeNano;
+}
+
+void RSProfiler::SetTransactionTimeCorrection(double recordStartTime)
+{
+    g_transactionTimeCorrection = static_cast<int64_t>(g_replayStartTimeNano) -
+        static_cast<int64_t>(Utils::ToNanoseconds(recordStartTime));
 }
 
 std::string RSProfiler::GetParcelCommandList()

@@ -89,6 +89,10 @@ public:
     }
 
     void GenerateAndUpdateGEVisualEffect();
+    inline std::shared_ptr<Drawing::GEVisualEffectContainer> GetGEContainer() const
+    {
+        return visualEffectContainer_;
+    }
 
     void SetGeometry(const Drawing::Matrix& matrix, const Drawing::RectF& bound, const Drawing::RectF& materialDst,
         float geoWidth, float geoHeight);

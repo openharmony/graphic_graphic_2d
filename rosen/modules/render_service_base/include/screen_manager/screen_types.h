@@ -210,6 +210,7 @@ typedef enum : uint32_t {
     MAIN_THREAD_NULL,
     SCREEN_TYPE_ERROR,
     WHITELIST_IS_EMPTY,
+    FEATURE_DISABLED,
 } StatusCode;
 
 typedef enum : uint32_t {

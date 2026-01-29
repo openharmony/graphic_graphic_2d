@@ -51,6 +51,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #endif
 #include "memory/rs_memory_manager.h"
@@ -284,13 +285,7 @@ void TakeSurfaceCaptureForUiParallel(
     }
 
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-    if (!node) {
-        RS_LOGE("TakeSurfaceCaptureForUiParallel node is nullptr");
-        callback->OnSurfaceCapture(id, captureConfig, nullptr);
-        return;
-    }
-
-    if (node->IsOnTheTree() && !node->IsDirty() && !node->IsSubTreeDirty()) {
+    if (node != nullptr && node->IsOnTheTree() && !node->IsDirty() && !node->IsSubTreeDirty()) {
         RSMainThread::Instance()->PostTask(captureTask);
     } else {
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
@@ -656,19 +651,19 @@ ErrCode RSClientToRenderConnection::GetScreenHDRStatus(ScreenId id, HdrStatus& h
     return ERR_OK;
 }
 
-ErrCode RSClientToRenderConnection::DropFrameByPid(const std::vector<int32_t> pidList)
+ErrCode RSClientToRenderConnection::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
     if (!mainThread_) {
         return ERR_INVALID_VALUE;
     }
     mainThread_->ScheduleTask(
-        [weakThis = wptr<RSClientToRenderConnection>(this), pidList]() {
+        [weakThis = wptr<RSClientToRenderConnection>(this), pidList, dropFrameLevel]() {
             // don't use 'this' directly
             sptr<RSClientToRenderConnection> connection = weakThis.promote();
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;
             }
-            connection->mainThread_->AddPidNeedDropFrame(pidList);
+            connection->mainThread_->AddPidNeedDropFrame(pidList, dropFrameLevel);
         }
     );
     return ERR_OK;
@@ -791,12 +786,17 @@ void RSClientToRenderConnection::ClearUifirstCache(NodeId id)
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSClientToRenderConnection::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
-    RSCanvasDmaBufferCache::GetInstance().RegisterCanvasCallback(remotePid_, callback);
+    if (NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()) {
+        RSCanvasDmaBufferCache::GetInstance().RegisterCanvasCallback(remotePid_, callback);
+    }
 }
 
 int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
     NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
+    if (!NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()) {
+        return FEATURE_DISABLED;
+    }
     if (mainThread_ == nullptr) {
         return INVALID_ARGUMENTS;
     }
@@ -812,5 +812,29 @@ int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
     return mainThread_->ScheduleTask(task).get();
 }
 #endif
+
+int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
+    ScreenId screenId, ScreenRotation logicalCorrection)
+{
+    if (!mainThread_) {
+        return INVALID_ARGUMENTS;
+    }
+    auto task = [weakThis = wptr<RSClientToRenderConnection>(this), screenId, logicalCorrection]() -> void {
+        sptr<RSClientToRenderConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto& nodeMap = connection->mainThread_->GetContext().GetNodeMap();
+        nodeMap.TraverseScreenNodes([screenId, logicalCorrection](const std::shared_ptr<RSScreenRenderNode>& node) {
+            if (node && node->GetScreenId() == screenId) {
+                RS_LOGD("SetLogicalCameraRotationCorrection nodeId: %{public}" PRIu64 ", logicalCorrection: %{public}u",
+                    node->GetId(), logicalCorrection);
+                node->SetLogicalCameraRotationCorrection(logicalCorrection);
+            }
+        });
+    };
+    mainThread_->PostTask(task);
+    return SUCCESS;
+}
 } // namespace Rosen
 } // namespace OHOS

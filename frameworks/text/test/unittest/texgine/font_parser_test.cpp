@@ -855,6 +855,130 @@ HWTEST_F(FontParserTest, FillFontDescriptorWithLocalInfoWithDifferentSystemLangT
     EXPECT_STREQ(originalLang.c_str(), Global::I18n::LocaleConfig::GetSystemLanguage().c_str());
 }
 
+/**
+ * @tc.name: FillFontDescriptorWithFallbackTest
+ * @tc.desc: Test filling font descriptor with fallback mechanism
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithFallbackTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    // Test case 1: All fields are empty, should be filled by fallback
+    std::ifstream testFile(TEST_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(TEST_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    fontParser.FillFontDescriptorWithFallback(typeface, desc);
+
+    // Verify all fields are filled
+    EXPECT_FALSE(desc.localFamilyName.empty());
+    EXPECT_FALSE(desc.localSubFamilyName.empty());
+    EXPECT_FALSE(desc.localFullName.empty());
+    EXPECT_FALSE(desc.localPostscriptName.empty());
+    EXPECT_FALSE(desc.version.empty());
+    EXPECT_FALSE(desc.manufacture.empty());
+    EXPECT_FALSE(desc.copyright.empty());
+    EXPECT_FALSE(desc.trademark.empty());
+    EXPECT_FALSE(desc.license.empty());
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: FillFontDescriptorWithFallbackWithPrefilledFieldsTest
+ * @tc.desc: Test that fallback does not overwrite already filled fields
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithFallbackWithPrefilledFieldsTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    std::ifstream testFile(TEST_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(TEST_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    // Pre-fill some fields with custom values
+    desc.localFamilyName = "CustomFamily";
+    desc.localFullName = "CustomFullName";
+    desc.version = "CustomVersion";
+    desc.manufacture = "CustomManufacture";
+
+    fontParser.FillFontDescriptorWithFallback(typeface, desc);
+
+    // Pre-filled fields should remain unchanged
+    EXPECT_EQ(desc.localFamilyName, "CustomFamily");
+    EXPECT_EQ(desc.localFullName, "CustomFullName");
+    EXPECT_EQ(desc.version, "CustomVersion");
+    EXPECT_EQ(desc.manufacture, "CustomManufacture");
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: FillFontDescriptorWithFallbackWithNullptrTest
+ * @tc.desc: Test filling font descriptor with nullptr typeface
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithFallbackWithNullptrTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    FontParser::FontDescriptor desc;
+    desc.localFamilyName = "InitialValue";
+
+    // Should not crash, fields should remain unchanged
+    fontParser.FillFontDescriptorWithFallback(nullptr, desc);
+
+    EXPECT_EQ(desc.localFamilyName, "InitialValue");
+}
+
+/**
+ * @tc.name: FillFontDescriptorWithFallbackPartialEmptyTest
+ * @tc.desc: Test fallback with partially filled descriptor
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithFallbackPartialEmptyTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    std::ifstream testFile(TEST_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(TEST_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    // Only fill some fields
+    desc.localFamilyName = "ExistingFamily";
+    desc.localFullName = "ExistingFullName";
+
+    fontParser.FillFontDescriptorWithFallback(typeface, desc);
+
+    // Pre-filled fields should not be overwritten
+    EXPECT_EQ(desc.localFamilyName, "ExistingFamily");
+    EXPECT_EQ(desc.localFullName, "ExistingFullName");
+
+    // Empty fields should be filled
+    EXPECT_FALSE(desc.localSubFamilyName.empty());
+    EXPECT_FALSE(desc.localPostscriptName.empty());
+    EXPECT_FALSE(desc.version.empty());
+    EXPECT_FALSE(desc.manufacture.empty());
+
+    testFile.close();
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

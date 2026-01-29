@@ -152,9 +152,12 @@ std::shared_ptr<RSNGShaderBase> ConvertColorGradientEffectPara(std::shared_ptr<V
     Vector4f color4 = colorGradientEffectPara->GetDefaultColor4f();
     Vector2f pos2 = colorGradientEffectPara->GetDefaultPoint();
     float strth = colorGradientEffectPara->GetDefaultStrength();
+    float brightness = colorGradientEffectPara->GetDefaultBrightness();
 
     colorGradientEffect->Setter<ColorGradientEffectBlendTag>(blend);
     colorGradientEffect->Setter<ColorGradientEffectBlendKTag>(blendK);
+    // Convert brightness from [0,2] range to [-1,1] range for normalizing the input
+    colorGradientEffect->Setter<ColorGradientEffectBrightnessTag>(brightness - 1.0f);
 
     ColorGradientEffectColorTags colorTag{};
     std::apply([&colorGradientEffect, &colors, color4] (auto&&... args) {
@@ -197,6 +200,7 @@ std::shared_ptr<RSNGShaderBase> ConvertFrostedGlassEffectPara(std::shared_ptr<Vi
     frostedGlassEffect->Setter<FrostedGlassEffectBgKBSTag>(frostedGlassEffectPara->GetBgKBS());
     frostedGlassEffect->Setter<FrostedGlassEffectBgPosTag>(frostedGlassEffectPara->GetBgPos());
     frostedGlassEffect->Setter<FrostedGlassEffectBgNegTag>(frostedGlassEffectPara->GetBgNeg());
+    frostedGlassEffect->Setter<FrostedGlassEffectBgAlphaTag>(frostedGlassEffectPara->GetBgAlpha());
     frostedGlassEffect->Setter<FrostedGlassEffectRefractParamsTag>(frostedGlassEffectPara->GetRefractParams());
     frostedGlassEffect->Setter<FrostedGlassEffectSdParamsTag>(frostedGlassEffectPara->GetSdParams());
     frostedGlassEffect->Setter<FrostedGlassEffectSdRatesTag>(frostedGlassEffectPara->GetSdRates());

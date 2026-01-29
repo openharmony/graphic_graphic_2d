@@ -2031,37 +2031,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateDrawingCacheNodes, TestSize.Level1)
 }
 
 /**
- * @tc.name: ResetDrawingCacheStatusIfNodeStatic
- * @tc.desc: test results of ResetDrawingCacheStatusIfNodeStatic
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, ResetDrawingCacheStatusIfNodeStatic, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto renderNode2 = std::make_shared<RSRenderNode>(id + 1);
-    std::unordered_map<NodeId, std::unordered_set<NodeId>> allRects;
-    renderNode->ResetDrawingCacheStatusIfNodeStatic(allRects);
-    EXPECT_EQ(renderNode->drawingCacheNodes_.size(), 0);
-    renderNode->UpdateDrawingCacheNodes(renderNode2);
-    std::unordered_set<NodeId> nodeIds;
-    nodeIds.insert(id + 1);
-    allRects.insert(std::make_pair(id + 1, nodeIds));
-    renderNode->ResetDrawingCacheStatusIfNodeStatic(allRects);
-    EXPECT_EQ(renderNode->drawingCacheNodes_.size(), 0);
-    renderNode2->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
-    renderNode2->isOnTheTree_ = true;
-    renderNode->UpdateDrawingCacheNodes(renderNode2);
-    renderNode->ResetDrawingCacheStatusIfNodeStatic(allRects);
-    EXPECT_NE(renderNode->drawingCacheNodes_.size(), 0);
-    renderNode->drawingCacheNodes_.clear();
-    renderNode2 = nullptr;
-    renderNode->drawingCacheNodes_.emplace(id + 1, renderNode2);
-    renderNode->ResetDrawingCacheStatusIfNodeStatic(allRects);
-    EXPECT_EQ(renderNode->drawingCacheNodes_.size(), 0);
-}
-
-/**
  * @tc.name: UpdateFilterCacheStatusWithVisible
  * @tc.desc: test results of UpdateFilterCacheStatusWithVisible
  * @tc.type: FUNC
@@ -2801,7 +2770,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
     NodeId sourceDisplayRenderNodeId = 1;
-    testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
+    testNode->SetSourceScreenRenderNodeId(sourceDisplayRenderNodeId);
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
 

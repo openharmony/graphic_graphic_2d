@@ -16,7 +16,6 @@
 #include "text/font_metadata.h"
 
 #include <vector>
-
 #include "font_harfbuzz.h"
 #include "utils/log.h"
 
@@ -132,6 +131,39 @@ std::unordered_map<std::string, FontIdentification> FontMetaDataCollector::Gener
         map[lang] = info;
     }
     return map;
+}
+
+std::string FontMetaDataCollector::GetFirstAvailableString(const std::shared_ptr<Typeface>& typeface,
+    Drawing::OtNameId nameId)
+{
+    const hb_ot_name_id_t hbNameId = OtNameIdMapper::ToHarfBuzzNameId(nameId);
+    if (typeface == nullptr) {
+        LOGD("Drawing_Text [GetFirstAvailableString] typeface is nullptr!");
+        return "";
+    }
+#ifdef CURRENT_OS_MAC
+    return "";
+#endif
+    unsigned int count = 0;
+    HBFace hbFace = FontHarfbuzz::CreateHbFace(*typeface);
+    const hb_ot_name_entry_t* entries = hb_ot_name_list_names(hbFace.get(), &count);
+    for (unsigned int i = 0; i < count; i++) {
+        if (entries[i].name_id == hbNameId) {
+            return ExtractString(hbFace.get(), entries[i]);
+        }
+    }
+    return "";
+}
+
+std::string FontMetaDataCollector::ExtractString(hb_face_t* face, const hb_ot_name_entry_t& entry)
+{
+#ifdef CURRENT_OS_MAC
+    return "";
+#endif
+    char buffer[BUF_SIZE];
+    unsigned int size = BUF_SIZE;
+    unsigned int len = hb_ot_name_get_utf8(face, entry.name_id, entry.language, &size, buffer);
+    return (len > 0) ? std::string(buffer) : "";
 }
 } // Drawing
 } // Rosen

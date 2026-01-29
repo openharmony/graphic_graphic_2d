@@ -666,7 +666,8 @@ public:
         bool rotationStatusChanged = false);
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
-        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect,
+        const std::optional<RectI>& surfaceClipRect);
     void FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager,
         const RectI& filterRect);
     void MarkFilterStatusChanged(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
@@ -725,6 +726,7 @@ public:
     bool IsRenderGroupSubTreeDirty() const;
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
+    void SetChildHasTranslateOnSqueeze(bool val);
     bool IsNodeGroupIncludeProperty() const;
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, bool isOnExcludedSubTree);
     void UpdateDrawingCacheInfoAfterChildren(
@@ -786,9 +788,9 @@ public:
 
     virtual RectI GetFilterRect() const;
     RectI GetAbsRect() const;
-    void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
+    void CalVisibleFilterRect(const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
     void CalVisibleFilterRect(const RectI& absRect, const Drawing::Matrix& matrix,
-        const std::optional<RectI>& clipRect);
+        const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
     void UpdateFilterRectInfo();
     std::shared_ptr<RSFilter> GetRSFilterWithSlot(RSDrawableSlot slot) const;
 
@@ -1268,6 +1270,8 @@ private:
     RectI oldAbsDrawRect_;
     // round in by absDrawRectF_, only used for opaque region calculations
     RectI innerAbsDrawRect_;
+    // map parentMatrix by cmdlist draw region
+    RectI absCmdlistDrawRect_;
     RectI oldDirty_;
     RectI oldDirtyInSurface_;
     RectI childrenRect_;
@@ -1279,6 +1283,8 @@ private:
     RectI subTreeDirtyRegion_;
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     RectI globalCornerRect_;
+    RectF selfDrawingNodeDirtyRect_;
+    RectI selfDrawingNodeAbsDirtyRect_;
     // used in old pipline
     RectI oldRectFromRenderProperties_;
     // for blur cache
@@ -1377,10 +1383,9 @@ private:
     void CollectAndUpdateLocalMagnifierEffectRect();
     void CollectAndUpdateLocalEffectRect();
     // update drawrect based on self's info
-    void UpdateBufferDirtyRegion(RectF& selfDrawingNodeDirtyRect);
-    bool UpdateSelfDrawRect(RectF& selfDrawingNodeDirtyRect);
-    void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect,
-        RectI& selfDrawingNodeAbsDirtyRect, RectI& absCmdlistDrawRect);
+    void UpdateBufferDirtyRegion();
+    bool UpdateSelfDrawRect();
+    void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
     void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;

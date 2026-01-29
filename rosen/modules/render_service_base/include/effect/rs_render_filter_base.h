@@ -121,6 +121,7 @@ public:
 
 #include "effect/rs_render_filter_def.in"
 
+// Note: if the definition is inconsistent with the client, place it here instead of in the .in file
 DECLARE_FILTER(ColorGradient, COLOR_GRADIENT,
     ADD_PROPERTY_TAG(ColorGradient, Colors),
     ADD_PROPERTY_TAG(ColorGradient, Positions),

@@ -732,6 +732,18 @@ HWTEST_F(ColorTest, OverrideEquals002, TestSize.Level1)
 }
 
 /*
+ * @tc.name: OverrideEquals003
+ * @tc.desc: test equal operator of two colors wtith different placeholder
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorTest, OverrideEquals003, TestSize.Level1)
+{
+    Color colorA;
+    Color colorB(ColorPlaceholder::TEXT_CONTRAST);
+    EXPECT_FALSE(colorA == colorB);
+}
+
+/*
  * @tc.name: OverrideNotEquals001
  * @tc.desc:
  * @tc.type: FUNC
@@ -757,6 +769,26 @@ HWTEST_F(ColorTest, OverrideNotEquals002, TestSize.Level1)
     Color colorA;
     Color colorB = Color(255, 255, 100, 1);
     EXPECT_TRUE(colorA != colorB);
+}
+
+/*
+ * @tc.name: SetAndGetPlaceholder
+ * @tc.desc: test result of SetPlaceholder
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ColorTest, SetAndGetPlaceholder, TestSize.Level1)
+{
+    auto color = std::make_unique<Color>();
+    ASSERT_TRUE(color != nullptr);
+
+    auto placeholder = ColorPlaceholder::SURFACE;
+    color->SetPlaceholder(placeholder);
+    EXPECT_EQ(color->GetPlaceholder(), placeholder);
+    EXPECT_TRUE(color->IsPlaceholder());
+
+    color->SetPlaceholder(ColorPlaceholder::NONE);
+    EXPECT_FALSE(color->IsPlaceholder());
 }
 } // namespace Drawing
 } // namespace Rosen

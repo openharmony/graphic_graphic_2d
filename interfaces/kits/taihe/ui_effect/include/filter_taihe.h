@@ -55,6 +55,8 @@ public:
     explicit FilterImpl(std::shared_ptr<OHOS::Rosen::Filter> filter);
     ~FilterImpl();
 
+    int64_t getNativePtr();
+
     Filter Blur(double blurRadius);
     Filter PixelStretch(taihe::array_view<double> stretchSizes, TileMode tileMode);
     Filter Distort(double distortionK);

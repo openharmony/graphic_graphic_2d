@@ -55,6 +55,15 @@ bool RSRenderGroupCache::SetCachedSubTreeDirty(bool isDirty)
     return true;
 }
 
+bool RSRenderGroupCache::SetChildHasTranslateOnSqueeze(bool val)
+{
+    if (childHasTranslateOnSqueeze_ == val) {
+        return false;
+    }
+    childHasTranslateOnSqueeze_ = val;
+    return true;
+}
+
 AutoRenderGroupExcludedSubTreeGuard::AutoRenderGroupExcludedSubTreeGuard(
     NodeId& curExcludedRootNodeId, bool isCurNodeExcluded, NodeId curNodeId)
     : curExcludedRootNodeId_(curExcludedRootNodeId)

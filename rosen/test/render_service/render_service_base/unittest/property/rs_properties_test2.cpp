@@ -308,6 +308,73 @@ HWTEST_F(PropertiesTest, UpdateForegroundFilterTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetColorPickerNotifyThresholdTest001
+ * @tc.desc: Test SetColorPickerNotifyThreshold creates colorPicker_ when null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetColorPicker(), nullptr);
+
+    properties.SetColorPickerNotifyThreshold(50);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_EQ(colorPicker->notifyThreshold, 50);
+}
+
+/**
+ * @tc.name: SetColorPickerNotifyThresholdTest002
+ * @tc.desc: Test SetColorPickerNotifyThreshold updates existing colorPicker_
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::SURFACE));
+    properties.SetColorPickerStrategy(static_cast<int>(ColorPickStrategyType::AVERAGE));
+    properties.SetColorPickerInterval(1000);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_EQ(colorPicker->notifyThreshold, 0);
+
+    properties.SetColorPickerNotifyThreshold(100);
+
+    colorPicker = properties.GetColorPicker();
+    EXPECT_EQ(colorPicker->notifyThreshold, 100);
+    EXPECT_EQ(colorPicker->placeholder, ColorPlaceholder::SURFACE);
+    EXPECT_EQ(colorPicker->strategy, ColorPickStrategyType::AVERAGE);
+    EXPECT_EQ(colorPicker->interval, 1000);
+}
+
+/**
+ * @tc.name: SetColorPickerNotifyThresholdTest003
+ * @tc.desc: Test SetColorPickerNotifyThreshold clamps to [0, 255]
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest003, TestSize.Level1)
+{
+    RSProperties properties;
+
+    // Test value above 255 clamped to 255
+    properties.SetColorPickerNotifyThreshold(300);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 255);
+
+    // Test valid value in range
+    properties.SetColorPickerNotifyThreshold(128);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 128);
+
+    // Test boundary values
+    properties.SetColorPickerNotifyThreshold(0);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 0);
+
+    properties.SetColorPickerNotifyThreshold(255);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 255);
+}
+
+/**
  * @tc.name: SetParticlesTest
  * @tc.desc: test results of SetParticles
  * @tc.type: FUNC
@@ -857,7 +924,7 @@ HWTEST_F(PropertiesTest, GenerateForegroundFilterTest, TestSize.Level1)
 
     properties.GetEffect().foregroundBlurRadius_ = 2.f;
     properties.GenerateForegroundFilter();
-    EXPECT_TRUE(properties.IsForegroundMaterialFilterVaild());
+    EXPECT_TRUE(properties.IsForegroundMaterialFilterValid());
 
     std::vector<std::pair<float, float>> fractionStops;
     GradientDirection direction;
@@ -1384,12 +1451,12 @@ HWTEST_F(PropertiesTest, SetColorPickerIntervalTest, TestSize.Level1)
     RSProperties properties;
     properties.SetColorPickerInterval(0);
     ASSERT_NE(properties.GetColorPicker(), nullptr);
-    EXPECT_EQ(properties.GetColorPicker()->interval, static_cast<uint64_t>(0));
+    EXPECT_EQ(properties.GetColorPicker()->interval, static_cast<uint64_t>(180));
     EXPECT_TRUE(properties.IsDirty());
 
     properties.ResetDirty();
     properties.SetColorPickerInterval(123);
-    EXPECT_EQ(properties.GetColorPicker()->interval, static_cast<uint64_t>(123));
+    EXPECT_EQ(properties.GetColorPicker()->interval, static_cast<uint64_t>(180));
     EXPECT_TRUE(properties.IsDirty());
 }
 

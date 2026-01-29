@@ -548,4 +548,30 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
     params.SetSurfaceBufferOpaque(true);
     EXPECT_EQ(params.GetSurfaceBufferOpaque(), true);
 }
+
+/**
+ * @tc.name: SetAppRotationCorrectionTest
+ * @tc.desc: SetAppRotationCorrection and GetAppRotationCorrection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetAppRotationCorrectionTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(111);
+    params.SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+    EXPECT_EQ(params.GetAppRotationCorrection(), ScreenRotation::ROTATION_180);
+    params.SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+}
+
+/**
+ * @tc.name: SetRotationCorrectionDegreeTest
+ * @tc.desc: SetRotationCorrectionDegree and GetRotationCorrectionDegree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetRotationCorrectionDegreeTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(111);
+    params.SetRotationCorrectionDegree(270);
+    EXPECT_EQ(params.GetRotationCorrectionDegree(), 270);
+    params.SetRotationCorrectionDegree(270);
+}
 } // namespace OHOS::Rosen

@@ -224,6 +224,8 @@ template("graphics2d_source_set") {
         sources +=
             [ "$drawing_core_src_dir/utils/system_graphic_properties.cpp" ]
       }
+    } else if (platform == "android") {
+      sources += [ "$drawing_core_src_dir/utils/system_properties.cpp" ]
     }
     if (is_emulator) {
       defines += [ "ROSEN_EMULATOR" ]
@@ -362,6 +364,9 @@ template("graphics2d_source_set") {
       deps += [ "$rosen_root/modules/platform:hilog" ]
 
       if (is_arkui_x) {
+        if(graphic_2d_feature_enable_vulkan) {
+          public_external_deps -= [ "vulkan-headers:vulkan_headers" ]
+        }
         deps += [
           "//third_party/bounds_checking_function:libsec_static",
           "//third_party/skia:skia_$platform",
@@ -461,6 +466,14 @@ if (!is_arkui_x) {
 
     if (platform == "ohos") {
       version_script = "2d_graphics.versionscript"
+    }
+
+    if (is_ohos && is_clang && target_cpu == "arm64" && defined(build_ext_path)) {
+      ldflags = [ 
+        "-Wl,--emit-relocs",
+        "-Wl,--no-relax", 
+        "-mno-fix-cortex-a53-843419" 
+      ]
     }
 
     part_name = "graphic_2d"

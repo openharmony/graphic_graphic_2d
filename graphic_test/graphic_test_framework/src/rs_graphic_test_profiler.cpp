@@ -407,7 +407,7 @@ void RSGraphicTestProfiler::LoadNodeTreeProfilerFile(const std::string& filePath
     }
 
     // 4.clear
-	std::filesystem::remove(filePath);
+    std::filesystem::remove(filePath);
     RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear", NODETREE_TIMEOUT);
     WaitTimeout(NODETREE_WAIT_TIME);
     auto timepoint2 = std::chrono::high_resolution_clock::now();

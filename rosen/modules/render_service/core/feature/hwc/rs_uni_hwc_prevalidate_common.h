@@ -23,6 +23,8 @@ struct RequestRect {
     uint32_t w = 0;
     uint32_t h = 0;
 };
+
+using PreValidateInitFunc = int32_t (*)();
 } // namespace Rosen
 } // namespace OHOS
 #endif // RS_CORE_FEATURE_PREVALIDATE_COMMON_H

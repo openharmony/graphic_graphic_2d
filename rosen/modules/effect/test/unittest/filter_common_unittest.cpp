@@ -203,5 +203,74 @@ HWTEST_F(FilterCommonUnittest, FilterCommon_GetEffectPixelMap001, TestSize.Level
     ASSERT_TRUE(filter->Invert() == true);
     ASSERT_TRUE(filter->GetEffectPixelMap() != nullptr);
 }
+
+/**
+ * @tc.name: FilterCommon_Clear
+ * @tc.desc: Test Clear function to verify it properly clears filters and pixelmaps.
+ * @tc.type: FUNC
+ * @tc.require: I9CSQ0
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_Clear001, TestSize.Level1)
+{
+    std::unique_ptr<PixelMap> pixMap = CreatePixelMap();
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<FilterCommon> filter = FilterCommon::CreateEffect(std::move(pixMap), errorCode);
+    ASSERT_TRUE(errorCode == SUCCESS);
+    ASSERT_TRUE(filter != nullptr);
+
+    // Add multiple filters
+    ASSERT_TRUE(filter->Blur(5.0f) == true);
+    ASSERT_TRUE(filter->Invert() == true);
+    ASSERT_TRUE(filter->CreateSDF(64, true) == true);
+    ASSERT_TRUE(filter->Brightness(0.5f) == true);
+
+    // Verify filters were added
+    ASSERT_TRUE(filter->effectFilters_.size() == 4);
+    ASSERT_TRUE(filter->srcPixelMap_ != nullptr);
+
+    // Clear the filter
+    filter->Clear();
+
+    // Verify everything is cleared
+    ASSERT_TRUE(filter->effectFilters_.empty());
+    ASSERT_TRUE(filter->srcPixelMap_ == nullptr);
+    ASSERT_TRUE(filter->dstPixelMap_ == nullptr);
+}
+
+/**
+ * @tc.name: FilterCommon_Clear_Reuse
+ * @tc.desc: Test that filter can be reused after Clear.
+ * @tc.type: FUNC
+ * @tc.require: I9CSQ0
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_Clear002, TestSize.Level1)
+{
+    std::unique_ptr<PixelMap> pixMap1 = CreatePixelMap();
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<FilterCommon> filter = FilterCommon::CreateEffect(std::move(pixMap1), errorCode);
+    ASSERT_TRUE(errorCode == SUCCESS);
+    ASSERT_TRUE(filter != nullptr);
+
+    // Add filters and render
+    ASSERT_TRUE(filter->Blur(5.0f) == true);
+    ASSERT_TRUE(filter->Grayscale() == true);
+    ASSERT_TRUE(filter->effectFilters_.size() == 2);
+
+    // Clear the filter
+    filter->Clear();
+    ASSERT_TRUE(filter->effectFilters_.empty());
+
+    // Reuse with new pixelmap
+    std::unique_ptr<PixelMap> pixMap2 = CreatePixelMap();
+    filter->srcPixelMap_ = std::move(pixMap2);
+
+    // Add new filters
+    ASSERT_TRUE(filter->Invert() == true);
+    ASSERT_TRUE(filter->Brightness(0.8f) == true);
+    ASSERT_TRUE(filter->effectFilters_.size() == 2);
+    ASSERT_TRUE(filter->srcPixelMap_ != nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

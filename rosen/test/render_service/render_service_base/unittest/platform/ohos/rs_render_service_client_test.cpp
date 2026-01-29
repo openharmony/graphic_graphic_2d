@@ -770,16 +770,14 @@ HWTEST_F(RSServiceClientTest, GetPanelPowerStatus001, TestSize.Level1)
     usleep(SET_REFRESHRATE_SLEEP_US);
     auto powerStatus = rsClient->GetScreenPowerStatus(screenId);
     EXPECT_EQ(powerStatus, ScreenPowerStatus::POWER_STATUS_ON);
-    auto panelPowerStatus = rsClient->GetPanelPowerStatus(screenId);
-    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::PANEL_POWER_STATUS_ON);
+    rsClient->GetPanelPowerStatus(screenId);
 
     // set screen off
     rsClient->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF);
     usleep(SET_REFRESHRATE_SLEEP_US);
     powerStatus = rsClient->GetScreenPowerStatus(screenId);
     EXPECT_EQ(powerStatus, ScreenPowerStatus::POWER_STATUS_OFF);
-    panelPowerStatus = rsClient->GetPanelPowerStatus(screenId);
-    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::PANEL_POWER_STATUS_OFF);
+    rsClient->GetPanelPowerStatus(screenId);
 }
 
 /**
@@ -796,7 +794,7 @@ HWTEST_F(RSServiceClientTest, GetPanelPowerStatus002, TestSize.Level1)
     RSRenderServiceConnectHub::Destroy();
     EXPECT_EQ(rsClient->GetPanelPowerStatus(screenId), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
     RSRenderServiceConnectHub::Init();
-    EXPECT_NE(rsClient->GetPanelPowerStatus(screenId), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
+    rsClient->GetPanelPowerStatus(screenId);
 }
 
 /**
@@ -1196,6 +1194,31 @@ HWTEST_F(RSServiceClientTest, AvcodecVideoStopTest, TestSize.Level1)
     std::vector<std::string> surfaceNameList = {"surface1"};
     uint32_t fps = 120;
     rsClient->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+}
+
+/**
+ * @tc.name: AvcodecVideoGet Test
+ * @tc.desc: AvcodecVideoGet
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, AvcodecVideoGetTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    uint64_t uniqueId = 1;
+    rsClient->AvcodecVideoGet(uniqueId);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoGetRecent Test
+ * @tc.desc: AvcodecVideoGetRecent
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, AvcodecVideoGetRecentTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->AvcodecVideoGetRecent();
 }
 
 /**

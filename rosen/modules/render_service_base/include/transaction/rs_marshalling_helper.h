@@ -47,6 +47,8 @@ class Data;
 class Image;
 class Bitmap;
 class Typeface;
+class ColorSpace;
+class Matrix;
 struct SharedTypeface;
 }
 namespace ModifierNG {

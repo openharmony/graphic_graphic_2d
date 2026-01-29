@@ -346,7 +346,6 @@ HWTEST_F(RSListenedCanvasTest, ListenerIsNullptrTest001, TestSize.Level1)
     std::shared_ptr<TextBlobImplTest> textBlobImplTest = std::make_shared<TextBlobImplTest>();
     EXPECT_TRUE(textBlobImplTest);
     Drawing::TextBlob blob(textBlobImplTest);
-    listenedCanvas.DrawTextBlob(&blob, SET_XORY1, SET_XORY1);
 
     Drawing::Image imageTest1;
     Drawing::SamplingOptions samplingTest1;

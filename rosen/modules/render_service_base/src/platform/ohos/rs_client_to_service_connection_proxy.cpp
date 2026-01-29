@@ -3924,6 +3924,60 @@ ErrCode RSClientToServiceConnectionProxy::AvcodecVideoStop(const std::vector<uin
     return result;
 }
 
+ErrCode RSClientToServiceConnectionProxy::AvcodecVideoGet(uint64_t uniqueId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+ 
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("AvcodecVideoGet: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(uniqueId)) {
+        ROSEN_LOGE("AvcodecVideoGet: WriteUint64 uniqueId err.");
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::AvcodecVideoGet: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::AvcodecVideoGet Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+ 
+ErrCode RSClientToServiceConnectionProxy::AvcodecVideoGetRecent()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+ 
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("AvcodecVideoGet: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::AvcodecVideoGetRecent: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::AvcodecVideoGetRecent Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
 int32_t RSClientToServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {
@@ -3967,30 +4021,6 @@ int32_t RSClientToServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpda
         return READ_PARCEL_ERR;
     }
     return result;
-}
-
-ErrCode RSClientToServiceConnectionProxy::SetAppWindowNum(uint32_t num)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("SetAppWindowNum: WriteInterfaceToken GetDescriptor err.");
-        return ERR_INVALID_VALUE;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteUint32(num)) {
-        ROSEN_LOGE("SetAppWindowNum: WriteUint32 num err.");
-        return ERR_INVALID_VALUE;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetAppWindowNum: Send Request err.");
-        return ERR_INVALID_VALUE;
-    }
-
-    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnectionProxy::SetSystemAnimatedScenes(

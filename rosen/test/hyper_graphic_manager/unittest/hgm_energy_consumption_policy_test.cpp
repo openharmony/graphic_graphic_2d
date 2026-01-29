@@ -570,9 +570,18 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetVideoCallFrameRateTest, TestSize.Lev
  */
 HWTEST_F(HgmEnergyConsumptionPolicyTest, SetCurrentPkgNameTest, TestSize.Level0)
 {
+    auto& hgmCore = HgmCore::Instance();
     std::vector<std::string> pkgNames;
     HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgNames);
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_, "");
+    hgmCore.InitXmlConfig();
+    auto configData = hgmCore.GetPolicyConfigData();
+    pkgNames.push_back("package1:");
+    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgNames);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_, "");
+    configData->videoCallLayerConfig_["package1"] = "value1";
+    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgNames);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_, "value1");
 }
 
 /**

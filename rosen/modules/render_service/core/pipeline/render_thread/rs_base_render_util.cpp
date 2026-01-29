@@ -969,7 +969,7 @@ void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector
 }
 
 CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    bool dropFrameByPidEnable, uint64_t parentNodeId, bool dropFrameByScreenFrozen)
+    const DropFrameConfig& dropFrameConfig, uint64_t parentNodeId, bool dropFrameByScreenFrozen)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -980,10 +980,16 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         return false;
     }
 
-    // check presentWhen conversion validation range
-    bool presentWhenValid = presentWhen <= static_cast<uint64_t>(INT64_MAX);
     bool acqiureWithPTSEnable =
         RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
+    if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
+        consumer->SetDropFrameLevel(dropFrameConfig.level);
+        RS_LOGD("RsDebug RSBaseRenderUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
+            "), set drop frame level=%{public}d", surfaceHandler.GetNodeId(), dropFrameConfig.level);
+    }
+
+    // check presentWhen conversion validation range
+    bool presentWhenValid = presentWhen <= static_cast<uint64_t>(INT64_MAX);
     uint64_t acquireTimeStamp = presentWhen;
     if (!presentWhenValid || !acqiureWithPTSEnable) {
         acquireTimeStamp = CONSUME_DIRECTLY;
@@ -994,12 +1000,13 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     std::shared_ptr<RSSurfaceHandler::SurfaceBufferEntry> surfaceBuffer;
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
         IConsumerSurface::AcquireBufferReturnValue returnValue;
-        int32_t ret;
-        if (acqiureWithPTSEnable && dropFrameByPidEnable) {
-            ret = consumer->AcquireBuffer(returnValue, INT64_MAX, true);
-        } else {
-            ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
+        int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
+
+        // Reset drop frame level after acquire to avoid affecting subsequent acquires
+        if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
+            consumer->SetDropFrameLevel(0);
         }
+
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
             if (LIKELY(!dropFrameByScreenFrozen) && UNLIKELY(holdReturnValue)) {
@@ -1082,7 +1089,9 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     surfaceBuffer = nullptr;
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
     // should drop frame after acquire buffer to avoid drop key frame
-    DropFrameProcess(surfaceHandler, acquireTimeStamp);
+    if (!dropFrameConfig.enable) {
+        DropFrameProcess(surfaceHandler, acquireTimeStamp);
+    }
 #ifdef RS_ENABLE_GPU
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
@@ -1309,40 +1318,47 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     return gravityMatrix;
 }
 
-ScreenId RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(RSSurfaceRenderParams* nodeParams)
+void RSBaseRenderUtil::GetRotationLockParam(RSSurfaceRenderNode& node,
+    std::shared_ptr<RSScreenRenderNode> screenRenderNode, sptr<RSScreenManager> screenManager)
 {
-    ScreenId screenId = 0;
-    if (gettid() == RSUniRenderThread::Instance().GetTid()) { // Check whether the thread is in the UniRenderThread.
-        auto ancestorDrawable = nodeParams->GetAncestorScreenDrawable().lock();
-        if (ancestorDrawable == nullptr) {
-            return screenId;
-        }
-        auto ancestorDisplayDrawable =
-            std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(ancestorDrawable);
-        if (ancestorDisplayDrawable == nullptr) {
-            return screenId;
-        }
-        auto& ancestorParam = ancestorDisplayDrawable->GetRenderParams();
-        if (ancestorParam == nullptr) {
-            return screenId;
-        }
-        auto renderParams = static_cast<RSScreenRenderParams*>(ancestorParam.get());
-        if (renderParams == nullptr) {
-            return screenId;
-        }
-        screenId = renderParams->GetScreenId();
-    } else {
-        std::shared_ptr<RSScreenRenderNode> ancestor = nullptr;
-        auto displayLock = nodeParams->GetAncestorScreenNode().lock();
-        if (displayLock != nullptr) {
-            ancestor = displayLock->ReinterpretCastTo<RSScreenRenderNode>();
-        }
-        if (ancestor == nullptr) {
-            return screenId;
-        }
-        screenId = ancestor->GetScreenId();
+    if (screenRenderNode == nullptr || screenManager == nullptr) {
+        return;
     }
-    return screenId;
+    auto screenRotationCorrection = screenManager->GetScreenCorrection(screenRenderNode->GetScreenId());
+
+    auto screenNodeParams = static_cast<RSScreenRenderParams*>(screenRenderNode->GetStagingRenderParams().get());
+    if (screenNodeParams == nullptr) {
+        return;
+    }
+    auto logicalRotationCorrection = screenNodeParams->GetLogicalCameraRotationCorrection();
+
+    auto surfaceNodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    if (surfaceNodeParams == nullptr) {
+        return;
+    }
+    auto appRotationCorrection = surfaceNodeParams->GetAppRotationCorrection();
+
+    int32_t totalRotationCorrectionDegree = 0;
+
+    int32_t screenDegree = static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(screenRotationCorrection));
+    int32_t logicalDegree = static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(logicalRotationCorrection));
+    int32_t appDegree = static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(appRotationCorrection));
+
+    if (logicalDegree == 0) {
+        totalRotationCorrectionDegree = screenDegree;
+    } else {
+        totalRotationCorrectionDegree = (screenDegree + logicalDegree + appDegree) % ROUND_ANGLE;
+    }
+
+    RS_LOGD("RSBaseRenderUtil::GetRotationLockParam NodeId:%" PRIu64 ", screenCorrectionDegree:%{public}d"
+        ", logicalCorrectionDegree:%{public}d, appCorrectionDegree:%{public}d, totalCorrectionDegree:%{public}d",
+        node.GetId(), screenDegree, logicalDegree, appDegree, totalRotationCorrectionDegree);
+
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::GetRotationLockParam NodeId:%" PRIu64 ", screenCorrectionDegree:%d"
+        ", logicalCorrectionDegree:%d, appCorrectionDegree:%d, totalCorrectionDegree:%d",
+        node.GetId(), screenDegree, logicalDegree, appDegree, totalRotationCorrectionDegree);
+
+    node.SetRotationCorrectionDegree(totalRotationCorrectionDegree);
 }
 
 int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodeParams)
@@ -1362,16 +1378,7 @@ int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodePar
         return rotationDegree;
     }
 
-    ScreenId screenId = GetScreenIdFromSurfaceRenderParams(nodeParams);
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager) {
-        rotationDegree =
-            static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(screenManager->GetScreenCorrection(screenId)));
-    } else {
-        RS_LOGE("RSBaseRenderUtil::GetScreenRotationOffset: screenManager is nullptr");
-    }
-    RS_LOGD("RSBaseRenderUtil::GetScreenRotationOffset: ScreenId: %{public}" PRIu64 ", RotationOffset: %{public}d",
-        screenId, rotationDegree);
+    rotationDegree = nodeParams->GetRotationCorrectionDegree();
     return rotationDegree;
 }
 
@@ -1578,7 +1585,7 @@ bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffe
     }
 }
 
-pid_t RSBaseRenderUtil::lastSendingPid_ = 0;
+std::atomic<pid_t> RSBaseRenderUtil::lastSendingPid_ = 0;
 
 std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
     MessageParcel& parcel, uint32_t parcelNumber)
@@ -1592,9 +1599,10 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
         RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber);
         return nullptr;
     }
-    lastSendingPid_ = transactionData->GetSendingPid();
+    const auto& sendingPid = transactionData->GetSendingPid();
+    lastSendingPid_.store(sendingPid, std::memory_order_release);
     transactionData->ProfilerPushOffsets(parcel, parcelNumber);
-    RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(lastSendingPid_));
+    RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(sendingPid));
     RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber);
     std::unique_ptr<RSTransactionData> transData(transactionData);
     return transData;
@@ -1946,7 +1954,10 @@ GraphicTransformType RSBaseRenderUtil::RotateEnumToInt(int angle, GraphicTransfo
 
 pid_t RSBaseRenderUtil::GetLastSendingPid()
 {
-    return lastSendingPid_;
+    pid_t pid = 0;
+    pid = lastSendingPid_.load(std::memory_order_acquire);
+    lastSendingPid_.store(0, std::memory_order_release);
+    return pid;
 }
 } // namespace Rosen
 } // namespace OHOS

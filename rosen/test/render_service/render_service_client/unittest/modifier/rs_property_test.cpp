@@ -14,15 +14,18 @@
  */
 
 #include <ostream>
+
+#include "core/transaction/rs_interfaces.h"
 #include "gtest/gtest.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
+#include "ui_effect/property/include/rs_ui_shape_base.h"
+
 #include "animation/rs_animation.h"
-#include "core/transaction/rs_interfaces.h"
+#include "modifier/rs_property.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_director.h"
-#include "modifier/rs_property.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -42,9 +45,12 @@ constexpr float ZERO = 0.0f;
 class RSPropertyTest : public testing::Test {
 public:
     constexpr static float floatData[] = {
-        0.0f, 485.44f, -34.4f,
-        std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
-        };
+        0.0f,
+        485.44f,
+        -34.4f,
+        std::numeric_limits<float>::max(),
+        std::numeric_limits<float>::min(),
+    };
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -152,12 +158,12 @@ HWTEST_F(RSPropertyTest, PropertyOp001, TestSize.Level1)
     ASSERT_TRUE(ROSEN_EQ(prop2->Get(), floatData[0]));
 
     ASSERT_EQ(prop1 + prop3, nullptr);
-    ASSERT_TRUE(ROSEN_EQ(
-        std::static_pointer_cast<RSProperty<float>>(prop2 + prop3)->Get(), floatData[0] + floatData[1]));
+    ASSERT_TRUE(
+        ROSEN_EQ(std::static_pointer_cast<RSProperty<float>>(prop2 + prop3)->Get(), floatData[0] + floatData[1]));
 
     ASSERT_EQ(prop1 - prop3, nullptr);
-    ASSERT_TRUE(ROSEN_EQ(
-        std::static_pointer_cast<RSProperty<float>>(prop2 - prop3)->Get(), floatData[0] - floatData[1]));
+    ASSERT_TRUE(
+        ROSEN_EQ(std::static_pointer_cast<RSProperty<float>>(prop2 - prop3)->Get(), floatData[0] - floatData[1]));
 
     ASSERT_EQ(prop1 * floatData[1], nullptr);
     ASSERT_TRUE(ROSEN_EQ(
@@ -397,22 +403,16 @@ HWTEST_F(RSPropertyTest, GetThresholdByThresholdType001, TestSize.Level1)
     std::shared_ptr<RSPropertyBase> prop = std::make_shared<RSProperty<float>>();
     float res = prop->GetThresholdByThresholdType(ThresholdType::LAYOUT);
     EXPECT_TRUE(res == LAYOUT_NEAR_ZERO_THRESHOLD);
-    
     res = prop->GetThresholdByThresholdType(ThresholdType::COARSE);
     EXPECT_TRUE(res == FLOAT_NEAR_ZERO_COARSE_THRESHOLD);
-
     res = prop->GetThresholdByThresholdType(ThresholdType::MEDIUM);
     EXPECT_TRUE(res == FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD);
-
     res = prop->GetThresholdByThresholdType(ThresholdType::FINE);
     EXPECT_TRUE(res == FLOAT_NEAR_ZERO_FINE_THRESHOLD);
-
     res = prop->GetThresholdByThresholdType(ThresholdType::COLOR);
     EXPECT_TRUE(res == COLOR_NEAR_ZERO_THRESHOLD);
-
     res = prop->GetThresholdByThresholdType(ThresholdType::ZERO);
     EXPECT_TRUE(res == ZERO);
-
     res = prop->GetThresholdByThresholdType(ThresholdType::DEFAULT);
     EXPECT_TRUE(res == DEFAULT_NEAR_ZERO_THRESHOLD);
 }
@@ -471,10 +471,10 @@ HWTEST_F(RSPropertyTest, GetPropertyType001, TestSize.Level1)
  */
 HWTEST_F(RSPropertyTest, GetPropertyType002, TestSize.Level1)
 {
-    std::vector<float> tempVec = {1.0f, 2.0f, 3.0f};
+    std::vector<float> tempVec = { 1.0f, 2.0f, 3.0f };
     auto rsAnimatableProperty = std::make_shared<RSAnimatableProperty<std::vector<float>>>(tempVec);
     EXPECT_TRUE(rsAnimatableProperty->GetPropertyType() == RSPropertyType::VECTOR_FLOAT);
-    std::vector<float> tempVec2 = {4.0f, 5.0f, 6.0f};
+    std::vector<float> tempVec2 = { 4.0f, 5.0f, 6.0f };
     rsAnimatableProperty->Set(tempVec2);
     EXPECT_EQ(rsAnimatableProperty->Get(), tempVec2);
 }
@@ -681,11 +681,7 @@ HWTEST_F(RSPropertyTest, GetRenderProperty008, TestSize.Level1)
 HWTEST_F(RSPropertyTest, GetRenderProperty010, TestSize.Level1)
 {
     auto colorVec = Vector4<RSColor>(
-        RSColor(0, 0, 0, 255),
-        RSColor(0, 0, 255, 255),
-        RSColor(0, 255, 255, 255),
-        RSColor(255, 255, 255, 255)
-    );
+        RSColor(0, 0, 0, 255), RSColor(0, 0, 255, 255), RSColor(0, 255, 255, 255), RSColor(255, 255, 255, 255));
     RSAnimatableProperty<Vector4<RSColor>> property(colorVec);
     property.isCustom_ = true;
     property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<Vector4<RSColor>>>();
@@ -735,7 +731,7 @@ HWTEST_F(RSPropertyTest, GetRenderProperty011, TestSize.Level1)
  */
 HWTEST_F(RSPropertyTest, GetRenderProperty012, TestSize.Level1)
 {
-    std::vector<float> floatVec = {0.0f, 0.2f, 0.3f};
+    std::vector<float> floatVec = { 0.0f, 0.2f, 0.3f };
     RSAnimatableProperty<std::vector<float>> property(floatVec);
     property.isCustom_ = true;
     property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>();
@@ -1017,5 +1013,68 @@ HWTEST_F(RSPropertyTest, GetPropertyTypeNG, TestSize.Level1)
     auto property = std::make_shared<RSProperty<float>>();
     property->SetPropertyTypeNG(ModifierNG::RSPropertyType::ALPHA);
     EXPECT_EQ(property->GetPropertyTypeNG(), ModifierNG::RSPropertyType::ALPHA);
+}
+
+/**
+ * @tc.name: OnAttachAndOnDetach004
+ * @tc.desc: Test OnAttach and OnDetach for RSProperty<std::shared_ptr<RSNGShapeBase>>
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, OnAttachAndOnDetach004, TestSize.Level1)
+{
+    auto nullProp = std::make_shared<RSProperty<std::shared_ptr<RSNGShapeBase>>>();
+    auto node = RSCanvasNode::Create();
+    nullProp->OnAttach(*node, {});
+    nullProp->OnDetach();
+
+    auto shape = std::make_shared<RSNGSDFUnionOpShape>();
+    auto shapeProp = shape->Getter<SDFUnionOpShapeShapeXTag>();
+    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSNGShapeBase>>>();
+    prop->Set(shape);
+
+    prop->OnAttach(*node, {});
+    EXPECT_NE(shapeProp, nullptr);
+    prop->OnDetach();
+}
+
+/**
+ * @tc.name: Set004
+ * @tc.desc: Test Set for RSProperty<std::shared_ptr<RSNGShapeBase>>
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, Set004, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSProperty<std::shared_ptr<RSNGShapeBase>>>();
+    auto shape1 = std::make_shared<RSNGSDFUnionOpShape>();
+    prop1->Set(shape1);
+    EXPECT_EQ(prop1->stagingValue_, shape1);
+    prop1->Set(shape1);
+    EXPECT_EQ(prop1->stagingValue_, shape1);
+
+    // without node
+    auto prop2 = std::make_shared<RSProperty<std::shared_ptr<RSNGShapeBase>>>();
+    auto shape2 = std::make_shared<RSNGSDFUnionOpShape>();
+    prop2->Set(shape2);
+    EXPECT_EQ(prop2->stagingValue_, shape2);
+
+    prop2->Set(shape1);
+    EXPECT_EQ(prop2->stagingValue_, shape1);
+
+    prop2->Set(nullptr);
+    EXPECT_EQ(prop2->stagingValue_, nullptr);
+
+    // with node
+    auto node = RSCanvasNode::Create();
+    prop2 = std::make_shared<RSProperty<std::shared_ptr<RSNGShapeBase>>>();
+    prop2->target_ = node;
+    shape2 = std::make_shared<RSNGSDFUnionOpShape>();
+    prop2->Set(shape2);
+    EXPECT_EQ(prop2->stagingValue_, shape2);
+
+    prop2->Set(shape1);
+    EXPECT_EQ(prop2->stagingValue_, shape2); // Update value only
+
+    prop2->Set(nullptr);
+    EXPECT_EQ(prop2->stagingValue_, nullptr);
 }
 } // namespace OHOS::Rosen

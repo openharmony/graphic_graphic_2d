@@ -68,9 +68,9 @@ constexpr int64_t REMAINING_TIME_THRESHOLD_LARGER = 500000; // 500000ns == 0.5ms
 constexpr int64_t ONE_SECOND_FOR_CALCUTE_FREQUENCY = 1000000000; // 1000000000ns == 1s
 constexpr uint32_t MAX_LISTENERS_AMOUNT = 2;
 constexpr uint32_t MAX_ADAPTIVE_PERIOD = 2;
-constexpr uint32_t BLOCK_ADAPTIVE_SYNC_COUNT = 1;
-constexpr uint32_t LAST_VSYNC_TIME_THRESHOLD = 2;
-constexpr int64_t VSYNC_RS_OFFSET_FOR_AS = 1620000; // 2.7ms * 0.6 == 1.62ms
+constexpr uint32_t BLOCK_ADAPTIVE_SYNC_COUNT = 1; // threshold of prohibited periods for triggering AdaptiveSync
+constexpr uint32_t LAST_VSYNC_TIME_THRESHOLD = 2; // threshold between the now and lastVsyncTime
+constexpr int64_t VSYNC_RS_OFFSET_FOR_AS = 1620000; // threshold between Vsync interval and period 2.7ms * 0.6 = 1.62ms
 
 // minimum ratio of dvsync thread
 constexpr double DVSYNC_PERIOD_MIN_INTERVAL = 0.6;
@@ -302,10 +302,15 @@ void VSyncGenerator::WaitForTimeout(int64_t occurTimestamp, int64_t nextTimeStam
 void VSyncGenerator::WaitForTimeoutConNotifyLocked()
 {
     int64_t curTime = SystemTime();
-    if (curTime <= 0 || nextTimeStamp_ <= 0) {
-        return;
+    int64_t remainingTime = 0;
+    {
+        std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
+        if (curTime <= 0 || nextTimeStamp_ <= 0) {
+            return;
+        }
+        int64_t remainingTime = nextTimeStamp_ - curTime;
     }
-    int64_t remainingTime = nextTimeStamp_ - curTime;
+    
     if (remainingTime > REMAINING_TIME_THRESHOLD) {
         waitForTimeoutCon_.notify_all();
     }
@@ -314,10 +319,14 @@ void VSyncGenerator::WaitForTimeoutConNotifyLocked()
 void VSyncGenerator::WaitForTimeoutConNotifyLockedForListener()
 {
     int64_t curTime = SystemTime();
-    if (curTime <= 0 || nextTimeStamp_ <= 0) {
-        return;
+    int64_t remainingTime = 0;
+    {
+        std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
+        if (curTime <= 0 || nextTimeStamp_ <= 0) {
+            return;
+        }
+        int64_t remainingTime = nextTimeStamp_ - curTime;
     }
-    int64_t remainingTime = nextTimeStamp_ - curTime;
     if (remainingTime > REMAINING_TIME_THRESHOLD_FOR_LISTENER) {
         waitForTimeoutCon_.notify_all();
     }
@@ -422,9 +431,9 @@ void VSyncGenerator::ComputeDVSyncListenerTimeStamp(const Listener& listener, in
     if (dvsyncPeriodRecord_ != 0 && listener.callback_ != nullptr) {
         t = ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, occurDvsyncReferenceTime_, dvsyncPeriodRecord_);
         nextVSyncTime = t < nextVSyncTime? t : nextVSyncTime;
-        RS_TRACE_NAME_FMT("DVSync::UiDVSync ComputeNextVSyncTimeStamp t:%" PRId64 ", dvsyncPeriod:%" PRId64 ""
-            ", dvsyncReferenceTime:%" PRId64 ", now:%" PRId64 ", lastTime:%" PRId64 ", phase:%" PRId64 ""
-            ",wakeupDelay:%" PRId64 ",phaseRecord:%" PRId64,  t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_,
+        RS_TRACE_NAME_FMT("DVSync::UiDVSync ComputeNextVSyncTimeStamp t:%" PRId64 ", dvsyncPeriod:%" PRId64
+            ", dvsyncReferenceTime:%" PRId64 ", now:%" PRId64 ", lastTime:%" PRId64 ", phase:%" PRId64
+            ",wakeupDelay:%" PRId64 ",phaseRecord:%" PRId64, t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_,
             now, listener.lastTime_, listener.phase_, wakeupDelay_, phaseRecord_);
     }
 #endif
@@ -475,9 +484,9 @@ int64_t VSyncGenerator::CollectDVSyncListener(const Listener &listener, int64_t 
 #if defined(RS_ENABLE_DVSYNC_2)
             DVSync::Instance().SetToCurrentPeriod();
 #endif
-            RS_TRACE_NAME_FMT("DVSync::UiDVSync CollectDVSyncListener t:%" PRId64 ", dvsyncPeriod:%" PRId64 ""
-                ", dvsyncReferenceTime:%" PRId64 ", now:%" PRId64 ", lastTime:%" PRId64 ", phase:%" PRId64 ""
-                ",wakeupDelay:%" PRId64 ",phaseRecord:%" PRId64,  t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_,
+            RS_TRACE_NAME_FMT("DVSync::UiDVSync CollectDVSyncListener t:%" PRId64 ", dvsyncPeriod:%" PRId64
+                ", dvsyncReferenceTime:%" PRId64 ", now:%" PRId64 ", lastTime:%" PRId64 ", phase:%" PRId64
+                ",wakeupDelay:%" PRId64 ",phaseRecord:%" PRId64, t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_,
                 now, listener.lastTime_, listener.phase_, wakeupDelay_, phaseRecord_);
         }
     }
@@ -817,8 +826,14 @@ void VSyncGenerator::SetAdaptive(bool isAdaptive)
 bool VSyncGenerator::IsNeedAdaptiveAfterUpdateMode()
 {
     std::lock_guard<std::mutex> locker(mutex_);
+    if (period_ == 0) {
+        return false;
+    }
     int64_t now = SystemTime();
-    bool needAS = std::abs(lastVsyncRsInterval_ - period_) < VSYNC_RS_OFFSET_FOR_AS ||
+    int64_t curPeriod = std::abs(lastVsyncRsInterval_ - period_);
+    int64_t k = curPeriod / period_;
+    bool needAS = std::abs(curPeriod - k * period_) < VSYNC_RS_OFFSET_FOR_AS ||
+                  std::abs(curPeriod - (k + 1) * period_) < VSYNC_RS_OFFSET_FOR_AS ||
                   now - lastVsyncRsTime_ > static_cast<int64_t>(BLOCK_ADAPTIVE_SYNC_COUNT) * period_;
     if (!needAS) {
         RS_TRACE_NAME_FMT("block AS, lastVsyncRsInterval: %" PRId64 ", period: %" PRId64 ", lastVsyncTime: "

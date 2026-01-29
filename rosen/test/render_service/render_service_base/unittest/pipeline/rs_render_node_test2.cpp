@@ -377,8 +377,7 @@ HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalPixelStretchRect, TestSize.Leve
 HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    RectF selfDrawingNodeDirtyRect{0, 0, 1000, 1000};
-    node.UpdateBufferDirtyRegion(selfDrawingNodeDirtyRect);
+    node.UpdateBufferDirtyRegion();
     RectI dirtyRect{0, 0, 1000, 1000};
     RectI drawRegion{0, 0, 1000, 1000};
     node.UpdateBufferDirtyRegion(dirtyRect, drawRegion);
@@ -409,8 +408,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion002, TestSize.Level1)
     surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
     auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    RectF selfDrawingNodeDirtyRect{0, 0, 100, 100};
-    surfaceNode->UpdateBufferDirtyRegion(selfDrawingNodeDirtyRect);
+    surfaceNode->UpdateBufferDirtyRegion();
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
@@ -431,8 +429,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion003, TestSize.Level1)
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
-    RectF selfDrawingNodeDirtyRect{0, 0, 200, 200};
-    surfaceNode->UpdateBufferDirtyRegion(selfDrawingNodeDirtyRect);
+    surfaceNode->UpdateBufferDirtyRegion();
 }
 
 /**
@@ -450,8 +447,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion004, TestSize.Level1)
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
-    RectF selfDrawingNodeDirtyRect{0, 0, 200, 200};
-    surfaceNode->UpdateBufferDirtyRegion(selfDrawingNodeDirtyRect);
+    surfaceNode->UpdateBufferDirtyRegion();
 }
 
 /**
@@ -472,9 +468,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion005, TestSize.Level1)
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     surfaceNode->GetRSSurfaceHandler()->bufferSizeChanged_ = true;
     surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
-    RectF selfDrawingNodeDirtyRect{0, 0, 100, 100};
-    surfaceNode->UpdateBufferDirtyRegion(selfDrawingNodeDirtyRect);
-    ASSERT_EQ(selfDrawingNodeDirtyRect, DEFAULT_SELF_DRAW_RECT);
+    surfaceNode->UpdateBufferDirtyRegion();
 }
 
 /**
@@ -486,8 +480,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion005, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, UpdateSelfDrawRect, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    RectF selfDrawingNodeDirtyRect{0, 0, 100, 100};
-    node.UpdateSelfDrawRect(selfDrawingNodeDirtyRect);
+    node.UpdateSelfDrawRect();
     ASSERT_TRUE(true);
 }
 
@@ -533,42 +526,6 @@ HWTEST_F(RSRenderNodeTest2, SetHDRUIBrightness, TestSize.Level1)
     ASSERT_NE(node.GetHdrUIComponentHeadroom(), INCORRECT_HEADROOM);
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: CheckAndUpdateGeoTrans001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, CheckAndUpdateGeoTrans001, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    std::shared_ptr<RSObjAbsGeometry> geoPtr = std::make_shared<RSObjAbsGeometry>();
-    ASSERT_EQ(node.CheckAndUpdateGeoTrans(geoPtr), false);
-}
-
-/**
- * @tc.name: CheckAndUpdateGeoTrans002
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, CheckAndUpdateGeoTrans002, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    std::shared_ptr<RSObjAbsGeometry> geoPtr = std::make_shared<RSObjAbsGeometry>();
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSGeometryTransRenderModifier>(property) };
-    std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> map;
-    map[RSModifierType::GEOMETRYTRANS] = list;
-    node.drawCmdModifiers_ = map;
-    ASSERT_EQ(node.CheckAndUpdateGeoTrans(geoPtr), true);
-}
-#endif
-
 /**
  * @tc.name: UpdateAbsDirtyRegion001
  * @tc.desc: test
@@ -580,9 +537,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion001, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    RectI selfDrawingNodeAbsDirtyRect{0, 0, 1000, 1000};
-    RectI absCmdlistDrawRect{0, 0, 1000, 1000};
-    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -600,9 +555,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion002, TestSize.Level1)
     node.isSelfDrawingNode_ = true;
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
-    RectI selfDrawingNodeAbsDirtyRect{0, 0, 1000, 1000};
-    RectI absCmdlistDrawRect{0, 0, 1000, 1000};
-    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -622,9 +575,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion003, TestSize.Level1)
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.shouldPaint_ = false;
     node.isLastVisible_ = true;
-    RectI selfDrawingNodeAbsDirtyRect{0, 0, 1000, 1000};
-    RectI absCmdlistDrawRect{0, 0, 1000, 1000};
-    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -644,9 +595,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion004, TestSize.Level1)
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.shouldPaint_ = true;
     node.isLastVisible_ = true;
-    RectI selfDrawingNodeAbsDirtyRect{0, 0, 1000, 1000};
-    RectI absCmdlistDrawRect{0, 0, 1000, 1000};
-    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -773,37 +722,6 @@ HWTEST_F(RSRenderNodeTest2, Update001, TestSize.Level1)
     bool parentDirty = true;
     ASSERT_EQ(node.Update(*rsDirtyManager, parentNode, parentDirty, clipRect), false);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: Update002
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, Update002, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
-    std::shared_ptr<RSRenderNode> parentNode;
-    RectI clipRect{0, 0, 1000, 1000};
-    node.shouldPaint_ = true;
-    node.isLastVisible_ = false;
-    node.SetDirty();
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSGeometryTransRenderModifier>(property) };
-    std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> map;
-    map[RSModifierType::GEOMETRYTRANS] = list;
-    node.drawCmdModifiers_ = map;
-    bool parentDirty = true;
-    auto& bgProperties = node.GetMutableRenderProperties();
-    bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
-    ASSERT_EQ(node.Update(*rsDirtyManager, parentNode, parentDirty, clipRect), true);
-}
-#endif
 
 /**
  * @tc.name: GetMutableRenderProperties
@@ -1126,7 +1044,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree001, TestSize.Leve
     RSBaseRenderNode subTreeRoot(id + 1, context);
     RectI filterRect{0, 0, 1000, 1000};
     RectI clipRect{0, 0, 1000, 1000};
-    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect);
+    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -1144,7 +1062,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree002, TestSize.Leve
     RectI filterRect{0, 0, 1000, 1000};
     node.lastFilterRegion_ = filterRect;
     RectI clipRect{0, 0, 1000, 1000};
-    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect);
+    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -1490,6 +1408,44 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect005, TestSize.Level
     node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, slot);
 
     EXPECT_FALSE(node.backgroundFilterInteractWithDirty_);
+}
+
+/**
+ * @tc.name: UpdatePendingPurgeFilterDirtyRect006
+ * @tc.desc: test pendingPurgeFilterRegion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect006, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto& geoPtr = node.renderProperties_.boundsGeo_;
+    geoPtr = std::make_shared<RSObjAbsGeometry>();
+    RectI rect(50, 50, 100, 100);
+    geoPtr->absRect_ = rect;
+
+    RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->stagingCacheManager_->pendingPurge_ = false;
+    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
+
+    auto filterRegion = Occlusion::Region(node.GetFilterRect());
+    node.lastFilterRegion_ = node.GetFilterRect();
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+
+    filterDrawable->stagingCacheManager_->lastHpaeClearCache_ = false;
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+    const auto& pendingPurgeFilterRegion = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
+    EXPECT_FALSE(filterRegion.Sub(pendingPurgeFilterRegion).IsEmpty());
+
+    filterDrawable->stagingCacheManager_->lastHpaeClearCache_ = true;
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+    const auto& pendingPurgeFilterRegion2 = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
+    EXPECT_TRUE(filterRegion.Sub(pendingPurgeFilterRegion2).IsEmpty());
+
+    filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
 }
 
 /**
@@ -3511,17 +3467,17 @@ HWTEST_F(RSRenderNodeTest2, CalVisibleFilterRect001, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     auto geo = node->GetRenderProperties().boundsGeo_;
-    node->CalVisibleFilterRect(std::nullopt);
+    node->CalVisibleFilterRect(std::nullopt, std::nullopt);
     auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
         filterDrawable;
 
     auto absRect = RectI(0, 0, 10, 10);
-    node->CalVisibleFilterRect(absRect, Drawing::Matrix(), std::nullopt);
+    node->CalVisibleFilterRect(absRect, Drawing::Matrix(), std::nullopt, std::nullopt);
     EXPECT_EQ(node->GetFilterRegionInfo().defaultFilterRegion_, absRect);
 
     node->GetMutableRenderProperties().boundsGeo_ = nullptr;
-    node->CalVisibleFilterRect(std::nullopt);
+    node->CalVisibleFilterRect(std::nullopt, std::nullopt);
 }
 
 /**

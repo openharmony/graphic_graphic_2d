@@ -394,15 +394,19 @@ public:
     std::shared_ptr<RSNGRenderShaderBase> GetBackgroundNGShader() const;
     void SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
     std::shared_ptr<RSNGRenderShaderBase> GetForegroundShader() const;
+    void InternalSetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape);
     void SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape);
     std::shared_ptr<RSNGRenderShapeBase> GetSDFShape() const;
     void SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetMaterialNGFilter() const;
+    void SetCompositingNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
+    std::shared_ptr<RSNGRenderFilterBase> GetCompositingNGFilter() const;
 
     // setter and getter of color picker related properties
     void SetColorPickerPlaceholder(int placeholder);
     void SetColorPickerStrategy(int strategy);
     void SetColorPickerInterval(int interval);
+    void SetColorPickerNotifyThreshold(int threshold);
     std::shared_ptr<ColorPickerParam> GetColorPicker() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
@@ -579,7 +583,7 @@ public:
     bool GetFgBlurDisableSystemAdaptation() const;
 
     bool IsBackgroundMaterialFilterValid() const;
-    bool IsForegroundMaterialFilterVaild() const;
+    bool IsForegroundMaterialFilterValid() const;
     bool IsBackgroundLightBlurFilterValid() const;
     bool IsForegroundLightBlurFilterValid() const;
 
@@ -987,6 +991,7 @@ private:
         std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
         std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
         std::shared_ptr<RSNGRenderFilterBase> mtNGRenderFilter_ = nullptr;
+        std::shared_ptr<RSNGRenderFilterBase> cgNGRenderFilter_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
         std::shared_ptr<RSFilter> filter_ = nullptr;
@@ -1110,6 +1115,12 @@ private:
 
     std::optional<RectI> lastRect_;
 
+    //Hisysevent params and funcs for GenerateBack/ForegroundFilter and UpdateForegroundFilter
+    std::bitset<3> hasReportedServerXXFilterCascade_ = 0b000;
+    void StatBackgroundFilter();
+    void StatCompositingFilter();
+    void StatForegroundFilter();
+    
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
     void GenerateColorFilter();

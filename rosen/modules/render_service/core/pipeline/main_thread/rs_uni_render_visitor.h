@@ -219,7 +219,7 @@ private:
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
     void UpdateCornerRadiusInfoForDRM(std::shared_ptr<RSSurfaceRenderNode> hwcNode, std::vector<RectI>& hwcRects);
-    bool CheckIfRoundCornerIntersectDRM(const float& ratio, std::vector<float>& ratioVector,
+    bool CheckIfRoundCornerIntersectDRM(const float ratio, std::vector<float>& ratioVector,
         const Vector4f& instanceCornerRadius, const RectI& instanceAbsRect, const RectI& hwcAbsRect);
     void UpdateIfHwcNodesHaveVisibleRegion(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces);
     void UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
@@ -430,6 +430,11 @@ private:
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
+    /*
+     * surfaceRenderNode clip rect used in Prepare.
+     * use as the clip bounds of the filter with a custom snapshot/drawing rect.
+     */
+    std::optional<RectI> prepareFilterClipRect_ = std::nullopt;
     Vector4f curCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     RectI curCornerRect_;
     Drawing::Matrix parentSurfaceNodeMatrix_;

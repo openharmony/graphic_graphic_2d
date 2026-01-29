@@ -238,7 +238,7 @@ private:
     std::shared_ptr<ExtendImageObject> objectHandle_;
 };
 
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 class RSB_EXPORT DrawHybridPixelMapOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {

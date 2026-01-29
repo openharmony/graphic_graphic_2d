@@ -66,7 +66,6 @@ const uint8_t DO_SET_SCREEN_BACK_LIGHT = 8;
 const uint8_t DO_GET_PIXELMAP_BY_PROCESSID = 9;
 const uint8_t DO_CREATE_VSYNC_CONNECTION = 10;
 const uint8_t DO_REGISTER_OCCLUSION_CHANGE_CALLBACK = 11;
-const uint8_t DO_SET_APP_WINDOW_NUM = 12;
 const uint8_t DO_SET_SYSTEM_ANIMATED_SCENES = 13;
 const uint8_t DO_REGISTER_HGM_CFG_CALLBACK = 14;
 const uint8_t DO_SET_ROTATION_CACHE_ENABLED = 15;
@@ -86,7 +85,8 @@ const uint8_t DO_REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK = 28;
 const uint8_t DO_NOTIFY_PAGE_NAME = 29;
 const uint8_t DO_SET_COLOR_FOLLOW = 30;
 const uint8_t DO_SET_FORCE_REFRESH = 31;
-const uint8_t TARGET_SIZE = 32;
+const uint8_t DO_SET_SCREEN_OFFSET = 32;
+const uint8_t TARGET_SIZE = 33;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -148,64 +148,230 @@ void DoGetUniRenderEnabled()
 
 void DoSetPhysicalScreenResolution()
 {
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        return;
-    }
-    uint64_t id = GetData<uint64_t>();
-    if (!data.WriteUint64(id)) {
-        return;
-    }
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION);
+
+    MessageOption option1;
+    MessageParcel dataParcel1;
+    MessageParcel replyParcel1;
+    ScreenId id = GetData<ScreenId>();
     uint32_t width = GetData<uint32_t>();
-    if (!data.WriteUint32(width)) {
-        return;
-    }
     uint32_t height = GetData<uint32_t>();
-    if (!data.WriteUint32(height)) {
+    if (!dataParcel1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataParcel1.WriteUint64(id) || !dataParcel1.WriteUint32(width) || !dataParcel1.WriteUint32(height)) {
         return;
     }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION);
-    toServiceConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel1, replyParcel1, option1);
+
+    MessageOption option2;
+    MessageParcel dataParcel2;
+    MessageParcel replyParcel2;
+    if (!dataParcel2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel2, replyParcel2, option2);
+
+    MessageOption option3;
+    MessageParcel dataParcel3;
+    MessageParcel replyParcel3;
+    if (!dataParcel3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataParcel3.WriteUint64(INVALID_SCREEN_ID)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel3, replyParcel3, option3);
+
+    MessageOption option4;
+    MessageParcel dataParcel4;
+    MessageParcel replyParcel4;
+    if (!dataParcel4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataParcel4.WriteUint64(INVALID_SCREEN_ID) || !dataParcel4.WriteUint32(0)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel4, replyParcel4, option4);
+
+    MessageOption option5;
+    MessageParcel dataParcel5;
+    MessageParcel replyParcel5;
+    if (!dataParcel5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataParcel5.WriteUint64(INVALID_SCREEN_ID) || !dataParcel5.WriteUint32(0) ||
+        !dataParcel5.WriteUint32(0)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel5, replyParcel5, option5);
+
+    MessageOption option6;
+    MessageParcel dataParcel6;
+    MessageParcel replyParcel6;
+    if (!dataParcel6.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataParcel6.WriteUint64(INVALID_SCREEN_ID) || !dataParcel6.WriteUint32(0) || !dataParcel6.WriteUint32(0)) {
+        return;
+    }
+    replyParcel6.writable_ = false;
+    replyParcel6.data_ = nullptr;
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel6, replyParcel6, option6);
 }
 
 void DoSetScreenSecurityMask()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK);
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK);
 
-    uint64_t screenId = GetData<uint64_t>();
+    MessageParcel dataP1;
+    MessageParcel reply1;
+    MessageOption option1;
+    ScreenId id = GetData<ScreenId>();
     bool enable = GetData<bool>();
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataParcel.WriteUint64(screenId);
-    dataParcel.WriteBool(enable);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    if (!dataP1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP1.WriteUint64(id) || !dataP1.WriteBool(enable) || toServiceConnectionStub_ == nullptr) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP1, reply1, option1);
+
+    MessageParcel dataP2;
+    MessageParcel reply2;
+    MessageOption option2;
+    if (!dataP2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP2, reply2, option2);
+
+    MessageParcel dataP3;
+    MessageParcel reply3;
+    MessageOption option3;
+    if (!dataP3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP3.WriteUint64(INVALID_SCREEN_ID)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP3, reply3, option3);
+
+    MessageParcel dataP4;
+    MessageParcel reply4;
+    MessageOption option4;
+    if (!dataP4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP4.WriteUint64(INVALID_SCREEN_ID) || !dataP4.WriteBool(true)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP4, reply4, option4);
+
+    MessageParcel dataP5;
+    MessageParcel reply5;
+    MessageOption option5;
+    if (!dataP5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP5.WriteUint64(INVALID_SCREEN_ID) || !dataP5.WriteBool(false)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP5, reply5, option5);
+
+    MessageParcel dataP6;
+    MessageParcel reply6;
+    MessageOption option6;
+    if (!dataP6.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP6.WriteUint64(INVALID_SCREEN_ID) || !dataP6.WriteUInt64Vector({})) {
+        return;
+    }
+    reply6.writable_ = false;
+    reply6.data_ = nullptr;
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP6, reply6, option6);
 }
 
 void DoSetMirrorScreenVisibleRect()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT);
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT);
 
-    uint64_t screenId = GetData<uint64_t>();
+    MessageParcel dataP1;
+    MessageParcel reply1;
+    MessageOption option1;
+    ScreenId id = GetData<ScreenId>();
+    int32_t x = GetData<uint32_t>();
+    int32_t y = GetData<uint32_t>();
+    int32_t w = GetData<uint32_t>();
+    int32_t h = GetData<uint32_t>();
     bool supportRotation = GetData<bool>();
-    int32_t x = GetData<int32_t>();
-    int32_t y = GetData<int32_t>();
-    int32_t w = GetData<int32_t>();
-    int32_t h = GetData<int32_t>();
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataParcel.WriteUint64(screenId);
-    dataParcel.WriteInt32(x);
-    dataParcel.WriteInt32(y);
-    dataParcel.WriteInt32(w);
-    dataParcel.WriteInt32(h);
-    dataParcel.WriteBool(supportRotation);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    if (!dataP1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP1.WriteUint64(id) || !dataP1.WriteInt32(x) || !dataP1.WriteInt32(y) ||
+        !dataP1.WriteInt32(w) || !dataP1.WriteInt32(h) || !dataP1.WriteBool(supportRotation) ||
+        toServiceConnectionStub_ == nullptr) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP1, reply1, option1);
+
+    MessageParcel dataP2;
+    MessageParcel reply2;
+    MessageOption option2;
+    if (!dataP2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP2, reply2, option2);
+
+    MessageParcel dataP3;
+    MessageParcel reply3;
+    MessageOption option3;
+    if (!dataP3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP3.WriteUint64(INVALID_SCREEN_ID)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP3, reply3, option3);
+
+    MessageParcel dataP4;
+    MessageParcel reply4;
+    MessageOption option4;
+    if (!dataP4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP4.WriteUint64(INVALID_SCREEN_ID) || !dataP4.WriteInt32(0)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP4, reply4, option4);
+
+    MessageParcel dataP5;
+    MessageParcel reply5;
+    MessageOption option5;
+    if (!dataP5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP5.WriteUint64(INVALID_SCREEN_ID) || !dataP5.WriteInt32(0) || !dataP5.WriteInt32(0)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP5, reply5, option5);
+
+    MessageParcel dataP6;
+    MessageParcel reply6;
+    MessageOption option6;
+    if (!dataP6.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP6.WriteUint64(INVALID_SCREEN_ID) || !dataP6.WriteInt32(0) ||
+        !dataP6.WriteInt32(0) || !dataP6.WriteInt32(0)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP6, reply6, option6);
+
+    MessageParcel dataP7;
+    MessageParcel reply7;
+    MessageOption option7;
+    if (!dataP7.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP7.WriteUint64(INVALID_SCREEN_ID) || !dataP7.WriteInt32(0) || !dataP7.WriteInt32(0) ||
+        !dataP7.WriteInt32(0) || !dataP7.WriteInt32(0)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP7, reply7, option7);
+
+    MessageParcel dataP8;
+    MessageParcel reply8;
+    MessageOption option8;
+    if (!dataP8.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP8.WriteUint64(INVALID_SCREEN_ID) || !dataP8.WriteInt32(0) || !dataP8.WriteInt32(0) ||
+        !dataP8.WriteInt32(0) || !dataP8.WriteInt32(0) || !dataP8.WriteBool(true)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP8, reply8, option8);
+
+    MessageParcel dataP9;
+    MessageParcel reply9;
+    MessageOption option9;
+    if (!dataP9.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP9.WriteUint64(INVALID_SCREEN_ID) || !dataP9.WriteInt32(0) || !dataP9.WriteInt32(0) ||
+        !dataP9.WriteInt32(0) || !dataP9.WriteInt32(0) || !dataP9.WriteBool(true)) {
+        return;
+    }
+    reply9.writable_ = false;
+    reply9.data_ = nullptr;
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP9, reply9, option9);
 }
 
 void DoSetCastScreenEnableSkipWindow()
@@ -351,19 +517,6 @@ void DoRegisterOcclusionChangeCallback()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteRemoteObject(rsIOcclusionChangeCallback_->AsObject());
     dataParcel.RewindRead(0);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-}
-
-void DoSetAppWindowNum()
-{
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    MessageOption option;
-
-    uint32_t num = GetData<uint32_t>();
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataParcel.WriteUint32(num);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -643,6 +796,59 @@ void DoSetScreenActiveRect()
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
+void DoSetScreenOffset()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_OFFSET);
+
+    MessageParcel dataP1;
+    MessageParcel reply1;
+    MessageOption option1;
+    ScreenId id = GetData<uint64_t>();
+    int32_t offsetX = GetData<int32_t>();
+    int32_t offsetY = GetData<int32_t>();
+    if (!dataP1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP1.WriteUint64(id) || !dataP1.WriteInt32(offsetX) || !dataP1.WriteInt32(offsetY)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP1, reply1, option1);
+
+    MessageParcel dataP2;
+    MessageParcel reply2;
+    MessageOption option2;
+    if (!dataP2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP2, reply2, option2);
+
+    MessageParcel dataP3;
+    MessageParcel reply3;
+    MessageOption option3;
+    if (!dataP3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP3.WriteUint64(INVALID_SCREEN_ID)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP3, reply3, option3);
+
+    MessageParcel dataP4;
+    MessageParcel reply4;
+    MessageOption option4;
+    if (!dataP4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP4.WriteUint64(INVALID_SCREEN_ID) || !dataP4.WriteInt32(0)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP4, reply4, option4);
+
+    MessageParcel dataP5;
+    MessageParcel reply5;
+    MessageOption option5;
+    if (!dataP5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP5.WriteUint64(INVALID_SCREEN_ID) || !dataP5.WriteInt32(0) || !dataP5.WriteInt32(0)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP5, reply5, option5);
+}
+
 void DoRepaintEverything()
 {
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPAINT_EVERYTHING);
@@ -822,9 +1028,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_REGISTER_OCCLUSION_CHANGE_CALLBACK:
             OHOS::Rosen::DoRegisterOcclusionChangeCallback();
             break;
-        case OHOS::Rosen::DO_SET_APP_WINDOW_NUM:
-            OHOS::Rosen::DoSetAppWindowNum();
-            break;
         case OHOS::Rosen::DO_SET_SYSTEM_ANIMATED_SCENES:
             OHOS::Rosen::DoSetSystemAnimatedScenes();
             break;
@@ -866,6 +1069,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_SCREEN_ACTIVE_RECT:
             OHOS::Rosen::DoSetScreenActiveRect();
+            break;
+        case OHOS::Rosen::DO_SET_SCREEN_OFFSET:
+            OHOS::Rosen::DoSetScreenOffset();
             break;
         case OHOS::Rosen::DO_REPAINT_EVERYTHING:
             OHOS::Rosen::DoRepaintEverything();

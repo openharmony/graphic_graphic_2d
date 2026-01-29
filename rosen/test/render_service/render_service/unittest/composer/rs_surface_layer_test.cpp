@@ -71,7 +71,7 @@ void RSSurfaceLayerTest::TearDown() {}
 
 /**
  * @tc.name: CreateLayerTest
- * @tc.desc: Test std::make_shared<RSSurfaceLayer>();
+ * @tc.desc: Test std::make_shared<RSSurfaceLayer>()
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */

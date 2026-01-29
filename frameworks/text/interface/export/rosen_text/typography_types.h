@@ -113,6 +113,8 @@ enum class EllipsisModal {
     HEAD = 0,
     MIDDLE = 1,
     TAIL = 2,
+    MULTILINE_HEAD = 3,
+    MULTILINE_MIDDLE = 4,
 };
 
 enum TextHeightBehavior {

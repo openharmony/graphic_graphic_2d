@@ -22,6 +22,7 @@ drawing_engine_sources = []
 hardware_manager_sources = []
 open_capability_sources = [
     "open_capability/pixmap/create_pixel_map_from_surface_test.cpp",
+    "open_capability/pixmap/pixelmap_display_test.cpp",
 ]
 rs_display_effect_sources = [
   "rs_display_effect/animation/anim_callback_animation_test.cpp",

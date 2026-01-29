@@ -1043,20 +1043,27 @@ napi_value EffectNapi::CreateFrostedGlassEffect(napi_env env, napi_callback_info
             "EffectNapi CreateFrostedGlassEffect failed, is not system app");
         return nullptr;
     }
-    constexpr size_t requireArgc = NUM_25;
+    constexpr size_t minArgc = NUM_25;
+    constexpr size_t maxArgc = NUM_26;
 
     napi_status status;
     napi_value thisVar = nullptr;
-    napi_value argv[requireArgc] = {0};
-    size_t realArgc = requireArgc;
+    napi_value argv[maxArgc] = {0};
+    size_t realArgc = maxArgc;
 
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
         UIEFFECT_LOG_E("EffectNapi::CreateFrostedGlassEffect parsing input fail"));
 
     std::shared_ptr<FrostedGlassEffectPara> para = std::make_shared<FrostedGlassEffectPara>();
     UIEFFECT_NAPI_CHECK_RET_D(BuildFrostedGlassEffectPara(env, argv, para), nullptr,
         UIEFFECT_LOG_E("EffectNapi::CreateFrostedGlassEffect build para fail"));
+
+    if (realArgc == maxArgc) {
+        float bgAlpha = 1.f;
+        bgAlpha = GetSpecialValue(env, argv[NUM_25]);
+        para->SetBgAlpha(bgAlpha);
+    }
 
     VisualEffect* visualEffectObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));

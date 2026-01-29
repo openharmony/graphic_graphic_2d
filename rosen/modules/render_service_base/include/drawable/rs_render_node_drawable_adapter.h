@@ -299,17 +299,19 @@ protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
-    bool HasFilterOrEffect() const;
+    bool HasFilterOrEffect(const RSRenderParams& params) const;
 
     // Draw functions
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect);
     void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawBackgroundWithOutSaveAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawLeashWindowBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect,
         bool isStencilPixelOcclusionCullingEnabled = false, int64_t stencilVal = -1) const;
     void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawForegroundWithOutRestoreAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
     // used for foreground filter
@@ -318,8 +320,7 @@ protected:
     void DrawAfterCacheWithForegroundFilter(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
     // used for render group
-    void DrawBackgroundWithoutFilterAndEffect(Drawing::Canvas& canvas, const RSRenderParams& params);
-    void CheckShadowRectAndDrawBackground(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void SkipDrawBackGroundAndClipHoleForBlur(Drawing::Canvas& canvas, const RSRenderParams& params);
     void DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;

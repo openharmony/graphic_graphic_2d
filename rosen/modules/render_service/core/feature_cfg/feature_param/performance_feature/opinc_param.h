@@ -26,14 +26,17 @@ public:
 
     static bool IsOPIncEnable();
     static int GetCacheWidthThresholdPercentValue();
+    static bool IsImageAliasEnable();
 
 protected:
     static void SetOPIncEnable(bool isEnable);
     static void SetCacheWidthThresholdPercentValue(int cacheWidthThresholdPercentValue);
+    static void SetImageAliasEnable(bool isEnable);
 
 private:
     inline static bool isOPIncEnable_ = true;
     inline static int cacheWidthThresholdPercentValue_ = 150;
+    inline static bool isImageAliasEnable_ = true;
 
     friend class OPIncParamParse;
 };

@@ -605,10 +605,6 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     return {};
 }
 
-void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
-{
-}
-
 bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     return {};
@@ -835,6 +831,16 @@ void RSRenderServiceClient::AvcodecVideoStart(const std::vector<uint64_t>& uniqu
 void RSRenderServiceClient::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, uint32_t fps)
 {
+}
+
+bool RSRenderServiceClient::AvcodecVideoGet(uint64_t uniqueId)
+{
+    return false;
+}
+ 
+bool RSRenderServiceClient::AvcodecVideoGetRecent()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

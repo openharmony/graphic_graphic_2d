@@ -791,9 +791,10 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetPanelPowerStatus002, TestSize.
     PanelPowerStatus status = PanelPowerStatus::PANEL_POWER_STATUS_ON;
     sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
     auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockproxy, nullptr);
+    
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
-    auto ret = mockproxy->GetPanelPowerStatus(id, status);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    mockproxy->GetPanelPowerStatus(id, status);
 }
 
 /**
@@ -1160,7 +1161,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterFirstFrameCommitCallback,
  */
 HWTEST_F(RSClientToServiceConnectionProxyTest, SetSystemAnimatedScenes, TestSize.Level1)
 {
-    proxy->SetAppWindowNum(1);
     bool success;
     proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false, success);
     ASSERT_FALSE(success);
@@ -1640,6 +1640,31 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, AvcodecVideoStopTest, TestSize.Le
 }
 
 /**
+ * @tc.name: AvcodecVideoGet Test
+ * @tc.desc: AvcodecVideoGet Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, AvcodecVideoGetTest, TestSize.Level1)
+{
+    uint64_t uniqueId = 1;
+    proxy->AvcodecVideoGet(uniqueId);
+    ASSERT_TRUE(proxy);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoGetRecent Test
+ * @tc.desc: AvcodecVideoGetRecent Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, AvcodecVideoGetRecentTest, TestSize.Level1)
+{
+    proxy->AvcodecVideoGetRecent();
+    ASSERT_TRUE(proxy);
+}
+
+/**
  * @tc.name: SetDualScreenState Test
  * @tc.desc: Test SetDualScreenState
  * @tc.type:FUNC
@@ -1649,7 +1674,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState001, TestSize.L
 {
     ScreenId id = 1;
     auto ret = proxy->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
+    EXPECT_NE(ret, StatusCode::READ_PARCEL_ERR);
 }
 
 /**

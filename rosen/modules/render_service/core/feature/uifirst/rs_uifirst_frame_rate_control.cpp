@@ -26,9 +26,6 @@ void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInf
 
     switch (sceneId) {
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
-            forceRefreshOnce_ = true;
-            SetStartAnimation(true);
-            break;
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
             forceRefreshOnce_ = true;
             SetStartAnimation(true);
@@ -64,8 +61,6 @@ void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
 
     switch (sceneId) {
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
-            SetStartAnimation(false);
-            break;
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
             SetStartAnimation(false);
             break;
@@ -93,7 +88,6 @@ bool RSUifirstFrameRateControl::JudgeMultiSubSurface(const RSSurfaceRenderNode& 
 
 bool RSUifirstFrameRateControl::GetUifirstFrameDropInternal(int frameInterval)
 {
-    std::lock_guard<std::mutex> lock(incrementCallCount_);
     callCount_++;
     if (callCount_ % (frameInterval + 1) == 0) {
         callCount_ = 0;

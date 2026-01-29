@@ -250,6 +250,7 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             }
             RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", connection->remotePid_);
             connection->mainThread_->ClearTransactionDataPidInfo(connection->remotePid_);
+            connection->mainThread_->RemoveDropFramePid(connection->remotePid_);
             if (connection->mainThread_->IsRequestedNextVSync()) {
                 connection->mainThread_->SetDirtyFlag();
             }
@@ -1466,8 +1467,8 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
 #ifdef RS_ENABLE_GPU
         RSRenderComposerManager::GetInstance().PostSyncTask(id, [=]() {
             screenManager_->SetScreenPowerStatus(id, status);
-            RSRenderComposerManager::GetInstance().HandlePowerStatus(id, status);
         });
+        RSRenderComposerManager::GetInstance().HandlePowerStatus(id, status);
         screenManager_->WaitScreenPowerStatusTask();
         mainThread_->SetDiscardJankFrames(true);
         RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(true);
@@ -1622,7 +1623,11 @@ ErrCode RSClientToServiceConnection::GetScreenActiveMode(uint64_t id, RSScreenMo
 ErrCode RSClientToServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
 #ifdef RS_ENABLE_GPU
-    RSMainThread::Instance()->GetAppMemoryInMB(cpuMemSize, gpuMemSize);
+    RSUniRenderThread::Instance().PostSyncTask([&cpuMemSize, &gpuMemSize] {
+        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(
+            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+        cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
+    });
     gpuMemSize += RSSubThreadManager::Instance()->GetAppGpuMemoryInMB();
 #endif
     return ERR_OK;
@@ -2656,23 +2661,6 @@ int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCal
     return StatusCode::SUCCESS;
 }
 
-ErrCode RSClientToServiceConnection::SetAppWindowNum(uint32_t num)
-{
-    if (!mainThread_) {
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), num]() -> void {
-        sptr<RSClientToServiceConnection> connection = weakThis.promote();
-        if (!connection || !connection->mainThread_) {
-            return;
-        }
-        connection->mainThread_->SetAppWindowNum(num);
-    };
-    mainThread_->PostTask(task);
-
-    return ERR_OK;
-}
-
 ErrCode RSClientToServiceConnection::SetSystemAnimatedScenes(
     SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success)
 {
@@ -3270,7 +3258,7 @@ ErrCode RSClientToServiceConnection::SetLayerTop(const std::string &nodeIdStr, b
             [&nodeIdStr, &isTop](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
                 (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
-                surfaceNode->SetLayerTop(isTop);
+                surfaceNode->SetLayerTop(isTop, false);
                 return;
             }
         });
@@ -3421,6 +3409,24 @@ ErrCode RSClientToServiceConnection::AvcodecVideoStop(const std::vector<uint64_t
 {
     auto task = [uniqueIdList, surfaceNameList, fps]() -> void {
         RSJankStats::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+    };
+    mainThread_->PostTask(task);
+    return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnection::AvcodecVideoGet(uint64_t uniqueId)
+{
+    auto task = [uniqueId]() -> void {
+        RSJankStats::GetInstance().AvcodecVideoGet(uniqueId);
+    };
+    mainThread_->PostTask(task);
+    return ERR_OK;
+}
+ 
+ErrCode RSClientToServiceConnection::AvcodecVideoGetRecent()
+{
+    auto task = []() -> void {
+        RSJankStats::GetInstance().AvcodecVideoGetRecent();
     };
     mainThread_->PostTask(task);
     return ERR_OK;

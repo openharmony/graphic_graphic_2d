@@ -250,11 +250,12 @@ public:
      * @param watermark Watermark pixelmap.
      * @param maxSize The maximum supported image size is 6MB. if the maximum image size exceeds 512Kb,
      * the time to draw the watermark will increase. In such cases, consider using DMA mode for pixelMap
+     * @attention watermark has a maximum of 1000 images.
+     * @attention When not using a watermark, the watermark image should be released.
      * @return set watermark success return true, else return false.
      */
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         SaSurfaceWatermarkMaxSize maxSize = SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE);
-
 
     /**
      * @brief Set watermark for surfaceNode.
@@ -263,6 +264,12 @@ public:
      * @param watermark Watermark pixelmap.
      * @param nodeIdList Node id list
      * @param watermarkType custom or system watermark.
+     * @attention if the maximum image size exceeds 512Kb, the time to draw the watermark will increase. In such cases,
+     * consider using DMA mode for pixelMap
+     * @attention watermark has a maximum of 1000 images.
+     * @attention When not using a watermark, the watermark image should be released.
+     * @attention if SurfaceWatermarkType is SYSTEM_WATER_MARK, the nodeList is ineffective. Therefore,
+     * SetWatermarkEnabled needs to be set.
      * @return set watermark success return 0, else return errorCode.
      */
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
@@ -1014,12 +1021,6 @@ public:
      */
     int32_t UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid);
 
-    /**
-     * @brief Set appWindow number.
-     * @param num winodw number.
-     */
-    void SetAppWindowNum(uint32_t num);
-
     /*
      * @brief Set the system overload Animated Scenes to RS for special load shedding.
      * @param systemAnimatedScenes indicates the system animation scene.
@@ -1184,9 +1185,12 @@ public:
      * @brief Set the process ID list requiring frame dropping. Next time RS triggers rending,
      * it will purge queued frames of corresponding self-rendering nodes in bufferQueue, and use the latest frame
      * buffer for screen display.
-     * @param pidList Process ID list requiring frame dropping.
+     * @param dropFrameLevel Controls how many latest frames to retain:
+     *        - 0: No frame dropping (default)
+     *        - 1~N: Keep latest N frames, drop the rest
+     *        - >= bufferQueueSize: No frame dropping
      */
-    void DropFrameByPid(const std::vector<int32_t> pidList);
+    void DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0);
 
     /**
      * @brief Get active dirty region info.
@@ -1379,6 +1383,18 @@ public:
 
     void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps);
+
+    bool AvcodecVideoGet(uint64_t uniqueId);
+
+    bool AvcodecVideoGetRecent();
+
+    /**
+     * @brief Set logical camera rotation correction, used to correct logical rotation.
+     * @param id Screen id.
+     * @param logicalCorrection Logical camera rotation correction, see ScreenRotation.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

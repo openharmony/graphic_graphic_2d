@@ -266,7 +266,6 @@ public:
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
-    ErrCode SetAppWindowNum(uint32_t num) override;
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) override;
@@ -371,6 +370,10 @@ public:
 
     ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
+
+    ErrCode AvcodecVideoGet(uint64_t uniqueId) override;
+ 
+    ErrCode AvcodecVideoGetRecent() override;
 
     bool GetHighContrastTextState() override;
 

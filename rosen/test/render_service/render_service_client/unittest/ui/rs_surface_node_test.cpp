@@ -1966,4 +1966,17 @@ HWTEST_F(RSSurfaceNodeTest, SetContainerWindowTransparentTest, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetContainerWindowTransparent(true);
 }
+
+/**
+ * @tc.name: SetAppRotationCorrectionTest
+ * @tc.desc: Test function SetAppRotationCorrection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetAppRotationCorrectionTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetAppRotationCorrection(ScreenRotation::ROTATION_90);
+    ASSERT_NE(surfaceNode, nullptr);
+}
 } // namespace OHOS::Rosen

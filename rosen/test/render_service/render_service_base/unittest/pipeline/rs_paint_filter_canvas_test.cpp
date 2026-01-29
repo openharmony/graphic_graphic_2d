@@ -2125,5 +2125,25 @@ HWTEST_F(RSPaintFilterCanvasTest, SaveDamageRegionrects, TestSize.Level1)
     EXPECT_EQ(paintFilterCanvasBase->GetDamageRegionrects(), drawAreas);
 }
 
+/**
+ * @tc.name: SetFilterClipBoundsTest
+ * @tc.desc: Test SetFilterClipBounds
+ * @tc.type: FUNC
+ * @tc.require:issues21681
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetFilterClipBoundsTest, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    Drawing::RectI clipBounds(0, 0, 1316, 2832);
+    paintFilterCanvas->SetFilterClipBounds(clipBounds);
+    EXPECT_EQ(paintFilterCanvas->GetFilterClipBounds(), clipBounds);
+
+    paintFilterCanvas->envStack_ = std::stack<RSPaintFilterCanvas::Env>();
+    EXPECT_EQ(paintFilterCanvas->GetFilterClipBounds(), Drawing::RectI());
+    paintFilterCanvas->SetFilterClipBounds(clipBounds);
+    EXPECT_EQ(paintFilterCanvas->GetFilterClipBounds(), Drawing::RectI());
+}
+
 } // namespace Rosen
 } // namespace OHOS

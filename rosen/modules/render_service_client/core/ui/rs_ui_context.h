@@ -188,10 +188,7 @@ public:
      *
      * @return true if the task runner is set; false otherwise.
      */
-    inline bool HasTaskRunner()
-    {
-        return bool(taskRunner_);
-    }
+    bool HasTaskRunner();
 
     void MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId);
 
@@ -222,6 +219,7 @@ private:
     std::mutex implicitAnimatorMutex_;
     std::mutex uiPipelineNumMutex_;
     int32_t uiPipelineNum_ = UI_PiPLINE_NUM_UNDEFINED;
+    std::recursive_mutex uiTaskRunnersVisitorMutex_;
 
     friend class RSUIContextManager;
     friend class RSUIDirector;

@@ -38,6 +38,11 @@ int32_t MockPreValidateFunc(uint32_t,
     return 0;
 }
 
+int32_t MockInitFunc()
+{
+    return 0;
+}
+
 extern "C" void *dlsym(void *handle, const char *symbol)
 {
     std::string strSymbol(symbol);
@@ -52,6 +57,9 @@ extern "C" void *dlsym(void *handle, const char *symbol)
             return nullptr;
         }
         return reinterpret_cast<void *>(MockHandleEventFunc);
+    }
+    if (strSymbol == "InitPrevalidate") {
+        return reinterpret_cast<void *>(MockInitFunc);
     }
     return nullptr;
 }

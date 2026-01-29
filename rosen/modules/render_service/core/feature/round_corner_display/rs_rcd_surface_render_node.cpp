@@ -20,6 +20,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "rs_round_corner_display_manager.h"
+#include "v2_3/buffer_handle_meta_key_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -215,6 +216,10 @@ bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
         RS_LOGE("RSRcdSurfaceRenderNode:: copy hardware resource to buffer failed");
         return false;
     }
+    if (!SetRCDMetaData()) {
+        RS_LOGE("RSRcdSurfaceRenderNode:: set hardware resource to buffer metadata failed");
+        return false;
+    }
     return true;
 }
 
@@ -265,6 +270,29 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
         addBufferFile.close();
     } else {
         RS_LOGE("[%{public}s] hardware fopen error", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool RSRcdSurfaceRenderNode::SetRCDMetaData() const
+{
+    sptr<SurfaceBuffer> nodeBuffer = GetBuffer();
+    if (nodeBuffer == nullptr) {
+        RS_LOGE("RSRcdSurfaceRenderNode buffer is nullptr");
+        return false;
+    }
+    std::vector<uint8_t> cldInfoMetaData;
+    cldInfoMetaData.resize(sizeof(cldInfo_));
+    errno_t ret = memcpy_s(cldInfoMetaData.data(), cldInfoMetaData.size(), &cldInfo_, sizeof(cldInfo_));
+    if (ret != EOK) {
+        RS_LOGE("RSRcdSurfaceRenderNode cldInfoMetaData memcpy_s failed error number: %{public}d", ret);
+        return false;
+    }
+    GSError setValueErr =
+        nodeBuffer->SetMetadata(HDI::Display::Graphic::Common::V2_3::ATTRKEY_CLD_METADATA, cldInfoMetaData);
+    if (setValueErr != GSERROR_OK) {
+        RS_LOGE("RSRcdSurfaceRenderNode set cldInfoMetaData failed with %{public}d", setValueErr);
         return false;
     }
     return true;

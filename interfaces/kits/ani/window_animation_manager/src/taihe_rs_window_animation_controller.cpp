@@ -343,8 +343,8 @@ void TaiheRSWindowAnimationController::HandleOnWindowAnimationTargetsUpdate(
     auto jsFullScreenWindowTarget = TaiheWindowAnimationUtils::CreateJsWindowAnimationTarget(fullScreenWindowTarget);
 
     std::vector<WindowAnimationTarget> results;
-    for (const auto& rsWindoeAnimationTarget : floatingWindowTargets) {
-        results.emplace_back(TaiheWindowAnimationUtils::CreateJsWindowAnimationTarget(rsWindoeAnimationTarget));
+    for (const auto& rsWindowAnimationTarget : floatingWindowTargets) {
+        results.emplace_back(TaiheWindowAnimationUtils::CreateJsWindowAnimationTarget(rsWindowAnimationTarget));
     }
     auto jsFloatingWindowTargets = array<WindowAnimationTarget>(
         copy_data_t{}, results.data(), results.size());

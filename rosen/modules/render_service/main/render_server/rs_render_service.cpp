@@ -49,6 +49,9 @@
 #include "rs_profiler.h"
 #include "rs_render_composer_manager.h"
 #include "rs_trace.h"
+#ifdef TP_FEATURE_ENABLE
+#include "screen_manager/touch_screen.h"
+#endif
 #include "system/rs_system_parameters.h"
 #include "text/font_mgr.h"
 #include "transaction/rs_client_to_render_connection.h"
@@ -56,10 +59,6 @@
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
-
-#ifdef TP_FEATURE_ENABLE
-#include "screen_manager/touch_screen.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -264,6 +263,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
 
     auto tokenObj = token->AsObject();
+
     sptr<RSIClientToServiceConnection> newConn(
         new RSClientToServiceConnection(remotePid, this, mainThread_, screenManager_, tokenObj, appVSyncDistributor_));
 
@@ -291,6 +291,7 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
     }
     // temporarily extending the life cycle
     auto tokenObj = token->AsObject();
+
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = connections_.find(tokenObj);
     if (iter == connections_.end()) {
@@ -301,12 +302,14 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
     if (rsConn != nullptr) {
         rsConn->RemoveToken();
     }
+    // Subsequent sunset
     if (rsRenderConn != nullptr) {
         rsRenderConn->RemoveToken();
     }
-    
+
     connections_.erase(iter);
     lock.unlock();
+
     return true;
 }
 
@@ -567,39 +570,28 @@ static bool IsNumber(const std::string& type)
     return number == type.length();
 }
 
-static bool ExtractDumpInfo(std::unordered_set<std::u16string>& argSets, std::string& dumpInfo, std::u16string title)
-{
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        dumpInfo.append("\n---------------\n Not in UniRender and no information");
-        return false;
-    }
-    if (argSets.size() < 2) {
-        dumpInfo.append("\n---------------\n no need extract info");
-        return false;
-    }
-    argSets.erase(title);
-    if (!argSets.empty()) {
-        dumpInfo = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-    }
-    return true;
-}
-
 void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, bool isLite) const
 {
-    std::string type;
-    bool isSuccess = ExtractDumpInfo(argSets, type, u"dumpMem");
-    if (!isSuccess) {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        dumpString.append("\n---------------\nNot in UniRender and no information");
+    } else {
+        std::string type;
+        if (argSets.size() > 1) {
+            argSets.erase(u"dumpMem");
+            if (!argSets.empty()) {
+                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+            }
+        }
+        int pid = 0;
+        if (!type.empty() && IsNumber(type)) {
+            pid = std::atoi(type.c_str());
+        }
+        mainThread_->ScheduleTask(
+        [this, &argSets, &dumpString, &type, &pid, isLite]() {
+            return MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
+        }).wait();
         return;
     }
-    int pid = 0;
-    if (!type.empty() && IsNumber(type) && type.length() < 10) {
-        pid = std::atoi(type.c_str());
-    }
-
-    mainThread_->ScheduleTask(
-        [this, &argSets, &dumpString, &type, &pid, isLite]() {
-            return mainThread_->DumpMem(argSets, dumpString, type, pid, isLite);
-        }).wait();
 }
 
 void RSRenderService::DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
@@ -616,7 +608,7 @@ void RSRenderService::DumpGpuMem(std::unordered_set<std::u16string>& argSets, st
         }
         mainThread_->ScheduleTask(
             [this, &argSets, &dumpString, &type]() {
-                return mainThread_->DumpGpuMem(argSets, dumpString, type);
+                return MemoryManager::DumpGpuMem(argSets, dumpString, type);
             }).wait();
     }
 }

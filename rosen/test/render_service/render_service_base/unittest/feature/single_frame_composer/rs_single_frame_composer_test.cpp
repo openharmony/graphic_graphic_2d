@@ -31,18 +31,6 @@ public:
     void TearDown() override;
 
 private:
-#ifndef MODIFIER_NG
-    void ModifierAddToList(
-        std::list<std::shared_ptr<RSRenderModifier>>& modifierList, bool isSingleFrame, RSModifierType type)
-    {
-        std::shared_ptr<RSDrawCmdListRenderModifier> modifier =
-            std::make_shared<RSDrawCmdListRenderModifier>(property_);
-        modifier->SetType(type);
-        modifier->SetSingleFrameModifier(isSingleFrame);
-        modifierList.emplace_back(modifier);
-        rSSingleFrameComposer_.singleFrameDrawCmdModifiers_[type].emplace_back(modifier);
-    }
-#endif
     RSSingleFrameComposer rSSingleFrameComposer_;
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
 };
@@ -51,48 +39,6 @@ void RSSingleFrameComposerTest::TearDown()
 {
     RSSingleFrameComposer::ipcThreadIdMap_.clear();
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: SingleFrameModifierAddToList001
- * @tc.desc: test single frame modifier add to list
- * @tc.type: FUNC
- * @tc.require: issueI9IUKU
- */
-HWTEST_F(RSSingleFrameComposerTest, SingleFrameModifierAddToList001, TestSize.Level1)
-{
-    RSModifierType type = RSModifierType::FRAME;
-    std::list<std::shared_ptr<RSRenderModifier>> modifierList;
-    // case 1: modifier is single
-    ModifierAddToList(modifierList, true, type);
-    auto ret = rSSingleFrameComposer_.SingleFrameModifierAddToList(type, modifierList);
-    EXPECT_TRUE(!ret);
-
-    // case 2: modifier isn't single
-    ModifierAddToList(modifierList, false, type);
-    ret = rSSingleFrameComposer_.SingleFrameModifierAddToList(type, modifierList);
-    EXPECT_TRUE(!ret);
-
-    // case 3: add sample single modifier
-    ModifierAddToList(modifierList, true, type);
-    ret = rSSingleFrameComposer_.SingleFrameModifierAddToList(type, modifierList);
-    EXPECT_TRUE(ret);
-}
-
-/**
- * @tc.name: SingleFrameAddModifier001
- * @tc.desc: test single frame add modifier
- * @tc.type: FUNC
- * @tc.require: issueI9IUKU
- */
-HWTEST_F(RSSingleFrameComposerTest, SingleFrameAddModifier001, TestSize.Level1)
-{
-    std::shared_ptr<RSDrawCmdListRenderModifier> modifier = std::make_shared<RSDrawCmdListRenderModifier>(property_);
-    modifier->SetType(RSModifierType::CUSTOM);
-    rSSingleFrameComposer_.SingleFrameAddModifier(modifier);
-    EXPECT_TRUE(!rSSingleFrameComposer_.singleFrameDrawCmdModifiers_.empty());
-}
-#endif
 
 /**
  * @tc.name: SetSingleFrameFlag001

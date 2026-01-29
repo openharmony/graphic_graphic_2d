@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
+
 #include <vector>
 
 #include "effect/rs_render_filter_base.h"
@@ -125,7 +126,7 @@ HWTEST_F(RSEffectLuminanceManagerTest, GetEnableHdrShader, TestSize.Level1)
 
 /**
  * @tc.name: GetEnableEDRShaderAIBarGlowTest
- * @tc.desc: test results of GetEnableHdrEffectSoundWave
+ * @tc.desc: test results of GetEnableEDRShaderAIBarGlow
  * @tc.type: FUNC
  */
 HWTEST_F(RSEffectLuminanceManagerTest, GetEnableEDRShaderAIBarGlow, TestSize.Level1)

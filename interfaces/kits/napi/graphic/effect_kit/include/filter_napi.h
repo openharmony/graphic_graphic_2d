@@ -30,6 +30,12 @@ class FilterNapi {
 public:
     FilterNapi();
     ~FilterNapi();
+
+    static constexpr  napi_type_tag NAPI_TYPE_TAG = {
+        .lower = 0x9d90e3cdb3804afe,
+        .upper = 0x87d750b81cc33112
+    };
+
     static napi_value Init(napi_env env, napi_value exports);
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
@@ -45,6 +51,8 @@ private:
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static napi_value GetPixelMap(napi_env env, napi_callback_info info);
     static napi_value GetPixelMapAsync(napi_env env, napi_callback_info info);
+    static napi_value GetPixelMapAsyncCommon(napi_env env, napi_callback_info info, bool isHighPriority);
+    static napi_value GetPixelMapAsyncHighPriority(napi_env env, napi_callback_info info);
     static napi_value Blur(napi_env env, napi_callback_info info);
     static napi_value EllipticalGradientBlur(napi_env env, napi_callback_info info);
     static napi_value Brightness(napi_env env, napi_callback_info info);

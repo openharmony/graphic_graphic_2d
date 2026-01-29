@@ -139,7 +139,7 @@ static uint32_t RegisterFontInternal(OH_Drawing_FontCollection* fontCollection,
     if (result != 0) {
         return result;
     }
-    const std::string familyName = fontFamily;
+    const std::string familyName = (fontFamily != nullptr) ? fontFamily : "";
     const uint8_t* data = reinterpret_cast<uint8_t*>(buffer.get());
     return LoadFromFontCollectionByIndex(fontCollection, familyName, data, size, index);
 }
@@ -168,7 +168,7 @@ static uint32_t RegisterFontBufferInternal(OH_Drawing_FontCollection* fontCollec
     if (length == 0) {
         return ERROR_BUFFER_SIZE_ZERO;
     }
-    const std::string familyName = fontFamily;
+    const std::string familyName = (fontFamily != nullptr) ? fontFamily : "";
     return LoadFromFontCollectionByIndex(fontCollection, familyName, fontBuffer, length, index);
 }
 

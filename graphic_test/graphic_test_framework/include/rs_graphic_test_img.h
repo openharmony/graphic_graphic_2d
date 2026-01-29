@@ -27,7 +27,8 @@ namespace Rosen {
 using ContentStyleModifier = ModifierNG::RSContentStyleModifier;
 using DrawingContext = ModifierNG::RSDrawingContext;
 std::shared_ptr<OHOS::Media::PixelMap> DecodePixelMap(
-    const std::string& pathName, const OHOS::Media::AllocatorType& allocatorType);
+    const std::string& pathName, const OHOS::Media::AllocatorType& allocatorType,
+    const OHOS::Media::PixelFormat& dstFormat = OHOS::Media::PixelFormat::RGBA_8888);
 std::shared_ptr<OHOS::Rosen::RSCanvasNode> SetUpNodeBgImage(
     const std::string& pathName, const OHOS::Rosen::Vector4f bounds);
 std::shared_ptr<OHOS::Rosen::RSCanvasNode> SetUpNodeBgImage(

@@ -44,8 +44,12 @@ void GpuCacheParamTest::TearDown() {}
  */
 HWTEST_F(GpuCacheParamTest, GetRSGpuCacheSize, Function | SmallTest | Level1)
 {
-    GpuCacheParam::SetRSGpuCacheSize(500);
-    EXPECT_EQ(GpuCacheParam::GetRSGpuCacheSize(), 500);
+    GpuCacheParam::SetRSGpuCacheSize(100);
+    EXPECT_EQ(GpuCacheParam::GetRSGpuCacheSize(), 100);
+    GpuCacheParam::SetRSGpuCacheSize(200);
+    EXPECT_EQ(GpuCacheParam::GetRSGpuCacheSize(), 200);
+    GpuCacheParam::SetRSGpuCacheSize(300);
+    EXPECT_EQ(GpuCacheParam::GetRSGpuCacheSize(), 300);
 }
 
 /**
@@ -56,7 +60,11 @@ HWTEST_F(GpuCacheParamTest, GetRSGpuCacheSize, Function | SmallTest | Level1)
  */
 HWTEST_F(GpuCacheParamTest, GetGpuCacheConfigEnable, Function | SmallTest | Level1)
 {
+    GpuCacheParam::SetGpuCacheConfigEnable(false);
+    EXPECT_EQ(GpuCacheParam::GetGpuCacheConfigEnable(), false);
+
     GpuCacheParam::SetGpuCacheConfigEnable(true);
+    GpuCacheParam::SetRSGpuCacheSize(500);
     EXPECT_EQ(GpuCacheParam::GetGpuCacheConfigEnable(), true);
 }
 

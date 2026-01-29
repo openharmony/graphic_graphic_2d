@@ -130,7 +130,7 @@ public:
 
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
-    void DropFrameByPid(const std::vector<int32_t> pidList);
+    void DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0);
 
     bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         std::shared_ptr<SurfaceBufferCallback> callback);
@@ -150,6 +150,8 @@ public:
 
     int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
+
+    int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,

@@ -428,6 +428,60 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckFilterCacheFullyCoveredTest002, Te
 }
 
 /**
+ * @tc.name: GetCacheImgForCaptureTest001
+ * @tc.desc: Test GetCacheImgForCapture
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForCaptureTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    screenDrawable_->cacheImgForCapture_ = nullptr;
+    ASSERT_EQ(screenDrawable_->GetCacheImgForCapture(), nullptr);
+}
+
+/**
+ * @tc.name: GetCacheImgForCaptureTest002
+ * @tc.desc: Test GetCacheImgForCapture
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForCaptureTest002, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    auto cacheImg = std::make_shared<Drawing::Image>();
+    screenDrawable_->cacheImgForCapture_ = cacheImg;
+    ASSERT_NE(screenDrawable_->GetCacheImgForCapture(), nullptr);
+}
+
+/**
+ * @tc.name: GetCacheImgForMultiScreenViewTest001
+ * @tc.desc: Test GetCacheImgForMultiScreenView
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForMultiScreenViewTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    screenDrawable_->cacheImgForMultiScreenView_ = nullptr;
+    ASSERT_EQ(screenDrawable_->GetCacheImgForMultiScreenView(), nullptr);
+}
+
+/**
+ * @tc.name: GetCacheImgForMultiScreenViewTest002
+ * @tc.desc: Test GetCacheImgForMultiScreenView
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForMultiScreenViewTest002, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    auto cacheImg = std::make_shared<Drawing::Image>();
+    screenDrawable_->cacheImgForMultiScreenView_ = cacheImg;
+    ASSERT_NE(screenDrawable_->GetCacheImgForMultiScreenView(), nullptr);
+}
+
+/**
  * @tc.name: OnDraw001
  * @tc.desc: Test OnDraw when renderParams_ is/not nullptr
  * @tc.type: FUNC

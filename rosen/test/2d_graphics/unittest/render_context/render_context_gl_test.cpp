@@ -210,7 +210,7 @@ HWTEST_F(RenderContextGLTest, AcquireSurfaceTest, Function | SmallTest | Level2)
     renderContext->SetUpGpuContext();
     renderContext->SetPixelFormat(GRAPHIC_PIXEL_FMT_YCBCR_P010);
     surface = renderContext->AcquireSurface(400, 800);
-    EXPECT_TRUE(surface == nullptr);
+    EXPECT_FALSE(surface == nullptr);
 }
 
 /**
@@ -349,13 +349,14 @@ HWTEST_F(RenderContextGLTest, CreatePbufferSurfaceTest001, Level1)
 HWTEST_F(RenderContextGLTest, SetUpGpuContextTest, Level1)
 {
     auto renderContext = std::make_shared<RenderContextGL>();
+    renderContext->Init();
     EXPECT_NE(renderContext, nullptr);
     bool res = renderContext->SetUpGpuContext();
     EXPECT_EQ(res, true);
     renderContext = std::make_shared<RenderContextGL>();
     renderContext->isUniRenderMode_ = true;
     res = renderContext->SetUpGpuContext();
-    EXPECT_EQ(res, true);
+    EXPECT_EQ(res, false);
 }
 
 /**

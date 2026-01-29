@@ -29,6 +29,7 @@
 
 #include "common/rs_common_def.h"
 #include "modifier/rs_modifier_manager.h"
+#include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
 #include "ui/rs_canvas_node.h"
 
@@ -62,30 +63,71 @@ T GetData()
 
 bool TestModifierManager(const uint8_t* data, size_t size)
 {
-#ifndef MODIFIER_NG
+    return true;
+}
+
+bool TestRemoveAnimation(const uint8_t* data, size_t size)
+{
     if (data == nullptr) {
         return false;
     }
 
-    float value = GetData<float>();
-    uint64_t id = GetData<uint64_t>();
+    auto rsModifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
+    AnimationId keyId = GetData<AnimationId>();
+    rsModifierManager->RemoveAnimation(keyId);
+    return true;
+}
+
+bool TestJudgeAnimateWhetherSkip(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    auto rsModifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
+    AnimationId animId = GetData<AnimationId>();
     int64_t time = GetData<int64_t>();
-    std::shared_ptr<RSProperty<float>> property = std::make_shared<RSProperty<float>>(value);
-    std::shared_ptr<RSPositionZModifier> modifier = std::make_shared<RSPositionZModifier>(property);
-    auto animation = std::make_shared<RSRenderAnimation>(id);
-    RSModifierManager manager;
-    manager.AddModifier(modifier);
-    manager.AddAnimation(animation);
-    manager.Animate(time);
-    manager.RegisterSpringAnimation(id, id);
-    manager.UnregisterSpringAnimation(id, id);
-    manager.QuerySpringAnimation(id);
-    manager.JudgeAnimateWhetherSkip(id, time, time);
-    manager.SetDisplaySyncEnable(true);
-    manager.FlushStartAnimation(time);
-    manager.GetAnimation(id);
-    manager.RemoveAnimation(id);
-#endif
+    int64_t vsyncPeriod = GetData<int64_t>();
+    rsModifierManager->JudgeAnimateWhetherSkip(animId, time, vsyncPeriod);
+    return true;
+}
+
+bool TestRegisterSpringAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    auto rsModifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
+    PropertyId propertyId = GetData<PropertyId>();
+    AnimationId animationId = GetData<AnimationId>();
+    rsModifierManager->RegisterSpringAnimation(propertyId, animationId);
+    rsModifierManager->UnregisterSpringAnimation(propertyId, animationId);
+    return true;
+}
+
+bool TestQuerySpringAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    auto rsModifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
+    PropertyId propertyId = GetData<PropertyId>();
+    rsModifierManager->QuerySpringAnimation(propertyId);
+    return true;
+}
+
+bool TestMoveModifier(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    auto rsModifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
+    auto dstRsModifierManager = std::make_shared<RSModifierManager>();
+    NodeId id = GetData<NodeId>();
+    rsModifierManager->MoveModifier(dstRsModifierManager, id);
     return true;
 }
 } // namespace Rosen
@@ -101,5 +143,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     OHOS::Rosen::TestModifierManager(data, size);
+    OHOS::Rosen::TestRemoveAnimation(data, size);
+    OHOS::Rosen::TestJudgeAnimateWhetherSkip(data, size);
+    OHOS::Rosen::TestRegisterSpringAnimation(data, size);
+    OHOS::Rosen::TestQuerySpringAnimation(data, size);
+    OHOS::Rosen::TestMoveModifier(data, size);
     return 0;
 }

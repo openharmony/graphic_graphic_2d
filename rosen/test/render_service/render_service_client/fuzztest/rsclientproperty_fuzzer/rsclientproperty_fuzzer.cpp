@@ -290,6 +290,9 @@ bool DoUpdateToRender001(const uint8_t* data, size_t size)
     float valuefloat = GetData<float>();
     RSProperty rsPropertyFloat(valuefloat);
     rsPropertyFloat.UpdateToRender(valuefloat, EnumNumber);
+    float valueShort = GetData<short>();
+    RSProperty rsPropertyShort(valueShort);
+    rsPropertyShort.UpdateToRender(valueShort, EnumNumber);
     int valueint = GetData<int>();
     RSProperty rsPropertyInt(valueint);
     rsPropertyInt.UpdateToRender(valueint, EnumNumber);

@@ -19,20 +19,16 @@
 #include <memory>
 
 #include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
 #include "feature/color_picker/rs_hetero_color_picker.h"
 #include "rs_trace.h"
 
-#include "common/rs_color.h"
 #include "common/rs_optional_trace.h"
-#include "draw/color.h"
 #include "drawable/rs_property_drawable_utils.h"
-#include "platform/common/rs_log.h"
-#include "property/rs_color_picker_def.h"
 
 namespace OHOS::Rosen {
 namespace {
 constexpr int32_t TRACE_LEVEL_TWO = 2;
-constexpr int64_t TASK_DELAY_TIME = 16;                 // 16ms
 constexpr float COLOR_PICKER_ANIMATE_DURATION = 350.0f; // 350ms
 
 inline uint64_t NowMs()
@@ -42,8 +38,8 @@ inline uint64_t NowMs()
 }
 } // namespace
 
-Drawing::ColorQuad RSColorPickerManager::GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
-    uint64_t nodeId, ColorPickStrategyType strategy, uint64_t interval)
+std::optional<Drawing::ColorQuad> RSColorPickerManager::GetColorPicked(
+    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, const ColorPickerParam& params)
 {
     uint64_t currTime = NowMs();
     const auto [prevColor, curColor] = GetColor();
@@ -57,8 +53,9 @@ Drawing::ColorQuad RSColorPickerManager::GetColorPicked(RSPaintFilterCanvas& can
         RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); // continue animation
     }
 
-    if (strategy != ColorPickStrategyType::NONE && currTime >= interval + lastUpdateTime_) { // cooldown check
-        ScheduleColorPick(canvas, rect, nodeId, strategy);
+    if (params.strategy != ColorPickStrategyType::NONE &&
+        currTime >= params.interval + lastUpdateTime_) { // cooldown check
+        ScheduleColorPick(canvas, rect, nodeId, params.strategy);
         lastUpdateTime_ = currTime;
     }
     return res;
@@ -95,16 +92,24 @@ void RSColorPickerManager::ScheduleColorPick(
             drawingSurface, snapshot)) {
         return; // accelerated color picker
     }
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    auto backendTexture = snapshot->GetBackendTexture(false, &origin);
+    if (!backendTexture.IsValid()) {
+        RS_LOGE("RSColorPickerManager::ScheduleColorPick backendTexture invalid");
+        return;
+    }
+    auto weakThis = weak_from_this();
+    auto imageInfo = drawingSurface->GetImageInfo();
+    auto colorSpace = imageInfo.GetColorSpace();
+    Drawing::BitmapFormat bitmapFormat = { imageInfo.GetColorType(), imageInfo.GetAlphaType() };
+    ColorPickerInfo* colorPickerInfo =
+        new ColorPickerInfo(colorSpace, bitmapFormat, backendTexture, snapshot, nodeId, weakThis, strategy);
 
-    auto colorPickTask = [snapshot, nodeId, strategy, weakThis = weak_from_this()]() {
-        auto manager = weakThis.lock();
-        if (!manager) {
-            RS_LOGD("RSColorPickerThread manager not valid, return");
-            return;
-        }
-        manager->PickColor(snapshot, nodeId, strategy);
-    };
-    RSColorPickerThread::Instance().PostTask(colorPickTask, TASK_DELAY_TIME);
+    Drawing::FlushInfo drawingFlushInfo;
+    drawingFlushInfo.backendSurfaceAccess = true;
+    drawingFlushInfo.finishedProc = [](void* context) { ColorPickerInfo::PickColor(context); };
+    drawingFlushInfo.finishedContext = colorPickerInfo;
+    drawingSurface->Flush(&drawingFlushInfo);
 }
 
 void RSColorPickerManager::PickColor(
@@ -186,19 +191,13 @@ inline std::pair<Drawing::ColorQuad, Drawing::ColorQuad> RSColorPickerManager::G
 }
 
 namespace {
-constexpr float RED_LUMINANCE_COEFF = 0.299f;
-constexpr float GREEN_LUMINANCE_COEFF = 0.587f;
-constexpr float BLUE_LUMINANCE_COEFF = 0.114f;
 constexpr float THRESHOLD_HIGH = 220.0f;
 constexpr float THRESHOLD_LOW = 150.0f;
 } // namespace
 
 Drawing::ColorQuad RSColorPickerManager::GetContrastColor(Drawing::ColorQuad color)
 {
-    auto red = Drawing::Color::ColorQuadGetR(color);
-    auto green = Drawing::Color::ColorQuadGetG(color);
-    auto blue = Drawing::Color::ColorQuadGetB(color);
-    float luminance = red * RED_LUMINANCE_COEFF + green * GREEN_LUMINANCE_COEFF + blue * BLUE_LUMINANCE_COEFF;
+    float luminance = RSColorPickerUtils::CalculateLuminance(color);
 
     static std::atomic<Drawing::ColorQuad> g_color = Drawing::Color::COLOR_BLACK;
     if (luminance <= THRESHOLD_LOW) {

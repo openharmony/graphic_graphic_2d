@@ -46,7 +46,11 @@
 #include "ui/rs_ui_director.h"
 
 #ifdef RS_ENABLE_VK
+#ifndef ROSEN_ARKUI_X
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#else
+#include "rs_vulkan_context.h"
+#endif
 #endif
 #ifdef ROSEN_IOS
 #include "render_context/new_render_context/render_context_gl.h"
@@ -181,7 +185,7 @@ RSRenderThread::RSRenderThread()
 #endif
     RSSurfaceBufferCallbackManager::Instance().SetIsUniRender(false);
     RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
-        .requestNextVsync = []() {
+        .requestNextVSync = []() {
             RSRenderThread::Instance().RequestNextVSync();
         },
         .isRequestedNextVSync = [this]() {

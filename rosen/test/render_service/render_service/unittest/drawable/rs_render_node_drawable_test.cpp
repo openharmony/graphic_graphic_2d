@@ -162,10 +162,11 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
     ASSERT_FALSE(!params.ChildHasVisibleEffect());
 
     drawable->CheckCacheTypeAndDraw(canvas, params);
-    ASSERT_FALSE(drawable->HasFilterOrEffect());
+    ASSERT_FALSE(drawable->HasFilterOrEffect(params));
     drawable->drawCmdIndex_.shadowIndex_ = 1;
+    params.SetShadowRect({0, 0, 10, 10});
     drawable->CheckCacheTypeAndDraw(canvas, params);
-    ASSERT_TRUE(drawable->HasFilterOrEffect());
+    ASSERT_TRUE(drawable->HasFilterOrEffect(params));
     RSRenderNodeDrawable::isOffScreenWithClipHole_ = true;
     params.foregroundFilterCache_ = std::make_shared<RSFilter>();
     drawable->CheckCacheTypeAndDraw(canvas, params);
@@ -256,6 +257,8 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
 
     drawable->SetCanceledByParentRenderGroup(true);
     drawable->isOffScreenWithClipHole_ = false;
+    drawable->SetDrawBlurForCache(true);
+    params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
     EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), false);
@@ -791,10 +794,12 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckRegionAndDrawWithFilter, TestSize.Level1
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
-    Drawing::RectI rect;
+    Drawing::RectI rect(0, 0, 100, 100);
     Drawing::Matrix matrix;
     const std::vector<RSRenderNodeDrawableAdapter::FilterNodeInfo> filterInfoVec = {
-        RSRenderNodeDrawableAdapter::FilterNodeInfo(0, matrix, { rect })
+        RSRenderNodeDrawableAdapter::FilterNodeInfo(0, matrix, { rect }),
+        RSRenderNodeDrawableAdapter::FilterNodeInfo(1, matrix, { rect }),
+        RSRenderNodeDrawableAdapter::FilterNodeInfo(2, matrix, { rect })
     };
     drawable->filterInfoVec_ = filterInfoVec;
     auto begin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
@@ -806,14 +811,15 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckRegionAndDrawWithFilter, TestSize.Level1
     auto rootRenderNode = std::make_shared<RSRenderNode>(id);
     auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
     drawable->curDrawingCacheRoot_ = rootDrawable;
+    params.ExcludedFromNodeGroup(true);
     drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
     ASSERT_FALSE(drawable->filterInfoVec_.empty());
 
+    params.ExcludedFromNodeGroup(false);
+    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
     drawable->filterInfoVec_.clear();
     ASSERT_TRUE(drawable->filterInfoVec_.empty());
     ASSERT_NE(drawable->GetRenderParams(), nullptr);
-    drawable->GetRenderParams()->ExcludedFromNodeGroup(true);
-    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
 }
 
 /**

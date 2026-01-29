@@ -93,6 +93,8 @@ const std::vector<uint32_t> AniTextEnum::ellipsisModal = {
     static_cast<uint32_t>(EllipsisModal::HEAD),
     static_cast<uint32_t>(EllipsisModal::MIDDLE),
     static_cast<uint32_t>(EllipsisModal::TAIL),
+    static_cast<uint32_t>(EllipsisModal::MULTILINE_HEAD),
+    static_cast<uint32_t>(EllipsisModal::MULTILINE_MIDDLE),
 };
 
 const std::vector<uint32_t> AniTextEnum::placeHolderAlignment = {
@@ -173,6 +175,11 @@ const std::vector<uint32_t> AniTextEnum::textVerticalAlign = {
     static_cast<uint32_t>(TextVerticalAlign::BOTTOM),
     static_cast<uint32_t>(TextVerticalAlign::CENTER),
     static_cast<uint32_t>(TextVerticalAlign::TOP),
+};
+
+const std::vector<uint32_t> AniTextEnum::lineHeightStyle = {
+    static_cast<uint32_t>(LineHeightStyle::kFontSize),
+    static_cast<uint32_t>(LineHeightStyle::kFontHeight),
 };
 
 std::optional<size_t> aniGetEnumIndex(const std::vector<uint32_t>& enumValues, uint32_t enumValue)

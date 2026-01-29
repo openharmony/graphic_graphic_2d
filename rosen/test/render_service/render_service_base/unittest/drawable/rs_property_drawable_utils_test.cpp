@@ -19,6 +19,7 @@
 #include "draw/surface.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shape_base.h"
+#include "ge_visual_effect_container.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_drawing_filter.h"
 #include "skia_adapter/skia_image.h"
@@ -547,6 +548,33 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetInvertedBackgroundColorTest015, testing
     paintFilterCanvasTest2.surface_ = &surfaceTest2;
     rsPropertyDrawableUtilsTest2->GetInvertBackgroundColor(
         paintFilterCanvasTest2, false, Vector4f(0.0f, 0.0f, 0.0f, 1.0f), backgroundColor);
+}
+
+/**
+ * @tc.name: DrawColorUsingSDFWithDRMTest
+ * @tc.desc: DrawColorUsingSDFWithDRM test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMTest, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+
+    Drawing::Canvas canvas;
+    bool isDark = true;
+    Drawing::Rect rect(0, 0, 0, 0);
+
+    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, nullptr, "Tag1", "Tag2");
+    EXPECT_TRUE(isDark);
+    auto filterGEContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    auto geVisualEffect = std::make_shared<Drawing::GEVisualEffect>("test");
+    filterGEContainer->AddToChainedFilter(geVisualEffect);
+    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "Tag1", "Tag2");
+    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "test", "Tag2");
+    EXPECT_TRUE(isDark);
+    isDark = false;
+    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "test", "Tag2");
+    EXPECT_FALSE(isDark);
 }
 
 /**

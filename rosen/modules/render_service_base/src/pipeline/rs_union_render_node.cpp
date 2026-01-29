@@ -94,7 +94,7 @@ void RSUnionRenderNode::ProcessSDFShape()
                 SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
         }
     }
-    GetMutableRenderProperties().SetSDFShape(root);
+    GetMutableRenderProperties().InternalSetSDFShape(root);
     UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BOUNDS);
 }
 

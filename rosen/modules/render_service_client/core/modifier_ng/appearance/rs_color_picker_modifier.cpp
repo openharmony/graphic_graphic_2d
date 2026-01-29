@@ -41,8 +41,18 @@ void RSColorPickerModifier::SetColorPickerInterval(uint64_t interval)
     Setter<RSProperty>(RSPropertyType::COLOR_PICKER_INTERVAL, static_cast<int>(interval));
 }
 
-uint32_t RSColorPickerModifier::GetColorPickerInterval() const
+uint64_t RSColorPickerModifier::GetColorPickerInterval() const
 {
-    return static_cast<uint32_t>(Getter(RSPropertyType::COLOR_PICKER_INTERVAL, 0));
+    return static_cast<uint64_t>(Getter(RSPropertyType::COLOR_PICKER_INTERVAL, 0));
+}
+
+void RSColorPickerModifier::SetColorPickerNotifyThreshold(uint32_t threshold)
+{
+    Setter<RSProperty>(RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD, static_cast<int>(threshold));
+}
+
+uint32_t RSColorPickerModifier::GetColorPickerNotifyThreshold() const
+{
+    return static_cast<uint32_t>(Getter(RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD, 0));
 }
 } // namespace OHOS::Rosen::ModifierNG

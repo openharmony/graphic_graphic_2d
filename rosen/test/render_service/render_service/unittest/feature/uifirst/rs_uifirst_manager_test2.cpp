@@ -1056,6 +1056,63 @@ HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckHasTransAndFilter003
+ * @tc.desc: Test strategy with trans and blur scenes by uifirst.
+ * @tc.type: FUNC
+ * @tc.require: issue21834
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter003, TestSize.Level1)
+{
+    auto leashWindow = RSTestUtil::CreateSurfaceNode();
+    leashWindow->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashWindow->childHasVisibleFilter_ = true;
+
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto subWindow = RSTestUtil::CreateSurfaceNode();
+    subWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+
+    leashWindow->AddChild(appWindow);
+    leashWindow->AddChild(subWindow);
+    leashWindow->GenerateFullChildrenList();
+
+    // app window is opaque
+    appWindow->SetGlobalAlpha(1.0f);
+    appWindow->SetAbilityBGAlpha(255);
+    appWindow->absDrawRect_ = { 0, 0, 100, 100 };
+    appWindow->childHasVisibleFilter_ = true;
+    auto rootNode = std::make_shared<RSRootRenderNode>(100);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(200);
+    rootNode->AddChild(canvasNode);
+    appWindow->AddChild(rootNode);
+
+    auto subRootNode = std::make_shared<RSRootRenderNode>(300);
+    auto subCanvasNode = std::make_shared<RSCanvasRenderNode>(400);
+    subRootNode->AddChild(subCanvasNode);
+    subWindow->AddChild(subRootNode);
+
+    // sub window is opaque
+    subWindow->SetGlobalAlpha(1.0f);
+    subWindow->SetAbilityBGAlpha(255);
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
+
+    // sub window is transparent
+    subWindow->SetGlobalAlpha(0.f);
+    subWindow->SetAbilityBGAlpha(0);
+    subWindow->childHasVisibleFilter_ = false;
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
+
+    subWindow->childHasVisibleFilter_ = true;
+    // sub window inside main window
+    subWindow->absDrawRect_ = { 10, 10, 50, 50 };
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
+
+    // sub window outside main window
+    subWindow->absDrawRect_ = { 0, 0, 200, 200 };
+    ASSERT_TRUE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
+}
+
+/**
  * @tc.name: GetCacheSurfaceProcessedStatusTest
  * @tc.desc: Test GetCacheSurfaceProcessedStatus
  * @tc.type: FUNC

@@ -764,18 +764,18 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetHardwareEnableHint, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSourceVirtualDisplayId
- * @tc.desc: Verify function SetSourceVirtualDisplayId
+ * @tc.name: SetSourceVirtualScreenId
+ * @tc.desc: Verify function SetSourceVirtualScreenId
  * @tc.type:FUNC
  * @tc.require: issueIAHFXD
  */
-HWTEST_F(RSSurfaceNodeCommandTest, SetSourceVirtualDisplayId, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeCommandTest, SetSourceVirtualScreenId, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = 1;
     ScreenId screenId = {};
     SurfaceNodeCommandHelper::Create(context, nodeId);
-    SurfaceNodeCommandHelper::SetSourceVirtualDisplayId(context, nodeId, screenId);
+    SurfaceNodeCommandHelper::SetSourceVirtualScreenId(context, nodeId, screenId);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
 
@@ -922,5 +922,19 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetContainerWindowTransparent, TestSize.Level
     NodeId InvalidNodeId = 2;
     SurfaceNodeCommandHelper::SetContainerWindowTransparent(context, InvalidNodeId, false);
     ASSERT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(InvalidNodeId) == nullptr);
+}
+
+/**
+ * @tc.name: SetAppRotationCorrectionTest
+ * @tc.desc: Verify function SetAppRotationCorrection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetAppRotationCorrectionTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetAppRotationCorrection(context, nodeId, ScreenRotation::ROTATION_180);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
 } // namespace OHOS::Rosen

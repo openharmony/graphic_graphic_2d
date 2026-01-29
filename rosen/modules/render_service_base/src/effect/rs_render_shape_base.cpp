@@ -40,12 +40,12 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT = {
             return std::make_shared<RSNGRenderSDFRRectShape>();
         }
     },
-    {RSNGEffectType::SDF_TRANSFORM_SHAPE, [] {
-            return std::make_shared<RSNGRenderSDFTransformShape>();
-        }
-    },
     {RSNGEffectType::SDF_PIXELMAP_SHAPE, [] {
             return std::make_shared<RSNGRenderSDFPixelmapShape>();
+        }
+    },
+    {RSNGEffectType::SDF_TRANSFORM_SHAPE, [] {
+            return std::make_shared<RSNGRenderSDFTransformShape>();
         }
     },
     {RSNGEffectType::SDF_EMPTY_SHAPE, [] {
@@ -64,7 +64,7 @@ std::shared_ptr<RSNGRenderShapeBase> RSNGRenderShapeBase::Create(RSNGEffectType 
 {
     std::shared_ptr<RSNGRenderShapeBase> head = nullptr;
     auto current = head;
-    for (size_t effectCount = 0; effectCount <= EFFECT_COUNT_LIMIT; ++effectCount) {
+    for (size_t effectCount = 0; effectCount < EFFECT_COUNT_LIMIT; ++effectCount) {
         RSNGEffectTypeUnderlying type = 0;
         if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
             ROSEN_LOGE("RSNGRenderShapeBase: Unmarshalling type failed");
@@ -77,7 +77,7 @@ std::shared_ptr<RSNGRenderShapeBase> RSNGRenderShapeBase::Create(RSNGEffectType 
         }
 
         auto shape = Create(static_cast<RSNGEffectType>(type));
-        if (shape && !shape->OnUnmarshalling(parcel)) {
+        if (!shape || !shape->OnUnmarshalling(parcel)) {
             ROSEN_LOGE("RSNGRenderShapeBase: Unmarshalling shape failed with type %{public}d", type);
             return false;
         }

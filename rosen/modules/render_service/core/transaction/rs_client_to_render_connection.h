@@ -96,7 +96,7 @@ private:
 
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
 
-    ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;
+    ErrCode DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0) override;
 
     ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
 
@@ -121,6 +121,7 @@ private:
     int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;
 #endif
+    int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

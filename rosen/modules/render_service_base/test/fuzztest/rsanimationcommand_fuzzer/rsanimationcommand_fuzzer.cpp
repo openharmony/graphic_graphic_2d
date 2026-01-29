@@ -88,11 +88,6 @@ namespace OHOS {
         context.GetMutableNodeMap().RegisterRenderNode(node);
         AnimationCommandHelper::CreateAnimation(context, targetId, animation);
         AnimationCommandHelper::CancelAnimation(context, targetId, propertyId);
-#ifndef MODIFIER_NG
-        auto modifier = std::make_shared<RSGeometryTransRenderModifier>(property);
-        node->modifiers_[propertyId] = modifier;
-        AnimationCommandHelper::CreateAnimation(context, targetId, animation);
-#endif
     }
 
     void CreateParticleAnimationFuzzerTest()
@@ -150,10 +145,6 @@ namespace OHOS {
         data_ = data;
         size_ = size;
         pos = 0;
-#ifndef MODIFIER_NG
-        CreateAnimationFuzzerTest();
-        CreateParticleAnimationFuzzerTest();
-#endif
         InteractiveAnimatiorFuzzerTest();
         return true;
     }

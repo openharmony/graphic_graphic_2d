@@ -116,6 +116,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSModifierNGDetachProperty),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdateOcclusionCullingStatus),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetDrawNodeType),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSColorPickerCallback),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyNGFilterBase),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyNGMaskBase),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyNGShaderBase),
@@ -138,7 +139,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetBootAnimation),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetGlobalPositionEnabled),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSecurityLayer),
-    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSourceVirtualDisplayId),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSourceVirtualScreenId),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSkipLayer),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSnapshotSkipLayer),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetFingerprint),
@@ -175,6 +176,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetAncoSrcCrop),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetContainerWindowTransparent),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetClonedNodeId),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetAppRotationCorrection),
 
     /********** RSProxyNodeCommand **********/
     DECLARE_ADD_RANDOM(RSProxyNodeCommand, RSProxyNodeCreate),

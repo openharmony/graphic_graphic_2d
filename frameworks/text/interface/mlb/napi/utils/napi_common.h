@@ -179,6 +179,13 @@ inline napi_value CreateJsNumber(napi_env env, double value)
     return result;
 }
 
+#if defined(IOS_PLATFORM)
+inline napi_value CreateJsNumber(napi_env env, size_t value)
+{
+    return CreateJsNumber(env, static_cast<uint64_t>(value));
+}
+#endif
+
 template<class T>
 napi_value CreateJsValue(napi_env env, const T& value)
 {
@@ -237,6 +244,18 @@ inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, bool& value)
 {
     return napi_get_value_bool(env, jsValue, &value) == napi_ok;
 }
+
+#if defined(IOS_PLATFORM)
+inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, size_t& value)
+{
+    uint64_t tempValue = 0;
+    if (ConvertFromJsNumber(env, jsValue, tempValue)) {
+        value = static_cast<size_t>(tempValue);
+        return true;
+    }
+    return false;
+}
+#endif
 
 template<class T>
 bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)

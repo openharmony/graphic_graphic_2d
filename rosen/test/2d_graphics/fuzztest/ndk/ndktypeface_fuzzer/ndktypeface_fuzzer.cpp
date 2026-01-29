@@ -38,12 +38,12 @@ void NativeDrawingTypefaceTest001(const uint8_t* data, size_t size)
     }
 
     int index = GetObject<int>();
-    uint32_t path_size = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
-    char* path = new char[path_size];
-    for (size_t i = 0; i < path_size; i++) {
+    uint32_t pathSize = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    char* path = new char[pathSize];
+    for (size_t i = 0; i < pathSize; i++) {
         path[i] = GetObject<char>();
     }
-    path[path_size - 1] = '\0';
+    path[pathSize - 1] = '\0';
     OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateDefault();
 
     bool isBold = false;
@@ -63,13 +63,13 @@ void NativeDrawingTypefaceTest001(const uint8_t* data, size_t size)
     OH_Drawing_Typeface* typefaceTwo = OH_Drawing_TypefaceCreateFromFile(pathTwo, index);
 
     bool copyData = GetObject<bool>();
-    uint32_t str_size = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    char* str = new char[str_size];
-    for (size_t i = 0; i < str_size; i++) {
+    uint32_t strSize = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
+    char* str = new char[strSize];
+    for (size_t i = 0; i < strSize; i++) {
         str[i] = GetObject<char>();
     }
     int32_t streamIndex = GetObject<int32_t>() % MAX_ARRAY_SIZE;
-    OH_Drawing_MemoryStream* memoryStream = OH_Drawing_MemoryStreamCreate(str, str_size, copyData);
+    OH_Drawing_MemoryStream* memoryStream = OH_Drawing_MemoryStreamCreate(str, strSize, copyData);
     OH_Drawing_TypefaceCreateFromStream(nullptr, streamIndex);
     if (path != nullptr) {
         delete [] path;
@@ -93,13 +93,13 @@ void NativeDrawingTypefaceTest002(const uint8_t* data, size_t size)
     }
 
     bool copyData = GetObject<bool>();
-    uint32_t str_size = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    char* str = new char[str_size];
-    for (size_t i = 0; i < str_size; i++) {
+    uint32_t strSize = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
+    char* str = new char[strSize];
+    for (size_t i = 0; i < strSize; i++) {
         str[i] = GetObject<char>();
     }
     int32_t streamIndex = GetObject<int32_t>() % MAX_ARRAY_SIZE;
-    OH_Drawing_MemoryStream* memoryStream = OH_Drawing_MemoryStreamCreate(str, str_size, copyData);
+    OH_Drawing_MemoryStream* memoryStream = OH_Drawing_MemoryStreamCreate(str, strSize, copyData);
     OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromStream(memoryStream, streamIndex);
 
     if (str != nullptr) {

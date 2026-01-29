@@ -301,29 +301,6 @@ HWTEST_F(RSBaseRenderNodeTest, PrepareTest, TestSize.Level1)
     node->Prepare(visitor);
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RemoveModifier
- * @tc.desc: test results of RemoveModifier
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, RemoveModifier, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
-        std::make_shared<RSGeometryTransRenderModifier>(property);
-    std::shared_ptr<RSRenderModifier> modifier = modifierCast;
-    node->AddGeometryModifier(modifier);
-    node->RemoveModifier(id);
-    ASSERT_EQ(node->modifiers_.find(id), node->modifiers_.end());
-}
-#endif
-
 /**
  * @tc.name: UpdateEffectRegion
  * @tc.desc: test results of UpdateEffectRegion
@@ -345,31 +322,6 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateEffectRegion, TestSize.Level1)
     node->UpdateEffectRegion(region, isForced);
     ASSERT_TRUE(true);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: GetModifier
- * @tc.desc: test results of GetModifier
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, GetModifier, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
-        std::make_shared<RSGeometryTransRenderModifier>(property);
-    std::shared_ptr<RSRenderModifier> modifier = modifierCast;
-    node->GetModifier(modifier->GetPropertyId());
-
-    modifierCast->drawStyle_ = RSModifierType::BOUNDS;
-    node->AddGeometryModifier(modifier);
-    ASSERT_NE(node->GetModifier(modifier->GetPropertyId()), nullptr);
-}
-#endif
 
 /**
  * @tc.name: FilterModifiersByPid
@@ -436,31 +388,6 @@ HWTEST_F(RSBaseRenderNodeTest, SetGlobalAlpha, TestSize.Level1)
     node->SetGlobalAlpha(alpha);
     ASSERT_EQ(node->globalAlpha_, alpha);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: GetOptionalBufferSize
- * @tc.desc: test results of GetOptionalBufferSize
- * @tc.type:FUNC
- * @tc.require:issue21058
- */
-HWTEST_F(RSBaseRenderNodeTest, GetOptionalBufferSize, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::shared_ptr<RSRenderModifier> frameModifier = std::make_shared<RSGeometryTransRenderModifier>(property);
-    node->frameModifier_ = frameModifier;
-    node->GetOptionalBufferSize();
-
-    std::shared_ptr<RSRenderModifier> boundsModifier = std::make_shared<RSGeometryTransRenderModifier>(property);
-    node->boundsModifier_ = boundsModifier;
-    node->GetOptionalBufferSize();
-    ASSERT_TRUE(true);
-}
-#endif
 
 /**
  * @tc.name: GetOptionalBufferSize001
@@ -778,6 +705,7 @@ HWTEST_F(RSBaseRenderNodeTest, ResetParent, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, DumpTree001, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     int32_t depth = 0;
     std::string out = "string";
     node->DumpTree(depth, out);
@@ -793,6 +721,7 @@ HWTEST_F(RSBaseRenderNodeTest, DumpTree001, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, DumpTree002, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     int32_t depth = 0;
     std::string out = "";
     node->oldDirty_ = DEFAULT_RECT;
@@ -827,32 +756,6 @@ HWTEST_F(RSBaseRenderNodeTest, DumpSubClassNode, TestSize.Level1)
     node->DumpSubClassNode(out);
     ASSERT_TRUE(true);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: DumpDrawCmdModifiers
- * @tc.desc: test results of DumpDrawCmdModifiers
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, DumpDrawCmdModifiers, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    std::string out = "string";
-    node->DumpDrawCmdModifiers(out);
-
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSGeometryTransRenderModifier>(property) };
-    std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> map;
-    map[RSModifierType::ENV_FOREGROUND_COLOR] = list;
-    node->drawCmdModifiers_ = map;
-    node->DumpDrawCmdModifiers(out);
-    ASSERT_TRUE(true);
-}
-#endif
 
 /**
  * @tc.name: SetContentDirty
@@ -1171,77 +1074,6 @@ HWTEST_F(RSBaseRenderNodeTest, RenderTraceDebug, TestSize.Level1)
     node->RenderTraceDebug();
     ASSERT_TRUE(true);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: AddModifier
- * @tc.desc: test results of AddModifier
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, AddModifier, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    std::shared_ptr<RSRenderModifier> modifier;
-    bool isSingleFrameComposer = true;
-    node->AddModifier(modifier, isSingleFrameComposer);
-
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
-        std::make_shared<RSGeometryTransRenderModifier>(property);
-    std::shared_ptr<RSRenderModifier> modifierTwo = modifierCast;
-    node->AddModifier(modifierTwo, isSingleFrameComposer);
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: AddGeometryModifier
- * @tc.desc: test results of AddGeometryModifier
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, AddGeometryModifier, TestSize.Level1)
-{
-    {
-        auto node = std::make_shared<RSBaseRenderNode>(id, context);
-        Drawing::Matrix matrix;
-        PropertyId id = 1;
-        std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-            std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-        std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
-            std::make_shared<RSGeometryTransRenderModifier>(property);
-        std::shared_ptr<RSRenderModifier> modifier = modifierCast;
-        node->AddGeometryModifier(modifier);
-
-        modifierCast->drawStyle_ = RSModifierType::BOUNDS;
-        node->AddGeometryModifier(modifier);
-
-        node->boundsModifier_ = modifier;
-        node->AddGeometryModifier(modifier);
-        ASSERT_NE(node->boundsModifier_, nullptr);
-    }
-
-    {
-        auto node = std::make_shared<RSBaseRenderNode>(id, context);
-        Drawing::Matrix matrix;
-        PropertyId id = 1;
-        std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-            std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-        std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
-            std::make_shared<RSGeometryTransRenderModifier>(property);
-        modifierCast->drawStyle_ = RSModifierType::FRAME;
-        std::shared_ptr<RSRenderModifier> modifier = modifierCast;
-        node->AddGeometryModifier(modifier);
-
-        node->frameModifier_ = modifier;
-        node->AddGeometryModifier(modifier);
-        ASSERT_NE(node->frameModifier_, nullptr);
-    }
-}
-#endif
 
 /**
  * @tc.name: MarkSuggestOpincNode

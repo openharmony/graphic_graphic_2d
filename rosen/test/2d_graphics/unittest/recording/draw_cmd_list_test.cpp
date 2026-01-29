@@ -188,6 +188,7 @@ HWTEST_F(DrawCmdListTest, GetBounds002, TestSize.Level1)
     EXPECT_EQ(ret, true);
     Rect rect;
     drawCmdList->GetBounds(rect);
+    EXPECT_EQ(rect.IsValid(), false);
     delete drawCmdList;
 }
 
@@ -322,6 +323,21 @@ HWTEST_F(DrawCmdListTest, IsHybridRenderEnabled004, TestSize.Level1)
     ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
     EXPECT_EQ(ret, true);
     delete drawCmdList;
+}
+
+/**
+ * @tc.name: GetDrawOpItemsTest
+ * @tc.desc: Test GetDrawOpItems
+ * @tc.type: FUNC
+ * @tc.require: issuesICBR88
+ */
+HWTEST_F(DrawCmdListTest, GetDrawOpItemsTest, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    Brush brush;
+    drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    auto cmdList = drawCmdList->GetDrawOpItems();
+    EXPECT_EQ(cmdList.size(), 1);
 }
 
 /**

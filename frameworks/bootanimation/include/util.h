@@ -75,7 +75,7 @@ enum class BootStrategyType {
     INDEPENDENT,
 };
 
-using MemStruct = struct MemStruct {
+struct MemStruct {
 public:
     char* memBuffer = nullptr;
     unsigned long bufsize = 0;
@@ -109,7 +109,7 @@ public:
     }
 };
 
-using ImageStruct = struct ImageStruct {
+struct ImageStruct {
 public:
     std::string fileName = {};
     std::shared_ptr<Rosen::Drawing::Image> imageData = nullptr;
@@ -121,7 +121,7 @@ public:
 };
 using ImageStructVec = std::vector<std::shared_ptr<ImageStruct>>;
 
-using FrameRateConfig = struct FrameRateConfig {
+struct FrameRateConfig {
 public:
     int32_t frameRate = 30;
 };
@@ -132,7 +132,7 @@ struct BootAnimationCallback {
     VSyncCallback callback;
 };
 
-using PlayerParams = struct PlayerParams {
+struct PlayerParams {
 #ifdef PLAYER_FRAMEWORK_ENABLE
     OHOS::sptr<OHOS::Surface> surface;
 #endif

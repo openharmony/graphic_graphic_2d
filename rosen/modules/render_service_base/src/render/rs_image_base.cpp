@@ -594,6 +594,7 @@ void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContex
 void RSImageBase::SetCompressData(const std::shared_ptr<Drawing::Data> compressData)
 {
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    std::lock_guard<std::mutex> lock(compressDataMutex_);
     isDrawn_ = false;
     compressData_ = compressData;
     canPurgeShareMemFlag_ = CanPurgeFlag::DISABLED;

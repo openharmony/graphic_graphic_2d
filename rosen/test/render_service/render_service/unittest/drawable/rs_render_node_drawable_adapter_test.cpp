@@ -310,12 +310,23 @@ HWTEST(RSRenderNodeDrawableAdapterTest, HasFilterOrEffectTest, TestSize.Level1)
     NodeId id = 7;
     auto node = std::make_shared<RSRenderNode>(id);
     auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    auto ret = adapter->HasFilterOrEffect();
+    RSRenderParams params(id);
+    auto ret = adapter->HasFilterOrEffect(params);
     EXPECT_FALSE(ret);
 
     adapter->drawCmdIndex_.materialFilterIndex_ = 0;
-    ret = adapter->HasFilterOrEffect();
+    ret = adapter->HasFilterOrEffect(params);
     EXPECT_TRUE(ret);
+
+    params.SetShadowRect({0, 0, 10, 10});
+    adapter->drawCmdIndex_.materialFilterIndex_ = -1;
+    adapter->drawCmdIndex_.shadowIndex_ = 1;
+    ret = adapter->HasFilterOrEffect(params);
+    EXPECT_TRUE(ret);
+
+    adapter->drawCmdIndex_.shadowIndex_ = -1;
+    ret = adapter->HasFilterOrEffect(params);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -332,7 +343,9 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawRangeImplAndRelatedTest, TestSize.Le
     Drawing::Canvas drawingCanvas;
     Drawing::Rect rect;
     adapter->DrawForeground(drawingCanvas, rect);
+    adapter->DrawForegroundWithOutRestoreAll(drawingCanvas, rect);
     adapter->DrawBackground(drawingCanvas, rect);
+    adapter->DrawBackgroundWithOutSaveAll(drawingCanvas, rect);
     adapter->DrawBeforeCacheWithForegroundFilter(drawingCanvas, rect);
     adapter->DrawCacheWithForegroundFilter(drawingCanvas, rect);
     adapter->DrawAfterCacheWithForegroundFilter(drawingCanvas, rect);
@@ -540,50 +553,24 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetSkipIndexTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawBackgroundWithoutFilterAndEffectTest
- * @tc.desc: Test DrawBackgroundWithoutFilterAndEffect
+ * @tc.name: SkipDrawBackGroundAndClipHoleForBlurTest
+ * @tc.desc: Test SkipDrawBackGroundAndClipHoleForBlur
  * @tc.type: FUNC
  * @tc.require: issueI9UTMA
  */
-HWTEST(RSRenderNodeDrawableAdapterTest, DrawBackgroundWithoutFilterAndEffectTest, TestSize.Level1)
+HWTEST(RSRenderNodeDrawableAdapterTest, SkipDrawBackGroundAndClipHoleForBlurTest, TestSize.Level1)
 {
     NodeId id = 15;
     auto node = std::make_shared<RSRenderNode>(id);
     auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    adapter->drawCmdIndex_.backgroundColorIndex_ = 1;
-    adapter->drawCmdIndex_.shadowIndex_ = 2;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSRenderParams params(id);
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->SkipDrawBackGroundAndClipHoleForBlur(canvas, params);
     EXPECT_TRUE(adapter->drawCmdList_.empty());
     std::shared_ptr<RSTestDrawable> rsDrawable = std::make_shared<RSTestDrawable>();
     adapter->drawCmdList_.emplace_back(rsDrawable);
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
-    adapter->drawCmdIndex_.backgroundEndIndex_ = 1;
-    adapter->drawCmdIndex_.shadowIndex_ = 0;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
-    adapter->drawCmdIndex_.backgroundEndIndex_ = 1;
-    adapter->drawCmdIndex_.shadowIndex_ = 0;
-    params.SetShadowRect({0, 0, 10, 10});
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
-    adapter->drawCmdIndex_.shadowIndex_ = 2;
-    adapter->drawCmdIndex_.useEffectIndex_ = 0;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
-    adapter->drawCmdIndex_.useEffectIndex_ = 3;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
-    adapter->drawCmdIndex_.backgroundFilterIndex_ = 0;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
-    adapter->drawCmdIndex_.backgroundFilterIndex_ = 4;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
-    adapter->drawCmdIndex_.backgroundNgShaderIndex_ = 0;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
-    adapter->drawCmdIndex_.backgroundNgShaderIndex_ = 5;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
-    adapter->drawCmdIndex_.materialFilterIndex_ = 0;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
-    adapter->drawCmdIndex_.materialFilterIndex_ = 6;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->SkipDrawBackGroundAndClipHoleForBlur(canvas, params);
     EXPECT_FALSE(adapter->drawCmdList_.empty());
 }
 
@@ -607,44 +594,6 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetFilterRelativeRectTest, TestSize.Leve
     EXPECT_EQ(result.GetTop(), bounds.GetTop());
     EXPECT_EQ(result.GetWidth(), bounds.GetWidth());
     EXPECT_EQ(result.GetHeight(), bounds.GetHeight());
-}
-
-/**
- * @tc.name: CheckShadowRectAndDrawBackgroundTest
- * @tc.desc: Test CheckShadowRectAndDrawBackground
- * @tc.type: FUNC
- * @tc.require: issueI9UTMA
- */
-HWTEST(RSRenderNodeDrawableAdapterTest, CheckShadowRectAndDrawBackgroundTest, TestSize.Level1)
-{
-    NodeId id = 152;
-    auto renderNode = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(renderNode));
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    RSRenderParams params(id);
-
-    params.ExcludedFromNodeGroup(true);
-    adapter->CheckShadowRectAndDrawBackground(canvas, params);
-    EXPECT_TRUE(params.IsExcludedFromNodeGroup());
-    params.ExcludedFromNodeGroup(false);
-
-    Drawing::Rect shadowRect(0, 0, 50, 50);
-    params.SetShadowRect(shadowRect);
-    adapter->CheckShadowRectAndDrawBackground(canvas, params);
-    EXPECT_TRUE(adapter->drawCmdList_.empty());
-
-    params.SetShadowRect(Drawing::Rect());
-    std::shared_ptr<RSTestDrawable> rsDrawable = std::make_shared<RSTestDrawable>();
-    adapter->drawCmdList_.emplace_back(rsDrawable);
-    adapter->drawCmdIndex_.materialFilterIndex_ = 0;
-    adapter->drawCmdIndex_.backgroundEndIndex_ = 1;
-    adapter->CheckShadowRectAndDrawBackground(canvas, params);
-    EXPECT_FALSE(adapter->drawCmdList_.empty());
-
-    adapter->drawCmdIndex_.materialFilterIndex_ = -1;
-    adapter->CheckShadowRectAndDrawBackground(canvas, params);
-    EXPECT_FALSE(adapter->drawCmdList_.empty());
 }
 
 /**

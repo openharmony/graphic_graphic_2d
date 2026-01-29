@@ -17,6 +17,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "parameters.h"
+#include "platform/common/rs_hisysevent.h"
 #include "rs_render_composer_manager.h"
 
 namespace OHOS {
@@ -80,6 +81,7 @@ void HgmHardwareUtils::UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uin
             MAX_SETRATE_RETRY_COUNT);
         setRateRetryParam_.needRetrySetRate = false;
         setRateRetryParam_.isRetryOverLimit = true;
+        ReportRetryOverLimit(refreshRateParam_.vsyncId, refreshRateParam_.rate);
     }
     RS_LOGD_IF(setRateRetryParam_.needRetrySetRate,
         "need retry set modeId %{public}" PRId32 ", ScreenId:%{public}" PRIu64, modeId, id);
@@ -139,6 +141,17 @@ void HgmHardwareUtils::ResetRetryCount(ScreenPowerStatus status)
         setRateRetryParam_.needRetrySetRate = true;
         setRateRetryParam_.retryCount = 0;
         setRateRetryParam_.isRetryOverLimit = false;
+    }
+}
+
+void HgmHardwareUtils::ReportRetryOverLimit(uint64_t vsyncId, uint32_t rate)
+{
+    if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
+        HgmTaskHandleThread::Instance().PostTask([frameRateMgr, vsyncId, rate]() {
+            auto voteInfo = frameRateMgr->GetLastVoteInfo().ToSimpleString();
+            RSHiSysEvent::EventWrite(RSEventName::HGM_RETRY_UPDATE_RATE_OVERLIMIT, RSEventType::RS_FAULT,
+                "VSYNCID", vsyncId, "REFRESHRATE", rate, "LASTVOTEINFO", voteInfo);
+        });
     }
 }
 

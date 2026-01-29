@@ -341,6 +341,7 @@ public:
     void DetachFromWindowContainer(ScreenId screenId);
     void SetRegionToBeMagnified(const Vector4<int>& regionToBeMagnified);
     void SetContainerWindowTransparent(bool isContainerWindowTransparent);
+    void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,

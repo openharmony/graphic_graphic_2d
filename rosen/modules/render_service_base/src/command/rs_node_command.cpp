@@ -24,6 +24,7 @@ namespace Rosen {
 namespace {
 RSNodeCommandHelper::DumpNodeTreeProcessor gDumpNodeTreeProcessor = nullptr;
 RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = nullptr;
+RSNodeCommandHelper::ColorPickerCallbackProcessor gColorPickerCallbackProcessor = nullptr;
 }
 
 void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze)
@@ -248,8 +249,9 @@ void RSNodeCommandHelper::AddModifierNG(RSContext& context, NodeId nodeId,
     if (node) {
         node->AddModifier(modifier);
     } else {
-        ROSEN_LOGE("RSNodeCommandHelper::AddModifierNG Invalid NodeId %{public}" PRIu64 ", ModifierId %{public}" PRIu64
-            ", ModifierType %{public}hu", nodeId, modifier->GetId(), modifier->GetType());
+        ROSEN_LOGE("RSNodeCommandHelper::AddModifierNG Invalid NodeId %{public}" PRIu64 ", ModifierId %{public}" PRId64
+            ", ModifierType %{public}d", nodeId, modifier ? modifier->GetId() : -1,
+            modifier ? static_cast<int>(modifier->GetType()) : -1);
     }
 }
 
@@ -323,6 +325,19 @@ void RSNodeCommandHelper::RemoveAllModifiersNG(RSContext& context, NodeId nodeId
     if (node) {
         node->RemoveAllModifiersNG();
     }
+}
+
+void RSNodeCommandHelper::ColorPickerCallback(
+    RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t color)
+{
+    if (gColorPickerCallbackProcessor != nullptr) {
+        gColorPickerCallbackProcessor(nodeId, token, color);
+    }
+}
+
+void RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor)
+{
+    gColorPickerCallbackProcessor = processor;
 }
 } // namespace Rosen
 } // namespace OHOS

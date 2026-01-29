@@ -296,7 +296,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_attraction_effect_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
-    "src/render/rs_border_light_shader.cpp",
     "src/render/rs_color_adaptive_filter.cpp",
     "src/render/rs_color_extract.cpp",
     "src/render/rs_color_picker.cpp",
@@ -384,8 +383,10 @@ ohos_source_set("render_service_base_src") {
 
     #feature
     "src/feature/capture/rs_ui_capture_helper.cpp",
+    "src/feature/color_picker/color_pick_alt_manager.cpp",
     "src/feature/color_picker/rs_color_picker_manager.cpp",
     "src/feature/color_picker/rs_color_picker_thread.cpp",
+    "src/feature/color_picker/rs_color_picker_utils.cpp",
     "src/feature/color_picker/rs_hetero_color_picker.cpp",
     "src/feature/hdr/rs_colorspace_util.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
@@ -620,6 +621,7 @@ ohos_source_set("render_service_base_src") {
       "lz4:liblz4_shared",
       "init:libbegetutil",
       "ffrt:libffrt",
+      "ability_runtime:app_manager",
     ]
   }
 
@@ -807,6 +809,13 @@ config("render_service_base_link_config") {
           "-Wl,--no-warn-symbol-ordering",
         ]
       }
+    }
+    if (target_cpu == "arm64" && defined(build_ext_path)) {
+      ldflags += [ 
+        "-Wl,--emit-relocs",
+        "-Wl,--no-relax", 
+        "-mno-fix-cortex-a53-843419" 
+      ]
     }
   }
 }

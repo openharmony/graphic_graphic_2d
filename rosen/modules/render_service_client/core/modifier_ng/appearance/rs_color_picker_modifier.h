@@ -33,10 +33,12 @@ public:
     void SetColorPickerPlaceholder(ColorPlaceholder placeholder);
     void SetColorPickerStrategy(ColorPickStrategyType strategy);
     void SetColorPickerInterval(uint64_t interval);
+    void SetColorPickerNotifyThreshold(uint32_t threshold);
 
     ColorPlaceholder GetColorPickerPlaceholder() const;
     ColorPickStrategyType GetColorPickerStrategy() const;
-    uint32_t GetColorPickerInterval() const;
+    uint64_t GetColorPickerInterval() const;
+    uint32_t GetColorPickerNotifyThreshold() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_COLOR_PICKER_MODIFIER_H

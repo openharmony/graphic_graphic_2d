@@ -22,6 +22,7 @@
 #include <memory>
 #include <set>
 #include <unordered_set>
+#include "feature/color_picker/i_color_picker_manager.h"
 
 #include "drawable/rs_drawable.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
@@ -30,6 +31,7 @@
 
 namespace OHOS::Rosen {
 class RSColorPickerManager;
+class ColorPickAltManager;
 namespace Drawing {
 class DrawCmdList;
 }
@@ -62,7 +64,7 @@ private:
 // RSColorPickerDrawable, pick color for current content of canvas
 class RSColorPickerDrawable : public RSDrawable {
 public:
-    explicit RSColorPickerDrawable();
+    explicit RSColorPickerDrawable(bool useAlt);
     ~RSColorPickerDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
@@ -74,10 +76,10 @@ private:
     NodeId stagingNodeId_ = INVALID_NODEID;
     NodeId nodeId_ = INVALID_NODEID;
     std::shared_ptr<ColorPickerParam> stagingColorPicker_;
-    ColorPickerParam colorPicker_;
+    ColorPickerParam params_;
 
     bool needSync_ = false;
-    std::shared_ptr<RSColorPickerManager> colorPickerManager_;
+    std::shared_ptr<IColorPickerManager> colorPickerManager_;
 };
 
 // RSCustomModifierDrawable, for drawing custom modifiers

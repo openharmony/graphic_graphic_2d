@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_COMMON_RS_COMMON_DEF_H
 
 #include <atomic>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -233,10 +234,11 @@ public:
     static bool GetFilterCacheEnabled();
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
+    static bool GetDynamicBrightnessEnabled();
     static bool GetMaskLinearBlurEnabled();
     static bool GetMotionBlurEnabled();
+    static bool GetDrmEnabled();
     static bool GetMagnifierEnabled();
-    static bool GetDynamicBrightnessEnabled();
     static bool GetKawaseEnabled();
     static void SetForceHpsBlurDisabled(bool flag);
     static float GetHpsBlurNoiseFactor();
@@ -246,11 +248,10 @@ public:
     static bool GetForceKawaseDisabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
-    static bool GetImageReleaseUsingPostTask();
     static bool GetKawaseOriginalEnabled();
     static bool GetBlurEnabled();
-    static bool GetFgBlenderEnabled();
     static bool GetForegroundFilterEnabled();
+    static bool GetFgBlenderEnabled();
     static const std::vector<float>& GetAiInvertCoef();
     static bool GetSkipForAlphaZeroEnabled();
     static bool GetSkipGeometryNotChangeEnabled();
@@ -267,6 +268,7 @@ public:
 
     static bool GetAnimationCacheEnabled();
 
+    static bool ViewDrawNodeType();
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetCacheOptimizeRotateEnable();
@@ -288,6 +290,7 @@ public:
     static uint32_t GetSubtreeDebugOption();
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
+    static bool GetImageReleaseUsingPostTask();
     static int GetDebugTraceLevel();
     static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
@@ -297,7 +300,6 @@ public:
     static bool GetASTCEnabled();
     static bool GetCachedBlurPartialRenderEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);
-    static bool GetDrmEnabled();
     static bool GetSurfaceNodeWatermarkEnabled();
     static bool IsPhoneType();
     static bool IsSuperFoldDisplay();
@@ -306,14 +308,16 @@ public:
     static int GetSyncTransactionWaitDelay();
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
+
     static bool GetSecurityPermissionCheckEnabled();
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
+    static bool IsForceClient();
     static bool GetHdrImageEnabled();
     static bool GetHdrVideoEnabled();
-    static bool IsForceClient();
-    static bool GetDrmMarkedFilterEnabled();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
+    
+    static bool GetDrmMarkedFilterEnabled();
 
     static DdgrOpincType GetDdgrOpincType();
     static bool IsDdgrOpincEnable();
@@ -327,27 +331,26 @@ public:
 
     static bool GetDumpUICaptureEnabled();
     static bool GetDumpUIPixelmapEnabled();
+    static int GetVirtualScreenScaleModeDFX();
     static bool GetDumpImgEnabled();
 
     static bool GetTransactionTerminateEnabled();
 
-    static int GetVirtualScreenScaleModeDFX();
     static bool GetTextBlobAsPixelMap();
     static inline GpuApiType GetGpuApiType()
     {
         return RSSystemProperties::systemGpuApiType_;
     }
 
+    static int GetRSNodeLimit();
     static inline bool IsUseVulkan()
     {
         return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
-    static bool ViewDrawNodeType();
     static bool GetJankLoadOptimizeEnabled();
-    static int GetRSNodeLimit();
-    static std::string GetVersionType();
     static bool GetHwcDirtyRegionEnabled();
+    static std::string GetVersionType();
     static bool GetHveFilterEnabled();
     static bool GetDmaReclaimParam();
     static bool GetOptimizeParentNodeRegionEnabled();
@@ -356,11 +359,12 @@ public:
     static bool GetHpaeBlurUsingAAE();
 
     static bool GetWindowKeyFrameEnabled();
+
     static bool GetNodeGroupGroupedByUIEnabled();
-    static bool GetTimeVsyncDisabled();
     static void SetDebugFmtTraceEnabled(bool flag);
     static bool GetTextureExportDFXEnabled();
     static bool GetDebugFmtTraceEnabled();
+    static bool GetTimeVsyncDisabled();
 
     static bool GetHybridRenderEnabled();
     static bool GetHybridRenderDfxEnabled();
@@ -379,6 +383,7 @@ public:
 
     static bool GetVKImageUseEnabled();
     static bool GetVKImageAdaptationForWallpaperEnabled();
+
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
     static bool GetSubThreadControlFrameRate();
@@ -397,21 +402,18 @@ public:
     static bool GetPreparePhaseQuickSkipEnabled();
 
     static bool GetBootCompleted();
-
     static bool GetClipRRectOptimizationEnabled();
-
     static bool GetNodeMemClearEnabled();
-
-    static bool GetRSNodeExceedKillEnabled();
+    static bool GetTransactionDataTraceEnabled();
+    static bool GetDefaultMemClearEnabled();
+    static bool GetSceneBoardIsPcMode();
 
     static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
     static bool GetCanvasDrawingNodeRenderDmaEnabled();
-    static bool GetDefaultMemClearEnabled();
+
     static bool GetUnmarshalParallelEnabled();
     static uint32_t GetUnmarshalParallelMinDataSize();
-    static bool GetSceneBoardIsPcMode();
     static bool GetReleaseImageOneByOneFlag();
-    static bool GetTransactionDataTraceEnabled();
 
 private:
     RSSystemProperties() = default;
@@ -428,7 +430,6 @@ private:
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;
 };
-
 } // namespace Rosen
 } // namespace OHOS
 

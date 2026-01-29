@@ -33,7 +33,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetBootAnimation, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetGlobalPositionEnabled, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSecurityLayer, Uint64, Bool);
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSourceVirtualDisplayId, Uint64, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSourceVirtualScreenId, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSkipLayer, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSnapshotSkipLayer, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetFingerprint, Uint64, Bool);
@@ -71,6 +71,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetContainerWindowTransparent, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSSurfaceNodeSetClonedNodeId, Uint64, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNeedUseCmdlistDrawRegion, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAppRotationCorrection, Uint64, ScreenRotation);
 };
 } // namespace Rosen
 } // namespace OHOS

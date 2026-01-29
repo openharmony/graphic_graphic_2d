@@ -19,6 +19,10 @@
 #include "common/rs_optional_trace.h"
 #include "effect/rs_render_property_tag.h"
 #include "effect/rs_render_shape_base.h"
+#include "ge_render.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+#include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_color_picker_def.h"
 #include "property/rs_properties_painter.h"
@@ -60,7 +64,6 @@ void RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(
     if (!effect || effect->GetType() != RSNGEffectType::FROSTED_GLASS || canvas == nullptr) {
         return;
     }
-    auto glass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(effect);
     auto color = static_cast<RSPaintFilterCanvas*>(canvas)->GetColorPicked(ColorPlaceholder::SURFACE_CONTRAST);
     // assuming r, g, b are interpolated the same way
     constexpr float COLOR_MAX = 255.0f;
@@ -82,6 +85,11 @@ Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)
         radii.at(i).SetY(rr.radius_[i].y_);
     }
     return { rect, radii };
+}
+
+RectI RSPropertyDrawableUtils::DrawingRectI2RectI(const Drawing::RectI& r)
+{
+    return { r.left_, r.top_, r.GetWidth(), r.GetHeight() };
 }
 
 Drawing::Rect RSPropertyDrawableUtils::Rect2DrawingRect(const RectF& r)
@@ -235,7 +243,7 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(std::shar
         return nullptr;
     }
 
-    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::SamplingOptions linear(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
     std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBuilder =
         std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
     Drawing::ImageInfo pcInfo;
@@ -1291,52 +1299,39 @@ void RSPropertyDrawableUtils::DrawFilterWithDRM(Drawing::Canvas* canvas, bool is
 {
     Drawing::Brush brush;
     int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
-    RSColor demoColor;
-    if (isDark) {
-        int16_t rgb_dark = 80;
-        demoColor = RSColor(rgb_dark, rgb_dark, rgb_dark, alpha);
-    } else {
-        int16_t rgb_light = 235;
-        demoColor = RSColor(rgb_light, rgb_light, rgb_light, alpha);
-    }
-
-    float sat = 1.0f;
-    float brightness = 0.9f;
-    float normalizedDegree = brightness - sat;
-    const float brightnessMat[] = {
-        1.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        1.0f,
-        0.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-    };
-    Drawing::ColorMatrix cm;
-    cm.SetSaturation(sat);
-    float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
-    cm.GetArray(cmArray);
-    std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
-    auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*filterCompose, nullptr);
-    Drawing::Filter filter;
-    filter.SetImageFilter(colorImageFilter);
-    brush.SetFilter(filter);
+    int16_t rgb = isDark ? 55 : 210; // RGB values of the color filter to be replaced in the DRM scenario
+    RSColor demoColor = RSColor(rgb, rgb, rgb, alpha);
     brush.SetColor(demoColor.AsArgbInt());
     canvas->DrawBackground(brush);
+}
+
+void RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
+    const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
+    const std::string& shapeTag)
+{
+    if (!filterGEContainer) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM filterGEContainer null");
+        return;
+    }
+    auto visualEffect = filterGEContainer->GetGEVisualEffect(filterTag);
+    if (!visualEffect) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM visualEffect null");
+        return;
+    }
+    auto geShape = visualEffect->GetGEShaderShape(shapeTag);
+    auto sdfColorVisualEffect =
+        std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_SHADER_SDF_COLOR, Drawing::DrawingPaintType::BRUSH);
+    sdfColorVisualEffect->SetParam(Drawing::GE_SHADER_SDF_COLOR_SHAPE, geShape);
+    int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
+    int16_t rgb = isDark ? 55 : 210; // RGB values of the color filter to be replaced in the DRM scenario
+    Drawing::Color color(rgb, rgb, rgb, alpha);
+    Vector4f geColor(color.GetRedF(), color.GetGreenF(), color.GetBlueF(), color.GetAlphaF());
+    sdfColorVisualEffect->SetParam(Drawing::GE_SHADER_SDF_COLOR_COLOR, geColor);
+
+    auto geContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    geContainer->AddToChainedFilter(sdfColorVisualEffect);
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    geRender->DrawShaderEffect(*canvas, *geContainer, *rect);
 }
 
 void RSPropertyDrawableUtils::EndBlender(RSPaintFilterCanvas& canvas, int blendModeApplyType)
@@ -1723,9 +1718,9 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
         const auto& filter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(renderFilter);
         auto sdfShape = properties.GetSDFShape();
         if (sdfShape) {
-            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, use sdfShape, node %{public}" PRIu64,
+            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, SDF_EDGE_LIGHT, node %{public}" PRIu64,
                 nodeId);
-            filter->Setter<SDFEdgeLightSDFShapeRenderTag>(sdfShape);
+            filter->Setter<SDFEdgeLightSDFShapeRenderTag>(sdfShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
             drawingFilter->SetNGRenderFilter(filter);
         }
         return;
@@ -1738,7 +1733,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     if (sdfShape) {
         ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, use sdfShape, node %{public}" PRIu64,
             nodeId);
-        filter->Setter<FrostedGlassShapeRenderTag>(sdfShape);
+        filter->Setter<FrostedGlassShapeRenderTag>(sdfShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
         drawingFilter->SetNGRenderFilter(filter);
         return;
     }
@@ -1748,7 +1743,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, rrect %{public}s, node %{public}" PRIu64,
         sdfRRect.ToString().c_str(), nodeId);
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
-    filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape);
+    filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
     drawingFilter->SetNGRenderFilter(filter);
 }
 

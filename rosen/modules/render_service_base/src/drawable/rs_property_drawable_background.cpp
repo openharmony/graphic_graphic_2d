@@ -364,6 +364,13 @@ void RSBackgroundNGShaderDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing
     }
     auto effectData = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
     if (effectData != nullptr) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
+            RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, paintFilterCanvas->GetDarkColorMode(),
+                visualEffectContainer_, Drawing::GE_SHADER_FROSTED_GLASS_EFFECT,
+                Drawing::GE_SHADER_FROSTED_GLASS_EFFECT_SHAPE);
+            return;
+        }
         visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_,
             effectData->cachedRect_.GetLeft(), effectData->cachedRect_.GetTop());
         visualEffectContainer_->UpdateTotalMatrix(effectData->cachedMatrix_);
@@ -752,10 +759,13 @@ Drawing::RectI RSBackgroundEffectDrawable::GetAbsRenderEffectRect(const Drawing:
 
     Drawing::Rect absRect;
     canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
-    RectI deviceRect(0, 0, surface->Width(), surface->Height());
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas const*>(&canvas);
+    auto filterClipBounds = RSPropertyDrawableUtils::DrawingRectI2RectI(paintFilterCanvas->GetFilterClipBounds());
+    RectI clipBound = renderRelativeRectInfo_ == nullptr || filterClipBounds.IsEmpty() ?
+        RectI(0, 0, surface->Width(), surface->Height()) : filterClipBounds;
     RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
         std::ceil(absRect.GetHeight()));
-    bounds = bounds.IntersectRect(deviceRect);
+    bounds = bounds.IntersectRect(clipBound);
     Drawing::RectI boundsRect(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
     // When the drawing area of a useEffect node is empty in the current frame,
     // it won't be collected by the effect node, effect data is null(RSRenderNode::UpdateVisibleEffectChild).
@@ -998,6 +1008,11 @@ void RSMaterialFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
         return;
     }
     auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
+    if (renderIntersectWithDRM_) {
+        RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, renderIsDarkColorMode_,
+            filter->GetGEContainer(), Drawing::GE_FILTER_FROSTED_GLASS, Drawing::GE_FILTER_FROSTED_GLASS_SHAPE);
+            return;
+    }
     RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter);
     RectF bound = (rect != nullptr ?
         RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());
@@ -1038,23 +1053,13 @@ Drawing::RectI RSMaterialFilterDrawable::GetAbsRenderEffectRect(const Drawing::C
     }
 
     Drawing::RectI absRectI = absRect.RoundOut();
-    Drawing::RectI deviceRect(0, 0, surface->Width(), surface->Height());
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas const*>(&canvas);
+    auto filterClipBounds = paintFilterCanvas->GetFilterClipBounds();
+    Drawing::RectI clipBound =
+        filterClipBounds.IsEmpty() ? Drawing::RectI(0, 0, surface->Width(), surface->Height()) : filterClipBounds;
     // if absRectI.Intersect(deviceRect) is true,
     // it means that absRectI intersects with deviceRect, and absRectI has been set to their intersection.
-    return absRectI.Intersect(deviceRect) ? absRectI : Drawing::RectI();
-}
-
-void RSMaterialFilterDrawable::CalVisibleRect(const Drawing::Matrix& absMatrix,
-    const std::optional<RectI>& clipRect, const RectF& defaultRelativeRect)
-{
-    if (stagingRelativeRectInfo_ == nullptr) {
-        return;
-    }
-    stagingVisibleRectInfo_ = std::make_unique<FilterVisibleRectInfo>();
-    stagingVisibleRectInfo_->snapshotRect_ = RSObjAbsGeometry::MapRect(
-        GetStagingRelativeRect(EffectRectType::SNAPSHOT, defaultRelativeRect), absMatrix);
-    stagingVisibleRectInfo_->totalRect_ = RSObjAbsGeometry::MapRect(
-        GetStagingRelativeRect(EffectRectType::TOTAL, defaultRelativeRect), absMatrix);
+    return absRectI.Intersect(clipBound) ? absRectI : Drawing::RectI();
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

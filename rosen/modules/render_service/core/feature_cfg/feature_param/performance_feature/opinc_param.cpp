@@ -38,4 +38,14 @@ void OPIncParam::SetCacheWidthThresholdPercentValue(int cacheWidthThresholdPerce
 {
     cacheWidthThresholdPercentValue_ = cacheWidthThresholdPercentValue;
 }
+
+bool OPIncParam::IsImageAliasEnable()
+{
+    return isImageAliasEnable_;
+}
+
+void OPIncParam::SetImageAliasEnable(bool isEnable)
+{
+    isImageAliasEnable_ = isEnable;
+}
 } // namespace OHOS::Rosen

@@ -43,7 +43,7 @@ using RSRenderAnimatablePropertyTag  = RenderPropertyTagBase<Name, RSRenderAnima
     using EffectName##PropName##RenderTag = RSRenderPropertyTag<Type, EffectName##PropName##Name>
 
 class RSNGRenderMaskBase; // forward declaration, impl in rs_render_mask_base.h
-class RSNGRenderShapeBase;
+class RSNGRenderShapeBase; // forward declaration, impl in rs_render_shape_base.h
 #define MASK_PTR std::shared_ptr<RSNGRenderMaskBase>
 #define SHAPE_PTR std::shared_ptr<RSNGRenderShapeBase>
 #include "effect/rs_render_property_tag_def.in"
@@ -58,6 +58,7 @@ enum class RSNGEffectType : int16_t {
     NONE = 0,
     // filter type
     BLUR,
+    MATERIAL_BLUR,
     PIXEL_STRETCH,
     WATER_RIPPLE,
     FLY_OUT,
@@ -90,17 +91,17 @@ enum class RSNGEffectType : int16_t {
     RADIAL_GRADIENT_MASK,
     PIXEL_MAP_MASK,
     WAVE_GRADIENT_MASK,
-    FRAME_GRADIENT_MASK,
-    DUPOLI_NOISE_MASK,
     IMAGE_MASK,
     USE_EFFECT_MASK,
+    FRAME_GRADIENT_MASK,
+    DUPOLI_NOISE_MASK,
     NOISY_FRAME_GRADIENT_MASK,
     // shape type
     SDF_UNION_OP_SHAPE,
     SDF_SMOOTH_UNION_OP_SHAPE,
     SDF_RRECT_SHAPE,
-    SDF_TRANSFORM_SHAPE,
     SDF_PIXELMAP_SHAPE,
+    SDF_TRANSFORM_SHAPE,
     SDF_EMPTY_SHAPE,
     // shader type
     CONTOUR_DIAGONAL_FLOW_LIGHT,
@@ -112,13 +113,13 @@ enum class RSNGEffectType : int16_t {
     BORDER_LIGHT,
     COLOR_GRADIENT_EFFECT,
     HARMONIUM_EFFECT,
+    GASIFY_SCALE_TWIST,
+    GASIFY_BLUR,
+    GASIFY,
     AIBAR_GLOW,
     AIBAR_RECT_HALO,
     ROUNDED_RECT_FLOWLIGHT,
     GRADIENT_FLOW_COLORS,
-    GASIFY_SCALE_TWIST,
-    GASIFY_BLUR,
-    GASIFY,
     FROSTED_GLASS,
     CIRCLE_FLOWLIGHT,
     FROSTED_GLASS_EFFECT,

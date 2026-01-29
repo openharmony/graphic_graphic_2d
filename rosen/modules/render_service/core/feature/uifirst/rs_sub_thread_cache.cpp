@@ -346,7 +346,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
         } else if (targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
             colorSpace = (targetColorGamut_ == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) ?
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3) :
-                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC_2020);
+                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
         }
         cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
             width, height, ExtractPid(nodeDrawable->nodeId_), format);
@@ -629,7 +629,7 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
         RS_LOGE("CalculateUifirstDirtyRegion uifirstDirtyManager is nullptr");
         return false;
     }
-    // Avoid diffrent values of absDrawRect in rending thread and subthread.
+    // Avoid different values of absDrawRect in rendering thread and subthread.
     auto surfaceParams = isUifirstRootNode ?
         static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetUifirstRenderParams().get()) :
         static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
@@ -786,29 +786,6 @@ void RsSubThreadCache::UifirstDirtyRegionDfx(Drawing::Canvas& canvas, Drawing::R
     canvas.DetachBrush();
 }
 
-NodeId RsSubThreadCache::GetSubAppNodeId(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable)
-{
-    NodeId tagNodeId = surfaceDrawable->GetId();
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetUifirstRenderParams().get());
-    if (UNLIKELY(!surfaceParams)) {
-        return tagNodeId;
-    }
-    for (const auto& subDrawable : surfaceDrawable->GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
-        if (UNLIKELY(!subDrawable)) {
-            continue;
-        }
-        auto subSurfaceParams = static_cast<RSSurfaceRenderParams*>(subDrawable->GetUifirstRenderParams().get());
-        if (UNLIKELY(!subSurfaceParams)) {
-            continue;
-        }
-        if (subSurfaceParams->IsAppWindow()) {
-            tagNodeId = subDrawable->GetId();
-            break;
-        }
-    }
-    return tagNodeId;
-}
-
 void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, Drawing::Canvas& canvas)
 {
     if (!surfaceDrawable) {
@@ -826,8 +803,6 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
         RS_LOGE("SubDraw, rscanvas is nullptr");
         return;
     }
-    RSTagTracker tagTracker(rscanvas->GetGPUContext(), GetSubAppNodeId(surfaceDrawable),
-        RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE, surfaceDrawable->GetName());
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();

@@ -104,7 +104,7 @@ void RSVKImageManagerFuzztest(const uint8_t* data, size_t size)
     (void)vkImageManager->MapVkImageFromSurfaceBuffer(buffer1, bufferFence1, tid); // map buffer
     (void)vkImageManager->MapVkImageFromSurfaceBuffer(buffer1, bufferFence1, tid); // map same buffer again
     (void)vkImageManager->MapVkImageFromSurfaceBuffer(buffer1, nullptr, tid); // map buffer without fence
-    vkImageManager->UnMapImageFromSurfaceBuffer(buffer1->GetSeqNum());
+    vkImageManager->UnMapImageFromSurfaceBuffer(buffer1->GetBufferId());
 
     auto buffer2 = CreateBuffer();
     if (!buffer2) {
@@ -130,15 +130,15 @@ void RSVKImageManagerFuzztestVKSemaphore(const uint8_t* data, size_t size)
     auto fakeTid = GetData<uint32_t>();
     if (vkImageManager && buffer1 && drawingSurface) {
         (void)vkImageManager->MapVkImageFromSurfaceBuffer(buffer1, bufferFence1, fakeTid, drawingSurface.get());
-        (void)vkImageManager->UnMapImageFromSurfaceBuffer(buffer1->GetSeqNum());
+        vkImageManager->UnMapImageFromSurfaceBuffer(buffer1->GetBufferId());
         (void)vkImageManager->MapVkImageFromSurfaceBuffer(buffer1, nullptr, fakeTid, nullptr);
-        (void)vkImageManager->UnMapImageFromSurfaceBuffer(buffer1->GetSeqNum());
+        vkImageManager->UnMapImageFromSurfaceBuffer(buffer1->GetBufferId());
 
         VkDevice device = RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_;
         RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_ = VK_NULL_HANDLE;
         (void)vkImageManager->MapVkImageFromSurfaceBuffer(buffer1, bufferFence1, fakeTid, drawingSurface.get());
         RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_ = device;
-        (void)vkImageManager->UnMapImageFromSurfaceBuffer(buffer1->GetSeqNum());
+        vkImageManager->UnMapImageFromSurfaceBuffer(buffer1->GetBufferId());
     }
 }
 } // namespace Rosen

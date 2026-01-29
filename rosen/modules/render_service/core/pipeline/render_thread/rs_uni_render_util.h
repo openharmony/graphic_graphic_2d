@@ -97,6 +97,7 @@ public:
     static int TransferToAntiClockwiseDegrees(int angle);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
+    static std::tuple<float, float> GetScaleFromMatrix(Drawing::Matrix matrix);
 
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,

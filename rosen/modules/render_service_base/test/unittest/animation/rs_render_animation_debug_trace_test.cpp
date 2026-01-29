@@ -342,20 +342,6 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, OnAnimationTraceEnabledChangedCallback
     EXPECT_FALSE(RSAnimationTraceUtils::isDebugEnabled_);
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: GetModifierTypeString
- * @tc.desc: Verify the GetModifierTypeString
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderAnimationDebugTraceTest, GetModifierTypeString, TestSize.Level1)
-{
-    EXPECT_EQ(RSAnimationTraceUtils::GetInstance().GetModifierTypeString(RSModifierType::BOUNDS), "Bounds");
-
-    EXPECT_EQ(RSAnimationTraceUtils::GetInstance().GetModifierTypeString(RSModifierType::QUATERNION), "Quaternion");
-}
-#endif // !MODIFIER_NG
-
 /**
  * @tc.name: GetAnimationTypeString
  * @tc.desc: Verify the GetAnimationTypeString

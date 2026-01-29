@@ -231,6 +231,9 @@ public:
     void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod) { isEqualVsyncPeriod_ = isEqualVsyncPeriod; }
     bool IsEqualVsyncPeriod() const { return isEqualVsyncPeriod_; }
 
+    void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
+    ScreenRotation GetLogicalCameraRotationCorrection() const;
+
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
@@ -278,6 +281,7 @@ private:
     Occlusion::Region drawnRegion_;
     bool forceFreeze_ = false;
     bool hasMirroredScreenChanged_ = false;
+    ScreenRotation logicalCameraRotationCorrection_ = ScreenRotation::ROTATION_0;
 };
 } // namespace OHOS::Rosen
 

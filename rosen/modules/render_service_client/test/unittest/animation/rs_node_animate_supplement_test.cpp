@@ -158,120 +158,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest004, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest004 end";
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSNodeAnimateSupplementTest005
- * @tc.desc: Verify the SetMotionPathOption
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest005, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest005 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto node = std::make_shared<RSNodeMock>(false);
-    EXPECT_TRUE(node != nullptr);
-    node->SetMotionPathOption(nullptr);
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
-    auto property1 = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto modifier1 = std::make_shared<RSBoundsModifier>(property1);
-    node->AddModifier(modifier1);
-    auto property2 = std::make_shared<RSAnimatableProperty<float>>(0.0f);
-    auto modifier2 = std::make_shared<RSAlphaModifier>(property2);
-    node->AddModifier(modifier2);
-    node->SetMotionPathOption(motionPathOption);
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest005 end";
-}
-
-/**
- * @tc.name: RSNodeAnimateSupplementTest006
- * @tc.desc: Verify the SetBounds
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest006, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest006 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto node = std::make_shared<RSNodeMock>(false);
-    EXPECT_TRUE(node != nullptr);
-    node->SetBoundsWidth(100.0f);
-    node->SetBoundsHeight(100.0f);
-    auto modifier1 = std::make_shared<RSBoundsModifier>(nullptr);
-    node->AddModifier(modifier1);
-    node->SetBoundsWidth(100.0f);
-    node->SetBoundsHeight(100.0f);
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto modifier = std::make_shared<RSBoundsModifier>(property);
-    node->AddModifier(modifier);
-    node->SetBoundsWidth(100.0f);
-    node->SetBoundsWidth(10.0f);
-    node->SetBoundsHeight(100.0f);
-    node->SetBoundsHeight(10.0f);
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest006 end";
-}
-
-/**
- * @tc.name: RSNodeAnimateSupplementTest007
- * @tc.desc: Verify the SetFrame
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest007, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest007 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto node = std::make_shared<RSNodeMock>(false);
-    EXPECT_TRUE(node != nullptr);
-    node->SetFramePositionX(100.0f);
-    node->SetFramePositionY(100.0f);
-    auto modifier1 = std::make_shared<RSFrameModifier>(nullptr);
-    node->AddModifier(modifier1);
-    node->SetFramePositionX(100.0f);
-    node->SetFramePositionY(100.0f);
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto modifier = std::make_shared<RSFrameModifier>(property);
-    node->AddModifier(modifier);
-    node->SetFramePositionX(100.0f);
-    node->SetFramePositionY(10.0f);
-    node->SetFramePositionX(100.0f);
-    node->SetFramePositionY(10.0f);
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest007 end";
-}
-
-/**
- * @tc.name: RSNodeAnimateSupplementTest008
- * @tc.desc: Verify the SetPivot
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest008, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest008 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto node = std::make_shared<RSNodeMock>(false);
-    EXPECT_TRUE(node != nullptr);
-    node->SetPivotX(100.0f);
-    node->SetPivotY(100.0f);
-    auto modifier1 = std::make_shared<RSFrameModifier>(nullptr);
-    node->AddModifier(modifier1);
-    node->SetPivotX(100.0f);
-    node->SetPivotY(100.0f);
-    auto property = std::make_shared<RSAnimatableProperty<Vector2f>>(ANIMATION_NORMAL_SCALE);
-    auto modifier = std::make_shared<RSFrameModifier>(property);
-    node->AddModifier(modifier);
-    node->SetPivotX(100.0f);
-    node->SetPivotY(10.0f);
-    node->SetPivotX(100.0f);
-    node->SetPivotY(10.0f);
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest008 end";
-}
-#endif
-
 /**
  * @tc.name: RSNodeAnimateSupplementTest009
  * @tc.desc: Verify the SetMask
@@ -320,67 +206,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest010, TestSize.Level1)
     node->OnRemoveChildren();
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest010 end";
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSNodeAnimateSupplementTest011
- * @tc.desc: Verify the AddModifier
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest011, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest011 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto node = std::make_shared<RSNodeMock>(false);
-    EXPECT_TRUE(node != nullptr);
-    node->SetMotionPathOption(nullptr);
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto modifier = std::make_shared<RSBoundsModifier>(property);
-    node->AddModifier(modifier);
-
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
-    node->SetMotionPathOption(motionPathOption);
-    auto property2 = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto modifier2 = std::make_shared<RSBoundsModifier>(property2);
-    node->AddModifier(modifier2);
-    auto property3 = std::make_shared<RSAnimatableProperty<float>>(0.0f);
-    auto modifier3 = std::make_shared<RSAlphaModifier>(property3);
-    node->AddModifier(modifier3);
-    auto property4 = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto modifier4 = std::make_shared<RSFrameModifier>(property4);
-    node->AddModifier(modifier4);
-    auto property5 = std::make_shared<RSAnimatableProperty<Vector2f>>(ANIMATION_NORMAL_SCALE);
-    auto modifier5 = std::make_shared<RSTranslateModifier>(property5);
-    node->AddModifier(modifier5);
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest011 end";
-}
-
-/**
- * @tc.name: RSNodeAnimateSupplementTest012
- * @tc.desc: Verify the RemoveModifier
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest012, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest012 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto node = std::make_shared<RSNodeMock>(false);
-    EXPECT_TRUE(node != nullptr);
-    node->RemoveModifier(nullptr);
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto modifier = std::make_shared<RSBoundsModifier>(property);
-    node->AddModifier(modifier);
-    auto property2 = std::make_shared<RSAnimatableProperty<float>>(0.0f);
-    auto modifier2 = std::make_shared<RSAlphaModifier>(property2);
-    node->RemoveModifier(modifier2);
-
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest012 end";
-}
-#endif
 
 /**
  * @tc.name: RSNodeAnimateSupplementTest013
@@ -490,60 +315,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest016, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest016 end";
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSNodeAnimateSupplementTest017
- * @tc.desc: Verify the setcallback of Animation
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest017, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest017 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto node = std::make_shared<RSNodeMock>(true);
-    EXPECT_TRUE(node != nullptr);
-    std::shared_ptr<RSMotionPathOption> option = std::make_shared<RSMotionPathOption>("abc");
-    node->SetMotionPathOption(option);
-    node->SetBounds(1.f, 2.f, 3.f, 4.f);
-    node->SetMotionPathOption(option);
-    Vector4f data(2.f, 3.f, 4.f, 5.f);
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
-    auto modifier = std::make_shared<RSBoundsModifier>(property);
-    node->AddModifier(modifier);
-    node->SetMotionPathOption(option);
-    node->SetAlphaOffscreen(true);
-    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest017 end";
-}
-
-/**
- * @tc.name: RSNodeAnimateSupplementTest018
- * @tc.desc: Verify the setcallback of Animation
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest018, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest018 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto node = std::make_shared<RSNodeMock>(true);
-    EXPECT_TRUE(node != nullptr);
-    Vector4f data(2.f, 3.f, 4.f, 5.f);
-    auto property1 = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
-    auto modifier1 = std::make_shared<RSBoundsModifier>(property1);
-    node->AddModifier(modifier1);
-    auto modifier2 = std::make_shared<RSFrameModifier>(property1);
-    node->AddModifier(modifier2);
-    node->SetBoundsWidth(10.f);
-    node->SetBoundsHeight(20.f);
-    node->SetFramePositionX(5.f);
-    node->SetFramePositionY(6.f);
-    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest018 end";
-}
-#endif
-
 /**
  * @tc.name: RSNodeAnimateSupplementTest019
  * @tc.desc: Verify the setcallback of Animation
@@ -565,54 +336,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest019, TestSize.Level1)
     node->OnRemoveChildren();
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest019 end";
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSNodeAnimateSupplementTest020
- * @tc.desc: Verify the setcallback of Animation
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest020, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest020 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto node = std::make_shared<RSNodeMock>(true);
-    EXPECT_TRUE(node != nullptr);
-    std::shared_ptr<RSMotionPathOption> option = std::make_shared<RSMotionPathOption>("abc");
-    node->SetMotionPathOption(option);
-    Vector4f data(2.f, 3.f, 4.f, 5.f);
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
-    auto modifier = std::make_shared<RSBoundsModifier>(property);
-    node->AddModifier(modifier);
-    node->RemoveModifier(modifier);
-    node->RemoveModifier(modifier);
-    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest020 end";
-}
-
-/**
- * @tc.name: RSNodeAnimateSupplementTest021
- * @tc.desc: Verify the setcallback of Animation
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest021, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest021 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto node = std::make_shared<RSNodeMock>(true);
-    EXPECT_TRUE(node != nullptr);
-    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
-    auto modifier = std::make_shared<RSAlphaModifier>(property);
-    node->AddModifier(modifier);
-    auto ids = node->GetModifierIds();
-    EXPECT_TRUE(!ids.empty());
-    node->DumpNode(10);
-    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest021 end";
-}
-#endif
 
 /**
  * @tc.name: RSNodeAnimateSupplementTest022
@@ -720,35 +443,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest026, TestSize.Level1)
     EXPECT_EQ(ret, CancelAnimationStatus::EMPTY_PENDING_SYNC_LIST);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest026 end";
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSNodeAnimateSupplementTest026
- * @tc.desc: Verify CloseImplicitCancelAnimationReturnStatus
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest027, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest027 start";
-    auto node = std::make_shared<RSNodeMock>(false);
-    EXPECT_TRUE(node != nullptr);
-    auto alphaProperty = std::make_shared<RSAnimatableProperty<float>>(0.1f);
-    auto alphaModifier = std::make_shared<RSAlphaModifier>(alphaProperty);
-    node->AddModifier(alphaModifier);
-
-    RSAnimationTimingProtocol protocol;
-    RSAnimationTimingCurve curve;
-    RSNode::Animate(protocol, curve, [&]() {
-        alphaProperty->Set(1.f);
-    });
-    protocol.SetDuration(0);
-    RSNode::OpenImplicitAnimation(protocol, curve);
-    alphaProperty->RequestCancelAnimation();
-    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus();
-    EXPECT_EQ(ret, CancelAnimationStatus::SUCCESS);
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest027 end";
-}
-#endif
 
 /**
  * @tc.name: RSNodeAnimateSupplementTest028

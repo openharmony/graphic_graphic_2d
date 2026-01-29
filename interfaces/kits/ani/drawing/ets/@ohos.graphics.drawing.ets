@@ -5457,7 +5457,7 @@ namespace drawing {
     static native getHeight(rect: common2D.Rect): double;
 
     /**
-     * Relpace a 2D rectangular object by the intersection of itself and another.
+     * Replace a 2D rectangular object by the intersection of itself and another.
      * If the intersection is empty, nothing is done.
      *
      * @param { common2D.Rect } rect - Indicates the Rect object.
@@ -5499,7 +5499,7 @@ namespace drawing {
     static native offset(rect: common2D.Rect, dx: double, dy: double): void;
 
     /**
-     * Normalizes the 2D rectangular object to ensuer validity.
+     * Normalizes the 2D rectangular object to ensure validity.
      * Swaps the left and right if the left is greater than right;
      * and swaps top and bottom if the top is greater than bottom.
      * If the edges are already valid, then nothing is done.

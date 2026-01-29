@@ -78,13 +78,13 @@ public:
     }
     int DupReservedFlushFd();
 
+    void CancelBufferForCurrentFrame();
     int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height,
         int& fenceFd, bool useAFBC, bool isProtected = false);
     bool PreAllocateProtectedBuffer(int32_t width, int32_t height);
 
     void MarkAsHpaeSurface();
     void PreAllocateHpaeBuffer(int32_t width, int32_t height, int32_t bufferCount, bool useAFBC);
-    void CancelBufferForCurrentFrame();
 
 private:
     struct NativeWindow* mNativeWindow = nullptr;
@@ -113,6 +113,7 @@ private:
     void SubmitGpuAndHpaeTask(const uint64_t& preFrameId, const uint64_t& curFrameId);
     void SubmitHapeTask(const uint64_t& curFrameId);
 #endif
+    void CancelBuffer(NativeBufferUtils::NativeSurfaceInfo& surface);
     void ReleasePreAllocateBuffer();
 };
 

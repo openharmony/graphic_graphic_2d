@@ -369,11 +369,11 @@ int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSt
     return resCode;
 }
 
-void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t> pidList)
+void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
     auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline != nullptr) {
-        renderPipeline->DropFrameByPid(pidList);
+        renderPipeline->DropFrameByPid(pidList, dropFrameLevel);
     }
 }
 
@@ -607,5 +607,17 @@ int32_t RSRenderPipelineClient::SubmitCanvasPreAllocatedBuffer(
     return renderPipeline->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif // ROSEN_OHOS && RS_ENABLE_VK
+
+int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::SetLogicalCameraRotationCorrection renderPipeline is nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    RS_LOGD("RSRenderPipelineClient::SetLogicalCameraRotationCorrection, screenId: %{public}"
+        PRIu64 ", logicalCorrection: %{public}u", id, logicalCorrection);
+    return renderPipeline->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+}
 } // namespace Rosen
 } // namespace OHOS
