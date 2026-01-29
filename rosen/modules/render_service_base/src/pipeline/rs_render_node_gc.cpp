@@ -80,6 +80,9 @@ void RSRenderNodeGC::NodeDestructor(RSRenderNode* ptr)
 
 void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
 {
+    if (ptr == nullptr) {
+        return;
+    }
     AddNodeToBucket(ptr);
     DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
 }
