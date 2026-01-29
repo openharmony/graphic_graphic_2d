@@ -575,6 +575,8 @@ void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 
 int32_t RSInterfaces::SetDualScreenState(ScreenId id, DualScreenStatus status)
 {
+    ROSEN_LOGI("RSInterfaces::SetDualScreenState. screen id:%{public}" PRIu64 " status:%{public}" PRIu64,
+               id, static_cast<uint64_t>(status));
     return renderServiceClient_->SetDualScreenState(id, status);
 }
 

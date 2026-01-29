@@ -425,7 +425,8 @@ int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
     return clientToService->SetScreenSecurityMask(id, std::move(securityMask));
 }
 
-int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation)
+int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect,
+    bool supportRotation)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
@@ -441,6 +442,8 @@ int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool e
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
+    ROSEN_LOGI("RSRenderServiceClient::SetCastScreenEnableSkipWindow: id:%{public}" PRIu64 ", enable:%{public}d",
+        id, enable);
 
     return clientToService->SetCastScreenEnableSkipWindow(id, enable);
 }
