@@ -189,6 +189,7 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Sur
         return producer;
     }
 #endif
+
     // CPU render
     producer = std::make_shared<RSSurfaceOhosRaster>(surface);
     return producer;
