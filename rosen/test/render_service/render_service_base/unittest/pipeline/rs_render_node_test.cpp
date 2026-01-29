@@ -1322,10 +1322,10 @@ HWTEST_F(RSRenderNodeTest, HasBlurFilterTest, TestSize.Level1)
     node.renderProperties_.effect_->materialFilter_ = std::make_shared<RSFilter>();
     EXPECT_TRUE(node.HasBlurFilter());
 
-    node.renderProperties_.effect_->filter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.filter_ = std::make_shared<RSFilter>();
     EXPECT_TRUE(node.HasBlurFilter());
 
-    node.renderProperties_.effect_->backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
     EXPECT_TRUE(node.HasBlurFilter());
     EXPECT_TRUE(node.renderProperties_.GetBackgroundFilter());
 }
