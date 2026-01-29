@@ -760,6 +760,7 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
     {
         std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
         outOfLimitCmdList_.clear();
+        drawCmdListsNG_.clear();
         cachedOpCount_ = 0;
     }
     std::lock_guard<std::mutex> lockTask(taskMutex_);

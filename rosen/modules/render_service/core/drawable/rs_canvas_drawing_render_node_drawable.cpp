@@ -210,8 +210,9 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 {
     {
         std::optional<RSTagTracker> tagTracer;
-        if (renderParams_ && canvas_) {
-            tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+        auto gpuContext = GetGpuContext();
+        if (gpuContext && renderParams_) {
+            tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
                 RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
         }
         DrawContent(*canvas_, rect);
@@ -326,8 +327,8 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
         }
 
         std::optional<RSTagTracker> tagTracer;
-        if (canvas_) {
-            tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+        if (auto gpuContext = GetGpuContext()) {
+            tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
                 RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
         }
 
@@ -495,8 +496,9 @@ void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::sh
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     std::optional<RSTagTracker> tagTracer;
-    if (renderParams_ && canvas_) {
-        tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+    auto gpuContext = GetGpuContext();
+    if (gpuContext && renderParams_) {
+        tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
             RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
     }
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -996,6 +998,17 @@ bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContext(std::shared_ptr<Drawin
         }
     }
     return true;
+}
+
+std::shared_ptr<Drawing::GPUContext> RSCanvasDrawingRenderNodeDrawable::GetGpuContext()
+{
+    if (canvas_ != nullptr) {
+        return canvas_->GetGPUContext();
+    }
+
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    GetCurrentContext(gpuContext);
+    return gpuContext;
 }
 
 bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetGL(
