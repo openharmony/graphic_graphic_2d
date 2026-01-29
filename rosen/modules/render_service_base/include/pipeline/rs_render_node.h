@@ -964,6 +964,7 @@ public:
     void ResetNodeColorSpace();
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetNodeColorSpace() const;
+    virtual void MarkNodeColorSpace(bool isP3) {}
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 

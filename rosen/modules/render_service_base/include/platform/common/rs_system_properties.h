@@ -283,7 +283,6 @@ public:
     static bool GetUIFirstBehindWindowFilterEnabled();
     static bool GetUIFirstAutoClearCacheEnabled();
     static bool GetWideColorSpaceEnabled();
-    static bool GetSkipUnpremulEnabled();
     static bool GetSubtreeParallelEnable();
     static uint32_t GetSubtreeDebugOption();
     static bool GetSurfaceOffscreenEnadbled();

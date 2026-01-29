@@ -409,5 +409,12 @@ void RSCanvasRenderNode::UpdateNodeColorSpace()
     SetNodeColorSpace(nodeColorSpace);
 }
 
+void RSCanvasRenderNode::MarkNodeColorSpace(bool isP3Color)
+{
+    if (isP3Color) {
+        SetColorGamut(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

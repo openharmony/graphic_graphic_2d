@@ -576,11 +576,6 @@ bool RSSystemProperties::GetWideColorSpaceEnabled()
     return true;
 }
 
-bool RSSystemProperties::GetSkipUnpremulEnabled()
-{
-    return true;
-}
-
 bool RSSystemProperties::GetRenderParallelEnabled()
 {
     return false;
