@@ -681,7 +681,7 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
         callback->OnSurfaceCapture(id, captureConfig, pixelmap.get());
 		
         RS_LOGI("RSSurfaceCaptureTaskParallel::Capture capture success nodeId:[%{public}" PRIu64 "], "
-           "pixelMap width: %{public}d, height: %{public}d",id,pixelmap->GetWidth(), pixelmap->GetHeight());
+           "pixelMap width: %{public}d, height: %{public}d", id, pixelmap->GetWidth(), pixelmap->GetHeight());
         RSBackgroundThread::Instance().CleanGrResource();
         RSUniRenderUtil::ClearNodeCacheSurface(
             std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
