@@ -47,15 +47,6 @@ constexpr uint32_t ROTATION_360 = 360;
 constexpr uint64_t USAGE_HARDWARE_CURSOR = 1ULL << 61;
 constexpr uint64_t USAGE_UNI_LAYER = 1ULL << 60;
 }
-static bool IsIdentityMatrix3(std::vectot<int8_t>& matrix)
-{
-    return ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX0], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&
-        ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX1], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&
-        ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX2], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&
-        ROSEN_EQ(std::accumulate(matrix.begin(), matrix.end(), IDENTITY_MATRIX_DIAGONAL_SUM_INIT),
-            IDENTITY_MATRIX_DIAGONAL_SUM)
-}
-
 RSUniHwcPrevalidateUtil& RSUniHwcPrevalidateUtil::GetInstance()
 {
     static RSUniHwcPrevalidateUtil instance;
@@ -204,6 +195,15 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         node->GetSrcRect().ToString().c_str(), node->GetDstRect().ToString().c_str(),
         zorder, info.bufferUsage, info.layerUsage, info.format, info.transform, fps);
     return true;
+}
+
+bool RSUniHwcPrevalidateUtil::IsIdentityMatrix3(std::vectot<int8_t>& matrix) const
+{
+    return ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX0], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&
+        ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX1], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&
+        ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX2], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&
+        ROSEN_EQ(std::accumulate(matrix.begin(), matrix.end(), IDENTITY_MATRIX_DIAGONAL_SUM_INIT),
+            IDENTITY_MATRIX_DIAGONAL_SUM)
 }
 
 bool RSUniHwcPrevalidateUtil::IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr node) const
