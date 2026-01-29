@@ -752,8 +752,8 @@ HWTEST_F(RsRenderComposerTest, ComposerProcess_ComposerContext_Not_Nullptr, Test
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
     EXPECT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
     rsRenderComposerTmp->rsRenderComposerContext_ = std::make_shared<RSRenderComposerContext>();
-    unint32_t currentRate = 0;
-    auto tx = shd::make_shared<RSLayerTransactionDate>();
+    uint32_t currentRate = 0;
+    auto tx = std::make_shared<RSLayerTransactionData>();
     rsRenderComposerTmp->ComposerProcess(currentRate, tx);
 }
 
@@ -1242,12 +1242,12 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut002, TestSize.Level1)
     GraphicColorGamut colorGamut = rsRenderComposer_->ComputeTargetColorGamut(buffer);
     EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_SRGB);
 
-    CM_ColorSpaceInfo infoSet = {
+    infoSet = {
         .primaries = COLORPRIMARIES_BT2020,
     };
     retSet = MetadataHelper::SetColorSpaceInfo(buffer, infoSet);
     EXPECT_EQ(retSet, GSERROR_OK);
-    GraphicColorGamut colorGamut = rsRenderComposer_->ComputeTargetColorGamut(buffer);
+    colorGamut = rsRenderComposer_->ComputeTargetColorGamut(buffer);
     EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     csurf->UnregisterConsumerListener();
 }
