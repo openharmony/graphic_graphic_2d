@@ -68,15 +68,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     auto behindWndRect = GetData<RectI>();
     std::shared_ptr<RSRenderThreadVisitor>rsRenderThreadVisitor;
     auto keyframeNode = std::make_shared<RSWindowKeyFrameRenderNode>(nodeId);
-    keyframeNode->GetType();
-    keyframeNode->OnTreeStateChanged();
     keyframeNode->QuickPrepare(rsRenderThreadVisitor);
     keyframeNode->SetLinkedNodeId(nodeId);
-    keyframeNode->GetLinkedNodeId();
-    keyframeNode->CollectLinkedNodeInfo();
-
-    keyframeNode->GetLinkedNodeCount();
-    keyframeNode->ClearLinkedNodeInfo();
     keyframeNode->ResetLinkedWindowKeyFrameInfo(*keyframeNode);
 
     RSSurfaceRenderNode surfaceNode{nodeId};
