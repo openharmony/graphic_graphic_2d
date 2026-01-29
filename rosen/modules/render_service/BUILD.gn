@@ -110,6 +110,7 @@ ohos_shared_library("librender_service") {
           "-mllvm",
           "-enable-partial-inlining",
         ]
+        inputs = [ "${graphic_2d_feature_pgo_path}/librender_service.profdata" ]
       }
       if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
         cflags += [ "-moutline-atomics" ]
