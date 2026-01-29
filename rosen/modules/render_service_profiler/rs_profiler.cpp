@@ -1234,8 +1234,8 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
 
     DisableSharedMemory();
     errReason = UnmarshalNodes(*context_, stream, fileVersion);
-    EnableSharedMemory();
     UnmarshalSelfDrawingBuffers();
+    EnableSharedMemory();
     SetSubMode(SubMode::NONE);
 
     if (errReason.size()) {
@@ -1303,14 +1303,14 @@ std::string RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_
         std::vector<uint8_t> fontData;
         std::stringstream fontStream;
         size_t fontStreamSize;
-        constexpr size_t fontStreamSizeMax = 100'000'000;
+        constexpr auto fontStreamSizeMax = 1024u * 1024u * 1024u;
         
         stream.read(reinterpret_cast<char*>(&fontStreamSize), sizeof(fontStreamSize));
         if (!fontStreamSize) {
             return "";
         }
         if (fontStreamSize > fontStreamSizeMax) {
-            return "Typeface track is damaged";
+            return "Typeface track size is over 1GB";
         }
         fontData.resize(fontStreamSize);
         stream.read(reinterpret_cast<char*>(fontData.data()), fontData.size());
@@ -1559,6 +1559,7 @@ void RSProfiler::RecordSave()
     const uint32_t sizeFirstFrame = static_cast<uint32_t>(g_recordFile.GetHeaderFirstFrame().size());
     stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
     stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
+    SendMessage("Record: First frame size: %d", sizeFirstFrame);
 
     // ANIME START TIMES
     const auto headerAnimeStartTimes = AnimeGetStartTimesFlattened(g_recordStartTime);
@@ -2230,9 +2231,10 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     animeMap.clear();
 
     Respond("Opening file " + path);
-    g_playbackFile.Open(path);
+    std::string error;
+    g_playbackFile.Open(path, error);
     if (!g_playbackFile.IsOpen()) {
-        Respond("Can't open file: not found");
+        SendMessage("Can't open file: %s", error.data());
         return;
     }
 
@@ -2837,7 +2839,10 @@ std::string RSProfiler::UnmarshalSubTree(RSContext& context, std::stringstream& 
         ImageCache::Reset();
     }
 
-    TypefaceUnmarshalling(data, fileVersion);
+    std::string errReason = TypefaceUnmarshalling(data, fileVersion);
+    if (!errReason.empty()) {
+        return errReason;
+    }
 
     uint32_t pixelMapSize = 0u;
     data.read(reinterpret_cast<char*>(&pixelMapSize), sizeof(pixelMapSize));
@@ -2851,7 +2856,7 @@ std::string RSProfiler::UnmarshalSubTree(RSContext& context, std::stringstream& 
     SetSubMode(SubMode::READ_EMUL);
     DisableSharedMemory();
 
-    std::string errReason = UnmarshalSubTreeLo(context, data, attachNode, fileVersion);
+    errReason = UnmarshalSubTreeLo(context, data, attachNode, fileVersion);
 
     EnableSharedMemory();
     SetSubMode(SubMode::NONE);
