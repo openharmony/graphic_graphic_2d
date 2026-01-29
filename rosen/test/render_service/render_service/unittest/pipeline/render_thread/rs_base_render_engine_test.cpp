@@ -22,6 +22,7 @@
 #else
 #include "feature/gpuComposition/rs_egl_image_manager.h"
 #endif
+#include "feature/hdr/rs_hdr_util.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_test_util.h"
@@ -712,6 +713,17 @@ HWTEST_F(RSBaseRenderEngineUnitTest, SetColorSpaceConverterDisplayParameterTest,
     params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
     ASSERT_EQ(renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter), true);
+
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
+    bool ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
+    EXPECT_EQ(ret, false);
+
+    staticMetadata.cta861.maxContentLightLevel = 400.0f;
+    MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
+    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
+    renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter);
+    EXPECT_EQ(ret, true);
 #endif
 }
 

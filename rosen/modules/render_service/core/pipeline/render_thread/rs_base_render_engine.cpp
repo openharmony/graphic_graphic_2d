@@ -16,10 +16,11 @@
 #include "rs_base_render_engine.h"
 
 #include <memory>
-#include "v2_1/cm_color_space.h"
+#include "v2_2/cm_color_space.h"
 
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
@@ -65,6 +66,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
+constexpr uint8_t HDR_SELF_PROCESSING_TYPE = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT;
 
 std::vector<RectI> RSRenderFrame::CheckAndVerifyDamageRegion(
     const std::vector<RectI>& rects, const RectI& surfaceRect) const
@@ -482,6 +484,11 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     RSColorSpaceConvert::Instance().GetHDRStaticMetadata(params.buffer, parameter.staticMetadata, ret);
     RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata, ret);
     RSColorSpaceConvert::Instance().GetFOVMetadata(params.buffer, parameter.adaptiveFOVMetadata);
+    if (RSHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer)) {
+        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor CheckIsHDRSelfProcessingBuffer is true");
+        parameter.inputColorSpace.metadataType = static_cast<CM_HDR_Metadata_Type>(HDR_SELF_PROCESSING_TYPE);
+        parameter.outputColorSpace.metadataType = static_cast<CM_HDR_Metadata_Type>(HDR_SELF_PROCESSING_TYPE);
+    }
 #endif
 
     parameter.width = params.buffer->GetWidth();
