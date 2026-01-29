@@ -1775,6 +1775,12 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 
 void RSNode::SetBackgroundColor(RSColor color)
 {
+    RSColor colorInP3 = color;
+    if (colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        isP3Color_ = true;
+        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), isP3Color_);
+        AddCommand(command, IsRenderServiceNode());
+    }
 #ifndef ROSEN_CROSS_PLATFORM
     color.ConvertToP3ColorSpace();
 #endif

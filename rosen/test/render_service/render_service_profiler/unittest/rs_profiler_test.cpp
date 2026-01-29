@@ -79,6 +79,7 @@ public:
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void OnTreeStateChanged() override {}
     void UpdateNodeColorSpace() override {}
+    void MarkNodeColorSpace(bool isP3Color) override {}
 };
 
 class RSProfilerTest : public testing::Test {
