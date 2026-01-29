@@ -91,12 +91,28 @@ public:
         pageNameList_.insert(pageName);
     }
 
+    const std::unordered_set<std::string>& GetAppBufferList() const {
+        return appBufferList_;
+    }
+
+    void AddAppBuffer(const std::string& appBuffer) {
+        appBufferList_.insert(appBuffer);
+    }
+
+    void AddAppBuffer(std::string&& appBuffer) {
+        appBufferList_.emplace(std::move(appBuffer));
+    }
+
+protected:
+    static bool UnmarshallingAppBufferList(Parcel& parcel, RSHgmConfigData& data);
+
 private:
     std::vector<AnimDynamicItem> configData_;
     float ppi_ = 1.0f;
     float xDpi_ = 1.0f;
     float yDpi_ = 1.0f;
     std::unordered_set<std::string> pageNameList_;
+    std::unordered_set<std::string> appBufferList_;
 };
 } // namespace Rosen
 } // namespace OHOS
