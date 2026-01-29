@@ -40,12 +40,6 @@ constexpr size_t MATRIX_SIZE = 9;
 constexpr uint32_t ROTATION_360 = 360;
 constexpr uint64_t USAGE_HARDWARE_CURSOR = 1ULL << 61;
 constexpr uint64_t USAGE_UNI_LAYER = 1ULL << 60;
-static bool IsMatrix3Identity(std::vectot<int8_t>& matrix3)
-{
-    return ROSEN_EQ(matrix3[0], 1.0) && ROSEN_EQ(matrix3[0], 0.0) && ROSEN_EQ(matrix3[0], 0.0) &&
-        ROSEN_EQ(matrix3[0], 0.0) && ROSEN_EQ(matrix3[0], 1.0) && ROSEN_EQ(matrix3[0], 0.0) &&
-        ROSEN_EQ(matrix3[0], 0.0) && ROSEN_EQ(matrix3[0], 0.0) && ROSEN_EQ(matrix3[0], 1.0);
-}
 }
 
 RSUniHwcPrevalidateUtil& RSUniHwcPrevalidateUtil::GetInstance()
@@ -181,7 +175,9 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
     stagingSurfaceParams->SetOfflineOriginBufferSynced(true);
     const auto& layerLinearMatrix = stagingSurfaceParams->GetLayerLinearMatrix();
-    if (layerLinearMatrix.size() == MATRIX_SIZE && IsMatrix3Identity(layerLinearMatrix)) {
+    if (layerLinearMatrix.size() == MATRIX_SIZE && ROSEN_EQ(layerLinearMatrix[0], 1.0) &&
+        ROSEN_EQ(layerLinearMatrix[4], 1.0) && ROSEN_EQ(layerLinearMatrix[8], 1.0) &&
+        ROSEN_EQ(std::accumulate(layerLinearMatrix.begin(), layerLinearMatrix.end(), 0.0), 3.0)) {
         std::vectot<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
         if (memcpy_s(valueBlob.data(), valueBlob.size(), layerLinearMatrix.data(),
             MATRIX_SIZE * sizeof(float)) == EOK) {
