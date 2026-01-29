@@ -362,6 +362,7 @@ public:
 
     static bool GetNodeGroupGroupedByUIEnabled();
     static void SetDebugFmtTraceEnabled(bool flag);
+    static void SetAnimationTraceEnabled(bool flag);
     static bool GetTextureExportDFXEnabled();
     static bool GetDebugFmtTraceEnabled();
     static bool GetTimeVsyncDisabled();
@@ -423,6 +424,7 @@ private:
     inline static bool cacheEnabledForRotation_ = false;
     static inline bool forceHpsBlurDisabled_ = false;
     static inline bool debugFmtTraceEnable_ = false;
+    static inline bool animationTestEnable_ = false;
     static inline bool isBehindWindowFilterEnabled_ = true;
     static inline bool isTypicalResidentProcess_ = false;
     static bool isEnableEarlyZ_;

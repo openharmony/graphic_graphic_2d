@@ -237,7 +237,7 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 {
     bool isAnimationTraceDebugEnabled = system::GetParameter("persist.rosen.animationtrace.enabled", "0") != "0";
     bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
-    return isAnimationTraceDebugEnabled || isOpenTestModeTraceDebug;
+    return isAnimationTraceDebugEnabled || isOpenTestModeTraceDebug || animationTestEnable_;
 }
 
 bool RSSystemProperties::GetTestModeEnabled()
@@ -1676,6 +1676,11 @@ void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
 {
     debugFmtTraceEnable_ = flag;
     ROSEN_LOGI("RSSystemProperties::SetDebugFmtTraceEnabled:%{public}d", debugFmtTraceEnable_);
+}
+
+void RSSystemProperties::SetAnimationTraceEnabled(bool flag)
+{
+    animationTestEnable_ = flag;
 }
 
 bool RSSystemProperties::GetDebugFmtTraceEnabled()
