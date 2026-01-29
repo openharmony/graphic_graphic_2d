@@ -77,7 +77,7 @@ std::shared_ptr<RSNGRenderShapeBase> RSNGRenderShapeBase::Create(RSNGEffectType 
         }
 
         auto shape = Create(static_cast<RSNGEffectType>(type));
-        if (shape && !shape->OnUnmarshalling(parcel)) {
+        if (!shape || !shape->OnUnmarshalling(parcel)) {
             ROSEN_LOGE("RSNGRenderShapeBase: Unmarshalling shape failed with type %{public}d", type);
             return false;
         }
