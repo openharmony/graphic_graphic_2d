@@ -274,7 +274,8 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     filterNapi->srcPixelMap_ = sharPixelPoint;
 
     size_t filterSize = sizeof(FilterNapi) + (sharPixelPoint->GetCapacity()) * 2; // 2: srcPixelMap + dstPixelMap
-    status = napi_wrap_with_size(env, _this, filterNapi, FilterNapi::Destructor, nullptr, nullptr, filterSize);
+    status = napi_wrap_enhance_s(env, _this, filterNapi, FilterNapi::Destructor, true, nullptr,
+        filterSize, &FilterNapi::NAPI_TYPE_TAG, nullptr);
     EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterNapi,
         EFFECT_LOG_E("FilterNapi Constructor wrap fail"));
 
@@ -291,7 +292,8 @@ napi_value FilterNapi::CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::
         return nullptr;
     }
     filterNapi->srcPixelMap_  = pixelMap;
-    auto status = napi_wrap(env, objValue, filterNapi, FilterNapi::Destructor, nullptr, nullptr);
+    auto status = napi_wrap_s(env, objValue, filterNapi, FilterNapi::Destructor, nullptr,
+        &FilterNapi::NAPI_TYPE_TAG, nullptr);
     EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterNapi,
         EFFECT_LOG_E("FilterNapi CreateEffectFromPtr wrap fail"));
 
