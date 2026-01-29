@@ -28,17 +28,17 @@ int32_t PixelMap::GetRowBytes()
     return 0;
 }
 
+int32_t PixelMap::GetByteCount()
+{
+    return 0;
+}
+
 int32_t PixelMap::GetWidth()
 {
     return 0;
 }
 
 int32_t PixelMap::GetHeight()
-{
-    return 0;
-}
-
-int32_t PixelMap::GetByteCount()
 {
     return 0;
 }
