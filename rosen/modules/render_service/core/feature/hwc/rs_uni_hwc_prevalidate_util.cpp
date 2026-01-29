@@ -37,9 +37,9 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t MATRIX_SIZE = 9;
-constexpr float IDENTITY_MATRIX_DIAGONAL_SUM = 3.0f;
-constexpr float IDENTITY_MATRIX_DIAGONAL_SUM_INIT = 0.0f;
-constexpr float IDENTITY_MATRIX_DIAGONAL_ELEMENT = 1.0f;
+constexpr int8_t IDENTITY_MATRIX_DIAGONAL_SUM = 3;
+constexpr int8_t IDENTITY_MATRIX_DIAGONAL_SUM_INIT = 0;
+constexpr int8_t IDENTITY_MATRIX_DIAGONAL_ELEMENT = 1;
 constexpr int MATRIX3_DIAGONAL_INDEX0 = 0;
 constexpr int MATRIX3_DIAGONAL_INDEX1 = 4;
 constexpr int MATRIX3_DIAGONAL_INDEX2 = 8;
@@ -197,7 +197,7 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     return true;
 }
 
-bool RSUniHwcPrevalidateUtil::IsIdentityMatrix3(std::vectot<int8_t>& matrix) const
+bool RSUniHwcPrevalidateUtil::IsIdentityMatrix3(std::vector<int8_t>& matrix)
 {
     return ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX0], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&
         ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX1], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&

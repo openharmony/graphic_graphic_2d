@@ -232,7 +232,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
     return true;
 }
 
-void RSHdrUtil::UpdateSelfDrawingNodeNit(RSScreenRenderNode& node, float& scaler)
+void RSHdrUtil::UpdateSelfDrawingNodeNit(RSScreenRenderNode& node)
 {
     const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
     for (const auto& selfDrawingNode : selfDrawingNodes) {
@@ -253,7 +253,7 @@ void RSHdrUtil::UpdateSelfDrawingNodeNit(RSScreenRenderNode& node, float& scaler
         if (node.GetId() == ancestor->GetId()) {
             if (float scaler; RSHdrUtil::UpdateSurfaceNodeNit(*selfDrawingNode, node.GetScreenId(), scaler)) {
                 uint32_t level = RSLuminanceControl::Get().ConvertScalerFromFloatToLevel(scaler);
-                screenNode.UpdateHeadroomMapIncrease(surfaceNode.GetVideoHdrStatus(), level);
+                node.UpdateHeadroomMapIncrease(selfDrawingNode->GetVideoHdrStatus(), level);
             }
         }
     }
