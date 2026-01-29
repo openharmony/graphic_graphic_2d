@@ -316,7 +316,7 @@ public:
     static bool GetHdrImageEnabled();
     static bool GetHdrVideoEnabled();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
-    
+
     static bool GetDrmMarkedFilterEnabled();
 
     static DdgrOpincType GetDdgrOpincType();
@@ -335,7 +335,6 @@ public:
     static bool GetDumpImgEnabled();
 
     static bool GetTransactionTerminateEnabled();
-
     static bool GetTextBlobAsPixelMap();
     static inline GpuApiType GetGpuApiType()
     {
