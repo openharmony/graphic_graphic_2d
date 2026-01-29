@@ -623,7 +623,7 @@ HWTEST_F(RsRenderComposerTest, OnScreenVBlankIdleCallback_Coverage_001, TestSize
     EXPECT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
     rsRenderComposerTmp->hgmHardwareUtils_ = nullptr;
     uint64_t timestamp = 123456789ULL;
-    rsRenderComposer_->OnScreenVBlankIdleCallback(rsRenderComposerTmp->screenId_, timestamp);
+    rsRenderComposerTmp->OnScreenVBlankIdleCallback(rsRenderComposerTmp->screenId_, timestamp);
 }
 
 /**
@@ -733,6 +733,28 @@ HWTEST_F(RsRenderComposerTest, ComposerProcess_IsSuperFoldDisplay, TestSize.Leve
     // Verify composer maintains valid state even after disconnection
     EXPECT_NE(rsRenderComposer_->handler_, nullptr);
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
+}
+
+/**
+ * Function: ComposerProcess_ComposerContext_Not_Nullptr
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call ComposerProcess with transaction data when IsSuperFoldDisplay
+ *                  3. verify normal path and early return path after disconnection
+ */
+HWTEST_F(RsRenderComposerTest, ComposerProcess_ComposerContext_Not_Nullptr, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
+    rsRenderComposerTmp->rsRenderComposerContext_ = std::make_shared<RSRenderComposerContext>();
+    uint32_t currentRate = 0;
+    auto tx = std::make_shared<RSLayerTransactionData>();
+    rsRenderComposerTmp->ComposerProcess(currentRate, tx);
 }
 
 /**
@@ -1219,6 +1241,14 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut002, TestSize.Level1)
     EXPECT_EQ(retSet, GSERROR_OK);
     GraphicColorGamut colorGamut = rsRenderComposer_->ComputeTargetColorGamut(buffer);
     EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_SRGB);
+
+    infoSet = {
+        .primaries = COLORPRIMARIES_BT2020,
+    };
+    retSet = MetadataHelper::SetColorSpaceInfo(buffer, infoSet);
+    EXPECT_EQ(retSet, GSERROR_OK);
+    colorGamut = rsRenderComposer_->ComputeTargetColorGamut(buffer);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     csurf->UnregisterConsumerListener();
 }
 
@@ -2173,6 +2203,9 @@ HWTEST_F(RsRenderComposerTest, UpdateTransactionData_Coverage, TestSize.Level1)
     std::shared_ptr<RSLayerParcel> parcel2 = std::make_shared<RSDestroyRSLayerCmd>(id, zCmd);
     std::shared_ptr<RSLayerParcel> parcel3 = std::make_shared<RSUpdateRSRCDLayerCmd>(id, zCmd);
     transactionData->payload_.push_back({id, parcel1});
+    transactionData->composerInfo_.composerScreenInfo.activeRect = {100, 200, 0, 0};
+    rsRenderComposerTmp->UpdateTransactionData(transactionData);
+    transactionData->composerInfo_.composerScreenInfo.activeRect = {200, 200, 0, 0};
     transactionData->payload_.push_back({id, parcel2});
     transactionData->payload_.push_back({id, parcel3});
     rsRenderComposerTmp->UpdateTransactionData(transactionData);
@@ -2205,6 +2238,37 @@ HWTEST_F(RsRenderComposerTest, UpdateForSurfaceFps_Coverage, TestSize.Level1)
     pipelineParam.SurfaceFpsOpList.push_back(surfaceFpsOp2);
     pipelineParam.SurfaceFpsOpList.push_back(surfaceFpsOp3);
     rsRenderComposerTmp->UpdateForSurfaceFps(pipelineParam);
+}
+
+/**
+ * Function: PreAllocateProtectedBuffer_Coverage
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: PreAllocateProtectedBuffer test
+ */
+HWTEST_F(RsRenderComposerTest, PreAllocateProtectedBuffer_Coverage, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
+    sptr<SurfaceBuffer> buffer = sptr<SurfaceBufferImpl>::MakeSptr();
+    rsRenderComposerTmp->PreAllocateProtectedBuffer(buffer);
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    std::shared_ptr<RSSurfaceOhos> rsSurface1 = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    EXPECT_NE(nullptr, rsSurface1);
+    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({0, rsSurface1});
+    rsRenderComposerTmp->PreAllocateProtectedBuffer(buffer);
+    rsRenderComposerTmp->hdiOutput_->fbSurface_ = nullptr;
+    rsRenderComposerTmp->PreAllocateProtectedBuffer(buffer);
+    rsRenderComposerTmp->hdiOutput_->SetProtectedFrameBufferState(false);
+    rsRenderComposerTmp->PreAllocateProtectedBuffer(buffer);
+    rsRenderComposerTmp->hdiOutput_ = nullptr;
+    rsRenderComposerTmp->PreAllocateProtectedBuffer(buffer);
 }
 } // namespace Rosen
 } // namespace OHOS
