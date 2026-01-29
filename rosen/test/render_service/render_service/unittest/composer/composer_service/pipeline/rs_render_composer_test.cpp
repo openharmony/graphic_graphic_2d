@@ -2203,9 +2203,9 @@ HWTEST_F(RsRenderComposerTest, UpdateTransactionData_Coverage, TestSize.Level1)
     std::shared_ptr<RSLayerParcel> parcel2 = std::make_shared<RSDestroyRSLayerCmd>(id, zCmd);
     std::shared_ptr<RSLayerParcel> parcel3 = std::make_shared<RSUpdateRSRCDLayerCmd>(id, zCmd);
     transactionData->payload_.push_back({id, parcel1});
-    transactionData->GetComposerScreenInfo().activeRect = {100, 200, 0, 0};
+    transactionData->composerInfo_.composerScreenInfo.activeRect = {100, 200, 0, 0};
     rsRenderComposerTmp->UpdateTransactionData(transactionData);
-    transactionData->GetComposerScreenInfo().activeRect = {200, 200, 0, 0};
+    transactionData->composerInfo_.composerScreenInfo.activeRect = {200, 200, 0, 0};
     transactionData->payload_.push_back({id, parcel2});
     transactionData->payload_.push_back({id, parcel3});
     rsRenderComposerTmp->UpdateTransactionData(transactionData);
