@@ -1494,14 +1494,13 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
         return;
     }
 
-    if (!animations_.empty()) {
-        ROSEN_LOGE("When RSNode has animations, the RSUIContext should not be modified! nodeId[%{public}" PRIu64"], "
-            "preUIContext[%{public}" PRIu64 "], rsUIContext[%{public}" PRIu64 "]",
-            id_, preUIContext->GetToken(), rsUIContext->GetToken());
-    }
-
     // if have old rsContext, should remove nodeId from old nodeMap and travel child
     if (preUIContext != nullptr) {
+        if (!animations_.empty()) {
+            ROSEN_LOGE("When RSNode has animations, RSUIContext should not be modified! nodeId[%{public}" PRIu64 "], "
+                       "preUIContext[%{public}" PRIu64 "], rsUIContext[%{public}" PRIu64 "]",
+                        id_, preUIContext->GetToken(), rsUIContext->GetToken());
+        }
         // step1 remove node from old context
         preUIContext->GetMutableNodeMap().UnregisterNode(id_);
         // sync child
