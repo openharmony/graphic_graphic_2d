@@ -52,7 +52,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR4_COLOR = 0x0113,
     UPDATE_MODIFIER_VECTOR4F = 0x0114,
     UPDATE_MODIFIER_RRECT = 0x0115,
-    // UPDATE_MODIFIER_DRAW_CMD_LIST = 0x0116,
+    // 0x0116 deleted, do not use this value never
     UPDATE_MODIFIER_DRAWING_MATRIX = 0x0117,
     UPDATE_MODIFIER_VECTOR_FLOAT = 0X0118,
     UPDATE_MODIFIER_UI_FILTER_PTR = 0X0119,
@@ -64,9 +64,9 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_SHADOW_BLENDER_PARA = 0x0125,
     UPDATE_MODIFIER_VECTOR_VECTOR2F = 0x0126,
     UPDATE_MODIFIER_SHORT = 0x0127,
-    UPDATE_MODIFIER_RIPPLE_FIELD_PTR = 0x0128,
-    UPDATE_MODIFIER_VELOCITY_FIELD_PTR = 0x0129,
-    UPDATE_MODIFIER_DRAW_CMD_LIST = 0x012A,
+    UPDATE_MODIFIER_DRAW_CMD_LIST = 0x0128,
+    UPDATE_MODIFIER_RIPPLE_FIELD_PTR = 0x0129,
+    UPDATE_MODIFIER_VELOCITY_FIELD_PTR = 0x012A,
     UPDATE_MODIFIER_NG_SHAPE_BASE_PTR = 0x012B,
     UPDATE_MODIFIER_VECTOR_VECTOR4F = 0x012C,
 
@@ -302,18 +302,10 @@ ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST,
         RSNodeCommandHelper::UpdateProperty<Drawing::DrawCmdListPtr>,
         NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
-
-// =============================================================================
-// Planning: Remove the following commands after deprecating complex shader
-ADD_COMMAND(RSUpdatePropertyVectorFloat,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_FLOAT,
-        RSNodeCommandHelper::UpdateProperty<std::vector<float>>,
-        NodeId, std::vector<float>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVectorVector2f,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_VECTOR2F,
         RSNodeCommandHelper::UpdateProperty<std::vector<Vector2f>>,
         NodeId, std::vector<Vector2f>, PropertyId, PropertyUpdateType))
-// =============================================================================
 ADD_COMMAND(RSUpdatePropertyVectorVector4f,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_VECTOR4F,
         RSNodeCommandHelper::UpdateProperty<std::vector<Vector4f>>,
@@ -329,6 +321,12 @@ ADD_COMMAND(RSUpdatePropertyShadowBlenderPara,
 ADD_COMMAND(RSUpdatePropertyShort,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHORT, RSNodeCommandHelper::UpdateProperty<short>, NodeId, short,
         PropertyId, PropertyUpdateType))
+
+// Planning: Remove the following commands after deprecating complex shader
+ADD_COMMAND(RSUpdatePropertyVectorFloat,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_FLOAT,
+        RSNodeCommandHelper::UpdateProperty<std::vector<float>>,
+        NodeId, std::vector<float>, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSetFreeze,
     ARG(PERMISSION_APP, RS_NODE, SET_FREEZE,
