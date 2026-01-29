@@ -225,7 +225,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, 
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_TRUE(drawable->canvas_);
 
-    canvas->gpuContext = std::make_shared<Drawing::GPUContext>();
+    canvas->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
 
