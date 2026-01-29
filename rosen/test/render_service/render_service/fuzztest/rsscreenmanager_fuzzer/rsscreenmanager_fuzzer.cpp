@@ -618,7 +618,6 @@ void IsVisibleRectSupportRotation()
     ScreenId screenId = GetData<ScreenId>();
     CreateOrGetScreenManager()->IsVisibleRectSupportRotation(screenId);
 }
-   
 } // namespace Rosen
 } // namespace OHOS
 
