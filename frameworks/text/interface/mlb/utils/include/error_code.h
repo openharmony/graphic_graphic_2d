@@ -22,7 +22,9 @@
 namespace OHOS::MLB {
 enum TextErrorCode {
     ERROR_NONE,
+    /** Input is null, undefined, or mismatched type (basic type validation) */
     BUSINESS_ERROR_INVALID_PARAM = 401,
+    /** Input parameter value is not within expected range or valid values (value validation) */
     ERROR_INVALID_PARAM = 25900001,
     ERROR_FILE_NOT_EXIST,
     ERROR_FILE_OPEN_FAILED,
