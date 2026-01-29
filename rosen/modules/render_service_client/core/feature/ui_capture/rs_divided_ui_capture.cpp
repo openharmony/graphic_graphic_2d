@@ -336,6 +336,7 @@ public:
         }
         conditionVariable_.notify_one();
     }
+
     void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
         std::shared_ptr<Media::PixelMap> pixelmapHDR) override
     {
@@ -347,7 +348,7 @@ public:
         }
         conditionVariable_.notify_one();
     }
-    
+
     bool IsReady() const
     {
         return flag_;
@@ -391,12 +392,12 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     }
     RS_LOGI("RSDividedUICaptureVisitor::ProcessSurfaceRenderNode nodeId is %{public}" PRIu64, node.GetId());
     std::shared_ptr<RSOffscreenRenderCallback> callback = std::make_shared<RSOffscreenRenderCallback>();
-    auto rsRenderPipelineClient = std::make_unique<RSRenderPipelineClient>();
+    auto renderPipelineClient = std::make_unique<RSRenderPipelineClient>();
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleX = scaleX_;
     captureConfig.scaleY = scaleY_;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
-    rsRenderPipelineClient->TakeSurfaceCapture(node.GetId(), callback, captureConfig);
+    renderPipelineClient->TakeSurfaceCapture(node.GetId(), callback, captureConfig);
     std::shared_ptr<Media::PixelMap> pixelMap = callback->GetResult(MAX_WAIT_TIME);
     if (pixelMap == nullptr) {
         ROSEN_LOGE("RSDividedUICaptureVisitor::TakeLocalCapture failed to get pixelmap, return nullptr!");
