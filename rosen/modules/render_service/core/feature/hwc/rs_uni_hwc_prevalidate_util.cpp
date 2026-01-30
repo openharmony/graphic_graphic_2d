@@ -37,15 +37,10 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t MATRIX_SIZE = 9;
-constexpr float IDENTITY_MATRIX_DIAGONAL_SUM = 3;
-constexpr float IDENTITY_MATRIX_DIAGONAL_SUM_INIT = 0;
-constexpr float IDENTITY_MATRIX_DIAGONAL_ELEMENT = 1;
-constexpr int MATRIX3_DIAGONAL_INDEX0 = 0;
-constexpr int MATRIX3_DIAGONAL_INDEX1 = 4;
-constexpr int MATRIX3_DIAGONAL_INDEX2 = 8;
 constexpr uint32_t ROTATION_360 = 360;
 constexpr uint64_t USAGE_HARDWARE_CURSOR = 1ULL << 61;
 constexpr uint64_t USAGE_UNI_LAYER = 1ULL << 60;
+const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 }
 RSUniHwcPrevalidateUtil& RSUniHwcPrevalidateUtil::GetInstance()
 {
@@ -180,7 +175,7 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
     stagingSurfaceParams->SetOfflineOriginBufferSynced(true);
     const auto& layerLinearMatrix = stagingSurfaceParams->GetLayerLinearMatrix();
-    if (layerLinearMatrix.size() == MATRIX_SIZE && !IsIdentityMatrix3(layerLinearMatrix)) {
+    if (layerLinearMatrix.size() == MATRIX_SIZE && layerLinearMatrix != DEFAULT_MATRIX) {
         std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
         if (memcpy_s(valueBlob.data(), valueBlob.size(), layerLinearMatrix.data(),
             MATRIX_SIZE * sizeof(float)) == EOK) {
@@ -195,15 +190,6 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         node->GetSrcRect().ToString().c_str(), node->GetDstRect().ToString().c_str(),
         zorder, info.bufferUsage, info.layerUsage, info.format, info.transform, fps);
     return true;
-}
-
-bool RSUniHwcPrevalidateUtil::IsIdentityMatrix3(std::vector<float>& matrix)
-{
-    return ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX0], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&
-        ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX1], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&
-        ROSEN_EQ(matrix[MATRIX3_DIAGONAL_INDEX2], IDENTITY_MATRIX_DIAGONAL_ELEMENT) &&
-        ROSEN_EQ(std::accumulate(matrix.begin(), matrix.end(), IDENTITY_MATRIX_DIAGONAL_SUM_INIT),
-            IDENTITY_MATRIX_DIAGONAL_SUM);
 }
 
 bool RSUniHwcPrevalidateUtil::IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr node) const
