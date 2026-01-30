@@ -662,16 +662,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_LOGICAL_CAMERA_ROTATION_CORRECTION");
             break;
         }
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_CANVAS_CALLBACK): {
-            hasPermission = CheckPermission(code);
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER): {
-            hasPermission = CheckPermission(code);
-            break;
-        }
-#endif
         default: {
             break;
         }
