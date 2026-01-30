@@ -1387,18 +1387,11 @@ HWTEST_F(VSyncGeneratorTest, WaitForTimeoutConNotifyLockedForRefreshRate001, Fun
 HWTEST_F(VSyncGeneratorTest, IsNeedAdaptiveAfterUpdateMode001, Function | MediumTest| Level0)
 {
     auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
-    vsyncGeneratorImpl->period_ = 0;
-    ASSERT_EQ(vsyncGeneratorImpl->IsNeedAdaptiveAfterUpdateMode(), false);
     vsyncGeneratorImpl->period_ = 8333333; // 8333333ns
-    vsyncGeneratorImpl->lastVsyncRsInterval_ = 8333222;
-    ASSERT_EQ(vsyncGeneratorImpl->IsNeedAdaptiveAfterUpdateMode(), true);
-    vsyncGeneratorImpl->lastVsyncRsInterval_ = 16666555;
-    ASSERT_EQ(vsyncGeneratorImpl->IsNeedAdaptiveAfterUpdateMode(), true);
-    vsyncGeneratorImpl->lastVsyncRsTime_ = SystemTime() - 2000000;
-    ASSERT_EQ(vsyncGeneratorImpl->IsNeedAdaptiveAfterUpdateMode(), true);
-
-    vsyncGeneratorImpl->lastVsyncRsInterval_ = 11033222; // 8333222 + 2700000
+    vsyncGeneratorImpl->updateModeTimeForAS_ = SystemTime();
+    usleep(8300);
     ASSERT_EQ(vsyncGeneratorImpl->IsNeedAdaptiveAfterUpdateMode(), false);
+
     usleep(8400);
     ASSERT_EQ(vsyncGeneratorImpl->IsNeedAdaptiveAfterUpdateMode(), true);
 }

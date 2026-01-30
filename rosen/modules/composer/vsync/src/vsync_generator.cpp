@@ -68,9 +68,8 @@ constexpr int64_t REMAINING_TIME_THRESHOLD_LARGER = 500000; // 500000ns == 0.5ms
 constexpr int64_t ONE_SECOND_FOR_CALCUTE_FREQUENCY = 1000000000; // 1000000000ns == 1s
 constexpr uint32_t MAX_LISTENERS_AMOUNT = 2;
 constexpr uint32_t MAX_ADAPTIVE_PERIOD = 2;
-constexpr uint32_t BLOCK_ADAPTIVE_SYNC_COUNT = 1; // threshold of prohibited periods for triggering AdaptiveSync
+constexpr uint32_t BLOCK_ADAPTIVE_SYNC_COUNT = 2; // threshold of prohibited periods for triggering AdaptiveSync
 constexpr uint32_t LAST_VSYNC_TIME_THRESHOLD = 2; // threshold between the now and lastVsyncTime
-constexpr int64_t VSYNC_RS_OFFSET_FOR_AS = 1620000; // threshold between Vsync interval and period 2.7ms * 0.6 = 1.62ms
 
 // minimum ratio of dvsync thread
 constexpr double DVSYNC_PERIOD_MIN_INTERVAL = 0.6;
@@ -709,10 +708,6 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, referenceTime);
         if (t - SystemTime() < ERROR_THRESHOLD) {
-            if (listeners_[i].isRS_) {
-                lastVsyncRsInterval_ = t - listeners_[i].lastTime_;
-                lastVsyncRsTime_ = t;
-            }
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
         }
@@ -823,21 +818,20 @@ void VSyncGenerator::SetAdaptive(bool isAdaptive)
     isAdaptive_ = isAdaptive;
 }
 
+void VSyncGenerator::SetUpdateModeTimeForAS(int64_t time)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    updateModeTimeForAS_ = time;
+}
+
 bool VSyncGenerator::IsNeedAdaptiveAfterUpdateMode()
 {
     std::lock_guard<std::mutex> locker(mutex_);
-    if (period_ == 0) {
-        return false;
-    }
     int64_t now = SystemTime();
-    int64_t curPeriod = std::abs(lastVsyncRsInterval_ - period_);
-    int64_t k = curPeriod / period_;
-    bool needAS = std::abs(curPeriod - k * period_) < VSYNC_RS_OFFSET_FOR_AS ||
-                  std::abs(curPeriod - (k + 1) * period_) < VSYNC_RS_OFFSET_FOR_AS ||
-                  now - lastVsyncRsTime_ > static_cast<int64_t>(BLOCK_ADAPTIVE_SYNC_COUNT) * period_;
+    bool needAS = now - updateModeTimeForAS_ > static_cast<int64_t>(BLOCK_ADAPTIVE_SYNC_COUNT) * period_;
     if (!needAS) {
-        RS_TRACE_NAME_FMT("block AS, lastVsyncRsInterval: %" PRId64 ", period: %" PRId64 ", lastVsyncTime: "
-            "%" PRId64 ", now: %" PRId64, lastVsyncRsInterval_, period_, lastVsyncRsTime_, now);
+        RS_TRACE_NAME_FMT("block AS, updateModeTimeForAS: %" PRId64 ", period: %" PRId64 ", now: %" PRId64,
+                           updateModeTimeForAS_, period_, now);
     }
     return needAS;
 }
