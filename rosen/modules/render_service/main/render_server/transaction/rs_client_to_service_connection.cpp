@@ -670,11 +670,11 @@ float RSClientToServiceConnection::GetRotationInfoFromSurfaceBuffer(const sptr<S
         return 0.0f;
     }
     auto transformType = buffer->GetSurfaceBufferTransform();
-    if (transformType == GRAPHIC_ROTATE_90) {
+    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
         return 90.0f;
-    } else if (transformType == GRAPHIC_ROTATE_180) {
+    } else if (transformType == GraphicTransformType::GRAPHIC_ROTATE_180) {
         return 180.0f;
-    } else if (transformType == GRAPHIC_ROTATE_270) {
+    } else if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         return 270.0f;
     }
     return 0.0f;
@@ -689,6 +689,7 @@ ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> sur
         .width = srcRect.w,
         .height = srcRect.h,
     };
+    RS_LOGD("RSClientToServiceConnection::CreatePixelMapFromSurface: transformEnabled:%{public}d", transformEnabled);
     RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelMap]() {
         pixelMap = Rosen::CreatePixelMapFromSurface(surface, rect);
     });

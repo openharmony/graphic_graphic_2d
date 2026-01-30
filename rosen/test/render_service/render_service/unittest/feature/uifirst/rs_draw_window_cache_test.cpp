@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "parameters.h"
 
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_draw_window_cache.h"
@@ -24,6 +25,7 @@
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
 class RSDrawWindowCacheTest : public testing::Test {
@@ -38,6 +40,25 @@ void RSDrawWindowCacheTest::SetUpTestCase() {}
 void RSDrawWindowCacheTest::TearDownTestCase() {}
 void RSDrawWindowCacheTest::SetUp() {}
 void RSDrawWindowCacheTest::TearDown() {}
+
+#if defined(ROSEN_OHS) && defined(RS_ENABLE_VK)
+static sptr<SurfaceBuffer> CreateSurfaceBuffer(int width, int height)
+{
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+    BufferRequestConfig bufConfig = {
+        .width = static_cast<int32_t>(width),
+        .height = static_cast<int32_t>(height),
+        .strideAlignment = 0x8,
+        .format = GRAPIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA |
+            BUFFER_USAGE_MEM_MMZ_CACHE | BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE,
+        .timeout = 0,
+        .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
+    };
+    surfaceBuffer->Alloc(bufConfig);
+    return surfaceBuffer;
+}
+#endif
 
 /**
  * @tc.name: HasCache
@@ -77,20 +98,18 @@ HWTEST_F(RSDrawWindowCacheTest, ClearCache, TestSize.Level1)
 HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow001, TestSize.Level1)
 {
     RSDrawWindowCache drawWindowCache;
-    DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable = nullptr;
-    RSSurfaceRenderParams surfaceParams(1);
+    RSSurfaceRenderNodeDrawable* surfaceDrawable = nullptr;
+    RSSurfaceRenderParams* surfaceParams = nullptr;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     auto uniParams = std::make_shared<RSRenderThreadParams>();
     ASSERT_NE(uniParams, nullptr);
-    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable,
-        canvas, surfaceParams, *uniParams));
+    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, *surfaceParams, *uniParams));
 
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    auto drawable = DrawableV2::RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
-    ASSERT_NE(drawable, nullptr);
-    surfaceDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(drawable);
+    surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(
+        RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode).get());
     ASSERT_NE(surfaceDrawable, nullptr);
 
     Drawing::Bitmap bmp;
@@ -100,22 +119,23 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow001, TestSize.Level1)
     bmp.Build(width, height, format);
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     drawWindowCache.image_ = bmp.MakeImage();
-    surfaceParams.SetUifirstNodeEnableParam(MultiThreadCacheType::NONFOCUS_WINDOW);
-    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, *uniParams));
+    surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::NONFOCUS_WINDOW);
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, *surfaceParams, *uniParams));
     /* OnGlobalPositionEnabled is true */
-    surfaceParams.isGlobalPositionEnabled_ = true;
-    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, *uniParams));
+    surfaceParams->isGlobalPositionEnabled_ = true;
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, *surfaceParams, *uniParams));
     // To set matrix is singular matrix
-    surfaceParams.matrix_.SetMatrix(1, 2, 3, 2, 4, 6, 3, 6, 9);
-    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, *uniParams));
+    surfaceParams->matrix_.SetMatrix(1, 2, 3, 2, 4, 6, 3, 6, 9);
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, *surfaceParams, *uniParams));
 
     // test cross-node dfx
-    surfaceParams.isCrossNode_ = true;
+    surfaceParams->isCrossNode_ = true;
     uniParams->isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE_DFX;
-    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, *uniParams));
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, *surfaceParams, *uniParams));
 
     uniParams->isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::DISABLED;
-    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, *uniParams));
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, *surfaceParams, *uniParams));
 }
 
 /**
@@ -132,7 +152,7 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow002, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSRenderThreadParams uniParams;
 
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     auto surfaceDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(
         DrawableV2::RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
     ASSERT_NE(surfaceDrawable, nullptr);
@@ -181,6 +201,59 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow002, TestSize.Level1)
     uniParams.SetIsFirstVisitCrossNodeDisplay(false);
     drawWindowCache.image_ = std::make_shared<Drawing::Image>();
     ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams));
+}
+
+/**
+ * @tc.name: DealWithCachedWindow003
+ * @tc.desc: Test DealWithCachedWindow when image create success
+ * @tc.type: FUNC
+ * @tc.require: issueICCSTG
+ */
+HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow003, TestSize.Level1)
+{
+    RSDrawWindowCache drawWindowCache;
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    int32_t width = 100;
+    int32_t height = 30;
+    bmp.Build(width, height, format);
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    drawWindowCache.image_ = bmp.MakeImage();
+    auto recordingEnabled = system::GetParameter("debug.graphic.recording.enabled", "0");
+    system::SetParameter("debug.graphic.recording.enabled", "1");
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::NONFOCUS_WINDOW);
+    auto uniParams = std::make_shared<RSRenderThreadParams>();
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable.get(), canvas, *surfaceParams, *uniParams));
+
+#ifdef RS_ENABLE_VK
+    drawWindowCache.image_ = std::make_shared<Drawing::Image>();
+    auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+    std::shared_ptr<Drawing::GPUContext> gpuContext(drawingContext);
+
+    sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBuffer(10, 10);
+    OHNativeWindowBuffer* nativeWindowBuffer = CrateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
+    auto backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer,
+        surfaceBuffer->GetWidth, surfaceBuffer->GetHeight(), false);
+    DestroyNativeWindowBuffer(nativeWindowBuffer);
+    auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
+    auto cleanupHelper = new NativeBufferUtils::VulkanCleanupHelper(
+        RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+
+    Drawing::BitmapFormat bFormat = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    auto colorSpace = Drawing::ColorSpace::CreateSRGB();
+    drawWindowCache.image_->BuildFromTexture(*gpuContext, backendTexture_.GetTextureInfo(),
+        Drawing::TextureOrigin::BOTTOM_LEFT, bFormat, colorSpace,
+        NativeBufferUtils::DeleteVkImage, cleanupHelper->Ref());
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable.get(), canvas, *surfaceParams, *uniParams));
+    NativeBufferUtils::DeleteVkImage(cleanupHelper);
+#endif
+    system::SetParameter("debug.graphic.recording.enabled", recordingEnabled);
 }
 
 /**

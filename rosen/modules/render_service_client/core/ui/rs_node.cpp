@@ -1493,14 +1493,13 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
         return;
     }
 
-    if (!animations_.empty()) {
-        ROSEN_LOGE("When RSNode has animations, the RSUIContext should not be modified! nodeId[%{public}" PRIu64"], "
-            "preUIContext[%{public}" PRIu64 "], rsUIContext[%{public}" PRIu64 "]",
-            id_, preUIContext->GetToken(), rsUIContext->GetToken());
-    }
-
     // if have old rsContext, should remove nodeId from old nodeMap and travel child
     if (preUIContext != nullptr) {
+        if (!animations_.empty()) {
+            ROSEN_LOGE("When RSNode has animations, RSUIContext should not be modified! nodeId[%{public}" PRIu64 "], "
+                       "preUIContext[%{public}" PRIu64 "], rsUIContext[%{public}" PRIu64 "]",
+                        id_, preUIContext->GetToken(), rsUIContext->GetToken());
+        }
         // step1 remove node from old context
         preUIContext->GetMutableNodeMap().UnregisterNode(id_);
         // sync child
@@ -1776,6 +1775,12 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 
 void RSNode::SetBackgroundColor(RSColor color)
 {
+    RSColor colorInP3 = color;
+    if (colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        isP3Color_ = true;
+        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), isP3Color_);
+        AddCommand(command, IsRenderServiceNode());
+    }
 #ifndef ROSEN_CROSS_PLATFORM
     color.ConvertToP3ColorSpace();
 #endif
@@ -2928,6 +2933,13 @@ void RSNode::SetNodeName(const std::string& nodeName)
         nodeName_ = nodeName;
         std::unique_ptr<RSCommand> command = std::make_unique<RSSetNodeName>(GetId(), nodeName_);
         AddCommand(command, IsRenderServiceNode());
+        for (const auto& uiFwkType : RSFrameRatePolicy::GetInstance()->GetAppBufferList()) {
+            if (nodeName.rfind(uiFwkType, 0) == 0) {
+                SetDrawNode();
+                SetDrawNodeType(DrawNodeType::DrawPropertyType);
+                break;
+            }
+        }
     }
 }
 

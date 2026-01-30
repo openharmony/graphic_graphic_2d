@@ -154,6 +154,69 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckIsHdrSurfaceBufferTest001
+ * @tc.desc: Test CheckIsHdrSurfaceBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest001, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+    RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    HdrStatus ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    
+    staticMetadata.cta861.maxContentLightLevel = 400.0f;
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    EXPECT_EQ(ret, HdrStatus::HDR_VIDEO);
+}
+
+/**
+ * @tc.name: CheckIsHDRSelfProcessingBufferTest001
+ * @tc.desc: Test CheckIsHDRSelfProcessingBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, CheckIsHDRSelfProcessingBufferTest001, TestSize.Level1)
+{
+    using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+    RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    bool ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, false);
+
+    CM_HDR_Metadata_Type hdrMetadataType = CM_IMAGE_HDR_VIVID_SINGLE;
+    MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
+    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, false);
+
+    hdrMetadataType = CM_METADATA_NONE;
+    staticMetadata.cta861.maxContentLightLevel = 400.0f;
+    MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, true);
+}
+
+/**
  * @tc.name: CheckIsSurfaceWithMetadata
  * @tc.desc: Test CheckIsSurfaceWithMetadata
  * @tc.type: FUNC

@@ -301,26 +301,6 @@ public:
         return edLightNeg_;
     }
 
-    void SetBorderSize(Vector2f& borderSize)
-    {
-        borderSize_ = borderSize;
-    }
-
-    const Vector2f GetBorderSize() const
-    {
-        return borderSize_;
-    }
-
-    void SetCornerRadius(float& cornerRadius)
-    {
-        cornerRadius_ = cornerRadius;
-    }
-
-    const float& GetCornerRadius() const
-    {
-        return cornerRadius_;
-    }
-
     void SetBaseVibrancyEnabled(bool baseVibrancyEnabled)
     {
         baseVibrancyEnabled_ = baseVibrancyEnabled;
@@ -413,8 +393,6 @@ private:
     Vector3f edLightKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f edLightPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
-    Vector2f borderSize_ = Vector2f(0.0f, 0.0f);
-    float cornerRadius_ = 0.0f;
     bool baseVibrancyEnabled_ = true;
     float baseMaterialType_ = 0.0f;
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);

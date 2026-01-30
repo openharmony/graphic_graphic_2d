@@ -58,6 +58,7 @@ enum class RSNGEffectType : int16_t {
     NONE = 0,
     // filter type
     BLUR,
+    MATERIAL_BLUR,
     PIXEL_STRETCH,
     WATER_RIPPLE,
     FLY_OUT,

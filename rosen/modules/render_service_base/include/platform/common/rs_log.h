@@ -239,7 +239,7 @@ private:
 
 #define RS_LOGE_LIMIT(func, line, format, ...)                                                                    \
 {                                                                                                                 \
-    static constexpr uint64_t LOG_PRINT_INTERVAL_IN_SECOND = 20;                                                  \
+    static constexpr uint64_t LOG_PRINT_INTERVAL_IN_SECOND = 60;                                                  \
     static std::atomic<bool> isFirstTime##func##line = true;                                                      \
     static std::atomic<uint64_t> prePrintTime##func##line = static_cast<uint64_t>(                                \
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())     \
@@ -254,7 +254,7 @@ private:
         isFirstTime##func##line = false;                                                                          \
         RS_LOGE(format, ##__VA_ARGS__);                                                                           \
     }                                                                                                             \
-}
+}                                                                                                                 \
 
 #define RS_LOGI_LIMIT(format, ...)                                                                                 \
 {                                                                                                                  \
@@ -273,6 +273,6 @@ private:
         isFirst##__func__##__line__ = false;                                                                       \
         RS_LOGI(format, ##__VA_ARGS__);                                                                            \
     }                                                                                                              \
-}
+}                                                                                                                  \
 
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H

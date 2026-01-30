@@ -237,7 +237,7 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 {
     bool isAnimationTraceDebugEnabled = system::GetParameter("persist.rosen.animationtrace.enabled", "0") != "0";
     bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
-    return isAnimationTraceDebugEnabled || isOpenTestModeTraceDebug;
+    return isAnimationTraceDebugEnabled || isOpenTestModeTraceDebug || animationTestEnable_;
 }
 
 bool RSSystemProperties::GetTestModeEnabled()
@@ -911,27 +911,7 @@ uint32_t RSSystemProperties::GetSubtreeDebugOption()
 
 bool RSSystemProperties::GetUIFirstEnabled()
 {
-#ifdef ROSEN_EMULATOR
-    return false;
-#else
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-#endif
-}
-
-bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.optSchedule.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
-bool RSSystemProperties::GetUIFirstBehindWindowEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindwindow.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -990,6 +970,22 @@ bool RSSystemProperties::GetUIFirstDebugEnabled()
     return debugEnable;
 }
 
+bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.optSchedule.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetUIFirstBehindWindowEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindwindow.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetSingleDrawableLockerEnabled()
 {
     static bool lockerEnable = system::GetIntParameter("persist.sys.graphic.singleDrawableLocker.enable", 1) != 0;
@@ -1013,14 +1009,6 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
 bool RSSystemProperties::GetWideColorSpaceEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.wide.colorspace.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
-bool RSSystemProperties::GetSkipUnpremulEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.skipUnpremul.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -1678,6 +1666,11 @@ void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
     ROSEN_LOGI("RSSystemProperties::SetDebugFmtTraceEnabled:%{public}d", debugFmtTraceEnable_);
 }
 
+void RSSystemProperties::SetAnimationTraceEnabled(bool flag)
+{
+    animationTestEnable_ = flag;
+}
+
 bool RSSystemProperties::GetDebugFmtTraceEnabled()
 {
     return GetDebugTraceEnabled() || debugFmtTraceEnable_;
@@ -1773,7 +1766,7 @@ bool RSSystemProperties::GetBootCompleted()
 
 bool RSSystemProperties::GetMemoryWatermarkEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("resourceschedule.memmgr.min.memory.watermark", "false");
+    static CachedHandle g_Handle = CachedParameterCreate("resourceschedule.memmgr.min.memmory.watermark", "false");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     if (enable == nullptr || strcmp(enable, "true") == 0) {
@@ -1823,6 +1816,7 @@ bool RSSystemProperties::GetDefaultMemClearEnabled()
 bool RSSystemProperties::GetUnmarshalParallelEnabled()
 {
     static bool unmarshalParallel =
+        RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL &&
         std::atoi((system::GetParameter("persist.sys.graphic.unmarshalParallel.enabled", "1")).c_str()) != 0;
     return unmarshalParallel;
 }

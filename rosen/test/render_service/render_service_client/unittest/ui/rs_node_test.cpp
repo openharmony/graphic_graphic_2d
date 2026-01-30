@@ -16,6 +16,7 @@
 #include <memory>
 
 #include "feature/composite_layer/rs_composite_layer_utils.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -6121,6 +6122,29 @@ HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
     name = rsNode->GetNodeName();
     EXPECT_EQ(name, nodeName);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: SetNodeNameTest002
+ * @tc.desc: test SetNodeName with LTPO node
+ * @tc.type: FUNC
+ * @tc.require: issue21922
+ */
+HWTEST_F(RSNodeTest, SetNodeNameTest002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto name = rsNode->GetNodeName();
+    EXPECT_EQ(name, "");
+
+    auto srcAppBufferList = RSFrameRatePolicy::GetInstance()->appBufferList_;
+    std::string ltpoNodeFlag{"ltpoNodeFlag"};
+    RSFrameRatePolicy::GetInstance()->appBufferList_ = {ltpoNodeFlag};
+    std::string normarlNodeFlag{"normarlNodeFlag"};
+    rsNode->SetNodeName(normarlNodeFlag);
+    EXPECT_EQ(rsNode->isDrawNode_, false);
+    rsNode->SetNodeName(ltpoNodeFlag);
+    EXPECT_EQ(rsNode->isDrawNode_, true);
+    RSFrameRatePolicy::GetInstance()->appBufferList_ = srcAppBufferList;
 }
 
 /**

@@ -79,6 +79,7 @@ public:
     uint32_t GetColorGamut();
     void ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut colorGamut);
     void UpdateNodeColorSpace() override;
+    void MarkNodeColorSpace(bool isP3Color) override;
 
 protected:
     explicit RSCanvasRenderNode(NodeId id,

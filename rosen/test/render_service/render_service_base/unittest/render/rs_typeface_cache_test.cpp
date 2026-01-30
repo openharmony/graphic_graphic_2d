@@ -281,6 +281,28 @@ HWTEST_F(RSTypefaceCacheTest, ReplaySerializeTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReplaySerializeTest002
+ * @tc.desc: Verify function ReplaySerialize
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplaySerializeTest002, TestSize.Level1)
+{
+    RSTypefaceCache typefaceCache;
+    uint64_t uniqueId = 1;
+    typefaceCache.typefaceHashCode_[uniqueId] = 0;
+    uniqueId = 2; // font id
+    uint64_t hash = 1;
+    auto typeface = std::make_shared<Drawing::Typeface>(nullptr);
+    typefaceCache.typefaceHashCode_[uniqueId] = hash;
+    typefaceCache.typefaceHashMap_[hash] = std::make_tuple(typeface, 1);
+    size_t fontCount = 0;
+    std::stringstream stream;
+    typefaceCache.ReplaySerialize(stream);
+    stream.read(reinterpret_cast<char*>(&fontCount), sizeof(fontCount));
+    EXPECT_FALSE(fontCount);
+}
+
+/**
  * @tc.name: ReplayDeserializeTest001
  * @tc.desc: Verify function ReplayDeserialize
  * @tc.type:FUNC
@@ -294,6 +316,86 @@ HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest001, TestSize.Level1)
     RSTypefaceCache::Instance().ReplayDeserialize(fontStream);
     EXPECT_NE(RSTypefaceCache::Instance().typefaceHashCode_.find(uniqueId | replayMask),
               RSTypefaceCache::Instance().typefaceHashCode_.end());
+}
+
+/**
+ * @tc.name: ReplayDeserializeTest002
+ * @tc.desc: Verify function ReplayDeserialize
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest002, TestSize.Level1)
+{
+    RSTypefaceCache typefaceCache;
+    std::stringstream stream;
+    size_t count = 1;
+    stream.write(reinterpret_cast<char*>(&count), sizeof(count));
+    uint64_t uniqueId = 0;
+    stream.write(reinterpret_cast<char*>(&uniqueId), sizeof(uniqueId));
+    constexpr size_t maxSize = 40'000'000; // font data max size
+    size_t overloadSize = maxSize + 1;
+    stream.write(reinterpret_cast<char*>(&overloadSize), sizeof(overloadSize));
+    auto error = typefaceCache.ReplayDeserialize(stream);
+    EXPECT_FALSE(error.empty());
+}
+
+/**
+ * @tc.name: ReplayDeserializeTest003
+ * @tc.desc: Verify function ReplayDeserialize
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest003, TestSize.Level1)
+{
+    RSTypefaceCache typefaceCache;
+    std::stringstream stream;
+    size_t count = 1;
+    stream.write(reinterpret_cast<char*>(&count), sizeof(count));
+    uint64_t uniqueId = 0;
+    stream.write(reinterpret_cast<char*>(&uniqueId), sizeof(uniqueId));
+    size_t data = 1;
+    size_t size = sizeof(data) + 1;
+    stream.write(reinterpret_cast<char*>(&size), sizeof(size));
+    stream.write(reinterpret_cast<char*>(&data), sizeof(data));
+    auto error = typefaceCache.ReplayDeserialize(stream);
+    EXPECT_FALSE(error.empty());
+}
+
+/**
+ * @tc.name: ReplayDeserializeTest004
+ * @tc.desc: Verify function ReplayDeserialize
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest004, TestSize.Level1)
+{
+    RSTypefaceCache typefaceCache;
+    std::stringstream stream;
+    size_t count = 1;
+    stream.write(reinterpret_cast<char*>(&count), sizeof(count));
+    uint64_t uniqueId = 0;
+    stream.write(reinterpret_cast<char*>(&uniqueId), sizeof(uniqueId));
+    size_t data = 1;
+    size_t size = sizeof(data);
+    stream.write(reinterpret_cast<char*>(&size), sizeof(size));
+    stream.write(reinterpret_cast<char*>(&data), sizeof(data));
+    auto error = typefaceCache.ReplayDeserialize(stream);
+    EXPECT_FALSE(error.empty());
+}
+
+/**
+ * @tc.name: ReplayDeserializeTest005
+ * @tc.desc: Verify function ReplayDeserialize
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest005, TestSize.Level1)
+{
+    RSTypefaceCache typefaceCache;
+    auto typeface = Drawing::Typeface::MakeDefault();
+    uint64_t uniqueId = 1;
+    typefaceCache.CacheDrawingTypeface(uniqueId, typeface);
+
+    std::stringstream stream;
+    typefaceCache.ReplaySerialize(stream);
+    auto error = typefaceCache.ReplayDeserialize(stream);
+    EXPECT_TRUE(error.empty());
 }
 
 /**

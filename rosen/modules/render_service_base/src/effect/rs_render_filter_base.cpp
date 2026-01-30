@@ -34,6 +34,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderBlurFilter>();
         }
     },
+    {RSNGEffectType::MATERIAL_BLUR, [] {
+            return std::make_shared<RSNGRenderMaterialBlurFilter>();
+        }
+    },
     {RSNGEffectType::DISPLACEMENT_DISTORT, [] {
             return std::make_shared<RSNGRenderDispDistortFilter>();
         }
@@ -116,6 +120,10 @@ static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRect
             auto blurRadius = frostedGlass->Getter<OHOS::Rosen::FrostedGlassBlurParamsRenderTag>()->Get();
             auto tmp = frostedGlass->Getter<OHOS::Rosen::FrostedGlassEnvLightParamsRenderTag>()->Get();
             auto samplingScale = frostedGlass->Getter<OHOS::Rosen::FrostedGlassSamplingScaleRenderTag>()->Get();
+            auto weightsEmboss = frostedGlass->Getter<OHOS::Rosen::FrostedGlassWeightsEmbossRenderTag>()->Get();
+            if (ROSEN_LE(weightsEmboss[1], 0.0f)) {
+                return rect;
+            }
             auto refractOutPx = tmp[0];
             const float maxRefractOutPx = 500.0f;
             float outStep = std::max(blurRadius[0] +

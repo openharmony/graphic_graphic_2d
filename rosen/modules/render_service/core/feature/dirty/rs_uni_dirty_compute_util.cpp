@@ -351,7 +351,7 @@ RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSSurfaceRenderNod
     }
     const auto& nodeMap = context->GetNodeMap();
     for (auto& nodeId : node.GetVisibleFilterChild()) {
-        if (auto& subNode = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        if (auto subNode = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
             visibleFilterRect = visibleFilterRect.JoinRect(subNode->GetOldDirtyInSurface());
         }
     }

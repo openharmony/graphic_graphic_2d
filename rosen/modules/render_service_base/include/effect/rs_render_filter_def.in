@@ -15,7 +15,17 @@
 
 DECLARE_FILTER(Blur, BLUR,
     ADD_PROPERTY_TAG(Blur, RadiusX),
-    ADD_PROPERTY_TAG(Blur, RadiusY)
+    ADD_PROPERTY_TAG(Blur, RadiusY),
+    ADD_PROPERTY_TAG(Blur, DisableSystemAdaptation)
+);
+
+DECLARE_FILTER(MaterialBlur, MATERIAL_BLUR,
+    ADD_PROPERTY_TAG(MaterialBlur, Radius),
+    ADD_PROPERTY_TAG(MaterialBlur, Saturation),
+    ADD_PROPERTY_TAG(MaterialBlur, Brightness),
+    ADD_PROPERTY_TAG(MaterialBlur, MaskColor),
+    ADD_PROPERTY_TAG(MaterialBlur, ColorMode),
+    ADD_PROPERTY_TAG(MaterialBlur, DisableSystemAdaptation)
 );
 
 DECLARE_FILTER(DispDistort, DISPLACEMENT_DISTORT,

@@ -543,10 +543,10 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     ASSERT_EQ(drawable, nullptr);
     std::shared_ptr<RSFilter> backgroundFilter =
         std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    node.GetMutableRenderProperties().GetEffect().backgroundFilter_ = backgroundFilter;
+    node.GetMutableRenderProperties().backgroundFilter_ = backgroundFilter;
     ASSERT_NE(DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node), nullptr);
     RSEffectRenderNode nodeTwo(id);
-    nodeTwo.GetMutableRenderProperties().GetEffect().backgroundFilter_ = backgroundFilter;
+    nodeTwo.GetMutableRenderProperties().backgroundFilter_ = backgroundFilter;
     ASSERT_TRUE(nodeTwo.IsInstanceOf<RSEffectRenderNode>());
     ASSERT_TRUE(nodeTwo.GetRenderProperties().GetBackgroundFilter());
     auto drawableTwo = std::static_pointer_cast<DrawableV2::RSBackgroundEffectDrawable>(
@@ -554,7 +554,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     ASSERT_NE(drawableTwo, nullptr);
     drawableTwo->OnSync();
     auto drawableThree = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
-    node.GetMutableRenderProperties().GetEffect().backgroundFilter_ = nullptr;
+    node.GetMutableRenderProperties().backgroundFilter_ = nullptr;
     ASSERT_FALSE(drawableThree->OnUpdate(node));
     auto drawableFour = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     ASSERT_FALSE(drawableFour->OnUpdate(node));

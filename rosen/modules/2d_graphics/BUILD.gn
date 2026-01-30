@@ -468,6 +468,14 @@ if (!is_arkui_x) {
       version_script = "2d_graphics.versionscript"
     }
 
+    if (is_ohos && is_clang && target_cpu == "arm64" && defined(build_ext_path)) {
+      ldflags = [ 
+        "-Wl,--emit-relocs",
+        "-Wl,--no-relax", 
+        "-mno-fix-cortex-a53-843419" 
+      ]
+    }
+
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }

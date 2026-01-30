@@ -17,6 +17,7 @@
 #define HDI_BACKEND_HDI_DEVICE_IMPL_H
 
 #include "hdi_device.h"
+#include "v1_1/include/idisplay_composer_interface.h"
 #include "v1_2/include/idisplay_composer_interface.h"
 #include "v1_3/include/idisplay_composer_interface.h"
 #include "v1_4/include/idisplay_composer_interface.h"

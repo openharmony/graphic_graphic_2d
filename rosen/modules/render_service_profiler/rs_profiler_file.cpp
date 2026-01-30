@@ -67,8 +67,9 @@ bool RSFile::Create(const std::string& fname)
     return true;
 }
 
-bool RSFile::Open(const std::string& fname)
+bool RSFile::Open(const std::string& fname, std::string& error)
 {
+    error.clear();
     if (file_ != nullptr) {
         Close();
     }
@@ -79,6 +80,7 @@ bool RSFile::Open(const std::string& fname)
     file_ = Utils::FileOpen(fname, "rbe");
 #endif
     if (file_ == nullptr) {
+        error = "Invalid file path: " + fname;
         return false;
     }
 
@@ -87,6 +89,7 @@ bool RSFile::Open(const std::string& fname)
     if (headerId != 'ROHR') { // Prohibit too old file versions
         Utils::FileClose(file_);
         file_ = nullptr;
+        error = "Unsupported version: " + std::to_string(headerId);
         return false;
     }
 
@@ -95,8 +98,8 @@ bool RSFile::Open(const std::string& fname)
     Utils::FileSeek(file_, 0, SEEK_END);
     writeDataOff_ = Utils::FileTell(file_);
     Utils::FileSeek(file_, headerOff_, SEEK_SET);
-    std::string errReason = ReadHeaders();
-    if (errReason.size()) {
+    error = ReadHeaders();
+    if (!error.empty()) {
         Utils::FileClose(file_);
         file_ = nullptr;
         return false;
@@ -220,22 +223,20 @@ bool RSFile::ReadHeaderPidList()
 
 bool RSFile::ReadHeaderFirstScreen()
 {
-    // READ FIRST SCREEN
-    uint32_t firstScrSize;
-    Utils::FileRead(&firstScrSize, sizeof(firstScrSize), 1, file_);
-    if (firstScrSize > chunkSizeMax) {
+    uint32_t size = 0;
+    Utils::FileRead(&size, sizeof(size), 1, file_);
+    if ((size > headerFirstFrame_.max_size()) || (size + Utils::FileTell(file_) > Utils::FileSize(file_))) {
         return false;
     }
-    headerFirstFrame_.resize(firstScrSize);
+    headerFirstFrame_.resize(size);
     Utils::FileRead(headerFirstFrame_.data(), headerFirstFrame_.size(), 1, file_);
     return true;
 }
 
 std::string RSFile::ReadHeader()
 {
-    const std::string errCode = "can't read header";
     if (!file_) {
-        return errCode;
+        return "Cannot read header";
     }
 
     Utils::FileSeek(file_, headerOff_, SEEK_SET);
@@ -245,11 +246,11 @@ std::string RSFile::ReadHeader()
     Utils::FileRead(&writeStartTime_, 1, sizeof(writeStartTime_), file_);
 
     if (!ReadHeaderPidList()) {
-        return errCode;
+        return "Invalid pid list header";
     }
 
     if (!ReadHeaderFirstScreen()) {
-        return errCode;
+        return "Invalid first frame header";
     }
 
      // READ ANIME START TIMES
@@ -257,7 +258,7 @@ std::string RSFile::ReadHeader()
         uint32_t startTimesSize;
         Utils::FileRead(&startTimesSize, sizeof(startTimesSize), 1, file_);
         if (startTimesSize > chunkSizeMax) {
-            return errCode;
+            return "Invalid start times header";
         }
         headerAnimeStartTimes_.resize(startTimesSize);
         Utils::FileRead(headerAnimeStartTimes_.data(),
@@ -272,7 +273,7 @@ std::string RSFile::ReadHeader()
         Utils::FileSeek(file_, subHeaderStartOff, SEEK_SET);
         const size_t subHeaderLen = subHeaderEndOff - subHeaderStartOff;
         if (subHeaderLen > headerSizeMax) {
-            return errCode;
+            return "Invalid subheader";
         }
         preparedHeader_.resize(subHeaderLen);
         Utils::FileRead(preparedHeader_.data(), subHeaderLen, 1, file_);
@@ -282,7 +283,7 @@ std::string RSFile::ReadHeader()
     uint32_t recordSize;
     Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
     if (recordSize > chunkSizeMax) {
-        return errCode;
+        return "Invalid layers header";
     }
     layerData_.resize(recordSize);
     for (auto& i : layerData_) {

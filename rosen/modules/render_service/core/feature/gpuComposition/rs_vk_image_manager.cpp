@@ -378,8 +378,7 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(RSPaintF
     }
     auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
     auto screenColorSpace = RSBaseRenderEngine::GetCanvasColorSpace(canvas);
-    if (screenColorSpace && drawingColorSpace && RSSystemProperties::GetSkipUnpremulEnabled() &&
-        drawingColorSpace->IsSRGB() != screenColorSpace->IsSRGB()) {
+    if (screenColorSpace && drawingColorSpace && drawingColorSpace->IsSRGB() != screenColorSpace->IsSRGB()) {
         bitmapFormat.alphaType = Drawing::AlphaType::ALPHATYPE_OPAQUE;
     }
     RS_LOGD_IF(DEBUG_COMPOSER, "  - Generated bitmap format: colorType = %{public}d, alphaType = %{public}d",

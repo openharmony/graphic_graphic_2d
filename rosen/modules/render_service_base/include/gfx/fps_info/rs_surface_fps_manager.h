@@ -74,7 +74,7 @@ public:
     void Remove(const Key& key)
     {
         auto it = map_.find(key);
-        if (it != map_.end()) {
+        if (it == map_.end()) {
             return;
         }
         list_.erase(it->second);

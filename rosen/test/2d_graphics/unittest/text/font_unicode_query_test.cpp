@@ -340,6 +340,121 @@ HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemEmpty, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GenerateUnicodeItemDejaVuMathTeXGyre
+ * @tc.desc: Test GenerateUnicodeItem
+ * @tc.type: FUNC
+ * @tc.require: SR20251027820925
+ */
+HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemDejaVuMathTeXGyre, TestSize.Level1)
+{
+    std::string ttfName = "DejaVuMathTeXGyre.ttf";
+    std::string path = GenerateRelativePathForFontResource(ttfName);
+    auto typeface = Typeface::MakeFromFile(path.c_str());
+    ASSERT_TRUE(typeface);
+    auto unicodeRange = FontUnicodeQuery::GenerateUnicodeItem(typeface);
+    EXPECT_FALSE(JudgeIfInvalidCodePointExist(unicodeRange));
+    auto it = FONT_DATA.find(ttfName);
+    ASSERT_TRUE(it != FONT_DATA.end());
+    const FontInfo& fontInfo = it->second;
+    EXPECT_EQ(unicodeRange.size(), fontInfo.size);
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.front));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.mid));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.back));
+}
+
+/**
+ * @tc.name: GenerateUnicodeItemFTToken
+ * @tc.desc: Test GenerateUnicodeItem
+ * @tc.type: FUNC
+ * @tc.require: SR20251027820925
+ */
+HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemFTToken, TestSize.Level1)
+{
+    std::string ttfName = "FTToken.ttf";
+    std::string path = GenerateRelativePathForFontResource(ttfName);
+    auto typeface = Typeface::MakeFromFile(path.c_str());
+    ASSERT_TRUE(typeface);
+    auto unicodeRange = FontUnicodeQuery::GenerateUnicodeItem(typeface);
+    EXPECT_FALSE(JudgeIfInvalidCodePointExist(unicodeRange));
+    auto it = FONT_DATA.find(ttfName);
+    ASSERT_TRUE(it != FONT_DATA.end());
+    const FontInfo& fontInfo = it->second;
+    EXPECT_EQ(unicodeRange.size(), fontInfo.size);
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.front));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.mid));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.back));
+}
+
+/**
+ * @tc.name: GenerateUnicodeItemFTToken2
+ * @tc.desc: Test GenerateUnicodeItem
+ * @tc.type: FUNC
+ * @tc.require: SR20251027820925
+ */
+HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemFTToken2, TestSize.Level1)
+{
+    std::string ttfName = "FTToken2.ttf";
+    std::string path = GenerateRelativePathForFontResource(ttfName);
+    auto typeface = Typeface::MakeFromFile(path.c_str());
+    ASSERT_TRUE(typeface);
+    auto unicodeRange = FontUnicodeQuery::GenerateUnicodeItem(typeface);
+    EXPECT_FALSE(JudgeIfInvalidCodePointExist(unicodeRange));
+    auto it = FONT_DATA.find(ttfName);
+    ASSERT_TRUE(it != FONT_DATA.end());
+    const FontInfo& fontInfo = it->second;
+    EXPECT_EQ(unicodeRange.size(), fontInfo.size);
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.front));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.mid));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.back));
+}
+
+/**
+ * @tc.name: GenerateUnicodeItemFTToken3
+ * @tc.desc: Test GenerateUnicodeItem
+ * @tc.type: FUNC
+ * @tc.require: SR20251027820925
+ */
+HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemFTToken3, TestSize.Level1)
+{
+    std::string ttfName = "FTToken3.ttf";
+    std::string path = GenerateRelativePathForFontResource(ttfName);
+    auto typeface = Typeface::MakeFromFile(path.c_str());
+    ASSERT_TRUE(typeface);
+    auto unicodeRange = FontUnicodeQuery::GenerateUnicodeItem(typeface);
+    EXPECT_FALSE(JudgeIfInvalidCodePointExist(unicodeRange));
+    auto it = FONT_DATA.find(ttfName);
+    ASSERT_TRUE(it != FONT_DATA.end());
+    const FontInfo& fontInfo = it->second;
+    EXPECT_EQ(unicodeRange.size(), fontInfo.size);
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.front));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.mid));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.back));
+}
+
+/**
+ * @tc.name: GenerateUnicodeItemFTTokens
+ * @tc.desc: Test GenerateUnicodeItem
+ * @tc.type: FUNC
+ * @tc.require: SR20251027820925
+ */
+HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemFTTokens, TestSize.Level1)
+{
+    std::string ttfName = "FTTokens.ttf";
+    std::string path = GenerateRelativePathForFontResource(ttfName);
+    auto typeface = Typeface::MakeFromFile(path.c_str());
+    ASSERT_TRUE(typeface);
+    auto unicodeRange = FontUnicodeQuery::GenerateUnicodeItem(typeface);
+    EXPECT_FALSE(JudgeIfInvalidCodePointExist(unicodeRange));
+    auto it = FONT_DATA.find(ttfName);
+    ASSERT_TRUE(it != FONT_DATA.end());
+    const FontInfo& fontInfo = it->second;
+    EXPECT_EQ(unicodeRange.size(), fontInfo.size);
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.front));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.mid));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.back));
+}
+
+/**
  * @tc.name: GenerateUnicodeItemHMOSColorEmojiCompat
  * @tc.desc: Test GenerateUnicodeItem
  * @tc.type: FUNC
@@ -394,6 +509,29 @@ HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemHMOSColorEmojiFlags, TestSize.
 HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemHMSymbolVF, TestSize.Level1)
 {
     std::string ttfName = "HMSymbolVF.ttf";
+    std::string path = GenerateRelativePathForFontResource(ttfName);
+    auto typeface = Typeface::MakeFromFile(path.c_str());
+    ASSERT_TRUE(typeface);
+    auto unicodeRange = FontUnicodeQuery::GenerateUnicodeItem(typeface);
+    EXPECT_FALSE(JudgeIfInvalidCodePointExist(unicodeRange));
+    auto it = FONT_DATA.find(ttfName);
+    ASSERT_TRUE(it != FONT_DATA.end());
+    const FontInfo& fontInfo = it->second;
+    EXPECT_EQ(unicodeRange.size(), fontInfo.size);
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.front));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.mid));
+    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.back));
+}
+
+/**
+ * @tc.name: GenerateUnicodeItemHYQiHeiL3
+ * @tc.desc: Test GenerateUnicodeItem
+ * @tc.type: FUNC
+ * @tc.require: SR20251027820925
+ */
+HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemHYQiHeiL3, TestSize.Level1)
+{
+    std::string ttfName = "HYQiHeiL3.ttf";
     std::string path = GenerateRelativePathForFontResource(ttfName);
     auto typeface = Typeface::MakeFromFile(path.c_str());
     ASSERT_TRUE(typeface);
