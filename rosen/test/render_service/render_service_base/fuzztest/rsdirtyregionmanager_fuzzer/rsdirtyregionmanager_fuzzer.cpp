@@ -291,7 +291,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         rsDirtyRegionManager.SetActiveSurfaceRect(GetRectI());
     });
     AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
-        rsDirtyRegionManager.GetUiLatestHistoryDirtyRegions(GetData<int>());
+        rsDirtyRegionManager.GetUiLatestHistoryDirtyRegions(GetData<int>() % 10); // Maximum parameter value: 10
     });
     AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         std::map<NodeId, RectI> target;
