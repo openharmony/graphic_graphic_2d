@@ -17,9 +17,6 @@
 
 #include <cstdlib>
 
-#ifdef ROSEN_OHOS
-#include "mem_mgr_client.h"
-#endif
 #include "rs_trace.h"
 
 #include "platform/common/rs_log.h"
