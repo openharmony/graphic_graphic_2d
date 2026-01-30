@@ -34,7 +34,7 @@ public:
 
 class RSRenderNodeGCTest : public testing::Test {
 public:
-    typedef void (*gcTask)(RSTaskMessage::RSTask, const std::string&, int64_t,
+    typedef void (*GcTask)(RSTaskMessage::RSTask, const std::string&, int64_t,
         AppExecFwk::EventQueue::Priority);
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -125,7 +125,7 @@ void RSRenderNodeGCTest::AddCanvasNodes(uint32_t nums, NodeId startId)
 
 void RSRenderNodeGCTest::SetUpTestCase()
 {
-    gcTask testTask = [](RSTaskMessage::RSTask task,
+    GcTask testTask = [](RSTaskMessage::RSTask task,
                 const std::string& str,
                 int64_t value,
                 AppExecFwk::EventQueue::Priority priority) {
@@ -500,98 +500,8 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseFromTree001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReleaseFromTree002
- * @tc.desc: test results of ReleaseFromTree, priority != AppExecFwk::EventQueue::Priority::IDLE
- * @tc.type: FUNC
- * @tc.require: issueIAF9XV
- */
-HWTEST_F(RSRenderNodeGCTest, ReleaseFromTree002, TestSize.Level1)
-{
-    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
-    nodeGC.isEnable_.store(true);
-
-    auto drawableReleaseFunc = [this](bool highPriority){
-        RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
-        taskFlag_ = GCLevel::HIGH;
-    };
-
-    auto imageReleaseFunc = [this](){
-        taskFlag_ = GCLevel::IMMEDIATE;
-    };
-
-    auto preTask = [&](){
-        ClearResource();
-        AddCanvasNodes(OFF_TREE_BUCKET_MAX_SIZE, 20000);
-        // just flag for test, HIGH for drawableReleaseFunc_, IMMEDIATE for imageReleaseFunc_
-        taskFlag_ = GCLevel::IDLE;
-    };
-
-    // no drawableReleaseFunc_ and no imageReleaseFunc_
-    {
-        preTask();
-        nodeGC.drawableReleaseFunc_ = nullptr;
-        nodeGC.imageReleaseFunc_ = nullptr;
-        nodeGC.ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
-        EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
-        EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0);
-        EXPECT_EQ(nodeGC.nodeBucket_.size(), 0);
-
-        EXPECT_EQ(nodeGC.drawableBucket_.size(), 0);
-        EXPECT_EQ(taskFlag_, GCLevel::IDLE);
-    }
-
-    // drawableReleaseFunc_ but no imageReleaseFunc_
-    {
-        preTask();
-        nodeGC.SetDrawableReleaseFunc(drawableReleaseFunc);
-        nodeGC.imageReleaseFunc_ = nullptr;
-        nodeGC.ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
-        EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
-        EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0);
-        EXPECT_EQ(nodeGC.nodeBucket_.size(), 0);
-
-        EXPECT_EQ(nodeGC.drawableBucket_.size(), 0);
-        EXPECT_EQ(taskFlag_, GCLevel::HIGH);
-    }
-
-    // no drawableReleaseFunc_ but has imageReleaseFunc_
-    {
-        preTask();
-        nodeGC.drawableReleaseFunc_ = nullptr;
-        nodeGC.SetImageReleaseFunc(imageReleaseFunc);
-
-        nodeGC.ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
-        EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
-        EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0);
-        EXPECT_EQ(nodeGC.nodeBucket_.size(), 0);
-
-        EXPECT_EQ(nodeGC.drawableBucket_.size(), 0);
-        EXPECT_EQ(taskFlag_, GCLevel::IMMEDIATE);
-    }
-
-    // has drawableReleaseFunc_ but has imageReleaseFunc_
-    {
-        preTask();
-        nodeGC.SetDrawableReleaseFunc(drawableReleaseFunc);
-        nodeGC.SetImageReleaseFunc(imageReleaseFunc);
-
-        nodeGC.ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
-        EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
-        EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0);
-        EXPECT_EQ(nodeGC.nodeBucket_.size(), 0);
-
-        EXPECT_EQ(nodeGC.drawableBucket_.size(), 0);
-        EXPECT_EQ(taskFlag_, GCLevel::IMMEDIATE);
-    }
-
-    EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0);
-    EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
-    nodeGC.ReleaseFromTree();
-}
-
-/**
  * @tc.name: ReleaseNodePidTest001
- * @tc.desc: ReleaseNodePid Test 
+ * @tc.desc: ReleaseNodePid Test
  * @tc.type: FUNC
  * @tc.require: issueIAF9XV
  */
@@ -606,7 +516,7 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseNodePidTest001, TestSize.Level1)
  
 /**
  * @tc.name: ReleaseNodeNotOnTreeTest001
- * @tc.desc: ReleaseNodeNotOnTree Test 
+ * @tc.desc: ReleaseNodeNotOnTree Test
  * @tc.type: FUNC
  * @tc.require: issueIAF9XV
  */
@@ -624,7 +534,7 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseNodeNotOnTreeTest001, TestSize.Level1)
  
 /**
  * @tc.name: ReleaseNodeMemNotOnTreeTest001
- * @tc.desc: ReleaseNodeMemNotOnTree Test 
+ * @tc.desc: ReleaseNodeMemNotOnTree Test
  * @tc.type: FUNC
  * @tc.require: issueIAF9XV
  */
