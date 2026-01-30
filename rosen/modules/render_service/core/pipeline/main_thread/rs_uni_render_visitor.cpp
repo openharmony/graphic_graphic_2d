@@ -391,6 +391,25 @@ void RSUniRenderVisitor::HandleWiredExtendedScreenColorGamut(RSScreenRenderNode&
         return;
     }
     HandleMainScreenColorGamut(node);
+
+    std::vector<ScreenColorGamut> mode{};
+    int32_t ret = screenManager_->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
+    if (ret != SUCCESS) {
+        RS_LOGD("HandleMainScreenColorGamut GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
+        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+    } else {
+        RSLuminanceControl::Get().HandleGamutSpecialRender(mode);
+        node.SelectBestGamut(mode);
+    }
+
+    ScreenColorGamut screenColorGamut;
+    if (screenManager_->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
+        RS_LOGD("HandleWiredExtendedScreenColorGamut get screen color gamut failed.");
+        return;
+    }
+    if (static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_SRGB) {
+        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+    }
 }
 
 void RSUniRenderVisitor::HandleMainScreenColorGamut(RSScreenRenderNode& node)
@@ -398,7 +417,7 @@ void RSUniRenderVisitor::HandleMainScreenColorGamut(RSScreenRenderNode& node)
     std::vector<ScreenColorGamut> mode{};
     int32_t ret = screenManager_->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
     if (ret != SUCCESS) {
-        RS_LOGD("HandleColorGamuts GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
+        RS_LOGD("HandleMainScreenColorGamut GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
     } else {
         RSLuminanceControl::Get().HandleGamutSpecialRender(mode);
