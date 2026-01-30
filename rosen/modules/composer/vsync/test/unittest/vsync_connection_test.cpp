@@ -220,6 +220,10 @@ HWTEST_F(VSyncConnectionTest, GetReceiveFd001, Function | MediumTest| Level3)
     int32_t fd = -1;
     ASSERT_EQ(VSyncConnectionTest::vsyncConnection->GetReceiveFd(fd), VSYNC_ERROR_OK);
     ASSERT_NE(fd, -1);
+
+    VSyncConnectionTest::vsyncConnection->CloseReceiveFd();
+    ASSERT_EQ(VSyncConnectionTest::vsyncConnection->GetReceiveFd(fd), VSYNC_ERROR_API_FAILED);
+    ASSERT_EQ(fd, -1);
 }
 
 /**
