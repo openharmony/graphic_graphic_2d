@@ -103,6 +103,7 @@ EffectErrorCode OH_Filter_BlurWithTileMode(OH_Filter* filter, float radius, Effe
  *        {@link EFFECT_SUCCESS} if the operation is successful.
  *        {@link EFFECT_BAD_PARAMETER} if parameter is invalid.
  * @since 24
+ * @version 1.0
  */
 EffectErrorCode OH_Filter_BlurWithDirection(OH_Filter* filter, float radius, float effectDirection,
     EffectTileMode tileMode);

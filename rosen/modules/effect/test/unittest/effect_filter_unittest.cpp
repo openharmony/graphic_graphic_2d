@@ -373,7 +373,7 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_BlurWithDirectionTest, TestSize.Level1)
     // test filter is nullptr
     EXPECT_EQ(OH_Filter_BlurWithDirection(nullptr, radius, angle, EffectTileMode::CLAMP), EFFECT_BAD_PARAMETER);
 
-    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_BlurWithDirectionTest start";
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_BlurWithDirectionTest end";
 }
 
 /**
@@ -384,7 +384,7 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_BlurWithDirectionTest, TestSize.Level1)
  */
 HWTEST_F(EffectFilterUnittest, OH_Filter_MapColorByBrightnessTest, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ColorRemapTest start";
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_MapColorByBrightnessTest start";
 
     OH_PixelmapNative *pixmap = nullptr;
     /** pixmap is necessary, otherwize can not create pixelmap*/
@@ -395,28 +395,28 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_MapColorByBrightnessTest, TestSize.Leve
     ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
 
     // test only set colors
-    OH_Filter_MapColorByBrightnessParams colorRemapParams;
+    OH_Filter_MapColorByBrightnessParams params;
     OH_Filter_Color color1 = {1.0f, 0.0f, 0.5f, 1.0f}; // color rgba
     OH_Filter_Color color2 = {1.0f, 0.0f, 0.5f, 1.0f}; // color rgba
     OH_Filter_Color color3 = {1.0f, 0.5f, 0.5f, 1.0f}; // color rgba
     OH_Filter_Color color4 = {0.0f, 0.5f, 0.5f, 1.0f}; // color rgba
     OH_Filter_Color colors[4] = {color1, color2, color3, color4};
-    colorRemapParams.colors = colors;
-    colorRemapParams.positions = nullptr;
-    colorRemapParams.colorsNum = 0;
-    EXPECT_EQ(OH_Filter_MapColorByBrightness(filter, &colorRemapParams), EFFECT_BAD_PARAMETER);
+    params.colors = colors;
+    params.positions = nullptr;
+    params.colorsNum = 0;
+    EXPECT_EQ(OH_Filter_MapColorByBrightness(filter, &params), EFFECT_BAD_PARAMETER);
 
     // test the value for position width greater than 0 and less than 0
     float positions[4] = { 0.2f, -0.5f, 1.0f, -1.5f};
-    colorRemapParams.positions = positions;
-    colorRemapParams.colorsNum = 4;
-    EXPECT_EQ(OH_Filter_MapColorByBrightness(filter, &colorRemapParams), EFFECT_SUCCESS);
+    params.positions = positions;
+    params.colorsNum = 4;
+    EXPECT_EQ(OH_Filter_MapColorByBrightness(filter, &params), EFFECT_SUCCESS);
 
     // test input is nullptr
-    EXPECT_EQ(OH_Filter_MapColorByBrightness(nullptr, &colorRemapParams), EFFECT_BAD_PARAMETER);
+    EXPECT_EQ(OH_Filter_MapColorByBrightness(nullptr, &params), EFFECT_BAD_PARAMETER);
     EXPECT_EQ(OH_Filter_MapColorByBrightness(filter, nullptr), EFFECT_BAD_PARAMETER);
 
-    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ColorRemapTest start";
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_MapColorByBrightnessTest end";
 }
 
 /**
@@ -448,7 +448,7 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_GammaCorrectionTest, TestSize.Level1)
     // test filter is nullptr
     EXPECT_EQ(OH_Filter_GammaCorrection(nullptr, gamma), EFFECT_BAD_PARAMETER);
 
-    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GammaCorrectionTest start";
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GammaCorrectionTest end";
 }
 } // namespace Rosen
 } // namespace OHOS

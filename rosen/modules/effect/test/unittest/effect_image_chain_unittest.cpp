@@ -338,18 +338,18 @@ HWTEST_F(EffectImageChainUnittest, EffectCanvasTest, TestSize.Level1) {
 }
 
 /**
- * @tc.name: ApplyColorRemapTest
- * @tc.desc: test ApplyColorRemap
+ * @tc.name: ApplyMapColorByBrightnessTest
+ * @tc.desc: test ApplyMapColorByBrightness
  * @tc.type: FUNC
  */
-HWTEST_F(EffectImageChainUnittest, ApplyColorRemapTest, TestSize.Level1)
+HWTEST_F(EffectImageChainUnittest, ApplyMapColorByBrightnessTest, TestSize.Level1)
 {
     auto image = std::make_shared<EffectImageChain>();
     std::vector<Vector4f> colors = {{1.0f, 0.0f, 0.5f, 1.0f}}; // color rgba
     std::vector<float> positions = {0.5};
 
     // test not prepare
-    auto ret = image->ApplyColorRemap(colors, positions);
+    auto ret = image->ApplyMapColorByBrightness(colors, positions);
     EXPECT_NE(ret, DrawingError::ERR_OK);
 
     // test CUP
@@ -358,19 +358,19 @@ HWTEST_F(EffectImageChainUnittest, ApplyColorRemapTest, TestSize.Level1)
     std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
     EXPECT_NE(srcPixelMap, nullptr);
     ret = image->Prepare(srcPixelMap, true);
-    ret = image->ApplyColorRemap(colors, positions);
+    ret = image->ApplyMapColorByBrightness(colors, positions);
     EXPECT_NE(ret, DrawingError::ERR_OK);
 
     // test filter is nullptr
     ret = image->Prepare(srcPixelMap, false);
-    ret = image->ApplyColorRemap(colors, positions);
+    ret = image->ApplyMapColorByBrightness(colors, positions);
     EXPECT_EQ(ret, DrawingError::ERR_OK);
 
     // test filter not is nullptr
     auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
     ASSERT_NE(filterBlur, nullptr);
     ret = image->ApplyDrawingFilter(filterBlur);
-    ret = image->ApplyColorRemap(colors, positions);
+    ret = image->ApplyMapColorByBrightness(colors, positions);
     EXPECT_EQ(ret, DrawingError::ERR_OK);
 }
 

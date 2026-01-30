@@ -199,51 +199,51 @@ HWTEST_F(EffectImageRenderUnittest, DirectionBlurTest, TestSize.Level1)
 
 
 /**
- * @tc.name: ColorRemapTest
- * @tc.desc: Test ColorRemap by invalid params
+ * @tc.name: MapColorByBrightnessTest
+ * @tc.desc: Test MapColorByBrightness by invalid params
  * @tc.type: FUNC
  */
-HWTEST_F(EffectImageRenderUnittest, ColorRemapTest, TestSize.Level1)
+HWTEST_F(EffectImageRenderUnittest, MapColorByBrightnessTest, TestSize.Level1)
 {
     std::vector<Vector4f> colors = {};
     std::vector<float> positions = {};
-    auto flag = EffectImageFilter::ColorRemap(colors, positions);
+    auto flag = EffectImageFilter::MapColorByBrightness(colors, positions);
     EXPECT_EQ(flag, nullptr);
 
     Vector4f color1 = {1.0f, 0.0f, 0.5f, 1.0f}; // color rgba
     Vector4f color2 = {1.0f, 0.5f, 0.5f, 1.0f}; // color rgba
     Vector4f color3 = {0.0f, 0.5f, 0.5f, 1.0f}; // color rgba
     colors = {color1, color3, color3};
-    flag = EffectImageFilter::ColorRemap(colors, positions);
+    flag = EffectImageFilter::MapColorByBrightness(colors, positions);
     EXPECT_EQ(flag, nullptr);
 
     positions = {0.2f, -0.5f, 1.5f};
-    flag = EffectImageFilter::ColorRemap(colors, positions);
+    flag = EffectImageFilter::MapColorByBrightness(colors, positions);
     EXPECT_NE(flag, nullptr);
 
     colors = {};
-    flag = EffectImageFilter::ColorRemap(colors, positions);
+    flag = EffectImageFilter::MapColorByBrightness(colors, positions);
     EXPECT_EQ(flag, nullptr);
 }
 
 /**
- * @tc.name: EffectImageColorRemapFilterTest
- * @tc.desc: Test EffectImageColorRemapFilter
+ * @tc.name: EffectImageMapColorByBrightnessFilterTest
+ * @tc.desc: Test EffectImageMapColorByBrightnessFilter
  * @tc.type: FUNC
  */
-HWTEST_F(EffectImageRenderUnittest, EffectImageColorRemapFilterTest, TestSize.Level1)
+HWTEST_F(EffectImageRenderUnittest, EffectImageMapColorByBrightnessFilterTest, TestSize.Level1)
 {
     std::vector<Vector4f> colors = {{1.0f, 0.0f, 0.5f, 1.0f}}; // color rgba
     std::vector<float> positions = {0.5};
-    auto filterColorRemap = EffectImageFilter::ColorRemap(colors, positions);
-    ASSERT_NE(filterColorRemap, nullptr);
+    auto filter = EffectImageFilter::MapColorByBrightness(colors, positions);
+    ASSERT_NE(filter, nullptr);
 
     std::shared_ptr<EffectImageChain> image = nullptr;
-    auto ret = filterColorRemap->Apply(nullptr);
+    auto ret = filter->Apply(nullptr);
     EXPECT_NE(ret, DrawingError::ERR_OK);
 
     image = std::make_shared<EffectImageChain>();
-    ret = filterColorRemap->Apply(image);
+    ret = filter->Apply(image);
     EXPECT_NE(ret, DrawingError::ERR_OK);
 }
 

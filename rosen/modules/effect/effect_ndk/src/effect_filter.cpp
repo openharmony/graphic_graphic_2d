@@ -23,8 +23,8 @@ using namespace OHOS;
 using namespace Rosen;
 
 namespace {
-    static constexpr uint8_t COLOR_MAX_COUNTS = 5; // The colors max counts of ColorRemapParams
-    static constexpr uint8_t COLOR_MIN_COUNTS = 1; // The colors min counts of ColorRemapParams
+    static constexpr uint8_t COLOR_MAX_COUNTS = 5; // The colors max counts of mapColorByBrightness
+    static constexpr uint8_t COLOR_MIN_COUNTS = 1; // The colors min counts of mapColorByBrightness
 }
 
 static Filter* CastToFilter(OH_Filter* filter)
@@ -143,7 +143,7 @@ EffectErrorCode OH_Filter_MapColorByBrightness(OH_Filter* filter, OH_Filter_MapC
         colors.push_back(color);
         positions.push_back(params->positions[i]);
     }
-    if (!(CastToFilter(filter)->ColorRemap(colors, positions))) {
+    if (!(CastToFilter(filter)->MapColorByBrightness(colors, positions))) {
         return EFFECT_BAD_PARAMETER;
     }
     return EFFECT_SUCCESS;

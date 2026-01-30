@@ -27,7 +27,7 @@ public:
     static std::shared_ptr<EffectImageFilter> Blur(float radius, float angle,
         Drawing::TileMode tileMode = Drawing::TileMode::DECAL);
     static std::shared_ptr<EffectImageFilter> Brightness(float degree);
-    static std::shared_ptr<EffectImageFilter> ColorRemap(const std::vector<Vector4f>& colors,
+    static std::shared_ptr<EffectImageFilter> MapColorByBrightness(const std::vector<Vector4f>& colors,
         const std::vector<float>& positions);
     static std::shared_ptr<EffectImageFilter> GammaCorrection(float gamma);
     static std::shared_ptr<EffectImageFilter> Grayscale();
@@ -56,7 +56,8 @@ class EffectImageBlurFilter : public EffectImageFilter {
 public:
     EffectImageBlurFilter(float radius, const Drawing::TileMode& tileMode) : radius_(radius), tileMode_(tileMode) {}
     EffectImageBlurFilter(float radius, float angle, const Drawing::TileMode& tileMode)
-        : radius_(radius), tileMode_(tileMode), angle_(angle) {
+        : radius_(radius), tileMode_(tileMode), angle_(angle)
+    {
         isDirectionBlur_ = true;
     }
     ~EffectImageBlurFilter() override = default;
@@ -92,11 +93,11 @@ private:
     std::vector<float> degrees_;
 };
 
-class EffectImageColorRemapFilter : public EffectImageFilter {
+class EffectImageMapColorByBrightnessFilter : public EffectImageFilter {
 public:
-    EffectImageColorRemapFilter(const std::vector<Vector4f>& colors,
+    EffectImageMapColorByBrightnessFilter(const std::vector<Vector4f>& colors,
         const std::vector<float>& positions) : colors_(colors), positions_(positions) {}
-    ~EffectImageColorRemapFilter() override = default;
+    ~EffectImageMapColorByBrightnessFilter() override = default;
 
     DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
 private:

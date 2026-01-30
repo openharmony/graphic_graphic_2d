@@ -99,11 +99,11 @@ typedef struct {
      */
     OH_Filter_Color* colors;
     /** Specify the position where the color map brightness is set,
-     *  the value rangle 0 to 1, < 0 set to 0, > 1 set to 1.
+     *  the value rangle 0.0f to 1.0f, < 0.0f set to 0.0f, > 1.0f set to 1.0f.
      */
     float* positions;
     /** The number of available colors and position, must to be > 0, otherwise no effect,
-     *  take first 5 value of color and position if number > 5 . 
+     *  take first 5 value of color and position if number > 5.
      */
     uint8_t colorsNum;
 } OH_Filter_MapColorByBrightnessParams;

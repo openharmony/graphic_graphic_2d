@@ -16,7 +16,7 @@
 #include "effect_image_chain.h"
 
 #include "effect_utils.h"
-#include "ge_color_remap_shader_filter.h"
+#include "ge_map_color_by_brightness_shader_filter.h"
 #include "ge_external_dynamic_loader.h"
 #include "ge_gamma_correction_filter.h"
 #include "ge_mesa_blur_shader_filter.h"
@@ -170,9 +170,7 @@ DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& 
     }
 
     if (forceCPU_) {
-        float radiusX = isDirection ? 0.0 : radius;
-        float radiusY = 1.0;
-        auto filter = Drawing::ImageFilter::CreateBlurImageFilter(radiusX, radiusY, tileMode, nullptr);
+        auto filter = Drawing::ImageFilter::CreateBlurImageFilter(radius, radius, tileMode, nullptr);
         filters_ = (filters_ == nullptr) ? filter : Drawing::ImageFilter::CreateComposeImageFilter(filter, filters_);
         return DrawingError::ERR_OK;
     }
@@ -240,18 +238,18 @@ DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, flo
     return DrawingError::ERR_OK;
 }
 
-DrawingError EffectImageChain::ApplyColorRemap(
+DrawingError EffectImageChain::ApplyMapColorByBrightness(
     const std::vector<Vector4f>& colors, const std::vector<float>& positions)
 {
     std::lock_guard<std::mutex> lock(apiMutex_);
     if (!prepared_) {
-        EFFECT_LOG_E("EffectImageChain::ApplyColorRemap: Not ready, need prepare first.");
+        EFFECT_LOG_E("EffectImageChain::ApplyMapColorByBrightness: Not ready, need prepare first.");
         return DrawingError::ERR_NOT_PREPARED;
     }
 
     // CPU not supported
     if (forceCPU_) {
-        EFFECT_LOG_E("EffectImageChain::ApplyColorRemap: Not support CPU.");
+        EFFECT_LOG_E("EffectImageChain::ApplyMapColorByBrightness: Not support CPU.");
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
@@ -261,12 +259,12 @@ DrawingError EffectImageChain::ApplyColorRemap(
         filters_ = nullptr; // clear filters_ to avoid apply again
     }
 
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyColorRemap");
-    Drawing::GEColorRemapFilterParams params = {colors, positions};
-    auto colorRemapShader = std::make_shared<GEColorRemapShaderFilter>(params);
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyMapColorByBrightness");
+    Drawing::GEMapColorByBrightnessFilterParams params = {colors, positions};
+    auto filterShader = std::make_shared<GEMapColorByBrightnessShaderFilter>(params);
     auto width = srcPixelMap_->GetWidth();
     auto height = srcPixelMap_->GetHeight();
-    image_ = colorRemapShader->ProcessImage(*canvas_, image_,
+    image_ = filterShader->ProcessImage(*canvas_, image_,
         Drawing::Rect(0, 0, width, height), Drawing::Rect(0, 0, width, height));
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawingError::ERR_OK;

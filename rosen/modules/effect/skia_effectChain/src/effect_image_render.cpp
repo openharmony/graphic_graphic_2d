@@ -26,7 +26,8 @@ static constexpr float BRIGHTNESS_MIN_THRESHOLD = 0.0f;
 static constexpr float BRIGHTNESS_MAX_THRESHOLD = 1.0f;
 static constexpr float POSITIVE_MIN_THRESHOLD = 0.0f;
 static constexpr float GAMMA_MIN_THRESHOLD = 1e-6;
-static constexpr std::pair<float, float> COLOR_POSITION_LIMITS{0.0f, 1.0f};  // limits for colorRemap filter pamameters
+// limits for mapColorByBrightness filter pamameters
+static constexpr std::pair<float, float> COLOR_POSITION_LIMITS{0.0f, 1.0f};
 
 static Vector4f GetLimitedPara(const Vector4f& para, float minThreshold)
 {
@@ -52,7 +53,7 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, float a
     return std::make_shared<EffectImageBlurFilter>(radius, angle, tileMode);
 }
 
-std::shared_ptr<EffectImageFilter> EffectImageFilter::ColorRemap(const std::vector<Vector4f>& colors,
+std::shared_ptr<EffectImageFilter> EffectImageFilter::MapColorByBrightness(const std::vector<Vector4f>& colors,
     const std::vector<float>& positions)
 {
     std::vector<Vector4f> colorValues;
@@ -64,10 +65,10 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::ColorRemap(const std::vect
         positionValues.push_back(position);
     }
     if (colorValues.empty()) {
-        EFFECT_LOG_E("EffectImageFilter::ColorRemap: params is invalid.");
+        EFFECT_LOG_E("EffectImageFilter::MapColorByBrightness: params is invalid.");
         return nullptr;
     }
-    return std::make_shared<OHOS::Rosen::EffectImageColorRemapFilter>(colorValues, positionValues);
+    return std::make_shared<OHOS::Rosen::EffectImageMapColorByBrightnessFilter>(colorValues, positionValues);
 }
 
 std::shared_ptr<EffectImageFilter> EffectImageFilter::GammaCorrection(float gamma)
@@ -172,12 +173,12 @@ DrawingError EffectImageBlurFilter::Apply(const std::shared_ptr<EffectImageChain
     return image->ApplyBlur(radius_, tileMode_, isDirectionBlur_, angle_);
 }
 
-DrawingError EffectImageColorRemapFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+DrawingError EffectImageMapColorByBrightnessFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
 {
     if (image == nullptr) {
         return DrawingError::ERR_IMAGE_NULL;
     }
-    return image->ApplyColorRemap(colors_, positions_);
+    return image->ApplyMapColorByBrightness(colors_, positions_);
 }
 
 DrawingError EffectImageGammaCorrectionFilter::Apply(const std::shared_ptr<EffectImageChain>& image)

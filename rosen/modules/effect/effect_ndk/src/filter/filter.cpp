@@ -95,9 +95,9 @@ bool Filter::Invert()
     return true;
 }
 
-bool Filter::ColorRemap(const std::vector<Vector4f>& colors, const std::vector<float>& positions)
+bool Filter::MapColorByBrightness(const std::vector<Vector4f>& colors, const std::vector<float>& positions)
 {
-    auto filter = EffectImageFilter::ColorRemap(colors, positions);
+    auto filter = EffectImageFilter::MapColorByBrightness(colors, positions);
     if (!filter) {
         return false;
     }

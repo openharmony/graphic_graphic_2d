@@ -36,7 +36,7 @@ public:
     bool Brightness(float brightness);
     bool Grayscale();
     bool Invert();
-    bool ColorRemap(const std::vector<Vector4f>& colors, const std::vector<float>& positions);
+    bool MapColorByBrightness(const std::vector<Vector4f>& colors, const std::vector<float>& positions);
     bool GammaCorrection(float gamma);
     bool SetColorMatrix(const Drawing::ColorMatrix& matrix);
     private:
