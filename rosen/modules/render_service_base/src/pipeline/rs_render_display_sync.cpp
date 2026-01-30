@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t MAX_DIVISOR_NUM = 15;
-constexpr int32_t MIN_DIVISOR_FRAME_RATE = 10;
+constexpr int32_t MIN_DIVISOR_FRAME_RATE = 5;
 constexpr int32_t FRAME_RATE_THRESHOLD = 5;
 const std::vector<int32_t> SOURCE_FRAME_RATES = {30, 60, 72, 90, 120}; // sorted
 }
