@@ -1808,7 +1808,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect004, TestSize.Level
 
     surfaceNode2->instanceRootNodeId_ = 1;
     filterNode->instanceRootNodeId_ = 2;
-
     surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(2);
     surfaceNode2->SetHardwareForcedDisabledState(false);
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);
