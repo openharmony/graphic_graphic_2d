@@ -19,10 +19,11 @@
 #include <functional>
 #include <string>
 
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
+#include "feature/hwc_event/rs_uni_hwc_event_manager.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_pointer_window_manager.h"
-#include "feature/hwc/rs_uni_hwc_compute_util.h"
 
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -75,21 +76,8 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     isCopybitSupported_ = RSSystemParameters::GetIsCopybitSupported();
 }
 
-void RSUniHwcPrevalidateUtil::Init()
-{
-    RS_LOGI("[%{public}s]:register OnHwcEvent Func", __func__);
-    if (handleEventFunc_ == nullptr) {
-        RS_LOGW("[%{public}s]:handleEventFunc is nullptr", __func__);
-        return;
-    }
-    auto hdiBackend = HdiBackend::GetInstance();
-    if (hdiBackend && hdiBackend->RegHwcEventCallback(&RSUniHwcPrevalidateUtil::OnHwcEvent, this) != 0) {
-        RS_LOGW("[%{public}s]:Failed to register OnHwcEvent Func", __func__);
-    }
-}
-
 void RSUniHwcPrevalidateUtil::OnHwcEvent(
-    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data)
+    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
     if (!GetInstance().handleEventFunc_) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::HandleEvent handleEventFunc is null");
@@ -151,7 +139,7 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     info.zOrder = zorder;
     info.bufferUsage = node->GetRSSurfaceHandler()->GetBuffer()->GetUsage();
     info.layerUsage = node->IsHardwareEnabledTopSurface() &&
-        RSPointerWindowManager::Instance().CheckHardCursorSupport(node->GetScreenId()) ?
+        node->GetHardCursorStatus() ?
         info.layerUsage | USAGE_HARDWARE_CURSOR : info.layerUsage;
     info.format = node->GetRSSurfaceHandler()->GetBuffer()->GetFormat();
     info.fps = fps;
