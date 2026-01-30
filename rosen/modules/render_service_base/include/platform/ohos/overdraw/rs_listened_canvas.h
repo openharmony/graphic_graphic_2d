@@ -47,7 +47,6 @@ public:
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius, Drawing::Color ambientColor,
         Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isLimitElevation) override;
     void DrawRegion(const Drawing::Region& region) override;
-    void DrawTextBlob(const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y) override;
 
     // image
     void DrawBitmap(const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py) override;

@@ -300,9 +300,7 @@ public:
     static bool GetCachedBlurPartialRenderEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);
     static bool GetSurfaceNodeWatermarkEnabled();
-    static bool IsPhoneType();
     static bool IsSuperFoldDisplay();
-    static bool IsBetaRelease();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
     static bool GetSingleFrameComposerEnabled();

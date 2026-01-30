@@ -28,8 +28,8 @@ namespace Rosen {
 
 RSRenderServiceProxy::RSRenderServiceProxy(const sptr<IRemoteObject>& impl) : IRemoteProxy<RSIRenderService>(impl) {}
 
-std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderServiceProxy::CreateConnection(
-    const sptr<RSIConnectionToken>& token)
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
+    RSRenderServiceProxy::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
     if (token == nullptr) {
         ROSEN_LOGE("CreateConnection(): token is null.");
@@ -56,19 +56,21 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
         return {nullptr, nullptr};
     }
 
-    auto remoteServiceConnObj = reply.ReadRemoteObject();
-    if (remoteServiceConnObj == nullptr || !remoteServiceConnObj->IsProxyObject()) {
-        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): Reply is not valid.");
+    // Reading rsConn from the split file in the system. Subsequent sunset
+    auto remoteToService = reply.ReadRemoteObject();
+    if (remoteToService == nullptr || !remoteToService->IsProxyObject()) {
+        ROSEN_LOGE("RS CreateConnection(): Reply is not valid.");
         return {nullptr, nullptr};
     }
-    auto conn = iface_cast<RSIClientToServiceConnection>(remoteServiceConnObj);
+    auto conn = iface_cast<RSIClientToServiceConnection>(remoteToService);
 
-    auto remoteRenderConnObj = reply.ReadRemoteObject();
-    if (remoteRenderConnObj == nullptr || !remoteRenderConnObj->IsProxyObject()) {
-        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): Reply is not valid.");
+    // Reading rsConn from the split file in the system. Subsequent sunset
+    auto remoteToRender = reply.ReadRemoteObject();
+    if (remoteToRender == nullptr || !remoteToRender->IsProxyObject()) {
+        ROSEN_LOGE("Render CreateConnection(): Reply is not valid.");
         return {nullptr, nullptr};
     }
-    auto renderConn = iface_cast<RSIClientToRenderConnection>(remoteRenderConnObj);
+    auto renderConn = iface_cast<RSIClientToRenderConnection>(remoteToRender);
 
     return {conn, renderConn};
 }
@@ -99,7 +101,6 @@ bool RSRenderServiceProxy::RemoveConnection(const sptr<RSIConnectionToken>& toke
         ROSEN_LOGE("RemoveConnection(): SendRequest failed, err is %{public}d.", err);
         return false;
     }
-
     return reply.ReadBool();
 }
 } // namespace Rosen

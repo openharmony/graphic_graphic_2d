@@ -755,9 +755,9 @@ uint32_t RSInterfaces::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
     return renderServiceClient_->SetScreenActiveRect(id, activeRect);
 }
 
-void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offSetY)
 {
-    return renderServiceClient_->SetScreenOffset(id, offSetX, offSetY);
+    return renderServiceClient_->SetScreenOffset(id, offsetX, offSetY);
 }
 
 void RSInterfaces::SetScreenFrameGravity(ScreenId id, int32_t gravity)

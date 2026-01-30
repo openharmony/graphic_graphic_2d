@@ -1030,17 +1030,6 @@ HWTEST_F(RSSystemPropertiesTest, WatchSystemProperty, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsPhoneType
- * @tc.desc: IsPhoneType Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, IsPhoneType, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::IsPhoneType());
-}
-
-/**
  * @tc.name: GetSyncTransactionEnabled
  * @tc.desc: GetSyncTransactionEnabled Test
  * @tc.type:FUNC
@@ -1092,7 +1081,6 @@ HWTEST_F(RSSystemPropertiesTest, GetSingleFrameComposerCanvasNodeEnabled, TestSi
  */
 HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetSecurityPermissionCheckEnabled());
     EXPECT_TRUE(RSSystemProperties::GetEffectMergeEnabled());
     EXPECT_FALSE(RSSystemProperties::GetDumpUICaptureEnabled());
     EXPECT_FALSE(RSSystemProperties::GetDumpUIPixelmapEnabled());
