@@ -356,10 +356,10 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsExclusi
 {
     auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
     auto code = static_cast<CodeUnderlyingType>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK);
-    auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    auto hasPermission = verifier->IsExclusiveVerificationPassed(code);
     ASSERT_EQ(hasPermission, true);
     code = static_cast<CodeUnderlyingType>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER);
-    hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    hasPermission = verifier->IsExclusiveVerificationPassed(code);
     ASSERT_EQ(hasPermission, true);
 }
 #endif
