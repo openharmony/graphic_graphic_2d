@@ -74,13 +74,13 @@ public:
     }
     int DupReservedFlushFd();
 
+    void CancelBufferForCurrentFrame();
     int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height,
         int& fenceFd, bool useAFBC, bool isProtected = false);
     bool PreAllocateProtectedBuffer(int32_t width, int32_t height);
 
     void MarkAsHpaeSurface();
     void PreAllocateHpaeBuffer(int32_t width, int32_t height, int32_t bufferCount, bool useAFBC);
-    void CancelBufferForCurrentFrame();
 
 private:
     struct NativeWindow* mNativeWindow = nullptr;
