@@ -21,7 +21,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
-class AppearanceTest07 : public RSGraphicTest {
+class AppearanceAlphaOutlineBorderTest : public RSGraphicTest {
 private:
     const int screenWidth = 1200;
     const int screenHeight = 2000;
@@ -33,953 +33,783 @@ public:
         SetScreenSize(screenWidth, screenHeight);
     }
 
-    void setNode(std::shared_ptr<RSCanvasNode>& node, const Vector4f& bounds, Vector4<Color> outLineColor)
+    // Helper function to create outline node with specified parameters
+    std::shared_ptr<RSCanvasNode> CreateOutlineNode(
+        const Vector4f& bounds,
+        const Vector4<Color>& outlineColor,
+        const Vector4f& outlineWidth,
+        const Vector4f& outlineRadius,
+        const Vector4<BorderStyle>& outlineStyle,
+        const Vector4f& dashGap = {0, 0, 0, 0},
+        const Vector4f& dashWidth = {0, 0, 0, 0},
+        float alpha = 1.0f,
+        uint32_t bgColor = 0x8FFF00FF)
     {
-        Vector4<BorderStyle> style = Vector4<BorderStyle>(BorderStyle::SOLID);
-        node->SetAlpha(0.5f);
+        auto node = RSCanvasNode::Create();
+        node->SetAlpha(alpha);
         node->SetBounds(bounds);
-        int transXY = 20;
-        int transZ = 0;
-        node->SetTranslate(transXY, transXY, transZ);
-        node->SetOutlineStyle(style);
-        Vector4f borderWidth = { 5, 5, 5, 5 };
-        node->SetOutlineWidth(borderWidth);
-        node->SetOutlineColor(outLineColor);
-    };
+        node->SetFrame(bounds);
+        node->SetBackgroundColor(bgColor);
+        node->SetOutlineColor(outlineColor);
+        node->SetOutlineWidth(outlineWidth);
+        node->SetOutlineRadius(outlineRadius);
+        node->SetOutlineStyle(outlineStyle);
+        node->SetOutlineDashGap(dashGap);
+        node->SetOutlineDashWidth(dashWidth);
+        node->SetTranslate(TWENTY_, TWENTY_, 0);
+        return node;
+    }
 };
 
-// color
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_Color_Test_1)
-{
-    Color colorList[] = { Color(0, 0, 0), Color(255, 0, 0), Color(0, 255, 0), Color(0, 0, 255) };
+// ============================================================================
+// Grid Layout Tests - Multiple scenarios in one test
+// ============================================================================
 
-    for (int i = 0; i < FOUR_; i++) {
-        int x = (i % TWO_) * FOUR_HUNDRED_TWENTY_;
-        int y = (i / TWO_) * FOUR_HUNDRED_TWENTY_;
-        auto testNodeColor = RSCanvasNode::Create();
-        setNode(testNodeColor, { x, y, FOUR_HUNDRED_, FOUR_HUNDRED_ }, Vector4<Color>(colorList[i]));
-        GetRootNode()->AddChild(testNodeColor);
-        RegisterNode(testNodeColor);
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_Color_Grid_Test
+ * @tc.desc: Test outline border with various colors including edge cases (alpha channel, white, black, multi-color)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_Color_Grid_Test)
+{
+    // Color scenarios: basic colors, alpha variations, multi-color per border
+    Color colorList[] = {
+        Color(0, 0, 0),           // Black
+        Color(255, 0, 0),         // Red
+        Color(0, 255, 0),         // Green
+        Color(0, 0, 255),         // Blue
+        Color(255, 255, 255),     // White
+        Color(128, 128, 128),     // Gray
+        Color(255, 255, 0),       // Yellow
+        Color(255, 0, 255),       // Magenta
+        Color(0, 255, 255),       // Cyan
+        Color(0x7dffffff),        // Semi-transparent white
+        Color(0x80ff0000),        // Semi-transparent red
+        Color(0x330000ff),        // Low opacity blue
+    };
+
+    int32_t nodeWidth = 200;
+    int32_t nodeHeight = 200;
+    int32_t gap = 30;
+    int32_t column = 4;
+
+    for (size_t i = 0; i < sizeof(colorList) / sizeof(colorList[0]); i++) {
+        int32_t row = i / column;
+        int32_t col = i % column;
+
+        auto node = CreateOutlineNode(
+            {gap + (nodeWidth + gap) * col, gap + (nodeHeight + gap) * row, nodeWidth, nodeHeight},
+            Vector4<Color>(colorList[i]),
+            {FIVE_, FIVE_, FIVE_, FIVE_},
+            {TEN_, TEN_, TEN_, TEN_},
+            Vector4<BorderStyle>(BorderStyle::SOLID),
+            {0, 0, 0, 0},
+            {0, 0, 0, 0},
+            0.5f
+        );
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
     }
 
-    // parent black, child red color, white border
-    auto testNodeParent = RSCanvasNode::Create();
-    setNode(
-        testNodeParent, { 0, FOUR_HUNDRED_TWENTY_ * 2, FOUR_HUNDRED_, FOUR_HUNDRED_ }, Vector4<Color>(colorList[0]));
-    testNodeParent->SetBackgroundColor(0xff000000);
-    GetRootNode()->AddChild(testNodeParent);
-    RegisterNode(testNodeParent);
-
-    auto testNodeChild = RSCanvasNode::Create();
-    setNode(testNodeChild, { FIFTY_, FIFTY_, TWO_HUNDRED_, TWO_HUNDRED_ }, Vector4<Color>(Color(0xffffffff)));
-    testNodeChild->SetForegroundColor(0xffff0000);
-    testNodeParent->AddChild(testNodeChild);
-    RegisterNode(testNodeChild);
-
-    // alpha border
-    auto testNodeAlphaColor = RSCanvasNode::Create();
-    setNode(testNodeAlphaColor, { FOUR_HUNDRED_TWENTY_, FOUR_HUNDRED_TWENTY_ * 2, FOUR_HUNDRED_, FOUR_HUNDRED_ },
-        Vector4<Color>(Color(0x7dffffff)));
-    GetRootNode()->AddChild(testNodeAlphaColor);
-    RegisterNode(testNodeAlphaColor);
-
-    // four different color
-    auto testNodeFourColor = RSCanvasNode::Create();
-    setNode(testNodeFourColor, { 0, FOUR_HUNDRED_TWENTY_ * 3, FOUR_HUNDRED_, FOUR_HUNDRED_ },
-        Vector4<Color>(colorList[0], colorList[1], colorList[2], colorList[3]));
-    GetRootNode()->AddChild(testNodeFourColor);
-    RegisterNode(testNodeFourColor);
+    // Four different colors on each border edge
+    auto fourColorNode = CreateOutlineNode(
+        {gap + (nodeWidth + gap) * 0, gap + (nodeHeight + gap) * 3, nodeWidth, nodeHeight},
+        Vector4<Color>(Color(0, 0, 0), Color(255, 0, 0), Color(0, 255, 0), Color(0, 0, 255)),
+        {FIVE_, FIVE_, FIVE_, FIVE_},
+        {TEN_, TEN_, TEN_, TEN_},
+        Vector4<BorderStyle>(BorderStyle::SOLID),
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        0.7f
+    );
+    GetRootNode()->AddChild(fourColorNode);
+    RegisterNode(fourColorNode);
 }
 
-// width
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_Width_Test_1)
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_Width_Grid_Test
+ * @tc.desc: Test outline border width with edge cases (0, negative equivalent, very large)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_Width_Grid_Test)
 {
-    uint32_t widthList[] = { 0, 5, 120 };
-    Vector4<BorderStyle> style = Vector4<BorderStyle>(BorderStyle::SOLID);
-    Color color(0, 0, 0);
-    Vector4<Color> outLineColor = { color, color, color, color };
+    // Width scenarios: 0, small, normal, large, very large
+    uint32_t widthList[] = {
+        0,       // Zero width (no border)
+        1,       // Minimal width
+        5,       // Small width
+        10,      // Normal width
+        20,      // Medium width
+        50,      // Large width
+        100,     // Very large width
+        200,     // Extremely large width
+        120,     // Dash gap test width
+        TWO_HUNDRED_FIFTY_, // Extra large width
+    };
 
-    for (int i = 0; i < THREE_; i++) {
-        int x = (i % TWO_) * FOUR_HUNDRED_TWENTY_;
-        int y = (i / TWO_) * FOUR_HUNDRED_TWENTY_;
-        auto testNodeWidth = RSCanvasNode::Create();
-        testNodeWidth->SetAlpha(0.5f * i);
-        testNodeWidth->SetBounds({ x, y, FOUR_HUNDRED_, FOUR_HUNDRED_ });
-        testNodeWidth->SetTranslate(widthList[i] + TWENTY_, widthList[i] + FIFTY_, 0);
-        testNodeWidth->SetOutlineStyle(style);
-        testNodeWidth->SetOutlineWidth({ widthList[i], widthList[i], widthList[i], widthList[i] });
-        testNodeWidth->SetOutlineColor(outLineColor);
-        GetRootNode()->AddChild(testNodeWidth);
-        RegisterNode(testNodeWidth);
+    int32_t nodeWidth = 200;
+    int32_t nodeHeight = 200;
+    int32_t gap = 30;
+    int32_t column = 5;
+
+    for (size_t i = 0; i < sizeof(widthList) / sizeof(widthList[0]); i++) {
+        int32_t row = i / column;
+        int32_t col = i % column;
+
+        auto node = CreateOutlineNode(
+            {gap + (nodeWidth + gap) * col, gap + (nodeHeight + gap) * row, nodeWidth, nodeHeight},
+            Vector4<Color>(Color(0, 0, 0)),
+            {static_cast<float>(widthList[i]), static_cast<float>(widthList[i]),
+             static_cast<float>(widthList[i]), static_cast<float>(widthList[i])},
+            {TEN_, TEN_, TEN_, TEN_},
+            Vector4<BorderStyle>(BorderStyle::SOLID),
+            {0, 0, 0, 0},
+            {0, 0, 0, 0},
+            0.5f
+        );
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
     }
 
-    // four different width
-    auto testNodeFourWidth = RSCanvasNode::Create();
-    testNodeFourWidth->SetAlpha(0.9f);
-    testNodeFourWidth->SetBounds({ 0, FOUR_HUNDRED_TWENTY_ * 2, FOUR_HUNDRED_, FOUR_HUNDRED_ });
-    testNodeFourWidth->SetTranslate(TWENTY_, FOUR_HUNDRED_, 0);
-    testNodeFourWidth->SetOutlineStyle(style);
-    testNodeFourWidth->SetOutlineWidth({ widthList[1] * 0, widthList[1] * 2, widthList[1] * 4, widthList[1] * 8 });
-    testNodeFourWidth->SetOutlineColor(outLineColor);
-    GetRootNode()->AddChild(testNodeFourWidth);
-    RegisterNode(testNodeFourWidth);
+    // Four different widths on each border edge
+    auto diffWidthNode = CreateOutlineNode(
+        {gap, gap + (nodeHeight + gap) * 2, nodeWidth, nodeHeight},
+        Vector4<Color>(Color(0, 0, 0)),
+        {0, 10, 20, 40},  // 0, 1x, 2x, 4x multiplier
+        {TEN_, TEN_, TEN_, TEN_},
+        Vector4<BorderStyle>(BorderStyle::SOLID),
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        0.8f
+    );
+    GetRootNode()->AddChild(diffWidthNode);
+    RegisterNode(diffWidthNode);
 }
 
-// Style
-// 0 -- Solid
-// 1 -- Dash
-// 2 -- Dot
-// 3 -- None
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_Style_Test_1)
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_Alpha_Grid_Test
+ * @tc.desc: Test alpha with edge cases (0.0, 1.0, negative equivalent, very small values)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_Alpha_Grid_Test)
 {
-    Color color(0, 0, 0);
-    Vector4<Color> outLineColor = { color, color, color, color };
+    // Alpha scenarios: edge cases and normal values
+    float alphaList[] = {
+        0.0f,    // Fully transparent (should show nothing)
+        0.1f,    // Very low opacity
+        0.2f,    // Low opacity
+        0.3f,    // Low-medium opacity
+        0.4f,    // Medium-low opacity
+        0.5f,    // Half opacity
+        0.6f,    // Medium opacity
+        0.7f,    // Medium-high opacity
+        0.8f,    // High opacity
+        0.9f,    // Very high opacity
+        1.0f,    // Fully opaque
+        0.25f,   // Quarter opacity
+        0.75f,   // Three-quarter opacity
+        0.05f,   // Near-transparent
+        0.95f,   // Near-opaque
+    };
 
-    for (int i = 0; i < FOUR_; i++) {
-        int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
-        int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
-        auto testNodeStyle = RSCanvasNode::Create();
-        testNodeStyle->SetAlpha(0.333f * i);
-        testNodeStyle->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-        testNodeStyle->SetTranslate(TWENTY_, TWENTY_, 0);
-        Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)i);
-        testNodeStyle->SetOutlineStyle(style);
-        testNodeStyle->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-        testNodeStyle->SetOutlineColor(outLineColor);
-        GetRootNode()->AddChild(testNodeStyle);
-        RegisterNode(testNodeStyle);
-    }
+    int32_t nodeWidth = 200;
+    int32_t nodeHeight = 200;
+    int32_t gap = 30;
+    int32_t column = 5;
 
-    // four different style
-    auto testNodeFourStyle = RSCanvasNode::Create();
-    testNodeFourStyle->SetAlpha(0.8f);
-    testNodeFourStyle->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-    testNodeFourStyle->SetTranslate(TWENTY_, TWENTY_, 0);
-    Vector4<BorderStyle> style2 = Vector4<BorderStyle>((BorderStyle)0, (BorderStyle)1, (BorderStyle)2, (BorderStyle)3);
-    testNodeFourStyle->SetOutlineStyle(style2);
-    testNodeFourStyle->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-    testNodeFourStyle->SetOutlineColor(outLineColor);
-    GetRootNode()->AddChild(testNodeFourStyle);
-    RegisterNode(testNodeFourStyle);
-}
+    for (size_t i = 0; i < sizeof(alphaList) / sizeof(alphaList[0]); i++) {
+        int32_t row = i / column;
+        int32_t col = i % column;
 
-// Dash Width
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_DashWidth_Test_1)
-{
-    uint32_t widthList[] = { 0, 20, 120, TWO_HUNDRED_FIFTY_ };
-    Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)1);
-    Color color(0, 0, 0);
-    Vector4<Color> outLineColor = { color, color, color, color };
-
-    for (int i = 0; i < FOUR_; i++) {
-        int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
-        int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
-        auto testNodeDashWidth = RSCanvasNode::Create();
-        testNodeDashWidth->SetAlpha(0.333f * i);
-        testNodeDashWidth->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-        testNodeDashWidth->SetTranslate(TWENTY_, TWENTY_, 0);
-        // dash style
-        testNodeDashWidth->SetOutlineStyle(style);
-        testNodeDashWidth->SetBorderDashWidth({ widthList[i], widthList[i], widthList[i], widthList[i] });
-        testNodeDashWidth->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-        testNodeDashWidth->SetOutlineColor(outLineColor);
-        GetRootNode()->AddChild(testNodeDashWidth);
-        RegisterNode(testNodeDashWidth);
-    }
-
-    // four different dash width
-    auto testNodeFourDashWidth = RSCanvasNode::Create();
-    testNodeFourDashWidth->SetAlpha(0.7f);
-    testNodeFourDashWidth->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-    testNodeFourDashWidth->SetTranslate(TWENTY_, TWENTY_, 0);
-    testNodeFourDashWidth->SetOutlineStyle(style);
-    testNodeFourDashWidth->SetBorderDashWidth(
-        { widthList[1] * 0, widthList[1] * 2, widthList[1] * 4, widthList[1] * 8 });
-    testNodeFourDashWidth->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-    testNodeFourDashWidth->SetOutlineColor(outLineColor);
-    GetRootNode()->AddChild(testNodeFourDashWidth);
-    RegisterNode(testNodeFourDashWidth);
-
-    // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
-    testNodeSolid->SetAlpha(0.6f);
-    testNodeSolid->SetBounds({ FIVE_HUNDRED_TWENTY_, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-    testNodeSolid->SetTranslate(TWENTY_, TWENTY_, 0);
-    // solid style
-    testNodeSolid->SetOutlineStyle(style);
-    testNodeSolid->SetBorderDashWidth({ widthList[1], widthList[1], widthList[1], widthList[1] });
-    testNodeSolid->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-    testNodeSolid->SetOutlineColor(outLineColor);
-    GetRootNode()->AddChild(testNodeSolid);
-    RegisterNode(testNodeSolid);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_OutlineDashWidth_Test_1)
-{
-    uint32_t widthList[] = { 0, 20, 120, TWO_HUNDRED_FIFTY_ };
-    Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)1);
-    Color color(0, 0, 0);
-    Vector4<Color> outLineColor = { color, color, color, color };
-
-    for (int i = 0; i < FOUR_; i++) {
-        int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
-        int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
-        auto testNodeDashWidth = RSCanvasNode::Create();
-        testNodeDashWidth->SetAlpha(0.333f * i);
-        testNodeDashWidth->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-        testNodeDashWidth->SetTranslate(TWENTY_, TWENTY_, 0);
-        // dash style
-        testNodeDashWidth->SetOutlineStyle(style);
-        testNodeDashWidth->SetOutlineDashWidth({ widthList[i], widthList[i], widthList[i], widthList[i] });
-        testNodeDashWidth->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-        testNodeDashWidth->SetOutlineColor(outLineColor);
-        GetRootNode()->AddChild(testNodeDashWidth);
-        RegisterNode(testNodeDashWidth);
-    }
-
-    // four different dash width
-    auto testNodeFourDashWidth = RSCanvasNode::Create();
-    testNodeFourDashWidth->SetAlpha(0.5f);
-    testNodeFourDashWidth->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-    testNodeFourDashWidth->SetTranslate(TWENTY_, TWENTY_, 0);
-    testNodeFourDashWidth->SetOutlineStyle(style);
-    testNodeFourDashWidth->SetOutlineDashWidth(
-        { widthList[1] * 0, widthList[1] * 2, widthList[1] * 4, widthList[1] * 8 });
-    testNodeFourDashWidth->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-    testNodeFourDashWidth->SetOutlineColor(outLineColor);
-    GetRootNode()->AddChild(testNodeFourDashWidth);
-    RegisterNode(testNodeFourDashWidth);
-
-    // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
-    testNodeSolid->SetAlpha(0.4f);
-    testNodeSolid->SetBounds({ FIVE_HUNDRED_TWENTY_, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-    testNodeSolid->SetTranslate(TWENTY_, TWENTY_, 0);
-    // solid style
-    testNodeSolid->SetOutlineStyle(style);
-    testNodeSolid->SetOutlineDashWidth({ widthList[1], widthList[1], widthList[1], widthList[1] });
-    testNodeSolid->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-    testNodeSolid->SetOutlineColor(outLineColor);
-    GetRootNode()->AddChild(testNodeSolid);
-    RegisterNode(testNodeSolid);
-}
-
-// Dash Gap
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_DashGap_Test_1)
-{
-    uint32_t gapList[] = { 0, 20, 120, TWO_HUNDRED_FIFTY_ };
-    Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)1);
-    Color color(0, 0, 0);
-    Vector4<Color> outLineColor = { color, color, color, color };
-
-    for (int i = 0; i < FOUR_; i++) {
-        int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
-        int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
-        auto testNodeDashGap = RSCanvasNode::Create();
-        testNodeDashGap->SetAlpha(0.333f * i);
-        testNodeDashGap->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-        testNodeDashGap->SetTranslate(TWENTY_, TWENTY_, 0);
-        // dash style
-        testNodeDashGap->SetOutlineStyle(style);
-        testNodeDashGap->SetBorderDashGap({ gapList[i], gapList[i], gapList[i], gapList[i] });
-        testNodeDashGap->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-        testNodeDashGap->SetOutlineColor(outLineColor);
-        GetRootNode()->AddChild(testNodeDashGap);
-        RegisterNode(testNodeDashGap);
-    }
-
-    // four different dash width
-    auto testNodeFourDashGap = RSCanvasNode::Create();
-    testNodeFourDashGap->SetAlpha(0.3f);
-    testNodeFourDashGap->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-    testNodeFourDashGap->SetTranslate(TWENTY_, TWENTY_, 0);
-    testNodeFourDashGap->SetOutlineStyle(style);
-    testNodeFourDashGap->SetBorderDashGap({ gapList[1] * 0, gapList[1] * 2, gapList[1] * 4, gapList[1] * 8 });
-    testNodeFourDashGap->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-    testNodeFourDashGap->SetOutlineColor(outLineColor);
-    GetRootNode()->AddChild(testNodeFourDashGap);
-    RegisterNode(testNodeFourDashGap);
-
-    // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
-    testNodeSolid->SetAlpha(0.2f);
-    testNodeSolid->SetBounds({ FIVE_HUNDRED_TWENTY_, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-    testNodeSolid->SetTranslate(TWENTY_, TWENTY_, 0);
-    // solid style
-    testNodeSolid->SetOutlineStyle(style);
-    testNodeSolid->SetBorderDashGap({ gapList[1], gapList[1], gapList[1], gapList[1] });
-    testNodeSolid->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-    testNodeSolid->SetOutlineColor(outLineColor);
-    GetRootNode()->AddChild(testNodeSolid);
-    RegisterNode(testNodeSolid);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_OutlineDashGap_Test_1)
-{
-    uint32_t gapList[] = { 0, 20, 120, TWO_HUNDRED_FIFTY_ };
-    Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)1);
-    Color color(0, 0, 0);
-    Vector4<Color> outLineColor = { color, color, color, color };
-
-    for (int i = 0; i < FOUR_; i++) {
-        int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
-        int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
-        auto testNodeDashGap = RSCanvasNode::Create();
-        testNodeDashGap->SetAlpha(0.333f * i);
-        testNodeDashGap->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-        testNodeDashGap->SetTranslate(TWENTY_, TWENTY_, 0);
-        // dash style
-        testNodeDashGap->SetOutlineStyle(style);
-        testNodeDashGap->SetOutlineDashGap({ gapList[i], gapList[i], gapList[i], gapList[i] });
-        testNodeDashGap->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-        testNodeDashGap->SetOutlineColor(outLineColor);
-        GetRootNode()->AddChild(testNodeDashGap);
-        RegisterNode(testNodeDashGap);
-    }
-
-    // four different dash width
-    auto testNodeFourDashGap = RSCanvasNode::Create();
-    testNodeFourDashGap->SetAlpha(0.1f);
-    testNodeFourDashGap->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-    testNodeFourDashGap->SetTranslate(TWENTY_, TWENTY_, 0);
-    testNodeFourDashGap->SetOutlineStyle(style);
-    testNodeFourDashGap->SetOutlineDashGap({ gapList[1] * 0, gapList[1] * 2, gapList[1] * 4, gapList[1] * 8 });
-    testNodeFourDashGap->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-    testNodeFourDashGap->SetOutlineColor(outLineColor);
-    GetRootNode()->AddChild(testNodeFourDashGap);
-    RegisterNode(testNodeFourDashGap);
-
-    // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
-    testNodeSolid->SetAlpha(0.2f);
-    testNodeSolid->SetBounds({ FIVE_HUNDRED_TWENTY_, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-    testNodeSolid->SetTranslate(TWENTY_, TWENTY_, 0);
-    // solid style
-    testNodeSolid->SetOutlineStyle(style);
-    testNodeSolid->SetOutlineDashGap({ gapList[1], gapList[1], gapList[1], gapList[1] });
-    testNodeSolid->SetOutlineWidth({ FIVE_, FIVE_, FIVE_, FIVE_ });
-    testNodeSolid->SetOutlineColor(outLineColor);
-    GetRootNode()->AddChild(testNodeSolid);
-    RegisterNode(testNodeSolid);
-}
-
-// two node eoverlay & touch
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_Touch_Test_1)
-{
-    Color color1(255, 0, 0);
-    Vector4<Color> outLineColor1 = { color1, color1, color1, color1 };
-    Color color2(0, 0, 255);
-    Vector4<Color> outLineColor2 = { color2, color2, color2, color2 };
-
-    uint32_t styleList[] = { 0, 1, 0, 1 };
-    float xList[] = { 50, 50, 525, 525 };
-    float yList[] = { 50, 50, 20, 20 };
-    // overlay
-    for (int i = 0; i < FOUR_; i++) {
-        int x = (i % TWO_) * FIVE_HUNDRED_SIXTY_;
-        int y = (i / TWO_) * FIVE_HUNDRED_TEN_;
-        if (i == THREE_) {
-            x -= FIVE_HUNDRED_SIXTY_;
-            y += FIVE_HUNDRED_TEN_;
-        }
-        auto testNode1 = RSCanvasNode::Create();
-        testNode1->SetAlpha(0.333f * i);
-        testNode1->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-        testNode1->SetTranslate(TWENTY_, TWENTY_, 0);
-        testNode1->SetBackgroundColor(0xff000000);
-        Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)styleList[i]);
-        testNode1->SetOutlineStyle(style);
-        testNode1->SetBorderDashGap({ TWENTY_FIVE_, TWENTY_FIVE_, TWENTY_FIVE_, TWENTY_FIVE_ });
-        testNode1->SetOutlineWidth({ TEN_, TEN_, TEN_, TEN_ });
-        testNode1->SetOutlineColor(outLineColor1);
-        GetRootNode()->AddChild(testNode1);
-        RegisterNode(testNode1);
-
-        auto testNode2 = RSCanvasNode::Create();
-        testNode2->SetAlpha(0.3f);
-        testNode2->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-        testNode2->SetTranslate(xList[i], yList[i], 0);
-        testNode2->SetBackgroundColor(0xff000000);
-        testNode2->SetOutlineStyle(style);
-        testNode2->SetBorderDashGap({ TWENTY_FIVE_, TWENTY_FIVE_, TWENTY_FIVE_, TWENTY_FIVE_ });
-        testNode2->SetOutlineWidth({ TEN_, TEN_, TEN_, TEN_ });
-        testNode2->SetOutlineColor(outLineColor2);
-        GetRootNode()->AddChild(testNode2);
-        RegisterNode(testNode2);
+        auto node = CreateOutlineNode(
+            {gap + (nodeWidth + gap) * col, gap + (nodeHeight + gap) * row, nodeWidth, nodeHeight},
+            Vector4<Color>(Color(255, 0, 0)),  // Red border for visibility
+            {FIVE_, FIVE_, FIVE_, FIVE_},
+            {TEN_, TEN_, TEN_, TEN_},
+            Vector4<BorderStyle>(BorderStyle::SOLID),
+            {0, 0, 0, 0},
+            {0, 0, 0, 0},
+            alphaList[i]
+        );
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
     }
 }
 
-enum {
-    BOUNDS = 0,
-    COLOR = 1,
-    WIDTH = 2,
-    RADIUS = 3,
-    STYLE = 4,
-    DASHGAP = 5,
-    DASHWIDTH = 6,
-    TRANSLATE = 7,
-};
-
-static RSCanvasNode::SharedPtr OutlineCreate(vector<vector<float>> &vecs)
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_Style_Grid_Test
+ * @tc.desc: Test border style (Solid, Dashed, Dotted, None) with various parameters
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_Style_Grid_Test)
 {
-    auto testNode = RSCanvasNode::Create();
-    testNode->SetAlpha(0.4f);
-    float left = vecs[BOUNDS][0];
-    float top = vecs[BOUNDS][1];
-    float right = vecs[BOUNDS][2];
-    float bottom = vecs[BOUNDS][3];
-    testNode->SetBounds(left, top, right, bottom);
-    testNode->SetBackgroundColor(0x8FFF00FF);
-    Vector4<Color> outLineColor = {
-        {vecs[COLOR][0], vecs[COLOR][1], vecs[COLOR][2]},
-        {vecs[COLOR][1], vecs[COLOR][2], vecs[COLOR][3]},
-        {vecs[COLOR][2], vecs[COLOR][3], vecs[COLOR][0]},
-        {vecs[COLOR][0], vecs[COLOR][3], vecs[COLOR][1]}
+    // Style: 0=Solid, 1=Dashed, 2=Dotted, 3=None
+    struct StyleTestScenario {
+        BorderStyle style;
+        float dashWidth;
+        float dashGap;
+        const char* description;
     };
-    testNode->SetOutlineColor(outLineColor);
-    testNode->SetOutlineWidth({vecs[WIDTH][0], vecs[WIDTH][1], vecs[WIDTH][2], vecs[WIDTH][3]});
-    testNode->SetOutlineRadius({vecs[RADIUS][0], vecs[RADIUS][1], vecs[RADIUS][2], vecs[RADIUS][3]});
-    Vector4<BorderStyle> style = {
-        (BorderStyle)vecs[STYLE][0],
-        (BorderStyle)vecs[STYLE][1],
-        (BorderStyle)vecs[STYLE][2],
-        (BorderStyle)vecs[STYLE][3],
+
+    StyleTestScenario scenarios[] = {
+        {BorderStyle::SOLID, 0, 0, "Solid basic"},
+        {BorderStyle::DASHED, 20, 20, "Dashed 20/20"},
+        {BorderStyle::DASHED, 10, 10, "Dashed 10/10"},
+        {BorderStyle::DASHED, 50, 50, "Dashed 50/50"},
+        {BorderStyle::DOTTED, 0, 0, "Dotted basic"},
+        {BorderStyle::DOTTED, 10, 20, "Dotted with gap"},
+        {BorderStyle::NONE, 0, 0, "None (no border)"},
+        {BorderStyle::DASHED, 5, 30, "Dashed small gap"},
+        {BorderStyle::DASHED, 30, 5, "Dashed large dash"},
+        {BorderStyle::SOLID, 100, 100, "Solid with params (ignored)"},
+        {BorderStyle::DASHED, 0, 50, "Dashed zero width"},
+        {BorderStyle::DASHED, 50, 0, "Dashed zero gap"},
     };
-    testNode->SetOutlineStyle(style);
-    testNode->SetOutlineDashGap({vecs[DASHGAP][0], vecs[DASHGAP][1], vecs[DASHGAP][2], vecs[DASHGAP][3]});
-    testNode->SetOutlineDashWidth({vecs[DASHWIDTH][0], vecs[DASHWIDTH][1], vecs[DASHWIDTH][2], vecs[DASHWIDTH][3]});
-    float translateX = vecs[TRANSLATE][0];
-    float translateY = vecs[TRANSLATE][1];
-    float translateZ = vecs[TRANSLATE][2];
-    testNode->SetTranslate(translateX, translateY, translateZ);
-    return testNode;
+
+    int32_t nodeWidth = 200;
+    int32_t nodeHeight = 200;
+    int32_t gap = 30;
+    int32_t column = 4;
+
+    for (size_t i = 0; i < sizeof(scenarios) / sizeof(scenarios[0]); i++) {
+        int32_t row = i / column;
+        int32_t col = i % column;
+
+        auto node = CreateOutlineNode(
+            {gap + (nodeWidth + gap) * col, gap + (nodeHeight + gap) * row, nodeWidth, nodeHeight},
+            Vector4<Color>(Color(0, 0, 0)),
+            {FIVE_, FIVE_, FIVE_, FIVE_},
+            {TEN_, TEN_, TEN_, TEN_},
+            Vector4<BorderStyle>(scenarios[i].style),
+            {scenarios[i].dashGap, scenarios[i].dashGap, scenarios[i].dashGap, scenarios[i].dashGap},
+            {scenarios[i].dashWidth, scenarios[i].dashWidth, scenarios[i].dashWidth, scenarios[i].dashWidth},
+            0.7f
+        );
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+
+    // Mixed styles on different edges
+    auto mixedStyleNode = CreateOutlineNode(
+        {gap + (nodeWidth + gap) * 0, gap + (nodeHeight + gap) * 3, nodeWidth, nodeHeight},
+        Vector4<Color>(Color(0, 0, 0)),
+        {FIVE_, FIVE_, FIVE_, FIVE_},
+        {TEN_, TEN_, TEN_, TEN_},
+        Vector4<BorderStyle>(BorderStyle::SOLID, BorderStyle::DASHED, BorderStyle::DOTTED, BorderStyle::NONE),
+        {20, 20, 20, 20},
+        {20, 20, 20, 20},
+        0.8f
+    );
+    GetRootNode()->AddChild(mixedStyleNode);
+    RegisterNode(mixedStyleNode);
 }
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test01)
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_Radius_Grid_Test
+ * @tc.desc: Test outline radius with edge cases (0, very large, asymmetric)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBorder_Radius_Grid_Test)
 {
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F00001F, 0x8F00002F, 0x8F00003F, 0x8F00004F}, // color of border
-        {20, 20, 10, 30}, // width of border
-        {20, 30, 40, 50}, // radius of border
-        {0, 2, 1, 1}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
+    // Radius scenarios
+    uint32_t radiusList[] = {
+        0,       // Sharp corners (no radius)
+        5,       // Small radius
+        10,      // Normal radius
+        20,      // Medium radius
+        50,      // Large radius
+        80,      // Very large radius
+        100,     // Extremely large (may exceed node size)
+        200,     // Larger than node height
     };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+
+    int32_t nodeWidth = 200;
+    int32_t nodeHeight = 200;
+    int32_t gap = 30;
+    int32_t column = 4;
+
+    for (size_t i = 0; i < sizeof(radiusList) / sizeof(radiusList[0]); i++) {
+        int32_t row = i / column;
+        int32_t col = i % column;
+
+        auto node = CreateOutlineNode(
+            {gap + (nodeWidth + gap) * col, gap + (nodeHeight + gap) * row, nodeWidth, nodeHeight},
+            Vector4<Color>(Color(0, 0, 0)),
+            {FIVE_, FIVE_, FIVE_, FIVE_},
+            {static_cast<float>(radiusList[i]), static_cast<float>(radiusList[i]),
+             static_cast<float>(radiusList[i]), static_cast<float>(radiusList[i])},
+            Vector4<BorderStyle>(BorderStyle::SOLID),
+            {0, 0, 0, 0},
+            {0, 0, 0, 0},
+            0.7f
+        );
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+
+    // Asymmetric radii
+    struct AsymRadiusScenario {
+        float r1, r2, r3, r4;
+    };
+    AsymRadiusScenario asymScenarios[] = {
+        {0, 10, 20, 30},      // Increasing radius
+        {50, 50, 10, 10},     // Large top, small bottom
+        {100, 0, 100, 0},     // Alternating extreme
+        {10, 20, 10, 20},     // Alternating pattern
+    };
+
+    for (size_t i = 0; i < sizeof(asymScenarios) / sizeof(asymScenarios[0]); i++) {
+        int32_t col = i % 2;
+        int32_t row = 2 + (i / 2);
+
+        auto node = CreateOutlineNode(
+            {gap + (nodeWidth + gap) * col, gap + (nodeHeight + gap) * row, nodeWidth, nodeHeight},
+            Vector4<Color>(Color(0, 0, 0)),
+            {10, 10, 10, 10},
+            {asymScenarios[i].r1, asymScenarios[i].r2, asymScenarios[i].r3, asymScenarios[i].r4},
+            Vector4<BorderStyle>(BorderStyle::SOLID),
+            {0, 0, 0, 0},
+            {0, 0, 0, 0},
+            0.7f
+        );
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
 }
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test02)
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_DashWidth_Grid_Test
+ * @tc.desc: Test dash width with edge cases (0, large, mixed styles)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST,
+    Appearance_Alpha_OutlineBorder_DashWidth_Grid_Test)
 {
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F00001F, 0x8F00002F, 0x8F00003F, 0x8F00004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {0, 0, 0, 0}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
+    // Dash width scenarios for DASHED style
+    uint32_t dashWidthList[] = {
+        0,       // Zero (solid-like)
+        5,       // Small dash
+        10,      // Normal dash
+        20,      // Medium dash
+        50,      // Large dash
+        100,     // Very large dash
+        TWO_HUNDRED_FIFTY_, // Extra large dash
+        120,     // Dash gap test width
     };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+
+    int32_t nodeWidth = 200;
+    int32_t nodeHeight = 200;
+    int32_t gap = 30;
+    int32_t column = 4;
+
+    for (size_t i = 0; i < sizeof(dashWidthList) / sizeof(dashWidthList[0]); i++) {
+        int32_t row = i / column;
+        int32_t col = i % column;
+
+        auto node = CreateOutlineNode(
+            {gap + (nodeWidth + gap) * col, gap + (nodeHeight + gap) * row, nodeWidth, nodeHeight},
+            Vector4<Color>(Color(0, 0, 0)),
+            {FIVE_, FIVE_, FIVE_, FIVE_},
+            {TEN_, TEN_, TEN_, TEN_},
+            Vector4<BorderStyle>(BorderStyle::DASHED),
+            {20, 20, 20, 20},  // Fixed gap
+            {static_cast<float>(dashWidthList[i]), static_cast<float>(dashWidthList[i]),
+             static_cast<float>(dashWidthList[i]), static_cast<float>(dashWidthList[i])},
+            0.7f
+        );
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+
+    // Different dash widths on each edge
+    auto diffDashWidthNode = CreateOutlineNode(
+        {gap + (nodeWidth + gap) * 0, gap + (nodeHeight + gap) * 2, nodeWidth, nodeHeight},
+        Vector4<Color>(Color(0, 0, 0)),
+        {FIVE_, FIVE_, FIVE_, FIVE_},
+        {TEN_, TEN_, TEN_, TEN_},
+        Vector4<BorderStyle>(BorderStyle::DASHED),
+        {20, 20, 20, 20},
+        {0, 20, 40, 80},  // 0, 1x, 2x, 4x multiplier
+        0.7f
+    );
+    GetRootNode()->AddChild(diffDashWidthNode);
+    RegisterNode(diffDashWidthNode);
+
+    // Solid style with dash width (should be ignored)
+    auto solidWithDashNode = CreateOutlineNode(
+        {gap + (nodeWidth + gap) * 1, gap + (nodeHeight + gap) * 2, nodeWidth, nodeHeight},
+        Vector4<Color>(Color(0, 0, 0)),
+        {FIVE_, FIVE_, FIVE_, FIVE_},
+        {TEN_, TEN_, TEN_, TEN_},
+        Vector4<BorderStyle>(BorderStyle::SOLID),
+        {20, 20, 20, 20},
+        {20, 20, 20, 20},
+        0.7f
+    );
+    GetRootNode()->AddChild(solidWithDashNode);
+    RegisterNode(solidWithDashNode);
 }
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test03)
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_DashGap_Grid_Test
+ * @tc.desc: Test dash gap with edge cases (0, large, mixed styles)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST,
+    Appearance_Alpha_OutlineBorder_DashGap_Grid_Test)
 {
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F00001F, 0x8F00002F, 0x8F00003F, 0x8F00004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {1, 1, 1, 1}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
+    // Dash gap scenarios for DASHED style
+    uint32_t dashGapList[] = {
+        0,       // Zero (continuous line)
+        5,       // Small gap
+        10,      // Normal gap
+        20,      // Medium gap
+        50,      // Large gap
+        100,     // Very large gap
+        TWO_HUNDRED_FIFTY_, // Extra large gap
+        120,     // Dash gap test gap
     };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+
+    int32_t nodeWidth = 200;
+    int32_t nodeHeight = 200;
+    int32_t gap = 30;
+    int32_t column = 4;
+
+    for (size_t i = 0; i < sizeof(dashGapList) / sizeof(dashGapList[0]); i++) {
+        int32_t row = i / column;
+        int32_t col = i % column;
+
+        auto node = CreateOutlineNode(
+            {gap + (nodeWidth + gap) * col, gap + (nodeHeight + gap) * row, nodeWidth, nodeHeight},
+            Vector4<Color>(Color(0, 0, 0)),
+            {FIVE_, FIVE_, FIVE_, FIVE_},
+            {TEN_, TEN_, TEN_, TEN_},
+            Vector4<BorderStyle>(BorderStyle::DASHED),
+            {static_cast<float>(dashGapList[i]), static_cast<float>(dashGapList[i]),
+             static_cast<float>(dashGapList[i]), static_cast<float>(dashGapList[i])},
+            {20, 20, 20, 20},  // Fixed dash width
+            0.7f
+        );
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+
+    // Different dash gaps on each edge
+    auto diffDashGapNode = CreateOutlineNode(
+        {gap + (nodeWidth + gap) * 0, gap + (nodeHeight + gap) * 2, nodeWidth, nodeHeight},
+        Vector4<Color>(Color(0, 0, 0)),
+        {FIVE_, FIVE_, FIVE_, FIVE_},
+        {TEN_, TEN_, TEN_, TEN_},
+        Vector4<BorderStyle>(BorderStyle::DASHED),
+        {0, 20, 40, 80},  // 0, 1x, 2x, 4x multiplier
+        {20, 20, 20, 20},
+        0.7f
+    );
+    GetRootNode()->AddChild(diffDashGapNode);
+    RegisterNode(diffDashGapNode);
+
+    // Solid style with dash gap (should be ignored)
+    auto solidWithGapNode = CreateOutlineNode(
+        {gap + (nodeWidth + gap) * 1, gap + (nodeHeight + gap) * 2, nodeWidth, nodeHeight},
+        Vector4<Color>(Color(0, 0, 0)),
+        {FIVE_, FIVE_, FIVE_, FIVE_},
+        {TEN_, TEN_, TEN_, TEN_},
+        Vector4<BorderStyle>(BorderStyle::SOLID),
+        {20, 20, 20, 20},
+        {20, 20, 20, 20},
+        0.7f
+    );
+    GetRootNode()->AddChild(solidWithGapNode);
+    RegisterNode(solidWithGapNode);
 }
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test04)
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_Comprehensive_Grid_Test
+ * @tc.desc: Comprehensive test combining various parameters (style, width, radius, color, alpha, dash)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST,
+    Appearance_Alpha_OutlineBorder_Comprehensive_Grid_Test)
 {
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F00001F, 0x8F00002F, 0x8F00003F, 0x8F00004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {2, 2, 2, 2}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
+    struct ComprehensiveScenario {
+        BorderStyle style;
+        float width;
+        float radius;
+        uint32_t color;
+        float alpha;
+        float dashWidth;
+        float dashGap;
+        const char* description;
     };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+
+    // Comprehensive test scenarios covering various combinations
+    ComprehensiveScenario scenarios[] = {
+        // Basic solid borders
+        {BorderStyle::SOLID, 5, 10, 0xFF000000, 1.0f, 0, 0, "Solid normal"},
+        {BorderStyle::SOLID, 10, 20, 0xFFFF0000, 0.8f, 0, 0, "Solid red"},
+        {BorderStyle::SOLID, 20, 50, 0xFF00FF00, 0.6f, 0, 0, "Solid thick"},
+        {BorderStyle::SOLID, 0, 10, 0xFF0000FF, 1.0f, 0, 0, "Solid zero width"},
+
+        // Dashed borders
+        {BorderStyle::DASHED, 5, 10, 0xFF000000, 1.0f, 10, 10, "Dashed 10/10"},
+        {BorderStyle::DASHED, 5, 10, 0xFFFF0000, 0.7f, 20, 20, "Dashed 20/20"},
+        {BorderStyle::DASHED, 5, 10, 0xFF00FF00, 0.5f, 50, 50, "Dashed 50/50"},
+        {BorderStyle::DASHED, 5, 10, 0xFF0000FF, 0.9f, 100, 20, "Dashed long"},
+
+        // Dotted borders
+        {BorderStyle::DOTTED, 5, 10, 0xFF000000, 1.0f, 0, 0, "Dotted basic"},
+        {BorderStyle::DOTTED, 10, 20, 0xFFFF0000, 0.8f, 0, 0, "Dotted thick"},
+        {BorderStyle::DOTTED, 5, 50, 0xFF00FF00, 0.6f, 0, 0, "Dotted large radius"},
+        {BorderStyle::DOTTED, 5, 0, 0xFF0000FF, 0.9f, 0, 0, "Dotted sharp"},
+
+        // Mixed style combinations
+        {BorderStyle::SOLID, 20, 50, 0xFF97001F, 0.9f, 0, 0, "Solid extreme"},
+        {BorderStyle::DASHED, 100, 80, 0xFF93001F, 0.8f, 100, 100, "Dashed extreme"},
+        {BorderStyle::DOTTED, 20, 0, 0xFF89001F, 0.7f, 0, 0, "Dotted sharp thick"},
+        {BorderStyle::DASHED, 10, 100, 0xFF85001F, 0.6f, 50, 100, "Dashed gap>width"},
+
+        // Edge cases
+        {BorderStyle::SOLID, 200, 100, 0xFF81001F, 0.5f, 0, 0, "Width>size"},
+        {BorderStyle::DASHED, 10, 10, 0xFF77001F, 0.4f, 0, 50, "Dashed zero width"},
+        {BorderStyle::DASHED, 10, 10, 0xFF73001F, 0.3f, 50, 0, "Dashed zero gap"},
+        {BorderStyle::NONE, 10, 10, 0xFF69001F, 0.2f, 0, 0, "None style"},
+
+        // Alpha variations
+        {BorderStyle::SOLID, 10, 10, 0xFF00001F, 0.1f, 0, 0, "Alpha 0.1"},
+        {BorderStyle::DASHED, 10, 10, 0xFF00002F, 0.2f, 20, 20, "Alpha 0.2"},
+        {BorderStyle::DOTTED, 10, 10, 0xFF00003F, 0.3f, 0, 0, "Alpha 0.3"},
+        {BorderStyle::SOLID, 10, 10, 0xFF00004F, 0.0f, 0, 0, "Alpha 0.0"},
+    };
+
+    int32_t nodeWidth = 180;
+    int32_t nodeHeight = 180;
+    int32_t gap = 25;
+    int32_t column = 5;
+
+    for (size_t i = 0; i < sizeof(scenarios) / sizeof(scenarios[0]); i++) {
+        int32_t row = i / column;
+        int32_t col = i % column;
+
+        auto node = CreateOutlineNode(
+            {gap + (nodeWidth + gap) * col, gap + (nodeHeight + gap) * row, nodeWidth, nodeHeight},
+            Vector4<Color>(Color(scenarios[i].color)),
+            {scenarios[i].width, scenarios[i].width, scenarios[i].width, scenarios[i].width},
+            {scenarios[i].radius, scenarios[i].radius, scenarios[i].radius, scenarios[i].radius},
+            Vector4<BorderStyle>(scenarios[i].style),
+            {scenarios[i].dashGap, scenarios[i].dashGap, scenarios[i].dashGap, scenarios[i].dashGap},
+            {scenarios[i].dashWidth, scenarios[i].dashWidth, scenarios[i].dashWidth, scenarios[i].dashWidth},
+            scenarios[i].alpha
+        );
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
 }
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test05)
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_MixedStyle_Per_Edge_Test
+ * @tc.desc: Test different border styles on each edge (Solid/Dash/Dot/None combinations)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST,
+    Appearance_Alpha_OutlineBorder_MixedStyle_Per_Edge_Test)
 {
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F00001F, 0x8F00002F, 0x8F00003F, 0x8F00004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {0, 0, 1, 1}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
+    struct MixedStyleScenario {
+        BorderStyle top, right, bottom, left;
+        float dashWidth;
+        float dashGap;
+        const char* description;
     };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+
+    MixedStyleScenario scenarios[] = {
+        {BorderStyle::SOLID, BorderStyle::DASHED, BorderStyle::DOTTED, BorderStyle::NONE, 20, 20, "S-D-D-N"},
+        {BorderStyle::DASHED, BorderStyle::DOTTED, BorderStyle::NONE, BorderStyle::SOLID, 10, 10, "D-D-N-S"},
+        {BorderStyle::DOTTED, BorderStyle::NONE, BorderStyle::SOLID, BorderStyle::DASHED, 15, 15, "D-N-S-D"},
+        {BorderStyle::NONE, BorderStyle::SOLID, BorderStyle::DASHED, BorderStyle::DOTTED, 25, 25, "N-S-D-D"},
+        {BorderStyle::SOLID, BorderStyle::SOLID, BorderStyle::DASHED, BorderStyle::DASHED, 20, 20, "S-S-D-D"},
+        {BorderStyle::DASHED, BorderStyle::DASHED, BorderStyle::DOTTED, BorderStyle::DOTTED, 10, 10, "D-D-D-D"},
+        {BorderStyle::SOLID, BorderStyle::DASHED, BorderStyle::SOLID, BorderStyle::DASHED, 30, 30, "S-D-S-D"},
+        {BorderStyle::DOTTED, BorderStyle::SOLID, BorderStyle::DOTTED, BorderStyle::SOLID, 5, 5, "D-S-D-S"},
+        {BorderStyle::SOLID, BorderStyle::NONE, BorderStyle::SOLID, BorderStyle::NONE, 20, 20, "S-N-S-N"},
+        {BorderStyle::NONE, BorderStyle::SOLID, BorderStyle::NONE, BorderStyle::SOLID, 20, 20, "N-S-N-S"},
+        {BorderStyle::DASHED, BorderStyle::NONE, BorderStyle::DASHED, BorderStyle::NONE, 50, 50, "D-N-D-N"},
+        {BorderStyle::NONE, BorderStyle::DASHED, BorderStyle::NONE, BorderStyle::DASHED, 50, 50, "N-D-N-D"},
+    };
+
+    int32_t nodeWidth = 200;
+    int32_t nodeHeight = 200;
+    int32_t gap = 30;
+    int32_t column = 4;
+
+    for (size_t i = 0; i < sizeof(scenarios) / sizeof(scenarios[0]); i++) {
+        int32_t row = i / column;
+        int32_t col = i % column;
+
+        auto node = CreateOutlineNode(
+            {gap + (nodeWidth + gap) * col, gap + (nodeHeight + gap) * row, nodeWidth, nodeHeight},
+            Vector4<Color>(Color(0, 0, 0)),
+            {FIVE_, FIVE_, FIVE_, FIVE_},
+            {TEN_, TEN_, TEN_, TEN_},
+            Vector4<BorderStyle>(scenarios[i].top, scenarios[i].right, scenarios[i].bottom, scenarios[i].left),
+            {scenarios[i].dashGap, scenarios[i].dashGap, scenarios[i].dashGap, scenarios[i].dashGap},
+            {scenarios[i].dashWidth, scenarios[i].dashWidth, scenarios[i].dashWidth, scenarios[i].dashWidth},
+            0.7f
+        );
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
 }
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test06)
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_Touch_Overlay_Test
+ * @tc.desc: Test two nodes with outline borders overlapping and touching
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST,
+    Appearance_Alpha_OutlineBorder_Touch_Overlay_Test)
 {
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F00001F, 0x8F00002F, 0x8F00003F, 0x8F00004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {1, 1, 2, 2}, // style of border
-        {100, 100, 30, 10}, // dashGap of border
-        {100, 100, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
+    struct TouchOverlayScenario {
+        BorderStyle style1, style2;
+        Color color1, color2;
+        float offsetX, offsetY;
+        float alpha1, alpha2;
+        const char* description;
     };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+
+    TouchOverlayScenario scenarios[] = {
+        {BorderStyle::SOLID, BorderStyle::SOLID, Color(255, 0, 0), Color(0, 0, 255), 50, 50, 0.5f, 0.5f, "Solid-Solid"},
+        {BorderStyle::DASHED, BorderStyle::DASHED, Color(255, 0, 0), Color(0, 0, 255), 50, 50, 0.5f, 0.5f, "Dash-Dash"},
+        {BorderStyle::DOTTED, BorderStyle::DOTTED, Color(255, 0, 0), Color(0, 0, 255), 50, 50, 0.5f, 0.5f, "Dot-Dot"},
+        {BorderStyle::SOLID, BorderStyle::DASHED, Color(255, 0, 0), Color(0, 0, 255), 50, 50, 0.5f, 0.5f, "Solid-Dash"},
+        {BorderStyle::DASHED, BorderStyle::DOTTED, Color(255, 0, 0), Color(0, 0, 255), 50, 50, 0.5f, 0.5f, "Dash-Dot"},
+        {BorderStyle::SOLID, BorderStyle::DOTTED, Color(255, 0, 0), Color(0, 0, 255), 50, 50, 0.5f, 0.5f, "Solid-Dot"},
+        {BorderStyle::SOLID, BorderStyle::SOLID, Color(255, 0, 0), Color(0, 0, 255), 20, 20, 0.3f, 0.7f, "Alpha diff"},
+        {BorderStyle::DASHED, BorderStyle::DASHED, Color(255, 0, 0), Color(0, 0, 255),
+         100, 20, 0.5f, 0.5f, "Large offset"},
+    };
+
+    int32_t nodeWidth = 200;
+    int32_t nodeHeight = 200;
+    int32_t gap = 30;
+    int32_t column = 2;
+
+    for (size_t i = 0; i < sizeof(scenarios) / sizeof(scenarios[0]); i++) {
+        int32_t row = i / column;
+        int32_t col = i % column;
+
+        int32_t baseX = gap + (nodeWidth + gap * 2 + 50) * col;
+        int32_t baseY = gap + (nodeHeight + gap) * row;
+
+        // First node (background)
+        auto node1 = CreateOutlineNode(
+            {baseX, baseY, nodeWidth, nodeHeight},
+            Vector4<Color>(scenarios[i].color1),
+            {TEN_, TEN_, TEN_, TEN_},
+            {TEN_, TEN_, TEN_, TEN_},
+            Vector4<BorderStyle>(scenarios[i].style1),
+            {TWENTY_FIVE_, TWENTY_FIVE_, TWENTY_FIVE_, TWENTY_FIVE_},
+            {0, 0, 0, 0},
+            scenarios[i].alpha1,
+            0xff000000  // Black background
+        );
+        GetRootNode()->AddChild(node1);
+        RegisterNode(node1);
+
+        // Second node (overlay)
+        auto node2 = CreateOutlineNode(
+            {baseX + scenarios[i].offsetX, baseY + scenarios[i].offsetY, nodeWidth, nodeHeight},
+            Vector4<Color>(scenarios[i].color2),
+            {TEN_, TEN_, TEN_, TEN_},
+            {TEN_, TEN_, TEN_, TEN_},
+            Vector4<BorderStyle>(scenarios[i].style2),
+            {TWENTY_FIVE_, TWENTY_FIVE_, TWENTY_FIVE_, TWENTY_FIVE_},
+            {0, 0, 0, 0},
+            scenarios[i].alpha2,
+            0xff000000  // Black background
+        );
+        GetRootNode()->AddChild(node2);
+        RegisterNode(node2);
+    }
 }
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test07)
+/*
+ * @tc.name: Appearance_Alpha_OutlineBorder_ParentChild_Test
+ * @tc.desc: Test parent-child node relationship with outline borders
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceAlphaOutlineBorderTest, CONTENT_DISPLAY_TEST,
+    Appearance_Alpha_OutlineBorder_ParentChild_Test)
 {
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F97001F, 0x8F98002F, 0x8F99003F, 0x8Fa0004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {0, 0, 2, 2}, // style of border
-        {0, 0, 0, 0}, // dashGap of border
-        {0, 0, 0, 0}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
+    // Parent with border, child with different border
+    auto parentNode = CreateOutlineNode(
+        {50, 50, 400, 400},
+        Vector4<Color>(Color(0, 0, 0)),  // Black border
+        {20, 20, 20, 20},
+        {50, 50, 50, 50},
+        Vector4<BorderStyle>(BorderStyle::SOLID),
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        0.7f,
+        0xff000000  // Black background
+    );
+    GetRootNode()->AddChild(parentNode);
+    RegisterNode(parentNode);
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test08)
-{
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F93001F, 0x8F94002F, 0x8F95003F, 0x8F96004F}, // color of border
-        {100, 20, 30, 40}, // width of border
-        {100, 20, 10, 10}, // radius of border
-        {1, 1, 0, 2}, // style of border
-        {50, 40, 0, 0}, // dashGap of border
-        {10, 20, 0, 0}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
+    auto childNode = CreateOutlineNode(
+        {50, 50, 200, 200},
+        Vector4<Color>(Color(255, 255, 255)),  // White border
+        {10, 10, 10, 10},
+        {20, 20, 20, 20},
+        Vector4<BorderStyle>(BorderStyle::DASHED),
+        {20, 20, 20, 20},
+        {20, 20, 20, 20},
+        0.9f,
+        0xffff0000  // Red foreground
+    );
+    parentNode->AddChild(childNode);
+    RegisterNode(childNode);
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test09)
-{
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F89001F, 0x8F90002F, 0x8F91003F, 0x8F92004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {1, 1, 1, 2}, // style of border
-        {100, 50, 30, 0}, // dashGap of border
-        {100, 50, 30, 0}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
+    // Multiple nested children with different styles
+    auto nestedParent = CreateOutlineNode(
+        {500, 50, 400, 400},
+        Vector4<Color>(Color(0, 0, 255)),  // Blue border
+        {15, 15, 15, 15},
+        {30, 30, 30, 30},
+        Vector4<BorderStyle>(BorderStyle::SOLID),
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        0.6f,
+        0xff00ff00  // Green background
+    );
+    GetRootNode()->AddChild(nestedParent);
+    RegisterNode(nestedParent);
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test010)
-{
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F85001F, 0x8F86002F, 0x8F87003F, 0x8F88004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {1, 1, 1, 1}, // style of border
-        {50, 40, 100, 10}, // dashGap of border
-        {50, 20, 100, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
+    auto nestedChild1 = CreateOutlineNode(
+        {50, 50, 150, 150},
+        Vector4<Color>(Color(255, 0, 0)),  // Red border
+        {8, 8, 8, 8},
+        {15, 15, 15, 15},
+        Vector4<BorderStyle>(BorderStyle::DOTTED),
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        0.8f,
+        0xffffff00  // Yellow background
+    );
+    nestedParent->AddChild(nestedChild1);
+    RegisterNode(nestedChild1);
 
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test011)
-{
-    vector<vector<float>> vecs = {
-        {0, 0, 500, 500}, // rect of bound
-        {0x8F81001F, 0x8F82002F, 0x8F83003F, 0x8F84004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {1, 2, 1, 2}, // style of border
-        {100, 0, 10, 0}, // dashGap of border
-        {100, 0, 10, 0}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test012)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F77001F, 0x8F78002F, 0x8F79003F, 0x8F80004F}, // color of border
-        {20, 20, 10, 30}, // width of border
-        {20, 30, 40, 50}, // radius of border
-        {0, 2, 1, 1}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test013)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F73001F, 0x8F74002F, 0x8F75003F, 0x8F76004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {0, 0, 0, 0}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test014)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F69001F, 0x8F70002F, 0x8F71003F, 0x8F72004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {2, 2, 2, 2}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test015)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F65001F, 0x8F66002F, 0x8F67003F, 0x8F68004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {0, 0, 1, 1}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test016)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F61001F, 0x8F62002F, 0x8F63003F, 0x8F64004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {1, 1, 2, 2}, // style of border
-        {100, 100, 30, 10}, // dashGap of border
-        {100, 100, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test017)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F57001F, 0x8F58002F, 0x8F59003F, 0x8F60004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {0, 0, 2, 2}, // style of border
-        {0, 0, 0, 0}, // dashGap of border
-        {0, 0, 0, 0}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test018)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F53001F, 0x8F54002F, 0x8F55003F, 0x8F56004F}, // color of border
-        {100, 20, 30, 40}, // width of border
-        {100, 20, 10, 10}, // radius of border
-        {1, 1, 0, 2}, // style of border
-        {50, 40, 0, 0}, // dashGap of border
-        {10, 20, 0, 0}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test019)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F49001F, 0x8F50002F, 0x8F51003F, 0x8F52004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {1, 1, 1, 2}, // style of border
-        {100, 50, 30, 0}, // dashGap of border
-        {100, 50, 30, 0}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test020)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F45001F, 0x8F46002F, 0x8F47003F, 0x8F48004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {1, 1, 1, 1}, // style of border
-        {50, 40, 100, 10}, // dashGap of border
-        {50, 20, 100, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test021)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F41001F, 0x8F42002F, 0x8F43003F, 0x8F44004F}, // color of border
-        {10, 20, 30, 40}, // width of border
-        {10, 10, 10, 10}, // radius of border
-        {1, 2, 1, 2}, // style of border
-        {100, 0, 10, 0}, // dashGap of border
-        {100, 0, 10, 0}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test022)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F37001F, 0x8F38002F, 0x8F39003F, 0x8F40004F}, // color of border
-        {50, 50, 50, 50}, // width of border
-        {0, 0, 10, 80}, // radius of border
-        {0, 0, 0, 0}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test023)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F33001F, 0x8F34002F, 0x8F35003F, 0x8F36004F}, // color of border
-        {100, 100, 100, 100}, // width of border
-        {80, 0, 10, 80}, // radius of border
-        {0, 0, 0, 0}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test024)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F29001F, 0x8F30002F, 0x8F31003F, 0x8F30004F}, // color of border
-        {100, 100, 100, 100}, // width of border
-        {80, 0, 10, 80}, // radius of border
-        {2, 2, 2, 2}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test025)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F25001F, 0x8F26002F, 0x8F27003F, 0x8F28004F}, // color of border
-        {100, 100, 100, 100}, // width of border
-        {80, 0, 10, 80}, // radius of border
-        {0, 0, 2, 2}, // style of border
-        {50, 40, 30, 10}, // dashGap of border
-        {10, 20, 30, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test026)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F21001F, 0x8F22002F, 0x8F23003F, 0x8F24004F}, // color of border
-        {100, 100, 100, 100}, // width of border
-        {80, 0, 10, 80}, // radius of border
-        {0, 1, 1, 2}, // style of border
-        {50, 0, 0, 10}, // dashGap of border
-        {10, 0, 0, 40}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test027)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F17001F, 0x8F18002F, 0x8F19003F, 0x8F20004F}, // color of border
-        {100, 100, 100, 100}, // width of border
-        {80, 0, 10, 80}, // radius of border
-        {1, 1, 1, 2}, // style of border
-        {0, 0, 0, 0}, // dashGap of border
-        {0, 0, 0, 0}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test028)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F13001F, 0x8F14002F, 0x8F15003F, 0x8F16004F}, // color of border
-        {100, 100, 100, 100}, // width of border
-        {80, 0, 10, 80}, // radius of border
-        {1, 1, 1, 1}, // style of border
-        {0, 0, 0, 0}, // dashGap of border
-        {0, 0, 0, 0}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test029)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F09001F, 0x8F10002F, 0x8F11003F, 0x8F12004F}, // color of border
-        {100, 100, 100, 100}, // width of border
-        {80, 0, 10, 80}, // radius of border
-        {1, 1, 1, 1}, // style of border
-        {80, 80, 80, 80}, // dashGap of border
-        {80, 80, 80, 80}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test030)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F05001F, 0x8F06002F, 0x8F07003F, 0x8F08004F}, // color of border
-        {-100, -100, -100, -100}, // width of border
-        {80, 0, 10, 80}, // radius of border
-        {1, 2, 0, 1}, // style of border
-        {80, 80, 80, 80}, // dashGap of border
-        {80, 80, 80, 80}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-GRAPHIC_TEST(AppearanceTest07, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Test031)
-{
-    vector<vector<float>> vecs = {
-        {0, 500, 400, 400}, // rect of bound
-        {0x8F01001F, 0x8F02002F, 0x8F03003F, 0x8F04004F}, // color of border
-        {600, 600, 600, 600}, // width of border
-        {100, 100, 100, 100}, // radius of border
-        {1, 2, 0, 1}, // style of border
-        {100, 100, 100, 100}, // dashGap of border
-        {100, 100, 100, 100}, // dashWidth of border
-        {TWENTY_, TWENTY_, 0}
-    };
-    auto testNode = OutlineCreate(vecs);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    auto nestedChild2 = CreateOutlineNode(
+        {200, 200, 150, 150},
+        Vector4<Color>(Color(255, 0, 255)),  // Magenta border
+        {8, 8, 8, 8},
+        {15, 15, 15, 15},
+        Vector4<BorderStyle>(BorderStyle::DASHED),
+        {15, 15, 15, 15},
+        {15, 15, 15, 15},
+        0.8f,
+        0xff00ffff  // Cyan background
+    );
+    nestedParent->AddChild(nestedChild2);
+    RegisterNode(nestedChild2);
 }
 
 } // namespace OHOS::Rosen
