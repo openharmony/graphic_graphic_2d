@@ -61,6 +61,7 @@ ohos_unittest("EffectTest") {
   external_deps = [
     "cJSON:cjson",
     "c_utils:utils",
+    "graphics_effect:graphics_effect_core",
     "googletest:gtest_main",
     "googletest:gmock_main",
     "hilog:libhilog",
