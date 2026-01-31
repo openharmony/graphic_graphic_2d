@@ -19,6 +19,9 @@
 #include "ge_map_color_by_brightness_shader_filter.h"
 #include "ge_external_dynamic_loader.h"
 #include "ge_gamma_correction_filter.h"
+#include "ge_mask_transition_shader_filter.h"
+#include "ge_water_droplet_transition_filter.h"
+#include "ge_linear_gradient_shader_mask.h"
 #include "ge_mesa_blur_shader_filter.h"
 #include "ge_radial_gradient_shader_mask.h"
 #include "ge_variable_radius_blur_shader_filter.h"
@@ -368,6 +371,152 @@ DrawingError EffectImageChain::ApplySDFCreation(int spreadFactor, bool generateD
         Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return DrawingError::ERR_OK;
+}
+
+std::shared_ptr<Drawing::Image> EffectImageChain::ConvertPixelMapToDrawingImage(
+    const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (!CheckPixelMap(pixelMap)) {
+        return nullptr;
+    }
+ 
+    auto imageInfo = Drawing::ImageInfo {
+        pixelMap->GetWidth(), pixelMap->GetHeight(),
+        ImageUtil::PixelFormatToDrawingColorType(pixelMap->GetPixelFormat()),
+        ImageUtil::AlphaTypeToDrawingAlphaType(pixelMap->GetAlphaType()),
+        RSPixelMapUtil::GetPixelmapColorSpace(pixelMap)};
+ 
+    Drawing::Bitmap bitmap;
+    bitmap.InstallPixels(imageInfo,
+        reinterpret_cast<void *>(pixelMap->GetWritablePixels()),
+        static_cast<uint32_t>(pixelMap->GetRowStride()));
+    auto image = std::make_shared<Drawing::Image>();
+    image->BuildFromBitmap(bitmap);
+ 
+    return image;
+}
+ 
+DrawingError EffectImageChain::ApplyMaskTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
+    const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse)
+{
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    if (!prepared_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyMaskTransitionFilter: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+ 
+    // CPU not supported
+    if (forceCPU_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyMaskTransitionFilter: Not support CPU.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+ 
+    if (filters_ != nullptr) {
+        DrawOnFilter(); // need draw first to ensure cascading
+        image_ = surface_->GetImageSnapshot();
+        filters_ = nullptr; // clear filters_ to avoid apply again
+    }
+ 
+    Drawing::GEMaskTransitionShaderFilterParams filterParams{mask, factor, inverse};
+    auto maskTransitionFilter = std::make_shared<GEMaskTransitionShaderFilter>(filterParams);
+    
+    Drawing::CanvasInfo canvasInfo;
+    canvasInfo.geoWidth = srcPixelMap_->GetWidth();
+    canvasInfo.geoHeight = srcPixelMap_->GetHeight();
+
+    auto topLayer = ConvertPixelMapToDrawingImage(topLayerMap);
+    if (!topLayer || canvasInfo.geoHeight <= 0 || canvasInfo.geoWidth <= 0) {
+        EFFECT_LOG_E("EffectImageChain::ApplyMaskTransitionFilter: input image is null or invalid.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+ 
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyMaskTransitionFilter");
+    auto topLayerImageInfo = topLayer->GetImageInfo();
+    float topLayerImageWidth = topLayerImageInfo.GetWidth();
+    float topLayerImageHeight = topLayerImageInfo.GetHeight();
+    auto scaleWRatio = topLayerImageWidth / canvasInfo.geoWidth;
+    auto scaleHRatio = topLayerImageHeight / canvasInfo.geoHeight;
+    Drawing::Matrix topLayerMatrix = canvasInfo.mat;
+    topLayerMatrix.PostTranslate(-canvasInfo.tranX, -canvasInfo.tranY);
+    topLayerMatrix.PostScale(scaleWRatio, scaleHRatio);
+    Drawing::Matrix invertTopLayerMatrix;
+    if (!topLayerMatrix.Invert(invertTopLayerMatrix)) {
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+    maskTransitionFilter->SetShaderFilterCanvasinfo(canvasInfo);
+    maskTransitionFilter->SetCache(topLayer, invertTopLayerMatrix);
+ 
+    image_ = maskTransitionFilter->ProcessImage(*canvas_, image_,
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+ 
+    return DrawingError::ERR_OK;
+}
+ 
+std::shared_ptr<GEShaderFilter> GenerateWaterDropletTransitionFilter(
+    const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& params)
+{
+    if (!params) {
+        return nullptr;
+    }
+    auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
+        static_cast<uint32_t>(Drawing::GEFilterType::WATER_DROPLET_TRANSITION),
+        sizeof(Drawing::GEWaterDropletTransitionFilterParams),
+        static_cast<void*>(params.get()));
+    if (!object) {
+        return std::make_shared<GEWaterDropletTransitionFilter>(*params);
+    }
+ 
+    std::shared_ptr<GEShaderFilter> dmShader(static_cast<GEShaderFilter*>(object));
+    return dmShader;
+}
+ 
+DrawingError EffectImageChain::ApplyWaterDropletTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
+    const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams)
+{
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    if (!prepared_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+ 
+    // CPU not supported
+    if (forceCPU_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: Not support CPU.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+ 
+    if (filters_ != nullptr) {
+        DrawOnFilter(); // need draw first to ensure cascading
+        image_ = surface_->GetImageSnapshot();
+        filters_ = nullptr; // clear filters_ to avoid apply again
+    }
+ 
+    geWaterDropletParams->topLayer = ConvertPixelMapToDrawingImage(topLayerMap);
+    if (!geWaterDropletParams->topLayer) {
+        EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: ConvertPixelMapToDrawingImage null.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+    auto waterDropletTransitionFilter = GenerateWaterDropletTransitionFilter(geWaterDropletParams);
+    if (!waterDropletTransitionFilter) {
+        EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter, Generate Filter failed.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyWaterDropletTransitionFilter");
+    Drawing::CanvasInfo canvasInfo;
+    canvasInfo.geoWidth = srcPixelMap_->GetWidth();
+    canvasInfo.geoHeight = srcPixelMap_->GetHeight();
+    waterDropletTransitionFilter->SetShaderFilterCanvasinfo(canvasInfo);
+ 
+    image_ = waterDropletTransitionFilter->ProcessImage(*canvas_, image_,
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+ 
     return DrawingError::ERR_OK;
 }
 

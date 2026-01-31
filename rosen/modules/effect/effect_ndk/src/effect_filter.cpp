@@ -16,6 +16,8 @@
 #include "effect_filter.h"
 
 #include "filter/filter.h"
+#include "ge_linear_gradient_shader_mask.h"
+#include "ge_radial_gradient_shader_mask.h"
 
 #include "utils/log.h"
 
@@ -23,8 +25,12 @@ using namespace OHOS;
 using namespace Rosen;
 
 namespace {
-    static constexpr uint8_t COLOR_MAX_COUNTS = 5; // The colors max counts of mapColorByBrightness
-    static constexpr uint8_t COLOR_MIN_COUNTS = 1; // The colors min counts of mapColorByBrightness
+static constexpr uint8_t COLOR_MAX_COUNTS = 5; // The colors max counts of mapColorByBrightness
+static constexpr uint8_t COLOR_MIN_COUNTS = 1; // The colors min counts of mapColorByBrightness
+static constexpr uint8_t FRACTION_STOPS_LENGTH_MIN = 2;
+static constexpr uint8_t FRACTION_STOPS_LENGTH_MAX = 12;
+static constexpr float RADIAL_GRADIENT_MASK_RADIUS_MAX = 10.0f;
+static constexpr float WATER_DROPLET_RADIUS_MAX = 10.0f;
 }
 
 static Filter* CastToFilter(OH_Filter* filter)
@@ -152,6 +158,136 @@ EffectErrorCode OH_Filter_MapColorByBrightness(OH_Filter* filter, OH_Filter_MapC
 EffectErrorCode OH_Filter_GammaCorrection(OH_Filter* filter, float gamma)
 {
     if (!filter || !(CastToFilter(filter)->GammaCorrection(gamma))) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}
+
+EffectErrorCode LinearGradientMaskTransition(Filter* effectFilter,
+    std::shared_ptr<OHOS::Media::PixelMap> topLayerPixelmap, const OH_Filter_LinearGradientMask* linearGradientMask,
+    float factor, bool inverse)
+{
+    if (linearGradientMask->fractionStopsLength > FRACTION_STOPS_LENGTH_MAX ||
+        linearGradientMask->fractionStopsLength < FRACTION_STOPS_LENGTH_MIN ||
+        !linearGradientMask->fractionStops) {
+        return EFFECT_BAD_PARAMETER;
+    }
+ 
+    std::vector<std::pair<float, float>> fractionStops;
+    for (uint32_t i = 0; i < linearGradientMask->fractionStopsLength; ++i) {
+        fractionStops.push_back({ std::clamp(linearGradientMask->fractionStops[i].x, 0.0f, 1.0f),
+            std::clamp(linearGradientMask->fractionStops[i].y, 0.0f, 1.0f) });
+    }
+ 
+    int32_t width = effectFilter->GetSrcPixelMap()->GetWidth();
+    int32_t height = effectFilter->GetSrcPixelMap()->GetHeight();
+    auto startPosition = Drawing::Point(std::clamp(linearGradientMask->startPosition.x, 0.0f, 1.0f) * width,
+        std::clamp(linearGradientMask->startPosition.y, 0.0f, 1.0f) * height);
+    auto endPosition = Drawing::Point(std::clamp(linearGradientMask->endPosition.x, 0.0f, 1.0f) * width,
+        std::clamp(linearGradientMask->endPosition.y, 0.0f, 1.0f) * height);
+    Drawing::GELinearGradientShaderMaskParams geLinearGradientMaskParams{
+        fractionStops, startPosition, endPosition};
+    auto transitionMask = std::static_pointer_cast<Drawing::GEShaderMask>(
+        std::make_shared<Drawing::GELinearGradientShaderMask>(geLinearGradientMaskParams));
+    if (!effectFilter->MaskTransition(topLayerPixelmap, transitionMask, std::clamp(factor, 0.0f, 1.0f), inverse)) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}
+ 
+EffectErrorCode RadialGradientMaskTransition(Filter* effectFilter,
+    std::shared_ptr<OHOS::Media::PixelMap> topLayerPixelmap, const OH_Filter_RadialGradientMask* radialGradientMask,
+    float factor, bool inverse)
+{
+    if (radialGradientMask->fractionStopsLength > FRACTION_STOPS_LENGTH_MAX ||
+        radialGradientMask->fractionStopsLength < FRACTION_STOPS_LENGTH_MIN ||
+        !radialGradientMask->fractionStops) {
+        return EFFECT_BAD_PARAMETER;
+    }
+ 
+    std::vector<float> colors;
+    std::vector<float> positions;
+    for (uint32_t i = 0; i < radialGradientMask->fractionStopsLength; ++i) {
+        // colors and positions clamped in the mask shader implementation
+        colors.push_back(radialGradientMask->fractionStops[i].x);
+        positions.push_back(radialGradientMask->fractionStops[i].y);
+    }
+
+    Drawing::GERadialGradientShaderMaskParams geRadialGradientMaskParams{
+        { std::clamp(radialGradientMask->center.x, -RADIAL_GRADIENT_MASK_RADIUS_MAX, RADIAL_GRADIENT_MASK_RADIUS_MAX),
+        std::clamp(radialGradientMask->center.y, -RADIAL_GRADIENT_MASK_RADIUS_MAX, RADIAL_GRADIENT_MASK_RADIUS_MAX) },
+        std::clamp(radialGradientMask->radiusX, 0.0f, RADIAL_GRADIENT_MASK_RADIUS_MAX),
+        std::clamp(radialGradientMask->radiusY, 0.0f, RADIAL_GRADIENT_MASK_RADIUS_MAX),
+        colors, positions};
+    auto transitionMask = std::static_pointer_cast<Drawing::GEShaderMask>(
+        std::make_shared<Drawing::GERadialGradientShaderMask>(geRadialGradientMaskParams));
+    if (!effectFilter->MaskTransition(topLayerPixelmap, transitionMask, std::clamp(factor, 0.0f, 1.0f), inverse)) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}
+
+EffectErrorCode OH_Filter_MaskTransition(OH_Filter* filter,
+    OH_PixelmapNative* transitionImage, void* mask, EffectMaskType maskType, float factor, bool inverse)
+{
+    auto effectFilter = CastToFilter(filter);
+    if (!effectFilter || !transitionImage || !mask) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    auto topLayerPixelmap = transitionImage->GetInnerPixelmap();
+    switch (maskType) {
+        case EffectMaskType::LINEAR_GRADIENT_MASK: {
+            OH_Filter_LinearGradientMask* linearGradientMask = static_cast<OH_Filter_LinearGradientMask*>(mask);
+            return LinearGradientMaskTransition(effectFilter, topLayerPixelmap, linearGradientMask, factor, inverse);
+        }
+        case EffectMaskType::RADIAL_GRADIENT_MASK: {
+            OH_Filter_RadialGradientMask* radialGradientMask = static_cast<OH_Filter_RadialGradientMask*>(mask);
+            return RadialGradientMaskTransition(effectFilter, topLayerPixelmap, radialGradientMask, factor, inverse);
+        }
+        default: {
+            return EFFECT_BAD_PARAMETER;
+        }
+    }
+    return EFFECT_SUCCESS;
+}
+ 
+EffectErrorCode OH_Filter_WaterDropletTransition(OH_Filter* filter,
+    OH_PixelmapNative* transitionImage, OH_Filter_WaterDropletParams* waterDropletParams, bool inverse)
+{
+    auto effectFilter = CastToFilter(filter);
+    if (!effectFilter || !transitionImage || !waterDropletParams) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    auto topLayerPixelmap = transitionImage->GetInnerPixelmap();
+    std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams> geWaterDropletParams =
+        std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>();
+
+    geWaterDropletParams->inverse = inverse;
+    geWaterDropletParams->progress = waterDropletParams->progress;
+    geWaterDropletParams->radius = waterDropletParams->radius;
+    geWaterDropletParams->transitionFadeWidth = waterDropletParams->transitionFadeWidth;
+    geWaterDropletParams->distortionIntensity = waterDropletParams->distortionIntensity;
+    geWaterDropletParams->distortionThickness = waterDropletParams->distortionThickness;
+    geWaterDropletParams->lightStrength = waterDropletParams->lightStrength;
+    geWaterDropletParams->lightSoftness = waterDropletParams->lightSoftness;
+    geWaterDropletParams->noiseScaleX = waterDropletParams->noiseScaleX;
+    geWaterDropletParams->noiseScaleY = waterDropletParams->noiseScaleY;
+    geWaterDropletParams->noiseStrengthX = waterDropletParams->noiseStrengthX;
+    geWaterDropletParams->noiseStrengthY = waterDropletParams->noiseStrengthY;
+
+    geWaterDropletParams->progress = geWaterDropletParams->progress < 0.0f ? 0.0f : geWaterDropletParams->progress;
+    geWaterDropletParams->radius = std::clamp(geWaterDropletParams->radius, 0.0f, WATER_DROPLET_RADIUS_MAX);
+    geWaterDropletParams->transitionFadeWidth = std::clamp(geWaterDropletParams->transitionFadeWidth, 0.0f, 1.0f);
+    geWaterDropletParams->distortionIntensity = std::clamp(geWaterDropletParams->distortionIntensity, 0.0f, 1.0f);
+    geWaterDropletParams->distortionThickness = std::clamp(geWaterDropletParams->distortionThickness, 0.0f, 1.0f);
+    geWaterDropletParams->lightStrength = std::clamp(geWaterDropletParams->lightStrength, 0.0f, 1.0f);
+    geWaterDropletParams->lightSoftness = std::clamp(geWaterDropletParams->lightSoftness, 0.0f, 1.0f);
+    geWaterDropletParams->noiseScaleX = std::clamp(geWaterDropletParams->noiseScaleX, 0.0f, 10.0f);
+    geWaterDropletParams->noiseScaleY = std::clamp(geWaterDropletParams->noiseScaleY, 0.0f, 10.0f);
+    geWaterDropletParams->noiseStrengthX = std::clamp(geWaterDropletParams->noiseStrengthX, 0.0f, 10.0f);
+    geWaterDropletParams->noiseStrengthY = std::clamp(geWaterDropletParams->noiseStrengthY, 0.0f, 10.0f);
+
+    if (!effectFilter->WaterDropletTransition(topLayerPixelmap, geWaterDropletParams)) {
         return EFFECT_BAD_PARAMETER;
     }
     return EFFECT_SUCCESS;

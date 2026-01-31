@@ -155,6 +155,49 @@ EffectErrorCode OH_Filter_Invert(OH_Filter* filter);
 EffectErrorCode OH_Filter_SetColorMatrix(OH_Filter* filter, OH_Filter_ColorMatrix* matrix);
 
 /**
+ * @brief Creates an effect blend the original image and transition image based on different types of masks.
+ *        different mask types correspond to different structures,
+ *        and generate different types of transition effects.
+ *
+ * @param filter The OH_Filter pointer will be operated.
+ * @param transitionImage The {@link OH_PixelmapNative} pointer,
+ *        which will be blended with the input image from {@link OH_Filter_CreateEffect}.
+ * @param mask The structure pointer for mask parameter of the transition effect.
+ *        Different types {@link EffectMaskType} of masks can be selected,
+ *        and each type of mask defines a unique mask structure,
+ *        for example, {@link EffectMaskType}:LINEAR_GRADIENT_MASK
+ *        corresponds to {@link OH_Filter_LinearGradientMask}.
+ * @param maskType The type {@link EffectMaskType} of the transition mask.
+ * @param factor The factor of transition mask,
+ *        the transparency of the mask will be affected by factor, which in turn affects blend.
+ *        The value range is [0.0f, 1.0f], truncated beyond the range.
+ * @param inverse if inverse of the transition effect, will present a completely opposite image blend effect.
+ * @return Returns {@link EffectErrorCode}.
+ * @since 24
+ * @version 1.0
+ */
+EffectErrorCode OH_Filter_MaskTransition(OH_Filter* filter,
+    OH_PixelmapNative* transitionImage, void* mask, EffectMaskType maskType, float factor, bool inverse);
+
+/**
+ * @brief Creates an effect blend the original image and transition image
+ *        based on a customized deformable water droplet mask,
+ *        and adds the water droplet filter based on the mask.
+ *
+ * @param filter The OH_Filter pointer will be operated.
+ * @param transitionImage The {@link OH_PixelmapNative} pointer,
+ *        which will be blended with the input image from {@link OH_Filter_CreateEffect}.
+ * @param waterDropletParams The {@link OH_Filter_WaterDropletParams} pointer,
+ *        which is used to affect the effect of water droplet.
+ * @param inverse if inverse of the transition effect, will present a completely opposite image blend effect.
+ * @return Returns {@link EffectErrorCode}.
+ * @since 24
+ * @version 1.0
+ */
+EffectErrorCode OH_Filter_WaterDropletTransition(OH_Filter* filter,
+    OH_PixelmapNative* transitionImage, OH_Filter_WaterDropletParams* waterDropletParams, bool inverse);
+
+/**
  * @brief Get a pixelmap with the filter effect.
  *
  * @syscap SystemCapability.Multimedia.Image.Core

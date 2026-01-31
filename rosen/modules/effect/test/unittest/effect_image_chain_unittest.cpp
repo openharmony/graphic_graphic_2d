@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "effect_image_chain.h"
+#include "ge_linear_gradient_shader_mask.h"
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing;
@@ -409,5 +410,271 @@ HWTEST_F(EffectImageChainUnittest, ApplyGammaCorrectionTest, TestSize.Level1)
     ret = image->ApplyGammaCorrection(gamma);
     EXPECT_EQ(ret, DrawingError::ERR_OK);
 }
+
+/**
+ * @tc.name: ApplyMaskTransitionFilterTest001
+ * @tc.desc: Test ApplyMaskTransitionFilter with null parameters
+ */
+HWTEST_F(EffectImageChainUnittest, ApplyMaskTransitionFilterTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    std::vector<float> colors = {0.0f, 1.0f};
+    std::vector<float> positions = {0.0f, 1.0f};
+    Drawing::GELinearGradientShaderMaskParams maskParams{
+        {{0.0f, 1.0f}, {0.0f, 1.0f}}, Drawing::Point(0, 0), Drawing::Point(100, 100)};
+    auto mask = std::static_pointer_cast<Drawing::GEShaderMask>(
+        std::make_shared<Drawing::GELinearGradientShaderMask>(maskParams));
+
+    // Test not prepared
+    auto ret = image->ApplyMaskTransitionFilter(nullptr, mask, 0.5f, false);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    // Prepare image
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    ret = image->Prepare(srcPixelMap, true);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Test with forceCPU = true
+    ret = image->ApplyMaskTransitionFilter(nullptr, mask, 0.5f, false);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Test with null top layer
+    ret = image->ApplyMaskTransitionFilter(nullptr, mask, 0.5f, false);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyMaskTransitionFilterTest002
+ * @tc.desc: Test ApplyMaskTransitionFilter with valid parameters
+ */
+HWTEST_F(EffectImageChainUnittest, ApplyMaskTransitionFilterTest002, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    auto ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Create top layer pixelmap
+    std::shared_ptr<Media::PixelMap> topLayerPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(topLayerPixelMap, nullptr);
+
+    std::vector<std::pair<float, float>> fractionStops = {{0.0f, 0.0f}, {1.0f, 1.0f}};
+    Drawing::GELinearGradientShaderMaskParams maskParams{
+        fractionStops, Drawing::Point(0, 0), Drawing::Point(100, 100)};
+    auto mask = std::static_pointer_cast<Drawing::GEShaderMask>(
+        std::make_shared<Drawing::GELinearGradientShaderMask>(maskParams));
+
+    ret = image->ApplyMaskTransitionFilter(topLayerPixelMap, mask, 0.5f, false);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Draw();
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyMaskTransitionFilterTest003
+ * @tc.desc: Test ApplyMaskTransitionFilter with filters_ already set (tests cascade path)
+ */
+HWTEST_F(EffectImageChainUnittest, ApplyMaskTransitionFilterTest003, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    auto ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Add a drawing filter first to test the cascade path
+    auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1.0f, 1.0f, Drawing::TileMode::CLAMP, nullptr);
+    ASSERT_NE(filterBlur, nullptr);
+    ret = image->ApplyDrawingFilter(filterBlur);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Create top layer pixelmap
+    std::shared_ptr<Media::PixelMap> topLayerPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(topLayerPixelMap, nullptr);
+
+    std::vector<std::pair<float, float>> fractionStops = {{0.0f, 0.0f}, {1.0f, 1.0f}};
+    Drawing::GELinearGradientShaderMaskParams maskParams{
+        fractionStops, Drawing::Point(0, 0), Drawing::Point(100, 100)};
+    auto mask = std::static_pointer_cast<Drawing::GEShaderMask>(
+        std::make_shared<Drawing::GELinearGradientShaderMask>(maskParams));
+
+    // This will trigger the cascade path where filters_ != nullptr
+    ret = image->ApplyMaskTransitionFilter(topLayerPixelMap, mask, 0.5f, false);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Draw();
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyMaskTransitionFilterTest004
+ * @tc.desc: Test ApplyMaskTransitionFilter with non-increasing fractionStops y values
+ */
+HWTEST_F(EffectImageChainUnittest, ApplyMaskTransitionFilterTest004, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    auto ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Create top layer pixelmap
+    std::shared_ptr<Media::PixelMap> topLayerPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(topLayerPixelMap, nullptr);
+
+    // Test with non-increasing y values (should still work, validation happens in shader)
+    std::vector<std::pair<float, float>> fractionStops = {{0.0f, 0.5f}, {1.0f, 0.2f}};
+    Drawing::GELinearGradientShaderMaskParams maskParams{
+        fractionStops, Drawing::Point(0, 0), Drawing::Point(100, 100)};
+    auto mask = std::static_pointer_cast<Drawing::GEShaderMask>(
+        std::make_shared<Drawing::GELinearGradientShaderMask>(maskParams));
+
+    ret = image->ApplyMaskTransitionFilter(topLayerPixelMap, mask, 0.5f, false);
+    // The API itself doesn't validate the increasing requirement, it happens in the shader
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyWaterDropletTransitionFilterTest001
+ * @tc.desc: Test ApplyWaterDropletTransitionFilter with null parameters
+ */
+HWTEST_F(EffectImageChainUnittest, ApplyWaterDropletTransitionFilterTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    Drawing::GEWaterDropletTransitionFilterParams params = {
+        nullptr, false, 0.5f, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f
+    };
+    auto waterDropletParams = std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>(params);
+
+    // Test not prepared
+    auto ret = image->ApplyWaterDropletTransitionFilter(nullptr, waterDropletParams);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    // Prepare image
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    ret = image->Prepare(srcPixelMap, true);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Test with forceCPU = true (should return ERR_ILLEGAL_INPUT)
+    ret = image->ApplyWaterDropletTransitionFilter(nullptr, waterDropletParams);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Test with null top layer
+    ret = image->ApplyWaterDropletTransitionFilter(nullptr, waterDropletParams);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    // Test with null params
+    ret = image->ApplyWaterDropletTransitionFilter(srcPixelMap, nullptr);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyWaterDropletTransitionFilterTest002
+ * @tc.desc: Test ApplyWaterDropletTransitionFilter with valid parameters
+ */
+HWTEST_F(EffectImageChainUnittest, ApplyWaterDropletTransitionFilterTest002, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    auto ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Create top layer pixelmap
+    std::shared_ptr<Media::PixelMap> topLayerPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(topLayerPixelMap, nullptr);
+
+    Drawing::GEWaterDropletTransitionFilterParams params = {
+        nullptr, false, 0.5f, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f
+    };
+    auto waterDropletParams = std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>(params);
+
+    ret = image->ApplyWaterDropletTransitionFilter(topLayerPixelMap, waterDropletParams);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Draw();
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyWaterDropletTransitionFilterTest003
+ * @tc.desc: Test ApplyWaterDropletTransitionFilter with filters_ already set (tests cascade path)
+ */
+HWTEST_F(EffectImageChainUnittest, ApplyWaterDropletTransitionFilterTest003, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    auto ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Add a drawing filter first to test the cascade path
+    auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1.0f, 1.0f, Drawing::TileMode::CLAMP, nullptr);
+    ASSERT_NE(filterBlur, nullptr);
+    ret = image->ApplyDrawingFilter(filterBlur);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    // Create top layer pixelmap
+    std::shared_ptr<Media::PixelMap> topLayerPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(topLayerPixelMap, nullptr);
+
+    Drawing::GEWaterDropletTransitionFilterParams params = {
+        nullptr, false, 0.5f, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f
+    };
+    auto waterDropletParams = std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>(params);
+
+    // This will trigger the cascade path where filters_ != nullptr
+    ret = image->ApplyWaterDropletTransitionFilter(topLayerPixelMap, waterDropletParams);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Draw();
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ConvertPixelMapToDrawingImageTest001
+ * @tc.desc: Test ConvertPixelMapToDrawingImage
+ */
+HWTEST_F(EffectImageChainUnittest, ConvertPixelMapToDrawingImageTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    // Test with null pixelmap
+    auto drawingImage = image->ConvertPixelMapToDrawingImage(nullptr);
+    EXPECT_EQ(drawingImage, nullptr);
+
+    // Test with valid pixelmap
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+
+    drawingImage = image->ConvertPixelMapToDrawingImage(srcPixelMap);
+    EXPECT_NE(drawingImage, nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS
