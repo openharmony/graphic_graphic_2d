@@ -28,7 +28,7 @@ group("unittest") {
     ":RSOpincDrawCacheTest",
     ":RSSpecialLayerUtilsTest",
     ":RSSubThreadCacheTest",
-    ":RSSurfaceCaptureParallelTaskTest",
+    ":RSSurfaceCaptureTaskParallelTest",
     ":RSSurfaceCaptureTaskTest",
     ":RSUiCaptureSoloTaskParallelTest",
     ":RSUiCaptureTaskParallelTest",
@@ -169,8 +169,8 @@ ohos_unittest("RSOcclusionNodeTest") {
   ]
 }
 
-## Build RSSurfaceCaptureParallelTaskTest
-ohos_unittest("RSSurfaceCaptureParallelTaskTest") {
+## Build RSSurfaceCaptureTaskParallelTest
+ohos_unittest("RSSurfaceCaptureTaskParallelTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",

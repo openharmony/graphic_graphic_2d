@@ -19,6 +19,7 @@
 #include "impl_interface/region_impl.h"
 #include "rs_trace.h"
 #include "rs_frame_report.h"
+#include "common/rs_background_thread.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
@@ -27,6 +28,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "draw/brush.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
@@ -763,8 +765,14 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         specialLayerManager.FindWithScreen(curDisplayScreenId_, SpecialLayerType::HAS_BLACK_LIST));
     bool wiredMirrorProjectionInHDR = surfaceParams->SelfOrChildHasHDR() &&
         uniParam->IsMirrorScreen() && uniParam->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE;
+    auto captureConfig = surfaceParams->GetCaptureConfig();
+    if (captureConfig) {
+        surfaceParams->GetCaptureConfig()->isConfigTriggered = true;
+    }
+    // not use uifirst when window need sync render
+    bool windowCapSyncRender = (captureConfig && captureConfig->isSyncRender);
     // Attention : Don't change the order of conditions. If securitydisplay has special layers, don't enable uifirst.
-    if (!specialLayerInSecDisplay && !wiredMirrorProjectionInHDR &&
+    if (!specialLayerInSecDisplay && !wiredMirrorProjectionInHDR && !windowCapSyncRender &&
         subThreadCache_.DealWithUIFirstCache(this, *rscanvas, *surfaceParams, *uniParam)) {
         if (GetDrawSkipType() == DrawSkipType::NONE) {
             SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
@@ -805,6 +813,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
         surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
         !surfaceParams->IsTransparent();
+    needOffscreen = needOffscreen || (captureConfig ? captureConfig->isSyncRender : false);
+    if (captureConfig && captureConfig->isSyncRender) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw, NeedSyncCaptureWindow: [%d], NodeId:%" PRIu64 ", "
+            "needOffscreen: %d", captureConfig->isSyncRender, surfaceParams->GetId(), needOffscreen);
+    }
     curCanvas_ = rscanvas;
     if (needOffscreen) {
         if (!offscreenRotationInfo_) {
@@ -892,6 +905,32 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE));
         RS_LOGD("FinishOffscreenRender %{public}s node type %{public}d", surfaceParams->GetName().c_str(),
             int(surfaceParams->GetSurfaceNodeType()));
+#ifdef RS_ENABLE_UNI_RENDER
+        // use offscreen surface for window capture when need sync render
+        if (captureConfig && captureConfig->isSyncRender) {
+            auto captureCallback = surfaceParams->GetCaptureCallback();
+            std::unique_ptr<Media::PixelMap> pixelmap = nullptr;
+            RS_TRACE_NAME_FMT("CreateSurfaceSyncCopyTask FinishOffscreenRender, Node:%" PRIu64, surfaceParams->GetId());
+            float pixelMapWidth = surfaceParams->GetBounds().GetWidth();
+            float pixelMapHeight = surfaceParams->GetBounds().GetHeight();
+            Media::InitializationOptions opts;
+            opts.size.width = ceil(pixelMapWidth * captureConfig->scaleX);
+            opts.size.height = ceil(pixelMapHeight * captureConfig->scaleY);
+            RS_LOGD("CreateSurfaceSyncCopyTask CreatePixelMap:"
+                " origin pixelmap width is [%{public}f], height is [%{public}f],"
+                " created pixelmap width is [%{public}u], height is [%{public}u],"
+                " the scale is scaleX:[%{public}f], scaleY:[%{public}f]",
+                pixelMapWidth, pixelMapHeight, opts.size.width, opts.size.height,
+                captureConfig->scaleX, captureConfig->scaleY);
+            pixelmap = Media::PixelMap::Create(opts);
+            bool syncRender = captureConfig->isSyncRender ? true : false;
+            captureConfig->isSyncRender = false;
+            auto copyTask = RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
+                offscreenRotationInfo_->offscreenSurface_, std::move(pixelmap), surfaceParams->GetId(),
+                *captureConfig, captureCallback, 0, syncRender);
+            RSBackgroundThread::Instance().PostTask(copyTask);
+        }
+#endif // RS_ENABLE_UNI_RENDER
     }
 
     // Draw base pipeline end
@@ -1059,7 +1098,8 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
-    RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture:[" + name_ + "] " +
+    RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture: [id:" +
+        std::to_string(surfaceParams->GetId()) + "] [" + name_ + "] " +
         surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " +
         std::to_string(surfaceParams->GetGlobalAlpha()));
     if (DrawCacheImageForMultiScreenView(*rscanvas, *surfaceParams)) {
@@ -1255,7 +1295,15 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             surfaceParams.GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE) {
             return;
         }
-        if (!canvas.GetUICapture() && RSSystemParameters::GetUIFirstCaptrueReuseEnabled() &&
+        // not use uifirst when dirty in window capture process
+        bool surfaceCapNotUsingUIFirst = RSUniRenderThread::GetCaptureParam().hasDirtyContent_;
+        if (surfaceCapNotUsingUIFirst) {
+            RS_TRACE_NAME_FMT("surfaceCapNotUsingUIFirst = true, Id:%" PRIu64 "", surfaceParams.GetId());
+            RS_LOGI("surfaceCapNotUsingUIFirst = true, not using uifirst, id: %{public}" PRIu64,
+                surfaceParams.GetId());
+        }
+        if (!canvas.GetUICapture() && !surfaceCapNotUsingUIFirst &&
+            RSSystemParameters::GetUIFirstCaptrueReuseEnabled() &&
             subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
                 RS_LOGI("%{public}s DealWithUIFirstCache", __func__);

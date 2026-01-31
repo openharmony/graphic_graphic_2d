@@ -30,7 +30,7 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 }
 
 void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-    std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrCode,
+    std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
     std::shared_ptr<Media::PixelMap> pixelmapHDR)
 {
 }
@@ -45,8 +45,7 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderPipelineClient::TakeSurfaceCaptureSoloNode(
     NodeId id, const RSSurfaceCaptureConfig& captureConfig)
 {
-    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
-    return pixelMapIdPairVector;
+    return {};
 }
 
 bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,

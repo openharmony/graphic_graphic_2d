@@ -42,16 +42,17 @@ struct CaptureParam {
     NodeId endNodeId_ = INVALID_NODEID;
     bool captureFinished_ = false;
     bool needCaptureSpecialLayer_ = false;
+    bool hasDirtyContent_ = false;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData_ = nullptr;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
         bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false,
         bool isSoloNodeUiCapture = false, NodeId endNodeId = INVALID_NODEID, bool captureFinished = false,
-        bool needCaptureSpecialLayer = false)
+        bool needCaptureSpecialLayer = false, bool hasDirtyContent = false)
         : isSnapshot_(isSnapshot), isSingleSurface_(isSingleSurface), isMirror_(isMirror), isFirstNode_(isFirstNode),
         isSystemCalling_(isSystemCalling), isSelfCapture_(isSelfCapture), isNeedBlur_(isNeedBlur),
         isSoloNodeUiCapture_(isSoloNodeUiCapture), endNodeId_(endNodeId), captureFinished_(captureFinished),
-        needCaptureSpecialLayer_(needCaptureSpecialLayer) {}
+        needCaptureSpecialLayer_(needCaptureSpecialLayer), hasDirtyContent_(hasDirtyContent) {}
 };
 struct HardCursorInfo {
     NodeId id = INVALID_NODEID;
