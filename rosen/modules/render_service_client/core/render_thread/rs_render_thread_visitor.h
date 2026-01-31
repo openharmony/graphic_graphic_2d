@@ -75,11 +75,10 @@ private:
     // Reset and update children node's info like outOfParent and isRemoveChild
     void ResetAndPrepareChildrenNode(RSRenderNode& node, std::shared_ptr<RSBaseRenderNode> nodeParent);
     void ProcessSurfaceViewInRT(RSSurfaceRenderNode& node);
-#ifdef ROSEN_OHOS
     Drawing::Matrix CacRotationFromTransformType(GraphicTransformType transform, RectF& bounds);
     GraphicTransformType GetFlipTransform(GraphicTransformType transform);
     void FlipMatrix(GraphicTransformType transform, Drawing::Matrix& matrix, const RectF& bounds);
-#endif
+
     void ProcessShadowFirst(RSRenderNode& node);
 
     std::shared_ptr<RSDirtyRegionManager> curDirtyManager_;
