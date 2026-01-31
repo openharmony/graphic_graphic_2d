@@ -291,6 +291,14 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemory001, TestSize.Level1)
     node.NodeDestructorInner(ptrToNode);
     node.ReleaseNodeMemory();
     EXPECT_TRUE(node.nodeBucket_.size() == 0);
+
+    constexpr int nodeNum = BUCKET_MAX_SIZE * GC_LEVEL_THR_IMMEDIATE + 1;
+    for (int i = 0; i < nodeNum; ++i) {
+        auto ptr = new RSRenderNode(i);
+        node.AddNodeToBucket(ptr);
+    }
+    node.ReleaseNodeMemory();
+    EXPECT_TRUE(node.nodeBucket_.size() == 0);
 }
 
 /**
