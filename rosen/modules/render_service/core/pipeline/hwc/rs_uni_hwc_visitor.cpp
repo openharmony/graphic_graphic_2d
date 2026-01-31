@@ -875,8 +875,7 @@ void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRen
     if (!node) {
         return;
     }
-    if (filterZOrder != 0 && node->GetHwcRecorder().GetZOrderForHwcEnableByFilter() != 0 &&
-        node->GetInstanceRootNodeId() == filterNode.GetInstanceRootNodeId() &&
+    if (node->GetInstanceRootNodeId() == filterNode.GetInstanceRootNodeId() &&
         RSUniHwcComputeUtil::IsBlendNeedBackground(filterNode) && uniRenderVisitor_.curSurfaceNode_ &&
         uniRenderVisitor_.curSurfaceNode_->GetId() == node->GetInstanceRootNodeId() &&
         RsCommonHook::Instance().GetFilterUnderHwcConfigByApp(node->GetBundleName()) == "1") {
