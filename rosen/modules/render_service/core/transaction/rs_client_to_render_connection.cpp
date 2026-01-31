@@ -594,10 +594,8 @@ ErrCode RSClientToRenderConnection::SetHwcNodeBounds(int64_t rsNodeId, float pos
         return ERR_INVALID_VALUE;
     }
 
-    // adapt video scene pointer
-    if (screenManager_->GetCurrentVirtualScreenNum() > 0 ||
-        !RSPointerWindowManager::Instance().GetIsPointerEnableHwc()) {
-        // when has virtual screen or pointer is enable hwc, we can't skip
+    if (!RSPointerWindowManager::Instance().GetIsPointerEnableHwc()) {
+        // Don't skip if: pointer hwc enabled or visible in multi-screen
         RSPointerWindowManager::Instance().SetIsPointerCanSkipFrame(false);
         RSMainThread::Instance()->RequestNextVSync();
     } else {
