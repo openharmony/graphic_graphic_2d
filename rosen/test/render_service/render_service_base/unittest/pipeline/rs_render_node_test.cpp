@@ -3996,5 +3996,44 @@ HWTEST_F(RSRenderNodeTest, DumpSubClassNodeTest005, TestSize.Level1)
     ASSERT_TRUE(outTest.find("isRelated") != string::npos);
     ASSERT_TRUE(outTest.find("sourceNodeId") != string::npos);
 }
+
+/**
+ * @tc.name: GetColorPickerDrawable001
+ * @tc.desc: Test GetColorPickerDrawable returns nullptr when drawable is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+
+    // No ColorPicker drawable set
+    auto colorPickerDrawable = node->GetColorPickerDrawable();
+    EXPECT_EQ(colorPickerDrawable, nullptr);
+}
+
+/**
+ * @tc.name: GetColorPickerDrawable002
+ * @tc.desc: Test GetColorPickerDrawable successfully retrieves ColorPicker drawable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable002, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at the COLOR_PICKER slot
+    node.GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) = colorPickerDrawable;
+
+    // Verify GetColorPickerDrawable returns the correct drawable
+    auto retrievedDrawable = node.GetColorPickerDrawable();
+    EXPECT_NE(retrievedDrawable, nullptr);
+    EXPECT_EQ(retrievedDrawable, colorPickerDrawable);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -17,6 +17,10 @@
 #define RENDER_SERVICE_BASE_PROPERTY_RS_COLOR_PICKER_DEF_H
 
 #include <cstdint>
+#include <optional>
+#include <utility>
+
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,7 +31,33 @@ enum class ColorPlaceholder : uint8_t {
     TEXT_CONTRAST,
     ACCENT,
     FOREGROUND,
-    MAX = FOREGROUND
+    BRAND,
+    BRAND_FONT,
+    WARNING,
+    FONT_ON_PRIMARY,
+    FONT_PRIMARY,
+    FONT_SECONDARY,
+    FONT_TERTIARY,
+    FONT_FOURTH,
+    FONT_EMPHASIZE,
+    ICON_PRIMARY,
+    ICON_SECONDARY,
+    ICON_TERTIARY,
+    ICON_FOURTH,
+    ICON_EMPHASIZE,
+    ICON_SUB_EMPHASIZE,
+    COMP_BACKGROUND_PRIMARY_CONTRARY,
+    COMP_BACKGROUND_PRIMARY_CONTRARY_SECONDARY,
+    COMP_BACKGROUND_SECONDARY,
+    COMP_BACKGROUND_TERTIARY,
+    COMP_BACKGROUND_EMPHASIZE,
+    COMP_EMPHASIZE_SECONDARY,
+    COMP_EMPHASIZE_TERTIARY,
+    COMP_DIVIDER,
+    INTERACTIVE_HOVER,
+    INTERACTIVE_FOCUS,
+    INTERACTIVE_PRESSED,
+    MAX = INTERACTIVE_PRESSED
 };
 
 enum class ColorPickStrategyType : int16_t {
@@ -43,8 +73,11 @@ struct ColorPickerParam {
     ColorPlaceholder placeholder = ColorPlaceholder::NONE;
     ColorPickStrategyType strategy = ColorPickStrategyType::NONE;
     uint64_t interval = 0;
-    uint32_t notifyThreshold = 0; // minimum luminance difference to trigger notification (0-255, 0 = always notify).
-                                  // Skip notification if difference is less than this value.
+    // {darkThreshold, lightThreshold} (0-255).
+    // Notify when luminance drops below darkThreshold or rises above lightThreshold.
+    std::pair<uint32_t, uint32_t> notifyThreshold = { 150, 220 };
+    // Optional custom rect for color picking(left, top, right, bottom)
+    std::optional<Drawing::Rect> rect;
 
     ColorPickerParam() = default;
     ColorPickerParam(ColorPlaceholder ph, ColorPickStrategyType st, uint64_t itv)
@@ -54,7 +87,7 @@ struct ColorPickerParam {
     bool operator==(const ColorPickerParam& other) const
     {
         return placeholder == other.placeholder && strategy == other.strategy && interval == other.interval &&
-               notifyThreshold == other.notifyThreshold;
+               notifyThreshold == other.notifyThreshold && rect == other.rect;
     }
 };
 } // namespace Rosen

@@ -1732,6 +1732,14 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPenTest004, TestSize.Level1)
     RSPaintFilterCanvas::Env env = { RSColor(), nullptr, nullptr, blender, false };
     paintFilterCanvas->envStack_.push(env);
     paintFilterCanvas->AttachPen(pen);
+    EXPECT_FALSE(paintFilterCanvas->NeedReplaceColor(pen.GetColor()));
+
+    paintFilterCanvas->envStack_.top().fractionColorReady_ = true;
+    Drawing::Color drawingColor;
+    drawingColor.placeholder_ = static_cast<uint16_t>(ColorPlaceholder::FOREGROUND);
+    pen.SetColor(drawingColor);
+    paintFilterCanvas->AttachPen(pen);
+    EXPECT_TRUE(paintFilterCanvas->NeedReplaceColor(pen.GetColor()));
 
     paintFilterCanvas->canvas_ = nullptr;
     paintFilterCanvas->AttachPen(pen);
@@ -1760,6 +1768,15 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachBrushTest005, TestSize.Level1)
     RSPaintFilterCanvas::Env env = { RSColor(), nullptr, nullptr, blender, false };
     paintFilterCanvas->envStack_.push(env);
     paintFilterCanvas->AttachBrush(brush);
+    EXPECT_FALSE(paintFilterCanvas->NeedReplaceColor(brush.GetColor()));
+
+    paintFilterCanvas->envStack_.top().fractionColorReady_ = true;
+    Drawing::Color drawingColor;
+    drawingColor.placeholder_ = static_cast<uint16_t>(ColorPlaceholder::FOREGROUND);
+    brush.SetColor(drawingColor);
+    paintFilterCanvas->AttachBrush(brush);
+    EXPECT_TRUE(paintFilterCanvas->NeedReplaceColor(brush.GetColor()));
+
     brush.SetBlenderEnabled(false);
     paintFilterCanvas->AttachBrush(brush);
     paintFilterCanvas->canvas_ = nullptr;
@@ -1788,6 +1805,14 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPaintTest006, TestSize.Level1)
     std::shared_ptr<Drawing::Blender> blender = std::make_shared<Drawing::Blender>();
     RSPaintFilterCanvas::Env env = { RSColor(), nullptr, nullptr, blender, false };
     paintFilterCanvas->AttachPaint(paint);
+    EXPECT_FALSE(paintFilterCanvas->NeedReplaceColor(paint.GetColor()));
+
+    paintFilterCanvas->envStack_.top().fractionColorReady_ = true;
+    Drawing::Color drawingColor;
+    drawingColor.placeholder_ = static_cast<uint16_t>(ColorPlaceholder::FOREGROUND);
+    paint.SetColor(drawingColor);
+    paintFilterCanvas->AttachPaint(paint);
+    EXPECT_TRUE(paintFilterCanvas->NeedReplaceColor(paint.GetColor()));
 
     paintFilterCanvas->canvas_ = nullptr;
     paintFilterCanvas->AttachPaint(paint);
@@ -2124,6 +2149,58 @@ HWTEST_F(RSPaintFilterCanvasTest, SetFilterClipBoundsTest, TestSize.Level1)
     EXPECT_EQ(paintFilterCanvas->GetFilterClipBounds(), Drawing::RectI());
     paintFilterCanvas->SetFilterClipBounds(clipBounds);
     EXPECT_EQ(paintFilterCanvas->GetFilterClipBounds(), Drawing::RectI());
+}
+
+/**
+ * @tc.name: NeedReplaceColor
+ * @tc.desc: Test NeedReplaceColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, NeedReplaceColor, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    Drawing::Color color;
+    color.placeholder_ = 0;
+    EXPECT_FALSE(paintFilterCanvas->NeedReplaceColor(color));
+}
+
+/**
+ * @tc.name: SetColorPicked
+ * @tc.desc: Test SetColorPicked
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetColorPicked, TestSize.Level1)
+{
+    EXPECT_TRUE(EnvStackClear());
+    RSPaintFilterCanvas::Env env;
+
+    paintFilterCanvas_->SetColorPicked(0xFFFFFFFF);
+    EXPECT_TRUE(paintFilterCanvas_->envStack_.empty());
+
+    paintFilterCanvas_->envStack_.push(env);
+    paintFilterCanvas_->SetColorPicked(0xFFFFFFFF);
+    EXPECT_TRUE(paintFilterCanvas_->envStack_.top().fractionColorReady_);
+}
+
+/**
+ * @tc.name: GetColorPicked
+ * @tc.desc: Test GetColorPicked
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, GetColorPicked, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    RSPaintFilterCanvas::Env env;
+
+    paintFilterCanvas->envStack_ = std::stack<RSPaintFilterCanvas::Env>();
+    auto color = paintFilterCanvas->GetColorPicked(ColorPlaceholder::FOREGROUND);
+    EXPECT_EQ(color, Drawing::Color::COLOR_BLACK);
+
+    paintFilterCanvas->envStack_.push(env);
+    paintFilterCanvas->GetColorPicked(ColorPlaceholder::FOREGROUND);
+    EXPECT_EQ(color, Drawing::Color::COLOR_BLACK);
 }
 
 } // namespace Rosen
