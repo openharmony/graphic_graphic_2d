@@ -46,7 +46,7 @@ AniTextResult LoadString(ani_env* env, ani_object path, std::shared_ptr<OHOS::Ro
     std::string pathStr;
     ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(path), pathStr);
     if (ret != ANI_OK) {
-        return AniTextResult::Invalid();
+        return AniTextResult::BusinessInvalid();
     }
     if (!AniTextUtils::SplitAbsoluteFontPath(pathStr)) {
         TEXT_LOGE("Failed to split absolute font path");
@@ -191,7 +191,7 @@ AniTextResult AniFontCollection::OnLoadFontSync(
     std::string familyName;
     ani_status ret = AniTextUtils::AniToStdStringUtf8(env, name, familyName);
     if (ret != ANI_OK) {
-        return AniTextResult::Invalid();
+        return AniTextResult::BusinessInvalid();
     }
     auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(
         env, obj, AniGlobalMethod::GetInstance().fontCollectionGetNative);
@@ -218,7 +218,7 @@ AniTextResult AniFontCollection::OnLoadFontSync(
     if (isResource) {
         return LoadResource(env, path, aniFontCollection->fontCollection_, familyName, index);
     }
-    return AniTextResult::Invalid();
+    return AniTextResult::BusinessInvalid();
 }
 
 void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path)

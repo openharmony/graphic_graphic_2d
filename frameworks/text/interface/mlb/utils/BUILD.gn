@@ -21,7 +21,10 @@ ohos_source_set("mlb_utils") {
     cfi_vcall_icall_only = true
     debug = false
   }
-  sources = [ "src/font_utils.cpp" ]
+  sources = [
+    "src/error_code.cpp",
+    "src/font_utils.cpp",
+  ]
   include_dirs = [
     "include",
     "$rosen_text_root/interface/export/rosen_text",
