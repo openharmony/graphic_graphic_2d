@@ -95,9 +95,10 @@ private:
         RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId);
     void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId);
 
-    std::atomic<uint32_t> pickedLuminance_ = 0;
+    std::atomic<uint32_t> pickedLuminance_ = RGBA_MAX + 1; // invalid initial luminance to force first notification
     uint64_t lastUpdateTime_ = 0;
-    std::atomic<uint32_t> notifyThreshold_ = 0;
+    std::atomic<uint32_t> darkThreshold_ = 150;
+    std::atomic<uint32_t> lightThreshold_ = 220;
 };
 } // namespace Rosen
 } // namespace OHOS

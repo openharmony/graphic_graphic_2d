@@ -87,7 +87,7 @@ void RSColorPickerManager::ScheduleColorPick(
 
     auto ptr = std::static_pointer_cast<RSColorPickerManager>(shared_from_this());
     if (RSHeteroColorPicker::Instance().GetColor(
-            [ptr, nodeId, strategy](
+        [ptr, nodeId, strategy](
                 Drawing::ColorQuad& newColor) { ptr->HandleColorUpdate(newColor, nodeId, strategy); },
             drawingSurface, snapshot)) {
         return; // accelerated color picker

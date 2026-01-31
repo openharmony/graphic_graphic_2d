@@ -57,7 +57,8 @@ std::optional<Drawing::ColorQuad> ColorPickAltManager::GetColorPicked(
         return std::nullopt;
     }
     lastUpdateTime_ = currTime;
-    notifyThreshold_ = params.notifyThreshold;
+    lightThreshold_.store(params.notifyThreshold.second, std::memory_order_relaxed);
+    darkThreshold_.store(params.notifyThreshold.first, std::memory_order_relaxed);
 
     ScheduleColorPick(canvas, rect, nodeId);
     return std::nullopt;
@@ -85,7 +86,7 @@ void ColorPickAltManager::ScheduleColorPick(RSPaintFilterCanvas& canvas, const D
     auto ptr = std::static_pointer_cast<ColorPickAltManager>(shared_from_this());
     // accelerated color picker
     if (RSHeteroColorPicker::Instance().GetColor(
-            [ptr, nodeId](Drawing::ColorQuad& newColor) { ptr->HandleColorUpdate(newColor, nodeId); }, drawingSurface,
+        [ptr, nodeId](Drawing::ColorQuad& newColor) { ptr->HandleColorUpdate(newColor, nodeId); }, drawingSurface,
             snapshot)) {
         return;
     }
@@ -105,28 +106,38 @@ void ColorPickAltManager::ScheduleColorPick(RSPaintFilterCanvas& canvas, const D
     drawingSurface->Flush(&drawingFlushInfo);
 }
 
+namespace {
+enum class LuminanceZone { DARK, LIGHT, NEUTRAL, UNKNOWN };
+LuminanceZone GetLuminanceZone(uint32_t luminance, uint32_t darkThreshold, uint32_t lightThreshold)
+{
+    if (luminance < darkThreshold) {
+        return LuminanceZone::DARK;
+    } else if (luminance > lightThreshold) {
+        return LuminanceZone::LIGHT;
+    } else if (luminance > RGBA_MAX) {
+        return LuminanceZone::UNKNOWN;
+    } else {
+        return LuminanceZone::NEUTRAL;
+    }
+}
+} // namespace
+
 void ColorPickAltManager::HandleColorUpdate(Drawing::ColorQuad newColor, NodeId nodeId)
 {
     const auto newLuminance = static_cast<uint32_t>(std::round(RSColorPickerUtils::CalculateLuminance(newColor)));
-    const uint32_t prevLuminance = pickedLuminance_.load(std::memory_order_relaxed);
+    const uint32_t prevLuminance = pickedLuminance_.exchange(newLuminance, std::memory_order_relaxed);
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "ColorPickAltManager::extracted background luminance = %u, prevLuminance = %u, nodeId = %lu", newLuminance,
         prevLuminance, nodeId);
 
-    const auto threshold = notifyThreshold_.load(std::memory_order_relaxed);
-    // Check if luminance change exceeds threshold
-    if (threshold > 0) {
-        uint32_t diffLuminance =
-            (newLuminance > prevLuminance) ? (newLuminance - prevLuminance) : (prevLuminance - newLuminance);
-        // Only notify if luminance difference exceeds threshold
-        if (diffLuminance < threshold) {
-            return;
-        }
+    const uint32_t darkThreshold = darkThreshold_.load(std::memory_order_relaxed);
+    const uint32_t lightThreshold = lightThreshold_.load(std::memory_order_relaxed);
+    const auto prevZone = GetLuminanceZone(prevLuminance, darkThreshold, lightThreshold);
+    const auto newZone = GetLuminanceZone(newLuminance, darkThreshold, lightThreshold);
+    if (prevZone == newZone) {
+        return;
     }
-
-    if (pickedLuminance_.exchange(newLuminance, std::memory_order_relaxed) != newLuminance) {
-        RSColorPickerThread::Instance().NotifyClient(nodeId, std::clamp(static_cast<uint32_t>(newLuminance), 0u, 255u));
-    }
+    RSColorPickerThread::Instance().NotifyClient(nodeId, std::clamp(static_cast<uint32_t>(newLuminance), 0u, 255u));
 }
 
 } // namespace OHOS::Rosen

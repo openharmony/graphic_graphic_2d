@@ -1298,12 +1298,18 @@ void RSProperties::SetColorPickerInterval(int interval)
     SetDirty();
 }
 
-void RSProperties::SetColorPickerNotifyThreshold(int threshold)
+void RSProperties::SetColorPickerNotifyThreshold(int packedThresholds)
 {
     if (!colorPicker_) {
         colorPicker_ = std::make_shared<ColorPickerParam>();
     }
-    colorPicker_->notifyThreshold = std::clamp(static_cast<uint32_t>(threshold), 0u, RGBA_MAX);
+    // Unpack: lower 16 bits = dark threshold, upper 16 bits = light threshold
+    uint32_t darkThreshold = static_cast<uint32_t>(packedThresholds & 0xFFFF);
+    uint32_t lightThreshold = static_cast<uint32_t>((packedThresholds >> 16) & 0xFFFF);
+    colorPicker_->notifyThreshold = {
+        std::clamp(darkThreshold, 0u, RGBA_MAX),
+        std::clamp(lightThreshold, 0u, RGBA_MAX)
+    };
     SetDirty();
 }
 

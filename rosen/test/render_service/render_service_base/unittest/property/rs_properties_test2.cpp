@@ -317,11 +317,14 @@ HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest001, TestSize.Level1)
     RSProperties properties;
     EXPECT_EQ(properties.GetColorPicker(), nullptr);
 
-    properties.SetColorPickerNotifyThreshold(50);
+    // Pack thresholds: dark=30, light=50
+    int packed = (50 << 16) | 30;
+    properties.SetColorPickerNotifyThreshold(packed);
 
     auto colorPicker = properties.GetColorPicker();
     ASSERT_NE(colorPicker, nullptr);
-    EXPECT_EQ(colorPicker->notifyThreshold, 50);
+    EXPECT_EQ(colorPicker->notifyThreshold.first, 30);
+    EXPECT_EQ(colorPicker->notifyThreshold.second, 50);
 }
 
 /**
@@ -338,12 +341,16 @@ HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest002, TestSize.Level1)
 
     auto colorPicker = properties.GetColorPicker();
     ASSERT_NE(colorPicker, nullptr);
-    EXPECT_EQ(colorPicker->notifyThreshold, 0);
+    EXPECT_EQ(colorPicker->notifyThreshold.first, 150);  // default dark threshold
+    EXPECT_EQ(colorPicker->notifyThreshold.second, 220); // default light threshold
 
-    properties.SetColorPickerNotifyThreshold(100);
+    // Pack thresholds: dark=60, light=100
+    int packed = (100 << 16) | 60;
+    properties.SetColorPickerNotifyThreshold(packed);
 
     colorPicker = properties.GetColorPicker();
-    EXPECT_EQ(colorPicker->notifyThreshold, 100);
+    EXPECT_EQ(colorPicker->notifyThreshold.first, 60);
+    EXPECT_EQ(colorPicker->notifyThreshold.second, 100);
     EXPECT_EQ(colorPicker->placeholder, ColorPlaceholder::SURFACE);
     EXPECT_EQ(colorPicker->strategy, ColorPickStrategyType::AVERAGE);
     EXPECT_EQ(colorPicker->interval, 1000);
@@ -358,20 +365,33 @@ HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest003, TestSize.Level1)
 {
     RSProperties properties;
 
-    // Test value above 255 clamped to 255
-    properties.SetColorPickerNotifyThreshold(300);
-    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 255);
+    // Test value above 255 clamped to 255 for both thresholds
+    // Pack: dark=300 (should clamp to 255), light=350 (should clamp to 255)
+    int packed = (350 << 16) | 300;
+    properties.SetColorPickerNotifyThreshold(packed);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.first, 255);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.second, 255);
 
-    // Test valid value in range
-    properties.SetColorPickerNotifyThreshold(128);
-    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 128);
+    // Test valid values in range
+    // Pack: dark=50, light=128
+    packed = (128 << 16) | 50;
+    properties.SetColorPickerNotifyThreshold(packed);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.first, 50);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.second, 128);
 
     // Test boundary values
-    properties.SetColorPickerNotifyThreshold(0);
-    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 0);
+    // Pack: dark=0, light=0
+    packed = (0 << 16) | 0;
+    properties.SetColorPickerNotifyThreshold(packed);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.first, 0);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.second, 0);
 
-    properties.SetColorPickerNotifyThreshold(255);
-    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 255);
+    // Pack: dark=255, light=255
+    packed = (255 << 16) | 255;
+    properties.SetColorPickerNotifyThreshold(packed);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.first, 255);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.second, 255);
+}
 }
 
 /**
