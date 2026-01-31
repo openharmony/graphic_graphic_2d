@@ -1552,6 +1552,7 @@ void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilter
         ROSEN_LOGE("RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas fail to copy behindWindowData");
         return;
     }
+    curEnv.filterClipBounds_ = Drawing::RectI();
 
     // cache related
     if (other.isHighContrastEnabled()) {

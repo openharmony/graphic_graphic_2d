@@ -1075,8 +1075,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableCalVisibleRect001
     drawable->stagingRelativeRectInfo_->drawRect_ = drawRect;
     drawable->CalVisibleRect(canvas.GetTotalMatrix(), clipRect, defaultRelativeRect);
     ASSERT_NE(drawable->stagingVisibleRectInfo_, nullptr);
-    EXPECT_EQ(drawable->stagingVisibleRectInfo_->snapshotRect_, snapshotRect.ConvertTo<int>());
-    EXPECT_EQ(drawable->stagingVisibleRectInfo_->totalRect_, totalRect.ConvertTo<int>());
+    EXPECT_EQ(drawable->stagingVisibleRectInfo_->snapshotRect_, snapshotRect.ConvertTo<int>().IntersectRect(clipRect));
+    EXPECT_EQ(drawable->stagingVisibleRectInfo_->totalRect_, totalRect.ConvertTo<int>().IntersectRect(clipRect));
 }
 
 /**
