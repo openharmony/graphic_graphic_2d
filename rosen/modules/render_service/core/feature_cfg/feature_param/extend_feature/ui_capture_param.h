@@ -31,7 +31,7 @@ protected:
     void SetUseDMAProcessEnabled(bool enabled);
 
 private:
-    bool useOptimizedFlushAndSubmitEnabled_ = true;
+    bool useOptimizedFlushAndSubmitEnabled_ = false;
     bool useDMAProcessEnabled_ = false;
 
     friend class UICaptureParamParse;

@@ -31,7 +31,7 @@ protected:
     void SetDeferredDmaSurfaceReleaseEnabled(bool enabled);
 
 private:
-    bool useOptimizedFlushAndSubmitEnabled_ = true;
+    bool useOptimizedFlushAndSubmitEnabled_ = false;
     bool deferredDmaSurfaceReleaseEnabled_ = false;
 
     friend class SurfaceCaptureParamParse;
