@@ -8417,5 +8417,149 @@ HWTEST_F(RSUniRenderVisitorTest, HandleMainScreenColorGamut002, TestSize.Level2)
     rsUniRenderVisitor->HandleMainScreenColorGamut(*screenNode);
     EXPECT_NE(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
+
+/**
+ * @tc.name: PrepareColorPickerDrawable001
+ * @tc.desc: Test PrepareColorPickerDrawable with ColorPicker drawable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickerDrawable001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    // Set up absRect so GetBoundsGeometry()->GetAbsRect() returns valid rect
+    RectI testRect(0, 0, 100, 100);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = testRect;
+
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
+
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>();
+    // Set up stagingColorPicker_ with valid strategy and interval so Prepare() will set needColorPick to true
+    colorPickerDrawable->stagingColorPicker_ = std::make_shared<ColorPickerParam>(
+        ColorPlaceholder::FOREGROUND, ColorPickStrategyType::DOMINANT, 0);
+    // Set lastUpdateTime_ so interval will be considered elapsed
+    colorPickerDrawable->lastUpdateTime_ = 0;
+
+    surfaceNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
+        colorPickerDrawable;
+    rsUniRenderVisitor->PrepareColorPickerDrawable(*surfaceNode);
+
+    EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.size(), 1u);
+}
+
+/**
+ * @tc.name: PrepareColorPickerDrawable002
+ * @tc.desc: Test PrepareColorPickerDrawable with needColorPick=false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickerDrawable002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
+
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>();
+    // Set up stagingColorPicker_ with NONE strategy so Prepare() will not set needColorPick
+    colorPickerDrawable->stagingColorPicker_ = std::make_shared<ColorPickerParam>(
+        ColorPlaceholder::NONE, ColorPickStrategyType::NONE, 0);
+
+    surfaceNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
+        colorPickerDrawable;
+    rsUniRenderVisitor->PrepareColorPickerDrawable(*surfaceNode);
+
+    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.empty());
+}
+
+/**
+ * @tc.name: PrepareColorPickerDrawable003
+ * @tc.desc: Test PrepareColorPickerDrawable with null colorPickerDrawable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickerDrawable003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+
+    // Clear the map before testing
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
+
+    // Call PrepareColorPickerDrawable with node that has no ColorPicker drawable
+    rsUniRenderVisitor->PrepareColorPickerDrawable(*surfaceNode);
+
+    // Should not crash and map should remain empty
+    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.empty());
+}
+
+/**
+ * @tc.name: PrepareColorPickerDrawable004
+ * @tc.desc: Test PrepareColorPickerDrawable with multiple surfaces
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickerDrawable004, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode1, nullptr);
+    ASSERT_NE(surfaceNode2, nullptr);
+
+    // Set up absRect for surface nodes so GetBoundsGeometry()->GetAbsRect() returns valid rect
+    RectI testRect(0, 0, 100, 100);
+    surfaceNode1->GetRenderProperties().GetBoundsGeometry()->absRect_ = testRect;
+    surfaceNode2->GetRenderProperties().GetBoundsGeometry()->absRect_ = testRect;
+
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
+
+    auto colorPickerDrawable1 = std::make_shared<DrawableV2::RSColorPickerDrawable>();
+    // Set up stagingColorPicker_ with valid strategy and interval so Prepare() will set needColorPick to true
+    colorPickerDrawable1->stagingColorPicker_ = std::make_shared<ColorPickerParam>(
+        ColorPlaceholder::FOREGROUND, ColorPickStrategyType::DOMINANT, 0);
+    // Set lastUpdateTime_ so interval will be considered elapsed
+    colorPickerDrawable1->lastUpdateTime_ = 0;
+
+    surfaceNode1->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
+        colorPickerDrawable1;
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode1;
+    rsUniRenderVisitor->PrepareColorPickerDrawable(*surfaceNode1);
+    EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.size(), 1u);
+
+    auto colorPickerDrawable2 = std::make_shared<DrawableV2::RSColorPickerDrawable>();
+    // Set up stagingColorPicker_ with valid strategy and interval so Prepare() will set needColorPick to true
+    colorPickerDrawable2->stagingColorPicker_ = std::make_shared<ColorPickerParam>(
+        ColorPlaceholder::FOREGROUND, ColorPickStrategyType::DOMINANT, 0);
+    // Set lastUpdateTime_ so interval will be considered elapsed
+    colorPickerDrawable2->lastUpdateTime_ = 0;
+
+    surfaceNode2->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
+        colorPickerDrawable2;
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode2;
+    rsUniRenderVisitor->PrepareColorPickerDrawable(*surfaceNode2);
+    EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.size(), 2u);
+
+    EXPECT_NE(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.find(surfaceNode1->GetId()),
+        rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.end());
+    EXPECT_NE(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.find(surfaceNode2->GetId()),
+        rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.end());
+}
 } // OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

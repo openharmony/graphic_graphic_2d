@@ -1553,7 +1553,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%lu] filterInGlobal_[%d]",
             GetId(), filterInGlobal);
     }
-    // if clean without filter skip subtree
+    // if clean without filter / colorPicker skip subtree
     return ChildHasVisibleFilter() ? filterInGlobal : false;
 }
 
@@ -2692,6 +2692,31 @@ bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
     return true;
 }
 #endif
+
+std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerDrawable() const
+{
+    if (auto& drawable = GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)]) {
+        return std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(drawable);
+    }
+    return nullptr;
+}
+
+bool RSRenderNode::PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode)
+{
+    auto colorPickerDrawable = GetColorPickerDrawable();
+    if (!colorPickerDrawable) {
+        return false;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "ColorPicker: Preparing in filter iteration node id:%" PRIu64, GetId());
+
+    const auto [needColorPick, needSync] = colorPickerDrawable->PrepareForExecution(vsyncTime, darkMode);
+    if (needSync) {
+        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COLOR_PICKER);
+    }
+    return needColorPick;
+}
+
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -4056,7 +4081,7 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 {
     if (childNode.GetRenderProperties().NeedFilter() || childNode.GetHwcRecorder().IsBlendWithBackground() ||
-        childNode.GetHwcRecorder().IsForegroundColorValid()) {
+        childNode.GetHwcRecorder().IsForegroundColorValid() || childNode.GetColorPickerDrawable()) {
         visibleFilterChild_.emplace_back(childNode.GetId());
     }
     auto& childFilterNodes = childNode.GetVisibleFilterChild();

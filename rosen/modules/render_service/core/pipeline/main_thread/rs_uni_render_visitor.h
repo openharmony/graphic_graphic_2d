@@ -373,6 +373,8 @@ private:
 
     void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
 
+    void PrepareColorPickerDrawable(RSRenderNode& node);
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 
