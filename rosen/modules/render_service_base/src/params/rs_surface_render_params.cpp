@@ -694,6 +694,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     targetSurfaceParams->isSurfaceBufferOpaque_ = isSurfaceBufferOpaque_;
     targetSurfaceParams->uiFirstVisibleFilterRect_ = uiFirstVisibleFilterRect_;
+    if (captureConfig_ && captureConfig_->isConfigTriggered == false) {
+        // avoid being double moved by uifirstRenderParams_
+        captureConfig_->isConfigTriggered = true;
+        targetSurfaceParams->captureConfig_ = std::move(captureConfig_);
+        targetSurfaceParams->captureCallback_ = std::move(captureCallback_);
+    }
     targetSurfaceParams->appRotationCorrection_ = appRotationCorrection_;
     targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
     RSRenderParams::OnSync(target);

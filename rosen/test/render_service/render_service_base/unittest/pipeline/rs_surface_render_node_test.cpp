@@ -2861,5 +2861,32 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsAncestorScreenFrozenTest, TestSize.Level1)
     EXPECT_TRUE(surfaceNode->IsAncestorScreenFrozen());
     context->GetMutableNodeMap().UnregisterRenderNode(firstLevelNode->GetId());
 }
+
+/**
+ * @tc.name: RegisterCaptureCallbackTest
+ * @tc.desc: RegisterCaptureCallback
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, RegisterCaptureCallbackTest, TestSize.Level1)
+{
+    NodeId id = 10001;
+    auto context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    surfaceRenderNode->stagingRenderParams_ = nullptr;
+    surfaceRenderNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(surfaceRenderNode, nullptr);
+    EXPECT_TRUE(context->GetMutableNodeMap().RegisterRenderNode(surfaceRenderNode));
+    sptr<RSISurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig config;
+    config.isSyncRender = true;
+    surfaceRenderNode->RegisterCaptureCallback(callback, config);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->stagingRenderParams_.get());
+    surfaceParams->RegisterCaptureCallback(callback, config);
+    ASSERT_TRUE(surfaceParams->NeedSync());
+    surfaceParams = nullptr;
+    surfaceRenderNode->stagingRenderParams_ = nullptr;
+    surfaceRenderNode->RegisterCaptureCallback(callback, config);
+}
 } // namespace Rosen
 } // namespace OHOS

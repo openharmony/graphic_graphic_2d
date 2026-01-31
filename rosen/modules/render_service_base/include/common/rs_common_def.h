@@ -398,6 +398,8 @@ struct RSSurfaceCaptureConfig {
     std::pair<uint32_t, bool> colorSpace = {OHOS::ColorManager::ColorSpaceName::SRGB, false};
     // {dynamicRangeMode, isAutoAjust}
     std::pair<uint32_t, bool> dynamicRangeMode = {DEFAULT_DYNAMIC_RANGE_MODE_STANDARD, false};
+    bool isSyncRender = false;
+    bool isConfigTriggered = false;
 
     // When adding new members, please ensure to add the corresponding comparison logic in the operator== and
     // serialization/deserialization logic in the OnSurfaceCapture method.
@@ -433,6 +435,7 @@ struct RSSurfaceCaptureParam {
     bool isFreeze = false;
     RSSurfaceCaptureBlurParam blurParam = {};
     bool needCaptureSpecialLayer = false;
+    bool hasDirtyContentInSurfaceCapture = false;
 };
 
 struct RSSurfaceCapturePermissions {

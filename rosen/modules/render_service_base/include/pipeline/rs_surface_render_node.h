@@ -31,6 +31,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
+#include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -1756,6 +1757,9 @@ public:
     bool IsAncestorScreenFrozen() const;
 
     void AfterTreeStateChanged();
+
+    // only use for window capture when isSyncRender is true
+    void RegisterCaptureCallback(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& config);
 
     void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
     void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);

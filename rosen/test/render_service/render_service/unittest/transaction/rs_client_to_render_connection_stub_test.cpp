@@ -158,8 +158,17 @@ void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, Mess
     data.WriteFloat(captureConfig.mainScreenRect.bottom_);
     data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
     data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data.WriteFloat(captureConfig.specifiedAreaRect.left_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.top_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.right_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data.WriteUInt64Vector(captureConfig.blackList);
     data.WriteUint32(captureConfig.backGroundColor);
+    data.WriteUint32(captureConfig.colorSpace.first);
+    data.WriteBool(captureConfig.colorSpace.second);
+    data.WriteUint32(captureConfig.dynamicRangeMode.first);
+    data.WriteBool(captureConfig.dynamicRangeMode.second);
+    data.WriteBool(captureConfig.isSyncRender);
 }
 
 /**
@@ -560,6 +569,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     data.WriteFloat(captureConfig.specifiedAreaRect.right_);
     data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data.WriteUint32(captureConfig.backGroundColor);
+    data.WriteUint32(captureConfig.colorSpace.first);
+    data.WriteBool(captureConfig.colorSpace.second);
+    data.WriteUint32(captureConfig.dynamicRangeMode.first);
+    data.WriteBool(captureConfig.dynamicRangeMode.second);
+    data.WriteBool(captureConfig.isSyncRender);
     auto res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
 #ifdef RS_ENABLE_UNI_RENDER
     EXPECT_LE(res, ERR_PERMISSION_DENIED);

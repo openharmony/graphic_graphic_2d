@@ -370,6 +370,21 @@ void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCa
             callback->OnSurfaceCapture(id, captureConfig, nullptr);
             return;
         }
+        auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (captureConfig.isSyncRender && surfaceNode &&
+            !surfaceNode->GetSpecialLayerMgr().Find(HAS_GENERAL_SPECIAL)) {
+            RS_LOGI("RSClientToRenderConnection::TakeSurfaceCapture, Node:%{public}" PRIu64
+                ", isSyncRender:%{public}d, hasSpecialLayer: %{public}d, specialLayerType:%{public}u",
+                surfaceNode->GetId(), captureConfig.isSyncRender,
+                surfaceNode->GetSpecialLayerMgr().Find(HAS_GENERAL_SPECIAL),
+                surfaceNode->GetSpecialLayerMgr().Get());
+            surfaceNode->RegisterCaptureCallback(callback, captureConfig);
+            surfaceNode->SetDirty(true);
+            RSMainThread::Instance()->SetDirtyFlag();
+            RSMainThread::Instance()->RequestNextVSync();
+            RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCapture SetNeedSyncCaptureWindow");
+            return;
+        }
         if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
             RS_LOGD("RSClientToRenderConnection::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]", id);
             ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSClientToRenderConnection::TakeSurfaceCapture");
@@ -385,7 +400,14 @@ void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCa
             captureParam.config = captureConfig;
             captureParam.isSystemCalling = isSystemCalling;
             captureParam.blurParam = blurParam;
-            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+            bool needSyncSurface = false;
+            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow, &needSyncSurface);
+            if (node->GetType() == RSRenderNodeType::SURFACE_NODE &&
+                (needSyncSurface || node->IsDirty() || node->IsSubTreeDirty())) {
+                captureParam.hasDirtyContentInSurfaceCapture = true;
+                RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCapture surfaceCap dirtyFlag = true,"
+                    " nodeId:[%" PRIu64 "]", id);
+            }
             RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 #endif
         }

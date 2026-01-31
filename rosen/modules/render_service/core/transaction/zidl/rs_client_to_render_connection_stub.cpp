@@ -1067,7 +1067,8 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(
         !data.ReadUint32(captureConfig.colorSpace.first) ||
         !data.ReadBool(captureConfig.colorSpace.second) ||
         !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
-        !data.ReadBool(captureConfig.dynamicRangeMode.second)) {
+        !data.ReadBool(captureConfig.dynamicRangeMode.second) ||
+        !data.ReadBool(captureConfig.isSyncRender)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
         return false;
     }
