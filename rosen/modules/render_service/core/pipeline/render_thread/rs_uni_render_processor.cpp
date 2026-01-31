@@ -245,7 +245,7 @@ void RSUniRenderProcessor::CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRend
             static_cast<int32_t>(std::floor(dstRect.y * rogHeightRatio)),
             static_cast<int32_t>(std::ceil(dstRect.w * rogWidthRatio)),
             static_cast<int32_t>(std::ceil(dstRect.h * rogHeightRatio)) };
-        RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayer name:%s id:%" PRIu64 " dst:[%d, %d, %d, %d]"
+        RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayer name:%s id:%" PRIu64 " dst:[%d, %d, %d, %d] "
             "adjustDst:[%d, %d, %d, %d] color:%08x",
             params.GetName().c_str(), params.GetId(), dstRect.x, dstRect.y, dstRect.w, dstRect.h,
             layerRect.x, layerRect.y, layerRect.w, layerRect.h, color.AsArgbInt());
