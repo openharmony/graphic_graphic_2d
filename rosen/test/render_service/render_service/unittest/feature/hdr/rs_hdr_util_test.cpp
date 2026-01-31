@@ -224,6 +224,71 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateSelfDrawingNodeNit
+ * @tc.desc: Test UpdateSelfDrawingNodeNit
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, UpdateSelfDrawingNodeNitTest, TestSize.Level1)
+{
+    RSMainThread::Instance()->ClearSelfDrawingNodes();
+    NodeId id = 10;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
+
+    auto& selfDrawingNodes = const_cast<std::vector<std::shared_ptr<RSSurfaceRenderNode>>&>(
+        RSMainThread::Instance()->GetSelfDrawingNodes());
+    selfDrawingNodes.emplace_back(nullptr);
+
+    auto notOnTreeNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(notOnTreeNode, nullptr);
+    notOnTreeNode->SetIsOnTheTree(false);
+    RSMainThread::Instance()->AddSelfDrawingNodes(notOnTreeNode);
+
+    auto noAncestorNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(noAncestorNode, nullptr);
+    noAncestorNode->SetIsOnTheTree(true);
+    RSMainThread::Instance()->AddSelfDrawingNodes(noAncestorNode);
+
+    auto otherScreenNode = std::make_shared<RSScreenRenderNode>(id + 1, screenId + 1, context);
+    ASSERT_NE(otherScreenNode, nullptr);
+    auto mismatchAncestorNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(mismatchAncestorNode, nullptr);
+    mismatchAncestorNode->SetIsOnTheTree(true);
+    mismatchAncestorNode->SetAncestorScreenNode(otherScreenNode);
+    RSMainThread::Instance()->AddSelfDrawingNodes(mismatchAncestorNode);
+
+    auto updateFailNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(updateFailNode, nullptr);
+    updateFailNode->SetIsOnTheTree(true);
+    updateFailNode->SetAncestorScreenNode(screenNode);
+    updateFailNode->SetVideoHdrStatus(HdrStatus::NO_HDR);
+    RSMainThread::Instance()->AddSelfDrawingNodes(updateFailNode);
+
+    auto updateSuccessNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(updateSuccessNode, nullptr);
+    updateSuccessNode->SetIsOnTheTree(true);
+    updateSuccessNode->SetAncestorScreenNode(screenNode);
+    updateSuccessNode->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
+    updateSuccessNode->context_ = context;
+    NodeId logicalDisplayNodeId = 20U;
+    RSDisplayNodeConfig config;
+    auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(logicalDisplayNodeId, config, context);
+    updateSuccessNode->logicalDisplayNodeId_ = logicalDisplayNodeId;
+    context->nodeMap.RegisterRenderNode(logicalDisplayNode);
+    RSMainThread::Instance()->AddSelfDrawingNodes(updateSuccessNode);
+
+    RSHdrUtil::UpdateSelfDrawingNodeNit(*screenNode);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    float expectedSdrNit = RSLuminanceControl::Get().GetSdrDisplayNits(screenNode->GetScreenId());
+    EXPECT_EQ(stagingSurfaceParams->GetSdrNit(), expectedSdrNit);
+    RSMainThread::Instance()->ClearSelfDrawingNodes();
+}
+
+/**
  * @tc.name: GetRGBA1010108Enabled
  * @tc.desc: Test GetRGBA1010108Enabled
  * @tc.type: FUNC
