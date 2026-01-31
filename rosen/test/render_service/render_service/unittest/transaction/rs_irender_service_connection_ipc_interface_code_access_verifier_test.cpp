@@ -344,4 +344,23 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, SetLogica
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, true);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: IsExclusiveVerificationPassedTest
+ * @tc.desc: test IsExclusiveVerificationPassed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsExclusiveVerificationPassedTest,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto code = static_cast<CodeUnderlyingType>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK);
+    auto hasPermission = verifier->IsExclusiveVerificationPassed(code);
+    ASSERT_EQ(hasPermission, true);
+    code = static_cast<CodeUnderlyingType>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER);
+    hasPermission = verifier->IsExclusiveVerificationPassed(code);
+    ASSERT_EQ(hasPermission, true);
+}
+#endif
 } // namespace OHOS::Rosen
