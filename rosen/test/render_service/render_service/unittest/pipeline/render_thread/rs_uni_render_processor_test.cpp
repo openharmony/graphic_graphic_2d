@@ -695,7 +695,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayerTest, TestSize.Level1)
 
 /**
  * @tc.name: CreateSolidColorLayer001
- * @tc.desc: Test CreateSolidColorLayer when GetIsHwcEnabledBySolidLayer returns true (no layer created)
+ * @tc.desc: Test CreateSolidColorLayer when GetIsHwcEnabledBySolidLayer returns false (layer created)
  * @tc.type:FUNC
  * @tc.require: issuesI9KRF1
  */
@@ -709,9 +709,12 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer001, TestSize.Level1)
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
 
-        // Set IsHwcEnabledBySolidLayer to true - should NOT create solid color layer
-        params->SetIsHwcEnabledBySolidLayer(true);
+        // Set IsHwcEnabledBySolidLayer to false - should create solid color layer
+        params->SetIsHwcEnabledBySolidLayer(false);
         params->SetSolidLayerColor(Color(255, 0, 0, 128));
+        RSLayerInfo layerInfo;
+        layerInfo.dstRect = {10, 10, 100, 100};
+        params->SetLayerInfo(layerInfo);
 
         ASSERT_NE(renderProcessor, nullptr);
         NodeId nodeId = 1;
@@ -721,8 +724,8 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer001, TestSize.Level1)
 
         auto sizeBefore = renderProcessor->layers_.size();
         renderProcessor->CreateSolidColorLayer(layer, *params);
-        // No solid color layer should be created when HWC is enabled
-        EXPECT_EQ(renderProcessor->layers_.size(), sizeBefore);
+        // Solid color layer should be created, size should be sizeBefore + 1 = 2
+        EXPECT_EQ(renderProcessor->layers_.size(), sizeBefore + 1);
     }
 }
 
@@ -872,9 +875,6 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer005, TestSize.Level1)
 HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer006, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
-        layer->SetZorder(3);
-
         struct ColorTestCase {
             uint32_t argb;
             std::string name;
@@ -895,6 +895,10 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer006, TestSize.Level1)
         renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
 
         for (const auto& colorCase : testColors) {
+            // Create a new layer for each iteration
+            RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+            layer->SetZorder(3);
+
             auto surfaceNode = RSTestUtil::CreateSurfaceNode();
             auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
                 DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
@@ -903,6 +907,9 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer006, TestSize.Level1)
             params->SetIsHwcEnabledBySolidLayer(false);
             Color color(colorCase.argb);
             params->SetSolidLayerColor(color);
+            RSLayerInfo layerInfo;
+            layerInfo.dstRect = {10, 10, 100, 100};
+            params->SetLayerInfo(layerInfo);
 
             auto sizeBefore = renderProcessor->layers_.size();
             renderProcessor->CreateSolidColorLayer(layer, *params);
@@ -920,11 +927,8 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer006, TestSize.Level1)
 HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer007, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
-        layer->SetZorder(2);
-
         struct RectTestCase {
-            Rect dstRect;
+            GraphicIRect dstRect;
             std::string name;
         };
         std::vector<RectTestCase> testRects = {
@@ -942,6 +946,10 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer007, TestSize.Level1)
         renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
 
         for (const auto& rectCase : testRects) {
+            // Create a new layer for each iteration
+            RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+            layer->SetZorder(2);
+
             auto surfaceNode = RSTestUtil::CreateSurfaceNode();
             auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
                 DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
