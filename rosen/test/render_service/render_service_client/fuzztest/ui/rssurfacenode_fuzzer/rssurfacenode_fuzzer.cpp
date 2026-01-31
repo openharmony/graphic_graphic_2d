@@ -24,6 +24,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint32_t MAX_FUZZ_IPC_LOOP_COUNT = 100;
+constexpr uint32_t MAX_FUZZ_SIMPLE_LOOP_COUNT = 1000;
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -188,6 +190,9 @@ bool DoSetBufferAvailableCallback()
         std::cout << "SetBufferAvailableCallback, test upper limit of registered function" << std::endl;
     };
     uint32_t funcNumMax = GetData<uint32_t>();
+    if (funcNumMax > MAX_FUZZ_IPC_LOOP_COUNT) {
+        funcNumMax = MAX_FUZZ_IPC_LOOP_COUNT;
+    }
     for (uint32_t i = 0; i < funcNumMax; ++i) {
         surfaceNode->SetBufferAvailableCallback(func);
     }
@@ -205,6 +210,9 @@ bool DoSetBoundsChangedCallback()
     using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     BoundsChangedCallback callback;
     uint32_t funcNumMax = GetData<uint32_t>();
+    if (funcNumMax > MAX_FUZZ_SIMPLE_LOOP_COUNT) {
+        funcNumMax = MAX_FUZZ_SIMPLE_LOOP_COUNT;
+    }
     for (uint32_t i = 0; i < funcNumMax; ++i) {
         surfaceNode->SetBoundsChangedCallback(callback);
     }
