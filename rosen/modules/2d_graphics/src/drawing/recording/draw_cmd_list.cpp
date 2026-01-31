@@ -626,7 +626,7 @@ bool DrawCmdList::UnmarshallingDrawOpsSimple(
             }
             uint32_t type = curOpItemPtr->GetType();
             if (auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset, isReplayMode)) {
-                drawOpItems_.emplace_back(op);
+                drawOpItems.emplace_back(op);
             }
             if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
                 break;
