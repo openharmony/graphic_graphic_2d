@@ -380,16 +380,6 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
     return false;
 }
 
-bool RSSystemProperties::IsPhoneType()
-{
-    return false;
-}
-
-bool RSSystemProperties::IsBetaRelease()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     return false;
@@ -421,11 +411,6 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
 }
 
 bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
 }

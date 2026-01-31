@@ -216,7 +216,7 @@ uint32_t RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId
     return 0;
 }
 
-void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY)
 {
 }
 

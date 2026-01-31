@@ -19,6 +19,5 @@ group("unittest") {
   deps = [
     "animation:RSRenderAnimationTest",
     "render:RSRenderTest",
-    "transaction:RSTransactionTest",
   ]
 }

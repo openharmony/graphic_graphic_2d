@@ -351,7 +351,6 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_data_callback_manager.cpp",
     "src/transaction/rs_transaction_handler.cpp",
-    "src/transaction/rs_transaction_metric_collector.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
     "src/transaction/rs_uiextension_data.cpp",
 
