@@ -20,9 +20,7 @@
 #include <sstream>
 #include <sys/time.h>
 #include <unistd.h>
-#include "cJSON.h"
 
-#include "hisysevent.h"
 #include "rs_trace.h"
 
 #include "common/rs_background_thread.h"
@@ -1185,7 +1183,9 @@ void RSJankStats::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
             OHOS::HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(domainId, eventId, s.str());
 #endif
         };
-        RSJankReportThread::Instance().PostTask(task);
+        if (duration > ACVIDEO_NOTIFY_TIME_MS) {
+            RSJankReportThread::Instance().PostTask(task);
+        }
     }
     avcodecVideoMap_.clear();
     avcodecVideoCollectOpen_.store(false);
