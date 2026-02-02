@@ -650,8 +650,7 @@ void RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, const RefreshRatePar
         // 2 period for draw and composition, pipelineOffset = 2 * period
         frameOffset = 2 * period + vsyncOffset - static_cast<int64_t>(param.fastComposeTimeStampDiff);
     } else {
-        if ((hgmCore.GetSupportedMaxTE144() != 0) &&
-            (hgmCore.GetSupportedMaxTE144() % OLED_144_HZ == 0) && currentRate == OLED_144_HZ) {
+        if (hgmCore.GetSupportedMaxTE144() != 0 && currentRate == OLED_144_HZ) {
             idealPipelineOffset = hgmCore.GetIdealPipelineOffset144();
             idealPulse = IDEAL_PULSE144;
         } else {

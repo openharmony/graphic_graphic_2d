@@ -198,6 +198,7 @@ private:
 #endif
     void PeriodCheckLocked(int64_t hardwareVsyncInterval);
     void UpdateChangeRefreshRatesLocked(const ListenerRefreshRateData &listenerRefreshRates);
+    void ChangeVsyncTE(uint32_t generatorRefreshRate)
     VsyncError SetExpectNextVsyncTimeInternal(int64_t expectNextVsyncTime);
     void ClearAllSamplesInternal(bool clearAllSamplesFlag);
     void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);

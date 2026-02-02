@@ -186,6 +186,33 @@ int32_t HgmCore::InitXmlConfig()
     return EXEC_SUCCESS;
 }
 
+void SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSetting)
+{
+    const auto& ltpoConfig = curScreenSetting.ltpoConfig;
+    if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
+        maxTE_ = std::stoul(iter->second);
+        CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
+        CreateVSyncGenerator()->SetVSyncMaxTE(maxTE_);
+    } else {
+        maxTE_ = 0;
+        HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
+    }
+
+    if (auto iter = ltpoConfig.find("maxTE144"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
+        uint32_t maxTE144 = std::stoul(iter->second);
+        if (maxTE144 % 144 == 0) {
+            maxTE144_ = maxTE144;
+            CreateVSyncGenerator()->SetVSyncMaxTE144(maxTE144_);
+        } else {
+            maxTE144_ = 0;
+            HGM_LOGW("HgmCore TE 144 strategy for LTPO must be a multiple of 144");
+        }
+    } else {
+        maxTE144_ = 0;
+        HGM_LOGW("HgmCore failed to find TE 144 strategy for LTPO");
+    }
+}
+
 void HgmCore::SetASConfig(const PolicyConfigData::ScreenSetting& curScreenSetting)
 {
     adaptiveSync_ = 0;
@@ -222,23 +249,6 @@ void HgmCore::SetLtpoConfig()
         HGM_LOGW("HgmCore failed to find switch strategy for LTPO");
     }
 
-    if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
-        maxTE_ = std::stoul(iter->second);
-        CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
-        CreateVSyncGenerator()->SetVSyncMaxTE(maxTE_);
-    } else {
-        maxTE_ = 0;
-        HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
-    }
-
-    if (auto iter = ltpoConfig.find("maxTE144"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
-        maxTE144_ = std::stoul(iter->second);
-        CreateVSyncGenerator()->SetVSyncMaxTE144(maxTE144_);
-    } else {
-        maxTE144_ = 0;
-        HGM_LOGW("HgmCore failed to find TE 144 strategy for LTPO");
-    }
-
     if (auto iter = ltpoConfig.find("alignRate"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
         alignRate_ = std::stoul(iter->second);
     } else {
@@ -254,6 +264,7 @@ void HgmCore::SetLtpoConfig()
         pipelineOffsetPulseNum_ = 0;
         HGM_LOGW("HgmCore failed to find pipelineOffset strategy for LTPO");
     }
+    SetMaxTEConfig(curScreenSetting);
     isLtpoMode_.store(ltpoEnabled_ && (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate()));
     SetIdealPipelineOffset(pipelineOffsetPulseNum_);
     SetIdealPipelineOffset144(pipelineOffsetPulseNum_);

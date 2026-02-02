@@ -971,18 +971,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
 
     VsyncError ret = SetExpectNextVsyncTimeInternal(expectNextVsyncTime);
 
-    // LTPO管线两套TE切换方案，仅配置144hz倍数且下发144hz切帧时触发
-    if (vsyncMaxTE144_ != 0) {
-        if (generatorRefreshRate == 144) {
-            vsyncMaxRefreshRate_ = vsyncMaxTE144_;
-            pulse_ = ONE_SECOND_FOR_CALCUTE_FREQUENCY / static_cast<int64_t>(vsyncMaxRefreshRate_);
-            RS_TRACE_NAME_FMT("vsync TE change to %u, pulse:%" PRId64, vsyncMaxRefreshRate_, pulse_);
-        } else if (vsyncMaxRefreshRate_ == vsyncMaxTE144_) {
-            vsyncMaxRefreshRate_ = vsyncMaxTE_;
-            pulse_ = ONE_SECOND_FOR_CALCUTE_FREQUENCY / static_cast<int64_t>(vsyncMaxRefreshRate_);
-            RS_TRACE_NAME_FMT("vsync TE change back to %u, pulse:%" PRId64, vsyncMaxRefreshRate_, pulse_);
-        }
-    }
+    ChangeVsyncTE(generatorRefreshRate);
 
     if ((generatorRefreshRate <= 0 || (vsyncMaxRefreshRate_ % generatorRefreshRate != 0))) {
         RS_TRACE_NAME_FMT("Not support this refresh rate: %u", generatorRefreshRate);
@@ -1010,6 +999,22 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
 
     WaitForTimeoutConNotifyLockedForRefreshRate();
     return ret;
+}
+
+void VsyncGenerator::ChangeVsyncTE(uint32_t generatorRefreshRate)
+{
+    // LTPO管线两套TE切换方案，仅配置144hz倍数且下发144hz切帧时触发
+    if (vsyncMaxTE144_ != 0) {
+        if (generatorRefreshRate == 144) {
+            vsyncMaxRefreshRate_ = vsyncMaxTE144_;
+            pulse_ = ONE_SECOND_FOR_CALCUTE_FREQUENCY / static_cast<int64_t>(vsyncMaxRefreshRate_);
+            RS_TRACE_NAME_FMT("vsync TE change to %u, pulse:%" PRId64, vsyncMaxRefreshRate_, pulse_);
+        } else if (vsyncMaxRefreshRate_ == vsyncMaxTE144_) {
+            vsyncMaxRefreshRate_ = vsyncMaxTE_;
+            pulse_ = ONE_SECOND_FOR_CALCUTE_FREQUENCY / static_cast<int64_t>(vsyncMaxRefreshRate_);
+            RS_TRACE_NAME_FMT("vsync TE change back to %u, pulse:%" PRId64, vsyncMaxRefreshRate_, pulse_);
+        }
+    }
 }
 
 void VSyncGenerator::UpdateChangeRefreshRatesLocked(const ListenerRefreshRateData &listenerRefreshRates)
@@ -1109,7 +1114,7 @@ VsyncError VSyncGenerator::SetVSyncMaxTE144(uint32_t maxTE144)
 {
     std::lock_guard<std::mutex> locker(mutex_);
     if (maxTE144 < VSYNC_MAX_REFRESHRATE_RANGE_MIN ||
-        maxTE144 > VSYNC_MAX_REFRESHRATE_RANGE_MAX || maxTE144 % 144 != 0) {
+        maxTE144 > VSYNC_MAX_REFRESHRATE_RANGE_MAX) {
         VLOGE("Not support max TE 144: %{public}u", maxTE144);
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
