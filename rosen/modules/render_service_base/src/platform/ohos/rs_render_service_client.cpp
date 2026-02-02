@@ -425,7 +425,8 @@ int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
     return clientToService->SetScreenSecurityMask(id, std::move(securityMask));
 }
 
-int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation)
+int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect,
+    bool supportRotation)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
@@ -441,6 +442,8 @@ int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool e
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
+    ROSEN_LOGI("RSRenderServiceClient::SetCastScreenEnableSkipWindow: id:%{public}" PRIu64 ", enable:%{public}d",
+        id, enable);
 
     return clientToService->SetCastScreenEnableSkipWindow(id, enable);
 }
@@ -1405,10 +1408,9 @@ int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     int32_t resCode = RENDER_SERVICE_NULL;
-    if (clientToService == nullptr) {
-        return RENDER_SERVICE_NULL;
+    if (clientToService != nullptr) {
+        clientToService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, resCode);
     }
-    clientToService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, resCode);
     return resCode;
 }
 
@@ -1423,13 +1425,13 @@ uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& act
     return repCode;
 }
 
-void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return;
     }
-    clientToService->SetScreenOffset(id, offSetX, offSetY);
+    clientToService->SetScreenOffset(id, offsetX, offsetY);
 }
 
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub
@@ -1667,7 +1669,6 @@ public:
             cb_(dstPid, xcomponentId, expectedFps);
         }
     }
-
 private:
     FrameRateLinkerExpectedFpsUpdateCallback cb_;
 };
@@ -1677,8 +1678,8 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
-        ROSEN_LOGE(
-            "RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback clientToService == nullptr");
+        ROSEN_LOGE("RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback "
+            "clientToService == nullptr");
         return RENDER_SERVICE_NULL;
     }
 
@@ -2080,10 +2081,9 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     }
 }
 
-void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+void RSRenderServiceClient::SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh)
 {
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService != nullptr) {
+    if (auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection()) {
         clientToService->SetForceRefresh(nodeIdStr, isForceRefresh);
     }
 }
@@ -2184,17 +2184,6 @@ int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
     return clientToService->UnRegisterSelfDrawingNodeRectChangeCallback();
 }
 
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
-int32_t RSRenderServiceClient::SetOverlayDisplayMode(int32_t mode)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
-    return clientToService->SetOverlayDisplayMode(mode);
-}
-#endif
-
 void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
 {
@@ -2214,6 +2203,17 @@ bool RSRenderServiceClient::GetHighContrastTextState()
     }
     return false;
 }
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+int32_t RSRenderServiceClient::SetOverlayDisplayMode(int32_t mode)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToService->SetOverlayDisplayMode(mode);
+}
+#endif
 
 bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
 {
@@ -2243,7 +2243,7 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
     return true;
 }
 
-int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (!clientToService) {

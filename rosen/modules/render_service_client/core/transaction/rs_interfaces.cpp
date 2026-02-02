@@ -174,11 +174,11 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
         ROSEN_LOGE("SetWatermark failed, name[%{public}s] is error.", name.c_str());
         return false;
     }
-    uint32_t limitMaxSize = (maxSizeEnum == SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE) ?
-        WATERMARK_PIXELMAP_SIZE_LIMIT : WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT;
+    uint32_t limitMaxSize = ((maxSizeEnum == SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE) ?
+        WATERMARK_PIXELMAP_SIZE_LIMIT : WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT);
     if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > limitMaxSize)) {
-        ROSEN_LOGE("SetWatermark failed, watermark[%{public}d, %{public}u] is error",
-            watermark->IsAstc(), watermark->GetCapacity());
+        ROSEN_LOGE("SetWatermark failed, watermark[%{public}d, %{public}u] %{public}u %{public}u is error",
+            watermark->IsAstc(), watermark->GetCapacity(), limitMaxSize, static_cast<uint32_t>(maxSizeEnum));
         return false;
     }
     return renderServiceClient_->SetWatermark(name, watermark);
@@ -187,9 +187,9 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
 #endif
 }
 
-uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string &name,
+uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string& name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+    const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType)
 {
 #ifdef ROSEN_OHOS
     if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
@@ -205,33 +205,32 @@ uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string &name,
     if (watermarkType >= SurfaceWatermarkType::INVALID_WATER_MARK) {
         return SurfaceWatermarkStatusCode::WATER_MARK_INVALID_WATERMARK_TYPE;
     }
-    return renderServiceClient_->SetSurfaceWatermark(pid, name, watermark,
-        nodeIdList, watermarkType);
+    return renderServiceClient_->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
 #else
-    return 0 ;
+    return 0;
 #endif
 }
 
-void RSInterfaces::ClearSurfaceWatermarkForNodes(pid_t pid,
-    const std::string& name, const std::vector<NodeId>& nodeIdList)
+void RSInterfaces::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+    const std::vector<NodeId>& nodeList)
 {
 #ifdef ROSEN_OHOS
     if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
         ROSEN_LOGE("ClearSurfaceWatermarkForNodes failed, name[%{public}s] is error.", name.c_str());
         return;
     }
-    return renderServiceClient_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
+    renderServiceClient_->ClearSurfaceWatermarkForNodes(pid, name, nodeList);
 #endif
 }
 
-void RSInterfaces::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+void RSInterfaces::ClearSurfaceWatermark(pid_t pid, const std::string& name)
 {
 #ifdef ROSEN_OHOS
     if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
         ROSEN_LOGE("ClearSurfaceWatermark failed, name[%{public}s] is error.", name.c_str());
         return;
     }
-    return renderServiceClient_->ClearSurfaceWatermark(pid, name);
+    renderServiceClient_->ClearSurfaceWatermark(pid, name);
 #endif
 }
 
@@ -575,6 +574,8 @@ void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 
 int32_t RSInterfaces::SetDualScreenState(ScreenId id, DualScreenStatus status)
 {
+    ROSEN_LOGI("RSInterfaces::SetDualScreenState. screen id:%{public}" PRIu64 " status:%{public}" PRIu64,
+               id, static_cast<uint64_t>(status));
     return renderServiceClient_->SetDualScreenState(id, status);
 }
 
@@ -755,9 +756,9 @@ uint32_t RSInterfaces::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
     return renderServiceClient_->SetScreenActiveRect(id, activeRect);
 }
 
-void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offSetY)
 {
-    return renderServiceClient_->SetScreenOffset(id, offSetX, offSetY);
+    return renderServiceClient_->SetScreenOffset(id, offsetX, offSetY);
 }
 
 void RSInterfaces::SetScreenFrameGravity(ScreenId id, int32_t gravity)

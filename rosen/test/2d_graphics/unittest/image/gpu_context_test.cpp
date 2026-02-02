@@ -756,6 +756,21 @@ HWTEST_F(GpuContextTest, SetParamTest, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->SetParam("name", "value");
 }
+
+/**
+ * @tc.name: GPUContextOptionsSetIsUniRenderTest
+ * @tc.desc: Test for GPUContextOptions SetIsUniRender and GetIsUniRender.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, GPUContextOptionsSetIsUniRenderTest, TestSize.Level1)
+{
+    GPUContextOptions options;
+    options.SetIsUniRender(false);
+    EXPECT_EQ(options.GetIsUniRender(), false);
+    options.SetIsUniRender(true);
+    EXPECT_EQ(options.GetIsUniRender(), true);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

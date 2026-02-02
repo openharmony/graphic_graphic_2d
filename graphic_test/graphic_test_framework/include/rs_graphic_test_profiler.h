@@ -32,8 +32,7 @@ namespace Rosen {
 class RSGraphicRootNode;
 class RSGraphicTestProfiler {
 public:
-    struct PlaybackInfo
-    {
+    struct PlaybackInfo {
         std::string fileName;
         std::string ohrType = "";
         int startTime;
@@ -56,7 +55,7 @@ private:
     Vector2f GetScreenSize() const;
 
     void LoadNodeTreeProfilerFile(const std::string& filePath, const std::string& savePath);
-    void PlaybackWithoutJson(const std::string& filePath, const std::string& savePath);
+    void LoadPlaybackProfilerFileWithoutJson(const std::string& filePath, const std::string& savePath);
     void LoadPlaybackProfilerFile(const std::string& filePath, const std::string& savePath, PlaybackInfo info);
 
     void TestCaseCapture(bool isScreenshot, const std::string& savePath);

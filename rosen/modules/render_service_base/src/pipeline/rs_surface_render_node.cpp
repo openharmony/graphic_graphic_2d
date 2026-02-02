@@ -3838,6 +3838,19 @@ bool RSSurfaceRenderNode::IsAncestorScreenFrozen() const
     return screenNode == nullptr ? false : screenNode->GetForceFreeze();
 }
 
+// only use for window capture when isSyncRender is true
+void RSSurfaceRenderNode::RegisterCaptureCallback(
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& config)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::RegisterCaptureCallback stagingSurfaceParams is null");
+    } else {
+        stagingSurfaceParams->RegisterCaptureCallback(callback, config);
+        AddToPendingSyncList();
+    }
+}
+
 void RSSurfaceRenderNode::SetAppRotationCorrection(ScreenRotation appRotationCorrection)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());

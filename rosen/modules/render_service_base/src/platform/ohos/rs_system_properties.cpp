@@ -109,7 +109,7 @@ int RSSystemProperties::GetDumpFrameNum()
 int RSSystemProperties::GetSceneJankFrameThreshold()
 {
     static int sceneJankFrameThreshold =
-        std::stoi((system::GetParameter("persist.sys.graphic.sceneJankFrameThreshold", "50")).c_str());
+        std::atoi((system::GetParameter("persist.sys.graphic.sceneJankFrameThreshold", "50")).c_str());
     return sceneJankFrameThreshold;
 }
 
@@ -448,7 +448,7 @@ bool RSSystemProperties::GetDumpRsTreeDetailEnabled()
 bool RSSystemProperties::GetHardwareComposerEnabledForMirrorMode()
 {
     static bool hardwareComposerMirrorEnabled =
-        system::GetParameter("persist.rosen.hardwarecomposer.mirror.enabled", "0") != "0";
+        system::GetParameter("persist.rosen.hardwarecomposer.mirror.enabled", "1") != "0";
     return hardwareComposerMirrorEnabled;
 }
 
@@ -706,6 +706,15 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return filterCacheSizeThreshold;
 }
 
+bool RSSystemProperties::GetDynamicBrightnessEnabled()
+{
+    // Determine whether the daynamic brightness render should be enabled. The default value is 1,
+    // which means that it is enabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.dynamicBrightnessEnabled", "1")).c_str()) != 0;
+    return enabled;
+}
+
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
 {
     // Determine whether the mask LinearBlur render should be enabled. The default value is 0,
@@ -730,15 +739,6 @@ bool RSSystemProperties::GetSLRScaleEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
-}
-
-bool RSSystemProperties::GetDynamicBrightnessEnabled()
-{
-    // Determine whether the daynamic brightness render should be enabled. The default value is 1,
-    // which means that it is enabled.
-    static bool enabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.dynamicBrightnessEnabled", "1")).c_str()) != 0;
-    return enabled;
 }
 
 bool RSSystemProperties::GetMagnifierEnabled()
@@ -834,6 +834,7 @@ bool RSSystemProperties::GetBlurEnabled()
 
 bool RSSystemProperties::GetFgBlenderEnabled()
 {
+    // use static variable to ensure the switch will take effect after restart
     static bool blenderEnabled_ =
         std::atoi((system::GetParameter("persist.sys.graphic.blenderEnabled", "1")).c_str()) != 0;
     return blenderEnabled_;
@@ -1014,14 +1015,6 @@ bool RSSystemProperties::GetWideColorSpaceEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
-bool RSSystemProperties::GetSkipUnpremulEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.skipUnpremul.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     static bool openDebugTrace = system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0;
@@ -1031,7 +1024,7 @@ bool RSSystemProperties::GetDebugTraceEnabled()
 bool RSSystemProperties::GetImageReleaseUsingPostTask()
 {
     static bool flag =
-        std::atoi((system::GetParameter("persist.sys.graphic.iamgeReleasePostTask", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.imageReleasePostTask", "0")).c_str()) != 0;
     return flag;
 }
 
@@ -1047,13 +1040,6 @@ bool RSSystemProperties::GetDumpImgEnabled()
     static bool dumpImgEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.dumpImgEnabled", "0")).c_str()) != 0;
     return dumpImgEnabled;
-}
-
-bool RSSystemProperties::GetTransactionTerminateEnabled()
-{
-    static bool terminateEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.transactionTerminateEnabled", "0")).c_str()) != 0;
-    return terminateEnabled;
 }
 
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
@@ -1093,32 +1079,12 @@ bool RSSystemProperties::IsFoldScreenFlag()
     return isFoldScreenFlag;
 }
 
-bool RSSystemProperties::IsSmallFoldDevice()
-{
-    static std::string foldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
-    return foldType == "2,0,0,0" || foldType == "4,2,0,0" || foldType == "2,2,0,0";
-}
-
-bool RSSystemProperties::IsFoldDeviceOfOldDss()
-{
-    static bool isFoldDeviceOfOldDss =
-        system::GetParameter("const.window.foldscreen.type", "0,0,0,0") == "2,2,0,0";
-    return isFoldDeviceOfOldDss;
-}
-
 bool RSSystemProperties::GetCacheCmdEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.cacheCmd.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
-}
-
-bool RSSystemProperties::GetTimeVsyncDisabled()
-{
-    static bool timeVsyncDisabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.timeVsyncDisabled", "0")).c_str()) != 0;
-    return timeVsyncDisabled;
 }
 
 bool RSSystemProperties::GetASTCEnabled()
@@ -1170,23 +1136,11 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
     return WatchParameter(name, func, context);
 }
 
-bool RSSystemProperties::IsPhoneType()
-{
-    static bool isPhone = system::GetParameter("const.product.devicetype", "pc") == "phone";
-    return isPhone;
-}
-
 bool RSSystemProperties::IsSuperFoldDisplay()
 {
     static const std::string foldScreenType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
     static const bool IsSuperFoldDisplay = foldScreenType.size() > 0 ? foldScreenType[0] == '6' : false;
     return IsSuperFoldDisplay;
-}
-
-bool RSSystemProperties::IsBetaRelease()
-{
-    static bool isBetaRelease = system::GetParameter("const.logsystem.versiontype", "") == "beta";
-    return isBetaRelease;
 }
 
 bool RSSystemProperties::GetSyncTransactionEnabled()
@@ -1217,6 +1171,14 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
     return singleFrameComposerEnabled;
 }
 
+bool RSSystemProperties::GetEffectMergeEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.effectMergeEnabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
 {
     static bool singleFrameComposerCanvasNodeEnabled =
@@ -1224,31 +1186,10 @@ bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
     return singleFrameComposerCanvasNodeEnabled;
 }
 
-bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
-{
-    static bool drawFilterWithoutSnapshotEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.drawFilterWithoutSnapshot", "0").c_str()) != 0);
-    return drawFilterWithoutSnapshotEnabled;
-}
-
-bool RSSystemProperties::GetBlurExtraFilterEnabled()
-{
-    static bool blurExtraFilterEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.blurExtraFilter", "0").c_str()) != 0);
-    return blurExtraFilterEnabled;
-}
-
-bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
-{
-    static bool discardCanvasBeforeFilterEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.discardCanvasBeforeFilter", "1").c_str()) != 0);
-    return discardCanvasBeforeFilterEnabled;
-}
-
 bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
 {
     static bool purgeResourcesEveryEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.purge_between_frames_enabled", "1").c_str()) != 0);
+        (std::atoi(system::GetParameter("persist.sys.graphic.mem.purge_between_frames_enabled", "0").c_str()) != 0);
     return purgeResourcesEveryEnabled;
 }
 
@@ -1256,7 +1197,7 @@ bool RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()
 {
     static bool gpuMemoryAsyncReclaimerEnabled =
         (std::atoi(
-             system::GetParameter("persist.sys.graphic.mem.gpu_async_reclaimer_between_frames_enabled", "1").c_str()) !=
+            system::GetParameter("persist.sys.graphic.mem.gpu_async_reclaimer_between_frames_enabled", "1").c_str()) !=
             0);
     return gpuMemoryAsyncReclaimerEnabled;
 }
@@ -1265,7 +1206,7 @@ bool RSSystemProperties::GetGpuCacheSuppressWindowEnabled()
 {
     static bool gpuCacheSuppressWindowEnabled =
         (std::atoi(
-             system::GetParameter("persist.sys.graphic.mem.gpu_suppress_window_between_frames_enabled", "1").c_str()) !=
+            system::GetParameter("persist.sys.graphic.mem.gpu_suppress_window_between_frames_enabled", "1").c_str()) !=
             0);
     return gpuCacheSuppressWindowEnabled;
 }
@@ -1316,19 +1257,25 @@ bool RSSystemProperties::GetAutoCacheDebugEnabled()
     return GetDdgrOpincDfxType() == DdgrOpincDfxType::OPINC_DFX_AUTO;
 }
 
-bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
+bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
 {
-    static bool openSecurityPermissionCheck =
-        std::atoi((system::GetParameter("persist.sys.graphic.openSecurityPermissionCheck", "0")).c_str()) != 0;
-    return openSecurityPermissionCheck;
+    static bool drawFilterWithoutSnapshotEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.drawFilterWithoutSnapshot", "0").c_str()) != 0);
+    return drawFilterWithoutSnapshotEnabled;
 }
 
-bool RSSystemProperties::GetEffectMergeEnabled()
+bool RSSystemProperties::GetBlurExtraFilterEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.effectMergeEnabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
+    static bool blurExtraFilterEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.blurExtraFilter", "0").c_str()) != 0);
+    return blurExtraFilterEnabled;
+}
+
+bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
+{
+    static bool discardCanvasBeforeFilterEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.discardCanvasBeforeFilter", "1").c_str()) != 0);
+    return discardCanvasBeforeFilterEnabled;
 }
 
 bool RSSystemProperties::GetDumpUICaptureEnabled()
@@ -1360,12 +1307,26 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2)); // Default value 2
 }
 
+int RSSystemProperties::GetRSNodeLimit()
+{
+    static int rsNodeLimit =
+        std::atoi((system::GetParameter("persist.sys.graphic.rsNodeLimit", "500")).c_str());
+    return rsNodeLimit;
+}
+
 bool RSSystemProperties::IsForceClient()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.client_composition.enabled", "0");
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
+}
+
+bool RSSystemProperties::GetTransactionTerminateEnabled()
+{
+    static bool terminateEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.transactionTerminateEnabled", "0")).c_str()) != 0;
+    return terminateEnabled;
 }
 
 bool RSSystemProperties::GetTextBlobAsPixelMap()
@@ -1402,19 +1363,6 @@ bool RSSystemProperties::GetJankLoadOptimizeEnabled()
     return jankLoadOptimizeEnabled;
 }
 
-int RSSystemProperties::GetRSNodeLimit()
-{
-    static int rsNodeLimit =
-        std::atoi((system::GetParameter("persist.sys.graphic.rsNodeLimit", "500")).c_str());
-    return rsNodeLimit;
-}
-
-bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
-{
-    static bool flag = system::GetParameter("rosen.gpu.overdraw.optimize.enabled", "0") != "0";
-    return flag;
-}
-
 bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.screenoffskipdisplayenabled", "1");
@@ -1440,10 +1388,10 @@ bool RSSystemProperties::GetOptBatchRemovingOnRemoteDiedEnabled()
     return ConvertToInt(num, 1) != 0;
 }
 
-std::string RSSystemProperties::GetVersionType()
+bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 {
-    static std::string versionType = system::GetParameter("const.logsystem.versiontype", "");
-    return versionType;
+    static bool flag = system::GetParameter("rosen.gpu.overdraw.optimize.enabled", "0") != "0";
+    return flag;
 }
 
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()
@@ -1451,6 +1399,12 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
     static bool hwcDirtyRegionEnabled =
         std::atoi((system::GetParameter("persist.rosen.graphic.hwcdirtyregion.enabled", "1")).c_str()) != 0;
     return hwcDirtyRegionEnabled;
+}
+
+std::string RSSystemProperties::GetVersionType()
+{
+    static std::string versionType = system::GetParameter("const.logsystem.versiontype", "");
+    return versionType;
 }
 
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()
@@ -1499,7 +1453,7 @@ bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
 
 bool RSSystemProperties::GetHpaeBlurUsingAAE()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.hpae.blur.aee.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.hpae.blur.aee.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -1518,6 +1472,38 @@ bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
     static auto groupedByUIEnabled =
         system::GetBoolParameter("const.graphic.enable_grouped_by_ui", false);
     return groupedByUIEnabled;
+}
+
+bool RSSystemProperties::IsSmallFoldDevice()
+{
+    static std::string foldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    static bool isSmallFoldDevice = foldType == "2,0,0,0" || foldType == "4,2,0,0";
+    return isSmallFoldDevice;
+}
+
+bool RSSystemProperties::IsFoldDeviceOfOldDss()
+{
+    static bool isFoldDeviceOfOldDss =
+        system::GetParameter("const.window.foldscreen.type", "0,0,0,0") == "2,2,0,0";
+    return isFoldDeviceOfOldDss;
+}
+
+bool RSSystemProperties::GetTimeVsyncDisabled()
+{
+    static bool timeVsyncDisabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.timeVsyncDisabled", "0")).c_str()) != 0;
+    return timeVsyncDisabled;
+}
+
+void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
+{
+    debugFmtTraceEnable_ = flag;
+    ROSEN_LOGI("RSSystemProperties::SetDebugFmtTraceEnabled:%{public}d", debugFmtTraceEnable_);
+}
+
+bool RSSystemProperties::GetDebugFmtTraceEnabled()
+{
+    return GetDebugTraceEnabled() || debugFmtTraceEnable_;
 }
 
 bool RSSystemProperties::GetTextureExportDFXEnabled()
@@ -1564,7 +1550,7 @@ uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
 
 bool RSSystemProperties::ViewDrawNodeType()
 {
-    static CachedHandle handle = CachedParameterCreate("persist.graphic.ViewDrawNodeType", "0");
+    static CachedHandle handle = CachedParameterCreate("persist.graphic.viewDrawNodeType", "0");
     int32_t changed = 0;
     return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
 }
@@ -1574,6 +1560,16 @@ bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
     static bool paraConvertEnabled = GetHybridRenderEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_parallelconvert_enabled", true);
     return paraConvertEnabled;
+}
+
+void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
+{
+    isBehindWindowFilterEnabled_ = enabled;
+}
+
+bool RSSystemProperties::GetBehindWindowFilterEnabled()
+{
+    return isBehindWindowFilterEnabled_;
 }
 
 // The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
@@ -1668,32 +1664,6 @@ bool RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
-void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
-{
-    debugFmtTraceEnable_ = flag;
-    ROSEN_LOGI("RSSystemProperties::SetDebugFmtTraceEnabled:%{public}d", debugFmtTraceEnable_);
-}
-
-void RSSystemProperties::SetAnimationTraceEnabled(bool flag)
-{
-    animationTestEnable_ = flag;
-}
-
-bool RSSystemProperties::GetDebugFmtTraceEnabled()
-{
-    return GetDebugTraceEnabled() || debugFmtTraceEnable_;
-}
-
-void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
-{
-    isBehindWindowFilterEnabled_ = enabled;
-}
-
-bool RSSystemProperties::GetBehindWindowFilterEnabled()
-{
-    return isBehindWindowFilterEnabled_;
-}
-
 bool RSSystemProperties::GetSubThreadControlFrameRate()
 {
     static bool subThreadControlFrameRateEnable =
@@ -1703,7 +1673,7 @@ bool RSSystemProperties::GetSubThreadControlFrameRate()
 
 int RSSystemProperties::GetSubThreadDropFrameInterval()
 {
-    static bool dropFrameInterval =
+    static int dropFrameInterval =
         system::GetIntParameter("const.graphic.subthread.dropframe.interval", 1);
     return dropFrameInterval;
 }
@@ -1734,21 +1704,9 @@ bool RSSystemProperties::GetAIBarDirectCompositeFullEnabled()
 
 bool RSSystemProperties::GetRSMemoryInfoManagerParam()
 {
-    return false;
-}
-
-bool RSSystemProperties::GetSupportScreenFreezeEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.debug.screen.freeze.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
-bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
-{
-    static bool quickSkipEnabled = system::GetIntParameter("persist.rosen.graphic.quick.skip.enabled", 1) != 0;
-    return quickSkipEnabled;
+    static bool dmaMarkEnable =
+        system::GetBoolParameter("persist.resourceschedule.memgr.superreclaim.dma.mark", false);
+    return dmaMarkEnable;
 }
 
 bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
@@ -1767,9 +1725,26 @@ bool RSSystemProperties::GetGpuDirtyApsEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
-bool RSSystemProperties::GetBootCompleted()
+bool RSSystemProperties::GetSupportScreenFreezeEnabled()
 {
-    return system::GetBoolParameter("bootevent.boot.completed", false);
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.debug.screen.freeze.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
+{
+    static bool quickSkipEnabled = system::GetIntParameter("persist.rosen.graphic.quick.skip.enabled", 1) != 0;
+    return quickSkipEnabled;
+}
+
+bool RSSystemProperties::GetScaleImageAsyncEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.isEnabledScaleImageAsync.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetMemoryWatermarkEnabled()
@@ -1781,6 +1756,11 @@ bool RSSystemProperties::GetMemoryWatermarkEnabled()
         return false;
     }
     return true;
+}
+
+bool RSSystemProperties::GetBootCompleted()
+{
+    return system::GetBoolParameter("bootevent.boot.completed", false);
 }
 
 bool RSSystemProperties::GetClipRRectOptimizationEnabled()
@@ -1796,22 +1776,10 @@ bool RSSystemProperties::GetNodeMemClearEnabled()
     return enable;
 }
 
-bool RSSystemProperties::GetScaleImageAsyncEnabled()
+bool RSSystemProperties::GetTransactionDataTraceEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.isEnabledScaleImageAsync.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
-bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
-{
-    return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_pre_allocate_dma", true);
-}
-
-bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
-{
-    return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_render_dma", false);
+    bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
+    return isOpenTestModeTraceDebug;
 }
 
 bool RSSystemProperties::GetDefaultMemClearEnabled()
@@ -1824,6 +1792,7 @@ bool RSSystemProperties::GetDefaultMemClearEnabled()
 bool RSSystemProperties::GetUnmarshalParallelEnabled()
 {
     static bool unmarshalParallel =
+        RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL &&
         std::atoi((system::GetParameter("persist.sys.graphic.unmarshalParallel.enabled", "1")).c_str()) != 0;
     return unmarshalParallel;
 }
@@ -1846,6 +1815,16 @@ bool RSSystemProperties::GetSceneBoardIsPcMode()
     return true;
 }
 
+bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
+{
+    return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_pre_allocate_dma", false);
+}
+
+bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
+{
+    return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_render_dma", false);
+}
+
 bool RSSystemProperties::GetReleaseImageOneByOneFlag()
 {
     if (!IsUseVulkan()) {
@@ -1855,12 +1834,6 @@ bool RSSystemProperties::GetReleaseImageOneByOneFlag()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
-}
-
-bool RSSystemProperties::GetTransactionDataTraceEnabled()
-{
-    bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
-    return isOpenTestModeTraceDebug;
 }
 } // namespace Rosen
 } // namespace OHOS

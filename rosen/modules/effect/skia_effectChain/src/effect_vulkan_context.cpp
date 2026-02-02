@@ -13,14 +13,28 @@
  * limitations under the License.
  */
 
+#include "common/rs_optional_trace.h"
 #include "effect_vulkan_context.h"
 
 namespace OHOS::Rosen {
+
+static const int GR_CACHE_MAX_COUNT = 8192;
+static const size_t GR_CACHE_MAX_BYTE_SIZE = 96 * (1 << 20);
+static const int32_t CACHE_LIMITS_TIMES = 5;  // this will change RS memory!
+
+std::map<int, std::shared_ptr<Drawing::GPUContext>> EffectVulkanContext::drawingContextMap_;
+std::mutex EffectVulkanContext::drawingContextMutex_;
 
 EffectVulkanContext::EffectVulkanContext(std::string cacheDir)
 {
     vulkanInterface_ = std::make_shared<RsVulkanInterface>();
     vulkanInterface_->Init(VulkanInterfaceType::BASIC_RENDER, false);
+}
+
+EffectVulkanContext::~EffectVulkanContext()
+{
+    std::lock_guard<std::mutex> lock(drawingContextMutex_);
+    drawingContextMap_.clear();
 }
 
 EffectVulkanContext& EffectVulkanContext::GetSingleton(const std::string& cacheDir)
@@ -29,10 +43,47 @@ EffectVulkanContext& EffectVulkanContext::GetSingleton(const std::string& cacheD
     return singleton;
 }
 
+void EffectVulkanContext::ReleaseDrawingContextForThread(int tid)
+{
+    std::lock_guard<std::mutex> lock(drawingContextMutex_);
+    drawingContextMap_.erase(tid);
+}
+
+void EffectVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext)
+{
+    std::lock_guard<std::mutex> lock(drawingContextMutex_);
+    static thread_local auto func = [tid]() {
+        EffectVulkanContext::ReleaseDrawingContextForThread(tid);
+    };
+    static thread_local auto drawContextHolder = std::make_shared<DrawContextHolder>(func);
+    drawingContextMap_[tid] = drawingContext;
+}
+
 std::shared_ptr<Drawing::GPUContext> EffectVulkanContext::CreateDrawingContext()
 {
+    static thread_local int tid = gettid();
+    {
+        std::lock_guard<std::mutex> lock(drawingContextMutex_);
+        auto iter = drawingContextMap_.find(tid);
+        if (iter != drawingContextMap_.end() && iter->second != nullptr) {
+            RS_TRACE_NAME("EffectVulkanContext::CreateDrawingContext -> returned context from map");
+            return iter->second; // has created before
+        }
+    }
+
     auto context = vulkanInterface_->DoCreateDrawingContext();
-    context->SetResourceCacheLimits(0, 0);
+    RS_TRACE_NAME("EffectVulkanContext::CreateDrawingContext -> created new context");
+    int maxResources = 0;
+    size_t maxResourcesSize = 0;
+    int cacheLimitsTimes = CACHE_LIMITS_TIMES;
+    context->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
+    if (maxResourcesSize > 0) {
+        context->SetResourceCacheLimits(cacheLimitsTimes * maxResources,
+            cacheLimitsTimes * std::fmin(maxResourcesSize, GR_CACHE_MAX_BYTE_SIZE));
+    } else {
+        context->SetResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
+    }
+    SaveNewDrawingContext(tid, context);
     return context;
 }
 }

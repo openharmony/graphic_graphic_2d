@@ -103,6 +103,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSForceUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetUIFirstSwitch),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkNodeColorSpace),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetDrawRegion),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetTakeSurfaceForUIFlag),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetOutOfParent),

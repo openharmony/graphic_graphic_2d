@@ -58,6 +58,12 @@ public:
     bool GetTouchOrPointerAction(int32_t pointerAction);
 
     const std::unordered_set<std::string>& GetPageNameList() const;
+
+    std::unordered_set<std::string> GetAppBufferList() const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return appBufferList_;
+    }
+
 private:
     RSFrameRatePolicy() = default;
     ~RSFrameRatePolicy();
@@ -69,9 +75,10 @@ private:
     float xDpi_ = 1.0f;
     float yDpi_ = 1.0f;
     std::unordered_set<std::string> pageNameList_;
+    std::unordered_set<std::string> appBufferList_;
     int32_t currentRefreshRateModeName_ = -1;
     std::unordered_map<std::string, std::unordered_map<std::string, AnimDynamicAttribute>> animAttributes_;
-    std::mutex mutex_;
+    mutable std::mutex mutex_;
     std::atomic<std::chrono::steady_clock::time_point> sendMoveTime_ = std::chrono::steady_clock::now();
     std::atomic<std::chrono::steady_clock::time_point> sendAxisUpdateTime_ = std::chrono::steady_clock::now();
 };

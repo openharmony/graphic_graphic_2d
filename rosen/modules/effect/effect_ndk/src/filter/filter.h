@@ -32,9 +32,12 @@ public:
 
     std::shared_ptr<OHOS::Media::PixelMap> GetPixelMap(bool useCpuRender = false);
     bool Blur(float radius, Drawing::TileMode tileMode = Drawing::TileMode::DECAL);
+    bool Blur(float radius, float angle, Drawing::TileMode tileMode = Drawing::TileMode::DECAL);
     bool Brightness(float brightness);
     bool Grayscale();
     bool Invert();
+    bool MapColorByBrightness(const std::vector<Vector4f>& colors, const std::vector<float>& positions);
+    bool GammaCorrection(float gamma);
     bool SetColorMatrix(const Drawing::ColorMatrix& matrix);
     bool WaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params);
     bool ReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& params);

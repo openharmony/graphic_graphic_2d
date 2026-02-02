@@ -35,6 +35,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
+constexpr float DEFAULT_SDR_NITS = 203.0f;
 constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr size_t MATRIX_SIZE = 9;
@@ -90,11 +91,6 @@ HdrStatus RSHdrUtil::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBu
         }
     }
 #endif
-    if (surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_RGBA_1010102 &&
-        surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCBCR_P010 &&
-        surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-        return HdrStatus::NO_HDR;
-    }
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo colorSpaceInfo;
     if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) == GSERROR_OK) {
@@ -102,7 +98,35 @@ HdrStatus RSHdrUtil::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBu
             return HdrStatus::HDR_VIDEO;
         }
     }
+    if (CheckIsHDRSelfProcessingBuffer(surfaceBuffer)) {
+        RS_TRACE_NAME_FMT("%s CheckIsHDRSelfProcessingBuffer is true", __func__);
+        return HdrStatus::HDR_VIDEO;
+    }
     return HdrStatus::NO_HDR;
+}
+
+// HDR self-processing layer has HDR StaticMetadata and maxContentLightLevel > 203 and has no HDR MetadataType
+bool RSHdrUtil::CheckIsHDRSelfProcessingBuffer(const sptr<SurfaceBuffer>& surfaceBuffer)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    std::vector<uint8_t> hdrStaticMetadataVec;
+    GSError ret = GSERROR_OK;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    RSColorSpaceConvert::Instance().GetHDRStaticMetadata(surfaceBuffer, hdrStaticMetadataVec, ret);
+#endif
+    bool hdrStaticMetadataExist = hdrStaticMetadataVec.data() != nullptr &&
+        hdrStaticMetadataVec.size() == sizeof(HdrStaticMetadata);
+    if (!hdrStaticMetadataExist) {
+        return false;
+    }
+    CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
+    ret = MetadataHelper::GetHDRMetadataType(surfaceBuffer, hdrMetadataType);
+    bool noneHDRMetadataType = ret != GSERROR_OK || hdrMetadataType == CM_METADATA_NONE;
+    if (!noneHDRMetadataType) {
+        return false;
+    }
+    const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
+    return ROSEN_GNE(data.cta861.maxContentLightLevel, DEFAULT_SDR_NITS);
 }
 
 bool RSHdrUtil::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode)

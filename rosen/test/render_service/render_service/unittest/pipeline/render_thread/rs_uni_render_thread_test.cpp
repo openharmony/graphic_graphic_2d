@@ -1039,6 +1039,7 @@ HWTEST_F(RSUniRenderThreadTest, SetScreenPowerOnChangedTest, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, CollectProcessNodeNumTest, TestSize.Level1)
 {
     auto& instance = RSUniRenderThread::Instance();
+    instance.totalProcessNodeNum_ = 0;
     EXPECT_EQ(instance.totalProcessNodeNum_, 0);
 
     instance.CollectProcessNodeNum(10);

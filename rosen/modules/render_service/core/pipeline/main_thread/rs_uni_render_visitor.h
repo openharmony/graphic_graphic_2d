@@ -271,6 +271,13 @@ private:
     void ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRenderNode& node);
     bool CheckIfSkipDrawInVirtualScreen(RSSurfaceRenderNode& node);
 
+    void HandleVirtualScreenColorGamut(RSScreenRenderNode& node);
+    bool IsWiredMirrorScreen(RSScreenRenderNode& node);
+    void HandleWiredMirrorScreenColorGamut(RSScreenRenderNode& node);
+    bool IsWiredExtendedScreen(RSScreenRenderNode& node);
+    void HandleWiredExtendedScreenColorGamut(RSScreenRenderNode& node);
+    void HandleMainScreenColorGamut(RSScreenRenderNode& node);
+
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node);
     void UpdateColorSpaceAfterHwcCalc(RSScreenRenderNode& node);

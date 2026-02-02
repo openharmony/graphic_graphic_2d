@@ -52,8 +52,7 @@ public:
             LOGE("RSGraphicTestDirector pixelMap == nullptr");
         }
     }
-
-    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
         std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
 
     void Wait(int ms)
@@ -134,12 +133,12 @@ RSGraphicTestDirector::~RSGraphicTestDirector()
     }
 
     if (rsUiDirector_) {
-    rsUiDirector_->SendMessages();
+        rsUiDirector_->SendMessages();
     }
 
     if (runner_) {
-    runner_->Stop();
-}
+        runner_->Stop();
+    }
 }
 
 void RetryProfilerSocketConnection()
@@ -191,7 +190,6 @@ void RSGraphicTestDirector::Run()
     auto defaultDisplay = DisplayManager::GetInstance().GetDefaultDisplay();
     Vector4f defaultScreenBounds = {0, 0, defaultDisplay->GetWidth(), defaultDisplay->GetHeight()};
     screenBounds_ = defaultScreenBounds;
-
     if (!isDynamicTest_) {
         rootNode_ = std::make_shared<RSGraphicRootNode>();
         rootNode_->screenSurfaceNode_->SetBounds(defaultScreenBounds);
@@ -199,7 +197,6 @@ void RSGraphicTestDirector::Run()
         rootNode_->screenSurfaceNode_->SetBackgroundColor(SCREEN_COLOR);
         rootNode_->screenSurfaceNode_->AttachToDisplay(screenId_);
         rootNode_->screenSurfaceNode_->SetPositionZ(TOP_LEVEL_Z);
-
         rsUiDirector_->SetRSSurfaceNode(rootNode_->screenSurfaceNode_);
     }
     rsUiDirector_->SendMessages();
@@ -227,10 +224,10 @@ bool RSGraphicTestDirector::FlushMessageAndWait(int timeoutMs)
 
     //rs call this lambda after SendMessages
     rsUiDirector_->SendMessages([state]() {
-        std::cout << "callback in FlushMessageAndWait" << std::endl;
-    std::lock_guard<std::mutex> lock(state->mtx);
-    state->flushMessageFinish = true;
-    state->flushMessageCv.notify_one();
+        std::cout << "=== CALLBACK CALLED! ===" << std::endl;
+        std::lock_guard<std::mutex> lock(state->mtx);
+        state->flushMessageFinish = true;
+        state->flushMessageCv.notify_one();
     });
 
     std::unique_lock<std::mutex> lock(state->mtx);
@@ -302,9 +299,9 @@ bool RSGraphicTestDirector::IsSingleTest()
     return isSingleTest_;
 }
 
-void RSGraphicTestDirector::SetDynamicTest(bool dynamicTest)
+void RSGraphicTestDirector::SetDynamicTest(bool isDynamicTest)
 {
-    isDynamicTest_ = dynamicTest;
+    isDynamicTest_ = isDynamicTest;
 }
 
 bool RSGraphicTestDirector::IsDynamicTest()
@@ -319,8 +316,9 @@ void RSGraphicTestDirector::SetProfilerTest(bool isProfilerTest)
 
 void RSGraphicTestDirector::SetSurfaceBounds(const Vector4f& bounds)
 {
-    if (rootNode_->testSurfaceNode_) {
-        rootNode_->testSurfaceNode_->SetBounds(bounds);
+    if (rootNode_->testSurfaceNodes_.back()) {
+        rootNode_->testSurfaceNodes_.back()->SetBounds(bounds);
+        rootNode_->testSurfaceNodes_.back()->SetFrame(bounds);
     }
 }
 
@@ -334,8 +332,8 @@ void RSGraphicTestDirector::SetScreenSurfaceBounds(const Vector4f& bounds)
 
 void RSGraphicTestDirector::SetSurfaceColor(const RSColor& color)
 {
-    if (rootNode_->testSurfaceNode_) {
-        rootNode_->testSurfaceNode_->SetBackgroundColor(color.AsRgbaInt());
+    if (rootNode_->testSurfaceNodes_.back()) {
+        rootNode_->testSurfaceNodes_.back()->SetBackgroundColor(color.AsRgbaInt());
     }
 }
 
@@ -383,7 +381,7 @@ std::pair<double, double> RSGraphicTestDirector::ReceiveProfilerTimeInfo()
     if (profilerThread_) {
         return profilerThread_->ReceiveTimeInfo();
     }
-    return std::pair<double, double>(0.0, 0.0);
+    return {};
 }
 
 void RSGraphicTestDirector::SendProfilerCommand(const std::string command, int outTime)

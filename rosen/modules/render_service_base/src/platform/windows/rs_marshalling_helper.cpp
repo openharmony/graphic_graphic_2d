@@ -290,46 +290,57 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const ParticleVelocity& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, ParticleVelocity& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RenderParticleParaType<float>& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleParaType<float>& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RenderParticleColorParaType& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleColorParaType& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleRenderParams>& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleRenderParams>& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::vector<std::shared_ptr<ParticleRenderParams>>& val)
 {
     return {};
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_ptr<ParticleRenderParams>>& val)
 {
     return {};
@@ -631,18 +642,23 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
 {
     return {};
 }
+
 void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid) {}
+
 void RSMarshallingHelper::EndNoSharedMem() {}
+
 bool RSMarshallingHelper::GetUseSharedMem(std::thread::id tid)
 {
     return true;
 }
-bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
+
+void RSMarshallingHelper::SetCallingPid(pid_t callingPid) {}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
     return true;
 }
-void RSMarshallingHelper::SetCallingPid(pid_t callingPid) {}
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
+bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
 {
     return true;
 }

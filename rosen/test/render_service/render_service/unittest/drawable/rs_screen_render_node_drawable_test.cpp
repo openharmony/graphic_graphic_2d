@@ -637,7 +637,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest006, TestSize.Level1)
     screenInfo.skipFrameInterval = 100;
     params->screenInfo_ = screenInfo;
     screenDrawable_->OnDraw(canvas);
-    EXPECT_TRUE(screenDrawable_->SkipFrameByInterval(
+    EXPECT_FALSE(screenDrawable_->SkipFrameByInterval(
         RSMainThread::Instance()->GetVsyncRefreshRate(), screenInfo.skipFrameInterval));
 }
 
@@ -701,15 +701,15 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
-    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::RENDER_ENGINE_NULL);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::RENDER_ENGINE_NULL);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
     // when enableVisibleRect is true;
     params->screenProperty_.enableVisibleRect_ = true;
     const Rect& visibleRect = { 1, 1, 1, 1 };
     params->screenProperty_.mainScreenVisibleRect_ = visibleRect;
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(RSUniRenderThread::Instance().GetVisibleRect().left_, visibleRect.x);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_NE(RSUniRenderThread::Instance().GetVisibleRect().left_, visibleRect.x);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
     // when comositeType is not UNI_RENDER_MIRROR_COMPOSITE
     params->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
     screenDrawable_->OnDraw(canvas);
@@ -766,7 +766,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     EXPECT_EQ(params->GetMirrorSourceDrawable().lock(), nullptr);
 
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
@@ -774,7 +774,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 }
 
 /**

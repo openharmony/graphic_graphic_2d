@@ -1830,6 +1830,41 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnDraw008
+ * @tc.desc: Test OnDraw when use isSyncRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw008, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    surfaceDrawable_->offscreenRotationInfo_ = std::make_shared<OffscreenRotationInfo>();
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    ASSERT_NE(surface, nullptr);
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(surface.get());
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+
+    NodeId id = 10090;
+    auto renderNode = std::make_shared<RSRenderNode>(id);
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas backupCanvas(&canvas);
+    surfaceDrawable_->offscreenRotationInfo_->canvasBackup_ = &backupCanvas;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    sptr<RSISurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig config;
+    config.isSyncRender = true;
+    surfaceParams->RegisterCaptureCallback(callback, config);
+    surfaceDrawable_->OnDraw(*canvas_);
+    surfaceDrawable_->offscreenRotationInfo_ = nullptr;
+    surfaceDrawable_->OnDraw(*canvas_);
+    ASSERT_TRUE(surfaceParams);
+    ASSERT_NE(renderNode, nullptr);
+}
+
+/**
  * @tc.name: CalculateVisibleDirtyRegion002
  * @tc.desc: Test CalculateVisibleDirtyRegion
  * @tc.type: FUNC

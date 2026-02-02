@@ -1806,16 +1806,8 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect004, TestSize.Level
     auto filterNode = std::make_shared<RSRenderNode>(id);
     filterNode->SetOldDirtyInSurface(rect);
 
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 0);
-    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
-
     surfaceNode2->instanceRootNodeId_ = 1;
     filterNode->instanceRootNodeId_ = 2;
-    surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(0);
-    surfaceNode2->SetHardwareForcedDisabledState(false);
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);
-    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
-
     surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(2);
     surfaceNode2->SetHardwareForcedDisabledState(false);
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);

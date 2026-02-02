@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 
+#include "command/rs_node_command.h"
+#include "command/rs_canvas_node_command.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -573,6 +575,58 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateNodeColorSpace, TestSize.Level1)
     node->colorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
     node->UpdateNodeColorSpace();
     EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+}
+
+/**
+ * @tc.name: MarkNodeColorSpace
+ * @tc.desc: test MarkNodeColorSpace
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, MarkNodeColorSpace001, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
+    node->MarkNodeColorSpace(false);
+    EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->MarkNodeColorSpace(true);
+    EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: MarkNodeColorSpaceTest002
+ * @tc.desc: MarkNodeColorSpace test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, MarkNodeColorSpaceTest002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, true);
+    nodeId = 100;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, false);
+    auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_EQ(canvasNode->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
+ * @tc.name: MarkNodeColorSpaceTest003
+ * @tc.desc: MarkNodeColorSpace test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, MarkNodeColorSpaceTest003, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, true);
+    nodeId = 101;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, true);
+    auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_EQ(canvasNode->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 /**

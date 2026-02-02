@@ -58,10 +58,6 @@ public:
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
-    void AddSurfaceChangedCallBack(uint64_t id,
-        const std::function<void(float, float, float, float)>& callback) override;
-    void RemoveSurfaceChangedCallBack(uint64_t id) override;
-
     // Partial render status and renderForce flag should be updated by rt thread
     void SetPartialRenderStatus(PartialRenderType status, bool isRenderForced);
 

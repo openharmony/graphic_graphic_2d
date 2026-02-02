@@ -94,6 +94,12 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, DrawFilterTest, TestSize.Level1)
     RSHpaeBaseData::GetInstance().SetHpaeOutputBuffer(outputBuffer);
     int ret = hpaeCacheManager.DrawFilter(paintFilterCanvas, rsFilter, false);
     EXPECT_EQ(ret, -1);
+
+    paintFilterCanvas.Rotate(90, 1, 1);
+    RSHpaeBaseData::GetInstance().SetHpaeInputBuffer(inputBuffer);
+    RSHpaeBaseData::GetInstance().SetHpaeOutputBuffer(outputBuffer);
+    ret = hpaeCacheManager.DrawFilter(paintFilterCanvas, rsFilter, false);
+    EXPECT_EQ(ret, -1);
 }
 
 /**

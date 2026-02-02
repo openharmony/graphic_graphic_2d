@@ -462,16 +462,6 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
     return false;
 }
 
-bool RSSystemProperties::IsPhoneType()
-{
-    return false;
-}
-
-bool RSSystemProperties::IsBetaRelease()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     return false;
@@ -527,11 +517,6 @@ bool RSSystemProperties::GetWideColorSpaceEnabled()
     return true;
 }
 
-bool RSSystemProperties::GetSkipUnpremulEnabled()
-{
-    return true;
-}
-
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
@@ -548,11 +533,6 @@ bool RSSystemProperties::GetDumpUICaptureEnabled()
 }
 
 bool RSSystemProperties::GetDumpUIPixelmapEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetTransactionTerminateEnabled()
 {
     return false;
 }
@@ -588,6 +568,11 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 }
 
 bool RSSystemProperties::IsForceClient()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetTransactionTerminateEnabled()
 {
     return false;
 }

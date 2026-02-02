@@ -285,7 +285,6 @@ public:
     static bool GetUIFirstBehindWindowFilterEnabled();
     static bool GetUIFirstAutoClearCacheEnabled();
     static bool GetWideColorSpaceEnabled();
-    static bool GetSkipUnpremulEnabled();
     static bool GetSubtreeParallelEnable();
     static uint32_t GetSubtreeDebugOption();
     static bool GetSurfaceOffscreenEnadbled();
@@ -301,9 +300,7 @@ public:
     static bool GetCachedBlurPartialRenderEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);
     static bool GetSurfaceNodeWatermarkEnabled();
-    static bool IsPhoneType();
     static bool IsSuperFoldDisplay();
-    static bool IsBetaRelease();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
     static bool GetSingleFrameComposerEnabled();

@@ -823,12 +823,12 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckRegionAndDrawWithFilter, TestSize.Level1
 }
 
 /**
- * @tc.name: UpdateCacheSurface
+ * @tc.name: UpdateCacheSurfaceTest001
  * @tc.desc: Test If UpdateCacheSurface Can Run
  * @tc.type: FUNC
  * @tc.require: issueIB1KMY
  */
-HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest001, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
@@ -857,6 +857,47 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
     drawable->opincDrawCache_.isOpincMarkCached_ = true;
     ASSERT_TRUE(drawable->GetOpincDrawCache().OpincGetCachedMark());
     drawable->UpdateCacheSurface(paintFilterCanvas1, params);
+}
+
+/**
+ * @tc.name: UpdateCacheSurface
+ * @tc.desc: Test If UpdateCacheSurface Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest002, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+    ASSERT_FALSE(params.GetRSFreezeFlag());
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    params.SetCacheSize({ 100, 200 });
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto threadId = gettid();
+    drawable->GetOpincDrawCache().isAdd_ = false;
+    drawable->GetOpincDrawCache().opCanCache_ = false;
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), threadId);
+    EXPECT_NE(drawable->GetCachedSurface(threadId), nullptr);
+    EXPECT_EQ(drawable->GetOpincDrawCache().isAdd_, false);
+
+    drawable->opincDrawCache_.isOpincMarkCached_ = true;
+    ASSERT_TRUE(drawable->GetOpincDrawCache().OpincGetCachedMark());
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    drawable->opincDrawCache_.isOpincMarkCached_ = false;
+    ASSERT_FALSE(drawable->GetOpincDrawCache().OpincGetCachedMark());
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    OPIncParam::SetImageAliasEnable(false);
+    ASSERT_FALSE(OPIncParam::IsImageAliasEnable());
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+    OPIncParam::SetImageAliasEnable(true);
+    ASSERT_TRUE(OPIncParam::IsImageAliasEnable());
+#endif
 }
 
 /**

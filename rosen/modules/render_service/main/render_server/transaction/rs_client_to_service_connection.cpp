@@ -670,18 +670,18 @@ float RSClientToServiceConnection::GetRotationInfoFromSurfaceBuffer(const sptr<S
         return 0.0f;
     }
     auto transformType = buffer->GetSurfaceBufferTransform();
-    if (transformType == GRAPHIC_ROTATE_90) {
+    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
         return 90.0f;
-    } else if (transformType == GRAPHIC_ROTATE_180) {
+    } else if (transformType == GraphicTransformType::GRAPHIC_ROTATE_180) {
         return 180.0f;
-    } else if (transformType == GRAPHIC_ROTATE_270) {
+    } else if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         return 270.0f;
     }
     return 0.0f;
 }
 
 ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
-    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled)
+    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelmap, bool transformEnabled)
 {
     OHOS::Media::Rect rect = {
         .left = srcRect.x,
@@ -689,8 +689,9 @@ ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> sur
         .width = srcRect.w,
         .height = srcRect.h,
     };
-    RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelMap]() {
-        pixelMap = Rosen::CreatePixelMapFromSurface(surface, rect);
+    RS_LOGD("RSClientToServiceConnection::CreatePixelMapFromSurface: transformEnabled:%{public}d", transformEnabled);
+    RSBackgroundThread::Instance().PostSyncTask([surface, rect, transformEnabled, &pixelmap]() {
+        pixelmap = Rosen::CreatePixelMapFromSurface(surface, rect, transformEnabled);
     });
     return ERR_OK;
 }

@@ -351,7 +351,6 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_data_callback_manager.cpp",
     "src/transaction/rs_transaction_handler.cpp",
-    "src/transaction/rs_transaction_metric_collector.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
     "src/transaction/rs_uiextension_data.cpp",
 
@@ -414,6 +413,7 @@ ohos_source_set("render_service_base_src") {
       "src/drawable/rs_property_drawable.cpp",
       "src/drawable/rs_property_drawable_background.cpp",
       "src/drawable/rs_property_drawable_foreground.cpp",
+      "src/drawable/rs_point_light_drawable.cpp",
       "src/drawable/rs_property_drawable_utils.cpp",
       "src/drawable/rs_render_node_drawable_adapter.cpp",
       "src/drawable/rs_render_node_shadow_drawable.cpp",
@@ -537,6 +537,7 @@ ohos_source_set("render_service_base_src") {
           "-mllvm",
           "-enable-partial-inlining",
         ]
+        inputs = [ "${graphic_2d_feature_pgo_path}/librender_service_base.profdata" ]
       }
       if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
         cflags += [ "-moutline-atomics" ]

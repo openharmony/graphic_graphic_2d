@@ -57,6 +57,7 @@
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/hwc_event/rs_uni_hwc_event_manager.h"
 #include "feature/lpp/lpp_video_handler.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
@@ -117,7 +118,6 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "singleton.h"
 #include "string_utils.h"
-#include "transaction/rs_transaction_metric_collector.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "transaction/rs_unmarshal_thread.h"
 
@@ -3513,7 +3513,6 @@ void RSMainThread::ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactio
 
     {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
-        RSTransactionMetricCollector::GetInstance().Collect(rsTransactionData);
         cachedTransactionDataMap_[rsTransactionData->GetSendingPid()].emplace_back(std::move(rsTransactionData));
     }
     PostTask([this]() {
@@ -3541,7 +3540,6 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
-        RSTransactionMetricCollector::GetInstance().Collect(rsTransactionData);
         cachedTransactionDataMap_[rsTransactionData->GetSendingPid()].emplace_back(std::move(rsTransactionData));
 #endif
     } else {
@@ -5206,13 +5204,13 @@ bool RSMainThread::IsReadyForSyncTask() const
 
 void RSMainThread::RegisterHwcEvent()
 {
-    RSUniHwcPrevalidateUtil::GetInstance().Init();
+    RSUniHwcEventManager::GetInstance().Init();
 #ifdef RS_ENABLE_GPU
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager != nullptr) {
         screenManager->RegisterHwcEvent([]() {
             RSMainThread::Instance()->PostTask([]() {
-                RSUniHwcPrevalidateUtil::GetInstance().Init();
+                RSUniHwcEventManager::GetInstance().Init();
             });
         });
     }

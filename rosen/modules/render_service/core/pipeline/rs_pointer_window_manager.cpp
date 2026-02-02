@@ -191,13 +191,12 @@ bool RSPointerWindowManager::GetHardCursorNeedCommit(NodeId screenNodeId)
     return hasBuffer != lastCommitResult;
 }
 
-bool RSPointerWindowManager::CheckHardCursorSupport(ScreenId screenId)
+bool RSPointerWindowManager::CheckHardCursorSupport(const std::shared_ptr<RSScreenRenderNode>& screenNode)
 {
-    auto screenNode = GetScreenRenderNode(screenId);
     if (!screenNode) {
         return false;
     }
-    return screenNode->GetScreenProperty().IsHardCursorSupport();
+    return screenNode->GetScreenProperty().IsHardCursorSupport() && !RSPointerWindowManager::Instance().IsTuiEnabled();
 }
 
 bool RSPointerWindowManager::HasMirrorDisplay() const
@@ -228,7 +227,7 @@ void RSPointerWindowManager::UpdateHardCursorStatus(
     if (!hardCursorNode.IsHardwareEnabledTopSurface()) {
         return;
     }
-    hardCursorNode.SetHardCursorStatus(CheckHardCursorSupport(curScreenNode->GetScreenId()));
+    hardCursorNode.SetHardCursorStatus(CheckHardCursorSupport(curScreenNode));
 }
 
 void RSPointerWindowManager::CollectAllHardCursor(

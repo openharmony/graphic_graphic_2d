@@ -99,10 +99,18 @@ public:
 
     void SetStoreCachePath(const std::string& filename);
     std::string GetStoreCachePath() const;
+    
+     /**
+     * @brief cache small Texture on UnUni devices.
+     * @param isUniRender isUniRender A boolean value indicating whether to use the unified rendering mode.
+     */
+    void SetIsUniRender(bool isUniRender);
+    bool GetIsUniRender() const;
 
 private:
     PersistentCache* persistentCache_ = nullptr;
     bool allowPathMaskCaching_ = true;
+    bool isUniRender_ = true;
     std::string filePath_ = "";
 };
 

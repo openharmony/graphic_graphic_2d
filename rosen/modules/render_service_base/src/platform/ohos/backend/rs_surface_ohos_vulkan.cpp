@@ -704,7 +704,6 @@ void RSSurfaceOhosVulkan::ReleasePreAllocateBuffer()
     if (mPreAllocateProtectedBuffer == nullptr) {
         return;
     }
-    NativeWindowCancelBuffer(mNativeWindow, mPreAllocateProtectedBuffer);
     mPreAllocateProtectedBuffer = nullptr;
     mProtectedFenceFd = -1;
     NativeWindowCleanCache(mNativeWindow);

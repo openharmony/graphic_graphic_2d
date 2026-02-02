@@ -1154,7 +1154,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 #endif
 
     DumpSubClassNode(out);
-    out += ", NodeColorSpace: " + std::to_string(GetNodeColorSpace());
+    if (stagingRenderParams_) {
+        out += ", NodeColorSpace: " + std::to_string(GetNodeColorSpace());
+    }
     out += ", Properties: " + GetRenderProperties().Dump();
     if (!uiContextTokenList_.empty()) {
         out += ", RSUIContextToken: [";

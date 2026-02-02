@@ -37,10 +37,12 @@ constexpr int REPLAY_TIME_INDEX = 2;
 static const std::vector<std::string> expectedMessages = {
     "PlaybackPauseAt OK",
     "awake_frame 0",
-    "StartTime and EndTime:"
+    "StartTime and EndTime:",
+    "Load subTree result: ",
+    "Clear SubTree Success",
+    "Playback start",
+    "Playback immediate mode: "
 };
-const std::string RESPOND_NODETREE_LOAD = "Load subTree result: ";
-const std::string RESPOND_SUBTREE_CLEAR = "Clear SubTree Success";
 
 RSGraphicTestProfilerThread::~RSGraphicTestProfilerThread()
 {
@@ -77,7 +79,9 @@ void RSGraphicTestProfilerThread::Stop()
 
 void RSGraphicTestProfilerThread::SendCommand(const std::string command, int outTime)
 {
+    RS_TRACE_NAME("RSGraphicTestProfilerThread::SendCommand");
     {
+        RS_TRACE_NAME("RSGraphicTestProfilerThread::queue_mutex_");
         std::unique_lock lock(queue_mutex_);
         message_queue_.push(command);
     }
@@ -152,9 +156,6 @@ void RSGraphicTestProfilerThread::SendMessage()
     if (message.empty()) {
         return;
     }
-
-    std::cout << "send message:" << message << std::endl;
-
     Packet packet(Packet::COMMAND);
     packet.Write(message);
     auto data = packet.Release();
@@ -216,8 +217,8 @@ void RSGraphicTestProfilerThread::RecieveMessage()
 
 void RSGraphicTestProfilerThread::ProcessLogMessage(const std::vector<char>& data)
 {
-    std::string out(data.begin(), data.end()); // get message from RSProfiler
-    std::cout << "received message:" << out << std::endl;
+    std::string out(data.begin(), data.end());
+    std::cout << "recieved message:[" << out << "]" << std::endl;
 
     if (out.rfind(expectedMessages[REPLAY_TIME_INDEX], 0) == 0) {
         std::istringstream iss(out.substr(expectedMessages[REPLAY_TIME_INDEX].size()));
@@ -230,7 +231,7 @@ void RSGraphicTestProfilerThread::ProcessLogMessage(const std::vector<char>& dat
     }
 
     if (waitReceive_) {
-        bool reveive = IsReceiveWaitMessage(out); // judge expected information
+        bool reveive = IsReceiveWaitMessage(out);
         if (reveive) {
             std::unique_lock lock(wait_mutex_);
             waitReceive_ = false;
@@ -263,12 +264,12 @@ bool RSGraphicTestProfilerThread::RecieveHeader(void* data, size_t& size)
         std::cout << "profiler socket service closed." << std::endl;
         return false;
     } else {
-        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
             size = -1;
             return false;
         } else {
             size = 0;
-            std::cout << "profiler socket receive header failed" << std::endl;
+            std::cout << "profiler socket recieve header failed" << std::endl;
             return false;
         }
     }

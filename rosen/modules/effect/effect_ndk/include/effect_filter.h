@@ -91,6 +91,24 @@ EffectErrorCode OH_Filter_Blur(OH_Filter* filter, float radius);
 EffectErrorCode OH_Filter_BlurWithTileMode(OH_Filter* filter, float radius, EffectTileMode tileMode);
 
 /**
+ * @brief Creates a blur effect width direction angle and then add to the filter.
+ *
+ * @param filter The OH_Filter pointer will be operated.
+ * @param radius The radius of the blur effect.
+ * @param effectDirection The direction angle of blur effect: range 0 to 180,
+ *        0 and 180 for horizontal direction, 90 for vertical direction,
+ *        clamp to boundary if out of range: < 0 set to 0, > 180 set to 180.
+ * @param tileMode The tileMode of the blur effect.
+ * @return BlurWithDirection result code.
+ *        {@link EFFECT_SUCCESS} if the operation is successful.
+ *        {@link EFFECT_BAD_PARAMETER} if parameter is invalid.
+ * @since 24
+ * @version 1.0
+ */
+EffectErrorCode OH_Filter_BlurWithDirection(OH_Filter* filter, float radius, float effectDirection,
+    EffectTileMode tileMode);
+
+/**
  * @brief Creates a brighten effect and then add to the filter.
  *
  * @syscap SystemCapability.Multimedia.Image.Core
@@ -176,6 +194,30 @@ EffectErrorCode OH_Filter_WaterGlass(OH_Filter* filter, OH_Filter_WaterGlassData
  * @version 1.0
  */
 EffectErrorCode OH_Filter_ReededGlass(OH_Filter* filter, OH_Filter_ReededGlassDataParams* reededGlassParams);
+
+/**
+ * @brief Creates a effect with map color by brightness, and then add to the filter.
+ *
+ * @param filter The OH_Filter pointer will be operated.
+ * @param params The {@link OH_Filter_MapColorByBrightnessParams} pointer, includes colors,
+ *        the corresponding brightness positions to map, and color number.
+ * @return Returns {@link EffectErrorCode}.
+ * @since 24
+ * @version 1.0
+ */
+EffectErrorCode OH_Filter_MapColorByBrightness(OH_Filter* filter, OH_Filter_MapColorByBrightnessParams* params);
+
+/**
+ * @brief Creates a effect with gamma correction, and then add to the filter.
+ *
+ * @param filter The OH_Filter pointer will be operated.
+ * @param gamma Gamma correction coefficient: 1 means original image, < 1 makes image darker,
+ *        > 1 makes it brighter; must be > 0, otherwise no effect.
+ * @return Returns {@link EffectErrorCode}.
+ * @since 24
+ * @version 1.0
+ */
+EffectErrorCode OH_Filter_GammaCorrection(OH_Filter* filter, float gamma);
 
 #ifdef __cplusplus
 }

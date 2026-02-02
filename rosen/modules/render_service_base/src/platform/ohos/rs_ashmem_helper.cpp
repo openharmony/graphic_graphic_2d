@@ -267,7 +267,7 @@ void AshmemFdContainer::Merge(const std::unordered_map<binder_size_t, int>& fds)
     }
     isUseFdContainer_ = true;
     fds_ = fds;
-    ROSEN_LOGI_IF(DEBUG_IPC, "AshmemFdContainer::Merge fds_ = %{public}s", PrintFds().c_str());
+    ROSEN_LOGI_IF(DEBUG_IPC, "AshmemFdContainer::Merge fds_ = %s", PrintFds().c_str());
 }
 
 void AshmemFdContainer::Clear()

@@ -22,6 +22,11 @@
 using namespace OHOS;
 using namespace Rosen;
 
+namespace {
+    static constexpr uint8_t COLOR_MAX_COUNTS = 5; // The colors max counts of mapColorByBrightness
+    static constexpr uint8_t COLOR_MIN_COUNTS = 1; // The colors min counts of mapColorByBrightness
+}
+
 static Filter* CastToFilter(OH_Filter* filter)
 {
     return reinterpret_cast<Filter*>(filter);
@@ -70,6 +75,16 @@ EffectErrorCode OH_Filter_BlurWithTileMode(OH_Filter* filter, float radius, Effe
     return EFFECT_SUCCESS;
 }
 
+EffectErrorCode OH_Filter_BlurWithDirection(OH_Filter* filter, float radius, float effectDirection,
+    EffectTileMode tileMode)
+{
+    Drawing::TileMode drawingTileMode = static_cast<Drawing::TileMode>(tileMode);
+    if (!filter || !(CastToFilter(filter)->Blur(radius, effectDirection, drawingTileMode))) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}
+
 EffectErrorCode OH_Filter_Brighten(OH_Filter* filter, float brightness)
 {
     if (!filter || !(CastToFilter(filter)->Brightness(brightness))) {
@@ -106,6 +121,37 @@ EffectErrorCode OH_Filter_SetColorMatrix(OH_Filter* filter, OH_Filter_ColorMatri
     }
     colorMatrix.SetArray(matrixArr);
     if (!(CastToFilter(filter)->SetColorMatrix(colorMatrix))) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}
+
+EffectErrorCode OH_Filter_MapColorByBrightness(OH_Filter* filter, OH_Filter_MapColorByBrightnessParams* params)
+{
+    bool isInvalid = !filter || !params || !params->colors || !params->positions ||
+        params->colorsNum < COLOR_MIN_COUNTS;
+    if (isInvalid) {
+        return EFFECT_BAD_PARAMETER;
+    }
+
+    std::vector<Vector4f> colors;
+    std::vector<float> positions;
+    size_t n = params->colorsNum > COLOR_MAX_COUNTS ? COLOR_MAX_COUNTS : params->colorsNum;
+    for (size_t i = 0; i < n; i++) {
+        Vector4f color = {params->colors[i].red, params->colors[i].green,
+            params->colors[i].blue, params->colors[i].alpha};
+        colors.push_back(color);
+        positions.push_back(params->positions[i]);
+    }
+    if (!(CastToFilter(filter)->MapColorByBrightness(colors, positions))) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}
+
+EffectErrorCode OH_Filter_GammaCorrection(OH_Filter* filter, float gamma)
+{
+    if (!filter || !(CastToFilter(filter)->GammaCorrection(gamma))) {
         return EFFECT_BAD_PARAMETER;
     }
     return EFFECT_SUCCESS;

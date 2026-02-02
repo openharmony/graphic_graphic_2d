@@ -105,21 +105,6 @@ public:
         }
     }
 
-    void AddSurfaceChangedCallBack(uint64_t id,
-        const std::function<void(float, float, float, float)>& callback)
-    {
-        if (visitor_ == nullptr) {
-            visitor_ = std::make_shared<RSRenderThreadVisitor>();
-        }
-        visitor_->AddSurfaceChangedCallBack(id, callback);
-    }
-
-    void RemoveSurfaceChangedCallBack(uint64_t id)
-    {
-        if (visitor_) {
-            visitor_->RemoveSurfaceChangedCallBack(id);
-        }
-    }
     static bool GetIsRunning();
 
 private:

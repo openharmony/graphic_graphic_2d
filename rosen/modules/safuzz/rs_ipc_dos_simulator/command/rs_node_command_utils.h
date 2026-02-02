@@ -96,6 +96,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkUifirstNode, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSForceUifirstNode, Uint64, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetUIFirstSwitch, Uint64, RSUIFirstSwitch);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkNodeColorSpace, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetDrawRegion, Uint64, RectFSharedPtr);
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSSetTakeSurfaceForUIFlag, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetOutOfParent, Uint64, OutOfParentType);

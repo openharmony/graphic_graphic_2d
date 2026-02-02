@@ -1097,7 +1097,7 @@ NapiTextResult ProcessResource(ResourceInfo& info, std::function<NapiTextResult(
         return fileCB(rawData.get(), dataLen);
     }
     TEXT_LOGE("Invalid resource type %{public}d", info.type);
-    return NapiTextResult::Invalid();
+    return NapiTextResult::BusinessInvalid();
 }
 
 bool SplitAbsolutePath(std::string& absolutePath)

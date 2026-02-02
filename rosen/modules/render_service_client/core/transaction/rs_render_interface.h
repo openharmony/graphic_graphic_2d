@@ -16,20 +16,21 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_RENDRE_INTERFACE_H
 #define RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_RENDRE_INTERFACE_H
 
-#include <mutex>
-#include <map>
-
 #include "common/rs_common_def.h"
-#include "transaction/rs_render_pipeline_client.h"
-#include "platform/drawing/rs_surface.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
+#include "platform/drawing/rs_surface.h"
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {
 
 class RSC_EXPORT RSRenderInterface {
+
 public:
+    RSRenderInterface();
+    ~RSRenderInterface() noexcept;
+
     static RSRenderInterface &GetInstance();
     /**
      * @brief Get snapshot of surfaceNode.
@@ -43,7 +44,7 @@ public:
 
     /**
      * @brief Get snapshot of surfaceNode, and security layer area is a drawn as a blur instead of white.
-     * @param node Indicates which node, usually point o a window.
+     * @param node Indicates which node, usually point to a window.
      * @param callback When the snapshot is complete, the callback will be triggered.
      * @param blurRadius Indicates blur radius of blur area.
      * @return return true if snaphot success, else return false.
@@ -97,34 +98,6 @@ public:
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
 
     /**
-     * @brief Get a list of pixelmap information, each node of the component node tree will have a pixelmap.
-     * @param node can be rootNode、surfaceNode、canvasNode、CanvasDrawingNode.
-     * @return return a vector of pair, the first element is the NodeId, the second element is the pixelmap.
-     */
-    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
-        TakeSurfaceCaptureSoloNodeList(std::shared_ptr<RSNode> node);
-    
-    /**
-     * @brief Get snapshot of surfaceNode, and security layer area is a drawn normally, not white.
-     * @param node Indicates which node, usually point to a window.
-     * @param callback When the snapshot is complete, the callback will be triggered.
-     * @param captureConfig Indicates the configuration items required for snapshot.
-     * @return return true if snaphot success, else return false.
-     */
-    bool TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
-        RSSurfaceCaptureConfig captureConfig = {});
-
-    /**
-     * @brief Component snapshot for divided render.
-     * @param id The id of the component.
-     * @param callback Callback function.
-     * @param scaleX Indicates the scale of X-axis.
-     * @param scaleY Indicates the scale of Y-axis.
-     */
-    bool TakeSurfaceCaptureForUIWithoutUni(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX, float scaleY);
-
-    /**
      * @brief Get component snapshot Within the given node range.
      * @param beginNode Indicates first child of snapshot.
      * @param endNode Indicates end child of snapshot.
@@ -152,6 +125,14 @@ public:
         RSSurfaceCaptureConfig captureConfig = {});
 
     /**
+     * @brief Get a list of pixelmap information, each node of the component node tree will have a pixelmap.
+     * @param node can be rootNode、surfaceNode、canvasNode、CanvasDrawingNode.
+     * @return return a vector of pair, the first element is the NodeId, the second element is the pixelmap.
+     */
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNodeList(
+    std::shared_ptr<RSNode> node);
+
+    /**
      * @brief Take snapshot of displayNode.
      * @param node Indicates a display node to be captured.
      * @param callback Indicates callback to be triggered when snapshot is compeleted.
@@ -162,14 +143,6 @@ public:
     bool TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
         bool checkDrmAndSurfaceLock);
-
-    /**
-     * @brief Freeze or unfreeze screen.
-     * @param node Indicates a display node to freeze or unfreeze.
-     * @param isFreeze Indicates freeze or unfreeze the specified display node.
-     * @return return true if freeze or unfreeze success, else return false.
-     */
-    bool FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze);
 
     /**
      * @brief Get snapshot of surfaceNode, and show the snapshot instead of surfaceNode.
@@ -185,13 +158,32 @@ public:
         float blurRadius = 1E-6);
 
     /**
-     * @brief Register a canvasNode as a container for nodes on the desktop.
-     * It is a child node of displayNode to achieve unified scalling and other effects.
-     * @param nodeId The id of the canvasNode, which will be moved below the displayNode of its subtree
-     * and marked as windowcontainer.
-     * @param value Mark a node as windowContainer or not.
+     * @brief Get snapshot of surfaceNode, and security layer area is a drawn normally, not white.
+     * @param node Indicates which node, usually point to a window.
+     * @param callback When the snapshot is complete, the callback will be triggered.
+     * @param captureConfig Indicates the configuration items required for snapshot.
+     * @return return true if snaphot success, else return false.
      */
-    void SetWindowContainer(NodeId nodeId, bool value);
+    bool TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
+        RSSurfaceCaptureConfig captureConfig = {});
+
+    /**
+     * @brief Component snapshot for divided render.
+     * @param id The id of the component.
+     * @param callback Callback function.
+     * @param scaleX Indicates the scale of X-axis.
+     * @param scaleY Indicates the scale of Y-axis.
+     */
+    bool TakeSurfaceCaptureForUIWithoutUni(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+        float scaleX, float scaleY);
+
+    /**
+     * @brief Set selfdrawing node to topLayer force use DSS.
+     * @param nodeId surfaceNode id.
+     * @param isTop is function switch.
+     * @param zOrder is zOrder of topLayer.
+     */
+    void SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder);
 
     /**
      * @brief Register a callback to listen for the state of the buffer held by the DrawSurfaceBuffer OpItem,
@@ -212,12 +204,16 @@ public:
      */
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
+    /**
+     * @brief Register a canvasNode as a container for nodes on the desktop.
+     * It is a child node of displayNode to achieve unified scalling and other effects.
+     * @param nodeId The id of the canvasNode, which will be moved below the displayNode of its subtree
+     * and marked as windowcontainer.
+     * @param value Mark a node as windowContainer or not.
+     */
+    void SetWindowContainer(NodeId nodeId, bool value);
+
     bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
-
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
-        float positionZ, float positionW);
-
-    void SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder);
 
     /**
      * @brief Set the focus window information to renderService.
@@ -225,19 +221,6 @@ public:
      * @return 0 means success, others failed.
      */
     int32_t SetFocusAppInfo(const FocusAppInfo& info);
-
-    /**
-     * @brief Set all anco node ForceDoDirect.
-     * @param direct is need to set ForceDoDirect.
-     * @return the execution result successful.
-     */
-    bool SetAncoForceDoDirect(bool direct);
-
-    /**
-     * @brief clear uifirst node cache
-     * @param id surface node id
-     */
-    void ClearUifirstCache(NodeId id);
 
     /**
      * @brief Set the process ID list requiring frame dropping. Next time RS triggers rending,
@@ -252,6 +235,13 @@ public:
     void DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0);
 
     /**
+     * @brief Set all anco node ForceDoDirect.
+     * @param direct is need to set ForceDoDirect.
+     * @return the execution result successful.
+     */
+    bool SetAncoForceDoDirect(bool direct);
+
+    /**
      * @brief Get the HDR status of the current screen.
      * @param id Id of the screen.
      * @param hdrStatus The HDR status of the current screen.
@@ -260,11 +250,35 @@ public:
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
     /**
-     * @brief Set frame gravity of screen node
+     * @brief clear uifirst node cache
+     * @param id surface node id
+     */
+    void ClearUifirstCache(NodeId id);
+
+    /**
+     * @brief Set frame gravity of screen node.
      * @param id Screen id.
      * @param gravity The gravity value of the screen node.
      */
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+
+    /**
+     * @brief Freeze or unfreeze screen.
+     * @param node Indicates a display node to freeze or unfreeze.
+     * @param isFreeze Indicates freeze or unfreeze the specified display node.
+     * @return return true if freeze or unfreeze success, else return false.
+     */
+    bool FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze);
+    /**
+     * @brief Simplify the original interfaces set boundaries for cursor movement and reduce the workload.
+     * @param rsNodeId Indicates id of node.
+     * @param positionX Indicates x coordinate position.
+     * @param positionY Indicates y coordinate position.
+     * @param positionZ Indicates z coordinate position.
+     * @param positionW Indicates w coordinate position.
+     * @return return true if set success, else return false
+     */
+    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     /**
@@ -292,8 +306,6 @@ public:
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
 private:
-    RSRenderInterface();
-    ~RSRenderInterface() noexcept;
     std::unique_ptr<RSRenderPipelineClient> renderPiplineClient_;
     friend class RSUIContext;
     friend class RSApplicationAgentImpl;

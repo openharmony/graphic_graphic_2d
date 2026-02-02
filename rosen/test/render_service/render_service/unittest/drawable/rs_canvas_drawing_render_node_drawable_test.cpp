@@ -225,6 +225,10 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, 
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_TRUE(drawable->canvas_);
 
+    canvas->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    drawable->PostPlaybackInCorrespondThread();
+    ASSERT_FALSE(drawable->canvas_);
+
     auto surface_ = std::make_shared<Drawing::Surface>();
     drawable->curThreadInfo_.second(surface_);
     ASSERT_TRUE(surface_);
@@ -1098,4 +1102,33 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseDmaSurfaceBufferTest, Tes
         NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled());
 }
 #endif
+
+/**
+ * @tc.name: GetGpuContextTest
+ * @tc.desc: Test If GetGpuContext Can Run
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetGpuContextTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.tid_ = gettid();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    uniRenderThread.uniRenderEngine_->renderContext_ = RenderContext::Create();
+    uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    auto context = drawable->GetGpuContext();
+    ASSERT_NE(context, nullptr);
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas rsCanvas(&canvas);
+    const Drawing::Rect rect(1.0f, 1.0f, 1.0f, 1.0f);
+    auto rsContext = std::make_shared<RSContext>();
+    drawable->DrawRenderContent(canvas, rect);
+    drawable->Flush(1, 1, rsContext, id, rsCanvas);
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->DrawRenderContent(canvas, rect);
+    drawable->Flush(1, 1, rsContext, id, rsCanvas);
+    context = drawable->GetGpuContext();
+    ASSERT_NE(context, nullptr);
+}
 }

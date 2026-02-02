@@ -107,6 +107,9 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
+#ifdef SKIA_OHOS
+ 	     grOptions.clearSmallTexture = options.GetIsUniRender();
+#endif
 #ifdef USE_M133_SKIA
     grContext_ = GrDirectContexts::MakeGL(std::move(glInterface), grOptions);
 #else

@@ -24,6 +24,16 @@ static constexpr float GRAYSCALE_PARATHREE = 0.0722f;
 static constexpr float RADIUS_THRESHOLD = 0.0f;
 static constexpr float BRIGHTNESS_MIN_THRESHOLD = 0.0f;
 static constexpr float BRIGHTNESS_MAX_THRESHOLD = 1.0f;
+static constexpr float POSITIVE_MIN_THRESHOLD = 0.0f;
+static constexpr float GAMMA_MIN_THRESHOLD = 1e-6;
+// limits for mapColorByBrightness filter pamameters
+static constexpr std::pair<float, float> COLOR_POSITION_LIMITS{0.0f, 1.0f};
+
+static Vector4f GetLimitedPara(const Vector4f& para, float minThreshold)
+{
+    return Vector4f(std::max(para.x_, minThreshold), std::max(para.y_, minThreshold),
+        std::max(para.z_, minThreshold), std::max(para.w_, minThreshold));
+}
 
 std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, Drawing::TileMode tileMode)
 {
@@ -32,6 +42,41 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, Drawing
     }
 
     return std::make_shared<EffectImageBlurFilter>(radius, tileMode);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, float angle, Drawing::TileMode tileMode)
+{
+    if (radius < RADIUS_THRESHOLD) {
+        return nullptr;
+    }
+
+    return std::make_shared<EffectImageBlurFilter>(radius, angle, tileMode);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::MapColorByBrightness(const std::vector<Vector4f>& colors,
+    const std::vector<float>& positions)
+{
+    std::vector<Vector4f> colorValues;
+    std::vector<float> positionValues;
+    for (size_t i = 0; i < colors.size() && i < positions.size(); i++) {
+        Vector4f color = GetLimitedPara(colors[i], POSITIVE_MIN_THRESHOLD);
+        float position = std::clamp(positions[i], COLOR_POSITION_LIMITS.first, COLOR_POSITION_LIMITS.second);
+        colorValues.push_back(color);
+        positionValues.push_back(position);
+    }
+    if (colorValues.empty()) {
+        EFFECT_LOG_E("EffectImageFilter::MapColorByBrightness: params is invalid.");
+        return nullptr;
+    }
+    return std::make_shared<OHOS::Rosen::EffectImageMapColorByBrightnessFilter>(colorValues, positionValues);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::GammaCorrection(float gamma)
+{
+    if (gamma < GAMMA_MIN_THRESHOLD) {
+        return nullptr;
+    }
+    return std::make_shared<OHOS::Rosen::EffectImageGammaCorrectionFilter>(gamma);
 }
 
 std::shared_ptr<EffectImageFilter> EffectImageFilter::EllipticalGradientBlur(float blurRadius, float centerX,
@@ -125,7 +170,23 @@ DrawingError EffectImageBlurFilter::Apply(const std::shared_ptr<EffectImageChain
         return DrawingError::ERR_IMAGE_NULL;
     }
 
-    return image->ApplyBlur(radius_, tileMode_);
+    return image->ApplyBlur(radius_, tileMode_, isDirectionBlur_, angle_);
+}
+
+DrawingError EffectImageMapColorByBrightnessFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+    return image->ApplyMapColorByBrightness(colors_, positions_);
+}
+
+DrawingError EffectImageGammaCorrectionFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+    return image->ApplyGammaCorrection(gamma_);
 }
 
 DrawingError EffectImageSdfFromImageFilter::Apply(const std::shared_ptr<EffectImageChain>& image)

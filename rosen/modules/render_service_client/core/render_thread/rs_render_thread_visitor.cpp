@@ -953,17 +953,6 @@ void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
 #endif
 }
 
-void RSRenderThreadVisitor::AddSurfaceChangedCallBack(uint64_t id,
-    const std::function<void(float, float, float, float)>& callback)
-{
-    surfaceCallbacks_.emplace(id, callback);
-}
-
-void RSRenderThreadVisitor::RemoveSurfaceChangedCallBack(uint64_t id)
-{
-    surfaceCallbacks_.erase(id);
-}
-
 void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
 {
     // Calculation position in RenderService may appear floating point number, and it will be removed.
