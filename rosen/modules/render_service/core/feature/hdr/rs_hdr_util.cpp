@@ -232,22 +232,22 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
     return true;
 }
 
-void RSHdrUtil::UpdateSelfDrawingNodeNit(RSScreenRenderNode& node)
+void RSHdrUtil::UpdateSelfDrawingNodesNit(RSScreenRenderNode& node)
 {
     const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
     for (const auto& selfDrawingNode : selfDrawingNodes) {
         if (!selfDrawingNode) {
-            RS_LOGD("RSHdrUtil::UpdateSelfDrawingNodeNit selfDrawingNode is nullptr");
+            RS_LOGD("RSHdrUtil::UpdateSelfDrawingNodesNit selfDrawingNode is nullptr");
             continue;
         }
         if (!selfDrawingNode->IsOnTheTree()) {
-            RS_LOGD("RSHdrUtil::UpdateSelfDrawingNodeNit node(%{public}s) is not on the tree",
+            RS_LOGD("RSHdrUtil::UpdateSelfDrawingNodesNit node(%{public}s) is not on the tree",
                 selfDrawingNode->GetName().c_str());
             continue;
         }
         auto ancestor = selfDrawingNode->GetAncestorScreenNode().lock();
         if (!ancestor) {
-            RS_LOGD("RSHdrUtil::UpdateSelfDrawingNodeNit ancestor is nullptr");
+            RS_LOGD("RSHdrUtil::UpdateSelfDrawingNodesNit ancestor is nullptr");
             continue;
         }
         if (node.GetId() == ancestor->GetId()) {

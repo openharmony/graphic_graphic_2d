@@ -67,7 +67,7 @@ public:
     static bool CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfaceBuffer);
     static void UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
     static void UpdatePixelFormatAfterHwcCalc(RSScreenRenderNode& node);
-    static void UpdateSelfDrawingNodeNit(RSScreenRenderNode& node);
+    static void UpdateSelfDrawingNodesNit(RSScreenRenderNode& node);
     static void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surfaceNode, RSScreenRenderNode& screenNode);
     static void CheckPixelFormatForHdrEffect(RSSurfaceRenderNode& surfaceNode,
         std::shared_ptr<RSScreenRenderNode> screenNode);

@@ -45,6 +45,8 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
+constexpr NodeId NODE_ID = 10;
+constexpr ScreenId SCREEN_ID = 10;
 BufferRequestConfig requestConfig = {
     .width = 0x100,
     .height = 0x100,
@@ -224,18 +226,16 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateSelfDrawingNodeNit
- * @tc.desc: Test UpdateSelfDrawingNodeNit
+ * @tc.name: UpdateSelfDrawingNodesNit
+ * @tc.desc: Test UpdateSelfDrawingNodesNit
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
 HWTEST_F(RSHdrUtilTest, UpdateSelfDrawingNodeNitTest, TestSize.Level1)
 {
     RSMainThread::Instance()->ClearSelfDrawingNodes();
-    NodeId id = 10;
-    ScreenId screenId = 1;
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(NODE_ID, SCREEN_ID, context);
     ASSERT_NE(screenNode, nullptr);
 
     auto& selfDrawingNodes = const_cast<std::vector<std::shared_ptr<RSSurfaceRenderNode>>&>(
@@ -252,7 +252,7 @@ HWTEST_F(RSHdrUtilTest, UpdateSelfDrawingNodeNitTest, TestSize.Level1)
     noAncestorNode->SetIsOnTheTree(true);
     RSMainThread::Instance()->AddSelfDrawingNodes(noAncestorNode);
 
-    auto otherScreenNode = std::make_shared<RSScreenRenderNode>(id + 1, screenId + 1, context);
+    auto otherScreenNode = std::make_shared<RSScreenRenderNode>(NODE_ID + 1, SCREEN_ID + 1, context);
     ASSERT_NE(otherScreenNode, nullptr);
     auto mismatchAncestorNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(mismatchAncestorNode, nullptr);
@@ -280,7 +280,7 @@ HWTEST_F(RSHdrUtilTest, UpdateSelfDrawingNodeNitTest, TestSize.Level1)
     context->nodeMap.RegisterRenderNode(logicalDisplayNode);
     RSMainThread::Instance()->AddSelfDrawingNodes(updateSuccessNode);
 
-    RSHdrUtil::UpdateSelfDrawingNodeNit(*screenNode);
+    RSHdrUtil::UpdateSelfDrawingNodesNit(*screenNode);
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
     ASSERT_NE(stagingSurfaceParams, nullptr);
     float expectedSdrNit = RSLuminanceControl::Get().GetSdrDisplayNits(screenNode->GetScreenId());
