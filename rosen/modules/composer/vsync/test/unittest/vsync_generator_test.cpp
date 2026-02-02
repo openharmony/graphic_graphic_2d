@@ -671,7 +671,7 @@ HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest002, Function | 
  */
 HWTEST_F(VSyncGeneratorTest, ChangeVSyncTETest, Function | MediumTest| Level0)
 {
-    // Test ChangeVSyncTE for LTPO 144hz, config error, skip and not support
+    // Test ChangeVSyncTE for LTPO 144hz config error, skip and not support
     VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
     VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
@@ -681,7 +681,7 @@ HWTEST_F(VSyncGeneratorTest, ChangeVSyncTETest, Function | MediumTest| Level0)
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
     ASSERT_EQ(ret, VSYNC_ERROR_NOT_SUPPORT);
-    // Test ChangeGeneratorRefreshRateModel for LTPO 144hz, config ok, other to 144hz, change TE
+    // Test ChangeVSyncTE for LTPO 144hz config ok, other to 144hz, change TE
     ret = vsyncGenerator_->SetVsyncMaxTE144(432);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
@@ -689,15 +689,15 @@ HWTEST_F(VSyncGeneratorTest, ChangeVSyncTETest, Function | MediumTest| Level0)
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
     ASSERT_EQ(vsyncGenerator_->GetVSyncMaxRefreshRate(), 432);
     ASSERT_EQ(vsyncGenerator_->GetVSyncPulse(), 2314814);
-    // Test ChangeGeneratorRefreshRateModel for LTPO 144hz, config ok, 144hz to other, change TE back
-    refreshRate = 120;
+    // Test ChangeVSyncTE for LTPO 144hz config ok, 144hz to other, change TE back
+    refreshRate = 120; // 120hz
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
     ASSERT_EQ(vsyncGenerator_->GetVSyncMaxRefreshRate(), 360);
     ASSERT_EQ(vsyncGenerator_->GetVSyncPulse(), 2777777);
-    // Test ChangeGeneratorRefreshRateModel for LTPO 144hz config ok, 120hz to 60hz, skip
-    refreshRate = 60;
+    // Test ChangeVSyncTE for LTPO 144hz config ok, 120hz to 60hz, skip
+    refreshRate = 60; // 60hz
     listenerPhaseOffset = {
         .cb = rsController,
         .phaseByPulseNum = 3,
