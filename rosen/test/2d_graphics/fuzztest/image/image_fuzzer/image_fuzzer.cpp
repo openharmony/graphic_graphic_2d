@@ -102,8 +102,8 @@ bool ImageFuzzTest002(const uint8_t* data, size_t size)
     std::shared_ptr<Image> srcImage = std::make_shared<Image>();
     srcImage->BuildFromBitmap(srcBitmap);
     Bitmap dstBitmap;
-    int dstWidth = GetObject<int>() % MAX_SIZE;;
-    int dstHeight = GetObject<int>() % MAX_SIZE;;
+    int dstWidth = GetObject<int>() % MAX_SIZE;
+    int dstHeight = GetObject<int>() % MAX_SIZE;
     dstBitmap.Build(dstWidth, dstHeight, bitmapFormat);
     if (dstBitmap.GetWidth() != dstWidth || dstBitmap.GetHeight() != dstHeight) {
         return false;
