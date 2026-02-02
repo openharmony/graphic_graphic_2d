@@ -31,7 +31,7 @@ public:
     RSCapturePixelMapManager(){};
     ~RSCapturePixelMapManager(){};
     static bool SetCapturePixelMapMem(const std::unique_ptr<Media::PixelMap>& pixelmap,
-        const SurfaceCaptureType& captureType, const UniRenderEnabledType& uniRenderEnabledType, bool useDma);
+        const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType& uniRenderEnabledType);
     static std::unique_ptr<Media::PixelMap> CreatePixelMap(const Drawing::Rect& areaRect,
         const RSSurfaceCaptureConfig& captureConfig);
     // this func only use service

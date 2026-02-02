@@ -174,7 +174,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         if (isPendingUnmarshal) {
             RSMainThread::Instance()->RequestNextVSync("UI", time);
         } else {
-            const auto &now = std::chrono::steady_clock::now().time_since_epoch();
+            const auto now = std::chrono::steady_clock::now().time_since_epoch();
             int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
             constexpr int64_t ONE_PERIOD = 8333333;
             if (currentTime - time > ONE_PERIOD && time != 0) {

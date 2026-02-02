@@ -31,7 +31,6 @@ public:
 
 private:
     std::unordered_map<uint32_t, uint32_t> accessCounter_;
-    mutable std::mutex accessCounterMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS
