@@ -206,19 +206,19 @@ void RSUniRenderThread::InitGrContext()
         });
 }
 
-void RSUniRenderThread::InitMhc()
-{
-#ifdef MHC_ENABLE
-    RSMhcManager::Instance().RegisterCaptureStatusCallback(&RSUniRenderThread::IsInCaptureProcess);
-#endif
-}
-
 void RSUniRenderThread::Inittcache()
 {
     if (RSSystemParameters::GetTcacheEnabled()) {
         // enable cache
         mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
     }
+}
+
+void RSUniRenderThread::InitMhc()
+{
+#ifdef MHC_ENABLE
+    RSMhcManager::Instance().RegisterCaptureStatusCallback(&RSUniRenderThread::IsInCaptureProcess);
+#endif
 }
 
 void RSUniRenderThread::InitDrawOpOverCallback(Drawing::GPUContext *gpuContext)

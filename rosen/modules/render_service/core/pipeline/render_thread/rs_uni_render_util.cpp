@@ -57,10 +57,6 @@
 #include "rs_hetero_hdr_util.h"
 #endif
 
-#ifdef MHC_ENABLE
-#include "rs_mhc_manager.h"
-#endif
-
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
@@ -75,6 +71,9 @@
 
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
+#endif
+#ifdef MHC_ENABLE
+#include "rs_mhc_manager.h"
 #endif
 #include "render_frame_trace.h"
 

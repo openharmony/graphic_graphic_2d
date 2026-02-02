@@ -76,7 +76,7 @@ bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)
 {
 #ifdef MHC_ENABLE
     if (!RSMhcManager::Instance().CanGetColor(canvas)) {
-        RS_LOGD("[HeteroColorPicker]:Mhc does not support get volor");
+        RS_LOGD("[HeteroColorPicker]:Mhc does not support get color");
         return false;
     }
 #endif
@@ -123,7 +123,7 @@ bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)
 #if defined(MHC_ENABLE) && defined(RS_ENABLE_VK)
     return RegisterMhcUpdate(updateColor, imageSnapshot, backendTexture, canvas);
 #else
-    RS_LOGE("[HeteroColorPicker]:MHC is disabled");
+    RS_LOGD("[HeteroColorPicker]:MHC is disabled");
     return false;
 #endif
 }
