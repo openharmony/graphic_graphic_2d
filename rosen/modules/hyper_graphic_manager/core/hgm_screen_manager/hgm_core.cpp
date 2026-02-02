@@ -186,7 +186,7 @@ int32_t HgmCore::InitXmlConfig()
     return EXEC_SUCCESS;
 }
 
-void SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSetting)
+void HgmCore::SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSetting)
 {
     const auto& ltpoConfig = curScreenSetting.ltpoConfig;
     if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
