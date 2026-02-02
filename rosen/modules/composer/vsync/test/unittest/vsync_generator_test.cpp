@@ -663,15 +663,15 @@ HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest002, Function | 
 }
 
 /*
-* Function: ChangeVsyncTETest
+* Function: ChangeVSyncTETest
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. Test ChangeVsyncTE for LTPO 144hz
+* CaseDescription: 1. Test ChangeVSyncTE for LTPO 144hz
  */
-HWTEST_F(VSyncGeneratorTest, ChangeVsyncTETest, Function | MediumTest| Level0)
+HWTEST_F(VSyncGeneratorTest, ChangeVSyncTETest, Function | MediumTest| Level0)
 {
-    // Test ChangeGeneratorRefreshRateModel for LTPO 144hz, config error, skip and not support
+    // Test ChangeVSyncTE for LTPO 144hz, config error, skip and not support
     VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
     VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};

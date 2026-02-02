@@ -140,13 +140,13 @@ HWTEST_F(HyperGraphicManagerTest, SetMaxTEConfigTest, Function | SmallTest | Lev
                 auto maxTE144Config = iter->second;
                 ltpoConfig.erase("maxTE144");
                 instance1.SetMaxTEConfig(curScreenSetting);
-                STEP_ASSERT_EQ(instance1.maxTE_, 0);
+                STEP_ASSERT_EQ(instance1.maxTE144_, 0);
                 ltpoConfig["maxTE144"] = "errMaxTE";
                 instance1.SetMaxTEConfig(curScreenSetting);
-                STEP_ASSERT_EQ(instance1.maxTE_, 0);
+                STEP_ASSERT_EQ(instance1.maxTE144_, 0);
                 ltpoConfig["maxTE144"] = "432";
                 instance1.SetMaxTEConfig(curScreenSetting);
-                STEP_ASSERT_EQ(instance1.maxTE_, 432);
+                STEP_ASSERT_EQ(instance1.maxTE144_, 432);
                 ltpoConfig["maxTE144"] = maxTE144Config;
             }
         }

@@ -2194,8 +2194,10 @@ HWTEST_F(RsRenderComposerTest, CalculateDelayTime2, TestSize.Level1)
     RefreshRateParam param;
     auto& hgmCore = HgmCore::Instance();
     hgmCore.isLtpoMode_.store(true);
-    hgmCore.SetSupportedMaxTE144(360);
+    hgmCore.SetSupportedMaxTE144(0);
     tmpRsRenderComposer->CalculateDelayTime(hgmCore, param, 0, -1);
+    EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
+    tmpRsRenderComposer->CalculateDelayTime(hgmCore, param, 144, -1);
     EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
     hgmCore.SetSupportedMaxTE144(432);
     hgmCore.SetIdealPipelineOffset144(6);
