@@ -67,6 +67,9 @@ public:
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) = 0;
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
     virtual void RegisterHpaeCallback(RSRenderNode& node) {};
+    virtual void AddSurfaceChangedCallBack(uint64_t id,
+        const std::function<void(float, float, float, float)>& callback) {};
+    virtual void RemoveSurfaceChangedCallBack(uint64_t id) {};
 };
 
 } // namespace Rosen
