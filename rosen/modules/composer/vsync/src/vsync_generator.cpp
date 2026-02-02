@@ -971,7 +971,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
 
     VsyncError ret = SetExpectNextVsyncTimeInternal(expectNextVsyncTime);
 
-    ChangeVsyncTE(generatorRefreshRate);
+    ChangeVSyncTE(generatorRefreshRate);
 
     if ((generatorRefreshRate <= 0 || (vsyncMaxRefreshRate_ % generatorRefreshRate != 0))) {
         RS_TRACE_NAME_FMT("Not support this refresh rate: %u", generatorRefreshRate);
