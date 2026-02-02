@@ -200,7 +200,7 @@ void SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSetting)
 
     if (auto iter = ltpoConfig.find("maxTE144"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
         uint32_t maxTE144 = std::stoul(iter->second);
-        if (maxTE144 % 144 == 0) {
+        if (maxTE144 % OLED_144_HZ == 0) {
             maxTE144_ = maxTE144;
             CreateVSyncGenerator()->SetVSyncMaxTE144(maxTE144_);
         } else {

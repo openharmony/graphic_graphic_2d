@@ -2180,8 +2180,8 @@ HWTEST_F(RsRenderComposerTest, CalculateDelayTime, TestSize.Level1)
  * EnvConditions: N/A
  * CaseDescription: 1. create RSRenderComposer
  *                  2. change TE settings
- *                  2. call CalculateDelayTime
- *                  3. check result
+ *                  3. call CalculateDelayTime
+ *                  4. check result
  */
 HWTEST_F(RsRenderComposerTest, CalculateDelayTime2, TestSize.Level1)
 {
