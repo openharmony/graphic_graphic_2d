@@ -148,4 +148,19 @@ HWTEST_F(RSEffectRenderParamsTest, SetDarkColorMode001, TestSize.Level1)
     EXPECT_TRUE(params.GetDarkColorMode());
 }
 
+/**
+ * @tc.name: SetHasEffectChildren
+ * @tc.desc: Test SetHasEffectChildren and GetHasEffectChildren
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectRenderParamsTest, SetHasEffectChildren, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[5];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSEffectRenderParams>(id);
+    RSEffectRenderParams params(id);
+    params.SetHasEffectChildren(true);
+    ASSERT_TRUE(params.hasEffectChildren_);
+    ASSERT_TRUE(params.GetHasEffectChildren());
+}
+
 } // namespace OHOS::Rosen

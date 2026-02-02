@@ -257,9 +257,11 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Leve
 {
     PART("CaseDescription") {
         std::string unConfigPkgName = "com.pkg.other";
+        std::string sceneBoard = "com.ohos.sceneboard";
+        constexpr pid_t resPid = 110;
         auto& pkgParam = pkgParams_[0]; // first pkg
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
-
+        std::vector<std::string> sceneBoardParam = { sceneBoard + ":" + strategyName0, };
         PolicyConfigData::StrategyConfig strategyConfig;
         VoteInfo touchVoteInfo;
         HgmErrCode res;
@@ -273,6 +275,8 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Leve
             ASSERT_EQ(res, EXEC_SUCCESS);
             multiAppStrategy_->HandlePkgsEvent({ unConfigPkgName, });
             ASSERT_EQ(res, EXEC_SUCCESS);
+            multiAppStrategy_->HandlePkgsEvent(sceneBoardParam);
+            ASSERT_EQ(multiAppStrategy_->sceneBoardPid_, resPid);
             res = multiAppStrategy_->GetVoteRes(strategyConfig);
             ASSERT_EQ(res, EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_NULL_HZ);

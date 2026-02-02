@@ -36,9 +36,7 @@
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
 
-#if defined(MODIFIER_NG)
 #include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -1559,10 +1557,10 @@ HWTEST_F(RSUniHwcComputeUtilTest, TraverseParentNodeAndReduce_001, Function | Sm
     NodeId id = 0;
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(++id);
     canvasNode->InitRenderParams();
-    canvasNode->renderProperties_.alpha_ = 0.1;
+    canvasNode->renderProperties_.alpha_ = 0.1f;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
     surfaceNode->InitRenderParams();
-    surfaceNode->renderProperties_.alpha_ = 0.2;
+    surfaceNode->renderProperties_.alpha_ = 0.2f;
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(++id, 0, rsContext);
     canvasNode->AddChild(surfaceNode);
@@ -1570,8 +1568,8 @@ HWTEST_F(RSUniHwcComputeUtilTest, TraverseParentNodeAndReduce_001, Function | Sm
     RSUniHwcComputeUtil::HwcPropertyContext ctx;
     ctx.alpha = surfaceNode->GetRenderProperties().GetAlpha();
     RSUniHwcComputeUtil::TraverseParentNodeAndReduce(surfaceNode,
-        [&ctx](const std::shared_ptr<RSRenderNode>& parent){ RSUniHwcComputeUtil::UpdateHwcNodeAlpha(parent, ctx); });
-    ASSERT_FLOAT_EQ(ctx.alpha, 0.02);
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { RSUniHwcComputeUtil::UpdateHwcNodeAlpha(parent, ctx); });
+    ASSERT_FLOAT_EQ(ctx.alpha, 0.02f);
 }
 
 /**
@@ -1591,7 +1589,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetRotateTransformForRotationFixed_001, Functi
     node.stagingRenderParams_ = nullptr;
     auto transform = RSUniHwcComputeUtil::GetRotateTransformForRotationFixed(node,
         node.GetRSSurfaceHandler()->consumer_);
-    ASSERT_FLOAT_EQ(transform, GRAPHIC_ROTATE_90);
+    ASSERT_EQ(transform, GRAPHIC_ROTATE_90);
 }
 
 /**
@@ -1615,5 +1613,4 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetPropertyFromModifier_001, Function | SmallT
         ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY);
     ASSERT_NE(result, nullptr);
 }
-
 } // namespace OHOS::Rosen

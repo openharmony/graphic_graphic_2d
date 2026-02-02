@@ -267,7 +267,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.RegisterHgmRefreshRateModeChangeCallback(rsIHgmConfigChangeCallback);
     rsClientToServiceConnectionProxy.RegisterHgmRefreshRateUpdateCallback(rsIHgmConfigChangeCallback);
     rsClientToServiceConnectionProxy.RegisterFirstFrameCommitCallback(rsIFirstFrameCommitCallback);
-    rsClientToServiceConnectionProxy.SetAppWindowNum(width);
     rsClientToServiceConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes, false, success);
     rsClientToServiceConnectionProxy.ShowWatermark(watermarkImg, true);
     rsClientToServiceConnectionProxy.ResizeVirtualScreen(id1, width, height);

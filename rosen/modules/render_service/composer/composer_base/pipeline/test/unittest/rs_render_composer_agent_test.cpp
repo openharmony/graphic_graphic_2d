@@ -114,6 +114,7 @@ HWTEST_F(RsRenderComposerAgentTest, ForwardingMethods_NullAndNonNullBranches, Te
     nullAgent->PostTask([]{});
     EXPECT_EQ(nullAgent->ClearFrameBuffers(true), GSERROR_INVALID_ARGUMENTS);
     nullAgent->OnScreenVBlankIdleCallback(123456ULL);
+    nullAgent->HandlePowerStatus(POWER_STATUS_ON);
 
     // Non-null composer: methods should forward to composer and execute without crash
     auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
@@ -141,6 +142,9 @@ HWTEST_F(RsRenderComposerAgentTest, ForwardingMethods_NullAndNonNullBranches, Te
     EXPECT_EQ(agent->GetUnExecuteTaskNum(), 0);
     // ClearFrameBuffers should return a GSError (may be OK or error depending on environment), ensure no crash
     EXPECT_EQ(agent->ClearFrameBuffers(true), GSERROR_INVALID_ARGUMENTS);
+
+    // HandlePowerStatus callback forwarding
+    agent->HandlePowerStatus(POWER_STATUS_ON);
 
     // VBlank callback forwarding
     agent->OnScreenVBlankIdleCallback(98765ULL);

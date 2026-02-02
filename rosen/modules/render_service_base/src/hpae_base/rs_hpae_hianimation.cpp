@@ -26,7 +26,6 @@
 namespace OHOS::Rosen {
 using namespace std::chrono_literals;
 
-using GetHianimationDeviceFunc = hianimation_algo_device_t* (*)();
 constexpr int HPAE_BLUR_DELAY = 2;
 
 HianimationManager& HianimationManager::GetInstance()
@@ -48,7 +47,7 @@ HianimationManager::~HianimationManager()
     }
 #endif
     libHandle_ = nullptr;
-    hianimationDevice_ = nullptr;
+    hianimationDevice_.device = nullptr;
 }
 
 void HianimationManager::OpenDeviceAsync()
@@ -66,13 +65,13 @@ void HianimationManager::AlgoInitAsync(uint32_t imgWidth, uint32_t imgHeight, fl
 {
 #if defined(ROSEN_OHOS)
     {
-        std::unique_lock<std::mutex> lock(algoInitMutex_);
+        std::unique_lock<MutexType> lock(algoInitMutex_);
         algoInitDone_ = false;
     }
 
     ffrt::submit_h([=]() {
         this->HianimationAlgoInit(imgWidth, imgHeight, maxSigma, format);
-        std::unique_lock<std::mutex> lock(algoInitMutex_);
+        std::unique_lock<MutexType> lock(algoInitMutex_);
         this->algoInitDone_ = true;
         this->algoInitCv_.notify_all();
         }, {}, {}, ffrt::task_attr().qos(5));
@@ -84,7 +83,7 @@ void HianimationManager::AlgoInitAsync(uint32_t imgWidth, uint32_t imgHeight, fl
 void HianimationManager::WaitAlgoInit()
 {
     using namespace std::chrono_literals;
-    std::unique_lock<std::mutex> lock(algoInitMutex_);
+    std::unique_lock<MutexType> lock(algoInitMutex_);
     if (!algoInitDone_) {
         RS_TRACE_NAME("HpaeWaitAlgoInit");
         HPAE_LOGI("HpaeWaitAlgoInit");
@@ -107,15 +106,14 @@ void HianimationManager::AlgoDeInitAsync()
 
 bool HianimationManager::HianimationInvalid()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    return libHandle_ == nullptr;
+    return hianimationDevice_.device == nullptr;
 }
 
 void HianimationManager::OpenDevice()
 {
 #if defined(ROSEN_OHOS)
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (hianimationDevice_ != nullptr) {
+    std::unique_lock<MutexType> lock(mutex_);
+    if (hianimationDevice_.device != nullptr) {
         // do nothing
         return;
     }
@@ -127,33 +125,54 @@ void HianimationManager::OpenDevice()
         dlclose(libHandle_);
     }
 
-    libHandle_ = dlopen("libanimation.z.so", RTLD_LAZY);
+    libHandle_ = dlopen("libhianimation_client.z.so", RTLD_LAZY);
     if (libHandle_ == nullptr) {
         HPAE_LOGW("[%{public}s_%{public}d]:load library failed, reason: %{public}s", __func__, __LINE__, dlerror());
         return;
     }
-    GetHianimationDeviceFunc getDevFunc = reinterpret_cast<GetHianimationDeviceFunc>(
-        dlsym(libHandle_, "GetHianimationDevice"));
-    if (getDevFunc == nullptr) {
-        HPAE_LOGW("[%{public}s_%{public}d]:load func failed, reason: %{public}s", __func__, __LINE__, dlerror());
+
+    hianimationDevice_.openDevice = (HianimationOpenDeviceFunc)dlsym(libHandle_, "HianimationOpenDevice");
+    hianimationDevice_.closeDevice = (HianimationCloseDeviceFunc)dlsym(libHandle_, "HianimationCloseDevice");
+    hianimationDevice_.hianimationInputCheck = (HianimationInputCheckFunc)dlsym(libHandle_, "HianimationInputCheck");
+    hianimationDevice_.hianimationAlgoInit = (HianimationAlgoInitFunc)dlsym(libHandle_, "HianimationAlgoInit");
+    hianimationDevice_.hianimationAlgoDeInit = (HianimationAlgoDeInitFunc)dlsym(libHandle_, "HianimationAlgoDeInit");
+    hianimationDevice_.hianimationBuildTask = (HianimationBuildTaskFunc)dlsym(libHandle_, "HianimationBuildTask");
+    hianimationDevice_.hianimationDestroyTask =
+        (HianimationDestroyTaskFunc)dlsym(libHandle_, "HianimationDestroyTask");
+    hianimationDevice_.hianimationDumpDebugInfo =
+        (HianimationDumpDebugInfoFunc)dlsym(libHandle_, "HianimationDumpDebugInfo");
+
+    bool symbolReady = hianimationDevice_.openDevice && hianimationDevice_.closeDevice &&
+        hianimationDevice_.hianimationInputCheck && hianimationDevice_.hianimationAlgoInit &&
+        hianimationDevice_.hianimationAlgoDeInit && hianimationDevice_.hianimationBuildTask &&
+        hianimationDevice_.hianimationDestroyTask && hianimationDevice_.hianimationDumpDebugInfo;
+    if (symbolReady) {
+        hianimationDevice_.device = hianimationDevice_.openDevice();
+    }
+    if (hianimationDevice_.device == nullptr) {
+        HPAE_LOGW("hianimation device is null");
+        hianimationDevice_ = {};
         dlclose(libHandle_);
+        libHandle_ = nullptr;
         return;
     }
-    HPAE_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
-    hianimationDevice_ = getDevFunc();
 
+    HPAE_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
 #endif
 }
 
 void HianimationManager::CloseDevice()
 {
 #if defined(ROSEN_OHOS)
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     RS_OPTIONAL_TRACE_NAME("Hianimation: CloseDevice");
+    if (hianimationDevice_.closeDevice) {
+        hianimationDevice_.closeDevice();
+    }
     if (libHandle_ != nullptr) {
         dlclose(libHandle_);
     }
-    hianimationDevice_ = nullptr;
+    hianimationDevice_ = {};
 #endif
 }
 
@@ -162,8 +181,8 @@ bool HianimationManager::HianimationInputCheck(const struct BlurImgParam *imgInf
 {
     WaitAlgoInit();
 
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (hianimationDevice_ == nullptr) {
+    std::unique_lock<MutexType> lock(mutex_);
+    if (hianimationDevice_.device == nullptr) {
         HPAE_LOGE("device is nullptr");
         return false;
     }
@@ -175,7 +194,7 @@ bool HianimationManager::HianimationInputCheck(const struct BlurImgParam *imgInf
 
     HPAE_LOGD("HianimationInputCheck: w:%{public}d, h:%{public}d, sigma:%{public}f",
         imgInfo->width, imgInfo->height, imgInfo->sigmaNum);
-    return hianimationDevice_->hianimationInputCheck(imgInfo, noisePara);
+    return (hianimationDevice_.hianimationInputCheck(imgInfo, noisePara) == 0); // 0 for success
 }
 
 int32_t HianimationManager::HianimationAlgoInit(uint32_t panelWidth, uint32_t panelHeight, float maxSigma,
@@ -183,8 +202,8 @@ int32_t HianimationManager::HianimationAlgoInit(uint32_t panelWidth, uint32_t pa
 {
     WaitAllTaskDone(); // do outside mutex_
 
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (hianimationDevice_ == nullptr) {
+    std::unique_lock<MutexType> lock(mutex_);
+    if (hianimationDevice_.device == nullptr) {
         HPAE_LOGE("device is nullptr");
         return -1;
     }
@@ -199,11 +218,11 @@ int32_t HianimationManager::HianimationAlgoInit(uint32_t panelWidth, uint32_t pa
 
     for (auto taskId : taskIdMap_) {
         HPAE_LOGW("force destroy task: %d", taskId);
-        hianimationDevice_->hianimationDestroyTask(taskId);
+        hianimationDevice_.hianimationDestroyTask(taskId);
     }
     taskIdMap_.clear();
 
-    auto result = hianimationDevice_->hianimationAlgoInit(panelWidth, panelHeight, maxSigma, format);
+    auto result = hianimationDevice_.hianimationAlgoInit(panelWidth, panelHeight, maxSigma, format);
 
     algoInited_ = (result == 0);
 
@@ -215,8 +234,8 @@ int32_t HianimationManager::HianimationAlgoDeInit()
     WaitAlgoInit();
     WaitAllTaskDone(); // do outside mutex_
 
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (hianimationDevice_ == nullptr) {
+    std::unique_lock<MutexType> lock(mutex_);
+    if (hianimationDevice_.device == nullptr) {
         HPAE_LOGE("device is nullptr");
         return -1;
     }
@@ -226,13 +245,13 @@ int32_t HianimationManager::HianimationAlgoDeInit()
 
     for (auto taskId : taskIdMap_) {
         HPAE_LOGW("force destroy task: %d", taskId);
-        hianimationDevice_->hianimationDestroyTask(taskId);
+        hianimationDevice_.hianimationDestroyTask(taskId);
     }
     taskIdMap_.clear();
 
     int32_t result = 0;
     if (algoInited_) {
-        result = hianimationDevice_->hianimationAlgoDeInit();
+        result = hianimationDevice_.hianimationAlgoDeInit();
     }
 
     algoInited_ = false;
@@ -242,7 +261,7 @@ int32_t HianimationManager::HianimationAlgoDeInit()
 
 bool HianimationManager::WaitAllTaskDone()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     bool result = true;
     if (!taskIdMap_.empty()) {
         RS_TRACE_NAME("HpaeWaitAllTaskDone");
@@ -261,7 +280,7 @@ bool HianimationManager::WaitAllTaskDone()
 
 bool HianimationManager::WaitPreviousTask()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
     bool result = true;
     if (taskIdMap_.size() >= HPAE_BLUR_DELAY) {
         RS_TRACE_NAME("HpaeWaitPreviousTask");
@@ -277,14 +296,14 @@ bool HianimationManager::WaitPreviousTask()
 int32_t HianimationManager::HianimationBuildTask(const struct HaeBlurBasicAttr *basicInfo,
     const struct HaeBlurEffectAttr *effectInfo, uint32_t *outTaskId, void **outTaskPtr)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (hianimationDevice_ == nullptr) {
+    std::unique_lock<MutexType> lock(mutex_);
+    if (hianimationDevice_.device == nullptr) {
         HPAE_LOGE("device is nullptr");
         return -1;
     }
 
     RS_OPTIONAL_TRACE_NAME("Hianimation: HianimationBuildTask");
-    auto ret = hianimationDevice_->hianimationBuildTask(basicInfo, effectInfo, outTaskId, outTaskPtr);
+    auto ret = hianimationDevice_.hianimationBuildTask(basicInfo, effectInfo, outTaskId, outTaskPtr);
     if (ret == 0 && outTaskId) {
         taskIdMap_.insert(*outTaskId);
     }
@@ -293,42 +312,42 @@ int32_t HianimationManager::HianimationBuildTask(const struct HaeBlurBasicAttr *
 
 void HianimationManager::HianimationDumpDebugInfo(uint32_t taskId)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
 
-    if (hianimationDevice_ == nullptr) {
+    if (hianimationDevice_.device == nullptr) {
         HPAE_LOGE("device is nullptr");
         return;
     }
 
     RS_OPTIONAL_TRACE_NAME_FMT("Hianimation: HianimationDumpDebugInfo: %d", taskId);
-    hianimationDevice_->hianimationDumpDebugInfo(taskId);
+    hianimationDevice_.hianimationDumpDebugInfo(taskId);
 }
 
 int32_t HianimationManager::HianimationDestroyTask(uint32_t taskId)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
 
-    if (hianimationDevice_ == nullptr) {
+    if (hianimationDevice_.device == nullptr) {
         HPAE_LOGE("device is nullptr");
         return -1;
     }
 
     RS_OPTIONAL_TRACE_NAME_FMT("Hianimation: HianimationDestroyTask: %d", taskId);
     taskIdMap_.erase(taskId);
-    return hianimationDevice_->hianimationDestroyTask(taskId);
+    return hianimationDevice_.hianimationDestroyTask(taskId);
 }
 
 int32_t HianimationManager::HianimationDestroyTaskAndNotify(uint32_t taskId)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<MutexType> lock(mutex_);
 
-    if (hianimationDevice_ == nullptr) {
+    if (hianimationDevice_.device == nullptr) {
         HPAE_LOGE("device is nullptr");
         return -1;
     }
 
     RS_OPTIONAL_TRACE_NAME_FMT("Hianimation: HianimationDestroyTaskAndNotify: %d", taskId);
-    int32_t ret = hianimationDevice_->hianimationDestroyTask(taskId);
+    int32_t ret = hianimationDevice_.hianimationDestroyTask(taskId);
     taskIdMap_.erase(taskId);
     taskAvailableCv_.notify_all();
 

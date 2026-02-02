@@ -16,6 +16,7 @@
 #ifndef ROSEN_TEXT_ADAPTER_TXT_FONT_COLLECTION_H
 #define ROSEN_TEXT_ADAPTER_TXT_FONT_COLLECTION_H
 
+#include <atomic>
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
@@ -63,7 +64,7 @@ public:
     std::shared_ptr<txt::FontCollection> Get();
 
     void EnableGlobalFontMgr() override;
-    bool IsLocalFontCollection() override;
+    bool IsLocalFontCollection() const override;
     void DisableFallback() override;
     void DisableSystemFont() override;
     std::shared_ptr<Drawing::Typeface> LoadFont(
@@ -104,8 +105,8 @@ private:
     std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;
     std::unordered_set<TypefaceWithAlias, TypefaceWithAlias::Hasher> typefaceSet_;
     std::shared_mutex mutex_;
-    bool enableGlobalFontMgr_{false};
-    uint64_t localRegisteredSizeCount_{0};
+    std::atomic<bool> enableGlobalFontMgr_{false};
+    std::atomic<uint64_t> localRegisteredSizeCount_{0};
 };
 } // namespace AdapterTxt
 } // namespace Rosen

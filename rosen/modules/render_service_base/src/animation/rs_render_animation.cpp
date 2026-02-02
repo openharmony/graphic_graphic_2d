@@ -307,7 +307,7 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool is
     }
 
     // calculate frame time interval in seconds
-    float frameInterval = (time - animationFraction_.GetLastFrameTime()) * 1.0f / NS_TO_S;
+    double frameInterval = (time - animationFraction_.GetLastFrameTime()) * 1.0 / NS_TO_S;
 
     // convert time to fraction
     auto [fraction, isInStartDelay, isFinished, isRepeatFinished] =

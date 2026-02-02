@@ -24,18 +24,6 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
-#include "hgm_core.h"
-#include "memory/rs_memory_manager.h"
-#include "parameter.h"
-#include "pipeline/main_thread/rs_main_thread.h"
-#include "rs_profiler.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
-#include "vsync_generator.h"
-#include "rs_trace.h"
-#include "ge_render.h"
-#include "ge_mesa_blur_shader_filter.h"
-
 #include "common/rs_singleton.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #ifdef RS_ENABLE_RDO
@@ -46,22 +34,31 @@
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
+#include "ge_mesa_blur_shader_filter.h"
+#include "ge_render.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
 #include "graphic_feature_param_manager.h"
+#include "hgm_core.h"
+#include "memory/rs_memory_manager.h"
+#include "parameter.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
+#include "rs_profiler.h"
 #include "rs_render_composer_manager.h"
-#include "system/rs_system_parameters.h"
-
-#include "text/font_mgr.h"
-
-#undef LOG_TAG
-#define LOG_TAG "RSRenderService"
-
+#include "rs_trace.h"
 #ifdef TP_FEATURE_ENABLE
 #include "screen_manager/touch_screen.h"
 #endif
+#include "system/rs_system_parameters.h"
+#include "text/font_mgr.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "vsync_generator.h"
+
+#undef LOG_TAG
+#define LOG_TAG "RSRenderService"
 
 namespace OHOS {
 namespace Rosen {
@@ -104,9 +101,9 @@ bool RSRenderService::Init()
         mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
     }
 #ifdef RS_ENABLE_VK
-if (Drawing::SystemProperties::IsUseVulkan()) {
-    RsVulkanContext::SetRecyclable(false);
-}
+    if (Drawing::SystemProperties::IsUseVulkan()) {
+        RsVulkanContext::SetRecyclable(false);
+    }
 #endif
     RSMainThread::Instance();
     RSUniRenderJudgement::InitUniRenderConfig();
@@ -136,8 +133,7 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
 
     // The offset needs to be set
     int64_t offset = 0;
-    auto& hgmCore = HgmCore::Instance();
-    if (!hgmCore.GetLtpoEnabled()) {
+    if (auto& hgmCore = HgmCore::Instance(); !hgmCore.GetLtpoEnabled()) {
         if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
             offset = hgmCore.IsDelayMode() ? UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
         }
@@ -230,7 +226,6 @@ void RSRenderService::Run()
 
 void RSRenderService::RegisterRcdMsg()
 {
-#ifdef RS_ENABLE_GPU
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
         RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
         if (!isRcdServiceRegister_) {
@@ -255,7 +250,6 @@ void RSRenderService::RegisterRcdMsg()
         }
         RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice already.");
     }
-#endif
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(
@@ -269,6 +263,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
 
     auto tokenObj = token->AsObject();
+
     sptr<RSIClientToServiceConnection> newConn(
         new RSClientToServiceConnection(remotePid, this, mainThread_, screenManager_, tokenObj, appVSyncDistributor_));
 
@@ -296,6 +291,7 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
     }
     // temporarily extending the life cycle
     auto tokenObj = token->AsObject();
+
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = connections_.find(tokenObj);
     if (iter == connections_.end()) {
@@ -306,12 +302,14 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
     if (rsConn != nullptr) {
         rsConn->RemoveToken();
     }
+    // Subsequent sunset
     if (rsRenderConn != nullptr) {
         rsRenderConn->RemoveToken();
     }
-    
+
     connections_.erase(iter);
     lock.unlock();
+
     return true;
 }
 
@@ -572,39 +570,28 @@ static bool IsNumber(const std::string& type)
     return number == type.length();
 }
 
-static bool ExtractDumpInfo(std::unordered_set<std::u16string>& argSets, std::string& dumpInfo, std::u16string title)
-{
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        dumpInfo.append("\n---------------\n Not in UniRender and no information");
-        return false;
-    }
-    if (argSets.size() < 2) {
-        dumpInfo.append("\n---------------\n no need extract info");
-        return false;
-    }
-    argSets.erase(title);
-    if (!argSets.empty()) {
-        dumpInfo = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-    }
-    return true;
-}
-
 void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, bool isLite) const
 {
-    std::string type;
-    bool isSuccess = ExtractDumpInfo(argSets, type, u"dumpMem");
-    if (!isSuccess) {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        dumpString.append("\n---------------\nNot in UniRender and no information");
+    } else {
+        std::string type;
+        if (argSets.size() > 1) {
+            argSets.erase(u"dumpMem");
+            if (!argSets.empty()) {
+                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+            }
+        }
+        int pid = 0;
+        if (!type.empty() && IsNumber(type)) {
+            pid = std::atoi(type.c_str());
+        }
+        mainThread_->ScheduleTask(
+        [this, &argSets, &dumpString, &type, &pid, isLite]() {
+            return MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
+        }).wait();
         return;
     }
-    int pid = 0;
-    if (!type.empty() && IsNumber(type) && type.length() < 10) {
-        pid = std::atoi(type.c_str());
-    }
-
-    mainThread_->ScheduleTask(
-        [this, &argSets, &dumpString, &type, &pid, isLite]() {
-            return mainThread_->DumpMem(argSets, dumpString, type, pid, isLite);
-        }).wait();
 }
 
 void RSRenderService::DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
@@ -621,7 +608,7 @@ void RSRenderService::DumpGpuMem(std::unordered_set<std::u16string>& argSets, st
         }
         mainThread_->ScheduleTask(
             [this, &argSets, &dumpString, &type]() {
-                return mainThread_->DumpGpuMem(argSets, dumpString, type);
+                return MemoryManager::DumpGpuMem(argSets, dumpString, type);
             }).wait();
     }
 }
@@ -641,7 +628,8 @@ static void InitGLES()
         RS_LOGE("Failed to get default display.");
         return;
     }
-    EGLint major, minor;
+    EGLint major;
+    EGLint minor;
     if (eglInitialize(g_tmpDisplay, &major, &minor) == EGL_FALSE) {
         RS_LOGE("Failed to initialize EGL.");
         return;

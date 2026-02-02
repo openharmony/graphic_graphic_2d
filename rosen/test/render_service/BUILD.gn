@@ -16,6 +16,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 group("test") {
   testonly = true
   deps = [
+    "render_service/fuzztest/rsclienttorenderconnection_fuzzer:fuzztest",
     "render_service/fuzztest/rsirenderserviceipcinterfacecodeaccessverifier_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnection_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnection000_fuzzer:fuzztest",
@@ -41,13 +42,13 @@ group("test") {
     "render_service/fuzztest/rsrenderserviceconnectionFFF_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnectionhdr00_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnectionhdr01_fuzzer:fuzztest",
-    "render_service/fuzztest/rsrenderserviceconnectionstub_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderservicesecurityutils_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderservicestub_fuzzer:fuzztest",
     "render_service/fuzztest/rsroundcornerdisplay_fuzzer:fuzztest",
     "render_service/fuzztest/rsscreenmanager_fuzzer:fuzztest",
     "render_service/fuzztest/rstransaction_fuzzer:fuzztest",
     "render_service/systemtest/pipeline:systemtest",
+    "render_service/unittest/composer:unittest",
     "render_service/unittest/drawable:unittest",
     "render_service/unittest/feature:unittest",
     "render_service/unittest/feature_cfg:unittest",
@@ -129,6 +130,7 @@ group("test") {
     "render_service_base/fuzztest/rsscreencapability_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsscreenhdrcapability_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsscreenmodeinfo_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsscreenproperty_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsshadow_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssingleframecomposer_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsspeciallayermanager_fuzzer:fuzztest",
@@ -216,6 +218,7 @@ group("test") {
       "render_service_base/fuzztest/modifier_ng/rsbackgroundrendermodifier_fuzzer:fuzztest",
       "render_service_base/fuzztest/modifier_ng/rsforegroundrendermodifier_fuzzer:fuzztest",
       "render_service_base/fuzztest/modifier_ng/rsgeometryrendermodifier_fuzzer:fuzztest",
+      "render_service_base/fuzztest/modifier_ng/rsrendermodifierng_fuzzer:fuzztest",
       "render_service_client/fuzztest/modifier_ng/rsappearancemodifier_fuzzer:fuzztest",
       "render_service_client/fuzztest/modifier_ng/rsbackgroundmodifier_fuzzer:fuzztest",
       "render_service_client/fuzztest/modifier_ng/rscustommodifier_fuzzer:fuzztest",

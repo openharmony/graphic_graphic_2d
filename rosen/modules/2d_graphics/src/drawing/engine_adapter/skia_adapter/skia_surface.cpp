@@ -47,9 +47,8 @@ namespace Drawing {
 #ifdef RS_ENABLE_GPU
 static constexpr int TEXTURE_SAMPLE_COUNT = 0;
 static constexpr int FB_SAMPLE_COUNT = 0;
-static constexpr int STENCIL_BITS = 8;
 static constexpr uint32_t SURFACE_PROPS_FLAGS = 0;
-
+#endif
 namespace {
 SkSurface::BackendHandleAccess ConvertToSkiaBackendAccess(BackendAccess access)
 {
@@ -66,12 +65,11 @@ SkSurface::BackendHandleAccess ConvertToSkiaBackendAccess(BackendAccess access)
     return SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess;
 }
 }
-#endif
+
 SkiaSurface::SkiaSurface() {}
 
 void SkiaSurface::PostSkSurfaceToTargetThread()
 {
-#ifdef RS_ENABLE_GPU
     auto canvas = GetCanvas();
     if (canvas == nullptr) {
         return;
@@ -95,7 +93,6 @@ void SkiaSurface::PostSkSurfaceToTargetThread()
             SkSafeUnref(image);
         });
     }
-#endif
 }
 
 SkiaSurface::~SkiaSurface()
@@ -186,8 +183,9 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
     framebufferInfo.fFormat = frameBuffer.Format;
 #ifdef USE_M133_SKIA
     GrBackendRenderTarget backendRenderTarget = GrBackendRenderTargets::MakeGL(
-        frameBuffer.width, frameBuffer.height, FB_SAMPLE_COUNT, STENCIL_BITS, framebufferInfo);
+        frameBuffer.width, frameBuffer.height, FB_SAMPLE_COUNT, 0, framebufferInfo);
 #else
+    static constexpr int STENCIL_BITS = 8;
     GrBackendRenderTarget backendRenderTarget(
         frameBuffer.width, frameBuffer.height, FB_SAMPLE_COUNT, STENCIL_BITS, framebufferInfo);
 #endif

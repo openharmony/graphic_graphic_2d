@@ -15,6 +15,8 @@
 
 #include "drawable/rs_misc_drawable.h"
 
+#include "feature/color_picker/color_pick_alt_manager.h"
+#include "feature/color_picker/rs_color_picker_manager.h"
 #include "rs_profiler.h"
 
 #include "common/rs_common_def.h"
@@ -26,6 +28,7 @@
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/common/rs_log.h"
 
@@ -153,13 +156,19 @@ void RSChildrenDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* re
 }
 
 // ==================== RSColorPickerDrawable =====================
-RSColorPickerDrawable::RSColorPickerDrawable()
+RSColorPickerDrawable::RSColorPickerDrawable(bool useAlt)
 {
-    colorPickerManager_ = std::make_shared<RSColorPickerManager>();
+    if (useAlt) {
+        colorPickerManager_ = std::make_shared<ColorPickAltManager>();
+    } else {
+        colorPickerManager_ = std::make_shared<RSColorPickerManager>();
+    }
 }
 RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSColorPickerDrawable>(); ret->OnUpdate(node)) {
+    auto colorPicker = node.GetRenderProperties().GetColorPicker();
+    const bool useAlt = colorPicker ? colorPicker->strategy == ColorPickStrategyType::CLIENT_CALLBACK : false;
+    if (auto ret = std::make_shared<RSColorPickerDrawable>(useAlt); ret->OnUpdate(node)) {
         return std::move(ret);
     }
     return nullptr;
@@ -179,19 +188,22 @@ void RSColorPickerDrawable::OnSync()
         return;
     }
     nodeId_ = stagingNodeId_;
-    colorPicker_ = stagingColorPicker_ ? *stagingColorPicker_ : ColorPickerParam();
+    params_ = stagingColorPicker_ ? *stagingColorPicker_ : ColorPickerParam();
     needSync_ = false;
 }
 
 void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    if (colorPickerManager_) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        if (paintFilterCanvas != nullptr) {
-            auto color = colorPickerManager_->GetColorPicked(
-                *paintFilterCanvas, rect, nodeId_, colorPicker_.strategy, colorPicker_.interval);
-            paintFilterCanvas->SetColorPicked(colorPicker_.placeholder, color);
-        }
+    if (!colorPickerManager_) {
+        return;
+    }
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    if (!paintFilterCanvas) {
+        return;
+    }
+    auto maybeColor = colorPickerManager_->GetColorPicked(*paintFilterCanvas, rect, nodeId_, params_);
+    if (maybeColor.has_value()) {
+        paintFilterCanvas->SetColorPicked(params_.placeholder, maybeColor.value());
     }
 }
 
@@ -274,8 +286,8 @@ void RSCustomModifierDrawable::OnPurge()
 void RSCustomModifierDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
 #ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-        RSTagTracker::SOURCETYPE::SOURCE_RSCUSTOMMODIFIERDRAWABLE);
+    RSTagTracker tagTracker(
+        canvas ? canvas->GetGPUContext() : nullptr, RSTagTracker::SOURCETYPE::SOURCE_RSCUSTOMMODIFIERDRAWABLE);
 #endif
     for (size_t i = 0; i < drawCmdListVec_.size(); i++) {
 #ifdef RS_ENABLE_PREFETCH
@@ -286,9 +298,8 @@ void RSCustomModifierDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
 #endif
         const auto& drawCmdList = drawCmdListVec_[i];
         Drawing::Matrix mat;
-        if (isCanvasNode_ &&
-            RSPropertyDrawableUtils::GetGravityMatrix(gravity_, *rect, drawCmdList->GetWidth(),
-                drawCmdList->GetHeight(), mat)) {
+        if (isCanvasNode_ && RSPropertyDrawableUtils::GetGravityMatrix(
+            gravity_, *rect, drawCmdList->GetWidth(), drawCmdList->GetHeight(), mat)) {
             canvas->ConcatMatrix(mat);
         }
         drawCmdList->Playback(*canvas, rect);
@@ -414,13 +425,12 @@ void RSBeginBlenderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
+    RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSBEGINBLENDERDRAWABLE);
 #endif
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSBeginBlenderDrawable:: %s, bounds: %s",
         propertyDescription_.c_str(), rect->ToString().c_str());
-    RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, blender_, blendApplyType_,
-        isDangerous_);
+    RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, blender_, blendApplyType_, isDangerous_);
 }
 
 RSDrawable::Ptr RSEndBlenderDrawable::OnGenerate(const RSRenderNode& node)
@@ -545,8 +555,8 @@ void RSEnvFGColorStrategyDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing
     switch (envFGColorStrategy_) {
         case ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR: {
             // calculate the color by screebshot
-            Color color = RSPropertyDrawableUtils::GetInvertBackgroundColor(*paintFilterCanvas, needClipToBounds_,
-                boundsRect_, backgroundColor_);
+            Color color = RSPropertyDrawableUtils::GetInvertBackgroundColor(
+                *paintFilterCanvas, needClipToBounds_, boundsRect_, backgroundColor_);
             paintFilterCanvas->SetEnvForegroundColor(color);
             break;
         }

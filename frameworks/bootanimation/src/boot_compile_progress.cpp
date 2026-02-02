@@ -32,6 +32,8 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_ui_context_manager.h"
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 
 namespace OHOS {
 namespace {
@@ -75,6 +77,13 @@ namespace {
     constexpr const int DOUBLE_TIMES = 2;
 }
 
+BootCompileProgress::~BootCompileProgress()
+{
+    if (deathRecipient_ && renderObj_) {
+        renderObj_->RemoveDeathRecipient(deathRecipient_);
+    }
+}
+
 void BootCompileProgress::Init(const std::string& configPath, const BootAnimationConfig& config)
 {
     LOGI("ota compile, screenId: " BPUBU64 "", config.screenId);
@@ -105,6 +114,7 @@ void BootCompileProgress::Init(const std::string& configPath, const BootAnimatio
     sharpCurve_ = std::make_shared<Rosen::RSCubicBezierInterpolator>(
         SHARP_CURVE_CTLX1, SHARP_CURVE_CTLY1, SHARP_CURVE_CTLX2, SHARP_CURVE_CTLY2);
     compileRunner_ = AppExecFwk::EventRunner::Create(false);
+    RegisterDeathRecipientInner();
     compileHandler_ = std::make_shared<AppExecFwk::EventHandler>(compileRunner_);
     compileHandler_->PostTask([this] { this->CreateCanvasNode(); });
     compileHandler_->PostTask([this] { this->RegisterVsyncCallback(); });
@@ -364,4 +374,36 @@ void BootCompileProgress::SetFrame()
             maxLength * HEIGHT_PERCENT);
     }
 }
+
+void BootCompileProgress::RegisterDeathRecipientInner()
+{
+    sptr<ISystemAbilityManager> saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (saMgr == nullptr) {
+        LOGE("saMgr is null");
+        return;
+    }
+    renderObj_ = saMgr->GetSystemAbility(RENDER_SERVICE);
+    if (renderObj_ == nullptr) {
+        LOGE("renderObj_ is null");
+        return;
+    }
+    if (deathRecipient_ == nullptr) {
+        deathRecipient_ = new DeathRecipientInner(compileRunner_);
+    }
+    if (!renderObj_->AddDeathRecipient(deathRecipient_)) {
+        LOGE("Failed to add death recipient");
+    }
+}
+
+void BootCompileProgress::DeathRecipientInner::OnRemoteDied(const wptr<IRemoteObject> &remote)
+{
+    LOGE("OnRemoteDied run, force stop progress");
+    if (compileRunner_) {
+        compileRunner_->Stop();
+    }
+}
+
+BootCompileProgress::DeathRecipientInner::DeathRecipientInner(
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> compileRunner) : compileRunner_(compileRunner)
+{}
 } // namespace OHOS

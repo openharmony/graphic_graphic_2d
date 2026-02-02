@@ -345,7 +345,7 @@ uint32_t OH_Drawing_GetFontCountFromFile(const char* fontSrc)
 {
     uint32_t fileCount = 0;
     if (fontSrc != nullptr) {
-        fileCount = TextEngine::FontParser::GetFontCount(fontSrc);
+        fileCount = static_cast<uint32_t>(TextEngine::FontParser::GetFontCount(fontSrc));
     }
     return fileCount;
 }
@@ -355,7 +355,7 @@ uint32_t OH_Drawing_GetFontCountFromBuffer(uint8_t* fontBuffer, size_t length)
     uint32_t fileCount = 0;
     if (fontBuffer != nullptr && length != 0) {
         std::vector<uint8_t> fontData(fontBuffer, fontBuffer + length);
-        fileCount = TextEngine::FontParser::GetFontCount(fontData);
+        fileCount = static_cast<uint32_t>(TextEngine::FontParser::GetFontCount(fontData));
     }
     return fileCount;
 }

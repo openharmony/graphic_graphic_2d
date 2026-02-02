@@ -56,13 +56,14 @@ bool BuildImageFuzzTest(const uint8_t* data, size_t size)
 /*
  *  测试 Image 的基本功能，包括:
  *  1. GetHeadroom()
- *  2. SetHeadroom()
+ *  2. SetHeadroom(float)
  */
 bool ImageFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return false;
     }
+    
     Image image;
     Bitmap bitmap;
     int width = GetObject<int>();

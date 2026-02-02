@@ -37,6 +37,7 @@ ohos_unittest("text_ndk_test") {
     "text_typography_alignment_test.cpp",
     "text_typography_paint_attribute_test.cpp",
     "text_typography_strut_style_test.cpp",
+    "text_typography_style_ellipsis_test.cpp",
     "text_typography_style_test.cpp",
     "text_typography_test.cpp",
     "undefined_glyph_display_test.cpp",
@@ -62,7 +63,8 @@ ohos_unittest("text_ndk_test") {
   ]
 
   if (ohos_indep_compiler_enable) {
-    include_dirs += [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
+    include_dirs +=
+        [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
   }
 
   deps = [
@@ -78,6 +80,7 @@ ohos_unittest("text_ndk_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "icu:shared_icuuc",
+    "image_framework:image_native",
   ]
 
   platform = current_os

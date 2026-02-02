@@ -237,8 +237,18 @@ bool GPUContextFuzzTest005(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return false;
     }
-    std::string name = GetObject<std::string>();
-    std::string value = GetObject<std::string>();
+    uint32_t nameCount = GetObject<uint32_t>() % MAX_SIZE + 1;
+    std::string name;
+    name.reserve(nameCount);
+    for (size_t i = 0; i < nameCount; i++) {
+        name.push_back(GetObject<char>());
+    }
+    uint32_t valueCount = GetObject<uint32_t>() % MAX_SIZE + 1;
+    std::string value;
+    value.reserve(valueCount);
+    for (size_t i = 0; i < valueCount; i++) {
+        value.push_back(GetObject<char>());
+    }
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     if (gpuContext == nullptr) {
         return false;

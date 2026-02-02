@@ -30,9 +30,6 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_FONT_NAME = "@ohos.graphics.drawing.drawing.Font";
-const char* ANI_FONT_HINTING_NAME = "@ohos.graphics.drawing.drawing.FontHinting";
-const char* ANI_FONT_EDGING_NAME = "@ohos.graphics.drawing.drawing.FontEdging";
 
 static std::string GetFontHintingItemName(FontHinting hinting)
 {
@@ -66,8 +63,8 @@ static std::string GetFontEdgingItemName(FontEdging edging)
 
 ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
 {
-        ani_object aniFontMetrics = CreateAniObject(env, "@ohos.graphics.drawing.drawing.FontMetricsInner",
-        "iddddddddddddddd:",
+    ani_object aniFontMetrics = CreateAniObject(env, AniGlobalClass::GetInstance().fontMetrics,
+        AniGlobalMethod::GetInstance().fontMetricsCtor,
         ani_int(static_cast<int>(fontMetrics.fFlags)),
         ani_double(fontMetrics.fTop),
         ani_double(fontMetrics.fAscent),
@@ -85,10 +82,7 @@ ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
         ani_double(fontMetrics.fStrikeoutThickness),
         ani_double(fontMetrics.fStrikeoutPosition)
     );
-    
-    ani_boolean isUndefined = false;
-    env->Reference_IsUndefined(aniFontMetrics, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniFontMetrics)) {
         ROSEN_LOGE("[ANI] create aniFontMetrics failed.");
         return aniFontMetrics;
     }
@@ -142,13 +136,12 @@ static const std::array g_methods = {
 
 ani_status AniFont::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_FONT_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().font;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_FONT_NAME);
         return ANI_NOT_FOUND;
     }
-    ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_FONT_NAME);
         return ANI_NOT_FOUND;
@@ -172,7 +165,8 @@ void AniFont::Constructor(ani_env* env, ani_object obj)
     std::shared_ptr<Font> font = std::make_shared<Font>();
     font->SetTypeface(AniTypeface::GetZhCnTypeface());
     AniFont* aniFont = new AniFont(font);
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        obj, AniGlobalField::GetInstance().fontNativeObj, reinterpret_cast<ani_long>(aniFont))) {
         ROSEN_LOGE("AniFont::Constructor failed create aniFont");
         delete aniFont;
         return;
@@ -181,20 +175,23 @@ void AniFont::Constructor(ani_env* env, ani_object obj)
 
 ani_object AniFont::GetMetrics(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetTypeface font is nullptr.");
         return ani_object{};
     }
 
     FontMetrics metrics;
-    aniFont->GetFont()->GetMetrics(&metrics);
+    std::shared_ptr<Font> font = aniFont->GetFont();
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? font : themeFont;
+    realFont->GetMetrics(&metrics);
     return CreateAniFontMetrics(env, metrics);
 }
 
 ani_double AniFont::GetSize(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetSize font is nullptr.");
         return -1;
@@ -205,7 +202,7 @@ ani_double AniFont::GetSize(ani_env* env, ani_object obj)
 
 ani_object AniFont::GetTypeface(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetMetrics font is nullptr.");
         return ani_object{};
@@ -213,10 +210,11 @@ ani_object AniFont::GetTypeface(ani_env* env, ani_object obj)
 
     std::shared_ptr<Typeface> typeface = aniFont->GetFont()->GetTypeface();
     AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.Typeface", nullptr);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
-        ROSEN_LOGE("AniFont::GetTypeface failed cause by Object_SetFieldByName_Long");
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
+        AniGlobalMethod::GetInstance().typefaceCtor);
+    if (ANI_OK != env->Object_SetField_Long(aniObj,
+        AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniTypeface))) {
+        ROSEN_LOGE("AniFont::GetTypeface failed cause by Object_SetField_Long");
         delete aniTypeface;
         return CreateAniUndefined(env);
     }
@@ -225,7 +223,7 @@ ani_object AniFont::GetTypeface(ani_env* env, ani_object obj)
 
 void AniFont::EnableSubpixel(ani_env* env, ani_object obj, ani_boolean isSubpixel)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::EnableSubpixel font is nullptr.");
         return;
@@ -237,7 +235,7 @@ void AniFont::EnableSubpixel(ani_env* env, ani_object obj, ani_boolean isSubpixe
 
 void AniFont::EnableEmbolden(ani_env* env, ani_object obj, ani_boolean isEmbolden)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::EnableEmbolden font is nullptr.");
         return;
@@ -249,7 +247,7 @@ void AniFont::EnableEmbolden(ani_env* env, ani_object obj, ani_boolean isEmbolde
 
 void AniFont::EnableLinearMetrics(ani_env* env, ani_object obj, ani_boolean isLinearMetrics)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniFont::EnableLinearMetrics font is nullptr.");
@@ -262,7 +260,7 @@ void AniFont::EnableLinearMetrics(ani_env* env, ani_object obj, ani_boolean isLi
 
 void AniFont::SetSize(ani_env* env, ani_object obj, ani_double size)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::SetSize font is nullptr.");
         return;
@@ -273,13 +271,13 @@ void AniFont::SetSize(ani_env* env, ani_object obj, ani_double size)
 
 void AniFont::SetTypeface(ani_env* env, ani_object obj, ani_object typeface)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::SetTypeface font is nullptr.");
         return;
     }
 
-    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, typeface);
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, typeface, AniGlobalField::GetInstance().typefaceNativeObj);
     if (aniTypeface == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::SetTypeface typeface is nullptr.");
         return;
@@ -290,7 +288,7 @@ void AniFont::SetTypeface(ani_env* env, ani_object obj, ani_object typeface)
 
 ani_double AniFont::MeasureSingleCharacter(ani_env* env, ani_object obj, ani_string text)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniFont::MeasureSingleCharacter font is nullptr.");
@@ -325,7 +323,7 @@ ani_double AniFont::MeasureSingleCharacter(ani_env* env, ani_object obj, ani_str
 
 ani_double AniFont::MeasureText(ani_env* env, ani_object obj, ani_string aniText, ani_enum_item encoding)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::MeasureText font is nullptr.");
         return -1;
@@ -353,7 +351,7 @@ ani_double AniFont::MeasureText(ani_env* env, ani_object obj, ani_string aniText
 
 void AniFont::SetScaleX(ani_env* env, ani_object obj, ani_double scaleX)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::SetScaleX font is nullptr.");
         return;
@@ -364,7 +362,7 @@ void AniFont::SetScaleX(ani_env* env, ani_object obj, ani_double scaleX)
 
 void AniFont::SetBaselineSnap(ani_env* env, ani_object obj, ani_boolean isBaselineSnap)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::SetBaselineSnap font is nullptr.");
         return;
@@ -376,7 +374,7 @@ void AniFont::SetBaselineSnap(ani_env* env, ani_object obj, ani_boolean isBaseli
 
 ani_boolean AniFont::IsBaselineSnap(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::IsBaselineSnap font is nullptr.");
         return ANI_FALSE;
@@ -388,7 +386,7 @@ ani_boolean AniFont::IsBaselineSnap(ani_env* env, ani_object obj)
 
 void AniFont::SetEmbeddedBitmaps(ani_env* env, ani_object obj, ani_boolean isEmbeddedBitmaps)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::SetEmbeddedBitmaps font is nullptr.");
         return;
@@ -400,7 +398,7 @@ void AniFont::SetEmbeddedBitmaps(ani_env* env, ani_object obj, ani_boolean isEmb
 
 ani_boolean AniFont::IsEmbeddedBitmaps(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::IsEmbeddedBitmaps font is nullptr.");
         return ANI_FALSE;
@@ -412,7 +410,7 @@ ani_boolean AniFont::IsEmbeddedBitmaps(ani_env* env, ani_object obj)
 
 void AniFont::SetForceAutoHinting(ani_env* env, ani_object obj, ani_boolean isForceAutoHinting)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniFont::SetForceAutoHinting font is nullptr.");
@@ -423,31 +421,29 @@ void AniFont::SetForceAutoHinting(ani_env* env, ani_object obj, ani_boolean isFo
     aniFont->GetFont()->SetForceAutoHinting(forceAutoHinting);
 }
 
-ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_object glyphs)
+ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_array glyphs)
 {
-    ani_object arrayObj = CreateAniUndefined(env);
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetWidths font is nullptr.");
-        return arrayObj;
+        return CreateAniUndefined(env);
     }
 
-    ani_int aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Int(glyphs, "length", &aniLength) || aniLength == 0) {
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(glyphs, &aniLength) || aniLength == 0) {
         ROSEN_LOGE("AniFont::GetWidths Failed to get size of glyph array");
-        return arrayObj;
+        return CreateAniUndefined(env);
     }
     uint32_t fontSize = static_cast<uint32_t>(aniLength);
     std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(fontSize);
     for (uint32_t i = 0; i < fontSize; i++) {
         ani_int glyph;
         ani_ref glyphRef;
-        if (ANI_OK != env->Object_CallMethodByName_Ref(
-            glyphs, "$_get", "i:Y", &glyphRef, (ani_int)i) ||
-            ANI_OK != env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(glyphRef), "toInt", ":i", &glyph)) {
+        if (ANI_OK != env->Array_Get(glyphs, static_cast<ani_size>(i), &glyphRef) ||
+            ANI_OK != env->Object_CallMethod_Int(
+                static_cast<ani_object>(glyphRef), AniGlobalMethod::GetInstance().intGet, &glyph)) {
             ROSEN_LOGE("AniFont::GetWidths Incorrect parameter glyph type.");
-            return arrayObj;
+            return CreateAniUndefined(env);
         }
         glyphPtr[i] = glyph;
     }
@@ -457,19 +453,19 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_object glyphs)
     std::shared_ptr<Font> themeFont = GetThemeFont(font);
     std::shared_ptr<Font> realFont = themeFont == nullptr ? font : themeFont;
     realFont->GetWidths(glyphPtr.get(), fontSize, widthPtr.get());
-    arrayObj = CreateAniArrayWithSize(env, fontSize);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(arrayObj, &isUndefined);
-    if (isUndefined) {
-        return arrayObj;
+    ani_array arrayObj = CreateAniArrayWithSize(env, fontSize);
+    if (arrayObj == nullptr) {
+        return CreateAniUndefined(env);
     }
 
     for (uint32_t i = 0; i < fontSize; i++) {
-        ani_object aniObj = CreateAniObject(env, ANI_DOUBLE_STRING, "d:", widthPtr[i]);
-        if (aniObj == CreateAniUndefined(env)) {
-            return CreateAniUndefined(env);
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().doubleCls,
+            AniGlobalMethod::GetInstance().doubleCtor, widthPtr[i]);
+        if (IsUndefined(env, aniObj)) {
+            ROSEN_LOGE("AniFont::GetWidths Failed to create width item");
+            return aniObj;
         }
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", (ani_int)i, aniObj);
+        ani_status ret = env->Array_Set(arrayObj, static_cast<ani_size>(i), aniObj);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniFont::GetWidths Failed to set width item");
             return CreateAniUndefined(env);
@@ -481,11 +477,10 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_object glyphs)
 ani_object AniFont::TextToGlyphs(ani_env* env, ani_object obj, ani_string aniText, ani_object glyphCount)
 {
     std::string text = CreateStdString(env, aniText);
-    ani_object arrayObj = CreateAniUndefined(env);
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::TextToGlyphs font is nullptr.");
-        return arrayObj;
+        return CreateAniUndefined(env);
     }
 
     std::shared_ptr<Font> font = aniFont->GetFont();
@@ -493,39 +488,35 @@ ani_object AniFont::TextToGlyphs(ani_env* env, ani_object obj, ani_string aniTex
     std::shared_ptr<Font> realFont = themeFont == nullptr ? font : themeFont;
     uint32_t count = static_cast<uint32_t>(realFont->CountText(text.c_str(), text.length(), TextEncoding::UTF8));
 
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(glyphCount, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, glyphCount)) {
         ani_int aniGlyphCount;
-        if (ANI_OK != env->Object_CallMethodByName_Int(glyphCount, "toInt", ":i", &aniGlyphCount)) {
+        if (ANI_OK != env->Object_CallMethod_Int(glyphCount, AniGlobalMethod::GetInstance().intGet, &aniGlyphCount)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniFont::TextToGlyphs incorrect type glyph.");
-            return arrayObj;
+            return CreateAniUndefined(env);
         }
         if (count != static_cast<uint32_t>(aniGlyphCount)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::TextToGlyphs Invalid params.");
-            return arrayObj;
+            return CreateAniUndefined(env);
         }
     }
     std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(count);
     realFont->TextToGlyphs(text.c_str(), text.length(), TextEncoding::UTF8, glyphPtr.get(), count);
 
-    arrayObj = CreateAniArrayWithSize(env, count);
-    isUndefined = true;
-    env->Reference_IsUndefined(arrayObj, &isUndefined);
-    if (isUndefined) {
+    ani_array arrayObj = CreateAniArrayWithSize(env, count);
+    if (arrayObj == nullptr) {
         ROSEN_LOGE("AniFont::TextToGlyphs Failed to Create arrayObject");
-        return arrayObj;
+        return CreateAniUndefined(env);
     }
 
     for (uint32_t i = 0; i < count; i++) {
-        ani_object aniObj = CreateAniObject(env, ANI_INT_STRING, "i:", glyphPtr[i]);
-        if (aniObj == CreateAniUndefined(env)) {
-            ROSEN_LOGE("AniFont::GetWidths Failed to create Int object");
-            return CreateAniUndefined(env);
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().intCls,
+            AniGlobalMethod::GetInstance().intCtor, glyphPtr[i]);
+        if (IsUndefined(env, aniObj)) {
+            ROSEN_LOGE("AniFont::TextToGlyphs Failed to create Int object");
+            return aniObj;
         }
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set",
-            "iY:", (ani_int)i, aniObj);
+        ani_status ret = env->Array_Set(arrayObj, static_cast<ani_size>(i), aniObj);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniFont::TextToGlyphs Failed to set width item");
             return CreateAniUndefined(env);
@@ -536,7 +527,7 @@ ani_object AniFont::TextToGlyphs(ani_env* env, ani_object obj, ani_string aniTex
 
 ani_boolean AniFont::IsSubpixel(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::IsSubpixel font is nullptr.");
         return ANI_FALSE;
@@ -548,7 +539,7 @@ ani_boolean AniFont::IsSubpixel(ani_env* env, ani_object obj)
 
 ani_boolean AniFont::IsLinearMetrics(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::IsLinearMetrics font is nullptr.");
         return ANI_FALSE;
@@ -560,7 +551,7 @@ ani_boolean AniFont::IsLinearMetrics(ani_env* env, ani_object obj)
 
 ani_double AniFont::GetSkewX(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetSkewX font is nullptr.");
         return -1;
@@ -572,7 +563,7 @@ ani_double AniFont::GetSkewX(ani_env* env, ani_object obj)
 
 ani_boolean AniFont::IsEmbolden(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::IsEmbolden font is nullptr.");
         return ANI_FALSE;
@@ -584,7 +575,7 @@ ani_boolean AniFont::IsEmbolden(ani_env* env, ani_object obj)
 
 void AniFont::SetHinting(ani_env* env, ani_object obj, ani_enum_item hinting)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::SetHinting font is nullptr.");
         return;
@@ -606,7 +597,7 @@ void AniFont::SetHinting(ani_env* env, ani_object obj, ani_enum_item hinting)
 
 ani_int AniFont::CountText(ani_env* env, ani_object obj, ani_string aniText)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::CountText font is nullptr.");
         return -1;
@@ -622,7 +613,7 @@ ani_int AniFont::CountText(ani_env* env, ani_object obj, ani_string aniText)
 
 void AniFont::SetSkewX(ani_env* env, ani_object obj, ani_double skewX)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::SetSkewX font is nullptr.");
         return;
@@ -633,7 +624,7 @@ void AniFont::SetSkewX(ani_env* env, ani_object obj, ani_double skewX)
 
 void AniFont::SetEdging(ani_env* env, ani_object obj, ani_enum_item edging)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::SetEdging font is nullptr.");
         return;
@@ -655,7 +646,7 @@ void AniFont::SetEdging(ani_env* env, ani_object obj, ani_enum_item edging)
 
 ani_boolean AniFont::IsForceAutoHinting(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::IsForceAutoHinting font is nullptr.");
         return ANI_FALSE;
@@ -667,7 +658,7 @@ ani_boolean AniFont::IsForceAutoHinting(ani_env* env, ani_object obj)
 
 ani_double AniFont::GetScaleX(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetScaleX font is nullptr.");
         return -1;
@@ -679,49 +670,33 @@ ani_double AniFont::GetScaleX(ani_env* env, ani_object obj)
 
 ani_enum_item AniFont::GetHinting(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetHinting font is nullptr.");
         return {};
     }
     FontHinting hinting = aniFont->GetFont()->GetHinting();
-
-    ani_enum type;
-    if (ANI_OK != env->FindEnum(ANI_FONT_HINTING_NAME, &type)) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Find enum for FontHinting failed.");
-        return {};
-    }
-
     std::string itemName = GetFontHintingItemName(hinting);
     ani_enum_item enumItem;
-    if (ANI_OK != env->Enum_GetEnumItemByName(type, itemName.c_str(), &enumItem)) {
+    if (!CreateAniEnumByEnumName(env, AniGlobalEnum::GetInstance().fontHinting, itemName, enumItem)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "Failed to obtain the FontHinting enumeration.");
         return {};
     }
-
     return enumItem;
 }
 
 ani_enum_item AniFont::GetEdging(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetEdging font is nullptr.");
         return {};
     }
     FontEdging edging = aniFont->GetFont()->GetEdging();
-
-    ani_enum type;
-    if (ANI_OK != env->FindEnum(ANI_FONT_EDGING_NAME, &type)) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Find enum for FontEdging failed.");
-        return {};
-    }
-
     std::string itemName = GetFontEdgingItemName(edging);
     ani_enum_item enumItem;
-    if (ANI_OK != env->Enum_GetEnumItemByName(type, itemName.c_str(), &enumItem)) {
+    if (!CreateAniEnumByEnumName(env, AniGlobalEnum::GetInstance().fontEdging, itemName, enumItem)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to obtain the FontEdging enumeration.");
         return {};
     }
@@ -731,11 +706,10 @@ ani_enum_item AniFont::GetEdging(ani_env* env, ani_object obj)
 
 ani_object AniFont::CreatePathForGlyph(ani_env* env, ani_object obj, ani_int index)
 {
-    ani_object aniObj = CreateAniUndefined(env);
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::CreatePathForGlyph font is nullptr.");
-        return aniObj;
+        return CreateAniUndefined(env);
     }
 
     std::shared_ptr<Font> font = aniFont->GetFont();
@@ -744,33 +718,33 @@ ani_object AniFont::CreatePathForGlyph(ani_env* env, ani_object obj, ani_int ind
     std::shared_ptr<Path> path = std::make_shared<Path>();
     if (!realFont->GetPathForGlyph(static_cast<uint16_t>(index), path.get())) {
         ROSEN_LOGE("AniFont::CreatePathForGlyph Failed GetPathForGlyph");
-        return aniObj;
+        return CreateAniUndefined(env);
     }
     AniPath* aniPath = new AniPath(path);
-    aniObj = CreateAniObject(env, ANI_CLASS_PATH_NAME, ":");
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(aniPath))) {
-        ROSEN_LOGE("AniFont::CreatePathForGlyph failed cause by Object_SetFieldByName_Long");
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
+        AniGlobalMethod::GetInstance().pathCtor);
+    if (ANI_OK != env->Object_SetField_Long(aniObj,
+        AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(aniPath))) {
+        ROSEN_LOGE("AniFont::CreatePathForGlyph failed cause by Object_SetField_Long");
         delete aniPath;
         return CreateAniUndefined(env);
     }
     return aniObj;
 }
 
-ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_object glyphs)
+ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_array glyphs)
 {
-    ani_object arrayObj = CreateAniUndefined(env);
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetBounds font is nullptr.");
-        return arrayObj;
+        return CreateAniUndefined(env);
     }
 
-    ani_int aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Int(glyphs, "length", &aniLength) || aniLength == 0) {
-        ROSEN_LOGE("AniFont::GetBounds Failed to get size of glyph array %d", aniLength);
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(glyphs, &aniLength) || aniLength == 0) {
+        ROSEN_LOGE("AniFont::GetBounds Failed to get size of glyph array %{public}zu", aniLength);
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetBounds Invalid params.");
-        return arrayObj;
+        return CreateAniUndefined(env);
     }
     
     uint32_t glyphscnt = static_cast<uint32_t>(aniLength);
@@ -778,12 +752,11 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_object glyphs)
     for (uint32_t i = 0; i < glyphscnt; i++) {
         ani_int glyph;
         ani_ref glyphRef;
-        if (ANI_OK != env->Object_CallMethodByName_Ref(
-            glyphs, "$_get", "i:Y", &glyphRef, (ani_int)i) ||
-            ANI_OK != env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(glyphRef), "toInt", ":i", &glyph)) {
+        if (ANI_OK != env->Array_Get(glyphs, static_cast<ani_size>(i), &glyphRef) ||
+            ANI_OK != env->Object_CallMethod_Int(
+                static_cast<ani_object>(glyphRef), AniGlobalMethod::GetInstance().intGet, &glyph)) {
             ROSEN_LOGE("AniFont::GetBounds Incorrect parameter glyph type.");
-            return arrayObj;
+            return CreateAniUndefined(env);
         }
         glyphPtr[i] = glyph;
     }
@@ -793,17 +766,15 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_object glyphs)
     std::shared_ptr<Font> themeFont = GetThemeFont(font);
     std::shared_ptr<Font> realFont = themeFont == nullptr ? font : themeFont;
     realFont->GetWidths(glyphPtr.get(), glyphscnt, nullptr, rectPtr.get());
-    arrayObj = CreateAniArrayWithSize(env, glyphscnt);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(arrayObj, &isUndefined);
-    if (isUndefined) {
+    ani_array arrayObj = CreateAniArrayWithSize(env, glyphscnt);
+    if (arrayObj == nullptr) {
         ROSEN_LOGE("AniFont::GetBounds Failed to Create arrayObject");
-        return arrayObj;
+        return CreateAniUndefined(env);
     }
     for (uint32_t i = 0; i < glyphscnt; i++) {
         ani_object aniObj;
         CreateRectObj(env, rectPtr[i], aniObj);
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", (ani_int)i, aniObj);
+        ani_status ret = env->Array_Set(arrayObj, static_cast<ani_size>(i), aniObj);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniFont::GetBounds Failed to set rect item");
             return CreateAniUndefined(env);
@@ -815,7 +786,7 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_object glyphs)
 ani_object AniFont::GetTextPath(ani_env* env, ani_object obj, ani_string aniText,
     ani_int byteLength, ani_double x, ani_double y)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniFont::GetTextPath font is nullptr.");
         return CreateAniUndefined(env);
@@ -828,10 +799,11 @@ ani_object AniFont::GetTextPath(ani_env* env, ani_object obj, ani_string aniText
     std::shared_ptr<Path> path = std::make_shared<Path>();
     realFont->GetTextPath(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path.get());
     AniPath* aniPath = new AniPath(path);
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_PATH_NAME, ":");
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(aniPath))) {
-        ROSEN_LOGE("AniFont::GetTextPath failed cause by Object_SetFieldByName_Long");
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
+        AniGlobalMethod::GetInstance().pathCtor);
+    if (ANI_OK != env->Object_SetField_Long(aniObj,
+        AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(aniPath))) {
+        ROSEN_LOGE("AniFont::GetTextPath failed cause by Object_SetField_Long");
         delete aniPath;
         return CreateAniUndefined(env);
     }
@@ -840,7 +812,7 @@ ani_object AniFont::GetTextPath(ani_env* env, ani_object obj, ani_string aniText
 
 void AniFont::SetThemeFontFollowed(ani_env* env, ani_object obj, ani_boolean followed)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniFont::SetThemeFontFollowed font is nullptr.");
@@ -853,7 +825,7 @@ void AniFont::SetThemeFontFollowed(ani_env* env, ani_object obj, ani_boolean fol
 
 ani_boolean AniFont::IsThemeFontFollowed(ani_env* env, ani_object obj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, obj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniFont::IsThemeFontFollowed font is nullptr.");
@@ -885,7 +857,8 @@ ani_object AniFont::FontTransferStatic(
     }
 
     auto aniFont = new AniFont(jsFont->GetFont());
-    if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        output, AniGlobalField::GetInstance().fontNativeObj, reinterpret_cast<ani_long>(aniFont))) {
         ROSEN_LOGE("AniFont::FontTransferStatic failed create aniFont");
         delete aniFont;
         return CreateAniUndefined(env);
@@ -895,7 +868,7 @@ ani_object AniFont::FontTransferStatic(
 
 ani_long AniFont::GetFontAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, input);
+    auto aniFont = GetNativeFromObj<AniFont>(env, input, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ROSEN_LOGE("AniFont::GetFontAddr aniFont is null");
         return 0;

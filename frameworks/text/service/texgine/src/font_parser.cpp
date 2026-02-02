@@ -30,6 +30,9 @@
 #include <unordered_map>
 #ifdef BUILD_NON_SDK_VER
 #include <iconv.h>
+#ifdef CROSS_PLATFORM
+#include <unicode/ucnv.h>
+#endif
 #endif
 
 #include "font_config.h"
@@ -248,7 +251,7 @@ void FontParser::ProcessTable(const NameTable* nameTable, FontParser::FontDescri
     }
 }
 
-void FontParser::ProcessTable(const PostTable* postTable, FontParser::FontDescriptor& fontDescriptor, size_t size)
+void FontParser::ProcessTable(const PostTable* postTable, FontParser::FontDescriptor& fontDescriptor, size_t /* size */)
 {
     if (postTable->italicAngle.Get() != 0) {
         fontDescriptor.italic = 1; // means support italics
@@ -329,9 +332,76 @@ bool FontParser::SetFontDescriptor(const unsigned int languageId)
 }
 
 #ifdef BUILD_NON_SDK_VER
+#ifdef CROSS_PLATFORM
+bool CalculateUcharLength(const std::string& src, const std::string& srcType,
+    const std::string& targetType, int32_t& ucharLength)
+{
+    ucharLength = 0;
+    bool ret = false;
+    if (targetType.find("UTF-8") != std::string::npos && srcType.find("UTF-16BE") != std::string::npos) {
+        const size_t utf16BytesPerCodeUnit = 2;
+        ret = (src.length() % utf16BytesPerCodeUnit == 0);
+        if (ret) {
+            ucharLength = src.length() / utf16BytesPerCodeUnit;
+        }
+    } else if (targetType.find("UTF-8") != std::string::npos && srcType.find("GB2312") != std::string::npos) {
+        ucharLength = src.length();
+        ret = true;
+    }
+    return ret;
+}
+
+std::string ConvertStringUseIcu(const std::string& src, const std::string& srcType,
+    const std::string& targetType)
+{
+    if (src.empty()) {
+        return src;
+    }
+    
+    int32_t ucharCapacity = 0;
+    if (!CalculateUcharLength(src, srcType, targetType, ucharCapacity)) {
+        return src;
+    }
+
+    UErrorCode status = U_ZERO_ERROR;
+    UConverter* conv = ucnv_open(srcType.c_str(), &status);
+    if (U_FAILURE(status) || !conv) {
+        return src;
+    }
+
+    std::vector<UChar> ucharBuf(ucharCapacity);
+    int32_t ucharCount = ucnv_toUChars(conv, ucharBuf.data(), ucharCapacity, src.data(), src.length(), &status);
+    ucnv_close(conv);
+
+    if (U_FAILURE(status)) {
+        return src;
+    }
+
+    status = U_ZERO_ERROR;
+    conv = ucnv_open(targetType.c_str(), &status);
+    if (U_FAILURE(status) || !conv) {
+        return src;
+    }
+
+    const int32_t maxUtf8BytesPerUchar = 4;
+    int32_t utf8Len = ucharCount * maxUtf8BytesPerUchar;
+    std::vector<char> utf8Buf(utf8Len);
+    int32_t actualUtf8Len = ucnv_fromUChars(conv, utf8Buf.data(), utf8Len, ucharBuf.data(), ucharCount, &status);
+    ucnv_close(conv);
+
+    if (U_FAILURE(status)) {
+        return src;
+    }
+    return std::string(utf8Buf.data(), actualUtf8Len);
+}
+#endif
+
 std::string FontParser::ConvertToString(const std::string& src, const std::string& srcType,
     const std::string& targetType)
 {
+#ifdef CROSS_PLATFORM
+    return ConvertStringUseIcu(src, srcType, targetType);
+#else
     std::string utf8Str;
     iconv_t conv = iconv_open(targetType.c_str(), srcType.c_str());
     if (conv == (iconv_t)-1) {
@@ -349,6 +419,7 @@ std::string FontParser::ConvertToString(const std::string& src, const std::strin
     delete[] outBufStart;
     iconv_close(conv);
     return utf8Str;
+#endif
 }
 #endif
 
@@ -520,6 +591,32 @@ std::vector<std::string> FontParser::GetBcpTagList()
     return it->second;
 }
 
+void FontParser::FillFontDescriptorWithFallback(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc)
+{
+    struct FieldMapping {
+        std::string* targetField;
+        Drawing::OtNameId nameId;
+    };
+
+    const FieldMapping fields[] = {
+        {&desc.localFamilyName, Drawing::OtNameId::FONT_FAMILY},
+        {&desc.localSubFamilyName, Drawing::OtNameId::FONT_SUBFAMILY},
+        {&desc.localFullName, Drawing::OtNameId::FULL_NAME},
+        {&desc.localPostscriptName, Drawing::OtNameId::POSTSCRIPT_NAME},
+        {&desc.version, Drawing::OtNameId::VERSION_STRING},
+        {&desc.manufacture, Drawing::OtNameId::MANUFACTURER},
+        {&desc.copyright, Drawing::OtNameId::COPYRIGHT},
+        {&desc.trademark, Drawing::OtNameId::TRADEMARK},
+        {&desc.license, Drawing::OtNameId::LICENSE},
+    };
+
+    for (const auto& field : fields) {
+        if (field.targetField->empty()) {
+            *field.targetField = Drawing::FontMetaDataCollector::GetFirstAvailableString(typeface, field.nameId);
+        }
+    }
+}
+
 void FontParser::FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc)
 {
     std::vector<std::string> bcpTagList = GetBcpTagList();
@@ -551,6 +648,8 @@ void FontParser::FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typefa
         desc.trademark = desc.trademark.empty() ? info.trademark : desc.trademark;
         desc.license = desc.license.empty() ? info.license : desc.license;
     }
+
+    FillFontDescriptorWithFallback(typeface, desc);
 }
 
 int32_t FontParser::GetFontCount(const std::string& path)

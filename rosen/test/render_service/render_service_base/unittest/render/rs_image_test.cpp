@@ -726,9 +726,8 @@ HWTEST_F(RSImageTest, addImageMatrixMarshallingTest, TestSize.Level1)
     rsImage->SetFitMatrix(matrix);
 
     MessageParcel parcel;
-    EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel, rsImage), true);
-    std::shared_ptr<RSImage> newImage;
-    EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
+    EXPECT_EQ(rsImage->Marshalling(parcel), true);
+    EXPECT_EQ(rsImage->Unmarshalling(parcel), nullptr);
 }
 
 /**
@@ -1336,5 +1335,87 @@ HWTEST_F(RSImageTest, DrawImageRepeatOffScreenTest, TestSize.Level1)
     rsImage->dstRect_ = RectF(0, 0, 100, 100);
     rsImage->frameRect_ = RectF(0, 0, 100, 100);
     rsImage->DrawImageRepeatOffScreen(sampling, canvas, minX, maxX, minY, maxY);
+}
+
+/**
+ * @tc.name: RSImage Marshalling
+ * @tc.desc: RSImage Marshalling test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, MarshallingTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    int width = 200;
+    int height = 300;
+    pixelMap = CreatePixelMap(width, height);
+    
+    rsImage->SetPixelMap(nullptr);
+    MessageParcel parcel1;
+    EXPECT_EQ(rsImage->Marshalling(parcel1), true);
+
+    rsImage->SetPixelMap(pixelMap);
+    MessageParcel parcel2;
+    EXPECT_EQ(rsImage->Marshalling(parcel2), true);
+}
+
+/**
+ * @tc.name: CalcRepeatBoundsTest002
+ * @tc.desc: Verify function CalcRepeatBounds
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBoundsTest002, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    RectF srcRf(10, 10, 0, 0);
+    rsImage->dstRect_ = srcRf;
+    rsImage->frameRect_ = { 0, 0, 100, 100 };
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT;
+    int minX = 0;
+    int maxX = 0;
+    int minY = 0;
+    int maxY = 0;
+
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    rsImage->dstRect_.width_ = 0;
+    rsImage->dstRect_.height_ = 50;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    rsImage->dstRect_.width_ = 50;
+    rsImage->dstRect_.height_ = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    rsImage->dstRect_.width_ = 50;
+    rsImage->dstRect_.height_ = 50;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -1);
+    EXPECT_EQ(maxX, 1);
+    EXPECT_EQ(minY, -1);
+    EXPECT_EQ(maxY, 1);
+
+    minX = 0;
+    maxX = 0;
+    minY = 0;
+    maxY = 0;
+    rsImage->dstRect_.left_ = -10;
+    rsImage->dstRect_.top_ = -10;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 2);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 2);
 }
 } // namespace OHOS::Rosen

@@ -29,6 +29,7 @@ _common_deps = [
 _common_external_deps = [
   "c_utils:utils",
   "eventhandler:libeventhandler",
+  "googletest:gmock_main",
   "googletest:gtest_main",
   "graphic_surface:surface",
   "hilog:libhilog",
@@ -87,7 +88,10 @@ rs_render_composer_unittest("RSRenderComposerManagerTest") {
 }
 
 rs_render_composer_unittest("RSRenderComposerTest") {
-  sources = [ "rs_render_composer_test.cpp" ]
+  sources = [
+    "rs_render_composer_test.cpp",
+    "mock_hdi_device.cpp",
+  ]
 }
 
 config("rs_render_composer_common_test_config") {

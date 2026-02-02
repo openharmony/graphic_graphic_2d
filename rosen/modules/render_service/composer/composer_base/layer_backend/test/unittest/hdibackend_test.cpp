@@ -35,6 +35,7 @@ void HdiBackendTest::SetUpTestCase()
 {
     hdiBackend_ = HdiBackend::GetInstance();
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
+    (void)hdiBackend_->SetHdiBackendDevice(hdiDeviceMock_);
 }
 
 void HdiBackendTest::TearDownTestCase() {}
@@ -81,7 +82,12 @@ HWTEST_F(HdiBackendTest, RegScreenHotplug001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiBackendTest, RegScreenHotplug002, Function | MediumTest| Level3)
 {
-    auto func = [](OutputPtr &, bool, void*) -> void {};
+    HdiBackendTest::hdiBackend_->device_ = HdiBackendTest::hdiDeviceMock_;
+    auto func = [](OutputPtr& output, bool connected, void* data) -> void {
+        (void)output;
+        (void)connected;
+        (void)data;
+    };
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenHotplug(func, nullptr), ROSEN_ERROR_OK);
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(-1));
@@ -111,8 +117,12 @@ HWTEST_F(HdiBackendTest, RegScreenRefresh001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiBackendTest, RegScreenRefresh002, Function | MediumTest| Level3)
 {
+    HdiBackendTest::hdiBackend_->device_ = HdiBackendTest::hdiDeviceMock_;
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
-    auto func = [](uint32_t, void*) -> void {};
+    auto func = [](uint32_t devId, void* data) -> void {
+        (void)devId;
+        (void)data;
+    };
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenRefresh(func, nullptr), ROSEN_ERROR_OK);
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(-1));
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenRefresh(func, nullptr), ROSEN_ERROR_API_FAILED);
@@ -141,7 +151,7 @@ HWTEST_F(HdiBackendTest, RegHwcDeadListener001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiBackendTest, RegHwcDeadListener002, Function | MediumTest| Level3)
 {
-    auto func = [](void* data) -> void {};
+    auto func = [](void* data) -> void { (void)data; };
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
     RosenError ret = HdiBackendTest::hdiBackend_->RegHwcDeadListener(func, nullptr);
     ASSERT_EQ(ret, ROSEN_ERROR_API_FAILED);
@@ -201,7 +211,11 @@ HWTEST_F(HdiBackendTest, RegScreenVBlankIdleCallback001, Function | MediumTest |
     hdiBackend_->device_ = hdiDeviceMock_;
     RosenError res = hdiBackend_->RegScreenVBlankIdleCallback(nullptr, nullptr);
     EXPECT_EQ(res, ROSEN_ERROR_INVALID_ARGUMENTS);
-    auto func = [](uint32_t devId, uint64_t ns, void* data) -> void {};
+    auto func = [](uint32_t devId, uint64_t ns, void* data) -> void {
+        (void)devId;
+        (void)ns;
+        (void)data;
+    };
     EXPECT_CALL(*hdiDeviceMock_, RegScreenVBlankIdleCallback(_, _)).WillRepeatedly(testing::Return(0));
     res = hdiBackend_->RegScreenVBlankIdleCallback(func, nullptr);
     EXPECT_EQ(res, ROSEN_ERROR_OK);
@@ -254,7 +268,10 @@ HWTEST_F(HdiBackendTest, StartSample001, Function | MediumTest | Level3)
     hdiBackend_->SetPendingMode(output, 0, 0);
     output->sampler_->SetHardwareVSyncStatus(false);
     output->sampler_->SetVsyncSamplerEnabled(true);
-    VSyncSampler::SetScreenVsyncEnabledCallback cb = [](uint64_t screenId, bool enabled) {};
+    VSyncSampler::SetScreenVsyncEnabledCallback cb = [](uint64_t screenId, bool enabled) {
+        (void)screenId;
+        (void)enabled;
+    };
     output->sampler_->RegSetScreenVsyncEnabledCallback(cb);
     hdiBackend_->StartSample(output);
     EXPECT_TRUE(static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->hardwareVSyncStatus_);
@@ -273,7 +290,12 @@ HWTEST_F(HdiBackendTest, RegHwcEventCallback001, Function | MediumTest| Level3)
     RosenError res = hdiBackend_->RegHwcEventCallback(nullptr, nullptr);
     EXPECT_EQ(res, ROSEN_ERROR_INVALID_ARGUMENTS);
 
-    auto func = [](uint32_t devId, uint32_t envId, const std::vector<int32_t>& eventData, void* data) -> void {};
+    auto func = [](uint32_t devId, uint32_t envId, const std::vector<int32_t>& eventData, void* data) -> void {
+        (void)devId;
+        (void)envId;
+        (void)eventData;
+        (void)data;
+    };
     EXPECT_CALL(*hdiDeviceMock_, RegHwcEventCallback(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
     hdiBackend_->device_ = hdiDeviceMock_;
     RosenError ret = HdiBackendTest::hdiBackend_->RegHwcEventCallback(func, nullptr);

@@ -64,7 +64,6 @@ public:
     sptr<SurfaceBuffer> GetCurrentBuffer() override;
     void ClearBuffer() override;
     void ResetBufferAge() override;
-    void SetCleanUpHelper(std::function<void()> func) override;
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     void SetSkContext(std::shared_ptr<Drawing::GPUContext> skContext)
     {
@@ -79,20 +78,19 @@ public:
     }
     int DupReservedFlushFd();
 
+    void CancelBufferForCurrentFrame();
     int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height,
         int& fenceFd, bool useAFBC, bool isProtected = false);
     bool PreAllocateProtectedBuffer(int32_t width, int32_t height);
 
     void MarkAsHpaeSurface();
     void PreAllocateHpaeBuffer(int32_t width, int32_t height, int32_t bufferCount, bool useAFBC);
-    void CancelBufferForCurrentFrame();
 
 private:
     struct NativeWindow* mNativeWindow = nullptr;
     int mWidth = -1;
     int mHeight = -1;
     int mReservedFlushFd = -1;
-    std::function<void()> cleanUpHelper_ = nullptr;
     bool mIsHpaeSurface = false;
 
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);
@@ -115,6 +113,7 @@ private:
     void SubmitGpuAndHpaeTask(const uint64_t& preFrameId, const uint64_t& curFrameId);
     void SubmitHapeTask(const uint64_t& curFrameId);
 #endif
+    void CancelBuffer(NativeBufferUtils::NativeSurfaceInfo& surface);
     void ReleasePreAllocateBuffer();
 };
 

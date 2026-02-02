@@ -139,7 +139,7 @@ static uint32_t RegisterFontInternal(OH_Drawing_FontCollection* fontCollection,
     if (result != 0) {
         return result;
     }
-    const std::string familyName = fontFamily;
+    const std::string familyName = (fontFamily != nullptr) ? fontFamily : "";
     const uint8_t* data = reinterpret_cast<uint8_t*>(buffer.get());
     return LoadFromFontCollectionByIndex(fontCollection, familyName, data, size, index);
 }
@@ -168,7 +168,7 @@ static uint32_t RegisterFontBufferInternal(OH_Drawing_FontCollection* fontCollec
     if (length == 0) {
         return ERROR_BUFFER_SIZE_ZERO;
     }
-    const std::string familyName = fontFamily;
+    const std::string familyName = (fontFamily != nullptr) ? fontFamily : "";
     return LoadFromFontCollectionByIndex(fontCollection, familyName, fontBuffer, length, index);
 }
 
@@ -196,4 +196,20 @@ uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, co
 
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
     return !fc->UnloadFont(fontFamily);
+}
+
+bool OH_Drawing_IsFontSupportedFromPath(const char* fontPath)
+{
+    if (fontPath == nullptr) {
+        return false;
+    }
+    return Drawing::Typeface::MakeFromFile(fontPath) != nullptr;
+}
+
+bool OH_Drawing_IsFontSupportedFromBuffer(uint8_t* fontBuffer, size_t length)
+{
+    if (fontBuffer == nullptr || length == 0) {
+        return false;
+    }
+    return Drawing::Typeface::MakeFromStream(std::make_unique<Drawing::MemoryStream>(fontBuffer, length)) != nullptr;
 }

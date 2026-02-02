@@ -118,9 +118,5 @@ void RSSurfaceOhosRaster::ResetBufferAge()
 {
     ROSEN_LOGD("RSSurfaceOhosRaster: Reset Buffer Age!");
 }
-
-void RSSurfaceOhosRaster::SetCleanUpHelper(std::function<void()> func)
-{
-}
 } // namespace Rosen
 } // namespace OHOS

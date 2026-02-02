@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cinttypes>
 #include <cstdint>
 
 #include "ability.h"
@@ -1047,15 +1048,26 @@ bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &en
 std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& bundleName,
     const std::string& moduleName)
 {
+#if defined(CROSS_PLATFORM)
+    std::shared_ptr<AbilityRuntime::Platform::ApplicationContext> context =
+        AbilityRuntime::Platform::Context::GetApplicationContext();
+    TEXT_ERROR_CHECK(context != nullptr, return nullptr, "Failed to get application context");
+    auto moduleContext = context->CreateModuleContext(moduleName);
+#else
     std::shared_ptr<AbilityRuntime::ApplicationContext> context =
         AbilityRuntime::ApplicationContext::GetApplicationContext();
     TEXT_ERROR_CHECK(context != nullptr, return nullptr, "Failed to get application context");
     auto moduleContext = context->CreateModuleContext(bundleName, moduleName);
+#endif
     if (moduleContext != nullptr) {
         return moduleContext->GetResourceManager();
     } else {
         std::shared_ptr<Global::Resource::ResourceManager> manager(Global::Resource::CreateResourceManager(false));
         std::string hapPath = FontCollectionMgr::GetInstance().GetHapPath(bundleName, moduleName);
+        if (manager == nullptr) {
+            TEXT_LOGE("Failed to create Resource Mangager");
+            return nullptr;
+        }
         manager->AddResource(hapPath.c_str());
         TEXT_LOGI("Create Resource Mangager, bundle: %{public}s, module: %{public}s, hap path: %{public}s",
             bundleName.c_str(), moduleName.c_str(), hapPath.c_str());
@@ -1085,7 +1097,7 @@ NapiTextResult ProcessResource(ResourceInfo& info, std::function<NapiTextResult(
         return fileCB(rawData.get(), dataLen);
     }
     TEXT_LOGE("Invalid resource type %{public}d", info.type);
-    return NapiTextResult::Invalid();
+    return NapiTextResult::BusinessInvalid();
 }
 
 bool SplitAbsolutePath(std::string& absolutePath)

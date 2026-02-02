@@ -57,6 +57,12 @@ HWTEST_F(RSCanvasDrawingNodeTest, CreateTest, TestSize.Level1)
     bool isRenderServiceNode = true;
     RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
     ASSERT_NE(canvasNode, nullptr);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+    canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
+    ASSERT_NE(canvasNode, nullptr);
+    ASSERT_EQ(RSCanvasDrawingNode::preAllocateDmaCcm_, false);
+#endif
 }
 
 /**
@@ -69,6 +75,13 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceTest, TestSize.Level1)
     bool isRenderServiceNode = true;
     int width = 1;
     int height = 1;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+    auto node = RSCanvasDrawingNode::Create(isRenderServiceNode);
+    bool ret = node->ResetSurface(width, height);
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
+    EXPECT_EQ(ret, true);
+#endif
     RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
     bool res = canvasNode->ResetSurface(width, height);
     EXPECT_EQ(res, true);
@@ -81,8 +94,8 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceTest, TestSize.Level1)
     RSTransactionProxy::instance_ = new RSTransactionProxy();
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     canvasNode->isNeverOnTree_ = false;
-    canvasNode->ResetSurface(width, height);
-    EXPECT_EQ(res, false);
+    res = canvasNode->ResetSurface(width, height);
+    EXPECT_EQ(res, true);
 #endif
 }
 
@@ -188,7 +201,11 @@ HWTEST_F(RSCanvasDrawingNodeTest, PreAllocateDMABufferTest, TestSize.Level1)
     node->PreAllocateDMABuffer(weakNode, nodeId, 0, 0, 1);
     ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
     node->PreAllocateDMABuffer(weakNode, nodeId, 100, 100, 1);
-    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    if (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()) {
+        ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    } else {
+        ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
+    }
     node->resetSurfaceIndex_ = 10;
     node->canvasSurfaceBuffer_ = nullptr;
     node->PreAllocateDMABuffer(node, nodeId, 0, 0, 10);
@@ -196,7 +213,11 @@ HWTEST_F(RSCanvasDrawingNodeTest, PreAllocateDMABufferTest, TestSize.Level1)
     node->resetSurfaceIndex_ = 0;
     node->canvasSurfaceBuffer_ = nullptr;
     node->PreAllocateDMABuffer(node, nodeId, 100, 100, 0);
-    ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
+    if (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()) {
+        ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
+    } else {
+        ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    }
     node->resetSurfaceIndex_ = 0;
     node->canvasSurfaceBuffer_ = nullptr;
     node->PreAllocateDMABuffer(node, nodeId, 100, 100, 0);

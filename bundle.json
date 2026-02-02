@@ -172,6 +172,16 @@
         "inner_kits": [
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common:effect_common",
+            "header": {
+              "header_files": [
+                "filter_common.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common/include"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
             "header": {
               "header_files": [

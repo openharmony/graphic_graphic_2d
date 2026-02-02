@@ -31,6 +31,7 @@ namespace Rosen {
 namespace {
 PolicyConfigData::ScreenSetting defaultScreenSetting;
 PolicyConfigData::StrategyConfigMap defaultStrategyConfigMap;
+const std::string SCB_PKG_NAME = "com.ohos.sceneboard";
 }
 
 HgmMultiAppStrategy::HgmMultiAppStrategy()
@@ -59,8 +60,13 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
         HGM_LOGI("pkg update:%{public}s", param.c_str());
         auto [pkgName, pid, appType] = AnalyzePkgParam(param);
 
+        // save sceneBoard real pid used to notify the sceneBoard of changes in speed and frame rate policies
+        if (pkgName == SCB_PKG_NAME) {
+            sceneBoardPid_ = pid;
+            pid = DEFAULT_PID;
+        }
+
         // DISPLAY ENGINE
-        RsCommonHook::Instance().SetCurrentPkgName(pkgName);
         CheckImageEnhanceList(pkgName, pid, imageEnhancePidList);
 
         pidAppTypeMap_[pkgName] = { pid, appType };
@@ -71,7 +77,7 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     }
     RsCommonHook::Instance().SetImageEnhancePidList(imageEnhancePidList);
     if (auto configCallbackManager = HgmConfigCallbackManager::GetInstance(); configCallbackManager != nullptr) {
-        configCallbackManager->SyncHgmConfigChangeCallback(foregroundPidAppMap_);
+        configCallbackManager->SyncHgmConfigChangeCallback(foregroundPidAppMap_, DEFAULT_PID);
     }
 
     if (!pkgs_.empty()) {

@@ -76,18 +76,19 @@ protected:
 #endif
         return std::move(taskFuture);
     }
-    uint32_t GetUnExecuteTaskNum();
-    int32_t GetAccumulatedBufferCount();
+    uint32_t GetUnExecuteTaskNum() const;
+    int32_t GetAccumulatedBufferCount() const;
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
     int32_t GetThreadTid() const;
+    void HandlePowerStatus(ScreenPowerStatus status);
     void OnScreenVBlankIdleCallback(uint64_t timestamp);
     GSError ClearFrameBuffers(bool isNeedResetContext = true);
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer);
     void ChangeLayersForActiveRectOutside(std::vector<std::shared_ptr<RSLayer>>& layers, ScreenId screenId);
     void DumpVkImageInfo(std::string& dumpString);
-    int64_t GetDelayTime() { return delayTime_; }
+    int64_t GetDelayTime() const { return delayTime_; }
     sptr<SyncFence> GetReleaseFence() const { return releaseFence_; }
     bool WaitComposerTaskExecute();
     void NotifyComposerCanExecuteTask();
@@ -106,6 +107,9 @@ private:
     static GraphicPixelFormat ComputeTargetPixelFormat(const std::vector<std::shared_ptr<RSLayer>>& layers);
     static bool ConvertColorGamutToSpaceType(const GraphicColorGamut& colorGamut,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceType);
+    bool GetDisplayClientTargetProperty(GraphicPixelFormat &pixelFormat,
+        GraphicColorGamut &colorGamut, const std::vector<std::shared_ptr<RSLayer>>& layers);
+
 #endif
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
     void RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<std::shared_ptr<RSLayer>>& layers);
@@ -129,8 +133,7 @@ private:
     std::string GetSurfaceNameInLayers(const std::vector<std::shared_ptr<RSLayer>>& layers);
     std::string GetSurfaceNameInLayersForTrace(const std::vector<std::shared_ptr<RSLayer>>& layers);
     bool IsDropDirtyFrame(const std::vector<std::shared_ptr<RSLayer>>& layers);
-    void RecordTimestamp(uint64_t vsyncId, const std::shared_ptr<HdiOutput> output,
-        const std::vector<std::shared_ptr<RSLayer>>& layers);
+    void RecordTimestamp(uint64_t vsyncId, const std::shared_ptr<HdiOutput> output);
     void ProcessComposerFrame(RefreshRateParam param, uint32_t currentRate, bool hasGameScene);
     void AddRefreshRateCount();
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;

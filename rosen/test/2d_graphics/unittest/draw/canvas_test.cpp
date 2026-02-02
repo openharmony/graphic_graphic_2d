@@ -23,6 +23,8 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static constexpr int32_t BITMAP_WIDTH = 200;
+static constexpr int32_t BITMAP_HEIGHT = 200;
 class CanvasTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -416,6 +418,31 @@ HWTEST_F(CanvasTest, DrawImageEffectHPSStatisticsEmptyImage, TestSize.Level1)
         Drawing::HpsStatisticsType::MEAN);
     hpsEffectParams.push_back(hpsStatisticsArgs);
     ASSERT_TRUE(canvas->DrawImageEffectHPS(image, hpsEffectParams) == false);
+}
+
+/**
+ * @tc.name: DrawImageEffectHPSStatisticsWithPixelMap
+ * @tc.desc: Test DrawImageEffectHPS Statistics Effect With PixelMap
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(CanvasTest, DrawImageEffectHPSStatisticsWithPixelMap, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Bitmap bmp;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bmp.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    Drawing::Image image;
+    image.BuildFromBitmap(bmp);
+    Drawing::Rect srcRect = { 0.0f, 0.0f, 100.0f, 100.0f };
+    Drawing::Rect dstRect = { 0.0f, 0.0f, 1.0f, 1.0f };
+    std::vector<std::shared_ptr<HpsEffectParameter>> hpsEffectParams;
+    auto hpsStatisticsArgs = std::make_shared<Drawing::HpsStatisticsParameter>(srcRect, dstRect,
+        Drawing::HpsStatisticsType::MEAN);
+    hpsEffectParams.push_back(hpsStatisticsArgs);
+    canvas->DrawImageEffectHPS(image, hpsEffectParams);
 }
 
 /**
@@ -1020,8 +1047,6 @@ HWTEST_F(CanvasTest, GetDrawingTypeTest001, TestSize.Level1)
     std::shared_ptr<Drawing::OverDrawCanvas> overDrawCanvas;
     DrawingType type = overDrawCanvas->GetDrawingType();
     ASSERT_TRUE(type == DrawingType::OVER_DRAW);
-    overDrawCanvas->SetGrContext(nullptr);
-    EXPECT_EQ(overDrawCanvas->GetGPUContext(), nullptr);
 }
 
 /**
@@ -1165,7 +1190,7 @@ HWTEST_F(CanvasTest, GetGPUContext001, TestSize.Level1)
 
 /**
  * @tc.name: RecordStateTest
- * @tc.desc: Test Inherite State
+ * @tc.desc: Test Inherite State.
  * @tc.type: FUNC
  * @tc.require: IC8TIV
  */
@@ -1178,7 +1203,7 @@ HWTEST_F(CanvasTest, RecordStateTest, TestSize.Level1)
 
 /**
  * @tc.name: SetParallelRenderTest
- * @tc.desc: Test Set Parallel
+ * @tc.desc: Test Set Parallel.
  * @tc.type: FUNC
  * @tc.require: IC8TIV
  */
@@ -1188,6 +1213,19 @@ HWTEST_F(CanvasTest, SetParallelRenderTest, TestSize.Level1)
     ASSERT_TRUE(canvas != nullptr);
     canvas->SetParallelRender(true);
 }
+
+/**
+ * @tc.name: RecordCanvasTest
+ * @tc.desc: Test GetGPUContext.
+ * @tc.type: FUNC
+ * @tc.require: IC8TIV
+ */
+HWTEST_F(CanvasTest, RecordStateGPUContextTest, TestSize.Level1)
+{
+    auto stateRecordCanvas = std::make_shared<StateRecordCanvas>(1316, 1962);
+    ASSERT_TRUE(stateRecordCanvas->GetGPUContext() == nullptr);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

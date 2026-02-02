@@ -73,12 +73,12 @@ FontCollection::~FontCollection()
 void FontCollection::EnableGlobalFontMgr()
 {
     fontCollection_->SetGlobalFontManager(FontCollection::Create()->GetFontMgr());
-    enableGlobalFontMgr_ = true;
+    enableGlobalFontMgr_.store(true);
 }
 
-bool FontCollection::IsLocalFontCollection()
+bool FontCollection::IsLocalFontCollection() const
 {
-    return enableGlobalFontMgr_;
+    return enableGlobalFontMgr_.load();
 }
 
 void FontCollection::DisableFallback()
@@ -101,7 +101,7 @@ bool FontCollection::CheckLocalFontCollectionSize(uint64_t size)
     if (!IsLocalFontCollection()) {
         return true;
     }
-    if (localRegisteredSizeCount_ + size <= FontCollectionMgr::GetInstance().GetLocalFontCollectionMaxSize()) {
+    if (localRegisteredSizeCount_.load() + size <= FontCollectionMgr::GetInstance().GetLocalFontCollectionMaxSize()) {
         return true;
     }
     return false;
@@ -113,9 +113,9 @@ void FontCollection::ChangeLocalFontCollectionSize(LocalActionType type, uint64_
         return;
     }
     if (type == LocalActionType::ADD) {
-        localRegisteredSizeCount_ += size;
+        localRegisteredSizeCount_.fetch_add(size);
     } else {
-        localRegisteredSizeCount_ -= size;
+        localRegisteredSizeCount_.fetch_sub(size);
     }
 }
 
@@ -188,11 +188,11 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
 LoadSymbolErrorCode FontCollection::LoadSymbolFont(const std::string& familyName, const uint8_t* data, size_t datalen)
 {
     TEXT_TRACE_FUNC();
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
     if (typeface == nullptr) {
         return LoadSymbolErrorCode::LOAD_FAILED;
     }
-    std::unique_lock<std::shared_mutex> lock(mutex_);
     TypefaceWithAlias ta(familyName, typeface);
     FontCallbackGuard cb(this, familyName, loadFontStartCallback_, loadFontFinishCallback_);
     if (typefaceSet_.count(ta)) {

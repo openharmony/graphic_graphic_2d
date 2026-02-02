@@ -31,16 +31,6 @@ public:
     }
     ~FrostedGlassEffectPara() override = default;
 
-    void SetBlurParam(float blurParam)
-    {
-        blurParam_ = blurParam;
-    }
-
-    float GetBlurParam() const
-    {
-        return blurParam_;
-    }
-
     void SetWeightsEmboss(Vector2f& weightsEmboss)
     {
         weightsEmboss_ = weightsEmboss;
@@ -99,6 +89,16 @@ public:
     const Vector3f GetBgNeg() const
     {
         return bgNeg_;
+    }
+
+    void SetBgAlpha(float bgAlpha)
+    {
+        bgAlpha_ = bgAlpha;
+    }
+
+    float GetBgAlpha() const
+    {
+        return bgAlpha_;
     }
 
     void SetRefractParams(Vector3f& refractParams)
@@ -292,7 +292,6 @@ public:
     }
 
 private:
-    float blurParam_ = 0.0f; // K times downsample
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f);
     // Background darken parameters
@@ -300,6 +299,7 @@ private:
     Vector3f bgKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f bgPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f bgNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
+    float bgAlpha_ = 1.0f; // the alpha of brackground color
     // Refraction parameters
     Vector3f refractParams_ = Vector3f(0.0f, 0.0f, 0.0f);
     // Inner shadow parameters
@@ -316,7 +316,7 @@ private:
     Vector3f envLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
     // Edge highlights parameters
     Vector2f edLightParams_ = Vector2f(0.0f, 0.0f);
-    Vector2f edLightAngles_ = Vector2f(0.0f, 30.0f);
+    Vector2f edLightAngles_ = Vector2f(0.0f, 0.0f);
     Vector2f edLightDir_ = Vector2f(0.0f, 0.0f);
     Vector2f edLightRates_ = Vector2f(0.0f, 0.0f);
     Vector3f edLightKBS_ = Vector3f(0.0f, 0.0f, 0.0f);

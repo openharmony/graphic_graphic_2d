@@ -30,7 +30,8 @@ std::map<std::string, std::vector<uint16_t>> PerfmonitorReporter::GetBlurStatsDa
 {
     return StaticFactory::GetBlurStatsData();
 }
- std::map<std::string, RsBlurEvent> PerfmonitorReporter::GetBlurPerfEventData()
+
+std::map<std::string, RsBlurEvent> PerfmonitorReporter::GetBlurPerfEventData()
 {
     return StaticFactory::GetBlurPerfEventData();
 }

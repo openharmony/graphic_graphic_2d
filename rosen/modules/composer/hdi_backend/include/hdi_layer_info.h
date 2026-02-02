@@ -187,6 +187,7 @@ public:
 
     void SetTunnelLayerId(const uint64_t &tunnelLayerId)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         tunnelLayerId_ = tunnelLayerId;
     }
 
@@ -197,6 +198,7 @@ public:
 
     void SetTunnelLayerProperty(uint32_t tunnelLayerProperty)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         tunnelLayerProperty_ = tunnelLayerProperty;
     }
 
@@ -557,7 +559,7 @@ public:
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) { ancoSrcRect_ = ancoSrcRect; }
     const GraphicIRect& GetAncoSrcRect() const { return ancoSrcRect_; }
 
-    // hpae offline: while creating layer, use srcRect & dstRect instead of bounds to create redraw metrix
+    // hpae offline: while creating layer, use srcRect&dstRect instead of bounds to create redraw matrix
     void SetUseDeviceOffline(bool useOffline) { useDeviceOffline_ = useOffline; }
     bool GetUseDeviceOffline() const { return useDeviceOffline_; }
 

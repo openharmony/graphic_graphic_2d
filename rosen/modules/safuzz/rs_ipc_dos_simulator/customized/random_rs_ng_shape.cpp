@@ -62,7 +62,7 @@ std::shared_ptr<RSNGRenderShapeBase> RandomRSNGShapePtr::GetNullValue()
 
 std::shared_ptr<RSNGRenderShapeBase> RandomRSNGShapePtr::GetRandomSingleShape()
 {
-    if (g_shapeDepth > MAX_SHAPE_DEPTH) {
+    if (g_shapeDepth >= MAX_SHAPE_DEPTH) {
         return nullptr;
     }
     g_shapeDepth++;

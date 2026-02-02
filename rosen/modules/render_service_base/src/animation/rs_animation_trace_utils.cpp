@@ -30,10 +30,12 @@ constexpr const char* ANIMATION_TRACE_ENABLE_NAME = "persist.rosen.animationtrac
 constexpr const char* GRAPHIC_TEST_MODE_TRACE_NAME = "sys.graphic.openTestModeTrace";
 }
 bool RSAnimationTraceUtils::isDebugEnabled_ = false;
+bool RSAnimationTraceUtils::isTestModeEnabled_ = false;
 
 RSAnimationTraceUtils::RSAnimationTraceUtils()
 {
     isDebugEnabled_ = RSSystemProperties::GetAnimationTraceEnabled();
+    isTestModeEnabled_ = RSSystemProperties::GetTestModeEnabled();
     RSSystemProperties::WatchSystemProperty(
         ANIMATION_TRACE_ENABLE_NAME, OnAnimationTraceEnabledChangedCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(
@@ -43,11 +45,12 @@ RSAnimationTraceUtils::RSAnimationTraceUtils()
 void RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(const char* key, const char* value, void* context)
 {
     isDebugEnabled_ = RSSystemProperties::GetAnimationTraceEnabled();
+    isTestModeEnabled_ = RSSystemProperties::GetTestModeEnabled();
 }
 
-bool RSAnimationTraceUtils::GetAnimationEnabled()
+bool RSAnimationTraceUtils::GetTestModeEnabled()
 {
-    return isDebugEnabled_;
+    return isTestModeEnabled_;
 }
 
 std::string RSAnimationTraceUtils::GetColorString(const Color& value) const
@@ -221,7 +224,7 @@ void RSAnimationTraceUtils::AddAnimationCreateTrace(const uint64_t nodeId, const
     const ModifierNG::RSPropertyType propertyType, const std::shared_ptr<RSRenderPropertyBase>& startValue,
     const std::shared_ptr<RSRenderPropertyBase>& endValue, const int animationDelay, const int animationDur,
     const int repeat, const std::string& interfaceName, const int32_t frameNodeId, const std::string& frameNodeTag,
-    RSUINodeType nodeType,  const FrameRateRange& frameRateRange) const
+    RSUINodeType nodeType, const FrameRateRange& frameRateRange) const
 {
     if (!isDebugEnabled_) {
         return;

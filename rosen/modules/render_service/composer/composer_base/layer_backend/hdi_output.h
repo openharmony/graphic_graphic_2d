@@ -95,21 +95,21 @@ public:
     int32_t StartVSyncSampler(bool forceReSample = false);
     void SetPendingMode(int64_t period, int64_t timestamp);
     void ReleaseLayers(sptr<SyncFence>& releaseFence);
-    int32_t GetBufferCacheSize();
+    int32_t GetBufferCacheSize() const;
     void SetVsyncSamplerEnabled(bool enabled);
     bool GetVsyncSamplerEnabled();
     void SetProtectedFrameBufferState(bool state)
     {
         isProtectedBufferAllocated_.store(state);
     }
-    bool GetProtectedFrameBufferState()
+    bool GetProtectedFrameBufferState() const
     {
         return isProtectedBufferAllocated_.load();
     }
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
 
     void SetActiveRectSwitchStatus(bool flag);
-    void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& layerInfo,
+    void AncoTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
         const sptr<SyncFence>& previousReleaseFence);
 
     void SetMaskLayer(const std::shared_ptr<HdiLayer>& maskLayer) { maskLayer_ = maskLayer; }
@@ -129,6 +129,7 @@ public:
         return thirdFrameAheadPresentTime_;
     }
     void UpdateThirdFrameAheadPresentFence(sptr<SyncFence> &fbFence);
+    int32_t GetDisplayClientTargetProperty(int32_t& pixelFormat, int32_t& dataspace);
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
@@ -196,7 +197,6 @@ private:
 
     bool isActiveRectSwitching_ = false;
     void DirtyRegions(uint32_t solidLayerCount, const std::shared_ptr<RSLayer>& rsLayer);
-
     OnPrepareCompleteFunc onPrepareCompleteCb_ = nullptr;
     void* onPrepareCompleteCbData_ = nullptr;
     bool screenPowerOnChanged_ = false;

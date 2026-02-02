@@ -42,13 +42,13 @@ void NativeDrawingMemoryStreamTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     bool copyData = GetObject<bool>();
-    uint32_t str_size = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    char* str = new char[str_size];
-    for (size_t i = 0; i < str_size; i++) {
+    uint32_t strSize = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
+    char* str = new char[strSize];
+    for (size_t i = 0; i < strSize; i++) {
         str[i] = GetObject<char>();
     }
 
-    OH_Drawing_MemoryStream* memoryStream = OH_Drawing_MemoryStreamCreate(str, str_size, copyData);
+    OH_Drawing_MemoryStream* memoryStream = OH_Drawing_MemoryStreamCreate(str, strSize, copyData);
     OH_Drawing_MemoryStreamCreate(nullptr, 0, copyData);
 
     if (str != nullptr) {

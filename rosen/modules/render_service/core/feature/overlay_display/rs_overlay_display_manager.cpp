@@ -80,12 +80,7 @@ bool RSOverlayDisplayManager::CheckStatusChanged()
 void RSOverlayDisplayManager::PostProcFilter(RSPaintFilterCanvas& canvas)
 {
     std::shared_lock lock(mutex_);
-    bool overlayEnable = (modeOfCurrentVsync_ != 0);
-    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (renderThreadParams) {
-        overlayEnable = renderThreadParams->GetOverlayDisplayEnable();
-    }
-    if (!overlayEnable) {
+    if (!IsOverlayEnable()) {
 #ifdef RS_ENABLE_TV_PQ_METADATA
         RSTvMetadataManager::Instance().ResetDpPixelFormat();
 #endif
@@ -109,12 +104,7 @@ void RSOverlayDisplayManager::ExpandDirtyRegion(
     Occlusion::Region& damageRegion)
 {
     std::shared_lock lock(mutex_);
-    bool overlayEnable = (modeOfCurrentVsync_ != 0);
-    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (renderThreadParams) {
-        overlayEnable = renderThreadParams->GetOverlayDisplayEnable();
-    }
-    if (!overlayEnable) {
+    if (!IsOverlayEnable()) {
         return;
     }
     if (expandDirtyRegionFunc_ == nullptr) {
@@ -169,5 +159,15 @@ void *RSOverlayDisplayManager::LoadSymbol(const std::string& symName)
         return nullptr;
     }
     return funcSym;
+}
+
+bool RSOverlayDisplayManager::IsOverlayEnable()
+{
+    bool overlayEnable = (modeOfCurrentVsync_ != 0);
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (renderThreadParams) {
+        overlayEnable = renderThreadParams->GetOverlayDisplayEnable();
+    }
+    return overlayEnable;
 }
 } // namespace OHOS::Rosen

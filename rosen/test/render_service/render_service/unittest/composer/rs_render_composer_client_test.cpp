@@ -24,9 +24,10 @@
 
 #include "connection/rs_render_to_composer_connection.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
-#include "layer/rs_layer_factory.h"
 #include "layer_backend/hdi_output.h"
+#ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_render_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
@@ -49,7 +50,9 @@ public:
 
 void RSRenderComposerClientTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
+#endif
 }
 
 void RSRenderComposerClientTest::TearDownTestCase()
@@ -78,28 +81,28 @@ HWTEST_F(RSRenderComposerClientTest, ClientCreateTest, Function | SmallTest | Le
 
 /**
  * @tc.name: LayerFuncTest
- * @tc.desc: Test Func AddRSLayer RemoveRSLayer ClearAllRSLayer GetRSLayer
+ * @tc.desc: Test Func AddLayer RemoveRSLayer ClearAllRSLayer GetRSLayer
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
 HWTEST_F(RSRenderComposerClientTest, LayerFuncTest, Function | SmallTest | Level2)
 {
     auto layer = std::make_shared<RSSurfaceLayer>();
-    client->AddRSLayer(layer);
+    client->AddLayer(layer);
 }
 
 /**
- * @tc.name: CommitRSLayerTest
- * @tc.desc: Test Func CommitRSLayer
+ * @tc.name: CommitLayersTest
+ * @tc.desc: Test Func CommitLayers
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSRenderComposerClientTest, CommitRSLayerTest, Function | SmallTest | Level2)
+HWTEST_F(RSRenderComposerClientTest, CommitLayersTest, Function | SmallTest | Level2)
 {
     auto layer = std::make_shared<RSSurfaceLayer>();
     layer->SetTunnelHandleChange(true);
-    client->AddRSLayer(layer);
-    client->CommitRSLayer();
+    client->AddLayer(layer);
+    client->CommitLayers();
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId]->unExecuteTaskNum_, 0);
 }

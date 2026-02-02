@@ -124,6 +124,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetBrightnessInfoChangeCallbackTest, Tes
     }
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: CleanBrightnessInfoChangeCallbacksTest
  * @tc.desc: test CleanBrightnessInfoChangeCallbacks
@@ -152,6 +153,7 @@ HWTEST_F(RSRenderServiceConnectionTest, CleanBrightnessInfoChangeCallbacksTest, 
         delete mainThread;
     }
 }
+#endif
 
 /**
  * @tc.name: GetBrightnessInfoTest
@@ -522,6 +524,37 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest002, TestSize.Level1
 }
 
 /**
+ * @tc.name: RegisterTypefaceTest003
+ * @tc.desc: test register shared typeface and unregister shared typeface
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection =
+        new RSClientToServiceConnection(0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    int32_t needUpdate;
+    pid_t pid = getpid();
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    Drawing::SharedTypeface sharedTypeface(
+        (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetUniqueID()), typeface);
+    rsRenderServiceConnection->RegisterTypeface(sharedTypeface, needUpdate);
+    EXPECT_NE(needUpdate, 0);
+    Drawing::SharedTypeface sharedTypeface1(
+        (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetUniqueID()), typeface);
+    rsRenderServiceConnection->RegisterTypeface(sharedTypeface1, needUpdate);
+    EXPECT_EQ(needUpdate, -1);
+    EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(typeface->GetHash()));
+}
+
+/**
  * @tc.name: GetBundleNameTest001
  * @tc.desc: GetBundleName
  * @tc.type: FUNC
@@ -764,7 +797,7 @@ HWTEST_F(RSRenderServiceConnectionTest, ModifyVirtualScreenBlackList001, TestSiz
     ASSERT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(screenId, blacklist), SUCCESS);
     ASSERT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(screenId, blacklist, repCode), ERR_OK);
     // blacklist is empty
-    ASSERT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(screenId, {}), SUCCESS);
+    ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(screenId, {}), SUCCESS);
     ASSERT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(screenId, {}, repCode), ERR_OK);
     ASSERT_NE(rsRenderServiceConnection->RemoveVirtualScreenBlackList(screenId, {}, repCode), ERR_OK);
 }
@@ -857,5 +890,75 @@ HWTEST_F(RSRenderServiceConnectionTest, SetVirtualScreenTypeBlackList002, TestSi
     std::vector<NodeType> typeList = {};
     ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenTypeBlackList(
         INVALID_SCREEN_ID, typeList, repCode), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrectionTest001
+ * @tc.desc: Test SetLogicalCameraRotationCorrection function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, SetLogicalCameraRotationCorrectionTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread_->runner_);
+    mainThread->runner_->Run();
+
+    pid_t testPid = 12345;
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto clientToRenderConnection = new RSClientToRenderConnection(
+        testPid, nullptr, mainThread, screenManager, token->AsObject(), nullptr);
+    ASSERT_NE(clientToRenderConnection, nullptr);
+
+    constexpr uint32_t defaultScreenWidth = 480;
+    constexpr uint32_t defaultScreenHight = 320;
+    
+    std::string name = "virtualScreen02";
+    uint32_t width = defaultScreenWidth;
+    uint32_t height = defaultScreenHight;
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, screenId);
+
+    NodeId nodeId = 0XFFFFFFFFFFFF1234;
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(nodeId, screenId);
+    screenRenderNode->screenInfo_.width = defaultScreenWidth;
+    screenRenderNode->screenInfo_.height = defaultScreenHight;
+    mainThread->context_->nodeMap.RegisterRenderNode(screenRenderNode);
+
+    NodeId surfaceNodeId = 502232;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    mainThread->context_->nodeMap.RegisterRenderNode(surfaceNode);
+    screenRenderNode->AddChild(surfaceNode);
+
+    ASSERT_EQ(
+        clientToRenderConnection->SetLogicalCameraRotationCorrection(screenId, ScreenRotation::ROTATION_90), SUCCESS);
+
+    mainThread = nullptr;
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrectionTest002
+ * @tc.desc: Test SetLogicalCameraRotationCorrection function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, SetLogicalCameraRotationCorrectionTest002, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token1 = new IRemoteStub<RSIConnectionToken>();
+    auto clientToRenderConnectionWithNullThread = new RSClientToRenderConnection(
+        123, nullptr, nullptr, CreateOrGetScreenManager(), token1->AsObject(), nullptr);
+    ASSERT_NE(clientToRenderConnectionWithNullThread, nullptr);
+    clientToRenderConnectionWithNullThread->SetLogicalCameraRotationCorrection(0, ScreenRotation::ROTATION_90);
 }
 } // namespace OHOS::Rosen

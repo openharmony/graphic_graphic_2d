@@ -17,6 +17,7 @@
 #define HDI_BACKEND_HDI_DEVICE_IMPL_H
 
 #include "hdi_device.h"
+#include "v1_1/include/idisplay_composer_interface.h"
 #include "v1_2/include/idisplay_composer_interface.h"
 #include "v1_3/include/idisplay_composer_interface.h"
 #include "v1_4/include/idisplay_composer_interface.h"
@@ -43,6 +44,7 @@ public:
     int32_t SetScreenMode(uint32_t screenId, uint32_t modeId) override;
     int32_t SetScreenActiveRect(uint32_t screenId, const GraphicIRect& activeRect) override;
     int32_t SetScreenOverlayResolution(uint32_t screenId, uint32_t width, uint32_t height) override;
+    int32_t GetPanelPowerStatus(uint32_t devId, GraphicPanelPowerStatus& status) override;
     int32_t GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus &status) override;
     int32_t SetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus status) override;
     int32_t GetScreenBacklight(uint32_t screenId, uint32_t &level) override;
@@ -115,7 +117,7 @@ public:
     int32_t ClearClientBuffer(uint32_t screenId) override;
     void Destroy() override;
     int32_t RegHwcEventCallback(const RSHwcEventCallback& callback, void *data) override;
-    int32_t GetPanelPowerStatus(uint32_t devId, GraphicPanelPowerStatus& status) override;
+    int32_t GetDisplayClientTargetProperty(uint32_t screenId, int32_t& pixelFormat, int32_t& dataspace) override;
 
 private:
     HdiDeviceImpl(const HdiDeviceImpl& rhs) = delete;

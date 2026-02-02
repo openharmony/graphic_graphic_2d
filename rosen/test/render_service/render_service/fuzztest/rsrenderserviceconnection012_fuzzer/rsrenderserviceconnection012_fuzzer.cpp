@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+* Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,7 +50,16 @@ sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncContr
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToServiceConnection(
     g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 namespace {
-sptr<RSIClientToServiceConnection> CONN = nullptr;
+const uint8_t DO_GET_HIGH_CONTRAST_TEXT_STATE = 0;
+const uint8_t DO_COMMIT_TRANSACTION = 1;
+const uint8_t DO_CREATE_NODE = 2;
+const uint8_t DO_CREATE_NODE_AND_SURFACE = 3;
+const uint8_t DO_SET_HIDE_PRIVACY_CONTENT = 4;
+const uint8_t DO_SET_HARDWARE_ENABLED = 5;
+const uint8_t DO_EXECUTE_SYNCHRONOUS_TASK = 6;
+const uint8_t DO_GET_PIXELMAP = 7;
+const uint8_t DO_GET_BITMAP = 8;
+const uint8_t TARGET_SIZE = 9;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -71,19 +80,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -97,21 +93,6 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-namespace Mock {
-void CreateVirtualScreenStubbing(ScreenId screenId)
-{
-    uint32_t width = GetData<uint32_t>();
-    uint32_t height = GetData<uint32_t>();
-    int32_t flags = GetData<int32_t>();
-    std::string name = GetData<std::string>();
-    // Random name of IBufferProducer is not necessary
-    sptr<IBufferProducer> bp = IConsumerSurface::Create("DisplayNode")->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-
-    CONN->CreateVirtualScreen(name, width, height, pSurface, screenId, flags);
-}
-} // namespace Mock
-
 void DoGetHighContrastTextState()
 {
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
@@ -119,6 +100,142 @@ void DoGetHighContrastTextState()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoCommitTransaction()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    dataParcel.WriteInt32(0);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoCreateNode()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    NodeId id = static_cast<NodeId>(g_pid) << 32;
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteString("SurfaceName");
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoCreateNodeAndSurface()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    FuzzedDataProvider fdp(DATA, g_size);
+    uint8_t type = fdp.ConsumeIntegralInRange<uint8_t>(0, 13);
+    uint8_t surfaceWindowType = fdp.ConsumeIntegralInRange<uint8_t>(1, 6);
+    NodeId id = static_cast<NodeId>(g_pid) << 32;
+    bool isTextureExportNode = GetData<bool>();
+    bool isSync = GetData<bool>();
+    bool unobscured = GetData<bool>();
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteString("SurfaceName");
+    dataParcel.WriteUint8(type);
+    dataParcel.WriteBool(isTextureExportNode);
+    dataParcel.WriteBool(isSync);
+    dataParcel.WriteUint8(surfaceWindowType);
+    dataParcel.WriteBool(unobscured);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoSetHidePrivacyContent()
+{
+    pid_t  newPid = getpid();
+    NodeId nodeId = static_cast<NodeId>(newPid) << 32;
+    bool needHidePrivacyContent = GetData<bool>();
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    dataP.WriteUint64(nodeId);
+    dataP.WriteBool(needHidePrivacyContent);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
+
+void DoSetHardwareEnabled()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED);
+    uint64_t id = static_cast<NodeId>(g_pid) << 32;
+    bool isEnabled = GetData<bool>();
+    uint8_t selfDrawingType = GetData<uint8_t>();
+    bool dynamicHardwareEnable = GetData<bool>();
+    dataP.WriteUint64(id);
+    dataP.WriteBool(isEnabled);
+    dataP.WriteUint8(selfDrawingType);
+    dataP.WriteBool(dynamicHardwareEnable);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
+
+void DoExecuteSynchronousTask()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
+    NodeId targetId = static_cast<NodeId>(g_pid) << 32;
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(targetId, property);
+    task->Marshalling(dataParcel);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoGetPixelmap()
+{
+    pid_t  newPid = getpid();
+    NodeId nodeId = static_cast<NodeId>(newPid) << 32;
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    dataP.WriteUint64(nodeId);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP);
+    if (toServiceConnectionStub_ == nullptr) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
+
+void DoGetBitmap()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    NodeId id = static_cast<NodeId>(g_pid) << 32;
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint64(id);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 } // namespace Rosen
@@ -133,10 +250,42 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    /* Run your code on data */
     if (!OHOS::Rosen::Init(data, size)) {
         return -1;
     }
     /* Run your code on data */
-    OHOS::Rosen::DoGetHighContrastTextState();
+    uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_GET_HIGH_CONTRAST_TEXT_STATE:
+            OHOS::Rosen::DoGetHighContrastTextState();
+            break;
+        case OHOS::Rosen::DO_COMMIT_TRANSACTION:
+            OHOS::Rosen::DoCommitTransaction();
+            break;
+        case OHOS::Rosen::DO_CREATE_NODE:
+            OHOS::Rosen::DoCreateNode();
+            break;
+        case OHOS::Rosen::DO_CREATE_NODE_AND_SURFACE:
+            OHOS::Rosen::DoCreateNodeAndSurface();
+            break;
+        case OHOS::Rosen::DO_SET_HIDE_PRIVACY_CONTENT:
+            OHOS::Rosen::DoSetHidePrivacyContent();
+            break;
+        case OHOS::Rosen::DO_SET_HARDWARE_ENABLED:
+            OHOS::Rosen::DoSetHardwareEnabled();
+            break;
+        case OHOS::Rosen::DO_EXECUTE_SYNCHRONOUS_TASK:
+            OHOS::Rosen::DoExecuteSynchronousTask();
+            break;
+        case OHOS::Rosen::DO_GET_PIXELMAP:
+            OHOS::Rosen::DoGetPixelmap();
+            break;
+        case OHOS::Rosen::DO_GET_BITMAP:
+            OHOS::Rosen::DoGetBitmap();
+            break;
+        default:
+            return -1;
+    }
     return 0;
 }

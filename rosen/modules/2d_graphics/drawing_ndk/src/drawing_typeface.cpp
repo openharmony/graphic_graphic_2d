@@ -67,16 +67,19 @@ struct MappedFile {
 
     explicit MappedFile(const std::string& path)
     {
-        fd = open(path.c_str(), O_RDONLY);
+        char realPath[PATH_MAX] = {0};
+        if (realpath(path.c_str(), realPath) == nullptr) {
+            LOGE("Invalid filePath, file path is %{public}s.", path.c_str());
+            return;
+        }
+        fd = open(realPath, O_RDONLY);
         if (fd < 0) {
-            g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
             LOGE("Map file failed, file path is %{public}s.", path.c_str());
             return;
         }
 
         struct stat st {};
         if (fstat(fd, &st) < 0) {
-            g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
             LOGE("Map file fstat failed, file path is %{public}s.", path.c_str());
             close(fd);
             fd = -1;
@@ -86,7 +89,6 @@ struct MappedFile {
 
         void* ptr = mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
         if (ptr == MAP_FAILED) {
-            g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
             LOGE("Map file mmap failed, file path is %{public}s.", path.c_str());
             close(fd);
             fd = -1;
@@ -176,7 +178,6 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFile(const char* path, int ind
         typeface = Typeface::MakeFromAshmem(
             static_cast<const uint8_t*>(mappedFile.data), mappedFile.size, 0, "0", index);
     } else {
-        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         LOGE("OH_Drawing_TypefaceCreateFromFile: read typeface file failed, path is %{public}s, index is %{public}d.",
             path, index);
         return nullptr;
@@ -215,7 +216,6 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFileWithArguments(const char* 
         typeface = Typeface::MakeFromAshmem(
             static_cast<const uint8_t*>(mappedFile.data), mappedFile.size, 0, "0", fontArguments);
     } else {
-        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         LOGE("OH_Drawing_TypefaceCreateFromFileWithArguments: read typeface file failed, path is %{public}s.", path);
         return nullptr;
     }
@@ -232,7 +232,7 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromCurrent(const OH_Drawing_Typef
     }
     FontArguments fontArguments;
     ConvertToDrawingFontArguments(*fontArgumentsHelper, fontArguments);
-    int currentTypefaceSize = const_cast<Typeface*>(currentTypeface)->GetSize();
+    uint32_t currentTypefaceSize = const_cast<Typeface*>(currentTypeface)->GetSize();
     if (fontArguments.GetCollectionIndex() == 0 && fontArguments.GetVariationDesignPosition().coordinateCount == 0) {
         return nullptr;
     }

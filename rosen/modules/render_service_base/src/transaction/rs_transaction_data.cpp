@@ -127,12 +127,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
             RS_LOGW("failed RSTransactionData::Marshalling, indexVerifier is wrong, SIGSEGV may have occurred");
         } else {
             parcel.WriteUint8(1);
-            if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
-                RS_LOGE("RSTransactionData::Marshalling failed to write begin position marshallingIndex:%{public}zu",
-                    marshallingIndex_);
-                success = false;
-            }
-            if (RSTransactionDataCallbackManager::GetTransactionDataTestEnabled()) {
+            if (Rosen::RSAnimationTraceUtils::GetTestModeEnabled()) {
                 RS_OPTIONAL_TRACE_NAME_TESTMODE("RSTransactionData::Marshalling nodeId:%ld type:%s",
                     command->GetNodeId(), command->PrintType().c_str());
             }
@@ -150,19 +145,14 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
             success = success && command->Marshalling(parcel);
             if (isUiCapSyncCmd) {
                 RS_LOGW("OffScreenIsSync RSTransactionData::Marshalling, nodeId:[%{public}" PRIu64 "] "
-                    "%{public}s", command->GetNodeId(), success ? "success" : "failed");
-            }
-            if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
-                RS_LOGE("RSTransactionData::Marshalling failed to write end position marshallingIndex:%{public}zu",
-                    marshallingIndex_);
-                success = false;
+                    "%{public}s", command->GetNodeId(), success ? "success" : "fail");
             }
         }
         if (!success) {
             if (command != nullptr) {
                 ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
             } else {
-                ROSEN_LOGE("failed RSTransactionData::Marshalling, pparcel write error");
+                ROSEN_LOGE("failed RSTransactionData::Marshalling, parcel write error");
             }
             return false;
         }
@@ -213,7 +203,6 @@ void RSTransactionData::ProcessBySingleFrameComposer(RSContext& context)
 
 void RSTransactionData::Process(RSContext& context)
 {
-    std::unique_lock<std::mutex> lock(commandMutex_);
     for (auto& [nodeId, followType, command] : payload_) {
         if (command != nullptr) {
             if (!command->IsCallingPidValid()) {
@@ -240,7 +229,6 @@ void RSTransactionData::Clear()
 
 void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
-    std::unique_lock<std::mutex> lock(commandMutex_);
     if (command) {
         command->indexVerifier_ = payload_.size();
         payload_.emplace_back(nodeId, followType, std::move(command));
@@ -331,9 +319,6 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             return false;
         }
         if (hasCommand) {
-            if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
-                RS_LOGE("RSTransactionData::Unmarshalling, CheckReadPosition begin failed index:%{public}zu", i);
-            }
             RS_PROFILER_PUSH_OFFSET(commandOffsets_, parcel.GetReadPosition());
             if (!(parcel.ReadUint16(commandType) && parcel.ReadUint16(commandSubType))) {
                 return false;
@@ -349,21 +334,16 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
                 return false;
             }
             RS_PROFILER_PATCH_COMMAND(parcel, command);
-            if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
-                RS_LOGE("RSTransactionData::Unmarshalling, CheckReadPosition end failed index:%{public}zu"
-                    " commandType:[%{public}u, %{public}u]", i, static_cast<uint32_t>(commandType),
-                    static_cast<uint32_t>(commandSubType));
-            }
             payloadLock.lock();
             RS_OPTIONAL_TRACE_NAME_FMT("UnmarshallingCommand [nodeId:%zu], cmd is [%s]", command->GetNodeId(),
                 command->PrintType().c_str());
-            payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             bool isUiCapSyncCmd = ((commandType == RSCommandType::RS_NODE) &&
                 (commandSubType == RSNodeCommandType::SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG));
             if (isUiCapSyncCmd) {
                 RS_LOGW("OffScreenIsSync RSTransactionData::UnmarshallingCmd finished, cmdSize: [%{public}d], "
                     "nodeId:[%{public}" PRIu64 "]", commandSize, command->GetNodeId());
             }
+            payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             payloadLock.unlock();
         } else {
             continue;
@@ -384,13 +364,6 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
 
 bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const
 {
-    // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
-    // we temporarily add a white list to avoid abnormal functionality or abnormal display.
-    // The white list will be removed after GetCallingPid interface can return real PID.
-    if (callingPid == 0) {
-        return true;
-    }
-
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::set<
         std::pair<uint16_t, uint16_t>>>> inaccessibleCommandMap;
     std::unique_lock<std::mutex> lock(commandMutex_);

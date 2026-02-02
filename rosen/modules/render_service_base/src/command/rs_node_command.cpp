@@ -24,6 +24,7 @@ namespace Rosen {
 namespace {
 RSNodeCommandHelper::DumpNodeTreeProcessor gDumpNodeTreeProcessor = nullptr;
 RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = nullptr;
+RSNodeCommandHelper::ColorPickerCallbackProcessor gColorPickerCallbackProcessor = nullptr;
 }
 
 void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze)
@@ -114,6 +115,14 @@ void RSNodeCommandHelper::SetUIFirstSwitch(RSContext& context, NodeId nodeId, RS
     }
 }
 
+void RSNodeCommandHelper::MarkNodeColorSpace(RSContext& context, NodeId nodeId, bool isP3Color)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->MarkNodeColorSpace(isP3Color);
+    }
+}
+
 void RSNodeCommandHelper::SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect)
 {
     auto& nodeMap = context.GetNodeMap();
@@ -143,6 +152,15 @@ void RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(RSContext& context, NodeId
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node != nullptr) {
         node->SetNeedUseCmdlistDrawRegion(needUseCmdlistDrawRegion);
+    }
+}
+
+void RSNodeCommandHelper::SetHDRUIBrightness(RSContext& context, NodeId nodeId, float brightness)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node != nullptr) {
+        node->SetHDRUIBrightness(brightness);
     }
 }
 
@@ -239,8 +257,9 @@ void RSNodeCommandHelper::AddModifierNG(RSContext& context, NodeId nodeId,
     if (node) {
         node->AddModifier(modifier);
     } else {
-        ROSEN_LOGE("RSNodeCommandHelper::AddModifierNG Invalid NodeId %{public}" PRIu64 ", ModifierId %{public}" PRIu64
-            ", ModifierType %{public}hu", nodeId, modifier->GetId(), modifier->GetType());
+        ROSEN_LOGE("RSNodeCommandHelper::AddModifierNG Invalid NodeId %{public}" PRIu64 ", ModifierId %{public}" PRId64
+            ", ModifierType %{public}d", nodeId, modifier ? modifier->GetId() : -1,
+            modifier ? static_cast<int>(modifier->GetType()) : -1);
     }
 }
 
@@ -314,6 +333,19 @@ void RSNodeCommandHelper::RemoveAllModifiersNG(RSContext& context, NodeId nodeId
     if (node) {
         node->RemoveAllModifiersNG();
     }
+}
+
+void RSNodeCommandHelper::ColorPickerCallback(
+    RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t color)
+{
+    if (gColorPickerCallbackProcessor != nullptr) {
+        gColorPickerCallbackProcessor(nodeId, token, color);
+    }
+}
+
+void RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor)
+{
+    gColorPickerCallbackProcessor = processor;
 }
 } // namespace Rosen
 } // namespace OHOS

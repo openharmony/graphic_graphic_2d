@@ -105,10 +105,10 @@ public:
 
     int32_t SetPowerStatus(uint32_t powerStatus);
     ScreenPowerStatus GetPowerStatus();
+    PanelPowerStatus GetPanelPowerStatus() const;
 
     int32_t SetDualScreenState(DualScreenStatus status);
 
-    PanelPowerStatus GetPanelPowerStatus() const;
     void SetScreenBacklight(uint32_t level);
     int32_t GetScreenBacklight() const;
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type);
@@ -193,6 +193,8 @@ public:
     int32_t GetOffsetX() const;
     int32_t GetOffsetY() const;
 
+    bool GetAndResetWhiteListChange();
+    void SetWhiteListChange(bool whiteListChange);
     bool GetAndResetPSurfaceChange();
     void SetPSurfaceChange(bool pSurfaceChange);
     bool GetAndResetVirtualScreenPlay();
@@ -230,7 +232,8 @@ private:
         COLOR_GAMUT_DCI_P3,
         COLOR_GAMUT_ADOBE_RGB,
         COLOR_GAMUT_DISPLAY_P3,
-        COLOR_GAMUT_BT2100_HLG };
+        COLOR_GAMUT_BT2100_HLG,
+        COLOR_GAMUT_NATIVE };
     std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
     std::atomic<int32_t> currentVirtualColorGamutIdx_ = 0;
     std::atomic<int32_t> currentPhysicalColorGamutIdx_ = 0;
@@ -255,6 +258,7 @@ private:
     // status for full screen dirty region update
     std::atomic<bool> pSurfaceChange_ = false;
     std::atomic<bool> virtualScreenPlay_ = false;
+    std::atomic<bool> whiteListChange_ = false;
 
     std::function<void(const sptr<RSScreenProperty>&)> onPropertyChange_;
     RSScreenThreadSafeProperty property_;

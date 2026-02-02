@@ -38,7 +38,6 @@ public:
     void AddObject(void* obj);
     bool HasObject(void* obj);
     bool RemoveObject(void* obj);
-    size_t ObjectCount();
 
 private:
     static inline std::shared_ptr<ObjectMgr> objectMgr = nullptr;

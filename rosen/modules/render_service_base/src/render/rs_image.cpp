@@ -624,7 +624,9 @@ void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingO
     
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
-    if (dstRect_.width_ == 0 || dstRect_.height_ == 0) {
+    const float limitSize = 0.01f;
+    if (dstRect_.width_ < limitSize || dstRect_.height_ < limitSize) {
+        RS_LOGE("RSImage::CalcRepeatBounds dst rect width or height is invalid");
         return;
     }
     float left = frameRect_.left_;
@@ -632,7 +634,6 @@ void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
     float top = frameRect_.top_;
     float bottom = frameRect_.GetBottom();
     // calculate REPEAT_XY
-    float eps = 0.01; // set epsilon
     auto repeat_x = ImageRepeat::REPEAT_X;
     auto repeat_y = ImageRepeat::REPEAT_Y;
     if (rotateDegree_ == DEGREE_NINETY || rotateDegree_ == -DEGREE_NINETY) {
@@ -640,20 +641,16 @@ void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
         std::swap(repeat_x, repeat_y);
     }
     if (repeat_x == imageRepeat_ || ImageRepeat::REPEAT == imageRepeat_) {
-        while (dstRect_.left_ + minX * dstRect_.width_ > left + eps) {
-            --minX;
-        }
-        while (dstRect_.left_ + maxX * dstRect_.width_ < right - eps) {
-            ++maxX;
-        }
+        minX = dstRect_.left_ > left ?
+            std::floor((left - dstRect_.left_) / dstRect_.width_) : 0;
+        maxX = right > dstRect_.left_ + dstRect_.width_ ?
+            std::ceil((right - dstRect_.left_ - dstRect_.width_) / dstRect_.width_) : 0;
     }
     if (repeat_y == imageRepeat_ || ImageRepeat::REPEAT == imageRepeat_) {
-        while (dstRect_.top_ + minY * dstRect_.height_ > top + eps) {
-            --minY;
-        }
-        while (dstRect_.top_ + maxY * dstRect_.height_ < bottom - eps) {
-            ++maxY;
-        }
+        minY = dstRect_.top_ > top ?
+            std::floor((top - dstRect_.top_) / dstRect_.height_) : 0;
+        maxY = bottom > dstRect_.top_ + dstRect_.height_ ?
+            std::ceil((bottom - dstRect_.top_ - dstRect_.height_) / dstRect_.height_) : 0;
     }
 }
 
@@ -842,11 +839,11 @@ bool RSImage::Marshalling(Parcel& parcel) const
     std::lock_guard<std::mutex> lock(mutex_);
     auto image = image_;
     auto compressData = compressData_;
+    RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData);
     if (image && image->IsTextureBacked()) {
         image = nullptr;
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
-    RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData);
     uint32_t versionId = pixelMap_ == nullptr ? 0 : pixelMap_->GetVersionId();
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
@@ -854,7 +851,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, nodeId_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
                    RSMarshallingHelper::Marshalling(parcel, versionId) &&
-                   RSMarshallingHelper::Marshalling(parcel, image) &&
+                   pixelMap_ == nullptr ? RSMarshallingHelper::Marshalling(parcel, image) :
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_) &&
                    RSMarshallingHelper::Marshalling(parcel, compressData) &&
                    RSMarshallingHelper::Marshalling(parcel, imageFit) &&

@@ -16,17 +16,11 @@
 #ifndef TEXT_LOG_H
 #define TEXT_LOG_H
 
-#ifdef ENABLE_OHOS_ENHANCE
+#include <chrono>
 #include <hilog/log.h>
-#endif
 
-template<typename... Args>
-void ignore_unused(Args&&...)
-{}
 namespace OHOS {
 namespace Rosen {
-#ifdef ENABLE_OHOS_ENHANCE
-
 #undef TEXT_LOG_DOMAIN
 #define TEXT_LOG_DOMAIN 0xD001408
 
@@ -143,22 +137,6 @@ namespace Rosen {
             TEXT_LOGE(fmt, ##__VA_ARGS__);                                                                 \
         }                                                                                                  \
     } while (0)
-
-#else
-#define TEXT_LOGD(...) ignore_unused(__VA_ARGS__)
-#define TEXT_LOGI(...) ignore_unused(__VA_ARGS__)
-#define TEXT_LOGW(...) ignore_unused(__VA_ARGS__)
-#define TEXT_LOGE(...) ignore_unused(__VA_ARGS__)
-
-#define TEXT_LOGI_LIMIT3_HOUR(...) ignore_unused(__VA_ARGS__)
-#define TEXT_LOGW_LIMIT3_HOUR(...) ignore_unused(__VA_ARGS__)
-#define TEXT_LOGE_LIMIT3_HOUR(...) ignore_unused(__VA_ARGS__)
-
-#define TEXT_LOGI_LIMIT3_MIN(...) ignore_unused(__VA_ARGS__)
-#define TEXT_LOGW_LIMIT3_MIN(...) ignore_unused(__VA_ARGS__)
-#define TEXT_LOGE_LIMIT3_MIN(...) ignore_unused(__VA_ARGS__)
-
-#endif
 
 #define TEXT_ERROR_CHECK(ret, statement, format, ...)  \
     do {                                               \

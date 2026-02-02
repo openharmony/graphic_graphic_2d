@@ -24,6 +24,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint32_t MAX_FUZZ_IPC_LOOP_COUNT = 100;
+constexpr uint32_t MAX_FUZZ_SIMPLE_LOOP_COUNT = 1000;
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -108,32 +110,47 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-bool DoCreate(const uint8_t* data, size_t size)
+bool DoCreate()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode1 = RSSurfaceNode::Create(config);
+    if (surfaceNode1 == nullptr) {
+        return false;
+    }
     RSSurfaceNodeType type = GetData<RSSurfaceNodeType>();
     RSSurfaceNode::SharedPtr surfaceNode2 = RSSurfaceNode::Create(config, type);
+    if (surfaceNode2 == nullptr) {
+        return false;
+    }
     return true;
 }
 
-bool DoRemoveChild(const uint8_t* data, size_t size)
+bool DoRemoveChild()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     RSSurfaceNodeConfig config1;
     RSSurfaceNode::SharedPtr child = RSSurfaceNode::Create(config1);
+    if (child == nullptr) {
+        return false;
+    }
     surfaceNode->RemoveChild(child);
     return true;
 }
 
-bool DoSetAndGet(const uint8_t* data, size_t size)
+bool DoSetAndGet()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool isSecurityLayer = GetData<bool>();
     surfaceNode->SetSecurityLayer(isSecurityLayer);
     surfaceNode->GetSecurityLayer();
@@ -161,80 +178,113 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetBufferAvailableCallback(const uint8_t* data, size_t size)
+bool DoSetBufferAvailableCallback()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     auto func = []() {
         std::cout << "SetBufferAvailableCallback, test upper limit of registered function" << std::endl;
     };
     uint32_t funcNumMax = GetData<uint32_t>();
+    if (funcNumMax > MAX_FUZZ_IPC_LOOP_COUNT) {
+        funcNumMax = MAX_FUZZ_IPC_LOOP_COUNT;
+    }
     for (uint32_t i = 0; i < funcNumMax; ++i) {
         surfaceNode->SetBufferAvailableCallback(func);
     }
     return true;
 }
 
-bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
+bool DoSetBoundsChangedCallback()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     BoundsChangedCallback callback;
     uint32_t funcNumMax = GetData<uint32_t>();
+    if (funcNumMax > MAX_FUZZ_SIMPLE_LOOP_COUNT) {
+        funcNumMax = MAX_FUZZ_SIMPLE_LOOP_COUNT;
+    }
     for (uint32_t i = 0; i < funcNumMax; ++i) {
         surfaceNode->SetBoundsChangedCallback(callback);
     }
     return true;
 }
 
-bool DoMarshalling(const uint8_t* data, size_t size)
+bool DoMarshalling()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     Parcel parcel;
     surfaceNode->Marshalling(parcel);
     return true;
 }
 
-bool DoUnmarshalling(const uint8_t* data, size_t size)
+bool DoUnmarshalling()
 {
     // test
     RSSurfaceNodeConfig config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     Parcel parcel;
+    parcel.WriteUint64(GetData<uint64_t>());
+    parcel.WriteString(GetData<std::string>());
+    parcel.WriteBool(GetData<bool>());
     surfaceNode->Unmarshalling(parcel);
     return true;
 }
 
-bool DoUnmarshallingAsProxyNode(const uint8_t* data, size_t size)
+bool DoUnmarshallingAsProxyNode()
 {
     // test
     RSSurfaceNodeConfig config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     Parcel parcel;
+    parcel.WriteUint64(GetData<uint64_t>());
+    parcel.WriteString(GetData<std::string>());
+    parcel.WriteBool(GetData<bool>());
     surfaceNode->UnmarshallingAsProxyNode(parcel);
     return true;
 }
 
-bool DoAttachToDisplay(const uint8_t* data, size_t size)
+bool DoAttachToDisplay()
 {
     // test
     RSSurfaceNodeConfig config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     uint64_t screenId = GetData<uint64_t>();
     surfaceNode->AttachToDisplay(screenId);
     return true;
 }
 
-bool DoDetachToDisplayAndSetHardwareEnabled(const uint8_t* data, size_t size)
+bool DoDetachToDisplayAndSetHardwareEnabled()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     uint64_t screenId = GetData<uint64_t>();
     surfaceNode->DetachToDisplay(screenId);
     bool isEnabled = GetData<bool>();
@@ -242,42 +292,54 @@ bool DoDetachToDisplayAndSetHardwareEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetForceHardwareAndFixRotation(const uint8_t* data, size_t size)
+bool DoSetForceHardwareAndFixRotation()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool flag = GetData<bool>();
     surfaceNode->SetForceHardwareAndFixRotation(flag);
     return true;
 }
 
-bool DoSetTextureExport(const uint8_t* data, size_t size)
+bool DoSetTextureExport()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool isTextureExportNode = GetData<bool>();
     surfaceNode->SetTextureExport(isTextureExportNode);
     return true;
 }
 
-bool DoSetContainerWindow(const uint8_t* data, size_t size)
+bool DoSetContainerWindow()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool hasContainerWindow = GetData<bool>();
     RRect rrect = GetData<RRect>();
     surfaceNode->SetContainerWindow(hasContainerWindow, rrect);
     return true;
 }
 
-bool DoSetWindowIdAndSetFreeze(const uint8_t* data, size_t size)
+bool DoSetWindowIdAndSetFreeze()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     uint32_t windowId = GetData<uint32_t>();
     surfaceNode->SetWindowId(windowId);
     bool isFreeze = GetData<bool>();
@@ -286,90 +348,114 @@ bool DoSetWindowIdAndSetFreeze(const uint8_t* data, size_t size)
 }
 
 #ifdef USE_SURFACE_TEXTURE
-bool DoSetSurfaceTexture(const uint8_t* data, size_t size)
+bool DoSetSurfaceTexture()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     RSSurfaceExtConfig config1 = GetData<RSSurfaceExtConfig>();
     surfaceNode->SetSurfaceTexture(config1);
     return true;
 }
 
-bool DoMarkUiFrameAvailable(const uint8_t* data, size_t size)
+bool DoMarkUiFrameAvailable()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool available = GetData<bool>();
     surfaceNode->MarkUiFrameAvailable(available);
     return true;
 }
 
-bool DoCreateSurfaceExt(const uint8_t* data, size_t size)
+bool DoCreateSurfaceExt()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     RSSurfaceExtConfig config1 = GetData<RSSurfaceExtConfig>();
     surfaceNode->CreateSurfaceExt(config1);
     return true;
 }
 #endif
 
-bool DoSetForeground(const uint8_t* data, size_t size)
+bool DoSetForeground()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool isForeground = GetData<bool>();
     surfaceNode->SetForeground(isForeground);
     return true;
 }
 
-bool DoSetForceUIFirst(const uint8_t* data, size_t size)
+bool DoSetForceUIFirst()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool forceUIFirst = GetData<bool>();
     surfaceNode->SetForceUIFirst(forceUIFirst);
     return true;
 }
 
-bool DoSetAncoFlags(const uint8_t* data, size_t size)
+bool DoSetAncoFlags()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     uint32_t flags = GetData<uint32_t>();
     surfaceNode->SetAncoFlags(flags);
     return true;
 }
 
-bool DoSetWatermark(const uint8_t* data, size_t size)
+bool DoSetWatermark()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     std::string waterMark = GetData<std::string>();
     bool waterMarkEnabled = GetData<bool>();
     surfaceNode->SetWatermarkEnabled(waterMark, waterMarkEnabled);
     return true;
 }
 
-bool DoSetHDRPresent(const uint8_t* data, size_t size)
+bool DoSetHDRPresent()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool hdrPresent = GetData<bool>();
     NodeId id = GetData<NodeId>();
     surfaceNode->SetHDRPresent(hdrPresent, id);
     return true;
 }
 
-bool DoRSSurfaceNode(const uint8_t* data, size_t size)
+bool DoRSSurfaceNode()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -380,11 +466,14 @@ bool DoRSSurfaceNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreateNode(const uint8_t* data, size_t size)
+bool DoCreateNode()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     NodeId id = GetData<NodeId>();
     std::string name = GetData<std::string>();
     RSSurfaceNodeType type = GetData<RSSurfaceNodeType>();
@@ -400,11 +489,14 @@ bool DoCreateNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
+bool DoCreateNodeAndSurface()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     NodeId id = GetData<NodeId>();
     std::string name = GetData<std::string>();
     RSSurfaceNodeType type = GetData<RSSurfaceNodeType>();
@@ -421,91 +513,118 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetIsTextureExportNode(const uint8_t* data, size_t size)
+bool DoSetIsTextureExportNode()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool isTextureExportNode = GetData<bool>();
     surfaceNode->SetIsTextureExportNode(isTextureExportNode);
     return true;
 }
 
-bool DoSetLeashPersistentId(const uint8_t* data, size_t size)
+bool DoSetLeashPersistentId()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     LeashPersistentId leashPersistentId = GetData<LeashPersistentId>();
     surfaceNode->SetLeashPersistentId(leashPersistentId);
     return true;
 }
 
-bool DoSetGlobalPositionEnabled(const uint8_t* data, size_t size)
+bool DoSetGlobalPositionEnabled()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool isEnabled = GetData<bool>();
     surfaceNode->SetGlobalPositionEnabled(isEnabled);
     return true;
 }
 
-bool DoSetSkipDraw(const uint8_t* data, size_t size)
+bool DoSetSkipDraw()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool isSkip = GetData<bool>();
     surfaceNode->SetSkipDraw(isSkip);
     return true;
 }
 
-bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
+bool DoSetHidePrivacyContent()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool needHidePrivacyContent = GetData<bool>();
     surfaceNode->SetHidePrivacyContent(needHidePrivacyContent);
     return true;
 }
 
-bool DoSetHardwareEnableHint(const uint8_t* data, size_t size)
+bool DoSetHardwareEnableHint()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool hardwareEnable = GetData<bool>();
     surfaceNode->SetHardwareEnableHint(hardwareEnable);
     return true;
 }
 
-bool DoSetSourceVirtualScreenId(const uint8_t* data, size_t size)
+bool DoSetSourceVirtualScreenId()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     uint64_t screenId = GetData<uint64_t>();
     surfaceNode->SetSourceVirtualDisplayId(screenId);
     return true;
 }
 
-bool DoSetFrameGravityNewVersionEnabled(const uint8_t* data, size_t size)
+bool DoSetFrameGravityNewVersionEnabled()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool isEnabled = GetData<bool>();
     surfaceNode->SetFrameGravityNewVersionEnabled(isEnabled);
     return true;
 }
 
-bool DoSetSurfaceBufferOpaque(const uint8_t* data, size_t size)
+bool DoSetSurfaceBufferOpaque()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
     bool isOpaque = GetData<bool>();
     surfaceNode->SetSurfaceBufferOpaque(isOpaque);
     return true;
@@ -522,39 +641,39 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     
     /* Run your code on data */
-    OHOS::Rosen::DoCreate(data, size);
-    OHOS::Rosen::DoSetAndGet(data, size);
-    OHOS::Rosen::DoSetBufferAvailableCallback(data, size);
-    OHOS::Rosen::DoSetBoundsChangedCallback(data, size);
-    OHOS::Rosen::DoMarshalling(data, size);
-    OHOS::Rosen::DoUnmarshalling(data, size);
-    OHOS::Rosen::DoUnmarshallingAsProxyNode(data, size);
-    OHOS::Rosen::DoAttachToDisplay(data, size);
-    OHOS::Rosen::DoDetachToDisplayAndSetHardwareEnabled(data, size);
-    OHOS::Rosen::DoSetForceHardwareAndFixRotation(data, size);
-    OHOS::Rosen::DoSetTextureExport(data, size);
-    OHOS::Rosen::DoSetContainerWindow(data, size);
-    OHOS::Rosen::DoSetWindowIdAndSetFreeze(data, size);
+    OHOS::Rosen::DoCreate();
+    OHOS::Rosen::DoSetAndGet();
+    OHOS::Rosen::DoSetBufferAvailableCallback();
+    OHOS::Rosen::DoSetBoundsChangedCallback();
+    OHOS::Rosen::DoMarshalling();
+    OHOS::Rosen::DoUnmarshalling();
+    OHOS::Rosen::DoUnmarshallingAsProxyNode();
+    OHOS::Rosen::DoAttachToDisplay();
+    OHOS::Rosen::DoDetachToDisplayAndSetHardwareEnabled();
+    OHOS::Rosen::DoSetForceHardwareAndFixRotation();
+    OHOS::Rosen::DoSetTextureExport();
+    OHOS::Rosen::DoSetContainerWindow();
+    OHOS::Rosen::DoSetWindowIdAndSetFreeze();
 #ifdef USE_SURFACE_TEXTURE
-    OHOS::Rosen::DoSetSurfaceTexture(data, size);
-    OHOS::Rosen::DoMarkUiFrameAvailable(data, size);
-    OHOS::Rosen::DoCreateSurfaceExt(data, size);
+    OHOS::Rosen::DoSetSurfaceTexture();
+    OHOS::Rosen::DoMarkUiFrameAvailable();
+    OHOS::Rosen::DoCreateSurfaceExt();
 #endif
-    OHOS::Rosen::DoSetForeground(data, size);
-    OHOS::Rosen::DoSetForceUIFirst(data, size);
-    OHOS::Rosen::DoSetAncoFlags(data, size);
-    OHOS::Rosen::DoRSSurfaceNode(data, size);
-    OHOS::Rosen::DoCreateNode(data, size);
-    OHOS::Rosen::DoCreateNodeAndSurface(data, size);
-    OHOS::Rosen::DoSetIsTextureExportNode(data, size);
-    OHOS::Rosen::DoSetLeashPersistentId(data, size);
-    OHOS::Rosen::DoSetGlobalPositionEnabled(data, size);
-    OHOS::Rosen::DoSetSkipDraw(data, size);
-    OHOS::Rosen::DoSetHidePrivacyContent(data, size);
-    OHOS::Rosen::DoSetHardwareEnableHint(data, size);
-    OHOS::Rosen::DoSetSourceVirtualScreenId(data, size);
-    OHOS::Rosen::DoSetFrameGravityNewVersionEnabled(data, size);
-    OHOS::Rosen::DoSetSurfaceBufferOpaque(data, size);
+    OHOS::Rosen::DoSetForeground();
+    OHOS::Rosen::DoSetForceUIFirst();
+    OHOS::Rosen::DoSetAncoFlags();
+    OHOS::Rosen::DoRSSurfaceNode();
+    OHOS::Rosen::DoCreateNode();
+    OHOS::Rosen::DoCreateNodeAndSurface();
+    OHOS::Rosen::DoSetIsTextureExportNode();
+    OHOS::Rosen::DoSetLeashPersistentId();
+    OHOS::Rosen::DoSetGlobalPositionEnabled();
+    OHOS::Rosen::DoSetSkipDraw();
+    OHOS::Rosen::DoSetHidePrivacyContent();
+    OHOS::Rosen::DoSetHardwareEnableHint();
+    OHOS::Rosen::DoSetSourceVirtualScreenId();
+    OHOS::Rosen::DoSetFrameGravityNewVersionEnabled();
+    OHOS::Rosen::DoSetSurfaceBufferOpaque();
     return 0;
 }
 

@@ -41,6 +41,7 @@
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
+#include "rs_render_service_client_info.h"
 #include "rs_hrp_service.h"
 #include "rs_irender_client.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
@@ -60,9 +61,7 @@
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "utils/scalar.h"
-#include "rs_render_service_client_info.h"
 #include "rs_client_render_comm_def_info.h"
-
 namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
@@ -146,14 +145,13 @@ public:
 
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
 
-    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
-        const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
-        
-    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
-        const std::vector<NodeId> &nodeIdList);
-        
-    void ClearSurfaceWatermark(pid_t pid, const std::string &name);
+    uint32_t SetSurfaceWatermark(pid_t callingPid,
+        const std::string& name, const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId>& nodeList, SurfaceWatermarkType watermarkType);
+
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name, const std::vector<NodeId>& nodeList);
+
+    void ClearSurfaceWatermark(pid_t pid, const std::string& name);
 
     void RemoveVirtualScreen(ScreenId id);
 
@@ -232,6 +230,8 @@ public:
 
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id);
 
+    PanelPowerStatus GetPanelPowerStatus(ScreenId id);
+
     RSScreenData GetScreenData(ScreenId id);
 
     MemoryGraphic GetMemoryGraphic(int pid);
@@ -243,8 +243,6 @@ public:
     int32_t GetScreenBacklight(ScreenId id);
 
     void SetScreenBacklight(ScreenId id, uint32_t level);
-
-    PanelPowerStatus GetPanelPowerStatus(ScreenId id);
 
     bool RegisterBufferAvailableListener(
         NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
@@ -331,8 +329,6 @@ public:
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         const FrameRateLinkerExpectedFpsUpdateCallback& callback);
 
-    void SetAppWindowNum(uint32_t num);
-
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
@@ -400,13 +396,13 @@ public:
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
-    void SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
-
-    void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
+    void SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh);
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
+
+    void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config,
@@ -419,9 +415,9 @@ public:
 
     void SetFreeMultiWindowStatus(bool enable);
 
-    void NotifyScreenSwitched();
-
     void ForceRefreshOneFrameWithNextVSync();
+
+    void NotifyScreenSwitched();
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback);
@@ -436,7 +432,7 @@ public:
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
 
-    int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
+    int32_t GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB);
 
     RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
         const std::string& fileName, int32_t flags, int& outFd);
@@ -449,6 +445,10 @@ public:
 
     void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps);
+
+    bool AvcodecVideoGet(uint64_t uniqueId);
+ 
+    bool AvcodecVideoGetRecent();
 
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
 private:

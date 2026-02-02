@@ -45,8 +45,7 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderPipelineClient::TakeSurfaceCaptureSoloNode(
     NodeId id, const RSSurfaceCaptureConfig& captureConfig)
 {
-    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
-    return pixelMapIdPairVector;
+    return {};
 }
 
 bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
@@ -96,7 +95,7 @@ int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSt
     return 0;
 }
 
-void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t> pidList)
+void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
 }
 
@@ -140,6 +139,11 @@ void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
 
 void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
+}
+
+int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
+{
+    return 0;
 }
 } // namespace Rosen
 } // namespace OHOS

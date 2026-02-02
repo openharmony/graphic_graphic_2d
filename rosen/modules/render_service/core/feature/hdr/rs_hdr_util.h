@@ -63,6 +63,7 @@ public:
 
     static HdrStatus CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode);
     static HdrStatus CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer);
+    static bool CheckIsHDRSelfProcessingBuffer(const sptr<SurfaceBuffer>& surfaceBuffer);
     static bool CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode);
     static bool CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfaceBuffer);
     static void UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
@@ -70,8 +71,8 @@ public:
     static void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surfaceNode, RSScreenRenderNode& screenNode);
     static void CheckPixelFormatForHdrEffect(RSSurfaceRenderNode& surfaceNode,
         std::shared_ptr<RSScreenRenderNode> screenNode);
-    static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
-    static void SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool flag);
+    static bool UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId, float& scaler);
+    static void SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool isEDR);
     static void LuminanceChangeSetDirty(RSScreenRenderNode& node);
     static bool GetRGBA1010108Enabled();
     static void CheckNotifyCallback(RSContext& context, ScreenId screenId);

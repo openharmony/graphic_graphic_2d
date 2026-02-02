@@ -246,10 +246,23 @@ float RSLuminanceControl::ConvertScalerFromLevelToFloat(uint32_t& level) const
 }
 
 void RSLuminanceControl::SetCurDisplayHdrBrightnessScaler(ScreenId screenId,
-    std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler)
+    const std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler)
 {
     if (rSLuminanceControlInterface_ != nullptr) {
         rSLuminanceControlInterface_->SetCurDisplayHdrBrightnessScaler(screenId, curDisplayHdrBrightnessScaler);
+    }
+}
+
+double RSLuminanceControl::GetConfigScaler(ScreenId screenId, HdrStatus type) const
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetConfigScaler(screenId, type) : 1.0; // 1.0 means no headroom
+}
+
+void RSLuminanceControl::SetDualScreenStatus(ScreenId screenId, DualScreenStatus dualScreenStatus)
+{
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->SetDualScreenStatus(screenId, dualScreenStatus);
     }
 }
 } // namespace Rosen

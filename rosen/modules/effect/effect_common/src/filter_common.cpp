@@ -107,6 +107,17 @@ bool FilterCommon::Grayscale()
     return true;
 }
 
+bool FilterCommon::CreateSDF(int spreadFactor, bool generateDerivs)
+{
+    auto sdf = EffectImageFilter::CreateSDF(spreadFactor, generateDerivs);
+    if (!sdf) {
+        EFFECT_LOG_E("[FilterCommon]sdf is nullptr.");
+        return false;
+    }
+    sConstructor_->AddNextFilter(sdf);
+    return true;
+}
+
 static uint32_t ParseColorMatrix(std::vector<float> inputColorMatrix, Drawing::ColorMatrix& colorMatrix)
 {
     float matrix[Drawing::ColorMatrix::MATRIX_SIZE] = { 0 };
@@ -149,10 +160,11 @@ std::shared_ptr<Media::PixelMap> FilterCommon::GetDstPixelMap()
     return dstPixelMap_;
 }
 
-std::shared_ptr<OHOS::Media::PixelMap> FilterCommon::GetEffectPixelMap()
+std::shared_ptr<OHOS::Media::PixelMap> FilterCommon::GetEffectPixelMap(bool forceCPU)
 {
     std::unique_ptr<CMFilterContext> ctx = std::make_unique<CMFilterContext>();
     ctx->filter = sConstructor_;
+    ctx->forceCPU = forceCPU;
     if (ctx->filter->Render(ctx->forceCPU) != DrawingError::ERR_OK) {
         EFFECT_LOG_E("[FilterCommon]Render fail");
         return nullptr;
@@ -162,5 +174,11 @@ std::shared_ptr<OHOS::Media::PixelMap> FilterCommon::GetEffectPixelMap()
     return ctx->dstPixelMap_;
 }
 
+void FilterCommon::Clear()
+{
+    effectFilters_.clear();
+    srcPixelMap_ = nullptr;
+    dstPixelMap_ = nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS

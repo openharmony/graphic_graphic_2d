@@ -152,6 +152,7 @@ ohos_shared_library("drawing_ani") {
   configs = [ ":graphic_ani_drawing_config" ]
   sources = [
     "ani_drawing_utils.cpp",
+    "ani_drawing_cache_utils.cpp",
     "brush_ani/ani_brush.cpp",
     "canvas_ani/ani_canvas.cpp",
     "color_filter_ani/ani_color_filter.cpp",
@@ -197,6 +198,7 @@ ohos_shared_library("drawing_ani") {
     external_deps += [
       "ability_runtime:abilitykit_native",
       "ability_runtime:app_context",
+      "ability_runtime:napi_common",
     ]
   }
 

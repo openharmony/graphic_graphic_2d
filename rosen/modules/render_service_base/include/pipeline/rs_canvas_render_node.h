@@ -31,6 +31,7 @@ class DrawCmdList;
 namespace ModifierNG {
 class RSModifierContext;
 }
+
 class RSCanvasRenderNode : public RSRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSCanvasRenderNode>;
@@ -72,11 +73,13 @@ public:
     {
         return hasHdrPresent_;
     }
+    void OnSetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap);
 
     void SetColorGamut(uint32_t colorGamut);
     uint32_t GetColorGamut();
     void ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut colorGamut);
     void UpdateNodeColorSpace() override;
+    void MarkNodeColorSpace(bool isP3Color) override;
 
 protected:
     explicit RSCanvasRenderNode(NodeId id,
@@ -100,6 +103,7 @@ private:
     bool hasHdrPresent_ = false;
     GraphicColorGamut colorGamut_ = GRAPHIC_COLOR_GAMUT_SRGB;
     NodeId preDisplayNodeId_ = INVALID_NODEID;
+    NodeId preScreenNodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
 } // namespace OHOS

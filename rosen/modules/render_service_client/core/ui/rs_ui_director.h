@@ -345,6 +345,7 @@ private:
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
         AnimationCallbackEvent event);
+    static void ColorPickerCallbackProcessor(NodeId nodeId, uint64_t token, uint32_t color);
     static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId);        // DFX to do
     static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
     static void PostDelayTask(

@@ -32,9 +32,12 @@ public:
 
     std::shared_ptr<OHOS::Media::PixelMap> GetPixelMap(bool useCpuRender = false);
     bool Blur(float radius, Drawing::TileMode tileMode = Drawing::TileMode::DECAL);
+    bool Blur(float radius, float angle, Drawing::TileMode tileMode = Drawing::TileMode::DECAL);
     bool Brightness(float brightness);
     bool Grayscale();
     bool Invert();
+    bool MapColorByBrightness(const std::vector<Vector4f>& colors, const std::vector<float>& positions);
+    bool GammaCorrection(float gamma);
     bool SetColorMatrix(const Drawing::ColorMatrix& matrix);
     private:
     void AddNextFilter(std::shared_ptr<EffectImageFilter> filter);

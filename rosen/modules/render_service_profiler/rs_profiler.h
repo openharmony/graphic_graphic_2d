@@ -662,7 +662,9 @@ private:
     RSB_EXPORT static void BetaRecordOnFrameBegin();
     RSB_EXPORT static void BetaRecordOnFrameEnd();
 
-    RSB_EXPORT static void SetTransactionTimeCorrection(double replayStartTime, double recordStartTime);
+    RSB_EXPORT static void SetReplayStartTimeNano(uint64_t replayStartTimeNano);
+    RSB_EXPORT static uint64_t GetReplayStartTimeNano();
+    RSB_EXPORT static void SetTransactionTimeCorrection(double recordStartTime);
     RSB_EXPORT static void TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime, bool immediate);
     RSB_EXPORT static void TimePauseResume(uint64_t curTime);
     RSB_EXPORT static void TimePauseClear();
@@ -809,6 +811,7 @@ private:
     static void DumpTreeToJson(const ArgList& args);
     static void DumpNodeSurface(const ArgList& args);
     static void ClearFilter(const ArgList& args);
+    static void ClearCaches(const ArgList& args);
     static void PrintNodeCache(const ArgList& args);
     static void PrintNodeCacheAll(const ArgList& args);
     static void PatchNode(const ArgList& args);

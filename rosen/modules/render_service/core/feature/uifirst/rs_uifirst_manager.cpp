@@ -50,9 +50,10 @@ namespace {
     const std::string CLEAR_CACHE_TASK_PREFIX = "uifirst_clear_cache_";
     constexpr std::string_view ARKTSCARDNODE_NAME = "ArkTSCardNode";
     constexpr std::string_view EVENT_DISABLE_UIFIRST = "APP_LIST_FLING";
+    constexpr std::string_view ABILITY_OR_PAGE_SWITCH = "ABILITY_OR_PAGE_SWITCH";
     constexpr int UIFIRST_TASKSKIP_PRIO_THRESHOLD = 3;
     constexpr int UIFIRST_POSTTASK_HIGHPRIO_MAX = 6;
-    constexpr int SUBTHREAD_CONTROL_FRAMERATE_NODE_LIMIT = 10;
+    constexpr int SUBTHREAD_CONTROL_FRAMERATE_NODE_LIMIT = 5;
     constexpr int CACHED_SURFACE_IS_TRANSPARENT = 0;
     inline int64_t GetCurSysTime()
     {
@@ -411,7 +412,6 @@ void RSUifirstManager::ProcessSkippedNode(const std::unordered_set<NodeId>& node
                 pendingPostCardNodes_.emplace(id, surfaceNode);
                 surfaceNode->SetForceDrawWithSkipped(forceDraw);
                 RS_TRACE_NAME_FMT("ProcessSkippedCardNode %" PRIu64 " added", id);
-                RS_LOGI("ProcessSkippedCardNode %{public}" PRIu64 " added", id);
             }
         } else {
             if (pendingPostNodes_.find(id) == pendingPostNodes_.end()) {
@@ -591,11 +591,12 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     bool changeColorSpace = rsSubThreadCache.GetTargetColorGamut() != colorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
         // When ScRGB or Adaptive P3 is enabled, some operations may cause the window color gamut to change.
-        // In this case, the uifirst cache needs to be cleared.
-        if ((isScRGBEnable || ColorGamutParam::IsAdaptiveColorGamutEnabled()) && changeColorSpace) {
+        // If the buffer format is not FP16, the uifirst cache need to be cleared when colorspace changed.
+        bool isNeedFP16 = surfaceParams->GetHDRPresent() || isScRGBEnable;
+        if (!isNeedFP16 && ColorGamutParam::IsAdaptiveColorGamutEnabled() && changeColorSpace) {
             HILOG_COMM_INFO("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%{public}" PRIu64"]", id);
-            RS_TRACE_NAME_FMT("UIFirstHDR SyncHDRDisplayParam: ColorSpace change, ClearCacheSurface,"
+            RS_TRACE_NAME_FMT("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%" PRIu64"]", id);
             drawable->GetRsSubThreadCache().ClearCacheSurfaceInThread();
         }
@@ -674,7 +675,7 @@ void RSUifirstManager::ShouldAutoCleanCache(NodeId id, DrawableV2::RsSubThreadCa
         return;
     }
     subThreadCache.AddCacheReuseCount();
-    if (subThreadCache.GetCacheReuseCount() >= clearCacheThreshold_) {
+    if (subThreadCache.GetCacheReuseCount() >= static_cast<uint32_t>(clearCacheThreshold_)) {
         AddMarkedClearCacheNode(id);
     }
 }
@@ -991,7 +992,7 @@ RSUifirstManager::SkipSyncState RSUifirstManager::CollectSkipSyncNodeWithDrawabl
     auto isPreDoing = IsPreFirstLevelNodeDoingAndTryClear(node);
     auto drawable = node->GetRenderDrawable();
     if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
-        RS_LOGE("CollectSkipSyncNode drawable/params nullptr");
+        RS_LOGD("CollectSkipSyncNode drawable/params nullptr");
         // must not be in the DOING state with the invalid drawable.
         return SkipSyncState::STATE_NOT_SKIP;
     }
@@ -1628,10 +1629,12 @@ bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
             return true;
         }
         if (appPids.count(item.appPid) && (node.GetUifirstStartTime() > 0) &&
-            (node.GetUifirstStartTime() < (item.startTime - EVENT_DISABLE_UIFIRST_GAP)) &&
-            (item.sceneId.find(EVENT_DISABLE_UIFIRST) != std::string::npos)) {
-            EventDisableLeashWindowCache(node.GetId(), item);
-            return true; // app has animation, stop leashwindow uifirst
+            (node.GetUifirstStartTime() < (item.startTime - EVENT_DISABLE_UIFIRST_GAP))) {
+            if (item.sceneId.find(EVENT_DISABLE_UIFIRST) != std::string::npos ||
+                item.sceneId.find(ABILITY_OR_PAGE_SWITCH) != std::string::npos) {
+                EventDisableLeashWindowCache(node.GetId(), item);
+                return true; // app has animation, stop leashwindow uifirst
+            }
         }
     }
     return false;
@@ -1688,7 +1691,8 @@ bool RSUifirstManager::CheckHasTransAndFilter(RSSurfaceRenderNode& node)
                 childSurface->IsTransparent(), isBgColorTrans, hasTransparent);
             continue;
         }
-        if (childSurface->IsTransparent() && !childSurface->GetAbsDrawRect().IsInsideOf(mainAppSurfaceRect)) {
+        if (childSurface->IsTransparent() && childSurface->ChildHasVisibleFilter() &&
+            !childSurface->GetAbsDrawRect().IsInsideOf(mainAppSurfaceRect)) {
             RS_OPTIONAL_TRACE_NAME_FMT("Id:%" PRIu64 " name[%s] absDrawRect is outof mainAppNode",
                 childSurface->GetId(), childSurface->GetName().c_str());
             hasChildOutOfMainAppSurface = true;
@@ -1754,8 +1758,9 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
     bool isWhiteListCard = RSUifirstManager::Instance().NodeIsInCardWhiteList(node);
     bool shouldPaint = node.ShouldPaint();
     bool isNeedAssignToSubThread = isWhiteListCard && shouldPaint;
-    RS_TRACE_NAME_FMT("IsArkTsCardCache toSubThread[%d] whiteListCard[%d] shouldPaint[%d]",
-        isNeedAssignToSubThread, isWhiteListCard, shouldPaint);
+    RS_TRACE_NAME_FMT("IsCardCache toSub[%d] whiteList[%d] shouldPaint[%d] rootId[%" PRIu64 "] entryId[%" PRIu64 "] "
+        "negativeId[%" PRIu64 "]", isNeedAssignToSubThread, isWhiteListCard, shouldPaint, node.GetInstanceRootNodeId(),
+        RSUifirstManager::Instance().entryViewNodeId_, RSUifirstManager::Instance().negativeScreenNodeId_);
     return isNeedAssignToSubThread;
 }
 
@@ -1778,7 +1783,7 @@ bool RSUifirstManager::IsCacheSizeValid(RSSurfaceRenderNode& node)
     auto gravity = static_cast<int32_t>(stagingSurfaceParams->GetUIFirstFrameGravity());
     if (gravity >= static_cast<int32_t>(Gravity::RESIZE) &&
         gravity <= static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT)) {
-        RS_OPTIONAL_TRACE_NAME_FMT("cachedSize valid gravity is resize %d", static_cast<int32_t>(gravity));
+        RS_OPTIONAL_TRACE_NAME_FMT("cachedSize valid gravity is resize %d", gravity);
         return true;
     }
 
@@ -2041,10 +2046,10 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
 
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
-    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%" PRIu64 "] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d]"
-        " isCardOn[%d] isForceFlag[%d], hasProtectedLayer[%d] switch:[%d] curUifirstWindowNum[%d] threshold[%d]",
-        node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(), ancestorNodeHasAnimation,
-        node.GetUifirstSupportFlag(), isUiFirstOn_, isCardUiFirstOn_, node.isForceFlag_,
+    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%" PRIu64 "] name[%s] FLId[%" PRIu64 "] Ani[%d] Support[%d] "
+        "isUiFirstOn[%d] isCardOn[%d] isForceFlag[%d], hasProtectedLayer[%d] switch:[%d] "
+        "curUifirstWindowNum[%d] threshold[%d]", node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
+        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_, isCardUiFirstOn_, node.isForceFlag_,
         node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED), node.GetUIFirstSwitch(),
         curUifirstWindowNums_, uifirstWindowsNumThreshold_);
     if (ForceUpdateUifirstNodes(node)) {
@@ -2088,7 +2093,8 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
                 return;
             }
             RS_TRACE_NAME_FMT("UIFirst_switch disable -> enable %" PRIu64, node.GetId());
-            HILOG_COMM_INFO("uifirst disable -> enable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
+            HILOG_COMM_INFO("uifirst disable -> enable. %{public}s id:%{public}" PRIu64,
+                node.GetName().c_str(), node.GetId());
             SetUifirstNodeEnableParam(node, currentFrameCacheType);
             if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) { // now only update ArkTSCardNode
                 node.UpdateTreeUifirstRootNodeId(node.GetId());
@@ -2115,7 +2121,8 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             IncreaseUifirstWindowCount(node);
         } else { // switch: enable -> disable
             RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %" PRIu64, node.GetId());
-            HILOG_COMM_INFO("uifirst enable -> disable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
+            HILOG_COMM_INFO("uifirst enable -> disable. %{public}s id:%{public}" PRIu64,
+                node.GetName().c_str(), node.GetId());
             node.SetUifirstStartTime(-1); // -1: default start time
             NotifyUIStartingWindow(node.GetId(), false);
             AddPendingResetNode(node.GetId(), surfaceNode); // set false onsync when task done
@@ -2125,7 +2132,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
 
             auto tempNodeToClear = pendingNodeBehindWindow_.find(node.GetId());
             if (tempNodeToClear != pendingNodeBehindWindow_.end()) {
-                RS_OPTIONAL_TRACE_NAME_FMT("clear node in pendingNodeBehindWindow %{public}s id:%{public}" PRIu64,
+                RS_OPTIONAL_TRACE_NAME_FMT("clear node in pendingNodeBehindWindow %s id:%" PRIu64,
                     node.GetName().c_str(), node.GetId());
                 pendingNodeBehindWindow_.erase(tempNodeToClear);
             }

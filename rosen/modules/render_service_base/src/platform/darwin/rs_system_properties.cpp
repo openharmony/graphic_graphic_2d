@@ -82,6 +82,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetTestModeEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 {
     return false;
@@ -457,16 +462,6 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
     return false;
 }
 
-bool RSSystemProperties::IsPhoneType()
-{
-    return false;
-}
-
-bool RSSystemProperties::IsBetaRelease()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     return false;
@@ -522,11 +517,6 @@ bool RSSystemProperties::GetWideColorSpaceEnabled()
     return true;
 }
 
-bool RSSystemProperties::GetSkipUnpremulEnabled()
-{
-    return true;
-}
-
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
@@ -543,11 +533,6 @@ bool RSSystemProperties::GetDumpUICaptureEnabled()
 }
 
 bool RSSystemProperties::GetDumpUIPixelmapEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetTransactionTerminateEnabled()
 {
     return false;
 }
@@ -583,6 +568,11 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 }
 
 bool RSSystemProperties::IsForceClient()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetTransactionTerminateEnabled()
 {
     return false;
 }
@@ -644,6 +634,11 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
 }
 
 bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
 {
     return false;
 }
@@ -840,11 +835,6 @@ bool RSSystemProperties::GetNodeMemClearEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetRSNodeExceedKillEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
 {
     return false;
@@ -858,6 +848,16 @@ bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
 bool RSSystemProperties::GetDefaultMemClearEnabled()
 {
     return true;
+}
+
+bool RSSystemProperties::GetUnmarshalParallelEnabled()
+{
+    return false;
+}
+
+uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
+{
+    return 0;
 }
 
 bool RSSystemProperties::GetSceneBoardIsPcMode()

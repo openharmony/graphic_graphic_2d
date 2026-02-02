@@ -99,8 +99,8 @@ public:
 
     void SetStoreCachePath(const std::string& filename);
     std::string GetStoreCachePath() const;
-
-    /**
+    
+     /**
      * @brief cache small Texture on UnUni devices.
      * @param isUniRender isUniRender A boolean value indicating whether to use the unified rendering mode.
      */
@@ -265,7 +265,7 @@ public:
     /**
      * @brief                         Register LeashWindow callback function
      *                                provided callback function when gpu reset with device lost error.
-     * @param LeashWindowCallback     callback function for skia recall
+     * @param vulkanErrorCallback     callback function for skia recall
      */
     void RegisterVulkanErrorCallback(
         const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback);
@@ -297,13 +297,6 @@ public:
      * @param tag               GPU resource tag used to dump memory statistics.
      */
     void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const;
-
-    /**
-     * @brief                   Enumerates all cached GPU resources and return their memory.
-     * @param traceMemoryDump   A trace to memory dump.
-     * @param tag               GPU resource tag used to dump memory statistics.
-     */
-    uint64_t NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const;
 
     /**
      * @brief                   Enumerates all cached GPU resources and dumps their memory to traceMemoryDump.
@@ -340,6 +333,14 @@ public:
      * @param size              Memory size limit.
      */
     void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size);
+
+    /**
+     * @brief                   Init gpu memory limit.
+     * @param callback          Memory over report calllback.
+     * @param intervalLimit     Report time interval limit.
+     * @param size              Memory size limit.
+     */
+    void InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size);
 
 #ifdef RS_ENABLE_VK
     /**

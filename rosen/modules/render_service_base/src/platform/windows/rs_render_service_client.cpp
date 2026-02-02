@@ -55,16 +55,16 @@ bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_pt
 
 uint32_t RSRenderServiceClient::SetSurfaceWatermark(pid_t pid, const std::string& name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+    const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType)
 {
     return 0;
 }
     
 void RSRenderServiceClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
-    const std::vector<NodeId> &nodeIdList)
+    const std::vector<NodeId>& nodeIdList)
 {
 }
-    
+
 void RSRenderServiceClient::ClearSurfaceWatermark(pid_t pid, const std::string& name)
 {
 }
@@ -363,7 +363,7 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
 
 PanelPowerStatus RSRenderServiceClient::GetPanelPowerStatus(ScreenId id)
 {
-    return {};
+    return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
 }
 
 bool RSRenderServiceClient::RegisterBufferAvailableListener(
@@ -561,7 +561,7 @@ uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& act
     return {};
 }
 
-void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY)
 {
 }
 
@@ -608,10 +608,6 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {
     return {};
-}
-
-void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
-{
 }
 
 bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
@@ -776,15 +772,15 @@ bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenSta
     return false;
 }
 
-void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
-{
-}
-
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
 }
 
 void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+}
+
+void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
 {
 }
 
@@ -807,13 +803,6 @@ int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
     return {};
 }
 
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
-int32_t SetOverlayDisplayMode(int32_t mode)
-{
-    return {};
-}
-#endif
-
 void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
 {
@@ -823,6 +812,13 @@ bool RSRenderServiceClient::GetHighContrastTextState()
 {
     return false;
 }
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+int32_t SetOverlayDisplayMode(int32_t mode)
+{
+    return {};
+}
+#endif
 
 bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
 {
@@ -834,7 +830,7 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
     return false;
 }
 
-int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
 {
     return {};
 }
@@ -847,6 +843,16 @@ void RSRenderServiceClient::AvcodecVideoStart(const std::vector<uint64_t>& uniqu
 void RSRenderServiceClient::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, uint32_t fps)
 {
+}
+
+bool RSRenderServiceClient::AvcodecVideoGet(uint64_t uniqueId)
+{
+    return false;
+}
+ 
+bool RSRenderServiceClient::AvcodecVideoGetRecent()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

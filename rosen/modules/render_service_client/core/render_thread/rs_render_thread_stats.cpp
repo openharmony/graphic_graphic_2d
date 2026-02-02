@@ -124,7 +124,7 @@ void RSRenderThreadStats::ReportRenderFitInfo()
 #ifdef ROSEN_OHOS
     RSBackgroundThread::Instance().PostTask([renderFitInfo]() {
         RS_TRACE_NAME("RSRenderThreadStats::ReportRenderFitInfo in RSBackgroundThread");
-        RSHiSysEvent::EventWrite(RSEventName::RENDERFIT_TYPE_RT_MONITORING, RSEventType::RS_BEHAVIOR,
+        RSHiSysEvent::EventWrite(RSEventName::RNEDERFIT_TYPE_RT_MONITORING, RSEventType::RS_BEHAVIOR,
             "RENDERFIT_INFO", renderFitInfo);
         RS_LOGW("ReportRenderFitInfo renderFitInfo[%{public}s]", renderFitInfo.c_str());
     });

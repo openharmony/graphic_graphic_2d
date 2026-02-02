@@ -28,7 +28,7 @@
 #include "thread_private_data_ctl.h"
 #include "wrapper_log.h"
 #include "egl_blob_cache.h"
-#if USE_IGAMESERVICE_PLUGIN
+#ifdef USE_IGAMESERVICE_PLUGIN
 #include "igameservice_plugin.h"
 #endif
 #ifdef EGL_USE_APS_PLUGIN
@@ -356,7 +356,7 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
 EGLBoolean EglInitializeImpl(EGLDisplay dpy, EGLint *major, EGLint *minor)
 {
     WLOGD("");
-#if USE_IGAMESERVICE_PLUGIN
+#ifdef USE_IGAMESERVICE_PLUGIN
     OHOS::Rosen::IGameServicePlugin::Instance()->InitEglSliceReport();
 #endif
 #ifdef EGL_USE_APS_PLUGIN
@@ -467,7 +467,7 @@ EGLBoolean EglSwapBuffersImpl(EGLDisplay dpy, EGLSurface surf)
 {
     ClearError();
     WLOGD("");
-#if USE_IGAMESERVICE_PLUGIN
+#ifdef USE_IGAMESERVICE_PLUGIN
     OHOS::Rosen::IGameServicePlugin::Instance()->AddEglGraphicCount();
 #endif
 #ifdef EGL_USE_APS_PLUGIN
@@ -1296,7 +1296,7 @@ EGLBoolean EglSwapBuffersWithDamageKHRImpl(EGLDisplay dpy, EGLSurface draw,
 {
     ClearError();
     WLOGD("");
-#if USE_IGAMESERVICE_PLUGIN
+#ifdef USE_IGAMESERVICE_PLUGIN
     OHOS::Rosen::IGameServicePlugin::Instance()->AddEglGraphicCount();
 #endif
     EglWrapperDisplay *display = ValidateDisplay(dpy);

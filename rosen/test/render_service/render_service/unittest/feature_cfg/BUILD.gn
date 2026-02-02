@@ -35,6 +35,7 @@ ohos_unittest("feature_cfg_test") {
     "dvsync_param_parse_test.cpp",
     "dvsync_param_test.cpp",
     "filter_param_test.cpp",
+    "gpu_resource_release_test.cpp",
     "graphic_feature_param_manager_test.cpp",
     "hwc_param_parse_test.cpp",
     "hwc_param_test.cpp",
@@ -43,6 +44,8 @@ ohos_unittest("feature_cfg_test") {
     "mem_param_test.cpp",
     "multiscreen_param_parse_test.cpp",
     "multiscreen_param_test.cpp",
+    "node_mem_release_param_parse_test.cpp",
+    "node_mem_release_param_test.cpp",
     "occlusion_culling_param_test.cpp",
     "opinc_param_parse_test.cpp",
     "opinc_param_test.cpp",
@@ -65,6 +68,10 @@ ohos_unittest("feature_cfg_test") {
     "xml_parser_base_test.cpp",
     "gpu_cache_param_parse_test.cpp",
     "gpu_cache_param_test.cpp",
+    "vma_block_param_parse_test.cpp",
+    "vma_block_param_test.cpp",
+    "spirv_cache_param_parse_test.cpp",
+    "spirv_cache_param_test.cpp",
   ]
 
   include_dirs = [

@@ -18,6 +18,7 @@
 #include "hpae_base/rs_hpae_log.h"
 
 namespace OHOS::Rosen {
+constexpr const char* DESKTOP_NAME = "SCBDesktop";
 RSHpaeBaseData &RSHpaeBaseData::GetInstance()
 {
     static RSHpaeBaseData hpaeBaseDataInstance;
@@ -41,6 +42,23 @@ void RSHpaeBaseData::Reset()
 void RSHpaeBaseData::SyncHpaeStatus(HpaeStatus status)
 {
     hpaeStatus_ = status;
+}
+
+void RSHpaeBaseData::NotifyOfftree(const std::string nodeName, bool isOnTree)
+{
+    if (isOnTree == false && (nodeName.find(DESKTOP_NAME) != std::string::npos)) {
+        desktopOffTree_ = true;
+    }
+}
+
+void RSHpaeBaseData::SetDesktopOffTree(bool offTree)
+{
+    desktopOffTree_ = offTree;
+}
+
+bool RSHpaeBaseData::GetDesktopOffTree()
+{
+    return desktopOffTree_;
 }
 
 void RSHpaeBaseData::SetHpaeInputBuffer(HpaeBufferInfo& inputBuffer)
@@ -91,6 +109,14 @@ Vector4f RSHpaeBaseData::GetPixelStretch()
         return *hpaeStatus_.pixelStretch;
     } else {
         return Vector4f(0.f, 0.f, 0.f, 0.f);
+    }
+}
+
+void RSHpaeBaseData::SwapPixelStretch()
+{
+    if (hpaeStatus_.pixelStretch) {
+        std::swap(hpaeStatus_.pixelStretch->x_, hpaeStatus_.pixelStretch->y_);
+        std::swap(hpaeStatus_.pixelStretch->z_, hpaeStatus_.pixelStretch->w_);
     }
 }
 

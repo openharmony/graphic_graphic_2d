@@ -68,6 +68,7 @@ public:
         GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode,
         const RSPaintFilterCanvas::HDRProperties& hdrProperties = RSPaintFilterCanvas::HDRProperties{});
     bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut, HDIV::CM_ColorSpaceInfo& colorSpaceInfo);
+    static float GetDefaultHDRScaler();
 
 private:
     RSColorSpaceConvert();

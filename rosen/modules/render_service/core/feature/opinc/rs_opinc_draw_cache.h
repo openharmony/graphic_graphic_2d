@@ -43,17 +43,30 @@ public:
         nodeCacheType_ = type;
     }
 
+    static bool GetOpincBlockNodeSkip()
+    {
+        return opincBlockNodeSkip_;
+    }
+
+    static void SetOpincBlockNodeSkip(bool opincBlockNodeSkip)
+    {
+        opincBlockNodeSkip_ = opincBlockNodeSkip;
+    }
+
+    static void ClearOpincRootNodeCount()
+    {
+        opincRootNodeCount_ = 0;
+    }
+
     // opinc switch
     bool IsAutoCacheDebugEnable();
     int32_t GetOpincCacheMaxWidth() const;
     int32_t GetOpincCacheMaxHeight() const;
 
-    void OpincCalculateBefore(Drawing::Canvas& canvas,
-        const RSRenderParams& params, bool& isOpincDropNodeExt);
-    void OpincCalculateAfter(Drawing::Canvas& canvas, bool& isOpincDropNodeExt);
-    void BeforeDrawCache(Drawing::Canvas& canvas, RSRenderParams& params, bool& isOpincDropNodeExt);
-    void AfterDrawCache(Drawing::Canvas& canvas, RSRenderParams& params, bool& isOpincDropNodeExt,
-        int& opincRootTotalCount);
+    void OpincCalculateBefore(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void OpincCalculateAfter(Drawing::Canvas& canvas);
+    void BeforeDrawCache(Drawing::Canvas& canvas, RSRenderParams& params);
+    void AfterDrawCache(Drawing::Canvas& canvas, RSRenderParams& params);
 
     bool DrawAutoCache(RSPaintFilterCanvas& canvas, Drawing::Image& image,
         const Drawing::SamplingOptions& samplingOption, Drawing::SrcRectConstraint constraint);
@@ -61,7 +74,7 @@ public:
         std::vector<std::pair<RectI, std::string>>& autoCacheRenderNodeInfos);
     void DrawOpincDisabledDfx(Drawing::Canvas& canvas, RSRenderParams& params);
     void DrawableCacheStateReset(RSRenderParams& params);
-    bool PreDrawableCacheState(RSRenderParams& params, bool& isOpincDropNodeExt);
+    bool PreDrawableCacheState(RSRenderParams& params);
     void OpincCanvasUnionTranslate(RSPaintFilterCanvas& canvas);
     void ResumeOpincCanvasTranslate(RSPaintFilterCanvas& canvas);
 
@@ -119,12 +132,12 @@ public:
     void ReduceOpincCacheMem(int64_t cacheMem);
 protected:
     thread_local static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
-    static inline RectI screenRectInfo_ = {0, 0, 0, 0};
+    static RectI screenRectInfo_;
 private:
     // opinc cache state
     void NodeCacheStateDisable();
     bool BeforeDrawCacheProcessChildNode(RSRenderParams& params);
-    void BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas, const RSRenderParams& params, bool& isOpincDropNodeExt);
+    void BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas, const RSRenderParams& params);
     bool IsOpincNodeInScreenRect(RSRenderParams& params);
     bool IsOpincCacheMemExceedThreshold();
 
@@ -136,10 +149,12 @@ private:
     bool opCanCache_ = false;
     int64_t reuseCount_ = 0;
     bool isOpincRootNode_ = false;
-    bool isOpincDropNodeExtTemp_ = true;
+    bool opincBlockNodeSkipTemp_ = true;
     bool isOpincCaculateStart_ = false;
     bool isOpincMarkCached_ = false;
     bool isAdd_ = false;
+    static thread_local bool opincBlockNodeSkip_;
+    static thread_local int opincRootNodeCount_;
 }; // RSOpincDrawCache
 }
 }

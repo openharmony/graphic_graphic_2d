@@ -122,9 +122,11 @@ void RSGraphicTest::SetUp()
         ::testing::UnitTest::GetInstance()->current_test_info();
     const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
         testInfo->test_case_name(), testInfo->name());
+
     if (extInfo == nullptr) {
         return;
     }
+
     auto size = GetScreenSize();
     cout << "SetUp:size:" << size.x_ << "*" << size.y_ << endl;
     if (!extInfo->isMultiple) {
@@ -194,6 +196,8 @@ void RSGraphicTest::TestCaseCapture(bool isScreenshot)
                 testInfo->test_case_name(), testInfo->name());
         }
         std::cout << "png write to " << filename << std::endl;
+    } else {
+        std::cout << "png TakeScreenCaptureAndWait failed" << std::endl;
     }
 }
 
@@ -215,8 +219,8 @@ void RSGraphicTest::TearDown()
     }
 
     StartUIAnimation();
-    RSGraphicTestDirector::Instance().FlushMessage();
-    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+    RSGraphicTestDirector::Instance().FlushMessageAndWait(RSParameterParse::Instance().testCaseWaitTime);
+    WaitTimeout(RSParameterParse::Instance().normalWaitTime);
 
     bool isManualTest = false;
     if (extInfo) {
@@ -234,7 +238,6 @@ void RSGraphicTest::TearDown()
     }
 
     AfterEach();
-    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     if (isDynamicTest) {
         PlaybackStop();
@@ -243,8 +246,8 @@ void RSGraphicTest::TearDown()
     GetRootNode()->ResetTestSurface();
     nodes_.clear();
     RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear");
-    RSGraphicTestDirector::Instance().FlushMessage();
-    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+    RSGraphicTestDirector::Instance().FlushMessageAndWait(RSParameterParse::Instance().testCaseWaitTime);
+    WaitTimeout(RSParameterParse::Instance().normalWaitTime);
 }
 
 void RSGraphicTest::RegisterNode(std::shared_ptr<RSNode> node)
@@ -334,9 +337,10 @@ bool RSGraphicTest::IsSingleTest()
 
 std::string RSGraphicTest::GetImageSavePath(const std::string path)
 {
-    std::string imagePath = "/data/local/";
-    size_t posCnt = path.rfind("/") + 1;
-    std::string subPath = path.substr(0, posCnt);
+    std::string imagePath = "/data/local/graphic_test";
+    size_t preCnt = path.find("/");
+    size_t posCnt = path.rfind("/");
+    std::string subPath = path.substr(preCnt, posCnt - preCnt + 1);
     imagePath.append(subPath);
 
     namespace fs = std::filesystem;

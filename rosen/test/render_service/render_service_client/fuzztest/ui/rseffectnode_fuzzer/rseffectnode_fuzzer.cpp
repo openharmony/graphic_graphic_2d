@@ -62,7 +62,7 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreate(const uint8_t* data, size_t size)
+bool DoCreate()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -75,7 +75,7 @@ bool DoCreate(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetFreeze(const uint8_t* data, size_t size)
+bool DoSetFreeze()
 {
     // test
     bool isRenderServiceNode = GetData<bool>();
@@ -100,8 +100,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
 
     /* Run your code on data */
-    OHOS::Rosen::DoCreate(data, size);
-    OHOS::Rosen::DoSetFreeze(data, size);
+    OHOS::Rosen::DoCreate();
+    OHOS::Rosen::DoSetFreeze();
     return 0;
 }
 

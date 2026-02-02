@@ -59,7 +59,7 @@ static ani_object BuildColor(ani_env *env, const ColorManager::Color &color)
         return result;
     }
     static const char *className = ANI_CLASS_COLOR.c_str();
-    
+
     result = AniEffectKitUtils::CreateAniObject(env, className, nullptr, reinterpret_cast<ani_long>(nullptr));
     ani_boolean resultIsUndefined = ANI_TRUE;
     env->Reference_IsUndefined(result, &resultIsUndefined);
@@ -133,7 +133,7 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
         EFFECT_LOG_E("[GetTopProportionColors] Error2, failed to retrieve native ColorPicker wrapper");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    constexpr int PROPORTION_COLORS_NUM_LIMIT = 10;
+    constexpr int PROPORTION_COLORS_NUM_LIMIT = 20;
     unsigned int colorsNum = static_cast<unsigned int>(std::clamp(param, 0, PROPORTION_COLORS_NUM_LIMIT));
     std::vector<ColorManager::Color> colors;
     colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
@@ -225,7 +225,7 @@ ani_boolean AniColorPicker::IsBlackOrWhiteOrGrayColor(ani_env *env, ani_object o
 
     uint32_t color = static_cast<uint32_t>(colorValue);
     ani_boolean rst = thisColorPicker->nativeColorPicker_->IsBlackOrWhiteOrGrayColor(color);
-    
+
     return rst;
 }
 
@@ -271,11 +271,11 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
     if (int(length) >= REGION_COORDINATE_NUM) {
         for (int i = 0; i < REGION_COORDINATE_NUM; i++) {
             ani_ref doubleValueRef{};
-            ani_status status = env->Object_CallMethodByName_Ref(region, "$_get", "i:C{std.core.Object}",
+            ani_status status = env->Object_CallMethodByName_Ref(region, "$_get", "i:Y",
                 &doubleValueRef, (ani_int)i);
             ani_double doubleValue;
             status = env->Object_CallMethodByName_Double(static_cast<ani_object>(doubleValueRef),
-                "unboxed", ":d", &doubleValue);
+                "toDouble", ":d", &doubleValue);
             if (status != ANI_OK) {
                 EFFECT_LOG_E("[CreateColorPicker] region Object_CallMethodByName_Double failed at i=%d", i);
                 return AniEffectKitUtils::CreateAniUndefined(env);
@@ -305,6 +305,33 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
     const char* methodSig = "l:";
     return AniEffectKitUtils::CreateAniObject(env, className, methodSig,
         reinterpret_cast<ani_long>(colorPicker.release()));
+}
+
+ani_ref AniColorPicker::GetAlphaZeroTransparentProportion(ani_env* env, ani_object obj)
+{
+    AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
+    if (!thisColorPicker) {
+        EFFECT_LOG_E("[GetAverageColor] Error1, failed to retrieve ColorPicker wrapper");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    if (!thisColorPicker->nativeColorPicker_) {
+        EFFECT_LOG_E("[GetAverageColor] Error2, failed to retrieve native ColorPicker wrapper");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    ani_double ret = thisColorPicker->nativeColorPicker_->GetAlphaZeroTransparentProportion();
+    static constexpr const char *className = "std.core.Double";
+    ani_class doubleCls {};
+    env->FindClass(className, &doubleCls);
+    ani_method ctor {};
+    env->Class_FindMethod(doubleCls, "<ctor>", "d:", &ctor);
+    ani_object obj_ret {};
+    if (env->Object_New(doubleCls, ctor, &obj_ret, ret) != ANI_OK) {
+        std::cerr << "Failed to allocate Double!" << std::endl;
+        ani_ref undefinedRef;
+        env->GetUndefined(&undefinedRef);
+        return undefinedRef;
+    }
+    return static_cast<ani_ref>(obj_ret);
 }
 
 ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap)

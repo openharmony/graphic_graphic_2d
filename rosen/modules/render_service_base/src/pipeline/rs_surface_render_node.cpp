@@ -433,7 +433,7 @@ void RSSurfaceRenderNode::FindScreenId()
     }
 }
 
-void RSSurfaceRenderNode::AfterTreeStatueChanged()
+void RSSurfaceRenderNode::AfterTreeStateChanged()
 {
     if (!IsOnTheTree() && attachedInfo_.has_value()) {
         if (auto context = GetContext().lock()) {
@@ -455,7 +455,10 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     NotifyTreeStateChange();
     RSRenderNode::OnTreeStateChanged();
     if (!IsOnTheTree() && attachedInfo_.has_value()) {
-        return;
+        if (auto context = GetContext().lock()) {
+            context->GetMutableNodeMap().RegisterNeedAttachedNode(
+                std::static_pointer_cast<RSSurfaceRenderNode>(shared_from_this()));
+        }
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!IsOnTheTree()) {
@@ -2164,20 +2167,6 @@ void RSSurfaceRenderNode::UpdateDrawingCacheNodes(const std::shared_ptr<RSRender
     drawingCacheNodes_.emplace(nodePtr->GetId(), nodePtr);
 }
 
-void RSSurfaceRenderNode::ResetDrawingCacheStatusIfNodeStatic(
-    std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects)
-{
-    // traversal drawing cache nodes including app window
-    EraseIf(drawingCacheNodes_, [this, &allRects](const auto& pair) {
-        auto node = pair.second.lock();
-        if (node == nullptr || !node->IsOnTheTree()) {
-            return true;
-        }
-        node->SetDrawingCacheChanged(false);
-        return false;
-    });
-}
-
 void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
 {
     if (visible == prevVisible_) {
@@ -3548,7 +3537,7 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
     return RSSystemProperties::GetBehindWindowFilterEnabled() && !GetRenderProperties().GetBackgroundFilter() &&
-        !childrenBlurBehindWindow_.empty();
+        !childrenBlurBehindWindow_.empty() && GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER);
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)
@@ -3843,11 +3832,51 @@ bool RSSurfaceRenderNode::IsAncestorScreenFrozen() const
     }
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
     if (firstLevelNode == nullptr) {
-        RS_LOGW("%{public}s firstLevelNode is nullptr", __func__);
         return false;
     }
     screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(firstLevelNode->GetAncestorScreenNode().lock());
     return screenNode == nullptr ? false : screenNode->GetForceFreeze();
+}
+
+// only use for window capture when isSyncRender is true
+void RSSurfaceRenderNode::RegisterCaptureCallback(
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& config)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::RegisterCaptureCallback stagingSurfaceParams is null");
+    } else {
+        stagingSurfaceParams->RegisterCaptureCallback(callback, config);
+        AddToPendingSyncList();
+    }
+}
+
+void RSSurfaceRenderNode::SetAppRotationCorrection(ScreenRotation appRotationCorrection)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetAppRotationCorrection(appRotationCorrection);
+    RS_LOGD("RSSurfaceRenderNode::SetAppRotationCorrection: Node: %{public}" PRIu64
+            ", appRotationCorrection: %{public}u", GetId(), appRotationCorrection);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+void RSSurfaceRenderNode::SetRotationCorrectionDegree(int32_t rotationCorrectionDegree)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetRotationCorrectionDegree(rotationCorrectionDegree);
+    RS_LOGD("RSSurfaceRenderNode::SetRotationCorrectionDegree: Node: %{public}" PRIu64
+            ", rotationCorrectionDegree: %{public}d", GetId(), rotationCorrectionDegree);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

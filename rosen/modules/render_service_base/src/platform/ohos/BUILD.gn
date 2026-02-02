@@ -89,7 +89,6 @@ ohos_source_set("rosen_ohos_sources") {
         "backend/rs_surface_ohos_vulkan.cpp",
         "backend/rs_vulkan_context.cpp",
         "backend/surface_buffer_utils.cpp",
-        "backend/rs_hdr_vulkan_task.cpp",
         "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_vk.cpp",
       ]
     }
@@ -179,6 +178,12 @@ ohos_source_set("rosen_ohos_sources") {
     external_deps += ["ffrt:libffrt",]
   }
 
+  if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable
+      && defined(graphic_2d_hetero_hdr_configs)) {
+    include_dirs += graphic_2d_hetero_hdr_configs.librender_service_base_hetero_hdr_include
+    external_deps = graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_external_deps
+  }
+
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
@@ -239,7 +244,8 @@ ohos_source_set("rosen_ohos_sources") {
           "-mllvm",
           "-enable-partial-inlining",
         ]
-        ldflags += [
+        inputs = [ "${graphic_2d_feature_pgo_path}/librender_service_base.profdata" ]
+        ldflags = [
           "-Wl,--aarch64-inline-plt",
           "-Wl,-mllvm,-enable-partial-inlining",
         ]

@@ -29,8 +29,7 @@ namespace OHOS {
 
 
 #define HGM_CPRINTF(func, fmt, ...) \
-    HILOG_IMPL(LOG_CORE, func, 0xD001407, "graphic_2d_hgm", "<%{public}d>%{public}s: " fmt, \
-        __LINE__, __func__, ##__VA_ARGS__)
+    HILOG_IMPL(LOG_CORE, func, 0xD001407, "hgm", "%{public}s " fmt, __func__, ##__VA_ARGS__)
 
 #define HGM_LOGD(fmt, ...) HGM_CPRINTF(LOG_DEBUG, fmt, ##__VA_ARGS__)
 #define HGM_LOGI(fmt, ...) HGM_CPRINTF(LOG_INFO, fmt, ##__VA_ARGS__)

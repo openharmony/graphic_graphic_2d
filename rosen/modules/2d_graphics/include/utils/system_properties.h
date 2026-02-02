@@ -48,7 +48,9 @@ public:
     static bool IsVkImageDfxEnabled();
     static bool IsDebugGpuMem();
 #endif
-
+#ifdef ROSEN_ARKUI_X
+    static bool CheckVulkanEnable();
+#endif
 private:
     static const GpuApiType systemGpuApiType_;
 };

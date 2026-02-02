@@ -25,6 +25,7 @@
 namespace OHOS {
     namespace {
         constexpr uint32_t FUNC_NUM = 6;
+        constexpr int STR_LENGTH = 5;
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -48,6 +49,95 @@ namespace OHOS {
         }
         pos += objectSize;
         return object;
+    }
+
+    /*
+    * get a string from g_data
+    */
+    std::string GetStringFromData(int strlen)
+    {
+        char cstr[strlen];
+        cstr[strlen - 1] = '\0';
+        for (int i = 0; i < strlen - 1; i++) {
+            char tmp = GetData<char>();
+            if (tmp == '\0') {
+                tmp = '1';
+            }
+            cstr[i] = tmp;
+        }
+        std::string str(cstr);
+        return str;
+    }
+
+    void VsyncConnectionStubFuzzTest(sptr<Rosen::VSyncConnection> vsyncConnection)
+    {
+        // test
+        uint32_t code = GetData<uint32_t>();
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+
+        data.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+        vsyncConnection->OnRemoteRequest(code, data, reply, option);
+    }
+
+    void VsyncConnectionStubFuzzTest1(sptr<Rosen::VSyncConnection> vsyncConnection)
+    {
+        // test
+        uint32_t code = static_cast<uint32_t>(Rosen::IVSyncConnection::IVSYNC_CONNECTION_REQUEST_NEXT_VSYNC);
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+        int res = vsyncConnection->OnRemoteRequest(code, data, reply, option);
+
+        code = static_cast<uint32_t>(Rosen::IVSyncConnection::IVSYNC_CONNECTION_GET_RECEIVE_FD);
+        MessageParcel data1;
+        data1.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+        res = vsyncConnection->OnRemoteRequest(code, data1, reply, option);
+
+        code = static_cast<uint32_t>(Rosen::IVSyncConnection::IVSYNC_CONNECTION_SET_RATE);
+        MessageParcel data2;
+        data2.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+        data2.WriteInt32(GetData<int32_t>());
+        res = vsyncConnection->OnRemoteRequest(code, data2, reply, option);
+        
+        code = static_cast<uint32_t>(Rosen::IVSyncConnection::IVSYNC_CONNECTION_DESTROY);
+        MessageParcel data3;
+        data3.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+        res = vsyncConnection->OnRemoteRequest(code, data3, reply, option);
+
+        code = static_cast<uint32_t>(Rosen::IVSyncConnection::IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH);
+        MessageParcel data4;
+        data4.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+        data4.WriteBool(GetData<bool>());
+        res = vsyncConnection->OnRemoteRequest(code, data4, reply, option);
+
+        code = static_cast<uint32_t>(Rosen::IVSyncConnection::IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG);
+        MessageParcel data5;
+        data5.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+        data5.WriteInt32(GetData<int32_t>());
+        data5.WriteBool(GetData<bool>());
+        data5.WriteBool(GetData<bool>());
+        std::vector<std::string> vString;
+        uint8_t vSize = GetData<uint8_t>() % 10;
+        for (uint8_t i = 0; i < vSize; i++) {
+            vString.push_back(GetStringFromData(STR_LENGTH));
+        }
+        data5.WriteStringVector(vString);
+        res = vsyncConnection->OnRemoteRequest(code, data5, reply, option);
+
+        code = static_cast<uint32_t>(Rosen::IVSyncConnection::IVSYNC_CONNECTION_SET_NATIVE_DVSYNC_SWITCH);
+        MessageParcel data6;
+        data6.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+        data6.WriteBool(GetData<bool>());
+        res = vsyncConnection->OnRemoteRequest(code, data6, reply, option);
+
+        code = static_cast<uint32_t>(Rosen::IVSyncConnection::IVSYNC_CONNECTION_SET_NATIVE_DVSYNC_SWITCH) + 1;
+        MessageParcel data7;
+        data7.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+        res = vsyncConnection->OnRemoteRequest(code, data7, reply, option);
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
@@ -101,6 +191,8 @@ namespace OHOS {
         for (uint32_t i = 0; i < FUNC_NUM; ++i) {
             vsyncConnection->OnRemoteRequest(i, arguments, reply, option);
         }
+        VsyncConnectionStubFuzzTest(vsyncConnection);
+        VsyncConnectionStubFuzzTest1(vsyncConnection);
         return true;
     }
 

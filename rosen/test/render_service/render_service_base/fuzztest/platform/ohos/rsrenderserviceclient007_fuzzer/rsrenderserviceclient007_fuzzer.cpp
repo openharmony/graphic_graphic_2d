@@ -45,7 +45,9 @@ const uint8_t DO_GET_HDR_ON_DURATION = 8;
 const uint8_t DO_SET_WINDOW_CONTAINER = 9;
 const uint8_t DO_AVCODEC_VIDEO_START = 10;
 const uint8_t DO_AVCODEC_VIDEO_STOP = 11;
-const uint8_t TARGET_SIZE = 12;
+const uint8_t DO_AVCODEC_VIDEO_GET = 12;
+const uint8_t DO_AVCODEC_VIDEO_GET_RECENT = 13;
+const uint8_t TARGET_SIZE = 14;
 
 sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -298,8 +300,46 @@ bool DoAvcodecVideoStop()
     renderServiceClient->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
     return true;
 }
+
+bool DoAvcodecVideoGet()
+{
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+
+    uint64_t uniqueId = GetData<uint64_t>();
+    renderServiceClient->AvcodecVideoGet(uniqueId);
+    return true;
+}
+ 
+bool DoAvcodecVideoGetRecent()
+{
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+
+    renderServiceClient->AvcodecVideoGetRecent();
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
+
+int HandleExpandCase(uint8_t tarPos)
+{
+    switch (tarPos) {
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_START:
+            OHOS::Rosen::DoAvcodecVideoStart();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_STOP:
+            OHOS::Rosen::DoAvcodecVideoStop();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_GET:
+            OHOS::Rosen::DoAvcodecVideoGet();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_GET_RECENT:
+            OHOS::Rosen::DoAvcodecVideoGetRecent();
+            break;
+        default:
+            return -1;
+    }
+    return 0;
+}
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
@@ -340,14 +380,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_SET_WINDOW_CONTAINER:
             OHOS::Rosen::DoSetWindowContainer();
             break;
-        case OHOS::Rosen::DO_AVCODEC_VIDEO_START:
-            OHOS::Rosen::DoAvcodecVideoStart();
-            break;
-        case OHOS::Rosen::DO_AVCODEC_VIDEO_STOP:
-            OHOS::Rosen::DoAvcodecVideoStop();
-            break;
         default:
-            return -1;
+            return HandleExpandCase(tarPos);
     }
     return 0;
 }

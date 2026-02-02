@@ -58,6 +58,7 @@
 #endif
 #include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
+#include "node_mem_release_param.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -188,7 +189,9 @@ void RSClientToServiceConnection::CleanRenderNodes() noexcept
     nodeMap.FilterNodeByPid(remotePid_);
     RS_PROFILER_KILL_PID_END();
 
-    RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+    if (NodeMemReleaseParam::IsRsRenderNodeGCMemReleaseEnabled()) {
+        RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+    }
 }
 
 void RSClientToServiceConnection::CleanFrameRateLinkers() noexcept
@@ -247,6 +250,7 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             }
             RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", connection->remotePid_);
             connection->mainThread_->ClearTransactionDataPidInfo(connection->remotePid_);
+            connection->mainThread_->RemoveDropFramePid(connection->remotePid_);
             if (connection->mainThread_->IsRequestedNextVSync()) {
                 connection->mainThread_->SetDirtyFlag();
             }
@@ -666,18 +670,18 @@ float RSClientToServiceConnection::GetRotationInfoFromSurfaceBuffer(const sptr<S
         return 0.0f;
     }
     auto transformType = buffer->GetSurfaceBufferTransform();
-    if (transformType == GRAPHIC_ROTATE_90) {
+    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
         return 90.0f;
-    } else if (transformType == GRAPHIC_ROTATE_180) {
+    } else if (transformType == GraphicTransformType::GRAPHIC_ROTATE_180) {
         return 180.0f;
-    } else if (transformType == GRAPHIC_ROTATE_270) {
+    } else if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         return 270.0f;
     }
     return 0.0f;
 }
 
 ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
-    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled)
+    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelmap, bool transformEnabled)
 {
     OHOS::Media::Rect rect = {
         .left = srcRect.x,
@@ -685,8 +689,9 @@ ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> sur
         .width = srcRect.w,
         .height = srcRect.h,
     };
-    RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelMap]() {
-        pixelMap = Rosen::CreatePixelMapFromSurface(surface, rect);
+    RS_LOGD("RSClientToServiceConnection::CreatePixelMapFromSurface: transformEnabled:%{public}d", transformEnabled);
+    RSBackgroundThread::Instance().PostSyncTask([surface, rect, transformEnabled, &pixelmap]() {
+        pixelmap = Rosen::CreatePixelMapFromSurface(surface, rect, transformEnabled);
     });
     return ERR_OK;
 }
@@ -841,7 +846,6 @@ int32_t RSClientToServiceConnection::SetVirtualScreenBlackList(ScreenId id, cons
     }
     if (blackList.empty()) {
         RS_LOGW("%{public}s: blackList is empty.", __func__);
-        return StatusCode::BLACKLIST_IS_EMPTY;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (screenManager_ == nullptr) {
@@ -1499,6 +1503,7 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
         RSRenderComposerManager::GetInstance().PostSyncTask(id, [=]() {
             screenManager_->SetScreenPowerStatus(id, status);
         });
+        RSRenderComposerManager::GetInstance().HandlePowerStatus(id, status);
         screenManager_->WaitScreenPowerStatusTask();
         mainThread_->SetDiscardJankFrames(true);
         RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(true);
@@ -1653,7 +1658,11 @@ ErrCode RSClientToServiceConnection::GetScreenActiveMode(uint64_t id, RSScreenMo
 ErrCode RSClientToServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
 #ifdef RS_ENABLE_GPU
-    RSMainThread::Instance()->GetAppMemoryInMB(cpuMemSize, gpuMemSize);
+    RSUniRenderThread::Instance().PostSyncTask([&cpuMemSize, &gpuMemSize] {
+        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(
+            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+        cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
+    });
     gpuMemSize += RSSubThreadManager::Instance()->GetAppGpuMemoryInMB();
 #endif
     return ERR_OK;
@@ -1840,26 +1849,30 @@ void RSClientToServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level
     }
 }
 
-ErrCode RSClientToServiceConnection::GetPanelPowerStatus(ScreenId screenId, uint32_t& status)
+ErrCode RSClientToServiceConnection::GetPanelPowerStatus(ScreenId screenId, PanelPowerStatus& status)
 {
     if (!screenManager_) {
         RS_LOGE("%{public}s screenManager_ is nullptr.", __func__);
-        status = INVALID_PANEL_POWER_STATUS;
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
         return ERR_INVALID_OPERATION;
     }
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         status = RSRenderComposerManager::GetInstance().PostSyncTask(screenId,
-            [=]() { return screenManager_->GetPanelPowerStatus(screenId); });
+            [screenManager = screenManager_, screenId]() {
+                return screenManager->GetPanelPowerStatus(screenId);
+            });
 #else
-        status = INVALID_PANEL_POWER_STATUS;
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
 #endif
     } else if (mainThread_ != nullptr) {
         status = mainThread_->ScheduleTask(
-            [=]() { return screenManager_->GetPanelPowerStatus(screenId); }).get();
+            [screenManager = screenManager_, screenId]() {
+                return screenManager->GetPanelPowerStatus(screenId);
+            }).get();
     } else {
-        status = INVALID_PANEL_POWER_STATUS;
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
@@ -2683,23 +2696,6 @@ int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCal
     return StatusCode::SUCCESS;
 }
 
-ErrCode RSClientToServiceConnection::SetAppWindowNum(uint32_t num)
-{
-    if (!mainThread_) {
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), num]() -> void {
-        sptr<RSClientToServiceConnection> connection = weakThis.promote();
-        if (!connection || !connection->mainThread_) {
-            return;
-        }
-        connection->mainThread_->SetAppWindowNum(num);
-    };
-    mainThread_->PostTask(task);
-
-    return ERR_OK;
-}
-
 ErrCode RSClientToServiceConnection::SetSystemAnimatedScenes(
     SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success)
 {
@@ -3297,7 +3293,7 @@ ErrCode RSClientToServiceConnection::SetLayerTop(const std::string &nodeIdStr, b
             [&nodeIdStr, &isTop](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
                 (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
-                surfaceNode->SetLayerTop(isTop);
+                surfaceNode->SetLayerTop(isTop, false);
                 return;
             }
         });
@@ -3448,6 +3444,24 @@ ErrCode RSClientToServiceConnection::AvcodecVideoStop(const std::vector<uint64_t
 {
     auto task = [uniqueIdList, surfaceNameList, fps]() -> void {
         RSJankStats::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+    };
+    mainThread_->PostTask(task);
+    return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnection::AvcodecVideoGet(uint64_t uniqueId)
+{
+    auto task = [uniqueId]() -> void {
+        RSJankStats::GetInstance().AvcodecVideoGet(uniqueId);
+    };
+    mainThread_->PostTask(task);
+    return ERR_OK;
+}
+ 
+ErrCode RSClientToServiceConnection::AvcodecVideoGetRecent()
+{
+    auto task = []() -> void {
+        RSJankStats::GetInstance().AvcodecVideoGetRecent();
     };
     mainThread_->PostTask(task);
     return ERR_OK;

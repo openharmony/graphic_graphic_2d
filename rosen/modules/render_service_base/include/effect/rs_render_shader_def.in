@@ -58,6 +58,15 @@ DECLARE_SHADER(ParticleCircularHalo, PARTICLE_CIRCULAR_HALO,
     ADD_PROPERTY_TAG(ParticleCircularHalo, Noise)
 );
 
+DECLARE_SHADER(LightCave, LIGHT_CAVE,
+    ADD_PROPERTY_TAG(LightCave, ColorA),
+    ADD_PROPERTY_TAG(LightCave, ColorB),
+    ADD_PROPERTY_TAG(LightCave, ColorC),
+    ADD_PROPERTY_TAG(LightCave, Position),
+    ADD_PROPERTY_TAG(LightCave, RadiusXY),
+    ADD_PROPERTY_TAG(LightCave, Progress)
+);
+
 DECLARE_SHADER(BorderLight, BORDER_LIGHT,
     ADD_PROPERTY_TAG(BorderLight, Position),
     ADD_PROPERTY_TAG(BorderLight, Color),
@@ -107,17 +116,18 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, Mask),
     ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber),
     ADD_PROPERTY_TAG(ColorGradientEffect, Blend),
-    ADD_PROPERTY_TAG(ColorGradientEffect, BlendK)
+    ADD_PROPERTY_TAG(ColorGradientEffect, BlendK),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Brightness)
 );
 
 DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
-    ADD_PROPERTY_TAG(FrostedGlassEffect, BlurParam),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl),
     ADD_PROPERTY_TAG(FrostedGlassEffect, BgRates),
     ADD_PROPERTY_TAG(FrostedGlassEffect, BgKBS),
     ADD_PROPERTY_TAG(FrostedGlassEffect, BgPos),
     ADD_PROPERTY_TAG(FrostedGlassEffect, BgNeg),
+    ADD_PROPERTY_TAG(FrostedGlassEffect, BgAlpha),
     ADD_PROPERTY_TAG(FrostedGlassEffect, RefractParams),
     ADD_PROPERTY_TAG(FrostedGlassEffect, SdParams),
     ADD_PROPERTY_TAG(FrostedGlassEffect, SdRates),
@@ -136,8 +146,8 @@ DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightKBS),
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightPos),
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightNeg),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, MaterialColor),
-    ADD_PROPERTY_TAG(FrostedGlassEffect, Shape)
+    ADD_PROPERTY_TAG(FrostedGlassEffect, Shape),
+    ADD_PROPERTY_TAG(FrostedGlassEffect, MaterialColor)
 );
 
 DECLARE_SHADER(HarmoniumEffect, HARMONIUM_EFFECT,
@@ -162,15 +172,6 @@ DECLARE_SHADER(HarmoniumEffect, HARMONIUM_EFFECT,
     ADD_PROPERTY_TAG(HarmoniumEffect, PosRGB),
     ADD_PROPERTY_TAG(HarmoniumEffect, NegRGB),
     ADD_PROPERTY_TAG(HarmoniumEffect, Fraction)
-);
-
-DECLARE_SHADER(LightCave, LIGHT_CAVE,
-    ADD_PROPERTY_TAG(LightCave, ColorA),
-    ADD_PROPERTY_TAG(LightCave, ColorB),
-    ADD_PROPERTY_TAG(LightCave, ColorC),
-    ADD_PROPERTY_TAG(LightCave, Position),
-    ADD_PROPERTY_TAG(LightCave, RadiusXY),
-    ADD_PROPERTY_TAG(LightCave, Progress)
 );
 
 DECLARE_SHADER(AIBarGlow, AIBAR_GLOW,

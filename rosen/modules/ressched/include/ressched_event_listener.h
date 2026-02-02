@@ -48,9 +48,7 @@ private:
     std::chrono::steady_clock::time_point endTimeStamp_;
     uint64_t frameCountNum_;
     bool isFrameRateFirstReport_ = false;
-    static std::mutex ffrtGetQueueMutex_;
     static std::mutex ffrtGetHighFrequenceQueueMutex_;
-    static std::shared_ptr<ffrt::queue> ffrtQueue_;
     static std::shared_ptr<ffrt::queue> ffrtHighPriorityQueue_;
 
     void HandleDrawFrameEventReport(uint32_t eventValue);
@@ -59,7 +57,6 @@ private:
     void HandleFrameRateStatisticsEndAsync(uint32_t pid, uint32_t type);
     void HandleFrameRateStatisticsBreakAsync(uint32_t pid, uint32_t type);
     void ReportFrameRateToRSS(const std::unordered_map<std::string, std::string>& mapPayload);
-    static bool GetFfrtQueue();
     static bool GetFfrtHighPriorityQueue();
 };
 } // namespace Rosen

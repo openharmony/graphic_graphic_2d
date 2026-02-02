@@ -54,7 +54,7 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+bool DoSomethingInterestingWithMyAPI(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -92,7 +92,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsScreenRenderNode.SetOffScreenCacheImgForCapture(cacheImgForCapture);
     return true;
 }
-bool DoOnSync(const uint8_t* data, size_t size)
+bool DoOnSync(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -119,7 +119,7 @@ bool DoOnSync(const uint8_t* data, size_t size)
     rsScreenRenderNode.UpdatePartialRenderParams();
     return true;
 }
-bool DoGetCurAllSurfaces(const uint8_t* data, size_t size)
+bool DoGetCurAllSurfaces(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -146,7 +146,7 @@ bool DoGetCurAllSurfaces(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
+bool DoUpdateScreenRenderParams(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -158,7 +158,7 @@ bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
     RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     rsScreenRenderNode.stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
     rsScreenRenderNode.UpdateScreenRenderParams();
-    rsScreenRenderNode.SetDisplayGlobalZOrder(GetData<uint64_t>());
+    rsScreenRenderNode.SetDisplayGlobalZOrder(GetData<float>());
     rsScreenRenderNode.SetMainAndLeashSurfaceDirty(GetData<bool>());
     rsScreenRenderNode.SetHDRPresent(GetData<bool>());
     rsScreenRenderNode.GetSortedChildren();
@@ -166,7 +166,7 @@ bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data, size_t size)
+bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -182,7 +182,7 @@ bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoIsZoomStateChange(const uint8_t* data, size_t size)
+bool DoIsZoomStateChange(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -198,7 +198,7 @@ bool DoIsZoomStateChange(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetSortedChildren(const uint8_t* data, size_t size)
+bool DoGetSortedChildren(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -213,7 +213,7 @@ bool DoGetSortedChildren(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetBrightnessRatio(const uint8_t* data, size_t size)
+bool DoSetBrightnessRatio(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -229,7 +229,7 @@ bool DoSetBrightnessRatio(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoOnSyncWithDrawable(const uint8_t* data, size_t size)
+bool DoOnSyncWithDrawable(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -245,6 +245,133 @@ bool DoOnSyncWithDrawable(const uint8_t* data, size_t size)
     rsScreenRenderNode->OnSync();
     return true;
 }
+
+bool DoSetIsMirrorScreen(const uint8_t* data)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
+    rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    bool isMirror = GetData<bool>();
+    rsScreenRenderNode->SetIsMirrorScreen(isMirror);
+    return true;
+}
+
+bool DoSetHasMirrorScreen(const uint8_t* data)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
+    rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    bool hasMirrorScreen = GetData<bool>();
+    rsScreenRenderNode->SetHasMirrorScreen(hasMirrorScreen);
+    return true;
+}
+
+bool DoSetNeedForceUpdateHwcNodes(const uint8_t* data)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
+    rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    bool needForceUpdate = GetData<bool>();
+    bool hasVisibleHwcNodes = GetData<bool>();
+    rsScreenRenderNode->SetNeedForceUpdateHwcNodes(needForceUpdate, hasVisibleHwcNodes);
+    return true;
+}
+
+bool DoSetFixVirtualBuffer10Bit(const uint8_t* data)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
+    rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    bool isFixVirtualBuffer10Bit = GetData<bool>();
+    rsScreenRenderNode->SetFixVirtualBuffer10Bit(isFixVirtualBuffer10Bit);
+    return true;
+}
+
+bool DoCollectHdrStatus(const uint8_t* data)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
+    rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    HdrStatus hdrStatus = GetData<HdrStatus>();
+    rsScreenRenderNode->CollectHdrStatus(hdrStatus);
+    return true;
+}
+
+bool DoSetExistHWCNode(const uint8_t* data)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
+    rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    bool existHWCNode = GetData<bool>();
+    rsScreenRenderNode->SetExistHWCNode(existHWCNode);
+    return true;
+}
+
+bool DoSetForceFreeze(const uint8_t* data)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
+    rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    bool forceFreeze = GetData<bool>();
+    rsScreenRenderNode->SetForceFreeze(forceFreeze);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -257,14 +384,21 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::g_pos = 0;
 
     /* Run your code on data */
-    OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
-    OHOS::Rosen::DoOnSync(data, size);
-    OHOS::Rosen::DoGetCurAllSurfaces(data, size);
-    OHOS::Rosen::DoUpdateScreenRenderParams(data, size);
-    OHOS::Rosen::DoHandleCurMainAndLeashSurfaceNodes(data, size);
-    OHOS::Rosen::DoIsZoomStateChange(data, size);
-    OHOS::Rosen::DoGetSortedChildren(data, size);
-    OHOS::Rosen::DoSetBrightnessRatio(data, size);
-    OHOS::Rosen::DoOnSyncWithDrawable(data, size);
+    OHOS::Rosen::DoSomethingInterestingWithMyAPI(data);
+    OHOS::Rosen::DoOnSync(data);
+    OHOS::Rosen::DoGetCurAllSurfaces(data);
+    OHOS::Rosen::DoUpdateScreenRenderParams(data);
+    OHOS::Rosen::DoHandleCurMainAndLeashSurfaceNodes(data);
+    OHOS::Rosen::DoIsZoomStateChange(data);
+    OHOS::Rosen::DoGetSortedChildren(data);
+    OHOS::Rosen::DoSetBrightnessRatio(data);
+    OHOS::Rosen::DoOnSyncWithDrawable(data);
+    OHOS::Rosen::DoSetIsMirrorScreen(data);
+    OHOS::Rosen::DoSetHasMirrorScreen(data);
+    OHOS::Rosen::DoSetNeedForceUpdateHwcNodes(data);
+    OHOS::Rosen::DoSetFixVirtualBuffer10Bit(data);
+    OHOS::Rosen::DoCollectHdrStatus(data);
+    OHOS::Rosen::DoSetExistHWCNode(data);
+    OHOS::Rosen::DoSetForceFreeze(data);
     return 0;
 }

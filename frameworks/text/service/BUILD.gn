@@ -27,7 +27,6 @@ config("rosen_text_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/rosen/modules/platform/image_native",
   ]
 }
 
@@ -39,14 +38,6 @@ ohos_source_set("rosen_text_skia") {
     "$rosen_text_root/adapter/skia",
     "$rosen_text_root/adapter/skia/txt/src",
   ]
-
-  if (is_arkui_x) {
-    include_dirs += [
-      "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
-      "//third_party/bounds_checking_function/include",
-    ]
-    defines += [ "CROSS_PLATFORM" ]
-  }
 
   cflags_cc = [ "-std=c++17" ]
 
@@ -83,7 +74,19 @@ ohos_source_set("rosen_text_skia") {
     "texgine:libtexgine_source",
   ]
 
+  if (is_arkui_x) {
+    include_dirs += [
+      "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
+      "//third_party/bounds_checking_function/include",
+    ]
+    deps += [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
+    ]
+    defines += [ "CROSS_PLATFORM" ]
+  }
+
   if (platform_is_ohos) {
+    deps += [ "$platform_root:image_native" ]
     external_deps += [
       "c_utils:utils",
       "hitrace:hitrace_meter",

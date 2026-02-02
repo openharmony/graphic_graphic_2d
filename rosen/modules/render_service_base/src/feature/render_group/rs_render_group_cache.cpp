@@ -24,6 +24,7 @@ bool RSRenderGroupCache::ExcludedFromNodeGroup(bool isExcluded)
         return false;
     }
     excludedFromNodeGroup_ = isExcluded;
+    isExcludedStateChanged_ = true;
     return true;
 }
 
@@ -36,5 +37,48 @@ bool RSRenderGroupCache::SetHasChildExcludedFromNodeGroup(bool isExcluded)
     return true;
 }
 
+bool RSRenderGroupCache::SetRenderGroupExcludedStateChanged(bool isChanged)
+{
+    if (isExcludedStateChanged_ == isChanged) {
+        return false;
+    }
+    isExcludedStateChanged_ = isChanged;
+    return true;
+}
+
+bool RSRenderGroupCache::SetCachedSubTreeDirty(bool isDirty)
+{
+    if (isCachedSubTreeDirty_ == isDirty) {
+        return false;
+    }
+    isCachedSubTreeDirty_ = isDirty;
+    return true;
+}
+
+bool RSRenderGroupCache::SetChildHasTranslateOnSqueeze(bool val)
+{
+    if (childHasTranslateOnSqueeze_ == val) {
+        return false;
+    }
+    childHasTranslateOnSqueeze_ = val;
+    return true;
+}
+
+AutoRenderGroupExcludedSubTreeGuard::AutoRenderGroupExcludedSubTreeGuard(
+    NodeId& curExcludedRootNodeId, bool isCurNodeExcluded, NodeId curNodeId)
+    : curExcludedRootNodeId_(curExcludedRootNodeId)
+{
+    if (curExcludedRootNodeId_ == INVALID_NODEID && isCurNodeExcluded) {
+        curExcludedRootNodeId_ = curNodeId;
+        isExcluded_ = true;
+    }
+}
+
+AutoRenderGroupExcludedSubTreeGuard::~AutoRenderGroupExcludedSubTreeGuard()
+{
+    if (isExcluded_) {
+        curExcludedRootNodeId_ = INVALID_NODEID;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

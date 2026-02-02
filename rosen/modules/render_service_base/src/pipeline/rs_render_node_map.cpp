@@ -544,6 +544,7 @@ bool RSRenderNodeMap::AttachToDisplay(
 {
     bool result = false;
     surfaceRenderNode->GetAttachedInfo() = std::nullopt;
+    std::shared_ptr<RSRenderNode> displayRenderNodeTop = nullptr;
     for (const auto& [_, displayRenderNode] : logicalDisplayNodeMap_) {
         if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
             !displayRenderNode->IsOnTheTree() ||
@@ -562,10 +563,30 @@ bool RSRenderNodeMap::AttachToDisplay(
         if (parentNode == surfaceRenderNode->GetParent().lock()) {
             continue;
         }
-        parentNode->AddChild(surfaceRenderNode);
+        if (displayRenderNodeTop == nullptr) {
+            displayRenderNodeTop = parentNode;
+        } else {
+            auto positionZcur = parentNode->GetRenderProperties().GetPositionZ();
+            auto positionZd = displayRenderNodeTop->GetRenderProperties().GetPositionZ();
+            if (positionZcur > positionZd) {
+                displayRenderNodeTop = parentNode;
+            }
+        }
+    }
+    if (displayRenderNodeTop != nullptr) {
+        RS_LOGI("RSRenderNodeMap::AttachToDisplay surfaceRenderNode:%{public}" PRIu64
+                " attach to displayRenderNodeTop:%{public}" PRIu64,
+            surfaceRenderNode->GetId(),
+            displayRenderNodeTop->GetId());
+        displayRenderNodeTop->AddChild(surfaceRenderNode);
         result = true;
     }
     return result;
+}
+
+void RSRenderNodeMap::RegisterNeedAttachedNode(std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode)
+{
+    needAttachedNode_.emplace_back(surfaceRenderNode);
 }
 } // namespace Rosen
 } // namespace OHOS

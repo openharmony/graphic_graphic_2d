@@ -69,7 +69,7 @@ public:
     static bool GetSkipCanvasNodeOutofScreenEnabled();
     static bool GetDrawingEffectRegionEnabledDfx();
     static bool GetRenderStop();
-    static bool GetOcclusionCallBackToWMSDebugType();
+    static int GetOcclusionCullingDebugLevel();
     static bool GetPrevalidateHwcNodeEnabled();
     static bool GetSolidLayerHwcEnabled();
     static bool GetControlBufferConsumeEnabled();
@@ -87,6 +87,7 @@ public:
     static int32_t GetWindowScreenScanType();
     static int32_t GetPurgeableResourceLimit();
     static bool GetAnimationOcclusionEnabled();
+    static bool GetDDGRSLREnabled();
     static bool GetUIFirstPurgeEnabled();
     static bool GetUIFirstOcclusionEnabled();
     static bool GetUIFirstCaptrueReuseEnabled();

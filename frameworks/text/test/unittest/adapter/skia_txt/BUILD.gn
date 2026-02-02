@@ -26,6 +26,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "style_copy_test.cpp",
     "text_line_base_test.cpp",
     "typography_create_test.cpp",
+    "typography_image_test.cpp",
     "typography_relayout_test.cpp",
     "typography_test.cpp",
   ]
@@ -59,6 +60,8 @@ ohos_unittest("rosen_text_adapt_test") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
+    "icu:shared_icuuc",
+    "image_framework:image_native",
   ]
 
   if (graphic_2d_feature_upgrade_skia) {

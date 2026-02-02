@@ -25,7 +25,9 @@
 #include "connection/rs_render_to_composer_connection.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "layer_backend/hdi_output.h"
+#ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_render_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
@@ -50,7 +52,9 @@ public:
 
 void RSSurfaceLayerTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
+#endif
     auto output = std::make_shared<HdiOutput>(screenId);
     RSRenderComposerManager::GetInstance().OnScreenConnected(output);
     client = std::make_shared<RSRenderComposerClient>(
@@ -67,7 +71,7 @@ void RSSurfaceLayerTest::TearDown() {}
 
 /**
  * @tc.name: CreateLayerTest
- * @tc.desc: Test RSLayerFactory::CreateRSLayer
+ * @tc.desc: Test std::make_shared<RSSurfaceLayer>()
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
@@ -88,7 +92,7 @@ HWTEST_F(RSSurfaceLayerTest, CreateLayerTest, Function | SmallTest | Level2)
  */
 HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest, Function | SmallTest | Level2)
 {
-    layer = std::make_shared<RSSurfaceLayer>()\;
+    layer = std::make_shared<RSSurfaceLayer>();
     EXPECT_NE(layer, nullptr);
 
     GraphicLayerAlpha alpha;
@@ -278,7 +282,7 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest4, Function | SmallTest | 
 
     EXPECT_EQ(layer->IsAncoNative(), false);
 
-    LayerMask mask = LAYER_MASK_NORMAL;
+    LayerMask mask = LayerMask::LAYER_MASK_NORMAL;
     layer->SetLayerMaskInfo(mask);
     EXPECT_EQ(layer->GetLayerMaskInfo(), mask);
 
@@ -309,9 +313,6 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest5, Function | SmallTest | 
     sptr<SyncFence> acquireFence2;
     layer->SetAcquireFence(acquireFence2);
     EXPECT_EQ(layer->GetAcquireFence(), acquireFence2);
-
-    layer->SetCycleBuffersNum(100);
-    EXPECT_EQ(layer->GetCycleBuffersNum(), 100);
 
     layer->SetUseDeviceOffline(false);
     EXPECT_EQ(layer->GetUseDeviceOffline(), false);

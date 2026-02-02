@@ -80,13 +80,11 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
-constexpr const char* PURGE_SHADER_CACHE_AFTER_ANIMATE = "PurgeShaderCacheAfterAnimate";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* RECLAIM_MEMORY = "ReclaimMemory";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO = "SuppressGpuCacheBelowCertainRatio";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
-constexpr uint32_t TIME_OF_SIX_FRAMES = 6000;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t TIME_OF_DEFAULT_CLEAR_GPU_CACHE = 5000;
@@ -403,7 +401,7 @@ void RSUniRenderThread::Render()
 
     if (screenPowerOnChanged_) {
         RS_LOGI("RSUniRenderThread Power On First Frame finish, processNode:%{public}d",
-                 totalProcessNodeNum_);
+                totalProcessNodeNum_.load());
         screenPowerOnChanged_ = false;
     }
     totalProcessNodeNum_ = 0;
@@ -491,11 +489,6 @@ void RSUniRenderThread::ReleaseSurfaceOpItemBuffer()
     }
 }
 
-sptr<SyncFence> RSUniRenderThread::GetAcquireFence()
-{
-    return acquireFence_;
-}
-
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
     std::map<ScreenId, std::vector<std::function<void()>>> releaseTasksWithScreenId;
@@ -509,7 +502,9 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
                 task();
             }
         };
-        RSRenderComposerManager::GetInstance().PostTaskWithInnerDelay(screenId, releaseBufferTask);
+        if (!RSRenderComposerManager::GetInstance().PostTaskWithInnerDelay(screenId, releaseBufferTask)) {
+            releaseBufferTask();
+        }
     }
 }
 
@@ -652,7 +647,9 @@ void RSUniRenderThread::NotifyScreenNodeBufferReleased(ScreenId curScreenId)
 
 void RSUniRenderThread::PerfForBlurIfNeeded()
 {
-    if (!SOCPerfParam::IsBlurSOCPerfEnable()) {
+    auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
+    if (socPerfParam != nullptr && !socPerfParam->IsBlurSOCPerfEnable()) {
         return;
     }
 
@@ -761,27 +758,6 @@ bool RSUniRenderThread::IsCurtainScreenOn() const
     return renderThreadParams ? renderThreadParams->IsCurtainScreenOn() : false;
 }
 
-bool RSUniRenderThread::IsColorFilterModeOn() const
-{
-    if (!uniRenderEngine_) {
-        return false;
-    }
-    ColorFilterMode colorFilterMode = uniRenderEngine_->GetColorFilterMode();
-    if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
-        colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
-        return false;
-    }
-    return true;
-}
-
-bool RSUniRenderThread::IsHighContrastTextModeOn() const
-{
-    if (!uniRenderEngine_) {
-        return false;
-    }
-    return uniRenderEngine_->IsHighContrastEnabled();
-}
-
 static std::string FormatNumber(size_t number)
 {
     constexpr int FORMATE_NUM_STEP = 3;
@@ -831,6 +807,27 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
     gpuContext->SetResourceCacheLimits(maxResources, maxResourcesBytes);
     dumpString.append("setgpulimit: " + FormatNumber(cacheLimit)
         + "==>" + FormatNumber(maxResourcesBytes) + "\n");
+}
+
+bool RSUniRenderThread::IsColorFilterModeOn() const
+{
+    if (!uniRenderEngine_) {
+        return false;
+    }
+    ColorFilterMode colorFilterMode = uniRenderEngine_->GetColorFilterMode();
+    if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
+        colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
+        return false;
+    }
+    return true;
+}
+
+bool RSUniRenderThread::IsHighContrastTextModeOn() const
+{
+    if (!uniRenderEngine_) {
+        return false;
+    }
+    return uniRenderEngine_->IsHighContrastEnabled();
 }
 
 void RSUniRenderThread::DumpMem(DfxString& log, bool isLite)
@@ -896,7 +893,13 @@ void RSUniRenderThread::DefaultClearMemoryCache()
 
 void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean)
 {
-    auto task = [this, moment, deeply, isDefaultClean]() {
+    bool isDeeplyRelGpuResEnable = false;
+    auto relGpuResParam = std::static_pointer_cast<DeeplyRelGpuResParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]));
+    if (relGpuResParam != nullptr) {
+        isDeeplyRelGpuResEnable = relGpuResParam->IsDeeplyRelGpuResEnable();
+    }
+    auto task = [this, moment, deeply, isDefaultClean, isDeeplyRelGpuResEnable]() {
         if (!uniRenderEngine_) {
             return;
         }
@@ -916,7 +919,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         SkGraphics::PurgeAllCaches(); // clear cpu cache
         auto pid = *(this->exitedPidSet_.begin());
         if (this->exitedPidSet_.size() == 1 && pid == -1) { // no exited app, just clear scratch resource
-            if (deeply || MEMParam::IsDeeplyRelGpuResEnable()) {
+            if (deeply || isDeeplyRelGpuResEnable) {
                 MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
             } else {
                 MemoryManager::ReleaseUnlockGpuResource(grContext);
@@ -956,7 +959,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             rate = defaultRefreshRate;
         }
         PostTask(task, CLEAR_GPU_CACHE,
-            (MEMParam::IsDeeplyRelGpuResEnable() ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / rate);
+            (isDeeplyRelGpuResEnable ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / rate);
     } else {
         PostTask(task, DEFAULT_CLEAR_GPU_CACHE, TIME_OF_DEFAULT_CLEAR_GPU_CACHE);
     }
@@ -1063,7 +1066,7 @@ void RSUniRenderThread::SetDefaultClearMemoryFinished(bool isFinished)
     isDefaultCleanTaskFinished_ = isFinished;
 }
 
-bool RSUniRenderThread::IsDefaultClearMemroyFinished()
+bool RSUniRenderThread::IsDefaultClearMemoryFinished()
 {
     return isDefaultCleanTaskFinished_;
 }
@@ -1143,48 +1146,6 @@ void RSUniRenderThread::MemoryManagementBetweenFrames()
     if (RSSystemProperties::GetGpuCacheSuppressWindowEnabled()) {
         SuppressGpuCacheBelowCertainRatioBetweenFrames();
     }
-}
-
-void RSUniRenderThread::PurgeShaderCacheAfterAnimate()
-{
-#ifdef RS_ENABLE_VK
-    if (hasPurgeShaderCacheTask_) {
-        RemoveTask(PURGE_SHADER_CACHE_AFTER_ANIMATE); // ensure only one task
-        hasPurgeShaderCacheTask_ = false;
-    }
-    if (!RSJankStats::GetInstance().IsAnimationEmpty()) {
-        return;
-    }
-    if (!uniRenderEngine_) {
-        return;
-    }
-    auto renderContext = uniRenderEngine_->GetRenderContext();
-    if (!renderContext) {
-        return;
-    }
-    if (renderContext->CheckShaderCacheOverSoftLimit()) {
-        RS_TRACE_NAME("ShaderCache OverSize, Posting Purge Task");
-        hasPurgeShaderCacheTask_ = true;
-        PostTask(
-            [this]() {
-                auto& shaderCache = ShaderCache::Instance();
-                if (!shaderCache.IfInitialized()) {
-                    RS_LOGD("PurgeShaderCacheAfterAnimate shaderCache not Initialized");
-                    return;
-                }
-                RS_TRACE_NAME("PurgeShaderCacheAfterAnimate");
-                shaderCache.PurgeShaderCacheAfterAnimate([this]() -> bool {
-                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
-                });
-                hasPurgeShaderCacheTask_ = false;
-            },
-            PURGE_SHADER_CACHE_AFTER_ANIMATE,
-            (MEMParam::IsDeeplyRelGpuResEnable() ? TIME_OF_THE_FRAMES : TIME_OF_SIX_FRAMES) / GetRefreshRate(),
-            AppExecFwk::EventQueue::Priority::LOW);
-    }
-#else
-    return;
-#endif
 }
 
 void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString, bool checkIsInUniRenderThread)
@@ -1293,7 +1254,7 @@ bool RSUniRenderThread::GetSetScreenPowerOnChanged()
 
 void RSUniRenderThread::CollectProcessNodeNum(int num)
 {
-    totalProcessNodeNum_ += num;
+    totalProcessNodeNum_.fetch_add(num, std::memory_order_acq_rel);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <numeric>
 
+#include "common_utils/path_util.h"
+#include "common_utils/pixel_map_util.h"
 #include "convert.h"
 #include "drawing_painter_impl.h"
 #include "text_font_utils.h"
@@ -25,7 +27,11 @@
 #include "modules/skparagraph/include/Paragraph.h"
 #include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_builder_impl.h"
+#ifdef ENABLE_OHOS_ENHANCE
+#include "pixel_map.h"
+#endif
 #include "skia_adapter/skia_convert_utils.h"
+#include "static_factory.h"
 #include "symbol_engine/hm_symbol_run.h"
 #include "text/font_metrics.h"
 #include "text_line_impl.h"
@@ -50,67 +56,55 @@ std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
 
 ParagraphImpl::ParagraphImpl(std::unique_ptr<skt::Paragraph> paragraph, std::vector<PaintRecord>&& paints)
     : paragraph_(std::move(paragraph)), paints_(std::move(paints))
-{
-    threadId_ = pthread_self();
-}
+{}
 
 double ParagraphImpl::GetMaxWidth()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getMaxWidth();
 }
 
 double ParagraphImpl::GetHeight()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->lineNumber() == 0 ? 0 : paragraph_->getHeight();
 }
 
 double ParagraphImpl::GetLongestLine()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getLongestLine();
 }
 
 double ParagraphImpl::GetLongestLineWithIndent()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getLongestLineWithIndent();
 }
 
 double ParagraphImpl::GetMinIntrinsicWidth()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getMinIntrinsicWidth();
 }
 
 double ParagraphImpl::GetMaxIntrinsicWidth()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getMaxIntrinsicWidth();
 }
 
 double ParagraphImpl::GetAlphabeticBaseline()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getAlphabeticBaseline();
 }
 
 double ParagraphImpl::GetIdeographicBaseline()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getIdeographicBaseline();
 }
 
 bool ParagraphImpl::DidExceedMaxLines()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->didExceedMaxLines();
 }
 
 size_t ParagraphImpl::GetLineCount() const
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr || paragraph_->GetMaxLines() == 0) {
         return 0;
     }
@@ -119,7 +113,6 @@ size_t ParagraphImpl::GetLineCount() const
 
 void ParagraphImpl::MarkDirty()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return;
     }
@@ -128,7 +121,6 @@ void ParagraphImpl::MarkDirty()
 
 int32_t ParagraphImpl::GetUnresolvedGlyphsCount()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return 0;
     }
@@ -137,7 +129,6 @@ int32_t ParagraphImpl::GetUnresolvedGlyphsCount()
 
 void ParagraphImpl::UpdateFontSize(size_t from, size_t to, float fontSize)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return;
     }
@@ -146,13 +137,11 @@ void ParagraphImpl::UpdateFontSize(size_t from, size_t to, float fontSize)
 
 void ParagraphImpl::SetIndents(const std::vector<float>& indents)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     paragraph_->setIndents(indents);
 }
 
 float ParagraphImpl::DetectIndents(size_t index)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->detectIndents(index);
 }
 
@@ -176,7 +165,6 @@ void ParagraphImpl::InitSymbolRuns()
 
 void ParagraphImpl::Layout(double width)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
     InitSymbolRuns();
@@ -185,43 +173,36 @@ void ParagraphImpl::Layout(double width)
 
 double ParagraphImpl::GetGlyphsBoundsTop()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getGlyphsBoundsTop();
 }
 
 double ParagraphImpl::GetGlyphsBoundsBottom()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getGlyphsBoundsBottom();
 }
 
 double ParagraphImpl::GetGlyphsBoundsLeft()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getGlyphsBoundsLeft();
 }
 
 double ParagraphImpl::GetGlyphsBoundsRight()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getGlyphsBoundsRight();
 }
 
 OHOS::Rosen::Drawing::FontMetrics ParagraphImpl::MeasureText()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->measureText();
 }
 
 void ParagraphImpl::Paint(SkCanvas* canvas, double x, double y)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     paragraph_->paint(canvas, x, y);
 }
 
 void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     RSCanvasParagraphPainter painter(canvas, paints_);
     painter.SetAnimation(animationFunc_);
     painter.SetHmSymbols(hmSymbols_);
@@ -230,7 +211,6 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
 
 void ParagraphImpl::Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     RSCanvasParagraphPainter painter(canvas, paints_);
     painter.SetAnimation(animationFunc_);
     paragraph_->paint(&painter, path, hOffset, vOffset);
@@ -239,7 +219,6 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, Drawing::Path* path, double h
 std::vector<TextBox> ParagraphImpl::GetRectsForRange(size_t start, size_t end,
     RectHeightStyle rectHeightStyle, RectWidthStyle rectWidthStyle)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     std::vector<skt::TextBox> boxes =
         paragraph_->getRectsForRange(start, end, static_cast<skt::RectHeightStyle>(rectHeightStyle),
             static_cast<skt::RectWidthStyle>(rectWidthStyle));
@@ -248,27 +227,23 @@ std::vector<TextBox> ParagraphImpl::GetRectsForRange(size_t start, size_t end,
 
 std::vector<TextBox> ParagraphImpl::GetRectsForPlaceholders()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return GetTxtTextBoxes(paragraph_->getRectsForPlaceholders());
 }
 
 PositionWithAffinity ParagraphImpl::GetGlyphPositionAtCoordinate(double dx, double dy)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     skt::PositionWithAffinity pos = paragraph_->getGlyphPositionAtCoordinate(dx, dy);
     return PositionWithAffinity(pos.position, static_cast<Affinity>(pos.affinity));
 }
 
 Range<size_t> ParagraphImpl::GetWordBoundary(size_t offset)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     skt::SkRange<size_t> range = paragraph_->getWordBoundary(offset);
     return Range<size_t>(range.start, range.end);
 }
 
 Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpaces)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (lineNumber >= 0 && lineNumber < static_cast<int>(paragraph_->lineNumber())) {
         skt::SkRange<size_t> range = paragraph_->getActualTextRange(lineNumber, includeSpaces);
         if (range == skia::textlayout::EMPTY_TEXT) {
@@ -285,14 +260,12 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
 
 Range<size_t> ParagraphImpl::GetEllipsisTextRange()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
     return Range<size_t>(range.start, range.end);
 }
 
 std::vector<skt::LineMetrics> ParagraphImpl::GetLineMetrics()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     std::vector<skt::LineMetrics> metrics;
     if (!lineMetrics_) {
         paragraph_->getLineMetrics(metrics);
@@ -302,7 +275,6 @@ std::vector<skt::LineMetrics> ParagraphImpl::GetLineMetrics()
 
 bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics) const
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
 }
 
@@ -327,8 +299,6 @@ void ParagraphImpl::GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, T
 
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
-
     TextStyle txt;
     txt.color = skStyle.getColor();
     txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());
@@ -380,8 +350,6 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 
 Drawing::FontMetrics ParagraphImpl::GetFontMetricsResult(const SPText::TextStyle& textStyle)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
-
     auto skTextStyle = ParagraphBuilderImpl::ConvertTextStyleToSkStyle(textStyle);
     OHOS::Rosen::Drawing::FontMetrics fontMetrics;
     skTextStyle.getFontMetrics(&fontMetrics);
@@ -399,7 +367,6 @@ bool ParagraphImpl::GetLineFontMetrics(const size_t lineNumber, size_t& charNumb
 
 std::vector<std::unique_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines() const
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (!paragraph_) {
         return {};
     }
@@ -415,7 +382,6 @@ std::vector<std::unique_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines()
 
 std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (!paragraph_) {
         return nullptr;
     }
@@ -429,7 +395,6 @@ std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
 void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color,
     skia::textlayout::UtfEncodeType encodeType)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (!paragraph_) {
         return;
     }
@@ -495,7 +460,6 @@ void ParagraphImpl::UpdateForegroundBrushWithNullopt(SkTArray<skt::Block, true>&
 
 void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return;
     }
@@ -515,7 +479,6 @@ void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
 
 std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return {};
     }
@@ -536,7 +499,6 @@ std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
 
 bool ParagraphImpl::HasSkipTextBlobDrawing() const
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return false;
     }
@@ -545,7 +507,6 @@ bool ParagraphImpl::HasSkipTextBlobDrawing() const
 
 void ParagraphImpl::SetSkipTextBlobDrawing(bool state)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return;
     }
@@ -554,26 +515,14 @@ void ParagraphImpl::SetSkipTextBlobDrawing(bool state)
 
 bool ParagraphImpl::CanPaintAllText() const
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return false;
     }
     return paragraph_->canPaintAllText();
 }
 
-void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
-{
-    pthread_t currenetThreadId = pthread_self();
-    if (threadId_ != currenetThreadId) {
-        TEXT_LOGE_LIMIT3_HOUR("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
-            threadId_, caller);
-        threadId_ = currenetThreadId;
-    }
-}
-
 Drawing::RectI ParagraphImpl::GeneratePaintRegion(double x, double y)
 {
-    RecordDifferentPthreadCall("GeneratePaintRegion");
     if (!paragraph_) {
         double left = std::floor(x);
         double top = std::floor(y);
@@ -586,13 +535,11 @@ Drawing::RectI ParagraphImpl::GeneratePaintRegion(double x, double y)
 
 bool ParagraphImpl::IsLayoutDone()
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getState() >= skt::kFormatted ? true : false;
 }
 
 void ParagraphImpl::SetLayoutState(size_t state)
 {
-    RecordDifferentPthreadCall(__FUNCTION__);
     paragraph_->setState(static_cast<skt::InternalState>(state));
 }
 
@@ -600,6 +547,36 @@ std::string ParagraphImpl::GetDumpInfo() const
 {
     return paragraph_->GetDumpInfo();
 }
+
+#ifdef ENABLE_OHOS_ENHANCE
+std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
+    size_t start, size_t end, const ImageOptions& options, bool fill) const
+{
+    if (start >= end) {
+        TEXT_LOGW("Invalid range: [%{public}zu, %{public}zu)", start, end);
+        return nullptr;
+    }
+    
+    skt::SkRange<size_t> range{start, end};
+    std::vector<skt::PathInfo> pathInfos = paragraph_->getTextPathByClusterRange(range);
+    if (pathInfos.empty()) {
+        TEXT_LOGD("No path info found for range: [%{public}zu, %{public}zu)", start, end);
+        return nullptr;
+    }
+    
+    if (fill) {
+        for (size_t i = 0; i < pathInfos.size(); i++) {
+            auto& pathInfo = pathInfos[i];
+            Drawing::Path tempPath;
+            std::vector<Drawing::Path> allPaths;
+            Drawing::StaticFactory::PathOutlineDecompose(pathInfo.path, allPaths);
+            TextPathUtil::ExtractOuterPath(allPaths, tempPath);
+            pathInfo.path = tempPath;
+        }
+    }
+    return TextPixelMapUtil::CreatePixelMap(options, pathInfos);
+}
+#endif
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

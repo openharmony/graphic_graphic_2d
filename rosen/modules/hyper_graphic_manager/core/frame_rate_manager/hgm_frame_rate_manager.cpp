@@ -183,8 +183,7 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
             appController->SetPhaseOffset(0);
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPO);
         } else {
-            auto& hgmCore = HgmCore::Instance();
-            if (RSUniRenderJudgement::IsUniRender()) {
+            if (auto& hgmCore = HgmCore::Instance(); RSUniRenderJudgement::IsUniRender()) {
                 int64_t offset = hgmCore.IsDelayMode() ?
                     UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
                 rsController->SetPhaseOffset(hgmCore.GetRsPhaseOffset(offset));
@@ -395,7 +394,7 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
-    frameVoter_.SetDragScene(finalRange.type_ & ACE_COMPONENT_FRAME_RATE_TYPE);
+    frameVoter_.SetDragScene(finalRange.type_ & DRAG_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
         auto allTypeDescription = finalRange.GetAllTypeDescription();
@@ -781,9 +780,13 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         HGM_LOGW("HgmFrameRateManager:unknown event, eventName is %{public}s", eventName.c_str());
         return;
     }
-
-    HGM_LOGI("%{public}s(%{public}d) [%{public}u %{public}u] %{public}d %{public}s", eventName.c_str(), pid,
-        eventInfo.minRefreshRate, eventInfo.maxRefreshRate, eventInfo.eventStatus, eventInfo.description.c_str());
+    if (eventName == "VOTER_TOUCH" || eventName == "VOTER_POINTER") {
+        HGM_LOGD("%{public}s %{public}d %{public}u %{public}u %{public}d %{public}s", eventName.c_str(), pid,
+            eventInfo.minRefreshRate, eventInfo.maxRefreshRate, eventInfo.eventStatus, eventInfo.description.c_str());
+    } else {
+        HGM_LOGI("%{public}s %{public}d %{public}u %{public}u %{public}d %{public}s", eventName.c_str(), pid,
+            eventInfo.minRefreshRate, eventInfo.maxRefreshRate, eventInfo.eventStatus, eventInfo.description.c_str());
+    }
     if (eventName == "VOTER_SCENE") {
         HandleSceneEvent(pid, eventInfo);
     } else if (eventName == "VOTER_VIRTUALDISPLAY") {
@@ -831,7 +834,6 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
         if (touchCnt != LAST_TOUCH_CNT) {
             return;
         }
-        auto voteRecord = frameVoter_.GetVoteRecord();
         if (frameVoter_.GetVoterGamesEffective()) {
             HGM_LOGD("[touch manager] keep down in games");
             return;
@@ -909,7 +911,7 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     HandlePageUrlEvent();
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
-    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
+    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback(multiAppStrategy_.GetSceneBoardPid());
     SyncHgmConfigUpdateCallback();
     UpdateAppSupportedState();  // sync app state config when RefreshRateMode changed
 }
@@ -956,7 +958,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
 
 void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect)
 {
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenRectFrameRate screenId:%{public}" PRIu64
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenRectFrameRate screenId:%" PRIu64
         " activeRect(%d, %d, %d, %d)", id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     auto& hgmCore = HgmCore::Instance();
@@ -1079,7 +1081,7 @@ void HgmFrameRateManager::UpdateScreenFrameRate()
     multiAppStrategy_.CalcVote();
     hgmCore.SetLtpoConfig();
     MarkVoteChange();
-    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
+    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback(multiAppStrategy_.GetSceneBoardPid());
     SyncHgmConfigUpdateCallback();
 
     // hgm warning: use !isLtpo_ instead after GetDisplaySupportedModes ready
@@ -1180,7 +1182,7 @@ void HgmFrameRateManager::HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo e
 
 void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 {
-    auto voteRecord = frameVoter_.GetVoteRecord();
+    const auto& voteRecord = frameVoter_.GetVoteRecord();
     if (auto iter = voteRecord.find(voter);
         voter != "" && (iter == voteRecord.end() || !iter->second.second) && !voterTouchEffective_) {
         return;
@@ -1193,7 +1195,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
         }
     } else {
         lastVoteInfo_ = resultVoteInfo;
-        HGM_LOGI("Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- %{public}s", curScreenStrategyId_.c_str(),
+        HGM_LOGI("%{public}s %{public}d %{public}d %{public}s", curScreenStrategyId_.c_str(),
             static_cast<int>(curScreenId_.load()), curRefreshRateMode_, resultVoteInfo.ToSimpleString().c_str());
     }
 
@@ -1284,7 +1286,7 @@ bool HgmFrameRateManager::CheckAncoVoterStatus() const
         !isAmbientEffect_ || ancoLowBrightVec_.empty()) {
         return false;
     }
-    auto voteRecord = frameVoter_.GetVoteRecord();
+    const auto& voteRecord = frameVoter_.GetVoteRecord();
     auto iter = voteRecord.find("VOTER_ANCO");
     if (iter == voteRecord.end() || iter->second.first.empty() || !iter->second.second) {
         return false;
@@ -1302,9 +1304,6 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
 
     auto sampler = CreateVSyncSampler();
     sampler->SetAdaptive(isAdaptive_.load() == SupportASStatus::SUPPORT_AS);
-    if (controller_ != nullptr) {
-        controller_->ChangeAdaptiveStatus(isAdaptive_.load() == SupportASStatus::SUPPORT_AS);
-    }
     return resultVoteInfo;
 }
 
@@ -1509,15 +1508,15 @@ void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_
         !controller_->CheckNeedUpdateAppOffsetRefreshRate(controllerRate)) {
         return;
     }
-    if (touchManager_.GetState() == TouchState::IDLE_STATE) {
-        isNeedUpdateAppOffset_ = true;
-        return;
-    }
     if (isLowPowerSlide_ && refreshRate == OLED_60_HZ) {
         isNeedUpdateAppOffset_ = true;
         return;
     }
-    auto voteRecord = frameVoter_.GetVoteRecord();
+    if (touchManager_.GetState() == TouchState::IDLE_STATE) {
+        isNeedUpdateAppOffset_ = true;
+        return;
+    }
+    const auto& voteRecord = frameVoter_.GetVoteRecord();
     if (auto iter = voteRecord.find("VOTER_THERMAL");
         iter != voteRecord.end() && !iter->second.first.empty() &&
         iter->second.first.back().max > 0 && iter->second.first.back().max <= OLED_60_HZ) {

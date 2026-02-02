@@ -45,13 +45,18 @@ void SkiaMatrix44Test::TearDown() {}
 HWTEST_F(SkiaMatrix44Test, SkiaMatrix44001, TestSize.Level1)
 {
     std::shared_ptr<SkiaMatrix44> skiaMatrix44 = std::make_shared<SkiaMatrix44>();
+    scalar dx = 2;
+    scalar dy = 2;
+    scalar dz = 2;
     EXPECT_TRUE(skiaMatrix44 != nullptr);
-    skiaMatrix44->Translate(2, 2, 2); // 2: dx, dy and dz
-    skiaMatrix44->PreTranslate(2, 2, 2); // 2: dx, dy and dz
-    skiaMatrix44->PostTranslate(2, 2, 2); // 2: dx, dy and dz
-    skiaMatrix44->Scale(2, 2, 2); // 2: sx, sy and sz
-    skiaMatrix44->PreScale(2, 2, 2); // 2: sx, sy and sz
-    skiaMatrix44->SetCol(2, 2, 2, 2, 2); // 2: column, x, y, z and w
+    skiaMatrix44->Translate(dx, dy, dz);
+    skiaMatrix44->PreTranslate(dx, dy, dz);
+    skiaMatrix44->PostTranslate(dx, dy, dz);
+    skiaMatrix44->Scale(dx, dy, dz);
+    skiaMatrix44->PreScale(dx, dy, dz);
+    int column = 2;
+    scalar w = 2;
+    skiaMatrix44->SetCol(column, dx, dy, dz, w);
 }
 } // namespace Drawing
 } // namespace Rosen

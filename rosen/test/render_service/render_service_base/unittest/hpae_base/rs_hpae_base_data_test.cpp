@@ -181,6 +181,24 @@ HWTEST_F(RSHpaeBaseDataTest, SyncHpaeStatusTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SwapPixelStretchTest
+ * @tc.desc: Verify function SwapPixelStretch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHpaeBaseDataTest, SwapPixelStretchTest, TestSize.Level1)
+{
+    RSHpaeBaseData hpaeBaseData;
+
+    hpaeBaseData.SwapPixelStretch();
+
+    hpaeBaseData.hpaeStatus_.pixelStretch = Vector4f(1, 2, 3, 4);
+    hpaeBaseData.SwapPixelStretch();
+    Vector4f pixelStretch = hpaeBaseData.GetPixelStretch();
+    EXPECT_TRUE(Vector4fEqual(pixelStretch, Vector4f(2, 1, 4, 3)));
+}
+
+/**
  * @tc.name: GetPixelStretchTest
  * @tc.desc: Verify function GetPixelStretch
  * @tc.type: FUNC

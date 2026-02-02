@@ -77,6 +77,7 @@ template("skia_libtxt") {
     ]
 
     sources = [
+      "common_utils/path_util.cpp",
       "common_utils/string_util.cpp",
       "impl/drawing_painter_impl.cpp",
       "impl/paragraph_builder_impl.cpp",
@@ -103,8 +104,10 @@ template("skia_libtxt") {
       "txt/typeface_font_asset_provider.cpp",
     ]
 
+    deps = []
     external_deps = []
     if (platform_is_ohos) {
+      deps += [ "$platform_root:image_native" ]
       external_deps += [
         "bundle_framework:appexecfwk_base",
         "bundle_framework:appexecfwk_core",
@@ -117,6 +120,7 @@ template("skia_libtxt") {
         "ENABLE_OHOS_ENHANCE",
         "HM_SYMBOL_TXT_ENABLE",
       ]
+      sources += [ "common_utils/pixel_map_util.cpp" ]
     } else {
       defines += [ "MODULE_TEXTING" ]
     }
@@ -124,7 +128,8 @@ template("skia_libtxt") {
     if (is_arkui_x) {
       include_dirs += [ "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter" ]
       defines += [ "CROSS_PLATFORM" ]
-      deps = [
+      deps += [
+        "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
         "//third_party/skia:skia_$platform",
@@ -182,7 +187,7 @@ ohos_static_library("font_asset") {
   defines = [ "TEXT_SYSTEM_OHOS" ]
   if (is_arkui_x) {
     deps = [
-      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/cJSON:cjson_static",
       "//third_party/skia:skia_$platform",

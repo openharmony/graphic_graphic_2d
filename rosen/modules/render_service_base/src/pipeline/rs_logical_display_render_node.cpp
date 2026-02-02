@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "rs_trace.h"
 
 #include "pipeline/rs_logical_display_render_node.h"
@@ -29,10 +28,7 @@ RSLogicalDisplayRenderNode::RSLogicalDisplayRenderNode(NodeId id,
             id, screenId_, config.isMirrored, config.mirrorNodeId, config.isSync);
 }
 
-RSLogicalDisplayRenderNode::~RSLogicalDisplayRenderNode()
-{
-    RS_LOGI("%{public}s, NodeId:[%{public}" PRIu64 "]", __func__, GetId());
-}
+RSLogicalDisplayRenderNode::~RSLogicalDisplayRenderNode() {}
 
 void RSLogicalDisplayRenderNode::InitRenderParams()
 {
@@ -288,10 +284,10 @@ void RSLogicalDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
         isMirrorDisplayChanged_ = true;
     }
     isMirrorDisplay_ = isMirror;
-    RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNode::SetIsMirrorDisplay, node id:[%" PRIu64 "], isMirrorDisplay: [%d]",
-        GetId(), IsMirrorDisplay());
-    RS_LOGI("RSLogicalDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64
-        "], isMirrorDisplay: [%{public}d]", GetId(), IsMirrorDisplay());
+    RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNode::%s, node id:[%" PRIu64 "], isMirrorDisplay: [%d]", __func__,
+        GetId(), isMirrorDisplay_);
+    RS_LOGI("RSLogicalDisplayRenderNode::%{public}s, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}d]",
+        __func__, GetId(), isMirrorDisplay_);
 }
 
 bool RSLogicalDisplayRenderNode::IsMirrorDisplay() const
@@ -404,12 +400,12 @@ void RSLogicalDisplayRenderNode::UpdateFixedSize()
     }
 }
 
-uint32_t RSLogicalDisplayRenderNode::GetFixedWidth() const
+float RSLogicalDisplayRenderNode::GetFixedWidth() const
 {
     return fixedWidth_;
 }
 
-uint32_t RSLogicalDisplayRenderNode::GetFixedHeight() const
+float RSLogicalDisplayRenderNode::GetFixedHeight() const
 {
     return fixedHeight_;
 }

@@ -17,6 +17,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "parameters.h"
+#include "platform/common/rs_hisysevent.h"
 #include "rs_render_composer_manager.h"
 
 namespace OHOS {
@@ -51,21 +52,16 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(ScreenId screenId)
     ScreenId lastCurScreenId = frameRateMgr->GetLastCurScreenId();
     bool shouldSetRefreshRate = (refreshRate != hgmCore_.GetScreenCurrentRefreshRate(screenId) ||
                                  lastCurScreenId != curScreenId);
-    bool needRetrySetRate = false;
-    auto retryIter = setRateRetryMap_.find(screenId);
-    if (retryIter != setRateRetryMap_.end()) {
-        needRetrySetRate = retryIter->second.first;
-    }
-    if (shouldSetRefreshRate || needRetrySetRate) {
+    if (shouldSetRefreshRate || setRateRetryParam_.needRetrySetRate) {
         RS_LOGD("CommitAndReleaseLayers screenId %{public}d refreshRate %{public}u "
-            "needRetrySetRate %{public}d", static_cast<int>(screenId), refreshRate, needRetrySetRate);
-        int32_t sceneId = (lastCurScreenId != curScreenId || needRetrySetRate) ? SWITCH_SCREEN_SCENE : 0;
+                "needRetrySetRate %{public}d", static_cast<int>(screenId), refreshRate,
+                setRateRetryParam_.needRetrySetRate);
+        int32_t sceneId = (lastCurScreenId != curScreenId || setRateRetryParam_.needRetrySetRate) ?
+            SWITCH_SCREEN_SCENE : 0;
         frameRateMgr->SetLastCurScreenId(curScreenId);
         int32_t status = hgmCore_.SetScreenRefreshRate(screenId, sceneId, refreshRate, shouldSetRefreshRate);
-        if (retryIter != setRateRetryMap_.end()) {
-            retryIter->second.first = false;
-            retryIter->second.second = shouldSetRefreshRate ? 0 : retryIter->second.second;
-        }
+        setRateRetryParam_.needRetrySetRate = false;
+        setRateRetryParam_.retryCount = shouldSetRefreshRate ? 0 : setRateRetryParam_.retryCount;
         if (status < EXEC_SUCCESS) {
             RS_LOGD("HgmContext: failed to set refreshRate %{public}u, screenId %{public}" PRIu64,
                 refreshRate, screenId);
@@ -75,21 +71,20 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(ScreenId screenId)
 
 void HgmHardwareUtils::UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet)
 {
-    if (auto retryIter = setRateRetryMap_.find(id); retryIter != setRateRetryMap_.end()) {
-        auto& [needRetrySetRate, setRateRetryCount] = retryIter->second;
-        needRetrySetRate = (setRateRet == static_cast<uint32_t>(StatusCode::SET_RATE_ERROR));
-        if (!needRetrySetRate) {
-            setRateRetryCount = 0;
-        } else if (setRateRetryCount < MAX_SETRATE_RETRY_COUNT) {
-            setRateRetryCount++;
-        } else {
-            RS_LOGW("skip retrying for ScreenId:%{public}" PRIu64 ", set refresh rate failed more than %{public}d",
-                id, MAX_SETRATE_RETRY_COUNT);
-            needRetrySetRate = false;
-        }
-        RS_LOGD_IF(needRetrySetRate,
-            "RSHardwareThread: need retry set modeId %{public}" PRId32 ", ScreenId:%{public}" PRIu64, modeId, id);
+    setRateRetryParam_.needRetrySetRate = (setRateRet == static_cast<uint32_t>(StatusCode::SET_RATE_ERROR));
+    if (!setRateRetryParam_.needRetrySetRate) {
+        setRateRetryParam_.retryCount = 0;
+    } else if (setRateRetryParam_.retryCount < MAX_SETRATE_RETRY_COUNT) {
+        setRateRetryParam_.retryCount++;
+    } else {
+        RS_LOGW("skip retrying for ScreenId:%{public}" PRIu64 ", set refresh rate failed more than %{public}d", id,
+            MAX_SETRATE_RETRY_COUNT);
+        setRateRetryParam_.needRetrySetRate = false;
+        setRateRetryParam_.isRetryOverLimit = true;
+        ReportRetryOverLimit(refreshRateParam_.vsyncId, refreshRateParam_.rate);
     }
+    RS_LOGD_IF(setRateRetryParam_.needRetrySetRate,
+        "need retry set modeId %{public}" PRId32 ", ScreenId:%{public}" PRIu64, modeId, id);
 }
 
 void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output)
@@ -123,7 +118,6 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
 
         uint32_t ret = screenManager->SetScreenActiveMode(screenId, modeId);
         if (screenId <= MAX_HAL_DISPLAY_ID) {
-            setRateRetryMap_.try_emplace(screenId, std::make_pair(false, 0));
             UpdateRetrySetRateStatus(screenId, modeId, ret);
         } else {
             RS_LOGD("UpdateRetrySetRateStatus fail, invalid ScreenId:%{public}" PRIu64, screenId);
@@ -135,6 +129,29 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
             hdiBackend->SetPendingMode(output, pendingPeriod, pendingTimestamp);
             hdiBackend->StartSample(output);
         }
+    }
+}
+
+void HgmHardwareUtils::ResetRetryCount(ScreenPowerStatus status)
+{
+    RS_LOGD("%{public}s :PowerStatus change to %{public}d", __func__, status);
+    if (status == POWER_STATUS_ON && setRateRetryParam_.isRetryOverLimit) {
+        RS_LOGI("%{public}s when ScreenPower On and last refresh rate failed more than %{public}d", __func__,
+            setRateRetryParam_.retryCount);
+        setRateRetryParam_.needRetrySetRate = true;
+        setRateRetryParam_.retryCount = 0;
+        setRateRetryParam_.isRetryOverLimit = false;
+    }
+}
+
+void HgmHardwareUtils::ReportRetryOverLimit(uint64_t vsyncId, uint32_t rate)
+{
+    if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
+        HgmTaskHandleThread::Instance().PostTask([frameRateMgr, vsyncId, rate]() {
+            auto voteInfo = frameRateMgr->GetLastVoteInfo().ToSimpleString();
+            RSHiSysEvent::EventWrite(RSEventName::HGM_RETRY_UPDATE_RATE_OVERLIMIT, RSEventType::RS_FAULT,
+                "VSYNCID", vsyncId, "REFRESHRATE", rate, "LASTVOTEINFO", voteInfo);
+        });
     }
 }
 

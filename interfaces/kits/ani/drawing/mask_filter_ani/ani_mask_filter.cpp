@@ -18,13 +18,10 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 
-const char* ANI_CLASS_MASKFILTER_NAME = "@ohos.graphics.drawing.drawing.MaskFilter";
-
 ani_status AniMaskFilter::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_MASKFILTER_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().maskFilter;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_MASKFILTER_NAME);
         return ANI_NOT_FOUND;
     }
@@ -33,7 +30,7 @@ ani_status AniMaskFilter::AniInit(ani_env *env)
         ani_native_function { "createBlurMaskFilter", nullptr, reinterpret_cast<void*>(CreateBlurMaskFilter) },
     };
 
-    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_MASKFILTER_NAME);
         return ANI_NOT_FOUND;
@@ -54,10 +51,9 @@ ani_object AniMaskFilter::CreateBlurMaskFilter(
     }
     AniMaskFilter* maskFilter = new AniMaskFilter(
         MaskFilter::CreateBlurMaskFilter(static_cast<BlurType>(blurType), sigma));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_MASKFILTER_NAME, maskFilter);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().maskFilter,
+        AniGlobalMethod::GetInstance().maskFilterCtor, AniGlobalMethod::GetInstance().maskFilterBindNative, maskFilter);
+    if (IsUndefined(env, aniObj)) {
         delete maskFilter;
         ROSEN_LOGE("AniMaskFilter::CreateBlurMaskFilter failed cause aniObj is undefined");
     }

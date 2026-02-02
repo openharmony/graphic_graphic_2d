@@ -22,6 +22,9 @@
 namespace OHOS::MLB {
 enum TextErrorCode {
     ERROR_NONE,
+    /** Input is null, undefined, or mismatched type (basic type validation) */
+    BUSINESS_ERROR_INVALID_PARAM = 401,
+    /** Input parameter value is not within expected range or valid values (value validation) */
     ERROR_INVALID_PARAM = 25900001,
     ERROR_FILE_NOT_EXIST,
     ERROR_FILE_OPEN_FAILED,
@@ -32,37 +35,21 @@ enum TextErrorCode {
     ERROR_FILE_CORRUPTED,
 };
 
-const std::unordered_map<TextErrorCode, std::string> ERROR_MESSAGES {
-    { ERROR_INVALID_PARAM, "Invalid parameters" },
-    { ERROR_FILE_NOT_EXIST, "File does not exist" },
-    { ERROR_FILE_OPEN_FAILED, "Failed to open file" },
-    { ERROR_FILE_SEEK_FAILED, "Failed to seek file" },
-    { ERROR_FILE_SIZE_FAILED, "Failed to get file size" },
-    { ERROR_FILE_READ_FAILED, "Failed to read file" },
-    { ERROR_FILE_EMPTY, "File is empty" },
-    { ERROR_FILE_CORRUPTED, "File is corrupted or invalid font format" },
-};
-
-template<typename T>
-struct TextResult {
+struct TextResultBase {
     bool success;
     TextErrorCode errorCode;
     std::string detailedInfo;
+
+    std::string ToString() const;
+};
+
+template<typename T>
+struct TextResult : TextResultBase {
     T result;
 
     TextResult(bool s = true, TextErrorCode code = ERROR_NONE, const std::string& detail = "", T r = nullptr)
-        : success(s), errorCode(code), detailedInfo(detail), result(r)
-    {
-        // the value 401 do not change. It is defined on all system
-        if (errorCode == 401) {
-            errorCode = ERROR_INVALID_PARAM;
-        }
-    }
-
-    std::string ToString() const
-    {
-        return ERROR_MESSAGES.at(errorCode) + (!detailedInfo.empty() ? ": " : "") + detailedInfo;
-    }
+        : TextResultBase { s, code, detail }, result(r)
+    {}
 
     constexpr static TextResult Success(T r = nullptr)
     {
@@ -77,6 +64,11 @@ struct TextResult {
     constexpr static TextResult Invalid(const std::string& detail = "", T value = nullptr)
     {
         return TextResult(false, ERROR_INVALID_PARAM, detail, value);
+    }
+
+    constexpr static TextResult BusinessInvalid(const std::string& detail = "", T value = nullptr)
+    {
+        return TextResult(false, BUSINESS_ERROR_INVALID_PARAM, detail, value);
     }
 };
 } // namespace OHOS::MLB

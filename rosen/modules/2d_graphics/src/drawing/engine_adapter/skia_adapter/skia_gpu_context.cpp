@@ -108,7 +108,7 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
 #ifdef SKIA_OHOS
-    grOptions.clearSmallTexture = options.GetIsUniRender();
+ 	     grOptions.clearSmallTexture = options.GetIsUniRender();
 #endif
 #ifdef USE_M133_SKIA
     grContext_ = GrDirectContexts::MakeGL(std::move(glInterface), grOptions);
@@ -345,11 +345,8 @@ void SkiaGPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, cons
 void SkiaGPUContext::RegisterVulkanErrorCallback(
     const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback)
 {
-    if (!grContext_) {
-        LOGD("SkiaGPUContext::RegisterVulkanErrorCallback, grContext_ is nullptr");
-        return;
-    }
-    grContext_->registerVulkanErrorCallback(vulkanErrorCallback);
+    // vulkanErrorCallback will not be used in Skia
+    (void)vulkanErrorCallback;
 }
 
 void SkiaGPUContext::RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback)
@@ -430,11 +427,6 @@ void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump,
     grContext_->dumpMemoryStatisticsByTag(skTraceMemoryDump, grTag);
 }
 
-uint64_t SkiaGPUContext::NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag)
-{
-    return 0;
-}
-
 void SkiaGPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump)
 {
 #ifdef ROSEN_OHOS
@@ -507,6 +499,13 @@ void SkiaGPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64
     }
     grContext_->initGpuMemoryLimit(callback, size);
 }
+
+void SkiaGPUContext::InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size)
+{
+    // Skia Not Implement InitGpuMemoryReportLimit
+    LOGD("SkiaGPUContext::InitGpuMemoryReportLimit, not implement");
+}
+
 #ifdef RS_ENABLE_VK
 void SkiaGPUContext::StoreVkPipelineCacheData()
 {
@@ -591,7 +590,7 @@ void SkiaGPUContext::GetHpsEffectSupport(std::vector<const char*>& instanceExten
 
 void SkiaGPUContext::SetEarlyZEnabled(bool flag)
 {
-    // Skia Not Implement SetEarlyZflag
+    // Skia Not Implement SetEarlyZEnabled
     LOGD("SkiaGPUContext::SetEarlyZEnabled, not implement");
     return;
 }

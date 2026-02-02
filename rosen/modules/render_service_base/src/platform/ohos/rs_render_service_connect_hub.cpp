@@ -20,14 +20,14 @@
 #include <iservice_registry.h>
 #include <mutex>
 #include <system_ability_definition.h>
-#include <thread>
 #include <unistd.h>
+#include <thread>
 
 #include "message_parcel.h"
-#include "rs_client_to_service_connection_proxy.h"
+#include "pipeline/rs_render_thread.h"
 #include "rs_client_to_render_connection_proxy.h"
+#include "rs_client_to_service_connection_proxy.h"
 #include "rs_render_service_proxy.h"
-
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
 
@@ -37,7 +37,7 @@ std::once_flag RSRenderServiceConnectHub::flag_;
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::instance_ = nullptr;
 OnConnectCallback RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
 constexpr int32_t TOKEN_STRONG_REF_COUNT = 1;
-constexpr int32_t WAIT_TIME_FOR_DEC_STRONG_REF = 80;
+constexpr int32_t WAIT_TIME_FOR_DEC_STRONG_REF = 50;
 
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::GetInstance()
 {
@@ -68,22 +68,29 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
         return;
     }
     ROSEN_LOGI("~RSRenderServiceConnectHub");
-    renderService_->RemoveConnection(token_);
-    conn_ = nullptr;
-    renderConn_ = nullptr;
     if (renderService_->AsObject() && deathRecipient_) {
         renderService_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     }
-    int32_t refCount = token_->GetSptrRefCount();
-    ROSEN_LOGI("RefCount: %{public}d", refCount);
-    if ((token_ != nullptr) && (refCount > TOKEN_STRONG_REF_COUNT)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_FOR_DEC_STRONG_REF));
+
+    if (token_ == nullptr) {
+        ROSEN_LOGI("token_ is deleted");
+        return;
     }
+    ROSEN_LOGI("RefCount: %{public}d", token_->GetSptrRefCount());
+    while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
+        token_->DecStrongRef(this);
+    }
+    renderService_->RemoveConnection(token_);
+    token_ = nullptr;
+    conn_ = nullptr;
+    renderConn_ = nullptr;
 }
 
-sptr<RSIClientToRenderConnection> RSRenderServiceConnectHub::GetClientToRenderConnection()
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
+    RSRenderServiceConnectHub::GetRenderService()
 {
-    return GetRenderService().second;
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    return connHub == nullptr ? std::make_pair(nullptr, nullptr) : connHub->GetRenderServiceConnection();
 }
 
 sptr<RSIClientToServiceConnection> RSRenderServiceConnectHub::GetClientToServiceConnection()
@@ -91,18 +98,16 @@ sptr<RSIClientToServiceConnection> RSRenderServiceConnectHub::GetClientToService
     return GetRenderService().first;
 }
 
-std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
-RSRenderServiceConnectHub::GetRenderService()
+sptr<RSIClientToRenderConnection> RSRenderServiceConnectHub::GetClientToRenderConnection()
 {
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    return connHub == nullptr ? std::make_pair(nullptr, nullptr) : connHub->GetRenderServiceConnection();
+    return GetRenderService().second;
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
-RSRenderServiceConnectHub::GetRenderServiceConnection()
+    RSRenderServiceConnectHub::GetRenderServiceConnection()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (conn_ != nullptr && renderConn_ != nullptr  && renderService_ != nullptr) {
+    if (conn_ != nullptr && renderConn_ != nullptr && renderService_ != nullptr) {
         return {conn_, renderConn_};
     }
 

@@ -40,6 +40,18 @@ class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable;
 class RSLogicalDisplayRenderNodeDrawable;
+
+struct OffscreenRotationInfo {
+    int releaseCount_ = 0;
+    int maxRenderSize_ = 0;
+    float scaleX_ = 0.f;
+    float scaleY_ = 0.f;
+    std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
+    RSPaintFilterCanvas* canvasBackup_ = nullptr; // backup current canvas before offscreen rende
+    std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas_ = nullptr;
+    std::unique_ptr<RSAutoCanvasRestore> arc_ = nullptr;
+};
+
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSSurfaceRenderNodeDrawable() = default;
@@ -180,14 +192,7 @@ private:
     bool uiExtensionNeedToDraw_ = false;
 
     RSPaintFilterCanvas* curCanvas_ = nullptr;
-    std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
-    int releaseCount_ = 0;
-    static constexpr int MAX_RELEASE_FRAME = 10;
-    RSPaintFilterCanvas* canvasBackup_ = nullptr; // backup current canvas before offscreen rende
-    std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas_ = nullptr;
-    int maxRenderSize_ = 0;
-    std::unique_ptr<RSAutoCanvasRestore> arc_ = nullptr;
-
+    std::shared_ptr<OffscreenRotationInfo> offscreenRotationInfo_ = nullptr;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IConsumerSurface> consumerOnDraw_ = nullptr;
 #endif

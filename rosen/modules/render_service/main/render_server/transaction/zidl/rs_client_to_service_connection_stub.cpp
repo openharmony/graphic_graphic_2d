@@ -209,6 +209,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST),
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -1886,15 +1888,17 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS): {
-            ScreenId id {INVALID_SCREEN_ID};
+            ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
                 RS_LOGE("RSRenderServiceConnectionStub::GET_PANEL_POWER_STATUS Read id failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            uint32_t panelPowerStatus {static_cast<uint32_t>(PanelPowerStatus::INVALID_PANEL_POWER_STATUS) };
-            if (GetPanelPowerStatus(id, panelPowerStatus) != ERR_OK || !reply.WriteUint32(panelPowerStatus)) {
-                RS_LOGE("RSRenderServiceConnectionStub::GET_PANEL_POWER_STATUS Read status failed!");
+            PanelPowerStatus status{PanelPowerStatus::INVALID_PANEL_POWER_STATUS};
+            int32_t errCode = GetPanelPowerStatus(id, status);
+            if (!reply.WriteUint32(static_cast<uint32_t>(status))) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_PANEL_POWER_STATUS Write failed! errCode: %{public}d",
+                        errCode);
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -2413,6 +2417,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ::close(sharedTypeface.fd_);
                 RS_LOGE("RSClientToServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                     "no permission REGISTER_SHARED_TYPEFACE", callingPid);
+                needUpdate = -1;
             }
             if (!reply.WriteInt32(needUpdate)) {
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE Write needUpdate failed!");
@@ -2591,16 +2596,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                     "RSClientToServiceConnectionStub::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM): {
-            uint32_t num{0};
-            if (!data.ReadUint32(num)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_APP_WINDOW_NUM Read num failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetAppWindowNum(num);
             break;
         }
         case static_cast<uint32_t>(
@@ -2968,7 +2963,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             const uint32_t MAX_LIST_SIZE = 50;
             if (listSize > MAX_LIST_SIZE) {
-                ret = ERR_INVALID_STATE;
+                ret = ERR_INVALID_DATA;
                 break;
             }
 
@@ -2986,7 +2981,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 newConfig.push_back(make_pair(key, value));
             }
             if (errFlag) {
-                ret = ERR_INVALID_STATE;
+                ret = ERR_INVALID_DATA;
                 break;
             }
             NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
@@ -3760,6 +3755,28 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             int32_t result = AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
             if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::AVCODEC_VIDEO_STOP Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET): {
+            uint64_t uniqueId{0};
+            if (!data.ReadUint64(uniqueId)) {
+                RS_LOGE("RSClientToServiceConnectionStub::AVCODEC_VIDEO_GET : read data err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = AvcodecVideoGet(uniqueId);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::AVCODEC_VIDEO_GET Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT): {
+            int32_t result = AvcodecVideoGetRecent();
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::AVCODEC_VIDEO_GET_RECENT Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

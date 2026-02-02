@@ -141,7 +141,7 @@ float RSLuminanceControl::ConvertScalerFromLevelToFloat(uint32_t& level) const
 }
 
 void RSLuminanceControl::SetCurDisplayHdrBrightnessScaler(ScreenId screenId,
-    std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler)
+    const std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler)
 {
     return;
 }
@@ -149,6 +149,16 @@ void RSLuminanceControl::SetCurDisplayHdrBrightnessScaler(ScreenId screenId,
 bool RSLuminanceControl::IsHardwareHdrDisabled(bool checkBrightnessRatio, ScreenId screenId) const
 {
     return false;
+}
+
+double RSLuminanceControl::GetConfigScaler(ScreenId screenId, HdrStatus type) const
+{
+    return 1.0; // 1.0 means no headroom
+}
+
+void RSLuminanceControl::SetDualScreenStatus(ScreenId screenId, DualScreenStatus dualScreenStatus)
+{
+    // Set dual screen coordination status
 }
 } // namespace Rosen
 } // namespace OHOS

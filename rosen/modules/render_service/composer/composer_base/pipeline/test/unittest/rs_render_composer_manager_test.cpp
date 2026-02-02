@@ -283,6 +283,28 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenVBlankIdleCallback_FoundAndNotFoun
 }
 
 /**
+ * Function: HandlePowerStatus_FoundAndNotFound
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager
+ *                  2. call HandlePowerStatus before and after add screen id
+ *                  3. check connection is null before add and not null after add
+ */
+HWTEST_F(RsRenderComposerManagerTest, HandlePowerStatus_FoundAndNotFound, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    mgr->HandlePowerStatus(1, POWER_STATUS_ON);
+    EXPECT_EQ(mgr->rsRenderComposerMap_.find(1), mgr->rsRenderComposerMap_.end());
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    mgr->OnScreenConnected(output);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    mgr->HandlePowerStatus(1, POWER_STATUS_ON);
+    EXPECT_NE(mgr->rsRenderComposerMap_.find(1), mgr->rsRenderComposerMap_.end());
+}
+
+/**
  * Function: RateCount_Operations
  * Type: Function
  * Rank: Important(2)
@@ -389,9 +411,9 @@ HWTEST_F(RsRenderComposerManagerTest, GetReleaseFence, TestSize.Level1)
     if (rsRenderComposer->runner_) {
         rsRenderComposer->runner_->Run();
     }
-    EXPECT_EQ(mgr->GetReleaseFence(0u), nullptr);
+    EXPECT_TRUE(mgr->GetReleaseFence(0u)->Get() == -1);
     mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
-    EXPECT_EQ(mgr->GetReleaseFence(1u), nullptr);
+    EXPECT_TRUE(mgr->GetReleaseFence(1u) == 0);
     EXPECT_NE(mgr->GetReleaseFence(2u), nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 

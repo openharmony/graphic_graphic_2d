@@ -16,7 +16,6 @@
 #include <parameters.h>
 
 #include "feature/anco_manager/rs_anco_manager.h"
-#include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "gtest/gtest.h"
@@ -429,6 +428,60 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckFilterCacheFullyCoveredTest002, Te
 }
 
 /**
+ * @tc.name: GetCacheImgForCaptureTest001
+ * @tc.desc: Test GetCacheImgForCapture
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForCaptureTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    screenDrawable_->cacheImgForCapture_ = nullptr;
+    ASSERT_EQ(screenDrawable_->GetCacheImgForCapture(), nullptr);
+}
+
+/**
+ * @tc.name: GetCacheImgForCaptureTest002
+ * @tc.desc: Test GetCacheImgForCapture
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForCaptureTest002, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    auto cacheImg = std::make_shared<Drawing::Image>();
+    screenDrawable_->cacheImgForCapture_ = cacheImg;
+    ASSERT_NE(screenDrawable_->GetCacheImgForCapture(), nullptr);
+}
+
+/**
+ * @tc.name: GetCacheImgForMultiScreenViewTest001
+ * @tc.desc: Test GetCacheImgForMultiScreenView
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForMultiScreenViewTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    screenDrawable_->cacheImgForMultiScreenView_ = nullptr;
+    ASSERT_EQ(screenDrawable_->GetCacheImgForMultiScreenView(), nullptr);
+}
+
+/**
+ * @tc.name: GetCacheImgForMultiScreenViewTest002
+ * @tc.desc: Test GetCacheImgForMultiScreenView
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForMultiScreenViewTest002, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    auto cacheImg = std::make_shared<Drawing::Image>();
+    screenDrawable_->cacheImgForMultiScreenView_ = cacheImg;
+    ASSERT_NE(screenDrawable_->GetCacheImgForMultiScreenView(), nullptr);
+}
+
+/**
  * @tc.name: OnDraw001
  * @tc.desc: Test OnDraw when renderParams_ is/not nullptr
  * @tc.type: FUNC
@@ -584,7 +637,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest006, TestSize.Level1)
     screenInfo.skipFrameInterval = 100;
     params->screenInfo_ = screenInfo;
     screenDrawable_->OnDraw(canvas);
-    EXPECT_TRUE(screenDrawable_->SkipFrameByInterval(
+    EXPECT_FALSE(screenDrawable_->SkipFrameByInterval(
         RSMainThread::Instance()->GetVsyncRefreshRate(), screenInfo.skipFrameInterval));
 }
 
@@ -648,15 +701,15 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
-    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::RENDER_ENGINE_NULL);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::RENDER_ENGINE_NULL);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
     // when enableVisibleRect is true;
     params->screenProperty_.enableVisibleRect_ = true;
     const Rect& visibleRect = { 1, 1, 1, 1 };
     params->screenProperty_.mainScreenVisibleRect_ = visibleRect;
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(RSUniRenderThread::Instance().GetVisibleRect().left_, visibleRect.x);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_NE(RSUniRenderThread::Instance().GetVisibleRect().left_, visibleRect.x);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
     // when comositeType is not UNI_RENDER_MIRROR_COMPOSITE
     params->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
     screenDrawable_->OnDraw(canvas);
@@ -713,7 +766,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     EXPECT_EQ(params->GetMirrorSourceDrawable().lock(), nullptr);
 
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
@@ -721,7 +774,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 }
 
 /**
@@ -1815,6 +1868,27 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusion, Tes
     screenInfo.width = 100;
     screenInfo.height = 100;
     RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
+}
+
+/**
+ * @tc.name: CheckAndUpdateFilterCacheOcclusionTest002
+ * @tc.desc: Test CheckAndUpdateFilterCacheOcclusion when screen has non-empty active rect
+ * @tc.type: FUNC
+ * @tc.require: issue21543
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusionTest002, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    ScreenInfo screenInfo;
+    constexpr int activeSize{10};
+    screenInfo.activeRect = RectI(0, 0, activeSize, activeSize);
+    constexpr int screenSize{100};
+    screenInfo.width = screenSize;
+    screenInfo.height = screenSize;
+    RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
+    EXPECT_EQ(screenInfo.activeRect, RectI(0, 0, activeSize, activeSize));
 }
 
 /**

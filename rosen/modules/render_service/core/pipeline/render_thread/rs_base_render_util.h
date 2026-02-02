@@ -17,6 +17,8 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 
 #include <atomic>
+#include <vector>
+
 #include "draw/pen.h"
 #include "image/bitmap.h"
 #include "metadata_helper.h"
@@ -29,7 +31,6 @@
 #include "sync_fence.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
-#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -100,12 +101,14 @@ struct BufferDrawParam {
     bool isTmoNitsFixed = false;
     bool hasMetadata = false; // SDR has metadata
 #endif
+#ifdef HETERO_HDR_ENABLE
     /*
     * HDR_HETERO = 1U << 0,
     * HDR_HETERO_HDR = 1U << 1,
     * HDR_HETERO_AIHDR = 1U << 2,
     */
     uint32_t hdrHeteroType = 0;
+#endif
     bool colorFollow = false;
     bool preRotation = false;
     Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
@@ -158,9 +161,24 @@ public:
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,
         const Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL);
 
+    // Configuration for drop frame by PID feature
+    struct DropFrameConfig {
+        bool enable = false;        // Enable drop frame by PID
+        int32_t level = 0;          // Drop frame level: 0=no drop, >0=keep latest N frames
+
+        // Check if dropping should occur
+        bool ShouldDrop() const { return enable && level > 0; }
+
+        // Factory methods for common configurations
+        static DropFrameConfig NoDrop() { return {false, 0}; }
+        static DropFrameConfig Level(int32_t l) { return {true, l}; }
+    };
+
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
+
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY,
-        bool dropFrameByPidEnable = false, uint64_t parentNodeId = 0, bool dropFrameByScreenFrozen = false);
+        const DropFrameConfig& dropFrameConfig = DropFrameConfig::NoDrop(),
+        uint64_t parentNodeId = 0, bool dropFrameByScreenFrozen = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);
@@ -183,6 +201,9 @@ public:
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static int32_t GetScreenRotationOffset(RSSurfaceRenderParams* nodeParams);
+    // collect the rotation lock correction degree
+    static void GetRotationLockParam(RSSurfaceRenderNode& node, std::shared_ptr<RSScreenRenderNode> screenRenderNode,
+        sptr<RSScreenManager> screenManager);
 #ifdef RS_ENABLE_GPU
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
         RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
@@ -213,12 +234,11 @@ private:
         const std::vector<GraphicHDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap);
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
-    static ScreenId GetScreenIdFromSurfaceRenderParams(RSSurfaceRenderParams* nodeParams);
 
     static bool enableClient;
 
     static inline std::atomic<int> acquiredBufferCount_ = 0;
-    static pid_t lastSendingPid_;
+    static std::atomic<pid_t> lastSendingPid_;
 };
 } // namespace Rosen
 } // namespace OHOS

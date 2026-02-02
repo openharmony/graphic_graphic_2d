@@ -58,6 +58,9 @@ public:
     float GetAttractionFraction() const;
     Vector2f GetAttractionDstPoint() const;
     std::shared_ptr<RSNGFilterBase> GetNGFilterBase() const;
+
+    void SetColorAdaptive(bool value);
+    bool GetColorAdaptive() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_FOREGROUND_FILTER_MODIFIER_H

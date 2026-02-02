@@ -532,6 +532,20 @@ HWTEST_F(GpuContextTest, InitGpuMemoryLimitTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InitGpuMemoryReportLimitTest001
+ * @tc.desc: Test for initiating gpu memory limit.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, InitGpuMemoryReportLimitTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    uint64_t size = 1024 * 2;
+    gpuContext->InitGpuMemoryReportLimit(nullptr, 60, size);
+}
+
+/**
  * @tc.name: ResetContextTest001
  * @tc.desc: Test for resetting context.
  * @tc.type: FUNC
@@ -731,22 +745,6 @@ HWTEST_F(GpuContextTest, FlushCommandsTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: NewDumpMemoryStatisticsByTagTest
- * @tc.desc: Test for dumping memory statistics by tag.
- * @tc.type: FUNC
- * @tc.require: ICR0OD
- */
-HWTEST_F(GpuContextTest, NewDumpMemoryStatisticsByTagTest, TestSize.Level1)
-{
-    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
-    ASSERT_TRUE(gpuContext != nullptr);
-    TraceMemoryDump traceMemoryDump("category", true);
-    GPUResourceTag tag(0, 0, 0, 0, "tag");
-    gpuContext->NewDumpMemoryStatisticsByTag(&traceMemoryDump, tag);
-    gpuContext->NewDumpMemoryStatisticsByTag(nullptr, tag);
-}
-
-/**
  * @tc.name: SetParamTest
  * @tc.desc: Test for SetParam
  * @tc.type: FUNC
@@ -757,6 +755,21 @@ HWTEST_F(GpuContextTest, SetParamTest, TestSize.Level1)
     auto gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->SetParam("name", "value");
+}
+
+/**
+ * @tc.name: GPUContextOptionsSetIsUniRenderTest
+ * @tc.desc: Test for GPUContextOptions SetIsUniRender and GetIsUniRender.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, GPUContextOptionsSetIsUniRenderTest, TestSize.Level1)
+{
+    GPUContextOptions options;
+    options.SetIsUniRender(false);
+    EXPECT_EQ(options.GetIsUniRender(), false);
+    options.SetIsUniRender(true);
+    EXPECT_EQ(options.GetIsUniRender(), true);
 }
 } // namespace Drawing
 } // namespace Rosen

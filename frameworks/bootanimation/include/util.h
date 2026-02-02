@@ -34,40 +34,40 @@
 #include "platform/drawing/rs_surface.h"
 
 namespace OHOS {
-static const int NUMBER_TWO = 2;
-static const int READ_SIZE = 8192;
-static const int MAX_FILE_NAME = 512;
-static const int SLEEP_TIME_US = 30000;
-static const int SLEEP_TIME_US_10 = 10000;
-static const int INVALID_VOLUME = -1;
-static const int MIN_VOLUME = 0;
-static const int MAX_VOLUME = 15;
-constexpr const float MAX_ZORDER = 100000.0f;
-constexpr const float HALF = 2.0f;
-constexpr const float RATIO_PHONE = 360.0f;
-constexpr const float RATIO_OTHER = 800.0f;
-constexpr const float RATIO_PHONE_HEIGHT = 780.0f;
+constexpr int NUMBER_TWO = 2;
+constexpr int READ_SIZE = 8192;
+constexpr int MAX_FILE_NAME = 512;
+constexpr int SLEEP_TIME_US = 30000;
+constexpr int SLEEP_TIME_US_10 = 10000;
+constexpr int INVALID_VOLUME = -1;
+constexpr int MIN_VOLUME = 0;
+constexpr int MAX_VOLUME = 15;
+constexpr float MAX_ZORDER = 100000.0f;
+constexpr float HALF = 2.0f;
+constexpr float RATIO_PHONE = 360.0f;
+constexpr float RATIO_OTHER = 800.0f;
+constexpr float RATIO_PHONE_HEIGHT = 780.0f;
 
 constexpr const char* FILE_PREFIX = "file:/";
-const std::string BOOT_PIC_CONFIG_FILE = "config.json";
-const std::string BOOT_SOUND_PATH = "file://system/etc/graphic/bootsound.wav";
-const std::string BOOT_VIDEO_PATH = "file://system/etc/graphic/bootvideo.mp4";
-const std::string TYPE_VIDEO = "video";
-const std::string TYPE_SOUND = "sound";
+inline const std::string BOOT_PIC_CONFIG_FILE = "config.json";
+inline const std::string BOOT_SOUND_PATH = "file://system/etc/graphic/bootsound.wav";
+inline const std::string BOOT_VIDEO_PATH = "file://system/etc/graphic/bootvideo.mp4";
+inline const std::string TYPE_VIDEO = "video";
+inline const std::string TYPE_SOUND = "sound";
 
-const std::string HING_STATUS_INFO_PATH = "/sys/class/sensors/hinge_sensor/hinge_status_info";
+inline const std::string HING_STATUS_INFO_PATH = "/sys/class/sensors/hinge_sensor/hinge_status_info";
 
 constexpr const char* BOOT_ANIMATION_STARTED = "bootevent.bootanimation.started";
 constexpr const char* BOOT_ANIMATION_READY = "bootevent.bootanimation.ready";
 constexpr const char* BOOT_ANIMATION_FINISHED = "bootevent.bootanimation.finished";
 constexpr const char* BOOT_COMPLETED = "bootevent.boot.completed";
 constexpr const char* BOOT_SOUND = "const.bootanimation.bootsound";
-const std::string DEVICE_TYPE_PHONE = "phone";
-const std::string DEVICE_TYPE_WEARABLE = "wearable";
+inline const std::string DEVICE_TYPE_PHONE = "phone";
+inline const std::string DEVICE_TYPE_WEARABLE = "wearable";
 
-const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "");
+inline const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "");
 
-const int MAX_LENGTH = 9;
+constexpr int MAX_LENGTH = 9;
 
 enum class BootStrategyType {
     ASSOCIATIVE,
@@ -75,7 +75,7 @@ enum class BootStrategyType {
     INDEPENDENT,
 };
 
-using MemStruct = struct MemStruct {
+struct MemStruct {
 public:
     char* memBuffer = nullptr;
     unsigned long bufsize = 0;
@@ -109,7 +109,7 @@ public:
     }
 };
 
-using ImageStruct = struct ImageStruct {
+struct ImageStruct {
 public:
     std::string fileName = {};
     std::shared_ptr<Rosen::Drawing::Image> imageData = nullptr;
@@ -121,7 +121,7 @@ public:
 };
 using ImageStructVec = std::vector<std::shared_ptr<ImageStruct>>;
 
-using FrameRateConfig = struct FrameRateConfig {
+struct FrameRateConfig {
 public:
     int32_t frameRate = 30;
 };
@@ -132,7 +132,7 @@ struct BootAnimationCallback {
     VSyncCallback callback;
 };
 
-using PlayerParams = struct PlayerParams {
+struct PlayerParams {
 #ifdef PLAYER_FRAMEWORK_ENABLE
     OHOS::sptr<OHOS::Surface> surface;
 #endif

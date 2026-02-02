@@ -256,17 +256,6 @@ HWTEST_F(RSSystemPropertiesTest, GetUniPartialRenderEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetRenderNodeLazyLoadEnabled
- * @tc.desc: Test GetRenderNodeLazyLoadEnabled default return
- * @tc.type: FUNC
- * @tc.require: issue20607
- */
-HWTEST_F(RSSystemPropertiesTest, GetRenderNodeLazyLoadEnabled, TestSize.Level1)
-{
-    ASSERT_EQ(RSSystemProperties::GetRenderNodeLazyLoadEnabled(), true);
-}
-
-/**
  * @tc.name: GetVirtualDirtyEnabled
  * @tc.desc: GetVirtualDirtyEnabled Test
  * @tc.type: FUNC
@@ -632,6 +621,21 @@ HWTEST_F(RSSystemPropertiesTest, GetAnimationDelayOptimizeEnabled, TestSize.Leve
 }
 
 /**
+ * @tc.name: GetEDRCanvasReplaceEnabled
+ * @tc.desc: GetEDRCanvasReplaceEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetEDRCanvasReplaceEnabledTest, TestSize.Level1)
+{
+    auto ret = system::GetParameter("rosen.EDRCanvasReplace.enabled", "0");
+    system::SetParameter("rosen.EDRCanvasReplace.enabled", "1");
+    EXPECT_TRUE(RSSystemProperties::GetEDRCanvasReplaceEnabled());
+    system::SetParameter("rosen.EDRCanvasReplace.enabled", ret);
+    EXPECT_FALSE(RSSystemProperties::GetEDRCanvasReplaceEnabled());
+}
+
+/**
  * @tc.name: GetHdrImageEnabled
  * @tc.desc: GetHdrImageEnabled Test
  * @tc.type:FUNC
@@ -889,17 +893,6 @@ HWTEST_F(RSSystemPropertiesTest, GetWideColorSpaceEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSkipUnpremulEnabled
- * @tc.desc: GetSkipUnpremulEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetSkipUnpremulEnabled, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetSkipUnpremulEnabled());
-}
-
-/**
  * @tc.name: GetUIFirstDebugEnabled
  * @tc.desc: GetUIFirstDebugEnabled Test
  * @tc.type:FUNC
@@ -1037,17 +1030,6 @@ HWTEST_F(RSSystemPropertiesTest, WatchSystemProperty, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsPhoneType
- * @tc.desc: IsPhoneType Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, IsPhoneType, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::IsPhoneType());
-}
-
-/**
  * @tc.name: GetSyncTransactionEnabled
  * @tc.desc: GetSyncTransactionEnabled Test
  * @tc.type:FUNC
@@ -1099,7 +1081,6 @@ HWTEST_F(RSSystemPropertiesTest, GetSingleFrameComposerCanvasNodeEnabled, TestSi
  */
 HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetSecurityPermissionCheckEnabled());
     EXPECT_TRUE(RSSystemProperties::GetEffectMergeEnabled());
     EXPECT_FALSE(RSSystemProperties::GetDumpUICaptureEnabled());
     EXPECT_FALSE(RSSystemProperties::GetDumpUIPixelmapEnabled());

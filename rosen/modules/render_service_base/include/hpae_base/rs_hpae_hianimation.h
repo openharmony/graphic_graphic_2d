@@ -22,9 +22,17 @@
 #include <mutex>
 #include <set>
 
+#include "common/rs_macros.h"
 #include "hpae_base/rs_hpae_hianimation_types.h"
 
-#include "common/rs_macros.h"
+#if defined(ROSEN_OHOS)
+#include "ffrt_inner.h"
+using MutexType = ffrt::mutex;
+using ConditionalVariableType = ffrt::condition_variable;
+#else
+using MutexType = std::mutex;
+using ConditionalVariableType = std::condition_variable;
+#endif
 
 namespace OHOS::Rosen {
 
@@ -66,21 +74,21 @@ public:
     void WaitAlgoInit();
 
 private:
-    std::mutex mutex_; // mutex for public api
+    MutexType mutex_; // mutex for public api
 
     HianimationManager();
     ~HianimationManager();
 
-    hianimation_algo_device_t *hianimationDevice_ = nullptr;
+    hianimation_algo_device_t hianimationDevice_;
     void *libHandle_ = nullptr;
 
     std::set<uint32_t> taskIdMap_;
-    std::condition_variable taskAvailableCv_;
+    ConditionalVariableType taskAvailableCv_;
 
-    std::mutex algoInitMutex_;
+    MutexType algoInitMutex_;
     bool algoInited_ = false;
     bool algoInitDone_ = true;
-    std::condition_variable algoInitCv_;
+    ConditionalVariableType algoInitCv_;
 };
 
 } // OHOS::Rosen

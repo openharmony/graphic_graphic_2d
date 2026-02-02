@@ -45,6 +45,7 @@ FontDescriptorCache::~FontDescriptorCache() {}
 
 void FontDescriptorCache::ClearFontFileCache()
 {
+    std::lock_guard guard(mutex_);
     allFontDescriptor_.clear();
     fontFamilyMap_.clear();
     fullNameMap_.clear();
@@ -223,6 +224,7 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
     ParserFontsByFontType(fontType);
 
     uint32_t fontCategory = static_cast<uint32_t>(fontType);
+    std::lock_guard guard(mutex_);
     if (fontCategory & TextEngine::FontParser::SystemFontType::GENERIC) {
         auto fullNameList = GetGenericFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
@@ -350,6 +352,7 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
     };
 
     uint32_t  fontCategory = static_cast<uint32_t>(fontType);
+    std::lock_guard guard(mutex_);
     if ((fontCategory & TextEngine::FontParser::SystemFontType::GENERIC) &&
         tryFindFontDescriptor(fullNameMap_)) {
         return;
@@ -576,6 +579,7 @@ void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::s
     }
     desc->weight = (desc->weight > 0) ? WeightAlignment(desc->weight) : desc->weight;
     std::set<FontDescSharedPtr> finishRet;
+    std::lock_guard guard(mutex_);
     TEXT_INFO_CHECK(HandleMapIntersection(finishRet, desc->fontFamily, fontFamilyMap_), return,
         "Failed to match font family");
     TEXT_INFO_CHECK(HandleMapIntersection(finishRet, desc->fullName, fullNameMap_), return, "Failed to match fullName");

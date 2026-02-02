@@ -65,6 +65,7 @@ declare_args() {
   }
 
   graphic_2d_feature_subtree_parallel_enable = false
+  graphic_2d_feature_hetero_hdr_enable = false
   graphic_2d_feature_mhc_enable = false
 }
 
@@ -78,6 +79,10 @@ if (graphic_2d_feature_product == "phone" ||
     graphic_2d_feature_product == "wearable") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_stack_culling = true
+}
+
+if (is_ios && is_arkui_x) {
+  graphic_2d_feature_enable_vulkan = false
 }
 
 if (graphic_2d_feature_product == "phone" ||
@@ -142,6 +147,10 @@ if (graphic_2d_feature_ace_enable_gpu) {
 
 if (graphic_2d_feature_subtree_parallel_enable) {
   gpu_defines += [ "SUBTREE_PARALLEL_ENABLE" ]
+}
+
+if (graphic_2d_feature_hetero_hdr_enable) {
+  gpu_defines += [ "HETERO_HDR_ENABLE" ]
 }
 
 if (graphic_2d_feature_mhc_enable) {
@@ -239,6 +248,11 @@ check_subtree_ext_file_args = [
   rebase_path(
     "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config.gni"),
 ]
+check_hetero_hdr_ext_file_args = [
+  "--filename",
+  rebase_path(
+    "//foundation/graphic/graphic_2d_ext/hetero_hdr/build/hetero_hdr_config.gni"),
+]
 
 check_mhc_ext_file_args = [
   "--filename",
@@ -333,10 +347,23 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/subtree/build/subtree_confi
   }
 }
 
-graphic_2d_mhc_config = {}
+graphic_2d_hetero_hdr_configs = {}
+
+if (exec_script(check_graphic_ext_file_script,
+                check_hetero_hdr_ext_file_args,
+                "string") == "True") {
+
+  graphic_2d_hetero_hdr_configs = {
+    import(
+      "//foundation/graphic/graphic_2d_ext/hetero_hdr/build/hetero_hdr_config.gni")
+  }
+}
+
+
+graphic_2d_mhc_configs = {}
 
 if (path_exists("//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni")) {
-  graphic_2d_mhc_config = {
+  graphic_2d_mhc_configs = {
     import(
       "//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni")
   }
@@ -367,6 +394,8 @@ bundlefwk_path = "//foundation/bundlemanager/bundle_framework"
 bundlefwk_inner_api_path = "${bundlefwk_path}/interfaces/inner_api"
 mindspore_root = "//third_party/mindspore"
 rosen_root = "//foundation/graphic/graphic_2d/rosen"
+multimedia_root = "//foundation/multimedia"
+platform_root = "$rosen_root/modules/platform"
 drivers_display_interface = "//drivers/peripheral/display/interfaces"
 
 accessibility_enable = false

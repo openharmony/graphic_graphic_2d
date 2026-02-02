@@ -37,6 +37,7 @@ LoadSymbolErrorCode CustomSymbolConfig::ParseConfig(const std::string &familyNam
         return LoadSymbolErrorCode::LOAD_FAILED;
     }
     
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     if (symbolConfig_.find(familyName) != symbolConfig_.end()) {
         return LoadSymbolErrorCode::SUCCESS;
     }
@@ -49,7 +50,6 @@ LoadSymbolErrorCode CustomSymbolConfig::ParseConfig(const std::string &familyNam
         return LoadSymbolErrorCode::JSON_ERROR;
     }
 
-    std::unique_lock<std::shared_mutex> lock(mutex_);
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfigGroup;
     std::unordered_map<OHOS::Rosen::Drawing::DrawingAnimationType, OHOS::Rosen::Drawing::DrawingAnimationInfo>
         animationInfos;

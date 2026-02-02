@@ -31,6 +31,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
+#include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -228,7 +229,7 @@ public:
         return isHardwareEnableHint_;
     }
 
-    void SetSourceDisplayRenderNodeId(NodeId nodeId)
+    void SetSourceScreenRenderNodeId(NodeId nodeId)
     {
         sourceDisplayRenderNodeId_ = nodeId;
     }
@@ -752,6 +753,16 @@ public:
         return hdrPhotoNum_ > 0 || hdrUIComponentNum_ > 0;
     }
 
+    bool GetHDRUIPresent() const
+    {
+        return hdrUIComponentNum_ > 0;
+    }
+
+    bool GetHDRImagePresent() const
+    {
+        return hdrPhotoNum_ > 0;
+    }
+
     void IncreaseHDRNum(HDRComponentType hdrType);
     void ReduceHDRNum(HDRComponentType hdrType);
 
@@ -862,6 +873,16 @@ public:
     void SetOcclusionVisibleWithoutFilter(bool visible)
     {
         isOcclusionVisibleWithoutFilter_ = visible;
+    }
+
+    void SetIsParticipateInOcclusion(bool isParticipate)
+    {
+        isParticipateInOcclusion_ = isParticipate;
+    }
+
+    bool GetIsParticipateInOcclusion() const
+    {
+        return isParticipateInOcclusion_;
     }
 
     const Occlusion::Region& GetVisibleRegion() const
@@ -1302,8 +1323,6 @@ public:
     void UpdateFilterCacheStatusWithVisible(bool visible);
     void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged);
     void UpdateDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
-    // reset static node's drawing cache status as not changed and get filter rects
-    void ResetDrawingCacheStatusIfNodeStatic(std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects);
 
     void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
 
@@ -1735,9 +1754,15 @@ public:
     void SetSurfaceBufferOpaque(bool isOpaque);
     bool GetSurfaceBufferOpaque() const;
 
-    void AfterTreeStatueChanged() override;
-
     bool IsAncestorScreenFrozen() const;
+
+    void AfterTreeStateChanged();
+
+    // only use for window capture when isSyncRender is true
+    void RegisterCaptureCallback(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& config);
+
+    void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
+    void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1801,6 +1826,7 @@ private:
     bool isRefresh_ = false;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
+    bool isParticipateInOcclusion_ = true;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;

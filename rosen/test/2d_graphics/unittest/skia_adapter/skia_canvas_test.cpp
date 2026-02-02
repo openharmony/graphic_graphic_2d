@@ -352,7 +352,7 @@ HWTEST_F(SkiaCanvasTest, GetLocalShadowBounds001, TestSize.Level1)
     Point3 planeParams = {0, 50, 50};
     Point3 devLightPos = {1.f, 2.f, 100.f};
     ASSERT_TRUE(skiaCanvas.GetLocalShadowBounds(ctm, path, planeParams,
-        devLightPos, 1.0f, ShadowFlags::TRANSPARENT_OCCLUDER, true, rect) == false);
+        devLightPos, 1.0f, ShadowFlags::TRANSPARENT_OCCLUDER, true, rect) == true);
 }
 
 /**
@@ -725,7 +725,6 @@ HWTEST_F(SkiaCanvasTest, GetDeviceClipBoundsTest001, TestSize.Level1)
 }
 
 /**
-
  * @tc.name: RecordState
  * @tc.desc: Test for Canvas Record State
  * @tc.type: FUNC
@@ -1207,9 +1206,9 @@ HWTEST_F(SkiaCanvasTest, DrawImageEffectHPSTest001, TestSize.Level1)
 
 /**
  * @tc.name: OpCalculateBeforeTest001
- * @tc.desc: Test OpCalculateBefore
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: I9B0X4
+ * @tc.author:
  */
 HWTEST_F(SkiaCanvasTest, OpCalculateBeforeTest001, TestSize.Level1)
 {
@@ -1220,9 +1219,9 @@ HWTEST_F(SkiaCanvasTest, OpCalculateBeforeTest001, TestSize.Level1)
 
 /**
  * @tc.name: OpCalculateAfterTest001
- * @tc.desc: Test OpCalculateAfter
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: I9B0X4
+ * @tc.author:
  */
 HWTEST_F(SkiaCanvasTest, OpCalculateAfterTest001, TestSize.Level1)
 {
@@ -1234,9 +1233,9 @@ HWTEST_F(SkiaCanvasTest, OpCalculateAfterTest001, TestSize.Level1)
 
 /**
  * @tc.name: OpCalculateAfterTest002
- * @tc.desc: Test OpCalculateAfter
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: I9B0X4
+ * @tc.author:
  */
 HWTEST_F(SkiaCanvasTest, OpCalculateAfterTest002, TestSize.Level1)
 {
@@ -1250,9 +1249,9 @@ HWTEST_F(SkiaCanvasTest, OpCalculateAfterTest002, TestSize.Level1)
 
 /**
  * @tc.name: GetOpsNumTest001
- * @tc.desc: Test GetOpsNum
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: I9B0X4
+ * @tc.author:
  */
 HWTEST_F(SkiaCanvasTest, GetOpsNumTest001, TestSize.Level1)
 {
@@ -1269,9 +1268,9 @@ HWTEST_F(SkiaCanvasTest, GetOpsNumTest001, TestSize.Level1)
 
 /**
  * @tc.name: GetOpsPercentTest001
- * @tc.desc: Test GetOpsPercent
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: I9B0X4
+ * @tc.author:
  */
 HWTEST_F(SkiaCanvasTest, GetOpsPercentTest001, TestSize.Level1)
 {
@@ -1285,7 +1284,6 @@ HWTEST_F(SkiaCanvasTest, GetOpsPercentTest001, TestSize.Level1)
     tmp->Init(m->ExportSkiaMatrix());
     ASSERT_EQ(tmp->GetOpsPercent(), 0);
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

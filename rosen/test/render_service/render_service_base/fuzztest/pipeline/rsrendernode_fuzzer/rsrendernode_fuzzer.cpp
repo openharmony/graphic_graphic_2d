@@ -236,7 +236,7 @@ bool RSDirtyRegionManagerFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSScreenRenderParamsNodeFuzzTest(const uint8_t* data, size_t size)
+bool RSScreenRenderNodeFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -504,7 +504,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::RSContextFuzzTest(data, size);
     OHOS::Rosen::RSCanvasRenderNodeFuzzTest(data, size);
     OHOS::Rosen::RSDirtyRegionManagerFuzzTest(data, size);
-    OHOS::Rosen::RSScreenRenderParamsNodeFuzzTest(data, size);
+    OHOS::Rosen::RSScreenRenderNodeFuzzTest(data, size);
     OHOS::Rosen::RSDrawCmdListFuzzTest(data, size);
     OHOS::Rosen::RSOcclusionConfigFuzzTest(data, size);
 

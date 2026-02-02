@@ -1175,6 +1175,76 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPaintTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetCanvasReplacableTest
+ * @tc.desc: SetCanvasReplacable Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetCanvasReplacableTest, TestSize.Level1)
+{
+    paintFilterCanvas_->SetCanvasReplacable(true);
+    EXPECT_TRUE(paintFilterCanvas_->isReplacable_);
+    paintFilterCanvas_->SetCanvasReplacable(false);
+    EXPECT_FALSE(paintFilterCanvas_->isReplacable_);
+}
+
+/**
+ * @tc.name: ConvertToTypeTest
+ * @tc.desc: ConvertToType Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, ConvertToTypeTest, TestSize.Level1)
+{
+    auto colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+    auto alphaType = Drawing::ALPHATYPE_PREMUL;
+    auto colorSpace = Drawing::ColorSpace::CreateSRGB();
+
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto surface = std::make_shared<Drawing::Surface>();
+    auto paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+
+    paintFilterCanvas->ConvertToType(colorType, alphaType, colorSpace); // replacable false
+
+    paintFilterCanvas->canvas_ = nullptr;
+    paintFilterCanvas->SetCanvasReplacable(true);
+    paintFilterCanvas->ConvertToType(colorType, alphaType, colorSpace);
+    EXPECT_EQ(paintFilterCanvas->surface_, nullptr);
+
+    paintFilterCanvas->canvas_ = canvas.get();
+    paintFilterCanvas->surface_ = surface.get();
+    colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
+    paintFilterCanvas->ConvertToType(colorType, alphaType, colorSpace);
+    EXPECT_NE(paintFilterCanvas->surface_, nullptr);
+}
+
+/**
+ * @tc.name: ReplaceSurfaceTest
+ * @tc.desc: ReplaceSurface Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, ReplaceSurfaceTest, TestSize.Level1)
+{
+    auto surface1 = std::make_shared<Drawing::Surface>();
+    auto surface2 = std::make_shared<Drawing::Surface>();
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+
+    paintFilterCanvas->surface_ = nullptr;
+    paintFilterCanvas->ReplaceSurface(surface1.get());
+    EXPECT_EQ(paintFilterCanvas->surface_, nullptr);
+
+    paintFilterCanvas->surface_ = surface1.get();
+    paintFilterCanvas->ReplaceSurface(nullptr);
+    EXPECT_EQ(paintFilterCanvas->surface_, surface1.get());
+
+    paintFilterCanvas->surface_ = surface1.get();
+    paintFilterCanvas->ReplaceSurface(surface2.get());
+    paintFilterCanvas->ReplaceSurface(surface2.get()); // different branch
+}
+
+/**
  * @tc.name: AlphaStackToPushOrOutbackTest
  * @tc.desc: AlphaStackToPushOrOutback Test
  * @tc.type:FUNC
@@ -1552,25 +1622,6 @@ HWTEST_F(RSPaintFilterCanvasTest, HDRBrightnessTest, TestSize.Level1)
     EXPECT_EQ(paintFilterCanvas_->GetHDRBrightness(), 1.0f);
     paintFilterCanvas_->SetHDRBrightness(0.2f);
     EXPECT_EQ(paintFilterCanvas_->GetHDRBrightness(), 0.2f);
-}
-
-/**
- * @tc.name: DrawSdfTest001
- * @tc.desc: DrawSdf Test
- * @tc.type:FUNC
- * @tc.require: issueI9VT6E
- */
-HWTEST_F(RSPaintFilterCanvasTest, DrawSdfTest001, TestSize.Level1)
-{
-    Drawing::Canvas canvas;
-    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvasBase = std::make_shared<RSPaintFilterCanvas>(&canvas);
-    EXPECT_NE(paintFilterCanvasBase, nullptr);
-
-    SDFShapeBaseTest shape;
-    Drawing::Canvas canvasTest;
-    paintFilterCanvasBase->pCanvasList_.emplace_back(&canvasTest);
-    paintFilterCanvasBase->alphaStack_.push(1.0f);
-    paintFilterCanvasBase->DrawSdf(shape);
 }
 
 /**
@@ -2053,6 +2104,26 @@ HWTEST_F(RSPaintFilterCanvasTest, SaveDamageRegionrects, TestSize.Level1)
     std::vector<RectI> drawAreas{{0, 0, 1316, 2832}};
     paintFilterCanvasBase->SaveDamageRegionrects(drawAreas);
     EXPECT_EQ(paintFilterCanvasBase->GetDamageRegionrects(), drawAreas);
+}
+
+/**
+ * @tc.name: SetFilterClipBoundsTest
+ * @tc.desc: Test SetFilterClipBounds
+ * @tc.type: FUNC
+ * @tc.require:issues21681
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetFilterClipBoundsTest, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    Drawing::RectI clipBounds(0, 0, 1316, 2832);
+    paintFilterCanvas->SetFilterClipBounds(clipBounds);
+    EXPECT_EQ(paintFilterCanvas->GetFilterClipBounds(), clipBounds);
+
+    paintFilterCanvas->envStack_ = std::stack<RSPaintFilterCanvas::Env>();
+    EXPECT_EQ(paintFilterCanvas->GetFilterClipBounds(), Drawing::RectI());
+    paintFilterCanvas->SetFilterClipBounds(clipBounds);
+    EXPECT_EQ(paintFilterCanvas->GetFilterClipBounds(), Drawing::RectI());
 }
 
 } // namespace Rosen

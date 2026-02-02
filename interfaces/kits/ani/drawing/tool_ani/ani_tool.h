@@ -70,8 +70,8 @@ private:
     static bool IsColorEnum(ani_env* env, ani_object obj);
     static bool IsIntObject(ani_env* env, ani_object obj);
     static bool IsResourceObject(ani_env *env, ani_object object);
-    static bool GetTypeParam(ani_env* env, ani_object obj, const char* name, int32_t& result);
-    static bool GetParamsArray(ani_env* env, ani_object obj, const char* name, std::vector<std::string>& result);
+    static bool GetTypeParam(ani_env* env, ani_object obj, int32_t& result);
+    static bool GetParamsArray(ani_env* env, ani_object obj, std::vector<std::string>& result);
     static std::vector<std::string> AniToStdVectorString(ani_env* env, ani_array array);
     static bool IsUndefinedObject(ani_env* env, ani_ref objectRef);
 };

@@ -161,6 +161,20 @@ public:
 
     std::string GetDumpInfo() const override;
 
+#ifdef ENABLE_OHOS_ENHANCE
+    /**
+     * Get the text path image by index.
+     * This function retrieves the image representation of the text path within the specified range.
+     * @param start The starting index of the text path.
+     * @param end The ending index of the text path.
+     * @param options The image options to be applied.
+     * @param fill Whether to fill the path.
+     * @return A shared pointer to the pixel map representing the text path image.
+     */
+    std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
+        size_t start, size_t end, const ImageOptions& options, bool fill) const override;
+#endif
+
 private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
         skt::InternalState& state);
@@ -184,8 +198,6 @@ private:
 #endif
     void UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::optional<RSBrush>& brush);
 
-    void RecordDifferentPthreadCall(const char* caller) const;
-
     void InitSymbolRuns();
 
     void UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
@@ -198,7 +210,6 @@ private:
     std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
     uint32_t id_ = 0;
-    mutable pthread_t threadId_;
     std::vector<std::shared_ptr<HMSymbolRun>> hmSymbols_;
     std::once_flag initSymbolRunsFlag_;
 };

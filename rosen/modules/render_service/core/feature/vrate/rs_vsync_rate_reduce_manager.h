@@ -57,7 +57,7 @@ public:
     void FrameDurationEnd();
 
     void Init(const sptr<VSyncDistributor>& appVSyncDistributor);
-    void ResetFrameValues(uint32_t refreshRate);
+    void ResetFrameValues(uint32_t rsRefreshRate);
     void CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& node);
     void SetUniVsync();
 
@@ -93,7 +93,7 @@ private:
     }
 private:
     bool vRateReduceEnabled_ = false;
-    bool vRateConditionQualified_ = false;
+    std::atomic<bool> vRateConditionQualified_ = false;
     bool vSyncRatesChanged_ = false;
     std::map<NodeId, int> vSyncRateMap_;
     std::map<NodeId, int> lastVSyncRateMap_;

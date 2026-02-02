@@ -446,5 +446,276 @@ HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldAssignmentOperator001, TestSi
     GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldAssignmentOperator001 end";
 }
 
+/**
+ * @tc.name: VelocityFieldsDump001
+ * @tc.desc: Test VelocityFields Dump function
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldsDump001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsDump001 start";
+    ParticleVelocityFields fields;
+
+    auto field1 = std::make_shared<ParticleVelocityField>();
+    field1->velocity_ = Vector2f(100.0f, 50.0f);
+    auto field2 = std::make_shared<ParticleVelocityField>();
+    field2->velocity_ = Vector2f(200.0f, 100.0f);
+
+    fields.AddVelocityField(field1);
+    fields.AddVelocityField(field2);
+
+    std::string output;
+    fields.Dump(output);
+
+    EXPECT_TRUE(output.find("ParticleVelocityFields") != std::string::npos);
+    EXPECT_TRUE(output.find("ParticleVelocityField") != std::string::npos);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsDump001 end";
+}
+
+/**
+ * @tc.name: VelocityFieldsDumpEmpty001
+ * @tc.desc: Test VelocityFields Dump function with empty fields
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldsDumpEmpty001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsDumpEmpty001 start";
+    ParticleVelocityFields fields;
+
+    std::string output;
+    fields.Dump(output);
+
+    EXPECT_TRUE(output.find("ParticleVelocityFields") != std::string::npos);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsDumpEmpty001 end";
+}
+
+/**
+ * @tc.name: VelocityFieldEqualityRegionShape001
+ * @tc.desc: Test VelocityField equality with different regionShape
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldEqualityRegionShape001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldEqualityRegionShape001 start";
+    ParticleVelocityField field1;
+    ParticleVelocityField field2;
+
+    field1.regionShape_ = ShapeType::RECT;
+    field2.regionShape_ = ShapeType::CIRCLE;
+    EXPECT_FALSE(field1 == field2);
+
+    field2.regionShape_ = ShapeType::RECT;
+    EXPECT_TRUE(field1 == field2);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldEqualityRegionShape001 end";
+}
+
+/**
+ * @tc.name: VelocityFieldEqualityRegionPosition001
+ * @tc.desc: Test VelocityField equality with different regionPosition
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldEqualityRegionPosition001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldEqualityRegionPosition001 start";
+    ParticleVelocityField field1;
+    ParticleVelocityField field2;
+
+    field1.regionPosition_ = Vector2f(10.0f, 20.0f);
+    field2.regionPosition_ = Vector2f(30.0f, 40.0f);
+    EXPECT_FALSE(field1 == field2);
+
+    field2.regionPosition_ = Vector2f(10.0f, 20.0f);
+    EXPECT_TRUE(field1 == field2);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldEqualityRegionPosition001 end";
+}
+
+/**
+ * @tc.name: VelocityFieldEqualityRegionSize001
+ * @tc.desc: Test VelocityField equality with different regionSize
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldEqualityRegionSize001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldEqualityRegionSize001 start";
+    ParticleVelocityField field1;
+    ParticleVelocityField field2;
+
+    field1.regionSize_ = Vector2f(100.0f, 100.0f);
+    field2.regionSize_ = Vector2f(200.0f, 200.0f);
+    EXPECT_FALSE(field1 == field2);
+
+    field2.regionSize_ = Vector2f(100.0f, 100.0f);
+    EXPECT_TRUE(field1 == field2);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldEqualityRegionSize001 end";
+}
+
+/**
+ * @tc.name: VelocityFieldsEqualityNullptr001
+ * @tc.desc: Test VelocityFields equality with nullptr fields
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldsEqualityNullptr001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsEqualityNullptr001 start";
+    ParticleVelocityFields fields1;
+    ParticleVelocityFields fields2;
+
+    // Directly manipulate the internal vector to test nullptr branch
+    fields1.velocityFields_.push_back(nullptr);
+    fields2.velocityFields_.push_back(nullptr);
+
+    EXPECT_TRUE(fields1 == fields2);
+
+    // One nullptr, one valid
+    fields1.velocityFields_.clear();
+    fields2.velocityFields_.clear();
+    fields1.velocityFields_.push_back(nullptr);
+    fields2.velocityFields_.push_back(std::make_shared<ParticleVelocityField>());
+
+    EXPECT_FALSE(fields1 == fields2);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsEqualityNullptr001 end";
+}
+
+/**
+ * @tc.name: VelocityFieldsEqualityDifferentContent001
+ * @tc.desc: Test VelocityFields equality with different field content
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldsEqualityDifferentContent001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsEqualityDifferentContent001 start";
+    ParticleVelocityFields fields1;
+    ParticleVelocityFields fields2;
+
+    auto field1 = std::make_shared<ParticleVelocityField>();
+    field1->velocity_ = Vector2f(100.0f, 50.0f);
+    auto field2 = std::make_shared<ParticleVelocityField>();
+    field2->velocity_ = Vector2f(200.0f, 100.0f);
+
+    fields1.AddVelocityField(field1);
+    fields2.AddVelocityField(field2);
+
+    EXPECT_FALSE(fields1 == fields2);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsEqualityDifferentContent001 end";
+}
+
+/**
+ * @tc.name: VelocityFieldRegionDefault001
+ * @tc.desc: Test VelocityField with default/unknown region shape
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldRegionDefault001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldRegionDefault001 start";
+    ParticleVelocityField field;
+    field.velocity_ = Vector2f(100.0f, 50.0f);
+    // Use static_cast to set an invalid ShapeType to trigger default branch
+    field.regionShape_ = static_cast<ShapeType>(999);
+    field.regionPosition_ = Vector2f(0.0f, 0.0f);
+    field.regionSize_ = Vector2f(100.0f, 100.0f);
+
+    Vector2f point(10.0f, 10.0f);
+    Vector2f result = field.ApplyVelocityField(point, 0.1f);
+
+    // Default branch returns false, so velocity should be zero
+    EXPECT_EQ(result.x_, 0.0f);
+    EXPECT_EQ(result.y_, 0.0f);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldRegionDefault001 end";
+}
+
+/**
+ * @tc.name: VelocityFieldsApplyAllWithNullptr001
+ * @tc.desc: Test ApplyAllVelocityFields with nullptr in fields vector
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldsApplyAllWithNullptr001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsApplyAllWithNullptr001 start";
+    ParticleVelocityFields fields;
+
+    auto field1 = std::make_shared<ParticleVelocityField>();
+    field1->velocity_ = Vector2f(100.0f, 0.0f);
+    field1->regionShape_ = ShapeType::RECT;
+    field1->regionPosition_ = Vector2f(0.0f, 0.0f);
+    field1->regionSize_ = Vector2f(200.0f, 200.0f);
+
+    fields.AddVelocityField(field1);
+    // Directly add nullptr to test null check branch
+    fields.velocityFields_.push_back(nullptr);
+
+    Vector2f position(50.0f, 50.0f);
+    Vector2f totalVelocity = fields.ApplyAllVelocityFields(position, 0.1f);
+
+    // Should still work, ignoring nullptr
+    EXPECT_EQ(totalVelocity.x_, 100.0f);
+    EXPECT_EQ(totalVelocity.y_, 0.0f);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsApplyAllWithNullptr001 end";
+}
+
+/**
+ * @tc.name: VelocityFieldEdgeCase004
+ * @tc.desc: Test VelocityField with very small ellipse radiusY
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldEdgeCase004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldEdgeCase004 start";
+    ParticleVelocityField field;
+    field.velocity_ = Vector2f(100.0f, 50.0f);
+    field.regionShape_ = ShapeType::ELLIPSE;
+    field.regionSize_ = Vector2f(100.0f, 1e-7f);  // Very small radiusY
+
+    Vector2f point(10.0f, 10.0f);
+    Vector2f result = field.ApplyVelocityField(point, 0.1f);
+
+    EXPECT_EQ(result.x_, 0.0f);
+    EXPECT_EQ(result.y_, 0.0f);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldEdgeCase004 end";
+}
+
+/**
+ * @tc.name: VelocityFieldNegativeVelocity001
+ * @tc.desc: Test VelocityField with negative velocity values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldNegativeVelocity001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldNegativeVelocity001 start";
+    ParticleVelocityField field;
+    field.velocity_ = Vector2f(-100.0f, -50.0f);
+    field.regionShape_ = ShapeType::RECT;
+    field.regionPosition_ = Vector2f(0.0f, 0.0f);
+    field.regionSize_ = Vector2f(200.0f, 200.0f);
+
+    Vector2f insidePoint(50.0f, 50.0f);
+    Vector2f result = field.ApplyVelocityField(insidePoint, 0.1f);
+
+    EXPECT_EQ(result.x_, -100.0f);
+    EXPECT_EQ(result.y_, -50.0f);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldNegativeVelocity001 end";
+}
+
+/**
+ * @tc.name: VelocityFieldsDumpWithNullptr001
+ * @tc.desc: Test VelocityFields Dump function with nullptr in fields
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleVelocityFieldTest, VelocityFieldsDumpWithNullptr001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsDumpWithNullptr001 start";
+    ParticleVelocityFields fields;
+
+    auto field1 = std::make_shared<ParticleVelocityField>();
+    fields.AddVelocityField(field1);
+    // Add nullptr directly to test null check in Dump
+    fields.velocityFields_.push_back(nullptr);
+
+    std::string output;
+    fields.Dump(output);
+
+    EXPECT_TRUE(output.find("ParticleVelocityFields") != std::string::npos);
+    GTEST_LOG_(INFO) << "RSParticleVelocityFieldTest VelocityFieldsDumpWithNullptr001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

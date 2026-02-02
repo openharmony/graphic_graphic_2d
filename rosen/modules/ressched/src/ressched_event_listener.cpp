@@ -32,12 +32,9 @@ constexpr double EPSILON = 0.1;
 
 std::once_flag ResschedEventListener::createFlag_;
 sptr<ResschedEventListener> ResschedEventListener::instance_ = nullptr;
-std::shared_ptr<ffrt::queue> ResschedEventListener::ffrtQueue_ = nullptr;
 std::shared_ptr<ffrt::queue> ResschedEventListener::ffrtHighPriorityQueue_ = nullptr;
-std::mutex ResschedEventListener::ffrtGetQueueMutex_;
 std::mutex ResschedEventListener::ffrtGetHighFrequenceQueueMutex_;
 constexpr uint64_t SAMPLE_TIME = 100000000;
-const std::string RS_RESSCHED_LISTENER_QUEUE = "res_ressched_event_listener_queue";
 const std::string RS_RESSCHED_LISTENER_QUEUE_HIGH_PRIOTITY = "res_ressched_event_listener_high_priotity_queue";
 
 sptr<ResschedEventListener> ResschedEventListener::GetInstance() noexcept
@@ -148,28 +145,30 @@ void ResschedEventListener::ReportFrameRateToRSS(const std::unordered_map<std::s
 
 void ResschedEventListener::ReportFrameCountAsync(uint32_t pid)
 {
-    if (GetFfrtQueue()) {
-        ffrtQueue_->submit([pid, this]() {
-            if (currentType_ == DEFAULT_TYPE) {
-                return;
-            }
-            if (pid != currentPid_.load()) {
-                return;
-            }
-            if (isFrameRateFirstReport_) {
-                isFrameRateFirstReport_ = false;
-                beginTimeStamp_ = std::chrono::steady_clock::now();
-            }
-            endTimeStamp_ = std::chrono::steady_clock::now();
-            frameCountNum_++;
-        });
+    if (!GetFfrtHighPriorityQueue()) {
+        RS_TRACE_NAME("ReportFrameCountAsync get ffrtqueue failed!");
+        return;
     }
+    ffrtHighPriorityQueue_->submit([pid, this]() {
+        if (currentType_ == DEFAULT_TYPE) {
+            return;
+        }
+        if (pid != currentPid_.load()) {
+            return;
+        }
+        if (isFrameRateFirstReport_) {
+            isFrameRateFirstReport_ = false;
+            beginTimeStamp_ = std::chrono::steady_clock::now();
+        }
+        endTimeStamp_ = std::chrono::steady_clock::now();
+        frameCountNum_++;
+    });
 }
 
 void ResschedEventListener::HandleFrameRateStatisticsBeginAsync(uint32_t pid, uint32_t type)
 {
-    if (GetFfrtQueue()) {
-        ffrtQueue_->submit([pid, type, this]() {
+    if (GetFfrtHighPriorityQueue()) {
+        ffrtHighPriorityQueue_->submit([pid, type, this]() {
             RS_TRACE_BEGIN("HandleFrameRateStatisticsBeginAsync");
             currentPid_.store(pid);
             currentType_ = type;
@@ -182,8 +181,8 @@ void ResschedEventListener::HandleFrameRateStatisticsBeginAsync(uint32_t pid, ui
 
 void ResschedEventListener::HandleFrameRateStatisticsBreakAsync(uint32_t pid, uint32_t type)
 {
-    if (pid == currentPid_.load() && GetFfrtQueue()) {
-        ffrtQueue_->submit([this]() {
+    if (pid == currentPid_.load() && GetFfrtHighPriorityQueue()) {
+        ffrtHighPriorityQueue_->submit([this]() {
             RS_TRACE_BEGIN("HandleFrameRateStatisticsBreakAsync");
             currentPid_.store(DEFAULT_PID);
             currentType_ = DEFAULT_TYPE;
@@ -194,8 +193,8 @@ void ResschedEventListener::HandleFrameRateStatisticsBreakAsync(uint32_t pid, ui
 
 void ResschedEventListener::HandleFrameRateStatisticsEndAsync(uint32_t pid, uint32_t type)
 {
-    if (pid == currentPid_.load() && GetFfrtQueue()) {
-        ffrtQueue_->submit([this]() {
+    if (pid == currentPid_.load() && GetFfrtHighPriorityQueue()) {
+        ffrtHighPriorityQueue_->submit([this]() {
             RS_TRACE_BEGIN("HandleFrameRateStatisticsEndAsync");
             std::chrono::duration<double> durationTime = endTimeStamp_ - beginTimeStamp_;
             if (std::fabs(durationTime.count()) > EPSILON) {
@@ -216,23 +215,6 @@ void ResschedEventListener::HandleFrameRateStatisticsEndAsync(uint32_t pid, uint
 uint32_t ResschedEventListener::GetCurrentPid()
 {
     return currentPid_.load();
-}
-
-bool ResschedEventListener::GetFfrtQueue()
-{
-    if (ffrtQueue_ != nullptr) {
-        return true;
-    }
-    std::lock_guard<std::mutex> lock(ffrtGetQueueMutex_);
-    if (ffrtQueue_ == nullptr) {
-        ffrtQueue_ = std::make_shared<ffrt::queue>(RS_RESSCHED_LISTENER_QUEUE.c_str(),
-            ffrt::queue_attr().qos(ffrt::qos_default));
-    }
-    if (ffrtQueue_ == nullptr) {
-        RS_TRACE_NAME("FrameRateStatistics Init ffrtqueue failed!");
-        return false;
-    }
-    return true;
 }
 
 bool ResschedEventListener::GetFfrtHighPriorityQueue()

@@ -15,14 +15,10 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-group("unittest") {
-  testonly = true
-  deps = [ ":texgine_test" ]
-}
-
 ohos_unittest("texgine_test") {
   module_out_path = text_ut_out_path
   sources = [
+    "font_config_test.cpp",
     "font_descriptor_cache_test.cpp",
     "font_parser_test.cpp",
   ]
@@ -47,4 +43,9 @@ ohos_unittest("texgine_test") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":texgine_test" ]
 }

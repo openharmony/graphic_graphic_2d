@@ -313,6 +313,11 @@ int SkiaPath::CountVerbs() const
     return path_.countVerbs();
 }
 
+int SkiaPath::CountPoints() const
+{
+    return path_.countPoints();
+}
+
 Point SkiaPath::GetPoint(int index) const
 {
     SkPoint point = path_.getPoint(index);

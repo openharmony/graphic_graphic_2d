@@ -29,7 +29,7 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_ui_context.h"
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 #include "modifier_render_thread/rs_modifiers_draw.h"
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "media_errors.h"
@@ -75,7 +75,7 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureEx
 
 RSCanvasNode::~RSCanvasNode()
 {
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     if (IsHybridRenderCanvas()) {
         RSModifiersDraw::RemoveSurfaceByNodeId(GetId(), true);
     }
@@ -84,7 +84,8 @@ RSCanvasNode::~RSCanvasNode()
 
 void RSCanvasNode::SetHDRPresent(bool hdrPresent)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetHDRPresent>(GetId(), hdrPresent);
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSCanvasNodeSetHDRPresent>(GetId(), hdrPresent);
     if (AddCommand(command, true)) {
         ROSEN_LOGD("RSCanvasNode::SetHDRPresent HDRClient set hdr true");
     }
@@ -232,8 +233,8 @@ void RSCanvasNode::OnBoundsSizeChanged() const
 
 void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
 {
-  std::lock_guard<std::mutex> lock(mutex_);
-  boundsChangedCallback_ = callback;
+    std::lock_guard<std::mutex> lock(mutex_);
+    boundsChangedCallback_ = callback;
 }
 
 bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
@@ -242,7 +243,7 @@ bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::D
         return false;
     }
     bool ret = false;
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     RSModifiersDrawThread::Instance().PostSyncTask([this, &bitmap, &ret]() {
         auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
         if (pixelMap == nullptr) {
@@ -272,7 +273,7 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
         return false;
     }
     bool ret = false;
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     RSModifiersDrawThread::Instance().PostSyncTask([this, pixelMap, rect, &ret]() {
         auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
         if (srcPixelMap == nullptr) {
@@ -293,12 +294,22 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
     return ret;
 }
 
+void RSCanvasNode::SetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (!pixelMap) {
+        return;
+    }
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSCanvasNodeSetPixelmap>(GetId(), pixelMap);
+    AddCommand(command, true);
+}
+
 bool RSCanvasNode::ResetSurface(int width, int height)
 {
     if (!IsHybridRenderCanvas()) {
         return false;
     }
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true, true);
 #endif
     return false;

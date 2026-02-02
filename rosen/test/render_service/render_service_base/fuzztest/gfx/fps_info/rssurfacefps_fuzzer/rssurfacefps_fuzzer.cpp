@@ -76,22 +76,18 @@ std::string GetStringFromData(int strlen)
 bool RSSurfaceFpsFuzzTest(const uint8_t* data, size_t size)
 {
     // 2:name,result; 3:vsyncId,flushTimeStamp,presentTimeStamp
-    if (data == nullptr || size < ((STR_LEN - 1) * 2 + sizeof(uint64_t) * 3 + sizeof(int32_t))) {
+    if (data == nullptr || size < ((STR_LEN - 1) * 2 + sizeof(uint64_t) * 2)) {
         return false;
     }
 
     // getdata
     std::string name = GetStringFromData(STR_LEN);
     std::string result = GetStringFromData(STR_LEN);
-    uint64_t vsyncId = GetData<uint64_t>();
     uint64_t flushTimestamp = GetData<uint64_t>();
     uint64_t presentTimestamp = GetData<uint64_t>();
-    int32_t presentFd = GetData<int32_t>();
 
     std::shared_ptr<RSSurfaceFps> surfaceFpsPtr = std::make_shared<RSSurfaceFps>(name);
-    surfaceFpsPtr->RecordFlushTime(vsyncId, flushTimestamp);
-    surfaceFpsPtr->RecordPresentFd(vsyncId, presentFd);
-    surfaceFpsPtr->RecordPresentTime(presentFd, presentTimestamp);
+    surfaceFpsPtr->RecordBufferTime(flushTimestamp, presentTimestamp);
     surfaceFpsPtr->Dump(result);
     surfaceFpsPtr->ClearDump();
 

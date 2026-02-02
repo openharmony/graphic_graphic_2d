@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+* Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,9 @@
 #include "platform/ohos/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ipc_callbacks/hgm_config_change_callback_stub.h"
+#include "ipc_callbacks/screen_change_callback_stub.h"
+#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -68,7 +71,6 @@ const uint8_t DO_GET_REFRESH_INFO_TO_SP = 16;
 const uint8_t TARGET_SIZE = 17;
 const uint32_t WAIT_TASK_RUN_TIME_NS = 10000;
 
-sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -115,20 +117,13 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-namespace Mock {
-void CreateVirtualScreenStubbing(ScreenId screenId)
-{
-    uint32_t width = GetData<uint32_t>();
-    uint32_t height = GetData<uint32_t>();
-    int32_t flags = GetData<int32_t>();
-    std::string name = GetData<std::string>();
-    // Random name of IBufferProducer is not necessary
-    sptr<IBufferProducer> bp = IConsumerSurface::Create("DisplayNode")->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-
-    CONN->CreateVirtualScreen(name, width, height, pSurface, screenId, flags);
-}
-} // namespace Mock
+class CustomTestScreenChangeCallback : public RSScreenChangeCallbackStub {
+public:
+    CustomTestScreenChangeCallback() = default;
+    virtual ~CustomTestScreenChangeCallback() = default;
+    void OnScreenChanged(ScreenId id, ScreenEvent event,
+        ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override {};
+};
 
 void DoSetScreenChangeCallback()
 {
@@ -137,10 +132,8 @@ void DoSetScreenChangeCallback()
     MessageParcel replyParcel;
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIScreenChangeCallback> rsIScreenChangeCallback_ = iface_cast<RSIScreenChangeCallback>(remoteObject);
 
+    sptr<CustomTestScreenChangeCallback> rsIScreenChangeCallback_ = new CustomTestScreenChangeCallback();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteRemoteObject(rsIScreenChangeCallback_->AsObject());
     dataParcel.RewindRead(0);
@@ -200,9 +193,7 @@ void CreateVSyncConnection(uint64_t id)
     MessageParcel dataParcel;
     MessageParcel replyParcel;
 
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<VSyncIConnectionToken> vsyncIConnectionToken_ = iface_cast<VSyncIConnectionToken>(remoteObject);
+    sptr<VSyncIConnectionToken> vsyncIConnectionToken_ = new IRemoteStub<VSyncIConnectionToken>();
     NodeId windowNodeID = GetData<NodeId>();
     std::string name = GetData<std::string>();
     dataParcel.WriteString(name);
@@ -413,6 +404,27 @@ void DoGetRefreshInfoWithRenderDisable()
     RSUniRenderJudgement::uniRenderEnabledType_ = originRenderType;
 }
 
+class CustomTestHgmConfigChangeCallback : public RSHgmConfigChangeCallbackStub {
+public:
+    explicit CustomTestHgmConfigChangeCallback(const HgmConfigChangeCallback &callback) : cb_(callback)
+    {}
+    ~CustomTestHgmConfigChangeCallback() override{};
+
+    void OnHgmConfigChanged(std::shared_ptr<RSHgmConfigData> configData) override
+    {
+        if (cb_ != nullptr) {
+            cb_(configData);
+        }
+    }
+    void OnHgmRefreshRateModeChanged(int32_t refreshRateMode) override
+    {}
+    void OnHgmRefreshRateUpdate(int32_t refreshRate) override
+    {}
+
+private:
+    HgmConfigChangeCallback cb_;
+};
+
 void DoRegisterHgmRefreshRateUpdateCallback()
 {
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK);
@@ -421,14 +433,37 @@ void DoRegisterHgmRefreshRateUpdateCallback()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     bool readRemoteObject = GetData<bool>();
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIHgmConfigChangeCallback> rsIHgmConfigChangeCallback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
+
+    std::shared_ptr<RSHgmConfigData> configData = std::make_shared<RSHgmConfigData>();
+    auto callback = [&configData](std::shared_ptr<RSHgmConfigData> data) { configData = data; };
+    sptr<CustomTestHgmConfigChangeCallback> rsIHgmConfigChangeCallback =
+        new CustomTestHgmConfigChangeCallback(callback);
+
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteBool(readRemoteObject);
     dataParcel.WriteRemoteObject(rsIHgmConfigChangeCallback->AsObject());
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
+
+class CustomTestFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub {
+public:
+    explicit CustomTestFrameRateLinkerExpectedFpsUpdateCallback(
+        const FrameRateLinkerExpectedFpsUpdateCallback &callback)
+        : cb_(callback)
+    {}
+    ~CustomTestFrameRateLinkerExpectedFpsUpdateCallback() override{};
+
+    void OnFrameRateLinkerExpectedFpsUpdate(
+        int32_t dstPid, const std::string &xcomponentId, int32_t expectedFps) override
+    {
+        if (cb_ != nullptr) {
+            cb_(dstPid, xcomponentId, expectedFps);
+        }
+    }
+
+private:
+    FrameRateLinkerExpectedFpsUpdateCallback cb_;
+};
 
 void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
 {
@@ -438,12 +473,20 @@ void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    int32_t dstPid = GetData<int32_t>();
     bool readRemoteObject = GetData<bool>();
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> fpsUpdateCallback =
-        iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(remoteObject);
+
+    int32_t dstPid = GetData<int32_t>();
+    std::string xcomponentId = GetData<std::string>();
+    int32_t expectedFps = GetData<int32_t>();
+    auto callback = [&dstPid, &xcomponentId, &expectedFps](
+                        int32_t dstPid_, const std::string& xcomponentId_, int32_t expectedFps_) {
+        dstPid = dstPid_;
+        xcomponentId = xcomponentId_;
+        expectedFps = expectedFps_;
+    };
+    sptr<CustomTestFrameRateLinkerExpectedFpsUpdateCallback> fpsUpdateCallback =
+        new CustomTestFrameRateLinkerExpectedFpsUpdateCallback(callback);
+
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteInt32(dstPid);
     dataParcel.WriteBool(readRemoteObject);
@@ -458,10 +501,12 @@ void DoRegisterHgmRefreshRateModeChangeCallback()
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIHgmConfigChangeCallback> rsIHgmConfigChangeCallback =
-        iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
+
+    std::shared_ptr<RSHgmConfigData> configData = std::make_shared<RSHgmConfigData>();
+    auto callback = [&configData](std::shared_ptr<RSHgmConfigData> data) { configData = data; };
+    sptr<CustomTestHgmConfigChangeCallback> rsIHgmConfigChangeCallback =
+        new CustomTestHgmConfigChangeCallback(callback);
+
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteRemoteObject(rsIHgmConfigChangeCallback->AsObject());
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);

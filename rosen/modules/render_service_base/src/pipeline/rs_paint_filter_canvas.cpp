@@ -17,10 +17,12 @@
 
 #include <algorithm>
 
+#include "cache/ge_image_cache_provider.h"
 #include "common/rs_rect.h"
 #include "draw/canvas.h"
 
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 
@@ -1102,9 +1104,80 @@ RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Surface* surface, float alpha)
     (void)alpha; // alpha is no longer used, but we keep it for backward compatibility
 }
 
+#ifdef RS_ENABLE_VK
+void RSPaintFilterCanvas::AttachPaintWithColor(const Drawing::Paint& paint)
+{
+    Paint p(paint);
+    Drawing::Filter filter;
+
+    filter.SetColorFilter(ColorFilter::CreateBlendModeColorFilter(this->GetEnvForegroundColor(), BlendMode::SRC_ATOP));
+    p.SetFilter(filter);
+
+    this->AttachPaint(p);
+}
+#endif
+
 Drawing::Surface* RSPaintFilterCanvas::GetSurface() const
 {
     return surface_;
+}
+
+void RSPaintFilterCanvas::SetCanvasReplacable(bool replacable)
+{
+    isReplacable_ = replacable;
+}
+
+void RSPaintFilterCanvas::ConvertToType(
+    Drawing::ColorType colorType, Drawing::AlphaType alphaType, std::shared_ptr<Drawing::ColorSpace> colorSpace)
+{
+    if (!isReplacable_) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ConvertToType canvas is not replacable");
+        return;
+    }
+    bool invalid = !canvas_ || !surface_ || canvas_->GetImageInfo().GetColorType() == colorType;
+    if (invalid) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ConvertToType surface_ or canvas_ is nullptr or colorType correct");
+        return;
+    }
+
+    Drawing::ImageInfo info = { canvas_->GetWidth(), canvas_->GetHeight(), colorType, alphaType, colorSpace };
+    auto newSurface = surface_->MakeSurface(info);
+    if (!newSurface) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ConvertToType newSurface is nullptr");
+        return;
+    }
+    auto newCanvas = newSurface->GetCanvas().get();
+    if (!newCanvas) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ConvertToType newCanvas is nullptr");
+        return;
+    }
+    bool result = newCanvas->InheritStateAndContentFrom(canvas_);
+    if (!result) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ConvertToType InheritStateAndContentFrom result is false");
+        return;
+    }
+    ReplaceSurface(newSurface.get());
+    isReplacable_ = false;
+}
+
+void RSPaintFilterCanvas::ReplaceSurface(Drawing::Surface* surface)
+{
+    RS_TRACE_NAME_FMT("RSPaintFilterCanvas::ReplaceSurface surface_:%d, surface:%d",
+        surface_ != nullptr, surface != nullptr);
+    if (!surface_ || !surface) {
+        ROSEN_LOGD("RSPaintFilterCanvas::ReplaceSurface surface_ or surface is nullptr");
+        return;
+    }
+    auto canvas = surface->GetCanvas().get();
+#ifdef SKP_RECORDING_ENABLED
+    auto iter = std::find(pCanvasList_.begin(), pCanvasList_.end(), canvas_);
+    if (iter != pCanvasList_.end()) {
+        pCanvasList_.erase(iter);
+    }
+    AddCanvas(canvas);
+#endif
+    *surface_ = *surface;
+    canvas_ = canvas;
 }
 
 CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
@@ -1431,6 +1504,7 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     targetColorGamut_ = other.targetColorGamut_;
     isHdrOn_ = other.isHdrOn_;
     hdrProperties_ = other.hdrProperties_;
+    isReplacable_ = other.isReplacable_;
 }
 
 bool RSPaintFilterCanvas::CopyCachedEffectData(std::shared_ptr<CachedEffectData>& dstEffectData,
@@ -1478,6 +1552,7 @@ void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilter
         ROSEN_LOGE("RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas fail to copy behindWindowData");
         return;
     }
+    curEnv.filterClipBounds_ = Drawing::RectI();
 
     // cache related
     if (other.isHighContrastEnabled()) {
@@ -1573,6 +1648,19 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanva
     return envStack_.top().behindWindowData_;
 }
 
+void RSPaintFilterCanvas::SetFilterClipBounds(const Drawing::RectI& rect)
+{
+    if (envStack_.empty()) {
+        return;
+    }
+    envStack_.top().filterClipBounds_ = rect;
+}
+
+const Drawing::RectI RSPaintFilterCanvas::GetFilterClipBounds() const
+{
+    return envStack_.empty() ? Drawing::RectI() : envStack_.top().filterClipBounds_;
+}
+
 void RSPaintFilterCanvas::ReplaceMainScreenData(std::shared_ptr<Drawing::Surface>& offscreenSurface,
     std::shared_ptr<RSPaintFilterCanvas>& offscreenCanvas)
 {
@@ -1623,14 +1711,16 @@ RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
     return { GetAlpha(), GetTotalMatrix(), GetEffectData() };
 }
 
-RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image>&& image,
+RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image> image,
     const Drawing::RectI& rect)
-    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
+    : cachedImage_(std::move(image)), cachedRect_(rect), cachedMatrix_(Drawing::Matrix()),
+      geCacheProvider_(std::make_shared<GEImageCacheProvider>())
 {}
 
-RSPaintFilterCanvas::CachedEffectData::CachedEffectData(const std::shared_ptr<Drawing::Image>& image,
-    const Drawing::RectI& rect)
-    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
+RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image> image,
+    const Drawing::RectI& rect, std::shared_ptr<IGECacheProvider> cacheProvider)
+    : cachedImage_(std::move(image)), cachedRect_(rect), cachedMatrix_(Drawing::Matrix()),
+      geCacheProvider_(std::move(cacheProvider))
 {}
 
 std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const
@@ -1875,6 +1965,7 @@ uint32_t RSPaintFilterCanvasBase::SaveClipRRect(std::shared_ptr<ClipRRectData> d
             return;
         }
         canvas.Save();
+        canvas.ResetClip();
         canvas.ClipRoundRect(clipRRectData->rRect_, Drawing::ClipOp::DIFFERENCE, true);
         canvas.ResetMatrix();
         for (auto& corner : clipRRectData->data_) {

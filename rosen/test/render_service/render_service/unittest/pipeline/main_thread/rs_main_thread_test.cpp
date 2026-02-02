@@ -58,8 +58,6 @@ constexpr int32_t INVALID_VALUE = -1;
 constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
 constexpr int32_t SCREEN_PHYSICAL_WIDTH = 10;
 constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
-constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
-constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
@@ -591,7 +589,7 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo002, TestSize.Level2)
 
 /**
  * @tc.name: AddPidNeedDropFrame
- * @tc.desc: Test AddPidNeedDropFrame
+ * @tc.desc: Test AddPidNeedDropFrame with dropFrameLevel parameter
  * @tc.type: FUNC
  * @tc.require: issueIB612L
  */
@@ -602,13 +600,51 @@ HWTEST_F(RSMainThreadTest, AddPidNeedDropFrame, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with dropFrameLevel = 2
+    mainThread->AddPidNeedDropFrame({pid}, 2);
     ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 2);
+    ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
+}
+
+/**
+ * @tc.name: AddPidNeedDropFrame002
+ * @tc.desc: Test AddPidNeedDropFrame with default dropFrameLevel (0)
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, AddPidNeedDropFrame002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with default dropFrameLevel (0)
+    mainThread->AddPidNeedDropFrame({pid});
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
 }
 
 /**
  * @tc.name: ClearNeedDropframePidList
- * @tc.desc: Test ClearNeedDropframePidList
+ * @tc.desc: Test ClearNeedDropframePidList resets dropFrameLevel to 0
  * @tc.type: FUNC
  * @tc.require: issueIB612L
  */
@@ -619,9 +655,79 @@ HWTEST_F(RSMainThreadTest, ClearNeedDropframePidList, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Add PID with dropFrameLevel = 5
+    mainThread->AddPidNeedDropFrame({pid}, 5);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 5);
+
+    // Clear should reset level to 0, but not remove entry
     mainThread->ClearNeedDropframePidList();
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);  // Entry still exists
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);  // Level reset to 0
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
+}
+
+/**
+ * @tc.name: RemoveDropFramePid
+ * @tc.desc: Test RemoveDropFramePid removes specific PID
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, RemoveDropFramePid, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Add PID
+    mainThread->AddPidNeedDropFrame({pid}, 2);
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+    ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+
+    // Remove PID
+    mainThread->RemoveDropFramePid(pid);
     ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 0);
+    ASSERT_FALSE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+}
+
+/**
+ * @tc.name: GetDropFrameLevelByPid
+ * @tc.desc: Test GetDropFrameLevelByPid returns correct level
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, GetDropFrameLevelByPid, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test default level (0)
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+
+    // Test after adding with level = 3
+    mainThread->AddPidNeedDropFrame({pid}, 3);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 3);
+
+    // Test after clear (should be 0)
+    mainThread->ClearNeedDropframePidList();
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
 }
 
 /**
@@ -637,10 +743,17 @@ HWTEST_F(RSMainThreadTest, IsNeedDropFrameByPid001, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with dropFrameLevel > 0
+    mainThread->AddPidNeedDropFrame({pid}, 1);
     ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
 
-    mainThread->ClearNeedDropframePidList();
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
 }
 
 /**
@@ -656,10 +769,14 @@ HWTEST_F(RSMainThreadTest, IsNeedDropFrameByPid002, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with empty pidList
     mainThread->AddPidNeedDropFrame({});
     ASSERT_FALSE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
-
-    mainThread->ClearNeedDropframePidList();
 }
 
 /**
@@ -3422,45 +3539,6 @@ HWTEST_F(RSMainThreadTest, PerfForBlurIfNeeded, TestSize.Level1)
 }
 
 /**
- * @tc.name: PerfMultiWindow001
- * @tc.desc: PerfMultiWindow Test, not unirender
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, PerfMultiWindow001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = false;
-    mainThread->PerfMultiWindow();
-    mainThread->isUniRender_ = isUniRender;
-}
-
-/**
- * @tc.name: PerfMultiWindow002
- * @tc.desc: PerfMultiWindow Test, unirender
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, PerfMultiWindow002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = true;
-    auto appWindowNum = mainThread->appWindowNum_;
-    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_START_NUM - 1;
-    mainThread->PerfMultiWindow();
-    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_START_NUM;
-    mainThread->PerfMultiWindow();
-    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_END_NUM + 1;
-    mainThread->PerfMultiWindow();
-    mainThread->isUniRender_ = isUniRender;
-    mainThread->appWindowNum_ = appWindowNum;
-}
-
-/**
  * @tc.name: RenderFrameStart
  * @tc.desc: RenderFrameStart Test
  * @tc.type: FUNC
@@ -3622,7 +3700,7 @@ HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
 
     ScreenId id = 100;
     std::vector<uint64_t> blackList = {};
-    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), StatusCode::BLACKLIST_IS_EMPTY);
+    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), SCREEN_NOT_FOUND);
 
     for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
         blackList.push_back(nodeId);
@@ -4888,39 +4966,6 @@ HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodes, TestSize.Level2)
 }
 
 /**
- * @tc.name: GetNodeInfo001
- * @tc.desc: GetNodeInfo001 Test
- * @tc.type: FUNC
- * @tc.require: ICVK6I
- */
-HWTEST_F(RSMainThreadTest, GetNodeInfo001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    std::unordered_map<int, std::pair<int, int>> nodeInfo;
-    std::unordered_map<int, int> nullNodeInfo;
-    std::unordered_map<pid_t, size_t> modifierSize;
-    mainThread->GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
-}
-
-/**
- * @tc.name: RenderServiceAllNodeDump01
- * @tc.desc: RenderServiceAllNodeDump Test
- * @tc.type: FUNC
- * @tc.require: issueIB57QP
- */
-HWTEST_F(RSMainThreadTest, RenderServiceAllNodeDump01, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    NodeId id = 1;
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
-    MemoryTrack::Instance().AddNodeRecord(id, info);
-    DfxString log;
-    mainThread->RenderServiceAllNodeDump(log);
-}
-
-/**
  * @tc.name: ConnectChipsetVsyncSer
  * @tc.desc: test ConnectChipsetVsyncSer
  * @tc.type: FUNC
@@ -5086,128 +5131,6 @@ HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus001, TestSize.Level2)
 }
 
 /**
- * @tc.name: DumpMem001
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "";
-    pid_t pid = 0;
-    bool isLite = false;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpMem002
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem002, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "";
-    pid_t pid = 0;
-    bool isLite = true;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpMem003
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem003, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "gpu";
-    pid_t pid = 0;
-    bool isLite = false;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpMem004
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem004, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "gpu";
-    pid_t pid = 0;
-    bool isLite = true;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpGpuMem001
- * @tc.desc: test DumpGpuMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpGpuMem001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "gpu";
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_NE(renderNode, nullptr);
-    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
-    mainThread->DumpGpuMem(argSets, dumpString, type);
-    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpGpuMem002
- * @tc.desc: test DumpGpuMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpGpuMem002, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "";
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_NE(renderNode, nullptr);
-    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
-    mainThread->DumpGpuMem(argSets, dumpString, type);
-    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
-}
-
-/**
  * @tc.name: CountMem
  * @tc.desc: test CountMem
  * @tc.type: FUNC
@@ -5224,6 +5147,26 @@ HWTEST_F(RSMainThreadTest, CountMem, TestSize.Level2)
 
     mainThread->CountMem(memoryGraphic);
     mainThread->context_ = context;
+}
+
+/**
+ * @tc.name: CountMem002
+ * @tc.desc: test CountMem when memory overflow
+ * @tc.type: FUNC
+ * @tc.require: issueIB5RAM
+ */
+HWTEST_F(RSMainThreadTest, CountMem002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    float size = 4.5f * 1024 * 1024 * 1024;
+    std::vector<MemoryGraphic> memoryGraphic;
+    MemoryGraphic singleMemoryGraphic;
+    singleMemoryGraphic.SetGpuMemorySize(size);
+    memoryGraphic.emplace_back(singleMemoryGraphic);
+
+    mainThread->CountMem(memoryGraphic);
 }
 
 /**
@@ -5630,31 +5573,6 @@ HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback002, TestSize.Level1)
     pidsToKill.push_back(1);
     std::string pidsToKillDesc = MergeToString<pid_t>(pidsToKill);
     ASSERT_NE(pidsToKillDesc.size(), 0);
-}
-
-/**
- * @tc.name: RenderServiceAllSurafceDump01
- * @tc.desc: RenderServiceAllSurafceDump Test
- * @tc.type: FUNC
- * @tc.require: issueIB57QP
- */
-HWTEST_F(RSMainThreadTest, RenderServiceAllSurafceDump01, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    //prepare nodemap
-    RSSurfaceRenderNodeConfig config;
-    config.id = 1;
-    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
-    node1->SetIsOnTheTree(true);
-    config.id = 2;
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
-    node2->SetIsOnTheTree(true);
-    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
-    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
-
-    DfxString log;
-    mainThread->RenderServiceAllSurafceDump(log);
 }
 
 /**
@@ -6382,5 +6300,35 @@ HWTEST_F(RSMainThreadTest, DisableHdrDirectCompositionTest001, TestSize.Level1)
     mainThread->isUniRender_ = isUniRender;
     mainThread->doDirectComposition_ = doDirectComposition;
     RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
+}
+
+/**
+ * @tc.name: ProcessNeedAttachedNodesTest001
+ * @tc.desc: Test ProcessNeedAttachedNodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessNeedAttachedNodesTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ProcessNeedAttachedNodes();
+}
+ 
+/**
+ * @tc.name: ProcessNeedAttachedNodesTest002
+ * @tc.desc: Test ProcessNeedAttachedNodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessNeedAttachedNodesTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto &mutablenodeMap = mainThread->context_->GetMutableNodeMap();
+    mutablenodeMap.RegisterNeedAttachedNode(node);
+    mainThread->ProcessNeedAttachedNodes();
 }
 } // namespace OHOS::Rosen

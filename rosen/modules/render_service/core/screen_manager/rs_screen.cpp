@@ -44,6 +44,7 @@ std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RSScreen::RS_TO_COMMON_COL
     {GRAPHIC_COLOR_GAMUT_BT2100_PQ, GRAPHIC_CM_BT2020_PQ_FULL},
     {GRAPHIC_COLOR_GAMUT_BT2100_HLG, GRAPHIC_CM_BT2020_HLG_FULL},
     {GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, GRAPHIC_CM_DISPLAY_BT2020_SRGB},
+    {GRAPHIC_COLOR_GAMUT_NATIVE, GRAPHIC_CM_COLORSPACE_NONE},
 };
 std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> RSScreen::COMMON_COLOR_SPACE_TYPE_TO_RS_MAP {
     {GRAPHIC_CM_BT601_EBU_FULL, GRAPHIC_COLOR_GAMUT_STANDARD_BT601},
@@ -55,6 +56,7 @@ std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> RSScreen::COMMON_COLOR_SPA
     {GRAPHIC_CM_BT2020_PQ_FULL, GRAPHIC_COLOR_GAMUT_BT2100_PQ},
     {GRAPHIC_CM_BT2020_HLG_FULL, GRAPHIC_COLOR_GAMUT_BT2100_HLG},
     {GRAPHIC_CM_DISPLAY_BT2020_SRGB, GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020},
+    {GRAPHIC_CM_COLORSPACE_NONE, GRAPHIC_COLOR_GAMUT_NATIVE},
 };
 std::map<GraphicHDRFormat, ScreenHDRFormat> RSScreen::HDI_HDR_FORMAT_TO_RS_MAP {
     {GRAPHIC_NOT_SUPPORT_HDR, NOT_SUPPORT_HDR},
@@ -111,7 +113,7 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
     property_.SetScreenType(RSScreenType::VIRTUAL_TYPE_SCREEN);
     property_.SetWhiteList(configs.whiteList);
     if (property_.GetProducerSurface()) {
-        property_.SetState(ScreenState::SOFTWARE_OUTPUT_ENABLE);
+        property_.SetState(ScreenState::PRODUCER_SURFACE_ENABLE);
     } else {
         property_.SetState(ScreenState::DISABLED);
     }
@@ -197,7 +199,7 @@ void RSScreen::PhysicalScreenInit() noexcept
 
     auto outType = GraphicDisplayConnectionType::GRAPHIC_DISPLAY_CONNECTION_TYPE_INTERNAL;
     if (hdiScreen_->GetScreenConnectionType(outType) != 0) {
-        RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenConnectionType.", __func__, id);
+        RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenConnectionType.", __func__, id);
         property_.SetConnectionType(ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE);
     } else {
         property_.SetConnectionType(static_cast<ScreenConnectionType>(outType));
@@ -218,7 +220,7 @@ void RSScreen::PhysicalScreenInit() noexcept
     }
     property_.SetSupportedColorGamuts(supportedPhysicalColorGamuts_);
     backlightLevel_ = GetScreenBacklight();
-    // Enable when an external screen is connected and the vsync rate doesn't match the active refresh rate.
+
     if (id != 0 && MultiScreenParam::IsSkipFrameByActiveRefreshRate()) {
         property_.SetSkipFrameStrategy(SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
     }
@@ -393,7 +395,7 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
         }
     }
     int32_t hdiErr = hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId));
-    constexpr int32_t hdfErrNotSupport = -2;
+    constexpr int32_t hdfErrNotSupport = -5;
     auto ret = StatusCode::SUCCESS;
     if (hdiErr < 0) {
         HILOG_COMM_ERROR("SetActiveMode: Hdi SetScreenMode fails.");
@@ -542,9 +544,6 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
 {
     HILOG_COMM_INFO("SetResolution screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u",
                     property_.GetId(), width, height);
-    if (width == property_.GetWidth() && height == property_.GetHeight()) {
-        return StatusCode::SUCCESS;
-    }
     if (IsVirtual()) {
         property_.SetWidth(width);
         property_.SetHeight(height);
@@ -702,8 +701,7 @@ int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
         return StatusCode::HDI_ERROR;
     }
     uint64_t value = static_cast<uint64_t>(status);
-    auto id = property_.GetId();
-    RS_TRACE_NAME_FMT("Screen_%llu SetDualScreenState %llu", id, value);
+    RS_TRACE_NAME_FMT("Screen_%llu SetDualScreenState %llu", property_.GetId(), value);
     int32_t ret = hdiScreen_->SetDisplayProperty(value);
     if (ret < 0) {
         RS_LOGE("%{public}s: failed to set DualScreenStatus. ret: %{public}d", __func__, ret);
@@ -726,7 +724,7 @@ void RSScreen::SetProducerSurface(sptr<Surface> producerSurface)
 {
     property_.SetProducerSurface(producerSurface);
     if (producerSurface) {
-        property_.SetState(ScreenState::SOFTWARE_OUTPUT_ENABLE);
+        property_.SetState(ScreenState::PRODUCER_SURFACE_ENABLE);
     } else {
         property_.SetState(ScreenState::DISABLED);
     }
@@ -1037,15 +1035,15 @@ PanelPowerStatus RSScreen::GetPanelPowerStatus() const
         RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
         return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
     }
-    auto status = GraphicPanelPowerStatus::GRAPHIC_PANEL_POWER_STATUS_ON;
-    auto ret = hdiScreen_->GetPanelPowerStatus(status);
-    if ((ret < 0) || (status >= GraphicPanelPowerStatus::GRAPHIC_PANEL_POWER_STATUS_BUTT)) {
-        RS_LOGE("%{public}s failed, ret: %{public}d, status: %{public}d",
-                __func__, ret, static_cast<uint32_t>(status));
+    auto hdiStatus = GraphicPanelPowerStatus::GRAPHIC_PANEL_POWER_STATUS_BUTT;
+    auto ret = hdiScreen_->GetPanelPowerStatus(hdiStatus);
+    if ((ret < 0) || (hdiStatus >= GraphicPanelPowerStatus::GRAPHIC_PANEL_POWER_STATUS_BUTT)) {
+        RS_LOGE("%{public}s failed, ret: %{public}d, hdiStatus: %{public}d",
+                __func__, ret, static_cast<uint32_t>(hdiStatus));
         return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
     }
-    RS_LOGI("%{public}s acquired status: %{public}d", __func__, static_cast<uint32_t>(status));
-    return static_cast<PanelPowerStatus>(status);
+    RS_LOGI("%{public}s acquired status: %{public}d", __func__, static_cast<uint32_t>(hdiStatus));
+    return static_cast<PanelPowerStatus>(hdiStatus);
 }
 
 int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const
@@ -1708,6 +1706,18 @@ int32_t RSScreen::SetScreenLinearMatrix(const std::vector<float> &matrix)
 
     linearMatrix_ = matrix;
     return StatusCode::SUCCESS;
+}
+
+// only used in virtual screen
+bool RSScreen::GetAndResetWhiteListChange()
+{
+    bool expected = true;
+    return whiteListChange_.compare_exchange_strong(expected, false);
+}
+
+void RSScreen::SetWhiteListChange(bool whiteListChange)
+{
+    whiteListChange_ = whiteListChange;
 }
 
 bool RSScreen::GetAndResetPSurfaceChange()

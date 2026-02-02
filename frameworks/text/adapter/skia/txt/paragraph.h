@@ -27,6 +27,9 @@
 #include "text_line_base.h"
 #include "txt/text_style.h"
 #include "utils.h"
+#ifdef ENABLE_OHOS_ENHANCE
+#include "pixel_map.h"
+#endif
 
 class SkCanvas;
 
@@ -213,6 +216,10 @@ public:
     virtual void SetSkipTextBlobDrawing(bool state) = 0;
     virtual bool CanPaintAllText() const = 0;
     virtual std::string GetDumpInfo() const = 0;
+#ifdef ENABLE_OHOS_ENHANCE
+    virtual std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
+        size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;
+#endif
 };
 } // namespace SPText
 } // namespace Rosen

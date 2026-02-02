@@ -46,6 +46,7 @@ std::vector<std::string> gDrawingDisableFlagStr = {
     "disablePie",
     "disableCircle",
     "disableBackground",
+    "disableGetShadowBounds",
     "disableShadow",
     "disableShadowStyle",
     "disableColor",

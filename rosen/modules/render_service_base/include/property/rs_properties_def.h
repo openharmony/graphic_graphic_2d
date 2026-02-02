@@ -277,18 +277,9 @@ public:
     {
         lightColor_ = lightColor;
     }
-    void SetAbsLightPosition(const Vector4f& absLightPosition)
-    {
-        absLightPosition_ = absLightPosition;
-    }
-
     const Vector4f& GetLightPosition() const
     {
         return lightPosition_;
-    }
-    const Vector4f& GetAbsLightPosition() const
-    {
-        return absLightPosition_;
     }
     float GetLightIntensity() const
     {
@@ -325,7 +316,6 @@ private:
         return lightPosZ * tan;
     }
     Vector4f lightPosition_ = Vector4f();
-    Vector4f absLightPosition_ = Vector4f(); // absolute light Position;
     float intensity_ = 0.f;
     float preIntensity_ = 0.f;
     Color lightColor_ = RgbPalette::White();

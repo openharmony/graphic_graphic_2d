@@ -25,7 +25,9 @@
 #include <memory>
 #include <securec.h>
 #include <unistd.h>
-
+#include "params/rs_render_params.h"
+#include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_root_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 namespace OHOS {
@@ -65,21 +67,35 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     NodeId nodeId = GetData<NodeId>();
     auto behindWndRect = GetData<RectI>();
     std::shared_ptr<RSRenderThreadVisitor>rsRenderThreadVisitor;
-    RSWindowKeyFrameRenderNode keyframeNode(nodeId);
-    keyframeNode.GetType();
-    keyframeNode.OnTreeStateChanged();
-    keyframeNode.QuickPrepare(rsRenderThreadVisitor);
-    keyframeNode.SetLinkedNodeId(nodeId);
-    keyframeNode.GetLinkedNodeId();
-    keyframeNode.CollectLinkedNodeInfo();
+    auto keyframeNode = std::make_shared<RSWindowKeyFrameRenderNode>(nodeId);
+    keyframeNode->QuickPrepare(rsRenderThreadVisitor);
+    keyframeNode->SetLinkedNodeId(nodeId);
+    keyframeNode->ResetLinkedWindowKeyFrameInfo(*keyframeNode);
 
-    keyframeNode.GetLinkedNodeCount();
-    keyframeNode.ClearLinkedNodeInfo();
-    keyframeNode.ResetLinkedWindowKeyFrameInfo(keyframeNode);
-    RSContext rsContext;
     RSSurfaceRenderNode surfaceNode{nodeId};
-    keyframeNode.PrepareLinkedNodeOffscreen(surfaceNode, rsContext);
-    keyframeNode.UpdateKeyFrameBehindWindowRegion(surfaceNode, rsContext, behindWndRect);
+    auto rsContext = std::make_shared<RSContext>();
+    NodeId appNodeId = GetData<NodeId>();
+    constexpr static NodeId DEFAULT_KEYFRAMENODE_ID = 1;
+    constexpr static NodeId DEFAULT_LINKEDNODE_ID = DEFAULT_KEYFRAMENODE_ID + 1;
+    auto rootNode = std::make_shared<RSRootRenderNode>(DEFAULT_LINKEDNODE_ID, rsContext->weak_from_this());
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(appNodeId, rsContext->weak_from_this());
+    appNode->InitRenderParams();
+    keyframeNode->SetLinkedNodeId(DEFAULT_LINKEDNODE_ID);
+    keyframeNode->CollectLinkedNodeInfo();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(rootNode);
+    nodeMap.RegisterRenderNode(keyframeNode);
+    rootNode->parent_ = appNode;
+    rootNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_LINKEDNODE_ID);
+    keyframeNode->addedToPendingSyncList_ = true;
+    rootNode->addedToPendingSyncList_ = true;
+    keyframeNode->PrepareLinkedNodeOffscreen(surfaceNode, *rsContext);
+
+    rootNode->GetMutableRenderProperties().SetBoundsWidth(GetData<float>());
+    rootNode->GetMutableRenderProperties().SetBoundsHeight(GetData<float>());
+    keyframeNode->GetMutableRenderProperties().SetBoundsWidth(GetData<float>());
+    keyframeNode->GetMutableRenderProperties().SetBoundsHeight(GetData<float>());
+    keyframeNode->UpdateKeyFrameBehindWindowRegion(surfaceNode, *rsContext, behindWndRect);
 
     return true;
 }

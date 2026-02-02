@@ -98,6 +98,10 @@ public:
     void SetExistHWCNode(bool isExistHWCNode);
     bool GetExistHWCNode() const;
 
+    void CollectHdrStatus(HdrStatus hdrStatus);
+    void ResetDisplayHdrStatus();
+    HdrStatus GetScreenHDRStatus() const;
+
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
@@ -222,19 +226,13 @@ public:
     bool GetHasMirroredScreenChanged() const;
     void SetHasMirroredScreenChanged(bool hasMirroredScreenChanged);
 
-    bool IsVirtualSurfaceChanged() const
-    {
-        return isVirtualSurfaceChanged_;
-    }
+    bool IsVirtualSurfaceChanged() const { return isVirtualSurfaceChanged_; }
 
-    void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod)
-    {
-        isEqualVsyncPeriod_ = isEqualVsyncPeriod;
-    }
-    bool IsEqualVsyncPeriod() const
-    {
-        return isEqualVsyncPeriod_;
-    }
+    void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod) { isEqualVsyncPeriod_ = isEqualVsyncPeriod; }
+    bool IsEqualVsyncPeriod() const { return isEqualVsyncPeriod_; }
+
+    void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
+    ScreenRotation GetLogicalCameraRotationCorrection() const;
 
 private:
 
@@ -247,6 +245,7 @@ private:
     RSScreenProperty screenProperty_;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
     uint32_t childDisplayCount_ = 0;
+    HdrStatus screenHDRStatus_ = HdrStatus::NO_HDR;
     bool isMirrorScreen_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool hasChildCrossNode_ = false;
@@ -282,6 +281,7 @@ private:
     Occlusion::Region drawnRegion_;
     bool forceFreeze_ = false;
     bool hasMirroredScreenChanged_ = false;
+    ScreenRotation logicalCameraRotationCorrection_ = ScreenRotation::ROTATION_0;
 };
 } // namespace OHOS::Rosen
 

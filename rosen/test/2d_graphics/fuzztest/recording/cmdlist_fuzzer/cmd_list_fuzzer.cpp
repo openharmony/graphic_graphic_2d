@@ -108,9 +108,8 @@ void CmdListFuzzTest000(const uint8_t* data, size_t size)
  * 10. GetDrawFuncObj
  * 11. AddDrawFuncOjb
  * 12. GetOpCnt
- * 13. CopyObjectTo
- * 14. AddImage
- * 15. GetImage
+ * 13. AddImage
+ * 14. GetImage
  */
 void CmdListFuzzTest001(const uint8_t* data, size_t size)
 {
@@ -152,7 +151,6 @@ void CmdListFuzzTest001(const uint8_t* data, size_t size)
     std::shared_ptr<ExtendDrawFuncObj> object2 = cmdList->GetDrawFuncObj(id2);
     cmdList->AddDrawFuncOjb(object2);
     cmdList->GetOpCnt();
-    cmdList->CopyObjectTo(*cmdList);
     OpDataHandle imageHandle = cmdList->AddImage(image);
     cmdList->GetImage(imageHandle);
     if (obj != nullptr) {

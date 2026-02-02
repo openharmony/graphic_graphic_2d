@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+* Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,17 +37,10 @@
 
 namespace OHOS {
 namespace Rosen {
-auto g_pid = getpid();
-auto screenManagerPtr_ = RSScreenManager::GetInstance();
-auto mainThread_ = RSMainThread::Instance();
-sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-
-DVSyncFeatureParam dvsyncParam;
-auto generator = CreateVSyncGenerator();
-auto appVSyncController = new VSyncController(generator, 0);
-sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToServiceConnection(
-    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+int32_t g_pid;
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
+RSMainThread* mainThread_ = RSMainThread::Instance();
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 namespace {
 const uint8_t DO_REPORT_JANK_STATS = 0;
 const uint8_t DO_REPORT_EVENT_RESPONSE = 1;
@@ -58,9 +51,9 @@ const uint8_t DO_REPORT_RS_SCENE_JANK_END = 5;
 const uint8_t DO_REPORT_EVENT_GAMESTATE = 6;
 const uint8_t DO_AVCODEC_VIDEO_START = 7;
 const uint8_t DO_AVCODEC_VIDEO_STOP = 8;
-const uint8_t TARGET_SIZE = 9;
+const uint8_t DO_AVCODEC_VIDEO_GET = 9;
+const uint8_t TARGET_SIZE = 10;
 
-sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -106,21 +99,6 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 } // namespace
-
-namespace Mock {
-void CreateVirtualScreenStubbing(ScreenId screenId)
-{
-    uint32_t width = GetData<uint32_t>();
-    uint32_t height = GetData<uint32_t>();
-    int32_t flags = GetData<int32_t>();
-    std::string name = GetData<std::string>();
-    // Random name of IBufferProducer is not necessary
-    sptr<IBufferProducer> bp = IConsumerSurface::Create("DisplayNode")->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-
-    CONN->CreateVirtualScreen(name, width, height, pSurface, screenId, flags);
-}
-} // namespace Mock
 
 bool WriteDataBaseRs(DataBaseRs info, MessageParcel& data)
 {
@@ -350,12 +328,40 @@ void DoAvcodecVideoStop()
     dataParcel.WriteUint32(fps);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
+
+void DoAvcodecVideoGet()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    uint64_t uniqueId = GetData<uint64_t>();
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint32(uniqueId);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
+    OHOS::Rosen::g_pid = getpid();
+    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::RSScreenManager::GetInstance();
+    OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
+    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::mainThread_->handler_ =
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
+    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+    OHOS::Rosen::mainThread_->mainLoop_ = []() {};
+
+    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
+    auto generator = OHOS::Rosen::CreateVSyncGenerator();
+    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
+    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
+        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
+    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr,
+        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
     return 0;
 }
 
@@ -394,6 +400,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_AVCODEC_VIDEO_STOP:
             OHOS::Rosen::DoAvcodecVideoStop();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_GET:
+            OHOS::Rosen::DoAvcodecVideoGet();
             break;
         default:
             return -1;

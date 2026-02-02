@@ -28,6 +28,7 @@
 #include "pipeline/rs_screen_render_node.h"
 
 constexpr int HPAE_MAX_SIGMA = 128;
+constexpr int FFRT_QOS_HPAE_HIGH = 5;
 
 namespace OHOS {
 namespace Rosen {
@@ -40,6 +41,7 @@ constexpr uint32_t HPAE_SCALE_FACTOR = 2;
 constexpr uint32_t HPAE_BUFFER_MAX_WIDTH = 1440;
 constexpr uint32_t HPAE_BUFFER_MAX_HEIGHT = 4096;
 constexpr float HPAE_MIN_BLUR_RADIUS = 12.f;
+const std::string DESKTOP_WALLPAPER_NAME = "SCBWallpaper";
 
 RSHpaeManager& RSHpaeManager::GetInstance()
 {
@@ -147,14 +149,14 @@ void RSHpaeManager::OnDeActive()
         this->ReleaseIoBuffers();
         RSUniRenderThread::Instance().PostSyncTask([this]() {
             RS_OPTIONAL_TRACE_BEGIN("HPAE::ResetBuffer");
-            std::unique_lock<std::mutex> lock(this->releaseIoBuffersMutex_);
+            std::unique_lock<ffrt::mutex> lock(this->releaseIoBuffersMutex_);
             this->hpaeBufferIn_.reset();
             this->hpaeBufferOut_.reset();
             RS_OPTIONAL_TRACE_END();
         });
         this->releaseAllDone_.store(true, std::memory_order_release);
         HPAE_LOGI("HPAE::DEACTIVE done");
-        }, {}, {}, ffrt::task_attr().qos(5));
+        }, {}, {}, ffrt::task_attr().qos(FFRT_QOS_HPAE_HIGH));
 }
 
 void RSHpaeManager::HandleHpaeStateChange()
@@ -205,6 +207,7 @@ void RSHpaeManager::OnSync(bool isHdrOn)
     RSHpaeBaseData::GetInstance().SyncHpaeStatus(hpaeStatus_);
     RSHpaeBaseData::GetInstance().SetIsFirstFrame(IsFirstFrame());
     RSHpaeBaseData::GetInstance().SetBlurContentChanged(false);
+    RSHpaeBaseData::GetInstance().SetDesktopOffTree(false);
 
     // graphic pattern
     RSHpaeFfrtPatternManager::Instance().MHCSetVsyncId(hpaeVsyncId_);
@@ -217,6 +220,23 @@ void RSHpaeManager::OnSync(bool isHdrOn)
 bool RSHpaeManager::HasHpaeBlurNode() const
 {
     return hpaeStatus_.gotHpaeBlurNode;
+}
+
+bool RSHpaeManager::IsHpaeException(RSRenderNode& node)
+{
+    auto parent = node.GetParent().lock();
+    if (parent) {
+        auto surfaceNode = parent->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceNode && (surfaceNode->GetName().find(DESKTOP_WALLPAPER_NAME) != std::string::npos)) {
+            return true;
+        }
+    }
+
+    if (RSHpaeBaseData::GetInstance().GetDesktopOffTree()) {
+        return true;
+    }
+
+    return false;
 }
 
 // Note: call on prepare
@@ -239,11 +259,16 @@ bool RSHpaeManager::IsHpaeBlurNode(RSRenderNode& node, uint32_t phyWidth, uint32
         }
 
         auto rect = node.GetFilterRect();
-        if ((rect.GetHeight() == static_cast<int>(phyHeight) && rect.GetWidth() == static_cast<int>(phyWidth))) {
-            RS_OPTIONAL_TRACE_NAME_FMT("got blur node: size [%d, %d], id: %lld",
-                phyWidth, phyHeight, node.GetId());
-            return true;
+        if ((rect.GetHeight() != static_cast<int>(phyHeight) || rect.GetWidth() != static_cast<int>(phyWidth))) {
+            return false;
         }
+
+        if (IsHpaeException(node)) {
+            return false;
+        }
+
+        RS_OPTIONAL_TRACE_NAME_FMT("got blur node: size [%u, %u], id: %llu", phyWidth, phyHeight, node.GetId());
+        return true;
     }
 
     return false;
@@ -303,10 +328,11 @@ bool RSHpaeManager::IsFirstFrame()
         hpaeFrameState_ == HpaeFrameState::SWITCH_BLUR ||
         hpaeFrameState_ == HpaeFrameState::CHANGE_CONFIG;
 }
+
 void RSHpaeManager::InitIoBuffers()
 {
     RS_OPTIONAL_TRACE_NAME("InitIoBuffers");
-    std::unique_lock<std::mutex> lock(releaseIoBuffersMutex_);
+    std::unique_lock<ffrt::mutex> lock(releaseIoBuffersMutex_);
     if (hpaeBufferIn_ == nullptr) {
         hpaeBufferIn_ = std::make_shared<DrawableV2::RSHpaeBuffer>(HPAE_INPUT_LAYER_NAME, HPAE_INPUT_LAYER_ID);
     }
@@ -320,7 +346,7 @@ void RSHpaeManager::ReleaseIoBuffers()
 {
     RS_OPTIONAL_TRACE_NAME("ReleaseIoBuffers");
     HPAE_LOGI("ReleaseIoBuffers +");
-    std::unique_lock<std::mutex> lock(releaseIoBuffersMutex_);
+    std::unique_lock<ffrt::mutex> lock(releaseIoBuffersMutex_);
     size_t i = 0;
     if (hpaeBufferIn_ != nullptr) {
         for (i = 0; i < inBufferVec_.size(); ++i) {
@@ -393,7 +419,7 @@ void RSHpaeManager::SetUpHpaeSurface(GraphicPixelFormat pixelFormat, GraphicColo
     bufferConfig.colorGamut = colorSpace;
     bufferConfig.format = pixelFormat;
     bufferConfig.usage = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_GRAPHIC_2D_ACCEL |
-        BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_ALLOC_NO_IPC;
+        BUFFER_USAGE_MEM_DMA;
     bufferConfig.timeout = 0;
 
     if (hpaeFrameState_ != HpaeFrameState::ALLOC_BUF && UpdateBufferIfNeed(bufferConfig, isHebc)) {
@@ -424,7 +450,7 @@ void RSHpaeManager::AllocBuffer(const BufferRequestConfig& bufferConfig, bool is
     prevBufferConfig_ = bufferConfig;
     prevIsHebc_ = isHebc;
 
-    std::unique_lock<std::mutex> lock(releaseIoBuffersMutex_);
+    std::unique_lock<ffrt::mutex> lock(releaseIoBuffersMutex_);
     if (hpaeBufferIn_ == nullptr) {
         hpaeBufferIn_ = std::make_shared<DrawableV2::RSHpaeBuffer>(HPAE_INPUT_LAYER_NAME, HPAE_INPUT_LAYER_ID);
     }
@@ -441,7 +467,7 @@ void RSHpaeManager::AllocBuffer(const BufferRequestConfig& bufferConfig, bool is
     ffrt::submit_h([this, bufferConfig, isHebc]() {
         RS_TRACE_BEGIN("HpaePreAllocateBuffer");
         HPAE_LOGI("AllocBuf: +");
-        std::unique_lock<std::mutex> lock(this->releaseIoBuffersMutex_);
+        std::unique_lock<ffrt::mutex> lock(this->releaseIoBuffersMutex_);
         if (this->hpaeBufferIn_ && this->hpaeBufferOut_) {
             this->hpaeBufferIn_->PreAllocateBuffer(bufferConfig.width, bufferConfig.height, isHebc);
             this->hpaeBufferOut_->PreAllocateBuffer(bufferConfig.width, bufferConfig.height, isHebc);
@@ -449,12 +475,12 @@ void RSHpaeManager::AllocBuffer(const BufferRequestConfig& bufferConfig, bool is
         this->hpaeBufferAllocating_.store(false, std::memory_order_release);
         HPAE_LOGI("AllocBuf: -");
         RS_TRACE_END();
-    });
+        }, {}, {}, ffrt::task_attr().qos(FFRT_QOS_HPAE_HIGH));
 }
 
 void RSHpaeManager::SetUpSurfaceIn(const BufferRequestConfig& bufferConfig, bool isHebc)
 {
-    std::unique_lock<std::mutex> lock(releaseIoBuffersMutex_);
+    std::unique_lock<ffrt::mutex> lock(releaseIoBuffersMutex_);
     if (hpaeBufferIn_ == nullptr) {
         HPAE_LOGE("render layer IN is nullptr");
         return;
@@ -488,7 +514,7 @@ void RSHpaeManager::SetUpSurfaceIn(const BufferRequestConfig& bufferConfig, bool
 
 void RSHpaeManager::SetUpSurfaceOut(const BufferRequestConfig& bufferConfig, bool isHebc)
 {
-    std::unique_lock<std::mutex> lock(releaseIoBuffersMutex_);
+    std::unique_lock<ffrt::mutex> lock(releaseIoBuffersMutex_);
     if (hpaeBufferOut_ == nullptr) {
         HPAE_LOGE("render layer OUT is nullptr");
         return;
@@ -523,6 +549,7 @@ void RSHpaeManager::SetUpSurfaceOut(const BufferRequestConfig& bufferConfig, boo
 void RSHpaeManager::InitHpaeBlurResource()
 {
     HianimationManager::GetInstance().OpenDeviceAsync();
+    RSHpaeFfrtPatternManager::Instance().OpenDevice();
 }
 
 } // Rosen

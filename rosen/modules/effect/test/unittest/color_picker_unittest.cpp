@@ -1554,7 +1554,7 @@ HWTEST_F(ColorPickerUnittest, GetTopProportionColors, TestSize.Level1)
     ASSERT_EQ(errorCode, SUCCESS);
     EXPECT_NE(pColorPicker, nullptr);
 
-    std::vector<ColorManager::Color> colors = pColorPicker->GetTopProportionColors(10); // the color num limit is 10
+    std::vector<ColorManager::Color> colors = pColorPicker->GetTopProportionColors(20); // the color num limit is 20
     HiLog::Info(LABEL_TEST, "get top proportion colors[0][rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
                 colors[0].r, colors[0].g, colors[0].b, colors[0].a);
     ASSERT_EQ(colors.size(), 1);
@@ -1606,7 +1606,7 @@ HWTEST_F(ColorPickerUnittest, GetTopProportion, TestSize.Level1)
     ASSERT_EQ(errorCode, SUCCESS);
     EXPECT_NE(pColorPicker, nullptr);
 
-    std::vector<double> percentages = pColorPicker->GetTopProportion(1); // the color num limit is 10
+    std::vector<double> percentages = pColorPicker->GetTopProportion(1); // the color num limit is 20
     ASSERT_EQ(percentages.size(), 1);
     pColorPicker->featureColors_.clear();
     percentages = pColorPicker->GetTopProportion(1);

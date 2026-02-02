@@ -30,12 +30,25 @@
 #endif
 
 namespace ANI::UIEffect {
+namespace {
+constexpr const char* ANI_INTERFACE_RECT = "@ohos.graphics.common2D.common2D.Rect";
+ani_method gGetLeftMethod = nullptr;
+ani_method gGetRightMethod = nullptr;
+ani_method gGetTopMethod = nullptr;
+ani_method gGetBottomMethod = nullptr;
+struct RectPropertyMethodCfg {
+    const char* propertyName;
+    const char* methodName;
+    ani_method& method;
+    ani_double& result;
+};
+} //namespace
+
 bool IsSystemApp()
 {
 #ifdef ENABLE_IPC_SECURITY
-    static bool isSys = OHOS::Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(
-        OHOS::IPCSkeleton::GetSelfTokenID());
-    return isSys;
+    uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
+    return OHOS::Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(tokenId);
 #else
     return true;
 #endif
@@ -97,8 +110,7 @@ bool ParseRadialGradientValues(taihe::array_view<uintptr_t> gradients,
     return true;
 }
 
-
-bool GetDoublePropertyByName(ani_env *env, ani_object object, const char *name, ani_double result)
+bool GetDoublePropertyByName(ani_env* env, ani_object object, const char* name, ani_double& result)
 {
     if (env == nullptr || object == nullptr || name == nullptr) {
         return false;
@@ -106,6 +118,19 @@ bool GetDoublePropertyByName(ani_env *env, ani_object object, const char *name, 
     ani_status status = ANI_ERROR;
 
     if ((status = env->Object_GetPropertyByName_Double(object, name, &result)) != ANI_OK) {
+        return false;
+    }
+    return true;
+}
+
+bool GetIntPropertyByName(ani_env* env, ani_object object, const char* name, ani_int& result)
+{
+    if (env == nullptr || object == nullptr || name == nullptr) {
+        return false;
+    }
+    ani_status status = ANI_ERROR;
+
+    if ((status = env->Object_GetPropertyByName_Int(object, name, &result)) != ANI_OK) {
         return false;
     }
     return true;
@@ -144,19 +169,44 @@ bool ConvertVector3fFromAniPoint3D(uintptr_t point3D, OHOS::Rosen::Vector3f& val
     return true;
 }
 
+ani_status GetRectPropertyValue(
+    ani_env* env, ani_object obj, ani_class rectClass, const RectPropertyMethodCfg& config)
+{
+    if ((config.method || env->Class_FindMethod(rectClass, config.methodName, ":d", &config.method) == ANI_OK) &&
+        env->Object_CallMethod_Double(obj, config.method, &config.result) == ANI_OK) {
+        return ANI_OK;
+    }
+    return env->Object_GetPropertyByName_Double(obj, config.propertyName, &config.result);
+}
+
 bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values)
 {
     ani_env *env = get_env();
-    ani_object ani_obj = reinterpret_cast<ani_object>(rect);
+    ani_class rectClass = nullptr;
+    if (env->FindClass(ANI_INTERFACE_RECT, &rectClass) != ANI_OK) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniRect FindClass failed");
+        return false;
+    }
+    ani_object obj = reinterpret_cast<ani_object>(rect);
+    ani_boolean isRectClass = false;
+    env->Object_InstanceOf(obj, rectClass, &isRectClass);
+    if (!isRectClass) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniRect object is not a rect obj");
+        return false;
+    }
     ani_double left = 0.0;
     ani_double right = 0.0;
     ani_double top = 0.0;
     ani_double bottom = 0.0;
-
-    bool flag = GetDoublePropertyByName(env, ani_obj, "left", left) &&
-        GetDoublePropertyByName(env, ani_obj, "right", right) && GetDoublePropertyByName(env, ani_obj, "top", top) &&
-        GetDoublePropertyByName(env, ani_obj, "bottom", bottom);
-    if (!flag) {
+    RectPropertyMethodCfg leftConfig = { "left", "<get>left", gGetLeftMethod, left };
+    RectPropertyMethodCfg topConfig = { "top", "<get>top", gGetTopMethod, top };
+    RectPropertyMethodCfg rightConfig = { "right", "<get>right", gGetRightMethod, right };
+    RectPropertyMethodCfg bottomConfig = { "bottom", "<get>bottom", gGetBottomMethod, bottom };
+    if ((GetRectPropertyValue(env, obj, rectClass, leftConfig) !=ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, topConfig) !=ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, rightConfig) !=ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, bottomConfig) !=ANI_OK)) {
+        UIEFFECT_LOG_E("GetRectFromAniRectObj failed");
         return false;
     }
     values[NUM_0] = static_cast<float>(left);
@@ -170,21 +220,22 @@ bool ConvertVector4fFromAniColor(uintptr_t color, OHOS::Rosen::Vector4f& values)
 {
     ani_env *env = get_env();
     ani_object ani_obj = reinterpret_cast<ani_object>(color);
-    ani_double colorR = 0.0;
-    ani_double colorG = 0.0;
-    ani_double colorB = 0.0;
-    ani_double colorA = 0.0;
+    ani_int colorR = 0;
+    ani_int colorG = 0;
+    ani_int colorB = 0;
+    ani_int colorA = 0;
 
-    bool flag = GetDoublePropertyByName(env, ani_obj, "red", colorR) &&
-        GetDoublePropertyByName(env, ani_obj, "green", colorG) &&
-        GetDoublePropertyByName(env, ani_obj, "blue", colorB) && GetDoublePropertyByName(env, ani_obj, "alpha", colorA);
+    bool flag = GetIntPropertyByName(env, ani_obj, "red", colorR) &&
+        GetIntPropertyByName(env, ani_obj, "green", colorG) &&
+        GetIntPropertyByName(env, ani_obj, "blue", colorB) && GetIntPropertyByName(env, ani_obj, "alpha", colorA);
     if (!flag) {
         return false;
     }
-    values[NUM_0] = static_cast<float>(colorR);
-    values[NUM_1] = static_cast<float>(colorG);
-    values[NUM_2] = static_cast<float>(colorB);
-    values[NUM_3] = static_cast<float>(colorA);
+    const float colorMax = 255.0; // colorMax: color max value
+    values[NUM_0] = static_cast<float>(colorR / colorMax);
+    values[NUM_1] = static_cast<float>(colorG / colorMax);
+    values[NUM_2] = static_cast<float>(colorB / colorMax);
+    values[NUM_3] = static_cast<float>(colorA / colorMax);
     return true;
 }
 
@@ -329,6 +380,72 @@ bool ConvertVector3fFromAniTuple(OHOS::Rosen::Vector3f& vector3f, uintptr_t opaq
     return true;
 }
 
+bool ParseRipplePositionValues(const ::taihe::optional<taihe::array<uintptr_t>> ripplePositions,
+    std::vector<OHOS::Rosen::Vector2f>& positions)
+{
+    if (!ripplePositions.has_value()) {
+        UIEFFECT_LOG_E("ParseRipplePositionValues: the array has noValue");
+        return false;
+    }
+    size_t length = ripplePositions->size();
+    if (length > NUM_10) {
+        UIEFFECT_LOG_E("ParseRipplePositionValues: the length of array is over 10");
+        return false;
+    }
+    positions.reserve(length);
+
+    OHOS::Rosen::Vector2f vector2f;
+    for (size_t i = 0; i < length; ++i) {
+        if (!ConvertVector2fFromAniTuple(vector2f, ripplePositions.value()[i])) {
+            return false;
+        }
+        positions.emplace_back(vector2f);
+    }
+
+    return true;
+}
+
+bool ConvertVector4fFromAniTuple(OHOS::Rosen::Vector4f& vector4f, uintptr_t opaque)
+{
+    ani_env* env = get_env();
+    if (env == nullptr) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, env is nullptr");
+        return false;
+    }
+
+    if (!IsAniTuple(opaque)) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, opaque is not tuple");
+        return false;
+    }
+
+    auto tuple = reinterpret_cast<ani_tuple_value>(opaque);
+    ani_size length = 0;
+    ani_status status = env->TupleValue_GetNumberOfItems(tuple, &length);
+    if (status != ANI_OK) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, "
+            "TupleValue_GetNumberOfItems failed, status: %{public}d", status);
+        return false;
+    }
+
+    if (length < OHOS::Rosen::Vector4f::V4SIZE) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, array size is less than 4");
+        return false;
+    }
+
+    ani_double itemValue = 0.f;
+    for (uint32_t i = 0; i < OHOS::Rosen::Vector4f::V4SIZE; ++i) {
+        ani_status getItemStatus = env->TupleValue_GetItem_Double(tuple, i, &itemValue);
+        if (getItemStatus != ANI_OK) {
+            UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, "
+                "get item as double from tuple value failed, status: %{public}d", getItemStatus);
+            return false;
+        }
+        vector4f.data_[i] = itemValue;
+    }
+
+    return true;
+}
+
 // without OHOS::Rosen::BrightnessBlender SetHdr
 bool ParseBrightnessBlender(OHOS::Rosen::BrightnessBlender& blender, const BrightnessBlender& brightnessBlender)
 {
@@ -352,6 +469,54 @@ bool ParseBrightnessBlender(OHOS::Rosen::BrightnessBlender& blender, const Brigh
     blender.SetNegativeCoeff(vector3f);
 
     blender.SetFraction(brightnessBlender.fraction);
+    return true;
+}
+
+bool ParseLiquidMaterialEffectParam(OHOS::Rosen::HarmoniumEffectPara& harmoniumPara,
+    const ::ohos::graphics::uiEffect::uiEffect::LiquidMaterialEffectParam& liquidMaterialEffectParam)
+{
+    harmoniumPara.SetEnable(liquidMaterialEffectParam.enable);
+    harmoniumPara.SetDistortProgress(liquidMaterialEffectParam.distortProgress);
+    harmoniumPara.SetDistortFactor(liquidMaterialEffectParam.distortFactor);
+    harmoniumPara.SetRippleProgress(liquidMaterialEffectParam.rippleProgress);
+    // rippleposition
+    std::vector<OHOS::Rosen::Vector2f> ripplePositions;
+    ParseRipplePositionValues(liquidMaterialEffectParam.ripplePosition, ripplePositions);
+    harmoniumPara.SetRipplePosition(ripplePositions);
+    harmoniumPara.SetRefractionFactor(liquidMaterialEffectParam.refractionFactor);
+    harmoniumPara.SetReflectionFactor(liquidMaterialEffectParam.reflectionFactor);
+    harmoniumPara.SetMaterialFactor(liquidMaterialEffectParam.materialFactor);
+    OHOS::Rosen::Vector4f vector4f;
+    if (!ConvertVector4fFromAniTuple(vector4f, liquidMaterialEffectParam.tintColor)) {
+        UIEFFECT_LOG_E("ParseLiquidMaterialEffectParam parse tintColor failed");
+        return false;
+    }
+    harmoniumPara.SetTintColor(vector4f);
+    return true;
+}
+
+bool ParseBrightnessParam(OHOS::Rosen::HarmoniumEffectPara& harmoniumPara,
+    optional_view<::ohos::graphics::uiEffect::uiEffect::BrightnessParam> brightnessParam)
+{
+    if (!brightnessParam.has_value()) {
+        return false;
+    }
+    harmoniumPara.SetRate(brightnessParam->rate);
+    harmoniumPara.SetLightUpDegree(brightnessParam->lightUpDegree);
+    harmoniumPara.SetCubicCoeff(brightnessParam->cubicCoeff);
+    harmoniumPara.SetQuadCoeff(brightnessParam->quadCoeff);
+    harmoniumPara.SetSaturation(brightnessParam->saturation);
+    OHOS::Rosen::Vector3f posRgb;
+    if (!ConvertVector3fFromAniTuple(posRgb, brightnessParam->posRgb)) {
+        UIEFFECT_LOG_E("ParseBrightnessParam parse posRgb failed");
+        return false;
+    }
+    OHOS::Rosen::Vector3f negRgb;
+    if (!ConvertVector3fFromAniTuple(negRgb, brightnessParam->negRgb)) {
+        UIEFFECT_LOG_E("ParseBrightnessParam parse negRgb failed");
+        return false;
+    }
+    harmoniumPara.SetFraction(brightnessParam->fraction);
     return true;
 }
 } // namespace ANI::UIEffect

@@ -30,7 +30,8 @@ const uint8_t DO_REPORT_RS_SCENE_JANK_END = 4;
 const uint8_t DO_REPORT_EVENT_GAMESTATE = 5;
 const uint8_t DO_AVCODEC_VIDEO_START = 6;
 const uint8_t DO_AVCODEC_VIDEO_STOP = 7;
-const uint8_t TARGET_SIZE = 8;
+const uint8_t DO_AVCODEC_VIDEO_GET = 8;
+const uint8_t TARGET_SIZE = 9;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -227,6 +228,14 @@ void DoAvcodecVideoStop()
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
 }
+
+void DoAvcodecVideoGet()
+{
+    uint64_t uniqueId = GetData<uint64_t>();
+ 
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.AvcodecVideoGet(uniqueId);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -262,6 +271,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_AVCODEC_VIDEO_STOP:
             OHOS::Rosen::DoAvcodecVideoStop();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_GET:
+            OHOS::Rosen::DoAvcodecVideoGet();
             break;
         default:
             return -1;

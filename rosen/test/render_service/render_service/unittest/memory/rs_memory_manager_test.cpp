@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 
+#include <string>
 #include <fstream>
 #include "gtest/gtest.h"
 #include "memory/rs_memory_manager.h"
+#include "pipeline/rs_test_util.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -25,11 +28,11 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-std::string logMsg;
+std::string g_logMsg;
 void MyLogCallback(const LogType type, const LogLevel level, const unsigned int domain, const char *tag,
                    const char *msg)
 {
-    logMsg = msg;
+    g_logMsg = msg;
 }
 
 class RSMemoryManagerTest : public testing::Test {
@@ -45,8 +48,24 @@ void RSMemoryManagerTest::SetUpTestCase()
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
+    RSTestUtil::InitRenderNodeGC();
 }
-void RSMemoryManagerTest::TearDownTestCase() {}
+
+void RSMemoryManagerTest::TearDownTestCase()
+{
+    auto mainThread = RSMainThread::Instance();
+    if (!mainThread || !mainThread->context_) {
+        return;
+    }
+    auto& renderNodeMap = mainThread->context_->GetMutableNodeMap();
+    renderNodeMap.renderNodeMap_.clear();
+    renderNodeMap.surfaceNodeMap_.clear();
+    renderNodeMap.residentSurfaceNodeMap_.clear();
+    renderNodeMap.screenNodeMap_.clear();
+    renderNodeMap.canvasDrawingNodeMap_.clear();
+    renderNodeMap.uiExtensionSurfaceNodes_.clear();
+}
+
 void RSMemoryManagerTest::SetUp() {}
 void RSMemoryManagerTest::TearDown() {}
 
@@ -259,12 +278,12 @@ HWTEST_F(RSMemoryManagerTest, DumpMemoryUsageTest012, testing::ext::TestSize.Lev
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseAllGpuResource001, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUResourceTag tag(0, 0, 0, 0, "ReleaseAllGpuResource");
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -275,11 +294,11 @@ HWTEST_F(RSMemoryManagerTest, ReleaseAllGpuResource001, testing::ext::TestSize.L
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseAllGpuResource002, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUResourceTag tag(0, 0, 0, 0, "ReleaseAllGpuResource");
     MemoryManager::ReleaseAllGpuResource(nullptr, tag);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -290,11 +309,11 @@ HWTEST_F(RSMemoryManagerTest, ReleaseAllGpuResource002, testing::ext::TestSize.L
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseAllGpuResource003, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     MemoryManager::ReleaseAllGpuResource(gpuContext, 1);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -305,12 +324,12 @@ HWTEST_F(RSMemoryManagerTest, ReleaseAllGpuResource003, testing::ext::TestSize.L
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource001, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     Drawing::GPUResourceTag tag(0, 0, 0, 0, "ReleaseUnlockGpuResource");
     MemoryManager::ReleaseUnlockGpuResource(gpuContext, tag);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -321,11 +340,11 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource001, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource002, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUResourceTag tag(0, 0, 0, 0, "ReleaseUnlockGpuResource");
     MemoryManager::ReleaseUnlockGpuResource(nullptr, tag);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -336,11 +355,11 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource002, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource003, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     MemoryManager::ReleaseUnlockGpuResource(gpuContext, 1);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -351,10 +370,10 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource003, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource004, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::ReleaseUnlockGpuResource(nullptr, 1);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -365,10 +384,10 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource004, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource005, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::ReleaseUnlockGpuResource(nullptr, {2, 3});
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByPid fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByPid fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -379,11 +398,11 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource005, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource006, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     MemoryManager::ReleaseUnlockGpuResource(gpuContext, {2, 3});
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -394,12 +413,12 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource006, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource007, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     NodeId node = 1;
     MemoryManager::ReleaseUnlockGpuResource(gpuContext, node);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -410,11 +429,11 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource007, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource008, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     NodeId node = 1;
     MemoryManager::ReleaseUnlockGpuResource(nullptr, node);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -425,11 +444,11 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource008, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource009, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     MemoryManager::ReleaseUnlockGpuResource(gpuContext, true);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -440,10 +459,10 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource009, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource010, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::ReleaseUnlockGpuResource(nullptr, true);
-    EXPECT_TRUE(logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseGpuResByTag fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -454,13 +473,13 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockGpuResource010, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, PurgeCacheBetweenFrames001, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     std::set<pid_t> pids = {1, 2};
     std::set<pid_t> protectedPidSet = {3};
     MemoryManager::PurgeCacheBetweenFrames(gpuContext, true, pids, protectedPidSet);
-    EXPECT_TRUE(logMsg.find("PurgeCacheBetweenFrames fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("PurgeCacheBetweenFrames fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -471,12 +490,12 @@ HWTEST_F(RSMemoryManagerTest, PurgeCacheBetweenFrames001, testing::ext::TestSize
  */
 HWTEST_F(RSMemoryManagerTest, PurgeCacheBetweenFrames002, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     std::set<pid_t> pids = {1, 2};
     std::set<pid_t> protectedPidSet = {3};
     MemoryManager::PurgeCacheBetweenFrames(nullptr, true, pids, protectedPidSet);
-    EXPECT_TRUE(logMsg.find("PurgeCacheBetweenFrames fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("PurgeCacheBetweenFrames fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -487,11 +506,11 @@ HWTEST_F(RSMemoryManagerTest, PurgeCacheBetweenFrames002, testing::ext::TestSize
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockAndSafeCacheGpuResource001, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(gpuContext);
-    EXPECT_TRUE(logMsg.find("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -502,10 +521,10 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockAndSafeCacheGpuResource001, testing::
  */
 HWTEST_F(RSMemoryManagerTest, ReleaseUnlockAndSafeCacheGpuResource002, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(nullptr);
-    EXPECT_TRUE(logMsg.find("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -516,11 +535,11 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockAndSafeCacheGpuResource002, testing::
  */
 HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch001, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     MemoryManager::SetGpuCacheSuppressWindowSwitch(gpuContext, true);
-    EXPECT_TRUE(logMsg.find("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -531,10 +550,10 @@ HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch001, testing::ext::
  */
 HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch002, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::SetGpuCacheSuppressWindowSwitch(nullptr, true);
-    EXPECT_TRUE(logMsg.find("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -545,12 +564,12 @@ HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch002, testing::ext::
  */
 HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch001, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     const std::function<void()> setThreadPriority;
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(gpuContext, true, setThreadPriority);
-    EXPECT_TRUE(logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -561,11 +580,11 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch001, testing::ext:
  */
 HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch002, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     const std::function<void()> setThreadPriority;
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(nullptr, true, setThreadPriority);
-    EXPECT_TRUE(logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -576,11 +595,11 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch002, testing::ext:
  */
 HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue001, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     MemoryManager::FlushGpuMemoryInWaitQueue(gpuContext);
-    EXPECT_TRUE(logMsg.find("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -591,10 +610,10 @@ HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue001, testing::ext::TestSi
  */
 HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue002, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::FlushGpuMemoryInWaitQueue(nullptr);
-    EXPECT_TRUE(logMsg.find("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -605,12 +624,12 @@ HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue002, testing::ext::TestSi
  */
 HWTEST_F(RSMemoryManagerTest, SuppressGpuCacheBelowCertainRatio001, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     const std::function<bool(void)> nextFrameHasArrived;
     MemoryManager::SuppressGpuCacheBelowCertainRatio(gpuContext, nextFrameHasArrived);
-    EXPECT_TRUE(logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") == std::string::npos);
 }
 
 /**
@@ -621,11 +640,11 @@ HWTEST_F(RSMemoryManagerTest, SuppressGpuCacheBelowCertainRatio001, testing::ext
  */
 HWTEST_F(RSMemoryManagerTest, SuppressGpuCacheBelowCertainRatio002, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     const std::function<bool(void)> nextFrameHasArrived;
     MemoryManager::SuppressGpuCacheBelowCertainRatio(nullptr, nextFrameHasArrived);
-    EXPECT_TRUE(logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -780,10 +799,8 @@ HWTEST_F(RSMemoryManagerTest, DumpAllGpuInfo001, testing::ext::TestSize.Level1)
     DfxString log;
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     std::vector<std::pair<NodeId, std::string>> nodeTags;
-    nodeTags.emplace_back(std::make_pair(1001, "testnode1"));
-    nodeTags.emplace_back(std::make_pair(1002, "testnode2"));
     MemoryManager::DumpAllGpuInfo(log, gpuContext, nodeTags);
-    ASSERT_TRUE(log.GetString().find("Total GPU memory usage:") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("Total GPU memory usage:") == std::string::npos);
 }
 
 /**
@@ -799,7 +816,6 @@ HWTEST_F(RSMemoryManagerTest, DumpAllGpuInfo002, testing::ext::TestSize.Level1)
     MemoryManager::DumpAllGpuInfo(log, nullptr, nodeTags);
     ASSERT_TRUE(log.GetString().find("No valid gpu cache instance") != std::string::npos);
 }
-
 
 /**
  * @tc.name: DumpAllGpuInfoNew001
@@ -899,11 +915,13 @@ HWTEST_F(RSMemoryManagerTest, DumpMemorySnapshot001, testing::ext::TestSize.Leve
  */
 HWTEST_F(RSMemoryManagerTest, SetGpuMemoryLimit001, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     MemoryManager::SetGpuMemoryLimit(gpuContext);
-    EXPECT_TRUE(logMsg.find("MemoryManager::SetGpuMemoryLimit gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("MemoryManager::SetGpuMemoryLimit gpuContext is nullptr") != std::string::npos);
+    MemoryManager::gpuMemoryControl_ = 2000 * 1024 * 1024;
+    MemoryManager::SetGpuMemoryLimit(gpuContext);
 }
 
 /**
@@ -914,10 +932,10 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryLimit001, testing::ext::TestSize.Level
  */
 HWTEST_F(RSMemoryManagerTest, SetGpuMemoryLimit002, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::SetGpuMemoryLimit(nullptr);
-    EXPECT_TRUE(logMsg.find("MemoryManager::SetGpuMemoryLimit gpuContext is nullptr") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("MemoryManager::SetGpuMemoryLimit gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -928,10 +946,10 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryLimit002, testing::ext::TestSize.Level
  */
 HWTEST_F(RSMemoryManagerTest, MemoryOverflow001, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::MemoryOverflow(1433, 1024, true);
-    EXPECT_TRUE(logMsg.find("RSMemoryOverflow pid[1433]") != std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("RSMemoryOverflow pid[1433]") != std::string::npos);
 }
 
 /**
@@ -942,10 +960,26 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow001, testing::ext::TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryOverflow002, testing::ext::TestSize.Level1)
 {
-    logMsg.clear();
+    g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::MemoryOverflow(0, 1024, true);
-    EXPECT_TRUE(logMsg.find("RSMemoryOverflow pid[") == std::string::npos);
+    EXPECT_TRUE(g_logMsg.find("RSMemoryOverflow pid[") == std::string::npos);
+}
+
+/**
+ * @tc.name: MemoryOverflow003
+ * @tc.desc: Test MemoryOverflow
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverflow003, testing::ext::TestSize.Level1)
+{
+    g_logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    pid_t pid = 1434;
+    MemoryManager::MemoryOverflow(pid, 1024, false);
+    MemorySnapshot::Instance().AddCpuMemory(pid, 2048);
+    EXPECT_TRUE(g_logMsg.find("RSMemoryOverflow pid[1434]") != std::string::npos);
 }
 
 /**
@@ -992,20 +1026,20 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest001, testing::ext::TestSiz
 }
 
 /**
- * @tc.name: MemoryOverReport
+ * @tc.name: MemoryOverReport001
  * @tc.desc: Test MemoryOverReport
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryManagerTest, MemoryOverReport, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1)
 {
     pid_t pid = 1434;
     MemorySnapshotInfo info;
     auto& instance = MemorySnapshot::Instance();
     instance.GetMemorySnapshotInfoByPid(pid, info);
     std::string hidumperReport = "report";
-    MemoryManager::MemoryOverReport(pid, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport);
     std::string filePath = "/data/service/el0/render_service/renderservice_mem.txt";
+    MemoryManager::MemoryOverReport(pid, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
     ASSERT_TRUE(std::ifstream(filePath).good());
 }
 
@@ -1029,28 +1063,6 @@ HWTEST_F(RSMemoryManagerTest, WriteInfoToFile, testing::ext::TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpGpuCacheWithPidInfoTest00
- * @tc.desc: DumpGpuCacheWithPidInfo
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryManagerTest, DumpGpuCacheWithPidInfoTest00, testing::ext::TestSize.Level1)
-{
-    Drawing::GPUContext* gpuContext = new Drawing::GPUContext();
-    Drawing::GPUResourceTag tag(100, 0, 100000, 0, "DumpGpuCacheWithPidInfoTest");
-    DfxString log;
-    GpuPidInfo totalInfo;
-    std::string name = "DumpGpuCacheWithPidInfoTest";
-    MemoryManager::DumpGpuCacheWithPidInfo(log, gpuContext, &tag, name, totalInfo);
-    DfxString log1;
-    MemoryManager::DumpGpuCacheWithPidInfo(log1, nullptr, &tag, name, totalInfo);
-    ASSERT_TRUE(log1.GetString().find("gpuContext is nullptr") != std::string::npos);
-    DfxString log2;
-    MemoryManager::DumpGpuCacheWithPidInfo(log2, gpuContext, nullptr, name, totalInfo);
-    ASSERT_TRUE(log2.GetString().find("GPU Caches") != std::string::npos);
-}
-
-/**
  * @tc.name: DumGpuNodeMemoryTest001
  * @tc.desc: DumGpuNodeMemory
  * @tc.type: FUNC
@@ -1061,5 +1073,261 @@ HWTEST_F(RSMemoryManagerTest, DumGpuNodeMemoryTest001, testing::ext::TestSize.Le
     DfxString log;
     MemoryManager::DumpGpuNodeMemory(log);
     ASSERT_TRUE(log.GetString().find("GPU") != std::string::npos);
+}
+
+/**
+ * @tc.name: GpuMemoryOverReportTest
+ * @tc.desc: GpuMemoryOverReport
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, GpuMemoryOverReportTest, testing::ext::TestSize.Level1)
+{
+    std::unordered_map<std::string, std::pair<size_t, size_t>> typeInfo;
+    typeInfo["IMAGE_GPU"] = std::make_pair(10000, 1);
+    std::unordered_map<pid_t, size_t> pidInfo;
+    pidInfo[1] = 10000;
+    MemoryManager::GpuMemoryOverReport(1, 10000, typeInfo, pidInfo);
+    std::string filePath = "/data/service/el0/render_service/renderservice_killProcessByPid.txt";
+    ASSERT_TRUE(std::ifstream(filePath).good());
+}
+
+/**
+ * @tc.name: GetNodeInfo001
+ * @tc.desc: GetNodeInfo001 Test
+ * @tc.type: FUNC
+ * @tc.require: ICVK6I
+ */
+HWTEST_F(RSMemoryManagerTest, GetNodeInfo001, TestSize.Level1)
+{
+    std::unordered_map<int, std::pair<int, int>> nodeInfo;
+    std::unordered_map<int, int> nullNodeInfo;
+    std::unordered_map<pid_t, size_t> modifierSize;
+    NodeId id = 1024;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    ASSERT_TRUE(nodeInfo.empty());
+}
+
+/**
+ * @tc.name: GetNodeInfo002
+ * @tc.desc: GetNodeInfo002 Test
+ * @tc.type: FUNC
+ * @tc.require: ICVK6I
+ */
+HWTEST_F(RSMemoryManagerTest, GetNodeInfo002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::unordered_map<int, std::pair<int, int>> nodeInfo;
+    std::unordered_map<int, int> nullNodeInfo;
+    std::unordered_map<pid_t, size_t> modifierSize;
+    NodeId id = 1025;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+    auto node = std::make_shared<RSRenderNode>(id);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    ASSERT_TRUE(nodeInfo.size() > 0);
+}
+
+/**
+ * @tc.name: GetNodeInfo003
+ * @tc.desc: GetNodeInfo003 Test
+ * @tc.type: FUNC
+ * @tc.require: ICVK6I
+ */
+HWTEST_F(RSMemoryManagerTest, GetNodeInfo003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::unordered_map<int, std::pair<int, int>> nodeInfo;
+    std::unordered_map<int, int> nullNodeInfo;
+    std::unordered_map<pid_t, size_t> modifierSize;
+    NodeId id = 1026;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+    auto node = std::make_shared<RSRenderNode>(id);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+    nodeInfo.insert({ExtractPid(id), std::make_pair(0, 0)});
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    ASSERT_TRUE(nodeInfo.size() > 0);
+}
+/**
+ * @tc.name: GetNodeInfo003
+ * @tc.desc: GetNodeInfo003 Test
+ * @tc.type: FUNC
+ * @tc.require: ICVK6I
+ */
+HWTEST_F(RSMemoryManagerTest, GetNodeInfo004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::unordered_map<int, std::pair<int, int>> nodeInfo;
+    std::unordered_map<int, int> nullNodeInfo;
+    std::unordered_map<pid_t, size_t> modifierSize;
+    NodeId id = 1027;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+    nullNodeInfo.insert({ExtractPid(id), 0});
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    ASSERT_TRUE(nullNodeInfo.size() > 0);
+}
+
+/**
+ * @tc.name: RenderServiceAllNodeDump001
+ * @tc.desc: RenderServiceAllNodeDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMemoryManagerTest, RenderServiceAllNodeDump001, TestSize.Level1)
+{
+    DfxString log;
+    MemoryManager::RenderServiceAllNodeDump(log);
+    ASSERT_TRUE(log.GetString().find("OnTree") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem001
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpMem001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "";
+    std::string type = "";
+    pid_t pid = 0;
+    bool isLite = false;
+    MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem002
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpMem002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "x";
+    std::string type = "x";
+    pid_t pid = 0;
+    bool isLite = true;
+    MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem003
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpMem003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "";
+    std::string type = "gpu";
+    pid_t pid = 1;
+    bool isLite = false;
+    MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpGpuMem001
+ * @tc.desc: test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpGpuMem001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "";
+    std::string type = "gpu";
+    MemoryManager::DumpGpuMem(argSets, dumpString, type);
+    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpGpuMem002
+ * @tc.desc: test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpGpuMem002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "";
+    std::string type = "";
+    MemoryManager::DumpGpuMem(argSets, dumpString, type);
+    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpGpuMem003
+ * @tc.desc: test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpGpuMem003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString = "x";
+    std::string type = "x";
+    MemoryManager::DumpGpuMem(argSets, dumpString, type);
+    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
+}
+
+/**
+ * @tc.name: RenderServiceAllSurfaceDump001
+ * @tc.desc: RenderServiceAllSurfaceDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    //create some surface nodes && register them
+    RSSurfaceRenderNodeConfig configwithNoComsumer;
+    configwithNoComsumer.id = 11;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(configwithNoComsumer);
+    node1->SetIsOnTheTree(true);
+    RSSurfaceRenderNodeConfig configwithComsumer;
+    configwithComsumer.id = 12;
+    auto node2 = RSTestUtil::CreateSurfaceNode(configwithComsumer);
+    node2->SetIsOnTheTree(true);
+    auto node3 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node1);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node2);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node3);
+
+    DfxString log;
+    MemoryManager::RenderServiceAllSurfaceDump(log);
+    ASSERT_TRUE(log.GetString().find("memory") != std::string::npos);
 }
 } // namespace OHOS::Rosen

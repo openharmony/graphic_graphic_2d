@@ -63,5 +63,20 @@ HWTEST_F(OPIncParamTest, SetCacheWidthThresholdPercentValue, Function | SmallTes
     opincParam.SetCacheWidthThresholdPercentValue(100);
     EXPECT_EQ(opincParam.GetCacheWidthThresholdPercentValue(), 100);
 }
+
+/**
+ * @tc.name: SetImageAliasEnable
+ * @tc.desc: Verify the SetImageAliasEnable function
+ * @tc.type: FUNC
+ * @tc.require: #IBOKAG
+ */
+HWTEST_F(OPIncParamTest, SetImageAliasEnable, Function | SmallTest | Level1)
+{
+    OPIncParam opincParam;
+    opincParam.SetImageAliasEnable(true);
+    EXPECT_EQ(opincParam.IsImageAliasEnable(), true);
+    opincParam.SetImageAliasEnable(false);
+    EXPECT_EQ(opincParam.IsImageAliasEnable(), false);
+}
 } // namespace Rosen
 } // namespace OHOS

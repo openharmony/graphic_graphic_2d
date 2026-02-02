@@ -28,6 +28,7 @@ group("unittest") {
     ":RSDrawFrameTest",
     ":RSDropFrameProcessorTest",
     ":RSMainThreadTest",
+    ":RSMainThreadProfilerTest",
     ":RSPhysicalScreenProcessorTest",
     ":RSPointerWindowManagerTest",
     ":RSProcessorFactoryTest",
@@ -727,6 +728,42 @@ ohos_unittest("RSMainThreadTest") {
     deps += [ "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager" ]
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+}
+
+## Build RSMainThreadProfilerTest
+ohos_unittest("RSMainThreadProfilerTest") {
+  module_out_path = module_output_path
+  sources = [ "main_thread/rs_main_thread_profiler_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+  defines = []
+  defines += gpu_defines
+  include_dirs =
+      [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+    external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
+    defines += [ "ACCESSIBILITY_ENABLE" ]
+  }
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    deps += [ "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager" ]
+    external_deps += [
+      "drivers_interface_display:display_commontype_idl_headers",
       "video_processing_engine:videoprocessingengine",
     ]
   }

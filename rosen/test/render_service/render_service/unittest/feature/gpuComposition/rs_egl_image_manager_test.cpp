@@ -421,4 +421,73 @@ HWTEST_F(RSEglImageManagerTest, GetIntersectImageTest002, TestSize.Level1)
         }
     }
 }
+
+/**
+ * @tc.name: CreateImageFromBufferWithRGB565Test
+ * @tc.desc: Test CreateImageFromBuffer with GRAPHIC_PIXEL_FMT_RGB_565 format
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferWithRGB565Test, TestSize.Level1)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && RSUniRenderJudgement::IsUniRender()) {
+        NodeId id = 4;
+        auto rsContext = std::make_shared<RSContext>();
+        auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+        node->InitRenderParams();
+        sptr<IConsumerSurface> consumer = IConsumerSurface::Create("CreateImageFromBufferWithRGB565Test");
+        auto screenDrawable =
+            std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
+        auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+        surfaceHandler->SetConsumer(consumer);
+
+        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        int64_t timestamp = 0;
+        Rect damage;
+        sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+        GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGB_565;
+        BufferRequestConfig requestConfig = {
+            .width = 0x100,
+            .height = 0x100,
+            .strideAlignment = 0x8,
+            .format = pixelFormat,
+            .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+            .timeout = 0,
+        };
+        buffer->Alloc(requestConfig);
+        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+
+        ASSERT_NE(node, nullptr);
+        if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
+            sptr<OHOS::SurfaceBuffer> testBuffer = surfaceHandler->GetBuffer();
+            ASSERT_NE(testBuffer, nullptr);
+
+            EXPECT_EQ(testBuffer->GetFormat(), static_cast<int32_t>(GRAPHIC_PIXEL_FMT_RGB_565));
+
+            auto renderContext = std::make_shared<RenderContextGL>();
+            renderContext->Init();
+            renderContext->SetUpGpuContext();
+            auto eglImageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+
+            int canvasHeight = 10;
+            int canvasWidth = 10;
+            auto renderEngine = std::make_shared<RSRenderEngine>();
+            renderEngine->Init();
+            auto drawingCanvas = std::make_unique<Drawing::RecordingCanvas>(canvasHeight, canvasWidth);
+            drawingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
+            auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+
+            BufferDrawParam params;
+            params.buffer = testBuffer;
+            params.acquireFence = acquireFence;
+            params.threadIndex = 0;
+            std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+
+            auto res = eglImageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
+            // may fail in CI environment, just check it is not crash
+            (void)res;
+        }
+    }
+}
 } // namespace OHOS::Rosen

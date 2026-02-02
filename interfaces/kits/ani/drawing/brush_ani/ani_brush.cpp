@@ -28,13 +28,11 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_BRUSH_NAME = "@ohos.graphics.drawing.drawing.Brush";
 
 ani_status AniBrush::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_BRUSH_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().brush;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_BRUSH_NAME);
         return ANI_NOT_FOUND;
     }
@@ -64,7 +62,7 @@ ani_status AniBrush::AniInit(ani_env *env)
         ani_native_function { "setShaderEffect", nullptr, reinterpret_cast<void*>(SetShaderEffect) },
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_BRUSH_NAME);
         return ANI_NOT_FOUND;
@@ -88,7 +86,8 @@ void AniBrush::Constructor(ani_env* env, ani_object obj)
 {
     std::shared_ptr<Brush> brush = std::make_shared<Brush>();
     AniBrush* aniBrush = new AniBrush(brush);
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniBrush))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        obj,  AniGlobalField::GetInstance().brushNativeObj, reinterpret_cast<ani_long>(aniBrush))) {
         ROSEN_LOGE("AniBrush::Constructor failed create aniBrush");
         delete aniBrush;
         return;
@@ -97,7 +96,7 @@ void AniBrush::Constructor(ani_env* env, ani_object obj)
 
 void AniBrush::ConstructorWithBrush(ani_env* env, ani_object obj, ani_object aniBrushObj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, aniBrushObj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, aniBrushObj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniBrush::ConstructorWithBrush brush is nullptr.");
@@ -106,7 +105,8 @@ void AniBrush::ConstructorWithBrush(ani_env* env, ani_object obj, ani_object ani
     std::shared_ptr<Brush> other = aniBrush->GetBrush();
     std::shared_ptr<Brush> brush = other == nullptr ? std::make_shared<Brush>() : std::make_shared<Brush>(*other);
     AniBrush* newAniBrush = new AniBrush(brush);
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniBrush))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        obj, AniGlobalField::GetInstance().brushNativeObj, reinterpret_cast<ani_long>(newAniBrush))) {
         ROSEN_LOGE("AniBrush::Constructor failed create aniBrush");
         delete newAniBrush;
         return;
@@ -115,7 +115,7 @@ void AniBrush::ConstructorWithBrush(ani_env* env, ani_object obj, ani_object ani
 
 ani_int AniBrush::GetAlpha(ani_env* env, ani_object obj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::GetAlpha brush is nullptr.");
         return -1;
@@ -126,7 +126,7 @@ ani_int AniBrush::GetAlpha(ani_env* env, ani_object obj)
 
 void AniBrush::SetColorWithObject(ani_env* env, ani_object obj, ani_object aniColor)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniBrush::SetColorWithObject brush is nullptr.");
@@ -149,7 +149,7 @@ void AniBrush::SetColorWithObject(ani_env* env, ani_object obj, ani_object aniCo
 void AniBrush::SetColorWithARGB(ani_env* env, ani_object obj, ani_int alpha,
     ani_int red, ani_int green, ani_int blue)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniBrush::SetColorWithARGB brush is nullptr.");
@@ -179,7 +179,7 @@ void AniBrush::SetColorWithARGB(ani_env* env, ani_object obj, ani_int alpha,
 
 void AniBrush::SetColor(ani_env* env, ani_object obj, ani_int color)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetColor brush is nullptr.");
         return;
@@ -192,21 +192,21 @@ void AniBrush::SetColor(ani_env* env, ani_object obj, ani_int color)
 
 ani_object AniBrush::GetColor(ani_env* env, ani_object obj)
 {
-    ani_object aniObj = CreateAniUndefined(env);
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::GetColor brush is nullptr.");
-        return aniObj;
+        return CreateAniUndefined(env);
     }
 
     const Color& color = aniBrush->GetBrush()->GetColor();
+    ani_object aniObj = nullptr;
     CreateColorObj(env, color, aniObj);
     return aniObj;
 }
 
 ani_int AniBrush::GetHexColor(ani_env* env, ani_object obj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::GetHexColor brush is nullptr.");
         return -1;
@@ -218,7 +218,7 @@ ani_int AniBrush::GetHexColor(ani_env* env, ani_object obj)
 
 void AniBrush::SetAntiAlias(ani_env* env, ani_object obj, ani_boolean aa)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetAntiAlias brush is nullptr.");
         return;
@@ -230,7 +230,7 @@ void AniBrush::SetAntiAlias(ani_env* env, ani_object obj, ani_boolean aa)
 
 ani_boolean AniBrush::IsAntiAlias(ani_env* env, ani_object obj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::IsAntiAlias brush is nullptr.");
         return ANI_FALSE;
@@ -242,7 +242,7 @@ ani_boolean AniBrush::IsAntiAlias(ani_env* env, ani_object obj)
 
 void AniBrush::Reset(ani_env* env, ani_object obj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::Reset brush is nullptr.");
         return;
@@ -253,7 +253,7 @@ void AniBrush::Reset(ani_env* env, ani_object obj)
 
 void AniBrush::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetAlpha brush is nullptr.");
         return;
@@ -270,7 +270,7 @@ void AniBrush::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
 
 void AniBrush::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetBlendMode brush is nullptr.");
         return;
@@ -303,7 +303,7 @@ AniBrush::~AniBrush()
 
 void AniBrush::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetColorFilter brush is nullptr.");
         return;
@@ -313,7 +313,8 @@ void AniBrush::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorF
     env->Reference_IsNull(objColorFilter, &isNull);
     AniColorFilter* aniColorFilter = nullptr;
     if (!isNull) {
-        aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter);
+        aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter,
+            AniGlobalField::GetInstance().colorFilterNativeObj);
         if (aniColorFilter == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniBrush::SetColorFilter invalid param colorFilter.");
@@ -328,7 +329,7 @@ void AniBrush::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorF
 
 ani_object AniBrush::GetColorFilter(ani_env* env, ani_object obj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::GetColorFilter brush is nullptr.");
         return CreateAniUndefined(env);
@@ -339,10 +340,11 @@ ani_object AniBrush::GetColorFilter(ani_env* env, ani_object obj)
     }
 
     AniColorFilter* colorFilter = new AniColorFilter(aniBrush->GetBrush()->GetFilter().GetColorFilter());
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_COLORFILTER_NAME, nullptr);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(colorFilter))) {
-        ROSEN_LOGE("AniBrush::GetColorFilter failed cause by Object_SetFieldByName_Long");
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor);
+    if (ANI_OK != env->Object_SetField_Long(aniObj,
+        AniGlobalField::GetInstance().colorFilterNativeObj, reinterpret_cast<ani_long>(colorFilter))) {
+        ROSEN_LOGE("AniBrush::GetColorFilter failed cause by Object_SetField_Long");
         delete colorFilter;
         return CreateAniUndefined(env);
     }
@@ -351,7 +353,7 @@ ani_object AniBrush::GetColorFilter(ani_env* env, ani_object obj)
 
 void AniBrush::SetImageFilter(ani_env* env, ani_object obj, ani_object imageFilterObj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetImageFilter brush is nullptr.");
         return;
@@ -361,7 +363,8 @@ void AniBrush::SetImageFilter(ani_env* env, ani_object obj, ani_object imageFilt
     env->Reference_IsNull(imageFilterObj, &isNull);
     AniImageFilter* aniImageFilter = nullptr;
     if (!isNull) {
-        aniImageFilter = GetNativeFromObj<AniImageFilter>(env, imageFilterObj);
+        aniImageFilter = GetNativeFromObj<AniImageFilter>(env, imageFilterObj,
+            AniGlobalField::GetInstance().imageFilterNativeObj);
         if (aniImageFilter == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniBrush::SetImageFilter invalid param imageFilter.");
@@ -375,7 +378,7 @@ void AniBrush::SetImageFilter(ani_env* env, ani_object obj, ani_object imageFilt
 
 void AniBrush::SetMaskFilter(ani_env* env, ani_object obj, ani_object maskFilterObj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetMaskFilter brush is nullptr.");
         return;
@@ -385,7 +388,8 @@ void AniBrush::SetMaskFilter(ani_env* env, ani_object obj, ani_object maskFilter
     env->Reference_IsNull(maskFilterObj, &isNull);
     AniMaskFilter* aniMaskFilter = nullptr;
     if (!isNull) {
-        aniMaskFilter = GetNativeFromObj<AniMaskFilter>(env, maskFilterObj);
+        aniMaskFilter = GetNativeFromObj<AniMaskFilter>(env, maskFilterObj,
+            AniGlobalField::GetInstance().maskFilterNativeObj);
         if (aniMaskFilter == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniBrush::SetMaskFilter invalid param maskFilter.");
@@ -399,7 +403,7 @@ void AniBrush::SetMaskFilter(ani_env* env, ani_object obj, ani_object maskFilter
 
 void AniBrush::SetShadowLayer(ani_env* env, ani_object obj, ani_object shadowLayerObj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetShadowLayer brush is nullptr.");
         return;
@@ -409,7 +413,8 @@ void AniBrush::SetShadowLayer(ani_env* env, ani_object obj, ani_object shadowLay
     env->Reference_IsNull(shadowLayerObj, &isNull);
     AniShadowLayer* aniShadowLayer = nullptr;
     if (!isNull) {
-        aniShadowLayer = GetNativeFromObj<AniShadowLayer>(env, shadowLayerObj);
+        aniShadowLayer = GetNativeFromObj<AniShadowLayer>(env, shadowLayerObj,
+            AniGlobalField::GetInstance().shadowLayerNativeObj);
         if (aniShadowLayer == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniBrush::SetShadowLayer invalid param shadowLayer.");
@@ -421,7 +426,7 @@ void AniBrush::SetShadowLayer(ani_env* env, ani_object obj, ani_object shadowLay
 
 void AniBrush::SetShaderEffect(ani_env* env, ani_object obj, ani_object shaderEffectObj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetShaderEffect brush is nullptr.");
         return;
@@ -431,7 +436,8 @@ void AniBrush::SetShaderEffect(ani_env* env, ani_object obj, ani_object shaderEf
     env->Reference_IsNull(shaderEffectObj, &isNull);
     AniShaderEffect* aniShaderEffect = nullptr;
     if (!isNull) {
-        aniShaderEffect = GetNativeFromObj<AniShaderEffect>(env, shaderEffectObj);
+        aniShaderEffect = GetNativeFromObj<AniShaderEffect>(env, shaderEffectObj,
+            AniGlobalField::GetInstance().shaderEffectNativeObj);
         if (aniShaderEffect == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniBrush::SetShaderEffect invalid param shaderEffect.");
@@ -460,7 +466,8 @@ ani_object AniBrush::BrushTransferStatic(
         return CreateAniUndefined(env);
     }
     auto aniBrush = new AniBrush(jsBrush->GetBrush());
-    if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniBrush))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        output, AniGlobalField::GetInstance().brushNativeObj, reinterpret_cast<ani_long>(aniBrush))) {
         ROSEN_LOGE("AniBrush::BrushTransferStatic failed create aniBrush");
         delete aniBrush;
         return CreateAniUndefined(env);
@@ -470,7 +477,7 @@ ani_object AniBrush::BrushTransferStatic(
 
 ani_long AniBrush::GetBrushAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, input);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, input, AniGlobalField::GetInstance().brushNativeObj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         ROSEN_LOGE("AniBrush::GetBrushAddr aniBrush is null");
         return 0;

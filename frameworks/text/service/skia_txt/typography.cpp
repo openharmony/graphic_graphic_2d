@@ -395,9 +395,8 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
     return true;
 }
 
-std::vector<LineMetrics> Typography::GetLineMetrics()
+std::vector<LineMetrics> Typography::GetAllLineMetrics()
 {
-    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     if (lineMetrics_) {
         return lineMetrics_.value();
     }
@@ -440,15 +439,23 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
     return lineMetrics_.value();
 }
 
+std::vector<LineMetrics> Typography::GetLineMetrics()
+{
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
+    return GetAllLineMetrics();
+}
+
 bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     if (paragraph_ == nullptr) {
         return false;
     }
     if (lineNumber < 0 || lineNumber >= static_cast<int>(paragraph_->GetLineCount()) || lineMetrics == nullptr) {
         return false;
     }
-    std::vector<LineMetrics> vecLineMetrics = GetLineMetrics();
+
+    std::vector<LineMetrics> vecLineMetrics = GetAllLineMetrics();
 
     if (vecLineMetrics.empty()) {
         return false;
@@ -579,6 +586,21 @@ std::string Typography::GetDumpInfo() const
     return paragraph_->GetDumpInfo();
 }
 
+#ifdef ENABLE_OHOS_ENHANCE
+std::shared_ptr<OHOS::Media::PixelMap> Typography::GetTextPathImageByIndex(
+    size_t start, size_t end, const ImageOptions& options, bool fill) const
+{
+    TEXT_TRACE_FUNC();
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return nullptr;
+    }
+    TEXT_LOGD("Getting text path image by index: start %{public}zu, end %{public}zu, "
+        "fill %{public}d, options %{public}d %{public}d %{public}f %{public}f",
+        start, end, fill, options.width, options.height, options.offsetX, options.offsetY);
+    return paragraph_->GetTextPathImageByIndex(start, end, options, fill);
+}
+#endif
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

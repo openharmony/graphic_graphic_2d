@@ -15,6 +15,8 @@
 
 #include "command/rs_root_node_command.h"
 
+#include "rs_trace.h"
+
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -28,6 +30,10 @@ void RootNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTexture
 {
     auto node = std::shared_ptr<RSRootRenderNode>(new RSRootRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+    if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
+        RS_LOGE("RootNodeCommandHelper::Create after add, id:%{public}" PRIu64, id);
+        RS_TRACE_NAME_FMT("RootNodeCommandHelper::Create after add, id:%" PRIu64, id);
+    }
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
@@ -52,10 +58,16 @@ void RootNodeCommandHelper::AttachToUniSurfaceNode(RSContext& context, NodeId id
     auto& nodeMap = context.GetNodeMap();
     auto parent = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
     auto node = nodeMap.GetRenderNode<RSRootRenderNode>(id);
-    if (!parent || !node) {
+    if (!parent) {
         RS_LOGE("unirender: RootNodeCommandHelper::AttachToUniSurfaceNode surfaceNodeId:%{public}" PRIu64 " id"
-            ":%{public}" PRIu64 ", parent valid:%{public}d, node valid:%{public}d",
-            surfaceNodeId, id, parent != nullptr, node != nullptr);
+                ":%{public}" PRIu64 ", parent invalid", surfaceNodeId, id);
+        context.GetMutableNodeMap().RegisterUnTreeNode(surfaceNodeId);
+        return;
+    }
+    if (!node) {
+        RS_LOGE("unirender: RootNodeCommandHelper::AttachToUniSurfaceNode surfaceNodeId:%{public}" PRIu64 " id"
+                ":%{public}" PRIu64 ", node invalid", surfaceNodeId, id);
+        context.GetMutableNodeMap().RegisterUnTreeNode(id);
         return;
     }
     parent->AddChild(node);

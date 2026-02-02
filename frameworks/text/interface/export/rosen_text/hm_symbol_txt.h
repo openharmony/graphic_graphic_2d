@@ -155,7 +155,7 @@ private:
     SymbolBitmapType relayoutChangeBitmap_;
     std::optional<SymbolShadow> symbolShadow_;
     bool isFirstActive_ = false;
-    mutable std::shared_mutex gradientsMutex_;
+    mutable std::shared_mutex mutex_;
     void CloneSelf(const HMSymbolTxt& other);
 };
 }

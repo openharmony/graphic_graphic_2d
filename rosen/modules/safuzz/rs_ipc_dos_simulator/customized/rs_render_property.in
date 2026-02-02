@@ -50,7 +50,7 @@ DECLARE_PROPERTY(std::shared_ptr<RSNGRenderMaskBase>, RandomData, RSNGMaskPtr)
 DECLARE_PROPERTY(std::shared_ptr<RSNGRenderShaderBase>, RandomData, RSNGShaderPtr)
 DECLARE_PROPERTY(std::shared_ptr<RSNGRenderShapeBase>, RandomRSNGShapePtr, Value)
 DECLARE_PROPERTY(RSShadowBlenderPara, RandomData, RSShadowBlenderPara)
-DECLARE_PROPERTY(std::vector<Vector2f>, RandomData, VectorVector2f)
+DECLARE_PROPERTY(std::vector<Vector2f>, RandomData, SmallVectorVector2f)
 DECLARE_PROPERTY(std::vector<Vector4f>, RandomData, SmallVectorVector4f)
 
 DECLARE_ANIMATABLE_PROPERTY(float, RandomData, Float)

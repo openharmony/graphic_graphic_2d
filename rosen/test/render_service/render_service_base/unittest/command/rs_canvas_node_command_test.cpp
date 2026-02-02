@@ -198,4 +198,25 @@ HWTEST_F(RSCanvasNodeCommandTest, SetColorGamut001, TestSize.Level1)
     ASSERT_EQ(node->colorGamut_, 3); // 3 is DISPLAY_P3
 }
 
+/**
+ * @tc.name: SetPixelmap
+ * @tc.desc: test results of SetPixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueICGKPE
+ */
+HWTEST_F(RSCanvasNodeCommandTest, SetPixelmap, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSCanvasNodeCommandHelper::SetPixelmap(context, id, nullptr);
+    auto pixelmap = std::make_shared<OHOS::Media::PixelMap>();
+    EXPECT_NE(pixelmap, nullptr);
+    RSCanvasNodeCommandHelper::SetPixelmap(context, id, pixelmap);
+    RSCanvasNodeCommandHelper::Create(context, id, true);
+    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
+    EXPECT_NE(node, nullptr);
+    RSCanvasNodeCommandHelper::SetPixelmap(context, id, pixelmap);
+    context.GetMutableNodeMap().UnregisterRenderNode(id);
+}
+
 } // namespace OHOS::Rosen

@@ -22,11 +22,10 @@
 
 namespace OHOS::Rosen {
 struct AncoBufferInfo {
-    int32_t width_ = 0;
-    int32_t height_ = 0;
-    int32_t format_ = GRAPHIC_PIXEL_FMT_BUTT;
+    int32_t width = 0;
+    int32_t height = 0;
+    int32_t format = GRAPHIC_PIXEL_FMT_BUTT;
 };
-
 class RSAncoManager {
 public:
     static RSAncoManager* Instance();
@@ -43,11 +42,12 @@ public:
     static void UpdateCropRectForAnco(const uint32_t ancoFlags, const GraphicIRect& cropRect,
         const AncoBufferInfo& ancoInfo, Drawing::Rect& outSrcRect);
     // When the anco node generates a layer, ancoSrcCrop takes effect
-    static void UpdateLayerSrcRectForAnco(const uint32_t ancoFlags, const GraphicIRect& cropRect,
-        GraphicIRect& outSrcRect);
+    static void UpdateLayerSrcRectForAnco(const uint32_t ancoFlags,
+        const GraphicIRect& cropRect, GraphicIRect& outSrcRect);
     static bool IsAncoSfv(const uint32_t ancoFlags);
     // Check whether CropRect is valid.
     static bool ValidCropRect(const GraphicIRect& cropRect);
+    // Intersect bufferSize and CropRect to prevent the crop from being larger than the buffer area.
     static void IntersectCrop(const GraphicIRect& cropRect, GraphicIRect& outSrcRect);
     // If the cropRect is smaller than the buffer size, it needs to shrink inwards by a few pixels.
     static float CalculateShrinkAmount(const int32_t format);

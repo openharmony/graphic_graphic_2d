@@ -78,6 +78,7 @@ void RSHdrUtilTest::TearDownTestCase() {}
 void RSHdrUtilTest::SetUp() {}
 void RSHdrUtilTest::TearDown() {}
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: CheckIsHdrSurface
  * @tc.desc: Test CheckIsHdrSurface
@@ -153,6 +154,69 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckIsHdrSurfaceBufferTest001
+ * @tc.desc: Test CheckIsHdrSurfaceBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest001, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+    RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    HdrStatus ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    
+    staticMetadata.cta861.maxContentLightLevel = 400.0f;
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    EXPECT_EQ(ret, HdrStatus::HDR_VIDEO);
+}
+
+/**
+ * @tc.name: CheckIsHDRSelfProcessingBufferTest001
+ * @tc.desc: Test CheckIsHDRSelfProcessingBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, CheckIsHDRSelfProcessingBufferTest001, TestSize.Level1)
+{
+    using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+    RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    bool ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, false);
+
+    CM_HDR_Metadata_Type hdrMetadataType = CM_IMAGE_HDR_VIVID_SINGLE;
+    MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
+    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, false);
+
+    hdrMetadataType = CM_METADATA_NONE;
+    staticMetadata.cta861.maxContentLightLevel = 400.0f;
+    MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, true);
+}
+
+/**
  * @tc.name: CheckIsSurfaceWithMetadata
  * @tc.desc: Test CheckIsSurfaceWithMetadata
  * @tc.type: FUNC
@@ -212,11 +276,14 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(node, nullptr);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+    float scaler;
+    bool retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
+    ASSERT_EQ(retUpdateNit, false); // surface node is nullptr
     node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node, nullptr);
     node->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
+    ASSERT_EQ(retUpdateNit, false); // context from surfaceNode is nullptr
 }
 
 /**
@@ -249,7 +316,9 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest001, TestSize.Level1)
     ASSERT_NE(node, nullptr);
     node->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(node->GetVideoHdrStatus(), HdrStatus::HDR_VIDEO);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+    float scaler;
+    bool retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
+    ASSERT_EQ(retUpdateNit, false); // context from surfaceNode is nullptr
 }
 
 /**
@@ -266,7 +335,9 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     node->OnRegister(context);
     node->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(node->GetVideoHdrStatus(), HdrStatus::HDR_VIDEO);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+    float scaler;
+    bool retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
+    ASSERT_EQ(retUpdateNit, false); // screenNode is nullptr
 
     auto& nodeMap = context->GetMutableNodeMap();
     NodeId displayNodeId = 5;
@@ -274,14 +345,18 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     auto displayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
     bool res = nodeMap.RegisterRenderNode(displayRenderNode);
     ASSERT_EQ(res, true);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // displayNode is nullptr
+    retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler); // displayNode is nullptr
+    ASSERT_EQ(retUpdateNit, false); // displayNode is nullptr
     node->logicalDisplayNodeId_ = displayNodeId;
     auto displayNode = context->GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(node->GetLogicalDisplayNodeId());
     ASSERT_NE(displayNode, nullptr);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // displayNode is not nullptr
+    retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler); // displayNode is not nullptr
+    ASSERT_EQ(retUpdateNit, true);
     displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // update surfaceNode HDRBrightnessFactor
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // not update surfaceNode HDRBrightnessFactor
+    retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler); // update surfaceNode HDRBrightnessFactor
+    ASSERT_EQ(retUpdateNit, true);
+    retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler); // not update surfaceNode HDRBrightnessFactor
+    ASSERT_EQ(retUpdateNit, true);
     EXPECT_EQ(node->GetHDRBrightnessFactor(), 0.5f);
 }
 
@@ -322,7 +397,8 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest003, TestSize.Level1)
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
     HdrStatus ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GTM);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+    float scaler;
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
 
     hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT;
     metadataType.resize(sizeof(hdrType));
@@ -330,11 +406,11 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest003, TestSize.Level1)
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
     ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GAINMAP);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
     MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
 #endif
 }
 
@@ -425,6 +501,13 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatWithSelfDrawingNodeTest, TestSize.Level1
     surfaceNode->SetHardwareForcedDisabledState(false);
     RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
     surfaceNode->SetHardwareForcedDisabledState(true);
+
+    surfaceNode->context_ = context;
+    NodeId logicalDisplayNodeId = 2U;
+    RSDisplayNodeConfig config;
+    auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(logicalDisplayNodeId, config, context);
+    surfaceNode->logicalDisplayNodeId_ = logicalDisplayNodeId;
+    context->nodeMap.RegisterRenderNode(logicalDisplayNode);
     RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
 }
 
@@ -506,25 +589,30 @@ HWTEST_F(RSHdrUtilTest, BufferFormatNeedUpdateTest, TestSize.Level1)
  */
 HWTEST_F(RSHdrUtilTest, SetHDRParamTest, TestSize.Level1)
 {
-    NodeId id = 0;
-    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(parentNode, nullptr);
-    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    id = 1;
-    auto childNode = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(childNode, nullptr);
-    ScreenId screenId = 0;
+    NodeId parentId = 1;
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(parentId, context, true);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->InitRenderParams();
+    parentNode->context_ = context;
+
+    NodeId childId = 2;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childId, context, true);
+    ASSERT_NE(childNode, nullptr);
+    childNode->InitRenderParams();
+    childNode->firstLevelNodeId_ = parentId;
+    childNode->context_ = context;
+
+    ScreenId screenId = 0;
     auto screenNode = std::make_shared<RSScreenRenderNode>(3, screenId, context);
     ASSERT_NE(screenNode, nullptr);
-    childNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    parentNode->AddChild(childNode);
-    parentNode->SetIsOnTheTree(true);
-    childNode->SetIsOnTheTree(true);
+    auto& nodeMap = context->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(parentNode));
     screenNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f); // GetForceCloseHdr false
+    RSHdrUtil::SetHDRParam(*screenNode, *childNode, false);
     RSHdrUtil::SetHDRParam(*screenNode, *childNode, true);
     screenNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f); // GetForceCloseHdr true
-    RSHdrUtil::SetHDRParam(*screenNode, *childNode, true);
+    RSHdrUtil::SetHDRParam(*screenNode, *childNode, false);
 }
 
 /**
@@ -901,6 +989,7 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatForHdrEffect001, TestSize.Level2)
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     ASSERT_NE(screenNode, nullptr);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RSHdrUtil::CheckPixelFormatForHdrEffect(*surfaceNode, nullptr);
     EXPECT_NE(static_cast<int>(screenNode->GetDisplayHdrStatus()), static_cast<int>(HdrStatus::HDR_EFFECT));
@@ -910,5 +999,5 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatForHdrEffect001, TestSize.Level2)
     RSHdrUtil::CheckPixelFormatForHdrEffect(*surfaceNode, screenNode);
     EXPECT_EQ(static_cast<int>(screenNode->GetDisplayHdrStatus()), static_cast<int>(HdrStatus::HDR_EFFECT));
 }
-
+#endif
 } // namespace OHOS::Rosen

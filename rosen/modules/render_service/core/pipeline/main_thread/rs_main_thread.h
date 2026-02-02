@@ -99,8 +99,8 @@ public:
     void Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
         const std::shared_ptr<AppExecFwk::EventHandler>& handler);
     void Start();
-    bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void UpdateFocusNodeId(NodeId focusNodeId);
+    bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync(
@@ -114,18 +114,13 @@ public:
     void TransactionDataMapDump(const TransactionDataMap& transactionDataMap, std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true,
         bool needUpdateJankStats = false);
-    void RenderServiceAllNodeDump(DfxString& log);
-    void RenderServiceAllSurafceDump(DfxString& log);
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
     void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
     void UpdateAnimateNodeFlag();
     void ResetAnimateNodeFlag();
-    void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
     void SetForceRsDVsync(const std::string& sceneId);
-    void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
-        std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -205,12 +200,8 @@ public:
     bool CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type,
-        pid_t pid = 0, bool isLite = false);
-    void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, const std::string& type);
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
-    void SetAppWindowNum(uint32_t num);
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
     SystemAnimatedScenes GetSystemAnimatedScenes();
     bool GetIsRegularAnimation() const;
@@ -276,9 +267,11 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
-    void AddPidNeedDropFrame(std::vector<int32_t> pid);
+    void AddPidNeedDropFrame(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0);
     void ClearNeedDropframePidList();
+    void RemoveDropFramePid(pid_t pid);
     bool IsNeedDropFrameByPid(NodeId nodeId);
+    int32_t GetDropFrameLevelByPid(NodeId nodeId);
     void SetLuminanceChangingStatus(ScreenId id, bool isLuminanceChanged);
     bool ExchangeLuminanceChangingStatus(ScreenId id);
 
@@ -430,6 +423,7 @@ public:
     uint32_t GetVsyncRefreshRate();
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
     void MarkNodeDirty(uint64_t nodeId);
+    void SendColorPickerCallback(uint64_t nodeId, uint32_t color);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
@@ -509,7 +503,6 @@ private:
     void ClearDisplayBuffer();
     void PerfAfterAnim(bool needRequestNextVsync);
     void PerfForBlurIfNeeded();
-    void PerfMultiWindow();
     void RenderFrameStart(uint64_t timestamp);
     void CheckAndUpdateTransactionIndex(
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
@@ -588,6 +581,8 @@ private:
     void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
 
+    void ProcessNeedAttachedNodes();
+
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
     bool clearMemoryFinished_ = true;
@@ -650,11 +645,11 @@ private:
 
     pid_t lastCleanCachePid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
-    uint32_t appWindowNum_ = 0;
     pid_t desktopPidForRotationScene_ = 0;
     int32_t subscribeFailCount_ = 0;
-    SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
-    bool isRegularAnimation_ = false;
+    SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS; // guard by systemAndRegularMutex_
+    bool isRegularAnimation_ = false; // guard by systemAndRegularMutex_
+    mutable std::mutex systemAndRegularMutex_;
     uint32_t leashWindowCount_ = 0;
     pid_t exitedPid_ = -1;
     RsParallelType rsParallelType_;
@@ -819,7 +814,7 @@ private:
     RSDrawFrame drawFrame_;
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
-    std::unordered_set<int32_t> surfacePidNeedDropFrame_;
+    std::unordered_map<int32_t, int32_t> surfacePidNeedDropFrame_;  // pid -> dropFrameLevel
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
     RSSurfaceWatermarkHelper surfaceWatermarkHelper_;
 

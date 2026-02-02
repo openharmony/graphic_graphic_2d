@@ -22,11 +22,13 @@
 #include "stdexcept"
 #include <hilog/log.h>
 
+#include "mask/include/image_mask_para.h"
 #include "mask/include/mask.h"
 #include "mask/include/mask_para.h"
 #include "mask/include/pixel_map_mask_para.h"
 #include "mask/include/radial_gradient_mask_para.h"
 #include "mask/include/ripple_mask_para.h"
+#include "mask/include/use_effect_mask_para.h"
 #include "mask/include/wave_gradient_mask_para.h"
 
 namespace ANI::UIEffect {

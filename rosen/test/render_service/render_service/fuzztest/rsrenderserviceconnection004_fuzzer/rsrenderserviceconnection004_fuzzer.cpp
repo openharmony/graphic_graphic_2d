@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+* Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,9 @@
 #include "platform/ohos/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
+#include "ipc_callbacks/buffer_available_callback_stub.h"
+#include "ipc_callbacks/buffer_clear_callback_stub.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -55,9 +58,11 @@ const uint8_t DO_SET_POINTER_COLOR_INVERSION_CONFIG = 1;
 const uint8_t DO_SET_POINTER_COLOR_INVERSION_ENABLED = 2;
 const uint8_t DO_REGISTER_POINTER_LUMINANCE_CALLBACK = 3;
 const uint8_t DO_UNREGISTER_POINTER_LUMINANCE_CALLBACK = 4;
-const uint8_t TARGET_SIZE = 4;
+const uint8_t DO_REGISTER_APPLICATION_AGENT = 5;
+const uint8_t DO_SET_BUFFER_AVAILABLE_LISTENER = 6;
+const uint8_t DO_SET_BUFFER_CLEAR_LISTENER = 7;
+const uint8_t TARGET_SIZE = 8;
 
-sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -78,19 +83,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -103,21 +95,6 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 } // namespace
-
-namespace Mock {
-void CreateVirtualScreenStubbing(ScreenId screenId)
-{
-    uint32_t width = GetData<uint32_t>();
-    uint32_t height = GetData<uint32_t>();
-    int32_t flags = GetData<int32_t>();
-    std::string name = GetData<std::string>();
-    // Random name of IBufferProducer is not necessary
-    sptr<IBufferProducer> bp = IConsumerSurface::Create("DisplayNode")->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-
-    CONN->CreateVirtualScreen(name, width, height, pSurface, screenId, flags);
-}
-} // namespace Mock
 
 void DoSetPointerColorInversionConfig()
 {
@@ -157,6 +134,25 @@ void DoSetPointerColorInversionEnabled()
 #endif
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+class CustomTestPointerLuminanceChangeCallback : public RSPointerLuminanceChangeCallbackStub {
+public:
+    explicit CustomTestPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback) : cb_(callback)
+    {}
+    ~CustomTestPointerLuminanceChangeCallback() override{};
+
+    void OnPointerLuminanceChanged(int32_t brightness) override
+    {
+        if (cb_ != nullptr) {
+            cb_(brightness);
+        }
+    }
+
+private:
+    PointerLuminanceChangeCallback cb_;
+};
+#endif
+
 void DoRegisterPointerLuminanceChangeCallback()
 {
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -165,10 +161,11 @@ void DoRegisterPointerLuminanceChangeCallback()
     MessageParcel replyParcel;
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK);
 
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIPointerLuminanceChangeCallback> rsIPointerLuminanceChangeCallback_ =
-        iface_cast<RSIPointerLuminanceChangeCallback>(remoteObject);
+    int32_t brightness = GetData<int32_t>();
+    auto callback = [&brightness](int32_t brightness_) { brightness = brightness_; };
+    sptr<CustomTestPointerLuminanceChangeCallback> rsIPointerLuminanceChangeCallback_ =
+        new CustomTestPointerLuminanceChangeCallback(callback);
+
     if (!dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
@@ -192,6 +189,77 @@ void DoUnRegisterPointerLuminanceChangeCallback()
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 #endif
 }
+
+void DoRegisterApplicationAgent()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    dataParcel.WriteRemoteObject(nullptr);
+    dataParcel.RewindRead(0);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+class CustomTestBufferAvailableCallback : public RSBufferAvailableCallbackStub {
+public:
+    CustomTestBufferAvailableCallback() = default;
+    ~CustomTestBufferAvailableCallback() = default;
+
+    void OnBufferAvailable() override
+    {}
+};
+
+void DoRegisterBufferAvailableListener()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    sptr<RSIBufferAvailableCallback> rsIBufferAvailableCallback_ = new CustomTestBufferAvailableCallback();
+    auto nodeId = static_cast<NodeId>(g_pid) << 32;
+    bool isFromRenderThread = GetData<bool>();
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    dataParcel.WriteUint64(nodeId);
+    dataParcel.WriteRemoteObject(rsIBufferAvailableCallback_->AsObject());
+    dataParcel.WriteBool(isFromRenderThread);
+    dataParcel.RewindRead(0);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+class CustomTestBufferClearCallback : public RSBufferClearCallbackStub {
+public:
+    CustomTestBufferClearCallback() = default;
+    ~CustomTestBufferClearCallback() = default;
+
+    void OnBufferClear() override
+    {}
+};
+
+void DoRegisterBufferClearListener()
+{
+    NodeId nodeId = GetData<NodeId>();
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    sptr<RSIBufferClearCallback> rsBufferClearCallback = new CustomTestBufferClearCallback();
+
+    dataP.WriteUint64(nodeId);
+    dataP.WriteRemoteObject(rsBufferClearCallback->AsObject());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER);
+
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -221,6 +289,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_UNREGISTER_POINTER_LUMINANCE_CALLBACK:
             OHOS::Rosen::DoUnRegisterPointerLuminanceChangeCallback();
+            break;
+        case OHOS::Rosen::DO_REGISTER_APPLICATION_AGENT:
+            OHOS::Rosen::DoRegisterApplicationAgent();
+            break;
+        case OHOS::Rosen::DO_SET_BUFFER_AVAILABLE_LISTENER:
+            OHOS::Rosen::DoRegisterBufferAvailableListener();
+            break;
+        case OHOS::Rosen::DO_SET_BUFFER_CLEAR_LISTENER:
+            OHOS::Rosen::DoRegisterBufferClearListener();
             break;
         default:
             return -1;

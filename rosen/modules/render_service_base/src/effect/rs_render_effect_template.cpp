@@ -120,8 +120,7 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, const Matrix3f& value)
 {
-    Matrix3f matrix = value;
-    const auto matrixData = matrix.GetData();
+    const auto& matrixData = value.GetConstData();
     Drawing::Matrix drawingMatrix;
     drawingMatrix.SetMatrix(matrixData[Matrix3f::Index::SCALE_X], matrixData[Matrix3f::Index::SKEW_X],
                             matrixData[Matrix3f::Index::TRANS_X], matrixData[Matrix3f::Index::SKEW_Y],
@@ -129,6 +128,12 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
                             matrixData[Matrix3f::Index::PERSP_0], matrixData[Matrix3f::Index::PERSP_1],
                             matrixData[Matrix3f::Index::PERSP_2]);
     geFilter.SetParam(desc, drawingMatrix);
+}
+
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, const RSColor& value)
+{
+    geFilter.SetParam(desc, value.AsRgbaInt());
 }
 
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, int value)
@@ -226,11 +231,16 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
 
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const Matrix3f& value)
 {
-    Matrix3f matrix = value;
-    const auto matrixData = matrix.GetData();
+    const auto& matrixData = value.GetConstData();
     for (size_t i = 0; i < Matrix3f::MATRIX3_SIZE; i++) {
         hash = hashFunc_(&matrixData[i], sizeof(float), hash);
     }
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const RSColor& value)
+{
+    uint32_t color = value.AsRgbaInt();
+    hash = hashFunc_(&color, sizeof(color), hash);
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)

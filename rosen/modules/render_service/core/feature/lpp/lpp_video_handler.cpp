@@ -29,14 +29,14 @@ LppVideoHandler& LppVideoHandler::Instance()
 void LppVideoHandler::ConsumeAndUpdateLppBuffer(
     uint64_t vsyncId, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
-    std::shared_ptr<RSSurfaceHandler> surfaceHandler;
     bool isInvalidNode = UNLIKELY(surfaceNode == nullptr) ||
                          surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::BACKGROUND ||
-                         (surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler()) == nullptr ||
-                         surfaceHandler->GetConsumer() == nullptr;
+                         surfaceNode->GetMutableRSSurfaceHandler() == nullptr ||
+                         surfaceNode->GetMutableRSSurfaceHandler()->GetConsumer() == nullptr;
     if (isInvalidNode) {
         return;
     }
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     const auto& consumer = surfaceHandler->GetConsumer();
     std::lock_guard<std::mutex> lock(mutex_);
     bool needRemoveTopNode = lppConsumerMap_.find(vsyncId) == lppConsumerMap_.end() &&

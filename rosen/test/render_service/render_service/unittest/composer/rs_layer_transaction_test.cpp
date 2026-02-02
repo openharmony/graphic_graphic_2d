@@ -60,7 +60,7 @@ void RSLayerTransactionTest::SetUpTestCase()
 
 void RSLayerTransactionTest::TearDownTestCase()
 {
-    rsRenderComposer->uniRenderEngine_  = nullptr;
+    rsRenderComposer->uniRenderEngine_ = nullptr;
 }
 
 /**
@@ -93,7 +93,7 @@ HWTEST_F(RSLayerTransactionTest, CommitLayersTransactionTest, Level1)
 {
     ASSERT_NE(handler_, nullptr);
     ASSERT_NE(handler_->rsComposerConnection_, nullptr);
-    handler_->CommitLayersTransaction();
+    handler_->CommitRSLayerTransaction();
 }
 
 /**

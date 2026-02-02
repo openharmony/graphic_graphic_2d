@@ -238,6 +238,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
 #endif
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -784,7 +785,14 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            DropFrameByPid(pidList);
+            int32_t dropFrameLevel = 0;
+            if (!data.ReadInt32(dropFrameLevel)) {
+                RS_LOGE("RSClientToRenderConnectionStub::DROP_FRAME_BY_PID Read "
+                        "dropFrameLevel failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            DropFrameByPid(pidList, dropFrameLevel);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT) : {
@@ -989,6 +997,27 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             break;
         }
 #endif
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION): {
+            ScreenId id { INVALID_SCREEN_ID };
+            uint32_t logicalCorrection { 0 };
+            if (!data.ReadUint64(id) || !data.ReadUint32(logicalCorrection)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_LOGICAL_CAMERA_ROTATION_CORRECTION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (logicalCorrection > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_LOGICAL_CAMERA_ROTATION_CORRECTION screenRotation is "
+                        "invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = SetLogicalCameraRotationCorrection(id, static_cast<ScreenRotation>(logicalCorrection));
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_LOGICAL_CAMERA_ROTATION_CORRECTION Write parcel failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -1038,7 +1067,8 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(
         !data.ReadUint32(captureConfig.colorSpace.first) ||
         !data.ReadBool(captureConfig.colorSpace.second) ||
         !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
-        !data.ReadBool(captureConfig.dynamicRangeMode.second)) {
+        !data.ReadBool(captureConfig.dynamicRangeMode.second) ||
+        !data.ReadBool(captureConfig.isSyncRender)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
         return false;
     }

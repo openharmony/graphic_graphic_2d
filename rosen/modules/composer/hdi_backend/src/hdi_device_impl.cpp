@@ -15,6 +15,7 @@
 
 #include "hdi_device_impl.h"
 #include "hdi_log.h"
+#include <cinttypes>
 #include <cstddef>
 #include <cstdlib>
 #include <mutex>
@@ -135,6 +136,8 @@ int32_t HdiDeviceImpl::SetScreenConstraint(uint32_t screenId, uint64_t frameId, 
 
 int32_t HdiDeviceImpl::SetDisplayProperty(uint32_t screenId, uint32_t propertyId, uint64_t propertyValue)
 {
+    HLOGI("SetDisplayProperty, screenId:%{public}u, propertyId:%{public}u, propertyValue:%{public}" PRIu64 "",
+          screenId, propertyId, propertyValue);
     CHECK_FUNC(g_composer);
     return g_composer->SetDisplayProperty(screenId, propertyId, propertyValue);
 }
@@ -703,13 +706,13 @@ int32_t HdiDeviceImpl::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId,
 int32_t HdiDeviceImpl::SetTunnelLayerId(uint32_t devId, uint32_t layerId, uint64_t tunnelId)
 {
     CHECK_FUNC(g_composer);
-    return GRAPHIC_DISPLAY_SUCCESS;
+    return g_composer->SetTunnelLayerId(devId, layerId, tunnelId);
 }
 
 int32_t HdiDeviceImpl::SetTunnelLayerProperty(uint32_t devId, uint32_t layerId, uint32_t property)
 {
     CHECK_FUNC(g_composer);
-    return GRAPHIC_DISPLAY_SUCCESS;
+    return g_composer->SetTunnelLayerProperty(devId, layerId, property);
 }
 
 int32_t HdiDeviceImpl::GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
@@ -779,6 +782,12 @@ int32_t HdiDeviceImpl::RegHwcEventCallback(const RSHwcEventCallback& callback, v
 {
     CHECK_FUNC(g_composer);
     return g_composer->RegHwcEventCallback(callback, data);
+}
+
+int32_t HdiDeviceImpl::GetDisplayClientTargetProperty(uint32_t screenId, int32_t& pixelFormat, int32_t& dataspace)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace);
 }
 
 } // namespace Rosen

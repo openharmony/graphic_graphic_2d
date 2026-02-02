@@ -61,13 +61,13 @@ public:
      * @brief    Serialize drawing typeface cache (used for profiler replay).
      * @param ss String stream to write serialized data.
      */
-    void ReplaySerialize(std::stringstream& ss);
+    void ReplaySerialize(std::stringstream& stream);
 
     /**
      * @brief    Deserialize drawing typeface cache (used for profiler replay).
      * @param ss Serialized data.
      */
-    std::string ReplayDeserialize(std::stringstream& ss);
+    std::string ReplayDeserialize(std::stringstream& stream);
 
     RSTypefaceCache() = default;
     ~RSTypefaceCache() = default;
@@ -91,7 +91,7 @@ private:
     mutable std::mutex mapMutex_;
     std::unordered_map<uint64_t, uint64_t> typefaceHashCode_;
     std::unordered_map<uint64_t, TypefaceTuple> typefaceHashMap_;
-    std::unordered_map<uint32_t, std::shared_ptr<Drawing::Typeface>> typefaceBaseHashMap_;
+    std::unordered_map<uint32_t, TypefaceTuple> typefaceBaseHashMap_;
 
     mutable std::mutex listMutex_;
     std::list<RSTypefaceRef> delayDestroyTypefaces_;

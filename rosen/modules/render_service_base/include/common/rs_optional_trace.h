@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE
 #define RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE
 
-#include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
+#include "rs_trace.h"
 #include "securec.h"
 #ifndef ROSEN_TRACE_DISABLE
 #include "platform/common/rs_system_properties.h"
@@ -103,12 +103,17 @@ public:
         va_list vaList;
         char buf[maxSize_];
         va_start(vaList, fmt);
-        if (vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, fmt, vaList) < 0) {
-            va_end(vaList);
-            StartTrace(HITRACE_TAG_GRAPHIC_AGP, "length > 256, error");
+        int result = vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, fmt, vaList);
+        va_end(vaList);
+
+        if (result < 0) {
+            std::string traceStr(buf, maxSize_ - 1);
+            const char* errorSuffix = "#length > 256, error";
+            traceStr += errorSuffix;
+            StartTrace(HITRACE_TAG_GRAPHIC_AGP, traceStr.c_str());
             return;
         }
-        va_end(vaList);
+
         StartTrace(HITRACE_TAG_GRAPHIC_AGP, buf);
     }
 private:
@@ -122,12 +127,17 @@ public:
         va_list vaList;
         char buf[maxSize_];
         va_start(vaList, fmt);
-        if (vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, fmt, vaList) < 0) {
-            va_end(vaList);
-            StartTrace(HITRACE_TAG_GRAPHIC_AGP, "length > 256, error");
+        int result = vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, fmt, vaList);
+        va_end(vaList);
+
+        if (result < 0) {
+            std::string traceStr(buf, maxSize_ - 1);
+            const char* errorSuffix = "#length > 256, error";
+            traceStr += errorSuffix;
+            StartTrace(HITRACE_TAG_GRAPHIC_AGP, traceStr.c_str());
             return;
         }
-        va_end(vaList);
+
         StartTrace(HITRACE_TAG_GRAPHIC_AGP, buf);
     }
     ~RSOptionalFmtTrace()

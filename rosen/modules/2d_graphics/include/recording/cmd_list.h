@@ -329,11 +329,6 @@ public:
     std::shared_ptr<ExtendDrawFuncObj> GetDrawFuncObj(uint32_t id);
 
     /*
-     * @brief  copy object vec to another CmdList.
-     */
-    void CopyObjectTo(CmdList& other) const;
-
-    /*
      * @brief  return recording op count.
      */
     uint32_t GetOpCnt() const;

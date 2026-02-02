@@ -17,16 +17,17 @@
 #define RENDER_SERVICE_BASE_RS_HPAE_HIANIMATION_TYPES_H
 
 #include <cstdint>
+#include <vector>
 
 const uint32_t HAE_COLOR_MATRIX_COEF_COUNT = 20;
 namespace OHOS::Rosen {
 struct HaeRect {
-    int l;
-    int t;
-    int r;
-    int b;
+    int32_t l;
+    int32_t t;
+    int32_t r;
+    int32_t b;
 
-    HaeRect(int left, int top, int right, int bottom)
+    HaeRect(int32_t left, int32_t top, int32_t right, int32_t bottom)
     {
         l = left;
         t = top;
@@ -41,42 +42,42 @@ struct HaeRect {
         r = 0;
         b = 0;
     };
-};
+} __attribute__ ((aligned(8)));
 
 struct HaeImage {
-    void *handle;
+    void* handle;
     struct HaeRect rect;
-};
+} __attribute__ ((aligned(8)));
 
 struct HaePixel {
     uint16_t a;
     uint16_t r;
     uint16_t g;
     uint16_t b;
-};
+} __attribute__ ((aligned(8)));
 
 struct HaeNoiseValue {
     float noiseRatio;
     float noiseValue;
     float noiseUpClip;
     float noiseDnClip;
-};
+} __attribute__ ((aligned(8)));
 
 struct BlurImgParam {
     uint32_t width;
     uint32_t height;
     float sigmaNum;
-};
+} __attribute__ ((aligned(8)));
 
 struct HaeBlurBasicAttr {
-    struct HaeImage *srcLayer;
-    struct HaeImage *dstLayer;
+    struct HaeImage srcLayer;
+    struct HaeImage dstLayer;
     uint32_t perfLevel;
     uint32_t timeoutMs = 0;
     int32_t expectRunTime = -1;
     float sigmaNum;
     bool enablePremult;
-};
+} __attribute__ ((aligned(8)));
 
 enum BlppAbility : uint32_t {
     BLPP_CANCEL_PREMULT_EN = 1 << 0,
@@ -91,28 +92,36 @@ enum BlppAbility : uint32_t {
 
 struct HaeBlurEffectAttr {
     uint16_t effectCaps;
-    struct HaeNoiseValue noisePara;
     uint32_t alphaReplaceVal;
-    float colorMatrixCoef[HAE_COLOR_MATRIX_COEF_COUNT];
+    struct HaeNoiseValue noisePara;
+    std::vector<float> colorMatrixCoef;
     struct HaePixel colorMaskPara;
 };
 
+// define function pointer types
+using HianimationOpenDeviceFunc = void* (*)();
+using HianimationCloseDeviceFunc = void (*)();
+using HianimationInputCheckFunc = int32_t (*)(const BlurImgParam* imgInfo, const HaeNoiseValue* noisePara);
+using HianimationAlgoInitFunc = int32_t (*)(uint32_t imgWidth, uint32_t imgHeight, float maxSigma, uint32_t format);
+using HianimationAlgoDeInitFunc = int32_t (*)();
+using HianimationBuildTaskFunc = int32_t (*)(const HaeBlurBasicAttr* basicInfo, const HaeBlurEffectAttr* effectInfo,
+    uint32_t* outTaskId, void** taskPtr);
+using HianimationDestroyTaskFunc = int32_t (*)(uint32_t taskId);
+using HianimationDumpDebugInfoFunc = int32_t (*)(uint32_t taskId);
+
+// define device structure
 struct hianimation_algo_device_t {
-    bool (* hianimationInputCheck)(const struct BlurImgParam *imgInfo, const struct HaeNoiseValue *noisePara);
-
-    int32_t (* hianimationAlgoInit)(uint32_t imgWeight, uint32_t imgHeight, float maxSigma, uint32_t format);
-
-    int32_t (* hianimationAlgoDeInit)();
-
-    int32_t (* hianimationBuildTask)(const struct HaeBlurBasicAttr *basicInfo,
-        const struct HaeBlurEffectAttr *effectInfo, uint32_t *outTaskId, void **outTaskPtr);
-
-    int32_t (* hianimationSyncProcess)(const struct HaeBlurBasicAttr *basicInfo,
-        const struct HaeBlurEffectAttr *effectInfo);
-
-    int32_t (* hianimationDestroyTask)(uint32_t taskId);
-
-    void (* hianimationDumpDebugInfo)(uint32_t taskId);
+    void* device;
+    HianimationOpenDeviceFunc openDevice;
+    HianimationCloseDeviceFunc closeDevice;
+    HianimationInputCheckFunc hianimationInputCheck;
+    HianimationAlgoInitFunc hianimationAlgoInit;
+    HianimationAlgoDeInitFunc hianimationAlgoDeInit;
+    HianimationBuildTaskFunc hianimationBuildTask;
+    HianimationDestroyTaskFunc hianimationDestroyTask;
+    HianimationDumpDebugInfoFunc hianimationDumpDebugInfo;
+    
+    hianimation_algo_device_t() = default;
 };
 
 } // OHOS::Rosen

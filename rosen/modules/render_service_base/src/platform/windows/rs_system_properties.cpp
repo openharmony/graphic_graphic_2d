@@ -71,6 +71,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetTestModeEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 {
     return false;
@@ -179,6 +184,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
 bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
     return false;
+}
+
+bool RSSystemProperties::GetSurfaceNodeWatermarkEnabled()
+{
+    return {};
 }
 
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
@@ -299,17 +309,17 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
     return 0;
 }
 
+bool RSSystemProperties::GetDynamicBrightnessEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
 {
     return true;
 }
 
 bool RSSystemProperties::GetMotionBlurEnabled()
-{
-    return true;
-}
-
-bool RSSystemProperties::GetDynamicBrightnessEnabled()
 {
     return true;
 }
@@ -335,16 +345,6 @@ bool RSSystemProperties::FindNodeInTargetList(std::string node)
 }
 
 bool RSSystemProperties::IsFoldScreenFlag()
-{
-    return false;
-}
-
-bool RSSystemProperties::IsSmallFoldDevice()
-{
-    return false;
-}
-
-bool RSSystemProperties::IsFoldDeviceOfOldDss()
 {
     return false;
 }
@@ -456,16 +456,6 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
     return false;
 }
 
-bool RSSystemProperties::IsPhoneType()
-{
-    return false;
-}
-
-bool RSSystemProperties::IsBetaRelease()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     return false;
@@ -501,11 +491,6 @@ bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetEffectMergeEnabled()
 {
     return true;
@@ -517,11 +502,6 @@ bool RSSystemProperties::GetDumpUICaptureEnabled()
 }
 
 bool RSSystemProperties::GetDumpUIPixelmapEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetTransactionTerminateEnabled()
 {
     return false;
 }
@@ -571,11 +551,6 @@ bool RSSystemProperties::GetWideColorSpaceEnabled()
     return true;
 }
 
-bool RSSystemProperties::GetSkipUnpremulEnabled()
-{
-    return true;
-}
-
 bool RSSystemProperties::GetRenderParallelEnabled()
 {
     return false;
@@ -586,12 +561,12 @@ bool RSSystemProperties::IsForceClient()
     return false;
 }
 
-bool RSSystemProperties::GetTextBlobAsPixelMap()
+bool RSSystemProperties::GetTransactionTerminateEnabled()
 {
     return false;
 }
 
-bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
+bool RSSystemProperties::GetTextBlobAsPixelMap()
 {
     return false;
 }
@@ -611,14 +586,19 @@ bool RSSystemProperties::GetOptBatchRemovingOnRemoteDiedEnabled()
     return false;
 }
 
-std::string RSSystemProperties::GetVersionType()
+bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 {
-    return "";
+    return false;
 }
 
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 {
     return false;
+}
+
+std::string RSSystemProperties::GetVersionType()
+{
+    return "";
 }
 
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()
@@ -646,6 +626,11 @@ bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     return true;
@@ -661,12 +646,32 @@ bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetTimeVsyncDisabled()
+bool RSSystemProperties::IsSmallFoldDevice()
 {
     return false;
 }
 
+bool RSSystemProperties::IsFoldDeviceOfOldDss()
+{
+    return false;
+}
+
+void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
+{
+    debugFmtTraceEnable_ = flag;
+}
+
+bool RSSystemProperties::GetDebugFmtTraceEnabled()
+{
+    return GetDebugTraceEnabled();
+}
+
 bool RSSystemProperties::GetTextureExportDFXEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetTimeVsyncDisabled()
 {
     return false;
 }
@@ -741,31 +746,21 @@ bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
     return false;
 }
 
+void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
+{
+}
+
+bool RSSystemProperties::GetBehindWindowFilterEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetVKImageUseEnabled()
 {
     return false;
 }
 
 bool RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()
-{
-    return false;
-}
-
-void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
-{
-    debugFmtTraceEnable_ = flag;
-}
-
-bool RSSystemProperties::GetDebugFmtTraceEnabled()
-{
-    return GetDebugTraceEnabled();
-}
-
-void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
-{
-}
-
-bool RSSystemProperties::GetBehindWindowFilterEnabled()
 {
     return false;
 }
@@ -780,11 +775,6 @@ int RSSystemProperties::GetSubThreadDropFrameInterval()
     return 0;
 }
 
-bool RSSystemProperties::GetCompositeLayerEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetTypicalResidentProcess()
 {
     return false;
@@ -794,17 +784,17 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
 {
 }
 
+bool RSSystemProperties::GetCompositeLayerEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetAIBarOptEnabled()
 {
     return false;
 }
 
 bool RSSystemProperties::GetAIBarDirectCompositeFullEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetSupportScreenFreezeEnabled()
 {
     return false;
 }
@@ -824,6 +814,11 @@ bool RSSystemProperties::GetGpuDirtyApsEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetSupportScreenFreezeEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetBootCompleted()
 {
     return false;
@@ -834,17 +829,7 @@ bool RSSystemProperties::GetClipRRectOptimizationEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetRSNodeExceedKillEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
+bool RSSystemProperties::GetTransactionDataTraceEnabled()
 {
     return false;
 }
@@ -859,12 +844,27 @@ bool RSSystemProperties::GetSceneBoardIsPcMode()
     return false;
 }
 
-bool RSSystemProperties::GetReleaseImageOneByOneFlag()
+bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
 {
     return false;
 }
 
-bool RSSystemProperties::GetTransactionDataTraceEnabled()
+bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetUnmarshalParallelEnabled()
+{
+    return false;
+}
+
+uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetReleaseImageOneByOneFlag()
 {
     return false;
 }

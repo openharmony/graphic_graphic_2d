@@ -15,17 +15,17 @@
 
 #include "gtest/gtest.h"
 
-#include "rs_canvas_render_node_drawable.h"
-#include "rs_effect_render_node_drawable.h"
-#include "rs_logical_display_render_node_drawable.h"
-#include "rs_render_node_drawable.h"
-#include "rs_surface_render_node_drawable.h"
+#include "drawable/rs_canvas_render_node_drawable.h"
+#include "drawable/rs_effect_render_node_drawable.h"
+#include "drawable/rs_logical_display_render_node_drawable.h"
+#include "drawable/rs_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class RSSubtreeTest : public testing:Test {
+class RSSubtreeTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();

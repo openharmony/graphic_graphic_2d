@@ -135,9 +135,14 @@ HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode, TestSize.Level1)
     }
     {
         RSSurfaceNode::SharedPtr shadowNode2 = surfaceNode->CreateShadowSurfaceNode();
-        auto rsUIContext = shadowNode2->GetRSUIContext();
         ASSERT_TRUE(shadowNode2->isShadowNode_);
-        RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
+        auto rsUIContext = shadowNode2->GetRSUIContext();
+        if (RSUIContextManager::MutableInstance().isMultiInstanceOpen_) {
+            ASSERT_NE(rsUIContext, nullptr);
+            RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
+        } else {
+            ASSERT_EQ(rsUIContext, nullptr);
+        }
     }
 }
 
@@ -1946,5 +1951,32 @@ HWTEST_F(RSSurfaceNodeTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction();
     }
+}
+
+/**
+ * @tc.name: SetContainerWindowTransparentTest
+ * @tc.desc: Test function SetContainerWindowTransparent
+ * @tc.type: FUNC
+ * @tc.require: issue21291
+ */
+HWTEST_F(RSSurfaceNodeTest, SetContainerWindowTransparentTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetContainerWindowTransparent(true);
+}
+
+/**
+ * @tc.name: SetAppRotationCorrectionTest
+ * @tc.desc: Test function SetAppRotationCorrection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetAppRotationCorrectionTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetAppRotationCorrection(ScreenRotation::ROTATION_90);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 } // namespace OHOS::Rosen

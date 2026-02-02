@@ -17,7 +17,12 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "effect/rs_render_property_tag.h"
 #include "effect/rs_render_shape_base.h"
+#include "ge_render.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+#include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_color_picker_def.h"
 #include "property/rs_properties_painter.h"
@@ -59,7 +64,6 @@ void RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(
     if (!effect || effect->GetType() != RSNGEffectType::FROSTED_GLASS || canvas == nullptr) {
         return;
     }
-    auto glass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(effect);
     auto color = static_cast<RSPaintFilterCanvas*>(canvas)->GetColorPicked(ColorPlaceholder::SURFACE_CONTRAST);
     // assuming r, g, b are interpolated the same way
     constexpr float COLOR_MAX = 255.0f;
@@ -81,6 +85,11 @@ Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)
         radii.at(i).SetY(rr.radius_[i].y_);
     }
     return { rect, radii };
+}
+
+RectI RSPropertyDrawableUtils::DrawingRectI2RectI(const Drawing::RectI& r)
+{
+    return { r.left_, r.top_, r.GetWidth(), r.GetHeight() };
 }
 
 Drawing::Rect RSPropertyDrawableUtils::Rect2DrawingRect(const RectF& r)
@@ -208,14 +217,9 @@ bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> con
         RS_LOGE("RSPropertyDrawableUtils::PickColor ReadPixel Failed");
         return false;
     }
-    uint32_t errorCode = 0;
-    std::shared_ptr<RSColorPicker> colorPicker = RSColorPicker::CreateColorPicker(dst, errorCode);
-    if (colorPicker == nullptr || errorCode != 0) {
-        RS_LOGE("RSPropertyDrawableUtils::PickColor CreateColorPicker failed");
-        return false;
-    }
-    if (colorPicker->GetAverageColor(colorPicked) != 0) {
-        RS_LOGE("RSPropertyDrawableUtils::PickColor PickColor failed");
+    // Use direct average calculation to avoid quantization artifacts
+    if (RSColorPicker::GetAverageColorDirect(dst, colorPicked) != 0) {
+        RS_LOGE("RSPropertyDrawableUtils::PickColor GetAverageColorDirect failed");
         return false;
     }
     return true;
@@ -239,7 +243,7 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(std::shar
         return nullptr;
     }
 
-    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::SamplingOptions linear(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
     std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBuilder =
         std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
     Drawing::ImageInfo pcInfo;
@@ -386,7 +390,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     auto enableCache = (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr &&
-        RSProperties::filterCacheEnabled_);
+        RSProperties::filterCacheEnabled_ && !cacheManager->IsFilterCacheMemExceedThreshold());
     if (enableCache) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
@@ -535,7 +539,8 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (RSProperties::filterCacheEnabled_ && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
+    if (RSProperties::filterCacheEnabled_ && cacheManager != nullptr && !canvas->GetDisableFilterCache() &&
+        !cacheManager->IsFilterCacheMemExceedThreshold()) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
         }
@@ -1216,8 +1221,10 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas, UseEffe
     canvas->AttachBrush(brush);
     // Draw the cached image in the coordinate system where the effect data is generated. The image content
     // outside the device clip bounds will be automatically clipped.
-    canvas->DrawImage(*effectData->cachedImage_, static_cast<float>(effectData->cachedRect_.GetLeft()),
-        static_cast<float>(effectData->cachedRect_.GetTop()), Drawing::SamplingOptions());
+    auto cachedImageSrcRect = Drawing::Rect(0, 0, effectData->cachedImage_->GetWidth(),
+        effectData->cachedImage_->GetHeight());
+    canvas->DrawImageRect(*effectData->cachedImage_, cachedImageSrcRect, effectData->cachedRect_,
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     RS_OPTIONAL_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect cachedRect_:%s, DeviceClipBounds:%s, "
         "IdentityMatrix: %d", effectData->cachedRect_.ToString().c_str(),
         canvas->GetDeviceClipBounds().ToString().c_str(), effectData->cachedMatrix_.IsIdentity());
@@ -1292,52 +1299,39 @@ void RSPropertyDrawableUtils::DrawFilterWithDRM(Drawing::Canvas* canvas, bool is
 {
     Drawing::Brush brush;
     int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
-    RSColor demoColor;
-    if (isDark) {
-        int16_t rgb_dark = 80;
-        demoColor = RSColor(rgb_dark, rgb_dark, rgb_dark, alpha);
-    } else {
-        int16_t rgb_light = 235;
-        demoColor = RSColor(rgb_light, rgb_light, rgb_light, alpha);
-    }
-
-    float sat = 1.0f;
-    float brightness = 0.9f;
-    float normalizedDegree = brightness - sat;
-    const float brightnessMat[] = {
-        1.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        1.0f,
-        0.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-    };
-    Drawing::ColorMatrix cm;
-    cm.SetSaturation(sat);
-    float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
-    cm.GetArray(cmArray);
-    std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
-    auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*filterCompose, nullptr);
-    Drawing::Filter filter;
-    filter.SetImageFilter(colorImageFilter);
-    brush.SetFilter(filter);
+    int16_t rgb = isDark ? 55 : 210; // RGB values of the color filter to be replaced in the DRM scenario
+    RSColor demoColor = RSColor(rgb, rgb, rgb, alpha);
     brush.SetColor(demoColor.AsArgbInt());
     canvas->DrawBackground(brush);
+}
+
+void RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
+    const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
+    const std::string& shapeTag)
+{
+    if (!filterGEContainer) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM filterGEContainer null");
+        return;
+    }
+    auto visualEffect = filterGEContainer->GetGEVisualEffect(filterTag);
+    if (!visualEffect) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM visualEffect null");
+        return;
+    }
+    auto geShape = visualEffect->GetGEShaderShape(shapeTag);
+    auto sdfColorVisualEffect =
+        std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_SHADER_SDF_COLOR, Drawing::DrawingPaintType::BRUSH);
+    sdfColorVisualEffect->SetParam(Drawing::GE_SHADER_SDF_COLOR_SHAPE, geShape);
+    int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
+    int16_t rgb = isDark ? 55 : 210; // RGB values of the color filter to be replaced in the DRM scenario
+    Drawing::Color color(rgb, rgb, rgb, alpha);
+    Vector4f geColor(color.GetRedF(), color.GetGreenF(), color.GetBlueF(), color.GetAlphaF());
+    sdfColorVisualEffect->SetParam(Drawing::GE_SHADER_SDF_COLOR_COLOR, geColor);
+
+    auto geContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    geContainer->AddToChainedFilter(sdfColorVisualEffect);
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    geRender->DrawShaderEffect(*canvas, *geContainer, *rect);
 }
 
 void RSPropertyDrawableUtils::EndBlender(RSPaintFilterCanvas& canvas, int blendModeApplyType)
@@ -1709,35 +1703,48 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSPropertyDrawableUtils::GetAbsRectBy
     return {absImageRect, absDrawRect};
 }
 
-bool RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(const RSProperties& properties,
+void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properties,
     const std::shared_ptr<RSDrawingFilter>& drawingFilter, NodeId nodeId)
 {
     if (!drawingFilter) {
-        return false;
+        return;
     }
     const auto& renderFilter = drawingFilter->GetNGRenderFilter();
-    if (!renderFilter || renderFilter->GetType() != RSNGEffectType::FROSTED_GLASS) {
-        return true;
+    if (!renderFilter) {
+        return;
+    }
+    // refactor if more SDF-based filters are added
+    if (renderFilter->GetType() == RSNGEffectType::SDF_EDGE_LIGHT) {
+        const auto& filter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(renderFilter);
+        auto sdfShape = properties.GetSDFShape();
+        if (sdfShape) {
+            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, SDF_EDGE_LIGHT, node %{public}" PRIu64,
+                nodeId);
+            filter->Setter<SDFEdgeLightSDFShapeRenderTag>(sdfShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+            drawingFilter->SetNGRenderFilter(filter);
+        }
+        return;
+    }
+    if (renderFilter->GetType() != RSNGEffectType::FROSTED_GLASS) {
+        return;
     }
     const auto& filter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
     auto sdfShape = properties.GetSDFShape();
     if (sdfShape) {
-        if (sdfShape->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE) {
-            return false;
-        }
-        ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter, use sdfShape, node %{public}" PRIu64,
+        ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, use sdfShape, node %{public}" PRIu64,
             nodeId);
-        filter->Setter<FrostedGlassShapeRenderTag>(sdfShape);
-        return true;
+        filter->Setter<FrostedGlassShapeRenderTag>(sdfShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+        drawingFilter->SetNGRenderFilter(filter);
+        return;
     }
     auto sdfRRect = properties.GetRRectForSDF();
     auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
         RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
-    ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter, rrect %{public}s, node %{public}" PRIu64,
-        sdfRRect.rect_.ToString().c_str(), nodeId);
+    ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFilter, rrect %{public}s, node %{public}" PRIu64,
+        sdfRRect.ToString().c_str(), nodeId);
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
-    filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape);
-    return true;
+    filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    drawingFilter->SetNGRenderFilter(filter);
 }
 
 } // namespace Rosen

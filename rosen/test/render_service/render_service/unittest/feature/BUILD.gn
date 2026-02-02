@@ -28,7 +28,7 @@ group("unittest") {
     ":RSOpincDrawCacheTest",
     ":RSSpecialLayerUtilsTest",
     ":RSSubThreadCacheTest",
-    ":RSSurfaceCaptureParallelTaskTest",
+    ":RSSurfaceCaptureTaskParallelTest",
     ":RSSurfaceCaptureTaskTest",
     ":RSUiCaptureSoloTaskParallelTest",
     ":RSUiCaptureTaskParallelTest",
@@ -40,7 +40,11 @@ group("unittest") {
     ":RSWindowKeyFrameDrawableTest",
     ":RSWindowCaptureTaskTest",
     ":RSHpaeRenderListenerTest",
+    ":RSUniHwcEventManagerTest",
   ]
+  if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable) {
+    deps += [ ":RSHeteroHDRHpaeTest" ]
+  }
   if (graphic_2d_feature_enable_rdo) {
     deps += [ ":RSRDOTest" ]
   }
@@ -86,6 +90,47 @@ config("capture_test") {
   include_dirs = [ "$graphic_2d_root/rosen/modules/render_service/core" ]
 }
 
+## Build RSHeteroHDRHpaeTest
+ohos_unittest("RSHeteroHDRHpaeTest") {
+  module_out_path = module_output_path
+  sources = []
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+  ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ffrt:libffrt",
+  ]
+  if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable
+    && defined(graphic_2d_hetero_hdr_configs)) {
+    sources += graphic_2d_hetero_hdr_configs.render_service_hetero_hdr_unittest_sources
+    include_dirs += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_include
+    external_deps += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_external_deps
+  }
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+}
+
 ## Build RSOcclusionHandlerTest
 ohos_unittest("RSOcclusionHandlerTest") {
   module_out_path = module_output_path
@@ -124,8 +169,8 @@ ohos_unittest("RSOcclusionNodeTest") {
   ]
 }
 
-## Build RSSurfaceCaptureParallelTaskTest
-ohos_unittest("RSSurfaceCaptureParallelTaskTest") {
+## Build RSSurfaceCaptureTaskParallelTest
+ohos_unittest("RSSurfaceCaptureTaskParallelTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
@@ -1074,6 +1119,9 @@ ohos_unittest("RSSpecialLayerUtilsTest") {
     "hilog:libhilog",
     "samgr:samgr_proxy",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
 }
 
 ## Build RSUniDirtyComputeUtilTest
@@ -1173,6 +1221,7 @@ ohos_unittest("RSHpaeManagerTest") {
   sources = [ "hpae/rs_hpae_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "ffrt:libffrt",
     "c_utils:utils",
     "hilog:libhilog",
   ]
@@ -1202,6 +1251,33 @@ ohos_unittest("RSChipsetVsyncTest") {
     "c_utils:utils",
     "hilog:libhilog",
   ]
+}
+
+## Build RSUniHwcEventManagerTest
+ohos_unittest("RSUniHwcEventManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "hwc_event/rs_uni_hwc_event_manager_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
 }
 
 ## Build rs_test_common.a {{{

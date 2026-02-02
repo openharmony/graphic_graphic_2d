@@ -52,8 +52,8 @@ public:
         int32_t bufferAge, const ScreenInfo& screenInfo, bool isSecScreen = false);
     // merge history dirty region of current display node and its child surfacenode(app windows)
     // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
-    static void MergeDirtyHistoryForDrawable(DrawableV2::RSScreenRenderNodeDrawable& drawable, int32_t bufferAge,
-        RSScreenRenderParams& params, bool useAlignedDirtyRegion = false);
+    static void MergeDirtyHistoryForDrawable(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
+        int32_t bufferAge, RSScreenRenderParams& params, bool useAlignedDirtyRegion = false);
     static void SetDrawRegionForQuickReject(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
         const Occlusion::Region mergedDirtyRects);
@@ -66,7 +66,7 @@ public:
         std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec);
     static Occlusion::Region MergeDirtyRects(Occlusion::Region dirtyRegion);
     static void MergeDirtyHistoryInVirtual(
-        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, int32_t bufferAge, bool renderParallel = false);
+        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, int32_t bufferAge);
     // isSecScreen means that special layers can be displayed on the screen, for example wired mirror screen.
     static Occlusion::Region MergeVisibleDirtyRegionInVirtual(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
@@ -79,10 +79,10 @@ public:
         const sptr<IConsumerSurface>& surface, RectF& localBounds);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node,
         bool forceCPU, uint32_t threadIndex = UNI_RENDER_THREAD_INDEX, bool useRenderParams = false);
-    static BufferDrawParam CreateBufferDrawParam(const RSScreenRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceHandler& surfaceHandler, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
-        bool forceCPU, uint32_t threadIndex);
+        bool forceCPU, uint32_t threadIndex = UNI_RENDER_THREAD_INDEX);
+    static BufferDrawParam CreateBufferDrawParam(const RSScreenRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(sptr<SurfaceBuffer> buffer,
         sptr<SyncFence> acquireFence, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParamForRotationFixed(
@@ -91,22 +91,19 @@ public:
     static BufferDrawParam CreateLayerBufferDrawParam(const RSLayerPtr& layer, bool forceCPU);
     static void DealWithRotationAndGravityForRotationFixed(GraphicTransformType transform, Gravity gravity,
         RectF& localBounds, BufferDrawParam& params);
-    static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
     static void DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& rect, Drawing::Color color,
         float alpha, const std::string& extraInfo = "");
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int TransferToAntiClockwiseDegrees(int angle);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
+    static std::tuple<float, float> GetScaleFromMatrix(Drawing::Matrix matrix);
 
-    static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isClearCompletedCacheSurface = true);
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);
-    static std::vector<GrBackendSemaphore> PrepareHdrSemaphoreVector(GrBackendSemaphore& backendSemaphore,
-        std::shared_ptr<Drawing::Surface>& surface);
     static SecRectInfo GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect);
     static SecSurfaceInfo GenerateSecSurfaceInfoFromNode(
         NodeId uiExtensionId, NodeId hostId, SecRectInfo uiExtensionRectInfo);
@@ -128,13 +125,14 @@ public:
     // Calculate the rotation angle around the z-axis from quaternion
     static float GetYawFromQuaternion(const Quaternion& q);
     static void CollectHardwareEnabledNodesByDisplayNodeId(
-        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& enableNodes,
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& enabledNodes,
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& topEnabledNodes, NodeId id);
     static void AdjustZOrderAndDrawSurfaceNode(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& drawables,
         Drawing::Canvas& canvas, RSScreenRenderParams& params);
     static void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f,
         bool displayP3Enable = false);
+    static Drawing::Matrix GetMatrixByDegree(int degree, const RectF& bounds);
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);

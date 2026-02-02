@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,13 +26,17 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/rs_irender_service.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
 #include <iservice_registry.h>
+#include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
+
 #include <system_ability_definition.h>
 
 namespace OHOS {
@@ -53,15 +57,14 @@ const uint8_t DO_REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK = 0;
 const uint8_t DO_UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK = 1;
 const uint8_t TARGET_SIZE = 2;
 
-sptr<RSIClientToServiceConnection> CONN = nullptr;
-const uint8_t* DATA = nullptr;
+const uint8_t *DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 
-template<class T>
+template <class T>
 T GetData()
 {
-    T object {};
+    T object{};
     size_t objectSize = sizeof(object);
     if (DATA == nullptr || objectSize > g_size - g_pos) {
         return object;
@@ -74,20 +77,7 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
-bool Init(const uint8_t* data, size_t size)
+bool Init(const uint8_t *data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -98,22 +88,24 @@ bool Init(const uint8_t* data, size_t size)
     g_pos = 0;
     return true;
 }
-} // namespace
+}  // namespace
 
-namespace Mock {
-void CreateVirtualScreenStubbing(ScreenId screenId)
-{
-    uint32_t width = GetData<uint32_t>();
-    uint32_t height = GetData<uint32_t>();
-    int32_t flags = GetData<int32_t>();
-    std::string name = GetData<std::string>();
-    // Random name of IBufferProducer is not necessary
-    sptr<IBufferProducer> bp = IConsumerSurface::Create("DisplayNode")->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+class CustomTestSurfaceOcclusionChangeCallback : public RSSurfaceOcclusionChangeCallbackStub {
+public:
+    explicit CustomTestSurfaceOcclusionChangeCallback(const SurfaceOcclusionChangeCallback &callback) : cb_(callback)
+    {}
+    ~CustomTestSurfaceOcclusionChangeCallback() override{};
 
-    CONN->CreateVirtualScreen(name, width, height, pSurface, screenId, flags);
-}
-} // namespace Mock
+    void OnSurfaceOcclusionVisibleChanged(float visibleAreaRatio) override
+    {
+        if (cb_ != nullptr) {
+            cb_(visibleAreaRatio);
+        }
+    }
+
+private:
+    SurfaceOcclusionChangeCallback cb_;
+};
 
 void DoRegisterSurfaceOcclusionChangeCallback()
 {
@@ -128,10 +120,13 @@ void DoRegisterSurfaceOcclusionChangeCallback()
     if (!dataP.WriteUint64(id)) {
         return;
     }
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
-    if (!dataP.WriteRemoteObject(callback->AsObject())) {
+
+    float visibleAreaRatio = GetData<float>();
+    auto callback = [&visibleAreaRatio](float visibleAreaRatio_) { visibleAreaRatio = visibleAreaRatio_; };
+    sptr<CustomTestSurfaceOcclusionChangeCallback> surfaceOcclusionChangeCallback_ =
+        new CustomTestSurfaceOcclusionChangeCallback(callback);
+
+    if (!dataP.WriteRemoteObject(surfaceOcclusionChangeCallback_->AsObject())) {
         return;
     }
     std::vector<float> partitionPoints;
@@ -140,8 +135,8 @@ void DoRegisterSurfaceOcclusionChangeCallback()
     if (!dataP.WriteFloatVector(partitionPoints)) {
         return;
     }
-    uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
@@ -158,12 +153,12 @@ void DoUnRegisterSurfaceOcclusionChangeCallback()
     if (!dataP.WriteUint64(id)) {
         return;
     }
-    uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
-} // namespace Rosen
-} // namespace OHOS
+}  // namespace Rosen
+}  // namespace OHOS
 
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
@@ -172,7 +167,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 }
 
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     if (!OHOS::Rosen::Init(data, size)) {
         return -1;

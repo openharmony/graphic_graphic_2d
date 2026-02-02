@@ -17,6 +17,7 @@
 
 #include <sstream>
 #include <string>
+
 #include "new_render_context/render_context_gl.h"
 #ifdef RS_ENABLE_VK
 #include "new_render_context/render_context_vk.h"

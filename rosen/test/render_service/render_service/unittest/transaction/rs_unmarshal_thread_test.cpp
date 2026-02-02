@@ -24,6 +24,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+const int MAX_CONCURRENCY = 3;
 class RSUnmarshalThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -199,5 +200,29 @@ HWTEST_F(RSUnmarshalThreadTest, TransactionDataStatistics001, TestSize.Level1)
     ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), isSystemCall), false);
     ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), isSystemCall), false);
     ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), isSystemCall), false);
+}
+
+/**
+ * @tc.name: WaitUntilParallelTasksFinished001
+ * @tc.desc: Test WaitUntilParallelTasksFinished
+ * @tc.type: FUNC
+ * @tc.require: issue20966
+ */
+HWTEST_F(RSUnmarshalThreadTest, WaitUntilParallelTasksFinished001, TestSize.Level1)
+{
+    auto& instance = RSUnmarshalThread::Instance();
+    instance.parallelQueue_ = nullptr;
+    std::function<void()> func = []() -> void { sleep(2); };
+    instance.PostParallelTask(func);
+    ASSERT_TRUE(instance.cachedHandles_.empty());
+    instance.WaitUntilParallelTasksFinished();
+
+    instance.parallelQueue_ =
+        std::make_shared<ffrt::queue>(
+            ffrt::queue_concurrent, "RSUnmarshalThreadParallel",
+            ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(MAX_CONCURRENCY));
+    instance.PostParallelTask(func);
+    ASSERT_FALSE(instance.cachedHandles_.empty());
+    instance.WaitUntilParallelTasksFinished();
 }
 }

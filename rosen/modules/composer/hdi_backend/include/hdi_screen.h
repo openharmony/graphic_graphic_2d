@@ -42,6 +42,7 @@ public:
     int32_t SetScreenMode(uint32_t modeId);
     int32_t SetScreenActiveRect(const GraphicIRect& activeRect);
     int32_t SetScreenOverlayResolution(uint32_t width, uint32_t height) const;
+    int32_t GetPanelPowerStatus(GraphicPanelPowerStatus& status);
     int32_t GetScreenPowerStatus(GraphicDispPowerStatus &status) const;
     int32_t SetScreenPowerStatus(GraphicDispPowerStatus status) const;
     int32_t GetScreenBacklight(uint32_t &level) const;
@@ -60,7 +61,6 @@ public:
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, uint32_t type);
     int32_t SetDisplayProperty(uint64_t value);
     bool GetDisplayPropertyForHardCursor(uint32_t screenId);
-    int32_t GetPanelPowerStatus(GraphicPanelPowerStatus& status);
     int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const;
     int32_t GetScreenConnectionType(GraphicDisplayConnectionType& outType) const;
 

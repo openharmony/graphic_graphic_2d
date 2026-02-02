@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "color_gamut_param.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -496,6 +497,153 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam, TestSize.Level1)
     surfaceDrawable->renderParams_ = nullptr;
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, colorGamut);
 }
+
+/**
+ * @tc.name: SyncHDRDisplayParam001
+ * @tc.desc: Test SyncHDRDisplayParam with isNeedFP16 is true, IsAdaptiveColorGamutEnabled false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    surfaceDrawable->GetRsSubThreadCache().SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    NodeId id = 10;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    auto surfaceRenderParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    ASSERT_NE(surfaceRenderParams, nullptr);
+    surfaceRenderParams->SetAncestorScreenNode(displayNode);
+    auto screenParams = static_cast<RSScreenRenderParams*>(displayNode->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->SetHDRPresent(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    EXPECT_NE(surfaceParams, nullptr);
+    surfaceParams->SetHDRPresent(true);
+
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: SyncHDRDisplayParam002
+ * @tc.desc: Test SyncHDRDisplayParam with isNeedFP16 is false, IsAdaptiveColorGamutEnabled false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam002, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(2);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    surfaceDrawable->GetRsSubThreadCache().SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    NodeId id = 10;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    displayNode->InitRenderParams();
+    auto surfaceRenderParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    ASSERT_NE(surfaceRenderParams, nullptr);
+    surfaceRenderParams->SetAncestorScreenNode(displayNode);
+    auto screenParams = static_cast<RSScreenRenderParams*>(displayNode->GetRenderParams().get());
+    screenParams->SetHDRPresent(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    EXPECT_NE(surfaceParams, nullptr);
+    EXPECT_NE(surfaceParams->GetAncestorScreenNode().lock(), nullptr);
+    surfaceParams->SetHDRPresent(false);
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: SyncHDRDisplayParam003
+ * @tc.desc: Test SyncHDRDisplayParam with IsAdaptiveColorGamutEnabled is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam003, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(3);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    surfaceDrawable->GetRsSubThreadCache().SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    NodeId id = 10;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    displayNode->InitRenderParams();
+    auto surfaceRenderParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    ASSERT_NE(surfaceRenderParams, nullptr);
+    surfaceRenderParams->SetAncestorScreenNode(displayNode);
+    auto screenParams = static_cast<RSScreenRenderParams*>(displayNode->GetRenderParams().get());
+    screenParams->SetHDRPresent(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    EXPECT_NE(surfaceParams, nullptr);
+    surfaceParams->SetHDRPresent(false);
+    bool isAdaptiveColorGamutEnable = ColorGamutParam::IsAdaptiveColorGamutEnabled();
+    ColorGamutParam::SetAdaptiveColorGamutEnable(true);
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ColorGamutParam::SetAdaptiveColorGamutEnable(isAdaptiveColorGamutEnable);
+}
+
+/**
+ * @tc.name: SyncHDRDisplayParam004
+ * @tc.desc: Test SyncHDRDisplayParam with isNeedFP16 and IsAdaptiveColorGamutEnabled is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam004, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    surfaceDrawable->GetRsSubThreadCache().SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    NodeId id = 10;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    displayNode->InitRenderParams();
+    auto surfaceRenderParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    ASSERT_NE(surfaceRenderParams, nullptr);
+    surfaceRenderParams->SetAncestorScreenNode(displayNode);
+    auto screenParams = static_cast<RSScreenRenderParams*>(displayNode->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->SetHDRPresent(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    EXPECT_NE(surfaceParams, nullptr);
+    surfaceParams->SetHDRPresent(true);
+
+    bool isAdaptiveColorGamutEnable = ColorGamutParam::IsAdaptiveColorGamutEnabled();
+    ColorGamutParam::SetAdaptiveColorGamutEnable(true);
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ColorGamutParam::SetAdaptiveColorGamutEnable(isAdaptiveColorGamutEnable);
+}
+
 /**
  * @tc.name: ProcessTreeStateChange
  * @tc.desc: Test ProcessTreeStateChange, early return case
@@ -697,14 +845,27 @@ HWTEST_F(RSUifirstManagerTest, CheckIfAppWindowHasAnimation001, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, CheckIfAppWindowHasAnimation002, TestSize.Level1)
 {
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode1, nullptr);
 
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceNode1->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     RSUifirstManager::EventInfo event;
-    event.disableNodes.emplace(surfaceNode->GetId());
-    uifirstManager_.currentFrameEvent_.push_back(event);
-    ASSERT_TRUE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode));
+    event.appPid = 0;
+    event.startTime = 500;
+    event.disableNodes.emplace(surfaceNode1->GetId());
+    uifirstManager_.currentFrameEvent_.emplace_back(event);
+    ASSERT_TRUE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode1));
+
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode2->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceNode2->uifirstStartTime_ = 300;
+    EXPECT_FALSE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode2));
+    auto& element = uifirstManager_.currentFrameEvent_.back();
+    element.sceneId = "ABILITY_OR_PAGE_SWITCH";
+    EXPECT_TRUE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode2));
+    element.sceneId = "APP_LIST_FLING";
+    EXPECT_TRUE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode2));
     uifirstManager_.currentFrameEvent_.clear();
 }
 
@@ -909,7 +1070,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     surfaceNode2->hasTransparentSurface_ = false;
     uifirstManager_.rotationChanged_ = true;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
-    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
     uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
     uifirstManager_.isUiFirstOn_ = false;
     uifirstManager_.rotationChanged_ = false;

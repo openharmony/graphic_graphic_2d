@@ -67,7 +67,8 @@ const uint8_t DO_RESIZE_VIRTUAL_SCREEN = 20;
 const uint8_t DO_CLEAN_VIRTUAL_SCREENS = 21;
 constexpr uint8_t DO_SET_ROG_SCREEN_RESOLUTION = 22;
 constexpr uint8_t DO_GET_ROG_SCREEN_RESOLUTION = 23;
-const uint8_t TARGET_SIZE = 24;
+constexpr uint8_t DO_SET_SCREEN_SECURITY_MASK = 24;
+const uint8_t TARGET_SIZE = 25;
 } // namespace
 
 RSMainThread* g_mainThread = nullptr;
@@ -141,7 +142,8 @@ void DoCreateVirtualScreen(FuzzedDataProvider& fdp)
     MessageParcel dataP;
     MessageParcel reply;
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
-    sptr<IBufferProducer> bufferProducer = IConsumerSurface::Create()->GetProducer();
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FuzzTest");
+    sptr<IBufferProducer> bufferProducer = cSurface->GetProducer();
     if (!bufferProducer) {
         return;
     }
@@ -202,6 +204,17 @@ void DoSetVirtualScreenSecurityExemptionList(FuzzedDataProvider& fdp)
     g_toServiceConnection->SetVirtualScreenSecurityExemptionList(id, secExemptionListVector);
 }
 
+void DoSetScreenSecurityMask(FuzzedDataProvider& fdp)
+{
+    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    std::shared_ptr<Media::PixelMap> securityMask = nullptr;
+    g_toServiceConnection->SetScreenSecurityMask(id, securityMask);
+
+    g_toServiceConnection->screenManager_ = nullptr;
+    g_toServiceConnection->SetScreenSecurityMask(id, securityMask);
+    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
+}
+
 void DoSetMirrorScreenVisibleRect(FuzzedDataProvider& fdp)
 {
     uint64_t screenId = fdp.ConsumeIntegral<uint64_t>();
@@ -217,6 +230,10 @@ void DoSetMirrorScreenVisibleRect(FuzzedDataProvider& fdp)
     };
     bool supportRotation = fdp.ConsumeBool();
     g_toServiceConnection->SetMirrorScreenVisibleRect(screenId, mainScreenRect, supportRotation);
+
+    g_toServiceConnection->screenManager_ = nullptr;
+    g_toServiceConnection->SetMirrorScreenVisibleRect(screenId, mainScreenRect, supportRotation);
+    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
 }
 
 void DoSetScreenActiveMode(FuzzedDataProvider& fdp)
@@ -473,6 +490,20 @@ void DoResizeVirtualScreen(FuzzedDataProvider& fdp)
 
 void DoCleanVirtualScreens()
 {
+    g_toServiceConnection->screenManager_ = nullptr;
+    g_toServiceConnection->screenChangeCallback_ = nullptr;
+    g_toServiceConnection->CleanVirtualScreens();
+
+    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
+    g_toServiceConnection->screenChangeCallback_ = nullptr;
+    g_toServiceConnection->CleanVirtualScreens();
+
+    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
+    g_toServiceConnection->screenChangeCallback_ = sptr<RSIScreenChangeCallback>();
+    g_toServiceConnection->CleanVirtualScreens();
+
+    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
+    g_toServiceConnection->screenChangeCallback_ = nullptr;
     g_toServiceConnection->CleanVirtualScreens();
 }
 
@@ -569,6 +600,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_ROG_SCREEN_RESOLUTION:
             OHOS::Rosen::DoGetRogScreenResolution(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_SCREEN_SECURITY_MASK:
+            OHOS::Rosen::DoSetScreenSecurityMask(fdp);
             break;
         default:
             return -1;

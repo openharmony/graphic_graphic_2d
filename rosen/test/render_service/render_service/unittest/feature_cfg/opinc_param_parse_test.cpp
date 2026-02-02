@@ -41,11 +41,50 @@ void OpincParamParseTest::TearDown() {}
  */
 HWTEST_F(OpincParamParseTest, ParseFeatureParamTest, TestSize.Level1)
 {
-    OPIncParamParse opincParamParse;
+    OPIncParamParse paramParse;
     FeatureParamMapType paramMapType;
     xmlNode node;
-    auto res = opincParamParse.ParseFeatureParam(paramMapType, node);
+    auto res = paramParse.ParseFeatureParam(paramMapType, node);
     ASSERT_EQ(res, ParseErrCode::PARSE_GET_CHILD_FAIL);
+
+    xmlNode childNode;
+    childNode.type = xmlElementType::XML_ATTRIBUTE_NODE;
+    node.xmlChildrenNode = &childNode;
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlNode nextNode;
+    nextNode.type = xmlElementType::XML_ELEMENT_NODE;
+    string name = "FeatureSwitch";
+    nextNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    node.xmlChildrenNode->next = &nextNode;
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("OPIncEnabled"));
+    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+    ASSERT_EQ(OPIncParam::IsOPIncEnable(), false);
+
+    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("ImageAliasEnabled"));
+    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+    ASSERT_EQ(OPIncParam::IsImageAliasEnable(), false);
+
+    name = "FeatureSingleParam";
+    nextNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    node.xmlChildrenNode->next = &nextNode;
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("CacheWidthThresholdPercentValue"));
+    xmlSetProp(&nextNode, (const xmlChar*)("type"), (const xmlChar*)("int"));
+    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("100"));
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+    ASSERT_EQ(OPIncParam::GetCacheWidthThresholdPercentValue(), 100);
 }
 
 /**

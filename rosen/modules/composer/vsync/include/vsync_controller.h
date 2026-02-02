@@ -51,9 +51,6 @@ public:
     VsyncError SetCallback(Callback* cb);
     VsyncError SetPhaseOffset(int64_t offset);
     bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period);
-    void ChangeAdaptiveStatus(bool isAdaptive);
-    void AdjustAdaptiveOffset(int64_t period, int64_t offset);
-    void ResetOffset();
     void SetUrgent(bool isUrgent)
     {
         isDirectly_ = isUrgent;
@@ -77,7 +74,6 @@ private:
 
     std::mutex offsetMutex_;
     int64_t phaseOffset_;
-    int64_t normalPhaseOffset_;
     bool enabled_;
     std::atomic<int64_t> lastVsyncTime_ = 0;
     bool isDirectly_ = false;

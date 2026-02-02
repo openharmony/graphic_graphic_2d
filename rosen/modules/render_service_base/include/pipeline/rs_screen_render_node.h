@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 #include "common/rs_common_def.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -442,21 +443,11 @@ public:
     }
     void HandleCurMainAndLeashSurfaceNodes();
 
-    void CollectHdrStatus(HdrStatus hdrStatus)
-    {
-        displayTotalHdrStatus_ = static_cast<HdrStatus>(displayTotalHdrStatus_ | hdrStatus);
-    }
+    void CollectHdrStatus(HdrStatus hdrStatus);
 
-    void ResetDisplayHdrStatus()
-    {
-        displayTotalHdrStatus_ = HdrStatus::NO_HDR;
-    }
+    void ResetDisplayHdrStatus();
 
-    HdrStatus GetDisplayHdrStatus() const
-    {
-        lastDisplayTotalHdrStatus_ = displayTotalHdrStatus_;
-        return displayTotalHdrStatus_;
-    }
+    HdrStatus GetDisplayHdrStatus() const;
 
     HdrStatus GetLastDisplayHDRStatus() const
     {
@@ -508,6 +499,16 @@ public:
 
     void CheckSurfaceChanged();
 
+    using HeadroomMap = std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>;
+    const HeadroomMap& GetHeadroomMap() const {
+        return headroomCounts_;
+    }
+    void UpdateHeadroomMapIncrease(HdrStatus status, uint32_t level);
+    void UpdateHeadroomMapDecrease(HdrStatus status, uint32_t level);
+    void ResetVideoHeadroomInfo();
+
+    void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
+
 protected:
     void OnSync() override;
 private:
@@ -535,7 +536,6 @@ private:
     bool curZoomState_ = false;
     bool preZoomState_ = false;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
-    HdrStatus displayTotalHdrStatus_ = HdrStatus::NO_HDR;
     mutable HdrStatus lastDisplayTotalHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;
     RectI screenRect_;
@@ -588,6 +588,8 @@ private:
     ScreenInfo screenInfo_;
     RSScreenProperty screenProperty_;
     friend class DisplayNodeCommandHelper;
+
+    HeadroomMap headroomCounts_;
 
     // Enable HWCompose
     RSHwcDisplayRecorder hwcDisplayRecorder_;

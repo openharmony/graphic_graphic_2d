@@ -78,7 +78,7 @@ public:
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
     uint64_t GetFastComposeTimeStampDiff() const;
-    sptr<SyncFence> GetAcquireFence();
+
     void PurgeCacheBetweenFrames();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
     void DefaultClearMemoryCache();
@@ -88,13 +88,10 @@ public:
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
     void ResetClearMemoryTask(bool isDoDirectComposition = false);
-    void PurgeShaderCacheAfterAnimate();
-    void SetReclaimMemoryFinished(bool isFinished);
-    bool IsReclaimMemoryFinished();
     void SetTimeToReclaim(bool isTimeToReclaim);
     bool IsTimeToReclaim();
     void SetDefaultClearMemoryFinished(bool isFinished);
-    bool IsDefaultClearMemroyFinished();
+    bool IsDefaultClearMemoryFinished();
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
@@ -131,6 +128,8 @@ public:
         return RSRenderThreadParamsManager::Instance().GetRSRenderThreadParams();
     }
 
+    void RenderServiceTreeDump(std::string& dumpString, bool checkIsInUniRenderThread = false);
+    void ProcessVulkanErrorTreeDump();
     bool IsPostedReclaimMemoryTask() const
     {
         return isPostedReclaimMemoryTask_.load();
@@ -139,8 +138,6 @@ public:
     {
         isPostedReclaimMemoryTask_.store(isPostedReclaimMemoryTask);
     }
-    void RenderServiceTreeDump(std::string& dumpString, bool checkIsInUniRenderThread = false);
-    void ProcessVulkanErrorTreeDump();
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
 
@@ -257,19 +254,16 @@ private:
     // Those variable is used to manage memory.
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
-    DeviceType deviceType_ = DeviceType::PHONE;
     bool isDefaultCleanTaskFinished_ = true;
-    bool hasPurgeShaderCacheTask_ = false;
     bool postImageReleaseTaskFlag_ = false;
-    bool isReclaimMemoryFinished_ = true;
-    std::atomic<bool> isTimeToReclaim_ {false};
+    std::atomic_bool isTimeToReclaim_ = false;
     // vma cache
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
     // for statistic of jank frames
     std::atomic_bool mainLooping_ = false;
     std::atomic_bool enableVisibleRect_ = false;
     pid_t tid_ = 0;
-    ClearMemoryMoment clearMoment_;
+    ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
     int imageReleaseCount_ = 0;
     uint32_t vmaCacheCount_ = 0;
     ScreenId screenNodeScreenId_ = 0;
@@ -318,7 +312,7 @@ private:
 #endif
 
     std::atomic<bool> screenPowerOnChanged_ = false;
-    uint32_t totalProcessNodeNum_ = 0;
+    std::atomic<uint32_t> totalProcessNodeNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

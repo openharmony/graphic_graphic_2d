@@ -224,10 +224,53 @@ RS_HARDWARE_THREAD_LOAD_WARNING:
   MISSED_FRAMES: {type: UINT32, desc: number of dropped frames}
   FRAME_TIME: {type: UINT64, desc: frame length}
 
-RENDERFIT_TYPE_RT_MONITORING:
+RNEDERFIT_TYPE_RT_MONITORING:
   __BASE: {type: BEHAVIOR, level: MINOR, desc: renderfit usage statistics}
   RENDERFIT_INFO: {type: STRING, desc: renderfit info for rt}
 
 RENDER_DRAWABLE_MULTI_ACCESS:
   __BASE: {type: STATISTIC, level: CRITICAL, desc: multi thread competition occurs in the graphics drawing process}
   MULTI_ACCESS_MSG: {type: STRING, desc: drawable multi-access information}
+
+RS_SETUIXXFILTER_CASCADE:
+  __BASE: {type: STATISTIC, level: CRITICAL, desc: stats of effect cascade used in SetUIXXFilter in RS Client}
+  BUNDLE_NAME: {type: STRING, desc: module name}
+  VERSION_NAME: {type: STRING, desc: version name}
+  VERSION_CODE: {type: INT32, desc: version code}
+  FUNCTION_TYPE: {type: UINT16, desc: function type}
+  BG_BLUR_COUNT: {type: UINT16, desc: BG_BLUR count}
+  WATER_RIPPLE_COUNT: {type: UINT16, desc: WATER_RIPPLE count}
+  CP_BLUR_COUNT: {type: UINT16, desc: CP_BLUR count}
+  PIXEL_STRETCH_COUNT: {type: UINT16, desc: PIXEL_STRETCH count}
+  RADIUS_GRADIENT_BLUR_COUNT: {type: UINT16, desc: RADIUS_GRADIENT_BLUR count}
+  FG_BLUR_COUNT: {type: UINT16, desc: FG_BLUR count}
+  FLY_OUT_COUNT: {type: UINT16, desc: FLY_OUT count}
+  DISTORT_COUNT: {type: UINT16, desc: DISTORT count}
+  HDR_BRIGHTNESS_RATIO_COUNT: {type: UINT16, desc: HDR_BRIGHTNESS_RATIO count}
+
+RS_SERVER_XXFILTER_CASCADE:
+  __BASE: {type: STATISTIC, level: CRITICAL, desc: stats of effect cascade used in XXFilter in RS Server}
+  BUNDLE_NAME: {type: STRING, desc: module name}
+  VERSION_NAME: {type: STRING, desc: version name}
+  VERSION_CODE: {type: INT32, desc: version code}
+  FUNCTION_TYPE: {type: UINT16, desc: function type}
+  AIBAR_COUNT: {type: UINT16, desc: AIBAR count}
+  MAGNIFIER_COUNT: {type: UINT16, desc: MAGNIFIER count}
+  BG_MATERIALBLUR_COUNT: {type: UINT16, desc: BG_MATERIALBLUR count}
+  BG_BLUR_COUNT: {type: UINT16, desc: BG_BLUR count}
+  WATERRIPPLE_COUNT: {type: UINT16, desc: WATERRIPPLE count}
+  BG_NGFILTER_COUNT: {type: UINT16, desc: BG_NGFILTER count}
+  ALWAYSSNAPSHOT_COUNT: {type: UINT16, desc: ALWAYSSNAPSHOT count}
+  LINEARGRADIENTBLUR_COUNT: {type: UINT16, desc: LINEARGRADIENTBLUR count}
+  CP_MATERIALBLUR_COUNT: {type: UINT16, desc: CP_MATERIALBLUR count}
+  CP_BLUR_COUNT: {type: UINT16, desc: CP_BLUR count}
+  MOTIONBLUR_COUNT: {type: UINT16, desc: MOTIONBLUR count}
+  FG_BLUR_COUNT: {type: UINT16, desc: FG_BLUR count}
+  SPHERIZE_COUNT: {type: UINT16, desc: SPHERIZE count}
+  FLY_COUNT: {type: UINT16, desc: FLY count}
+  ATTRACTION_COUNT: {type: UINT16, desc: ATTRACTION count}
+  SHADOW_COUNT: {type: UINT16, desc: SHADOW count}
+  DISTORTIONK_COUNT: {type: UINT16, desc: DISTORTIONK count}
+  HDRUIBRIGHTNESS_COUNT: {type: UINT16, desc: HDRUIBRIGHTNESS count}
+  FG_NGFILTER_COUNT: {type: UINT16, desc: FG_NGFILTER count}
+  COLORADAPTIVE_COUNT: {type: UINT16, desc: COLORADAPTIVE count}

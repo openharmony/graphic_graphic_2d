@@ -74,6 +74,7 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "rsrecord_pause_clear", PlaybackPauseClear },
     { "rsrecord_sendbinary", RecordSendBinary },
     { "rsrecord_metrics", RecordMetrics },
+    { "rsrecord_clear_caches", ClearCaches },
     { "rssurface_pid", DumpNodeSurface },
     { "rscon_print", DumpConnections },
     { "rsreplay_vsyncid", PrintVsync},
@@ -317,6 +318,19 @@ void RSProfiler::RenderNodeKeepDrawCmd(const ArgList& args)
     RSProfiler::SetRenderNodeKeepDrawCmd(enable > 0);
 }
 
+void RSProfiler::ClearCaches(const ArgList& args)
+{
+    if (!IsNoneMode()) {
+        Respond("Error: can't clear caches during record or replay");
+        return;
+    }
+    FilterMockNode(*context_);
+    RSTypefaceCache::Instance().ReplayClear();
+    Utils::FileDelete(RSFile::GetDefaultPath());
+    Respond("OK");
+    AwakeRenderServiceThread();
+}
+
 void RSProfiler::ClearFilter(const ArgList& args)
 {
     const auto node = GetRenderNode(args.Node());
@@ -325,7 +339,7 @@ void RSProfiler::ClearFilter(const ArgList& args)
         return;
     }
 
-    node->GetMutableRenderProperties().GetEffect().backgroundFilter_ = nullptr;
+    node->GetMutableRenderProperties().backgroundFilter_ = nullptr;
     Respond("OK");
     AwakeRenderServiceThread();
 }

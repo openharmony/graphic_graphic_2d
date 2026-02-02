@@ -36,7 +36,7 @@ public:
 
     bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
               std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
-    void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
+    void CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessScreenSurface(RSScreenRenderNode& node) override;
@@ -45,7 +45,6 @@ public:
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     std::vector<RSLayerPtr> GetLayers() const;
 #endif
-
     // called by render thread
     bool InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         std::shared_ptr<RSBaseRenderEngine> renderEngine) override;

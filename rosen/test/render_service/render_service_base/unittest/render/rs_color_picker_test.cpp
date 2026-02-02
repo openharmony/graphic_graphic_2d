@@ -254,4 +254,164 @@ HWTEST_F(RSColorPickerTest, HSVtoRGBTest, TestSize.Level1)
     hsv.h = 300;
     EXPECT_EQ(picker->HSVtoRGB(hsv), 0);
 }
+
+/**
+ * @tc.name: GetAverageColorDirectTest001
+ * @tc.desc: Verify function GetAverageColorDirect with null pixmap
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, GetAverageColorDirectTest001, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    std::shared_ptr<Drawing::Pixmap> nullPixmap = nullptr;
+    EXPECT_EQ(RSColorPicker::GetAverageColorDirect(nullPixmap, color), RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetAverageColorDirectTest002
+ * @tc.desc: Verify function GetAverageColorDirect with invalid dimensions
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, GetAverageColorDirectTest002, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    Drawing::ImageInfo imageInfo(
+        0, 0, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL, nullptr);
+    int addr = 1;
+    size_t rowBytes = 1;
+    auto invalidPixmap = std::make_shared<Drawing::Pixmap>(imageInfo, &addr, rowBytes);
+    EXPECT_EQ(RSColorPicker::GetAverageColorDirect(invalidPixmap, color), RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetAverageColorDirectTest003
+ * @tc.desc: Verify function GetAverageColorDirect with pure yellow color (0xFFFF00)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, GetAverageColorDirectTest003, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    constexpr int width = 10;
+    constexpr int height = 10;
+
+    // Create a pixmap filled with pure yellow (R=255, G=255, B=0, A=255)
+    Drawing::ImageInfo imageInfo(
+        width, height, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL, nullptr);
+    // RGBA8888 on little-endian: memory layout is [R][G][B][A], which as uint32_t is 0xAABBGGRR
+    std::vector<uint32_t> pixels(width * height, 0xFF00FFFF); // Yellow: R=0xFF, G=0xFF, B=0x00, A=0xFF
+    auto yellowPixmap = std::make_shared<Drawing::Pixmap>(imageInfo, pixels.data(), width * sizeof(uint32_t));
+
+    EXPECT_EQ(RSColorPicker::GetAverageColorDirect(yellowPixmap, color), RS_COLOR_PICKER_SUCCESS);
+
+    // Verify the color is exactly yellow (no quantization loss)
+    EXPECT_EQ(color, 0xFFFFFF00); // ColorQuad is ARGB format
+    EXPECT_EQ(Drawing::Color::ColorQuadGetA(color), 0xFF);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetR(color), 0xFF);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetG(color), 0xFF);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetB(color), 0x00);
+}
+
+/**
+ * @tc.name: GetAverageColorDirectTest004
+ * @tc.desc: Verify function GetAverageColorDirect with mixed colors
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, GetAverageColorDirectTest004, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    constexpr int width = 2;
+    constexpr int height = 2;
+
+    // Create a 2x2 pixmap with different colors
+    Drawing::ImageInfo imageInfo(
+        width, height, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL, nullptr);
+    // RGBA8888 on little-endian: memory layout is [R][G][B][A], which as uint32_t is 0xAABBGGRR
+    std::vector<uint32_t> pixels = {
+        0xFF0000FF, // Red: R=0xFF, G=0x00, B=0x00, A=0xFF
+        0xFF00FF00, // Green: R=0x00, G=0xFF, B=0x00, A=0xFF
+        0xFFFF0000, // Blue: R=0x00, G=0x00, B=0xFF, A=0xFF
+        0xFFFFFFFF  // White: R=0xFF, G=0xFF, B=0xFF, A=0xFF
+    };
+    auto mixedPixmap = std::make_shared<Drawing::Pixmap>(imageInfo, pixels.data(), width * sizeof(uint32_t));
+
+    EXPECT_EQ(RSColorPicker::GetAverageColorDirect(mixedPixmap, color), RS_COLOR_PICKER_SUCCESS);
+
+    // Average: R=(255+0+0+255)/4=127, G=(0+255+0+255)/4=127, B=(0+0+255+255)/4=127
+    EXPECT_EQ(Drawing::Color::ColorQuadGetA(color), 0xFF);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetR(color), 127);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetG(color), 127);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetB(color), 127);
+}
+
+/**
+ * @tc.name: GetAverageColorDirectTest005
+ * @tc.desc: Verify function GetAverageColorDirect with size limit
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, GetAverageColorDirectTest005, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    constexpr int width = 2000;
+    constexpr int height = 2000; // 4M pixels, exceeds 1M limit
+
+    // Create a large pixmap that exceeds the size limit
+    Drawing::ImageInfo imageInfo(
+        width, height, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL, nullptr);
+    std::vector<uint32_t> pixels(width * height, 0xFFFFFFFF);
+    auto largePixmap = std::make_shared<Drawing::Pixmap>(imageInfo, pixels.data(), width * sizeof(uint32_t));
+
+    // Should fail due to size limit
+    EXPECT_EQ(RSColorPicker::GetAverageColorDirect(largePixmap, color), RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetAverageColorDirectTest006
+ * @tc.desc: Verify function GetAverageColorDirect with maximum allowed size
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, GetAverageColorDirectTest006, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    constexpr int width = 1000;
+    constexpr int height = 1000; // Exactly 1M pixels, at the limit
+
+    // Create a pixmap at the maximum allowed size
+    Drawing::ImageInfo imageInfo(
+        width, height, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL, nullptr);
+    // RGBA8888 on little-endian: Gray (R=0x80, G=0x80, B=0x80, A=0xFF) = 0xFF808080
+    std::vector<uint32_t> pixels(width * height, 0xFF808080);
+    auto maxPixmap = std::make_shared<Drawing::Pixmap>(imageInfo, pixels.data(), width * sizeof(uint32_t));
+
+    // Should succeed at exactly the limit
+    EXPECT_EQ(RSColorPicker::GetAverageColorDirect(maxPixmap, color), RS_COLOR_PICKER_SUCCESS);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetR(color), 0x80);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetG(color), 0x80);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetB(color), 0x80);
+}
+
+/**
+ * @tc.name: GetAverageColorDirectTest007
+ * @tc.desc: Verify function GetAverageColorDirect preserves full precision (no quantization)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, GetAverageColorDirectTest007, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    constexpr int width = 10;
+    constexpr int height = 10;
+
+    // Create a pixmap with color R=0xF8, G=0xF8, B=0x00 (the buggy quantized yellow)
+    Drawing::ImageInfo imageInfo(
+        width, height, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL, nullptr);
+    // RGBA8888 on little-endian: R=0xF8, G=0xF8, B=0x00, A=0xFF = 0xFF00F8F8
+    std::vector<uint32_t> pixels(width * height, 0xFF00F8F8);
+    auto pixmap248 = std::make_shared<Drawing::Pixmap>(imageInfo, pixels.data(), width * sizeof(uint32_t));
+
+    EXPECT_EQ(RSColorPicker::GetAverageColorDirect(pixmap248, color), RS_COLOR_PICKER_SUCCESS);
+
+    // Should preserve 0xF8 exactly, not convert to 0xFF
+    EXPECT_EQ(Drawing::Color::ColorQuadGetR(color), 0xF8);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetG(color), 0xF8);
+    EXPECT_EQ(Drawing::Color::ColorQuadGetB(color), 0x00);
+}
 } // namespace OHOS::Rosen

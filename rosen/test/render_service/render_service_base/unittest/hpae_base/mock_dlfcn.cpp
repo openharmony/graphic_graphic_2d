@@ -12,6 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "mock_dlfcn.h"
+
 #include <dlfcn.h>
 #include <stdio.h>
 #include <string.h>
@@ -22,11 +25,15 @@
 namespace OHOS {
 namespace Rosen {
 
+bool g_animationOpenNull = false;
+bool g_animationCloseNull = false;
+bool g_animationOpenReturnNull = false;
+
 void* MockgetGPInstance(PatternType_C patternType, const char* name)
 {
     return reinterpret_cast<void*>(0x1234);
 }
-bool MockGPInit(void* instance, size_t size)
+bool MockGPInit(void* instance, size_t size, bool flag)
 {
     return true;
 }
@@ -38,7 +45,7 @@ bool MockGPRequestEGraph(void* instance, uint64_t frameId)
 {
     return true;
 }
-bool MockGPReleaseEGraph(void* instance, uint64_t frameId)
+bool MockGPReleaseEGraph(void* instance, uint64_t frameId, bool flag)
 {
     return true;
 }
@@ -70,9 +77,21 @@ int32_t MockQueryTaskErrorFunc(void* instance, uint64_t frameId, MHC_PatternTask
 static constexpr int32_t HIANIMATION_SUCC_ = 0;
 static constexpr int32_t HIANIMATION_FAIL_ = -1;
 
-bool MockHianimationInputCheck_(const struct BlurImgParam *imgInfo, const struct HaeNoiseValue *noisePara)
+void* StubHianimationOpenDevice()
 {
-    return true;
+    return reinterpret_cast<void*>(0x5678);
+}
+void* StubHianimationOpenDeviceReturnNull()
+{
+    return nullptr;
+}
+void StubHianimationCloseDevice()
+{
+    return;
+}
+int32_t MockHianimationInputCheck_(const struct BlurImgParam *imgInfo, const struct HaeNoiseValue *noisePara)
+{
+    return HIANIMATION_SUCC_;
 }
 int32_t MockHianimationAlgoInit_(uint32_t imgWeight, uint32_t imgHeight, float maxSigma, uint32_t format)
 {
@@ -94,77 +113,74 @@ int32_t MockHianimationBuildTaskFail_(const struct HaeBlurBasicAttr *basicInfo,
 {
     return HIANIMATION_FAIL_;
 }
-int32_t MockHianimationSyncProcess_(const struct HaeBlurBasicAttr *basicInfo,
-    const struct HaeBlurEffectAttr *effectInfo)
-{
-    return HIANIMATION_SUCC_;
-}
+
 int32_t MockHianimationDestroyTask_(uint32_t taskId)
 {
     return HIANIMATION_SUCC_;
 }
-void MockHianimationDumpDebugInfo_(uint32_t taskId)
+int32_t MockHianimationDumpDebugInfo_(uint32_t taskId)
 {
-}
-
-static hianimation_algo_device_t mockHianimationDevice;
-
-hianimation_algo_device_t* MockGetHianimationDeviceFunc()
-{
-    mockHianimationDevice.hianimationInputCheck = MockHianimationInputCheck_;
-    mockHianimationDevice.hianimationAlgoInit = MockHianimationAlgoInit_;
-    mockHianimationDevice.hianimationAlgoDeInit = MockHianimationAlgoDeInit_;
-    mockHianimationDevice.hianimationBuildTask = MockHianimationBuildTask_;
-    mockHianimationDevice.hianimationSyncProcess = MockHianimationSyncProcess_;
-    mockHianimationDevice.hianimationDestroyTask = MockHianimationDestroyTask_;
-    mockHianimationDevice.hianimationDumpDebugInfo = MockHianimationDumpDebugInfo_;
-    return &mockHianimationDevice;
+    return HIANIMATION_SUCC_;
 }
 
 extern "C" void* dlsym(void* handle, const char* symbol)
 {
-    if (strcmp(symbol, "mhc_graph_pattern_get") == 0) {
+    if (strcmp(symbol, "ffrt_graph_pattern_create") == 0) {
         return reinterpret_cast<void *>(MockgetGPInstance);
     }
-    if (strcmp(symbol, "mhc_graph_pattern_init") == 0) {
+    if (strcmp(symbol, "ffrt_graph_pattern_init") == 0) {
         return reinterpret_cast<void *>(MockGPInit);
     }
-    if (strcmp(symbol, "mhc_graph_pattern_destroy") == 0) {
+    if (strcmp(symbol, "ffrt_graph_pattern_destroy") == 0) {
         return reinterpret_cast<void *>(MockGPDestroy);
     }
-    if (strcmp(symbol, "mhc_graph_pattern_request_eg") == 0) {
+    if (strcmp(symbol, "ffrt_graph_pattern_request_execution_graph") == 0) {
         return reinterpret_cast<void *>(MockGPRequestEGraph);
     }
-    if (strcmp(symbol, "mhc_graph_pattern_release_eg") == 0) {
+    if (strcmp(symbol, "ffrt_graph_pattern_release_execution_graph") == 0) {
         return reinterpret_cast<void *>(MockGPReleaseEGraph);
     }
-    if (strcmp(symbol, "mhc_graph_pattern_release_all") == 0) {
+    if (strcmp(symbol, "ffrt_graph_pattern_release_all") == 0) {
         return reinterpret_cast<void *>(MockGPReleaseAll);
     }
-    if (strcmp(symbol, "mhc_gp_task_wait") == 0) {
+    if (strcmp(symbol, "ffrt_graph_pattern_wait") == 0) {
         return reinterpret_cast<void *>(MockGPWait);
     }
-    if (strcmp(symbol, "mhc_gp_vulkan_task_get_wait_event") == 0) {
+    if (strcmp(symbol, "ffrt_graph_pattern_task_get_wait_event") == 0) {
         return reinterpret_cast<void *>(MockGPGetVulkanWaitEvent);
     }
-    if (strcmp(symbol, "mhc_gp_vulkan_task_get_notify_event") == 0) {
+    if (strcmp(symbol, "ffrt_graph_pattern_task_get_notify_event") == 0) {
         return reinterpret_cast<void *>(MockGPGetVulkanNotifyEvent);
     }
-    if (strcmp(symbol, "mhc_gp_task_submit") == 0) {
+    if (strcmp(symbol, "ffrt_graph_pattern_task_submit") == 0) {
         return reinterpret_cast<void *>(MockGPTaskSubmit);
     }
-    if (strcmp(symbol, "mhc_gp_query_task_error") == 0) {
+    if (strcmp(symbol, "mhc_gp_query_task_query_task_error") == 0) {
         return reinterpret_cast<void *>(MockQueryTaskErrorFunc);
+    }
+
+    // mock Hianimation
+    if (strcmp(symbol, "HianimationOpenDevice") == 0) {
+        if (g_animationOpenNull) {
+            return nullptr;
+        }
+        if (g_animationOpenReturnNull) {
+            return reinterpret_cast<void *>(StubHianimationOpenDeviceReturnNull);
+        }
+        return reinterpret_cast<void *>(StubHianimationOpenDevice);
+    }
+    if (strcmp(symbol, "HianimationCloseDevice") == 0) {
+        return reinterpret_cast<void *>(StubHianimationCloseDevice);
     }
     return nullptr;
 }
 
 extern "C" void* dlopen(const char *filename, int flags)
 {
-    if (strcmp(filename, "/vendor/lib64/libmhc_framework.so") == 0) {
+    if (strcmp(filename, "libmhc_client.so") == 0) {
         return reinterpret_cast<void *>(0x1234);
     }
-    if (strcmp(filename, "libanimation.z.so") == 0) {
+    if (strcmp(filename, "libanimation_client.z.so") == 0) {
         return reinterpret_cast<void *>(0x1234);
     }
     return nullptr;

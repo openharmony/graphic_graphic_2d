@@ -101,7 +101,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     auto needOcclusionSkip = paintFilterCanvas->IsQuickDrawState() ?
-        true : GetOpincDrawCache().PreDrawableCacheState(*params, isOpincDropNodeExt_);
+        true : GetOpincDrawCache().PreDrawableCacheState(*params);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     float hdrBrightness = paintFilterCanvas->GetHDRBrightness();
@@ -132,14 +132,18 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
     }
+    if (params->GetHDRStatus() == HdrStatus::HDR_EFFECT) {
+        paintFilterCanvas->ConvertToType(Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL,
+            Drawing::ColorSpace::CreateSRGB());
+    }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
-        GetOpincDrawCache().BeforeDrawCache(canvas, *params, isOpincDropNodeExt_);
-        if (!IsDrawingBlurForCache()) {
+        GetOpincDrawCache().BeforeDrawCache(canvas, *params);
+        if (!IsDrawingBlurForCache() || IsDrawingExcludedSubTreeForCache()) {
             GenerateCacheIfNeed(canvas, *params);
         }
         CheckCacheTypeAndDraw(canvas, *params);
-        GetOpincDrawCache().AfterDrawCache(canvas, *params, isOpincDropNodeExt_, opincRootTotalCount_);
+        GetOpincDrawCache().AfterDrawCache(canvas, *params);
         GetOpincDrawCache().DrawOpincDisabledDfx(canvas, *params);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
@@ -195,7 +199,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
     if (LIKELY(isDrawingCacheEnabled_)) {
-        if (canvas.GetUICapture() && !IsDrawingBlurForCache()) {
+        if (canvas.GetUICapture() && (!IsDrawingBlurForCache() || IsDrawingExcludedSubTreeForCache())) {
             GenerateCacheIfNeed(canvas, *params);
         }
         CheckCacheTypeAndDraw(canvas, *params, true);

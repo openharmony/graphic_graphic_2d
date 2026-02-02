@@ -21,6 +21,7 @@
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 #include "effect/include/brightness_blender.h"
+#include "effect/include/harmonium_effect_para.h"
 #include "effect/shader_effect.h"
 #include "ohos.graphics.uiEffect.uiEffect.BrightnessBlender.proj.1.hpp"
 #include "ohos.graphics.uiEffect.uiEffect.TileMode.proj.1.hpp"
@@ -47,6 +48,7 @@ constexpr uint32_t NUM_0 = 0;
 constexpr uint32_t NUM_1 = 1;
 constexpr uint32_t NUM_2 = 2;
 constexpr uint32_t NUM_3 = 3;
+constexpr uint32_t NUM_10 = 10;
 constexpr uint32_t NUM_12 = 12;
 
 bool IsSystemApp();
@@ -55,6 +57,12 @@ bool ConvertVector4fFromTaiheArray(OHOS::Rosen::Vector4f& vector4f, taihe::array
 bool ParseBrightnessBlender(OHOS::Rosen::BrightnessBlender& blender, const BrightnessBlender& brightnessBlender);
 bool ParseRadialGradientValues(taihe::array_view<uintptr_t> gradients, std::vector<float>& colors,
     std::vector<float>& positions);
+bool ParseRipplePositionValues(const ::taihe::optional<taihe::array<uintptr_t>> ripplePositions,
+    std::vector<OHOS::Rosen::Vector2f>& positions);
+bool ParseLiquidMaterialEffectParam(OHOS::Rosen::HarmoniumEffectPara& harmoniumPara,
+    const ::ohos::graphics::uiEffect::uiEffect::LiquidMaterialEffectParam& liquidMaterialEffectParam);
+bool ParseBrightnessParam(OHOS::Rosen::HarmoniumEffectPara& harmoniumPara,
+    optional_view<::ohos::graphics::uiEffect::uiEffect::BrightnessParam> brightnessParam);
 void ClampVector4f(OHOS::Rosen::Vector4f& v, float minx, float maxn);
 uint32_t ConvertUint32FromTaiheFlyMode(FlyMode flyMode);
 uint32_t ConvertUint32FromTaiheWaterRippleMode(WaterRippleMode waterRippleMode);
@@ -63,6 +71,7 @@ bool ConvertVector2fFromAniPoint(uintptr_t point, OHOS::Rosen::Vector2f& values)
 bool ConvertVector3fFromAniPoint3D(uintptr_t point3D, OHOS::Rosen::Vector3f& values);
 bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values);
 bool ConvertVector4fFromAniColor(uintptr_t color, OHOS::Rosen::Vector4f& values);
+bool ConvertVector4fFromAniTuple(OHOS::Rosen::Vector4f& vector4f, uintptr_t opaque);
 
 } // namespace ANI::UIEffect
 

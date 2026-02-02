@@ -41,11 +41,18 @@ OH_Drawing_LineTypography* OH_Drawing_CreateLineTypography(OH_Drawing_Typography
 
 void OH_Drawing_DestroyLineTypography(OH_Drawing_LineTypography* lineTypography)
 {
+    if (lineTypography == nullptr) {
+        return;
+    }
     delete reinterpret_cast<LineTypography*>(lineTypography);
 }
 
 size_t OH_Drawing_LineTypographyGetLineBreak(OH_Drawing_LineTypography *lineTypograph, size_t startIndex, double width)
 {
+    if (lineTypograph == nullptr) {
+        TEXT_LOGE("Null line typograph");
+        return 0;
+    }
     LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypograph);
     size_t limitSize = innerlineTypography->GetUnicodeSize();
     if (startIndex >= limitSize || width <= 0) {
@@ -57,6 +64,10 @@ size_t OH_Drawing_LineTypographyGetLineBreak(OH_Drawing_LineTypography *lineTypo
 OH_Drawing_TextLine* OH_Drawing_LineTypographyCreateLine(OH_Drawing_LineTypography *lineTypograph,
                                                          size_t startIndex, size_t count)
 {
+    if (lineTypograph == nullptr) {
+        TEXT_LOGE("Null line typograph");
+        return nullptr;
+    }
     LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypograph);
     size_t limitSize = innerlineTypography->GetUnicodeSize();
     if (startIndex >= limitSize || count + startIndex > limitSize) {

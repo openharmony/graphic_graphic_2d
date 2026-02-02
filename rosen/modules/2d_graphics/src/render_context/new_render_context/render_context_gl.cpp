@@ -164,11 +164,12 @@ bool RenderContextGL::Init()
         return false;
     }
 
+    unsigned int ret;
     EGLint count;
     EGLint config_attribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
         EGL_ALPHA_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE };
 
-    unsigned int ret = eglChooseConfig(eglDisplay_, config_attribs, &config_, 1, &count);
+    ret = eglChooseConfig(eglDisplay_, config_attribs, &config_, 1, &count);
     if (!(ret && static_cast<unsigned int>(count) >= 1)) {
         LOGE("Failed to eglChooseConfig");
         return false;
@@ -208,6 +209,7 @@ bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
         cacheDir_ = UNIRENDER_CACHE_DIR;
     }
     Drawing::GPUContextOptions options;
+    options.SetIsUniRender(isUniRenderMode_);
     if (glesVersion != nullptr) {
         auto size = glesVersion ? strlen(glesVersion) : 0;
         mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);

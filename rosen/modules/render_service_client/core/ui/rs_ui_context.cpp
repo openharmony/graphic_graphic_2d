@@ -128,6 +128,7 @@ void RSUIContext::RequestVsyncCallback()
 
 void RSUIContext::SetUITaskRunner(const TaskRunner& uiTaskRunner)
 {
+    std::lock_guard<std::recursive_mutex> lock(uiTaskRunnersVisitorMutex_);
     taskRunner_ = uiTaskRunner;
     if (rsTransactionHandler_) {
         rsTransactionHandler_->SetUITaskRunner(uiTaskRunner);
@@ -141,6 +142,7 @@ void RSUIContext::PostTask(const std::function<void()>& task)
 
 void RSUIContext::PostDelayTask(const std::function<void()>& task, uint32_t delay)
 {
+    std::lock_guard<std::recursive_mutex> lock(uiTaskRunnersVisitorMutex_);
     if (taskRunner_ == nullptr) {
         ROSEN_LOGW(
             "multi-instance RSUIContext::PostDelayTask failed, taskRunner is empty, token=%{public}" PRIu64, token_);
@@ -209,6 +211,12 @@ void RSUIContext::AttachFromUI()
         return;
     }
     uiPipelineNum_++;
+}
+
+bool RSUIContext::HasTaskRunner()
+{
+    std::lock_guard<std::recursive_mutex> lock(uiTaskRunnersVisitorMutex_);
+    return taskRunner_ != nullptr;
 }
 
 void RSUIContext::MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId)

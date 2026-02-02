@@ -17,9 +17,6 @@
 
 #include <cstdlib>
 
-#ifdef ROSEN_OHOS
-#include "mem_mgr_client.h"
-#endif
 #include "rs_trace.h"
 
 #include "platform/common/rs_log.h"
@@ -168,6 +165,7 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     }
 
     if (renderServiceClient_ == nullptr || implicitRemoteTransactionData_->IsEmpty()) {
+        RS_TRACE_NAME("UI skip");
         return;
     }
 
@@ -299,6 +297,34 @@ void RSTransactionHandler::Commit(uint64_t timestamp)
     }
 }
 
+void RSTransactionHandler::ProcessSyncTransactionStack(std::stack<std::unique_ptr<RSTransactionData>>& stack,
+    RSIRenderClient& client, uint64_t syncId, uint64_t timestamp, pid_t tid, const std::string& abilityName)
+{
+    std::stack<std::unique_ptr<RSTransactionData>>* processingStack = &stack;
+
+    // Flip the stack to process elements in FIFO order (first-in, first-out)
+    std::stack<std::unique_ptr<RSTransactionData>> stackFlipped;
+    if (stack.size() > 1) {
+        while (!stack.empty()) {
+            stackFlipped.push(std::move(stack.top()));
+            stack.pop();
+        }
+        processingStack = &stackFlipped;
+    }
+
+    while (!processingStack->empty()) {
+        auto& data = processingStack->top();
+        if (!data->IsEmpty() || data->IsNeedSync()) {
+            data->timestamp_ = timestamp;
+            data->tid_ = tid;
+            data->abilityName_ = abilityName;
+            data->SetSyncId(syncId);
+            client.CommitTransaction(data);
+        }
+        processingStack->pop();
+    }
+}
+
 void RSTransactionHandler::CommitSyncTransaction(uint64_t syncId, uint64_t timestamp, const std::string& abilityName)
 {
     RS_TRACE_NAME_FMT("RSTransactionHandler::CommitSyncTransaction syncId:%" PRIu64 ", transactionHandler:%zu", syncId,
@@ -308,27 +334,14 @@ void RSTransactionHandler::CommitSyncTransaction(uint64_t syncId, uint64_t times
     std::unique_lock<std::mutex> cmdLock(mutex_);
     timestamp_ = std::max(timestamp, timestamp_);
     thread_local pid_t tid = gettid();
-    if (!implicitCommonTransactionDataStack_.empty()) {
-        if (renderThreadClient_ != nullptr && (!implicitCommonTransactionDataStack_.top()->IsEmpty() ||
-                                                  implicitCommonTransactionDataStack_.top()->IsNeedSync())) {
-            implicitCommonTransactionDataStack_.top()->timestamp_ = timestamp;
-            implicitCommonTransactionDataStack_.top()->tid_ = tid;
-            implicitCommonTransactionDataStack_.top()->abilityName_ = abilityName;
-            implicitCommonTransactionDataStack_.top()->SetSyncId(syncId);
-            renderThreadClient_->CommitTransaction(implicitCommonTransactionDataStack_.top());
-        }
-        implicitCommonTransactionDataStack_.pop();
-    }
 
-    if (!implicitRemoteTransactionDataStack_.empty()) {
-        if (renderServiceClient_ != nullptr && (!implicitRemoteTransactionDataStack_.top()->IsEmpty() ||
-                                                   implicitRemoteTransactionDataStack_.top()->IsNeedSync())) {
-            implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
-            implicitRemoteTransactionDataStack_.top()->tid_ = tid;
-            implicitRemoteTransactionDataStack_.top()->SetSyncId(syncId);
-            renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
-        }
-        implicitRemoteTransactionDataStack_.pop();
+    if (renderThreadClient_) {
+        ProcessSyncTransactionStack(implicitCommonTransactionDataStack_, *renderThreadClient_,
+            syncId, timestamp, tid, abilityName);
+    }
+    if (renderServiceClient_) {
+        ProcessSyncTransactionStack(implicitRemoteTransactionDataStack_, *renderServiceClient_,
+            syncId, timestamp, tid, "");
     }
 }
 

@@ -179,6 +179,8 @@ public:
 
     ErrCode GetScreenPowerStatus(uint64_t screenId, uint32_t& status) override;
 
+    ErrCode GetPanelPowerStatus(uint64_t screenId, PanelPowerStatus& status) override;
+
     RSScreenData GetScreenData(ScreenId id) override;
 
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) override;
@@ -187,8 +189,6 @@ public:
     ErrCode GetScreenBacklight(uint64_t id, int32_t& level) override;
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
-
-    ErrCode GetPanelPowerStatus(uint64_t screenId, uint32_t& status) override;
 
     ErrCode RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;
@@ -267,7 +267,6 @@ public:
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
-    ErrCode SetAppWindowNum(uint32_t num) override;
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) override;
@@ -372,6 +371,10 @@ public:
 
     ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
+
+    ErrCode AvcodecVideoGet(uint64_t uniqueId) override;
+ 
+    ErrCode AvcodecVideoGetRecent() override;
 
     bool GetHighContrastTextState() override;
 

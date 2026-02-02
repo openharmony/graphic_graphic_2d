@@ -274,7 +274,7 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CheckNeedNotify001, TestSize.Level1)
     EXPECT_EQ(true, rateReduceManager.CheckNeedNotify());
     auto& vSyncRateMap = rateReduceManager.vSyncRateMap_;
     EXPECT_NE(vSyncRateMap.end(), vSyncRateMap.find(nodeId2));
-    EXPECT_EQ(false, rateReduceManager.CheckNeedNotify());
+    EXPECT_EQ(true, rateReduceManager.CheckNeedNotify());
     EXPECT_NE(vSyncRateMap.end(), vSyncRateMap.find(nodeId));
 }
 

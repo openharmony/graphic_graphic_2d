@@ -22,13 +22,11 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_ROUND_RECT_NAME = "@ohos.graphics.drawing.drawing.RoundRect";
 
 ani_status AniRoundRect::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_ROUND_RECT_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().roundRect;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_ROUND_RECT_NAME);
         return ANI_NOT_FOUND;
     }
@@ -45,7 +43,7 @@ ani_status AniRoundRect::AniInit(ani_env *env)
         ani_native_function { "offset", "dd:", reinterpret_cast<void*>(Offset) },
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_ROUND_RECT_NAME);
         return ANI_NOT_FOUND;
@@ -75,7 +73,8 @@ void AniRoundRect::ConstructorWithRect(ani_env* env, ani_object obj, ani_object 
         return;
     }
     AniRoundRect* aniRoundRect = new AniRoundRect(drawingRect, xRadii, yRadii);
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniRoundRect))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        obj, AniGlobalField::GetInstance().roundRectNativeObj, reinterpret_cast<ani_long>(aniRoundRect))) {
         ROSEN_LOGE("AniRoundRect::Constructor failed create AniRoundRect");
         delete aniRoundRect;
         return;
@@ -84,7 +83,8 @@ void AniRoundRect::ConstructorWithRect(ani_env* env, ani_object obj, ani_object 
 
 void AniRoundRect::ConstructorWithRoundRect(ani_env* env, ani_object obj, ani_object aniRoundRectObj)
 {
-    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, aniRoundRectObj);
+    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, aniRoundRectObj,
+        AniGlobalField::GetInstance().roundRectNativeObj);
     if (aniRoundRect == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
@@ -93,7 +93,8 @@ void AniRoundRect::ConstructorWithRoundRect(ani_env* env, ani_object obj, ani_ob
     std::shared_ptr<RoundRect> roundRect = other == nullptr ? std::make_shared<RoundRect>() :
         std::make_shared<RoundRect>(*other);
     AniRoundRect* newAniRoundRect = new AniRoundRect(roundRect);
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniRoundRect))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        obj, AniGlobalField::GetInstance().roundRectNativeObj, reinterpret_cast<ani_long>(newAniRoundRect))) {
         ROSEN_LOGE("AniRoundRect::Constructor failed create AniRoundRect");
         delete newAniRoundRect;
         return;
@@ -102,7 +103,7 @@ void AniRoundRect::ConstructorWithRoundRect(ani_env* env, ani_object obj, ani_ob
 
 void AniRoundRect::SetCorner(ani_env* env, ani_object obj, ani_enum_item aniPos, ani_double x, ani_double y)
 {
-    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, obj);
+    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, obj, AniGlobalField::GetInstance().roundRectNativeObj);
     if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniRoundRect::SetCorner aniRoundRect is nullptr.");
@@ -119,7 +120,7 @@ void AniRoundRect::SetCorner(ani_env* env, ani_object obj, ani_enum_item aniPos,
 
 ani_object AniRoundRect::GetCorner(ani_env* env, ani_object obj, ani_enum_item aniPos)
 {
-    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, obj);
+    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, obj, AniGlobalField::GetInstance().roundRectNativeObj);
     if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniRoundRect::GetCorner aniRoundRect is nullptr.");
@@ -141,7 +142,7 @@ ani_object AniRoundRect::GetCorner(ani_env* env, ani_object obj, ani_enum_item a
 
 void AniRoundRect::Offset(ani_env* env, ani_object obj, ani_double x, ani_double y)
 {
-    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, obj);
+    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, obj, AniGlobalField::GetInstance().roundRectNativeObj);
     if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniRoundRect::Offset aniRoundRect is nullptr.");
         return;
@@ -168,9 +169,10 @@ ani_object AniRoundRect::RoundRectTransferStatic(ani_env* env, [[maybe_unused]]a
     }
 
     auto aniRoundRect = new AniRoundRect(jsRoundRect->GetRoundRectPtr());
-    ani_object aniRoundRectObj = CreateAniObject(env, ANI_CLASS_ROUND_RECT_NAME, ":");
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniRoundRectObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(aniRoundRect))) {
+    ani_object aniRoundRectObj = CreateAniObject(env, AniGlobalClass::GetInstance().roundRect,
+        AniGlobalMethod::GetInstance().roundRectCtor);
+    if (ANI_OK != env->Object_SetField_Long(aniRoundRectObj,
+        AniGlobalField::GetInstance().roundRectNativeObj, reinterpret_cast<ani_long>(aniRoundRect))) {
         ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed create aniRoundRect");
         delete aniRoundRect;
         return CreateAniUndefined(env);
@@ -180,7 +182,7 @@ ani_object AniRoundRect::RoundRectTransferStatic(ani_env* env, [[maybe_unused]]a
 
 ani_long AniRoundRect::GetRoundRectAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, input);
+    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, input, AniGlobalField::GetInstance().roundRectNativeObj);
     if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
         ROSEN_LOGE("AniRoundRect::GetRoundRectAddr aniRoundRect is null");
         return 0;

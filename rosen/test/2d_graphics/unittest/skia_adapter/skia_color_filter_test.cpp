@@ -103,7 +103,7 @@ HWTEST_F(SkiaColorFilterTest, InitWithColorMatrix001, TestSize.Level1)
  */
 HWTEST_F(SkiaColorFilterTest, InitWithColorFloat001, TestSize.Level1)
 {
-    static const float colorMatrixArray[20] = {
+    float colorMatrixArray[20] = {
         0.402,  -1.174, -0.228, 1.0, 0.0,
         -0.598, -0.174, -0.228, 1.0, 0.0,
         -0.599, -1.175, 0.772,  1.0, 0.0,

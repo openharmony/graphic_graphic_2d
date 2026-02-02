@@ -160,7 +160,7 @@ int32_t HdiLayer::CreateLayer(const std::shared_ptr<RSLayer>& rsLayer)
     bufferCache_.reserve(bufferCacheCountMax_);
     layerId_ = layerId;
 
-    HLOGI("Create hwc layer succeed, layerId is %{public}u", layerId_);
+    HLOGD("Create hwc layer succeed, layerId is %{public}u", layerId_);
 
     CheckRet(device_->GetSupportedPresentTimestampType(screenId_, layerId_, supportedPresentTimestamptype_),
              "GetSupportedPresentTimestamp");
@@ -184,7 +184,7 @@ void HdiLayer::CloseLayer()
         HLOGE("Close hwc layer[%{public}u] failed, ret is %{public}d", layerId_, retCode);
     }
 
-    HLOGI("Close hwc layer succeed, layerId is %{public}u", layerId_);
+    HLOGD("Close hwc layer succeed, layerId is %{public}u", layerId_);
 }
 
 int32_t HdiLayer::SetLayerAlpha()
@@ -785,7 +785,7 @@ void HdiLayer::SavePrevRSLayer()
     prevRSLayer_->CopyLayerInfo(rsLayer_);
 }
 
-void HdiLayer::Dump(std::string& result)
+void HdiLayer::Dump(std::string& result) const
 {
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = count_;
@@ -809,7 +809,7 @@ void HdiLayer::DumpByName(std::string windowName, std::string& result)
     }
 }
 
-void HdiLayer::DumpMergedResult(std::string& result)
+void HdiLayer::DumpMergedResult(std::string& result) const
 {
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = mergedCount_;
@@ -851,13 +851,7 @@ int32_t HdiLayer::SetPerFrameParameters()
             CheckRet(ret, "SetLayerSourceTuning");
         }
     }
-
-    if (rsLayer_->GetTunnelLayerId() && rsLayer_->GetTunnelLayerProperty()) {
-        ret = SetTunnelLayerId();
-        CheckRet(ret, "SetTunnelLayerId");
-        ret = SetTunnelLayerProperty();
-        CheckRet(ret, "SetTunnelLayerProperty");
-    }
+    SetTunnelLayerParameters();
     return ret;
 }
 
@@ -945,11 +939,29 @@ void HdiLayer::ClearBufferCache()
         bufferCache_.size());
     ResetBufferCache();
     if (device_ == nullptr) {
-        HLOGE("device_ is nullptr.");
+        HLOGE("device_ is nullptr");
         return;
     }
     int32_t ret = device_->ClearLayerBuffer(screenId_, layerId_);
     CheckRet(ret, "ClearLayerBuffer");
+}
+
+int32_t HdiLayer::SetTunnelLayerParameters()
+{
+    if (rsLayer_->GetTunnelLayerId() && rsLayer_->GetTunnelLayerProperty()) {
+        int32_t tunnelLayerIdRet = SetTunnelLayerId();
+        if (tunnelLayerIdRet != GRAPHIC_DISPLAY_SUCCESS) {
+            CheckRet(tunnelLayerIdRet, "SetTunnelLayerId");
+            return tunnelLayerIdRet;
+        }
+        int32_t tunnelLayerPropertyRet = SetTunnelLayerProperty();
+        if (tunnelLayerPropertyRet != GRAPHIC_DISPLAY_SUCCESS) {
+            CheckRet(tunnelLayerPropertyRet, "SetTunnelLayerProperty");
+            return tunnelLayerPropertyRet;
+        }
+        return GRAPHIC_DISPLAY_SUCCESS;
+    }
+    return GRAPHIC_DISPLAY_FAILURE;
 }
 
 void HdiLayer::ResetBufferCache()

@@ -19,7 +19,6 @@
 #include <memory>
 #include <mutex>
 #include "common/rs_rect.h"
-
 #ifdef ROSEN_IOS
 #include "render_context_egl_defines.h"
 #else
@@ -96,7 +95,6 @@ public:
     {
         return colorSpace_;
     }
-
 #ifndef ROSEN_CROSS_PLATFORM
     void SetPixelFormat(int32_t pixelFormat)
     {
@@ -114,7 +112,9 @@ protected:
 
     std::shared_ptr<Drawing::GPUContext> drGPUContext_ = nullptr;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
+
     std::mutex shareContextMutex_;
+
     bool isUniRender_ = false;
     bool isUniRenderMode_ = false;
     std::string cacheDir_ = "";

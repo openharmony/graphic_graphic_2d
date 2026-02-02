@@ -375,17 +375,19 @@ template("render_service_client_source_set") {
     }
 
     if (graphic_2d_feature_enable_vulkan) {
-      sources += [
-        "core/modifier_render_thread/rs_modifiers_draw.cpp",
-        "core/modifier_render_thread/rs_modifiers_draw_thread.cpp",
-      ]
-      external_deps += [
-        "ffrt:libffrt",
-        "qos_manager:qos",
-      ]
-      if (defined(graphic_2d_modifiers_draw_configs.vendor_root)) {
-        sources += graphic_2d_modifiers_draw_configs.librender_service_ext_modifiers_draw_sources
-        sources -= graphic_2d_modifiers_draw_configs.librender_service_ext_modifiers_draw_sources_del
+      if (!is_arkui_x) {
+        sources += [
+          "core/modifier_render_thread/rs_modifiers_draw.cpp",
+          "core/modifier_render_thread/rs_modifiers_draw_thread.cpp",
+        ]
+        external_deps += [
+          "ffrt:libffrt",
+          "qos_manager:qos",
+        ]
+        if (defined(graphic_2d_modifiers_draw_configs.vendor_root)) {
+          sources += graphic_2d_modifiers_draw_configs.librender_service_ext_modifiers_draw_sources
+          sources -= graphic_2d_modifiers_draw_configs.librender_service_ext_modifiers_draw_sources_del
+        }
       }
     }
 
@@ -420,6 +422,13 @@ config("render_service_client_link_config") {
       "-Wl,-wholeprogramdevirt-check=fallback",
       "-Wl,-Bsymbolic",
     ]
+    if (target_cpu == "arm64" && defined(build_ext_path)) {
+      ldflags += [ 
+        "-Wl,--emit-relocs",
+        "-Wl,--no-relax", 
+        "-mno-fix-cortex-a53-843419" 
+      ]
+    }
   }
 }
 

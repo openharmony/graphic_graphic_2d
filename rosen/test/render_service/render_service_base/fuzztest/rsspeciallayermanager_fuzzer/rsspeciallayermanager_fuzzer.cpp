@@ -114,7 +114,38 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         rsSpecialLayerManager.AddIds(type, id);
         rsSpecialLayerManager.RemoveIds(type, id);
     });
-
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
+        rsSpecialLayerManager.SetWithScreen(GetData<ScreenId>(), GetData<uint32_t>(), GetData<bool>());
+    });
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
+        rsSpecialLayerManager.AddIdsWithScreen(GetData<ScreenId>(), GetData<uint32_t>(), GetData<NodeId>());
+    });
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
+        rsSpecialLayerManager.RemoveIdsWithScreen(GetData<ScreenId>(), GetData<uint32_t>(), GetData<NodeId>());
+    });
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
+        // test add and remove same id
+        auto screenId = GetData<ScreenId>();
+        auto nodeId = GetData<NodeId>();
+        auto type = GetData<uint32_t>();
+        rsSpecialLayerManager.AddIdsWithScreen(screenId, type, nodeId);
+        rsSpecialLayerManager.RemoveIdsWithScreen(screenId, type, nodeId);
+    });
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
+        rsSpecialLayerManager.GetIdsWithScreen(GetData<ScreenId>(), GetData<uint32_t>());
+    });
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
+        rsSpecialLayerManager.ClearScreenSpecialLayer();
+    });
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
+        rsSpecialLayerManager.Clear();
+    });
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
+        rsSpecialLayerManager.SetHasSlInVisibleRect(GetData<ScreenId>(), GetData<bool>());
+    });
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
+        rsSpecialLayerManager.GetIds(GetData<uint32_t>());
+    });
     // run test functions
     std::mt19937 g(GetData<uint_fast32_t>());
     std::shuffle(testFunctions.begin(), testFunctions.end(), g);

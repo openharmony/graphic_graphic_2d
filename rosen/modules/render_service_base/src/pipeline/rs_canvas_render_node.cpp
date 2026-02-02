@@ -20,6 +20,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_common_def.h"
+#include "display_engine/rs_color_temperature.h"
 #include "feature/hdr/rs_colorspace_util.h"
 #include "recording/recording_canvas.h"
 #include "memory/rs_memory_track.h"
@@ -35,6 +36,10 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "visitor/rs_node_visitor.h"
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "metadata_helper.h"
+#include "render/rs_colorspace_convert.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -127,14 +132,20 @@ void RSCanvasRenderNode::UpdateHDRNodeOnTreeState(NodeId displayNodeId)
     // Need to count upper or lower trees of HDR nodes
     bool isOnTheTree = IsOnTheTree();
     NodeId instanceRootNodeId = GetInstanceRootNodeId();
+    NodeId screenNodeId = GetScreenNodeId();
+
+    if (!isOnTheTree) {
+        screenNodeId = preScreenNodeId_;
+    }
     if (GetHDRPresent()) {
-        SetHdrNum(isOnTheTree, instanceRootNodeId, HDRComponentType::IMAGE);
+        SetHdrNum(isOnTheTree, instanceRootNodeId, screenNodeId, HDRComponentType::IMAGE);
         UpdateDisplayHDRNodeMap(isOnTheTree, displayNodeId);
     }
     if (GetRenderProperties().IsHDRUIBrightnessValid()) {
-        SetHdrNum(isOnTheTree, instanceRootNodeId, HDRComponentType::UICOMPONENT);
+        SetHdrNum(isOnTheTree, instanceRootNodeId, screenNodeId, HDRComponentType::UICOMPONENT);
         UpdateDisplayHDRNodeMap(isOnTheTree, displayNodeId);
     }
+    preScreenNodeId_ = GetScreenNodeId();
 }
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -303,11 +314,56 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
         return;
     }
     if (IsOnTheTree()) {
-        SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), HDRComponentType::IMAGE);
+        SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), GetScreenNodeId(), HDRComponentType::IMAGE);
         UpdateDisplayHDRNodeMap(hasHdrPresent, GetLogicalDisplayNodeId());
     }
     UpdateHDRStatus(HdrStatus::HDR_PHOTO, hasHdrPresent);
     hasHdrPresent_ = hasHdrPresent;
+}
+
+void RSCanvasRenderNode::OnSetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    if (!pixelMap) {
+        return;
+    }
+
+    auto surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd());
+    if (!surfaceBuffer) {
+        return;
+    }
+
+    std::vector<uint8_t> staticMetadataVec;
+    std::vector<uint8_t> dynamicMetadataVec;
+    GSError ret = GSERROR_OK;
+    RSColorSpaceConvert::Instance().GetHDRStaticMetadata(surfaceBuffer, staticMetadataVec, ret);
+    RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(surfaceBuffer, dynamicMetadataVec, ret);
+
+    float scaler = RSColorSpaceConvert::GetDefaultHDRScaler();
+    auto& rsLuminance = RSLuminanceControl::Get();
+    if (staticMetadataVec.size() != sizeof(HdrStaticMetadata)) {
+        RS_LOGD("bhdr staticMetadataVec size is invalid");
+        scaler = GetHDRBrightness() * (scaler - 1.0f) + 1.0f;
+    } else {
+        const auto& data = *reinterpret_cast<HdrStaticMetadata*>(staticMetadataVec.data());
+        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel, ret == GSERROR_OK ?
+            dynamicMetadataVec : std::vector<uint8_t>{}, GetHDRBrightness(), HdrStatus::HDR_PHOTO);
+    }
+    if (!rsLuminance.IsHdrPictureOn()) {
+        scaler = 1.0f;
+    }
+    uint32_t newHeadroom = rsLuminance.ConvertScalerFromFloatToLevel(scaler);
+    auto hdrPhotoHeadroom = RSRenderNode::GetHdrPhotoHeadroom();
+    if (isOnTheTree_ && newHeadroom != hdrPhotoHeadroom) {
+        if (auto context = GetContext().lock()) {
+            if (auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(GetScreenNodeId())) {
+                screenNode->UpdateHeadroomMapDecrease(HdrStatus::HDR_PHOTO, hdrPhotoHeadroom);
+                screenNode->UpdateHeadroomMapIncrease(HdrStatus::HDR_PHOTO, newHeadroom);
+            }
+        }
+    }
+    SetHdrPhotoHeadroom(newHeadroom);
+#endif
 }
 
 void RSCanvasRenderNode::SetColorGamut(uint32_t gamut)
@@ -351,6 +407,13 @@ void RSCanvasRenderNode::UpdateNodeColorSpace()
     auto subTreeColorSpace = GetNodeColorSpace();
     auto nodeColorSpace = RSColorSpaceUtil::SelectBigGamut(colorGamut_, subTreeColorSpace);
     SetNodeColorSpace(nodeColorSpace);
+}
+
+void RSCanvasRenderNode::MarkNodeColorSpace(bool isP3Color)
+{
+    if (isP3Color) {
+        SetColorGamut(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3);
+    }
 }
 
 } // namespace Rosen

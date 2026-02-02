@@ -31,6 +31,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_union_render_node.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -107,6 +108,9 @@ public:
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
     static inline Drawing::Canvas drawingCanvas_;
+
+    void CheckWithStatusLevel(const RSScreenRenderNode::HeadroomMap &map, HdrStatus status, uint32_t level);
+    void CheckWithoutStatusLevel(const RSScreenRenderNode::HeadroomMap &map, HdrStatus status, uint32_t level);
 };
 
 void RSRenderNodeTest2::SetUpTestCase()
@@ -373,8 +377,7 @@ HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalPixelStretchRect, TestSize.Leve
 HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    RectF selfDrawingNodeDirtyRect{0, 0, 1000, 1000};
-    node.UpdateBufferDirtyRegion(selfDrawingNodeDirtyRect);
+    node.UpdateBufferDirtyRegion();
     RectI dirtyRect{0, 0, 1000, 1000};
     RectI drawRegion{0, 0, 1000, 1000};
     node.UpdateBufferDirtyRegion(dirtyRect, drawRegion);
@@ -396,8 +399,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion002, TestSize.Level1)
     ASSERT_EQ(ret, GSERROR_OK);
 
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_NE(src, nullptr);
-    (*src) = defaultSelfDrawingRect;
+    ASSERT_EQ(src, nullptr);
 
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
@@ -405,8 +407,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion002, TestSize.Level1)
     surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
     auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    RectF selfDrawingNodeDirtyRect{0, 0, 100, 100};
-    surfaceNode->UpdateBufferDirtyRegion(selfDrawingNodeDirtyRect);
+    surfaceNode->UpdateBufferDirtyRegion();
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
@@ -427,8 +428,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion003, TestSize.Level1)
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
-    RectF selfDrawingNodeDirtyRect{0, 0, 200, 200};
-    surfaceNode->UpdateBufferDirtyRegion(selfDrawingNodeDirtyRect);
+    surfaceNode->UpdateBufferDirtyRegion();
 }
 
 /**
@@ -446,8 +446,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion004, TestSize.Level1)
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
-    RectF selfDrawingNodeDirtyRect{0, 0, 200, 200};
-    surfaceNode->UpdateBufferDirtyRegion(selfDrawingNodeDirtyRect);
+    surfaceNode->UpdateBufferDirtyRegion();
 }
 
 /**
@@ -468,9 +467,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion005, TestSize.Level1)
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     surfaceNode->GetRSSurfaceHandler()->bufferSizeChanged_ = true;
     surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
-    RectF selfDrawingNodeDirtyRect{0, 0, 100, 100};
-    surfaceNode->UpdateBufferDirtyRegion(selfDrawingNodeDirtyRect);
-    ASSERT_EQ(selfDrawingNodeDirtyRect, DEFAULT_SELF_DRAW_RECT);
+    surfaceNode->UpdateBufferDirtyRegion();
 }
 
 /**
@@ -482,8 +479,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion005, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, UpdateSelfDrawRect, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    RectF selfDrawingNodeDirtyRect{0, 0, 100, 100};
-    node.UpdateSelfDrawRect(selfDrawingNodeDirtyRect);
+    node.UpdateSelfDrawRect();
     ASSERT_TRUE(true);
 }
 
@@ -513,41 +509,21 @@ HWTEST_F(RSRenderNodeTest2, GetHDRBrightness, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 
-#ifndef MODIFIER_NG
 /**
- * @tc.name: CheckAndUpdateGeoTrans001
+ * @tc.name: SetHDRUIBrightness
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require: issueI9V3BK
  */
-HWTEST_F(RSRenderNodeTest2, CheckAndUpdateGeoTrans001, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, SetHDRUIBrightness, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    std::shared_ptr<RSObjAbsGeometry> geoPtr = std::make_shared<RSObjAbsGeometry>();
-    ASSERT_EQ(node.CheckAndUpdateGeoTrans(geoPtr), false);
+    constexpr uint32_t INCORRECT_HEADROOM = static_cast<uint32_t>(-1);
+    node.SetHdrUIComponentHeadroom(INCORRECT_HEADROOM);
+    node.SetHDRUIBrightness(1.0F);
+    ASSERT_NE(node.headroomInfo_, nullptr);
+    ASSERT_NE(node.GetHdrUIComponentHeadroom(), INCORRECT_HEADROOM);
 }
-
-/**
- * @tc.name: CheckAndUpdateGeoTrans002
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, CheckAndUpdateGeoTrans002, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    std::shared_ptr<RSObjAbsGeometry> geoPtr = std::make_shared<RSObjAbsGeometry>();
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSGeometryTransRenderModifier>(property) };
-    std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> map;
-    map[RSModifierType::GEOMETRYTRANS] = list;
-    node.drawCmdModifiers_ = map;
-    ASSERT_EQ(node.CheckAndUpdateGeoTrans(geoPtr), true);
-}
-#endif
 
 /**
  * @tc.name: UpdateAbsDirtyRegion001
@@ -560,9 +536,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion001, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    RectI selfDrawingNodeAbsDirtyRect{0, 0, 1000, 1000};
-    RectI absCmdlistDrawRect{0, 0, 1000, 1000};
-    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -580,9 +554,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion002, TestSize.Level1)
     node.isSelfDrawingNode_ = true;
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
-    RectI selfDrawingNodeAbsDirtyRect{0, 0, 1000, 1000};
-    RectI absCmdlistDrawRect{0, 0, 1000, 1000};
-    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -602,9 +574,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion003, TestSize.Level1)
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.shouldPaint_ = false;
     node.isLastVisible_ = true;
-    RectI selfDrawingNodeAbsDirtyRect{0, 0, 1000, 1000};
-    RectI absCmdlistDrawRect{0, 0, 1000, 1000};
-    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -624,9 +594,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion004, TestSize.Level1)
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.shouldPaint_ = true;
     node.isLastVisible_ = true;
-    RectI selfDrawingNodeAbsDirtyRect{0, 0, 1000, 1000};
-    RectI absCmdlistDrawRect{0, 0, 1000, 1000};
-    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -753,37 +721,6 @@ HWTEST_F(RSRenderNodeTest2, Update001, TestSize.Level1)
     bool parentDirty = true;
     ASSERT_EQ(node.Update(*rsDirtyManager, parentNode, parentDirty, clipRect), false);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: Update002
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, Update002, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
-    std::shared_ptr<RSRenderNode> parentNode;
-    RectI clipRect{0, 0, 1000, 1000};
-    node.shouldPaint_ = true;
-    node.isLastVisible_ = false;
-    node.SetDirty();
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSGeometryTransRenderModifier>(property) };
-    std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> map;
-    map[RSModifierType::GEOMETRYTRANS] = list;
-    node.drawCmdModifiers_ = map;
-    bool parentDirty = true;
-    auto& bgProperties = node.GetMutableRenderProperties();
-    bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
-    ASSERT_EQ(node.Update(*rsDirtyManager, parentNode, parentDirty, clipRect), true);
-}
-#endif
 
 /**
  * @tc.name: GetMutableRenderProperties
@@ -989,14 +926,15 @@ HWTEST_F(RSRenderNodeTest2, IsFilterCacheValid002, TestSize.Level1)
     RSRenderNode node(id, context);
     node.shouldPaint_ = true;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     EXPECT_FALSE(node.IsFilterCacheValid());
     properties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
     EXPECT_FALSE(node.IsFilterCacheValid());
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->stagingCacheManager_->isFilterCacheValid_ = true;
-    EXPECT_TRUE(node.IsFilterCacheValid());
+    EXPECT_FALSE(node.IsFilterCacheValid());
 }
 
 /**
@@ -1106,7 +1044,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree001, TestSize.Leve
     RSBaseRenderNode subTreeRoot(id + 1, context);
     RectI filterRect{0, 0, 1000, 1000};
     RectI clipRect{0, 0, 1000, 1000};
-    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect);
+    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -1124,8 +1062,42 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree002, TestSize.Leve
     RectI filterRect{0, 0, 1000, 1000};
     node.lastFilterRegion_ = filterRect;
     RectI clipRect{0, 0, 1000, 1000};
-    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect);
+    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect, clipRect);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: FilterRectMergeDirtyRectInSkippedSubtree001
+ * @tc.desc: test FilterRectMergeDirtyRectInSkippedSubtree last filter region is equal to filterRect
+ * @tc.type: FUNC
+ * @tc.require: issue21301
+ */
+HWTEST_F(RSRenderNodeTest2, FilterRectMergeDirtyRectInSkippedSubtree001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI filterRect{0, 0, 1000, 1000};
+    node.lastFilterRegion_ = filterRect;
+    node.FilterRectMergeDirtyRectInSkippedSubtree(*rsDirtyManager, filterRect);
+    EXPECT_FALSE(node.isDirtyRegionUpdated_);
+    EXPECT_TRUE(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: FilterRectMergeDirtyRectInSkippedSubtree002
+ * @tc.desc: test FilterRectMergeDirtyRectInSkippedSubtree last filter region is not equal to filterRect
+ * @tc.type: FUNC
+ * @tc.require: issue21301
+ */
+HWTEST_F(RSRenderNodeTest2, FilterRectMergeDirtyRectInSkippedSubtree002, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI filterRect{1000, 1000, 1500, 1500};
+    node.lastFilterRegion_ = RectI(0, 0, 500, 500);
+    node.FilterRectMergeDirtyRectInSkippedSubtree(*rsDirtyManager, filterRect);
+    EXPECT_TRUE(node.isDirtyRegionUpdated_);
+    EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), filterRect);
 }
 
 /**
@@ -1140,8 +1112,8 @@ HWTEST_F(RSRenderNodeTest2, CheckBlurFilterCacheNeedForceClearOrSave, TestSize.L
     bool rotationChanged = true;
     bool rotationStatusChanged = true;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
     rotationStatusChanged = false;
     node.CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
@@ -1252,9 +1224,9 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
     properties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.UpdateFilterCacheWithSelfDirty();
     ASSERT_TRUE(true);
 }
@@ -1301,8 +1273,8 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty003, TestSize.Level1)
         filterDrawable;
 
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
 
     RectI snapshotRect(20, 20, 100, 100);
     RectI lastSnapshotRect(20, 20, 30, 30);
@@ -1439,6 +1411,44 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect005, TestSize.Level
 }
 
 /**
+ * @tc.name: UpdatePendingPurgeFilterDirtyRect006
+ * @tc.desc: test pendingPurgeFilterRegion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect006, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto& geoPtr = node.renderProperties_.boundsGeo_;
+    geoPtr = std::make_shared<RSObjAbsGeometry>();
+    RectI rect(50, 50, 100, 100);
+    geoPtr->absRect_ = rect;
+
+    RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->stagingCacheManager_->pendingPurge_ = false;
+    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
+
+    auto filterRegion = Occlusion::Region(node.GetFilterRect());
+    node.lastFilterRegion_ = node.GetFilterRect();
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+
+    filterDrawable->stagingCacheManager_->lastHpaeClearCache_ = false;
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+    const auto& pendingPurgeFilterRegion = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
+    EXPECT_FALSE(filterRegion.Sub(pendingPurgeFilterRegion).IsEmpty());
+
+    filterDrawable->stagingCacheManager_->lastHpaeClearCache_ = true;
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+    const auto& pendingPurgeFilterRegion2 = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
+    EXPECT_TRUE(filterRegion.Sub(pendingPurgeFilterRegion2).IsEmpty());
+
+    filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+}
+
+/**
  * @tc.name: IsBackgroundInAppOrNodeSelfDirty
  * @tc.desc: test
  * @tc.type: FUNC
@@ -1477,8 +1487,8 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode, TestSize.Level1)
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -1864,27 +1874,193 @@ HWTEST_F(RSRenderNodeTest2, HDRStatusTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetHdrNum
+ * @tc.name: SetHdrNum001
  * @tc.desc: SetHdrNum test
  * @tc.type: FUNC
  * @tc.require: issueI9US6V
  */
-HWTEST_F(RSRenderNodeTest2, SetHdrNum, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, SetHdrNum001, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     EXPECT_NE(rsContext, nullptr);
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
     EXPECT_NE(surfaceNode, nullptr);
     rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = surfaceNode;
-    node->SetHdrNum(true, 1, HDRComponentType::IMAGE);
+    NodeId screenNodeId = 2UL;
+    node->SetHdrNum(true, 1, screenNodeId, HDRComponentType::IMAGE);
     EXPECT_EQ(surfaceNode->hdrPhotoNum_, 1);
-    node->SetHdrNum(true, 1, HDRComponentType::UICOMPONENT);
+    node->SetHdrNum(true, 1, screenNodeId, HDRComponentType::UICOMPONENT);
     EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 1);
-    node->SetHdrNum(false, 1, HDRComponentType::IMAGE);
+    node->SetHdrNum(true, 1, screenNodeId, HDRComponentType::EFFECT);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 1);
+    node->SetHdrNum(false, 1, screenNodeId, HDRComponentType::IMAGE);
     EXPECT_EQ(surfaceNode->hdrPhotoNum_, 0);
-    node->SetHdrNum(false, 1, HDRComponentType::UICOMPONENT);
+    node->SetHdrNum(false, 1, screenNodeId, HDRComponentType::UICOMPONENT);
     EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 0);
+    node->SetHdrNum(false, 1, screenNodeId, HDRComponentType::EFFECT);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
+}
+
+void RSRenderNodeTest2::CheckWithStatusLevel(const RSScreenRenderNode::HeadroomMap &map,
+    HdrStatus status, uint32_t level)
+{
+    ASSERT_EQ(map.count(status), 1U);
+    ASSERT_EQ(map.at(status).count(level), 1U);
+    ASSERT_EQ(map.at(status).at(level), 1U);
+}
+
+void RSRenderNodeTest2::CheckWithoutStatusLevel(const RSScreenRenderNode::HeadroomMap &map,
+    HdrStatus status, uint32_t level)
+{
+    if (map.count(status) > 0U) {
+        const auto &statusMap = map.at(status);
+        if (statusMap.count(level) > 0U) {
+            ASSERT_EQ(statusMap.at(level), 0U);
+        }
+    }
+}
+
+/**
+ * @tc.name: SetHdrNum002
+ * @tc.desc: SetHdrNum test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrNum002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+    NodeId surfaceNodeId = 1UL;
+    NodeId screenNodeId = 2UL;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(surfaceNode);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0U, rsContext);
+    EXPECT_NE(screenNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(screenNode);
+
+    node->SetHdrPhotoHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrUIComponentHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetEnableHdrEffect(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    constexpr HDRComponentType INCORRECT_HDR_COMPONENT_TYPE = static_cast<HDRComponentType>(-1);
+    node->SetHdrNum(true, surfaceNodeId, screenNodeId, INCORRECT_HDR_COMPONENT_TYPE);
+    node->SetHdrNum(false, surfaceNodeId, screenNodeId, INCORRECT_HDR_COMPONENT_TYPE);
+    const auto &map = screenNode->GetHeadroomMap();
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_VIDEO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::AI_HDR_VIDEO_GTM, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::AI_HDR_VIDEO_GAINMAP, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrNum003
+ * @tc.desc: SetHdrNum test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrNum003, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+    NodeId surfaceNodeId = 1UL;
+    NodeId screenNodeId = 2UL;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(surfaceNode);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0U, rsContext);
+    EXPECT_NE(screenNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(screenNode);
+
+    node->SetHdrPhotoHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrUIComponentHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetEnableHdrEffect(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    const auto &map = screenNode->GetHeadroomMap();
+    node->SetHdrNum(true, surfaceNodeId, screenNodeId, HDRComponentType::IMAGE);
+    CheckWithStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrNum(false, surfaceNodeId, screenNodeId, HDRComponentType::IMAGE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrNum004
+ * @tc.desc: SetHdrNum test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrNum004, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+    NodeId surfaceNodeId = 1UL;
+    NodeId screenNodeId = 2UL;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(surfaceNode);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0U, rsContext);
+    EXPECT_NE(screenNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(screenNode);
+
+    node->SetHdrPhotoHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrUIComponentHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetEnableHdrEffect(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    const auto &map = screenNode->GetHeadroomMap();
+    node->SetHdrNum(true, surfaceNodeId, screenNodeId, HDRComponentType::UICOMPONENT);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrNum(false, surfaceNodeId, screenNodeId, HDRComponentType::UICOMPONENT);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrNum005
+ * @tc.desc: SetHdrNum test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrNum005, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+    NodeId surfaceNodeId = 1UL;
+    NodeId screenNodeId = 2UL;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(surfaceNode);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0U, rsContext);
+    EXPECT_NE(screenNode, nullptr);
+    rsContext->nodeMap.RegisterRenderNode(screenNode);
+
+    node->SetHdrPhotoHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrUIComponentHeadroom(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetEnableHdrEffect(RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    const auto &map = screenNode->GetHeadroomMap();
+    node->SetHdrNum(true, surfaceNodeId, screenNodeId, HDRComponentType::EFFECT);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    node->SetHdrNum(false, surfaceNodeId, screenNodeId, HDRComponentType::EFFECT);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_PHOTO, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_UICOMPONENT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    CheckWithoutStatusLevel(map, HdrStatus::HDR_EFFECT, RSRenderNode::DEFAULT_HEADROOM_VALUE);
 }
 
 /**
@@ -1898,6 +2074,7 @@ HWTEST_F(RSRenderNodeTest2, SetEnableHdrEffect, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     EXPECT_NE(rsContext, nullptr);
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
     node->InitRenderParams();
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
     EXPECT_NE(surfaceNode, nullptr);
@@ -1911,6 +2088,137 @@ HWTEST_F(RSRenderNodeTest2, SetEnableHdrEffect, TestSize.Level1)
     EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
     node->SetEnableHdrEffect(false);
     EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
+}
+
+/**
+ * @tc.name: CheckHdrHeadroomInfoPointer
+ * @tc.desc: CheckHdrHeadroomInfoPointer test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, CheckHdrHeadroomInfoPointer, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    node->CheckHdrHeadroomInfoPointer();
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    node->CheckHdrHeadroomInfoPointer();
+    EXPECT_NE(node->headroomInfo_, nullptr);
+}
+
+/**
+ * @tc.name: SetHdrPhotoHeadroom
+ * @tc.desc: SetHdrPhotoHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrPhotoHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrPhotoHeadroom(HEADROOM);
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_NE(node->headroomInfo_->hdrPhotoHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrEffectHeadroom
+ * @tc.desc: SetHdrEffectHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrEffectHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrEffectHeadroom(HEADROOM);
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_NE(node->headroomInfo_->hdrEffectHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrUIComponentHeadroom
+ * @tc.desc: SetHdrUIComponentHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, SetHdrUIComponentHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrUIComponentHeadroom(HEADROOM);
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_NE(node->headroomInfo_->hdrUIComponentHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: GetHdrPhotoHeadroom
+ * @tc.desc: GetHdrPhotoHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, GetHdrPhotoHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    uint32_t photoHeadroom = node->GetHdrPhotoHeadroom();
+    EXPECT_EQ(photoHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrPhotoHeadroom(HEADROOM);
+    photoHeadroom = node->GetHdrPhotoHeadroom();
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_EQ(photoHeadroom, HEADROOM);
+    EXPECT_NE(photoHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: GetHdrEffectHeadroom
+ * @tc.desc: GetHdrEffectHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, GetHdrEffectHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    uint32_t effectHeadroom = node->GetHdrEffectHeadroom();
+    EXPECT_EQ(effectHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrEffectHeadroom(HEADROOM);
+    effectHeadroom = node->GetHdrEffectHeadroom();
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_EQ(effectHeadroom, HEADROOM);
+    EXPECT_NE(effectHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+}
+
+/**
+ * @tc.name: GetHdrUIComponentHeadroom
+ * @tc.desc: GetHdrUIComponentHeadroom test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, GetHdrUIComponentHeadroom, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(0);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->headroomInfo_, nullptr);
+    uint32_t uiComponentHeadroom = node->GetHdrUIComponentHeadroom();
+    EXPECT_EQ(uiComponentHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
+    constexpr uint32_t HEADROOM = 1U;
+    node->SetHdrUIComponentHeadroom(HEADROOM);
+    uiComponentHeadroom = node->GetHdrUIComponentHeadroom();
+    EXPECT_NE(node->headroomInfo_, nullptr);
+    EXPECT_EQ(uiComponentHeadroom, HEADROOM);
+    EXPECT_NE(uiComponentHeadroom, RSRenderNode::DEFAULT_HEADROOM_VALUE);
 }
 
 /**
@@ -2101,6 +2409,9 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest03, TestSize.Level1)
     nodeTest->lastFrameHasChildrenOutOfRect_ = true;
     EXPECT_NE(nodeTest->renderProperties_.boundsGeo_, nullptr);
     nodeTest->hasChildrenOutOfRect_ = true;
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(stagingRenderParams, nullptr);
+    nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest2, true, true, clipRectTest2);
 
     RSDirtyRegionManager dirtyManagerTest3;
@@ -2463,8 +2774,8 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags01, TestSize.Level1)
     filterDrawable->MarkFilterForceClearCache();
     filterDrawable->stagingCacheManager_->pendingPurge_ = true;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -2486,8 +2797,8 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags02, TestSize.Level1)
     filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = true;
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -2508,8 +2819,8 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags03, TestSize.Level1)
     filterDrawable->stagingCacheManager_->stagingForceUseCache_ = true;
     filterDrawable->stagingCacheManager_->pendingPurge_ = true;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -2531,8 +2842,8 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags04, TestSize.Level1)
     filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = true;
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -2554,8 +2865,8 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags05, TestSize.Level1)
     filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -2577,8 +2888,8 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags06, TestSize.Level1)
     filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -2600,8 +2911,8 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags07, TestSize.Level1)
     filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -2623,8 +2934,8 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags08, TestSize.Level1)
     filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -3119,7 +3430,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterInForegroundFilterAndCheckNeedForceClearCa
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
     bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
-    bgProperties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    bgProperties.backgroundFilter_ = std::make_shared<RSFilter>();
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     backgroundNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
     backgroundNode.MarkFilterInForegroundFilterAndCheckNeedForceClearCache(id);
@@ -3141,8 +3452,8 @@ HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalEffectRect001, TestSize.Level1)
     node->dirtySlots_.insert(RSDrawableSlot::COMPOSITING_FILTER);
     node->dirtySlots_.insert(RSDrawableSlot::MATERIAL_FILTER);
     auto& properties = node->GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
 
     node->selfDrawRect_ = RectF();
     node->CollectAndUpdateLocalEffectRect();
@@ -3159,17 +3470,17 @@ HWTEST_F(RSRenderNodeTest2, CalVisibleFilterRect001, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     auto geo = node->GetRenderProperties().boundsGeo_;
-    node->CalVisibleFilterRect(std::nullopt);
+    node->CalVisibleFilterRect(std::nullopt, std::nullopt);
     auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
         filterDrawable;
 
     auto absRect = RectI(0, 0, 10, 10);
-    node->CalVisibleFilterRect(absRect, Drawing::Matrix(), std::nullopt);
+    node->CalVisibleFilterRect(absRect, Drawing::Matrix(), std::nullopt, std::nullopt);
     EXPECT_EQ(node->GetFilterRegionInfo().defaultFilterRegion_, absRect);
 
     node->GetMutableRenderProperties().boundsGeo_ = nullptr;
-    node->CalVisibleFilterRect(std::nullopt);
+    node->CalVisibleFilterRect(std::nullopt, std::nullopt);
 }
 
 /**
@@ -3194,8 +3505,8 @@ HWTEST_F(RSRenderNodeTest2, GetFilterDrawableSnapshotRegion001, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     auto& properties = node->GetMutableRenderProperties();
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
         filterDrawable;
@@ -3248,6 +3559,39 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBackgroundAndAlphaDirtyTest, Te
             = backgroundColorDrawable;
         renderNode->UpdateFilterCacheWithBackgroundDirty();
     }
+}
+
+/**
+ * @tc.name: ApplyModifiersProcessUnionInfoAfterApplyModifiers001
+ * @tc.desc: test ApplyModifiersProcessUnionInfoAfterApplyModifiers001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+
+    node->ApplyModifiers();
+    ASSERT_FALSE(node->renderProperties_.useUnion_);
+}
+
+/**
+ * @tc.name: ApplyModifiersProcessUnionInfoAfterApplyModifiers002
+ * @tc.desc: test ApplyModifiersProcessUnionInfoAfterApplyModifiers001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+
+    node->ApplyModifiers();
+    ASSERT_FALSE(node->renderProperties_.useUnion_);
 }
 } // namespace Rosen
 } // namespace OHOS

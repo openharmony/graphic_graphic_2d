@@ -50,7 +50,6 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "transaction/rs_ashmem_helper.h"
 
-#include "render/rs_shader_filter.h"
 #include "ge_shader_filter.h"
 
 namespace OHOS::Rosen {
@@ -1114,6 +1113,7 @@ static std::shared_ptr<ModifierNG::RSRenderModifier> UnmarshalRenderModifier(
         }
         errReason += ", size=" + std::to_string(buffer.size());
     }
+    parcel->~Parcel();
 
     return ptr;
 }
@@ -1274,10 +1274,20 @@ void RSProfiler::FilterAnimationForPlayback(RSAnimationManager& manager)
     });
 }
 
-void RSProfiler::SetTransactionTimeCorrection(double replayStartTime, double recordStartTime)
+void RSProfiler::SetReplayStartTimeNano(uint64_t replayStartTimeNano)
 {
-    g_transactionTimeCorrection = static_cast<int64_t>((replayStartTime - recordStartTime) * NS_TO_S);
-    g_replayStartTimeNano = replayStartTime * NS_TO_S;
+    g_replayStartTimeNano = static_cast<int64_t>(replayStartTimeNano);
+}
+
+uint64_t RSProfiler::GetReplayStartTimeNano()
+{
+    return g_replayStartTimeNano;
+}
+
+void RSProfiler::SetTransactionTimeCorrection(double recordStartTime)
+{
+    g_transactionTimeCorrection = static_cast<int64_t>(g_replayStartTimeNano) -
+        static_cast<int64_t>(Utils::ToNanoseconds(recordStartTime));
 }
 
 std::string RSProfiler::GetParcelCommandList()

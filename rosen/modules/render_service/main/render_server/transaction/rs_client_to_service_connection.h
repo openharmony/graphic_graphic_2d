@@ -212,13 +212,13 @@ private:
 
     ErrCode GetScreenPowerStatus(uint64_t screenId, uint32_t& status) override;
 
+    ErrCode GetPanelPowerStatus(ScreenId screenId, PanelPowerStatus& status) override;
+
     RSScreenData GetScreenData(ScreenId id) override;
 
     ErrCode GetScreenBacklight(uint64_t id, int32_t& level) override;
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
-
-    ErrCode GetPanelPowerStatus(ScreenId screenId, uint32_t& status) override;
 
     ErrCode RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;
@@ -305,8 +305,6 @@ private:
 
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
-
-    ErrCode SetAppWindowNum(uint32_t num) override;
 
     ErrCode SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) override;
@@ -434,6 +432,10 @@ private:
 
     ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
+
+    ErrCode AvcodecVideoGet(uint64_t uniqueId) override;
+ 
+    ErrCode AvcodecVideoGetRecent() override;
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
 

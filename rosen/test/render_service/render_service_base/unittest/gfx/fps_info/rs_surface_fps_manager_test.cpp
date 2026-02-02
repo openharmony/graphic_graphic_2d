@@ -209,10 +209,10 @@ HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeOnceTest, TestSize.Level1)
         std::chrono::steady_clock::now().time_since_epoch()).count();
     surfaceFpsManager.RecordFlushTime(id, vsyncId, flushTimestamp);
     int32_t presentFd = 10; // fd 10
-    surfaceFpsManager.RecordPresentFd(id, vsyncId, presentFd);
+    surfaceFpsManager.RecordPresentFd(vsyncId, presentFd);
     uint64_t presentTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
-    surfaceFpsManager.RecordPresentTime(id, presentFd, presentTimestamp);
+    surfaceFpsManager.RecordPresentTime(presentFd, presentTimestamp);
     std::string result("");
     surfaceFpsManager.Dump(result, id);
     EXPECT_TRUE(result.find(std::to_string(flushTimestamp)) != std::string::npos);
@@ -245,11 +245,11 @@ HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeLoopTest, TestSize.Level1)
             firstFlushTimestamp = flushTimestamp;
         }
         presentFd += i;
-        surfaceFpsManager.RecordPresentFd(id, vsyncId, presentFd);
+        surfaceFpsManager.RecordPresentFd(vsyncId, presentFd);
 
         presentTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
-        surfaceFpsManager.RecordPresentTime(id, presentFd, presentTimestamp);
+        surfaceFpsManager.RecordPresentTime(presentFd, presentTimestamp);
         if (i == 0) {
             firstPresentTimestamp = presentTimestamp;
         }
@@ -264,15 +264,16 @@ HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeLoopTest, TestSize.Level1)
     surfaceFpsManager.UnregisterSurfaceFps(id);
 }
 /**
- * @tc.name: RecordPresentTimeForUniRenderTest
+ * @tc.name: RecordPresentTimeForNoSurface
  * @tc.desc: test results of RecordPresentTime
  * @tc.type:FUNC
  */
-HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeForUniRenderTest, TestSize.Level1)
+HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeForNoSurface, TestSize.Level1)
 {
     RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
     NodeId id1 = 1000; // id 1000
     NodeId id2 = 2000; // id 2000
+
     uint64_t vsyncId = 1; // vsyncid 1
     std::string name1 = "surfacefps0";
     std::string name2 = "surfacefps1";
@@ -280,17 +281,24 @@ HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeForUniRenderTest, TestSize.Le
     surfaceFpsManager.RegisterSurfaceFps(id2, name2);
     uint64_t flushTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
+    surfaceFpsManager.RecordFlushTime(id1, vsyncId, flushTimestamp);
     surfaceFpsManager.RecordFlushTime(id2, vsyncId, flushTimestamp);
     int32_t presentFd = 10; // fd 10
-    surfaceFpsManager.RecordPresentFdForUniRender(vsyncId, presentFd);
+    surfaceFpsManager.RecordPresentFd(vsyncId, presentFd);
+    surfaceFpsManager.RecordPresentFd(vsyncId + 1, presentFd + 1);
     uint64_t presentTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
-    surfaceFpsManager.RecordPresentTimeForUniRender(presentFd, presentTimestamp);
+    surfaceFpsManager.UnregisterSurfaceFps(id2);
+    uint64_t flushTimestamp1 = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    surfaceFpsManager.RecordFlushTime(id2, vsyncId, flushTimestamp1);
+    surfaceFpsManager.RecordPresentTime(presentFd, presentTimestamp);
+    surfaceFpsManager.RecordPresentTime(presentFd + 1, presentTimestamp);
+    surfaceFpsManager.RecordPresentTime(presentFd + 2, presentTimestamp);
     std::string result("");
-    surfaceFpsManager.Dump(result, id2);
+    surfaceFpsManager.Dump(result, id1);
     EXPECT_TRUE(result.find(std::to_string(flushTimestamp)) != std::string::npos);
     EXPECT_TRUE(result.find(std::to_string(presentTimestamp)) != std::string::npos);
     surfaceFpsManager.UnregisterSurfaceFps(id1);
-    surfaceFpsManager.UnregisterSurfaceFps(id2);
 }
 }

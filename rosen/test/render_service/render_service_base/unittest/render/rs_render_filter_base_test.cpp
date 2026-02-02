@@ -253,7 +253,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling001, TestSize.Level1
     EXPECT_FALSE(ret);
     // Test Unmarshalling none type
     Parcel noneParcel;
-    RSMarshallingHelper::Marshalling(noneParcel, static_cast<RSUIFilterTypeUnderlying>(RSNGEffectType::NONE));
+    RSMarshallingHelper::Marshalling(noneParcel, static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::NONE));
     std::shared_ptr<RSNGRenderFilterBase> noneFilter;
     ret = RSNGRenderFilterBase::Unmarshalling(noneParcel, noneFilter);
     EXPECT_FALSE(ret);
@@ -293,7 +293,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1
     auto filter = std::make_shared<RSNGRenderBlurFilter>();
     ret = (filter->Marshalling(parcel2));
     EXPECT_TRUE(ret);
-    RSUIFilterTypeUnderlying val = 0;
+    RSNGEffectTypeUnderlying val = 0;
     ret = RSMarshallingHelper::Unmarshalling(parcel2, val);
     EXPECT_TRUE(ret);
     current = filter;
@@ -348,40 +348,6 @@ HWTEST_F(RSRenderFilterBaseTest, AttachDetach002, TestSize.Level1)
     EXPECT_EQ(filter1->Getter<BlurRadiusXRenderTag>()->node_.lock(), nullptr);
     EXPECT_EQ(filter2->Getter<EdgeLightColorRenderTag>()->node_.lock(), nullptr);
 }
-
-#ifndef MODIFIER_NG
-/**
- * @tc.name: SetModifierType001
- * @tc.desc: Test the SetModifierType method can
- *           correctly set the modifier type for a filter's properties
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, SetModifierType001, TestSize.Level1)
-{
-    auto filter = std::make_shared<RSNGRenderBlurFilter>();
-    auto prop = filter->Getter<BlurRadiusXRenderTag>();
-    EXPECT_EQ(prop->GetModifierType(), RSModifierType::INVALID);
-    auto targetType = RSModifierType::BACKGROUND_NG_FILTER;
-    filter->SetModifierType(targetType);
-    EXPECT_EQ(prop->GetModifierType(), targetType);
-}
-
-/**
- * @tc.name: SetModifierType002
- * @tc.desc: Test SetModifierType on a filter chain, all properties should be set.
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, SetModifierTypeChain, TestSize.Level1)
-{
-    auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
-    auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
-    filter1->nextEffect_ = filter2;
-    auto targetType = RSModifierType::BACKGROUND_NG_FILTER;
-    filter1->SetModifierType(targetType);
-    EXPECT_EQ(filter1->Getter<BlurRadiusXRenderTag>()->GetModifierType(), targetType);
-    EXPECT_EQ(filter2->Getter<EdgeLightColorRenderTag>()->GetModifierType(), targetType);
-}
-#endif
 
 /**
  * @tc.name: DumpProperties001

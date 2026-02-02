@@ -318,6 +318,8 @@ public:
             case RSPropertyType::COLOR_PICKER_PLACEHOLDER : return "ColorPickerPlaceholder";
             case RSPropertyType::COLOR_PICKER_STRATEGY : return "ColorPickerStrategy";
             case RSPropertyType::COLOR_PICKER_INTERVAL : return "ColorPickerInterval";
+            case RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD : return "ColorPickerNotifyThreshold";
+            case RSPropertyType::COLOR_ADAPTIVE : return "ColorAdaptive";
             case RSPropertyType::CHILDREN: return "Children";
             default: return "Unknown";
         }

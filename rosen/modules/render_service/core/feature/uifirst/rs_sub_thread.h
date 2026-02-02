@@ -73,6 +73,8 @@ public:
 private:
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas);
+    NodeId GetSubAppNodeId(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable,
+        RSSurfaceRenderParams* surfaceParams);
     bool CheckValid(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;

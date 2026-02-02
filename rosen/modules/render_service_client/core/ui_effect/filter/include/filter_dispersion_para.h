@@ -17,10 +17,14 @@
 #include "common/rs_vector2.h"
 #include "filter_para.h"
 #include "ui_effect/mask/include/mask_para.h"
+#include "ui_effect/utils.h"
 #include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr std::pair<float, float> DISPERSION_ALPHA_LIMITS{0.f, 1.f};  // limits for dispersion filter pamameters
+constexpr std::pair<float, float> DISPERSION_OFFSET_LIMIT{-1.f, 1.f};  // limits for dispersion filter pamameters
+ 	 
 class RSC_EXPORT DispersionPara : public FilterPara {
 public:
     DispersionPara()
@@ -43,7 +47,7 @@ public:
 
     void SetOpacity(float opacity)
     {
-        opacity_ = opacity;
+        opacity_ = UIEffect::GetLimitedPara(opacity, DISPERSION_ALPHA_LIMITS);
     }
 
     float GetOpacity() const
@@ -53,7 +57,8 @@ public:
 
     void SetRedOffset(const Vector2f& redOffset)
     {
-        redOffset_ = redOffset;
+        redOffset_[0] = UIEffect::GetLimitedPara(redOffset[0], DISPERSION_OFFSET_LIMIT);
+        redOffset_[1] = UIEffect::GetLimitedPara(redOffset[1], DISPERSION_OFFSET_LIMIT);
     }
 
     const Vector2f& GetRedOffset() const
@@ -63,7 +68,8 @@ public:
 
     void SetGreenOffset(const Vector2f& greenOffset)
     {
-        greenOffset_ = greenOffset;
+        greenOffset_[0] = UIEffect::GetLimitedPara(greenOffset[0], DISPERSION_OFFSET_LIMIT);
+        greenOffset_[1] = UIEffect::GetLimitedPara(greenOffset[1], DISPERSION_OFFSET_LIMIT);
     }
 
     const Vector2f& GetGreenOffset() const
@@ -73,7 +79,8 @@ public:
 
     void SetBlueOffset(const Vector2f& blueOffset)
     {
-        blueOffset_ = blueOffset;
+        blueOffset_[0] = UIEffect::GetLimitedPara(blueOffset[0], DISPERSION_OFFSET_LIMIT);
+        blueOffset_[1] = UIEffect::GetLimitedPara(blueOffset[1], DISPERSION_OFFSET_LIMIT);
     }
 
     const Vector2f& GetBlueOffset() const

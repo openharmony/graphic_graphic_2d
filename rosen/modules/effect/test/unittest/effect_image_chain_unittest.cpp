@@ -164,7 +164,7 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest002, TestSize.Level1)
     auto ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
     EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
     EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
-    ret = image->ApplyDrawingFilter(nullptr);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
     EXPECT_NE(ret, DrawingError::ERR_OK);
     // test not prepare
     ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
@@ -209,6 +209,52 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest002, TestSize.Level1)
     EXPECT_EQ(ret, DrawingError::ERR_OK);
     ret = image->Draw();
     EXPECT_EQ(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplySDFTest001
+ * @tc.desc: test ApplySDFCreation
+ */
+HWTEST_F(EffectImageChainUnittest, ApplySDFTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    ASSERT_NE(image, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+
+    auto ret = image->ApplySDFCreation(32, false);
+    ASSERT_NE(ret, DrawingError::ERR_OK); // not prepared
+
+    ret = image->Prepare(srcPixelMap, true);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->ApplySDFCreation(8, false);
+    EXPECT_NE(ret, DrawingError::ERR_OK); // force cpu unsupported
+
+    ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Draw(); // no filter
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->ApplySDFCreation(64, true);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Draw();
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
+    ASSERT_NE(filterBlur, nullptr);
+    ret = image->ApplyDrawingFilter(filterBlur);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+    ret = image->ApplySDFCreation(64, true); // has drawing before sdf
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Draw();
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
 }
 
 /**
@@ -259,8 +305,8 @@ HWTEST_F(EffectImageChainUnittest, AlphaTypeConvertTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: EffectCanvasTest
- * @tc.desc: test EffectCanvas
+ * @tc.name  : EffectCanvasTest
+ * @tc.desc  : test EffectCanvas
  */
 HWTEST_F(EffectImageChainUnittest, EffectCanvasTest, TestSize.Level1) {
     class MockSurface : public Drawing::Surface {
@@ -289,6 +335,79 @@ HWTEST_F(EffectImageChainUnittest, EffectCanvasTest, TestSize.Level1) {
 
     auto& detachCanvas = effectCanvas.DetachBrush();
     EXPECT_EQ(&detachCanvas, &effectCanvas);
+}
+
+/**
+ * @tc.name: ApplyMapColorByBrightnessTest
+ * @tc.desc: test ApplyMapColorByBrightness
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectImageChainUnittest, ApplyMapColorByBrightnessTest, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    std::vector<Vector4f> colors = {{1.0f, 0.0f, 0.5f, 1.0f}}; // color rgba
+    std::vector<float> positions = {0.5};
+
+    // test not prepare
+    auto ret = image->ApplyMapColorByBrightness(colors, positions);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    // test CUP
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    EXPECT_NE(srcPixelMap, nullptr);
+    ret = image->Prepare(srcPixelMap, true);
+    ret = image->ApplyMapColorByBrightness(colors, positions);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    // test filter is nullptr
+    ret = image->Prepare(srcPixelMap, false);
+    ret = image->ApplyMapColorByBrightness(colors, positions);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    // test filter not is nullptr
+    auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
+    ASSERT_NE(filterBlur, nullptr);
+    ret = image->ApplyDrawingFilter(filterBlur);
+    ret = image->ApplyMapColorByBrightness(colors, positions);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyGammaCorrectionTest
+ * @tc.desc: test ApplyGammaCorrection
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectImageChainUnittest, ApplyGammaCorrectionTest, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    float gamma = 1.5f; // valid value
+
+    // test not prepare
+    auto ret = image->ApplyGammaCorrection(gamma);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    // test CUP
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    EXPECT_NE(srcPixelMap, nullptr);
+    ret = image->Prepare(srcPixelMap, true);
+    ret = image->ApplyGammaCorrection(gamma);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    // test filter is nullptr
+    ret = image->Prepare(srcPixelMap, false);
+    ret = image->ApplyGammaCorrection(gamma);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    // test filter not is nullptr
+    auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
+    ASSERT_NE(filterBlur, nullptr);
+    ret = image->ApplyDrawingFilter(filterBlur);
+    ret = image->ApplyGammaCorrection(gamma);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
 }
 } // namespace Rosen
 } // namespace OHOS
