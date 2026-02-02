@@ -732,7 +732,7 @@ std::string XMLParser::ExtractPropertyValue(const std::string& propName, xmlNode
 
 bool XMLParser::IsNumber(const std::string& str)
 {
-    if (str.length() == 0 || str.length() > XML_STRING_MAX_LENGTH) {
+    if (str.length() == 0 || str.length() > XML_STRING_MAX_LENGTH || str == "-") {
         return false;
     }
     auto number = static_cast<uint32_t>(std::count_if(str.begin(), str.end(), [](unsigned char c) {
