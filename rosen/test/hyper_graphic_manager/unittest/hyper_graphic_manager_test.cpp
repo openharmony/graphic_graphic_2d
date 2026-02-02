@@ -105,7 +105,7 @@ HWTEST_F(HyperGraphicManagerTest, Instance2, Function | SmallTest | Level0)
 
 /**
  * @tc.name: SetMaxTEConfigTest
- * @tc.desc: Verify the independency of HgmCore SetAsConfigTest
+ * @tc.desc: Verify the independency of HgmCore SetMaxTEConfigTest
  * @tc.type: FUNC
  * @tc.require: I7DMS1
  */
@@ -141,7 +141,7 @@ HWTEST_F(HyperGraphicManagerTest, SetMaxTEConfigTest, Function | SmallTest | Lev
                 ltpoConfig.erase("maxTE144");
                 instance1.SetMaxTEConfig(curScreenSetting);
                 STEP_ASSERT_EQ(instance1.maxTE144_, 0);
-                ltpoConfig["maxTE144"] = "errMaxTE";
+                ltpoConfig["maxTE144"] = "errMaxTE144";
                 instance1.SetMaxTEConfig(curScreenSetting);
                 STEP_ASSERT_EQ(instance1.maxTE144_, 0);
                 ltpoConfig["maxTE144"] = "432";
