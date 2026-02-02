@@ -3285,14 +3285,24 @@ void RSSurfaceRenderNode::SetIsParentUifirstNodeEnableParam(bool b)
 #endif
 }
 
-void RSSurfaceRenderNode::SetUifirstUseStarting(NodeId id)
+void RSSurfaceRenderNode::SetUifirstStartingWindowId(NodeId id)
 {
 #ifdef RS_ENABLE_GPU
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetUifirstUseStarting(id);
+        stagingSurfaceParams->SetUifirstStartingWindowId(id);
         AddToPendingSyncList();
     }
+#endif
+}
+
+NodeId RSSurfaceRenderNode::GetUifirstStartingWindowId() const
+{
+#ifdef RS_ENABLE_GPU
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    return stagingSurfaceParams ? stagingSurfaceParams->GetUifirstStartingWindowId() : INVALID_NODEID;
+#else
+    return INVALID_NODEID;
 #endif
 }
 
