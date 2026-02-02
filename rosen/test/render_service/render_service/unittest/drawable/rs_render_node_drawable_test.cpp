@@ -610,8 +610,13 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutNodeGroupCache, TestSize.Level1)
     auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
     drawable->SetDrawBlurForCache(true);
     drawable->curDrawingCacheRoot_ = rootDrawable;
+    drawable->SetCanceledByParentRenderGroup(false);
     drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
-    ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+    EXPECT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+
+    drawable->SetCanceledByParentRenderGroup(true);
+    drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
+    EXPECT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
 }
 
 /**
