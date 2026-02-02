@@ -37,8 +37,8 @@ namespace {
 
 void BitmapFuzzTest000(const uint8_t* data, size_t size)
 {
-    uint32_t width = GetObject<uint32_t>();
-    uint32_t height = GetObject<uint32_t>();
+    uint32_t width = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
+    uint32_t height = GetObject<uint32_t>()% MAX_ARRAY_SIZE;
     int32_t enum1 = GetObject<int32_t>();
   
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();

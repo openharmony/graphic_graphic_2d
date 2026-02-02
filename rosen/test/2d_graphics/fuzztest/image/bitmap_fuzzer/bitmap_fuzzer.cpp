@@ -48,8 +48,8 @@ bool BitmapFuzzTest001(const uint8_t* data, size_t size)
     }
 
     Bitmap bitmap;
-    int width = GetObject<int>();
-    int height = GetObject<int>();
+    int width = GetObject<int>() % MAX_ARRAY_SIZE;
+    int height = GetObject<int>() % MAX_ARRAY_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, bitmapFormat);
     if (bitmap.GetWidth() != width || bitmap.GetHeight() != height || bitmap.GetPixels() == nullptr) {
@@ -75,8 +75,8 @@ bool BitmapFuzzTest002(const uint8_t* data, size_t size)
     }
 
     Bitmap bitmap;
-    int imageInfoWidth = GetObject<int>();
-    int imageInfoHeight = GetObject<int>();
+    int imageInfoWidth = GetObject<int>() % MAX_ARRAY_SIZE;
+    int imageInfoHeight = GetObject<int>() % MAX_ARRAY_SIZE;
     uint32_t colorType = GetObject<uint32_t>();
     uint32_t alphaType = GetObject<uint32_t>();
     ImageInfo imageInfo = ImageInfo(imageInfoWidth, imageInfoHeight,

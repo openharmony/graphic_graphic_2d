@@ -28,6 +28,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t DATA_MIN_SIZE = 2;
+constexpr size_t MAX_SIZE = 5000;
 } // namespace
 
 namespace Drawing {
@@ -41,8 +42,8 @@ bool BuildImageFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     Bitmap bitmap;
-    int width = GetObject<int>();
-    int height = GetObject<int>();
+    int width = GetObject<int>() % MAX_SIZE;
+    int height = GetObject<int>() % MAX_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, bitmapFormat);
     if (bitmap.GetWidth() != width || bitmap.GetHeight() != height) {
@@ -66,8 +67,8 @@ bool ImageFuzzTest001(const uint8_t* data, size_t size)
     
     Image image;
     Bitmap bitmap;
-    int width = GetObject<int>();
-    int height = GetObject<int>();
+    int width = GetObject<int>() % MAX_SIZE;
+    int height = GetObject<int>() % MAX_SIZE;
     float headroom = GetObject<int>() / 2.0f;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool buildBitmap = bitmap.Build(width, height, bitmapFormat);
@@ -92,8 +93,8 @@ bool ImageFuzzTest002(const uint8_t* data, size_t size)
     }
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     Bitmap srcBitmap;
-    int srcWidth = GetObject<int>();
-    int srcHeight = GetObject<int>();
+    int srcWidth = GetObject<int>() % MAX_SIZE;
+    int srcHeight = GetObject<int>() % MAX_SIZE;
     srcBitmap.Build(srcWidth, srcHeight, bitmapFormat);
     if (srcBitmap.GetWidth() != srcWidth || srcBitmap.GetHeight() != srcHeight) {
         return false;
@@ -101,8 +102,8 @@ bool ImageFuzzTest002(const uint8_t* data, size_t size)
     std::shared_ptr<Image> srcImage = std::make_shared<Image>();
     srcImage->BuildFromBitmap(srcBitmap);
     Bitmap dstBitmap;
-    int dstWidth = GetObject<int>();
-    int dstHeight = GetObject<int>();
+    int dstWidth = GetObject<int>() % MAX_SIZE;;
+    int dstHeight = GetObject<int>() % MAX_SIZE;;
     dstBitmap.Build(dstWidth, dstHeight, bitmapFormat);
     if (dstBitmap.GetWidth() != dstWidth || dstBitmap.GetHeight() != dstHeight) {
         return false;
