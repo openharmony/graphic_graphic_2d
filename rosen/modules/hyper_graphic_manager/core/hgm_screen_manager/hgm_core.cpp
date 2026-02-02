@@ -225,9 +225,18 @@ void HgmCore::SetLtpoConfig()
     if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
         maxTE_ = std::stoul(iter->second);
         CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
+        CreateVSyncGenerator()->SetVSyncMaxTE(maxTE_);
     } else {
         maxTE_ = 0;
         HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
+    }
+
+    if (auto iter = ltpoConfig.find("maxTE144"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
+        maxTE144_ = std::stoul(iter->second);
+        CreateVSyncGenerator()->SetVSyncMaxTE144(maxTE144_);
+    } else {
+        maxTE144_ = 0;
+        HGM_LOGW("HgmCore failed to find TE 144 strategy for LTPO");
     }
 
     if (auto iter = ltpoConfig.find("alignRate"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
@@ -247,13 +256,14 @@ void HgmCore::SetLtpoConfig()
     }
     isLtpoMode_.store(ltpoEnabled_ && (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate()));
     SetIdealPipelineOffset(pipelineOffsetPulseNum_);
+    SetIdealPipelineOffset144(pipelineOffsetPulseNum_);
     SetASConfig(curScreenSetting);
     SetScreenConstraintConfig(curScreenSetting);
     SetPerformanceConfig(curScreenSetting);
-    HILOG_COMM_INFO("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, "
-        "pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, "
+    HILOG_COMM_INFO("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, maxTE144: %{public}d, "
+        "alignRate: %{public}d, pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, "
         "lowRateToHighQuickSwitch: %{public}d, pluseNum_: %{public}d, isDelayMode_: %{public}d",
-        ltpoEnabled_, maxTE_, alignRate_, pipelineOffsetPulseNum_, vBlankIdleCorrectSwitch_.load(),
+        ltpoEnabled_, maxTE_, maxTE144_, alignRate_, pipelineOffsetPulseNum_, vBlankIdleCorrectSwitch_.load(),
         lowRateToHighQuickSwitch_.load(), pluseNum_, isDelayMode_);
 }
 

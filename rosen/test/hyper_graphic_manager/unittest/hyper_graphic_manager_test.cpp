@@ -783,12 +783,14 @@ HWTEST_F(HyperGraphicManagerTest, GetLtpoEnabled, Function | SmallTest | Level0)
     auto& instance = HgmCore::Instance();
     instance.isLtpoMode_.store(true);
     instance.SetSupportedMaxTE(360);
+    instance.SetSupportedMaxTE144(360);
     instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
     if (instance.IsLTPOSwitchOn() != true) {
         return;
     }
     EXPECT_EQ(instance.IsLTPOSwitchOn(), true);
     EXPECT_EQ(instance.GetSupportedMaxTE(), 360);
+    EXPECT_EQ(instance.GetSupportedMaxTE144(), 360);
     EXPECT_EQ(instance.GetCurrentRefreshRateMode(), static_cast<int32_t>(HGM_REFRESHRATE_MODE_AUTO));
     EXPECT_EQ(instance.GetLtpoEnabled(), true);
 }
@@ -1029,6 +1031,21 @@ HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset, Function | SmallTest |
     int64_t idealPipelineOffset = pipelineOffsetPulseNum * IDEAL_PULSE;
     hgmCore.SetIdealPipelineOffset(pipelineOffsetPulseNum);
     EXPECT_EQ(hgmCore.GetIdealPipelineOffset(), idealPipelineOffset);
+}
+
+/**
+ * @tc.name: SetIdealPipelineOffset144
+ * @tc.desc: Verify the result of SetIdealPipelineOffset144 function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset144, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    int32_t pipelineOffsetPulseNum = 6;
+    int64_t idealPipelineOffset144 = pipelineOffsetPulseNum * IDEAL_PULSE144;
+    hgmCore.SetIdealPipelineOffset144(pipelineOffsetPulseNum);
+    EXPECT_EQ(hgmCore.GetIdealPipelineOffset144(), idealPipelineOffset144);
 }
 } // namespace Rosen
 } // namespace OHOS
