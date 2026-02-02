@@ -177,20 +177,17 @@ EffectErrorCode OH_Filter_WaterGlass(OH_Filter* filter, OH_Filter_WaterGlassData
 
     std::shared_ptr<Drawing::GEWaterGlassDataParams> geWaterParams =
         std::make_shared<Drawing::GEWaterGlassDataParams>();
-    if (geWaterParams == nullptr) {
-        return EFFECT_BAD_PARAMETER;
-    }
 
     static constexpr float waveRefractionK = 3.f;
 
-    geWaterParams->waveCenter[0] = waterGlassParams->waveCenter.x;
-    geWaterParams->waveCenter[1] = waterGlassParams->waveCenter.y;
-    geWaterParams->waveSourceXY[0] = waterGlassParams->waveSourceXY.x;
-    geWaterParams->waveSourceXY[1] = waterGlassParams->waveSourceXY.y;
-    geWaterParams->waveDistortXY[0] = waterGlassParams->waveDistortXY.x;
-    geWaterParams->waveDistortXY[1] = waterGlassParams->waveDistortXY.y;
-    geWaterParams->waveDensityXY[0] = waterGlassParams->waveDensityXY.x;
-    geWaterParams->waveDensityXY[1] = waterGlassParams->waveDensityXY.y;
+    geWaterParams->waveCenter.SetX(waterGlassParams->waveCenter.x);
+    geWaterParams->waveCenter.SetY(waterGlassParams->waveCenter.y);
+    geWaterParams->waveSourceXY.SetX(waterGlassParams->waveSourceXY.x);
+    geWaterParams->waveSourceXY.SetY(waterGlassParams->waveSourceXY.y);
+    geWaterParams->waveDistortXY.SetX(waterGlassParams->waveDistortXY.x);
+    geWaterParams->waveDistortXY.SetY(waterGlassParams->waveDistortXY.y);
+    geWaterParams->waveDensityXY.SetX(waterGlassParams->waveDensityXY.x);
+    geWaterParams->waveDensityXY.SetY(waterGlassParams->waveDensityXY.y);
     geWaterParams->waveStrength = waterGlassParams->waveStrength;
     geWaterParams->waveLightStrength = waterGlassParams->waveLightStrength;
     geWaterParams->waveRefraction = waterGlassParams->waveRefraction * waveRefractionK;
@@ -198,8 +195,8 @@ EffectErrorCode OH_Filter_WaterGlass(OH_Filter* filter, OH_Filter_WaterGlassData
     geWaterParams->waveFrequency = waterGlassParams->waveFrequency;
     geWaterParams->waveShapeDistortion = waterGlassParams->waveShapeDistortion;
     geWaterParams->waveNoiseStrength = waterGlassParams->waveNoiseStrength;
-    geWaterParams->waveMaskSize[0] = waterGlassParams->waveMaskSize.x;
-    geWaterParams->waveMaskSize[1] = waterGlassParams->waveMaskSize.y;
+    geWaterParams->waveMaskSize.SetX(waterGlassParams->waveMaskSize.x);
+    geWaterParams->waveMaskSize.SetY(waterGlassParams->waveMaskSize.y);
     geWaterParams->waveMaskRadius = waterGlassParams->waveMaskRadius;
     geWaterParams->borderRadius = waterGlassParams->borderRadius;
     geWaterParams->borderThickness = waterGlassParams->borderThickness;
@@ -211,16 +208,14 @@ EffectErrorCode OH_Filter_WaterGlass(OH_Filter* filter, OH_Filter_WaterGlassData
     return EFFECT_SUCCESS;
 }
 
-EffectErrorCode OH_Filter_ReedsGlass(OH_Filter* filter, OH_Filter_ReededGlassDataParams* reededGlassParams)
+EffectErrorCode OH_Filter_ReededGlass(OH_Filter* filter, OH_Filter_ReededGlassDataParams* reededGlassParams)
 {
     if (filter == nullptr || reededGlassParams == nullptr) {
         return EFFECT_BAD_PARAMETER;
     }
     std::shared_ptr<Drawing::GEReededGlassDataParams> geReededparams =
         std::make_shared<Drawing::GEReededGlassDataParams>();
-    if (geReededparams == nullptr) {
-        return EFFECT_BAD_PARAMETER;
-    }
+
     geReededparams->refractionFactor = reededGlassParams->refractionFactor;
     geReededparams->dispersionStrength = reededGlassParams->dispersionStrength;
     geReededparams->roughness = reededGlassParams->roughness;
@@ -232,11 +227,11 @@ EffectErrorCode OH_Filter_ReedsGlass(OH_Filter* filter, OH_Filter_ReededGlassDat
     geReededparams->pointLightColor.greenF_ = reededGlassParams->pointLightColor.green;
     geReededparams->pointLightColor.blueF_ = reededGlassParams->pointLightColor.blue;
     geReededparams->borderLightWidth = reededGlassParams->borderLightWidth;
-    geReededparams->pointLight1Position.x = reededGlassParams->pointLight1Position.x;
-    geReededparams->pointLight1Position.y = reededGlassParams->pointLight1Position.y;
+    geReededparams->pointLight1Position.SetX(reededGlassParams->pointLight1Position.x);
+    geReededparams->pointLight1Position.SetY(reededGlassParams->pointLight1Position.y);
     geReededparams->pointLight1Strength = reededGlassParams->pointLight1Strength;
-    geReededparams->pointLight2Position.x = reededGlassParams->pointLight2Position.x;
-    geReededparams->pointLight2Position.y = reededGlassParams->pointLight2Position.y;
+    geReededparams->pointLight2Position.SetX(reededGlassParams->pointLight2Position.x);
+    geReededparams->pointLight2Position.SetY(reededGlassParams->pointLight2Position.y);
     geReededparams->pointLight2Strength = reededGlassParams->pointLight2Strength;
     CastToFilter(filter)->ReededGlass(geReededparams);
 

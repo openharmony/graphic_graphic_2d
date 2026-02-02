@@ -150,11 +150,11 @@ typedef enum {
  * @version 1.0
  */
 typedef struct {
-    /** The value of the x-axis in a tow-dimensional vector */
+    /** The value of the x-axis in a two-dimensional vector */
     float x;
-    /** The value of the y-axis in a tow-dimensional vector */
+    /** The value of the y-axis in a two-dimensional vector */
     float y;
-} OH_Vec2;
+} OH_Filter_Vec2;
 
 /**
  * @brief Specify parameters for the water ripple effect filter, including wave shape, lighting conditions, refraction
@@ -167,18 +167,18 @@ typedef struct {
     /* Wave center position. When = (0.0, 0.0), the point is at the center of the control.
      * When = (0.5, 0.5), the point is at the bottom-right corner of the control.
      * Can extend beyond the control.*/
-    OH_Vec2 waveCenter;
+    OH_Filter_Vec2 waveCenter;
 
     /* Wave motion source position. When = (0.0, 0.0), the point is at the center of the control.
      * When = (0.5, 0.5), the point is at the bottom-right corner of the control.
      * Can extend beyond the control.*/
-    OH_Vec2 waveSourceXY;
+    OH_Filter_Vec2 waveSourceXY;
 
     /* Degree of waveform distortion in the X and Y directions from the center point.*/
-    OH_Vec2 waveDistortXY;
+    OH_Filter_Vec2 waveDistortXY;
 
     /* Water wave density. Higher density results in more waves, lower density results in fewer and thicker waves.*/
-    OH_Vec2 waveDensityXY;
+    OH_Filter_Vec2 waveDensityXY;
 
     /* Water wave strength.*/
     float waveStrength;
@@ -203,7 +203,7 @@ typedef struct {
 
     /* Inner edge size of the mask. When 0, there is no mask occlusion; when 1, the entire control effect is occluded,
      * resulting in no effect.*/
-    OH_Vec2 waveMaskSize;
+    OH_Filter_Vec2 waveMaskSize;
 
     /* Transition degree of the water wave mask edge. Higher values cause the mask to spread more toward the edges.
      * When 0, the mask does not spread and has no transition, stopping at waveMaskSize;
@@ -229,7 +229,7 @@ typedef struct {
 } OH_Filter_WaterGlassDataParams;
 
 /**
- * @brief Specify the parameters for the reeded flass filter, including grid count, refraction strength, dispersion
+ * @brief Specify the parameters for the reeded glass filter, including grid count, refraction strength, dispersion
  *        strength, parallel beam intensity, point light source position, and intensity.
  *
  * @since 24
@@ -266,14 +266,14 @@ typedef struct {
 
     /* Specifies position of point light 1; within [0,1] is inside the UI component, outside is beyond the UI
      * component*/
-    OH_Vec2 pointLight1Position;
+    OH_Filter_Vec2 pointLight1Position;
 
     /* Specifies intensity of point light 1 */
     float pointLight1Strength;
 
     /* Specifies position of point light 2; within [0,1] is inside the UI component, outside is beyond the UI
      * component*/
-    OH_Vec2 pointLight2Position;
+    OH_Filter_Vec2 pointLight2Position;
 
     /* Specifies intensity of point light 2*/
     float pointLight2Strength;

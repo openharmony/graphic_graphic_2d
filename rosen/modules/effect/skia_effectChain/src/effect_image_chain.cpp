@@ -21,9 +21,7 @@
 #include "ge_gamma_correction_filter.h"
 #include "ge_mesa_blur_shader_filter.h"
 #include "ge_radial_gradient_shader_mask.h"
-#include "ge_reeded_glass_shader_filter.h"
 #include "ge_variable_radius_blur_shader_filter.h"
-#include "ge_water_glass_shader_filter.h"
 #include "sdf/ge_sdf_from_image_filter.h"
 #include "rs_trace.h"
 
@@ -527,28 +525,28 @@ EffectImageChain::~EffectImageChain()
     }
 }
 
-std::shared_ptr<GEShaderFilter> GenerateExtShaderWaterGlass(
+static std::shared_ptr<GEShaderFilter> GenerateExtShaderWaterGlass(
     const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params)
 {
     auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
         static_cast<uint32_t>(Drawing::GEFilterType::WATER_GLASS), sizeof(Drawing::GEWaterGlassDataParams),
         static_cast<void*>(params.get()));
     if (!object) {
-        return std::make_shared<GEWaterGlassShaderFilter>(params);
+        return nullptr;
     }
 
     std::shared_ptr<GEShaderFilter> dmShader(static_cast<GEShaderFilter*>(object));
     return dmShader;
 }
 
-std::shared_ptr<GEShaderFilter> GenerateExtShaderReededGlass(
+static std::shared_ptr<GEShaderFilter> GenerateExtShaderReededGlass(
     const std::shared_ptr<Drawing::GEReededGlassDataParams>& params)
 {
     auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
         static_cast<uint32_t>(Drawing::GEFilterType::REEDED_GLASS), sizeof(Drawing::GEReededGlassDataParams),
         static_cast<void*>(params.get()));
     if (!object) {
-        return std::make_shared<GEReededGlassShaderFilter>(params);
+        return nullptr;
     }
 
     std::shared_ptr<GEShaderFilter> dmShader(static_cast<GEShaderFilter*>(object));
