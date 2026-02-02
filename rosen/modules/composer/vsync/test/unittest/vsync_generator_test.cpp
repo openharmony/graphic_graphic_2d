@@ -682,7 +682,7 @@ HWTEST_F(VSyncGeneratorTest, ChangeVSyncTETest, Function | MediumTest| Level0)
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
     ASSERT_EQ(ret, VSYNC_ERROR_NOT_SUPPORT);
     // Test ChangeVSyncTE for LTPO 144hz config ok, other to 144hz, change TE
-    ret = vsyncGenerator_->SetVsyncMaxTE144(432);
+    ret = vsyncGenerator_->SetVSyncMaxTE144(432);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
