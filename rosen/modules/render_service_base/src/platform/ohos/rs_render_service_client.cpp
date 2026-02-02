@@ -175,18 +175,24 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
 
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
 {
-#if defined (RS_ENABLE_VK)
+    std::shared_ptr<RSSurface> producer = nullptr;
+#if defined(ACE_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
-        return std::make_shared<RSSurfaceOhosVulkan>(surface); // GPU render
+        producer = std::make_shared<RSSurfaceOhosVulkan>(surface); // GPU render
+        return producer;
     }
 #endif
 
-#if defined (RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() == Rosen::GpuApiType::OPENGL) {
-        return std::make_shared<RSSurfaceOhosGl>(surface); // GPU render
+#if defined(ACE_ENABLE_GL)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        producer = std::make_shared<RSSurfaceOhosGl>(surface); // GPU render
+        return producer;
     }
 #endif
-    return std::make_shared<RSSurfaceOhosRaster>(surface); // CPU render
+
+    // CPU render
+    producer = std::make_shared<RSSurfaceOhosRaster>(surface);
+    return producer;
 }
 
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
