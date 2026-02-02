@@ -51,7 +51,7 @@ struct AniColorPickerAsyncContext {
           rColorPicker(nullptr) {}
 };
 
-static ani_object BuildColor(ani_env *env, const ColorManager::Color &color)
+static ani_object BuildColor(ani_env* env, const ColorManager::Color &color)
 {
     ani_object result{};
     if (env == nullptr) {
@@ -79,7 +79,7 @@ static ani_object BuildColor(ani_env *env, const ColorManager::Color &color)
     return result;
 }
 
-ani_object AniColorPicker::GetMainColorSync(ani_env *env, ani_object obj)
+ani_object AniColorPicker::GetMainColorSync(ani_env* env, ani_object obj)
 {
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
@@ -100,7 +100,7 @@ ani_object AniColorPicker::GetMainColorSync(ani_env *env, ani_object obj)
     return BuildColor(env, color);
 }
 
-ani_object AniColorPicker::GetLargestProportionColor(ani_env *env, ani_object obj)
+ani_object AniColorPicker::GetLargestProportionColor(ani_env* env, ani_object obj)
 {
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
@@ -122,7 +122,7 @@ ani_object AniColorPicker::GetLargestProportionColor(ani_env *env, ani_object ob
     return BuildColor(env, color);
 }
 
-ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, ani_int param)
+ani_object AniColorPicker::GetTopProportionColors(ani_env* env, ani_object obj, ani_int param)
 {
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
@@ -165,7 +165,7 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
     return static_cast<ani_object>(arrayValue);
 }
 
-ani_object AniColorPicker::GetHighestSaturationColor(ani_env *env, ani_object obj)
+ani_object AniColorPicker::GetHighestSaturationColor(ani_env* env, ani_object obj)
 {
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
@@ -187,7 +187,7 @@ ani_object AniColorPicker::GetHighestSaturationColor(ani_env *env, ani_object ob
     return BuildColor(env, color);
 }
 
-ani_object AniColorPicker::GetAverageColor(ani_env *env, ani_object obj)
+ani_object AniColorPicker::GetAverageColor(ani_env* env, ani_object obj)
 {
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
@@ -208,7 +208,7 @@ ani_object AniColorPicker::GetAverageColor(ani_env *env, ani_object obj)
     return BuildColor(env, color);
 }
 
-ani_boolean AniColorPicker::IsBlackOrWhiteOrGrayColor(ani_env *env, ani_object obj, ani_long colorValue)
+ani_boolean AniColorPicker::IsBlackOrWhiteOrGrayColor(ani_env* env, ani_object obj, ani_long colorValue)
 {
     if (colorValue < 0) {
         return false;
@@ -229,7 +229,7 @@ ani_boolean AniColorPicker::IsBlackOrWhiteOrGrayColor(ani_env *env, ani_object o
     return rst;
 }
 
-ani_object AniColorPicker::CreateColorPickerNormal(ani_env *env, ani_object para)
+ani_object AniColorPicker::CreateColorPickerNormal(ani_env* env, ani_object para)
 {
     auto colorPicker = std::make_unique<AniColorPicker>();
 
