@@ -104,6 +104,56 @@ HWTEST_F(HyperGraphicManagerTest, Instance2, Function | SmallTest | Level0)
 }
 
 /**
+ * @tc.name: SetMaxTEConfigTest
+ * @tc.desc: Verify the independency of HgmCore SetAsConfigTest
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, SetMaxTEConfigTest, Function | SmallTest | Level0)
+{
+    PART("CaseDescription") {
+        STEP("1. call GetInstance twice") {
+            auto& instance1 = HgmCore::Instance();
+            if (instance1.hgmFrameRateMgr_ == nullptr) {
+                return;
+            }
+            auto curScreenStrategyId = instance1.hgmFrameRateMgr_->GetCurScreenStrategyId();
+            if (instance1.mPolicyConfigData_ == nullptr) {
+                return;
+            }
+            auto& curScreenSetting = instance1.mPolicyConfigData_->screenConfigs_[
+                curScreenStrategyId][std::to_string(instance1.customFrameRateMode_)];
+            auto& ltpoConfig = curScreenSetting.ltpoConfig;
+
+            if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end()) {
+                auto maxTEConfig = iter->second;
+                ltpoConfig.erase("maxTE");
+                instance1.SetMaxTEConfig(curScreenSetting);
+                STEP_ASSERT_EQ(instance1.maxTE_, 0);
+                ltpoConfig["maxTE"] = "errMaxTE";
+                instance1.SetMaxTEConfig(curScreenSetting);
+                STEP_ASSERT_EQ(instance1.maxTE_, 0);
+                ltpoConfig["maxTE"] = maxTEConfig;
+            }
+
+            if (auto iter = ltpoConfig.find("maxTE144"); iter != ltpoConfig.end()) {
+                auto maxTE144Config = iter->second;
+                ltpoConfig.erase("maxTE144");
+                instance1.SetMaxTEConfig(curScreenSetting);
+                STEP_ASSERT_EQ(instance1.maxTE_, 0);
+                ltpoConfig["maxTE144"] = "errMaxTE";
+                instance1.SetMaxTEConfig(curScreenSetting);
+                STEP_ASSERT_EQ(instance1.maxTE_, 0);
+                ltpoConfig["maxTE144"] = "432";
+                instance1.SetMaxTEConfig(curScreenSetting);
+                STEP_ASSERT_EQ(instance1.maxTE_, 432);
+                ltpoConfig["maxTE144"] = maxTE144Config;
+            }
+        }
+    }
+}
+
+/**
  * @tc.name: SetAsConfigTest
  * @tc.desc: Verify the independency of HgmCore SetAsConfigTest
  * @tc.type: FUNC
@@ -201,17 +251,6 @@ HWTEST_F(HyperGraphicManagerTest, SetLtpoConfigTest2, Function | SmallTest | Lev
         hgmCore.SetLtpoConfig();
         EXPECT_GE(hgmCore.ltpoEnabled_, 0);
         ltpoConfig["switch"] = switchConfig;
-    }
-
-    if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end()) {
-        auto maxTEConfig = iter->second;
-        ltpoConfig.erase("maxTE");
-        hgmCore.SetLtpoConfig();
-        EXPECT_GE(hgmCore.maxTE_, 0);
-        ltpoConfig["maxTE"] = "errMaxTE";
-        hgmCore.SetLtpoConfig();
-        EXPECT_GE(hgmCore.maxTE_, 0);
-        ltpoConfig["maxTE"] = maxTEConfig;
     }
 
     if (auto iter = ltpoConfig.find("alignRate"); iter != ltpoConfig.end()) {

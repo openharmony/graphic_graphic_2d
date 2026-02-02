@@ -663,38 +663,21 @@ HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest002, Function | 
 }
 
 /*
-* Function: ChangeGeneratorRefreshRateModelTest003
+* Function: ChangeVsyncTETest
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. Test ChangeGeneratorRefreshRateModel for LTPO 144hz
+* CaseDescription: 1. Test ChangeVsyncTE for LTPO 144hz
  */
-HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest003, Function | MediumTest| Level0)
+HWTEST_F(VSyncGeneratorTest, ChangeVsyncTETest, Function | MediumTest| Level0)
 {
     // Test ChangeGeneratorRefreshRateModel for LTPO 144hz, config error, skip and not support
     VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
-    VSyncReceiver::FrameCallback fcb = {
-        .userData_ = this,
-        .callback_ = OnVSync,
-    };
-    ret = receiver->RequestNextVSync(fcb);
-    ASSERT_EQ(ret, VSYNC_ERROR_OK);
-    ret = vsyncGenerator_->SetVsyncMaxTE144(360);
-    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 144; // 144hz
     int64_t rsVsyncCount = 0;
-    std::vector<std::pair<uint64_t, uint32_t>> refreshRates = {};
-    refreshRates.push_back({0, 60});
-    refreshRates.push_back({1, 120});
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {
-        .cb = appController,
-        .refreshRates = refreshRates,
-    };
-    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {
-        .cb = rsController,
-        .phaseByPulseNum = 0,
-    };
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
     ASSERT_EQ(ret, VSYNC_ERROR_NOT_SUPPORT);
@@ -792,14 +775,10 @@ HWTEST_F(VSyncGeneratorTest, SetVSyncMaxTETest, Function | MediumTest| Level0)
     ret = vsyncGenerator_->SetVSyncMaxTE144(600);
     ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
 
-    // set invalid value 360 cannot divide 144
-    ret = vsyncGenerator_->SetVSyncMaxTE144(360);
-    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
-
     // set valid value
     ret = vsyncGenerator_->SetVSyncMaxTE(360);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
-    ret = vsyncGenerator_->SetVSyncMaxTE144(432);
+    ret = vsyncGenerator_->SetVSyncMaxTE144(360);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
 }
 
