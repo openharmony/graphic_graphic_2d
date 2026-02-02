@@ -96,10 +96,13 @@ public:
     virtual VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     virtual bool IsUiDvsyncOn() = 0;
     // End of DVSync
+
+    // Adaptive Sync
     virtual bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) = 0;
     virtual void SetAdaptive(bool isAdaptive) = 0;
     virtual bool IsNeedAdaptiveAfterUpdateMode() = 0;
     virtual bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) = 0;
+    virtual void SetUpdateModeTimeForAS(int64_t time) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -154,10 +157,13 @@ public:
     VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     bool IsUiDvsyncOn() override;
     // End of DVSync
+
+    // Adaptive Sync
     bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) override;
     void SetAdaptive(bool isAdaptive) override;
     bool IsNeedAdaptiveAfterUpdateMode() override;
     bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) override;
+    void SetUpdateModeTimeForAS(int64_t time) override;
 private:
     friend class OHOS::Rosen::VSyncGenerator;
 
@@ -206,8 +212,9 @@ private:
     int64_t phase_ = 0;
     int64_t referenceTime_ = 0;
     int64_t wakeupDelay_ = 0;
-    int64_t lastVsyncRsTime_ = 0;
-    int64_t lastVsyncRsInterval_ = 0;
+
+    // Adaptive Sync
+    int64_t updateModeTimeForAS_ = 0;
 
     std::vector<Listener> listeners_;
 

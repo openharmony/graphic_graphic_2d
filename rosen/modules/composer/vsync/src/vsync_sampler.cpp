@@ -261,14 +261,21 @@ void VSyncSampler::UpdateModeForASLocked()
             RS_TRACE_NAME_FMT("AdaptiveSync already triggered");
             return;
         }
-        
-        auto rate = CreateVSyncGenerator()->GetVsyncRefreshRate();
-        if (((diffSum_ <= PERIOD_THRESHOLD || period_ - diffSum_ <= PERIOD_THRESHOLD) &&
-             frameCount_ >= CORRECTION_FRAME_COUNT) || frameCount_ >= rate * CORRECTION_RATE_COUNT) {
-            RS_TRACE_NAME_FMT("AS UpdateNode diffSum: %" PRId64 ", period: %" PRId64 ", rate: %u",
-                diffSum_, period_, rate);
+
+        if ((diffSum_ <= PERIOD_THRESHOLD || period_ - diffSum_ <= PERIOD_THRESHOLD) &&
+            frameCount_ >= CORRECTION_FRAME_COUNT) {
+            RS_TRACE_NAME_FMT("AS UpdateNode normal diffSum: %" PRId64 ", period: %" PRId64 ", frameCount: %u",
+                diffSum_, period_, frameCount_);
             CreateVSyncGenerator()->UpdateMode(0, phase_, latestSample);
             ResetCountForASLocked();
+        } else if (frameCount_ >= CreateVSyncGenerator()->GetVsyncRefreshRate() * CORRECTION_RATE_COUNT) {
+            RS_TRACE_NAME_FMT("AS UpdateNode for AS diffSum: %" PRId64 ", period: %" PRId64 ", frameCount: %u",
+                diffSum_, period_, frameCount_);
+            CreateVSyncGenerator()->UpdateMode(0, phase_, latestSample);
+            ResetCountForASLocked();
+            auto now = SystemTime();
+            CreateVSyncGenerator()->SetUpdateModeTimeForAS(now);
+            RS_TRACE_NAME_FMT("AS UpdateNode updateModeTimeForAS: %" PRId64, now);
         }
     } else {
         RS_TRACE_NAME_FMT("pulse is not ready!!!");
