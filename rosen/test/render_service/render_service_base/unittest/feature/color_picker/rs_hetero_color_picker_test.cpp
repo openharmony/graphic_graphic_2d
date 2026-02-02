@@ -164,7 +164,7 @@ HWTEST_F(RSHeteroColorPickerTest, GetColor_InvalidInputParameters, TestSize.Leve
         EXPECT_CALL(*paintFilterCanvas, GetSurface()).WillOnce(Return(surface.get()));
         RSPaintFilterCanvas& canvas = *std::static_pointer_cast<RSPaintFilterCanvas>(paintFilterCanvas);
         std::shared_ptr<Drawing::Image> nullImage = nullptr;
-        bool result = 
+        bool result =
             SingletonMockRSHeteroColorPicker::Instance().GetColor([](Drawing::ColorQuad& color) {}, canvas, nullImage);
         EXPECT_FALSE(result);
     }
