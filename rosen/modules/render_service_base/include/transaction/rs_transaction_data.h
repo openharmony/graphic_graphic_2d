@@ -22,11 +22,11 @@
 #include <vector>
 
 #include "common/rs_macros.h"
+#include "command/rs_command.h"
 #include "pipeline/rs_context.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSCommand;
 class RSB_EXPORT RSTransactionData : public Parcelable {
 public:
     RSTransactionData() = default;
