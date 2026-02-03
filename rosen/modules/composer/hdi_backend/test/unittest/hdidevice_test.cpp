@@ -149,6 +149,12 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_CALL(*hdiDeviceMock_, GetScreenColorGamut(_, _))
         .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
     EXPECT_EQ(hdiDeviceMock_->GetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenColorGamut(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenColorGamut(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_FAILURE);
     GraphicGamutMap gamutMap = GRAPHIC_GAMUT_MAP_CONSTANT;
     EXPECT_CALL(*hdiDeviceMock_, SetScreenGamutMap(_, _))
         .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
