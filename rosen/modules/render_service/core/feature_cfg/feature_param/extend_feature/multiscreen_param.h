@@ -28,7 +28,6 @@ public:
     static bool IsSlrScaleEnabled();
     static bool IsRsSetScreenPowerStatus();
     static bool IsMirrorDisplayCloseP3();
-    static bool IsSkipFrameByActiveRefreshRate();
     static bool IsForceRenderForMirror();
 
 protected:
@@ -36,7 +35,6 @@ protected:
     static void SetSlrScaleEnabled(bool isEnabled);
     static void SetRsSetScreenPowerStatus(bool isEnabled);
     static void SetMirrorDisplayCloseP3(bool isEnabled);
-    static void SetSkipFrameByActiveRefreshRate(bool isEnabled);
     static void SetForceRenderForMirror(bool isEnabled);
 
 private:
@@ -44,7 +42,6 @@ private:
     inline static bool isSlrScaleEnabled_ = false;
     inline static bool isRsSetScreenPowerStatus_ = true;
     inline static bool isMirrorDisplayCloseP3_ = true;
-    inline static bool isSkipFrameByActiveRefreshRate_ = false;
     inline static bool isForceRenderForMirror_ = false;
  
     friend class MultiScreenParamParse;
