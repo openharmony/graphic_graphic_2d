@@ -181,6 +181,17 @@ VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
     return VSYNC_ERROR_OK;
 }
 
+void VSyncConnection::CloseReceiveFd()
+{
+    std::unique_lock<std::mutex> locker(mutex_);
+    if (isDead_ || socketPair_ == nullptr) {
+        VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+        return;
+    }
+
+    socketPair_->CloseReceiveDataFd();
+}
+
 int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCount)
 {
     sptr<LocalSocketPair> socketPair;

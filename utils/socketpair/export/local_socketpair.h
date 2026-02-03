@@ -17,6 +17,7 @@
 #define LOCAL_SOCAKT_PAIR_H
 
 #include <sys/types.h>
+#include <unistd.h>
 #include <refbase.h>
 #include "message_parcel.h"
 
@@ -36,6 +37,8 @@ public:
     {
         return receiveFd_;
     };
+
+    void CloseReceiveDataFd();
 
     // send sendfd to binder
     int32_t SendToBinder(MessageParcel &data);
