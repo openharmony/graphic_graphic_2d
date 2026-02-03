@@ -582,7 +582,11 @@ private:
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
 
     void ProcessNeedAttachedNodes();
-
+    void AddUICaptureNode(NodeId nodeId);
+    void RemoveUICaptureNode(NodeId nodeId);
+    bool CheckUICaptureNode(NodeId nodeId);
+    void PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        std::shared_ptr<RSSurfaceHandler> surfaceHandler);
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
     bool clearMemoryFinished_ = true;
@@ -837,6 +841,10 @@ private:
     std::mutex dumpInfoMutex_;
 
     bool hasCanvasDrawingNodeCachedOp_ = false;
+
+    uint32_t curFrameBufferReclaimCount_ = 0;
+    std::mutex uiCaptureNodeMapMutex_;
+    std::map<uint32_t, std::map<NodeId, uint32_t>> uiCaptureNodeMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

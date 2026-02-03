@@ -240,6 +240,7 @@ constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
 constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
 constexpr size_t MAX_SURFACE_OCCLUSION_LISTENERS_SIZE = std::numeric_limits<uint16_t>::max();
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
+constexpr uint32_t MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME = 1;
 
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
@@ -1520,11 +1521,38 @@ void RSMainThread::ProcessAllSyncTransactionData()
     RequestNextVSync();
 }
 
+void RSMainThread::PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode> &surfaceNode,
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler)
+{
+    if (!BufferReclaimParam::GetInstance().IsBufferReclaimEnable() || !surfaceNode->IsRosenWeb()) {
+        return;
+    }
+
+    if (curFrameBufferReclaimCount_ >= MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME) {
+        return;
+    }
+
+    if (!surfaceNode->IsOnTheTree() && surfaceHandler->IsNeedSwapLastBuffer()) {
+        if (CheckUICaptureNode(surfaceNode->GetId())) {
+            surfaceHandler->ResetLastBufferInfo();
+            return;
+        }
+        if (surfaceHandler->ReclaimLastBufferPrepare()) {
+            curFrameBufferReclaimCount_++;
+            auto task = [this, surfaceHandler]() {
+                surfaceHandler->ReclaimLastBufferProcess();
+            };
+            PostTask(task);
+        }
+    }
+}
+
 void RSMainThread::ConsumeAndUpdateAllNodes()
 {
     ResetHardwareEnabledState(isUniRender_);
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
     requestNextVsyncTime_ = -1;
+    curFrameBufferReclaimCount_ = 0;
     if (!isUniRender_) {
         dividedRenderbufferTimestamps_.clear();
     }
@@ -1569,6 +1597,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     frameRateMgr->UpdateSurfaceTime(name, ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
                 }
             }
+            PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
             surfaceHandler->ResetCurrentFrameBufferConsumed();
             auto parentNode = surfaceNode->GetParent().lock();
             RSBaseRenderUtil::DropFrameConfig dropFrameConfig;
@@ -2082,6 +2111,57 @@ void RSMainThread::SetFrameIsRender(bool isRender)
     }
 }
 
+void RSMainThread::AddUICaptureNode(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(nodeId);
+    auto iter1 = uiCaptureNodeMap_.find(pid);
+    if (iter1 == uiCaptureNodeMap_.end()) {
+        std::map<NodeId, uint32_t> nodeIdCountMap;
+        nodeIdCountMap[nodeId] = 1;
+        uiCaptureNodeMap_[pid] = nodeIdCountMap;
+        return;
+    }
+
+    auto& nodeIdCountMap = iter1->second;
+    auto iter2 = nodeIdCountMap.find(nodeId);
+    if (iter2 != nodeIdCountMap.end()) {
+        iter2->second++;
+    } else {
+        nodeIdCountMap[nodeId] = 1;
+    }
+}
+
+void RSMainThread::RemoveUICaptureNode(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(nodeId);
+    auto iter1 = uiCaptureNodeMap_.find(pid);
+    if (iter1 == uiCaptureNodeMap_.end()) {
+        return;
+    }
+
+    auto& nodeIdCountMap = iter1->second;
+    auto iter2 = nodeIdCountMap.find(nodeId);
+    if (iter2 != nodeIdCountMap.end()) {
+        iter2->second--;
+        if (iter2->second == 0) {
+            nodeIdCountMap.erase(iter2);
+        }
+    }
+
+    if (nodeIdCountMap.empty()) {
+        uiCaptureNodeMap_.erase(iter1);
+    }
+}
+
+bool RSMainThread::CheckUICaptureNode(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(id);
+    return (uiCaptureNodeMap_.find(pid) != uiCaptureNodeMap_.end());
+}
+
 void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
 {
     pendingUiCaptureTasks_.emplace_back(id, task);
@@ -2096,6 +2176,9 @@ void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
         if (isNeedSetTreeStateChangeDirty) {
             node->SetChildrenTreeStateChangeDirty();
             node->SetParentTreeStateChangeDirty(true);
+        }
+        if (!node->IsOnTheTree()) {
+            AddUICaptureNode(id);
         }
     }
     if (!IsRequestedNextVSync()) {
@@ -2140,9 +2223,11 @@ void RSMainThread::ProcessUiCaptureTasks()
         if (RSUiCaptureTaskParallel::GetCaptureCount() >= MAX_CAPTURE_COUNT) {
             return;
         }
+        NodeId nodeId = std::get<0>(uiCaptureTasks_.front());
         auto captureTask = std::get<1>(uiCaptureTasks_.front());
         uiCaptureTasks_.pop();
         captureTask();
+        RemoveUICaptureNode(nodeId);
     }
 #endif
 }
