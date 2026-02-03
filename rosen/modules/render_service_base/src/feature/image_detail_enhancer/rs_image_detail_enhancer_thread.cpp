@@ -52,7 +52,7 @@ constexpr float MAX_IMAGE_CACHE = 150.0f; // Max image cache
 constexpr int MAX_SCALEUP_SIZE = 1920 * 1080; // Max scale up size
 constexpr int RELEASE_TIME = 5000; // Release scaledImage time (ms)
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-constexpr int DEBUG_NUM_DIVISIOR = 2; // Use for dump debug info
+constexpr int DEBUG_NUM_DIVISOR = 2; // Use for dump debug info
 #endif
 
 RSImageDetailEnhancerThread& RSImageDetailEnhancerThread::Instance()
@@ -381,8 +381,8 @@ void RSImageDetailEnhancerThread::ImageSamplingDump(uint64_t imageId)
         int32_t h = bitmap.GetHeight();
         oss << "[ imageId:" << imageId << " Width:" << w << " Height:" << h;
         oss << " pixels:" << std::hex << std::uppercase;
-        int32_t widthStep = std::max((w / DEBUG_NUM_DIVISIOR) - 1, 1);
-        int32_t heightStep = std::max((h / DEBUG_NUM_DIVISIOR) - 1, 1);
+        int32_t widthStep = std::max((w / DEBUG_NUM_DIVISOR) - 1, 1);
+        int32_t heightStep = std::max((h / DEBUG_NUM_DIVISOR) - 1, 1);
         for (int32_t i = 1; i < w; i += widthStep) {
             for (int32_t j = 1; j < h; j += heightStep) {
                 uint32_t pixel = static_cast<uint32_t>(bitmap.GetColor(i, j));

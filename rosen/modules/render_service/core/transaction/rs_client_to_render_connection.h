@@ -25,7 +25,7 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render_server/rs_render_service.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "transaction/zidl/rs_client_to_render_connection_stub.h"
+#include "zidl/rs_client_to_render_connection_stub.h"
 #include "vsync_distributor.h"
 
 namespace OHOS {
@@ -100,11 +100,11 @@ private:
 
     ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
 
-    ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) override;
-
     ErrCode RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback) override;
     ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+
+    ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) override;
 
     void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;

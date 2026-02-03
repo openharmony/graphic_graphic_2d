@@ -29,6 +29,7 @@
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "rs_render_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1409,6 +1410,7 @@ private:
         float scaleX, float scaleY);
 
     std::unique_ptr<RSRenderServiceClient> renderServiceClient_;
+    std::unique_ptr<RSRenderInterface> renderInterface_;
 };
 } // namespace Rosen
 } // namespace OHOS

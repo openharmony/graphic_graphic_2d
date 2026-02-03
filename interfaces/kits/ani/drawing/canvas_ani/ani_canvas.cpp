@@ -2190,7 +2190,6 @@ ani_object AniCanvas::CreateAniCanvas(ani_env* env, Canvas* canvas)
 
     ani_ref aniRef;
     env->GetUndefined(&aniRef);
-    auto aniCanvas = new AniCanvas(canvas);
     ani_class aniClass;
     if (env->FindClass(ANI_CLASS_CANVAS_NAME, &aniClass) != ANI_OK) {
         ROSEN_LOGE("CreateAniCanvas FindClass failed");
@@ -2206,6 +2205,7 @@ ani_object AniCanvas::CreateAniCanvas(ani_env* env, Canvas* canvas)
         ROSEN_LOGE("CreateAniCanvas Object_New failed");
         return CreateAniUndefined(env);
     }
+    auto aniCanvas = new AniCanvas(canvas);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniCanvas))) {
         ROSEN_LOGE("aniCanvas failed cause by Object_SetFieldByName_Long");
         delete aniCanvas;

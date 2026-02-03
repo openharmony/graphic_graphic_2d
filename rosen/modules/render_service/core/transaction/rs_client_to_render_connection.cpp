@@ -76,6 +76,7 @@
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
+#include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "screen_manager/touch_screen.h"
@@ -122,6 +123,7 @@ RSClientToRenderConnection::RSClientToRenderConnection(
       applicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this)),
       appVSyncDistributor_(distributor)
 {
+    // Note: The callback for file splitting and death is implemented by the rs process
     if (token_ == nullptr) {
         RS_LOGW("RSClientToRenderConnection: Failed to set death recipient.");
     }
@@ -145,41 +147,14 @@ RSClientToRenderConnection::~RSClientToRenderConnection() noexcept
 
 void RSClientToRenderConnection::CleanVirtualScreens() noexcept
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    if (screenManager_ != nullptr) {
-        for (const auto id : virtualScreenIds_) {
-            screenManager_->RemoveVirtualScreen(id);
-        }
-    }
-    virtualScreenIds_.clear();
-
-    if (screenChangeCallback_ != nullptr && screenManager_ != nullptr) {
-        screenManager_->RemoveScreenChangeCallback(screenChangeCallback_);
-        screenChangeCallback_ = nullptr;
-    }
 }
 
 void RSClientToRenderConnection::CleanRenderNodes() noexcept
 {
-    if (mainThread_ == nullptr) {
-        return;
-    }
-    auto& context = mainThread_->GetContext();
-    auto& nodeMap = context.GetMutableNodeMap();
-
-    nodeMap.FilterNodeByPid(remotePid_);
 }
 
 void RSClientToRenderConnection::CleanFrameRateLinkers() noexcept
 {
-    if (mainThread_ == nullptr) {
-        return;
-    }
-    auto& context = mainThread_->GetContext();
-    auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
-
-    frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
 }
 
 void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
@@ -205,48 +180,11 @@ void RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::OnRemo
 
 ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    if (!mainThread_) {
-        return ERR_INVALID_VALUE;
-    }
-    pid_t callingPid = GetCallingPid();
-    bool isTokenTypeValid = true;
-    bool isNonSystemAppCalling = false;
-    RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
-    bool shouldDrop = RSUnmarshalThread::Instance().ReportTransactionDataStatistics(
-        callingPid, transactionData.get(), isNonSystemAppCalling);
-    if (shouldDrop) {
-        RS_LOGW("CommitTransaction data droped");
-        return ERR_INVALID_VALUE;
-    }
-    if (transactionData && transactionData->GetDVSyncUpdate()) {
-        mainThread_->DVSyncUpdate(transactionData->GetDVSyncTime(), transactionData->GetTimestamp());
-    }
-    bool isProcessBySingleFrame = mainThread_->IsNeedProcessBySingleFrameComposer(transactionData);
-    if (isProcessBySingleFrame) {
-        mainThread_->ProcessDataBySingleFrameComposer(transactionData);
-    } else {
-        mainThread_->RecvRSTransactionData(transactionData);
-    }
     return ERR_OK;
 }
 
 ErrCode RSClientToRenderConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
-    if (task == nullptr || mainThread_ == nullptr) {
-        RS_LOGW("ExecuteSynchronousTask, task or main thread is null!");
-        return ERR_INVALID_VALUE;
-    }
-    // After a synchronous task times out, it will no longer be executed.
-    auto isTimeout = std::make_shared<bool>(0);
-    std::weak_ptr<bool> isTimeoutWeak = isTimeout;
-    std::chrono::nanoseconds span(std::min(task->GetTimeout(), MAX_TIME_OUT_NS));
-    mainThread_->ScheduleTask([task, mainThread = mainThread_, isTimeoutWeak] {
-        if (task == nullptr || mainThread == nullptr || isTimeoutWeak.expired()) {
-            return;
-        }
-        task->Process(mainThread->GetContext());
-    }).wait_for(span);
-    isTimeout.reset();
     return ERR_OK;
 }
 
@@ -425,12 +363,10 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSClientToRende
         selfCapture = permissions.selfCapture]() {
         RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCaptureSoloNode captureTask"
             " nodeId:[%" PRIu64 "]", id);
-        RS_LOGI("TakeSurfaceCaptureSoloNode captureTask begin "
-            "nodeId:[%{public}" PRIu64 "]", id);
+        RS_LOGI("TakeSurfaceCaptureSoloNode captureTask begin nodeId:[%{public}" PRIu64 "]", id);
         auto uiCaptureHasPermission = selfCapture || isSystemCalling;
         if (!uiCaptureHasPermission) {
-            RS_LOGE("TakeSurfaceCaptureSoloNode "
-                "uicapturesolo failed, nodeId:[%{public}" PRIu64
+            RS_LOGE("TakeSurfaceCaptureSoloNode uicapturesolo failed, nodeId:[%{public}" PRIu64
                 "], isSystemCalling: %{public}u, selfCapture: %{public}u", id, isSystemCalling, selfCapture);
             return;
         }
@@ -613,8 +549,8 @@ void RSClientToRenderConnection::TakeUICaptureInRange(
     RSMainThread::Instance()->PostTask(captureTask);
 }
 
-ErrCode RSClientToRenderConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
-    float positionZ, float positionW)
+ErrCode RSClientToRenderConnection::SetHwcNodeBounds(
+    int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW)
 {
     if (mainThread_ == nullptr || screenManager_ == nullptr) {
         return ERR_INVALID_VALUE;
@@ -630,8 +566,7 @@ ErrCode RSClientToRenderConnection::SetHwcNodeBounds(int64_t rsNodeId, float pos
         RSPointerWindowManager::Instance().SetIsPointerCanSkipFrame(true);
     }
 
-    RSPointerWindowManager::Instance().SetHwcNodeBounds(rsNodeId, positionX, positionY,
-        positionZ, positionW);
+    RSPointerWindowManager::Instance().SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
     return ERR_OK;
 }
 
@@ -748,7 +683,8 @@ ErrCode RSClientToRenderConnection::SetLayerTopForHWC(NodeId nodeId, bool isTop,
 void RSClientToRenderConnection::RegisterTransactionDataCallback(uint64_t token,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
-    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(token, timeStamp, callback);
+    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(token,
+        timeStamp, callback);
 }
 
 ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value)
@@ -765,20 +701,28 @@ ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value
         if (auto node = nodeMap.GetRenderNode<RSCanvasRenderNode>(nodeId)) {
             auto displayNodeId = node->GetLogicalDisplayNodeId();
             if (auto displayNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId)) {
-                RS_LOGD("SetWindowContainer nodeId: %{public}" PRIu64 ", value: %{public}d",
-                    nodeId, value);
+                RS_LOGD("SetWindowContainer nodeId: %{public}" PRIu64 ", value: %{public}d", nodeId, value);
                 displayNode->SetWindowContainer(value ? node : nullptr);
             } else {
-                RS_LOGE("SetWindowContainer displayNode is nullptr, nodeId: %{public}"
-                    PRIu64, displayNodeId);
+                RS_LOGE("SetWindowContainer displayNode is nullptr, nodeId: %{public}" PRIu64, displayNodeId);
             }
         } else {
-            RS_LOGE("SetWindowContainer node is nullptr, nodeId: %{public}" PRIu64,
-                nodeId);
+            RS_LOGE("SetWindowContainer node is nullptr, nodeId: %{public}" PRIu64, nodeId);
         }
     };
     mainThread_->PostTask(task);
     return ERR_OK;
+}
+
+void RSClientToRenderConnection::ClearUifirstCache(NodeId id)
+{
+    if (!mainThread_) {
+        return;
+    }
+    auto task = [id]() -> void {
+        RSUifirstManager::Instance().AddMarkedClearCacheNode(id);
+    };
+    mainThread_->PostTask(task);
 }
 
 void RSClientToRenderConnection::SetScreenFrameGravity(ScreenId id, int32_t gravity)
@@ -794,17 +738,6 @@ void RSClientToRenderConnection::SetScreenFrameGravity(ScreenId id, int32_t grav
                 node->GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
             }
         });
-    };
-    mainThread_->PostTask(task);
-}
-
-void RSClientToRenderConnection::ClearUifirstCache(NodeId id)
-{
-    if (!mainThread_) {
-        return;
-    }
-    auto task = [id]() -> void {
-        RSUifirstManager::Instance().AddMarkedClearCacheNode(id);
     };
     mainThread_->PostTask(task);
 }
