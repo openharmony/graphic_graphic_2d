@@ -154,7 +154,6 @@ HWTEST_F(RSRenderServiceConnectionTest, CleanBrightnessInfoChangeCallbacksTest, 
         delete mainThread;
     }
 }
-#endif
 
 /**
  * @tc.name: GetBrightnessInfoTest
@@ -186,6 +185,7 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBrightnessInfoTest, TestSize.Level1)
         delete mainThread;
     }
 }
+#endif
 
 /**
  * @tc.name: UpdateAnimationOcclusionStatus001
