@@ -2032,7 +2032,6 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     __builtin_prefetch(&(properties.frameGeo_), 0, 2);
 #endif
     // 1. update self drawrect if dirty
-    UpdateFilterRectInfo();
     bool selfDrawRectChanged = IsDirty() ? UpdateSelfDrawRect() : false;
     if (selfDrawRectChanged) {
         UpdateChildrenOutOfRectFlag(!childrenRect_.ConvertTo<float>().IsInsideOf(selfDrawRect_));
@@ -3237,6 +3236,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     UpdateDrawableVecV2();
 
     UpdateFilterCacheWithBackgroundDirty();
+    UpdateFilterRectInfo();
 
     // update state
     dirtyTypesNG_.reset();
