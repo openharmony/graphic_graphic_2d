@@ -4710,6 +4710,15 @@ void RSMainThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface
     tmpSurfaces_.push(std::move(surface));
 }
 
+void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
+{
+    RSUniRenderThread::Instance().PostSyncTask([&cpuMemSize, &gpuMemSize] {
+        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(
+            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+        cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
+    });
+}
+
 void RSMainThread::SubscribeAppState()
 {
     RSBackgroundThread::Instance().PostTask(
