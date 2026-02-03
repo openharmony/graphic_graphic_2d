@@ -221,7 +221,7 @@ group("test") {
     "render_service_client/fuzztest/rsinterfaces_extern/notifyPageName_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_extern/setScreenSwitchingNotifyCallback_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_extern/freezeScreen_fuzzer:fuzztest",
-    "render_service_client/fuzztest/rsinterfaces_extern/typeface_fuzzer:fuzztest",
+    "render_service_client/fuzztest/rsinterfaces_extern/registerTypeface_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_extern/setLayerTop_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_extern/setVirtualScreenStatus_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_extern/takeSurfaceCaptureAllWindows_fuzzer:fuzztest",

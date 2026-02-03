@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "typeface_fuzzer.h"
+#include "registertypeface_fuzzer.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 

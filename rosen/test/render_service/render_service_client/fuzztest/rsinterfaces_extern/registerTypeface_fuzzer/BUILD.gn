@@ -18,9 +18,9 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("TypefaceFuzzTest") {
+ohos_fuzztest("RegisterTypefaceFuzzTest") {
   fuzz_config_file =
-      "$graphic_2d_root/rosen/test/render_service/render_service_client/fuzztest/rsinterfaces_extern/typeface_fuzzer"
+      "$graphic_2d_root/rosen/test/render_service/render_service_client/fuzztest/rsinterfaces_extern/registerTypeface_fuzzer"
   module_out_path = module_output_path
 
   include_dirs = [
@@ -43,7 +43,7 @@ ohos_fuzztest("TypefaceFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "typeface_fuzzer.cpp" ]
+  sources = [ "registertypeface_fuzzer.cpp" ]
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
@@ -63,7 +63,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":TypefaceFuzzTest",
+    ":RegisterTypefaceFuzzTest",
   ]
 }
 ###############################################################################

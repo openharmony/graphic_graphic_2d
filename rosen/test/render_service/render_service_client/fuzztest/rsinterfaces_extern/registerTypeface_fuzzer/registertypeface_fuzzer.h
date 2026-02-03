@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#ifndef FUZZTEST_TYPEFACE_FUZZER_H
-#define FUZZTEST_TYPEFACE_FUZZER_H
+#ifndef FUZZTEST_REGISTER_TYPEFACE_FUZZER_H
+#define FUZZTEST_REGISTER_TYPEFACE_FUZZER_H
 
 #endif
