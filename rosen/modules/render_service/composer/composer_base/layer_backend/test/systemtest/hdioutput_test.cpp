@@ -59,7 +59,7 @@ void HdiOutputSysTest::SetUpTestCase()
     rsLayers_.emplace_back(hdiLayerTemp_->GetRSLayer());
 
     mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
-    hdiOutput_->device_ = mockDevice_;
+    hdiOutput_->SetHdiOutputDevice(mockDevice_);
     EXPECT_CALL(*mockDevice_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
 }
 
@@ -158,6 +158,24 @@ HWTEST_F(HdiOutputSysTest, ReleaseFramebuffer001, Function | MediumTest| Level1)
     sptr<SyncFence> releaseFence;
     // currentr frame buffer_ is nullptr
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->ReleaseFramebuffer(releaseFence), GRAPHIC_DISPLAY_NULL_PTR);
+}
+
+/*
+* Function: SetHdiOutputDevice001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetHdiOutputDevice
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, SetHdiOutputDevice001, Function | MediumTest| Level3)
+{
+    // mockDevice_ is nullptr
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->SetHdiOutputDevice(nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
+    // the device_ in hdiBackend_ is not nullptr alredy
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->SetHdiOutputDevice(mockDevice_), ROSEN_ERROR_OK);
+    // Init the hdiouput
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->Init(), ROSEN_ERROR_OK);
 }
 
 /*

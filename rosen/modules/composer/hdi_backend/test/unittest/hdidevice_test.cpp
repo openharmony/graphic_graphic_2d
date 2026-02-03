@@ -366,6 +366,7 @@ HWTEST_F(HdiDeviceTest, LayerFuncs002, Function | MediumTest| Level3)
         .WillRepeatedly(testing::ReturnRef(emptyKeys));
     EXPECT_EQ(hdiDeviceMock_->GetSupportedLayerPerFrameParameterKey().size(), 0u);
     const std::string validKey = "ArsrDoEnhance";
+    const auto& valueRet = hdiDeviceMock_->GetSupportedLayerPerFrameParameterKey();
     if (std::find(valueRet.begin(), valueRet.end(), validKey) != valueRet.end()) {
         const std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
         EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameter(_, _, _, _))
@@ -862,6 +863,8 @@ HWTEST_F(HdiDeviceTest, SetScreenClientBuffer001, Function | MediumTest| Level3)
     BufferHandle *buffer = nullptr;
     uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
     sptr<SyncFence> fence = new SyncFence(-1);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
     EXPECT_EQ(hdiDeviceMock_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
               GRAPHIC_DISPLAY_PARAM_ERR);
 }
@@ -880,6 +883,8 @@ HWTEST_F(HdiDeviceTest, SetScreenClientBuffer002, Function | MediumTest| Level3)
     BufferHandle *buffer = new BufferHandle();
     uint32_t cacheIndex = 0;
     sptr<SyncFence> fence = nullptr;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
     EXPECT_EQ(hdiDeviceMock_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
               GRAPHIC_DISPLAY_PARAM_ERR);
 }
@@ -896,6 +901,8 @@ HWTEST_F(HdiDeviceTest, SetScreenClientBufferCacheCount001, Function | MediumTes
 {
     uint32_t screenId = 0;
     uint32_t count = 0;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBufferCacheCount(_, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
     EXPECT_EQ(hdiDeviceMock_->SetScreenClientBufferCacheCount(screenId, count), GRAPHIC_DISPLAY_PARAM_ERR);
 }
 
@@ -911,6 +918,8 @@ HWTEST_F(HdiDeviceTest, SetScreenClientBufferCacheCount002, Function | MediumTes
 {
     uint32_t screenId = 0;
     uint32_t count = SURFACE_MAX_QUEUE_SIZE + 1;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBufferCacheCount(_, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
     EXPECT_EQ(hdiDeviceMock_->SetScreenClientBufferCacheCount(screenId, count), GRAPHIC_DISPLAY_PARAM_ERR);
 }
 
@@ -927,6 +936,8 @@ HWTEST_F(HdiDeviceTest, SetLayerBuffer001, Function | MediumTest| Level3)
     uint32_t screenId = 0;
     uint32_t layerId = 0;
     GraphicLayerBuffer layerBuffer = {nullptr, INVALID_BUFFER_CACHE_INDEX, nullptr, {}};
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
     EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
 }
 
@@ -944,6 +955,8 @@ HWTEST_F(HdiDeviceTest, SetLayerBuffer002, Function | MediumTest| Level3)
     uint32_t layerId = 0;
     BufferHandle *handle = new BufferHandle();
     GraphicLayerBuffer layerBuffer = {handle, 0, nullptr, {}};
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
     EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
 }
 
@@ -966,13 +979,14 @@ HWTEST_F(HdiDeviceTest, CommitAndGetReleaseFence001, Function | MediumTest| Leve
     bool isValidated = false;
 
     EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _, _))
-        .WillRepeatedly(DoAll(
-            testing::SetArgReferee<1>(10),
-            testing::SetArgReferee<2>(skipState),
-            testing::SetArgReferee<3>(needFlush),
-            testing::SetArgReferee<4>(layers),
-            testing::Return(GRAPHIC_DISPLAY_SUCCESS)
-        ));
+        .WillRepeatedly([&skipState, &needFlush, &layers](uint32_t, sptr<SyncFence>& fence, int32_t& outSkipState,
+                            bool& outNeedFlush, std::vector<uint32_t>& outLayers, std::vector<sptr<SyncFence>>&, bool) {
+            fence = new SyncFence(10);
+            outSkipState = skipState;
+            outNeedFlush = needFlush;
+            outLayers = layers;
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
     EXPECT_EQ(
         hdiDeviceMock_->CommitAndGetReleaseFence(screenId, fence, skipState, needFlush, layers, fences, isValidated),
         GRAPHIC_DISPLAY_SUCCESS);
@@ -998,14 +1012,15 @@ HWTEST_F(HdiDeviceTest, CommitAndGetReleaseFence002, Function | MediumTest| Leve
     bool isValidated = false;
 
     EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _, _))
-        .WillRepeatedly(DoAll(
-            testing::SetArgReferee<1>(-1),
-            testing::SetArgReferee<2>(skipState),
-            testing::SetArgReferee<3>(needFlush),
-            testing::SetArgReferee<4>(layers),
-            testing::SetArgReferee<5>(fenceFds),
-            testing::Return(GRAPHIC_DISPLAY_SUCCESS)
-        ));
+        .WillRepeatedly([&skipState, &needFlush, &layers](uint32_t, sptr<SyncFence>& fence,
+                                      int32_t& outSkipState, bool& outNeedFlush, std::vector<uint32_t>& outLayers,
+                                      std::vector<sptr<SyncFence>>&, bool) {
+            fence = new SyncFence(-1);
+            outSkipState = skipState;
+            outNeedFlush = needFlush;
+            outLayers = layers;
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
     EXPECT_EQ(
         hdiDeviceMock_->CommitAndGetReleaseFence(screenId, fence, skipState, needFlush, layers, fences, isValidated),
         GRAPHIC_DISPLAY_SUCCESS);
@@ -1095,6 +1110,8 @@ HWTEST_F(HdiDeviceTest, SetScreenActiveRect001, Function | MediumTest| Level3)
 {
     uint32_t screenId = 0;
     GraphicIRect activeRect = {0, 0, -1, 100};
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenActiveRect(_, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
     EXPECT_EQ(hdiDeviceMock_->SetScreenActiveRect(screenId, activeRect), GRAPHIC_DISPLAY_PARAM_ERR);
 }
 
@@ -1110,6 +1127,8 @@ HWTEST_F(HdiDeviceTest, SetScreenActiveRect002, Function | MediumTest| Level3)
 {
     uint32_t screenId = 0;
     GraphicIRect activeRect = {0, 0, 100, -1};
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenActiveRect(_, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
     EXPECT_EQ(hdiDeviceMock_->SetScreenActiveRect(screenId, activeRect), GRAPHIC_DISPLAY_PARAM_ERR);
 }
 

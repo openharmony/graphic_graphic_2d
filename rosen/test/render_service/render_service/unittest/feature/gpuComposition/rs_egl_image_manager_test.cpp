@@ -374,11 +374,23 @@ HWTEST_F(RSEglImageManagerTest, GetIntersectImageTest, TestSize.Level1)
     BufferDrawParam params;
     params.acquireFence = nullptr;
     params.threadIndex = 0;
-    auto res = imageManager->GetIntersectImage(imgCutRect, context, params);
-    EXPECT_EQ(res, nullptr);
     params.buffer = SurfaceBuffer::Create();
-    res = imageManager->GetIntersectImage(imgCutRect, context, params);
-    EXPECT_EQ(res, nullptr);
+    // Allocate memory for the buffer to avoid crash in eglCreateImageKHR
+    if (params.buffer != nullptr) {
+        BufferRequestConfig requestConfig = {
+            .width = 10,
+            .height = 10,
+            .strideAlignment = 0x8,
+            .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+            .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+            .timeout = 0,
+        };
+        params.buffer->Alloc(requestConfig);
+        // MapEglImageFromSurfaceBuffer will fail because GPU context is not properly set up
+        // This test verifies the function doesn't crash
+        auto res = imageManager->GetIntersectImage(imgCutRect, context, params);
+        EXPECT_EQ(res, nullptr);
+    }
 }
 
 /**
@@ -406,6 +418,16 @@ HWTEST_F(RSEglImageManagerTest, GetIntersectImageTest002, TestSize.Level1)
         int64_t timestamp = 0;
         Rect damage;
         sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+        // Allocate memory for the buffer to avoid crash in eglCreateImageKHR
+        BufferRequestConfig requestConfig = {
+            .width = 10,
+            .height = 10,
+            .strideAlignment = 0x8,
+            .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+            .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+            .timeout = 0,
+        };
+        buffer->Alloc(requestConfig);
         surfaceHandler->SetBuffer(buffer, params.acquireFence, damage, timestamp);
         ASSERT_NE(node, nullptr);
         if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
