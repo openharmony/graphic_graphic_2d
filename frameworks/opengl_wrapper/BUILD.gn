@@ -129,6 +129,7 @@ if (current_os != "ohos") {
     output_extension = "so"
     version_script = "EGL.versionscript"
 
+    innerapi_tags = [ "llndk" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -215,7 +216,10 @@ ohos_shared_library("GLESv2") {
 
   output_name = "GLESv2"
   output_extension = "so"
-  innerapi_tags = [ "ndk" ]
+  innerapi_tags = [
+      "ndk",
+      "llndk"
+  ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -265,6 +269,7 @@ if (current_os != "ohos") {
     output_name = "GLESv3"
     output_extension = "so"
 
+    innerapi_tags = [ "llndk" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
