@@ -18,6 +18,7 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
 #include "params/rs_canvas_drawing_render_params.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -61,7 +62,7 @@ void RSCanvasDrawingRenderNodeDrawableTest::TearDown() {}
 std::shared_ptr<RSCanvasDrawingRenderNodeDrawable> RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable()
 {
     auto rsContext = std::make_shared<RSContext>();
-    auto renderNode = std::make_shared<RSRenderNode>(id, rsContext->weak_from_this());
+    auto renderNode = std::make_shared<RSCanvasDrawingRenderNode>(id, rsContext->weak_from_this());
     auto drawable = std::static_pointer_cast<RSCanvasDrawingRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
     return drawable;
@@ -101,7 +102,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateCanvasDrawingRenderNodeDra
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseSurfaceVkTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     int width = 10;
     int height = 10;
@@ -123,8 +125,10 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseSurfaceVkTest, TestSize.L
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 {
     auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
 
-    Drawing::Canvas canvas;
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
     drawable->OnDraw(canvas);
     ASSERT_FALSE(drawable->ShouldPaint());
     drawable->renderParams_->shouldPaint_ = true;
@@ -136,9 +140,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     drawable->renderParams_->canvasDrawingNodeSurfaceChanged_ = true;
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
-    ASSERT_TRUE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
+    ASSERT_FALSE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
 
-    canvas.recordingState_ = true;
+    rawCanvas.recordingState_ = true;
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     drawable->OnDraw(canvas);
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->isOpDropped_ = true;
@@ -156,18 +160,20 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawWithoutChildren, TestSize.Level1)
 {
     auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
 
-    Drawing::Canvas canvas;
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
     drawable->renderParams_->shouldPaint_ = true;
     drawable->renderParams_->contentEmpty_ = false;
     RSUniRenderThread::GetCaptureParam().endNodeId_ = drawable->renderParams_->GetId();
-    canvas.SetUICapture(true);
+    rawCanvas.SetUICapture(true);
     drawable->OnDraw(canvas);
     ASSERT_FALSE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
     RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
     drawable->renderParams_->canvasDrawingNodeSurfaceChanged_ = true;
     drawable->OnDraw(canvas);
-    ASSERT_TRUE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
+    ASSERT_FALSE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
 }
 
 /**
@@ -178,7 +184,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawWithoutChildren, TestSize.
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas canvas;
     const Drawing::Rect dst(1.0f, 1.0f, 1.0f, 1.0f);
@@ -206,7 +213,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, TestSize.Level1)
 {
     NodeId nodeId = 1;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
@@ -227,7 +235,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, 
 
     canvas->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     drawable->PostPlaybackInCorrespondThread();
-    ASSERT_FALSE(drawable->canvas_);
+    ASSERT_TRUE(drawable->canvas_);
 
     auto surface_ = std::make_shared<Drawing::Surface>();
     drawable->curThreadInfo_.second(surface_);
@@ -242,7 +250,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, 
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, InitSurfaceTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -266,7 +275,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, InitSurfaceTest, TestSize.Level1
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, InitSurfaceForVKTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -286,7 +296,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, InitSurfaceForVKTest, TestSize.L
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, InitSurfaceForGLTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -306,7 +317,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, InitSurfaceForGLTest, TestSize.L
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushForGLTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas rscanvas(&drawingCanvas);
@@ -351,7 +363,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushForGLTest, TestSize.Level1)
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushForVKTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas rscanvas(&drawingCanvas);
@@ -391,7 +404,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushForVKTest, TestSize.Level1)
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -436,7 +450,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushTest, TestSize.Level1)
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ProcessCPURenderInBackgroundThreadTest, TestSize.Level1)
 {
     RSRenderNodeDrawable::Registrar registrar;
-    auto node = std::make_shared<RSRenderNode>(1);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
     node->GetRenderParams();
     EXPECT_NE(node->renderDrawable_, nullptr);
 
@@ -473,7 +488,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ProcessCPURenderInBackgroundThre
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
 {
     NodeId nodeId = 1;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     int width = 1024;
     int height = 1920;
@@ -509,7 +525,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
 
     NodeId nodeId = 0;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     ASSERT_NE(drawable, nullptr);
     Drawing::Canvas drawingCanvas;
@@ -546,7 +563,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest001, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     drawable->ResetSurface();
     EXPECT_EQ(drawable->surface_, nullptr);
@@ -575,7 +593,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest001, TestSize.Le
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetBitmapTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto node2 = node;
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::GPUContext* grContext = nullptr;
@@ -604,7 +623,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetBitmapTest, TestSize.Level1)
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetPixelmapTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto node2 = node;
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
@@ -656,7 +676,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetPixelmapTest, TestSize.Level1
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCaptureImageTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -681,7 +702,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCaptureImageTest, TestSize.L
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest002, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -709,7 +731,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest002, TestSize.Le
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest003, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -734,7 +757,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest003, TestSize.Le
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceForGLTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -766,7 +790,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceForGLTest, TestSize.
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReuseBackendTextureTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -787,7 +812,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReuseBackendTextureTest, TestSiz
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetCurrentContextAndImageTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     std::shared_ptr<Drawing::GPUContext> grContext;
     std::shared_ptr<Drawing::Image> image;
@@ -812,7 +838,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetCurrentContextAndImageTest, T
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceWithTextureTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -967,7 +994,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDraw005, TestSize.Level2)
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CheckAndSetThreadIdxTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     ASSERT_EQ(drawable->CheckAndSetThreadIdx(), UNI_MAIN_THREAD_INDEX);
     RSUniRenderThread::Instance().tid_ = gettid();
@@ -982,7 +1010,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CheckAndSetThreadIdxTest, TestSi
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceforPlaybackTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
@@ -998,7 +1027,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceforPlaybackTest, Tes
     drawable->ResetSurfaceforPlayback(10, 10);
     ASSERT_NE(drawable->surface_, nullptr);
 
-    auto node2 = std::make_shared<RSRenderNode>(1);
+    auto rsContext2 = std::make_shared<RSContext>();
+    auto node2 = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext2->weak_from_this());
     auto drawable2 = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node2));
     drawable2->ResetSurfaceforPlayback(10, 10);
     ASSERT_NE(drawable2->canvas_, nullptr);
@@ -1012,7 +1042,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceforPlaybackTest, Tes
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest001, TestSize.Level1)
 {
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     auto ret = drawable->CreateDmaBackendTexture(1, 100, 100);
     ASSERT_EQ(ret, false);
@@ -1022,7 +1053,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest001, 
     ASSERT_EQ(ret, false);
     ret = drawable->CreateDmaBackendTexture(1, 100, 100);
     ASSERT_EQ(ret, false);
-    auto node1 = std::make_shared<RSRenderNode>(1);
+    auto rsContext1 = std::make_shared<RSContext>();
+    auto node1 = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext1->weak_from_this());
     RSCanvasDmaBufferCache::GetInstance().pendingBufferMap_.clear();
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(node1);
     node1->stagingRenderParams_->canvasDrawingResetSurfaceIndex_ = 1;
@@ -1057,7 +1089,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest001, 
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest002, TestSize.Level1)
 {
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     drawable->renderParams_ = nullptr;
     Drawing::Canvas drawingCanvas;
@@ -1087,7 +1120,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseDmaSurfaceBufferTest, Tes
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     bufferCache.AddPendingBuffer(1, buffer, 1);
     auto& nodeBufferMap = bufferCache.pendingBufferMap_[1].second;
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     drawable->ReleaseDmaSurfaceBuffer(true);
     ASSERT_EQ(drawable->renderParams_, nullptr);
@@ -1110,7 +1144,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseDmaSurfaceBufferTest, Tes
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetGpuContextTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.tid_ = gettid();
@@ -1119,10 +1154,12 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetGpuContextTest, TestSize.Leve
     uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
     auto context = drawable->GetGpuContext();
     ASSERT_NE(context, nullptr);
+
+    // Initialize surface_ before calling Flush
+    drawable->surface_ = std::make_shared<Drawing::Surface>();
     Drawing::Canvas canvas;
     RSPaintFilterCanvas rsCanvas(&canvas);
     const Drawing::Rect rect(1.0f, 1.0f, 1.0f, 1.0f);
-    auto rsContext = std::make_shared<RSContext>();
     drawable->DrawRenderContent(canvas, rect);
     drawable->Flush(1, 1, rsContext, id, rsCanvas);
     drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
