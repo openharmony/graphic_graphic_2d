@@ -200,7 +200,6 @@ group("test") {
     "render_service_client/fuzztest/rsinterfaces_display/canvasBuffer_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_securitylayer/disableRenderControl_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_securitylayer/animatedScenes_fuzzer:fuzztest",
-    "render_service_client/fuzztest/rsinterfaces_securitylayer/setTpFeatureConfig_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_securitylayer/virtualScreenList_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_securitylayer/occlusionCallback_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_memory/eventReport_fuzzer:fuzztest",

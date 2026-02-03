@@ -41,7 +41,8 @@ const uint8_t DO_SET_ROG_SCREEN_RESOLUTION = 11;
 const uint8_t DO_SET_SCREEN_ACTIVE_MODE = 12;
 const uint8_t DO_SET_SCREEN_CHANGE_CALLBACK = 13;
 const uint8_t DO_SET_SCREEN_FRAME_GRAVITY = 14;
-const uint8_t TARGET_SIZE = 15;
+const uint8_t DO_SET_TP_FEATURE_CONFIG = 15;
+const uint8_t TARGET_SIZE = 16;
 
 void DoSetScreenPowerStatus(FuzzedDataProvider& fdp)
 {
@@ -129,7 +130,7 @@ void DoSetMirrorScreenVisibleRect(FuzzedDataProvider& fdp)
     mainScreenRect.left_ = fdp.ConsumeIntegral<int32_t>();
     mainScreenRect.top_ = fdp.ConsumeIntegral<int32_t>();
     mainScreenRect.width_ = fdp.ConsumeIntegral<uint32_t>();
-    mainScreenRect.height_ = fdp.ConsumeIntegral<uint32_t>();
+    mainScreenRect.height_ = fdp.ConsumeIntegral<int32_t>();
     bool supportRotation = fdp.ConsumeBool();
     g_rsInterfaces->SetMirrorScreenVisibleRect(id, mainScreenRect, supportRotation);
 }
@@ -174,6 +175,16 @@ void DoSetScreenFrameGravity(FuzzedDataProvider& fdp)
     int32_t gravity = fdp.ConsumeIntegral<int32_t>();
     g_rsInterfaces->SetScreenFrameGravity(id, gravity);
 }
+
+#ifdef TP_FEATURE_ENABLE
+void DoSetTpFeatureConfig(FuzzedDataProvider& fdp)
+{
+    int32_t feature = fdp.ConsumeIntegral<int32_t>();
+    std::string config = fdp.ConsumeRandomLengthString(10);
+    auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(fdp.ConsumeIntegral<uint8_t>());
+    g_rsInterfaces->SetTpFeatureConfig(feature, config.c_str(), tpFeatureConfigType);
+}
+#endif
 
 } // namespace
 
@@ -245,6 +256,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_SET_SCREEN_FRAME_GRAVITY:
             OHOS::Rosen::DoSetScreenFrameGravity(fdp);
             break;
+#ifdef TP_FEATURE_ENABLE
+        case OHOS::Rosen::DO_SET_TP_FEATURE_CONFIG:
+            OHOS::Rosen::DoSetTpFeatureConfig(fdp);
+            break;
+#endif
         default:
             return -1;
     }
