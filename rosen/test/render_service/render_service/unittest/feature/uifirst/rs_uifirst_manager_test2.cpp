@@ -1380,10 +1380,10 @@ HWTEST_F(RSUifirstManagerTest2, ProcessSkippedNodeTest, TestSize.Level1)
     ASSERT_EQ(uifirstManager_.pendingPostNodes_.size(), 1);
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingPostNodes_.clear();
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode1->GetId());
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode2->GetId());
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode3->GetId());
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(canvasNode->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode1->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode2->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode3->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(canvasNode->GetId());
 }
 
 /**
