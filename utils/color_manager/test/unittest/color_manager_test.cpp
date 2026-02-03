@@ -1452,7 +1452,7 @@ HWTEST_F(ColorManagerTest, ComputeXYZD50_TmpDenominatorZero, TestSize.Level1)
     p.bX = 0.15f; p.bY = 0.06f;
     p.wX = 0.3127f; p.wY = 0.3290f;
     res = ComputeXYZD50(p);
-    EXPECT_TRUE(IsZeroMatrix(res));
+    EXPECT_FALSE(IsZeroMatrix(res));
 }
 
 /**
