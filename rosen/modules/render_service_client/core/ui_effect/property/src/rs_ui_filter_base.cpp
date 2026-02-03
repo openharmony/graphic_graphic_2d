@@ -440,9 +440,6 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGBlurFilter(
     float blurRadiusX, float blurRadiusY, bool disableSystemAdaptation)
 {
     auto filter = std::static_pointer_cast<RSNGBlurFilter>(RSNGFilterBase::Create(RSNGEffectType::BLUR));
-    if (filter == nullptr) {
-        return nullptr;
-    }
     filter->Setter<BlurRadiusXTag>(blurRadiusX);
     filter->Setter<BlurRadiusYTag>(blurRadiusY);
     filter->Setter<BlurDisableSystemAdaptationTag>(disableSystemAdaptation);
@@ -454,9 +451,6 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGMaterialBlurFilter(
 {
     auto filter = std::static_pointer_cast<RSNGMaterialBlurFilter>(
         RSNGFilterBase::Create(RSNGEffectType::MATERIAL_BLUR));
-    if (filter == nullptr) {
-        return nullptr;
-    }
     filter->Setter<MaterialBlurRadiusTag>(materialParam.radius);
     filter->Setter<MaterialBlurSaturationTag>(materialParam.saturation);
     filter->Setter<MaterialBlurBrightnessTag>(materialParam.brightness);
