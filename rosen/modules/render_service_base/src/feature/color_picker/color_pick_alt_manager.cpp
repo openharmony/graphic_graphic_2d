@@ -86,8 +86,7 @@ void ColorPickAltManager::ScheduleColorPick(RSPaintFilterCanvas& canvas, const D
     auto ptr = std::static_pointer_cast<ColorPickAltManager>(shared_from_this());
     // accelerated color picker
     if (RSHeteroColorPicker::Instance().GetColor(
-        [ptr, nodeId](Drawing::ColorQuad& newColor) { ptr->HandleColorUpdate(newColor, nodeId); }, drawingSurface,
-            snapshot)) {
+        [ptr, nodeId](Drawing::ColorQuad& newColor) { ptr->HandleColorUpdate(newColor, nodeId); }, canvas, snapshot)) {
         return;
     }
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;

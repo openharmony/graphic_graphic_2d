@@ -89,7 +89,7 @@ void RSColorPickerManager::ScheduleColorPick(
     if (RSHeteroColorPicker::Instance().GetColor(
         [ptr, nodeId, strategy](
                 Drawing::ColorQuad& newColor) { ptr->HandleColorUpdate(newColor, nodeId, strategy); },
-            drawingSurface, snapshot)) {
+            canvas, snapshot)) {
         return; // accelerated color picker
     }
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;

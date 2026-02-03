@@ -171,6 +171,8 @@ ohos_unittest("RSColorPickerTest") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic_2d_ext/"
   ]
 
   deps = [

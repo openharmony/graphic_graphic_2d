@@ -39,9 +39,11 @@ RSHeteroColorPicker& RSHeteroColorPicker::Instance()
 namespace {
 #if defined(MHC_ENABLE) && defined(RS_ENABLE_VK)
 bool RegisterMhcUpdate(const std::function<void(Drawing::ColorQuad&)>& updateColor,
-    const std::shared_ptr<Drawing::Image>& imageSnapshot, const Drawing::BackendTexture& backendTexture)
+    const std::shared_ptr<Drawing::Image>& imageSnapshot, const Drawing::BackendTexture& backendTexture,
+    RSPaintFilterCanvas& canvas)
 {
-    bool registerRes = RSMhcManager::Instance().RegisterFunc([updateColor, imageSnapshot, backendTexture] {
+    bool registerRes = RSMhcManager::Instance().RegisterFunc(
+        canvas.GetParallelThreadId(), [updateColor, imageSnapshot, backendTexture] {
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
         Drawing::BitmapFormat info =
             Drawing::BitmapFormat { imageSnapshot->GetColorType(), imageSnapshot->GetAlphaType() };
@@ -70,8 +72,16 @@ bool RegisterMhcUpdate(const std::function<void(Drawing::ColorQuad&)>& updateCol
 } // namespace
 
 bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor,
-    Drawing::Surface* surface, std::shared_ptr<Drawing::Image>& image)
+    RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image>& image)
 {
+#ifdef MHC_ENABLE
+    if (!RSMhcManager::Instance().CanGetColor(canvas)) {
+        RS_LOGD("[HeteroColorPicker]:Mhc does not support get color");
+        return false;
+    }
+#endif
+
+    auto surface = canvas.GetSurface();
     if (!ValidateInputs(updateColor, surface, image)) {
         return false;
     }
@@ -103,6 +113,7 @@ bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)
         RS_LOGE("[HeteroColorPicker]:GetImageSnapshot failed");
         return false;
     }
+
     auto backendTexture = colorSurface->GetBackendTexture();
     if (!backendTexture.IsValid()) {
         RS_LOGE("[HeteroColorPicker]:GetBackendTexture failed");
@@ -110,9 +121,9 @@ bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)
     }
 
 #if defined(MHC_ENABLE) && defined(RS_ENABLE_VK)
-    return RegisterMhcUpdate(updateColor, imageSnapshot, backendTexture);
+    return RegisterMhcUpdate(updateColor, imageSnapshot, backendTexture, canvas);
 #else
-    RS_LOGE("[HeteroColorPicker]:MHC is disabled");
+    RS_LOGD("[HeteroColorPicker]:MHC is disabled");
     return false;
 #endif
 }
@@ -125,7 +136,7 @@ bool RSHeteroColorPicker::ValidateInputs(const std::function<void(Drawing::Color
         return false;
     }
     if (surface == nullptr) {
-        RS_LOGE("[HeteroColorPicker]:Invalid input surface: %p", surface);
+        RS_LOGE("[HeteroColorPicker]:Invalid input surface");
         return false;
     }
     if (!static_cast<bool>(image)) {
