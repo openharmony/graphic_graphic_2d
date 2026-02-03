@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -155,8 +155,6 @@ private:
     void PostPrepare(RSRenderNode& node, bool subTreeSkipped = false);
     void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
     void CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node);
-    void CheckResetAccumulatedOcclusionRegion(RSSurfaceRenderNode& node);
-    bool IsParticipateInOcclusion(RSSurfaceRenderNode& node);
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
     Occlusion::Region GetSurfaceTransparentFilterRegion(const RSSurfaceRenderNode& surfaceNode) const;

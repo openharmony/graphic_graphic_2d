@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
+#include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -1737,14 +1738,20 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
     }
 
     // if full-screen transparent filter exists in in specific scenes, accumulated occlusion region needs to be reset.
-    CheckResetAccumulatedOcclusionRegion(node);
+    auto screenRect = curScreenNode_->GetScreenRect();
+    RSUniDirtyOcclusionUtil::CheckResetAccumulatedOcclusionRegion(node, screenRect, accumulatedOcclusionRegion_);
 
     // occlusion - 2. Calculate opaque/transparent region based on round corner, container window, etc.
     node.CheckAndUpdateOpaqueRegion(
         curScreenNode_->GetScreenRect(), curLogicalDisplayNode_->GetRotation(), node.IsContainerWindowTransparent());
     // occlusion - 3. Accumulate opaque region to occlude lower surface nodes (with/without special layer).
     hasSkipLayer_ = hasSkipLayer_ || node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP);
-    bool isParticipateInOcclusion = IsParticipateInOcclusion(node);
+
+    // need confirm the current node or first level node is focused
+    bool isFocus = node.IsFocusedNode(currentFocusedNodeId_) || (node.GetFirstLevelNodeId() == focusedLeashWindowId_);
+
+    bool isParticipateInOcclusion = RSUniDirtyOcclusionUtil::IsParticipateInOcclusion(node,
+        isFocus, ancestorNodeHasAnimation_, isAllSurfaceVisibleDebugEnabled_);
     CollectTopOcclusionSurfacesInfo(node, isParticipateInOcclusion);
     node.SetIsParticipateInOcclusion(isParticipateInOcclusion);
     if (isParticipateInOcclusion) {
@@ -1762,40 +1769,6 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
     CollectOcclusionInfoForWMS(node);
     RSMainThread::Instance()->GetRSVsyncRateReduceManager().CollectSurfaceVsyncInfo(
         curScreenNode_->GetScreenInfo(), node);
-}
-
-void RSUniRenderVisitor::CheckResetAccumulatedOcclusionRegion(RSSurfaceRenderNode& node)
-{
-    auto mainThread = RSMainThread::Instance();
-    auto visibleFilterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(node);
-    auto screenRect = curScreenNode_->GetScreenRect();
-    bool needReset = mainThread->GetIsAnimationOcclusion() && node.IsTransparent() && visibleFilterRect == screenRect;
-    if (needReset) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CheckResetAccumulatedOcclusionRegion: surface node[%s]"
-            "accumulated occlusion region needs to be reset", node.GetName().c_str());
-        accumulatedOcclusionRegion_.Reset();
-    }
-}
-
-bool RSUniRenderVisitor::IsParticipateInOcclusion(RSSurfaceRenderNode& node)
-{
-    auto mainThread = RSMainThread::Instance();
-    auto firstLevelNodeId = node.GetFirstLevelNodeId();
-    // need confirm the current node or first level node is focused
-    bool isFocus = node.IsFocusedNode(currentFocusedNodeId_) || (firstLevelNodeId == focusedLeashWindowId_);
-    // specific animation effects can enable occlusion, including three-finger swipe up and quick app launch/exit.
-    bool isAnimationOcclusionScenes =
-        (isFocus && mainThread->GetIsAnimationOcclusion()) || mainThread->GetIsRegularAnimation();
-    bool occlusionInAnimation = !node.IsAttractionAnimation() &&
-        (!ancestorNodeHasAnimation_ || isAnimationOcclusionScenes);
-    bool isParticipateInOcclusion = node.CheckParticipateInOcclusion(isAnimationOcclusionScenes) &&
-        occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_;
-    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::IsParticipateInOcclusion:[%s] isFocus:[%d] "
-        "isAnimationOcclusionScenes:[%d] isRegularAnimation:[%d] ancestorNodeHasAnimation:[%d] "
-        "isParticipateInOcclusion:[%d] isAttractionAnimation:[%d]",
-        node.GetName().c_str(), isFocus, isAnimationOcclusionScenes, mainThread->GetIsRegularAnimation(),
-        ancestorNodeHasAnimation_, isParticipateInOcclusion, node.IsAttractionAnimation());
-    return isParticipateInOcclusion;
 }
 
 void RSUniRenderVisitor::CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -5468,53 +5468,6 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion007, TestSiz
 
     rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*rsSurfaceRenderNode);
     ASSERT_TRUE(rsUniRenderVisitor->accumulatedOcclusionRegionBehindWindow_.Sub(regionFilter).IsEmpty());
-}
-
-/**
- * @tc.name: CheckResetAccumulatedOcclusionRegion001
- * @tc.desc: Test CheckResetAccumulatedOcclusionRegion with needReset
- * @tc.type: FUNC
- * @tc.require: issue21091
- */
-HWTEST_F(RSUniRenderVisitorTest, CheckResetAccumulatedOcclusionRegion001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    RSMainThread::Instance()->isAnimationOcclusion_.first = true;
-
-    auto rsContext = std::make_shared<RSContext>();
-    ASSERT_NE(rsContext, nullptr);
-    RSSurfaceRenderNodeConfig config;
-    config.id = 0;
-    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    rsSurfaceRenderNode->InitRenderParams();
-
-    // set surface node trasnparent.
-    rsSurfaceRenderNode->globalAlpha_ = 0.f;
-    rsSurfaceRenderNode->abilityBgAlpha_ = 0;
-    NodeId id = 1;
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
-    RectI screenRect = { 0, 0, 1000, 1000};
-    rsUniRenderVisitor->curScreenNode_->screenRect_ = screenRect;
-    // add filter node to parent surface.
-    auto filterNode = std::make_shared<RSCanvasRenderNode>(++id);
-    filterNode->oldDirtyInSurface_ = screenRect;
-    auto& nodeMap = rsContext->GetMutableNodeMap();
-    nodeMap.renderNodeMap_.clear();
-    nodeMap.RegisterRenderNode(filterNode);
-    rsSurfaceRenderNode->visibleFilterChild_.push_back(filterNode->GetId());
-
-    RectI rect = RectI(0, 0, 100, 100);
-    auto occlusionRegion = Occlusion::Region(rect);
-    rsUniRenderVisitor->accumulatedOcclusionRegion_ = occlusionRegion;
-    rsUniRenderVisitor->CheckResetAccumulatedOcclusionRegion(*rsSurfaceRenderNode);
-    ASSERT_TRUE(rsUniRenderVisitor->accumulatedOcclusionRegion_.IsEmpty());
-
-    rsUniRenderVisitor->accumulatedOcclusionRegion_ = occlusionRegion;
-    RSMainThread::Instance()->isAnimationOcclusion_.first = false;
-    rsUniRenderVisitor->CheckResetAccumulatedOcclusionRegion(*rsSurfaceRenderNode);
-    ASSERT_FALSE(rsUniRenderVisitor->accumulatedOcclusionRegion_.IsEmpty());
 }
 
 /**
