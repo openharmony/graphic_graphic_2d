@@ -18,6 +18,7 @@
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_image_cache.h"
@@ -1162,6 +1163,9 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
     if (surfaceBufferEntry) {
         surfaceBufferInfo_.surfaceBuffer_ = surfaceBufferEntry->surfaceBuffer_;
         surfaceBufferInfo_.acquireFence_ = surfaceBufferEntry->acquireFence_;
+
+        // Store the surfaceBufferInfo in RSSurfaceBufferCallbackManager
+        RSSurfaceBufferCallbackManager::Instance().StoreSurfaceBufferInfo(surfaceBufferInfo_);
     }
 }
 

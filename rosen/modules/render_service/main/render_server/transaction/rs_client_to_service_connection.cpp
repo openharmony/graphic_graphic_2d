@@ -91,6 +91,7 @@
 #define LOG_TAG "RSClientToServiceConnection"
 
 #include "app_mgr_client.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -610,6 +611,8 @@ ErrCode RSClientToServiceConnection::GetPixelMapByProcessId(
             return;
         }
         RS_TRACE_NAME_FMT("RSClientToServiceConnection::GetPixelMapByProcessId getSurfaceBufferByPidTask pid: %d", pid);
+
+        // Step 1: Get buffers from self-drawing nodes (existing logic)
         auto selfDrawingNodeVector =
             connection->mainThread_->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
         for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
@@ -619,6 +622,33 @@ ErrCode RSClientToServiceConnection::GetPixelMapByProcessId(
                 auto surfaceBufferInfo = std::make_tuple(surfaceBuffer, surfaceNode->GetName(),
                     surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect());
                 sfBufferInfoVector.push_back(surfaceBufferInfo);
+            }
+        }
+
+        // Step 2: Get texture mode buffers from RSSurfaceBufferCallbackManager
+        auto textureBufferInfoList = RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferInfoByPid(pid);
+        for (const auto& bufferInfo : textureBufferInfoList) {
+            if (bufferInfo.surfaceBuffer_ != nullptr) {
+                // Generate surface name for texture mode
+                std::string surfaceName = "XComponent_Texture_" + std::to_string(bufferInfo.uid_);
+
+                // Create RectI from dstRect
+                RectI absRect(
+                    static_cast<int>(bufferInfo.dstRect_.GetLeft()),
+                    static_cast<int>(bufferInfo.dstRect_.GetTop()),
+                    static_cast<int>(bufferInfo.dstRect_.GetWidth()),
+                    static_cast<int>(bufferInfo.dstRect_.GetHeight())
+                );
+
+                auto surfaceBufferTuple = std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect);
+                sfBufferInfoVector.push_back(surfaceBufferTuple);
+
+                RS_LOGD("GetPixelMapByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}llu, "
+                        "bufferId=%{public}u, size=%{public}dx%{public}d",
+                        bufferInfo.pid_, bufferInfo.uid_,
+                        bufferInfo.surfaceBuffer_->GetSeqNum(),
+                        bufferInfo.surfaceBuffer_->GetWidth(),
+                        bufferInfo.surfaceBuffer_->GetHeight());
             }
         }
     };
