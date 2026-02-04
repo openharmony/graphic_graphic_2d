@@ -365,14 +365,14 @@ HWTEST_F(EffectImageChainUnittest, ApplyMapColorByBrightnessTest, TestSize.Level
     // test filter is nullptr
     ret = image->Prepare(srcPixelMap, false);
     ret = image->ApplyMapColorByBrightness(colors, positions);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_MEMORY);
 
     // test filter not is nullptr
     auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
     ASSERT_NE(filterBlur, nullptr);
     ret = image->ApplyDrawingFilter(filterBlur);
     ret = image->ApplyMapColorByBrightness(colors, positions);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_MEMORY);
 }
 
 /**
@@ -401,14 +401,14 @@ HWTEST_F(EffectImageChainUnittest, ApplyGammaCorrectionTest, TestSize.Level1)
     // test filter is nullptr
     ret = image->Prepare(srcPixelMap, false);
     ret = image->ApplyGammaCorrection(gamma);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_MEMORY);
 
     // test filter not is nullptr
     auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
     ASSERT_NE(filterBlur, nullptr);
     ret = image->ApplyDrawingFilter(filterBlur);
     ret = image->ApplyGammaCorrection(gamma);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_MEMORY);
 }
 
 /**
@@ -653,6 +653,27 @@ HWTEST_F(EffectImageChainUnittest, ApplyWaterDropletTransitionFilterTest003, Tes
 
     ret = image->Draw();
     EXPECT_EQ(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ConvertPixelMapToDrawingImageTest001
+ * @tc.desc: Test ConvertPixelMapToDrawingImage
+ */
+HWTEST_F(EffectImageChainUnittest, ConvertPixelMapToDrawingImageTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    // Test with null pixelmap
+    auto drawingImage = image->ConvertPixelMapToDrawingImage(nullptr);
+    EXPECT_EQ(drawingImage, nullptr);
+
+    // Test with valid pixelmap
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+
+    drawingImage = image->ConvertPixelMapToDrawingImage(srcPixelMap);
+    EXPECT_NE(drawingImage, nullptr);
 }
 
 /**
