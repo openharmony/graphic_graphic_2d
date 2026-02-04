@@ -17,7 +17,6 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 
-#include "draw/typeface.h"
 #include "transaction/rs_interfaces.h"
 
 namespace OHOS {
