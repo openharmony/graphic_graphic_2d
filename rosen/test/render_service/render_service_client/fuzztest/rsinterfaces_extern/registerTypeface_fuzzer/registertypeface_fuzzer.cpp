@@ -50,7 +50,10 @@ void DoRegisterTypeface(FuzzedDataProvider& fdp)
 
     // Test 4: MakeFromName() - random family name and style
     std::string familyName = fdp.ConsumeRandomLengthString(STR_LEN);
-    auto fontStyle = static_cast<Drawing::FontStyle>(fdp.ConsumeIntegral<uint8_t>());
+    int weight = fdp.ConsumeIntegral<int>();
+    int width = fdp.ConsumeIntegral<int>();
+    auto slant = static_cast<Drawing::FontStyle::Slant>(fdp.ConsumeIntegral<uint8_t>());
+    Drawing::FontStyle fontStyle(weight, width, slant);
     std::shared_ptr<Drawing::Typeface> tf4 = Drawing::Typeface::MakeFromName(familyName.c_str(), fontStyle);
     if (tf4 != nullptr) { // Only call if construction succeeded
         g_rsInterfaces->RegisterTypeface(tf4);
