@@ -17,9 +17,8 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 
-#include "core/transaction/rs_render_interface.h"
+#include "transaction/rs_render_interface.h"
 
-#include "ipc_callbacks/rs_i_canvas_surface_buffer_callback.h"
 #include "platform/drawing/rs_surface.h"
 
 namespace OHOS {
