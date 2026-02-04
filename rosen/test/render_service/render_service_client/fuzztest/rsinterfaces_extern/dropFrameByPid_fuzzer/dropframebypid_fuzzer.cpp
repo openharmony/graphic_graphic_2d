@@ -50,7 +50,7 @@ void DoDropFrameByPid(FuzzedDataProvider& fdp)
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
     // Initialize RSInterfaces
-    OHOS::Rosen::g_rsInterfaces = &RSInterfaces::GetInstance();
+    OHOS::Rosen::g_rsInterfaces = &OHOS::Rosen::RSInterfaces::GetInstance();
     return 0;
 }
 
