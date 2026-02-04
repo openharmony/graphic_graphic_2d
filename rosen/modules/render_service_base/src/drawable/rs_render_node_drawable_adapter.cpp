@@ -669,11 +669,11 @@ int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
 void RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(const NodeId nodeId)
 {
     std::lock_guard<std::mutex> lock(cacheMapMutex_);
-    if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
+    if (const auto cacheIt = RenderNodeDrawableCache_.find(nodeId); cacheIt != RenderNodeDrawableCache_.end()) {
         if (const auto drawable = cacheIt->second.lock()) {
             drawable->ClearCustomResource();
         }
-        RenderNodeDrawableCache_.erase(nodeId);
+        RenderNodeDrawableCache_.erase(cacheIt);
     }
 }
 
