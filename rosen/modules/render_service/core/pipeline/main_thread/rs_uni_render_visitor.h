@@ -314,7 +314,6 @@ private:
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     void CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(const RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager);
-    void PrepareColorPickerDrawableInSkippedSubTree(const RSRenderNode& rootNode);
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
     void CollectEffectInfo(RSRenderNode& node);

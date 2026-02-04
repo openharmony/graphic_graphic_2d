@@ -1189,12 +1189,6 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
                 curSurfaceNode_ = nullptr;
             }
         }
-        // Prepare ColorPicker drawables even when node is quick skipped
-        if (node.ChildHasVisibleColorPicker()) {
-            curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-            PrepareColorPickerDrawableInSkippedSubTree(node);
-            curSurfaceNode_ = nullptr;
-        }
         CollectOcclusionInfoForWMS(node);
     }
     return isQuickSkip;
@@ -1215,11 +1209,10 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     if (isQuickSkip) {
         RS_TRACE_NAME_FMT(
             "RSUniRender::QuickPrepare:[%s] nodeId[%" PRIu64 "] pid[%d] nodeType[%u]"
-            " subTreeDirty[%d], crossDisplay:[%d], isBackgroundSkip:[%d], childHasFilter:[%d], "
-            "childHasColorPicker:[%d]",
+            " subTreeDirty[%d], crossDisplay:[%d], isBackgroundSkip:[%d], childHasFilter:[%d]",
             node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
             static_cast<uint>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(), node.IsFirstLevelCrossNode(),
-            isBgWindowTraversalStarted_, node.ChildHasVisibleFilter(), node.ChildHasVisibleColorPicker());
+            isBgWindowTraversalStarted_, node.ChildHasVisibleFilter());
         RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
@@ -3295,12 +3288,9 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (nodeParent == nullptr) {
         return;
     }
-    // Handle ColorPickerDrawable propagation
-    if (node.GetColorPickerDrawable() || node.ChildHasVisibleColorPicker()) {
-        nodeParent->SetChildHasVisibleColorPicker(true);
-        nodeParent->UpdateVisibleColorPickerChild(node);
-    }
-    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter()) {
+    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter()
+    // Handle ColorPickerDrawable - MERGE into filter handling
+    || node.GetColorPickerDrawable()) {
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }
@@ -3379,8 +3369,6 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
             CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(node, *curDirtyManager);
             DisableOccludedHwcNodeInSkippedSubTree(node);
         }
-        // Prepare color picker drawables for nodes in skipped subtrees
-        PrepareColorPickerDrawableInSkippedSubTree(node);
     }
     if (node.NeedUpdateDrawableBehindWindow()) {
         node.GetMutableRenderProperties().SetNeedDrawBehindWindow(node.NeedDrawBehindWindow());
@@ -3489,6 +3477,14 @@ void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
         if (filterNode == nullptr) {
             continue;
         }
+
+        // Check if this is a ColorPicker node and prepare it
+        if (auto colorPickerDrawable = filterNode->GetColorPickerDrawable()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("ColorPicker: Preparing in filter iteration node id:%" PRIu64, filterNode->GetId());
+            RSDrawable::Ptr drawable = colorPickerDrawable;
+            PrepareColorPickerDrawable(drawable);
+        }
+
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateFilterRegionInSkippedSurfaceNode node[%" PRIu64 "]", filterNode->GetId());
         RectI filterRect;
         filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect,
@@ -3579,31 +3575,6 @@ void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
             prepareClipRect_, prepareFilterClipRect_);
         effectNode->FilterRectMergeDirtyRectInSkippedSubtree(dirtyManager, filterRect);
         CollectFilterInfoAndUpdateDirty(*effectNode, dirtyManager, filterRect, filterRect);
-    }
-}
-
-void RSUniRenderVisitor::PrepareColorPickerDrawableInSkippedSubTree(
-    const RSRenderNode& rootNode)
-{
-    if (rootNode.GetVisibleColorPickerChild().empty()) {
-        return;
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT(
-        "ColorPicker: Preparing %zu ColorPicker children in skipped subtree (root id:%" PRIu64 ")",
-        rootNode.GetVisibleColorPickerChild().size(), rootNode.GetId());
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    // Iterate over ColorPicker children (not filter children)
-    for (auto& child : rootNode.GetVisibleColorPickerChild()) {
-        auto& colorPickerNode = nodeMap.GetRenderNode<RSRenderNode>(child);
-        if (colorPickerNode == nullptr) {
-            continue;
-        }
-        if (auto colorPickerDrawable = colorPickerNode->GetColorPickerDrawable()) {
-            RS_OPTIONAL_TRACE_NAME_FMT(
-                "ColorPicker: Preparing child node id:%" PRIu64 " in skipped subtree", colorPickerNode->GetId());
-            RSDrawable::Ptr drawable = colorPickerDrawable;
-            PrepareColorPickerDrawable(drawable);
-        }
     }
 }
 

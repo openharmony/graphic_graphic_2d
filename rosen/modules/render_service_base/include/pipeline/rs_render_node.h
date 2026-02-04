@@ -398,21 +398,11 @@ public:
         return childHasVisibleEffect_;
     }
     void SetChildHasVisibleEffect(bool val);
-    bool ChildHasVisibleColorPicker() const
-    {
-        return childHasVisibleColorPicker_;
-    }
-    void SetChildHasVisibleColorPicker(bool val);
     const std::vector<NodeId>& GetVisibleFilterChild() const
     {
         return visibleFilterChild_;
     }
     void UpdateVisibleFilterChild(RSRenderNode& childNode);
-    const std::vector<NodeId>& GetVisibleColorPickerChild() const
-    {
-        return visibleColorPickerChild_;
-    }
-    void UpdateVisibleColorPickerChild(RSRenderNode& childNode);
     const std::unordered_set<NodeId>& GetVisibleEffectChild() const
     {
         return visibleEffectChild_;
@@ -1209,7 +1199,6 @@ private:
     bool curFrameHasAnimation_ = false;
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
-    bool childHasVisibleColorPicker_ = false;  // only collect visible children with ColorPickerDrawable
     bool hasChildrenOutOfRect_ = false;
 
     bool isSubTreeDirty_ = false;
@@ -1320,7 +1309,6 @@ private:
     DrawCmdIndex stagingDrawCmdIndex_;
     RSDrawable::DrawList stagingDrawCmdList_;
     std::vector<NodeId> visibleFilterChild_;
-    std::vector<NodeId> visibleColorPickerChild_;
     std::unordered_set<NodeId> visibleEffectChild_;
     Drawing::Matrix oldMatrix_;
     Drawing::Matrix oldAbsMatrix_;
