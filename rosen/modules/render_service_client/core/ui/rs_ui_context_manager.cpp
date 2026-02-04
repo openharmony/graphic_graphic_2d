@@ -93,6 +93,7 @@ void RSUIContextManager::DestroyContext(uint64_t token)
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = rsUIContextMap_.find(token);
     if (iter != rsUIContextMap_.end()) {
+        RS_LOGI("RSUIContextManager::DestroyContext: Context token:%{public}" PRIu64, token);
         rsUIContextMap_.erase(iter);
     } else {
         ROSEN_LOGW("RSUIContextManager::DestroyContext: context token %{public}" PRIu64 " does not exist", token);
@@ -116,6 +117,8 @@ std::shared_ptr<RSUIContext> RSUIContextManager::GetRandomUITaskRunnerCtx() cons
             return ctx;
         }
     }
+    RS_LOGE("RSUIContextManager::GetRandomUITaskRunnerCtx: get task runner failed, size of ContextMap:%{public}zu",
+        rsUIContextMap_.size());
     return nullptr;
 }
 
