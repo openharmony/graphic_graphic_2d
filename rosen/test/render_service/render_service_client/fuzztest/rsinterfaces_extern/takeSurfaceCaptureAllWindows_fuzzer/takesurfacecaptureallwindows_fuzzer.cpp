@@ -57,8 +57,10 @@ void DoTakeSurfaceCaptureWithAllWindows(FuzzedDataProvider& fdp)
     // Construct RSDisplayNodeConfig from fuzz data
     RSDisplayNodeConfig displayConfig = {
         .screenId = fdp.ConsumeIntegral<uint64_t>(),
-        .isScreenMirror = fdp.ConsumeBool(),
-        .mirrorNodeId = fdp.ConsumeIntegral<uint64_t>()
+        .isMirrored = fdp.ConsumeBool(),
+        .mirrorNodeId = fdp.ConsumeIntegral<uint64_t>(),
+        .isSync = fdp.ConsumeBool(),
+        .mirrorSourceRotation = fdp.ConsumeIntegral<uint32_t>()
     };
 
     // Create RSDisplayNode using the config
@@ -68,18 +70,24 @@ void DoTakeSurfaceCaptureWithAllWindows(FuzzedDataProvider& fdp)
     auto callback = std::make_shared<SurfaceCaptureFuture>();
 
     // Construct RSSurfaceCaptureConfig
-    RSSurfaceCaptureConfig captureConfig = {
-        .scaleX = fdp.ConsumeFloatingPoint<float>(),
-        .scaleY = fdp.ConsumeFloatingPoint<float>(),
-        .width = fdp.ConsumeIntegral<int32_t>(),
-        .height = fdp.ConsumeIntegral<int32_t>(),
-        .isSurfaceCaptureWithChildren = fdp.ConsumeBool(),
-        .isPixelMapSource = fdp.ConsumeBool(),
-        .isWithoutComposition = fdp.ConsumeBool(),
-        .isCopyToSurface = fdp.ConsumeBool(),
-        .useSurfaceCaptureTexture = fdp.ConsumeBool(),
-        .isSync = fdp.ConsumeBool()
-    };
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = fdp.ConsumeFloatingPoint<float>();
+    captureConfig.scaleY = fdp.ConsumeFloatingPoint<float>();
+    captureConfig.useDma = fdp.ConsumeBool();
+    captureConfig.useCurWindow = fdp.ConsumeBool();
+    captureConfig.captureType = static_cast<SurfaceCaptureType>(fdp.ConsumeIntegral<uint8_t>());
+    captureConfig.isSync = fdp.ConsumeBool();
+
+    uint8_t listSize = fdp.ConsumeIntegral<uint8_t>();
+    for (auto i = 0; i < listSize; i++) {
+        uint64_t nodeId = fdp.ConsumeIntegral<uint64_t>();
+        captureConfig.blackList.push_back(nodeId);
+    }
+
+    captureConfig.mainScreenRect.left_ = fdp.ConsumeFloatingPoint<float>();
+    captureConfig.mainScreenRect.top_ = fdp.ConsumeFloatingPoint<float>();
+    captureConfig.mainScreenRect.right_ = fdp.ConsumeFloatingPoint<float>();
+    captureConfig.mainScreenRect.bottom_ = fdp.ConsumeFloatingPoint<float>();
 
     bool checkDrmAndSurfaceLock = fdp.ConsumeBool();
 
