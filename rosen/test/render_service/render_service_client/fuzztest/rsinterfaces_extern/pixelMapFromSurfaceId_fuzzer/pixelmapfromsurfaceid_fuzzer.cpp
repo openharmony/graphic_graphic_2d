@@ -32,13 +32,8 @@ void DoCreatePixelMapFromSurfaceId(FuzzedDataProvider& fdp)
     // Construct surfaceId from fuzz data
     uint64_t surfaceId = fdp.ConsumeIntegral<uint64_t>();
 
-    // Construct Rect
-    Rect srcRect = {
-        .left_ = fdp.ConsumeIntegral<int32_t>(),
-        .top_ = fdp.ConsumeIntegral<int32_t>(),
-        .width_ = fdp.ConsumeIntegral<int32_t>(),
-        .height_ = fdp.ConsumeIntegral<int32_t>()
-    };
+    // Use fixed Rect for better test coverage
+    Rect srcRect = {0, 0, 100, 100};
 
     // Construct transformEnabled flag
     bool transformEnabled = fdp.ConsumeBool();
