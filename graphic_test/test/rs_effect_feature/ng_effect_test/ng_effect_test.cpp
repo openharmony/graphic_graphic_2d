@@ -19,7 +19,7 @@
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui/rs_effect_node.h"
-#include "../ng_filter_test/ng_sdf_test_utils.h"
+#include "../ng_shape_test/ng_sdf_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
