@@ -16,10 +16,4 @@
 #ifndef FIRST_FRAME_COMMIT_FUZZER_H
 #define FIRST_FRAME_COMMIT_FUZZER_H
 
-namespace OHOS {
-namespace Rosen {
-void DoRegisterFirstFrameCommitCallback();
-} // namespace Rosen
-} // namespace OHOS
-
 #endif // FIRST_FRAME_COMMIT_FUZZER_H
