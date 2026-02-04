@@ -212,5 +212,73 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, ClearPendingBufferByPidTest, TestSize.Level
     bufferCache.ClearPendingBufferByPid(pid);
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 1);
 }
+
+/**
+ * @tc.name: AddPendingBufferBranchesTest
+ * @tc.desc: Test AddPendingBuffer with different parameter combinations
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDmaBufferCacheTest, AddPendingBufferBranchesTest, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.pendingBufferMap_.clear();
+    ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 0);
+    NodeId nodeId = 1;
+    // Test Case 1: buffer == nullptr && resetSurfaceIndex == 0
+    sptr<SurfaceBuffer> nullBuffer = nullptr;
+    bool result1 = bufferCache.AddPendingBuffer(nodeId, nullBuffer, 0);
+    ASSERT_TRUE(result1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 0);
+    // Test Case 2: buffer == nullptr && resetSurfaceIndex > 0
+    bufferCache.pendingBufferMap_.clear();
+    bool result2 = bufferCache.AddPendingBuffer(nodeId, nullBuffer, 1);
+    ASSERT_TRUE(result2);
+    ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 0);
+    // Test Case 3: buffer != nullptr && resetSurfaceIndex == 0
+    bufferCache.pendingBufferMap_.clear();
+    sptr<SurfaceBuffer> validBuffer = SurfaceBuffer::Create();
+    ASSERT_NE(validBuffer, nullptr);
+    bool result3 = bufferCache.AddPendingBuffer(nodeId, validBuffer, 0);
+    ASSERT_TRUE(result3);
+    ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 1);
+    // Test Case 4: buffer != nullptr && resetSurfaceIndex > 0
+    bufferCache.pendingBufferMap_.clear();
+    bool result4 = bufferCache.AddPendingBuffer(nodeId, validBuffer, 2);
+    ASSERT_TRUE(result4);
+    ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 1);
+    ASSERT_NE(bufferCache.pendingBufferMap_[nodeId].second.find(2),
+              bufferCache.pendingBufferMap_[nodeId].second.end());
+}
+
+/**
+ * @tc.name: AddPendingBufferWithExistingNodeTest
+ * @tc.desc: Test AddPendingBuffer with existing node in cache
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDmaBufferCacheTest, AddPendingBufferWithExistingNodeTest, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.pendingBufferMap_.clear();
+    NodeId nodeId = 1;
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    // Add initial buffer
+    bufferCache.AddPendingBuffer(nodeId, buffer, 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 1);
+    // Add buffer with higher resetSurfaceIndex (should be added)
+    bool result1 = bufferCache.AddPendingBuffer(nodeId, buffer, 2);
+    ASSERT_TRUE(result1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 2);
+    // Add buffer with same resetSurfaceIndex (should not be added again)
+    bool result2 = bufferCache.AddPendingBuffer(nodeId, buffer, 2);
+    ASSERT_FALSE(result2);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 2);
+    // Add buffer with lower resetSurfaceIndex (should be ignored)
+    bool result3 = bufferCache.AddPendingBuffer(nodeId, buffer, 1);
+    ASSERT_FALSE(result3);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 2);
+}
 } // namespace OHOS::Rosen
 #endif // ROSEN_OHOS && RS_ENABLE_VK
