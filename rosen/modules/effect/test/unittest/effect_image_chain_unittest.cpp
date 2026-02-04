@@ -411,8 +411,8 @@ HWTEST_F(EffectImageChainUnittest, ApplyGammaCorrectionTest, TestSize.Level1)
 }
 
 /**
- * @tc.name  : WaterGlassReturnsErrorWhenNotPrepared
- * @tc.desc  : test ApplyWaterGlass
+ * @tc.name: WaterGlassReturnsErrorWhenNotPrepared
+ * @tc.desc: test ApplyWaterGlass returns error when not prepared.
  */
 HWTEST_F(EffectImageChainUnittest, WaterGlassReturnsErrorWhenNotPrepared, TestSize.Level1)
 {
@@ -423,8 +423,8 @@ HWTEST_F(EffectImageChainUnittest, WaterGlassReturnsErrorWhenNotPrepared, TestSi
 }
 
 /**
- * @tc.name  : WaterGlassReturnsErrorWhenForceCPU
- * @tc.desc  : test ApplyWaterGlass
+ * @tc.name: WaterGlassReturnsErrorWhenForceCPU
+ * @tc.desc: test ApplyWaterGlass returns error when not ForceCPU.
  */
 HWTEST_F(EffectImageChainUnittest, WaterGlassReturnsErrorWhenForceCPU, TestSize.Level1)
 {
@@ -440,8 +440,8 @@ HWTEST_F(EffectImageChainUnittest, WaterGlassReturnsErrorWhenForceCPU, TestSize.
 }
 
 /**
- * @tc.name  : WaterGlassReturnsOkWhenApplySuccessfully
- * @tc.desc  : test ApplyWaterGlass
+ * @tc.name: WaterGlassReturnsOkWhenApplySuccessfully
+ * @tc.desc: test ApplyWaterGlass returns ok when apply successfully.
  */
 HWTEST_F(EffectImageChainUnittest, WaterGlassReturnsOkWhenApplySuccessfully, TestSize.Level1)
 {
@@ -460,8 +460,8 @@ HWTEST_F(EffectImageChainUnittest, WaterGlassReturnsOkWhenApplySuccessfully, Tes
 }
 
 /**
- * @tc.name  : ReededGlassReturnsErrorWhenNotPrepared
- * @tc.desc  : test ApplyReededGlass
+ * @tc.name: ReededGlassReturnsErrorWhenNotPrepared
+ * @tc.desc: test ApplyReededGlass returns error when not prepared.
  */
 HWTEST_F(EffectImageChainUnittest, ReededGlassReturnsErrorWhenNotPrepared, TestSize.Level1)
 {
@@ -472,8 +472,8 @@ HWTEST_F(EffectImageChainUnittest, ReededGlassReturnsErrorWhenNotPrepared, TestS
 }
 
 /**
- * @tc.name  : ReededGlassReturnsErrorWhenForceCPU
- * @tc.desc  : test ApplyReededGlass
+ * @tc.name: ReededGlassReturnsErrorWhenForceCPU
+ * @tc.desc: test ApplyReededGlass returns error when not ForceCPU.
  */
 HWTEST_F(EffectImageChainUnittest, ReededGlassReturnsErrorWhenForceCPU, TestSize.Level1)
 {
@@ -491,8 +491,8 @@ HWTEST_F(EffectImageChainUnittest, ReededGlassReturnsErrorWhenForceCPU, TestSize
 }
 
 /**
- * @tc.name  : ReededGlassReturnsOkWhenApplySuccessfully
- * @tc.desc  : test ApplyReededGlass
+ * @tc.name: ReededGlassReturnsOkWhenApplySuccessfully
+ * @tc.desc: test ApplyReededGlass returns ok when apply successfully.
  */
 HWTEST_F(EffectImageChainUnittest, ReededGlassReturnsOkWhenApplySuccessfully, TestSize.Level1)
 {

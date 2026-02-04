@@ -453,10 +453,8 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_GammaCorrectionTest, TestSize.Level1)
 
 /**
  * @tc.name: WaterGlassNullParameters
- * @tc.desc: Get a pixelmap created by the filter.
+ * @tc.desc: Create a water glass effect filter with null parameters.
  * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
  */
 HWTEST_F(EffectFilterUnittest, WaterGlassNullParameters, TestSize.Level1)
 {
@@ -477,10 +475,8 @@ HWTEST_F(EffectFilterUnittest, WaterGlassNullParameters, TestSize.Level1)
 
 /**
  * @tc.name: WaterGlassValidParameters
- * @tc.desc: Get a pixelmap created by the filter.
+ * @tc.desc: Create a water glass effect filter with valid parameters.
  * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
  */
 HWTEST_F(EffectFilterUnittest, WaterGlassValidParameters, TestSize.Level1)
 {
@@ -499,10 +495,8 @@ HWTEST_F(EffectFilterUnittest, WaterGlassValidParameters, TestSize.Level1)
 
 /**
  * @tc.name: ReedsGlassNullParameters
- * @tc.desc: Get a pixelmap created by the filter.
+ * @tc.desc: Create a reeded glass effect filter with null parameters.
  * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
  */
 HWTEST_F(EffectFilterUnittest, ReedsGlassNullParameters, TestSize.Level1)
 {
@@ -525,10 +519,8 @@ HWTEST_F(EffectFilterUnittest, ReedsGlassNullParameters, TestSize.Level1)
 
 /**
  * @tc.name: ReedsGlassValidParameters
- * @tc.desc: OH_Filter_ReededGlass.
+ * @tc.desc: Create a reeded glass effect filter with valid parameters.
  * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
  */
 HWTEST_F(EffectFilterUnittest, ReedsGlassValidParameters, TestSize.Level1)
 {

@@ -578,6 +578,7 @@ DrawingError EffectImageChain::ApplyWaterGlass(const std::shared_ptr<Drawing::GE
     std::shared_ptr<GEShaderFilter> dmShader = GenerateExtShaderWaterGlass(waterGlassDate);
     if (dmShader == nullptr) {
         EFFECT_LOG_E("EffectImageChain::ApplyWaterGlass: GenerateExtShaderWaterGlass fail.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         return DrawingError::ERR_MEMORY;
     }
 
@@ -615,6 +616,7 @@ DrawingError EffectImageChain::ApplyReededGlass(
     std::shared_ptr<GEShaderFilter> dmShader = GenerateExtShaderReededGlass(reededGlassDate);
     if (!dmShader) {
         EFFECT_LOG_E("EffectImageChain::ApplyReededGlass: GenerateExtShaderReededGlass fail.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         return DrawingError::ERR_MEMORY;
     }
 
