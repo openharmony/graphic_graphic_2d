@@ -17,7 +17,7 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 
-#include "core/transaction/rs_interfaces.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_display_node.h"
 
 namespace OHOS {
