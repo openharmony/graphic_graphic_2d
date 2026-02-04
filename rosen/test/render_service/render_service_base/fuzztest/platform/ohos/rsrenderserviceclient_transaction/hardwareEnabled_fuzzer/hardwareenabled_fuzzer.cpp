@@ -18,7 +18,6 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
 
-#include "common/rs_optional_node_map.h"
 #include "transaction/rs_render_service_client.h"
 
 namespace OHOS {

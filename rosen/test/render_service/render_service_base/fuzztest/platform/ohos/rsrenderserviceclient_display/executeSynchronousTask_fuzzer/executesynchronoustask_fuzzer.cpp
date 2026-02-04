@@ -34,8 +34,7 @@ const uint8_t TARGET_SIZE = 1;
 // Test implementation of RSSyncTask for fuzzing
 class TestRSSyncTask : public RSSyncTask {
 public:
-    explicit TestRSSyncTask(uint64_t timeoutNS) : RSSyncTask(timeoutNS) {}
-    ~TestRSSyncTask() override = default;
+    using RSSyncTask::RSSyncTask;
 
     bool CheckHeader(Parcel& parcel) const override
     {
@@ -47,10 +46,12 @@ public:
         return true;
     }
 
-    uint16_t GetType() const override
+    bool Marshalling(Parcel& parcel) const override
     {
-        return 0;
+        return true;
     }
+
+    void Process(RSContext& context) override {}
 };
 
 void DoExecuteSynchronousTask(FuzzedDataProvider& fdp)
