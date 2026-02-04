@@ -28,7 +28,6 @@ RSInterfaces* g_rsInterfaces = nullptr;
 namespace {
 const uint8_t DO_SET_VMA_CACHE_STATUS = 0;
 const uint8_t TARGET_SIZE = 1;
-constexpr uint32_t STR_LEN = 10;
 
 void DoSetVmaCacheStatus(FuzzedDataProvider& fdp)
 {
