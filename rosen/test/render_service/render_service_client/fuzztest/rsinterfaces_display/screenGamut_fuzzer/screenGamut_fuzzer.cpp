@@ -35,7 +35,8 @@ const uint8_t TARGET_SIZE = 5;
 void DoGetScreenSupportedGamuts(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
-    g_rsInterfaces->GetScreenSupportedGamuts(id);
+    std::vector<ScreenColorGamut> gamuts;
+    g_rsInterfaces->GetScreenSupportedColorGamuts(id, gamuts);
 }
 
 void DoGetScreenGamut(FuzzedDataProvider& fdp)
