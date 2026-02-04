@@ -80,6 +80,8 @@ public:
 protected:
     void DumpSubDrawableTree(std::string& out) const override;
 
+    void ClearCustomResource() override;
+
 private:
     explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_DRAWING_NODE, OnGenerate>;
