@@ -26,10 +26,11 @@ namespace Rosen {
 RSInterfaces* g_rsInterfaces = nullptr;
 
 namespace {
-const uint8_t DO_SET_OVERLAY_DISPLAY_MODE = 0;
 const uint8_t TARGET_SIZE = 1;
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
+const uint8_t DO_SET_OVERLAY_DISPLAY_MODE = 0;
+
 void DoSetOverlayDisplayMode(FuzzedDataProvider& fdp)
 {
     int32_t mode = fdp.ConsumeIntegral<int32_t>();
