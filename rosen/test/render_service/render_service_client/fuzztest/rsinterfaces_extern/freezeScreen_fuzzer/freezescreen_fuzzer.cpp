@@ -34,8 +34,10 @@ void DoFreezeScreen(FuzzedDataProvider& fdp)
     // Construct RSDisplayNodeConfig from fuzz data
     RSDisplayNodeConfig displayConfig = {
         .screenId = fdp.ConsumeIntegral<uint64_t>(),
-        .isScreenMirror = fdp.ConsumeBool(),
-        .mirrorNodeId = fdp.ConsumeIntegral<uint64_t>()
+        .isMirrored = fdp.ConsumeBool(),
+        .mirrorNodeId = fdp.ConsumeIntegral<uint64_t>(),
+        .isSync = fdp.ConsumeBool(),
+        .mirrorSourceRotation = fdp.ConsumeIntegral<uint32_t>()
     };
 
     // Create RSDisplayNode using the config
