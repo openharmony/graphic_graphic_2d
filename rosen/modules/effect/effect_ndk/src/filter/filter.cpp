@@ -22,6 +22,11 @@ namespace Rosen {
 Filter::Filter(std::shared_ptr<OHOS::Media::PixelMap> pixelMap) : srcPixelMap_(pixelMap)
 {}
 
+std::shared_ptr<OHOS::Media::PixelMap> Filter::GetSrcPixelMap()
+{
+    return srcPixelMap_;
+}
+
 bool Filter::Render(bool forceCPU)
 {
     if (srcPixelMap_ == nullptr) {
@@ -122,6 +127,28 @@ bool Filter::SetColorMatrix(const Drawing::ColorMatrix& matrix)
         return false;
     }
     AddNextFilter(applyColorMatrix);
+    return true;
+}
+
+bool Filter::MaskTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
+    const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse)
+{
+    auto filter = EffectImageFilter::MaskTransition(topLayer, mask, factor, inverse);
+    if (!filter) {
+        return false;
+    }
+    AddNextFilter(filter);
+    return true;
+}
+ 
+bool Filter::WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
+    const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams)
+{
+    auto filter = EffectImageFilter::WaterDropletTransition(topLayer, geWaterDropletParams);
+    if (!filter) {
+        return false;
+    }
+    AddNextFilter(filter);
     return true;
 }
 } // namespace Rosen

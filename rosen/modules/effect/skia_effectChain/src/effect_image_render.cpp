@@ -104,6 +104,20 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Brightness(float degree)
     return std::make_shared<EffectImageDrawingFilter>(filter);
 }
 
+std::shared_ptr<EffectImageFilter> EffectImageFilter::MaskTransition(
+    const std::shared_ptr<Media::PixelMap>& topLayerMap,
+    const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse)
+{
+    return std::make_shared<EffectImageMaskTransitionFilter>(topLayerMap, mask, factor, inverse);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::WaterDropletTransition(
+    const std::shared_ptr<OHOS::Media::PixelMap>& topLayerMap,
+    const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams)
+{
+    return std::make_shared<EffectImageWaterDropletTransitionFilter>(topLayerMap, geWaterDropletParams);
+}
+
 DrawingError EffectImageEllipticalGradientBlurFilter::Apply(const std::shared_ptr<EffectImageChain> &image)
 {
     if (image == nullptr) {
@@ -195,6 +209,24 @@ DrawingError EffectImageSdfFromImageFilter::Apply(const std::shared_ptr<EffectIm
         return DrawingError::ERR_IMAGE_NULL;
     }
     return image->ApplySDFCreation(spreadFactor_, generateDerivs_);
+}
+
+DrawingError EffectImageMaskTransitionFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+ 
+    return image->ApplyMaskTransitionFilter(topLayerMap_, mask_, factor_, inverse_);
+}
+
+DrawingError EffectImageWaterDropletTransitionFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+ 
+    return image->ApplyWaterDropletTransitionFilter(topLayerMap_, waterDropletParams_);
 }
 
 DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& srcPixelMap,

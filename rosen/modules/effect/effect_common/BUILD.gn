@@ -51,6 +51,7 @@ ohos_shared_library("effect_common") {
   ]
   external_deps = [
     "c_utils:utils",
+    "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
     "image_framework:image_native",
   ]
