@@ -28,24 +28,10 @@ RSInterfaces* g_rsInterfaces = nullptr;
 namespace {
 const uint8_t DO_GET_PIXELMAP_BY_PROCESSID = 0;
 const uint8_t TARGET_SIZE = 1;
-constexpr size_t STR_LEN = 10;
 
 void DoGetPixelMapByProcessId(FuzzedDataProvider& fdp)
 {
     std::vector<PixelMapInfo> pixelMapInfoVector;
-    uint8_t vectorSize = fdp.ConsumeIntegral<uint8_t>();
-    for (auto i = 0; i < vectorSize; i++) {
-        PixelMapInfo info;
-        info.pixelMap = nullptr;
-        info.location.x = fdp.ConsumeIntegral<int32_t>();
-        info.location.y = fdp.ConsumeIntegral<int32_t>();
-        info.location.width = fdp.ConsumeIntegral<int32_t>();
-        info.location.height = fdp.ConsumeIntegral<int32_t>();
-        info.location.z = fdp.ConsumeIntegral<int32_t>();
-        info.nodeName = fdp.ConsumeRandomLengthString(STR_LEN);
-        info.rotation = fdp.ConsumeFloatingPoint<float>();
-        pixelMapInfoVector.push_back(info);
-    }
     int32_t pid = fdp.ConsumeIntegral<int32_t>();
     g_rsInterfaces->GetPixelMapByProcessId(pixelMapInfoVector, pid);
 }
