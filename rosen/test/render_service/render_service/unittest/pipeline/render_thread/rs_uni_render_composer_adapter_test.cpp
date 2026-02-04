@@ -1372,7 +1372,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer004, TestSize.Lev
     // Function should return early when buffer is null without crash
     ASSERT_NE(layer, nullptr);  // Verify layer is valid
     composerAdapter_->SetMetaDataInfoToLayer(layer, buffer, surface);
-    // Test passes if function completes without crash (void function, early return)
 }
 
 // ==================== SrcRectRotateTransform ====================
