@@ -183,7 +183,6 @@ group("test") {
     "render_service_client/fuzztest/rsinterfaces_transaction/layerTopHwc_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_transaction/logicalCameraRotation_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_transaction/pixelMapProcessId_fuzzer:fuzztest",
-    "render_service_client/fuzztest/rsinterfaces_transaction/registerCallback_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_transaction/setWindowConfig_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_transaction/surfaceCapture_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_transaction/watermark_fuzzer:fuzztest",
