@@ -673,4 +673,107 @@ EffectImageChain::~EffectImageChain()
         gpuContext_ = nullptr;
     }
 }
+
+static std::shared_ptr<GEShaderFilter> GenerateExtShaderWaterGlass(
+    const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params)
+{
+    auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
+        static_cast<uint32_t>(Drawing::GEFilterType::WATER_GLASS), sizeof(Drawing::GEWaterGlassDataParams),
+        static_cast<void*>(params.get()));
+    if (!object) {
+        return nullptr;
+    }
+
+    std::shared_ptr<GEShaderFilter> dmShader(static_cast<GEShaderFilter*>(object));
+    return dmShader;
+}
+
+static std::shared_ptr<GEShaderFilter> GenerateExtShaderReededGlass(
+    const std::shared_ptr<Drawing::GEReededGlassDataParams>& params)
+{
+    auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
+        static_cast<uint32_t>(Drawing::GEFilterType::REEDED_GLASS), sizeof(Drawing::GEReededGlassDataParams),
+        static_cast<void*>(params.get()));
+    if (!object) {
+        return nullptr;
+    }
+
+    std::shared_ptr<GEShaderFilter> dmShader(static_cast<GEShaderFilter*>(object));
+    return dmShader;
+}
+
+DrawingError EffectImageChain::ApplyWaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& waterGlassDate)
+{
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    if (!prepared_) { // blur need prepare first
+        EFFECT_LOG_E("EffectImageChain::ApplyWaterGlass: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+
+    // CPU not supported
+    if (forceCPU_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyWaterGlass: Not support CPU.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    if (filters_ != nullptr) {
+        DrawOnFilter(); // need draw first to ensure cascading
+        image_ = surface_->GetImageSnapshot();
+        filters_ = nullptr; // clear filters_ to avoid apply again
+    }
+
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyWaterGlass");
+
+    std::shared_ptr<GEShaderFilter> dmShader = GenerateExtShaderWaterGlass(waterGlassDate);
+    if (dmShader == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplyWaterGlass: GenerateExtShaderWaterGlass fail.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_MEMORY;
+    }
+
+    image_ = dmShader->ProcessImage(*canvas_, image_,
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
+
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return DrawingError::ERR_OK;
+}
+
+DrawingError EffectImageChain::ApplyReededGlass(
+    const std::shared_ptr<Drawing::GEReededGlassDataParams>& reededGlassDate)
+{
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    if (!prepared_) { // blur need prepare first
+        EFFECT_LOG_E("EffectImageChain::ApplyReededGlass: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+
+    // CPU not supported
+    if (forceCPU_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyReededGlass: Not support CPU.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    if (filters_ != nullptr) {
+        DrawOnFilter(); // need draw first to ensure cascading
+        image_ = surface_->GetImageSnapshot();
+        filters_ = nullptr; // clear filters_ to avoid apply again
+    }
+
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyReededGlass");
+
+    std::shared_ptr<GEShaderFilter> dmShader = GenerateExtShaderReededGlass(reededGlassDate);
+    if (!dmShader) {
+        EFFECT_LOG_E("EffectImageChain::ApplyReededGlass: GenerateExtShaderReededGlass fail.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_MEMORY;
+    }
+
+    image_ = dmShader->ProcessImage(*canvas_, image_,
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
+
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return DrawingError::ERR_OK;
+}
 } // namespace OHOS::Rosen

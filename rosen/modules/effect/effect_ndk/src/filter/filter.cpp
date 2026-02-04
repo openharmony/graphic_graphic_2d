@@ -140,7 +140,7 @@ bool Filter::MaskTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLay
     AddNextFilter(filter);
     return true;
 }
- 
+
 bool Filter::WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
     const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams)
 {
@@ -149,6 +149,23 @@ bool Filter::WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>
         return false;
     }
     AddNextFilter(filter);
+    return true;
+}
+
+bool Filter::WaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params)
+{
+    auto glass = EffectImageFilter::WaterGlass(params);
+    AddNextFilter(glass);
+
+    return true;
+}
+
+bool Filter::ReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& params)
+{
+    auto glass = EffectImageFilter::ReededGlass(params);
+
+    AddNextFilter(glass);
+
     return true;
 }
 } // namespace Rosen
