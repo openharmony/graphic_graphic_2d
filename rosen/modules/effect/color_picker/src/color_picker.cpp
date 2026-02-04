@@ -473,8 +473,7 @@ ColorBrightnessMode ColorPicker::DiscriminateDarkOrBrightColor(const HSV& hsv) c
 
 void ColorPicker::ProcessToBrightColor(HSV& hsv) const
 {
-    static const double valueUpperLimit = 95.0;
-    // Value more than 95, adjust to 95.
+    static constexpr double valueUpperLimit = 95.0;
     hsv.v = std::min(hsv.v, valueUpperLimit);
 }
 
