@@ -34,7 +34,7 @@ using DisplaySoloistOnFrameCallback = std::function<void(long long, long long, v
 
 constexpr std::string TIME_OUT_TASK = "vsync_time_out_task_";
 constexpr int64_t TIME_OUT_MILLISECONDS = 600;
-static constexpr std::vector<int32_t> REFRESH_RATE_LIST{ 90, 120, 144 };
+static const std::vector<int32_t> REFRESH_RATE_LIST{ 90, 120, 144 };
 static inline std::vector<int32_t> REFRESH_RATE_FACTORS;
 static inline std::unordered_map<int32_t, std::vector<int32_t>> RATE_TO_FACTORS;
 static std::once_flag COMPUTE_FACTORS_FLAG;
