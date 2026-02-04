@@ -42,14 +42,15 @@ void DoGetScreenSupportedGamuts(FuzzedDataProvider& fdp)
 void DoGetScreenGamut(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
-    g_rsInterfaces->GetScreenGamut(id);
+    ScreenColorGamut mode;
+    g_rsInterfaces->GetScreenColorGamut(id, mode);
 }
 
 void DoSetScreenGamut(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
-    ScreenColorGamut screenGamut = static_cast<ScreenColorGamut>(fdp.ConsumeIntegral<uint32_t>());
-    g_rsInterfaces->SetScreenGamut(id, screenGamut);
+    int32_t modeIdx = fdp.ConsumeIntegral<int32_t>();
+    g_rsInterfaces->SetScreenColorGamut(id, modeIdx);
 }
 
 void DoGetScreenGamutMap(FuzzedDataProvider& fdp)
