@@ -18,6 +18,7 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "transaction/rs_interfaces.h"
+#include "feature/capture/rs_ui_capture.h"
 
 namespace OHOS {
 namespace Rosen {
