@@ -31,9 +31,8 @@ const uint8_t TARGET_SIZE = 1;
 
 void DoSetCurtainScreenUsingStatus(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
-    bool isUsingCurtain = fdp.ConsumeBool();
-    g_rsInterfaces->SetCurtainScreenUsingStatus(id, isUsingCurtain);
+    bool isCurtainScreenOn = fdp.ConsumeBool();
+    g_rsInterfaces->SetCurtainScreenUsingStatus(isCurtainScreenOn);
 }
 
 } // namespace
