@@ -104,6 +104,20 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Brightness(float degree)
     return std::make_shared<EffectImageDrawingFilter>(filter);
 }
 
+std::shared_ptr<EffectImageFilter> EffectImageFilter::MaskTransition(
+    const std::shared_ptr<Media::PixelMap>& topLayerMap,
+    const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse)
+{
+    return std::make_shared<EffectImageMaskTransitionFilter>(topLayerMap, mask, factor, inverse);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::WaterDropletTransition(
+    const std::shared_ptr<OHOS::Media::PixelMap>& topLayerMap,
+    const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams)
+{
+    return std::make_shared<EffectImageWaterDropletTransitionFilter>(topLayerMap, geWaterDropletParams);
+}
+
 DrawingError EffectImageEllipticalGradientBlurFilter::Apply(const std::shared_ptr<EffectImageChain> &image)
 {
     if (image == nullptr) {
@@ -197,6 +211,24 @@ DrawingError EffectImageSdfFromImageFilter::Apply(const std::shared_ptr<EffectIm
     return image->ApplySDFCreation(spreadFactor_, generateDerivs_);
 }
 
+DrawingError EffectImageMaskTransitionFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+ 
+    return image->ApplyMaskTransitionFilter(topLayerMap_, mask_, factor_, inverse_);
+}
+
+DrawingError EffectImageWaterDropletTransitionFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+ 
+    return image->ApplyWaterDropletTransitionFilter(topLayerMap_, waterDropletParams_);
+}
+
 DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
     const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU,
     std::shared_ptr<Media::PixelMap>& dstPixelMap)
@@ -240,4 +272,35 @@ DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& s
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return ret;
 }
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::WaterGlass(
+    const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params)
+{
+    return std::make_shared<EffectImageWaterGlassFilter>(params);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::ReededGlass(
+    const std::shared_ptr<Drawing::GEReededGlassDataParams>& params)
+{
+    return std::make_shared<EffectImageReededGlassFilter>(params);
+}
+
+DrawingError EffectImageWaterGlassFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+
+    return image->ApplyWaterGlass(waterGlassData_);
+}
+
+DrawingError EffectImageReededGlassFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+
+    return image->ApplyReededGlass(reededGlassData_);
+}
+
 } // namespace OHOS::Rosen

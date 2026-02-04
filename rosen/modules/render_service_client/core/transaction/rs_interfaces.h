@@ -412,9 +412,10 @@ public:
      * @brief Freeze or unfreeze screen.
      * @param node Indicates a display node to freeze or unfreeze.
      * @param isFreeze Indicates freeze or unfreeze the specified display node.
+     * @param needSync If true, the operation will be performed synchronously.
      * @return return true if freeze or unfreeze success, else return false.
      */
-    bool FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze);
+    bool FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze, bool needSync = false);
 
     /**
      * @brief Get component snapshot Within the given node range.

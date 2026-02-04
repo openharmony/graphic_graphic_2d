@@ -152,6 +152,7 @@ void RetryProfilerSocketConnection()
 
 void RSGraphicTestDirector::Run()
 {
+    Reset();
     rsUiDirector_ = RSUIDirector::Create();
     rsUiDirector_->Init();
 
@@ -183,6 +184,10 @@ void RSGraphicTestDirector::Run()
         }
         
         profilerThread_ = profilerThread;
+
+        if (pendingFailureCallback_) {
+            profilerThread_->SetReconnectRequestCallback(pendingFailureCallback_);
+        }
     }
 
     screenId_ = RSInterfaces::GetInstance().GetDefaultScreenId();
@@ -395,5 +400,45 @@ void RSGraphicTestDirector::ReleaseRootNode()
 {
     rootNode_.reset();
 }
+
+void RSGraphicTestDirector::SetProfilerFailureCallback(FailureCallback failureCallback)
+{
+    std::cout << "RSGraphicTestDirector::SetProfilerFailureCallback" << std::endl;
+    pendingFailureCallback_ = std::move(failureCallback);
+    if (profilerThread_) {
+        profilerThread_->SetReconnectRequestCallback(pendingFailureCallback_);
+    }
+}
+
+void RSGraphicTestDirector::Reset()
+{
+    // 1. stop runner
+    if (runner_) {
+        runner_->Stop();
+        runner_.reset();
+    }
+
+    // 2. destory VSyncWaiter
+    vsyncWaiter_.reset();
+
+    // 3. clean UI Director
+    if (rsUiDirector_) {
+        rsUiDirector_->SendMessages();
+        rsUiDirector_->Destroy(false);
+    }
+
+    // 4. release rootNode
+    if (rootNode_ && rootNode_->screenSurfaceNode_) {
+        rootNode_->screenSurfaceNode_->RemoveFromTree();
+    }
+    rootNode_.reset();
+
+    // 5. destory profiler thread
+    profilerThread_.reset();
+
+    // 6. clean EventHandler
+    handler_.reset();
+}
+
 } // namespace Rosen
 } // namespace OHOS

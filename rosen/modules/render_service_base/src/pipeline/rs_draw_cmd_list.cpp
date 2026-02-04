@@ -35,21 +35,24 @@ RSDrawCmdList::RSDrawCmdList(
     }
     endValue_.first = endValue;
 
-    startValue_.second = DrawCmdListOpacity(1.f, 0.f, 1.f, 1.f);
-    endValue_.second = DrawCmdListOpacity();
+    startValue_.second = DrawCmdListOpacity(1.f, 0.f);
+    endValue_.second = DrawCmdListOpacity(0.f, 1.f);
 }
 
 void RSDrawCmdList::Playback(Drawing::Canvas& canvas, const Drawing::Rect* rect)
 {
     auto& paintFilterCanvas = static_cast<RSPaintFilterCanvas&>(canvas);
-    auto processValue = [&paintFilterCanvas, rect](const auto& valuePair) {
-        if (!valuePair.first)
+    auto processValue = [&paintFilterCanvas, rect, fraction = fraction_.load(std::memory_order_relaxed)](
+        const auto& valuePair) {
+        if (!valuePair.first) {
             return;
-        paintFilterCanvas.SaveAlpha();
-        const float clampedOpacity = std::clamp(valuePair.second.opacity, 0.0f, 1.0f);
+        }
+        RSAutoCanvasRestore autoRestore(&paintFilterCanvas, RSPaintFilterCanvas::SaveType::kAlpha);
+        const float clampedOpacity = std::clamp(
+            valuePair.second.startOpacity * (1.0f - fraction) + valuePair.second.endOpacity * fraction,
+            0.0f, 1.0f);
         paintFilterCanvas.MultiplyAlpha(clampedOpacity);
         valuePair.first->Playback(paintFilterCanvas, rect);
-        paintFilterCanvas.RestoreAlpha();
     };
 
     processValue(startValue_);
@@ -82,35 +85,7 @@ bool RSDrawCmdList::IsEmpty() const
 
 void RSDrawCmdList::Estimate(float fraction)
 {
-    if (ROSEN_EQ<float>(fraction, 1.0f)) {
-        CleanOpacity();
-        return;
-    }
-    startValue_.second.lastOpacity = startValue_.second.opacity;
-    startValue_.second.opacity =
-        startValue_.second.startOpacity * (1.0f - fraction) + startValue_.second.endOpacity * fraction;
-
-    endValue_.second.lastOpacity = endValue_.second.opacity;
-    endValue_.second.opacity =
-        endValue_.second.startOpacity * (1.0f - fraction) + endValue_.second.endOpacity * fraction;
-}
-
-std::string RSDrawCmdList::ToString() const
-{
-    std::ostringstream oss;
-    oss << "endOpacity:" << endValue_.second.opacity;
-
-    if (startValue_.first) {
-        oss << ", startOpacity:" << startValue_.second.opacity;
-    }
-
-    return oss.str();
-}
-
-void RSDrawCmdList::CleanOpacity()
-{
-    startValue_.first.reset();
-    endValue_.second.opacity = 1.0f;
+    fraction_.store(fraction, std::memory_order_relaxed);
 }
 
 std::shared_ptr<Drawing::DrawCmdList> RSDrawCmdList::GetEndDrawCmdList() const

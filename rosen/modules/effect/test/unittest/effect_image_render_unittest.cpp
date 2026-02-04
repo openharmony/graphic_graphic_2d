@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "effect_image_render.h"
+#include "ge_linear_gradient_shader_mask.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -285,6 +286,213 @@ HWTEST_F(EffectImageRenderUnittest, EffectImageGammaCorrectionFilterTest, TestSi
     image = std::make_shared<EffectImageChain>();
     ret = filter->Apply(image);
     EXPECT_NE(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: MaskTransitionFilterTest001
+ * @tc.desc: Test EffectImageFilter::MaskTransition factory method
+ */
+HWTEST_F(EffectImageFilterUnittest, MaskTransitionFilterTest001, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> topLayerMap(std::move(uniPixelMap));
+    ASSERT_NE(topLayerMap, nullptr);
+
+    std::vector<std::pair<float, float>> fractionStops = {{0.0f, 0.0f}, {1.0f, 1.0f}};
+    Drawing::GELinearGradientShaderMaskParams maskParams{
+        fractionStops, Drawing::Point(0, 0), Drawing::Point(100, 100)};
+    auto mask = std::static_pointer_cast<Drawing::GEShaderMask>(
+        std::make_shared<Drawing::GELinearGradientShaderMask>(maskParams));
+
+    auto filter = EffectImageFilter::MaskTransition(topLayerMap, mask, 0.5f, false);
+    EXPECT_TRUE(filter != nullptr);
+
+    // Test with null image
+    auto ret = filter->Apply(nullptr);
+    EXPECT_TRUE(ret != DrawingError::ERR_OK);
+
+    // Test with valid image (but not prepared)
+    auto image = std::make_shared<EffectImageChain>();
+    ret = filter->Apply(image);
+    // Not prepared, so should rteurn error
+    EXPECT_TRUE(ret != DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: MaskTransitionFilterTest002
+ * @tc.desc: Test EffectImageFilter::MaskTransition with different parameters
+ */
+HWTEST_F(EffectImageFilterUnittest, MaskTransitionFilterTest002, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> topLayerMap(std::move(uniPixelMap));
+    ASSERT_NE(topLayerMap, nullptr);
+
+    std::vector<std::pair<float, float>> fractionStops = {{0.0f, 0.0f}, {1.0f, 1.0f}};
+    Drawing::GELinearGradientShaderMaskParams maskParams{
+        fractionStops, Drawing::Point(0, 0), Drawing::Point(100, 100)};
+    auto mask = std::static_pointer_cast<Drawing::GEShaderMask>(
+        std::make_shared<Drawing::GELinearGradientShaderMask>(maskParams));
+
+    // Test with inverse = true
+    auto filter = EffectImageFilter::MaskTransition(topLayerMap, mask, 0.8f, true);
+    EXPECT_TRUE(filter != nullptr);
+
+    // Test with factor at boundaries
+    filter = EffectImageFilter::MaskTransition(topLayerMap, mask, 0.0f, false);
+    EXPECT_TRUE(filter != nullptr);
+
+    filter = EffectImageFilter::MaskTransition(topLayerMap, mask, 1.0f, false);
+    EXPECT_TRUE(filter != nullptr);
+}
+
+/**
+ * @tc.name: WaterDropletTransitionFilterTest001
+ * @tc.desc: Test EffectImageFilter::WaterDropletTransition factory method
+ */
+HWTEST_F(EffectImageFilterUnittest, WaterDropletTransitionFilterTest001, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> topLayerMap(std::move(uniPixelMap));
+    ASSERT_NE(topLayerMap, nullptr);
+
+    Drawing::GEWaterDropletTransitionFilterParams params = {
+        nullptr, false, 0.5f, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f
+    };
+    auto waterDropletParams = std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>(params);
+
+    auto filter = EffectImageFilter::WaterDropletTransition(topLayerMap, waterDropletParams);
+    EXPECT_TRUE(filter != nullptr);
+
+    // Test with null image
+    auto ret = filter->Apply(nullptr);
+    EXPECT_TRUE(ret != DrawingError::ERR_OK);
+
+    // Test with valid image (but not prepared)
+    auto image = std::make_shared<EffectImageChain>();
+    ret = filter->Apply(image);
+    // Not prepared, so should return error
+    EXPECT_TRUE(ret != DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: WaterDropletTransitionFilterTest002
+ * @tc.desc: Test EffectImageFilter::WaterDropletTransition with different parameters
+ */
+HWTEST_F(EffectImageFilterUnittest, WaterDropletTransitionFilterTest002, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size = {100, 100};
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> topLayerMap(std::move(uniPixelMap));
+    ASSERT_NE(topLayerMap, nullptr);
+
+    // Test with inverse = true
+    Drawing::GEWaterDropletTransitionFilterParams params1 = {
+        nullptr, true, 0.3f, 3.0f, 0.3f, 0.3f, 0.3f, 0.3f, 0.5f, 0.5f, 0.5f, 0.5f
+    };
+    auto waterDropletParams1 = std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>(params1);
+    auto filter = EffectImageFilter::WaterDropletTransition(topLayerMap, waterDropletParams1);
+    EXPECT_TRUE(filter != nullptr);
+
+    // Test with different progress values
+    Drawing::GEWaterDropletTransitionFilterParams params2 = {
+        nullptr, false, 0.0f, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f
+    };
+    auto waterDropletParams2 = std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>(params2);
+    filter = EffectImageFilter::WaterDropletTransition(topLayerMap, waterDropletParams2);
+    EXPECT_TRUE(filter != nullptr);
+
+    Drawing::GEWaterDropletTransitionFilterParams params3 = {
+        nullptr, false, 1.0f, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f
+    };
+    auto waterDropletParams3 = std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>(params3);
+    filter = EffectImageFilter::WaterDropletTransition(topLayerMap, waterDropletParams3);
+    EXPECT_TRUE(filter != nullptr);
+}
+
+/**
+ * @tc.name: ReededGlassMethod
+ * @tc.desc: Test ReededGlass
+ */
+HWTEST_F(EffectImageRenderUnittest, ReededGlassMethod, TestSize.Level1)
+{
+    auto params = std::make_shared<Drawing::GEReededGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    auto filter = EffectImageFilter::ReededGlass(params);
+    ASSERT_NE(filter, nullptr);
+
+    // Verify that the filter is of the correct type
+    ASSERT_NE(std::static_pointer_cast<EffectImageReededGlassFilter>(filter), nullptr);
+}
+
+/**
+ * @tc.name: WaterGlassMethod
+ * @tc.desc: Test WaterGlass
+ */
+HWTEST_F(EffectImageRenderUnittest, WaterGlassMethod, TestSize.Level1)
+{
+    auto params = std::make_shared<Drawing::GEWaterGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    auto filter = EffectImageFilter::WaterGlass(params);
+    ASSERT_NE(filter, nullptr);
+
+    // Verify that the filter is of the correct type
+    ASSERT_NE(std::static_pointer_cast<EffectImageWaterGlassFilter>(filter), nullptr);
+}
+
+/**
+ * @tc.name: ApplyrReededGlassMethod
+ * @tc.desc: Test EffectImageReededGlassFilter filter application
+ */
+HWTEST_F(EffectImageRenderUnittest, ApplyrReededGlassMethod, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::GEReededGlassDataParams> params = std::make_shared<Drawing::GEReededGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    std::shared_ptr<EffectImageReededGlassFilter> filter = std::make_shared<EffectImageReededGlassFilter>(params);
+    ASSERT_NE(filter, nullptr);
+
+    auto image = std::make_shared<EffectImageChain>();
+    EXPECT_TRUE(image != nullptr);
+    image->prepared_ = true;
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    image->Prepare(srcPixelMap, false);
+
+    DrawingError result = filter->Apply(image);
+    ASSERT_EQ(result, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyWaterGlassMethod
+ * @tc.desc: Test EffectImageWaterGlassFilter filter application
+ */
+HWTEST_F(EffectImageRenderUnittest, ApplyWaterGlassMethod, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::GEWaterGlassDataParams> params = std::make_shared<Drawing::GEWaterGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+
+    std::shared_ptr<EffectImageWaterGlassFilter> filter = std::make_shared<EffectImageWaterGlassFilter>(params);
+    ASSERT_NE(filter, nullptr);
+
+    auto image = std::make_shared<EffectImageChain>();
+    EXPECT_TRUE(image != nullptr);
+    image->prepared_ = true;
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    image->Prepare(srcPixelMap, false);
+    DrawingError result = filter->Apply(image);
+    ASSERT_EQ(result, DrawingError::ERR_OK);
 }
 } // namespace Rosen
 } // namespace OHOS

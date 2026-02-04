@@ -462,7 +462,7 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
     effectInfo.colorMaskPara = RSHpaeFusionOperator::GetHaePixel(filter);
     float colorMatrix[HAE_COLOR_MATRIX_COEF_COUNT];
     RSHpaeFusionOperator::GetColorMatrixCoef(filter, colorMatrix);
-    for (auto i = 0; i < HAE_COLOR_MATRIX_COEF_COUNT; ++i) {
+    for (uint32_t i = 0; i < HAE_COLOR_MATRIX_COEF_COUNT; ++i) {
         effectInfo.colorMatrixCoef.push_back(colorMatrix[i]);
     }
 

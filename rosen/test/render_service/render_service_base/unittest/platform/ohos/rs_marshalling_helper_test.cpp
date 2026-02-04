@@ -731,7 +731,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingNullTest013, TestSize.Level1)
         fieldSize, fieldCenter, 1, 1.0f, 1.0f, 1.0f);
     marshVal->AddField(field);
     RSMarshallingHelper::Marshalling(parcel2, marshVal);
-    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel2, val));
 }
 
 /**

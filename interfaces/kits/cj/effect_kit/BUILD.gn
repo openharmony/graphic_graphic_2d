@@ -42,6 +42,7 @@ ohos_shared_library("cj_effect_kit_ffi") {
     "bundle_framework:appexecfwk_core",
     "bundle_framework:cj_bundle_manager_ffi",
     "c_utils:utils",
+    "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
     "image_framework:cj_image_ffi",
     "image_framework:image_native",

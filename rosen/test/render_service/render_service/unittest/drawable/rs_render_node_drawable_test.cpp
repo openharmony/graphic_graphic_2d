@@ -257,7 +257,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
 
     drawable->SetCanceledByParentRenderGroup(true);
     drawable->isOffScreenWithClipHole_ = false;
-    drawable->SetDrawBlurForCache(true);
+    drawable->SetDrawBlurForCache(false);
     params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
@@ -610,8 +610,13 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutNodeGroupCache, TestSize.Level1)
     auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
     drawable->SetDrawBlurForCache(true);
     drawable->curDrawingCacheRoot_ = rootDrawable;
+    drawable->SetCanceledByParentRenderGroup(false);
     drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
-    ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+    EXPECT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+
+    drawable->SetCanceledByParentRenderGroup(true);
+    drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
+    EXPECT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
 }
 
 /**

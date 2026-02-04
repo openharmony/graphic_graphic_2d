@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_LIST_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_LIST_H
 
+#include <atomic>
 #include "recording/draw_cmd_list.h"
 
 #include "draw/canvas.h"
@@ -35,13 +36,9 @@ RSB_EXPORT bool operator==(const DrawCmdListPtr& lhs, const DrawCmdListPtr& rhs)
 struct DrawCmdListOpacity {
     float startOpacity;
     float endOpacity;
-    float opacity;
-    float lastOpacity;
 
-    DrawCmdListOpacity() : startOpacity(0.f), endOpacity(1.f), opacity(0.f), lastOpacity(0.f) {}
-    DrawCmdListOpacity(float start, float end, float current, float last)
-        : startOpacity(start), endOpacity(end), opacity(current), lastOpacity(last)
-    {}
+    DrawCmdListOpacity() : startOpacity(0.f), endOpacity(1.f) {}
+    DrawCmdListOpacity(float start, float end) : startOpacity(start), endOpacity(end) {}
 };
 
 class RSB_EXPORT RSDrawCmdList : public Drawing::DrawCmdList {
@@ -54,11 +51,7 @@ public:
     /**
      * @brief   Destroy a RSDrawCmdList
      */
-    ~RSDrawCmdList() override
-    {
-        startValue_.first.reset();
-        endValue_.first.reset();
-    };
+    ~RSDrawCmdList() override = default;
 
     /**
      * @brief   Gets cmd list type.
@@ -85,12 +78,10 @@ public:
 
     void Playback(Drawing::Canvas& canvas, const Drawing::Rect* rect = nullptr) override;
 
-    std::string ToString() const;
-
 private:
-    void CleanOpacity();
     std::shared_ptr<Drawing::DrawCmdList> GetEndDrawCmdList() const;
 
+    std::atomic<float> fraction_ = 0.0f;
     std::pair<std::shared_ptr<Drawing::DrawCmdList>, DrawCmdListOpacity> startValue_;
     std::pair<std::shared_ptr<Drawing::DrawCmdList>, DrawCmdListOpacity> endValue_;
 };

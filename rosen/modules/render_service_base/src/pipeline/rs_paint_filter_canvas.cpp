@@ -1973,7 +1973,8 @@ uint32_t RSPaintFilterCanvasBase::SaveClipRRect(std::shared_ptr<ClipRRectData> d
                 Drawing::Brush brush;
                 brush.SetBlendMode(Drawing::BlendMode::SRC);
                 canvas.AttachBrush(brush);
-                canvas.DrawImageRect(*(corner->image_), corner->rect_, Drawing::SamplingOptions());
+                canvas.DrawImage(*(corner->image_), corner->rect_.GetLeft(), corner->rect_.GetTop(),
+                    Drawing::SamplingOptions());
                 canvas.DetachBrush();
             }
         }
@@ -2060,6 +2061,8 @@ std::shared_ptr<RSPaintFilterCanvasBase::CornerData> RSPaintFilterCanvas::Genera
     mat.MapRect(absRect, relativeRect);
     Drawing::RectI drawRect = absRect.RoundOut();
     drawRect.MakeOutset(1, 1);
+    auto surfaceRect = Drawing::RectI(0, 0, surface->Width(), surface->Height());
+    drawRect.Intersect(surfaceRect);
     return std::make_shared<RSPaintFilterCanvasBase::CornerData>(surface->GetImageSnapshot(drawRect, false), drawRect);
 }
 
