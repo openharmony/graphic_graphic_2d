@@ -134,5 +134,19 @@ void RSSpecialLayerUtils::DumpScreenSpecialLayer(const std::string& funcName,
     RS_LOGI("%{public}s : specialLayerType[%{public}" PRIu32 "] screenId[%{public}" PRIu64 "] set[%{public}s]",
         funcName.c_str(), type, screenId, out.str().c_str());
 }
+
+bool RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(bool enableVisibleRect, RSScreenRenderParams& mirrorScreenParam,
+    RSLogicalDisplayRenderParams& mirrorParam, RSLogicalDisplayRenderParams& sourceParam)
+{
+    // Skip security layer processing if: has security exemption, not a security display, or
+    // GetVirtualSecLayerOption() != 0 ( 0 = full screen black, 1 = window black )
+    if (mirrorParam.GetSecurityExemption() ||
+        !mirrorParam.IsSecurityDisplay() ||
+        mirrorScreenParam.GetScreenProperty().GetVirtualSecLayerOption() != 0) {
+        return false;
+    }
+    return enableVisibleRect ? sourceParam.HasSecLayerInVisibleRect() :
+        sourceParam.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
+}
 } // namespace Rosen
 } // namespace OHOS
