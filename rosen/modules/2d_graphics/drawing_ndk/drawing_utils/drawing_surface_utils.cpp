@@ -86,6 +86,26 @@ void CreateVkSemaphore(VkSemaphore& semaphore, RsVulkanContext& vkContext,
     }
 }
 
+bool CheckBufferSizeAndImageSizeIsValid(NativeWindowBuffer* nativeWindowBuffer, const Drawing::ImageInfo& imageInfo)
+{
+    OH_NativeBuffer* nativeBuffer = nullptr;
+    auto ret = OH_NativeBuffer_FromNativeWindowBuffer(nativeWindowBuffer, &nativeBuffer);
+    if (ret != OHOS::GSERROR_OK) {
+        LOGE("CheckBufferSizeAndImageSizeIsValid: Request OH_NativeBuffer failed %{public}d", ret);
+        return false;
+    }
+    OH_NativeBuffer_Config config = {};
+    OH_NativeBuffer_GetConfig(nativeBuffer, &config);
+    if (imageInfo.GetWidth() > config.width || imageInfo.GetHeight() > config.height) {
+        LOGE("CheckBufferSizeAndImageSizeIsValid: The size of ImageInfo does not match the window size. "
+            "imageInfo.width = %{public}d, imageInfo.height = %{public}d, "
+            "windowWidth = %{public}d, windowHeight = %{public}d",
+            imageInfo.GetWidth(), imageInfo.GetHeight(), config.width, config.height);
+        return false;
+    }
+    return true;
+}
+
 std::shared_ptr<Drawing::Surface> CreateVulkanWindowSurface(Drawing::GPUContext* gpuContext,
     const Drawing::ImageInfo& imageInfo, void* window)
 {
@@ -98,7 +118,10 @@ std::shared_ptr<Drawing::Surface> CreateVulkanWindowSurface(Drawing::GPUContext*
         NativeWindowCancelBuffer(nativeWindow, nativeWindowBuffer);
         return nullptr;
     }
-
+    if (!CheckBufferSizeAndImageSizeIsValid(nativeWindowBuffer, imageInfo)) {
+        NativeWindowCancelBuffer(nativeWindow, nativeWindowBuffer);
+        return nullptr;
+    }
     NativeBufferUtils::NativeSurfaceInfo* nativeSurface = new(std::nothrow) NativeBufferUtils::NativeSurfaceInfo();
     if (nativeSurface == nullptr) {
         LOGE("CreateVulkanWindowSurface: create nativeSurface failed!");
