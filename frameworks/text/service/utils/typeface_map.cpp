@@ -41,7 +41,6 @@ std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByUniqueId(uint32_t i
     return nullptr;
 }
 
-
 std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByHashInner(uint32_t hash)
 {
     auto iter = GetInstance().typefaceMap_.find(hash);

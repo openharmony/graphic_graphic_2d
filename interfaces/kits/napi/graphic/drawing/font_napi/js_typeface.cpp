@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 #include "js_typefacearguments.h"
 
 #include "native_value.h"
-
+#include "utils/typeface_hash_map.h"
 #include "js_drawing_utils.h"
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "tool_napi/js_tool.h"
@@ -27,7 +27,6 @@ namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsTypeface::constructor_ = nullptr;
 const std::string CLASS_NAME = "Typeface";
-const std::string G_SYSTEM_FONT_DIR = "/system/fonts";
 napi_value JsTypeface::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
@@ -97,7 +96,22 @@ void JsTypeface::Destructor(napi_env env, void *nativeObject, void *finalize)
 
 JsTypeface::~JsTypeface()
 {
-    m_typeface = nullptr;
+    if (m_typeface != nullptr) {
+        TypefaceHashMap::Release(m_typeface->GetFullHash());
+        m_typeface = nullptr;
+    }
+}
+
+napi_value JsTypeface::CreateJsTypefaceWithCache(napi_env env, const std::shared_ptr<Typeface>& rawTypeface)
+{
+    auto typeface = new JsTypeface(rawTypeface);
+    napi_value jsObj = ConvertTypefaceToJsValue(env, typeface);
+    if (jsObj == nullptr) {
+        delete typeface;
+        ROSEN_LOGE("JsTypeface::CreateJsTypefaceWithCache: Convert typeface to napivalue failed.");
+        return nullptr;
+    }
+    return jsObj;
 }
 
 napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Typeface> typeface)
@@ -205,27 +219,31 @@ napi_value JsTypeface::OnMakeFromCurrent(napi_env env, napi_callback_info info)
 
     FontArguments fontArguments;
     JsTypeFaceArguments::ConvertToFontArguments(jsTypefaceArguments->GetTypeFaceArgumentsHelper(), fontArguments);
-    auto rawTypeface = m_typeface->MakeClone(fontArguments);
+
+    uint32_t dataHash = m_typeface->GetHash();
+    uint32_t argsHash = Typeface::CalculateFontArgsHash(fontArguments.GetVariationDesignPosition());
+    uint64_t hash = Typeface::AssembleFullHash(argsHash, dataHash);
+
+    std::shared_ptr<Typeface> rawTypeface = TypefaceHashMap::GetTypefaceByFullHash(hash);
+    if (rawTypeface != nullptr) {
+        return CreateJsTypefaceWithCache(env, rawTypeface);
+    }
+    rawTypeface = m_typeface->MakeClone(fontArguments);
     if (rawTypeface == nullptr) {
         ROSEN_LOGE("JsTypeface::OnMakeFromCurrent create rawTypeface failed.");
         return nullptr;
     }
-
-    auto typeface = new JsTypeface(rawTypeface);
+    rawTypeface->SetFd(m_typeface->GetFd());
+    rawTypeface->SetSize(m_typeface->GetSize());
+    rawTypeface->SetHash(m_typeface->GetHash());
     if (rawTypeface->IsCustomTypeface() && Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
-            delete typeface;
-            ROSEN_LOGE("JsTypeface::OnMakeFromCurrent MakeRegister Typeface failed.");
-            return nullptr;
-    }
-
-    napi_value jsObj = ConvertTypefaceToJsValue(env, typeface);
-    if (jsObj == nullptr) {
-        delete typeface;
-        ROSEN_LOGE("JsTypeface::OnMakeFromCurrent Convert typeface to napivalue failed.");
+        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        ROSEN_LOGE("JsTypeface::OnMakeFromCurrent MakeRegister Typeface failed.");
         return nullptr;
     }
-    return jsObj;
+    rawTypeface->SetFullHash(hash);
+    TypefaceHashMap::InsertTypefaceByFullHash(hash, rawTypeface);
+    return CreateJsTypefaceWithCache(env, rawTypeface);
 }
 
 napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
@@ -236,29 +254,32 @@ napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
     std::string text = "";
     GET_JSVALUE_PARAM(ARGC_ZERO, text);
 
-    auto rawTypeface = Typeface::MakeFromFile(text.c_str());
+    MappedFile mappedFile(text);
+    if (!mappedFile.data || mappedFile.size == 0) {
+        ROSEN_LOGE("JsTypeface::MakeFromFile: read typeface file failed, path is %{public}s.", text.c_str());
+        return nullptr;
+    }
+
+    uint32_t hash = Typeface::CalculateHash(
+        static_cast<const uint8_t*>(mappedFile.data), mappedFile.size, 0);
+    std::shared_ptr<Typeface> rawTypeface = TypefaceHashMap::GetTypefaceByFullHash(hash);
+    if (rawTypeface != nullptr) {
+        return CreateJsTypefaceWithCache(env, rawTypeface);
+    }
+    rawTypeface = Typeface::MakeFromAshmem(
+        static_cast<const uint8_t*>(mappedFile.data), mappedFile.size, 0, "0", 0);
     if (rawTypeface == nullptr) {
         ROSEN_LOGE("JsTypeface::MakeFromFile create rawTypeface failed!");
         return nullptr;
     }
-    auto typeface = new JsTypeface(rawTypeface);
-    std::string pathStr(text);
-    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
-        bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface);
-        if (!ret) {
-            delete typeface;
-            ROSEN_LOGE("JsTypeface::MakeFromFile MakeRegister Typeface failed!");
-            return nullptr;
-        }
-    }
-
-    napi_value jsObj = ConvertTypefaceToJsValue(env, typeface);
-    if (jsObj == nullptr) {
-        delete typeface;
-        ROSEN_LOGE("JsTypeface::MakeFromFile Convert typeface to napivalue failed!");
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
+        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        ROSEN_LOGE("JsTypeface::MakeFromFile MakeRegister Typeface failed.");
         return nullptr;
     }
-    return jsObj;
+    rawTypeface->SetFullHash(hash);
+    TypefaceHashMap::InsertTypefaceByFullHash(hash, rawTypeface);
+    return CreateJsTypefaceWithCache(env, rawTypeface);
 }
 
 napi_value JsTypeface::MakeFromFileWithArguments(napi_env env, napi_callback_info info)
@@ -274,27 +295,37 @@ napi_value JsTypeface::MakeFromFileWithArguments(napi_env env, napi_callback_inf
     FontArguments fontArguments;
     JsTypeFaceArguments::ConvertToFontArguments(jsTypefaceArguments->GetTypeFaceArgumentsHelper(), fontArguments);
 
-    auto rawTypeface = Typeface::MakeFromFile(text.c_str(), fontArguments);
-    if (rawTypeface == nullptr) {
-        ROSEN_LOGE("JsTypeface::MakeFromFile create rawTypeface failed.");
+    MappedFile mappedFile(text);
+    if (!mappedFile.data || mappedFile.size == 0) {
+        ROSEN_LOGE("JsTypeface::MakeFromFileWithArguments: read typeface file failed, path is %{public}s.",
+            text.c_str());
         return nullptr;
-    }
-    auto typeface = new JsTypeface(rawTypeface);
-    std::string pathStr(text);
-    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
-            delete typeface;
-            ROSEN_LOGE("JsTypeface:: MakeFromFile MakeRegister Typeface failed!");
-            return nullptr;
     }
 
-    napi_value jsObj = ConvertTypefaceToJsValue(env, typeface);
-    if (jsObj == nullptr) {
-        delete typeface;
-        ROSEN_LOGE("JsTypeface:: MakeFromFile Convert typeface to napivalue failed.");
+    uint32_t dataHash = Typeface::CalculateHash(
+        static_cast<const uint8_t*>(mappedFile.data), mappedFile.size, fontArguments.GetCollectionIndex());
+    uint32_t argsHash = Typeface::CalculateFontArgsHash(fontArguments.GetVariationDesignPosition());
+    uint64_t hash = Typeface::AssembleFullHash(argsHash, dataHash);
+
+    std::shared_ptr<Typeface> rawTypeface = TypefaceHashMap::GetTypefaceByFullHash(hash);
+    if (rawTypeface != nullptr) {
+        return CreateJsTypefaceWithCache(env, rawTypeface);
+    }
+    
+    rawTypeface = Typeface::MakeFromAshmem(
+        static_cast<const uint8_t*>(mappedFile.data), mappedFile.size, 0, "0", fontArguments);
+    if (rawTypeface == nullptr) {
+        ROSEN_LOGE("JsTypeface::MakeFromFileWithArguments create rawTypeface failed!");
         return nullptr;
     }
-    return jsObj;
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
+        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        ROSEN_LOGE("JsTypeface::MakeFromFileWithArguments MakeRegister Typeface failed.");
+        return nullptr;
+    }
+    rawTypeface->SetFullHash(hash);
+    TypefaceHashMap::InsertTypefaceByFullHash(hash, rawTypeface);
+    return CreateJsTypefaceWithCache(env, rawTypeface);
 }
 
 napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
@@ -314,28 +345,25 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
     }
 
     auto memory_stream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
-    auto rawTypeface = Typeface::MakeFromStream(std::move(memory_stream));
+    uint32_t hash = Typeface::CalculateHash(
+        static_cast<const uint8_t*>(rawFileArrayBuffer.get()), rawFileArrayBufferSize, 0);
+    std::shared_ptr<Typeface> rawTypeface = TypefaceHashMap::GetTypefaceByFullHash(hash);
+    if (rawTypeface != nullptr) {
+        return CreateJsTypefaceWithCache(env, rawTypeface);
+    }
+    rawTypeface = Typeface::MakeFromAshmem(std::move(memory_stream));
     if (rawTypeface == nullptr) {
-        ROSEN_LOGE("JsTypeface::MakeFromRawFile Create rawTypeface failed!");
+        ROSEN_LOGE("JsTypeface::MakeFromRawFile create rawTypeface failed!");
         return nullptr;
     }
-    auto typeface = new JsTypeface(rawTypeface);
-    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
-        bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface);
-        if (!ret) {
-            delete typeface;
-            ROSEN_LOGE("JsTypeface::MakeFromRawFile MakeRegister Typeface failed!");
-            return nullptr;
-        }
-    }
-
-    napi_value jsObj = ConvertTypefaceToJsValue(env, typeface);
-    if (jsObj == nullptr) {
-        delete typeface;
-        ROSEN_LOGE("JsTypeface::MakeFromRawFile Convert typeface to napivalue failed!");
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
+        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        ROSEN_LOGE("JsTypeface::MakeFromRawFile MakeRegister Typeface failed.");
         return nullptr;
     }
-    return jsObj;
+    rawTypeface->SetFullHash(hash);
+    TypefaceHashMap::InsertTypefaceByFullHash(hash, rawTypeface);
+    return CreateJsTypefaceWithCache(env, rawTypeface);
 #else
     return nullptr;
 #endif
@@ -355,33 +383,35 @@ napi_value JsTypeface::MakeFromRawFileWithArguments(napi_env env, napi_callback_
             ROSEN_LOGE("JsTypeface::MakeFromRawFileWithArguments get rawfilebuffer failed.");
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    auto memory_stream = std::make_unique<MemoryStream> ((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
+    auto memory_stream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
     JsTypeFaceArguments* jsTypefaceArguments = nullptr;
     GET_UNWRAP_PARAM(ARGC_ONE, jsTypefaceArguments);
     FontArguments fontArguments;
     JsTypeFaceArguments::ConvertToFontArguments(jsTypefaceArguments->GetTypeFaceArgumentsHelper(), fontArguments);
-    auto rawTypeface = Typeface::MakeFromStream(std::move(memory_stream), fontArguments);
-    if (rawTypeface == nullptr) {
-        ROSEN_LOGE("JsTypeface::MakeFromRawFile Create rawTypeface failed.");
-        return nullptr;
+
+    uint32_t dataHash = Typeface::CalculateHash(static_cast<const uint8_t*>(rawFileArrayBuffer.get()),
+        rawFileArrayBufferSize, fontArguments.GetCollectionIndex());
+    uint32_t argsHash = Typeface::CalculateFontArgsHash(fontArguments.GetVariationDesignPosition());
+    uint64_t hash = Typeface::AssembleFullHash(argsHash, dataHash);
+
+    std::shared_ptr<Typeface> rawTypeface = TypefaceHashMap::GetTypefaceByFullHash(hash);
+    if (rawTypeface != nullptr) {
+        return CreateJsTypefaceWithCache(env, rawTypeface);
     }
-    auto typeface = new JsTypeface(rawTypeface);
-    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
-        bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface);
-        if (!ret) {
-            delete typeface;
-            ROSEN_LOGE("JsTypeface::MakeFromFile MakeRegister Typeface failed.");
-            return nullptr;
-        }
+    rawTypeface = Typeface::MakeFromAshmem(std::move(memory_stream), fontArguments);
+    if (rawTypeface == nullptr) {
+        ROSEN_LOGE("JsTypeface::MakeFromRawFileWithArguments create rawTypeface failed!");
+        return nullptr;
     }
     
-    napi_value jsObj = ConvertTypefaceToJsValue(env, typeface);
-    if (jsObj == nullptr) {
-        delete typeface;
-        ROSEN_LOGE("JsTypeface:: MakeFromFile Convert typeface to napivalue failed");
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
+        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        ROSEN_LOGE("JsTypeface::MakeFromRawFileWithArguments MakeRegister Typeface failed.");
         return nullptr;
     }
-    return jsObj;
+    rawTypeface->SetFullHash(hash);
+    TypefaceHashMap::InsertTypefaceByFullHash(hash, rawTypeface);
+    return CreateJsTypefaceWithCache(env, rawTypeface);
 #else
     return nullptr;
 #endif

@@ -30,6 +30,19 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
+struct DRAWING_API MappedFile {
+    const void* data = nullptr;
+    size_t size = 0;
+    int fd = -1;
+
+    MappedFile() = default;
+    explicit MappedFile(const std::string& path);
+    ~MappedFile();
+    MappedFile(const MappedFile&) = delete;
+    MappedFile& operator=(const MappedFile&) = delete;
+};
+
 const uint8_t NO_REGISTER = 0;
 const uint8_t REGISTERING = 1;
 const uint8_t REGISTERED = 2;
@@ -56,6 +69,8 @@ public:
     static std::shared_ptr<Typeface> MakeFromAshmem(
         const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, const FontArguments& fontArguments);
     static std::shared_ptr<Typeface> MakeFromAshmem(std::unique_ptr<MemoryStream> memoryStream, uint32_t index = 0);
+    static std::shared_ptr<Typeface> MakeFromAshmem(std::unique_ptr<MemoryStream> memoryStream,
+        const FontArguments& fontArguments);
 
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static void RegisterCallBackFunc(TypefaceRegisterCallback func);
@@ -182,10 +197,19 @@ public:
         int coordinateCount) const;
 
     uint32_t GetIndex() const;
+
+    static uint32_t CalculateFontArgsHash(const FontArguments::VariationPosition& coords);
+
+    static uint64_t AssembleFullHash(uint32_t fontArgsHash, uint32_t baseHash);
+
+    void SetFullHash(uint64_t fullHash);
+
+    uint64_t GetFullHash() const;
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
     uint32_t size_ = 0;
     uint32_t index_ = 0;
+    uint64_t fullHash_ = 0;
 };
 
 struct SharedTypeface {

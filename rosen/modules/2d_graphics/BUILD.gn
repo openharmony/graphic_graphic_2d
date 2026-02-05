@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025 Huawei Device Co., Ltd.. All rights reserved.
+# Copyright (c) 2022-2026 Huawei Device Co., Ltd.. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -202,6 +202,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/utils/vertices.cpp",
       "$drawing_core_src_dir/utils/canvas_utils.cpp",
       "$drawing_core_src_dir/utils/object_helper.cpp",
+      "$drawing_core_src_dir/utils/typeface_hash_map.cpp",
     ]
 
     if (platform == "ohos" || platform == "ohos_ng") {
