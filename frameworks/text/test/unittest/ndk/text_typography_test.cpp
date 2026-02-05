@@ -2208,7 +2208,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest072, TestSize.Level0)
         uint32_t fontGenericInfoSize = configJsonInfo->fontGenericInfoSize;
         uint32_t fallbackInfoSize = configJsonInfo->fallbackGroupSet[0].fallbackInfoSize;
         EXPECT_EQ(fontGenericInfoSize, 6);
-        EXPECT_EQ(fallbackInfoSize, 135);
+        if (std::filesystem::exists(VIS_LIST_FILE_NAME)) {
+            EXPECT_EQ(fallbackInfoSize, 135);
+        } else {
+            EXPECT_EQ(fallbackInfoSize, 134);
+        }
     } else {
         EXPECT_NE(code, SUCCESS_FONT_CONFIG_INFO);
     }
