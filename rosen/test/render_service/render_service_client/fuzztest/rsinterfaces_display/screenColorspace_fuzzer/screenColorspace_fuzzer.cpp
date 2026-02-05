@@ -18,7 +18,6 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "transaction/rs_interfaces.h"
-#include "color_manager/color_space.h"
 
 namespace OHOS {
 namespace Rosen {
