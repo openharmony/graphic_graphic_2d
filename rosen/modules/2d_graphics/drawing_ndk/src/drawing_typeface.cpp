@@ -15,12 +15,7 @@
 
 #include "drawing_typeface.h"
 
-#include <cerrno>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
 #include <mutex>
-#include <unistd.h>
 #include <unordered_map>
 #include <vector>
 
@@ -56,58 +51,6 @@ struct FontArgumentsHelper {
 
     int fontCollectionIndex_ = 0;
     std::vector<Coordinate> coordinates_;
-};
-
-struct MappedFile {
-    const void* data = nullptr;
-    size_t size = 0;
-    int fd = -1;
-
-    MappedFile() = default;
-
-    explicit MappedFile(const std::string& path)
-    {
-        char realPath[PATH_MAX] = {0};
-        if (realpath(path.c_str(), realPath) == nullptr) {
-            LOGE("Invalid filePath, file path is %{public}s.", path.c_str());
-            return;
-        }
-        fd = open(realPath, O_RDONLY);
-        if (fd < 0) {
-            LOGE("Map file failed, file path is %{public}s.", path.c_str());
-            return;
-        }
-
-        struct stat st {};
-        if (fstat(fd, &st) < 0) {
-            LOGE("Map file fstat failed, file path is %{public}s.", path.c_str());
-            close(fd);
-            fd = -1;
-            return;
-        }
-        size = static_cast<size_t>(st.st_size);
-
-        void* ptr = mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
-        if (ptr == MAP_FAILED) {
-            LOGE("Map file mmap failed, file path is %{public}s.", path.c_str());
-            close(fd);
-            fd = -1;
-            return;
-        }
-        data = ptr;
-    }
-
-    ~MappedFile()
-    {
-        if (data != nullptr && data != MAP_FAILED) {
-            munmap(const_cast<void*>(data), size);
-        }
-        if (fd >= 0) {
-            close(fd);
-        }
-    }
-    MappedFile(const MappedFile&) = delete;
-    MappedFile& operator=(const MappedFile&) = delete;
 };
 
 static MemoryStream* CastToMemoryStream(OH_Drawing_MemoryStream* cMemoryStream)
