@@ -109,8 +109,9 @@ private:
      * @brief Get a contrasting black or white color with hysteresis.
      *
      * @param color input to contrast with, usually the average color of the background.
+     * @param prevDark whether previously picked color was dark.
      */
-    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color);
+    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color, bool prevDark);
 
     std::mutex colorMtx_;
     Drawing::ColorQuad colorPicked_ = Drawing::Color::COLOR_BLACK;

@@ -194,37 +194,46 @@ HWTEST_F(RSColorPickerManagerTest, InterpolateColorWithValidFraction, TestSize.L
 // RSColorPickerManager::GetContrastColor Tests
 // ============================================================================
 
-HWTEST_F(RSColorPickerManagerTest, GetContrastColorWithLowLuminanceReturnsWhite, TestSize.Level1)
+/**
+ * @tc.name: GetContrastColorTest
+ * @tc.desc: Verify function GetContrastColor
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerManagerTest, GetContrastColorTest, TestSize.Level1)
 {
-    const auto darkGray = Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50);
-    auto result = RSColorPickerManager::GetContrastColor(darkGray);
-    EXPECT_EQ(result, Drawing::Color::COLOR_WHITE);
+    auto contrastForWhite = RSColorPickerManager::GetContrastColor(Drawing::Color::COLOR_WHITE, false);
+    EXPECT_EQ(contrastForWhite, Drawing::Color::COLOR_BLACK);
+
+    auto contrastForBlack = RSColorPickerManager::GetContrastColor(Drawing::Color::COLOR_BLACK, false);
+    EXPECT_EQ(contrastForBlack, Drawing::Color::COLOR_WHITE);
 }
 
-HWTEST_F(RSColorPickerManagerTest, GetContrastColorWithHighLuminanceReturnsBlack, TestSize.Level1)
+/**
+ * @tc.name: GetContrastColorPrevBlackTest
+ * @tc.desc: Verify GetContrastColor with prevDark=true uses low threshold
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerManagerTest, GetContrastColorPrevBlackTest, TestSize.Level1)
 {
-    const auto lightGray = Drawing::Color::ColorQuadSetARGB(0xFF, 230, 230, 230);
-    auto result = RSColorPickerManager::GetContrastColor(lightGray);
-    EXPECT_EQ(result, Drawing::Color::COLOR_BLACK);
+    // Use a mid-light gray so hysteresis changes the result.
+    const Drawing::ColorQuad midGray = Drawing::Color::ColorQuadSetARGB(0xFF, 200, 200, 200);
+    auto contrastPrevDark = RSColorPickerManager::GetContrastColor(midGray, true);
+    auto contrastPrevLight = RSColorPickerManager::GetContrastColor(midGray, false);
+
+    EXPECT_EQ(contrastPrevDark, Drawing::Color::COLOR_BLACK);
+    EXPECT_EQ(contrastPrevLight, Drawing::Color::COLOR_WHITE);
 }
 
-HWTEST_F(RSColorPickerManagerTest, GetContrastColorWithMidLuminanceReturnsCachedColor, TestSize.Level1)
+/**
+ * @tc.name: PickColorContrastPrevBlackTest
+ * @tc.desc: Verify PickColor CONTRAST branch with prevDark=true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerManagerTest, PickColorContrastPrevBlackTest, TestSize.Level1)
 {
-    const auto darkGray = Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50);
-    RSColorPickerManager::GetContrastColor(darkGray);
-
-    const auto midGray = Drawing::Color::ColorQuadSetARGB(0xFF, 180, 180, 180);
-    auto result = RSColorPickerManager::GetContrastColor(midGray);
-    EXPECT_EQ(result, Drawing::Color::COLOR_WHITE);
-}
-
-HWTEST_F(RSColorPickerManagerTest, GetContrastColorWithMidLuminanceReturnsCachedBlack, TestSize.Level1)
-{
-    const auto lightGray = Drawing::Color::ColorQuadSetARGB(0xFF, 230, 230, 230);
-    RSColorPickerManager::GetContrastColor(lightGray);
-
-    const auto midGray = Drawing::Color::ColorQuadSetARGB(0xFF, 180, 180, 180);
-    auto result = RSColorPickerManager::GetContrastColor(midGray);
+    // Contrast color now provided by static API. Validate for white input.
+    const Drawing::ColorQuad white = Drawing::Color::COLOR_WHITE;
+    auto result = RSColorPickerManager::GetContrastColor(white, true);
     EXPECT_EQ(result, Drawing::Color::COLOR_BLACK);
 }
 
