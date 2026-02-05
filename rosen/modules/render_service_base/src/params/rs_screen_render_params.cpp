@@ -289,6 +289,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->forceFreeze_ = forceFreeze_;
     targetScreenParams->hasMirroredScreenChanged_ = hasMirroredScreenChanged_;
     targetScreenParams->isVirtualSurfaceChanged_ = isVirtualSurfaceChanged_;
+    targetScreenParams->cloneNodeMap_ = cloneNodeMap_;
 
     RSRenderParams::OnSync(target);
 }
@@ -366,5 +367,12 @@ void RSScreenRenderParams::SetHasMirroredScreenChanged(bool hasMirroredScreenCha
 bool RSScreenRenderParams::GetHasMirroredScreenChanged() const
 {
     return hasMirroredScreenChanged_;
+}
+
+void RSScreenRenderParams::SetCloneNodeMap(
+    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap)
+{
+    cloneNodeMap_ = cloneNodeMap;
+    needSync_ = true;
 }
 } // namespace OHOS::Rosen
