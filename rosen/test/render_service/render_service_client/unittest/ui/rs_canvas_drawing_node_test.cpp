@@ -62,6 +62,13 @@ HWTEST_F(RSCanvasDrawingNodeTest, CreateTest, TestSize.Level1)
     canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
     ASSERT_NE(canvasNode, nullptr);
     ASSERT_EQ(RSCanvasDrawingNode::preAllocateDmaCcm_, false);
+
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
+    canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
+    canvasNode->resetSurfaceIndex_ = 1;
+    canvasNode->id_ = ((NodeId)1 << 32) | 1;
+    ASSERT_NE(canvasNode, nullptr);
+    ASSERT_EQ(RSCanvasDrawingNode::preAllocateDmaCcm_, true);
 #endif
 }
 
