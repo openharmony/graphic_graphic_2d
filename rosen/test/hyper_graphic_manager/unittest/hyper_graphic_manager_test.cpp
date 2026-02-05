@@ -144,9 +144,9 @@ HWTEST_F(HyperGraphicManagerTest, SetMaxTEConfigTest, Function | SmallTest | Lev
                 ltpoConfig["maxTE144"] = "errMaxTE144";
                 instance1.SetMaxTEConfig(curScreenSetting);
                 STEP_ASSERT_EQ(instance1.maxTE144_, 0);
-                ltpoConfig["maxTE144"] = "432";
+                ltpoConfig["maxTE144"] = "360";
                 instance1.SetMaxTEConfig(curScreenSetting);
-                STEP_ASSERT_EQ(instance1.maxTE144_, 432);
+                STEP_ASSERT_EQ(instance1.maxTE144_, 0);
                 ltpoConfig["maxTE144"] = maxTE144Config;
             }
         }
@@ -822,14 +822,14 @@ HWTEST_F(HyperGraphicManagerTest, GetLtpoEnabled, Function | SmallTest | Level0)
     auto& instance = HgmCore::Instance();
     instance.isLtpoMode_.store(true);
     instance.SetSupportedMaxTE(360);
-    instance.SetSupportedMaxTE144(360);
+    instance.SetSupportedMaxTE144(432);
+    EXPECT_EQ(instance.GetSupportedMaxTE(), 360);
+    EXPECT_EQ(instance.GetSupportedMaxTE144(), 432);
     instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
     if (instance.IsLTPOSwitchOn() != true) {
         return;
     }
     EXPECT_EQ(instance.IsLTPOSwitchOn(), true);
-    EXPECT_EQ(instance.GetSupportedMaxTE(), 360);
-    EXPECT_EQ(instance.GetSupportedMaxTE144(), 360);
     EXPECT_EQ(instance.GetCurrentRefreshRateMode(), static_cast<int32_t>(HGM_REFRESHRATE_MODE_AUTO));
     EXPECT_EQ(instance.GetLtpoEnabled(), true);
 }

@@ -70,7 +70,7 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         <Category name="LTPO_config">
             <Ltpo name="switch" value="1"/>
             <Ltpo name="maxTE" value="360"/>
-            <Ltpo name="maxTE144" value="360"/>
+            <Ltpo name="maxTE144" value="432"/>
             <Ltpo name="alignRate" value="100"/>
             <Ltpo name="pipelineOffsetPulseNum" value="100"/>
             <Ltpo name="adaptiveSync" value="0"/>
@@ -235,7 +235,7 @@ const std::string TEST_XML_CONTENT_1 = (R"(<?xml version="1.0" encoding="UTF-8" 
         <Category name="LTPO_config">
             <Ltpo name="switch" value="1"/>
             <Ltpo name="maxTE" value="360"/>
-            <Ltpo name="maxTE144" value="360"/>
+            <Ltpo name="maxTE144" value="432"/>
             <Ltpo name="alignRate" value="100"/>
             <Ltpo name="pipelineOffsetPulseNum" value="100"/>
             <Ltpo name="adaptiveSync" value="0"/>
