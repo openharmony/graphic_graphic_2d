@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+// Screen Manager Test: Test cases for screen management interfaces including
+// physical screen get/set interfaces, virtual screen interfaces, and mirror screen interfaces.
+
 #include <filesystem>
 
 #include "accesstoken_kit.h"
