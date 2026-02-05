@@ -281,7 +281,8 @@ GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetScreenActiveModeTest0
     sptr<ScreenModeInfo> activeMode = RSInterfaces::GetInstance().GetScreenActiveMode(activeScreenId);
     EXPECT_NE(activeMode, nullptr);
     if (activeMode != nullptr) {
-        LOGI("GetScreenActiveModeTest001 screenId[%{public}" PRIu64 "] width[%{public}d] height[%{public}d] refreshRate[%{public}d]",
+        LOGI("GetScreenActiveModeTest001 screenId[%{public}" PRIu64 "] width[%{public}d] "
+             "height[%{public}d] refreshRate[%{public}d]",
             activeScreenId, activeMode->GetWidth(), activeMode->GetHeight(), activeMode->GetRefreshRate());
     }
 }
