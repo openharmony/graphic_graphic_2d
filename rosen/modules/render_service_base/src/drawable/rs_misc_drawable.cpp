@@ -203,7 +203,7 @@ void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
     }
     auto maybeColor = colorPickerManager_->GetColorPicked(*paintFilterCanvas, rect, nodeId_, params_);
     if (maybeColor.has_value()) {
-        paintFilterCanvas->SetColorPicked(params_.placeholder, maybeColor.value());
+        paintFilterCanvas->SetColorPicked(maybeColor.value());
     }
 }
 

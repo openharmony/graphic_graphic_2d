@@ -30,6 +30,24 @@ namespace RSColorPickerUtils {
      * @return float The luminance value in range [0, 255]
      */
     float CalculateLuminance(Drawing::ColorQuad color);
+
+    /**
+     * @brief Obtain the corresponding dark color and light color based on the placeholder
+     *
+     * @param placeholder The placeholder to Get color for
+     * @return pair of dark color and light color
+     */
+    std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColorForPlaceholder(ColorPlaceholder placeholder);
+
+    /**
+     * @brief Interpolate the start color and end color to obtain the color
+     *
+     * @param start The start color
+     * @param end The end color
+     * @param fraction The interpolation ratio
+     * @return Interpolated color
+     */
+    Drawing::ColorQuad InterpolateColor(Drawing::ColorQuad start, Drawing::ColorQuad end, float fraction);
 }
 } // namespace OHOS::Rosen
 

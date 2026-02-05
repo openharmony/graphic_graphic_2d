@@ -234,7 +234,7 @@ void Color::UpdateValueToInt()
     blue_ = static_cast<uint32_t>(round(color4f_.blueF_ * RGB_MAX));
 }
 
-// Placeholder helper implementations
+// Placeholder helper implementations 
 Color::Color(ColorPlaceholder ph) noexcept
     : alpha_(RGB_MAX), placeholder_(static_cast<uint16_t>(ph)), red_(0), green_(0), blue_(0)
 {}
