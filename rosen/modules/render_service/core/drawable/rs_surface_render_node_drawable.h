@@ -113,6 +113,21 @@ public:
         return RSRenderNodeDrawableType::SURFACE_NODE_DRAWABLE;
     }
 
+    bool GetNeedCacheRelatedSourceNode() const
+    {
+        return needCacheRelatedSourceNode_;
+    }
+    void SetNeedCacheRelatedSourceNode(bool value)
+    {
+        needCacheRelatedSourceNode_ = value;
+    }
+    void SetRelatedSourceNodeCache(std::shared_ptr<Drawing::Image> image);
+    void ClearRelatedSourceCache();
+    bool HasRelatedSourceNodeCache() const
+    {
+        return relatedSourceNodeCache_ != nullptr;
+    }
+
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
@@ -132,7 +147,7 @@ private:
     static Registrar instance_;
 
     bool CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
-        RSRenderThreadParams& uniParams) const;
+        RSRenderThreadParams& uniParams);
     void PreprocessUnobscuredUEC(RSPaintFilterCanvas& canvas);
 
     void EnableGpuOverDrawDrawBufferOptimization(Drawing::Canvas& canvas, RSSurfaceRenderParams* surfaceParams);
@@ -146,6 +161,12 @@ private:
     // Draw cloneNode
     bool DrawCloneNode(RSPaintFilterCanvas& canvas, RSRenderThreadParams& uniParam,
         RSSurfaceRenderParams& surfaceParams, bool isCapture = false);
+    // Draw cloneNode isRelated
+    bool DrawRelatedNode(RSPaintFilterCanvas& canvas, RSRenderThreadParams& uniParam,
+        RSSurfaceRenderParams& surfaceParams, std::shared_ptr<RSSurfaceRenderNodeDrawable> clonedNodeRenderDrawable,
+        bool isCapture = false);
+    // Draw cloneNode source isRelated
+    bool DrawRelatedSourceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
     // Watermark
@@ -213,6 +234,8 @@ private:
 
     Drawing::Region curSurfaceDrawRegion_ {};
     mutable std::mutex drawRegionMutex_;
+    bool needCacheRelatedSourceNode_ = false;
+    std::shared_ptr<Drawing::Image> relatedSourceNodeCache_ = nullptr;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

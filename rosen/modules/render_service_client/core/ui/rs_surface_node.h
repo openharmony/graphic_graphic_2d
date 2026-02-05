@@ -296,9 +296,20 @@ public:
     void SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback);
 #endif
     void SetForeground(bool isForeground);
-    // [Attention] The function only used for unlocking screen for PC currently
-    void SetClonedNodeInfo(NodeId nodeId, bool needOffscreen = true);
+    // [Attention] The function now used for unlocking screen and other scenes for PC currrently,
+    /**
+     * @brief set the surface to be a cloneNode
+     *
+     * @param nodeId the sourcenode id
+     * @param needoffScrren enable cloneNode draw offscreen
+     * @param isReltaed if is related，is related needoffScrren force be true
+     *
+     * @return return void
+     */
+    void SetClonedNodeInfo(NodeId nodeId, bool needOffscreen = true, bool isRelated = false);
     // Force enable UIFirst when set TRUE
+    bool CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> currentNode,
+        std::shared_ptr<RSSurfaceRenderNode> clonedNode);
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoFlags(uint32_t flags);
     void SetHDRPresent(bool hdrPresent, NodeId id);

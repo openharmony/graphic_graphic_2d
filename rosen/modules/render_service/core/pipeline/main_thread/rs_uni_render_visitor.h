@@ -229,6 +229,7 @@ private:
         bool& hasVisibleHwcNodes, bool& needForceUpdateHwcNodes);
     void PrevalidateHwcNode();
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
+    void UpdateInfoForClonedNode(RSSurfaceRenderNode& node);
     void PrepareForCrossNode(RSSurfaceRenderNode& node);
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
@@ -481,8 +482,9 @@ private:
     bool zoomStateChange_ = false;
 
     uint32_t layerNum_ = 0;
-
-    NodeId clonedSourceNodeId_ = INVALID_NODEID;
+    
+    // first: cloneSource id; second: cloneSource drawable
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> cloneNodeMap_;
 
     bool isDumpRsTreeDetailEnabled_ = false;
     uint32_t nodePreparedSeqNum_ = 0;

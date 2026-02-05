@@ -144,6 +144,7 @@ rs_func_feature_sources = [
   "rs_func_feature/watermark/watermark.cpp",
   "rs_func_feature/accessibility/curtain_screen_test.cpp",
   "rs_func_feature/register_buffer_available_callback/register_buffer_available_callback_test.cpp",
+  "rs_func_feature/clonenode/clone_node_test.cpp",
 ]
 rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/boundary_test.cpp",
