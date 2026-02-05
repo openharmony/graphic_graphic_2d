@@ -20,6 +20,7 @@ namespace OHOS {
 namespace Rosen {
 const uint32_t AGT_SUCCESS = 0;                                                    // Operation success
 const uint32_t AGT_SOCKET_FAIL = 101;                                              // Socket failed
+const uint32_t NODETREE_RESTART = 102;                                             // Nodetree Scene record restart
 } // namespace Rosen
 } // namespace OHOS
 
