@@ -3702,7 +3702,7 @@ HWTEST_F(RSUniHwcVisitorTest, IsTargetSolidLayer_001, TestSize.Level2)
 
 /**
  * @tc.name: CheckHwcNodeIntersection001
- * @tc.desc: Test CheckHwcNodeIntersection with intersecting rect disables HWC
+ * @tc.desc: Test CheckHwcNodeIntersection with intersecting rect disables
  * @tc.type: FUNC
  * @tc.require:
  */

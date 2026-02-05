@@ -656,7 +656,7 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable005, TestSize.Level1)
     RSRenderNode node(id);
 
     // Don't set any color picker properties, so GetColorPicker() returns nullptr
-    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
     // OnUpdate should return false when stagingColorPicker_ is nullptr
@@ -774,7 +774,7 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable007, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
 
-    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
     // Clear stagingColorPicker_ to test nullptr branch
@@ -798,11 +798,11 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable008, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
 
-    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
-    // Create a ColorPickerParams with NONE strategy
-    auto params = std::make_shared<RSColorPickerParams>();
+    // Create a ColorPickerParam with NONE strategy
+    auto params = std::make_shared<ColorPickerParam>();
     params->strategy = ColorPickStrategyType::NONE;
     params->placeholder = ColorPlaceholder::NONE;
     params->interval = 0;
@@ -826,11 +826,11 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable009, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
 
-    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
-    // Create a ColorPickerParams with 2000ms interval
-    auto params = std::make_shared<RSColorPickerParams>();
+    // Create a ColorPickerParam with 2000ms interval
+    auto params = std::make_shared<ColorPickerParam>();
     params->strategy = ColorPickStrategyType::AVERAGE;
     params->placeholder = ColorPlaceholder::TEXT_CONTRAST;
     params->interval = 2000;
@@ -855,11 +855,11 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable010, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
 
-    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
-    // Create a ColorPickerParams with 1000ms interval
-    auto params = std::make_shared<RSColorPickerParams>();
+    // Create a ColorPickerParam with 1000ms interval
+    auto params = std::make_shared<ColorPickerParam>();
     params->strategy = ColorPickStrategyType::AVERAGE;
     params->placeholder = ColorPlaceholder::TEXT_CONTRAST;
     params->interval = 1000;
@@ -885,11 +885,11 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable011, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
 
-    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
-    // Create a ColorPickerParams with 1000ms interval
-    auto params = std::make_shared<RSColorPickerParams>();
+    // Create a ColorPickerParam with 1000ms interval
+    auto params = std::make_shared<ColorPickerParam>();
     params->strategy = ColorPickStrategyType::DOMINANT;
     params->placeholder = ColorPlaceholder::FOREGROUND;
     params->interval = 1000;

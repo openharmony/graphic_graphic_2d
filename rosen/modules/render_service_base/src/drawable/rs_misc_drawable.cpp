@@ -157,19 +157,19 @@ void RSChildrenDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* re
 }
 
 // ==================== RSColorPickerDrawable =====================
-RSColorPickerDrawable::RSColorPickerDrawable(bool useAlt)
+RSColorPickerDrawable::RSColorPickerDrawable(bool useAlt, NodeId nodeId)
 {
     if (useAlt) {
-        colorPickerManager_ = std::make_shared<ColorPickAltManager>();
+        colorPickerManager_ = std::make_shared<ColorPickAltManager>(nodeId);
     } else {
-        colorPickerManager_ = std::make_shared<RSColorPickerManager>();
+        colorPickerManager_ = std::make_shared<RSColorPickerManager>(nodeId);
     }
 }
 RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
 {
     auto colorPicker = node.GetRenderProperties().GetColorPicker();
     const bool useAlt = colorPicker ? colorPicker->strategy == ColorPickStrategyType::CLIENT_CALLBACK : false;
-    if (auto ret = std::make_shared<RSColorPickerDrawable>(useAlt); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSColorPickerDrawable>(useAlt, node.GetId()); ret->OnUpdate(node)) {
         return std::move(ret);
     }
     return nullptr;
@@ -203,7 +203,7 @@ bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)
     stagingNodeId_ = node.GetId();
     stagingColorPicker_ = node.GetRenderProperties().GetColorPicker();
     needSync_ = true;
-    return stagingColorPicker_ != nullptr;
+    return stagingColorPicker_ && stagingColorPicker_->strategy != ColorPickStrategyType::NONE;
 }
 
 void RSColorPickerDrawable::OnSync()
@@ -236,7 +236,7 @@ void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
         rect ? rect->ToString().c_str() : "null", needExecute);
 
     if (needExecute) {
-        colorPickerManager_->ScheduleColorPick(*paintFilterCanvas, rect, nodeId_, params_);
+        colorPickerManager_->ScheduleColorPick(*paintFilterCanvas, rect, params_);
     }
 }
 

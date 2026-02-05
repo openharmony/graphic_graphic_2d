@@ -2007,10 +2007,6 @@ bool RSNode::UnregisterColorPickerCallback()
 
 void RSNode::SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrategyType strategy, uint64_t interval)
 {
-    if (strategy == ColorPickStrategyType::NONE) {
-        RemoveModifier(GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER));
-        return;
-    }
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
         &ModifierNG::RSColorPickerModifier::SetColorPickerPlaceholder>(placeholder);
     SetPropertyNG<ModifierNG::RSColorPickerModifier,

@@ -33,11 +33,11 @@ class Image;
 }
 class RSColorPickerManager : public std::enable_shared_from_this<RSColorPickerManager>, public IColorPickerManager {
 public:
-    RSColorPickerManager() = default;
+    explicit RSColorPickerManager(NodeId nodeId) : nodeId_(nodeId) {}
     ~RSColorPickerManager() noexcept = default;
 
     std::optional<Drawing::ColorQuad> GetColorPick() override;
-    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId,
+    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
         const ColorPickerParam& params) override;
 
 private:
@@ -88,7 +88,7 @@ private:
                     RS_LOGE("ColorPickerInfo::PickColor BuildFromTexture failed");
                     return;
                 }
-                manager->PickColor(image, info->nodeId_, info->strategy_);
+                manager->PickColor(image, info->strategy_);
                 image = nullptr;
                 info->oldImage_ = nullptr;
             };
@@ -96,11 +96,9 @@ private:
         }
     };
 
-    // Helper method for scheduling color pick with strategy (extracted from params)
-    void ScheduleColorPickWithStrategy(
-        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, ColorPickStrategyType strategy);
-    void PickColor(const std::shared_ptr<Drawing::Image>& snapshot, uint64_t nodeId, ColorPickStrategyType strategy);
-    void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId, ColorPickStrategyType strategy);
+    void PickColor(const std::shared_ptr<Drawing::Image>& snapshot, ColorPickStrategyType strategy);
+    void HandleColorUpdate(Drawing::ColorQuad newColor, ColorPickStrategyType strategy);
+
 
     inline std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColor();
 
@@ -119,6 +117,7 @@ private:
     Drawing::ColorQuad prevColor_ = Drawing::Color::COLOR_BLACK;
 
     std::atomic<uint64_t> animStartTime_ = 0;
+    const NodeId nodeId_;
 };
 } // namespace Rosen
 } // namespace OHOS

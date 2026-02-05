@@ -38,7 +38,7 @@ public:
     // Schedules an async color pick task on the canvas content.
     // The result will be delivered via callback or client notification.
     virtual void ScheduleColorPick(
-        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, const ColorPickerParam& params) = 0;
+        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params) = 0;
 };
 
 } // namespace OHOS::Rosen

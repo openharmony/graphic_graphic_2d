@@ -32,12 +32,12 @@ class Image;
 }
 class ColorPickAltManager : public std::enable_shared_from_this<ColorPickAltManager>, public IColorPickerManager {
 public:
-    ColorPickAltManager() = default;
+    explicit ColorPickAltManager(NodeId nodeId) : nodeId_(nodeId) {}
     ~ColorPickAltManager() noexcept = default;
 
     // IColorPickerManager interface
     std::optional<Drawing::ColorQuad> GetColorPick() override;
-    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId,
+    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
         const ColorPickerParam& params) override;
 
 private:
@@ -88,7 +88,7 @@ private:
                 }
                 Drawing::ColorQuad colorPicked;
                 if (RSPropertyDrawableUtils::PickColor(gpuCtx, image, colorPicked)) {
-                    manager->HandleColorUpdate(colorPicked, info->nodeId_);
+                    manager->HandleColorUpdate(colorPicked);
                 } else {
                     RS_LOGE("ColorPickAltManager: PickColor failed");
                 }
@@ -99,8 +99,10 @@ private:
         }
     };
 
-    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId);
-    void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId);
+    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect);
+    void HandleColorUpdate(Drawing::ColorQuad newColor);
+
+    const NodeId nodeId_;
 
     std::atomic<uint32_t> pickedLuminance_ = RGBA_MAX + 1; // invalid initial luminance to force first notification
     uint64_t lastUpdateTime_ = 0;

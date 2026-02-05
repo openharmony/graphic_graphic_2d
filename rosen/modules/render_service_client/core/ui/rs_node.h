@@ -1112,16 +1112,15 @@ public:
     void SetOutlineRadius(const Vector4f& radius);
 
     /**
-     * @brief Sets color picker params of the node
-     * @deprecated use the callback interface SetColorPickerCallback instead.
+     * @brief Sets color picker params of the node.
      * @param placeholder The handle to receive realtime color.
-     * @param strategy Strategy type to handle the color picked.
+     * @param strategy Strategy type to handle the color picked. Reset when placeholder is NONE.
      * @param interval Color picker task interval in ms, minimum is 500ms.
      */
     void SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrategyType strategy, uint64_t interval);
 
     /**
-     * @brief Sets the color picker parameters.
+     * @brief Sets the color picker parameters for callback mode.
      *
      * @param interval Cooldown interval between two color picking tasks in ms. Minimum is 180ms.
      * @param notifyThreshold {darkThreshold, lightThreshold} (0-255).
@@ -1159,6 +1158,7 @@ public:
 
     /**
      * @brief Unregisters the color picking task.
+     * @deprecated combine SetColorPickerCallback(nullptr) and SetColorPickerParams
      *
      * @return true if unregistration is successful.
      */

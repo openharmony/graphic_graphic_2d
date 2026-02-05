@@ -66,7 +66,7 @@ private:
 // RSColorPickerDrawable, pick color for current content of canvas
 class RSColorPickerDrawable : public RSDrawable {
 public:
-    explicit RSColorPickerDrawable(bool useAlt);
+    RSColorPickerDrawable(bool useAlt, NodeId nodeId);
     ~RSColorPickerDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);

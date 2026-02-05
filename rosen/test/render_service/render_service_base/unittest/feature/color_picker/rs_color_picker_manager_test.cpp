@@ -46,7 +46,7 @@ public:
 
 HWTEST_F(RSColorPickerManagerTest, GetColorPickReturnsBlackInitially, TestSize.Level1)
 {
-    RSColorPickerManager manager;
+    RSColorPickerManager manager(1);
     auto color = manager.GetColorPick();
     ASSERT_TRUE(color.has_value());
     EXPECT_EQ(color.value(), Drawing::Color::COLOR_BLACK);
@@ -54,8 +54,8 @@ HWTEST_F(RSColorPickerManagerTest, GetColorPickReturnsBlackInitially, TestSize.L
 
 HWTEST_F(RSColorPickerManagerTest, GetColorPickInterpolatesDuringAnimation, TestSize.Level1)
 {
-    RSColorPickerManager manager;
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 1, ColorPickStrategyType::AVERAGE);
+    RSColorPickerManager manager(1);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     auto color = manager.GetColorPick();
@@ -66,8 +66,8 @@ HWTEST_F(RSColorPickerManagerTest, GetColorPickInterpolatesDuringAnimation, Test
 
 HWTEST_F(RSColorPickerManagerTest, GetColorPickReturnsEndColorAfterAnimation, TestSize.Level1)
 {
-    RSColorPickerManager manager;
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 1, ColorPickStrategyType::AVERAGE);
+    RSColorPickerManager manager(1);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
     auto color = manager.GetColorPick();
@@ -81,13 +81,13 @@ HWTEST_F(RSColorPickerManagerTest, GetColorPickReturnsEndColorAfterAnimation, Te
 
 HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickWithNoneStrategyDoesNothing, TestSize.Level1)
 {
-    RSColorPickerManager manager;
+    RSColorPickerManager manager(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::NONE, 0);
-    manager.ScheduleColorPick(canvas, &rect, 1, params);
+    manager.ScheduleColorPick(canvas, &rect, params);
 
     auto color = manager.GetColorPick();
     EXPECT_EQ(color.value(), Drawing::Color::COLOR_BLACK);
@@ -95,16 +95,16 @@ HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickWithNoneStrategyDoesNothing,
 
 HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickContinuesAnimation, TestSize.Level1)
 {
-    RSColorPickerManager manager;
+    RSColorPickerManager manager(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
 
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 1, ColorPickStrategyType::AVERAGE);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
-    manager.ScheduleColorPick(canvas, &rect, 1, params);
+    manager.ScheduleColorPick(canvas, &rect, params);
 
     auto color = manager.GetColorPick();
     ASSERT_TRUE(color.has_value());
@@ -113,12 +113,12 @@ HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickContinuesAnimation, TestSize
 
 HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickWithNullRectReturnsEarly, TestSize.Level1)
 {
-    RSColorPickerManager manager;
+    RSColorPickerManager manager(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
-    manager.ScheduleColorPick(canvas, nullptr, 1, params);
+    manager.ScheduleColorPick(canvas, nullptr, params);
 
     auto color = manager.GetColorPick();
     EXPECT_EQ(color.value(), Drawing::Color::COLOR_BLACK);
@@ -130,8 +130,8 @@ HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickWithNullRectReturnsEarly, Te
 
 HWTEST_F(RSColorPickerManagerTest, HandleColorUpdateWithContrastStrategy, TestSize.Level1)
 {
-    RSColorPickerManager manager;
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 1, ColorPickStrategyType::CONTRAST);
+    RSColorPickerManager manager(1);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, ColorPickStrategyType::CONTRAST);
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
     auto color = manager.GetColorPick();
@@ -140,12 +140,12 @@ HWTEST_F(RSColorPickerManagerTest, HandleColorUpdateWithContrastStrategy, TestSi
 
 HWTEST_F(RSColorPickerManagerTest, HandleColorUpdateWithSameColorDoesNotRestartAnimation, TestSize.Level1)
 {
-    RSColorPickerManager manager;
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 1, ColorPickStrategyType::AVERAGE);
+    RSColorPickerManager manager(1);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
     auto color1 = manager.GetColorPick();
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 1, ColorPickStrategyType::AVERAGE);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, ColorPickStrategyType::AVERAGE);
     auto color2 = manager.GetColorPick();
 
     EXPECT_EQ(color1.value(), color2.value());
@@ -153,9 +153,9 @@ HWTEST_F(RSColorPickerManagerTest, HandleColorUpdateWithSameColorDoesNotRestartA
 
 HWTEST_F(RSColorPickerManagerTest, HandleColorUpdateClampsAnimationFraction, TestSize.Level1)
 {
-    RSColorPickerManager manager;
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 1, ColorPickStrategyType::AVERAGE);
-    manager.HandleColorUpdate(Drawing::Color::COLOR_BLACK, 1, ColorPickStrategyType::AVERAGE);
+    RSColorPickerManager manager(1);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, ColorPickStrategyType::AVERAGE);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_BLACK, ColorPickStrategyType::AVERAGE);
 
     auto color = manager.GetColorPick();
     ASSERT_TRUE(color.has_value());
@@ -234,14 +234,14 @@ HWTEST_F(RSColorPickerManagerTest, GetContrastColorWithMidLuminanceReturnsCached
 
 HWTEST_F(RSColorPickerManagerTest, PickColorWithValidImageUpdatesColor, TestSize.Level1)
 {
-    RSColorPickerManager manager;
+    RSColorPickerManager manager(1);
     Drawing::Bitmap bmp;
     Drawing::BitmapFormat format{Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
     bmp.Build(10, 10, format);
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
     auto image = bmp.MakeImage();
 
-    manager.PickColor(image, 1, ColorPickStrategyType::AVERAGE);
+    manager.PickColor(image, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
     auto color = manager.GetColorPick();
@@ -251,11 +251,11 @@ HWTEST_F(RSColorPickerManagerTest, PickColorWithValidImageUpdatesColor, TestSize
 
 HWTEST_F(RSColorPickerManagerTest, PickColorWithEmptyImageDoesNotChangeColor, TestSize.Level1)
 {
-    RSColorPickerManager manager;
+    RSColorPickerManager manager(1);
     auto before = manager.GetColorPick();
 
     auto emptyImage = std::make_shared<Drawing::Image>();
-    manager.PickColor(emptyImage, 1, ColorPickStrategyType::AVERAGE);
+    manager.PickColor(emptyImage, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     auto after = manager.GetColorPick();
@@ -274,7 +274,7 @@ public:
 
 HWTEST_F(ColorPickAltManagerTest, GetColorPickAlwaysReturnsNullopt, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
     auto result = manager->GetColorPick();
     EXPECT_FALSE(result.has_value());
 }
@@ -285,39 +285,39 @@ HWTEST_F(ColorPickAltManagerTest, GetColorPickAlwaysReturnsNullopt, TestSize.Lev
 
 HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickWithNoneStrategyReturnsEarly, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::NONE, 0);
-    manager->ScheduleColorPick(canvas, &rect, 1, params);
+    manager->ScheduleColorPick(canvas, &rect, params);
 
     EXPECT_TRUE(true);
 }
 
 HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickUpdatesThresholds, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     params.notifyThreshold = {30, 50};
-    manager->ScheduleColorPick(canvas, &rect, 1, params);
+    manager->ScheduleColorPick(canvas, &rect, params);
 
     EXPECT_TRUE(true);
 }
 
 HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickWithNullRectReturnsEarly, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
-    manager->ScheduleColorPick(canvas, nullptr, 1, params);
+    manager->ScheduleColorPick(canvas, nullptr, params);
 
     EXPECT_TRUE(true);
 }
@@ -328,32 +328,32 @@ HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickWithNullRectReturnsEarly, Tes
 
 HWTEST_F(ColorPickAltManagerTest, HandleColorUpdateWithSameLuminanceZone, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
     Drawing::ColorQuad color1 = Drawing::Color::ColorQuadSetARGB(0xFF, 100, 100, 100);
 
-    manager->HandleColorUpdate(color1, 1);
-    manager->HandleColorUpdate(color1, 1);
+    manager->HandleColorUpdate(color1);
+    manager->HandleColorUpdate(color1);
 
     EXPECT_TRUE(true);
 }
 
 HWTEST_F(ColorPickAltManagerTest, HandleColorUpdateWithDifferentLuminanceZones, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
 
-    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50), 1);
-    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 200, 200, 200), 1);
+    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50));
+    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 200, 200, 200));
 
     EXPECT_TRUE(true);
 }
 
 HWTEST_F(ColorPickAltManagerTest, HandleColorUpdateWithInvalidLuminance, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
 
-    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50), 1);
+    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50));
     Drawing::ColorQuad invalidColor = Drawing::Color::ColorQuadSetARGB(RGBA_MAX + 1, 100, 100, 100);
-    manager->HandleColorUpdate(invalidColor, 1);
+    manager->HandleColorUpdate(invalidColor);
 
     EXPECT_TRUE(true);
 }
@@ -364,46 +364,46 @@ HWTEST_F(ColorPickAltManagerTest, HandleColorUpdateWithInvalidLuminance, TestSiz
 
 HWTEST_F(ColorPickAltManagerTest, GetLuminanceZoneWithDarkLuminance, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     params.notifyThreshold = {100, 200};
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
-    manager->ScheduleColorPick(canvas, &rect, 1);
+    manager->ScheduleColorPick(canvas, &rect, params);
 
-    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50), 1);
+    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50));
     EXPECT_TRUE(true);
 }
 
 HWTEST_F(ColorPickAltManagerTest, GetLuminanceZoneWithLightLuminance, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     params.notifyThreshold = {100, 200};
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
-    manager->ScheduleColorPick(canvas, &rect, 1);
+    manager->ScheduleColorPick(canvas, &rect, params);
 
-    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 230, 230, 230), 1);
+    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 230, 230, 230));
     EXPECT_TRUE(true);
 }
 
 HWTEST_F(ColorPickAltManagerTest, GetLuminanceZoneWithNeutralLuminance, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     params.notifyThreshold = {100, 200};
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
-    manager->ScheduleColorPick(canvas, &rect, 1);
+    manager->ScheduleColorPick(canvas, &rect, params);
 
-    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 150, 150, 150), 1);
+    manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 150, 150, 150));
     EXPECT_TRUE(true);
 }
 
@@ -413,7 +413,7 @@ HWTEST_F(ColorPickAltManagerTest, GetLuminanceZoneWithNeutralLuminance, TestSize
 
 HWTEST_F(RSColorPickerManagerTest, ThreadSafetyConcurrentHandleColorUpdate, TestSize.Level1)
 {
-    RSColorPickerManager manager;
+    RSColorPickerManager manager(1);
     std::atomic<int> updateCount{0};
     const int numThreads = 5;
     const int updatesPerThread = 10;
@@ -424,7 +424,7 @@ HWTEST_F(RSColorPickerManagerTest, ThreadSafetyConcurrentHandleColorUpdate, Test
             for (int j = 0; j < updatesPerThread; ++j) {
                 Drawing::ColorQuad color = Drawing::Color::ColorQuadSetARGB(
                     0xFF, (i * 50) % 256, (j * 30) % 256, ((i + j) * 20) % 256);
-                manager.HandleColorUpdate(color, i, ColorPickStrategyType::AVERAGE);
+                manager.HandleColorUpdate(color, ColorPickStrategyType::AVERAGE);
                 updateCount++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
@@ -440,7 +440,7 @@ HWTEST_F(RSColorPickerManagerTest, ThreadSafetyConcurrentHandleColorUpdate, Test
 
 HWTEST_F(ColorPickAltManagerTest, ThreadSafetyConcurrentHandleColorUpdate, TestSize.Level1)
 {
-    auto manager = std::make_shared<ColorPickAltManager>();
+    auto manager = std::make_shared<ColorPickAltManager>(1);
     std::atomic<int> updateCount{0};
     const int numThreads = 5;
     const int updatesPerThread = 10;
@@ -451,7 +451,7 @@ HWTEST_F(ColorPickAltManagerTest, ThreadSafetyConcurrentHandleColorUpdate, TestS
             for (int j = 0; j < updatesPerThread; ++j) {
                 Drawing::ColorQuad color = Drawing::Color::ColorQuadSetARGB(
                     0xFF, (i * 50) % 256, (j * 30) % 256, ((i + j) * 20) % 256);
-                manager->HandleColorUpdate(color, i);
+                manager->HandleColorUpdate(color);
                 updateCount++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
