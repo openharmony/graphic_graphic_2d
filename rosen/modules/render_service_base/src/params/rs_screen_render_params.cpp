@@ -282,7 +282,6 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->isZoomed_ = isZoomed_;
     targetScreenParams->hasMirrorScreen_ = hasMirrorScreen_;
     targetScreenParams->targetSurfaceRenderNodeDrawable_ = targetSurfaceRenderNodeDrawable_;
-    targetScreenParams->roundCornerSurfaceDrawables_ = roundCornerSurfaceDrawables_;
     targetScreenParams->needForceUpdateHwcNodes_ = needForceUpdateHwcNodes_;
     targetScreenParams->childDisplayCount_ =  childDisplayCount_;
     targetScreenParams->logicalDisplayNodeDrawables_ =  std::move(logicalDisplayNodeDrawables_);

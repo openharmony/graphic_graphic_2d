@@ -36,23 +36,35 @@ void RSUIFilterBaseTest::TearDown() {}
 /**
  * @tc.name: CreateNGBlurFilter
  * @tc.desc: test for RSNGFilterHelper::CreateNGBlurFilter
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSUIFilterBaseTest, CreateNGBlurFilter, TestSize.Level1)
 {
-    auto blurFilter = RSNGFilterHelper::CreateNGBlurFilter(10.f, 10.f);
+    auto blurFilter = std::static_pointer_cast<RSNGBlurFilter>(
+        RSNGFilterHelper::CreateNGBlurFilter(10.f, 10.f));
     EXPECT_NE(blurFilter, nullptr);
+    float blurRadiusX = blurFilter->Getter<BlurRadiusXTag>()->Get();
+    float blurRadiusY = blurFilter->Getter<BlurRadiusYTag>()->Get();
+    EXPECT_FLOAT_EQ(blurRadiusX, 10.f);
+    EXPECT_FLOAT_EQ(blurRadiusY, 10.f);
 }
 
 /**
  * @tc.name: CreateNGMaterialBlurFilter
  * @tc.desc: test for RSNGFilterHelper::CreateNGMaterialBlurFilter
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSUIFilterBaseTest, CreateNGMaterialBlurFilter, TestSize.Level1)
 {
-    MaterialParam materialParam;
-    auto materialBlurFilter = RSNGFilterHelper::CreateNGMaterialBlurFilter(materialParam);
+    MaterialParam materialParam = { -50, -0.5, 0.5, Color(0x9fff0000), false };
+    auto materialBlurFilter = std::static_pointer_cast<RSNGMaterialBlurFilter>(
+        RSNGFilterHelper::CreateNGMaterialBlurFilter(materialParam));
     EXPECT_NE(materialBlurFilter, nullptr);
+    float radius = materialBlurFilter->Getter<MaterialBlurRadiusTag>()->Get();
+    float saturation = materialBlurFilter->Getter<MaterialBlurSaturationTag>()->Get();
+    float brightness = materialBlurFilter->Getter<MaterialBlurBrightnessTag>()->Get();
+    EXPECT_FLOAT_EQ(radius, -50.f);
+    EXPECT_FLOAT_EQ(saturation, -0.5);
+    EXPECT_FLOAT_EQ(brightness, -0.5);
 }
 } // namespace OHOS::Rosen

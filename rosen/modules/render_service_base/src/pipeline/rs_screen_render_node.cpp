@@ -216,13 +216,6 @@ void RSScreenRenderNode::UpdateRenderParams()
     screenParams->logicalDisplayNodeDrawables_ = std::move(logicalDisplayNodeDrawables_);
     screenParams->SetHasMirroredScreenChanged(hasMirroredScreenChanged_);
     screenParams->isVirtualSurfaceChanged_ = isVirtualSurfaceChanged_;
-    screenParams->roundCornerSurfaceDrawables_.clear();
-    if (rcdSurfaceNodeTop_ && rcdSurfaceNodeTop_->GetRenderDrawable() != nullptr) {
-        screenParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeTop_->GetRenderDrawable());
-    }
-    if (rcdSurfaceNodeBottom_ && rcdSurfaceNodeBottom_->GetRenderDrawable() != nullptr) {
-        screenParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeBottom_->GetRenderDrawable());
-    }
     RSRenderNode::UpdateRenderParams();
 #endif
 }
