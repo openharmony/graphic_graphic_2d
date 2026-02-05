@@ -762,4 +762,189 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomRestoreDrawable001, TestSize.Level1)
     drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: RSColorPickerDrawable007
+ * @tc.desc: Test Prepare with nullptr stagingColorPicker
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable007, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    ASSERT_NE(drawable, nullptr);
+
+    // Clear stagingColorPicker_ to test nullptr branch
+    drawable->stagingColorPicker_ = nullptr;
+
+    // Prepare should return early and not set needExecute
+    uint64_t vsyncTime = 1000000000; // 1 second in nanoseconds
+    drawable->Prepare(vsyncTime);
+
+    EXPECT_FALSE(drawable->needExecute_.load(std::memory_order_relaxed));
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable008
+ * @tc.desc: Test Prepare with NONE strategy
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable008, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    ASSERT_NE(drawable, nullptr);
+
+    // Create a ColorPickerParams with NONE strategy
+    auto params = std::make_shared<RSColorPickerParams>();
+    params->strategy = ColorPickStrategyType::NONE;
+    params->placeholder = ColorPlaceholder::NONE;
+    params->interval = 0;
+    drawable->stagingColorPicker_ = params;
+
+    // Prepare should return early and not set needExecute
+    uint64_t vsyncTime = 1000000000;
+    drawable->Prepare(vsyncTime);
+
+    EXPECT_FALSE(drawable->needExecute_.load(std::memory_order_relaxed));
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable009
+ * @tc.desc: Test Prepare when interval not elapsed
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable009, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    ASSERT_NE(drawable, nullptr);
+
+    // Create a ColorPickerParams with 2000ms interval
+    auto params = std::make_shared<RSColorPickerParams>();
+    params->strategy = ColorPickStrategyType::AVERAGE;
+    params->placeholder = ColorPlaceholder::TEXT_CONTRAST;
+    params->interval = 2000;
+    drawable->stagingColorPicker_ = params;
+    drawable->lastUpdateTime_ = 1000; // Last update at 1000ms
+
+    // vsyncTime is 1500ms (1000000000 ns = 1000ms), interval not elapsed
+    uint64_t vsyncTime = 1500000000;
+    drawable->Prepare(vsyncTime);
+
+    EXPECT_FALSE(drawable->needExecute_.load(std::memory_order_relaxed));
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable010
+ * @tc.desc: Test Prepare when interval elapsed
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable010, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    ASSERT_NE(drawable, nullptr);
+
+    // Create a ColorPickerParams with 1000ms interval
+    auto params = std::make_shared<RSColorPickerParams>();
+    params->strategy = ColorPickStrategyType::AVERAGE;
+    params->placeholder = ColorPlaceholder::TEXT_CONTRAST;
+    params->interval = 1000;
+    drawable->stagingColorPicker_ = params;
+    drawable->lastUpdateTime_ = 1000; // Last update at 1000ms
+
+    // vsyncTime is 2500ms (2500000000 ns), interval has elapsed (2500 >= 1000 + 1000)
+    uint64_t vsyncTime = 2500000000;
+    drawable->Prepare(vsyncTime);
+
+    EXPECT_TRUE(drawable->needExecute_.load(std::memory_order_relaxed));
+    EXPECT_EQ(drawable->lastUpdateTime_, 2500u); // lastUpdateTime_ should be updated
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable011
+ * @tc.desc: Test Prepare with task scheduling
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable011, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false);
+    ASSERT_NE(drawable, nullptr);
+
+    // Create a ColorPickerParams with 1000ms interval
+    auto params = std::make_shared<RSColorPickerParams>();
+    params->strategy = ColorPickStrategyType::DOMINANT;
+    params->placeholder = ColorPlaceholder::FOREGROUND;
+    params->interval = 1000;
+    drawable->stagingColorPicker_ = params;
+    drawable->lastUpdateTime_ = 1000;
+    drawable->isTaskScheduled_ = false;
+
+    // vsyncTime is 1500ms, interval not elapsed but task should be scheduled
+    uint64_t vsyncTime = 1500000000;
+    drawable->Prepare(vsyncTime);
+
+    // Task should be scheduled (isTaskScheduled_ set to true)
+    // Note: We can't easily verify the actual task was posted without mocking
+    EXPECT_FALSE(drawable->needExecute_.load(std::memory_order_relaxed));
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable012
+ * @tc.desc: Test OnDraw with needExecute logic
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable012, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    node.GetMutableRenderProperties().SetColorPickerPlaceholder(
+        static_cast<int>(ColorPlaceholder::TEXT_CONTRAST));
+    node.GetMutableRenderProperties().SetColorPickerStrategy(
+        static_cast<int>(ColorPickStrategyType::AVERAGE));
+    node.GetMutableRenderProperties().SetColorPickerInterval(1000);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(
+        DrawableV2::RSColorPickerDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    // Set needExecute to true
+    drawable->needExecute_.store(true, std::memory_order_relaxed);
+
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>();
+
+    // OnDraw should execute color picking when needExecute is true
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+
+    // Set needExecute to false and test again
+    drawable->needExecute_.store(false, std::memory_order_relaxed);
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+
+    // Test with null paintFilterCanvas
+    drawable->OnDraw(nullptr, rect.get());
+    ASSERT_TRUE(true);
+}
 } // namespace OHOS::Rosen
