@@ -58,6 +58,7 @@
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "gmock/gmock.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -3399,6 +3400,72 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc002, TestSize.Level
     node->SetNodeName("CapsuleWindow");
     ASSERT_TRUE(rsUniRenderVisitor->BeforeUpdateSurfaceDirtyCalc(*node));
     screenManager->RemoveVirtualScreen(screenId);
+}
+
+/**
+ * @tc.name: BeforeUpdateSurfaceDirtyCalc003
+ * @tc.desc: Test BeforeUpdateSurfaceDirtyCalc with nonEmpty node
+ * @tc.type: FUNC
+ * @tc.require: issueIABP1V
+ */
+HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    rsDisplayRenderNode->InitRenderParams();
+
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto screenManager = CreateOrGetScreenManager();
+    auto screenId = CreateVirtualScreen(screenManager);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    
+    rsDisplayRenderNode->stagingRenderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(screenId);
+    ASSERT_NE(rsDisplayRenderNode->stagingRenderParams_, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = rsDisplayRenderNode;
+    rsUniRenderVisitor->InitScreenInfo(*rsDisplayRenderNode);
+
+    bool isBufferReclaimEnable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+    auto surfaceHandle = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandle, nullptr);
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+    surfaceHandle->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
+    surfaceHandle->SetLastBufferId(buffer->GetBufferId());
+    surfaceHandle->lastBufferReclaimNum_ = 4;
+    EXPECT_TRUE(surfaceHandle->ReclaimLastBufferPrepare());
+    EXPECT_TRUE(surfaceHandle->ReclaimLastBufferProcess());
+    EXPECT_TRUE(buffer->IsReclaimed());
+
+
+    node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    ASSERT_TRUE(rsUniRenderVisitor->BeforeUpdateSurfaceDirtyCalc(*node));
+    EXPECT_TRUE(buffer->IsReclaimed());
+
+    node->name_ = "RosenWeb";
+    EXPECT_TRUE(node->IsRosenWeb());
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    ASSERT_TRUE(rsUniRenderVisitor->BeforeUpdateSurfaceDirtyCalc(*node));
+    EXPECT_FALSE(buffer->IsReclaimed());
+
+    screenManager->RemoveVirtualScreen(screenId);
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(isBufferReclaimEnable);
 }
 
 /**

@@ -29,6 +29,7 @@
 #include "draw/brush.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
@@ -155,6 +156,19 @@ void RSSurfaceRenderNodeDrawable::ApplyCrossScreenOffset(RSPaintFilterCanvas& ca
     }
 }
 
+void RSSurfaceRenderNodeDrawable::TryResumeLastBuffer(sptr<SurfaceBuffer> buffer)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (buffer->IsReclaimed()) {
+        RS_TRACE_NAME_FMT("[LastBufferReclaim]DoBufferResume-begin(drawable): bufId: %" PRIu64 ""
+            ", bufSeqNum: %u, w: %d, h: %d, fmt: %d", buffer->GetBufferId(), buffer->GetSeqNum(),
+            buffer->GetWidth(), buffer->GetHeight(), buffer->GetFormat());
+        bool ret = RSBufferReclaim::GetInstance().DoBufferResume(buffer);
+        RS_TRACE_NAME_FMT("[LastBufferReclaim]DoBufferResume-end, ret=%d", ret);
+    }
+#endif
+}
+
 void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams, bool isSelfDrawingSurface)
 {
@@ -175,6 +189,7 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
 
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
+        TryResumeLastBuffer(surfaceParams.GetBuffer());
         DealWithSelfDrawingNodeBuffer(canvas, surfaceParams);
     }
 

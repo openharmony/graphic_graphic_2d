@@ -2322,6 +2322,9 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
     CheckPixelFormat(node);
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
         node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
+        if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable() && node.IsRosenWeb()) {
+            node.GetRSSurfaceHandler()->TryResumeLastBuffer();
+        }
     }
     // 4. collect cursors and check for null
     RSPointerWindowManager::Instance().UpdateHardCursorStatus(node, curScreenNode_);
