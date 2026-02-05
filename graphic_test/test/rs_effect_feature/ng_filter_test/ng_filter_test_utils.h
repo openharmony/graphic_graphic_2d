@@ -437,5 +437,51 @@ enum class TestDataGroupParamsType {
 };
 
 const std::vector<float> gasifyProgressVec = {-1.f, 0.01f, 0.2f, 1.5f};
+
+// BlurFilter初始化函数（2个参数：RadiusX, RadiusY）
+inline void InitBlurFilter(std::shared_ptr<RSNGBlurFilter>& blurFilter)
+{
+    blurFilter->Setter<BlurRadiusXTag>(20.0f);
+    blurFilter->Setter<BlurRadiusYTag>(20.0f);
+}
+
+// EdgeLight初始化函数（5个参数：Alpha, Color, Intensity, Width, UseRawColor）
+inline void InitEdgeLight(std::shared_ptr<RSNGEdgeLight>& edgeLight)
+{
+    edgeLight->Setter<EdgeLightAlphaTag>(1.0f);
+    edgeLight->Setter<EdgeLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    edgeLight->Setter<EdgeLightIntensityTag>(1.0f);
+    edgeLight->Setter<EdgeLightWidthTag>(10.0f);
+    edgeLight->Setter<EdgeLightUseRawColorTag>(false);
+}
+
+// FrostedGlassBlurFilter初始化函数（2个参数：Radius, RadiusScaleK）
+inline void InitFrostedGlassBlurFilter(std::shared_ptr<RSNGFrostedGlassBlurFilter>& frostedGlassBlurFilter)
+{
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(20.0f);
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusScaleKTag>(1.0f);
+}
+
+// MaskTransition初始化函数（3个参数：Factor, Inverse）
+inline void InitMaskTransition(std::shared_ptr<RSNGMaskTransition>& maskTransition)
+{
+    maskTransition->Setter<MaskTransitionFactorTag>(0.5f);
+    maskTransition->Setter<MaskTransitionInverseTag>(false);
+}
+
+// SDFEdgeLight初始化函数（3个参数：Alpha, Color, Width）
+inline void InitSDFEdgeLight(std::shared_ptr<RSNGSDFEdgeLight>& sdfEdgeLight)
+{
+    sdfEdgeLight->Setter<SDFEdgeLightAlphaTag>(1.0f);
+    sdfEdgeLight->Setter<SDFEdgeLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    sdfEdgeLight->Setter<SDFEdgeLightWidthTag>(10.0f);
+}
+
+// VariableRadiusBlur初始化函数（1个参数：Radius）
+inline void InitVariableRadiusBlur(std::shared_ptr<RSNGVariableRadiusBlur>& variableRadiusBlur)
+{
+    variableRadiusBlur->Setter<VariableRadiusBlurRadiusTag>(20.0f);
+}
+
 }  // namespace OHOS::Rosen
 #endif // NG_FILTER_TEST_UTILS_H

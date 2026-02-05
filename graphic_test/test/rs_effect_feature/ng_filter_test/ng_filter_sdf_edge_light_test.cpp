@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ng_filter_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -83,6 +84,7 @@ GRAPHIC_TEST(NGFilterSDFEdgeLightTest, EFFECT_TEST, Set_SDF_Edge_Light_Threshold
 
     for (size_t i = 0; i < sdfThresholdParams.size(); i++) {
         auto sdfEdgeLightFilter = std::make_shared<RSNGSDFEdgeLightFilter>();
+        InitSDFEdgeLight(sdfEdgeLightFilter);
         sdfEdgeLightFilter->Setter<SDFEdgeLightSpreadFactorTag>(sdfThresholdParams[i]);
 
         SetUpTestNode(i, columnCount, rowCount, sdfEdgeLightFilter);
@@ -100,6 +102,7 @@ GRAPHIC_TEST(NGFilterSDFEdgeLightTest, EFFECT_TEST, Set_SDF_Edge_Light_Smoothnes
 
     for (size_t i = 0; i < sdfSmoothnessParams.size(); i++) {
         auto sdfEdgeLightFilter = std::make_shared<RSNGSDFEdgeLightFilter>();
+        InitSDFEdgeLight(sdfEdgeLightFilter);
         sdfEdgeLightFilter->Setter<SDFEdgeLightBloomFalloffPowTag>(sdfSmoothnessParams[i]);
 
         SetUpTestNode(i, columnCount, rowCount, sdfEdgeLightFilter);
@@ -117,6 +120,7 @@ GRAPHIC_TEST(NGFilterSDFEdgeLightTest, EFFECT_TEST, Set_SDF_Edge_Light_Bloom_Int
 
     for (size_t i = 0; i < sdfBloomIntensityParams.size(); i++) {
         auto sdfEdgeLightFilter = std::make_shared<RSNGSDFEdgeLightFilter>();
+        InitSDFEdgeLight(sdfEdgeLightFilter);
         sdfEdgeLightFilter->Setter<SDFEdgeLightMaxBloomIntensityTag>(sdfBloomIntensityParams[i]);
 
         SetUpTestNode(i, columnCount, rowCount, sdfEdgeLightFilter);
@@ -135,6 +139,7 @@ GRAPHIC_TEST(NGFilterSDFEdgeLightTest, EFFECT_TEST, Set_SDF_Edge_Light_Threshold
 
     for (size_t i = 0; i < sdfThresholdExtremeValues.size(); i++) {
         auto sdfEdgeLightFilter = std::make_shared<RSNGSDFEdgeLightFilter>();
+        InitSDFEdgeLight(sdfEdgeLightFilter);
         sdfEdgeLightFilter->Setter<SDFEdgeLightSpreadFactorTag>(sdfThresholdExtremeValues[i]);
 
         SetUpTestNode(i, columnCount, rowCount, sdfEdgeLightFilter);
@@ -152,6 +157,7 @@ GRAPHIC_TEST(NGFilterSDFEdgeLightTest, EFFECT_TEST, Set_SDF_Edge_Light_Threshold
 
     for (size_t i = 0; i < sdfThresholdSmoothnessCombinations.size(); i++) {
         auto sdfEdgeLightFilter = std::make_shared<RSNGSDFEdgeLightFilter>();
+        InitSDFEdgeLight(sdfEdgeLightFilter);
         sdfEdgeLightFilter->Setter<SDFEdgeLightSpreadFactorTag>(sdfThresholdSmoothnessCombinations[i].first);
         sdfEdgeLightFilter->Setter<SDFEdgeLightBloomFalloffPowTag>(sdfThresholdSmoothnessCombinations[i].second);
 

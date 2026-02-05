@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ng_filter_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -80,6 +81,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassBlurTest, EFFECT_TEST, Set_Frosted_Glass_Blur_R
 
     for (size_t i = 0; i < frostedGlassBlurRadii.size(); i++) {
         auto frostedGlassBlurFilter = std::make_shared<RSNGFrostedGlassBlurFilter>();
+        InitFrostedGlassBlurFilter(frostedGlassBlurFilter);
         frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(frostedGlassBlurRadii[i]);
 
         SetUpTestNode(i, columnCount, rowCount, frostedGlassBlurFilter);
@@ -97,6 +99,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassBlurTest, EFFECT_TEST, Set_Frosted_Glass_Blur_B
 
     for (size_t i = 0; i < frostedGlassBoundaryRadii.size(); i++) {
         auto frostedGlassBlurFilter = std::make_shared<RSNGFrostedGlassBlurFilter>();
+        InitFrostedGlassBlurFilter(frostedGlassBlurFilter);
         frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(frostedGlassBoundaryRadii[i]);
 
         SetUpTestNode(i, columnCount, rowCount, frostedGlassBlurFilter);
@@ -114,6 +117,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassBlurTest, EFFECT_TEST, Set_Frosted_Glass_Blur_I
 
     for (size_t i = 0; i < frostedGlassIntensities.size(); i++) {
         auto frostedGlassBlurFilter = std::make_shared<RSNGFrostedGlassBlurFilter>();
+        InitFrostedGlassBlurFilter(frostedGlassBlurFilter);
         frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusScaleKTag>(frostedGlassIntensities[i]);
 
         SetUpTestNode(i, columnCount, rowCount, frostedGlassBlurFilter);
@@ -132,6 +136,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassBlurTest, EFFECT_TEST,
 
     for (size_t i = 0; i < frostedGlassRadiusIntensityCombinations.size(); i++) {
         auto frostedGlassBlurFilter = std::make_shared<RSNGFrostedGlassBlurFilter>();
+        InitFrostedGlassBlurFilter(frostedGlassBlurFilter);
         frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(frostedGlassRadiusIntensityCombinations[i].first);
         frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusScaleKTag>(
             frostedGlassRadiusIntensityCombinations[i].second);

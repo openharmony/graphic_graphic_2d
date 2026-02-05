@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ng_filter_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -73,6 +74,7 @@ GRAPHIC_TEST(NGFilterVariableRadiusBlurTest, EFFECT_TEST, Set_Variable_Radius_Bl
 
     for (size_t i = 0; i < variableRadiusBlurRadii.size(); i++) {
         auto variableRadiusBlurFilter = std::make_shared<RSNGVariableRadiusBlurFilter>();
+        InitVariableRadiusBlur(variableRadiusBlurFilter);
         variableRadiusBlurFilter->Setter<VariableRadiusBlurRadiusTag>(variableRadiusBlurRadii[i]);
 
         SetUpTestNode(i, columnCount, rowCount, variableRadiusBlurFilter);
@@ -90,6 +92,7 @@ GRAPHIC_TEST(NGFilterVariableRadiusBlurTest, EFFECT_TEST, Set_Variable_Radius_Bl
 
     for (size_t i = 0; i < variableRadiusBlurBoundaryRadii.size(); i++) {
         auto variableRadiusBlurFilter = std::make_shared<RSNGVariableRadiusBlurFilter>();
+        InitVariableRadiusBlur(variableRadiusBlurFilter);
         variableRadiusBlurFilter->Setter<VariableRadiusBlurRadiusTag>(variableRadiusBlurBoundaryRadii[i]);
 
         SetUpTestNode(i, columnCount, rowCount, variableRadiusBlurFilter);
@@ -108,6 +111,7 @@ GRAPHIC_TEST(NGFilterVariableRadiusBlurTest, EFFECT_TEST, Set_Variable_Radius_Bl
 
     for (size_t i = 0; i < variableRadiusBlurExtremeValues.size(); i++) {
         auto variableRadiusBlurFilter = std::make_shared<RSNGVariableRadiusBlurFilter>();
+        InitVariableRadiusBlur(variableRadiusBlurFilter);
         variableRadiusBlurFilter->Setter<VariableRadiusBlurRadiusTag>(variableRadiusBlurExtremeValues[i]);
 
         SetUpTestNode(i, columnCount, rowCount, variableRadiusBlurFilter);

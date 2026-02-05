@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ng_filter_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -76,6 +77,7 @@ GRAPHIC_TEST(NGFilterMaskTransitionTest, EFFECT_TEST, Set_Mask_Transition_Factor
 
     for (size_t i = 0; i < maskTransitionFactors.size(); i++) {
         auto maskTransitionFilter = std::make_shared<RSNGMaskTransitionFilter>();
+        InitMaskTransition(maskTransitionFilter);
         maskTransitionFilter->Setter<MaskTransitionFactorTag>(maskTransitionFactors[i]);
 
         SetUpTestNode(i, columnCount, rowCount, maskTransitionFilter);
@@ -90,6 +92,7 @@ GRAPHIC_TEST(NGFilterMaskTransitionTest, EFFECT_TEST, Set_Mask_Transition_Invers
 {
     // Test normal mode
     auto maskTransitionFilter = std::make_shared<RSNGMaskTransitionFilter>();
+    InitMaskTransition(maskTransitionFilter);
     maskTransitionFilter->Setter<MaskTransitionFactorTag>(0.5f);
     maskTransitionFilter->Setter<MaskTransitionInverseTag>(false);
 
@@ -100,6 +103,7 @@ GRAPHIC_TEST(NGFilterMaskTransitionTest, EFFECT_TEST, Set_Mask_Transition_Invers
 
     // Test inverse mode
     auto maskTransitionFilterInv = std::make_shared<RSNGMaskTransitionFilter>();
+    InitMaskTransition(maskTransitionFilterInv);
     maskTransitionFilterInv->Setter<MaskTransitionFactorTag>(0.5f);
     maskTransitionFilterInv->Setter<MaskTransitionInverseTag>(true);
 
@@ -119,6 +123,7 @@ GRAPHIC_TEST(NGFilterMaskTransitionTest, EFFECT_TEST, Set_Mask_Transition_Factor
 
     for (size_t i = 0; i < maskTransitionFactorInverseCombinations.size(); i++) {
         auto maskTransitionFilter = std::make_shared<RSNGMaskTransitionFilter>();
+        InitMaskTransition(maskTransitionFilter);
         maskTransitionFilter->Setter<MaskTransitionFactorTag>(maskTransitionFactorInverseCombinations[i].first);
         maskTransitionFilter->Setter<MaskTransitionInverseTag>(maskTransitionFactorInverseCombinations[i].second);
 

@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ng_filter_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -87,6 +88,7 @@ GRAPHIC_TEST(NGFilterEdgeLightTest, EFFECT_TEST, Set_Edge_Light_Color_Test)
 
     for (size_t i = 0; i < edgeLightColors.size(); i++) {
         auto edgeLightFilter = std::make_shared<RSNGEdgeLightFilter>();
+        InitEdgeLight(edgeLightFilter);
         edgeLightFilter->Setter<EdgeLightColorTag>(edgeLightColors[i]);
 
         SetUpTestNode(i, columnCount, rowCount, edgeLightFilter);
@@ -104,6 +106,7 @@ GRAPHIC_TEST(NGFilterEdgeLightTest, EFFECT_TEST, Set_Edge_Light_Width_Boundary_T
 
     for (size_t i = 0; i < edgeLightWidths.size(); i++) {
         auto edgeLightFilter = std::make_shared<RSNGEdgeLightFilter>();
+        InitEdgeLight(edgeLightFilter);
         if (edgeLightWidths[i] > 0.0f) {
             edgeLightFilter->Setter<EdgeLightBloomTag>(true);
         }
@@ -124,6 +127,7 @@ GRAPHIC_TEST(NGFilterEdgeLightTest, EFFECT_TEST, Set_Edge_Light_Intensity_Test)
 
     for (size_t i = 0; i < edgeLightIntensities.size(); i++) {
         auto edgeLightFilter = std::make_shared<RSNGEdgeLightFilter>();
+        InitEdgeLight(edgeLightFilter);
         Vector4f intensityColor{edgeLightIntensities[i], edgeLightIntensities[i], edgeLightIntensities[i], 1.0f};
         edgeLightFilter->Setter<EdgeLightColorTag>(intensityColor);
 
@@ -142,6 +146,7 @@ GRAPHIC_TEST(NGFilterEdgeLightTest, EFFECT_TEST, Set_Edge_Light_Color_Intensity_
 
     for (size_t i = 0; i < edgeLightColorIntensityCombinations.size(); i++) {
         auto edgeLightFilter = std::make_shared<RSNGEdgeLightFilter>();
+        InitEdgeLight(edgeLightFilter);
         // Apply intensity by scaling the RGB components
         Vector4f scaledColor = edgeLightColorIntensityCombinations[i].first;
         scaledColor[0] *= edgeLightColorIntensityCombinations[i].second;
