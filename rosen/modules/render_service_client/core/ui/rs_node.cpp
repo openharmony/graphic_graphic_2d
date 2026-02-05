@@ -2960,13 +2960,6 @@ void RSNode::SetNodeName(const std::string& nodeName)
         nodeName_ = nodeName;
         std::unique_ptr<RSCommand> command = std::make_unique<RSSetNodeName>(GetId(), nodeName_);
         AddCommand(command, IsRenderServiceNode());
-        for (const auto& uiFwkType : RSFrameRatePolicy::GetInstance()->GetAppBufferList()) {
-            if (nodeName.rfind(uiFwkType, 0) == 0) {
-                SetDrawNode();
-                SetDrawNodeType(DrawNodeType::DrawPropertyType);
-                break;
-            }
-        }
     }
 }
 
