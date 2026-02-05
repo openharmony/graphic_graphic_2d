@@ -2724,7 +2724,16 @@ void RSNode::SetGreyCoef(const Vector2f greyCoef)
         greyCoef);
 }
 
-void RSNode::SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter) {}
+void RSNode::SetCompositingNGFilter(const std::shared_ptr<RSNGFilterBase>& compositingFilter)
+{
+    auto filter = compositingFilter;
+    if (filter == nullptr) {
+        MaterialParam materialParam = { 0.0, 1.0, 1.0, RSColor(), false };
+        filter = RSNGFilterHelper::CreateNGMaterialBlurFilter(materialParam);
+    }
+    SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+        &ModifierNG::RSCompositingFilterModifier::SetNGFilterBase>(filter);
+}
 
 void RSNode::SetShadowColor(uint32_t colorValue)
 {

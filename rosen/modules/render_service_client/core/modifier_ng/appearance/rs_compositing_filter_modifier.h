@@ -75,6 +75,8 @@ public:
     float GetForegroundBlurRadiusY() const;
     void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
     bool GetFgBlurDisableSystemAdaptation() const;
+    void SetNGFilterBase(std::shared_ptr<RSNGFilterBase> filter);
+    std::shared_ptr<RSNGFilterBase> GetNGFilterBase() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_COMPOSITING_FILTER_MODIFIER_H

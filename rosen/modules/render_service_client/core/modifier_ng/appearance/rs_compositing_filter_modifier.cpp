@@ -215,4 +215,14 @@ bool RSCompositingFilterModifier::GetFgBlurDisableSystemAdaptation() const
 {
     return Getter(RSPropertyType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION, true);
 }
+
+void RSCompositingFilterModifier::SetNGFilterBase(std::shared_ptr<RSNGFilterBase> filter)
+{
+    Setter<RSProperty>(RSPropertyType::COMPOSITING_NG_FILTER, filter);
+}
+
+std::shared_ptr<RSNGFilterBase> RSCompositingFilterModifier::GetNGFilterBase() const
+{
+    return Getter<std::shared_ptr<RSNGFilterBase>>(RSPropertyType::COMPOSITING_NG_FILTER, nullptr);
+}
 } // namespace OHOS::Rosen::ModifierNG

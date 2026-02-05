@@ -1130,5 +1130,4 @@ HWTEST_F(RSNodeTest2, SetMaterialWithQualityLevel_AdaptiveFrostedGlass, TestSize
     // DEFAULT_INTERVAL in SetMaterialWithQualityLevel is 100, SetColorPickerParams clamps to MIN_INTERVAL=180
     EXPECT_EQ(propInterval->Get(), 180);
 }
-
 } // namespace OHOS::Rosen

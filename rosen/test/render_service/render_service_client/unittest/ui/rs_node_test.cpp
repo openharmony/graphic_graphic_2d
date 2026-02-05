@@ -4493,19 +4493,6 @@ HWTEST_F(RSNodeTest, SetandGetForegroundEffectRadius001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetCompositingFilter001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetCompositingFilter001, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-    auto compositingFilter = RSFilter::CreateBlurFilter(0.0f, 0.0f);
-    rsNode->SetCompositingFilter(compositingFilter);
-}
-
-/**
  * @tc.name: SetShadowPath001
  * @tc.desc:
  * @tc.type:FUNC
@@ -8235,5 +8222,31 @@ HWTEST_F(RSNodeTest, SetDrawNodeChangeCallback, TestSize.Level1)
     auto changeCallback = [](std::shared_ptr<RSNode> rsNode, bool isPositionZ) {};
     RSNode::SetDrawNodeChangeCallback(changeCallback);
     ASSERT_NE(RSNode::drawNodeChangeCallback_, nullptr);
+}
+
+/**
+ * @tc.name: SetCompositingNGFilter001
+ * @tc.desc: test for function : SetCompositingNGFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetCompositingNGFilter001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetCompositingNGFilter(nullptr);
+    auto modify = rsNode->GetModifierByType(ModifierNG::RSModifierType::COMPOSITING_FILTER);
+    ASSERT_NE(modify, nullptr);
+}
+
+/**
+ * @tc.name: SetCompositingNGFilter002
+ * @tc.desc: test for function : SetCompositingNGFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetCompositingNGFilter002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetCompositingNGFilter(RSNGFilterHelper::CreateNGBlurFilter(30.0f, 30.0f));
+    auto modify = rsNode->GetModifierByType(ModifierNG::RSModifierType::COMPOSITING_FILTER);
+    ASSERT_NE(modify, nullptr);
 }
 } // namespace OHOS::Rosen
