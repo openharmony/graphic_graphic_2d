@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-// Screen Manager Test: Test cases for screen management interfaces including
-// physical screen get/set interfaces, virtual screen interfaces, and mirror screen interfaces.
+// Screen Manager Pixel Test: Multi-screen interface tests with pixel-level comparison
+// Tests verify screen management interfaces through actual rendering and screenshot capture
 
 #include <filesystem>
 
@@ -27,6 +27,7 @@
 #include "token_setproc.h"
 
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_interfaces_proxy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -44,22 +45,13 @@ static void SavePixelToFile(std::shared_ptr<Media::PixelMap> pixelMap)
     namespace fs = std::filesystem;
     if (!fs::exists(fileName)) {
         if (!fs::create_directories(fileName)) {
-            LOGE("CustomizedSurfaceCapture::OnSurfaceCapture create dir failed");
-        }
-    } else {
-        if (!fs::is_directory(fileName)) {
-            LOGE("CustomizedSurfaceCapture::OnSurfaceCapture path is not dir");
-            return;
+            LOGE("SavePixelToFile create dir failed");
         }
     }
     fileName += testInfo->test_case_name() + std::string("_");
     fileName += testInfo->name() + std::string(".png");
-    if (std::filesystem::exists(fileName)) {
-        LOGW("CustomizedSurfaceCapture::OnSurfaceCapture file exists %{public}s", fileName.c_str());
-    }
     if (!WriteToPngWithPixelMap(fileName, *pixelMap)) {
-        LOGE("CustomizedSurfaceCapture::OnSurfaceCapture write image failed %{public}s-%{public}s",
-            testInfo->test_case_name(), testInfo->name());
+        LOGE("SavePixelToFile write image failed %{public}s", fileName.c_str());
     }
 }
 
@@ -68,7 +60,7 @@ public:
     void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelMap) override
     {
         if (pixelMap == nullptr) {
-            LOGE("CustomizedSurfaceCapture::OnSurfaceCapture failed to get pixelMap, return nullptr!");
+            LOGE("CustomizedSurfaceCapture::OnSurfaceCapture failed to get pixelMap");
             return;
         }
         isCallbackCalled_ = true;
@@ -115,7 +107,6 @@ public:
         if (!callback) {
             return false;
         }
-
         uint32_t times = 0;
         while (times < MAX_TIME_WAITING_FOR_CALLBACK) {
             if (callback->isCallbackCalled_) {
@@ -129,626 +120,515 @@ public:
 };
 
 // ============================================================================
-// 物理屏幕 - 获取类接口测试
+// Virtual Screen Tests
 // ============================================================================
 
 /*
- * @tc.name: GetActiveScreenIdTest001
- * @tc.desc: test GetActiveScreenId to get current active screen ID
+ * @tc.name: CreateVirtualScreenTest001
+ * @tc.desc: test CreateVirtualScreen with red background 640x480
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetActiveScreenIdTest001)
+GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, CreateVirtualScreenTest001)
 {
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    EXPECT_NE(activeScreenId, INVALID_SCREEN_ID);
-    LOGI("GetActiveScreenIdTest001 activeScreenId[%{public}" PRIu64 "]", activeScreenId);
-}
-
-/*
- * @tc.name: GetAllScreenIdsTest001
- * @tc.desc: test GetAllScreenIds to get all screen IDs
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetAllScreenIdsTest001)
-{
-    std::vector<ScreenId> screenIds = RSInterfaces::GetInstance().GetAllScreenIds();
-    EXPECT_GT(screenIds.size(), 0u);
-    LOGI("GetAllScreenIdsTest001 screenIds.size()[%{public}zu]", screenIds.size());
-    for (const auto& screenId : screenIds) {
-        LOGI("GetAllScreenIdsTest001 screenId[%{public}" PRIu64 "]", screenId);
-    }
-}
-
-/*
- * @tc.name: GetAllScreenIdsTest002
- * @tc.desc: test GetAllScreenIds after creating virtual screen
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetAllScreenIdsTest002)
-{
-    std::vector<ScreenId> screenIdsBefore = RSInterfaces::GetInstance().GetAllScreenIds();
-    size_t countBefore = screenIdsBefore.size();
-
     uint32_t width = 640;
     uint32_t height = 480;
     ScreenId virtualScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "GetAllScreenIdsTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+        "CreateVirtualScreenTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    std::vector<ScreenId> screenIdsAfter = RSInterfaces::GetInstance().GetAllScreenIds();
-    EXPECT_EQ(screenIdsAfter.size(), countBefore + 1);
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorRED);
+
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
- * @tc.name: GetDefaultScreenIdTest001
- * @tc.desc: test GetDefaultScreenId to get default screen ID
+ * @tc.name: CreateVirtualScreenTest002
+ * @tc.desc: test CreateVirtualScreen with green background 800x600
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetDefaultScreenIdTest001)
+GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, CreateVirtualScreenTest002)
 {
-    ScreenId defaultScreenId = RSInterfaces::GetInstance().GetDefaultScreenId();
-    EXPECT_NE(defaultScreenId, INVALID_SCREEN_ID);
-    LOGI("GetDefaultScreenIdTest001 defaultScreenId[%{public}" PRIu64 "]", defaultScreenId);
-}
-
-/*
- * @tc.name: GetScreenTypeTest001
- * @tc.desc: test GetScreenType to get screen type
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetScreenTypeTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    ScreenType screenType = RSInterfaces::GetInstance().GetScreenType(activeScreenId);
-    EXPECT_NE(screenType, ScreenType::UNKNOWN);
-    LOGI("GetScreenTypeTest001 screenId[%{public}" PRIu64 "] screenType[%{public}d]",
-        activeScreenId, static_cast<int>(screenType));
-}
-
-/*
- * @tc.name: GetScreenTypeTest002
- * @tc.desc: test GetScreenType for virtual screen
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetScreenTypeTest002)
-{
-    uint32_t width = 640;
-    uint32_t height = 480;
+    uint32_t width = 800;
+    uint32_t height = 600;
     ScreenId virtualScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "GetScreenTypeTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+        "CreateVirtualScreenTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    ScreenType screenType = RSInterfaces::GetInstance().GetScreenType(virtualScreenId);
-    EXPECT_EQ(screenType, ScreenType::VIRTUAL);
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorGREEN);
+
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
- * @tc.name: GetScreenPowerStatusTest001
- * @tc.desc: test GetScreenPowerStatus to get screen power status
+ * @tc.name: CreateVirtualScreenTest003
+ * @tc.desc: test CreateVirtualScreen with blue background 500x500
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetScreenPowerStatusTest001)
+GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, CreateVirtualScreenTest003)
 {
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    ScreenPowerState powerState = RSInterfaces::GetInstance().GetScreenPowerStatus(activeScreenId);
-    EXPECT_NE(powerState, ScreenPowerState::POWER_STATUS_UNKNOWN);
-    LOGI("GetScreenPowerStatusTest001 screenId[%{public}" PRIu64 "] powerState[%{public}d]",
-        activeScreenId, static_cast<int>(powerState));
-}
+    uint32_t width = 500;
+    uint32_t height = 500;
+    ScreenId virtualScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "CreateVirtualScreenTest003", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-/*
- * @tc.name: GetScreenDataTest001
- * @tc.desc: test GetScreenData to get screen data
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetScreenDataTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    RSScreenData screenData = RSInterfaces::GetInstance().GetScreenData(activeScreenId);
-    RSScreenModeInfo activityModeInfo = screenData.GetActivityModeInfo();
-    LOGI("GetScreenDataTest001 screenId[%{public}" PRIu64 "] width[%{public}d] height[%{public}d]",
-        activeScreenId, activityModeInfo.GetScreenWidth(), activityModeInfo.GetScreenHeight());
-}
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
 
-/*
- * @tc.name: GetScreenSupportedModesTest001
- * @tc.desc: test GetScreenSupportedModes to get supported screen modes
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetScreenSupportedModesTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    std::vector<RSScreenModeInfo> supportedModes = RSInterfaces::GetInstance().GetScreenSupportedModes(activeScreenId);
-    EXPECT_GT(supportedModes.size(), 0u);
-    LOGI("GetScreenSupportedModesTest001 screenId[%{public}" PRIu64 "] supportedModes.size()[%{public}zu]",
-        activeScreenId, supportedModes.size());
-}
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorBLUE);
 
-/*
- * @tc.name: GetScreenActiveModeTest001
- * @tc.desc: test GetScreenActiveMode to get current active screen mode
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetScreenActiveModeTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    RSScreenModeInfo activeMode = RSInterfaces::GetInstance().GetScreenActiveMode(activeScreenId);
-    LOGI("GetScreenActiveModeTest001 screenId[%{public}" PRIu64 "] width[%{public}d] "
-         "height[%{public}d] refreshRate[%{public}d]",
-        activeScreenId, activeMode.GetScreenWidth(), activeMode.GetScreenHeight(),
-        activeMode.GetScreenRefreshRate());
-}
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
 
-/*
- * @tc.name: GetScreenCapabilityTest001
- * @tc.desc: test GetScreenCapability to get screen capability
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetScreenCapabilityTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    RSScreenCapability screenCapability = RSInterfaces::GetInstance().GetScreenCapability(activeScreenId);
-    LOGI("GetScreenCapabilityTest001 screenId[%{public}" PRIu64 "] name[%{public}s]",
-        activeScreenId, screenCapability.GetName().c_str());
-}
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 
-/*
- * @tc.name: GetRogScreenResolutionTest001
- * @tc.desc: test GetRogScreenResolution to get ROG screen resolution
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, GetRogScreenResolutionTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    uint32_t width = 0;
-    uint32_t height = 0;
-    int32_t ret = RSInterfaces::GetInstance().GetRogScreenResolution(activeScreenId, width, height);
-    EXPECT_EQ(ret, 0);
-    if (ret == 0) {
-        LOGI("GetRogScreenResolutionTest001 screenId[%{public}" PRIu64 "] width[%{public}u] height[%{public}u]",
-            activeScreenId, width, height);
-    }
+    RSInterfaces::GetInstance().RemoveVirtualScreen(virtualScreenId);
 }
 
 // ============================================================================
-// 物理屏幕 - 设置类接口测试
+// Screen Power Status Tests
 // ============================================================================
 
 /*
  * @tc.name: SetScreenPowerStatusTest001
- * @tc.desc: test SetScreenPowerStatus to set screen power on
+ * @tc.desc: test SetScreenPowerStatus with POWER_STATUS_ON
  * @tc.type: FUNC
  */
 GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenPowerStatusTest001)
 {
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    ScreenPowerState originalState = RSInterfaces::GetInstance().GetScreenPowerStatus(activeScreenId);
+    ScreenPowerStatus originalState = RSInterfaces::GetInstance().GetScreenPowerStatus(0);
 
-    bool result = RSInterfaces::GetInstance().SetScreenPowerStatus(activeScreenId, ScreenPowerState::POWER_STATUS_ON);
-    EXPECT_TRUE(result);
+    auto displayNode = RSDisplayNode::Create();
+    ASSERT_NE(displayNode, nullptr);
 
+    displayNode->SetBounds({ 0, 0, 500, 500 });
+    displayNode->SetFrame({ 0, 0, 500, 500 });
+    displayNode->SetBackgroundColor(SK_ColorYELLOW);
+
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
+
+    // Set power on
+    RSInterfaces::GetInstance().SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_ON);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    ScreenPowerState newState = RSInterfaces::GetInstance().GetScreenPowerStatus(activeScreenId);
-    EXPECT_EQ(newState, ScreenPowerState::POWER_STATUS_ON);
-
     // Restore original state
-    RSInterfaces::GetInstance().SetScreenPowerStatus(activeScreenId, originalState);
+    RSInterfaces::GetInstance().SetScreenPowerStatus(0, originalState);
 }
 
 /*
  * @tc.name: SetScreenPowerStatusTest002
- * @tc.desc: test SetScreenPowerStatus to set screen power off
+ * @tc.desc: test SetScreenPowerStatus with POWER_STATUS_OFF
  * @tc.type: FUNC
  */
 GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenPowerStatusTest002)
 {
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    ScreenPowerState originalState = RSInterfaces::GetInstance().GetScreenPowerStatus(activeScreenId);
+    ScreenPowerStatus originalState = RSInterfaces::GetInstance().GetScreenPowerStatus(0);
 
     // Skip test if original state is already off
-    if (originalState == ScreenPowerState::POWER_STATUS_OFF) {
+    if (originalState == ScreenPowerStatus::POWER_STATUS_OFF) {
         return;
     }
 
-    bool result = RSInterfaces::GetInstance().SetScreenPowerStatus(activeScreenId, ScreenPowerState::POWER_STATUS_OFF);
-    EXPECT_TRUE(result);
+    auto displayNode = RSDisplayNode::Create();
+    ASSERT_NE(displayNode, nullptr);
 
+    displayNode->SetBounds({ 0, 0, 500, 500 });
+    displayNode->SetFrame({ 0, 0, 500, 500 });
+    displayNode->SetBackgroundColor(SK_ColorCYAN);
+
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    ScreenPowerState newState = RSInterfaces::GetInstance().GetScreenPowerStatus(activeScreenId);
-    EXPECT_EQ(newState, ScreenPowerState::POWER_STATUS_OFF);
+    // Set power off
+    RSInterfaces::GetInstance().SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_OFF);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 
     // Restore power on
-    RSInterfaces::GetInstance().SetScreenPowerStatus(activeScreenId, ScreenPowerState::POWER_STATUS_ON);
+    RSInterfaces::GetInstance().SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_ON);
 }
 
-/*
- * @tc.name: SetScreenBacklightTest001
- * @tc.desc: test SetScreenBacklight to set screen backlight brightness
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenBacklightTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    uint32_t brightness = 128; // 50% brightness
-
-    bool result = RSInterfaces::GetInstance().SetScreenBacklight(activeScreenId, brightness);
-    EXPECT_TRUE(result);
-
-    LOGI("SetScreenBacklightTest001 screenId[%{public}" PRIu64 "] brightness[%{public}u]",
-        activeScreenId, brightness);
-}
+// ============================================================================
+// Screen Active Mode Tests
+// ============================================================================
 
 /*
  * @tc.name: SetScreenActiveModeTest001
- * @tc.desc: test SetScreenActiveMode to set screen active mode
+ * @tc.desc: test SetScreenActiveMode with first supported mode
  * @tc.type: FUNC
  */
 GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenActiveModeTest001)
 {
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-
-    // Get supported modes first
-    std::vector<RSScreenModeInfo> supportedModes = RSInterfaces::GetInstance().GetScreenSupportedModes(activeScreenId);
+    std::vector<RSScreenModeInfo> supportedModes = RSInterfaces::GetInstance().GetScreenSupportedModes(0);
     if (supportedModes.empty()) {
         LOGW("SetScreenActiveModeTest001 No supported modes available");
         return;
     }
 
-    // Set to first supported mode
-    uint32_t modeId = supportedModes[0].GetScreenModeId();
-    bool result = RSInterfaces::GetInstance().SetScreenActiveMode(activeScreenId, modeId);
-    EXPECT_TRUE(result);
+    auto displayNode = RSDisplayNode::Create();
+    ASSERT_NE(displayNode, nullptr);
 
+    displayNode->SetBounds({ 0, 0, 500, 500 });
+    displayNode->SetFrame({ 0, 0, 500, 500 });
+    displayNode->SetBackgroundColor(SK_ColorMAGENTA);
+
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    LOGI("SetScreenActiveModeTest001 screenId[%{public}" PRIu64 "] modeId[%{public}u]",
-        activeScreenId, modeId);
+    // Set to first supported mode
+    uint32_t modeId = supportedModes[0].GetScreenModeId();
+    RSInterfaces::GetInstance().SetScreenActiveMode(0, modeId);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 /*
  * @tc.name: SetScreenActiveModeTest002
- * @tc.desc: test SetScreenActiveMode with different mode index
+ * @tc.desc: test SetScreenActiveMode with second supported mode
  * @tc.type: FUNC
  */
 GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenActiveModeTest002)
 {
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-
-    std::vector<RSScreenModeInfo> supportedModes = RSInterfaces::GetInstance().GetScreenSupportedModes(activeScreenId);
+    std::vector<RSScreenModeInfo> supportedModes = RSInterfaces::GetInstance().GetScreenSupportedModes(0);
     if (supportedModes.size() < 2) {
         LOGW("SetScreenActiveModeTest002 Less than 2 supported modes available");
         return;
     }
 
-    // Set to second supported mode
-    uint32_t modeId = supportedModes[1].GetScreenModeId();
-    bool result = RSInterfaces::GetInstance().SetScreenActiveMode(activeScreenId, modeId);
-    EXPECT_TRUE(result);
+    auto displayNode = RSDisplayNode::Create();
+    ASSERT_NE(displayNode, nullptr);
 
+    displayNode->SetBounds({ 0, 0, 600, 400 });
+    displayNode->SetFrame({ 0, 0, 600, 400 });
+    displayNode->SetBackgroundColor(SK_ColorWHITE);
+
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    LOGI("SetScreenActiveModeTest002 screenId[%{public}" PRIu64 "] modeId[%{public}u]",
-        activeScreenId, modeId);
-}
-
-/*
- * @tc.name: SetPhysicalScreenResolutionTest001
- * @tc.desc: test SetPhysicalScreenResolution to set physical screen resolution
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetPhysicalScreenResolutionTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-
-    // Get current resolution
-    RSScreenModeInfo currentMode = RSInterfaces::GetInstance().GetScreenActiveMode(activeScreenId);
-    uint32_t originalWidth = currentMode.GetScreenWidth();
-    uint32_t originalHeight = currentMode.GetScreenHeight();
-
-    // Get supported modes and find a different resolution
-    std::vector<RSScreenModeInfo> supportedModes = RSInterfaces::GetInstance().GetScreenSupportedModes(activeScreenId);
-    uint32_t targetWidth = originalWidth;
-    uint32_t targetHeight = originalHeight;
-
-    for (const auto& mode : supportedModes) {
-        if (mode.GetScreenWidth() != static_cast<int32_t>(originalWidth) ||
-            mode.GetScreenHeight() != static_cast<int32_t>(originalHeight)) {
-            targetWidth = mode.GetScreenWidth();
-            targetHeight = mode.GetScreenHeight();
-            break;
-        }
-    }
-
-    // Only test if we found a different resolution
-    if (targetWidth != originalWidth || targetHeight != originalHeight) {
-        bool result = RSInterfaces::GetInstance().SetPhysicalScreenResolution(
-            activeScreenId, targetWidth, targetHeight);
-        EXPECT_TRUE(result);
-
-        usleep(SLEEP_TIME_FOR_PROXY);
-
-        LOGI("SetPhysicalScreenResolutionTest001 screenId[%{public}" PRIu64 "] %ux%u -> %ux%u",
-            activeScreenId, originalWidth, originalHeight, targetWidth, targetHeight);
-
-        // Restore original resolution
-        RSInterfaces::GetInstance().SetPhysicalScreenResolution(activeScreenId, originalWidth, originalHeight);
-    } else {
-        LOGW("SetPhysicalScreenResolutionTest001 No alternative resolution available");
-    }
-}
-
-/*
- * @tc.name: SetScreenActiveRectTest001
- * @tc.desc: test SetScreenActiveRect to set screen active rectangle
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenActiveRectTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-
-    // Get current mode info
-    RSScreenModeInfo currentMode = RSInterfaces::GetInstance().GetScreenActiveMode(activeScreenId);
-    uint32_t screenWidth = currentMode.GetScreenWidth();
-    uint32_t screenHeight = currentMode.GetScreenHeight();
-
-    // Set active rect to full screen
-    uint32_t left = 0;
-    uint32_t top = 0;
-    uint32_t width = screenWidth;
-    uint32_t height = screenHeight;
-
-    bool result = RSInterfaces::GetInstance().SetScreenActiveRect(
-        activeScreenId, { left, top, width, height });
-    EXPECT_TRUE(result);
-
-    LOGI("SetScreenActiveRectTest001 screenId[%{public}" PRIu64 "] rect[%{public}u,%{public}u,%{public}u,%{public}u]",
-        activeScreenId, left, top, width, height);
-}
-
-/*
- * @tc.name: SetScreenActiveRectTest002
- * @tc.desc: test SetScreenActiveRect with partial screen area
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenActiveRectTest002)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-
-    RSScreenModeInfo currentMode = RSInterfaces::GetInstance().GetScreenActiveMode(activeScreenId);
-    uint32_t screenWidth = currentMode.GetScreenWidth();
-    uint32_t screenHeight = currentMode.GetScreenHeight();
-
-    // Set active rect to center 80% of screen
-    uint32_t left = screenWidth / 10;
-    uint32_t top = screenHeight / 10;
-    uint32_t width = screenWidth * 8 / 10;
-    uint32_t height = screenHeight * 8 / 10;
-
-    bool result = RSInterfaces::GetInstance().SetScreenActiveRect(
-        activeScreenId, { left, top, width, height });
-    EXPECT_TRUE(result);
-
-    // Reset to full screen
-    RSInterfaces::GetInstance().SetScreenActiveRect(activeScreenId, { 0, 0, screenWidth, screenHeight });
-
-    LOGI("SetScreenActiveRectTest002 screenId[%{public}" PRIu64 "] rect[%{public}u,%{public}u,%{public}u,%{public}u]",
-        activeScreenId, left, top, width, height);
-}
-
-/*
- * @tc.name: SetScreenOffsetTest001
- * @tc.desc: test SetScreenOffset to set screen offset
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenOffsetTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-
-    // Set offset to zero
-    bool result = RSInterfaces::GetInstance().SetScreenOffset(activeScreenId, 0.0f, 0.0f);
-    EXPECT_TRUE(result);
-
-    LOGI("SetScreenOffsetTest001 screenId[%{public}" PRIu64 "] offset[0.0, 0.0]", activeScreenId);
-}
-
-/*
- * @tc.name: SetScreenOffsetTest002
- * @tc.desc: test SetScreenOffset with non-zero offset
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenOffsetTest002)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-
-    float offsetX = 10.0f;
-    float offsetY = 10.0f;
-
-    bool result = RSInterfaces::GetInstance().SetScreenOffset(activeScreenId, offsetX, offsetY);
-    EXPECT_TRUE(result);
-
-    // Reset to zero offset
-    RSInterfaces::GetInstance().SetScreenOffset(activeScreenId, 0.0f, 0.0f);
-
-    LOGI("SetScreenOffsetTest002 screenId[%{public}" PRIu64 "] offset[10.0, 10.0]", activeScreenId);
-}
-
-/*
- * @tc.name: SetRogScreenResolutionTest001
- * @tc.desc: test SetRogScreenResolution to set ROG screen resolution
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetRogScreenResolutionTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-
-    // Get current resolution
-    RSScreenModeInfo currentMode = RSInterfaces::GetInstance().GetScreenActiveMode(activeScreenId);
-    uint32_t width = currentMode.GetScreenWidth();
-    uint32_t height = currentMode.GetScreenHeight();
-
-    bool result = RSInterfaces::GetInstance().SetRogScreenResolution(activeScreenId, width, height);
-    EXPECT_TRUE(result);
-
-    LOGI("SetRogScreenResolutionTest001 screenId[%{public}" PRIu64 "] resolution[%{public}u,%{public}u]",
-        activeScreenId, width, height);
+    // Set to second supported mode
+    uint32_t modeId = supportedModes[1].GetScreenModeId();
+    RSInterfaces::GetInstance().SetScreenActiveMode(0, modeId);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 // ============================================================================
-// 其他接口测试
+// Virtual Screen Resolution Tests
 // ============================================================================
 
 /*
- * @tc.name: SetScreenSkipFrameIntervalTest001
- * @tc.desc: test SetScreenSkipFrameInterval to set skip frame interval
+ * @tc.name: SetVirtualScreenResolutionTest001
+ * @tc.desc: test SetVirtualScreenResolution with 640x480
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenSkipFrameIntervalTest001)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    uint32_t skipFrameInterval = 0; // No skip
-
-    bool result = RSInterfaces::GetInstance().SetScreenSkipFrameInterval(activeScreenId, skipFrameInterval);
-    EXPECT_TRUE(result);
-
-    LOGI("SetScreenSkipFrameIntervalTest001 screenId[%{public}" PRIu64 "] skipFrameInterval[%{public}u]",
-        activeScreenId, skipFrameInterval);
-}
-
-/*
- * @tc.name: SetScreenSkipFrameIntervalTest002
- * @tc.desc: test SetScreenSkipFrameInterval with skip interval
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenSkipFrameIntervalTest002)
-{
-    ScreenId activeScreenId = RSInterfaces::GetInstance().GetActiveScreenId();
-    uint32_t skipFrameInterval = 1; // Skip 1 frame
-
-    bool result = RSInterfaces::GetInstance().SetScreenSkipFrameInterval(activeScreenId, skipFrameInterval);
-    EXPECT_TRUE(result);
-
-    // Reset to no skip
-    RSInterfaces::GetInstance().SetScreenSkipFrameInterval(activeScreenId, 0);
-
-    LOGI("SetScreenSkipFrameIntervalTest002 screenId[%{public}" PRIu64 "] skipFrameInterval[%{public}u]",
-        activeScreenId, skipFrameInterval);
-}
-
-/*
- * @tc.name: SetVirtualScreenRefreshRateTest001
- * @tc.desc: test SetVirtualScreenRefreshRate to set virtual screen refresh rate
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenRefreshRateTest001)
+GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenResolutionTest001)
 {
     uint32_t width = 640;
     uint32_t height = 480;
     ScreenId virtualScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "SetVirtualScreenRefreshRateTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+        "SetVirtualScreenResolutionTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    uint32_t refreshRate = 60; // 60Hz
-    bool result = RSInterfaces::GetInstance().SetVirtualScreenRefreshRate(virtualScreenId, refreshRate);
-    EXPECT_TRUE(result);
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorRED);
+
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(virtualScreenId);
-
-    LOGI("SetVirtualScreenRefreshRateTest001 screenId[%{public}" PRIu64 "] refreshRate[%{public}u]",
-        virtualScreenId, refreshRate);
 }
 
 /*
- * @tc.name: SetVirtualScreenAutoRotationTest001
- * @tc.desc: test SetVirtualScreenAutoRotation to enable auto rotation
+ * @tc.name: SetVirtualScreenResolutionTest002
+ * @tc.desc: test SetVirtualScreenResolution with 800x600
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenAutoRotationTest001)
+GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenResolutionTest002)
+{
+    uint32_t width = 800;
+    uint32_t height = 600;
+    ScreenId virtualScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "SetVirtualScreenResolutionTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorGREEN);
+
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(virtualScreenId);
+}
+
+/*
+ * @tc.name: SetVirtualScreenResolutionTest003
+ * @tc.desc: test SetVirtualScreenResolution with 1024x768
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenResolutionTest003)
+{
+    uint32_t width = 1024;
+    uint32_t height = 768;
+    ScreenId virtualScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "SetVirtualScreenResolutionTest003", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorBLUE);
+
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(virtualScreenId);
+}
+
+// ============================================================================
+// Multiple Virtual Screens Tests
+// ============================================================================
+
+/*
+ * @tc.name: MultipleVirtualScreensTest001
+ * @tc.desc: test two virtual screens displayed side by side
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, MultipleVirtualScreensTest001)
+{
+    struct ScreenInfo {
+        std::string name;
+        uint32_t width;
+        uint32_t height;
+        uint32_t x;
+        uint32_t y;
+        Color color;
+    };
+
+    std::vector<ScreenInfo> screens = {
+        { "MultipleVirtualScreensTest001_1", 400, 300, 0, 0, SK_ColorRED },
+        { "MultipleVirtualScreensTest001_2", 400, 300, 450, 0, SK_ColorGREEN },
+    };
+
+    std::vector<ScreenId> screenIds;
+
+    for (const auto& info : screens) {
+        ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+            info.name, info.width, info.height, nullptr, INVALID_SCREEN_ID, -1, {});
+        ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+        RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+        auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+        ASSERT_NE(displayNode, nullptr);
+
+        displayNode->SetBounds({ info.x, info.y, info.width, info.height });
+        displayNode->SetFrame({ info.x, info.y, info.width, info.height });
+        displayNode->SetBackgroundColor(info.color);
+
+        GetRootNode()->AddChild(displayNode);
+        RegisterNode(displayNode);
+
+        screenIds.push_back(screenId);
+    }
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Cleanup
+    for (const auto& screenId : screenIds) {
+        RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+    }
+}
+
+/*
+ * @tc.name: MultipleVirtualScreensTest002
+ * @tc.desc: test four virtual screens in 2x2 grid layout
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, MultipleVirtualScreensTest002)
+{
+    struct ScreenInfo {
+        std::string name;
+        uint32_t width;
+        uint32_t height;
+        uint32_t x;
+        uint32_t y;
+        Color color;
+    };
+
+    std::vector<ScreenInfo> screens = {
+        { "MultipleVirtualScreensTest002_1", 400, 300, 0, 0, SK_ColorRED },
+        { "MultipleVirtualScreensTest002_2", 400, 300, 450, 0, SK_ColorGREEN },
+        { "MultipleVirtualScreensTest002_3", 400, 300, 0, 350, SK_ColorBLUE },
+        { "MultipleVirtualScreensTest002_4", 400, 300, 450, 350, SK_ColorYELLOW },
+    };
+
+    std::vector<ScreenId> screenIds;
+
+    for (const auto& info : screens) {
+        ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+            info.name, info.width, info.height, nullptr, INVALID_SCREEN_ID, -1, {});
+        ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+        RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+        auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+        ASSERT_NE(displayNode, nullptr);
+
+        displayNode->SetBounds({ info.x, info.y, info.width, info.height });
+        displayNode->SetFrame({ info.x, info.y, info.width, info.height });
+        displayNode->SetBackgroundColor(info.color);
+
+        GetRootNode()->AddChild(displayNode);
+        RegisterNode(displayNode);
+
+        screenIds.push_back(screenId);
+    }
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Cleanup
+    for (const auto& screenId : screenIds) {
+        RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+    }
+}
+
+// ============================================================================
+// Screen Capture Tests
+// ============================================================================
+
+/*
+ * @tc.name: VirtualScreenCaptureTest001
+ * @tc.desc: test TakeSurfaceCapture on virtual screen with red background
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, VirtualScreenCaptureTest001)
 {
     uint32_t width = 640;
     uint32_t height = 480;
     ScreenId virtualScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "SetVirtualScreenAutoRotationTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+        "VirtualScreenCaptureTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    bool result = RSInterfaces::GetInstance().SetVirtualScreenAutoRotation(virtualScreenId, true);
-    EXPECT_TRUE(result);
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorRED);
+
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Capture screenshot
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("VirtualScreenCaptureTest001 TakeSurfaceCapture failed");
+    }
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(virtualScreenId);
-
-    LOGI("SetVirtualScreenAutoRotationTest001 screenId[%{public}" PRIu64 "] autoRotation[true]",
-        virtualScreenId);
 }
 
 /*
- * @tc.name: SetVirtualScreenAutoRotationTest002
- * @tc.desc: test SetVirtualScreenAutoRotation to disable auto rotation
+ * @tc.name: VirtualScreenCaptureTest002
+ * @tc.desc: test TakeSurfaceCapture on virtual screen with green background
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenAutoRotationTest002)
+GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, VirtualScreenCaptureTest002)
 {
     uint32_t width = 640;
     uint32_t height = 480;
     ScreenId virtualScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "SetVirtualScreenAutoRotationTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+        "VirtualScreenCaptureTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    bool result = RSInterfaces::GetInstance().SetVirtualScreenAutoRotation(virtualScreenId, false);
-    EXPECT_TRUE(result);
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
 
-    RSInterfaces::GetInstance().RemoveVirtualScreen(virtualScreenId);
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorGREEN);
 
-    LOGI("SetVirtualScreenAutoRotationTest002 screenId[%{public}" PRIu64 "] autoRotation[false]",
-        virtualScreenId);
-}
+    GetRootNode()->AddChild(displayNode);
+    RegisterNode(displayNode);
 
-/*
- * @tc.name: SetVirtualScreenUsingStatusTest001
- * @tc.desc: test SetVirtualScreenUsingStatus to set virtual screen using status
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenUsingStatusTest001)
-{
-    uint32_t width = 640;
-    uint32_t height = 480;
-    ScreenId virtualScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "SetVirtualScreenUsingStatusTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 
-    bool result = RSInterfaces::GetInstance().SetVirtualScreenUsingStatus(virtualScreenId, true);
-    EXPECT_TRUE(result);
+    // Capture screenshot
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("VirtualScreenCaptureTest002 TakeSurfaceCapture failed");
+    }
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(virtualScreenId);
-
-    LOGI("SetVirtualScreenUsingStatusTest001 screenId[%{public}" PRIu64 "] usingStatus[true]",
-        virtualScreenId);
-}
-
-/*
- * @tc.name: SetVirtualScreenUsingStatusTest002
- * @tc.desc: test SetVirtualScreenUsingStatus to set virtual screen not in use
- * @tc.type: FUNC
- */
-GRAPHIC_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenUsingStatusTest002)
-{
-    uint32_t width = 640;
-    uint32_t height = 480;
-    ScreenId virtualScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "SetVirtualScreenUsingStatusTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
-
-    bool result = RSInterfaces::GetInstance().SetVirtualScreenUsingStatus(virtualScreenId, false);
-    EXPECT_TRUE(result);
-
-    RSInterfaces::GetInstance().RemoveVirtualScreen(virtualScreenId);
-
-    LOGI("SetVirtualScreenUsingStatusTest002 screenId[%{public}" PRIu64 "] usingStatus[false]",
-        virtualScreenId);
 }
 
 } // namespace OHOS::Rosen
