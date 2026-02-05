@@ -270,11 +270,6 @@ public:
     {
         return childHasVisibleEffect_;
     }
-    void SetChildHasVisibleColorPicker(bool val);
-    bool ChildHasVisibleColorPicker() const
-    {
-        return childHasVisibleColorPicker_;
-    }
 
     void SetCacheSize(Vector2f size);
     inline Vector2f GetCacheSize() const
@@ -578,7 +573,6 @@ private:
     bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
-    bool childHasVisibleColorPicker_ = false;
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
     bool isForceDisableNodeGroup_ = false;
