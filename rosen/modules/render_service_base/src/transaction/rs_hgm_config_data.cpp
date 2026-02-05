@@ -20,7 +20,6 @@ namespace {
     static constexpr size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
     constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
     constexpr uint32_t MAX_PAGE_NAME_SIZE = 64;
-    constexpr uint32_t MAX_APP_BUFFER_SIZE = 64;
 }
 
 namespace OHOS {
@@ -60,10 +59,6 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
         data->AddAnimDynamicItem(item);
     }
 
-    if (!UnmarshallingAppBufferList(parcel, *data)) {
-        RS_LOGE("%s: UnmarshallingAppBufferList failed", __func__);
-        return data;
-    }
     uint32_t pageNameSize;
     if (!parcel.ReadUint32(pageNameSize)) {
         RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
@@ -85,29 +80,6 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
     return data;
 }
 
-bool RSHgmConfigData::UnmarshallingAppBufferList(Parcel& parcel, RSHgmConfigData& data)
-{
-    uint32_t appBufferSize;
-    if (!parcel.ReadUint32(appBufferSize)) {
-        RS_LOGE("%s: read appBufferSize failed", __func__);
-        return false;
-    }
-    if (appBufferSize > MAX_APP_BUFFER_SIZE) {
-        RS_LOGE("%s: read vector failed, size:%" PRIu32 ", maxSize:%" PRIu32,
-            __func__, appBufferSize, MAX_APP_BUFFER_SIZE);
-        return false;
-    }
-    for (uint32_t i = 0; i < appBufferSize; ++i) {
-        std::string appBuffer;
-        if (!parcel.ReadString(appBuffer)) {
-            RS_LOGE("%s: read app buffer failed", __func__);
-            return false;
-        }
-        data.AddAppBuffer(std::move(appBuffer));
-    }
-    return true;
-}
-
 bool RSHgmConfigData::Marshalling(Parcel& parcel) const
 {
     parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
@@ -125,17 +97,6 @@ bool RSHgmConfigData::Marshalling(Parcel& parcel) const
         if (!flag) {
             RS_LOGE("RSHgmConfigData::Marshalling parse config item failed");
             return flag;
-        }
-    }
-
-    if (!parcel.WriteUint32(appBufferList_.size())) {
-        RS_LOGE("%s: write appBufferList size failed", __func__);
-        return false;
-    }
-    for (const auto& item : appBufferList_) {
-        if (!parcel.WriteString(item)) {
-            RS_LOGE("%s: write app buffer failed", __func__);
-            return false;
         }
     }
 
