@@ -4159,7 +4159,7 @@ void RSUniRenderVisitor::PrepareColorPickerDrawable(RSDrawable::Ptr& drawable)
             // Get the ColorPicker rect from current surface node (in screen coordinates)
             RectI colorPickerRect = curSurfaceNode_->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
             // Store surface ID with its rect for intersection checking later
-            hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace_back(curSurfaceNode_->GetId(), colorPickerRect);
+            hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(), colorPickerRect);
         }
     }
 }

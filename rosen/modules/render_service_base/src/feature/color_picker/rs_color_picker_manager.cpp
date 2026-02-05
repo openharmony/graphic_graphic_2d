@@ -57,11 +57,8 @@ void RSColorPickerManager::ScheduleColorPick(
         RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); // continue animation
     }
 
-    // Schedule new color pick if strategy is not NONE
     // Cooldown check now done in RSColorPickerDrawable::Prepare()
-    if (params.strategy != ColorPickStrategyType::NONE) {
-        ScheduleColorPickWithStrategy(canvas, rect, nodeId, params.strategy);
-    }
+    ScheduleColorPickWithStrategy(canvas, rect, nodeId, params.strategy);
 }
 
 void RSColorPickerManager::ScheduleColorPickWithStrategy(

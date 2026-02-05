@@ -1548,7 +1548,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%lu] filterInGlobal_[%d]",
             GetId(), filterInGlobal);
     }
-    // ColorPicker nodes are now tracked via ChildHasVisibleFilter, so checking filter is sufficient
+    // if clean without filter / colorPicker skip subtree
     return ChildHasVisibleFilter() ? filterInGlobal : false;
 }
 

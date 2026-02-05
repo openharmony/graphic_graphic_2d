@@ -139,7 +139,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcDirtyFilter_;
 
     // Track surfaces that have ColorPicker tasks this frame with their rects for intersection checking
-    std::vector<std::pair<NodeId, RectI>> colorPickerHwcDisabledSurfaces_;
+    std::unordered_map<NodeId, RectI> colorPickerHwcDisabledSurfaces_;
 
     uint32_t curZOrderForHwcEnableByFilter_ = 0;
 
