@@ -26,13 +26,12 @@ namespace Rosen {
 
 static RSRenderInterface* g_renderInterface = nullptr;
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 namespace {
 const uint8_t DO_REGISTER_CANVAS_CALLBACK = 0;
 const uint8_t DO_SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER = 1;
 const uint8_t TARGET_SIZE = 2;
 } // namespace
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 class TestRSCanvasSurfaceBufferCallback : public RSICanvasSurfaceBufferCallback {
 public:
     TestRSCanvasSurfaceBufferCallback() = default;
