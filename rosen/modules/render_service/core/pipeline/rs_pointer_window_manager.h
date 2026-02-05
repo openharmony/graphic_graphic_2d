@@ -154,7 +154,7 @@ public:
     bool GetHardCursorNeedCommit(NodeId screenNodeId);
 
     bool CheckHardCursorSupport(const std::shared_ptr<RSScreenRenderNode>& screenNode);
-    bool HasMirrorDisplay() const;
+    bool IsPointerInvisibleInMultiScreen() const;
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> GetHardCursorDrawable(NodeId id);
     static void CheckHardCursorValid(const RSSurfaceRenderNode& node);
 private:
