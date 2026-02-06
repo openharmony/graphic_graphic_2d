@@ -53,10 +53,10 @@ DECLARE_MASK(WaveGradientMask, WAVE_GRADIENT_MASK,
 );
 
 DECLARE_MASK(WaveDisturbanceMask, WAVE_DISTURBANCE_MASK,
- 	ADD_PROPERTY_TAG(WaveDisturbanceMask, Progress),
- 	ADD_PROPERTY_TAG(WaveDisturbanceMask, ClickPos),
- 	ADD_PROPERTY_TAG(WaveDisturbanceMask, WaveRD),
- 	ADD_PROPERTY_TAG(WaveDisturbanceMask, WaveLWH)
+    ADD_PROPERTY_TAG(WaveDisturbanceMask, Progress),
+    ADD_PROPERTY_TAG(WaveDisturbanceMask, ClickPos),
+    ADD_PROPERTY_TAG(WaveDisturbanceMask, WaveRD),
+    ADD_PROPERTY_TAG(WaveDisturbanceMask, WaveLWH)
 );
 
 DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
