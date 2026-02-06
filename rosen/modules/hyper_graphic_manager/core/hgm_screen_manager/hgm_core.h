@@ -218,11 +218,15 @@ public:
         return alignRate_;
     }
 
-    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum) { idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE; }
+    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum) {
+        idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE;
+    }
 
     int64_t GetIdealPipelineOffset() const { return idealPipelineOffset_; }
 
-    void SetIdealPipelineOffset144(int32_t pipelineOffsetPulseNum) { idealPipelineOffset144_ = pipelineOffsetPulseNum * IDEAL_PULSE144; }
+    void SetIdealPipelineOffset144(int32_t pipelineOffsetPulseNum) {
+        idealPipelineOffset144_ = pipelineOffsetPulseNum * IDEAL_PULSE144;
+    }
 
     int64_t GetIdealPipelineOffset144() const { return idealPipelineOffset144_; }
 
