@@ -18,7 +18,6 @@
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui/rs_effect_node.h"
-#include "ng_mask_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
