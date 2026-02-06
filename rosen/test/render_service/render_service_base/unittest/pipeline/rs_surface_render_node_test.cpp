@@ -2863,6 +2863,26 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsAncestorScreenFrozenTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUifirstStartingWindowIdTest
+ * @tc.desc: Test set uifirst starting window id
+ * @tc.type:FUNC
+ * @tc.require: issue21674
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetUifirstStartingWindowIdTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    NodeId startingWindowId = 100;
+    node->stagingRenderParams_ = nullptr;
+    node->SetUifirstStartingWindowId(startingWindowId);
+    EXPECT_EQ(node->GetUifirstStartingWindowId(), INVALID_NODEID);
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    node->SetUifirstStartingWindowId(startingWindowId);
+    EXPECT_EQ(node->GetUifirstStartingWindowId(), startingWindowId);
+}
+
+/**
  * @tc.name: RegisterCaptureCallbackTest
  * @tc.desc: RegisterCaptureCallback
  * @tc.type:FUNC

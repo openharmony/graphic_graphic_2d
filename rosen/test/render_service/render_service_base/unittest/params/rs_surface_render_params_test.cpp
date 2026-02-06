@@ -574,4 +574,22 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetRotationCorrectionDegreeTest, TestSize.Le
     EXPECT_EQ(params.GetRotationCorrectionDegree(), 270);
     params.SetRotationCorrectionDegree(270);
 }
+
+/**
+ * @tc.name: SetUifirstStartingWindowId
+ * @tc.desc: Test set uifirst starting window id
+ * @tc.type:FUNC
+ * @tc.require: issue21674
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetUifirstStartingWindowId, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    NodeId startingWindowId = 100;
+    params.SetUifirstStartingWindowId(startingWindowId);
+    EXPECT_EQ(params.GetUifirstStartingWindowId(), startingWindowId);
+
+    // Test setting multiple times
+    params.SetUifirstStartingWindowId(startingWindowId);
+    EXPECT_EQ(params.GetUifirstStartingWindowId(), startingWindowId);
+}
 } // namespace OHOS::Rosen

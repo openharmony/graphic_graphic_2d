@@ -1037,7 +1037,7 @@ HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest005, TestSize.Level1)
     surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::LEASH_WINDOW);
 
     surfaceParams->SetGlobalPositionEnabled(true);
-    surfaceParams->SetUifirstUseStarting(0);
+    surfaceParams->SetUifirstStartingWindowId(0);
     surfaceParams->SetWindowInfo(false, true, false);
     uniParams->isUIFirstDebugEnable_ = true;
     // irrevertible matrix
@@ -1048,7 +1048,7 @@ HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest005, TestSize.Level1)
     ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
 
     surfaceParams->SetGlobalPositionEnabled(true);
-    surfaceParams->SetUifirstUseStarting(1);
+    surfaceParams->SetUifirstStartingWindowId(1);
     surfaceParams->SetWindowInfo(false, false, false);
     uniParams->isUIFirstDebugEnable_ = false;
     // draw starting window
@@ -1445,9 +1445,9 @@ HWTEST_F(RSSubThreadCacheTest, CacheReuseCountTest, TestSize.Level1)
 
 /**
  * @tc.name: UpdateCacheSurfaceInfo001
- * @tc.desc: Test UpdateCacheSurfaceInfo when drawable is null
+ * @tc.desc: Test update cache info failed
  * @tc.type: FUNC
- * @tc.require: issue21071
+ * @tc.require: issue21674
  */
 HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo001, TestSize.Level1)
 {
@@ -1455,16 +1455,20 @@ HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo001, TestSize.Level1)
     subCache.cacheSurfaceInfo_.processedSurfaceCount = 0;
     subCache.cacheSurfaceInfo_.processedNodeCount = 0;
     subCache.totalProcessedSurfaceCount_ = 3;
-    subCache.UpdateCacheSurfaceInfo(nullptr);
+    subCache.UpdateCacheSurfaceInfo(nullptr, nullptr);
+    ASSERT_EQ(subCache.cacheSurfaceInfo_.processedSurfaceCount, 0);
+    ASSERT_EQ(subCache.cacheSurfaceInfo_.processedNodeCount, 0);
+
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_, nullptr);
     ASSERT_EQ(subCache.cacheSurfaceInfo_.processedSurfaceCount, 0);
     ASSERT_EQ(subCache.cacheSurfaceInfo_.processedNodeCount, 0);
 }
 
 /**
  * @tc.name: UpdateCacheSurfaceInfo002
- * @tc.desc: Test UpdateCacheSurfaceInfo when render param is null
+ * @tc.desc: Test update cache info success
  * @tc.type: FUNC
- * @tc.require: issue21071
+ * @tc.require: issue21674
  */
 HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo002, TestSize.Level1)
 {
@@ -1472,36 +1476,18 @@ HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo002, TestSize.Level1)
     RsSubThreadCache subCache;
     subCache.cacheSurfaceInfo_.processedSurfaceCount = 0;
     subCache.cacheSurfaceInfo_.processedNodeCount = 0;
-    subCache.totalProcessedSurfaceCount_ = 3;
-    surfaceDrawable_->renderParams_ = nullptr;
-    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_);
-    ASSERT_EQ(subCache.cacheSurfaceInfo_.processedSurfaceCount, 0);
-    ASSERT_EQ(subCache.cacheSurfaceInfo_.processedNodeCount, 0);
-}
-
-/**
- * @tc.name: UpdateCacheSurfaceInfo003
- * @tc.desc: Test UpdateCacheSurfaceInfo
- * @tc.type: FUNC
- * @tc.require: issue21071
- */
-HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo003, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    RsSubThreadCache subCache;
-    subCache.cacheSurfaceInfo_.processedSurfaceCount = 0;
-    subCache.cacheSurfaceInfo_.processedNodeCount = 0;
     subCache.cacheSurfaceInfo_.alpha = -1.f;
     subCache.totalProcessedSurfaceCount_ = 1;
-    surfaceDrawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
     surfaceDrawable_->renderParams_->SetGlobalAlpha(0);
     RSRenderNodeDrawable::ClearProcessedNodeCount();
     RSRenderNodeDrawable::ProcessedNodeCountInc();
     RSRenderNodeDrawable::ProcessedNodeCountInc();
-
-    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    surfaceParams->SetGlobalAlpha(0);
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_, surfaceParams.get());
     ASSERT_EQ(subCache.cacheSurfaceInfo_.processedSurfaceCount, 1);
     ASSERT_EQ(subCache.cacheSurfaceInfo_.processedNodeCount, 2);
     ASSERT_EQ(subCache.cacheSurfaceInfo_.alpha, 0);
+    ASSERT_TRUE(subCache.cacheSurfaceInfo_.processedSubSurfaceNodeIds.empty());
 }
 }
