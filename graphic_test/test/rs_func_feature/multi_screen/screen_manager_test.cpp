@@ -284,14 +284,23 @@ static std::vector<ScreenCtx> CreateVirtualScreens(const std::string& name, uint
     screens.reserve(colors.size());
     for (size_t i = 0; i < colors.size(); ++i) {
         auto [consumer, producer] = CreateConsumerAndProducerSurface();
-        ASSERT_NE(producer, nullptr);
+        if (producer == nullptr) {
+            ADD_FAILURE() << "CreateConsumerAndProducerSurface producer is nullptr";
+            return screens;
+        }
         ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
             name, width, height, producer, INVALID_SCREEN_ID, -1, {});
-        ASSERT_NE(screenId, INVALID_SCREEN_ID);
+        if (screenId == INVALID_SCREEN_ID) {
+            ADD_FAILURE() << "CreateVirtualScreen failed";
+            return screens;
+        }
 
         RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
         auto displayNode = RSDisplayNode::Create(displayNodeConfig);
-        ASSERT_NE(displayNode, nullptr);
+        if (displayNode == nullptr) {
+            ADD_FAILURE() << "RSDisplayNode::Create failed";
+            return screens;
+        }
         displayNode->SetBounds({ 0, 0, width, height });
         displayNode->SetFrame({ 0, 0, width, height });
         displayNode->SetBackgroundColor(colors[i]);
