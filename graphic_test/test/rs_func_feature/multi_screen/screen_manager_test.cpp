@@ -16,6 +16,7 @@
 // Screen Manager Pixel Test: Multi-screen interface tests with pixel-level comparison
 // Tests verify screen management interfaces through actual rendering and screenshot capture
 
+#include <cstring>
 #include <filesystem>
 
 #include "accesstoken_kit.h"
@@ -38,10 +39,10 @@ constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 200;
 constexpr uint32_t SLEEP_TIME_IN_US = 10000;      // 10 ms
 constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
 
-class RSScreenManagerTest;
-
 class CustomizedSurfaceCapture : public SurfaceCaptureCallback {
 public:
+    explicit CustomizedSurfaceCapture(bool saveToFile = true) : saveToFile_(saveToFile) {}
+
     void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelMap) override
     {
         if (pixelMap == nullptr) {
@@ -49,14 +50,31 @@ public:
             return;
         }
         isCallbackCalled_ = true;
-        SavePixelToFile(pixelMap);
+        pixelMap_ = pixelMap;
+        if (saveToFile_) {
+            SavePixelToFile(pixelMap, "");
+        }
     }
     void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
         std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
     bool isCallbackCalled_ = false;
 
+    std::shared_ptr<Media::PixelMap> GetPixelMap() const
+    {
+        return pixelMap_;
+    }
+
+    void SaveCompositePixelMap(std::shared_ptr<Media::PixelMap> pixelMap, const std::string& suffix) const
+    {
+        if (pixelMap == nullptr) {
+            LOGE("SaveCompositePixelMap pixelMap is nullptr");
+            return;
+        }
+        SavePixelToFile(pixelMap, suffix);
+    }
+
 private:
-    void SavePixelToFile(std::shared_ptr<Media::PixelMap> pixelMap)
+    void SavePixelToFile(std::shared_ptr<Media::PixelMap> pixelMap, const std::string& suffix)
     {
         const ::testing::TestInfo* const testInfo = ::testing::UnitTest::GetInstance()->current_test_info();
         std::string fileName = "/data/local/graphic_test/multi_screen/";
@@ -68,10 +86,18 @@ private:
         }
         fileName += testInfo->test_case_name() + std::string("_");
         fileName += testInfo->name() + std::string(".png");
+        if (!suffix.empty()) {
+            fileName = "/data/local/graphic_test/multi_screen/" +
+                std::string(testInfo->test_case_name()) + "_" +
+                std::string(testInfo->name()) + "_" + suffix + ".png";
+        }
         if (!WriteToPngWithPixelMap(fileName, *pixelMap)) {
             LOGE("SavePixelToFile write image failed %{public}s", fileName.c_str());
         }
     }
+
+    bool saveToFile_ = true;
+    std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
 };
 
 class CustomizedBufferConsumerListener : public IBufferConsumerListener {
@@ -130,59 +156,6 @@ static std::pair<sptr<Surface>, sptr<Surface>> CreateConsumerAndProducerSurface(
     return { consumerSurface, producerSurface };
 }
 
-static void RunMultipleVirtualScreensTest(const std::string& name, uint32_t width, uint32_t height,
-    const std::vector<SkColor>& colors, RSScreenManagerTest* test)
-{
-    struct ScreenCtx {
-        ScreenId id = INVALID_SCREEN_ID;
-        sptr<Surface> consumer = nullptr;
-        sptr<Surface> producer = nullptr;
-        std::shared_ptr<RSDisplayNode> node = nullptr;
-        std::shared_ptr<CustomizedSurfaceCapture> callback = nullptr;
-    };
-
-    std::vector<ScreenCtx> screens;
-    for (size_t i = 0; i < colors.size(); ++i) {
-        auto [consumer, producer] = CreateConsumerAndProducerSurface();
-        ASSERT_NE(producer, nullptr);
-        ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-            name, width, height, producer, INVALID_SCREEN_ID, -1, {});
-        ASSERT_NE(screenId, INVALID_SCREEN_ID);
-
-        RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-        auto displayNode = RSDisplayNode::Create(displayNodeConfig);
-        ASSERT_NE(displayNode, nullptr);
-        displayNode->SetBounds({ 0, 0, width, height });
-        displayNode->SetFrame({ 0, 0, width, height });
-        displayNode->SetBackgroundColor(colors[i]);
-
-        ScreenCtx ctx;
-        ctx.id = screenId;
-        ctx.consumer = consumer;
-        ctx.producer = producer;
-        ctx.node = displayNode;
-        ctx.callback = std::make_shared<CustomizedSurfaceCapture>();
-        screens.push_back(ctx);
-    }
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-
-    for (auto& ctx : screens) {
-        RSInterfaces::GetInstance().TakeSurfaceCapture(ctx.node, ctx.callback);
-    }
-    for (auto& ctx : screens) {
-        if (!test->CheckSurfaceCaptureCallback(ctx.callback)) {
-            LOGE("%{public}s TakeSurfaceCapture failed", name.c_str());
-        }
-        RSInterfaces::GetInstance().RemoveVirtualScreen(ctx.id);
-    }
-    for (auto& ctx : screens) {
-        (void)ctx.consumer;
-    }
-}
-} // namespace
-
 class RSScreenManagerTest : public RSGraphicTest {
 public:
     // called before each tests
@@ -229,6 +202,137 @@ public:
         return false;
     }
 };
+
+static std::shared_ptr<Media::PixelMap> ComposeGrid2x2(const std::vector<std::shared_ptr<Media::PixelMap>>& maps)
+{
+    if (maps.empty()) {
+        return nullptr;
+    }
+    auto first = maps[0];
+    if (first == nullptr) {
+        return nullptr;
+    }
+
+    Media::ImageInfo info;
+    first->GetImageInfo(info);
+    if (info.pixelFormat != Media::PixelFormat::RGBA_8888) {
+        LOGE("ComposeGrid2x2 only supports RGBA_8888");
+        return nullptr;
+    }
+
+    const uint32_t singleW = static_cast<uint32_t>(info.size.width);
+    const uint32_t singleH = static_cast<uint32_t>(info.size.height);
+    const uint32_t compositeW = singleW * 2;
+    const uint32_t compositeH = singleH * 2;
+    const uint32_t bytesPerPixel = 4;
+    const uint32_t dstRowStride = compositeW * bytesPerPixel;
+
+    std::vector<uint8_t> buffer(compositeW * compositeH * bytesPerPixel, 0);
+
+    for (size_t i = 0; i < maps.size() && i < 4; ++i) {
+        auto srcMap = maps[i];
+        if (srcMap == nullptr) {
+            continue;
+        }
+        const uint8_t* srcPixels = reinterpret_cast<const uint8_t*>(srcMap->GetPixels());
+        if (srcPixels == nullptr) {
+            continue;
+        }
+        const uint32_t srcRowStride = static_cast<uint32_t>(srcMap->GetRowStride());
+        const uint32_t copyBytes = singleW * bytesPerPixel;
+        const uint32_t gridRow = static_cast<uint32_t>(i / 2);
+        const uint32_t gridCol = static_cast<uint32_t>(i % 2);
+        const uint32_t dstX = gridCol * singleW;
+        const uint32_t dstY = gridRow * singleH;
+
+        for (uint32_t row = 0; row < singleH; ++row) {
+            const uint8_t* srcRow = srcPixels + row * srcRowStride;
+            uint8_t* dstRow = buffer.data() + (dstY + row) * dstRowStride + dstX * bytesPerPixel;
+            if (srcRow == nullptr || dstRow == nullptr) {
+                continue;
+            }
+            std::memcpy(dstRow, srcRow, copyBytes);
+        }
+    }
+
+    Media::InitializationOptions opts;
+    opts.size.width = compositeW;
+    opts.size.height = compositeH;
+    opts.pixelFormat = info.pixelFormat;
+    opts.alphaType = info.alphaType;
+    std::shared_ptr<Media::PixelMap> composite = Media::PixelMap::Create(
+        reinterpret_cast<uint32_t*>(buffer.data()), buffer.size() / bytesPerPixel, opts);
+    return composite;
+}
+
+static void RunMultipleVirtualScreensTest(const std::string& name, uint32_t width, uint32_t height,
+    const std::vector<SkColor>& colors, RSScreenManagerTest* test)
+{
+    struct ScreenCtx {
+        ScreenId id = INVALID_SCREEN_ID;
+        sptr<Surface> consumer = nullptr;
+        sptr<Surface> producer = nullptr;
+        std::shared_ptr<RSDisplayNode> node = nullptr;
+        std::shared_ptr<CustomizedSurfaceCapture> callback = nullptr;
+    };
+
+    std::vector<ScreenCtx> screens;
+    for (size_t i = 0; i < colors.size(); ++i) {
+        auto [consumer, producer] = CreateConsumerAndProducerSurface();
+        ASSERT_NE(producer, nullptr);
+        ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+            name, width, height, producer, INVALID_SCREEN_ID, -1, {});
+        ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+        RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+        auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+        ASSERT_NE(displayNode, nullptr);
+        displayNode->SetBounds({ 0, 0, width, height });
+        displayNode->SetFrame({ 0, 0, width, height });
+        displayNode->SetBackgroundColor(colors[i]);
+
+        ScreenCtx ctx;
+        ctx.id = screenId;
+        ctx.consumer = consumer;
+        ctx.producer = producer;
+        ctx.node = displayNode;
+        ctx.callback = std::make_shared<CustomizedSurfaceCapture>(false);
+        screens.push_back(ctx);
+    }
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    for (auto& ctx : screens) {
+        RSInterfaces::GetInstance().TakeSurfaceCapture(ctx.node, ctx.callback);
+    }
+    for (auto& ctx : screens) {
+        if (!test->CheckSurfaceCaptureCallback(ctx.callback)) {
+            LOGE("%{public}s TakeSurfaceCapture failed", name.c_str());
+        }
+    }
+
+    std::vector<std::shared_ptr<Media::PixelMap>> captured;
+    captured.reserve(screens.size());
+    for (auto& ctx : screens) {
+        captured.push_back(ctx.callback->GetPixelMap());
+    }
+    auto composite = ComposeGrid2x2(captured);
+    if (composite != nullptr && !screens.empty()) {
+        // Save with default filename: {TestCase}_{TestName}.png for pixel comparison
+        screens[0].callback->SaveCompositePixelMap(composite, "");
+    } else {
+        LOGE("%{public}s composite pixelmap create failed", name.c_str());
+    }
+
+    for (auto& ctx : screens) {
+        RSInterfaces::GetInstance().RemoveVirtualScreen(ctx.id);
+    }
+    for (auto& ctx : screens) {
+        (void)ctx.consumer;
+    }
+}
+} // namespace
 
 // Virtual Screen Tests - use nullptr for Surface to enable screenshot capture
 // ============================================================================
