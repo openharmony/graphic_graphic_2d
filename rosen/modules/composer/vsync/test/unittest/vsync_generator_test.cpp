@@ -663,13 +663,13 @@ HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest002, Function | 
 }
 
 /*
-* Function: ChangeVSyncTETest
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. Test ChangeVSyncTE for LTPO 144hz
+ * Function: ChangeVSyncTETest
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Test ChangeVSyncTE for LTPO 144hz
  */
-HWTEST_F(VSyncGeneratorTest, ChangeVSyncTETest, Function | MediumTest| Level0)
+HWTEST_F(VSyncGeneratorTest, ChangeVSyncTETest, Function | MediumTest | Level0)
 {
     // Test ChangeVSyncTE for LTPO 144hz config error, skip and not support
     VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
@@ -755,13 +755,13 @@ HWTEST_F(VSyncGeneratorTest, SetVSyncMaxRefreshRateTest, Function | MediumTest| 
 }
 
 /*
-* Function: SetVSyncMaxTETest
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. Test SetVSyncMaxTETest and SetVSyncMaxTE144Test
+ * Function: SetVSyncMaxTETest
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Test SetVSyncMaxTETest and SetVSyncMaxTE144Test
  */
-HWTEST_F(VSyncGeneratorTest, SetVSyncMaxTETest, Function | MediumTest| Level0)
+HWTEST_F(VSyncGeneratorTest, SetVSyncMaxTETest, Function | MediumTest | Level0)
 {
     // set invalid value 30 smaller than VSYNC_MAX_REFRESHRATE_RANGE_MIN
     VsyncError ret = vsyncGenerator_->SetVSyncMaxTE(30);

@@ -1003,16 +1003,16 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
 
 void VSyncGenerator::ChangeVSyncTE(uint32_t generatorRefreshRate)
 {
-    // LTPO管线两套TE切换方案，仅配置144hz倍数且下发144hz切帧时触发
+    // triggers only when set to a multiple of 144hz and switch 144hz
     if (vsyncMaxTE144_ != 0) {
         if (generatorRefreshRate == VSYNC_144_HZ) {
             vsyncMaxRefreshRate_ = vsyncMaxTE144_;
             pulse_ = ONE_SECOND_FOR_CALCUTE_FREQUENCY / static_cast<int64_t>(vsyncMaxRefreshRate_);
-            RS_TRACE_NAME_FMT("vsync TE change to %u, pulse_:%" PRId64, vsyncMaxRefreshRate_, pulse_);
+            RS_TRACE_NAME_FMT("vsync TE change to %u, pulse:%" PRId64, vsyncMaxRefreshRate_, pulse_);
         } else if (vsyncMaxRefreshRate_ == vsyncMaxTE144_) {
             vsyncMaxRefreshRate_ = vsyncMaxTE_;
             pulse_ = ONE_SECOND_FOR_CALCUTE_FREQUENCY / static_cast<int64_t>(vsyncMaxRefreshRate_);
-            RS_TRACE_NAME_FMT("vsync TE change back to %u, pulse_:%" PRId64, vsyncMaxRefreshRate_, pulse_);
+            RS_TRACE_NAME_FMT("vsync TE change back to %u, pulse:%" PRId64, vsyncMaxRefreshRate_, pulse_);
         }
     }
 }

@@ -19,10 +19,10 @@
 #include <cstdint>
 namespace OHOS {
 namespace Rosen {
-    // range of max TE frequency
-    constexpr uint32_t VSYNC_MAX_REFRESHRATE_RANGE_MIN = 120;
-    constexpr uint32_t VSYNC_MAX_REFRESHRATE_RANGE_MAX = 432;
-    constexpr uint32_t VSYNC_144_HZ = 144;
+// range of max TE frequency
+constexpr uint32_t VSYNC_MAX_REFRESHRATE_RANGE_MIN = 120;
+constexpr uint32_t VSYNC_MAX_REFRESHRATE_RANGE_MAX = 432;
+constexpr uint32_t VSYNC_144_HZ = 144;
 } // Rosen
 
 typedef enum {

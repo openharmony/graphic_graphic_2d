@@ -218,25 +218,13 @@ public:
         return alignRate_;
     }
 
-    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum)
-    {
-        idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE;
-    }
+    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum) { idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE; }
 
-    int64_t GetIdealPipelineOffset() const
-    {
-        return idealPipelineOffset_;
-    }
+    int64_t GetIdealPipelineOffset() const { return idealPipelineOffset_; }
 
-    void SetIdealPipelineOffset144(int32_t pipelineOffsetPulseNum)
-    {
-        idealPipelineOffset144_ = pipelineOffsetPulseNum * IDEAL_PULSE144;
-    }
+    void SetIdealPipelineOffset144(int32_t pipelineOffsetPulseNum) { idealPipelineOffset144_ = pipelineOffsetPulseNum * IDEAL_PULSE144; }
 
-    int64_t GetIdealPipelineOffset144() const
-    {
-        return idealPipelineOffset144_;
-    }
+    int64_t GetIdealPipelineOffset144() const { return idealPipelineOffset144_; }
 
     int64_t GetPipelineOffset() const
     {
@@ -246,25 +234,13 @@ public:
 
     int32_t GetPipelineOffsetPulseNum() const { return pipelineOffsetPulseNum_; }
 
-    uint32_t GetSupportedMaxTE() const
-    {
-        return maxTE_;
-    }
+    uint32_t GetSupportedMaxTE() const { return maxTE_; }
 
-    void SetSupportedMaxTE(uint32_t maxTE)
-    {
-        maxTE_ = maxTE;
-    }
+    void SetSupportedMaxTE(uint32_t maxTE) { maxTE_ = maxTE; }
 
-    uint32_t GetSupportedMaxTE144() const
-    {
-        return maxTE144_;
-    }
+    uint32_t GetSupportedMaxTE144() const { return maxTE144_; }
 
-    void SetSupportedMaxTE144(uint32_t maxTE144)
-    {
-        maxTE144_ = maxTE144;
-    }
+    void SetSupportedMaxTE144(uint32_t maxTE144) { maxTE144_ = maxTE144; }
 
     int32_t GetPluseNum() const
     {
