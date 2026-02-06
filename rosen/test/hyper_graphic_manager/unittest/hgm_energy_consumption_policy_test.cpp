@@ -646,5 +646,286 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, VoterVideoCallFrameRate001, TestSize.Le
     HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
     ASSERT_NE(HgmCore::Instance().GetFrameRateMgr(), nullptr);
 }
+
+/**
+ * @tc.name: SetComponentDefaultFpsInfo001
+ * @tc.desc: Test when energyInfo_.componentName == "" && !eventInfo.eventStatus
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo001, TestSize.Level1)
+{
+    EventInfo eventInfo;
+    eventInfo.eventStatus = false;
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    hgmEnergyConsumptionPolicy.SetComponentDefaultFpsInfo(eventInfo);
+    EXPECT_EQ(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "");
+}
+
+/**
+ * @tc.name: SetComponentDefaultFpsInfo002
+ * @tc.desc: Test when energyInfo_.componentName == "" && currentRefreshMode_ != HGM_REFRESHRATE_MODE_AUTO
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo002, TestSize.Level1)
+{
+    EventInfo eventInfo;
+    eventInfo.eventStatus = true;
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = 1;
+    hgmEnergyConsumptionPolicy.SetComponentDefaultFpsInfo(eventInfo);
+    EXPECT_EQ(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "");
+}
+
+
+/**
+ * @tc.name: SetComponentDefaultFpsInfo003
+ * @tc.desc: Test when energyInfo_.componentName != "" && !eventInfo.eventStatus
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo003, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "TestComponent";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    EventInfo eventInfo;
+    eventInfo.eventStatus = false;
+    hgmEnergyConsumptionPolicy.SetComponentDefaultFpsInfo(eventInfo);
+    EXPECT_EQ(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "");
+}
+
+/**
+ * @tc.name: SetComponentDefaultFpsInfo004
+ * @tc.desc: Test when energyInfo_.componentName != "" && currentRefreshMode_ != HGM_REFRESHRATE_MODE_AUTO
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo004, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "TestComponent";
+    EventInfo eventInfo;
+    eventInfo.eventStatus = true;
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = 1;
+    hgmEnergyConsumptionPolicy.SetComponentDefaultFpsInfo(eventInfo);
+    EXPECT_EQ(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "");
+}
+
+/**
+ * @tc.name: SetComponentDefaultFpsInfo005
+ * @tc.desc: eventInfo.maxRefreshRate != 0
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo005, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    EventInfo eventInfo;
+    eventInfo.eventStatus = true;
+    eventInfo.description = "TestComponent:1234";
+    eventInfo.maxRefreshRate = 60;
+    hgmEnergyConsumptionPolicy.SetComponentDefaultFpsInfo(eventInfo);
+    EXPECT_NE(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "");
+}
+
+/**
+ * @tc.name: SetComponentDefaultFpsInfo006
+ * @tc.desc: Test when eventInfo.eventStatus && energyInfo_.componentName != "", pid == 0, eventInfo.maxRefreshRate != 0
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo006, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "TestComponent";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    EventInfo eventInfo;
+    eventInfo.eventStatus = true;
+    eventInfo.description = "TestComponent:0";
+    eventInfo.maxRefreshRate = 60;
+    hgmEnergyConsumptionPolicy.SetComponentDefaultFpsInfo(eventInfo);
+    EXPECT_EQ(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "TestComponent");
+}
+
+/**
+ * @tc.name: SetComponentDefaultFpsInfo007
+ * @tc.desc: Test when eventInfo.maxRefreshRate == 0
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo007, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "TestComponent";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    EventInfo eventInfo;
+    eventInfo.eventStatus = true;
+    eventInfo.description = "TestComponent:1234";
+    eventInfo.maxRefreshRate = 0;
+    hgmEnergyConsumptionPolicy.SetComponentDefaultFpsInfo(eventInfo);
+    EXPECT_EQ(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "TestComponent");
+}
+
+/**
+ * @tc.name: SetComponentDefaultFpsInfo008
+ * @tc.desc: Test when eventInfo.maxRefreshRate == 0
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo008, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "TestComponent";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    EventInfo eventInfo;
+    eventInfo.eventStatus = true;
+    eventInfo.description = "TestComponent:0";
+    eventInfo.maxRefreshRate = 0;
+    hgmEnergyConsumptionPolicy.SetComponentDefaultFpsInfo(eventInfo);
+    EXPECT_EQ(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "TestComponent");
+}
+
+/**
+ * @tc.name: SetComponentDefaultFpsInfo009
+ * @tc.desc: Test when syncEnergyInfoFunc_ == nullptr
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo009, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    hgmEnergyConsumptionPolicy.syncEnergyInfoFunc_ = nullptr;
+    EventInfo eventInfo;
+    eventInfo.eventStatus = true;
+    eventInfo.description = "TestComponent:1234";
+    eventInfo.maxRefreshRate = 60;
+    hgmEnergyConsumptionPolicy.SetComponentDefaultFpsInfo(eventInfo);
+    EXPECT_NE(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "");
+}
+
+/**
+ * @tc.name: SetComponentDefaultFpsInfo010
+ * @tc.desc: Test when syncEnergyInfoFunc_ != nullptr
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo010, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    auto syncFunc = [](const EnergyInfo& info) {};
+    hgmEnergyConsumptionPolicy.syncEnergyInfoFunc_ = syncFunc;
+    EventInfo eventInfo;
+    eventInfo.eventStatus = true;
+    eventInfo.description = "TestComponent:1234";
+    eventInfo.maxRefreshRate = 60;
+    hgmEnergyConsumptionPolicy.SetComponentDefaultFpsInfo(eventInfo);
+    EXPECT_NE(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "");
+}
+
+/**
+ * @tc.name: DisableTouchHighFrameRate001
+ * @tc.desc: Test when currentRefreshMode_ != HGM_REFRESHRATE_MODE_AUTO
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate001, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = 1;
+    FrameRateRange finalRange;
+    finalRange.componentScene_ = ComponentScene::SWIPER_FLING;
+    finalRange.type_ = SWIPER_DRAG_FRAME_RATE_TYPE;
+
+    bool result = hgmEnergyConsumptionPolicy.DisableTouchHighFrameRate(finalRange);
+    EXPECT_FALSE(result);
+}
+
+
+/**
+ * @tc.name: DisableTouchHighFrameRate002
+ * @tc.desc: Test when energyInfo_.componentName != "swiper_drag_scene"
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate002, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "TestComponent";
+    FrameRateRange finalRange;
+    finalRange.componentScene_ = ComponentScene::SWIPER_FLING;
+    finalRange.type_ = SWIPER_DRAG_FRAME_RATE_TYPE;
+
+    bool result = hgmEnergyConsumptionPolicy.DisableTouchHighFrameRate(finalRange);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: DisableTouchHighFrameRate003
+ * @tc.desc: Test when finalRange.type_ & SWIPER_DRAG_FRAME_RATE_TYPE == 0
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate003, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "swiper_drag_scene";
+    FrameRateRange finalRange;
+    finalRange.componentScene_ = ComponentScene::SWIPER_FLING;
+    finalRange.type_ = 0;
+
+    bool result = hgmEnergyConsumptionPolicy.DisableTouchHighFrameRate(finalRange);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: DisableTouchHighFrameRate004
+ * @tc.desc: Test when finalRange.type_ & SWIPER_DRAG_FRAME_RATE_TYPE == 1
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate004, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "swiper_drag_scene";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    FrameRateRange finalRange;
+    finalRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
+    finalRange.type_ = SWIPER_DRAG_FRAME_RATE_TYPE;
+
+    bool result = hgmEnergyConsumptionPolicy.DisableTouchHighFrameRate(finalRange);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: DisableTouchHighFrameRate005
+ * @tc.desc: Test when finalRange.type_ & SWIPER_DRAG_FRAME_RATE_TYPE == 0
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate005, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.energyInfo_.componentName = "swiper_drag_scene";
+    hgmEnergyConsumptionPolicy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    FrameRateRange finalRange;
+    finalRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
+    finalRange.type_ = 0;
+
+    bool result = hgmEnergyConsumptionPolicy.DisableTouchHighFrameRate(finalRange);
+    EXPECT_FALSE(result);
+}
 } // namespace Rosen
 } // namespace OHOS

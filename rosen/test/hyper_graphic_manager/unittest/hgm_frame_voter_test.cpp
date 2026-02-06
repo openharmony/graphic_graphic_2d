@@ -132,10 +132,10 @@ HWTEST_F(HgmFrameVoterTest, TestGetVoterGamesEffective, Function | SmallTest | L
 HWTEST_F(HgmFrameVoterTest, TestDragScene, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
-    mgr.frameVoter_.SetDragScene(false);
-    EXPECT_EQ(mgr.frameVoter_.IsDragScene(), false);
-    mgr.frameVoter_.SetDragScene(true);
-    EXPECT_EQ(mgr.frameVoter_.IsDragScene(), true);
+    mgr.frameVoter_.SetDisableTouchHighFrame(false);
+    EXPECT_EQ(mgr.frameVoter_.isDisableTouchHighFrame_, false);
+    mgr.frameVoter_.SetDisableTouchHighFrame(true);
+    EXPECT_EQ(mgr.frameVoter_.isDisableTouchHighFrame_, true);
 }
 
 /**
@@ -224,7 +224,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     hgmFrameVoter.DeliverVote({ "VOTER_VIDEO", OLED_60_HZ, OLED_60_HZ, 3 }, true);
     std::shared_ptr<PolicyConfigData> policyConfigData = std::move(HgmCore::Instance().mPolicyConfigData_);
     HgmCore::Instance().mPolicyConfigData_ = nullptr;
-    hgmFrameVoter.isDragScene_ = true;
+    hgmFrameVoter.isDisableTouchHighFrame_ = true;
     auto voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
     VoteRange range;
     VoteInfo info;
@@ -243,7 +243,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     HgmCore::Instance().mPolicyConfigData_->videoFrameRateList_["testPkg"] = "1";
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
     range = { 0, 0 };
-    hgmFrameVoter.isDragScene_ = false;
+    hgmFrameVoter.isDisableTouchHighFrame_ = false;
     hgmFrameVoter.DeliverVote({ "VOTER_POINTER", OLED_120_HZ, OLED_120_HZ, 4 }, true);
     hgmFrameVoter.multiAppStrategy_.backgroundPid_.Put(4);
     hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);

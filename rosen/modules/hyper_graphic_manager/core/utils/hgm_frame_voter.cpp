@@ -110,7 +110,8 @@ void HgmFrameVoter::DeliverVote(const VoteInfo& voteInfo, bool eventStatus)
             return;
         }
 
-        if ((*it).min != voteInfo.min || (*it).max != voteInfo.max) {
+        if ((*it).min != voteInfo.min || (*it).max != voteInfo.max || isUpdateTouchFramePolicy_) {
+            isUpdateTouchFramePolicy_ = false;
             // modify
             vec.erase(it);
             vec.push_back(voteInfo);
@@ -163,7 +164,8 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
             ProcessVoteLog(curVoteInfo, true);
             continue;
         }
-        if ((isDragScene_ || NeedSkipVoterTouch(existVoterLTPO)) && curVoteInfo.voterName == "VOTER_TOUCH") {
+        if ((isDisableTouchHighFrame_ || NeedSkipVoterTouch(existVoterLTPO)) &&
+            curVoteInfo.voterName == "VOTER_TOUCH") {
             continue;
         }
         if (curVoteInfo.voterName == "VOTER_LTPO") {

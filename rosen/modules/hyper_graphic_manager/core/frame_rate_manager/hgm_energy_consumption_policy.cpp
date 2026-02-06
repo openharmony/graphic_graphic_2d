@@ -17,6 +17,7 @@
 
 #include <functional>
 
+#include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
 #include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
@@ -134,6 +135,40 @@ void HgmEnergyConsumptionPolicy::SetEnergyConsumptionAssuranceSceneInfo(const Ev
     }
 }
 
+void HgmEnergyConsumptionPolicy::SetComponentDefaultFpsInfo(const EventInfo& eventInfo)
+{
+    if (eventInfo.eventStatus && currentRefreshMode_ == HGM_REFRESHRATE_MODE_AUTO) {
+        auto [componentName, pid, _] = HgmMultiAppStrategy::AnalyzePkgParam(eventInfo.description);
+        if (pid == DEFAULT_PID || eventInfo.maxRefreshRate == 0) {
+            return;
+        }
+        energyInfo_.componentName = std::move(componentName);
+        energyInfo_.componentDefaultFps = eventInfo.maxRefreshRate;
+        energyInfo_.componentPid = pid;
+    } else {
+        if (energyInfo_.componentName == "") {
+            return;
+        }
+        energyInfo_.componentName = "";
+        energyInfo_.componentDefaultFps = 0;
+        energyInfo_.componentPid = DEFAULT_PID;
+    }
+    if (syncEnergyInfoFunc_ != nullptr) {
+        syncEnergyInfoFunc_(energyInfo_);
+    }
+    HgmConfigCallbackManager::GetInstance()->SyncEnergyDataCallback(energyInfo_);
+    HGM_LOGI("pid = %{public}d, frameRate = %{public}d", energyInfo_.componentPid, energyInfo_.componentDefaultFps);
+}
+
+bool HgmEnergyConsumptionPolicy::DisableTouchHighFrameRate(const FrameRateRange& finalRange)
+{
+    if (currentRefreshMode_ != HGM_REFRESHRATE_MODE_AUTO || energyInfo_.componentName != SWIPER_DRAG_SCENE) {
+        return false;
+    }
+    return finalRange.componentScene_ == ComponentScene::SWIPER_FLING ||
+           (finalRange.type_ & SWIPER_DRAG_FRAME_RATE_TYPE);
+}
+
 void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
 {
     if (!isAnimationEnergyAssuranceEnable_ ||
@@ -244,6 +279,7 @@ void HgmEnergyConsumptionPolicy::SetRefreshRateMode(int32_t currentRefreshMode, 
 {
     currentRefreshMode_ = currentRefreshMode;
     curScreenStrategyId_ = curScreenStrategyId;
+    SetComponentDefaultFpsInfo({});
 }
 
 void HgmEnergyConsumptionPolicy::SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps)
@@ -289,7 +325,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
     HGM_LOGD("change power policy is %{public}s", lastAssuranceLog.c_str());
 }
 
-void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo &eventInfo)
+void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo& eventInfo)
 {
     if (isEnableVideoCall_.load() && !eventInfo.eventStatus) {
         videoCallVsyncName_ = "";
@@ -405,8 +441,7 @@ void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string
     for (const auto& pkg : pkgs) {
         std::string pkgName = pkg.substr(0, pkg.find(":"));
         if (videoCallLayerName_.empty()) {
-            if (const auto& iter = videoCallLayerConfig.find(pkgName);
-                iter != videoCallLayerConfig.end()) {
+            if (const auto& iter = videoCallLayerConfig.find(pkgName); iter != videoCallLayerConfig.end()) {
                 videoCallLayerNameStr = iter->second;
             }
         }

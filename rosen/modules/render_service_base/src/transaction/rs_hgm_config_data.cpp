@@ -14,10 +14,11 @@
  */
 
 #include "transaction/rs_hgm_config_data.h"
+
+#include <memory>
 #include "platform/common/rs_log.h"
 
 namespace {
-    static constexpr size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
     constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
     constexpr uint32_t MAX_PAGE_NAME_SIZE = 64;
 }
@@ -31,18 +32,74 @@ RSHgmConfigData::~RSHgmConfigData() noexcept
 
 RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 {
-    auto data = new RSHgmConfigData();
+    auto data = std::make_unique<RSHgmConfigData>();
+    if (!parcel.ReadBool(data->isSyncConfig_)) {
+        RS_LOGE("RSHgmConfigData Unmarshalling read isSyncConfig failed");
+        return nullptr;
+    }
+    if (data->isSyncConfig_) {
+        if (!data->UnmarshallingConfig(parcel)) {
+            RS_LOGE("RSHgmConfigData Unmarshalling read config failed");
+            return nullptr;
+        }
+    }
+
+    if (!parcel.ReadBool(data->isSyncEnergyData_)) {
+        RS_LOGE("RSHgmConfigData Unmarshalling read isSyncEnergyData failed");
+        return nullptr;
+    }
+    if (data->isSyncEnergyData_) {
+        if (!data->UnmarshallingEnergyData(parcel)) {
+            RS_LOGE("RSHgmConfigData Unmarshalling read EnergyData failed");
+            return nullptr;
+        }
+    }
+    return data.release();
+}
+
+bool RSHgmConfigData::Marshalling(Parcel& parcel) const
+{
+    bool flag = parcel.WriteBool(isSyncConfig_);
+    if (!flag) {
+        RS_LOGE("RSHgmConfigData::Marshalling parse isSyncConfig failed");
+        return flag;
+    }
+    if (isSyncConfig_) {
+        flag = MarshallingConfig(parcel);
+        if (!flag) {
+            RS_LOGE("RSHgmConfigData::Marshalling parse config failed");
+            return flag;
+        }
+    }
+
+    flag = parcel.WriteBool(isSyncEnergyData_);
+    if (!flag) {
+        RS_LOGE("RSHgmConfigData::Marshalling parse isSyncEnergyData failed");
+        return flag;
+    }
+    if (isSyncEnergyData_) {
+        flag = MarshallingEnergyData(parcel);
+        if (!flag) {
+            RS_LOGE("RSHgmConfigData::Marshalling parse energyData failed");
+            return flag;
+        }
+    }
+    return flag;
+}
+
+bool RSHgmConfigData::UnmarshallingConfig(Parcel& parcel)
+{
     uint32_t size;
-    if (!parcel.ReadFloat(data->ppi_) || !parcel.ReadFloat(data->xDpi_) || !parcel.ReadFloat(data->yDpi_) ||
-        !parcel.ReadUint32(size)) {
-        RS_LOGE("RSHgmConfigData Unmarshalling read failed");
-        return data;
+    if (!parcel.ReadFloat(ppi_) || !parcel.ReadFloat(xDpi_) || !parcel.ReadFloat(yDpi_) || !parcel.ReadUint32(size)) {
+        RS_LOGE("RSHgmConfigData UnmarshallingConfig read failed");
+        return false;
     }
     size_t readableSize = parcel.GetReadableBytes() / sizeof(uint64_t);
     size_t len = static_cast<size_t>(size);
     if (size > MAX_ANIM_DYNAMIC_ITEM_SIZE || len > readableSize) {
-        RS_LOGE("RSHgmConfigData Unmarshalling Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
-        return data;
+        RS_LOGE(
+            "RSHgmConfigData UnmarshallingConfig Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
+        return false;
     }
     std::string type;
     std::string name;
@@ -52,37 +109,37 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
     for (uint32_t i = 0; i < size; i++) {
         if (!parcel.ReadString(type) || !parcel.ReadString(name) || !parcel.ReadInt32(minSpeed) ||
             !parcel.ReadInt32(maxSpeed) || !parcel.ReadInt32(preferredFps)) {
-            RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
-            return data;
+            RS_LOGE("RSHgmConfigData UnmarshallingConfig read data failed");
+            return false;
         }
-        AnimDynamicItem item = {type, name, minSpeed, maxSpeed, preferredFps};
-        data->AddAnimDynamicItem(item);
+        AnimDynamicItem item = { type, name, minSpeed, maxSpeed, preferredFps };
+        AddAnimDynamicItem(item);
     }
 
     uint32_t pageNameSize;
     if (!parcel.ReadUint32(pageNameSize)) {
-        RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
-        return data;
+        RS_LOGE("RSHgmConfigData UnmarshallingConfig read data failed");
+        return false;
     }
     len = static_cast<size_t>(pageNameSize);
     if (pageNameSize > MAX_PAGE_NAME_SIZE || len > readableSize) {
-        RS_LOGE("RSHgmConfigData Unmarshalling Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
-        return data;
+        RS_LOGE("RSHgmConfigData UnmarshallingConfig Failed read vector, size:%zu, readableSize:%zu",
+            len, readableSize);
+        return false;
     }
     for (uint32_t i = 0; i < pageNameSize; i++) {
         std::string pageName;
         if (!parcel.ReadString(pageName)) {
-            RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
-            return data;
+            RS_LOGE("RSHgmConfigData UnmarshallingConfig read data failed");
+            return false;
         }
-        data->AddPageName(pageName);
+        AddPageName(pageName);
     }
-    return data;
+    return true;
 }
 
-bool RSHgmConfigData::Marshalling(Parcel& parcel) const
+bool RSHgmConfigData::MarshallingConfig(Parcel& parcel) const
 {
-    parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
     bool flag = parcel.WriteFloat(ppi_) && parcel.WriteFloat(xDpi_) && parcel.WriteFloat(yDpi_) &&
         parcel.WriteUint32(configData_.size());
     if (!flag) {
@@ -106,6 +163,24 @@ bool RSHgmConfigData::Marshalling(Parcel& parcel) const
     }
 
     return flag;
+}
+
+bool RSHgmConfigData::UnmarshallingEnergyData(Parcel& parcel)
+{
+    if (!parcel.ReadString(energyInfo_.componentName) || !parcel.ReadInt32(energyInfo_.componentDefaultFps)) {
+        RS_LOGE("RSHgmConfigData UnmarshallingEnergyData read data failed");
+        return false;
+    }
+    return true;
+}
+
+bool RSHgmConfigData::MarshallingEnergyData(Parcel& parcel) const
+{
+    if (!parcel.WriteString(energyInfo_.componentName) || !parcel.WriteInt32(energyInfo_.componentDefaultFps)) {
+        RS_LOGE("RSHgmConfigData::MarshallingEnergyData parse data failed");
+        return false;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

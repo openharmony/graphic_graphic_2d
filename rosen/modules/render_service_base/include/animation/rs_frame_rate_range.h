@@ -48,6 +48,8 @@ constexpr uint32_t DISPLAY_SYNC_FRAME_RATE_TYPE = (0b111 << 22);
 
 constexpr uint32_t FRAME_RATE_TYPE_MAX_BIT = 32;
 
+const static std::string SWIPER_DRAG_SCENE = "swiper_drag_scene";
+
 enum ComponentScene : int32_t {
     UNKNOWN_SCENE = 0,
     SWIPER_FLING = 1,
@@ -117,6 +119,9 @@ public:
             this->isEnergyAssurance_ = other.isEnergyAssurance_;
             this->componentScene_ = other.componentScene_;
             return true;
+        }
+        if (this->preferred_ == other.preferred_ && other.componentScene_ == ComponentScene::SWIPER_FLING) {
+            this->componentScene_ = other.componentScene_;
         }
         return false;
     }
