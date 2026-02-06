@@ -113,6 +113,35 @@ HWTEST_F(RSDrawCmdTest, Unmarshalling001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Playback001
+ * @tc.desc: test results of Playback
+ * @tc.type:FUNC
+ * @tc.require: issueI9H4AD
+ */
+HWTEST_F(RSDrawCmdTest, Playback001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    Drawing::SamplingOptions sampling;
+    bool isBackground = true;
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Data> data = std::make_shared<Drawing::Data>();
+    Drawing::AdaptiveImageInfo imageInfo;
+    RSExtendImageObject extendImageObject(image, data, imageInfo);
+    extendImageObject.Playback(canvas, rect, sampling, isBackground);
+    ASSERT_TRUE(true);
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    RSExtendImageObject extendImageObjectT(pixelMapT, imageInfo);
+    extendImageObjectT.Playback(canvas, rect, sampling, isBackground);
+    pixelMapT->isAstc_ = true;
+    extendImageObjectT.Playback(canvas, rect, sampling, isBackground);
+}
+
+/**
  * @tc.name: PreProcessPixelMap
  * @tc.desc: test results of PreProcessPixelMap
  * @tc.type:FUNC
