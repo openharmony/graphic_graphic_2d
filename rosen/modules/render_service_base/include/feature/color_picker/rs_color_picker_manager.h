@@ -99,7 +99,6 @@ private:
     void PickColor(const std::shared_ptr<Drawing::Image>& snapshot, ColorPickStrategyType strategy);
     void HandleColorUpdate(Drawing::ColorQuad newColor, ColorPickStrategyType strategy);
 
-
     inline std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColor();
 
     static Drawing::ColorQuad InterpolateColor(

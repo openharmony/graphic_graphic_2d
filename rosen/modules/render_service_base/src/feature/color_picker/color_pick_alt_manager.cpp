@@ -106,15 +106,16 @@ namespace {
 enum class LuminanceZone { DARK, LIGHT, NEUTRAL, UNKNOWN };
 LuminanceZone GetLuminanceZone(uint32_t luminance, uint32_t darkThreshold, uint32_t lightThreshold)
 {
+    if (luminance > RGBA_MAX) {
+        return LuminanceZone::UNKNOWN;
+    }
     if (luminance < darkThreshold) {
         return LuminanceZone::DARK;
-    } else if (luminance > lightThreshold) {
-        return LuminanceZone::LIGHT;
-    } else if (luminance > RGBA_MAX) {
-        return LuminanceZone::UNKNOWN;
-    } else {
-        return LuminanceZone::NEUTRAL;
     }
+    if (luminance > lightThreshold) {
+        return LuminanceZone::LIGHT;
+    }
+    return LuminanceZone::NEUTRAL;
 }
 } // namespace
 
