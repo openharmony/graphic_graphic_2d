@@ -811,6 +811,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, DetachFromWindowContainer001, TestSize.Level1
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: DetachFromWindowContainer002
  * @tc.desc: Verify function DetachFromWindowContainer002
@@ -856,6 +857,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, DetachFromWindowContainer002, TestSize.Level1
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, 0, 1);
     EXPECT_EQ(context.nodeMap.logicalDisplayNodeMap_[0]->children_.size(), 0);
 }
+#endif
 
 /**
  * @tc.name: SetRegionToBeMagnified
