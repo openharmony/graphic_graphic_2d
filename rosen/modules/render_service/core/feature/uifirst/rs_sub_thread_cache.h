@@ -201,7 +201,7 @@ public:
     // uifirst dirtyRegion
     std::shared_ptr<RSDirtyRegionManager> GetSyncUifirstDirtyManager() const;
     bool UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-        bool hasCompletateCache, bool isLastFrameSkip);
+        bool hasCompleteCache, bool isLastFrameSkip);
     void UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable);
     void SetUifirstDirtyRegion(Drawing::Region dirtyRegion);
     Drawing::Region GetUifirstDirtyRegion() const;
@@ -216,9 +216,9 @@ public:
     void PushDirtyRegionToStack(RSPaintFilterCanvas& canvas, Drawing::Region& resultRegion);
     bool IsCacheValid() const;
     void UifirstDirtyRegionDfx(Drawing::Canvas& canvas, Drawing::RectI& surfaceDrawRect);
-    bool IsDirtyRecordCompletated();
-    void UpdateDirtyRecordCompletatedState(bool isCompletate);
-    void UpadteAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
+    bool IsDirtyRecordCompleted();
+    void UpdateDirtyRecordCompletedState(bool isComplete);
+    void UpdateAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
         bool isEnableDirtyRegion);
     void SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, Drawing::Canvas& canvas);
 
@@ -316,7 +316,7 @@ private:
     static inline std::atomic<int> totalProcessedSurfaceCount_ = 0;
 
     std::shared_ptr<RSDirtyRegionManager> syncUifirstDirtyManager_ = nullptr;
-    bool isDirtyRecordCompletated_ = false;
+    bool isDirtyRecordCompleted_ = false;
     Drawing::Region uifirstDirtyRegion_;
     bool uifrstDirtyEnableFlag_ = false;
     Drawing::Region uifirstMergedDirtyRegion_;

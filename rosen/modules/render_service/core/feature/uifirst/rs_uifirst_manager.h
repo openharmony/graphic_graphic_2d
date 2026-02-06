@@ -271,7 +271,7 @@ private:
     uint64_t GetTimeDiffBehindWindow(uint64_t currentTime, NodeId id);
     uint64_t GetMainThreadVsyncTime();
     void PurgePendingPostNodes();
-    void SetNodePriorty(std::list<NodeId>& result, PendingPostNodeMap& pendingNode);
+    void SetNodePriority(std::list<NodeId>& result, PendingPostNodeMap& pendingNode);
     void SortSubThreadNodesPriority();
     bool IsCacheSizeValid(RSSurfaceRenderNode& node);
     // check if ArkTsCard enable uifirst
