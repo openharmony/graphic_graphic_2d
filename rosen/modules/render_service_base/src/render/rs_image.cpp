@@ -844,11 +844,13 @@ bool RSImage::Marshalling(Parcel& parcel) const
         image = nullptr;
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
+    bool isPropertiesDirty = (pixelMap_ ? pixelMap_->IsPropertiesDirty() : PIXELMAP_IS_PROPERTIES_DIRTY_DEFAULT);
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
                    RSMarshallingHelper::Marshalling(parcel, nodeId_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
+                   RSMarshallingHelper::CompatibleMarshalling(parcel, isPropertiesDirty, RSPARCELVER_ADD_ISPROPDIRTY) &&
                    pixelMap_ == nullptr ? RSMarshallingHelper::Marshalling(parcel, image) :
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_) &&
                    RSMarshallingHelper::Marshalling(parcel, compressData) &&
