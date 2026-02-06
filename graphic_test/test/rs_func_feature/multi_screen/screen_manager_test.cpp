@@ -74,7 +74,7 @@ public:
     }
 
 private:
-    void SavePixelToFile(std::shared_ptr<Media::PixelMap> pixelMap, const std::string& suffix)
+    void SavePixelToFile(std::shared_ptr<Media::PixelMap> pixelMap, const std::string& suffix) const
     {
         const ::testing::TestInfo* const testInfo = ::testing::UnitTest::GetInstance()->current_test_info();
         std::string fileName = "/data/local/graphic_test/multi_screen/";
