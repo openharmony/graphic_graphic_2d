@@ -18,6 +18,7 @@
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui/rs_effect_node.h"
+#include "ng_mask_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -97,6 +98,7 @@ GRAPHIC_TEST(NGMaskRadialGradientTest, EFFECT_TEST, Set_Radial_Gradient_Mask_Cen
 {
     for (size_t i = 0; i < radialGradientCenters.size(); i++) {
         auto radialGradientMask = std::make_shared<RSNGRadialGradientMask>();
+        InitRadialGradientMask(radialGradientMask);
         radialGradientMask->Setter<RadialGradientMaskCenterTag>(radialGradientCenters[i]);
         radialGradientMask->Setter<RadialGradientMaskRadiusXTag>(radialGradientRadii[i]);
         radialGradientMask->Setter<RadialGradientMaskRadiusYTag>(radialGradientRadii[i]);
@@ -114,6 +116,7 @@ GRAPHIC_TEST(NGMaskRadialGradientTest, EFFECT_TEST, Set_Radial_Gradient_Mask_Rad
 {
     for (size_t i = 0; i < radialGradientExtremeRadii.size(); i++) {
         auto radialGradientMask = std::make_shared<RSNGRadialGradientMask>();
+        InitRadialGradientMask(radialGradientMask);
         radialGradientMask->Setter<RadialGradientMaskCenterTag>(Vector2f{0.5f, 0.5f});
         radialGradientMask->Setter<RadialGradientMaskRadiusXTag>(radialGradientExtremeRadii[i]);
         radialGradientMask->Setter<RadialGradientMaskRadiusYTag>(radialGradientExtremeRadii[i]);

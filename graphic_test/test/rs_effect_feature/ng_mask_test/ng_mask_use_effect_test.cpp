@@ -24,6 +24,12 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+const int SCREEN_WIDTH = 1200;
+const int SCREEN_HEIGHT = 2000;
+
+const std::string BACKGROUND_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
+
 class NGMaskUseEffectTest : public RSGraphicTest {
 public:
     void BeforeEach() override

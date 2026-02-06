@@ -25,6 +25,13 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
+const int SCREEN_WIDTH = 1200;
+const int SCREEN_HEIGHT = 2000;
+
+const std::string BACKGROUND_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
+const std::string DISTOR_IMAGE_PATH = "/data/local/tmp/Images/perlin_worley_noise_3d_64.png";
+const std::string CLOCK_IMAGE_PATH = "/data/local/tmp/Images/clockEffect.png";
+
 class NGMaskImageTest : public RSGraphicTest {
 public:
     void BeforeEach() override

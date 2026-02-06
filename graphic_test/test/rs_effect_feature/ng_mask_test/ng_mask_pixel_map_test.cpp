@@ -18,6 +18,7 @@
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui/rs_effect_node.h"
+#include "ng_mask_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -92,6 +93,7 @@ GRAPHIC_TEST(NGMaskPixelMapTest, EFFECT_TEST, Set_Pixel_Map_Mask_Src_Test)
 {
     for (size_t i = 0; i < pixelMapSrcs.size(); i++) {
         auto pixelMapMask = std::make_shared<RSNGPixelMapMask>();
+        InitPixelMapMask(pixelMapMask);
 
         std::shared_ptr<Media::PixelMap> pixelMap =
             DecodePixelMap(DISTOR_IMAGE_PATH, Media::AllocatorType::SHARE_MEM_ALLOC);
@@ -110,6 +112,7 @@ GRAPHIC_TEST(NGMaskPixelMapTest, EFFECT_TEST, Set_Pixel_Map_Mask_Src_Extreme_Val
 {
     for (size_t i = 0; i < pixelMapExtremeSrcs.size(); i++) {
         auto pixelMapMask = std::make_shared<RSNGPixelMapMask>();
+        InitPixelMapMask(pixelMapMask);
 
         std::shared_ptr<Media::PixelMap> pixelMap =
             DecodePixelMap(DISTOR_IMAGE_PATH, Media::AllocatorType::SHARE_MEM_ALLOC);

@@ -18,6 +18,7 @@
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui/rs_effect_node.h"
+#include "ng_mask_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -97,6 +98,7 @@ GRAPHIC_TEST(NGMaskWaveGradientTest, EFFECT_TEST, Set_Wave_Gradient_Mask_Boundar
 {
     for (size_t i = 0; i < waveBlurRadii.size(); i++) {
         auto waveGradientMask = std::make_shared<RSNGWaveGradientMask>();
+        InitWaveGradientMask(waveGradientMask);
         waveGradientMask->Setter<WaveGradientMaskWaveCenterTag>(Vector2f{0.5f, 0.5f});
         waveGradientMask->Setter<WaveGradientMaskBlurRadiusTag>(waveBlurRadii[i]);
         waveGradientMask->Setter<WaveGradientMaskWaveWidthTag>(2.5f);
@@ -114,6 +116,7 @@ GRAPHIC_TEST(NGMaskWaveGradientTest, EFFECT_TEST, Set_Wave_Gradient_Mask_Turbule
 {
     for (size_t i = 0; i < waveTurbulenceStrengths.size(); i++) {
         auto waveGradientMask = std::make_shared<RSNGWaveGradientMask>();
+        InitWaveGradientMask(waveGradientMask);
         waveGradientMask->Setter<WaveGradientMaskWaveCenterTag>(Vector2f{0.5f, 0.5f});
         waveGradientMask->Setter<WaveGradientMaskBlurRadiusTag>(2.5f);
         waveGradientMask->Setter<WaveGradientMaskWaveWidthTag>(2.5f);
@@ -132,6 +135,7 @@ GRAPHIC_TEST(NGMaskWaveGradientTest, EFFECT_TEST, Set_Wave_Gradient_Mask_Radius_
 {
     for (size_t i = 0; i < waveExtremeRadii.size(); i++) {
         auto waveGradientMask = std::make_shared<RSNGWaveGradientMask>();
+        InitWaveGradientMask(waveGradientMask);
         waveGradientMask->Setter<WaveGradientMaskWaveCenterTag>(Vector2f{0.5f, 0.5f});
         waveGradientMask->Setter<WaveGradientMaskBlurRadiusTag>(waveExtremeRadii[i]);
         waveGradientMask->Setter<WaveGradientMaskWaveWidthTag>(2.5f);
@@ -150,6 +154,7 @@ GRAPHIC_TEST(NGMaskWaveGradientTest, EFFECT_TEST, Set_Wave_Gradient_Mask_Turbule
 {
     for (size_t i = 0; i < waveExtremeStrengths.size(); i++) {
         auto waveGradientMask = std::make_shared<RSNGWaveGradientMask>();
+        InitWaveGradientMask(waveGradientMask);
         waveGradientMask->Setter<WaveGradientMaskWaveCenterTag>(Vector2f{0.5f, 0.5f});
         waveGradientMask->Setter<WaveGradientMaskBlurRadiusTag>(2.5f);
         waveGradientMask->Setter<WaveGradientMaskWaveWidthTag>(2.5f);
