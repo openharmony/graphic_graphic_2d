@@ -26,6 +26,7 @@
 
 #include "feature/color_picker/i_color_picker_manager.h"
 
+#include "common/rs_macros.h"
 #include "drawable/rs_drawable.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -64,8 +65,9 @@ private:
 };
 
 // RSColorPickerDrawable, pick color for current content of canvas
-class RSColorPickerDrawable : public RSDrawable {
+class RSB_EXPORT RSColorPickerDrawable : public RSDrawable {
 public:
+    RSColorPickerDrawable() = default;
     RSColorPickerDrawable(bool useAlt, NodeId nodeId);
     ~RSColorPickerDrawable() override = default;
 

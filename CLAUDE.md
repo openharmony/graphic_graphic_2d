@@ -24,7 +24,7 @@ hb build graphic_2d -i --skip-download --build-target <target> # fast incrementa
 ```bash
 # Build all tests for graphic_2d
 hb build graphic_2d -t
-# Fast rebuild of specific target
+# Fast rebuild of specific target. Full path usually works, e.g. //foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline:RSUniRenderVisitorTest
 hb build graphic_2d -t --skip-download --build-target <target>
 ```
 

@@ -620,12 +620,6 @@ ohos_unittest("RSUniRenderUtilSecUIExtensionTest") {
 ohos_unittest("RSUniRenderVisitorTest") {
   module_out_path = module_output_path
   sources = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src/drawable/rs_misc_drawable.cpp",
-    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/color_picker/color_pick_alt_manager.cpp",
-    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/color_picker/rs_color_picker_manager.cpp",
-    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/color_picker/rs_color_picker_thread.cpp",
-    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/color_picker/rs_hetero_color_picker.cpp",
-    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/color_picker/rs_color_picker_utils.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "main_thread/rs_uni_render_visitor_test.cpp",
