@@ -39,6 +39,9 @@ constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 200;
 constexpr uint32_t SLEEP_TIME_IN_US = 10000;      // 10 ms
 constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
 constexpr size_t MAX_COMPOSITE_SCREENS = 4;
+constexpr uint32_t COMPOSITE_GRID_COLS = 2;
+constexpr uint32_t COMPOSITE_GRID_ROWS = 2;
+constexpr uint32_t BYTES_PER_PIXEL = 4;
 
 class CustomizedSurfaceCapture : public SurfaceCaptureCallback {
 public:
@@ -204,32 +207,9 @@ public:
     }
 };
 
-static std::shared_ptr<Media::PixelMap> ComposeGrid2x2(const std::vector<std::shared_ptr<Media::PixelMap>>& maps)
+static bool FillCompositeBuffer(const std::vector<std::shared_ptr<Media::PixelMap>>& maps,
+    std::vector<uint8_t>& buffer, uint32_t singleW, uint32_t singleH, uint32_t dstRowStride)
 {
-    if (maps.empty()) {
-        return nullptr;
-    }
-    auto first = maps[0];
-    if (first == nullptr) {
-        return nullptr;
-    }
-
-    Media::ImageInfo info;
-    first->GetImageInfo(info);
-    if (info.pixelFormat != Media::PixelFormat::RGBA_8888) {
-        LOGE("ComposeGrid2x2 only supports RGBA_8888");
-        return nullptr;
-    }
-
-    const uint32_t singleW = static_cast<uint32_t>(info.size.width);
-    const uint32_t singleH = static_cast<uint32_t>(info.size.height);
-    const uint32_t compositeW = singleW * 2;
-    const uint32_t compositeH = singleH * 2;
-    const uint32_t bytesPerPixel = 4;
-    const uint32_t dstRowStride = compositeW * bytesPerPixel;
-
-    std::vector<uint8_t> buffer(compositeW * compositeH * bytesPerPixel, 0);
-
     for (size_t i = 0; i < maps.size() && i < MAX_COMPOSITE_SCREENS; ++i) {
         auto srcMap = maps[i];
         if (srcMap == nullptr) {
@@ -240,33 +220,63 @@ static std::shared_ptr<Media::PixelMap> ComposeGrid2x2(const std::vector<std::sh
             continue;
         }
         const uint32_t srcRowStride = static_cast<uint32_t>(srcMap->GetRowStride());
-        const uint32_t copyBytes = singleW * bytesPerPixel;
-        const uint32_t gridRow = static_cast<uint32_t>(i / 2);
-        const uint32_t gridCol = static_cast<uint32_t>(i % 2);
+        const uint32_t copyBytes = singleW * BYTES_PER_PIXEL;
+        const uint32_t gridRow = static_cast<uint32_t>(i / COMPOSITE_GRID_COLS);
+        const uint32_t gridCol = static_cast<uint32_t>(i % COMPOSITE_GRID_COLS);
         const uint32_t dstX = gridCol * singleW;
         const uint32_t dstY = gridRow * singleH;
 
         for (uint32_t row = 0; row < singleH; ++row) {
             const uint8_t* srcRow = srcPixels + row * srcRowStride;
-            uint8_t* dstRow = buffer.data() + (dstY + row) * dstRowStride + dstX * bytesPerPixel;
+            uint8_t* dstRow = buffer.data() + (dstY + row) * dstRowStride + dstX * BYTES_PER_PIXEL;
             if (srcRow == nullptr || dstRow == nullptr) {
                 continue;
             }
             if (memcpy_s(dstRow, copyBytes, srcRow, copyBytes) != EOK) {
                 LOGE("ComposeGrid2x2 memcpy_s failed");
-                return nullptr;
+                return false;
             }
         }
     }
+    return true;
+}
 
+static std::shared_ptr<Media::PixelMap> CreateCompositePixelMap(std::vector<uint8_t>& buffer,
+    const Media::ImageInfo& info, uint32_t compositeW, uint32_t compositeH)
+{
     Media::InitializationOptions opts;
     opts.size.width = compositeW;
     opts.size.height = compositeH;
     opts.pixelFormat = info.pixelFormat;
     opts.alphaType = info.alphaType;
     std::shared_ptr<Media::PixelMap> composite = Media::PixelMap::Create(
-        reinterpret_cast<uint32_t*>(buffer.data()), buffer.size() / bytesPerPixel, opts);
+        reinterpret_cast<uint32_t*>(buffer.data()), buffer.size() / BYTES_PER_PIXEL, opts);
     return composite;
+}
+
+static std::shared_ptr<Media::PixelMap> ComposeGrid2x2(const std::vector<std::shared_ptr<Media::PixelMap>>& maps)
+{
+    if (maps.empty() || maps[0] == nullptr) {
+        return nullptr;
+    }
+    Media::ImageInfo info;
+    maps[0]->GetImageInfo(info);
+    if (info.pixelFormat != Media::PixelFormat::RGBA_8888) {
+        LOGE("ComposeGrid2x2 only supports RGBA_8888");
+        return nullptr;
+    }
+
+    const uint32_t singleW = static_cast<uint32_t>(info.size.width);
+    const uint32_t singleH = static_cast<uint32_t>(info.size.height);
+    const uint32_t compositeW = singleW * COMPOSITE_GRID_COLS;
+    const uint32_t compositeH = singleH * COMPOSITE_GRID_ROWS;
+    const uint32_t dstRowStride = compositeW * BYTES_PER_PIXEL;
+    std::vector<uint8_t> buffer(compositeW * compositeH * BYTES_PER_PIXEL, 0);
+
+    if (!FillCompositeBuffer(maps, buffer, singleW, singleH, dstRowStride)) {
+        return nullptr;
+    }
+    return CreateCompositePixelMap(buffer, info, compositeW, compositeH);
 }
 
 struct ScreenCtx {
