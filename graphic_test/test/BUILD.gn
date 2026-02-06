@@ -179,6 +179,7 @@ rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/pixel_stretch_dirty_test.cpp",
   "rs_perform_feature/dirty_region/subsurface_test.cpp",
   "rs_perform_feature/dirty_region/subtree_skip_test.cpp",
+  "rs_perform_feature/dirty_region/uni_render_util_test.cpp",
   "rs_perform_feature/dirty_region/update_self_draw_rect_test.cpp",
   "rs_perform_feature/hwc/hwc_test.cpp",
   "rs_perform_feature/hybrid_render/hybrid_render_test.cpp",
