@@ -110,6 +110,7 @@ public:
 
     ani_enum fontWeight;
     ani_enum fontWidth;
+    ani_enum fontEdging;
     ani_enum affinity;
     ani_enum textDirection;
     ani_enum fontStyle;
@@ -231,6 +232,7 @@ public:
     ani_method textStyleMaxLineHeight;
     ani_method textStyleMinLineHeight;
     ani_method textStyleLineHeightStyle;
+    ani_method textStyleFontEdging;
     ani_method decorationCtor;
     ani_method decorationDecorationType;
     ani_method decorationDecorationStyle;

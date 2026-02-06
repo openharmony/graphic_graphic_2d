@@ -597,6 +597,8 @@ typedef enum OH_Drawing_TextStyleAttributeId {
     TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE = 2,
     /** Font width */
     TEXT_STYLE_ATTR_I_FONT_WIDTH = 3,
+    /** Font edging */
+    TEXT_STYLE_ATTR_I_FONT_EDGING = 4,
 } OH_Drawing_TextStyleAttributeId;
 
 /**

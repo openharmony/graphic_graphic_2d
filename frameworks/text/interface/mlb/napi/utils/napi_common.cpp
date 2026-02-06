@@ -300,6 +300,12 @@ void SetTextStyleFontType(napi_env env, napi_value argValue, TextStyle& textStyl
         }
     }
 
+    napi_get_named_property(env, argValue, "fontEdging", &tempValue);
+    uint32_t fontEdging = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontEdging) == napi_ok) {
+        textStyle.fontEdging = Drawing::FontEdging(fontEdging);
+    }
+
     SetDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
 
     std::vector<std::string> fontFamilies;
@@ -794,6 +800,8 @@ napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
             env, static_cast<double>(textStyle.minLineHeight)));
         napi_set_named_property(env, objValue, "lineHeightStyle", CreateJsNumber(
             env, static_cast<size_t>(textStyle.lineHeightStyle)));
+        napi_set_named_property(env, objValue, "fontEdging", CreateJsNumber(
+            env, static_cast<size_t>(textStyle.fontEdging)));
     }
     return objValue;
 }

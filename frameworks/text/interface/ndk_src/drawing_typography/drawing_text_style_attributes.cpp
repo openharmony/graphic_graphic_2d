@@ -84,6 +84,22 @@ namespace OHOS::Rosen::Text {
         return OH_DRAWING_SUCCESS;
     }
 
+    OH_Drawing_ErrorCode SetTextStyleFontEdging(TextStyle* style, int value)
+    {
+        if (value < static_cast<int>(OH_Drawing_FontEdging::FONT_EDGING_ALIAS) ||
+            value > static_cast<int>(OH_Drawing_FontEdging::FONT_EDGING_SUBPIXEL_ANTI_ALIAS)) {
+            return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        }
+        style->fontEdging = static_cast<Drawing::FontEdging>(value);
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode GetTextStyleFontEdging(const TextStyle* style, int* value)
+    {
+        *value = static_cast<int>(style->fontEdging);
+        return OH_DRAWING_SUCCESS;
+    }
+
     static std::unordered_map<OH_Drawing_TextStyleAttributeId, TextStyleDoubleSetter> g_textStyleDoubleSetters = {
         { TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, SetTextStyleLineHeightMaximum },
         { TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, SetTextStyleLineHeightMinimum },
@@ -97,11 +113,13 @@ namespace OHOS::Rosen::Text {
     static std::unordered_map<OH_Drawing_TextStyleAttributeId, TextStyleIntSetter> g_textStyleIntSetters = {
         { TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, SetTextStyleLineHeightStyle },
         { TEXT_STYLE_ATTR_I_FONT_WIDTH, SetTextStyleFontWidth },
+        { TEXT_STYLE_ATTR_I_FONT_EDGING, SetTextStyleFontEdging },
     };
 
     static std::unordered_map<OH_Drawing_TextStyleAttributeId, TextStyleIntGetter> g_textStyleIntGetters = {
         { TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, GetTextStyleLineHeightStyle },
         { TEXT_STYLE_ATTR_I_FONT_WIDTH, GetTextStyleFontWidth },
+        { TEXT_STYLE_ATTR_I_FONT_EDGING, GetTextStyleFontEdging },
     };
 }
 

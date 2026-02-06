@@ -259,6 +259,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     skStyle.setMaxLineHeight(txt.maxLineHeight);
     skStyle.setMinLineHeight(txt.minLineHeight);
     skStyle.setLineHeightStyle(static_cast<skt::LineHeightStyle>(txt.lineHeightStyle));
+    skStyle.setFontEdging(txt.fontEdging);
 
     return skStyle;
 }

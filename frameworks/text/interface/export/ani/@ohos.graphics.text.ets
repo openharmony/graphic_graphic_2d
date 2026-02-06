@@ -372,6 +372,7 @@ export default namespace text {
     lineHeightMinimum?: double;
     lineHeightStyle?: LineHeightStyle;
     fontWidth?: FontWidth;
+    fontEdging?: drawing.FontEdging;
   }
 
   class TextStyleInternal implements TextStyle {
@@ -400,6 +401,7 @@ export default namespace text {
     lineHeightMinimum?: double;
     lineHeightStyle?: LineHeightStyle;
     fontWidth?: FontWidth;
+    fontEdging?: drawing.FontEdging;
     constructor(
       decoration: Decoration,
       color: common2D.Color,
@@ -424,7 +426,8 @@ export default namespace text {
       lineHeightMaximum: double,
       lineHeightMinimum: double,
       lineHeightStyle: LineHeightStyle,
-      fontWidth: FontWidth
+      fontWidth: FontWidth,
+      fontEdging: drawing.FontEdging
     ) {
       this.decoration = decoration;
       this.color = color;
@@ -450,6 +453,7 @@ export default namespace text {
       this.lineHeightMinimum = lineHeightMinimum;
       this.lineHeightStyle = lineHeightStyle;
       this.fontWidth = fontWidth;
+      this.fontEdging = fontEdging;
     }
   }
 
