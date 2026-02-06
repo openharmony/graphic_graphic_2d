@@ -3715,7 +3715,10 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection001, TestSize.Level1)
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     rsSurfaceRenderNode->isOnTheTree_ = true;
-    // Set up intersecting rect (node is at default position 0,0 with buffer size)
+    // Set up absRect for the surface node so it intersects with colorPickerRect
+    RectI nodeRect(0, 0, 100, 100);
+    rsSurfaceRenderNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = nodeRect;
+    // Set up intersecting rect
     RectI colorPickerRect(50, 50, 200, 200);
 
     rsUniRenderVisitor->hwcVisitor_->CheckHwcNodeIntersection(rsSurfaceRenderNode, colorPickerRect);
@@ -3737,7 +3740,10 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection002, TestSize.Level1)
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     rsSurfaceRenderNode->isOnTheTree_ = true;
-    // Set up non-intersecting rect (far away from default position 0,0)
+    // Set up absRect for the surface node (at 0,0, size 100x100)
+    RectI nodeRect(0, 0, 100, 100);
+    rsSurfaceRenderNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = nodeRect;
+    // Set up non-intersecting rect (far away from node position)
     RectI colorPickerRect(500, 500, 100, 100);
 
     rsUniRenderVisitor->hwcVisitor_->CheckHwcNodeIntersection(rsSurfaceRenderNode, colorPickerRect);
