@@ -177,6 +177,7 @@ RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
 
 void RSColorPickerDrawable::Prepare(uint64_t vsyncTime)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT("RSColorPickerDrawable::Preparing node %" PRIu64 ", ", nodeId_);
     needExecute_.store(false, std::memory_order_relaxed);
     if (!stagingColorPicker_ || stagingColorPicker_->strategy == ColorPickStrategyType::NONE) {
         return;
