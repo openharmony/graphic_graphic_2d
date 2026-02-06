@@ -85,13 +85,13 @@ int RSHpaeFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std:
         TakeSnapshot(canvas, filter, src);
     }
 
-    drawUsingGpu_ = CheckIfUsingGpu();
-
     // SKEW_Y is the sin of the rotation angle. (sin0 = 0, sin90 = 1, sin180 = 0, sin270 = -1)
     auto skewY = canvas.GetTotalMatrix().Get(Drawing::Matrix::SKEW_Y);
     if (!FloatEqual(skewY, 0)) { // has rotation
         RSHpaeBaseData::GetInstance().SwapPixelStretch();
     }
+
+    drawUsingGpu_ = CheckIfUsingGpu();
 
     int ret = -1;
     if (DrawFilterImpl(filter, clipBounds, src, shouldClearFilteredCache) == 0) {
