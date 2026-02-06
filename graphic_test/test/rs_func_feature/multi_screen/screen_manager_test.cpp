@@ -16,7 +16,6 @@
 // Screen Manager Pixel Test: Multi-screen interface tests with pixel-level comparison
 // Tests verify screen management interfaces through actual rendering and screenshot capture
 
-#include <cstring>
 #include <filesystem>
 
 #include "accesstoken_kit.h"
@@ -25,6 +24,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_director.h"
 #include "rs_graphic_test_utils.h"
+#include "securec.h"
 #include "token_setproc.h"
 
 #include "transaction/rs_interfaces.h"
@@ -251,7 +251,10 @@ static std::shared_ptr<Media::PixelMap> ComposeGrid2x2(const std::vector<std::sh
             if (srcRow == nullptr || dstRow == nullptr) {
                 continue;
             }
-            std::memcpy(dstRow, srcRow, copyBytes);
+            if (memcpy_s(dstRow, copyBytes, srcRow, copyBytes) != EOK) {
+                LOGE("ComposeGrid2x2 memcpy_s failed");
+                return nullptr;
+            }
         }
     }
 
