@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-constexpr uint32_t ALPHA_MASK = 0xFF000000;
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 
 #include <memory>
@@ -52,6 +51,7 @@ constexpr uint32_t ALPHA_MASK = 0xFF000000;
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint32_t ALPHA_MASK = 0xFF000000;
 #ifdef RS_ENABLE_GPU
 inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
