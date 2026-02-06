@@ -17,7 +17,9 @@
 #define RS_SURFACE_CAPTURE_TASK_PARALLEL
 #define EGL_EGLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
-
+#ifndef ALPHA_MASK
+#define ALPHA_MASK    0xff000000
+#endif
 #include "drawable/rs_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "pixel_map.h"
