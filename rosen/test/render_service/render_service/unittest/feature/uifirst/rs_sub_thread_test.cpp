@@ -232,6 +232,7 @@ HWTEST_F(RsSubThreadTest, ReleaseSurfaceTest001, TestSize.Level1)
 HWTEST_F(RsSubThreadTest, DrawableCache001, TestSize.Level1)
 {
     std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    renderContext->Init();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     auto node = std::make_shared<const RSSurfaceRenderNode>(0);
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable = nullptr;
@@ -291,39 +292,36 @@ HWTEST_F(RsSubThreadTest, DrawableCache002, TestSize.Level1)
 HWTEST_F(RsSubThreadTest, DrawableCache003, TestSize.Level1)
 {
     auto renderContext = RenderContext::Create();
+    renderContext->Init();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
-    auto node = std::make_shared<const RSSurfaceRenderNode>(0);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable = nullptr;
     EXPECT_FALSE(curThread->grContext_);
     curThread->DrawableCache(nodeDrawable);
 
-    nodeDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(node));
+    nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(curThread->grContext_);
-    NodeId leashId = 1;
-    nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(leashId);
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
 
-    NodeId appId = 2;
-    auto appWindow = std::make_shared<RSSurfaceRenderNode>(appId);
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
     auto appDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(appWindow));
-
     auto appParams = static_cast<RSSurfaceRenderParams*>(appDrawable->GetRenderParams().get());
     appParams->SetWindowInfo(false, false, true);
-    auto leashParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
-    leashParams->allSubSurfaceNodeIds_.insert(appId);
+    auto nodeParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
+    nodeParams->allSubSurfaceNodeIds_.insert(appWindow->GetId());
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
 
-    NodeId subLeashAppId = 3;
-    auto subLeashWindow = std::make_shared<RSSurfaceRenderNode>(subLeashAppId);
+    auto subLeashWindow = RSTestUtil::CreateSurfaceNode();
     auto subLeashDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(subLeashWindow));
     auto subLeashParams = static_cast<RSSurfaceRenderParams*>(subLeashDrawable->GetRenderParams().get());
     subLeashParams->SetWindowInfo(false, true, false);
-    leashParams->allSubSurfaceNodeIds_.insert(subLeashAppId);
+    nodeParams->allSubSurfaceNodeIds_.insert(subLeashWindow->GetId());
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
 
@@ -341,6 +339,7 @@ HWTEST_F(RsSubThreadTest, DrawableCache003, TestSize.Level1)
 HWTEST_F(RsSubThreadTest, CreateShareGrContext001, TestSize.Level1)
 {
     std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    renderContext->Init();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     EXPECT_TRUE(curThread->CreateShareGrContext());
 }
