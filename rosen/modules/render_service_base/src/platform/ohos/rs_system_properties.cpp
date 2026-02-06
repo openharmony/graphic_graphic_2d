@@ -1789,21 +1789,6 @@ bool RSSystemProperties::GetDefaultMemClearEnabled()
     return defaultMemClearEnabled;
 }
 
-bool RSSystemProperties::GetUnmarshalParallelEnabled()
-{
-    static bool unmarshalParallel =
-        RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL &&
-        std::atoi((system::GetParameter("persist.sys.graphic.unmarshalParallel.enabled", "1")).c_str()) != 0;
-    return unmarshalParallel;
-}
-
-uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
-{
-    static uint32_t unmarshalParallelMinDataSize = static_cast<uint32_t>(
-        system::GetIntParameter("persist.sys.graphic.unmarshalParallel.minSize", 204800)); // 200KB
-    return unmarshalParallelMinDataSize;
-}
-
 bool RSSystemProperties::GetSceneBoardIsPcMode()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sceneboard.ispcmode", "false");
