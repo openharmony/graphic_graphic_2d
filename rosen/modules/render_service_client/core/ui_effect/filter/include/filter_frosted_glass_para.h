@@ -361,6 +361,16 @@ public:
         return darkScale_;
     }
 
+    void SetMask(std::shared_ptr<MaskPara> maskPara)
+ 	{
+ 	    maskPara_ = maskPara;
+ 	}
+
+ 	const std::shared_ptr<MaskPara>& GetMask() const
+ 	{
+ 	    return maskPara_;
+ 	}
+
 private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
@@ -398,7 +408,7 @@ private:
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
     float darkScale_ = 0.0f; // later will use interpolation between 0.0 and 1.0
     float samplingScale_ = 1.0f;
-
+    std::shared_ptr<MaskPara> maskPara_ = nullptr;
     std::shared_ptr<AdaptiveFrostedGlassParams> darkAdaptiveParams_;
 };
 } // namespace Rosen
