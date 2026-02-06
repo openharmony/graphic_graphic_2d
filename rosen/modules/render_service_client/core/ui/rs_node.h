@@ -1487,6 +1487,13 @@ public:
     void SetShadowColorStrategy(int shadowColorStrategy);
 
     /**
+     * @brief Enables or disables SDF blur for shadow rendering. Default state is enabled (false).
+     *
+     * @param disable Set to true to disable SDF blur, false to enable it.
+     */
+    void SetShadowDisableSDFBlur(bool disable);
+
+    /**
      * @brief Sets the gravity for the frame of this node.
      *
      * @param gravity The gravity value to apply.

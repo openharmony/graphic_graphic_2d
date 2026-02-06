@@ -4479,6 +4479,30 @@ HWTEST_F(RSNodeTest, SetandGetShadowIsFilled002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetShadowDisableSDFBlur001
+ * @tc.desc: Test setting and getting shadow disable SDF blur property
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowDisableSDFBlur001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowDisableSDFBlur(true);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetShadowDisableSDFBlur(), true);
+}
+
+/**
+ * @tc.name: SetandGetShadowDisableSDFBlur002
+ * @tc.desc: Test setting and getting shadow disable SDF blur property
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowDisableSDFBlur002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowDisableSDFBlur(false);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetShadowDisableSDFBlur(), false);
+}
+
+/**
  * @tc.name: SetandGetForegroundEffectRadius001
  * @tc.desc:
  * @tc.type:FUNC

@@ -333,6 +333,11 @@ int RSModifierExtractor::GetShadowColorStrategy() const
     GET_PROPERTY_FROM_MODIFIERS_NG(int, SHADOW, SHADOW_COLOR_STRATEGY, SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE, =);
 }
 
+bool RSModifierExtractor::GetShadowDisableSDFBlur() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_NG(bool, SHADOW, SHADOW_COLOR_STRATEGY, false, =);
+}
+
 Gravity RSModifierExtractor::GetFrameGravity() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Gravity, CLIP_TO_FRAME, FRAME_GRAVITY, Gravity::DEFAULT, =);

@@ -73,6 +73,11 @@ void RSShadow::SetColorStrategy(int colorStrategy)
     colorStrategy_ = colorStrategy;
 }
 
+void RSShadow::SetDisableSDFBlur(bool disable)
+{
+    disableSDFBlur_ = disable;
+}
+
 const Color& RSShadow::GetColor() const
 {
     return color_;
@@ -121,6 +126,11 @@ bool RSShadow::GetIsFilled() const
 int RSShadow::GetColorStrategy() const
 {
     return colorStrategy_;
+}
+
+bool RSShadow::GetDisableSDFBlur() const
+{
+    return disableSDFBlur_;
 }
 
 bool RSShadow::IsValid() const

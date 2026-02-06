@@ -271,6 +271,20 @@ HWTEST_F(RSModifierExtractorTest, GetShadowIsFilled001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetShadowDisableSDFBlur
+ * @tc.desc: test results of GetShadowDisableSDFBlur
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSModifierExtractorTest, GetShadowDisableSDFBlur, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    bool res = extractor.GetShadowIsFilled();
+    EXPECT_FALSE(res);
+}
+
+/**
  * @tc.name: GetShadowColorStrategy001
  * @tc.desc: test results of GetShadowColorStrategy
  * @tc.type: FUNC
