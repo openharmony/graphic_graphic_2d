@@ -21,6 +21,7 @@
 #include "pixel_map.h"
 #include "ui_effect_napi_utils.h"
 #include "mask/include/use_effect_mask_para.h"
+#include "mask/include/wave_disturbance_mask_para.h"
 
 #ifdef IMAGE_NAPI_ENABLE
 #include "pixel_map_napi.h"
@@ -94,6 +95,7 @@ napi_value MaskNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("createRadialGradientMask", CreateRadialGradientMask),
         DECLARE_NAPI_STATIC_FUNCTION("createPixelMapMask", CreatePixelMapMask),
         DECLARE_NAPI_STATIC_FUNCTION("createWaveGradientMask", CreateWaveGradientMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createWaveDisturbanceMask", CreateWaveDisturbanceMask),
         DECLARE_NAPI_STATIC_FUNCTION("createUseEffectMask", CreateUseEffectMask),
     };
 
@@ -176,6 +178,39 @@ bool ParseRippleMask(
     return (parseTimes == realArgc);
 }
 
+bool ParseWaveDisturbanceMask(napi_env env, napi_value* argv,
+ 	const std::shared_ptr<WaveDisturbanceMaskPara>& waveDisturbanceMask, size_t& realArgc)
+{
+ 	if (!waveDisturbanceMask) {
+ 	    MASK_LOG_E("ParseWaveDisturbanceMask:: waveDisturbanceMask is nullptr");
+ 	    return false;
+ 	}
+ 	uint32_t parseTimes = 0;
+ 	double progress;
+ 	if (ParseJsDoubleValue(env, argv[NUM_0], progress)) {
+ 	    waveDisturbanceMask->SetProgress(static_cast<float>(progress));
+ 	    parseTimes++;
+ 	}
+ 	Vector2f clickPos;
+ 	if (ParseJsVector2f(env, argv[NUM_1], clickPos)) {
+ 	    waveDisturbanceMask->SetClickPos(clickPos);
+ 	    parseTimes++;
+ 	}
+ 	Vector2f waveRD;
+ 	if (ParseJsVector2f(env, argv[NUM_2], waveRD)) {
+ 	    waveDisturbanceMask->SetWaveRD(waveRD);
+ 	    parseTimes++;
+ 	}
+ 	Vector3f waveLWH;
+ 	if (ParseJsVector3f(env, argv[NUM_3], waveLWH)) {
+ 	    waveDisturbanceMask->SetWaveLWH(waveLWH);
+ 	    parseTimes++;
+ 	}
+
+ 	MASK_LOG_I("ParseWaveDisturbanceMask parseTimes: %{public}d, realArgc: %{public}zu", parseTimes, realArgc);
+ 	return (parseTimes == realArgc);
+}
+ 	 
 bool ParseWaveGradientMask(
     napi_env env, napi_value* argv, const std::shared_ptr<WaveGradientMaskPara>& waveGradientMask, size_t& realArgc)
 {
@@ -305,6 +340,30 @@ napi_value MaskNapi::Create(napi_env env, std::shared_ptr<MaskPara> maskPara)
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok && maskObj != nullptr, nullptr, mask,
         MASK_LOG_E("MaskNapi CreateMask wrap fail"));
     return maskObj;
+}
+
+napi_value MaskNapi::CreateWaveDisturbanceMask(napi_env env, napi_callback_info info)
+{
+ 	if (!UIEffectNapiUtils::IsSystemApp()) {
+ 	    MASK_LOG_E("MaskNapi CreateWaveDisturbanceMask failed, is not system app");
+ 	    napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+ 	        "MaskNapi CreateWaveDisturbanceMask failed, is not system app");
+ 	    return nullptr;
+ 	}
+ 	const size_t requireArgc = NUM_4;
+ 	size_t realArgc = NUM_4;
+ 	napi_value argv[requireArgc];
+ 	napi_value thisVar = nullptr;
+ 	napi_status status;
+ 	UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+ 	UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireArgc == realArgc, nullptr,
+ 	    MASK_LOG_E("MaskNapi CreateWaveDisturbanceMask parsing input fail."));
+
+ 	auto maskPara = std::make_shared<WaveDisturbanceMaskPara>();
+ 	UIEFFECT_NAPI_CHECK_RET_D(ParseWaveDisturbanceMask(env, argv, maskPara, realArgc), nullptr,
+ 	    MASK_LOG_E("MaskNapi CreateWaveDisturbanceMask parsing mask input fail."));
+ 	MASK_LOG_I("MaskNapi CreateWaveDisturbanceMask parsing mask success.");
+ 	return Create(env, maskPara);
 }
 
 napi_value MaskNapi::CreateWaveGradientMask(napi_env env, napi_callback_info info)
