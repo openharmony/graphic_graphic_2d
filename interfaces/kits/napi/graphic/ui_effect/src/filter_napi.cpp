@@ -1408,12 +1408,12 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
         para->SetBgAlpha(bgAlpha);
     }
     if (realArgc >= maxArgc) {
- 	    Mask* mask = nullptr;
- 	    if (napi_unwrap(env, argv[NUM_30], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
- 	        para->SetMask(mask->GetMaskPara());
- 	    }
- 	}
-        
+        Mask* mask = nullptr;
+        if (napi_unwrap(env, argv[NUM_30], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
+            para->SetMask(mask->GetMaskPara());
+        }
+    }
+
     Filter* filterObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
