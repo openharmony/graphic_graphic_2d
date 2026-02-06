@@ -105,7 +105,6 @@ private:
     const NodeId nodeId_;
 
     std::atomic<uint32_t> pickedLuminance_ = RGBA_MAX + 1; // invalid initial luminance to force first notification
-    uint64_t lastUpdateTime_ = 0;
     std::atomic<uint32_t> darkThreshold_ = 150;
     std::atomic<uint32_t> lightThreshold_ = 220;
 };
