@@ -708,6 +708,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest013, TestSize.Level1)
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: UnmarshallingNullTest013
  * @tc.desc: Verify function Unmarshalling
@@ -733,6 +734,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingNullTest013, TestSize.Level1)
     RSMarshallingHelper::Marshalling(parcel2, marshVal);
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }
+#endif
 
 /**
  * @tc.name: MarshallingTest013
