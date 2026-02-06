@@ -698,7 +698,13 @@ public:
     {
         return isCloneNode_;
     }
-    void SetClonedNodeInfo(NodeId id, bool needOffscreen);
+    bool IsRelated() const;
+    bool IsRelatedSourceNode() const;
+    void SetRelated(bool value);
+    void SetRelatedSourceNode(bool value);
+    void SetClonedNodeInfo(NodeId id, bool needOffscreen, bool isRelated);
+    bool CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> currentNode,
+        std::shared_ptr<RSSurfaceRenderNode> clonedNode, RSContext& rsContext);
     void SetIsCloned(bool isCloned);
     void SetIsClonedNodeOnTheTree(bool isOnTheTree)
     {
@@ -995,7 +1001,7 @@ public:
 
     void UpdateSurfaceDefaultSize(float width, float height);
 
-    void UpdateInfoForClonedNode(NodeId nodeId);
+    void UpdateInfoForClonedNode(bool isClonedNode);
 
     // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".

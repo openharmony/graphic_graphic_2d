@@ -248,7 +248,8 @@ HWTEST_F(RSCustomModifierHelperTest, UpdateToRenderTest, TestSize.Level1)
     ASSERT_FALSE(it->second);
 
     // case7: valid property
-    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto drawCmdList7 = std::make_shared<Drawing::DrawCmdList>(1, 1);
+ 	auto property = std::make_shared<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList7);
     rsCustomModifier->lastDrawCmdListEmpty_ = false;
     rsCustomModifier->properties_[type] = property;
     rsCustomModifier->UpdateToRender();
