@@ -13,16 +13,17 @@
  * limitations under the License.
  */
 
+constexpr uint32_t ALPHA_MASK = 0xFF000000;
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 
 #include <memory>
+#include "parameters.h"
 #include <sys/mman.h>
 
 #include "draw/surface.h"
 #include "draw/color.h"
 #include "rs_trace.h"
-#include "parameter.h"
-#include "parameters.h"
+
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "feature/hdr/rs_hdr_util.h"

@@ -16,10 +16,9 @@
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 
 #include <memory>
+#include "parameters.h"
 #include <sys/mman.h>
 
-#include "parameter.h"
-#include "parameters.h"
 #include "draw/surface.h"
 #include "draw/color.h"
 #include "rs_trace.h"
