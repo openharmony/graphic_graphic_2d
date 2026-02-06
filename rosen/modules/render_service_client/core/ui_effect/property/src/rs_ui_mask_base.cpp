@@ -154,17 +154,17 @@ std::shared_ptr<RSNGMaskBase> ConvertWaveGradientMaskPara(std::shared_ptr<MaskPa
 
 std::shared_ptr<RSNGMaskBase> ConvertWaveDisturbanceMaskPara(std::shared_ptr<MaskPara> maskPara)
 {
- 	auto mask = RSNGMaskBase::Create(RSNGEffectType::WAVE_DISTURBANCE_MASK);
- 	if (mask == nullptr) {
- 	    return nullptr;
- 	}
- 	auto waveDisturbanceMask = std::static_pointer_cast<RSNGWaveDisturbanceMask>(mask);
- 	auto waveDisturbanceMaskPara = std::static_pointer_cast<WaveDisturbanceMaskPara>(maskPara);
- 	waveDisturbanceMask->Setter<WaveDisturbanceMaskProgressTag>(waveDisturbanceMaskPara->GetProgress());
- 	waveDisturbanceMask->Setter<WaveDisturbanceMaskClickPosTag>(waveDisturbanceMaskPara->GetClickPos());
- 	waveDisturbanceMask->Setter<WaveDisturbanceMaskWaveRDTag>(waveDisturbanceMaskPara->GetWaveRD());
- 	waveDisturbanceMask->Setter<WaveDisturbanceMaskWaveLWHTag>(waveDisturbanceMaskPara->GetWaveLWH());
- 	return waveDisturbanceMask;
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::WAVE_DISTURBANCE_MASK);
+    if (mask == nullptr) {
+        return nullptr;
+    }
+    auto waveDisturbanceMask = std::static_pointer_cast<RSNGWaveDisturbanceMask>(mask);
+    auto waveDisturbanceMaskPara = std::static_pointer_cast<WaveDisturbanceMaskPara>(maskPara);
+    waveDisturbanceMask->Setter<WaveDisturbanceMaskProgressTag>(waveDisturbanceMaskPara->GetProgress());
+    waveDisturbanceMask->Setter<WaveDisturbanceMaskClickPosTag>(waveDisturbanceMaskPara->GetClickPos());
+    waveDisturbanceMask->Setter<WaveDisturbanceMaskWaveRDTag>(waveDisturbanceMaskPara->GetWaveRD());
+    waveDisturbanceMask->Setter<WaveDisturbanceMaskWaveLWHTag>(waveDisturbanceMaskPara->GetWaveLWH());
+    return waveDisturbanceMask;
 }
 
 std::shared_ptr<RSNGMaskBase> ConvertUseEffectMaskPara(std::shared_ptr<MaskPara> maskPara)
