@@ -230,7 +230,7 @@ ani_object AniParagraph::LayoutWithConstraints(
     OHOS::Rosen::TextRectSize textRect;
     ani_status ret = AniTextLayoutResultConverter::ParseTextRectSizeToNative(env, constraint, textRect);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to parse constraint");
+        TEXT_LOGE("Failed to parse constraint, ret %{public}d", ret);
         return AniTextUtils::CreateAniUndefined(env);
     }
 
@@ -239,7 +239,7 @@ ani_object AniParagraph::LayoutWithConstraints(
     ani_object resultObj = nullptr;
     ret = AniTextLayoutResultConverter::ParseTextLayoutResultToAni(env, layoutResult, resultObj);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to convert layout result");
+        TEXT_LOGE("Failed to convert layout result, ret %{public}d", ret);
         return AniTextUtils::CreateAniUndefined(env);
     }
 

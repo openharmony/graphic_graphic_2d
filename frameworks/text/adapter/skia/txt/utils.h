@@ -38,8 +38,8 @@ struct Range {
 };
 
 struct Rect {
-    double width{0.0f};
-    double height{0.0f};
+    double width{0.0};
+    double height{0.0};
 };
 } // namespace SPText
 } // namespace Rosen

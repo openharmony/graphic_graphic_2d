@@ -44,6 +44,8 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 using PaintID = skt::ParagraphPainter::PaintID;
+constexpr double INFINITE_WIDTH = std::numeric_limits<double>::max();
+constexpr size_t INFINTE_RANGE_INDEX = std::numeric_limits<size_t>::max();
 
 namespace {
 std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
@@ -641,7 +643,6 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
 #endif
 
 TextLayoutResult ParagraphImpl::LayoutWithConstraints(const TextRectSize& limitRect) {
-    constexpr double INFINITE_WIDTH = std::numeric_limits<double>::max();
     if (limitRect.width > 0 && limitRect.height > 0) {
         paragraph_->setLayoutConstraintsFlag(true);
         paragraph_->setLayoutConstraintsHeight(limitRect.height);
@@ -661,7 +662,6 @@ TextLayoutResult ParagraphImpl::LayoutWithConstraints(const TextRectSize& limitR
 }
 
 void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges) {
-    constexpr size_t INFINTE_RANGE_INDEX = std::numeric_limits<size_t>::max();
     Range<size_t> ellipsisRange = GetEllipsisTextRange();
     skt::TextRange textRange = paragraph_->getUtf16TextRange();
     skt::TextRange lastLineTextRange = paragraph_->getLineUtf16TextRange(GetLineCount() - 1, true);

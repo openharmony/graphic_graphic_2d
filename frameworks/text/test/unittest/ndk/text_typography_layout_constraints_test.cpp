@@ -39,7 +39,7 @@ const double LAYOUT_WIDTH_LARGE = 800.0;
 const double LAYOUT_HEIGHT_SMALL = 100.0;
 const double LAYOUT_HEIGHT_MEDIUM = 200.0;
 const double LAYOUT_HEIGHT_LARGE = 1000.0;
-const double NEGATIVE_LAYOUT_LENGTH = NEGATIVE_LAYOUT_LENGTH;
+const double NEGATIVE_LAYOUT_LENGTH = -10.0;
 const double DEFAULT_SINGLE_LINE_HEIGHT = 59.0;
 
 // Test text samples
