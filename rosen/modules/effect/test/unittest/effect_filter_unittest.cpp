@@ -831,5 +831,91 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_WaterDropletTransition003, TestSize.Lev
     OH_PixelmapNative_Release(*transPixMap);
 }
 
+/**
+ * @tc.name: WaterGlassNullParameters
+ * @tc.desc: Create a water glass effect filter with null parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, WaterGlassNullParameters, TestSize.Level1)
+{
+    OH_PixelmapNative* pixmap = nullptr;
+    /** pixmap is necessary, otherwize can not create pixelmap*/
+    OH_PixelmapNative** pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter* filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+    ASSERT_TRUE(OH_Filter_WaterGlass(nullptr, nullptr) == EFFECT_BAD_PARAMETER);
+    ASSERT_TRUE(OH_Filter_WaterGlass(filter, nullptr) == EFFECT_BAD_PARAMETER);
+    OH_Filter_WaterGlassDataParams params;
+    ASSERT_TRUE(OH_Filter_WaterGlass(nullptr, &params) == EFFECT_BAD_PARAMETER);
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+}
+
+/**
+ * @tc.name: WaterGlassValidParameters
+ * @tc.desc: Create a water glass effect filter with valid parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, WaterGlassValidParameters, TestSize.Level1)
+{
+    OH_PixelmapNative* pixmap = nullptr;
+    /** pixmap is necessary, otherwize can not create pixelmap*/
+    OH_PixelmapNative** pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter* filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+    OH_Filter_WaterGlassDataParams params;
+    ASSERT_TRUE(OH_Filter_WaterGlass(filter, &params) == EFFECT_SUCCESS);
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+}
+
+/**
+ * @tc.name: ReedsGlassNullParameters
+ * @tc.desc: Create a reeded glass effect filter with null parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, ReedsGlassNullParameters, TestSize.Level1)
+{
+    OH_PixelmapNative* pixmap = nullptr;
+    /** pixmap is necessary, otherwize can not create pixelmap*/
+    OH_PixelmapNative** pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter* filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+
+    ASSERT_TRUE(OH_Filter_ReededGlass(nullptr, nullptr) == EFFECT_BAD_PARAMETER);
+    ASSERT_TRUE(OH_Filter_ReededGlass(filter, nullptr) == EFFECT_BAD_PARAMETER);
+    OH_Filter_ReededGlassDataParams params;
+    ASSERT_TRUE(OH_Filter_ReededGlass(nullptr, &params) == EFFECT_BAD_PARAMETER);
+
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+}
+
+/**
+ * @tc.name: ReedsGlassValidParameters
+ * @tc.desc: Create a reeded glass effect filter with valid parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, ReedsGlassValidParameters, TestSize.Level1)
+{
+    OH_PixelmapNative* pixmap = nullptr;
+    /** pixmap is necessary, otherwize can not create pixelmap*/
+    OH_PixelmapNative** pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter* filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+
+    OH_Filter_ReededGlassDataParams params;
+    ASSERT_TRUE(OH_Filter_ReededGlass(filter, &params) == EFFECT_SUCCESS);
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+}
 } // namespace Rosen
 } // namespace OHOS

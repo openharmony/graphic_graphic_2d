@@ -177,7 +177,7 @@ private:
     void ApplyCanvasScalingIfDownscaleEnabled();
     void SetCulledNodesToCanvas(RSPaintFilterCanvas* canvas, const RSSurfaceRenderParams* surfaceParams);
     NodeId GetWhiteListPersistentId(const RSSurfaceRenderParams& surfaceParam, const RSPaintFilterCanvas& canvas);
-
+    void TryResumeLastBuffer(sptr<SurfaceBuffer> buffer);
 #ifdef SUBTREE_PARALLEL_ENABLE
     bool QuickGetDrawState(RSPaintFilterCanvas* rscanvas, Drawing::Region& curSurfaceDrawRegion,
         RSSurfaceRenderParams* surfaceParams);

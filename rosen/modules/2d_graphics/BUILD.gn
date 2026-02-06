@@ -313,6 +313,7 @@ template("graphics2d_source_set") {
       sources += ddgr_adapter_opt_set.drawing_ddgr_adapter_src_set
       include_dirs += ddgr_adapter_opt_set.drawing_ddgr_adapter_include_set
       public_deps += [ "$rosen_root/modules/2d_engine/ddgr:libddgr" ]
+      inputs = [ "${ddgr_feature_pgo_path}libddgr.profdata" ]
       cflags += [
         "-fprofile-use=" +
             rebase_path("${ddgr_feature_pgo_path}libddgr.profdata",

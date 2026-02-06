@@ -297,6 +297,10 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     }
     Drawing::Path filetrPath;
     filterRegion.GetBoundaryPath(&filetrPath);
+    auto matrix = canvas.GetTotalMatrix();
+    matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    canvas.SetMatrix(matrix);
     canvas.ClipPath(filetrPath);
     DrawContent(canvas, params.GetFrameRect());
     DrawChildren(canvas, params.GetBounds());
@@ -456,7 +460,9 @@ void RSRenderNodeDrawable::DrawWithoutNodeGroupCache(
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
-    SetCacheType(originalCacheType);
+    if (!IsCanceledByParentRenderGroup()) {
+        SetCacheType(originalCacheType);
+    }
 }
 
 void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const RSRenderParams& params)

@@ -49,21 +49,26 @@ RSGraphicTestProfilerThread::~RSGraphicTestProfilerThread()
     Stop();
 }
 
-void RSGraphicTestProfilerThread::Start()
+void RSGraphicTestProfilerThread::RestartRenderService()
 {
     system("param set persist.graphic.profiler.enabled 0");
     WaitTimeout(INIT_WAIT_TIME);
     system("param set persist.graphic.profiler.enabled 1");
     WaitTimeout(INIT_WAIT_TIME);
-    runnig_ = true;
+}
+
+void RSGraphicTestProfilerThread::Start()
+{
+    RestartRenderService();
+    running_.store(true);
     thread_ = std::thread(&RSGraphicTestProfilerThread::MainLoop, this);
 }
 
 void RSGraphicTestProfilerThread::Stop()
 {
     system("param set persist.graphic.profiler.enabled 0");
-    if (runnig_) {
-        runnig_ = false;
+    if (running_.load()) {
+        running_.store(false);
         loopCv_.notify_all();
         responseCv_.notify_all();
         socketResultCV_.notify_all();
@@ -79,7 +84,7 @@ void RSGraphicTestProfilerThread::Stop()
 
 void RSGraphicTestProfilerThread::SendCommand(const std::string command, int outTime)
 {
-    RS_TRACE_NAME("RSGraphicTestProfilerThread::SendCommand");
+    RS_TRACE_NAME_FMT("RSGraphicTestProfilerThread::SendCommand: %s", command.c_str());
     {
         RS_TRACE_NAME("RSGraphicTestProfilerThread::queue_mutex_");
         std::unique_lock lock(queue_mutex_);
@@ -92,50 +97,70 @@ void RSGraphicTestProfilerThread::SendCommand(const std::string command, int out
     }
 }
 
-void RSGraphicTestProfilerThread::MainLoop()
+bool RSGraphicTestProfilerThread::Reconnect()
 {
+    CleanupSocket();
+
     socket_ = socket(AF_UNIX, SOCK_STREAM, 0);
     if (socket_ == -1) {
-        std::cout << "profiler socket create failed" << std::endl;
-        return;
-    }
-    int flags = fcntl(socket_, F_GETFL, 0);
-    if (flags == -1) {
-        std::cout << "fcntl(F_GETFL) failed" << std::endl;
-        return;
+        std::cout << "Reconnect socket create failed" << std::endl;
+        return false;
     }
 
-    if (fcntl(socket_, F_SETFL, flags | O_NONBLOCK) == -1) {
-        std::cout << "fcntl(F_SETFL) failed" << std::endl;
-        return;
+    int flags = fcntl(socket_, F_GETFL, 0);
+    if (flags == -1 || fcntl(socket_, F_SETFL, flags | O_NONBLOCK) == -1) {
+        std::cout << "Reconnect: set non-blocking failed" << std::endl;
+        CleanupSocket();
+        return false;
     }
 
     const std::string socketName = "render_service_5050";
     sockaddr_un address {};
     address.sun_family = AF_UNIX;
     address.sun_path[0] = 0;
-    ::memmove_s(address.sun_path + 1, sizeof(address.sun_path) - 1, socketName.data(), socketName.size());
+    ::memmove_s(address.sun_path + 1, sizeof(address.sun_path) - 1,
+        socketName.data(), socketName.size());
     const size_t addressSize = offsetof(sockaddr_un, sun_path) + socketName.size() + 1;
 
     int tryNum = 1;
     while (connect(socket_, reinterpret_cast<struct sockaddr*>(&address), addressSize) < 0) {
-        std::cout << "profiler socket connect failed, connect:" + std::to_string(tryNum) << std::endl;
-        tryNum++;
-        if (tryNum > SOCKET_CONNECT_MAX_NUM) {
-            std::cout << "profiler socket connect failed" << std::endl;
+        if (++tryNum > SOCKET_CONNECT_MAX_NUM) {
+            std::cout << "Reconnect: connect failed after max retries" << std::endl;
             CleanupSocket();
-            SetResultAndNotify(AGT_SOCKET_FAIL);
-            return;
+            return false;
         }
     }
+
+    std::cout << "Reconnect: success" << std::endl;
+    return true;
+}
+
+void RSGraphicTestProfilerThread::MainLoop()
+{
+    RS_TRACE_NAME("RSGraphicTestProfilerThread::MainLoop");
+    if (!Reconnect()) {
+        CleanupSocket();
+        SetResultAndNotify(AGT_SOCKET_FAIL);
+        return;
+    }
+
     SetResultAndNotify(AGT_SUCCESS);
 
     std::cout << "profiler socket connect success" << std::endl;
-    runnig_ = true;
-    while (runnig_) {
+    running_.store(true);
+    while (running_.load()) {
+        RS_TRACE_NAME("RSGraphicTestProfilerThread while running");
+        if (recvFailCount_ >= MAX_RECV_FAILS) {
+            std::cout << "Too many recv failures, requesting full restart." << std::endl;
+            recvFailCount_.store(0);
+            if (failureCallback_) {
+                failureCallback_();
+                break;
+            }
+        }
         {
             std::unique_lock lock(queue_mutex_);
-            loopCv_.wait_for(lock, std::chrono::milliseconds(SOCKET_REFRESH_TIME), [this] { return !runnig_; });
+            loopCv_.wait_for(lock, std::chrono::milliseconds(SOCKET_REFRESH_TIME), [this] { return !running_.load(); });
         }
         SendMessage();
         RecieveMessage();
@@ -187,7 +212,7 @@ void RSGraphicTestProfilerThread::RecieveMessage()
     auto wannaReceive = Packet::HEADER_SIZE;
     RecieveHeader(packet.Begin(), wannaReceive);
     if (wannaReceive == 0) {
-        std::cout << "profiler socket recieve header failed" << std::endl;
+        std::cout << "socket recieve empty header." << std::endl;
         return;
     }
     const size_t size = packet.GetPayloadLength();
@@ -259,9 +284,11 @@ bool RSGraphicTestProfilerThread::RecieveHeader(void* data, size_t& size)
     const ssize_t receivedBytes = recv(socket_, static_cast<char*>(data), size, 0);
     if (receivedBytes > 0) {
         size = static_cast<size_t>(receivedBytes);
+        recvFailCount_.store(0);
     } else if (receivedBytes == 0) {
         size = 0;
         std::cout << "profiler socket service closed." << std::endl;
+        recvFailCount_.fetch_add(1);
         return false;
     } else {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -270,6 +297,7 @@ bool RSGraphicTestProfilerThread::RecieveHeader(void* data, size_t& size)
         } else {
             size = 0;
             std::cout << "profiler socket recieve header failed" << std::endl;
+            recvFailCount_.fetch_add(1);
             return false;
         }
     }
@@ -305,6 +333,11 @@ void RSGraphicTestProfilerThread::CleanupSocket()
         close(socket_);
         socket_ = -1;
     }
+}
+
+void RSGraphicTestProfilerThread::SetReconnectRequestCallback(FailureCallback failurecallback)
+{
+    failureCallback_ = std::move(failurecallback);
 }
 #endif
 } // namespace Rosen

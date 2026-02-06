@@ -111,9 +111,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer001, TestSize.Level1)
 {
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
+    const auto& buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_EQ(buffer, nullptr);
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
@@ -125,10 +126,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer001, TestSi
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer002, TestSize.Level1)
 {
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
-    const auto& buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    ASSERT_EQ(buffer, nullptr);
+    RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
+    surfaceNode->SetSrcRect(dstRect);
+    surfaceNode->SetDstRect(dstRect);
+    surfaceNode->dstRect_.width_ = 0;
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
@@ -145,7 +148,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer003, TestSi
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    surfaceNode->dstRect_.width_ = 0;
+    surfaceNode->dstRect_.height_ = 0;
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
@@ -162,7 +165,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer004, TestSi
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    surfaceNode->dstRect_.height_ = 0;
+    surfaceNode->srcRect_.width_ = 0;
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
@@ -179,7 +182,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer005, TestSi
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    surfaceNode->srcRect_.width_ = 0;
+    surfaceNode->srcRect_.height_ = 0;
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
@@ -196,33 +199,16 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer006, TestSi
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    surfaceNode->srcRect_.height_ = 0;
-    ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
-}
-
-/**
- * @tc.name: CheckStatusBeforeCreateLayer007
- * @tc.desc: Test RSUniRenderComposerAdapterTest.CheckStatusBeforeCreateLayer
- * @tc.type: FUNC
- * @tc.require: issueI6S774
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer007, TestSize.Level1)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
-    surfaceNode->SetSrcRect(dstRect);
-    surfaceNode->SetDstRect(dstRect);
     ASSERT_EQ(true, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
 /**
- * @tc.name: CheckStatusBeforeCreateLayer008
+ * @tc.name: CheckStatusBeforeCreateLayer007
  * @tc.desc: Test RSUniRenderComposerAdapterTest.CheckStatusBeforeCreateLayer for drawable with null output
  * @tc.type: FUNC
  * @tc.require: issuesI7T9RE
  */
-HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer008, TestSize.Level2)
+HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer007, TestSize.Level2)
 {
     auto adapter = std::make_unique<RSUniRenderComposerAdapter>();
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -237,8 +223,30 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer008, TestSi
 }
 
 /**
- * @tc.name: CheckStatusBeforeCreateLayer009
+ * @tc.name: CheckStatusBeforeCreateLayer008
  * @tc.desc: Test RSUniRenderComposerAdapterTest.CheckStatusBeforeCreateLayer for drawable with null params
+ * @tc.type: FUNC
+ * @tc.require: issuesI7T9RE
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer008, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(drawable, nullptr);
+
+    // Directly set private renderParams_ to nullptr to test null params branch
+    drawable->renderParams_ = nullptr;
+
+    // params is nullptr, should return false
+    ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*drawable));
+}
+
+/**
+ * @tc.name: CheckStatusBeforeCreateLayer009
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.CheckStatusBeforeCreateLayer for drawable with null buffer
  * @tc.type: FUNC
  * @tc.require: issuesI7T9RE
  */
@@ -251,7 +259,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer009, TestSi
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     ASSERT_NE(drawable, nullptr);
 
-    // params is nullptr
+    // buffer is nullptr (OnGenerate creates params but no buffer)
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*drawable));
 }
 
@@ -316,8 +324,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CommitLayersFailed002, TestSize.Level2)
     auto adapter = std::make_unique<RSUniRenderComposerAdapter>();
     // Set hdiBackend_ but not output_
     adapter->hdiBackend_ = HdiBackend::GetInstance();
-    // Should return without crash
+    // Should return early when output_ is nullptr
     adapter->CommitLayers();
+    // Verify output_ is still nullptr (no state change)
+    ASSERT_EQ(adapter->output_, nullptr);
 }
 
 // ==================== CreateLayer ====================
@@ -507,11 +517,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity001, TestSize.Level2
     surfaceNode->SetSrcRect(rect);
     surfaceNode->SetDstRect(rect);
 
-    // Set gravity to RESIZE - should return early
+    // Set gravity to RESIZE - should return early after setting gravity
     surfaceNode->GetMutableRenderProperties().SetFrameGravity(Gravity::RESIZE);
 
-    // Should return without crash
     composerAdapter_->DealWithNodeGravity(*surfaceNode, composeInfo);
+    // Verify gravity was set even though function returns early
+    ASSERT_EQ(composeInfo.gravity, static_cast<int32_t>(Gravity::RESIZE));
 
     if (buffer) {
         delete buffer;
@@ -550,11 +561,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity002, TestSize.Level2
     surfaceNode->SetSrcRect(rect);
     surfaceNode->SetDstRect(rect);
 
-    // Set gravity to TOP_LEFT - should return early
+    // Set gravity to TOP_LEFT - should return early after setting gravity
     surfaceNode->GetMutableRenderProperties().SetFrameGravity(Gravity::TOP_LEFT);
 
-    // Should return without crash
     composerAdapter_->DealWithNodeGravity(*surfaceNode, composeInfo);
+    // Verify gravity was set even though function returns early
+    ASSERT_EQ(composeInfo.gravity, static_cast<int32_t>(Gravity::TOP_LEFT));
 
     if (buffer) {
         delete buffer;
@@ -597,11 +609,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity003, TestSize.Level2
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     ASSERT_NE(drawable, nullptr);
 
-    // Set gravity to RESIZE - should return early
+    // Set gravity to RESIZE - should return early after setting gravity
     drawable->GetRenderParams()->SetFrameGravity(Gravity::RESIZE);
 
-    // Should return without crash
     composerAdapter_->DealWithNodeGravity(*drawable, composeInfo);
+    // Verify gravity was set even though function returns early
+    ASSERT_EQ(composeInfo.gravity, static_cast<int32_t>(Gravity::RESIZE));
 
     if (buffer) {
         delete buffer;
@@ -641,8 +654,11 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity004, TestSize.Level2
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     ASSERT_NE(drawable, nullptr);
 
-    // params is nullptr, should return early without crash
+    // params is nullptr, function should return early without crash
+    int32_t originalGravity = composeInfo.gravity;  // Save original gravity value
     composerAdapter_->DealWithNodeGravity(*drawable, composeInfo);
+    // Verify function completed without modifying composeInfo (gravity should remain unchanged)
+    ASSERT_EQ(composeInfo.gravity, originalGravity);
 
     if (buffer) {
         delete buffer;
@@ -728,7 +744,11 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect001, TestSize.Lev
     // Initialize composerAdapter_ before calling BuildComposeInfo
     composerAdapter_->Init(info, offsetX, offsetY);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+    // This is a void function that modifies composeInfo.srcRect
     composerAdapter_->GetComposerInfoSrcRect(composeInfo, *surfaceNode);
+    // Verify function executed successfully (srcRect should be in valid bounds after function call)
+    ASSERT_GE(composeInfo.srcRect.w, 0);
+    ASSERT_GE(composeInfo.srcRect.h, 0);
     if (buffer) {
         delete buffer;
         buffer = nullptr;
@@ -766,8 +786,17 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect002, TestSize.Lev
     // Set consumer to nullptr
     surfaceNode->GetRSSurfaceHandler()->consumer_ = nullptr;
 
-    // Should return without crash
+    // Function should return early when consumer is nullptr
+    int32_t originalX = composeInfo.srcRect.x;
+    int32_t originalY = composeInfo.srcRect.y;
+    int32_t originalW = composeInfo.srcRect.w;
+    int32_t originalH = composeInfo.srcRect.h;
     composerAdapter_->GetComposerInfoSrcRect(composeInfo, *surfaceNode);
+    // Verify srcRect was not modified (function returns early when consumer is nullptr)
+    ASSERT_EQ(composeInfo.srcRect.x, originalX);
+    ASSERT_EQ(composeInfo.srcRect.y, originalY);
+    ASSERT_EQ(composeInfo.srcRect.w, originalW);
+    ASSERT_EQ(composeInfo.srcRect.h, originalH);
 
     if (buffer) {
         delete buffer;
@@ -789,8 +818,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect003, TestSize.Lev
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
-    // Should return without crash
+    // Function should return early when buffer is nullptr
     composerAdapter_->GetComposerInfoSrcRect(composeInfo, *surfaceNode);
+    // Test passes if function completes without crash (void function)
+    ASSERT_EQ(composeInfo.buffer, nullptr);  // Verify no state change
 }
 
 /**
@@ -811,8 +842,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect004, TestSize.Lev
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     ASSERT_NE(drawable, nullptr);
 
-    // Should return without crash when buffer is nullptr
+    // Function should return early when buffer is nullptr
     composerAdapter_->GetComposerInfoSrcRect(composeInfo, *drawable);
+    ASSERT_EQ(composeInfo.buffer, nullptr);  // Verify no state change
 }
 
 /**
@@ -847,8 +879,17 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect005, TestSize.Lev
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     ASSERT_NE(drawable, nullptr);
 
-    // params is nullptr, should return without crash
+    // params is nullptr, function should return early without crash
+    int32_t originalX = composeInfo.srcRect.x;
+    int32_t originalY = composeInfo.srcRect.y;
+    int32_t originalW = composeInfo.srcRect.w;
+    int32_t originalH = composeInfo.srcRect.h;
     composerAdapter_->GetComposerInfoSrcRect(composeInfo, *drawable);
+    // Verify composeInfo was not modified (srcRect should remain unchanged)
+    ASSERT_EQ(composeInfo.srcRect.x, originalX);
+    ASSERT_EQ(composeInfo.srcRect.y, originalY);
+    ASSERT_EQ(composeInfo.srcRect.w, originalW);
+    ASSERT_EQ(composeInfo.srcRect.h, originalH);
 
     if (buffer) {
         delete buffer;
@@ -908,8 +949,15 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerCrop001, TestSize.Level2)
     layer->SetLayerSize(GraphicIRect {0, 0, static_cast<int32_t>(info.width), static_cast<int32_t>(info.height)});
     layer->SetCropRect(GraphicIRect {0, 0, 100, 100});
 
-    // Should return without crash
+    // Save original cropRect to verify no changes
+    GraphicIRect originalCropRect = layer->GetCropRect();
+
     composerAdapter_->LayerCrop(layer);
+    // Verify cropRect was not modified (function returns early)
+    ASSERT_EQ(layer->GetCropRect().x, originalCropRect.x);
+    ASSERT_EQ(layer->GetCropRect().y, originalCropRect.y);
+    ASSERT_EQ(layer->GetCropRect().w, originalCropRect.w);
+    ASSERT_EQ(layer->GetCropRect().h, originalCropRect.h);
 
     if (buffer) {
         delete buffer;
@@ -950,8 +998,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerRotate001, TestSize.Level2)
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
-    // surface is nullptr - should return without crash
+    // surface is nullptr - function should return early without crash
+    // Save layer state before call
+    GraphicTransformType originalTransform = layer->GetTransformType();
     composerAdapter_->LayerRotate(layer, *surfaceNode);
+    // Verify transform was not modified (function returns early when surface is nullptr)
+    ASSERT_EQ(layer->GetTransformType(), originalTransform);
 
     if (buffer) {
         delete buffer;
@@ -978,8 +1030,15 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown001, TestSize.Level2)
     surfaceNode->SetSrcRect(rect);
     surfaceNode->SetDstRect(rect);
 
-    // Layer buffer is nullptr - should return early without crash
+    // Layer buffer is nullptr - function should return early without crash
+    // Save layer state before call
+    GraphicIRect originalCropRect = layer->GetCropRect();
     composerAdapter_->LayerScaleDown(layer, *surfaceNode);
+    // Verify cropRect was not modified (function returns early when buffer is nullptr)
+    ASSERT_EQ(layer->GetCropRect().x, originalCropRect.x);
+    ASSERT_EQ(layer->GetCropRect().y, originalCropRect.y);
+    ASSERT_EQ(layer->GetCropRect().w, originalCropRect.w);
+    ASSERT_EQ(layer->GetCropRect().h, originalCropRect.h);
 }
 
 /**
@@ -1000,8 +1059,15 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown002, TestSize.Level2)
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     ASSERT_NE(drawable, nullptr);
 
-    // params is nullptr - should return early without crash
+    // params is nullptr - function should return early without crash
+    // Save layer state before call
+    GraphicIRect originalCropRect = layer->GetCropRect();
     composerAdapter_->LayerScaleDown(layer, *drawable);
+    // Verify cropRect was not modified (function returns early when params is nullptr)
+    ASSERT_EQ(layer->GetCropRect().x, originalCropRect.x);
+    ASSERT_EQ(layer->GetCropRect().y, originalCropRect.y);
+    ASSERT_EQ(layer->GetCropRect().w, originalCropRect.w);
+    ASSERT_EQ(layer->GetCropRect().h, originalCropRect.h);
 }
 
 // ==================== LayerScaleFit ====================
@@ -1202,8 +1268,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetComposeInfoToLayer001, TestSize.Leve
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
 
     RSLayerPtr layer = nullptr;
-    // Should return without crash when layer is nullptr
+    // Function should return early when layer is nullptr without crash
+    // This is a void function with no return value; testing early return path
     composerAdapter_->SetComposeInfoToLayer(layer, composeInfo, surfaceHandler->GetConsumer());
+    // Test passes if function completes without crash (void function, early return)
 
     if (buffer) {
         delete buffer;
@@ -1238,7 +1306,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer001, TestSize.Lev
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
     RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     layer->SetUniRenderFlag(true);
+    // This is a void function with no return value; testing it completes without crash
     composerAdapter_->SetMetaDataInfoToLayer(layer, composeInfo.buffer, surfaceHandler->GetConsumer());
+    // Test passes if function completes without crash (void function)
     if (buffer) {
         delete buffer;
         buffer = nullptr;
@@ -1256,8 +1326,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer002, TestSize.Lev
     RSLayerPtr layer = nullptr;
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     sptr<IConsumerSurface> surface = nullptr;
-    // Should return without crash
+    // Function should return early when layer is null without crash
+    ASSERT_NE(buffer, nullptr);  // Verify buffer is valid
     composerAdapter_->SetMetaDataInfoToLayer(layer, buffer, surface);
+    // Test passes if function completes without crash (void function, early return)
     if (buffer) {
         delete buffer;
         buffer = nullptr;
@@ -1275,8 +1347,11 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer003, TestSize.Lev
     RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     sptr<IConsumerSurface> surface = nullptr;
-    // Should return without crash
+    // Function should return early when surface is null without crash
+    ASSERT_NE(layer, nullptr);  // Verify layer is valid
+    ASSERT_NE(buffer, nullptr);  // Verify buffer is valid
     composerAdapter_->SetMetaDataInfoToLayer(layer, buffer, surface);
+    // Test passes if function completes without crash (void function, early return)
     if (buffer) {
         delete buffer;
         buffer = nullptr;
@@ -1294,7 +1369,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer004, TestSize.Lev
     RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<IConsumerSurface> surface = nullptr;
-    // Should return without crash
+    // Function should return early when buffer is null without crash
+    ASSERT_NE(layer, nullptr);  // Verify layer is valid
     composerAdapter_->SetMetaDataInfoToLayer(layer, buffer, surface);
 }
 

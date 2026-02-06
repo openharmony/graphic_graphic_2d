@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <atomic>
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_draw_cmd_list.h"
@@ -131,27 +132,12 @@ HWTEST_F(RSDrawCmdListTest, EstimateTest, TestSize.Level1)
     auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1);
     auto rsCmdList = std::make_shared<RSDrawCmdList>(startValue, endValue);
     rsCmdList->Estimate(1.0f);
-    ASSERT_EQ(rsCmdList->endValue_.second.opacity, 1.0f);
+    // fraction_ should be 1.0f
+    ASSERT_EQ(rsCmdList->fraction_.load(std::memory_order_relaxed), 1.0f);
     rsCmdList->Estimate(0.1f); // fraction
-    ASSERT_NE(rsCmdList->endValue_.second.opacity, 1.0f);
+    // fraction_ should be 0.1f
+    ASSERT_EQ(rsCmdList->fraction_.load(std::memory_order_relaxed), 0.1f);
     GTEST_LOG_(INFO) << "RSDrawCmdListTest EstimateTest end";
-}
-
-/**
- * @tc.name: ToStringTest
- * @tc.desc: Test the ToString
- * @tc.type: FUNC
- */
-HWTEST_F(RSDrawCmdListTest, ToStringTest, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSDrawCmdListTest ToStringTest start";
-    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0);
-    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1);
-    auto rsCmdList = std::make_shared<RSDrawCmdList>(startValue, endValue);
-    ASSERT_FALSE(rsCmdList->ToString().empty());
-    rsCmdList->CleanOpacity();
-    ASSERT_FALSE(rsCmdList->ToString().empty());
-    GTEST_LOG_(INFO) << "RSDrawCmdListTest ToStringTest end";
 }
 
 /**

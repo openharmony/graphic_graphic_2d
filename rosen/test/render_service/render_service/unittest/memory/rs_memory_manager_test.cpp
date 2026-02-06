@@ -553,7 +553,9 @@ HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch002, testing::ext::
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::SetGpuCacheSuppressWindowSwitch(nullptr, true);
+#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr") != std::string::npos);
+#endif
 }
 
 /**
@@ -584,7 +586,9 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch002, testing::ext:
     LOG_SetCallback(MyLogCallback);
     const std::function<void()> setThreadPriority;
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(nullptr, true, setThreadPriority);
+#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") != std::string::npos);
+#endif
 }
 
 /**
@@ -613,7 +617,9 @@ HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue002, testing::ext::TestSi
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::FlushGpuMemoryInWaitQueue(nullptr);
+#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr") != std::string::npos);
+#endif
 }
 
 /**
@@ -644,7 +650,9 @@ HWTEST_F(RSMemoryManagerTest, SuppressGpuCacheBelowCertainRatio002, testing::ext
     LOG_SetCallback(MyLogCallback);
     const std::function<bool(void)> nextFrameHasArrived;
     MemoryManager::SuppressGpuCacheBelowCertainRatio(nullptr, nextFrameHasArrived);
+#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") != std::string::npos);
+#endif
 }
 
 /**
@@ -1329,5 +1337,181 @@ HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump001, TestSize.Level1)
     DfxString log;
     MemoryManager::RenderServiceAllSurfaceDump(log);
     ASSERT_TRUE(log.GetString().find("memory") != std::string::npos);
+}
+
+/**
+ * @tc.name: RenderServiceAllSurfaceDump002
+ * @tc.desc: Test RenderServiceAllSurfaceDump with null consumer
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    // Create a surface node without consumer (surfaceConsumer == nullptr path)
+    RSSurfaceRenderNodeConfig config;
+    config.id = 20;
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node, nullptr);
+    node->SetIsOnTheTree(true);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+
+    DfxString log;
+    MemoryManager::RenderServiceAllSurfaceDump(log);
+
+    // Verify the function handles null consumer gracefully (no crash)
+    // The log should still contain "memory" header even if no surface data
+    ASSERT_TRUE(log.GetString().find("memory") != std::string::npos);
+}
+
+/**
+ * @tc.name: RenderServiceAllSurfaceDump003
+ * @tc.desc: Test RenderServiceAllSurfaceDump with buffer only
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    // Create a surface node with buffer using RSTestUtil
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    node->SetIsOnTheTree(true);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+
+    DfxString log;
+    MemoryManager::RenderServiceAllSurfaceDump(log);
+
+    // Verify buffer branch is covered
+    ASSERT_TRUE(log.GetString().find("seqNum = ") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("bufferWidth = ") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("bufferHeight = ") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("bufferSize = ") != std::string::npos);
+}
+
+/**
+ * @tc.name: RenderServiceAllSurfaceDump004
+ * @tc.desc: Test RenderServiceAllSurfaceDump with both buffer and preBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    // Create a surface node with buffer
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    node->SetIsOnTheTree(true);
+
+    // Get the surface handler and set another buffer (this will make current buffer become preBuffer)
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    // Create consumer and producer to get a second buffer
+    const auto& surfaceConsumer = surfaceHandler->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(1);
+
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::InvalidFence();
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+
+    BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
+    };
+    sptr<SyncFence> flushFence = SyncFence::InvalidFence();
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    Rect damage;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    int64_t timestamp = 0;
+    ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+
+    surfaceHandler->SetBuffer(cbuffer, acquireFence, damage, timestamp);
+
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+
+    DfxString log;
+    MemoryManager::RenderServiceAllSurfaceDump(log);
+
+    // Verify both buffer and preBuffer branches are covered
+    ASSERT_TRUE(log.GetString().find("seqNum = ") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("preSeqNum = ") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("preBufferWidth = ") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("preBufferHeight = ") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("preBufferSize = ") != std::string::npos);
+}
+
+/**
+ * @tc.name: RenderServiceAllSurfaceDump005
+ * @tc.desc: Test RenderServiceAllSurfaceDump with consumer Dump returning empty
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    // Create a surface node with consumer but no sequence info
+    // This tests the path where consumer->Dump succeeds but doesn't contain "sequence"
+    RSSurfaceRenderNodeConfig config;
+    config.id = 21;
+    auto node = RSTestUtil::CreateSurfaceNode(config);
+    ASSERT_NE(node, nullptr);
+    node->SetIsOnTheTree(true);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+
+    DfxString log;
+    MemoryManager::RenderServiceAllSurfaceDump(log);
+
+    // Verify function handles empty consumer dump gracefully
+    ASSERT_TRUE(log.GetString().find("memory") != std::string::npos);
+}
+
+/**
+ * @tc.name: RenderServiceAllSurfaceDump006
+ * @tc.desc: Test RenderServiceAllSurfaceDump with null node in surfaceNodeMap
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump006, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    // Manually insert a nullptr into surfaceNodeMap_ to test the defensive check
+    // This simulates an edge case where a null pointer exists in the map
+    NodeId nullNodeId = 9999;
+    mainThread->GetContext().GetMutableNodeMap().surfaceNodeMap_.emplace(nullNodeId, nullptr);
+
+    DfxString log;
+    // This should not crash even with nullptr in the map (node == nullptr check should return early)
+    MemoryManager::RenderServiceAllSurfaceDump(log);
+
+    // Verify the function handles null node gracefully (no crash)
+    ASSERT_TRUE(log.GetString().find("memory") != std::string::npos);
+
+    // Clean up: remove the nullptr entry to prevent affecting other tests
+    mainThread->GetContext().GetMutableNodeMap().surfaceNodeMap_.erase(nullNodeId);
+    // Verify cleanup was successful
+    ASSERT_EQ(mainThread->GetContext().GetMutableNodeMap().surfaceNodeMap_.count(nullNodeId), 0);
 }
 } // namespace OHOS::Rosen

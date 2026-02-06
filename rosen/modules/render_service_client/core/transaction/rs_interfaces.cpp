@@ -330,9 +330,9 @@ bool RSInterfaces::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNod
         node, callback, captureConfig, checkDrmAndSurfaceLock);
 }
 
-bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze)
+bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze, bool needSync)
 {
-    return renderInterface_->FreezeScreen(node, isFreeze);
+    return renderInterface_->FreezeScreen(node, isFreeze, needSync);
 }
 
 bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,

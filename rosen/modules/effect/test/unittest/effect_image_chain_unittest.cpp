@@ -677,25 +677,103 @@ HWTEST_F(EffectImageChainUnittest, ConvertPixelMapToDrawingImageTest001, TestSiz
 }
 
 /**
- * @tc.name: ConvertPixelMapToDrawingImageTest001
- * @tc.desc: Test ConvertPixelMapToDrawingImage
+ * @tc.name: WaterGlassReturnsErrorWhenNotPrepared
+ * @tc.desc: test ApplyWaterGlass returns error when not prepared.
  */
-HWTEST_F(EffectImageChainUnittest, ConvertPixelMapToDrawingImageTest001, TestSize.Level1)
+HWTEST_F(EffectImageChainUnittest, WaterGlassReturnsErrorWhenNotPrepared, TestSize.Level1)
 {
-    auto image = std::make_shared<EffectImageChain>();
-    // Test with null pixelmap
-    auto drawingImage = image->ConvertPixelMapToDrawingImage(nullptr);
-    EXPECT_EQ(drawingImage, nullptr);
-
-    // Test with valid pixelmap
-    Media::InitializationOptions opts;
-    opts.size = {100, 100};
-    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
-    ASSERT_NE(srcPixelMap, nullptr);
-
-    drawingImage = image->ConvertPixelMapToDrawingImage(srcPixelMap);
-    EXPECT_NE(drawingImage, nullptr);
+    EffectImageChain chain;
+    auto params = std::make_shared<Drawing::GEWaterGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    EXPECT_EQ(chain.ApplyWaterGlass(params), DrawingError::ERR_NOT_PREPARED);
 }
 
+/**
+ * @tc.name: WaterGlassReturnsErrorWhenForceCPU
+ * @tc.desc: test ApplyWaterGlass returns error when not ForceCPU.
+ */
+HWTEST_F(EffectImageChainUnittest, WaterGlassReturnsErrorWhenForceCPU, TestSize.Level1)
+{
+    EffectImageChain chain;
+    chain.prepared_ = true;
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    chain.Prepare(srcPixelMap, true);
+    auto params = std::make_shared<Drawing::GEWaterGlassDataParams>();
+    EXPECT_EQ(chain.ApplyWaterGlass(params), DrawingError::ERR_ILLEGAL_INPUT);
+}
+
+/**
+ * @tc.name: WaterGlassReturnsOkWhenApplySuccessfully
+ * @tc.desc: test ApplyWaterGlass returns ok when apply successfully.
+ */
+HWTEST_F(EffectImageChainUnittest, WaterGlassReturnsOkWhenApplySuccessfully, TestSize.Level1)
+{
+    EffectImageChain chain;
+    chain.prepared_ = true;
+
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    chain.Prepare(srcPixelMap, false);
+
+    auto params = std::make_shared<Drawing::GEWaterGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    EXPECT_EQ(chain.ApplyWaterGlass(params), DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ReededGlassReturnsErrorWhenNotPrepared
+ * @tc.desc: test ApplyReededGlass returns error when not prepared.
+ */
+HWTEST_F(EffectImageChainUnittest, ReededGlassReturnsErrorWhenNotPrepared, TestSize.Level1)
+{
+    EffectImageChain chain;
+    auto params = std::make_shared<Drawing::GEReededGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    EXPECT_EQ(chain.ApplyReededGlass(params), DrawingError::ERR_NOT_PREPARED);
+}
+
+/**
+ * @tc.name: ReededGlassReturnsErrorWhenForceCPU
+ * @tc.desc: test ApplyReededGlass returns error when not ForceCPU.
+ */
+HWTEST_F(EffectImageChainUnittest, ReededGlassReturnsErrorWhenForceCPU, TestSize.Level1)
+{
+    EffectImageChain chain;
+    chain.prepared_ = true;
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    chain.Prepare(srcPixelMap, true);
+
+    auto params = std::make_shared<Drawing::GEReededGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    EXPECT_EQ(chain.ApplyReededGlass(params), DrawingError::ERR_ILLEGAL_INPUT);
+}
+
+/**
+ * @tc.name: ReededGlassReturnsOkWhenApplySuccessfully
+ * @tc.desc: test ApplyReededGlass returns ok when apply successfully.
+ */
+HWTEST_F(EffectImageChainUnittest, ReededGlassReturnsOkWhenApplySuccessfully, TestSize.Level1)
+{
+    EffectImageChain chain;
+    chain.prepared_ = true;
+
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    chain.Prepare(srcPixelMap, false);
+
+    auto params = std::make_shared<Drawing::GEReededGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    EXPECT_EQ(chain.ApplyReededGlass(params), DrawingError::ERR_OK);
+}
 } // namespace Rosen
 } // namespace OHOS

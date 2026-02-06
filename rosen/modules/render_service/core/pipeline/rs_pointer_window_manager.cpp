@@ -199,26 +199,23 @@ bool RSPointerWindowManager::CheckHardCursorSupport(const std::shared_ptr<RSScre
     return screenNode->GetScreenProperty().IsHardCursorSupport() && !RSPointerWindowManager::Instance().IsTuiEnabled();
 }
 
-bool RSPointerWindowManager::HasMirrorDisplay() const
-{
-    const std::shared_ptr<RSBaseRenderNode> rootNode =
-        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
-    if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
-        return false;
-    }
-    for (auto& child : *rootNode->GetSortedChildren()) {
-        if (!child || !child->IsInstanceOf<RSScreenRenderNode>()) {
-            continue;
-        }
-        auto screenNode = child->ReinterpretCastTo<RSScreenRenderNode>();
-        if (!screenNode) {
-            continue;
-        }
-        if (screenNode->IsMirrorScreen()) {
-            return true;
-        }
-    }
-    return false;
+bool RSPointerWindowManager::IsPointerInvisibleInMultiScreen() const
+    {
+        // Check if the pointer is invisible in multi-screens
+        bool isPointerInvisible = true;
+        auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        nodeMap.TraverseScreenNodes(
+            [&isPointerInvisible](const std::shared_ptr<RSScreenRenderNode>& node) {
+            if (!node) {
+                return;
+            }
+            const auto& screenProperty = node->GetScreenProperty();
+            if (screenProperty.GetTypeBlackList().empty() && (node->IsMirrorScreen() || screenProperty.IsVirtual())) {
+                isPointerInvisible = false;
+                return;
+            }
+        });
+        return isPointerInvisible;
 }
 
 void RSPointerWindowManager::UpdateHardCursorStatus(

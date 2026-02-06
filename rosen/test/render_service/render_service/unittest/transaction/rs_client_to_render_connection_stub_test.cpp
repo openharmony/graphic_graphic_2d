@@ -736,6 +736,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data3.WriteUint64(1);
     data3.WriteBool(true);
+    data3.WriteBool(false);
     res = toRenderConnectionStub_->OnRemoteRequest(code, data3, reply, option);
     ASSERT_EQ(res, ERR_OK);
 
@@ -755,7 +756,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
 
     ASSERT_NE(mainThread, nullptr);
     connection->mainThread_ = mainThread;
-    res = connection->FreezeScreen(0, false);
+    res = connection->FreezeScreen(0, false, false);
     usleep(TIME_OF_FREEZE_TASK);
     ASSERT_EQ(res, ERR_OK);
 
@@ -823,6 +824,34 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
 
     RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
+}
+
+/**
+ * @tc.name: FreezeScreenTest003
+ * @tc.desc: Test FreezeScreen sync
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest003, TestSize.Level2)
+{
+    ASSERT_NE(toRenderConnectionStub_, nullptr);
+    MessageParcel data1;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN);
+    data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data1.WriteUint64(1);
+    data1.WriteBool(true);
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data1, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data2.WriteUint64(1);
+    data2.WriteBool(true);
+    data2.WriteBool(true);
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data2, reply, option);
+    ASSERT_EQ(res, ERR_OK);
 }
 
 /**

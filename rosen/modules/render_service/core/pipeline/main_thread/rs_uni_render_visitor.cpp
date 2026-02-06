@@ -2322,6 +2322,9 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
     CheckPixelFormat(node);
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
         node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
+        if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable() && node.IsRosenWeb()) {
+            node.GetRSSurfaceHandler()->TryResumeLastBuffer();
+        }
     }
     // 4. collect cursors and check for null
     RSPointerWindowManager::Instance().UpdateHardCursorStatus(node, curScreenNode_);
@@ -2606,8 +2609,8 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
             surfaceNode->GetName().c_str(), surfaceNode->GetId());
         hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(surfaceNode->GetId(),
             HwcDisabledReasons::DISABLED_BY_POINT_WINDOW, surfaceNode->GetName());
-        bool isMirrorMode = RSPointerWindowManager::Instance().HasMirrorDisplay();
-        RSPointerWindowManager::Instance().SetIsPointerEnableHwc(isHardCursor && !isMirrorMode);
+        bool isPointerInvisible = RSPointerWindowManager::Instance().IsPointerInvisibleInMultiScreen();
+        RSPointerWindowManager::Instance().SetIsPointerEnableHwc(isHardCursor && isPointerInvisible);
         auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode, curScreenNode_->GetScreenInfo());
         surfaceNode->UpdateHwcNodeLayerInfo(transform, isHardCursor);
         if (isHardCursor) {
