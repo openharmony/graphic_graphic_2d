@@ -95,74 +95,8 @@ inline void InitHarmoniumEffect(std::shared_ptr<RSNGHarmoniumEffect>& harmoniumE
     harmoniumEffect->Setter<HarmoniumEffectFractionTag>(1.f);
 }
 
-// 1. InitPixelMapMask - RSNGPixelMapMask (4 parameters)
-inline void InitPixelMapMask(std::shared_ptr<RSNGPixelMapMask>& pixelMapMask)
-{
-    if (!pixelMapMask) {
-        return;
-    }
-    // Src: source rectangle (left, top, right, bottom)
-    pixelMapMask->Setter<PixelMapMaskSrcTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
-    // Dst: destination rectangle (left, top, right, bottom)
-    pixelMapMask->Setter<PixelMapMaskDstTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
-    // FillColor: white opaque
-    pixelMapMask->Setter<PixelMapMaskFillColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
-    // Image: PixelMap (non-animatable, typically set by test)
-}
-
-// 2. InitRadialGradientMask - RSNGRadialGradientMask (6 parameters)
-inline void InitRadialGradientMask(std::shared_ptr<RSNGRadialGradientMask>& radialGradientMask)
-{
-    if (!radialGradientMask) {
-        return;
-    }
-    // Center: center position
-    radialGradientMask->Setter<RadialGradientMaskCenterTag>(Vector2f{0.5f, 0.5f});
-    // RadiusX: horizontal radius
-    radialGradientMask->Setter<RadialGradientMaskRadiusXTag>(0.5f);
-    // RadiusY: vertical radius
-    radialGradientMask->Setter<RadialGradientMaskRadiusYTag>(0.5f);
-    // Colors: gradient colors (white to black)
-    std::vector<float> colors = {1.0f, 0.5f, 0.0f};
-    radialGradientMask->Setter<RadialGradientMaskColorsTag>(colors);
-    // Positions: color stop positions
-    std::vector<float> positions = {0.0f, 0.5f, 1.0f};
-    radialGradientMask->Setter<RadialGradientMaskPositionsTag>(positions);
-}
-
-// 3. InitRippleMask - RSNGRippleMask (4 parameters)
-inline void InitRippleMask(std::shared_ptr<RSNGRippleMask>& rippleMask)
-{
-    if (!rippleMask) {
-        return;
-    }
-    // Radius: ripple radius
-    rippleMask->Setter<RippleMaskRadiusTag>(5.0f);
-    // Width: ripple width
-    rippleMask->Setter<RippleMaskWidthTag>(5.0f);
-    // Center: center position
-    rippleMask->Setter<RippleMaskCenterTag>(Vector2f{0.5f, 0.5f});
-    // Offset: width center offset
-    rippleMask->Setter<RippleMaskOffsetTag>(0.0f);
-}
-
-// 4. InitWaveGradientMask - RSNGWaveGradientMask (5 parameters)
-inline void InitWaveGradientMask(std::shared_ptr<RSNGWaveGradientMask>& waveGradientMask)
-{
-    if (!waveGradientMask) {
-        return;
-    }
-    // WaveCenter: wave center position
-    waveGradientMask->Setter<WaveGradientMaskWaveCenterTag>(Vector2f{0.5f, 0.5f});
-    // WaveWidth: wave width
-    waveGradientMask->Setter<WaveGradientMaskWaveWidthTag>(2.5f);
-    // PropagationRadius: propagation radius
-    waveGradientMask->Setter<WaveGradientMaskPropagationRadiusTag>(5.0f);
-    // BlurRadius: blur radius
-    waveGradientMask->Setter<WaveGradientMaskBlurRadiusTag>(2.5f);
-    // TurbulenceStrength: turbulence strength
-    waveGradientMask->Setter<WaveGradientMaskTurbulenceStrengthTag>(0.5f);
-}
+// InitPixelMapMask, InitRadialGradientMask, InitRippleMask, InitWaveGradientMask
+// have been moved to their respective test files for better modularity.
 
 inline std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const int i, const int columnCount, const int rowCount,
     std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGHarmoniumEffect>& harmoniumEffect)

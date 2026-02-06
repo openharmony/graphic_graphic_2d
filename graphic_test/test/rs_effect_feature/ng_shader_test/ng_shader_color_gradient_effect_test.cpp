@@ -16,12 +16,66 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitColorGradientEffect(std::shared_ptr<RSNGColorGradientEffect>& colorGradientEffect)
+{
+    if (!colorGradientEffect) {
+        return;
+    }
+    // Colors (12 colors)
+    colorGradientEffect->Setter<ColorGradientEffectColor0Tag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor1Tag>(Vector4f{0.9f, 0.9f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor2Tag>(Vector4f{0.8f, 0.8f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor3Tag>(Vector4f{0.7f, 0.7f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor4Tag>(Vector4f{0.6f, 0.6f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor5Tag>(Vector4f{0.5f, 0.5f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor6Tag>(Vector4f{0.4f, 0.4f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor7Tag>(Vector4f{0.3f, 0.3f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor8Tag>(Vector4f{0.2f, 0.2f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor9Tag>(Vector4f{0.1f, 0.1f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor10Tag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectColor11Tag>(Vector4f{1.0f, 0.0f, 1.0f, 1.0f});
+    // Positions (12 positions, distributed)
+    colorGradientEffect->Setter<ColorGradientEffectPosition0Tag>(Vector2f{0.0f, 0.0f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition1Tag>(Vector2f{0.1f, 0.1f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition2Tag>(Vector2f{0.2f, 0.2f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition3Tag>(Vector2f{0.3f, 0.3f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition4Tag>(Vector2f{0.4f, 0.4f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition5Tag>(Vector2f{0.5f, 0.5f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition6Tag>(Vector2f{0.6f, 0.6f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition7Tag>(Vector2f{0.7f, 0.7f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition8Tag>(Vector2f{0.8f, 0.8f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition9Tag>(Vector2f{0.9f, 0.9f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition10Tag>(Vector2f{1.0f, 1.0f});
+    colorGradientEffect->Setter<ColorGradientEffectPosition11Tag>(Vector2f{0.5f, 1.0f});
+    // Strengths (12 strengths)
+    colorGradientEffect->Setter<ColorGradientEffectStrength0Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength1Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength2Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength3Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength4Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength5Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength6Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength7Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength8Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength9Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength10Tag>(1.0f);
+    colorGradientEffect->Setter<ColorGradientEffectStrength11Tag>(1.0f);
+    // ColorNumber
+    colorGradientEffect->Setter<ColorGradientEffectColorNumberTag>(4.0f);
+    // Blend
+    colorGradientEffect->Setter<ColorGradientEffectBlendTag>(1.0f);
+    // BlendK
+    colorGradientEffect->Setter<ColorGradientEffectBlendKTag>(1.0f);
+    // Brightness
+    colorGradientEffect->Setter<ColorGradientEffectBrightnessTag>(1.0f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

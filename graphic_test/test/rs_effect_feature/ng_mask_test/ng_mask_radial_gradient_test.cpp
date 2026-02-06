@@ -24,6 +24,26 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitRadialGradientMask(std::shared_ptr<RSNGRadialGradientMask>& radialGradientMask)
+{
+    if (!radialGradientMask) {
+        return;
+    }
+    // Center: center position
+    radialGradientMask->Setter<RadialGradientMaskCenterTag>(Vector2f{0.5f, 0.5f});
+    // RadiusX: horizontal radius
+    radialGradientMask->Setter<RadialGradientMaskRadiusXTag>(0.5f);
+    // RadiusY: vertical radius
+    radialGradientMask->Setter<RadialGradientMaskRadiusYTag>(0.5f);
+    // Colors: gradient colors (white to black)
+    std::vector<float> colors = {1.0f, 0.5f, 0.0f};
+    radialGradientMask->Setter<RadialGradientMaskColorsTag>(colors);
+    // Positions: color stop positions
+    std::vector<float> positions = {0.0f, 0.5f, 1.0f};
+    radialGradientMask->Setter<RadialGradientMaskPositionsTag>(positions);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

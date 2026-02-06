@@ -16,12 +16,69 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitFrostedGlassEffect(std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlassEffect)
+{
+    if (!frostedGlassEffect) {
+        return;
+    }
+    // WeightsEmboss
+    frostedGlassEffect->Setter<FrostedGlassEffectWeightsEmbossTag>(Vector2f{1.0f, 0.5f});
+    // WeightsEdl
+    frostedGlassEffect->Setter<FrostedGlassEffectWeightsEdlTag>(Vector2f{1.0f, 1.0f});
+    // BgRates
+    frostedGlassEffect->Setter<FrostedGlassEffectBgRatesTag>(Vector2f{-1.8792225f, 2.7626955f});
+    // BgKBS
+    frostedGlassEffect->Setter<FrostedGlassEffectBgKBSTag>(Vector3f{0.0073494f, 0.0998859f, 1.2f});
+    // BgPos
+    frostedGlassEffect->Setter<FrostedGlassEffectBgPosTag>(Vector3f{0.3f, 0.5f, 0.5f});
+    // BgNeg
+    frostedGlassEffect->Setter<FrostedGlassEffectBgNegTag>(Vector3f{0.5f, 1.0f, 1.0f});
+    // RefractParams
+    frostedGlassEffect->Setter<FrostedGlassEffectRefractParamsTag>(Vector3f{1.0f, 0.3f, 0.3f});
+    // SdParams
+    frostedGlassEffect->Setter<FrostedGlassEffectSdParamsTag>(Vector3f{-50.0f, 6.0f, 6.62f});
+    // SdRates
+    frostedGlassEffect->Setter<FrostedGlassEffectSdRatesTag>(Vector2f{0.0f, 0.0f});
+    // SdKBS
+    frostedGlassEffect->Setter<FrostedGlassEffectSdKBSTag>(Vector3f{0.9f, 0.0f, 1.0f});
+    // SdPos
+    frostedGlassEffect->Setter<FrostedGlassEffectSdPosTag>(Vector3f{1.0f, 1.7f, 1.5f});
+    // SdNeg
+    frostedGlassEffect->Setter<FrostedGlassEffectSdNegTag>(Vector3f{3.0f, 2.0f, 1.0f});
+    // EnvLightParams
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightParamsTag>(Vector2f{20.0f, 5.0f});
+    // EnvLightRates
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightRatesTag>(Vector2f{0.0f, 0.0f});
+    // EnvLightKBS
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightKBSTag>(Vector3f{0.8f, 0.27451f, 2.0f});
+    // EnvLightPos
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightPosTag>(Vector3f{1.0f, 1.7f, 1.5f});
+    // EnvLightNeg
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightNegTag>(Vector3f{3.0f, 2.0f, 1.0f});
+    // EdLightParams
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightParamsTag>(Vector2f{2.0f, 2.0f});
+    // EdLightAngles
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightAnglesTag>(Vector2f{40.0f, 20.0f});
+    // EdLightDir
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightDirTag>(Vector2f{2.5f, 2.5f});
+    // EdLightRates
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightRatesTag>(Vector2f{0.0f, 0.0f});
+    // EdLightKBS
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightKBSTag>(Vector3f{0.6027f, 0.627451f, 2.0f});
+    // EdLightPos
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightPosTag>(Vector3f{1.0f, 1.7f, 1.5f});
+    // EdLightNeg
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightNegTag>(Vector3f{3.2f, 2.0f, 1.0f});
+    // MaterialColor
+    frostedGlassEffect->Setter<FrostedGlassEffectMaterialColorTag>(Vector4f{0.0f, 0.0f, 0.0f, 0.0f});
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

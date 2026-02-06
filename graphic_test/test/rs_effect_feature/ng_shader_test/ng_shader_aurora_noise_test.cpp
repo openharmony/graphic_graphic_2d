@@ -16,12 +16,21 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitAuroraNoise(std::shared_ptr<RSNGAuroraNoise>& auroraNoise)
+{
+    if (!auroraNoise) {
+        return;
+    }
+    // Noise
+    auroraNoise->Setter<AuroraNoiseNoiseTag>(0.5f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

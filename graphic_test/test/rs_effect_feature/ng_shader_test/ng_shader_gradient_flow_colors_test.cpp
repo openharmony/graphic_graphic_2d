@@ -16,12 +16,32 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitGradientFlowColors(std::shared_ptr<RSNGGradientFlowColors>& gradientFlowColors)
+{
+    if (!gradientFlowColors) {
+        return;
+    }
+    // Colors
+    gradientFlowColors->Setter<GradientFlowColorsColor0Tag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    gradientFlowColors->Setter<GradientFlowColorsColor1Tag>(Vector4f{0.8f, 0.8f, 1.0f, 1.0f});
+    gradientFlowColors->Setter<GradientFlowColorsColor2Tag>(Vector4f{0.6f, 0.6f, 1.0f, 1.0f});
+    gradientFlowColors->Setter<GradientFlowColorsColor3Tag>(Vector4f{0.4f, 0.4f, 1.0f, 1.0f});
+    // GradientBegin
+    gradientFlowColors->Setter<GradientFlowColorsGradientBeginTag>(0.0f);
+    // GradientEnd
+    gradientFlowColors->Setter<GradientFlowColorsGradientEndTag>(1.0f);
+    // EffectAlpha
+    gradientFlowColors->Setter<GradientFlowColorsEffectAlphaTag>(1.0f);
+    // Progress
+    gradientFlowColors->Setter<GradientFlowColorsProgressTag>(0.5f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

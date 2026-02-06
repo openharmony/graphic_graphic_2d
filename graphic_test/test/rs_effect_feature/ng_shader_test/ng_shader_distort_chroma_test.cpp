@@ -16,12 +16,39 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitDistortChroma(std::shared_ptr<RSNGDistortChroma>& distortChroma)
+{
+    if (!distortChroma) {
+        return;
+    }
+    // Progress
+    distortChroma->Setter<DistortChromaProgressTag>(0.5f);
+    // Granularity
+    distortChroma->Setter<DistortChromaGranularityTag>(Vector2f{1.0f, 1.0f});
+    // Frequency
+    distortChroma->Setter<DistortChromaFrequencyTag>(1.0f);
+    // Sharpness
+    distortChroma->Setter<DistortChromaSharpnessTag>(1.0f);
+    // Brightness
+    distortChroma->Setter<DistortChromaBrightnessTag>(1.0f);
+    // Dispersion
+    distortChroma->Setter<DistortChromaDispersionTag>(0.5f);
+    // DistortFactor
+    distortChroma->Setter<DistortChromaDistortFactorTag>(Vector2f{1.0f, 1.0f});
+    // Saturation
+    distortChroma->Setter<DistortChromaSaturationTag>(1.0f);
+    // ColorStrength
+    distortChroma->Setter<DistortChromaColorStrengthTag>(Vector3f{1.0f, 1.0f, 1.0f});
+    // VerticalMoveDistance
+    distortChroma->Setter<DistortChromaVerticalMoveDistanceTag>(0.0f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

@@ -16,12 +16,31 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitBorderLight(std::shared_ptr<RSNGBorderLight>& borderLight)
+{
+    if (!borderLight) {
+        return;
+    }
+    // Position (x, y, z)
+    borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 1.0f});
+    // Color
+    borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // Intensity
+    borderLight->Setter<BorderLightIntensityTag>(1.0f);
+    // Width
+    borderLight->Setter<BorderLightWidthTag>(10.0f);
+    // RotationAngle (x, y, z)
+    borderLight->Setter<BorderLightRotationAngleTag>(Vector3f{0.0f, 0.0f, 0.0f});
+    // CornerRadius
+    borderLight->Setter<BorderLightCornerRadiusTag>(10.0f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

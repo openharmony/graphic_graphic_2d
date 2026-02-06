@@ -16,12 +16,25 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitParticleCircularHalo(std::shared_ptr<RSNGParticleCircularHalo>& particleCircularHalo)
+{
+    if (!particleCircularHalo) {
+        return;
+    }
+    // Center
+    particleCircularHalo->Setter<ParticleCircularHaloCenterTag>(Vector2f{0.5f, 0.5f});
+    // Radius
+    particleCircularHalo->Setter<ParticleCircularHaloRadiusTag>(50.0f);
+    // Noise
+    particleCircularHalo->Setter<ParticleCircularHaloNoiseTag>(0.5f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

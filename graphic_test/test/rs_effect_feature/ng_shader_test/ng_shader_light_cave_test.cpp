@@ -16,12 +16,29 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitLightCave(std::shared_ptr<RSNGLightCave>& lightCave)
+{
+    if (!lightCave) {
+        return;
+    }
+    // Colors
+    lightCave->Setter<LightCaveColorATag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    lightCave->Setter<LightCaveColorBTag>(Vector4f{0.8f, 0.8f, 1.0f, 1.0f});
+    lightCave->Setter<LightCaveColorCTag>(Vector4f{0.6f, 0.6f, 1.0f, 1.0f});
+    // Position
+    lightCave->Setter<LightCavePositionTag>(Vector2f{0.5f, 0.5f});
+    // RadiusXY
+    lightCave->Setter<LightCaveRadiusXYTag>(Vector2f{50.0f, 50.0f});
+    // Progress
+    lightCave->Setter<LightCaveProgressTag>(0.5f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

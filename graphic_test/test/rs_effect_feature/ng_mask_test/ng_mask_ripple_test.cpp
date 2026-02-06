@@ -24,6 +24,22 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitRippleMask(std::shared_ptr<RSNGRippleMask>& rippleMask)
+{
+    if (!rippleMask) {
+        return;
+    }
+    // Radius: ripple radius
+    rippleMask->Setter<RippleMaskRadiusTag>(5.0f);
+    // Width: ripple width
+    rippleMask->Setter<RippleMaskWidthTag>(5.0f);
+    // Center: center position
+    rippleMask->Setter<RippleMaskCenterTag>(Vector2f{0.5f, 0.5f});
+    // Offset: width center offset
+    rippleMask->Setter<RippleMaskOffsetTag>(0.0f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

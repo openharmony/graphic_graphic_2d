@@ -16,12 +16,47 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitContourDiagonalFlowLight(std::shared_ptr<RSNGContourDiagonalFlowLight>& contourDiagonalFlowLight)
+{
+    if (!contourDiagonalFlowLight) {
+        return;
+    }
+    // Contour (vector of Vector2f points)
+    std::vector<Vector2f> contour = {
+        Vector2f{0.2f, 0.2f},
+        Vector2f{0.8f, 0.2f},
+        Vector2f{0.8f, 0.8f},
+        Vector2f{0.2f, 0.8f}
+    };
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightContourTag>(contour);
+    // Line1Start
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightLine1StartTag>(0.0f);
+    // Line1Length
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightLine1LengthTag>(0.5f);
+    // Line1Color
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightLine1ColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // Line2Start
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightLine2StartTag>(0.5f);
+    // Line2Length
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightLine2LengthTag>(0.5f);
+    // Line2Color
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightLine2ColorTag>(Vector4f{0.8f, 0.8f, 1.0f, 1.0f});
+    // Thickness
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightThicknessTag>(2.0f);
+    // HaloRadius
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightHaloRadiusTag>(10.0f);
+    // LightWeight
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightLightWeightTag>(1.0f);
+    // HaloWeight
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightHaloWeightTag>(1.0f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

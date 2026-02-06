@@ -16,12 +16,42 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitCircleFlowlight(std::shared_ptr<RSNGCircleFlowlight>& circleFlowlight)
+{
+    if (!circleFlowlight) {
+        return;
+    }
+    // Colors
+    circleFlowlight->Setter<CircleFlowlightColor0Tag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    circleFlowlight->Setter<CircleFlowlightColor1Tag>(Vector4f{0.8f, 0.8f, 1.0f, 1.0f});
+    circleFlowlight->Setter<CircleFlowlightColor2Tag>(Vector4f{0.6f, 0.6f, 1.0f, 1.0f});
+    circleFlowlight->Setter<CircleFlowlightColor3Tag>(Vector4f{0.4f, 0.4f, 1.0f, 1.0f});
+    // RotationFrequency
+    circleFlowlight->Setter<CircleFlowlightRotationFrequencyTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // RotationAmplitude
+    circleFlowlight->Setter<CircleFlowlightRotationAmplitudeTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // RotationSeed
+    circleFlowlight->Setter<CircleFlowlightRotationSeedTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // GradientX
+    circleFlowlight->Setter<CircleFlowlightGradientXTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // GradientY
+    circleFlowlight->Setter<CircleFlowlightGradientYTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // Progress
+    circleFlowlight->Setter<CircleFlowlightProgressTag>(0.5f);
+    // Strength
+    circleFlowlight->Setter<CircleFlowlightStrengthTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // DistortStrength
+    circleFlowlight->Setter<CircleFlowlightDistortStrengthTag>(1.0f);
+    // BlendGradient
+    circleFlowlight->Setter<CircleFlowlightBlendGradientTag>(1.0f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

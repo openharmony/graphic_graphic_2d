@@ -16,12 +16,43 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitRoundedRectFlowlight(std::shared_ptr<RSNGRoundedRectFlowlight>& roundedRectFlowlight)
+{
+    if (!roundedRectFlowlight) {
+        return;
+    }
+    // StartEndPosition
+    roundedRectFlowlight->Setter<RoundedRectFlowlightStartEndPositionTag>(Vector2f{0.0f, 1.0f});
+    // WaveLength
+    roundedRectFlowlight->Setter<RoundedRectFlowlightWaveLengthTag>(0.2f);
+    // WaveTop
+    roundedRectFlowlight->Setter<RoundedRectFlowlightWaveTopTag>(0.2f);
+    // CornerRadius
+    roundedRectFlowlight->Setter<RoundedRectFlowlightCornerRadiusTag>(0.1f);
+    // Brightness
+    roundedRectFlowlight->Setter<RoundedRectFlowlightBrightnessTag>(1.0f);
+    // Scale
+    roundedRectFlowlight->Setter<RoundedRectFlowlightScaleTag>(1.0f);
+    // Sharping
+    roundedRectFlowlight->Setter<RoundedRectFlowlightSharpingTag>(1.0f);
+    // Feathering
+    roundedRectFlowlight->Setter<RoundedRectFlowlightFeatheringTag>(1.0f);
+    // FeatheringBezierControlPoints
+    roundedRectFlowlight->Setter<RoundedRectFlowlightFeatheringBezierControlPointsTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
+    // GradientBezierControlPoints
+    roundedRectFlowlight->Setter<RoundedRectFlowlightGradientBezierControlPointsTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
+    // Color
+    roundedRectFlowlight->Setter<RoundedRectFlowlightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // Progress
+    roundedRectFlowlight->Setter<RoundedRectFlowlightProgressTag>(0.5f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

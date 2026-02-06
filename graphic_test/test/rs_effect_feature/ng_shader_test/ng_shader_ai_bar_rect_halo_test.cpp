@@ -16,12 +16,37 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitAIBarRectHalo(std::shared_ptr<RSNGAIBarRectHalo>& aiBarRectHalo)
+{
+    if (!aiBarRectHalo) {
+        return;
+    }
+    // LTWH: left, top, width, height
+    aiBarRectHalo->Setter<AIBarRectHaloLTWHTag>(Vector4f{0.0f, 0.0f, 100.0f, 100.0f});
+    // Colors
+    aiBarRectHalo->Setter<AIBarRectHaloColor0Tag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    aiBarRectHalo->Setter<AIBarRectHaloColor1Tag>(Vector4f{0.8f, 0.8f, 1.0f, 1.0f});
+    aiBarRectHalo->Setter<AIBarRectHaloColor2Tag>(Vector4f{0.6f, 0.6f, 1.0f, 1.0f});
+    aiBarRectHalo->Setter<AIBarRectHaloColor3Tag>(Vector4f{0.4f, 0.4f, 1.0f, 1.0f});
+    // Positions (distributed to avoid overlap)
+    aiBarRectHalo->Setter<AIBarRectHaloPosition0Tag>(Vector2f{0.2f, 0.2f});
+    aiBarRectHalo->Setter<AIBarRectHaloPosition1Tag>(Vector2f{0.8f, 0.2f});
+    aiBarRectHalo->Setter<AIBarRectHaloPosition2Tag>(Vector2f{0.8f, 0.8f});
+    aiBarRectHalo->Setter<AIBarRectHaloPosition3Tag>(Vector2f{0.2f, 0.8f});
+    // Strength
+    aiBarRectHalo->Setter<AIBarRectHaloStrengthTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // Brightness
+    aiBarRectHalo->Setter<AIBarRectHaloBrightnessTag>(1.0f);
+    // Progress
+    aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(0.5f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

@@ -24,6 +24,21 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitPixelMapMask(std::shared_ptr<RSNGPixelMapMask>& pixelMapMask)
+{
+    if (!pixelMapMask) {
+        return;
+    }
+    // Src: source rectangle (left, top, right, bottom)
+    pixelMapMask->Setter<PixelMapMaskSrcTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
+    // Dst: destination rectangle (left, top, right, bottom)
+    pixelMapMask->Setter<PixelMapMaskDstTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
+    // FillColor: white opaque
+    pixelMapMask->Setter<PixelMapMaskFillColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // Image: PixelMap (non-animatable, typically set by test)
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const std::string DISTOR_IMAGE_PATH = "/data/local/tmp/Images/distorImage.png";

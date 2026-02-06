@@ -16,12 +16,41 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitAIBarGlow(std::shared_ptr<RSNGAIBarGlow>& aiBarGlow)
+{
+    if (!aiBarGlow) {
+        return;
+    }
+    // LTWH: left, top, width, height
+    aiBarGlow->Setter<AIBarGlowLTWHTag>(Vector4f{0.0f, 0.0f, 100.0f, 100.0f});
+    // StretchFactor
+    aiBarGlow->Setter<AIBarGlowStretchFactorTag>(1.0f);
+    // BarAngle
+    aiBarGlow->Setter<AIBarGlowBarAngleTag>(0.0f);
+    // Colors
+    aiBarGlow->Setter<AIBarGlowColor0Tag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    aiBarGlow->Setter<AIBarGlowColor1Tag>(Vector4f{0.8f, 0.8f, 1.0f, 1.0f});
+    aiBarGlow->Setter<AIBarGlowColor2Tag>(Vector4f{0.6f, 0.6f, 1.0f, 1.0f});
+    aiBarGlow->Setter<AIBarGlowColor3Tag>(Vector4f{0.4f, 0.4f, 1.0f, 1.0f});
+    // Positions (distributed to avoid overlap)
+    aiBarGlow->Setter<AIBarGlowPosition0Tag>(Vector2f{0.2f, 0.2f});
+    aiBarGlow->Setter<AIBarGlowPosition1Tag>(Vector2f{0.8f, 0.2f});
+    aiBarGlow->Setter<AIBarGlowPosition2Tag>(Vector2f{0.8f, 0.8f});
+    aiBarGlow->Setter<AIBarGlowPosition3Tag>(Vector2f{0.2f, 0.8f});
+    // Strength
+    aiBarGlow->Setter<AIBarGlowStrengthTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // Brightness
+    aiBarGlow->Setter<AIBarGlowBrightnessTag>(1.0f);
+    // Progress
+    aiBarGlow->Setter<AIBarGlowProgressTag>(0.5f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

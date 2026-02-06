@@ -24,6 +24,24 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitWaveGradientMask(std::shared_ptr<RSNGWaveGradientMask>& waveGradientMask)
+{
+    if (!waveGradientMask) {
+        return;
+    }
+    // WaveCenter: wave center position
+    waveGradientMask->Setter<WaveGradientMaskWaveCenterTag>(Vector2f{0.5f, 0.5f});
+    // WaveWidth: wave width
+    waveGradientMask->Setter<WaveGradientMaskWaveWidthTag>(2.5f);
+    // PropagationRadius: propagation radius
+    waveGradientMask->Setter<WaveGradientMaskPropagationRadiusTag>(5.0f);
+    // BlurRadius: blur radius
+    waveGradientMask->Setter<WaveGradientMaskBlurRadiusTag>(2.5f);
+    // TurbulenceStrength: turbulence strength
+    waveGradientMask->Setter<WaveGradientMaskTurbulenceStrengthTag>(0.5f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;

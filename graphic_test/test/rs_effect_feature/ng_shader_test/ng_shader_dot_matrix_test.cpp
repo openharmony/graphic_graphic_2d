@@ -16,12 +16,51 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+void InitDotMatrixShader(std::shared_ptr<RSNGDotMatrixShader>& dotMatrixShader)
+{
+    if (!dotMatrixShader) {
+        return;
+    }
+    // PathDirection
+    dotMatrixShader->Setter<DotMatrixShaderPathDirectionTag>(0);
+    // EffectColors (vector of Vector4f)
+    std::vector<Vector4f> effectColors = {
+        Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        Vector4f{0.8f, 0.8f, 1.0f, 1.0f}
+    };
+    dotMatrixShader->Setter<DotMatrixShaderEffectColorsTag>(effectColors);
+    // ColorFractions
+    dotMatrixShader->Setter<DotMatrixShaderColorFractionsTag>(Vector2f{0.0f, 1.0f});
+    // StartPoints (vector of Vector2f)
+    std::vector<Vector2f> startPoints = {
+        Vector2f{0.2f, 0.2f},
+        Vector2f{0.8f, 0.8f}
+    };
+    dotMatrixShader->Setter<DotMatrixShaderStartPointsTag>(startPoints);
+    // PathWidth
+    dotMatrixShader->Setter<DotMatrixShaderPathWidthTag>(10.0f);
+    // InverseEffect
+    dotMatrixShader->Setter<DotMatrixShaderInverseEffectTag>(false);
+    // DotColor
+    dotMatrixShader->Setter<DotMatrixShaderDotColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    // DotSpacing
+    dotMatrixShader->Setter<DotMatrixShaderDotSpacingTag>(5.0f);
+    // DotRadius
+    dotMatrixShader->Setter<DotMatrixShaderDotRadiusTag>(2.0f);
+    // BgColor
+    dotMatrixShader->Setter<DotMatrixShaderBgColorTag>(Vector4f{0.0f, 0.0f, 0.0f, 1.0f});
+    // EffectType
+    dotMatrixShader->Setter<DotMatrixShaderEffectTypeTag>(0);
+    // Progress
+    dotMatrixShader->Setter<DotMatrixShaderProgressTag>(0.5f);
+}
+
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const int SCREEN_WIDTH = 1200;
