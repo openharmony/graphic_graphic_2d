@@ -351,6 +351,7 @@ private:
     void Init();
     int AddParamWatcher() const;
     void CheckCustomFrameRateModeValid();
+    std::string GetXmlPath() const;
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(int32_t mode);
     void SetASConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);

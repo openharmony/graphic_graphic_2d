@@ -125,6 +125,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
+    "config_policy:configpolicy_util",
   ]
 
   if (defined(graphic_2d_hgm_configs.vendor_root)) {

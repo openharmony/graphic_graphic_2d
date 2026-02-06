@@ -35,6 +35,7 @@ hgm_test_external_deps = [
   "init:libbeget_proxy",
   "init:libbegetutil",
   "libxml2:libxml2",
+  "config_policy:configpolicy_util",
 ]
 
 ohos_unittest("hyper_graphic_manager_test") {

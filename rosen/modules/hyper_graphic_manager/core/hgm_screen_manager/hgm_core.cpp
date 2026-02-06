@@ -31,6 +31,7 @@
 #include "sandbox_utils.h"
 #include "hgm_screen_info.h"
 #include "syspara/parameter.h"
+#include "config_policy_utils.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -162,6 +163,23 @@ void HgmCore::CheckCustomFrameRateModeValid()
     customFrameRateMode_ = maxMode;
 }
 
+std::string HgmCore::GetXmlPath() const
+{
+    std::string fileSuffix = "etc/graphic/hgm_policy_config.xml";
+    char pathBuff[MAX_PATH_LEN] = {'\0'};
+    auto flexConfigPath = GetOneCfgFile(fileSuffix.c_str(), pathBuff, MAX_PATH_LEN);
+    if (flexConfigPath == nullptr) {
+        return CONFIG_FILE_PRODUCT;
+    }
+    std::string resPath(flexConfigPath);
+    std::string targetPrefix("/sys_prod");
+    if (resPath.substr(0, targetPrefix.size()) == targetPrefix) {
+        HGM_LOGI("flex hgm config path is %{public}s", resPath.c_str());
+        return resPath;
+    }
+    return CONFIG_FILE_PRODUCT;
+}
+
 int32_t HgmCore::InitXmlConfig()
 {
     HGM_LOGD("HgmCore is parsing xml configuration");
@@ -169,11 +187,14 @@ int32_t HgmCore::InitXmlConfig()
         mParser_ = std::make_unique<XMLParser>();
     }
 
-    if (mParser_->LoadConfiguration(CONFIG_FILE_PRODUCT) != EXEC_SUCCESS) {
-        HGM_LOGW("HgmCore failed to load prod xml configuration file");
+    int32_t ret = mParser_->LoadConfiguration(GetXmlPath().c_str());
+    if (ret != EXEC_SUCCESS) {
+        HGM_LOGW("HgmCore failed to load prod xml configuration file, errNum:%{public}d", ret);
+        return ret;
     }
-    if (mParser_->Parse() != EXEC_SUCCESS) {
-        HGM_LOGW("HgmCore failed to parse prod xml configuration");
+    if ((ret = mParser_->Parse()) != EXEC_SUCCESS) {
+        HGM_LOGW("HgmCore failed to parse prod xml configuration, errNum:%{public}d", ret);
+        return ret;
     }
 
     if (!mPolicyConfigData_) {
