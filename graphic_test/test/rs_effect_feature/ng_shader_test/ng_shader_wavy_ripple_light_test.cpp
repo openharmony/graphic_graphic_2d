@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -100,6 +101,7 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Cen
 
     for (size_t i = 0; i < wavyRippleCenters.size(); i++) {
         auto wavyRippleLight = std::make_shared<RSNGWavyRippleLight>();
+        InitWavyRippleLight(wavyRippleLight);
         wavyRippleLight->Setter<WavyRippleLightCenterTag>(wavyRippleCenters[i]);
         wavyRippleLight->Setter<WavyRippleLightRadiusTag>(200.0f);
         wavyRippleLight->Setter<WavyRippleLightThicknessTag>(10.0f);
@@ -119,6 +121,7 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Rad
 
     for (size_t i = 0; i < wavyRippleRadii.size(); i++) {
         auto wavyRippleLight = std::make_shared<RSNGWavyRippleLight>();
+        InitWavyRippleLight(wavyRippleLight);
         wavyRippleLight->Setter<WavyRippleLightCenterTag>(Vector2f{600.0f, 1000.0f});
         wavyRippleLight->Setter<WavyRippleLightRadiusTag>(wavyRippleRadii[i]);
         wavyRippleLight->Setter<WavyRippleLightThicknessTag>(10.0f);
@@ -138,6 +141,7 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Thi
 
     for (size_t i = 0; i < wavyRippleThicknesses.size(); i++) {
         auto wavyRippleLight = std::make_shared<RSNGWavyRippleLight>();
+        InitWavyRippleLight(wavyRippleLight);
         wavyRippleLight->Setter<WavyRippleLightCenterTag>(Vector2f{600.0f, 1000.0f});
         wavyRippleLight->Setter<WavyRippleLightRadiusTag>(200.0f);
         wavyRippleLight->Setter<WavyRippleLightThicknessTag>(wavyRippleThicknesses[i]);
@@ -157,6 +161,7 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Rad
 
     for (size_t i = 0; i < wavyRippleRadiusThicknessCombinations.size(); i++) {
         auto wavyRippleLight = std::make_shared<RSNGWavyRippleLight>();
+        InitWavyRippleLight(wavyRippleLight);
         wavyRippleLight->Setter<WavyRippleLightCenterTag>(Vector2f{600.0f, 1000.0f});
         wavyRippleLight->Setter<WavyRippleLightRadiusTag>(wavyRippleRadiusThicknessCombinations[i].first);
         wavyRippleLight->Setter<WavyRippleLightThicknessTag>(wavyRippleRadiusThicknessCombinations[i].second);
@@ -177,6 +182,7 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Rad
 
     for (size_t i = 0; i < wavyRippleExtremeRadii.size(); i++) {
         auto wavyRippleLight = std::make_shared<RSNGWavyRippleLight>();
+        InitWavyRippleLight(wavyRippleLight);
         wavyRippleLight->Setter<WavyRippleLightCenterTag>(Vector2f{600.0f, 1000.0f});
         wavyRippleLight->Setter<WavyRippleLightRadiusTag>(wavyRippleExtremeRadii[i]);
         wavyRippleLight->Setter<WavyRippleLightThicknessTag>(10.0f);
@@ -197,6 +203,7 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Thi
 
     for (size_t i = 0; i < wavyRippleExtremeThicknesses.size(); i++) {
         auto wavyRippleLight = std::make_shared<RSNGWavyRippleLight>();
+        InitWavyRippleLight(wavyRippleLight);
         wavyRippleLight->Setter<WavyRippleLightCenterTag>(Vector2f{600.0f, 1000.0f});
         wavyRippleLight->Setter<WavyRippleLightRadiusTag>(200.0f);
         wavyRippleLight->Setter<WavyRippleLightThicknessTag>(wavyRippleExtremeThicknesses[i]);

@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -66,6 +67,7 @@ GRAPHIC_TEST(NGShaderAuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Test)
 
     for (size_t i = 0; i < noiseValues.size(); i++) {
         auto auroraNoise = std::make_shared<RSNGAuroraNoise>();
+        InitAuroraNoise(auroraNoise);
         auroraNoise->Setter<AuroraNoiseNoiseTag>(noiseValues[i]);
 
         SetUpTestNode(i, columnCount, rowCount, auroraNoise);
@@ -85,6 +87,7 @@ GRAPHIC_TEST(NGShaderAuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Extreme_Valu
 
     for (size_t i = 0; i < extremeNoise.size(); i++) {
         auto auroraNoise = std::make_shared<RSNGAuroraNoise>();
+        InitAuroraNoise(auroraNoise);
         auroraNoise->Setter<AuroraNoiseNoiseTag>(extremeNoise[i]);
 
         SetUpTestNode(i, columnCount, rowCount, auroraNoise);

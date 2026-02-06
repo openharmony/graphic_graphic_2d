@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -69,6 +70,7 @@ GRAPHIC_TEST(NGShaderRoundedRectFlowlightTest, EFFECT_TEST, Set_Rounded_Rect_Flo
 
     for (size_t i = 0; i < progressValues.size(); i++) {
         auto roundedRectFlow = std::make_shared<RSNGRoundedRectFlowlight>();
+        InitRoundedRectFlowlight(roundedRectFlow);
         roundedRectFlow->Setter<RoundedRectFlowlightProgressTag>(progressValues[i]);
         roundedRectFlow->Setter<RoundedRectFlowlightCornerRadiusTag>(25.0f);
 
@@ -83,6 +85,7 @@ GRAPHIC_TEST(NGShaderRoundedRectFlowlightTest, EFFECT_TEST, Set_Rounded_Rect_Flo
 
     for (size_t i = 0; i < cornerRadii.size(); i++) {
         auto roundedRectFlow = std::make_shared<RSNGRoundedRectFlowlight>();
+        InitRoundedRectFlowlight(roundedRectFlow);
         roundedRectFlow->Setter<RoundedRectFlowlightProgressTag>(0.5f);
         roundedRectFlow->Setter<RoundedRectFlowlightCornerRadiusTag>(cornerRadii[i]);
 
@@ -98,6 +101,7 @@ GRAPHIC_TEST(NGShaderRoundedRectFlowlightTest, EFFECT_TEST,
 
     for (size_t i = 0; i < brightnessValues.size(); i++) {
         auto roundedRectFlow = std::make_shared<RSNGRoundedRectFlowlight>();
+        InitRoundedRectFlowlight(roundedRectFlow);
         roundedRectFlow->Setter<RoundedRectFlowlightProgressTag>(progressValues[i]);
         roundedRectFlow->Setter<RoundedRectFlowlightBrightnessTag>(brightnessValues[i]);
 
@@ -117,6 +121,7 @@ GRAPHIC_TEST(NGShaderRoundedRectFlowlightTest, EFFECT_TEST, Set_Rounded_Rect_Flo
     const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
     for (size_t i = 0; i < extremeValues.size(); i++) {
         auto roundedRectFlow = std::make_shared<RSNGRoundedRectFlowlight>();
+        InitRoundedRectFlowlight(roundedRectFlow);
         roundedRectFlow->Setter<RoundedRectFlowlightProgressTag>(extremeValues[i]);
         SetUpTestNode(i, columnCount, rowCount, roundedRectFlow);
     }

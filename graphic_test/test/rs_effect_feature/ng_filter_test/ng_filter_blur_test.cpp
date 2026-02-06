@@ -131,22 +131,6 @@ GRAPHIC_TEST(NGFilterBlurTest, EFFECT_TEST, Set_Blur_Max_Radius_Test)
 }
 
 /*
- * Test maximum blur radius (boundary value)
- * Tests radius = 100 (maximum valid value)
- */
-GRAPHIC_TEST(NGFilterBlurTest, EFFECT_TEST, Set_Blur_Max_Radius_Test)
-{
-    auto blurFilter = std::make_shared<RSNGBlurFilter>();
-    blurFilter->Setter<BlurRadiusXTag>(BLUR_RADIUS_MAX);
-    blurFilter->Setter<BlurRadiusYTag>(BLUR_RADIUS_MAX);
-
-    auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
-    testNode->SetBackgroundNGFilter(blurFilter);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-/*
  * Test anisotropic blur (different X and Y radii)
  * Tests 3 combinations of different RadiusX and RadiusY values
  */
@@ -197,43 +181,6 @@ GRAPHIC_TEST(NGFilterBlurTest, EFFECT_TEST, Set_Blur_Parameter_Combination_Test)
     for (size_t i = 0; i < blurRadiusCombinations.size(); i++) {
         auto blurFilter = std::make_shared<RSNGBlurFilter>();
         InitBlurFilter(blurFilter);
-        blurFilter->Setter<BlurRadiusXTag>(blurRadiusCombinations[i].first);
-        blurFilter->Setter<BlurRadiusYTag>(blurRadiusCombinations[i].second);
-
-        SetUpTestNode(i, columnCount, rowCount, blurFilter);
-    }
-}
-
-/*
- * Test blur with extreme and invalid values
- * Tests negative value and value beyond maximum (>100)
- * Expected: System should handle gracefully (clamp or ignore)
- */
-GRAPHIC_TEST(NGFilterBlurTest, EFFECT_TEST, Set_Blur_Extreme_Values_Test)
-{
-    const size_t columnCount = 2;
-    const size_t rowCount = 1;
-
-    for (size_t i = 0; i < blurRadiusExtremeValues.size(); i++) {
-        auto blurFilter = std::make_shared<RSNGBlurFilter>();
-        blurFilter->Setter<BlurRadiusXTag>(blurRadiusExtremeValues[i]);
-        blurFilter->Setter<BlurRadiusYTag>(blurRadiusExtremeValues[i]);
-
-        SetUpTestNode(i, columnCount, rowCount, blurFilter);
-    }
-}
-
-/*
- * Test blur with parameter combinations
- * Tests different combinations of RadiusX and RadiusY values
- */
-GRAPHIC_TEST(NGFilterBlurTest, EFFECT_TEST, Set_Blur_Parameter_Combination_Test)
-{
-    const size_t columnCount = 3;
-    const size_t rowCount = 1;
-
-    for (size_t i = 0; i < blurRadiusCombinations.size(); i++) {
-        auto blurFilter = std::make_shared<RSNGBlurFilter>();
         blurFilter->Setter<BlurRadiusXTag>(blurRadiusCombinations[i].first);
         blurFilter->Setter<BlurRadiusYTag>(blurRadiusCombinations[i].second);
 

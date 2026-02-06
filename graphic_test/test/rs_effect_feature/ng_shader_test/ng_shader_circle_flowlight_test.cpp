@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -88,6 +89,7 @@ GRAPHIC_TEST(NGShaderCircleFlowlightTest, EFFECT_TEST, Set_Circle_Flowlight_Colo
 
     for (size_t i = 0; i < circleFlowColors.size(); i++) {
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
+        InitCircleFlowlight(circleFlowlight);
         circleFlowlight->Setter<CircleFlowlightColor0Tag>(circleFlowColors[i]);
         circleFlowlight->Setter<CircleFlowlightColor1Tag>(circleFlowColors[(i + 1) % circleFlowColors.size()]);
         circleFlowlight->Setter<CircleFlowlightColor2Tag>(circleFlowColors[(i + 2) % circleFlowColors.size()]);
@@ -109,6 +111,7 @@ GRAPHIC_TEST(NGShaderCircleFlowlightTest, EFFECT_TEST, Set_Circle_Flowlight_Prog
 
     for (size_t i = 0; i < circleFlowProgress.size(); i++) {
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
+        InitCircleFlowlight(circleFlowlight);
         circleFlowlight->Setter<CircleFlowlightColor0Tag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
         circleFlowlight->Setter<CircleFlowlightColor1Tag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         circleFlowlight->Setter<CircleFlowlightColor2Tag>(Vector4f{0.0f, 1.0f, 0.0f, 1.0f});
@@ -130,6 +133,7 @@ GRAPHIC_TEST(NGShaderCircleFlowlightTest, EFFECT_TEST, Set_Circle_Flowlight_Stre
 
     for (size_t i = 0; i < circleFlowStrength.size(); i++) {
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
+        InitCircleFlowlight(circleFlowlight);
         circleFlowlight->Setter<CircleFlowlightColor0Tag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
         circleFlowlight->Setter<CircleFlowlightColor1Tag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         circleFlowlight->Setter<CircleFlowlightColor2Tag>(Vector4f{0.0f, 1.0f, 0.0f, 1.0f});
@@ -154,6 +158,7 @@ GRAPHIC_TEST(NGShaderCircleFlowlightTest, EFFECT_TEST, Set_Circle_Flowlight_Prog
 
     for (size_t i = 0; i < extremeProgress.size(); i++) {
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
+        InitCircleFlowlight(circleFlowlight);
         circleFlowlight->Setter<CircleFlowlightColor0Tag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
         circleFlowlight->Setter<CircleFlowlightColor1Tag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         circleFlowlight->Setter<CircleFlowlightColor2Tag>(Vector4f{0.0f, 1.0f, 0.0f, 1.0f});

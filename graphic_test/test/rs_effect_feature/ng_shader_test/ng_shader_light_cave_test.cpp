@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -77,6 +78,7 @@ GRAPHIC_TEST(NGShaderLightCaveTest, EFFECT_TEST, Set_Light_Cave_Progress_Boundar
 
     for (size_t i = 0; i < progressValues.size(); i++) {
         auto lightCave = std::make_shared<RSNGLightCave>();
+        InitLightCave(lightCave);
         lightCave->Setter<LightCaveProgressTag>(progressValues[i]);
         lightCave->Setter<LightCavePositionTag>(Vector2f{0.5f, 0.5f});
 
@@ -91,6 +93,7 @@ GRAPHIC_TEST(NGShaderLightCaveTest, EFFECT_TEST, Set_Light_Cave_Position_Radius_
 
     for (size_t i = 0; i < positions.size(); i++) {
         auto lightCave = std::make_shared<RSNGLightCave>();
+        InitLightCave(lightCave);
         lightCave->Setter<LightCavePositionTag>(positions[i]);
         lightCave->Setter<LightCaveRadiusXYTag>(radiiXY[i]);
         lightCave->Setter<LightCaveProgressTag>(0.5f);
@@ -110,6 +113,7 @@ GRAPHIC_TEST(NGShaderLightCaveTest, EFFECT_TEST, Set_Light_Cave_Extreme_Values_T
     const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
     for (size_t i = 0; i < extremeValues.size(); i++) {
         auto lightCave = std::make_shared<RSNGLightCave>();
+        InitLightCave(lightCave);
         lightCave->Setter<LightCaveProgressTag>(extremeValues[i]);
         lightCave->Setter<LightCavePositionTag>(Vector2f{0.5f, 0.5f});
         SetUpTestNode(i, columnCount, rowCount, lightCave);

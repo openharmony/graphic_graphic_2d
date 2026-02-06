@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -79,6 +80,7 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
 
     for (size_t i = 0; i < contourValues.size(); i++) {
         auto contourLight = std::make_shared<RSNGContourDiagonalFlowLight>();
+        InitContourDiagonalFlowLight(contourLight);
         contourLight->Setter<ContourDiagonalFlowLightContourTag>(std::vector<Vector2f>{Vector2f{0.5f, 0.5f}});
         contourLight->Setter<ContourDiagonalFlowLightThicknessTag>(10.0f);
 
@@ -96,6 +98,7 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
 
     for (size_t i = 0; i < thicknessValues.size(); i++) {
         auto contourLight = std::make_shared<RSNGContourDiagonalFlowLight>();
+        InitContourDiagonalFlowLight(contourLight);
         contourLight->Setter<ContourDiagonalFlowLightContourTag>(std::vector<Vector2f>{Vector2f{0.5f, 0.5f}});
         contourLight->Setter<ContourDiagonalFlowLightThicknessTag>(thicknessValues[i]);
 
@@ -113,6 +116,7 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
 
     for (size_t i = 0; i < haloRadiusValues.size(); i++) {
         auto contourLight = std::make_shared<RSNGContourDiagonalFlowLight>();
+        InitContourDiagonalFlowLight(contourLight);
         contourLight->Setter<ContourDiagonalFlowLightContourTag>(std::vector<Vector2f>{Vector2f{0.5f, 0.5f}});
         contourLight->Setter<ContourDiagonalFlowLightThicknessTag>(10.0f);
         contourLight->Setter<ContourDiagonalFlowLightHaloRadiusTag>(haloRadiusValues[i]);
@@ -133,6 +137,7 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
     const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
     for (size_t i = 0; i < extremeValues.size(); i++) {
         auto contourLight = std::make_shared<RSNGContourDiagonalFlowLight>();
+        InitContourDiagonalFlowLight(contourLight);
         std::vector<Vector2f> contourVec = {Vector2f{extremeValues[i], extremeValues[i]}};
         contourLight->Setter<ContourDiagonalFlowLightContourTag>(contourVec);
         SetUpTestNode(i, columnCount, rowCount, contourLight);

@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -69,6 +70,7 @@ GRAPHIC_TEST(NGShaderColorGradientEffectTest, EFFECT_TEST, Set_Color_Gradient_Ef
 
     for (size_t i = 0; i < brightnessValues.size(); i++) {
         auto colorGradient = std::make_shared<RSNGColorGradientEffect>();
+        InitColorGradientEffect(colorGradient);
         colorGradient->Setter<ColorGradientEffectBrightnessTag>(brightnessValues[i]);
         colorGradient->Setter<ColorGradientEffectColorNumberTag>(4.0f);
         colorGradient->Setter<ColorGradientEffectColor0Tag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
@@ -87,6 +89,7 @@ GRAPHIC_TEST(NGShaderColorGradientEffectTest, EFFECT_TEST, Set_Color_Gradient_Ef
 
     for (size_t i = 0; i < blendValues.size(); i++) {
         auto colorGradient = std::make_shared<RSNGColorGradientEffect>();
+        InitColorGradientEffect(colorGradient);
         colorGradient->Setter<ColorGradientEffectBrightnessTag>(brightnessValues[i]);
         colorGradient->Setter<ColorGradientEffectBlendTag>(blendValues[i]);
         colorGradient->Setter<ColorGradientEffectColorNumberTag>(4.0f);
@@ -106,6 +109,7 @@ GRAPHIC_TEST(NGShaderColorGradientEffectTest, EFFECT_TEST, Set_Color_Gradient_Ef
     const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
     for (size_t i = 0; i < extremeValues.size(); i++) {
         auto colorGradient = std::make_shared<RSNGColorGradientEffect>();
+        InitColorGradientEffect(colorGradient);
         colorGradient->Setter<ColorGradientEffectBrightnessTag>(extremeValues[i]);
         colorGradient->Setter<ColorGradientEffectColorNumberTag>(4.0f);
         SetUpTestNode(i, columnCount, rowCount, colorGradient);

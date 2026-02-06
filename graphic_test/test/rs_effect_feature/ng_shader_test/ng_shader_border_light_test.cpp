@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -118,6 +119,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Color_Test)
 
     for (size_t i = 0; i < borderLightColors.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
+        InitBorderLight(borderLight);
         borderLight->Setter<BorderLightColorTag>(borderLightColors[i]);
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
@@ -138,6 +140,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Intensity_Bo
 
     for (size_t i = 0; i < borderLightIntensities.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
+        InitBorderLight(borderLight);
         borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(borderLightIntensities[i]);
@@ -158,6 +161,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Width_Bounda
 
     for (size_t i = 0; i < borderLightWidths.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
+        InitBorderLight(borderLight);
         borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
@@ -178,6 +182,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Rotation_Ang
 
     for (size_t i = 0; i < borderLightRotationAngles.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
+        InitBorderLight(borderLight);
         borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
@@ -199,6 +204,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Corner_Radiu
 
     for (size_t i = 0; i < borderLightCornerRadii.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
+        InitBorderLight(borderLight);
         borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
@@ -220,6 +226,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Color_Intens
 
     for (size_t i = 0; i < borderLightColorIntensityWidthCombinations.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
+        InitBorderLight(borderLight);
         borderLight->Setter<BorderLightColorTag>(std::get<0>(borderLightColorIntensityWidthCombinations[i]));
         borderLight->Setter<BorderLightPositionTag>(std::get<1>(borderLightColorIntensityWidthCombinations[i]));
         borderLight->Setter<BorderLightIntensityTag>(std::get<2>(borderLightColorIntensityWidthCombinations[i]));
@@ -241,6 +248,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Intensity_Ex
 
     for (size_t i = 0; i < borderLightExtremeIntensities.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
+        InitBorderLight(borderLight);
         borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(borderLightExtremeIntensities[i]);
@@ -262,6 +270,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Width_Extrem
 
     for (size_t i = 0; i < borderLightExtremeWidths.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
+        InitBorderLight(borderLight);
         borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(1.0f);

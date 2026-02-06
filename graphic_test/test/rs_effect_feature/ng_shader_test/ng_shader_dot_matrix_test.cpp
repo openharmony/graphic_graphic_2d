@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -72,6 +73,7 @@ GRAPHIC_TEST(NGShaderDotMatrixTest, EFFECT_TEST, Set_Dot_Matrix_Dot_Spacing_Test
 
     for (size_t i = 0; i < dotSpacingValues.size(); i++) {
         auto dotMatrixShader = std::make_shared<RSNGDotMatrixShader>();
+        InitDotMatrixShader(dotMatrixShader);
         dotMatrixShader->Setter<DotMatrixShaderDotSpacingTag>(dotSpacingValues[i]);
         dotMatrixShader->Setter<DotMatrixShaderDotRadiusTag>(2.0f);
         dotMatrixShader->Setter<DotMatrixShaderProgressTag>(0.5f);
@@ -90,6 +92,7 @@ GRAPHIC_TEST(NGShaderDotMatrixTest, EFFECT_TEST, Set_Dot_Matrix_Dot_Radius_Test)
 
     for (size_t i = 0; i < dotRadiusValues.size(); i++) {
         auto dotMatrixShader = std::make_shared<RSNGDotMatrixShader>();
+        InitDotMatrixShader(dotMatrixShader);
         dotMatrixShader->Setter<DotMatrixShaderDotSpacingTag>(5.0f);
         dotMatrixShader->Setter<DotMatrixShaderDotRadiusTag>(dotRadiusValues[i]);
         dotMatrixShader->Setter<DotMatrixShaderProgressTag>(0.5f);
@@ -108,6 +111,7 @@ GRAPHIC_TEST(NGShaderDotMatrixTest, EFFECT_TEST, Set_Dot_Matrix_Progress_Boundar
 
     for (size_t i = 0; i < progressValues.size(); i++) {
         auto dotMatrixShader = std::make_shared<RSNGDotMatrixShader>();
+        InitDotMatrixShader(dotMatrixShader);
         dotMatrixShader->Setter<DotMatrixShaderDotSpacingTag>(5.0f);
         dotMatrixShader->Setter<DotMatrixShaderDotRadiusTag>(2.0f);
         dotMatrixShader->Setter<DotMatrixShaderProgressTag>(progressValues[i]);
@@ -127,6 +131,7 @@ GRAPHIC_TEST(NGShaderDotMatrixTest, EFFECT_TEST, Set_Dot_Matrix_Extreme_Values_T
     const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
     for (size_t i = 0; i < extremeValues.size(); i++) {
         auto dotMatrixShader = std::make_shared<RSNGDotMatrixShader>();
+        InitDotMatrixShader(dotMatrixShader);
         dotMatrixShader->Setter<DotMatrixShaderDotSpacingTag>(extremeValues[i]);
         dotMatrixShader->Setter<DotMatrixShaderDotRadiusTag>(2.0f);
         dotMatrixShader->Setter<DotMatrixShaderProgressTag>(0.5f);

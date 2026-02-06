@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -73,6 +74,7 @@ GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Progre
 
     for (size_t i = 0; i < progressValues.size(); i++) {
         auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        InitAIBarRectHalo(aiBarRectHalo);
         aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(progressValues[i]);
         aiBarRectHalo->Setter<AIBarRectHaloLTWHTag>(Vector4f{0.0f, 0.0f, 100.0f, 100.0f});
 
@@ -87,6 +89,7 @@ GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Bright
 
     for (size_t i = 0; i < strengthValues.size(); i++) {
         auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        InitAIBarRectHalo(aiBarRectHalo);
         aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(progressValues[i]);
         aiBarRectHalo->Setter<AIBarRectHaloBrightnessTag>(brightnessValues[i]);
         aiBarRectHalo->Setter<AIBarRectHaloStrengthTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
@@ -103,6 +106,7 @@ GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Extrem
     const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
     for (size_t i = 0; i < extremeValues.size(); i++) {
         auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        InitAIBarRectHalo(aiBarRectHalo);
         aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(extremeValues[i]);
         aiBarRectHalo->Setter<AIBarRectHaloLTWHTag>(Vector4f{0.0f, 0.0f, 100.0f, 100.0f});
         SetUpTestNode(i, columnCount, rowCount, aiBarRectHalo);

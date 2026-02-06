@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -73,6 +74,7 @@ GRAPHIC_TEST(NGShaderAIBarGlowTest, EFFECT_TEST, Set_AI_Bar_Glow_Progress_Bounda
 
     for (size_t i = 0; i < progressValues.size(); i++) {
         auto aiBarGlow = std::make_shared<RSNGAIBarGlow>();
+        InitAIBarGlow(aiBarGlow);
         aiBarGlow->Setter<AIBarGlowProgressTag>(progressValues[i]);
         aiBarGlow->Setter<AIBarGlowLTWHTag>(Vector4f{0.0f, 0.0f, 100.0f, 100.0f});
 
@@ -87,6 +89,7 @@ GRAPHIC_TEST(NGShaderAIBarGlowTest, EFFECT_TEST, Set_AI_Bar_Glow_Brightness_Stre
 
     for (size_t i = 0; i < strengthValues.size(); i++) {
         auto aiBarGlow = std::make_shared<RSNGAIBarGlow>();
+        InitAIBarGlow(aiBarGlow);
         aiBarGlow->Setter<AIBarGlowProgressTag>(progressValues[i]);
         aiBarGlow->Setter<AIBarGlowBrightnessTag>(brightnessValues[i]);
         aiBarGlow->Setter<AIBarGlowStrengthTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
@@ -103,6 +106,7 @@ GRAPHIC_TEST(NGShaderAIBarGlowTest, EFFECT_TEST, Set_AI_Bar_Glow_Extreme_Values_
     const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
     for (size_t i = 0; i < extremeValues.size(); i++) {
         auto aiBarGlow = std::make_shared<RSNGAIBarGlow>();
+        InitAIBarGlow(aiBarGlow);
         aiBarGlow->Setter<AIBarGlowProgressTag>(extremeValues[i]);
         aiBarGlow->Setter<AIBarGlowLTWHTag>(Vector4f{0.0f, 0.0f, 100.0f, 100.0f});
         SetUpTestNode(i, columnCount, rowCount, aiBarGlow);

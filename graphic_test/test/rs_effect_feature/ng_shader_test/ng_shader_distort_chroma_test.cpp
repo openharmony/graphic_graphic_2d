@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -74,6 +75,7 @@ GRAPHIC_TEST(NGShaderDistortChromaTest, EFFECT_TEST, Set_Distort_Chroma_Progress
 
     for (size_t i = 0; i < progressValues.size(); i++) {
         auto distortChroma = std::make_shared<RSNGDistortChroma>();
+        InitDistortChroma(distortChroma);
         distortChroma->Setter<DistortChromaProgressTag>(progressValues[i]);
 
         SetUpTestNode(i, columnCount, rowCount, distortChroma);
@@ -87,6 +89,7 @@ GRAPHIC_TEST(NGShaderDistortChromaTest, EFFECT_TEST, Set_Distort_Chroma_Distort_
 
     for (size_t i = 0; i < distortFactors.size(); i++) {
         auto distortChroma = std::make_shared<RSNGDistortChroma>();
+        InitDistortChroma(distortChroma);
         distortChroma->Setter<DistortChromaProgressTag>(0.5f);
         distortChroma->Setter<DistortChromaDistortFactorTag>(distortFactors[i]);
 
@@ -101,6 +104,7 @@ GRAPHIC_TEST(NGShaderDistortChromaTest, EFFECT_TEST, Set_Distort_Chroma_Brightne
 
     for (size_t i = 0; i < brightnessValues.size(); i++) {
         auto distortChroma = std::make_shared<RSNGDistortChroma>();
+        InitDistortChroma(distortChroma);
         distortChroma->Setter<DistortChromaProgressTag>(progressValues[i]);
         distortChroma->Setter<DistortChromaBrightnessTag>(brightnessValues[i]);
 
@@ -115,6 +119,7 @@ GRAPHIC_TEST(NGShaderDistortChromaTest, EFFECT_TEST, Set_Distort_Chroma_Extreme_
     const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
     for (size_t i = 0; i < extremeValues.size(); i++) {
         auto distortChroma = std::make_shared<RSNGDistortChroma>();
+        InitDistortChroma(distortChroma);
         distortChroma->Setter<DistortChromaProgressTag>(extremeValues[i]);
         SetUpTestNode(i, columnCount, rowCount, distortChroma);
     }

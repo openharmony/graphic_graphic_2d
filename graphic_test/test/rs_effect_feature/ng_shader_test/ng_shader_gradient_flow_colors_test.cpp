@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -72,6 +73,7 @@ GRAPHIC_TEST(NGShaderGradientFlowColorsTest, EFFECT_TEST, Set_Gradient_Flow_Colo
 
     for (size_t i = 0; i < progressValues.size(); i++) {
         auto gradientFlow = std::make_shared<RSNGGradientFlowColors>();
+        InitGradientFlowColors(gradientFlow);
         gradientFlow->Setter<GradientFlowColorsColor0Tag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         gradientFlow->Setter<GradientFlowColorsColor1Tag>(Vector4f{0.0f, 1.0f, 0.0f, 1.0f});
         gradientFlow->Setter<GradientFlowColorsColor2Tag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
@@ -89,6 +91,7 @@ GRAPHIC_TEST(NGShaderGradientFlowColorsTest, EFFECT_TEST, Set_Gradient_Flow_Colo
 
     for (size_t i = 0; i < alphaValues.size(); i++) {
         auto gradientFlow = std::make_shared<RSNGGradientFlowColors>();
+        InitGradientFlowColors(gradientFlow);
         gradientFlow->Setter<GradientFlowColorsColor0Tag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         gradientFlow->Setter<GradientFlowColorsColor1Tag>(Vector4f{0.0f, 1.0f, 0.0f, 1.0f});
         gradientFlow->Setter<GradientFlowColorsColor2Tag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
@@ -107,6 +110,7 @@ GRAPHIC_TEST(NGShaderGradientFlowColorsTest, EFFECT_TEST, Set_Gradient_Flow_Colo
     const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
     for (size_t i = 0; i < extremeValues.size(); i++) {
         auto gradientFlow = std::make_shared<RSNGGradientFlowColors>();
+        InitGradientFlowColors(gradientFlow);
         gradientFlow->Setter<GradientFlowColorsColor0Tag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         gradientFlow->Setter<GradientFlowColorsColor1Tag>(Vector4f{0.0f, 1.0f, 0.0f, 1.0f});
         gradientFlow->Setter<GradientFlowColorsColor2Tag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});

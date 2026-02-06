@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ng_shader_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -75,6 +76,7 @@ GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effe
 
     for (size_t i = 0; i < materialColors.size(); i++) {
         auto frostedGlass = std::make_shared<RSNGFrostedGlassEffect>();
+        InitFrostedGlassEffect(frostedGlass);
         frostedGlass->Setter<FrostedGlassEffectMaterialColorTag>(materialColors[i]);
 
         SetUpTestNode(i, columnCount, rowCount, frostedGlass);
@@ -88,6 +90,7 @@ GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effe
 
     for (size_t i = 0; i < shapeValues.size(); i++) {
         auto frostedGlass = std::make_shared<RSNGFrostedGlassEffect>();
+        InitFrostedGlassEffect(frostedGlass);
         frostedGlass->Setter<FrostedGlassEffectMaterialColorTag>(Vector4f{0.8f, 0.8f, 0.8f, 1.0f});
         frostedGlass->Setter<FrostedGlassEffectShapeTag>(shapeValues[i]);
 
@@ -111,6 +114,7 @@ GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effe
     };
     for (size_t i = 0; i < extremeColors.size(); i++) {
         auto frostedGlass = std::make_shared<RSNGFrostedGlassEffect>();
+        InitFrostedGlassEffect(frostedGlass);
         frostedGlass->Setter<FrostedGlassEffectMaterialColorTag>(extremeColors[i]);
         SetUpTestNode(i, columnCount, rowCount, frostedGlass);
     }
