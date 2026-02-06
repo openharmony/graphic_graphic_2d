@@ -30,7 +30,7 @@ private:
     inline static std::shared_ptr<Media::PixelMap> smpixelmap =
         DecodePixelMap("/data/local/tmp/fg_test.jpg", Media::AllocatorType::SHARE_MEM_ALLOC);
     inline static std::shared_ptr<Media::PixelMap> bgpixelmap =
-        DecodePixelMap("/data/local/tmp/Image/3200x2000.jpg", Media::AllocatorType::SHARE_MEM_ALLOC);
+        DecodePixelMap("/data/local/tmp/Images/3200x2000.jpg", Media::AllocatorType::SHARE_MEM_ALLOC);
     RSSurfaceNode::SharedPtr CreateClonedNodeWithImageCanvas(const Vector4f& bounds, uint32_t colorValue,
         std::shared_ptr<Media::PixelMap> pixelmap = smpixelmap,
         RSSurfaceNodeType type = RSSurfaceNodeType::APP_WINDOW_NODE)
@@ -114,9 +114,10 @@ GRAPHIC_TEST(CloneNodeTest, CONTENT_DISPLAY_TEST, CLONE_NODE_ONE2ONE_TEST)
     containerSurfaceNode->AddChild(cloneSurfaceNode, 0);
 }
 
-GRAPHIC_TEST(CloneNodeTest, CONTENT_DISPLAY_TEST, CLONE_NODE_ONE2ONE_TEST2)
+GRAPHIC_TEST(CloneNodeTest, CONTENT_DISPLAY_TEST, CLONE_NODE_ONE2ONE_LEASH_TEST)
 {
-    auto clonedSurfaceNode = CreateClonedNodeWithImageCanvas({0, 0, 500, 500}, 0xFFFF0000, bgpixelmap);
+    auto clonedSurfaceNode = CreateClonedNodeWithImageCanvas({0, 0, 500, 500}, 0xFFFF0000, smpixelmap,
+                                                            RSSurfaceNodeType::LEASH_WINDOW_NODE);
     if (!clonedSurfaceNode) {
         LOGE("Create CreateClonedNodeWithImageCanvas failed");
         return;
@@ -143,10 +144,9 @@ GRAPHIC_TEST(CloneNodeTest, CONTENT_DISPLAY_TEST, CLONE_NODE_ONE2ONE_TEST2)
     containerSurfaceNode->AddChild(cloneSurfaceNode, 0);
 }
 
-GRAPHIC_TEST(CloneNodeTest, CONTENT_DISPLAY_TEST, CLONE_NODE_ONE2ONE_LEASH_TEST)
+GRAPHIC_TEST(CloneNodeTest, CONTENT_DISPLAY_TEST, CLONE_NODE_ONE2ONE_TEST2)
 {
-    auto clonedSurfaceNode = CreateClonedNodeWithImageCanvas({0, 0, 500, 500}, 0xFFFF0000, smpixelmap,
-                                                            RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    auto clonedSurfaceNode = CreateClonedNodeWithImageCanvas({0, 0, 500, 500}, 0xFFFF0000, bgpixelmap);
     if (!clonedSurfaceNode) {
         LOGE("Create CreateClonedNodeWithImageCanvas failed");
         return;
@@ -288,7 +288,7 @@ GRAPHIC_TEST(CloneNodeTest, CONTENT_DISPLAY_TEST, CLONE_NODE_MULTIPLE_ONE2ONE_TE
         0xFFFFFFFF};
     std::string cloneSurfaceNodeName = "cloneSurfaceNode";
     std::string containerSurfaceNodeName = "containerSurfaceNode";
-    auto containerSurfaceNode = CreateSurfaceNode({width + gap, (height + gap) * i, width, height},
+    auto containerSurfaceNode = CreateSurfaceNode({width + gap, 0, width, height},
         containerSurfaceNodeName);
     if (!containerSurfaceNode) {
         LOGE("Create containerSurfaceNode failed");
@@ -351,7 +351,7 @@ GRAPHIC_TEST(CloneNodeTest, CONTENT_DISPLAY_TEST, CLONE_NODE_MULTIPLE_ONE2ONE_TE
         }
         RegisterNode(containerSurfaceNode);
         GetRootNode()->AddChild(containerSurfaceNode);
-        auto cloneSurfaceNode = CreateSurfaceNode({0, 0, width, height + height},
+        auto cloneSurfaceNode = CreateSurfaceNode({0, 0, width, height + (height + gap) * i},
             cloneSurfaceNodeName);
         if (!cloneSurfaceNode) {
             LOGE("Create cloneSurfaceNode failed");
