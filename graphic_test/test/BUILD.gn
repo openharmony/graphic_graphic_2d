@@ -107,8 +107,6 @@ rs_effect_feature_sources = [
   "rs_effect_feature/effect_background_blur_test.cpp",
   "rs_effect_feature/effect_ai_bar_glow_test.cpp",
   "rs_effect_feature/effect_aurora_noise_test.cpp",
-  "rs_effect_feature/effect_border_light_test.cpp",
-  "rs_effect_feature/effect_contour_diagonal_flow_light_test.cpp",
   "rs_effect_feature/effect_linear_gradient_blur_test.cpp",
   "rs_effect_feature/effect_light_cave_test.cpp",
   "rs_effect_feature/effect_magnifier_test.cpp",
