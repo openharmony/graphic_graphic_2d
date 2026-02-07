@@ -196,7 +196,7 @@ private:
     int32_t PrepareCompleteIfNeed(bool needFlush);
 
     bool isActiveRectSwitching_ = false;
-    void DirtyRegions(uint32_t solidLayerCount, const std::shared_ptr<RSLayer>& rsLayer);
+    void DirtyRegions(const std::shared_ptr<RSLayer>& rsLayer);
     OnPrepareCompleteFunc onPrepareCompleteCb_ = nullptr;
     void* onPrepareCompleteCbData_ = nullptr;
     bool screenPowerOnChanged_ = false;
