@@ -1215,7 +1215,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ClearCustomResourceWithDmaBuffer
 /**
  * @tc.name: GetGpuContextTest
  * @tc.desc: Test If GetGpuContext Can Run
- * @tc.type: FUNC 
+ * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetGpuContextTest, TestSize.Level1)
 {
