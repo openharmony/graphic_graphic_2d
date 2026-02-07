@@ -220,7 +220,7 @@ HWTEST_F(RSUIDisplaySoloistTest, SetMainFrameRateLinkerEnable, TestSize.Level1)
 
 /**
  * @tc.name: IsCommonDivisor
- * @tc.desc:
+ * @tc.desc: Test IsCommonDivisor and FindMatchedRefreshRate functions with various inputs
  * @tc.type:FUNC
  */
 HWTEST_F(RSUIDisplaySoloistTest, IsCommonDivisor, TestSize.Level1)
@@ -228,22 +228,83 @@ HWTEST_F(RSUIDisplaySoloistTest, IsCommonDivisor, TestSize.Level1)
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
     std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
     int32_t soloistId = soloistIdObj->GetId();
-    std::vector<NodeInfo> tests = {
-        {90, 60, {90, 120, 144}, 45},
-        {90, 60, {30, 60, 60}, 45},
-        {90, 60, {30, 120, 60}, 45},
-        {60, 60, {90, 120, 144}, 60},
-        {60, 0, {90, 120, 144}, 60}
+
+    // Test IsCommonDivisor directly with various input combinations
+    // Branch 1: expectedRate == 0 should return false
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 60), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 120), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 90), false);
+
+    // Branch 2: vsyncRate == 0 should return false
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(60, 0), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(30, 0), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(120, 0), false);
+
+    // Branch 3: both are 0 should return false
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 0), false);
+
+    // Branch 4: is common divisor (exact division) should return true
+    // 60 is a divisor of 120 (120 / 60 = 2)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(60, 120), true);
+    // 30 is a divisor of 60 (60 / 30 = 2)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(30, 60), true);
+    // 30 is a divisor of 120 (120 / 30 = 4)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(30, 120), true);
+    // 24 is a divisor of 144 (144 / 24 = 6)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(24, 144), true);
+    // 90 is a divisor of 90 (90 / 90 = 1)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(90, 90), true);
+
+    // Branch 5: not a common divisor should return false
+    // 90 is NOT a divisor of 60 (60 / 90 = 0, 0 * 90 = 0 != 60)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(90, 60), false);
+    // 45 is NOT a divisor of 60 (60 / 45 = 1, 1 * 45 = 45 != 60)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(45, 60), false);
+    // 50 is NOT a divisor of 120 (120 / 50 = 2, 2 * 50 = 100 != 120)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(50, 120), false);
+    // 70 is NOT a divisor of 144 (144 / 70 = 2, 2 * 70 = 140 != 144)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(70, 144), false);
+
+    // Additional edge cases
+    // expectedRate > vsyncRate but is a divisor (should be true: 120 / 120 = 1)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(120, 120), true);
+    // expectedRate > vsyncRate but NOT a divisor (should be false: 90 / 120 = 0, 0 * 90 = 0 != 90)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(120, 90), false);
+    // 15 is a divisor of 90 (90 / 15 = 6)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(15, 90), true);
+    // 15 is NOT a divisor of 100 (100 / 15 = 6, 6 * 15 = 90 != 100)
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(15, 100), false);
+
+    // Test FindMatchedRefreshRate with various inputs using vector
+    std::vector<NodeInfo> findMatchedTests = {
+        // targetRate is not a divisor of vsyncRate
+        {90, 60, {}, 45},
+        // different vsyncRate and targetRate
+        {60, 45, {}, 30},
+        // vsyncRate=144, targetRate=90 (not a divisor)
+        {144, 90, {}, 72},
+        // targetRate close to vsyncRate
+        {90, 50, {}, 45},
+        // targetRate is a divisor of vsyncRate
+        {120, 60, {}, 60},
+        {60, 30, {}, 30},
+        // targetRate equals vsyncRate
+        {90, 90, {}, 90},
+        // targetRate is 0, should return vsyncRate
+        {90, 0, {}, 90},
+        {60, 0, {}, 60},
+        // targetRate > vsyncRate, should return vsyncRate
+        {60, 90, {}, 60},
+        {90, 120, {}, 90},
     };
 
-    for (auto& test : tests) {
-        RATE_TO_FACTORS.clear();
-        RATE_TO_FACTORS.try_emplace(OLED_90_HZ, test.refreshRateList);
-        EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->FindMatchedRefreshRate(test.vsyncRate,
-            test.targetRate), test.result);
+    for (const auto& test : findMatchedTests) {
+        auto result = soloistManager.GetIdToSoloistMap()[soloistId]->FindMatchedRefreshRate(
+            test.vsyncRate, test.targetRate);
+        EXPECT_EQ(result, test.result);
     }
 
-    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 0), false);
+    // Test OnVsyncTimeOut behavior
     RSDisplaySoloist rsDisplaySoloist;
     rsDisplaySoloist.OnVsyncTimeOut();
     EXPECT_EQ(rsDisplaySoloist.hasRequestedVsync_, false);
