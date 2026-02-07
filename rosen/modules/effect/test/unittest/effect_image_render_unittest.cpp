@@ -214,7 +214,7 @@ HWTEST_F(EffectImageRenderUnittest, MapColorByBrightnessTest, TestSize.Level1)
     Vector4f color1 = {1.0f, 0.0f, 0.5f, 1.0f}; // color rgba
     Vector4f color2 = {1.0f, 0.5f, 0.5f, 1.0f}; // color rgba
     Vector4f color3 = {0.0f, 0.5f, 0.5f, 1.0f}; // color rgba
-    colors = {color1, color3, color3};
+    colors = {color1, color2, color3};
     flag = EffectImageFilter::MapColorByBrightness(colors, positions);
     EXPECT_EQ(flag, nullptr);
 
@@ -224,6 +224,21 @@ HWTEST_F(EffectImageRenderUnittest, MapColorByBrightnessTest, TestSize.Level1)
 
     colors = {};
     flag = EffectImageFilter::MapColorByBrightness(colors, positions);
+    EXPECT_EQ(flag, nullptr);
+}
+
+/**
+ * @tc.name: MapColorByBrightnessTestNotEqual
+ * @tc.desc: Test MapColorByBrightness by colors and positions are not equal
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectImageRenderUnittest, MapColorByBrightnessTestNotEqual, TestSize.Level1)
+{
+    Vector4f color1 = {1.0f, 0.0f, 0.5f, 1.0f}; // color rgba
+    Vector4f color2 = {1.0f, 0.5f, 0.5f, 1.0f}; // color rgba
+    std::vector<Vector4f> colors = {color1, color2};
+    std::vector<float> positions = {0.2f, 0.5f, 1.0f};
+    auto flag = EffectImageFilter::MapColorByBrightness(colors, positions);
     EXPECT_EQ(flag, nullptr);
 }
 

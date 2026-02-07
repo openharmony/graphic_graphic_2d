@@ -16,9 +16,7 @@
 #include "effect_image_chain.h"
 
 #include "effect_utils.h"
-#include "ge_map_color_by_brightness_shader_filter.h"
 #include "ge_external_dynamic_loader.h"
-#include "ge_gamma_correction_filter.h"
 #include "ge_mask_transition_shader_filter.h"
 #include "ge_water_droplet_transition_filter.h"
 #include "ge_linear_gradient_shader_mask.h"
@@ -241,6 +239,21 @@ DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, flo
     return DrawingError::ERR_OK;
 }
 
+static std::shared_ptr<GEShaderFilter> GenerateGEXShaderFilter(uint32_t type, uint32_t len, void* param)
+{
+    if (!param) {
+        return nullptr;
+    }
+
+    auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(type, len, param);
+    if (!object) {
+        return nullptr;
+    }
+ 
+    std::shared_ptr<GEShaderFilter> filterShaderr(static_cast<GEShaderFilter*>(object));
+    return filterShaderr;
+}
+
 DrawingError EffectImageChain::ApplyMapColorByBrightness(
     const std::vector<Vector4f>& colors, const std::vector<float>& positions)
 {
@@ -264,7 +277,16 @@ DrawingError EffectImageChain::ApplyMapColorByBrightness(
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyMapColorByBrightness");
     Drawing::GEMapColorByBrightnessFilterParams params = {colors, positions};
-    auto filterShader = std::make_shared<GEMapColorByBrightnessShaderFilter>(params);
+    auto filterShader = GenerateGEXShaderFilter(
+        static_cast<uint32_t>(Drawing::GEFilterType::MAP_COLOR_BY_BRIGHTNESS),
+        sizeof(Drawing::GEMapColorByBrightnessFilterParams),
+        static_cast<void*>(&params));
+    if (!filterShader) {
+        EFFECT_LOG_E("EffectImageChain::ApplyMapColorByBrightness: Generate Filter failed.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_MEMORY;
+    }
+
     auto width = srcPixelMap_->GetWidth();
     auto height = srcPixelMap_->GetHeight();
     image_ = filterShader->ProcessImage(*canvas_, image_,
@@ -294,7 +316,16 @@ DrawingError EffectImageChain::ApplyGammaCorrection(float gamma)
     }
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyGammaCorrection");
-    auto gammaCorrectionShader = std::make_shared<GEGammaCorrectionFilter>(gamma);
+    float gammaValue = gamma;
+    auto gammaCorrectionShader = GenerateGEXShaderFilter(
+        static_cast<uint32_t>(Drawing::GEFilterType::GAMMA_CORRECTION),
+        sizeof(float), static_cast<void*>(&gammaValue));
+    if (!gammaCorrectionShader) {
+        EFFECT_LOG_E("EffectImageChain::ApplyGammaCorrection: Generate Filter failed.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_MEMORY;
+    }
+
     auto width = srcPixelMap_->GetWidth();
     auto height = srcPixelMap_->GetHeight();
     image_ = gammaCorrectionShader->ProcessImage(*canvas_, image_,
