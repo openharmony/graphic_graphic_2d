@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr uint64_t SURFACE_BUFFER_CALLBACK_LIMIT = 10000;
+constexpr size_t MAX_BUFFERS_PER_PROCESS = 10;
 RSSurfaceBufferCallbackManager& RSSurfaceBufferCallbackManager::Instance()
 {
     static RSSurfaceBufferCallbackManager surfaceBufferCallbackMgr;
@@ -101,8 +102,6 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
     });
     lock.unlock();
 
-#ifdef ROSEN_OHOS
-    // Clean up all surface buffer info for this process
     std::lock_guard<std::mutex> bufferLock(surfaceBufferInfoMutex_);
     auto it = surfaceBufferInfoMap_.begin();
     while (it != surfaceBufferInfoMap_.end()) {
@@ -117,7 +116,6 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
             ++it;
         }
     }
-#endif
 }
 
 void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
@@ -136,10 +134,7 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, 
     }
     lock.unlock();
 
-#ifdef ROSEN_OHOS
-    // Clean up surface buffer info for this specific pid/uid pair
     RemoveAllSurfaceBufferInfo(pid, uid);
-#endif
 }
 
 #ifdef ROSEN_OHOS
@@ -370,11 +365,12 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId
 }
 #endif
 
-#ifdef ROSEN_OHOS
 void RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo(const DrawingSurfaceBufferInfo& info)
 {
+    if (!shouldCollectBuffers_.load(std::memory_order_acquire)) {
+        return;
+    }
     if (info.surfaceBuffer_ == nullptr) {
-        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: surfaceBuffer is nullptr, skipping");
         return;
     }
 
@@ -382,35 +378,25 @@ void RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo(const DrawingSurface
     uint64_t key = (static_cast<uint64_t>(info.pid_) << 32) | info.uid_;
     uint32_t bufferId = info.surfaceBuffer_->GetSeqNum();
 
-    std::vector<uint8_t> bufferData;
-    void* virAddr = info.surfaceBuffer_->GetVirAddr();
-    uint32_t bufferSize = info.surfaceBuffer_->GetSize();
+    auto& bufferList = surfaceBufferInfoMap_[key];
 
-    if (virAddr != nullptr && bufferSize > 0) {
-        bufferData.resize(bufferSize);
-        memcpy(bufferData.data(), virAddr, bufferSize);
-        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
-                "Copied buffer data, size=%{public}u", bufferSize);
-    } else {
-        RS_LOGW("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
-                "Failed to copy buffer data, virAddr=%{public}p, size=%{public}u",
-                virAddr, bufferSize);
+    for (auto it = bufferList.begin(); it != bufferList.end(); ++it) {
+        if (it->bufferId == bufferId) {
+            bufferList.splice(bufferList.begin(), bufferList, it);
+            return;
+        }
     }
-    surfaceBufferInfoMap_[key].push_front({
+
+    bufferList.push_front({
         .info = info,
         .bufferId = bufferId,
-        .bufferData = std::move(bufferData),
         .width = info.surfaceBuffer_->GetWidth(),
         .height = info.surfaceBuffer_->GetHeight(),
         .stride = info.surfaceBuffer_->GetStride(),
         .format = info.surfaceBuffer_->GetFormat()
     });
-    auto& bufferList = surfaceBufferInfoMap_[key];
-    if (bufferList.size() > MAX_BUFFER_QUEUE_SIZE) {
-        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
-                "Removing oldest buffer for pid=%{public}d, uid=%{public}llu, "
-                "bufferId=%{public}u (queue size: %{public}zu)",
-                info.pid_, info.uid_, bufferId, bufferList.size());
+
+    while (bufferList.size() > MAX_BUFFERS_PER_PROCESS) {
         bufferList.pop_back();
     }
 }
@@ -455,7 +441,6 @@ std::vector<DrawingSurfaceBufferInfo> RSSurfaceBufferCallbackManager::GetSurface
 
     std::vector<DrawingSurfaceBufferInfo> result;
     for (const auto& [key, bufferList] : surfaceBufferInfoMap_) {
-        // Extract pid from the composite key
         pid_t entryPid = static_cast<pid_t>(key >> 32);
         if (entryPid == pid) {
             for (const auto& entry : bufferList) {
@@ -467,6 +452,15 @@ std::vector<DrawingSurfaceBufferInfo> RSSurfaceBufferCallbackManager::GetSurface
     }
     return result;
 }
-#endif
+
+void RSSurfaceBufferCallbackManager::SetShouldCollectBuffers(bool shouldCollect)
+{
+    shouldCollectBuffers_.store(shouldCollect, std::memory_order_release);
+}
+
+bool RSSurfaceBufferCallbackManager::ShouldCollectBuffers() const
+{
+    return shouldCollectBuffers_.load(std::memory_order_acquire);
+}
 } // namespace Rosen
 } // namespace OHOS

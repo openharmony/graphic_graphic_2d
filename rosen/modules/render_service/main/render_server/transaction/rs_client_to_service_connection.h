@@ -87,6 +87,12 @@ private:
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) override;
     float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
 
+    void CollectSurfaceBuffersByProcessId(
+        std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>>& sfBufferInfoVector, pid_t pid);
+    void ConvertBuffersToPixelMaps(
+        const std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>>& sfBufferInfoVector,
+        std::vector<PixelMapInfo>& pixelMapInfoVector);
+
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
         const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled = false) override;
 

@@ -596,64 +596,56 @@ ErrCode RSClientToServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnection::GetPixelMapByProcessId(
-    std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
+void RSClientToServiceConnection::CollectSurfaceBuffersByProcessId(
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>>& sfBufferInfoVector, pid_t pid)
 {
-    if (mainThread_ == nullptr) {
-        repCode = INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
+    RS_TRACE_NAME_FMT("RSClientToServiceConnection::CollectSurfaceBuffersByProcessId pid: %d", pid);
+
+    // Step 1: Get buffers from self-drawing nodes (existing logic)
+    auto selfDrawingNodeVector =
+        mainThread_->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
+    for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
+        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(*iter);
+        if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+            auto surfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+            auto surfaceBufferInfo = std::make_tuple(surfaceBuffer, surfaceNode->GetName(),
+                surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect());
+            sfBufferInfoVector.push_back(surfaceBufferInfo);
+        }
     }
-    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
-    std::function<void()> getSurfaceBufferByPidTask = [weakThis = wptr<RSClientToServiceConnection>(this),
-                                                          &sfBufferInfoVector, pid]() -> void {
-        sptr<RSClientToServiceConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            return;
+
+    // Step 2: Get texture mode buffers from RSSurfaceBufferCallbackManager
+    auto textureBufferInfoList = RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferInfoByPid(pid);
+    for (const auto& bufferInfo : textureBufferInfoList) {
+        if (bufferInfo.surfaceBuffer_ != nullptr) {
+            // Generate surface name for texture mode
+            std::string surfaceName = "XComponent_Texture_" + std::to_string(bufferInfo.uid_);
+
+            // Create RectI from dstRect
+            RectI absRect(
+                static_cast<int>(bufferInfo.dstRect_.GetLeft()),
+                static_cast<int>(bufferInfo.dstRect_.GetTop()),
+                static_cast<int>(bufferInfo.dstRect_.GetWidth()),
+                static_cast<int>(bufferInfo.dstRect_.GetHeight())
+            );
+
+            auto surfaceBufferTuple = std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect);
+            sfBufferInfoVector.push_back(surfaceBufferTuple);
+
+            RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}llu, "
+                    "bufferId=%{public}u, size=%{public}dx%{public}d",
+                    bufferInfo.pid_, bufferInfo.uid_,
+                    bufferInfo.surfaceBuffer_->GetSeqNum(),
+                    bufferInfo.surfaceBuffer_->GetWidth(),
+                    bufferInfo.surfaceBuffer_->GetHeight());
         }
-        RS_TRACE_NAME_FMT("RSClientToServiceConnection::GetPixelMapByProcessId getSurfaceBufferByPidTask pid: %d", pid);
+    }
+}
 
-        // Step 1: Get buffers from self-drawing nodes (existing logic)
-        auto selfDrawingNodeVector =
-            connection->mainThread_->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
-        for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
-            auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(*iter);
-            if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-                auto surfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-                auto surfaceBufferInfo = std::make_tuple(surfaceBuffer, surfaceNode->GetName(),
-                    surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect());
-                sfBufferInfoVector.push_back(surfaceBufferInfo);
-            }
-        }
-
-        // Step 2: Get texture mode buffers from RSSurfaceBufferCallbackManager
-        auto textureBufferInfoList = RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferInfoByPid(pid);
-        for (const auto& bufferInfo : textureBufferInfoList) {
-            if (bufferInfo.surfaceBuffer_ != nullptr) {
-                // Generate surface name for texture mode
-                std::string surfaceName = "XComponent_Texture_" + std::to_string(bufferInfo.uid_);
-
-                // Create RectI from dstRect
-                RectI absRect(
-                    static_cast<int>(bufferInfo.dstRect_.GetLeft()),
-                    static_cast<int>(bufferInfo.dstRect_.GetTop()),
-                    static_cast<int>(bufferInfo.dstRect_.GetWidth()),
-                    static_cast<int>(bufferInfo.dstRect_.GetHeight())
-                );
-
-                auto surfaceBufferTuple = std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect);
-                sfBufferInfoVector.push_back(surfaceBufferTuple);
-
-                RS_LOGD("GetPixelMapByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}llu, "
-                        "bufferId=%{public}u, size=%{public}dx%{public}d",
-                        bufferInfo.pid_, bufferInfo.uid_,
-                        bufferInfo.surfaceBuffer_->GetSeqNum(),
-                        bufferInfo.surfaceBuffer_->GetWidth(),
-                        bufferInfo.surfaceBuffer_->GetHeight());
-            }
-        }
-    };
-    mainThread_->PostSyncTask(getSurfaceBufferByPidTask);
-
+void RSClientToServiceConnection::ConvertBuffersToPixelMaps(
+    const std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>>& sfBufferInfoVector,
+    std::vector<PixelMapInfo>& pixelMapInfoVector)
+{
     for (uint32_t i = 0; i < sfBufferInfoVector.size(); i++) {
         const auto& surfaceBuffer = std::get<0>(sfBufferInfoVector[i]);
         const auto surfaceName = std::get<1>(sfBufferInfoVector[i]);
@@ -670,13 +662,40 @@ ErrCode RSClientToServiceConnection::GetPixelMapByProcessId(
                     surfaceName,
                     GetRotationInfoFromSurfaceBuffer(surfaceBuffer) });
             } else {
-                RS_LOGE("CreatePixelMapFromSurfaceBuffer pixelmap is null, nodeName:%{public}s", surfaceName.c_str());
+                RS_LOGE("ConvertBuffersToPixelMaps: pixelmap is null, nodeName:%{public}s", surfaceName.c_str());
             }
         } else {
-            RS_LOGE("CreatePixelMapFromSurface surfaceBuffer is null, nodeName:%{public}s, rect:%{public}s",
+            RS_LOGE("ConvertBuffersToPixelMaps: surfaceBuffer is null, nodeName:%{public}s, rect:%{public}s",
                 surfaceName.c_str(), absRect.ToString().c_str());
         }
     }
+}
+
+ErrCode RSClientToServiceConnection::GetPixelMapByProcessId(
+    std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
+{
+    if (mainThread_ == nullptr) {
+        repCode = INVALID_ARGUMENTS;
+        return ERR_INVALID_VALUE;
+    }
+
+    RSSurfaceBufferCallbackManager::Instance().SetShouldCollectBuffers(true);
+
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
+    std::function<void()> collectBuffersTask = [weakThis = wptr<RSClientToServiceConnection>(this),
+                                                  &sfBufferInfoVector, pid]() -> void {
+        sptr<RSClientToServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        connection->CollectSurfaceBuffersByProcessId(sfBufferInfoVector, pid);
+    };
+    mainThread_->PostSyncTask(collectBuffersTask);
+
+    ConvertBuffersToPixelMaps(sfBufferInfoVector, pixelMapInfoVector);
+
+    RSSurfaceBufferCallbackManager::Instance().SetShouldCollectBuffers(false);
+
     repCode = SUCCESS;
     return ERR_OK;
 }

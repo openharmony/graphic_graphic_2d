@@ -16,8 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
 #define RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
 
-#include <chrono>
-#include <cstring>
+#include <atomic>
 #include <functional>
 #include <list>
 #include <map>
@@ -30,9 +29,7 @@
 #include "common/rs_common_def.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "refbase.h"
-#ifdef ROSEN_OHOS
 #include "surface_buffer.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -78,15 +75,12 @@ public:
     void RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId);
 #endif
 
-#ifdef ROSEN_OHOS
-    // Store and retrieve SurfaceBufferInfo for tracking
     void StoreSurfaceBufferInfo(const DrawingSurfaceBufferInfo& info);
     void RemoveSurfaceBufferInfo(uint32_t bufferId);
     void RemoveAllSurfaceBufferInfo(pid_t pid, uint64_t uid);
-
-    // Get surface buffer info list for a specific process
     std::vector<DrawingSurfaceBufferInfo> GetSurfaceBufferInfoByPid(pid_t pid);
-#endif
+    void SetShouldCollectBuffers(bool shouldCollect);
+    bool ShouldCollectBuffers() const;
 
     static RSSurfaceBufferCallbackManager& Instance();
 private:
@@ -100,18 +94,15 @@ private:
         std::vector<NodeId> rootNodeIds;
     };
 
-#ifdef ROSEN_OHOS
-    // For tracking SurfaceBufferInfo during the rendering pipeline
     struct SurfaceBufferInfoEntry {
         DrawingSurfaceBufferInfo info;
         uint32_t bufferId;
-        std::vector<uint8_t> bufferData;  // Copied buffer data
         int32_t width;
         int32_t height;
         int32_t stride;
         int32_t format;
     };
-#endif
+
     RSSurfaceBufferCallbackManager() = default;
     ~RSSurfaceBufferCallbackManager() noexcept = default;
 
@@ -142,17 +133,15 @@ private:
     mutable std::shared_mutex registerSurfaceBufferCallbackMutex_;
     std::mutex surfaceBufferOpItemMutex_;
 
-#ifdef ROSEN_OHOS
     std::unordered_map<uint64_t, std::list<SurfaceBufferInfoEntry>> surfaceBufferInfoMap_;
     std::mutex surfaceBufferInfoMutex_;
-    static constexpr size_t MAX_BUFFER_QUEUE_SIZE = 5;  // Limit queue size per process
-#endif
 
     std::function<void(std::function<void()>)> runPolicy_ = [](auto task) {
         std::invoke(task);
     };
     VSyncFuncs vSyncFuncs_;
     bool isUniRender_ = {};
+    std::atomic<bool> shouldCollectBuffers_ = false;
 };
 
 namespace RSSurfaceBufferCallbackMgrUtil {
