@@ -25,6 +25,7 @@ namespace {
 
 constexpr size_t screenWidth = 1200;
 constexpr size_t screenHeight = 2000;
+constexpr float FOREGROUND_BRIGHTNESS_SCALE = 0.75f;
 
 struct AIBarGlowParams {
     Vector4f ltwh; // left, top, width, height
@@ -99,16 +100,16 @@ std::vector<AIBarGlowParams> aiBarGlowParams = {
         .ltwh = {0.1f, 0.1f, 0.8f, 0.8f},
         .stretchFactor = 1.5f,
         .barAngle = 0.0f,
-        .color0 = {0.8f, 0.2f, 0.6f, 1.0f},
-        .color1 = {0.2f, 0.8f, 0.6f, 1.0f},
-        .color2 = {0.6f, 0.6f, 0.2f, 1.0f},
-        .color3 = {0.4f, 0.4f, 0.8f, 1.0f},
-        .position0 = {0.0f, 0.0f},
-        .position1 = {0.33f, 0.0f},
-        .position2 = {0.66f, 0.0f},
-        .position3 = {1.0f, 0.0f},
-        .strength = {0.1f, 0.2f, 0.3f, 0.4f},
-        .brightness = 1.2f,
+        .color0 = {1.0f, 0.2f, 0.7f, 1.0f},
+        .color1 = {0.2f, 1.0f, 0.7f, 1.0f},
+        .color2 = {0.9f, 0.6f, 0.1f, 1.0f},
+        .color3 = {0.5f, 0.3f, 1.0f, 1.0f},
+        .position0 = {0.0f, 0.1f},
+        .position1 = {0.33f, 0.2f},
+        .position2 = {0.66f, 0.1f},
+        .position3 = {1.0f, 0.2f},
+        .strength = {0.25f, 0.35f, 0.45f, 0.55f},
+        .brightness = 1.0f,
         .progress = 0.7f
     },
     // Test different bar angle
@@ -258,6 +259,7 @@ GRAPHIC_TEST(AIBarGlowTest, EFFECT_TEST, Set_AI_Bar_Glow_Background_Test)
     for (size_t i = 0; i < aiBarGlowParams.size(); ++i) {
         auto shader = std::make_shared<RSNGAIBarGlow>();
         SetAIBarGlowParams(shader, aiBarGlowParams[i]);
+        shader->Setter<AIBarGlowBrightnessTag>(aiBarGlowParams[i].brightness * FOREGROUND_BRIGHTNESS_SCALE);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
