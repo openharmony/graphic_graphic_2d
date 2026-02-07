@@ -897,6 +897,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     curScreenNode_->UpdatePartialRenderParams();
     curScreenNode_->SetFingerprint(hasFingerprint_);
     curScreenNode_->UpdateScreenRenderParams();
+    curScreenNode_->SetCloneNodeMap(cloneNodeMap_);
     UpdateColorSpaceAfterHwcCalc(node);
     RSHdrUtil::UpdatePixelFormatAfterHwcCalc(node);
 
@@ -1369,7 +1370,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
     isInFocusSurface_ = isInFocusSurface;
 #endif
-    node.UpdateInfoForClonedNode(clonedSourceNodeId_);
+    UpdateInfoForClonedNode(node);
     node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
@@ -1529,7 +1530,8 @@ bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
         RS_LOGE("PrepareForCloneNode clonedNode is nullptr");
         return false;
     }
-    if (!clonedNode->IsMainWindowType()) {
+    if (node.IsRelated() ? !clonedNode->IsLeashOrMainWindow()
+        : !clonedNode->IsMainWindowType()) {
         return false;
     }
     auto clonedNodeRenderDrawable = clonedNode->GetRenderDrawable();
@@ -1538,11 +1540,22 @@ bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
         return false;
     }
     node.SetIsClonedNodeOnTheTree(clonedNode->IsOnTheTree());
-    clonedSourceNodeId_ = node.GetClonedNodeId();
+    cloneNodeMap_[node.GetClonedNodeId()] = clonedNodeRenderDrawable;
     node.SetClonedNodeRenderDrawable(clonedNodeRenderDrawable);
     node.UpdateRenderParams();
     node.AddToPendingSyncList();
+    UpdateInfoForClonedNode(*clonedNode);
     return true;
+}
+
+void RSUniRenderVisitor::UpdateInfoForClonedNode(RSSurfaceRenderNode& node)
+{
+    NodeId sourceId = node.GetId();
+    if (auto it = cloneNodeMap_.find(sourceId); it != cloneNodeMap_.end()) {
+        node.UpdateInfoForClonedNode(true);
+        return;
+    }
+    node.UpdateInfoForClonedNode(false);
 }
 
 void RSUniRenderVisitor::PrepareForCrossNode(RSSurfaceRenderNode& node)

@@ -289,6 +289,10 @@ HWTEST_F(RSDrawWindowCacheTest, DrawAndCacheWindowContent, TestSize.Level1)
     drawWindowCache.image_ = bmp.MakeImage();
     drawWindowCache.DrawAndCacheWindowContent(surfaceDrawable, canvas, bounds);
     ASSERT_TRUE(drawWindowCache.HasCache());
+
+    surfaceDrawable->SetNeedCacheRelatedSourceNode(true);
+    drawWindowCache.DrawAndCacheWindowContent(surfaceDrawable, canvas, bounds);
+    ASSERT_TRUE(drawWindowCache.HasCache());
 }
 
 /**
@@ -311,5 +315,38 @@ HWTEST_F(RSDrawWindowCacheTest, DrawCrossNodeOffscreenDFX, TestSize.Level1)
     Drawing::Color color(0, 128, 128, 128);
     drawWindowCache.image_ = std::make_shared<Drawing::Image>();
     drawWindowCache.DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParams, color);
+}
+
+/**
+ * @tc.name: DrawCache001
+ * @tc.desc: Test DrawCache
+ * @tc.type: FUNC
+ * @tc.require: issueIAVLLE
+ */
+HWTEST_F(RSDrawWindowCacheTest, DrawCache001, TestSize.Level1)
+{
+    RSDrawWindowCache drawWindowCache;
+    drawWindowCache.image_ = std::make_shared<Drawing::Image>();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSRenderThreadParams uniParams;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto surfaceDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(
+        DrawableV2::RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    int32_t width = 100;
+    int32_t height = 30;
+    bmp.Build(width, height, format);
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    auto image = bmp.MakeImage();
+    ASSERT_NE(image, nullptr);
+    RSSurfaceRenderParams surfaceParams(1);
+    RSDrawWindowCache::DrawCache(nullptr, canvas, surfaceParams, image);
+
+    ASSERT_NE(surfaceDrawable, nullptr);
+    RSDrawWindowCache::DrawCache(surfaceDrawable, canvas, surfaceParams, nullptr);
 }
 }

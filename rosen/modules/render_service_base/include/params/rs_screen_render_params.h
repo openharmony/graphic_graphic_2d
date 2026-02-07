@@ -230,7 +230,12 @@ public:
 
     void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod) { isEqualVsyncPeriod_ = isEqualVsyncPeriod; }
     bool IsEqualVsyncPeriod() const { return isEqualVsyncPeriod_; }
-
+    void SetCloneNodeMap(
+        const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap);
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& GetCloneNodeMap()
+    {
+        return cloneNodeMap_;
+    }
     void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
     ScreenRotation GetLogicalCameraRotationCorrection() const;
 
@@ -281,6 +286,7 @@ private:
     Occlusion::Region drawnRegion_;
     bool forceFreeze_ = false;
     bool hasMirroredScreenChanged_ = false;
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> cloneNodeMap_;
     ScreenRotation logicalCameraRotationCorrection_ = ScreenRotation::ROTATION_0;
 };
 } // namespace OHOS::Rosen
