@@ -553,7 +553,9 @@ HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch002, testing::ext::
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::SetGpuCacheSuppressWindowSwitch(nullptr, true);
+#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr") != std::string::npos);
+#endif
 }
 
 /**
@@ -584,7 +586,9 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch002, testing::ext:
     LOG_SetCallback(MyLogCallback);
     const std::function<void()> setThreadPriority;
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(nullptr, true, setThreadPriority);
+#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") != std::string::npos);
+#endif
 }
 
 /**
@@ -613,7 +617,9 @@ HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue002, testing::ext::TestSi
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::FlushGpuMemoryInWaitQueue(nullptr);
+#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr") != std::string::npos);
+#endif
 }
 
 /**
@@ -644,7 +650,9 @@ HWTEST_F(RSMemoryManagerTest, SuppressGpuCacheBelowCertainRatio002, testing::ext
     LOG_SetCallback(MyLogCallback);
     const std::function<bool(void)> nextFrameHasArrived;
     MemoryManager::SuppressGpuCacheBelowCertainRatio(nullptr, nextFrameHasArrived);
+#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") != std::string::npos);
+#endif
 }
 
 /**

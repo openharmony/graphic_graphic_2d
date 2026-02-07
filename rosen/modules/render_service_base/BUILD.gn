@@ -398,6 +398,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/capture/rs_capture_pixelmap_manager.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_node_command.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_render_node.cpp",
+    "src/feature/buffer_reclaim/rs_buffer_reclaim.cpp",
 
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",

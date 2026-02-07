@@ -311,9 +311,13 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, GradientBezierControlPoint
 DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, Color, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, Progress, float);
 
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, GradientBezierControlPoints, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, InnerBezier, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, OuterBezier, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, CornerRadius, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, FrameWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, InnerFrameWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, OuterFrameWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, RectWH, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, RectPos, Vector2f);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Color0, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Color1, Vector4f);

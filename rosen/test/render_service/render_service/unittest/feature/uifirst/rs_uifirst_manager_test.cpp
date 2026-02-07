@@ -1473,12 +1473,12 @@ HWTEST_F(RSUifirstManagerTest, ClearSubthreadRes001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetNodePriorty001
- * @tc.desc: Test SetNodePriorty
+ * @tc.name: SetNodePriority001
+ * @tc.desc: Test SetNodePriority
  * @tc.type: FUNC
  * @tc.require: issueIADDL3
  */
-HWTEST_F(RSUifirstManagerTest, SetNodePriorty001, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest, SetNodePriority001, TestSize.Level1)
 {
     uifirstManager_.subthreadProcessingNode_.clear();
     std::list<NodeId> result;
@@ -1488,23 +1488,23 @@ HWTEST_F(RSUifirstManagerTest, SetNodePriorty001, TestSize.Level1)
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
     pendingNode.insert(std::make_pair(surfaceNode->GetId(), surfaceNode));
     pendingNode.insert(std::make_pair(++RSTestUtil::id, nullptr));
-    uifirstManager_.SetNodePriorty(result, pendingNode);
+    uifirstManager_.SetNodePriority(result, pendingNode);
 
     surfaceNode->InitRenderParams();
     pendingNode.insert(std::make_pair(surfaceNode->GetId(), surfaceNode));
-    uifirstManager_.SetNodePriorty(result, pendingNode);
+    uifirstManager_.SetNodePriority(result, pendingNode);
     EXPECT_EQ(uifirstManager_.sortedSubThreadNodeIds_.size(), 1);
 
     surfaceNode->preFirstLevelNodeIdSet_.insert(surfaceNode->GetId());
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     surfaceDrawable->subThreadCache_.uiFirstParams.cacheProcessStatus_ = CacheProcessStatus::DOING;
-    uifirstManager_.SetNodePriorty(result, pendingNode);
+    uifirstManager_.SetNodePriority(result, pendingNode);
 
     RSMainThread::Instance()->focusLeashWindowId_ = 1;
     uifirstManager_.uifirstCacheState_.clear();
     surfaceDrawable->subThreadCache_.uiFirstParams.cacheProcessStatus_ = CacheProcessStatus::UNKNOWN;
-    uifirstManager_.SetNodePriorty(result, pendingNode);
+    uifirstManager_.SetNodePriority(result, pendingNode);
     EXPECT_EQ(uifirstManager_.sortedSubThreadNodeIds_.size(), 2);
     uifirstManager_.uifirstCacheState_.clear();
 }

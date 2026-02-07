@@ -649,7 +649,7 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
     screenNode->screenInfo_.phyWidth = 1000;
     screenNode->screenInfo_.phyHeight = 2000;
     RSHpaeManager::GetInstance().RegisterHpaeCallback(node4, screenNode);
-    ASSERT_EQ(RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode, true);
+    ASSERT_EQ(RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode, false);
 }
 
 /**

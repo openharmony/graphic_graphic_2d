@@ -3999,7 +3999,7 @@ ErrCode RSClientToServiceConnectionProxy::AvcodecVideoGetRecent()
     MessageOption option;
  
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("AvcodecVideoGet: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("AvcodecVideoGetRecent: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);

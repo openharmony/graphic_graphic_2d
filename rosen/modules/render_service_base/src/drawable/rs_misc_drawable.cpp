@@ -15,22 +15,23 @@
 
 #include "drawable/rs_misc_drawable.h"
 
+#include <chrono>
+
 #include "feature/color_picker/color_pick_alt_manager.h"
 #include "feature/color_picker/rs_color_picker_manager.h"
+#include "feature/color_picker/rs_color_picker_thread.h"
 #include "rs_profiler.h"
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
-#include "feature/color_picker/rs_color_picker_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -156,22 +157,46 @@ void RSChildrenDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* re
 }
 
 // ==================== RSColorPickerDrawable =====================
-RSColorPickerDrawable::RSColorPickerDrawable(bool useAlt)
+RSColorPickerDrawable::RSColorPickerDrawable(bool useAlt, NodeId nodeId)
 {
     if (useAlt) {
-        colorPickerManager_ = std::make_shared<ColorPickAltManager>();
+        colorPickerManager_ = std::make_shared<ColorPickAltManager>(nodeId);
     } else {
-        colorPickerManager_ = std::make_shared<RSColorPickerManager>();
+        colorPickerManager_ = std::make_shared<RSColorPickerManager>(nodeId);
     }
 }
 RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
 {
     auto colorPicker = node.GetRenderProperties().GetColorPicker();
     const bool useAlt = colorPicker ? colorPicker->strategy == ColorPickStrategyType::CLIENT_CALLBACK : false;
-    if (auto ret = std::make_shared<RSColorPickerDrawable>(useAlt); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSColorPickerDrawable>(useAlt, node.GetId()); ret->OnUpdate(node)) {
         return std::move(ret);
     }
     return nullptr;
+}
+
+void RSColorPickerDrawable::Prepare(uint64_t vsyncTime)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("RSColorPickerDrawable::Preparing node %" PRIu64 ", ", nodeId_);
+    needExecute_.store(false, std::memory_order_relaxed);
+    if (!stagingColorPicker_ || stagingColorPicker_->strategy == ColorPickStrategyType::NONE) {
+        return;
+    }
+
+    uint64_t interval = stagingColorPicker_->interval;
+    uint64_t vsyncTimeMs = vsyncTime / 1000000;
+    if (vsyncTimeMs >= interval + lastUpdateTime_) {
+        needExecute_.store(true, std::memory_order_relaxed);
+        lastUpdateTime_ = vsyncTimeMs;
+        isTaskScheduled_ = false; // Reset flag when processing a new frame
+    } else if (!isTaskScheduled_) {
+        // Schedule a postponed task to catch frames rendered during cooldown
+        uint64_t remainingDelay = (interval + lastUpdateTime_) - vsyncTimeMs;
+        isTaskScheduled_ = true;
+        RSColorPickerThread::Instance().PostTask(
+            [nodeId = stagingNodeId_]() { RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); },
+            static_cast<int64_t>(remainingDelay));
+    }
 }
 
 bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)
@@ -179,7 +204,7 @@ bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)
     stagingNodeId_ = node.GetId();
     stagingColorPicker_ = node.GetRenderProperties().GetColorPicker();
     needSync_ = true;
-    return stagingColorPicker_ != nullptr;
+    return stagingColorPicker_ && stagingColorPicker_->strategy != ColorPickStrategyType::NONE;
 }
 
 void RSColorPickerDrawable::OnSync()
@@ -189,6 +214,7 @@ void RSColorPickerDrawable::OnSync()
     }
     nodeId_ = stagingNodeId_;
     params_ = stagingColorPicker_ ? *stagingColorPicker_ : ColorPickerParam();
+
     needSync_ = false;
 }
 
@@ -201,9 +227,17 @@ void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
     if (!paintFilterCanvas) {
         return;
     }
-    auto maybeColor = colorPickerManager_->GetColorPicked(*paintFilterCanvas, rect, nodeId_, params_);
+
+    auto maybeColor = colorPickerManager_->GetColorPick();
     if (maybeColor.has_value()) {
-        paintFilterCanvas->SetColorPicked(params_.placeholder, maybeColor.value());
+        paintFilterCanvas->SetColorPicked(maybeColor.value());
+    }
+    bool needExecute = needExecute_.load(std::memory_order_relaxed);
+    RS_OPTIONAL_TRACE_NAME_FMT("ColorPicker: onDraw nodeId=%" PRIu64 " rect=[%s], need execute = %d", nodeId_,
+        rect ? rect->ToString().c_str() : "null", needExecute);
+
+    if (needExecute) {
+        colorPickerManager_->ScheduleColorPick(*paintFilterCanvas, rect, params_);
     }
 }
 
@@ -599,6 +633,5 @@ void RSCustomClipToFrameDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing:
 {
     canvas->ClipRect(customClipRect_);
 }
-
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

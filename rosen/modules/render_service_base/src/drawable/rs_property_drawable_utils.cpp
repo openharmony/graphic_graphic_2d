@@ -228,16 +228,21 @@ bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> con
 std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(std::shared_ptr<Drawing::GPUContext> context,
     std::shared_ptr<Drawing::Image> image)
 {
-    std::string shaderString(R"(
+    constexpr char shaderString[] = R"(
         uniform shader imageInput;
 
         half4 main(float2 xy) {
             half4 c = imageInput.eval(xy);
             return half4(c.rgb, 1.0);
         }
-    )");
+    )";
 
-    std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(shaderString);
+    // Color picker image scaling constants
+    constexpr int SMALL_IMAGE_AREA_THRESHOLD = 10000; // 100 * 100 pixels
+    constexpr int SMALL_SCALED_IMAGE_SIZE = 8;
+    constexpr int LARGE_SCALED_IMAGE_SIZE = 64;
+
+    static auto effect = Drawing::RuntimeEffect::CreateForShader(shaderString);
     if (!effect) {
         ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage effect is null");
         return nullptr;
@@ -248,13 +253,15 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(std::shar
         std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
     Drawing::ImageInfo pcInfo;
     Drawing::Matrix matrix;
-    matrix.SetScale(1.0, 1.0);
-    if (image->GetWidth() * image->GetHeight() < 10000) { // 10000 = 100 * 100 pixels
-        pcInfo = Drawing::ImageInfo::MakeN32Premul(10, 10); // 10 * 10 pixels
-        matrix.SetScale(10.0 / image->GetWidth(), 10.0 / image->GetHeight()); // 10.0 pixels
+    matrix.SetScale(1.0f, 1.0f);
+    if (image->GetWidth() * image->GetHeight() < SMALL_IMAGE_AREA_THRESHOLD) {
+        pcInfo = Drawing::ImageInfo::MakeN32Premul(SMALL_SCALED_IMAGE_SIZE, SMALL_SCALED_IMAGE_SIZE);
+        matrix.SetScale(static_cast<float>(SMALL_SCALED_IMAGE_SIZE) / image->GetWidth(),
+            static_cast<float>(SMALL_SCALED_IMAGE_SIZE) / image->GetHeight());
     } else {
-        pcInfo = Drawing::ImageInfo::MakeN32Premul(100, 100); // 100 * 100 pixels
-        matrix.SetScale(100.0 / image->GetWidth(), 100.0 / image->GetHeight());  // 100.0 pixels
+        pcInfo = Drawing::ImageInfo::MakeN32Premul(LARGE_SCALED_IMAGE_SIZE, LARGE_SCALED_IMAGE_SIZE);
+        matrix.SetScale(static_cast<float>(LARGE_SCALED_IMAGE_SIZE) / image->GetWidth(),
+            static_cast<float>(LARGE_SCALED_IMAGE_SIZE) / image->GetHeight());
     }
     effectBuilder->SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(
         *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, matrix));

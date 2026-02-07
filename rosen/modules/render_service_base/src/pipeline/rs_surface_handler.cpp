@@ -15,12 +15,16 @@
 
 #include "pipeline/rs_surface_handler.h"
 #ifndef ROSEN_CROSS_PLATFORM
+#include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "metadata_helper.h"
 #endif
 #include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
+#ifndef ROSEN_CROSS_PLATFORM
+const uint32_t MIN_RENDER_FRAMES_AFTER_CLEAN_CACHE = 4;
+#endif
 RSSurfaceHandler::~RSSurfaceHandler() noexcept
 {
 }
@@ -83,6 +87,7 @@ void RSSurfaceHandler::UpdateBuffer(
         bool isCached = consumer_->IsCached(preBuffer_.buffer->GetSeqNum());
         preBuffer_.Reset(isCached ? !RSSystemProperties::GetVKImageUseEnabled() : true);
     }
+    ResetLastBufferInfo();
     preBuffer_ = buffer_;
     buffer_.buffer = buffer;
     if (buffer != nullptr) {
@@ -107,6 +112,63 @@ void RSSurfaceHandler::SetHoldReturnValue(const IConsumerSurface::AcquireBufferR
     holdReturnValue_->fence = returnValue.fence;
     holdReturnValue_->timestamp = returnValue.timestamp;
     holdReturnValue_->damages = returnValue.damages;
+}
+
+bool RSSurfaceHandler::ReclaimLastBufferPrepare()
+{
+    ++lastBufferReclaimNum_;
+    return (lastBufferReclaimNum_ >= MIN_RENDER_FRAMES_AFTER_CLEAN_CACHE);
+}
+
+bool RSSurfaceHandler::ReclaimLastBufferProcess()
+{
+    if (!RSBufferReclaim::GetInstance().CheckBufferReclaim()) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    sptr<SurfaceBuffer> buffer = buffer_.buffer;
+    bool ret = false;
+    if ((lastBufferId_ != 0) && (buffer != nullptr) && (buffer->GetBufferId() == lastBufferId_)) {
+        auto startTime = std::chrono::steady_clock::now();
+        {
+            RS_TRACE_NAME_FMT("[LastBufferReclaim]TryReclaim-begin: bufId: %" PRIu64 ""
+                ", bufSeqNum: %u, w: %d, h: %d, fmt: %d, hasReclaim: %d", buffer->GetBufferId(), buffer->GetSeqNum(),
+                buffer->GetWidth(), buffer->GetHeight(), buffer->GetFormat(), buffer->IsReclaimed());
+            ret = RSBufferReclaim::GetInstance().DoBufferReclaim(buffer);
+            RS_TRACE_NAME_FMT("[LastBufferReclaim]TryReclaim-end, ret: %d", ret);
+        }
+        auto endTime = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+        RS_LOGI("[LastBufferReclaim]TryReclaim: bufId: %{public}" PRIu64 ""
+            ", bufSeqNum: %{public}u, w: %{public}d, h: %{public}d, fmt: %{public}d, cost %{public}" PRIu64 " ms",
+            buffer->GetBufferId(), buffer->GetSeqNum(), buffer->GetWidth(), buffer->GetHeight(), buffer->GetFormat(),
+            static_cast<uint64_t>(duration.count()));
+        lastBufferReclaimNum_ = 0;
+        lastBufferId_ = 0;
+    }
+    return ret;
+}
+
+void RSSurfaceHandler::TryResumeLastBuffer()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    sptr<SurfaceBuffer> buffer = buffer_.buffer;
+    if (buffer && buffer->IsReclaimed()) {
+        auto startTime = std::chrono::steady_clock::now();
+        {
+            RS_TRACE_NAME_FMT("[LastBufferReclaim]TryResumeLastBuffer-begin: bufId: %" PRIu64 ""
+                ", bufSeqNum: %u, w: %d, h: %d, fmt: %d", buffer->GetBufferId(),
+                buffer->GetSeqNum(), buffer->GetWidth(), buffer->GetHeight(), buffer->GetFormat());
+            bool ret = RSBufferReclaim::GetInstance().DoBufferResume(buffer);
+            RS_TRACE_NAME_FMT("[LastBufferReclaim]TryResumeLastBuffer-end, ret: %d", ret);
+        }
+        auto endTime = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+        RS_LOGI("[LastBufferReclaim]TryResumeLastBuffer: bufId: %{public}" PRIu64 ""
+            ", bufSeqNum: %{public}u, w: %{public}d, h: %{public}d, fmt: %{public}d, cost %{public}" PRIu64 " ms",
+            buffer->GetBufferId(), buffer->GetSeqNum(), buffer->GetWidth(), buffer->GetHeight(), buffer->GetFormat(),
+            static_cast<uint64_t>(duration.count()));
+    }
 }
 #endif
 }

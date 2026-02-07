@@ -1037,7 +1037,12 @@ void RSProfiler::MarshalSelfDrawingBuffers(std::stringstream& data, bool isBetaR
                 requestConfig.width, requestConfig.height, surfaceNode->GetId(), GSErrorStr(ret).c_str());
             return;
         }
-
+        if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable() && surfaceNode->IsRosenWeb()) {
+            auto handler = surfaceNode->GetRSSurfaceHandler();
+            if (handler) {
+                handler->TryResumeLastBuffer();
+            }
+        }
         RenderToReadableBuffer(surfaceNode, readableBuffer);
         uint64_t ffmPixelMapId = Utils::PatchSelfDrawingImageId(surfaceNode->GetId());
         PixelMapStorage::Push(ffmPixelMapId, *readableBuffer);

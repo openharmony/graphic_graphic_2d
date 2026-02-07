@@ -218,15 +218,17 @@ public:
         return alignRate_;
     }
 
-    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum)
-    {
+    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum) {
         idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE;
     }
 
-    int64_t GetIdealPipelineOffset() const
-    {
-        return idealPipelineOffset_;
+    int64_t GetIdealPipelineOffset() const { return idealPipelineOffset_; }
+
+    void SetIdealPipelineOffset144(int32_t pipelineOffsetPulseNum) {
+        idealPipelineOffset144_ = pipelineOffsetPulseNum * IDEAL_PULSE144;
     }
+
+    int64_t GetIdealPipelineOffset144() const { return idealPipelineOffset144_; }
 
     int64_t GetPipelineOffset() const
     {
@@ -236,15 +238,13 @@ public:
 
     int32_t GetPipelineOffsetPulseNum() const { return pipelineOffsetPulseNum_; }
 
-    uint32_t GetSupportedMaxTE() const
-    {
-        return maxTE_;
-    }
+    uint32_t GetSupportedMaxTE() const { return maxTE_; }
 
-    void SetSupportedMaxTE(uint32_t maxTE)
-    {
-        maxTE_ = maxTE;
-    }
+    void SetSupportedMaxTE(uint32_t maxTE) { maxTE_ = maxTE; }
+
+    uint32_t GetSupportedMaxTE144() const { return maxTE144_; }
+
+    void SetSupportedMaxTE144(uint32_t maxTE144) { maxTE144_ = maxTE144; }
 
     int32_t GetPluseNum() const
     {
@@ -353,6 +353,7 @@ private:
     void CheckCustomFrameRateModeValid();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(int32_t mode);
+    void SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
     void SetASConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
 
     bool IsEnabled() const
@@ -390,8 +391,10 @@ private:
     bool ltpoEnabled_ = false;
     std::atomic<bool> isLtpoMode_{ false };
     uint32_t maxTE_ = 0;
+    uint32_t maxTE144_ = 0;
     uint32_t alignRate_ = 0;
     int64_t idealPipelineOffset_ = 0;
+    int64_t idealPipelineOffset144_ = 0;
     int32_t pluseNum_ = -1;
     int adaptiveSync_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;

@@ -1118,6 +1118,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseDmaSurfaceBufferTest, Tes
 {
     auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    bufferCache.pendingBufferMap_.clear();
     bufferCache.AddPendingBuffer(1, buffer, 1);
     auto& nodeBufferMap = bufferCache.pendingBufferMap_[1].second;
     auto rsContext = std::make_shared<RSContext>();
@@ -1134,6 +1135,80 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseDmaSurfaceBufferTest, Tes
     drawable->ReleaseDmaSurfaceBuffer(false);
     ASSERT_EQ(nodeBufferMap.empty(), RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled() &&
         NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled());
+}
+
+/**
+ * @tc.name: ClearCustomResourceWithDmaBufferTest001
+ * @tc.desc: Test ClearCustomResource with pending buffers
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ClearCustomResourceWithDmaBufferTest001, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    NodeId nodeId = 1;
+    // Test Case 1: Clear custom resource with pending buffers in cache
+    {
+        bufferCache.pendingBufferMap_.clear();
+        sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+        bufferCache.AddPendingBuffer(nodeId, buffer, 1);
+        ASSERT_GT(bufferCache.pendingBufferMap_[nodeId].second.size(), 0);
+        auto rsContext = std::make_shared<RSContext>();
+        auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, rsContext->weak_from_this());
+        auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+        drawable->preAllocateDmaEnabled_ = true;
+        drawable->ClearCustomResource();
+        ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 0);
+    }
+    // Test Case 2: Clear custom resource without pending buffers
+    {
+        bufferCache.pendingBufferMap_.clear();
+        ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 0);
+        auto rsContext = std::make_shared<RSContext>();
+        auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, rsContext->weak_from_this());
+        auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+        drawable->preAllocateDmaEnabled_ = true;
+        drawable->ClearCustomResource();
+        ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 0);
+    }
+}
+
+/**
+ * @tc.name: ClearCustomResourceWithDmaBufferTest002
+ * @tc.desc: Test ClearCustomResource with multiple buffers and disabled flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ClearCustomResourceWithDmaBufferTest002, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    NodeId nodeId = 1;
+    // Test Case 3: Clear custom resource with multiple pending buffers
+    {
+        bufferCache.pendingBufferMap_.clear();
+        sptr<SurfaceBuffer> buffer1 = SurfaceBuffer::Create();
+        sptr<SurfaceBuffer> buffer2 = SurfaceBuffer::Create();
+        bufferCache.AddPendingBuffer(nodeId, buffer1, 1);
+        bufferCache.AddPendingBuffer(nodeId, buffer2, 2);
+        ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 2);
+        auto rsContext = std::make_shared<RSContext>();
+        auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, rsContext->weak_from_this());
+        auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+        drawable->preAllocateDmaEnabled_ = true;
+        drawable->ClearCustomResource();
+        ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 0);
+    }
+    // Test Case 4: Clear custom resource when preAllocateDmaEnabled_ is false
+    {
+        bufferCache.pendingBufferMap_.clear();
+        sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+        bufferCache.AddPendingBuffer(nodeId, buffer, 1);
+        ASSERT_GT(bufferCache.pendingBufferMap_[nodeId].second.size(), 0);
+        auto rsContext = std::make_shared<RSContext>();
+        auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, rsContext->weak_from_this());
+        auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+        drawable->preAllocateDmaEnabled_ = false;
+        drawable->ClearCustomResource();
+        ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 0);
+    }
 }
 #endif
 

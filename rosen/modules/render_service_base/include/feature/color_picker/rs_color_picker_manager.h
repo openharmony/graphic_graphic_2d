@@ -22,6 +22,7 @@
 
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "i_color_picker_manager.h"
+
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 
@@ -32,14 +33,12 @@ class Image;
 }
 class RSColorPickerManager : public std::enable_shared_from_this<RSColorPickerManager>, public IColorPickerManager {
 public:
-    RSColorPickerManager() = default;
+    explicit RSColorPickerManager(NodeId nodeId) : nodeId_(nodeId) {}
     ~RSColorPickerManager() noexcept = default;
-    /**
-     * @brief Return previously picked color and conditionally schedule a new color pick task on the current canvas.
-     * @param strategy Only CONTRAST is currently supported.
-     */
-    std::optional<Drawing::ColorQuad> GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
-        uint64_t nodeId, const ColorPickerParam& params) override;
+
+    std::optional<Drawing::ColorQuad> GetColorPick() override;
+    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
+        const ColorPickerParam& params) override;
 
 private:
     struct ColorPickerInfo {
@@ -55,7 +54,8 @@ private:
             Drawing::BackendTexture backendTexture, std::shared_ptr<Drawing::Image> image, NodeId nodeId,
             std::weak_ptr<RSColorPickerManager> manager, ColorPickStrategyType strategy)
             : colorSpace_(colorSpace), bitmapFormat_(bitmapFormat), backendTexture_(backendTexture), oldImage_(image),
-              nodeId_(nodeId), manager_(manager), strategy_(strategy) {}
+              nodeId_(nodeId), manager_(manager), strategy_(strategy)
+        {}
 
         static void PickColor(void* context)
         {
@@ -88,17 +88,16 @@ private:
                     RS_LOGE("ColorPickerInfo::PickColor BuildFromTexture failed");
                     return;
                 }
-                manager->PickColor(image, info->nodeId_, info->strategy_);
+                manager->PickColor(image, info->strategy_);
                 image = nullptr;
                 info->oldImage_ = nullptr;
             };
             RSColorPickerThread::Instance().PostTask(task, 0);
         }
     };
-    void ScheduleColorPick(
-        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, ColorPickStrategyType strategy);
-    void PickColor(const std::shared_ptr<Drawing::Image>& snapshot, uint64_t nodeId, ColorPickStrategyType strategy);
-    void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId, ColorPickStrategyType strategy);
+
+    void PickColor(const std::shared_ptr<Drawing::Image>& snapshot, ColorPickStrategyType strategy);
+    void HandleColorUpdate(Drawing::ColorQuad newColor, ColorPickStrategyType strategy);
 
     inline std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColor();
 
@@ -109,15 +108,16 @@ private:
      * @brief Get a contrasting black or white color with hysteresis.
      *
      * @param color input to contrast with, usually the average color of the background.
+     * @param prevDark whether previously picked color was dark.
      */
-    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color);
+    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color, bool prevDark);
 
     std::mutex colorMtx_;
     Drawing::ColorQuad colorPicked_ = Drawing::Color::COLOR_BLACK;
     Drawing::ColorQuad prevColor_ = Drawing::Color::COLOR_BLACK;
 
     std::atomic<uint64_t> animStartTime_ = 0;
-    uint64_t lastUpdateTime_ = 0;
+    const NodeId nodeId_;
 };
 } // namespace Rosen
 } // namespace OHOS

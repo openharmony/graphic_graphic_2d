@@ -19,9 +19,10 @@
 #include <atomic>
 #include <memory>
 
-#include "drawable/rs_property_drawable_utils.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "i_color_picker_manager.h"
+
+#include "drawable/rs_property_drawable_utils.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -31,10 +32,13 @@ class Image;
 }
 class ColorPickAltManager : public std::enable_shared_from_this<ColorPickAltManager>, public IColorPickerManager {
 public:
-    ColorPickAltManager() = default;
+    explicit ColorPickAltManager(NodeId nodeId) : nodeId_(nodeId) {}
     ~ColorPickAltManager() noexcept = default;
-    std::optional<Drawing::ColorQuad> GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
-        uint64_t nodeId, const ColorPickerParam& params) override;
+
+    // IColorPickerManager interface
+    std::optional<Drawing::ColorQuad> GetColorPick() override;
+    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
+        const ColorPickerParam& params) override;
 
 private:
     struct ColorPickerInfo {
@@ -84,7 +88,7 @@ private:
                 }
                 Drawing::ColorQuad colorPicked;
                 if (RSPropertyDrawableUtils::PickColor(gpuCtx, image, colorPicked)) {
-                    manager->HandleColorUpdate(colorPicked, info->nodeId_);
+                    manager->HandleColorUpdate(colorPicked);
                 } else {
                     RS_LOGE("ColorPickAltManager: PickColor failed");
                 }
@@ -95,12 +99,12 @@ private:
         }
     };
 
-    void ScheduleColorPick(
-        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId);
-    void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId);
+    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect);
+    void HandleColorUpdate(Drawing::ColorQuad newColor);
+
+    const NodeId nodeId_;
 
     std::atomic<uint32_t> pickedLuminance_ = RGBA_MAX + 1; // invalid initial luminance to force first notification
-    uint64_t lastUpdateTime_ = 0;
     std::atomic<uint32_t> darkThreshold_ = 150;
     std::atomic<uint32_t> lightThreshold_ = 220;
 };

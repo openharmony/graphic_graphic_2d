@@ -1571,12 +1571,14 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
             screen->GetProducerSurface()->GetUniqueId() == surfaceId;
     };
     if (AnyScreenFits(func)) {
-        RS_LOGE("%{public}s: surface %{public}" PRIu64 " is used, set surface failed!", __func__, surfaceId);
+        RS_LOGE("%{public}s: Surface[%{public}" PRIu64 "] is used, set surface for virtualScreen[%{public}" PRIu64
+            "] failed!", __func__, surfaceId, id);
         return SURFACE_NOT_UNIQUE;
     }
 
     screen->SetProducerSurface(surface);
-    RS_LOGI("%{public}s: set virtual screen surface success!", __func__);
+    RS_LOGI("%{public}s: Set surface[%{public}" PRIu64 "] for virtualScreen[%{public}" PRIu64 "] success.",
+        __func__, surfaceId, id);
     RS_TRACE_NAME("RSScreenManager::SetVirtualScreenSurface, ForceRefreshOneFrame.");
     ForceRefreshOneFrame();
     screen->SetPSurfaceChange(true);

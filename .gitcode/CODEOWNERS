@@ -13,6 +13,10 @@ rosen/modules/2d_graphics/src/drawing/ @wanyanglan
 rosen/modules/2d_graphics/drawing_ndk/ @wanyanglan
 interfaces/kits/napi/graphic/drawing/ @wanyanglan
 
+[IPC]
+rosen/modules/render_service_client/core/transaction/rs_interfaces.h @liuchao-huawei
+rosen/modules/render_service_client/core/transaction/rs_interfaces.cpp @liuchao-huawei
+
 [display-effect]
 rosen/modules/render_service_client/core/ui/ @xiaojianfeng_jeffery
 rosen/modules/render_service_client/core/ui/rs_ui_context_manager.cpp @gaoshuai3011
@@ -21,23 +25,105 @@ rosen/modules/render_service_client/core/ui/rs_ui_context.h @gaoshuai3011
 rosen/modules/render_service_client/core/ui/rs_ui_context.cpp @gaoshuai3011
 rosen/modules/render_service_client/core/ui/rs_ui_director.cpp @gaoshuai3011
 rosen/modules/render_service_client/core/ui/rs_ui_director.h @gaoshuai3011
-rosen/modules/render_service_client/core/transaction/rs_interfaces.h @liuchao-huawei
-rosen/modules/render_service_client/core/transaction/rs_interfaces.cpp @liuchao-huawei
+rosen/modules/render_service_client/core/ui/rs_texture_export.cpp @gaoshuai3011
+rosen/modules/render_service_client/core/ui/rs_texture_export.h @gaoshuai3011
+rosen/modules/render_service_client/core/ui/rs_effect_node.cpp @hanamaru
+rosen/modules/render_service_client/core/ui/rs_effect_node.h @hanamaru
+rosen/modules/render_service_client/core/ui/rs_union_node.cpp @hanamaru
+rosen/modules/render_service_client/core/ui/rs_union_node.h @hanamaru
 
 rosen/modules/render_service_base/include/pipeline/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/pipeline/rs_dirty_region_manager.h @chenlushen
+rosen/modules/render_service_base/include/pipeline/rs_draw_cmd_list.h @hanamaru
+rosen/modules/render_service_base/include/pipeline/rs_effect_render_node.h @hanamaru
+rosen/modules/render_service_base/include/pipeline/rs_occlusion_config.h @chenlushen
+rosen/modules/render_service_base/include/pipeline/rs_render_display_sync.h @wh_qwe
+rosen/modules/render_service_base/include/pipeline/rs_render_node_map.h @gaoshuai3011
+rosen/modules/render_service_base/include/pipeline/rs_union_render_node.h @hanamaru
+
 rosen/modules/render_service_base/src/pipeline/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/pipeline/rs_dirty_region_manager.cpp @chenlushen
+rosen/modules/render_service_base/src/pipeline/rs_draw_cmd_list.cpp @hanamaru
+rosen/modules/render_service_base/src/pipeline/rs_effect_render_node.cpp @hanamaru
+rosen/modules/render_service_base/src/pipeline/rs_occlusion_config.cpp @chenlushen
+rosen/modules/render_service_base/src/pipeline/rs_render_display_sync.cpp @wh_qwe
+rosen/modules/render_service_base/src/pipeline/rs_render_node_map.cpp @gaoshuai3011
+rosen/modules/render_service_base/src/pipeline/rs_union_render_node.cpp @hanamaru
+
 rosen/modules/render_service/core/drawable/ @xiaojianfeng_jeffery
+rosen/modules/render_service/core/drawable/rs_effect_render_node_drawable.cpp @hanamaru
+rosen/modules/render_service/core/drawable/rs_effect_render_node_drawable.h @hanamaru
+rosen/modules/render_service/core/drawable/rs_union_render_node_drawable.cpp @hanamaru
+rosen/modules/render_service/core/drawable/rs_union_render_node_drawable.h @hanamaru
 
 [property-display]
-rosen/modules/render_service_client/core/modifier/ @hanamaru
-rosen/modules/render_service_client/core/modifier_ng/ @hanamaru
-rosen/modules/render_service_base/include/modifier/ @hanamaru
-rosen/modules/render_service_base/include/modifier_ng/ @hanamaru
-rosen/modules/render_service_base/src/modifier_ng/ @hanamaru
-rosen/modules/render_service_base/include/property/ @hanamaru
-rosen/modules/render_service_base/src/property/ @hanamaru
-rosen/modules/render_service_base/include/drawable/ @hanamaru
-rosen/modules/render_service_base/src/drawable/ @hanamaru
+rosen/modules/render_service_client/core/modifier/ @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/ @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/ @hanamaru
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_alpha_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_alpha_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_border_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_border_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_hdr_brightness_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_hdr_brightness_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_mask_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_mask_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_outline_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_outline_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_shadow_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_shadow_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_visibility_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_visibility_modifier.h @xiaojianfeng_jeffery
+
+rosen/modules/render_service_client/core/modifier_ng/background/rs_background_ng_shader_modifier.cpp @hanamaru
+rosen/modules/render_service_client/core/modifier_ng/background/rs_background_ng_shader_modifier.h @hanamaru
+rosen/modules/render_service_client/core/modifier_ng/background/rs_background_shader_modifier.cpp @hanamaru
+rosen/modules/render_service_client/core/modifier_ng/background/rs_background_shader_modifier.h @hanamaru
+rosen/modules/render_service_client/core/modifier_ng/foreground/rs_foreground_shader_modifier.cpp @hanamaru
+rosen/modules/render_service_client/core/modifier_ng/foreground/rs_foreground_shader_modifier.h @hanamaru
+
+rosen/modules/render_service_base/include/modifier/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/modifier/rs_animatable_arithmetic.h @hanamaru
+
+rosen/modules/render_service_base/include/modifier_ng/ @xiaojianfeng_jeffery
+
+rosen/modules/render_service_base/include/modifier_ng/appearance/ @hanamaru
+rosen/modules/render_service_base/include/modifier_ng/appearance/rs_alpha_render_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/modifier_ng/appearance/rs_border_render_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/modifier_ng/appearance/rs_hdr_brightness_render_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/modifier_ng/appearance/rs_mask_render_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/modifier_ng/appearance/rs_outline_render_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/modifier_ng/appearance/rs_shadow_render_modifier.h @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/modifier_ng/appearance/rs_visibility_render_modifier.h @xiaojianfeng_jeffery
+
+rosen/modules/render_service_base/include/modifier_ng/background/rs_background_ng_shader_render_modifier.h @hanamaru
+rosen/modules/render_service_base/include/modifier_ng/background/rs_background_shader_render_modifier.h @hanamaru
+rosen/modules/render_service_base/include/modifier_ng/foreground/rs_foreground_shader_render_modifier.h @hanamaru
+
+rosen/modules/render_service_base/src/modifier_ng/ @xiaojianfeng_jeffery
+
+rosen/modules/render_service_base/src/modifier_ng/appearance/ @hanamaru
+rosen/modules/render_service_base/src/modifier_ng/appearance/rs_alpha_render_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/modifier_ng/appearance/rs_border_render_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/modifier_ng/appearance/rs_hdr_brightness_render_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/modifier_ng/appearance/rs_mask_render_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/modifier_ng/appearance/rs_outline_render_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/modifier_ng/appearance/rs_shadow_render_modifier.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/modifier_ng/appearance/rs_visibility_render_modifier.cpp @xiaojianfeng_jeffery
+
+rosen/modules/render_service_base/src/modifier_ng/background/rs_background_ng_shader_render_modifier.cpp @hanamaru
+rosen/modules/render_service_base/src/modifier_ng/background/rs_background_shader_render_modifier.cpp @hanamaru
+rosen/modules/render_service_base/src/modifier_ng/foreground/rs_foreground_shader_render_modifier.cpp @hanamaru
+
+rosen/modules/render_service_base/include/property/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/property/rs_color_picker_def.h @hanamaru
+rosen/modules/render_service_base/include/property/rs_point_light_manager.h @hanamaru
+
+rosen/modules/render_service_base/src/property/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/property/rs_point_light_manager.cpp @hanamaru
+
+rosen/modules/render_service_base/include/drawable/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/drawable/ @xiaojianfeng_jeffery
 
 [effect]
 rosen/modules/render_service_client/core/ui_effect/ @hanamaru

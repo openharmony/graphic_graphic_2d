@@ -19,6 +19,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -281,5 +282,55 @@ HWTEST_F(RSSurfaceHandlerTest, SetAvailableBufferCount001, TestSize.Level2)
     rSSurfaceHandlerPtr_->SetAvailableBufferCount(bufferAvailableCount);
     ASSERT_EQ(rSSurfaceHandlerPtr_->GetAvailableBufferCount(), bufferAvailableCount);
 }
+
+HWTEST_F(RSSurfaceHandlerTest, TryReclaimLastBuffer001, TestSize.Level1)
+{
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    rSSurfaceHandlerPtr_->SetLastBufferId(0);
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->ReclaimLastBufferPrepare());
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->ReclaimLastBufferProcess());
+
+    rSSurfaceHandlerPtr_->SetLastBufferId(1);
+    rSSurfaceHandlerPtr_->lastBufferReclaimNum_ = 0;
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->ReclaimLastBufferPrepare());
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->ReclaimLastBufferProcess());
+
+    rSSurfaceHandlerPtr_->lastBufferReclaimNum_ = 4;
+    EXPECT_TRUE(rSSurfaceHandlerPtr_->ReclaimLastBufferPrepare());
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->ReclaimLastBufferProcess());
+
+    rSSurfaceHandlerPtr_->SetBuffer(nullptr, SyncFence::INVALID_FENCE, Rect(), 0);
+    EXPECT_TRUE(rSSurfaceHandlerPtr_->ReclaimLastBufferPrepare());
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->ReclaimLastBufferProcess());
+    rSSurfaceHandlerPtr_->TryResumeLastBuffer();
+
+    rSSurfaceHandlerPtr_->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
+    EXPECT_TRUE(rSSurfaceHandlerPtr_->ReclaimLastBufferPrepare());
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->ReclaimLastBufferProcess());
+    rSSurfaceHandlerPtr_->TryResumeLastBuffer();
+
+    system("setenforce 0");
+    rSSurfaceHandlerPtr_->SetLastBufferId(buffer->GetBufferId());
+    rSSurfaceHandlerPtr_->lastBufferReclaimNum_ = 4;
+    EXPECT_TRUE(rSSurfaceHandlerPtr_->ReclaimLastBufferPrepare());
+    EXPECT_TRUE(rSSurfaceHandlerPtr_->ReclaimLastBufferProcess());
+    EXPECT_TRUE(buffer->IsReclaimed());
+    rSSurfaceHandlerPtr_->TryResumeLastBuffer();
+    EXPECT_FALSE(buffer->IsReclaimed());
+}
+
 #endif
 } // namespace OHOS::Rosen
