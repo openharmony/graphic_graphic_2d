@@ -1628,9 +1628,79 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode001, TestSize.Level1)
     surfaceRenderNodeCloned->renderDrawable_ = clonedNodeRenderDrawableSharedPtr;
 
     surfaceRenderNode.isCloneNode_ = true;
-    surfaceRenderNode.SetClonedNodeInfo(surfaceRenderNodeCloned->GetId(), true);
+    surfaceRenderNode.SetClonedNodeInfo(surfaceRenderNodeCloned->GetId(), true, false);
     auto result = rsUniRenderVisitor->PrepareForCloneNode(surfaceRenderNode);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: UpdateInfoForClonedNode
+ * @tc.desc: Test UpdateInfoForClonedNode
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateInfoForClonedNode, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    rsUniRenderVisitor->cloneNodeMap_[surfaceRenderNode->GetId() + 1];
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(surfaceRenderNode);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->stagingRenderParams_.get());
+    rsUniRenderVisitor->UpdateInfoForClonedNode(*surfaceRenderNode);
+    ASSERT_FALSE(surfaceParams->GetNeedCacheSurface());
+    rsUniRenderVisitor->cloneNodeMap_[surfaceRenderNode->GetId()];
+    rsUniRenderVisitor->UpdateInfoForClonedNode(*surfaceRenderNode);
+    ASSERT_TRUE(surfaceParams->GetNeedCacheSurface());
+}
+
+/**
+ * @tc.name: PrepareForCloneNode
+ * @tc.desc: Test PrepareForCloneNode while node is clone
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = RSMainThread::Instance()->GetContext().shared_from_this();
+    ASSERT_NE(rsContext, nullptr);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext->weak_from_this());
+    auto surfaceRenderNodeDrawable_ = DrawableV2::RSRenderNodeDrawable::OnGenerate(surfaceRenderNode);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr surfaceRenderNodeDrawableSharedPtr(surfaceRenderNodeDrawable_);
+    surfaceRenderNode->renderDrawable_ = surfaceRenderNodeDrawableSharedPtr;
+    auto surfaceRenderNodeCloned = std::make_shared<RSSurfaceRenderNode>(2, rsContext->weak_from_this());
+    ASSERT_NE(surfaceRenderNodeCloned, nullptr);
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(surfaceRenderNodeCloned);
+    auto& clonedNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceRenderNodeCloned->GetId());
+    ASSERT_NE(clonedNode, nullptr);
+    auto rsRenderNode = std::make_shared<RSRenderNode>(9, rsContext);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto drawable_ = DrawableV2::RSRenderNodeDrawable::OnGenerate(rsRenderNode);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr clonedNodeRenderDrawableSharedPtr(drawable_);
+    surfaceRenderNodeCloned->renderDrawable_ = clonedNodeRenderDrawableSharedPtr;
+
+    surfaceRenderNode->isCloneNode_ = true;
+    surfaceRenderNode->SetClonedNodeInfo(surfaceRenderNodeCloned->GetId(), true, false);
+    auto result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
     ASSERT_TRUE(result);
+
+    surfaceRenderNodeCloned->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
+    ASSERT_FALSE(result);
+
+    surfaceRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(surfaceRenderNode->GetId());
+    surfaceRenderNode->SetRelated(true);
+    ASSERT_TRUE(surfaceRenderNode->IsRelated());
+    surfaceRenderNodeCloned->SetSurfaceNodeType(RSSurfaceNodeType::NODE_MAX);
+    result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
+    ASSERT_FALSE(result);
 }
 
 /**
