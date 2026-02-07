@@ -84,10 +84,10 @@ const std::vector<DupoliNoiseMaskInfo> DupoliNoiseMaskParams = {
 };
 
 const std::vector<RippleMaskInfo> RippleMaskParams = {
-    { { 0.5f, 0.8f }, 0.5f, 0.1f, 0.0f },
-    { { 0.5f, 0.4f }, 0.8f, 0.2f, 0.2f },
-    { { 0.2f, 1.4f }, 0.7f, 0.3f, 0.0f },
-    { { 0.3f, 0.1f }, 1.5f, 0.5f, 0.1f },
+    { { 0.5f, 0.8f }, 0.35f, 0.06f, 0.0f },
+    { { 0.5f, 0.4f }, 0.45f, 0.08f, 0.0f },
+    { { 0.2f, 0.9f }, 0.40f, 0.10f, 0.0f },
+    { { 0.3f, 0.2f }, 0.55f, 0.12f, 0.0f },
     { { 0.8f, 1.0f }, 0.2f, 0.6f, 0.3f },
     { { 0.8f, 1.0f }, 0.5f, 0.3f, 0.0f },
 };
