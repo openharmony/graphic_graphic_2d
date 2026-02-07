@@ -25,7 +25,9 @@ namespace {
 
 constexpr size_t screenWidth = 1200;
 constexpr size_t screenHeight = 2000;
-constexpr float FOREGROUND_BRIGHTNESS_SCALE = 0.75f;
+constexpr float FOREGROUND_BRIGHTNESS_SCALE = 0.55f;
+constexpr size_t GRAY_BLOCK_INDEX = 3;
+constexpr size_t PURE_COLOR_INDEX = 9;
 
 struct AIBarGlowParams {
     Vector4f ltwh; // left, top, width, height
@@ -99,15 +101,15 @@ std::vector<AIBarGlowParams> aiBarGlowParams = {
     {
         .ltwh = {0.1f, 0.1f, 0.8f, 0.8f},
         .stretchFactor = 1.5f,
-        .barAngle = 0.0f,
+        .barAngle = 20.0f,
         .color0 = {1.0f, 0.2f, 0.7f, 1.0f},
         .color1 = {0.2f, 1.0f, 0.7f, 1.0f},
         .color2 = {0.9f, 0.6f, 0.1f, 1.0f},
         .color3 = {0.5f, 0.3f, 1.0f, 1.0f},
-        .position0 = {0.0f, 0.1f},
-        .position1 = {0.33f, 0.2f},
-        .position2 = {0.66f, 0.1f},
-        .position3 = {1.0f, 0.2f},
+        .position0 = {0.0f, 0.0f},
+        .position1 = {0.25f, 0.0f},
+        .position2 = {0.75f, 0.0f},
+        .position3 = {1.0f, 0.0f},
         .strength = {0.25f, 0.35f, 0.45f, 0.55f},
         .brightness = 1.0f,
         .progress = 0.7f
@@ -249,6 +251,37 @@ void SetAIBarGlowParams(const std::shared_ptr<RSNGAIBarGlow>& shader, const AIBa
     shader->Setter<AIBarGlowProgressTag>(params.progress);
 }
 
+AIBarGlowParams BuildForegroundParams(size_t index)
+{
+    AIBarGlowParams params = aiBarGlowParams[index];
+    params.brightness = params.brightness * FOREGROUND_BRIGHTNESS_SCALE;
+
+    if (index == GRAY_BLOCK_INDEX) {
+        params.ltwh = {0.2f, 0.15f, 0.6f, 0.7f};
+        params.barAngle = 25.0f;
+        params.strength = {0.2f, 0.3f, 0.4f, 0.5f};
+    }
+
+    // Replace invalid foreground case with a valid but low-intensity pattern.
+    if (index == PURE_COLOR_INDEX) {
+        params.ltwh = {0.15f, 0.15f, 0.7f, 0.7f};
+        params.stretchFactor = 1.0f;
+        params.barAngle = 10.0f;
+        params.color0 = {0.9f, 0.2f, 0.2f, 1.0f};
+        params.color1 = {0.2f, 0.9f, 0.2f, 1.0f};
+        params.color2 = {0.2f, 0.2f, 0.9f, 1.0f};
+        params.color3 = {0.9f, 0.8f, 0.2f, 1.0f};
+        params.position0 = {0.0f, 0.0f};
+        params.position1 = {0.33f, 0.0f};
+        params.position2 = {0.66f, 0.0f};
+        params.position3 = {1.0f, 0.0f};
+        params.strength = {0.2f, 0.3f, 0.4f, 0.5f};
+        params.brightness = 0.45f;
+        params.progress = 0.5f;
+    }
+    return params;
+}
+
 GRAPHIC_TEST(AIBarGlowTest, EFFECT_TEST, Set_AI_Bar_Glow_Background_Test)
 {
     const int columnCount = 2;
@@ -258,8 +291,7 @@ GRAPHIC_TEST(AIBarGlowTest, EFFECT_TEST, Set_AI_Bar_Glow_Background_Test)
 
     for (size_t i = 0; i < aiBarGlowParams.size(); ++i) {
         auto shader = std::make_shared<RSNGAIBarGlow>();
-        SetAIBarGlowParams(shader, aiBarGlowParams[i]);
-        shader->Setter<AIBarGlowBrightnessTag>(aiBarGlowParams[i].brightness * FOREGROUND_BRIGHTNESS_SCALE);
+        SetAIBarGlowParams(shader, BuildForegroundParams(i));
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
