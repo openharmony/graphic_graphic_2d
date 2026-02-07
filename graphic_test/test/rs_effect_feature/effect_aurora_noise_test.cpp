@@ -27,8 +27,8 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 
-constexpr size_t screenWidth = 1200;
-constexpr size_t screenHeight = 2000;
+constexpr size_t SCREEN_WIDTH = 1200;
+constexpr size_t SCREEN_HEIGHT = 2000;
 constexpr float FOREGROUND_NOISE_MIN = 0.02f;
 constexpr float FOREGROUND_NOISE_MAX = 0.55f;
 constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100 ms
@@ -50,12 +50,12 @@ class AuroraNoiseTest : public RSGraphicTest {
 public:
     void BeforeEach() override
     {
-        SetScreenSize(screenWidth, screenHeight);
+        SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
 private:
-    const int screenWidth_ = screenWidth;
-    const int screenHeight_ = screenHeight;
+    const int screenWidth_ = SCREEN_WIDTH;
+    const int screenHeight_ = SCREEN_HEIGHT;
 };
 
 void SetAuroraNoiseParams(const std::shared_ptr<RSNGAuroraNoise>& shader, float noise)
