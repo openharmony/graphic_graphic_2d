@@ -64,7 +64,7 @@ struct RippleMaskInfo {
     float centerOffset = 0.0f;
 };
 
-std::vector<DistortChromaInfo> DistortChromaParams = {
+const std::vector<DistortChromaInfo> DistortChromaParams = {
     // Strength brightness dispersion saturation granularity frequency sharpness distortFactor moveDistance progress
     { { 0.3f, 0.5f, 0.3f }, 1.0f, 0.2f, 0.2f, { 10.1f, 10.1f }, 2.1f, 1.0f, { 0.1f, 0.1f }, 0.0f, 0.0f },
     { { 0.2f, 0.2f, 0.2f }, 5.0f, 1.0f, 2.0f, { 2.1f, 2.1f }, 1.0f, 1.5f, { 0.2f, 0.3f }, 1.0f, 1.0f },
@@ -74,7 +74,7 @@ std::vector<DistortChromaInfo> DistortChromaParams = {
     { { 0.6f, 0.2f, 0.2f }, 1.2f, 0.2f, 0.2f, { 6.1f, 6.1f }, 0.2f, 0.2f, { -0.2f, 0.3f }, 0.2f, 0.2f },
 };
 
-std::vector<DupoliNoiseMaskInfo> DupoliNoiseMaskParams = {
+const std::vector<DupoliNoiseMaskInfo> DupoliNoiseMaskParams = {
     { 5.0f, -1.0f, 1.5f },
     { -2.0f, 2.0f, 2.7f },
     { 20.5f, 3.0f, 1.0f },
@@ -83,7 +83,7 @@ std::vector<DupoliNoiseMaskInfo> DupoliNoiseMaskParams = {
     { 4.0f, 1.0f, 1.0f },
 };
 
-std::vector<RippleMaskInfo> RippleMaskParams = {
+const std::vector<RippleMaskInfo> RippleMaskParams = {
     { { 0.5f, 0.8f }, 0.5f, 0.1f, 0.0f },
     { { 0.5f, 0.4f }, 0.8f, 0.2f, 0.2f },
     { { 0.2f, 1.4f }, 0.7f, 0.3f, 0.0f },
@@ -125,17 +125,18 @@ void SetDistortChromaRippleMask(std::shared_ptr<RSNGDistortChroma> distortChroma
     distortChroma->Setter<DistortChromaMaskTag>(alphaMask);
 }
 
+constexpr int kColumnCount = 2;
+
 GRAPHIC_TEST(DistortChromaTest, EFFECT_TEST, Set_DistortChroma_DupoliNoiseMask_Test)
 {
-    int columnCount = 2;
-    int rowCount = DistortChromaParams.size();
-    auto sizeX = screenWidth / columnCount;
-    auto sizeY = screenHeight * columnCount / rowCount;
+    int rowCount = static_cast<int>(DistortChromaParams.size());
+    auto sizeX = screenWidth / kColumnCount;
+    auto sizeY = screenHeight * kColumnCount / rowCount;
     for (size_t index = 0; index < DistortChromaParams.size(); ++index) {
         auto distortChroma = std::make_shared<RSNGDistortChroma>();
         SetParameter(distortChroma, index);
-        int x = (index % columnCount) * sizeX;
-        int y = (index / columnCount) * sizeY;
+        int x = static_cast<int>(index % kColumnCount) * sizeX;
+        int y = static_cast<int>(index / kColumnCount) * sizeY;
         auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
         backgroundTestNode->SetForegroundShader(distortChroma);
         GetRootNode()->AddChild(backgroundTestNode);
@@ -145,16 +146,15 @@ GRAPHIC_TEST(DistortChromaTest, EFFECT_TEST, Set_DistortChroma_DupoliNoiseMask_T
 
 GRAPHIC_TEST(DistortChromaTest, EFFECT_TEST, Set_DistortChroma_RippleMask_Test)
 {
-    int columnCount = 2;
-    int rowCount = DistortChromaParams.size();
-    auto sizeX = screenWidth / columnCount;
-    auto sizeY = screenHeight * columnCount / rowCount;
+    int rowCount = static_cast<int>(DistortChromaParams.size());
+    auto sizeX = screenWidth / kColumnCount;
+    auto sizeY = screenHeight * kColumnCount / rowCount;
     for (size_t index = 0; index < DistortChromaParams.size(); ++index) {
         auto distortChroma = std::make_shared<RSNGDistortChroma>();
         SetParameter(distortChroma, index);
         SetDistortChromaRippleMask(distortChroma, index);
-        int x = (index % columnCount) * sizeX;
-        int y = (index / columnCount) * sizeY;
+        int x = static_cast<int>(index % kColumnCount) * sizeX;
+        int y = static_cast<int>(index / kColumnCount) * sizeY;
         auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
         backgroundTestNode->SetForegroundShader(distortChroma);
         GetRootNode()->AddChild(backgroundTestNode);
