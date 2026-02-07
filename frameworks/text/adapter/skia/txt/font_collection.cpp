@@ -16,22 +16,29 @@
 #include "font_collection.h"
 
 #include <algorithm>
-#include <list>
 #include <memory>
-#include <mutex>
 #include <set>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "text_bundle_config_parser.h"
+#include "text/typeface.h"
 #include "txt/platform.h"
 #include "txt/text_style.h"
+#include "txt/variation_font_cache.h"
 
 namespace txt {
-FontCollection::FontCollection() : enableFontFallback_(true) {}
+FontCollection::FontCollection()
+    : enableFontFallback_(true),
+      variationFontCache_(std::make_unique<VariationFontCache>()) {}
 
-FontCollection::~FontCollection() {}
+FontCollection::~FontCollection()
+{
+    variationFontCache_->SetCacheRemoveCallback(nullptr);
+    if (sktFontCollection_ != nullptr) {
+        sktFontCollection_->registerCloneTypefaceCallback(nullptr);
+    }
+}
 
 size_t FontCollection::GetFontManagersCount() const
 {
@@ -141,6 +148,31 @@ sk_sp<skia::textlayout::FontCollection> FontCollection::CreateSktFontCollection(
         if (!enableFontFallback_) {
             sktFontCollection_->disableFontFallback();
         }
+        // Register internal clone callback using std::bind
+        // This callback handles variation typeface cloning through VariationFontCache
+        auto internalCallback = [this](
+            std::shared_ptr<RSTypeface> typeface,
+            const std::optional<skia::textlayout::FontArguments>& fontArgs)
+            -> std::optional<std::shared_ptr<RSTypeface>> {
+            if (variationFontCache_ == nullptr) {
+                return std::nullopt;
+            }
+            // Call VariationFontCache to register/retrieve variation typeface
+            auto result = variationFontCache_->RegisterVariationTypeface(typeface, fontArgs);
+            // Return nullopt if result is same as original (no new variation created)
+            // Return the variation typeface otherwise
+            if (result != nullptr && result != typeface) {
+                return result;
+            }
+            return std::nullopt;
+        };
+        sktFontCollection_->registerCloneTypefaceCallback(internalCallback);
+        auto removeCallback = [this](uint32_t uniqueId) {
+            if (sktFontCollection_) {
+                sktFontCollection_->removeCacheByUniqueId(uniqueId);
+            }
+        };
+        variationFontCache_->SetCacheRemoveCallback(removeCallback);
     }
 
     return sktFontCollection_;
@@ -173,4 +205,10 @@ void FontCollection::RemoveCacheByUniqueId(uint32_t uniqueId)
     }
 }
 
+void FontCollection::RemoveVariationCacheByOriginalUniqueId(uint32_t originalUniqueId)
+{
+    if (variationFontCache_ != nullptr) {
+        variationFontCache_->RemoveByOriginalUniqueId(originalUniqueId);
+    }
+}
 } // namespace txt

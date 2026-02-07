@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <string>
 #include <shared_mutex>
@@ -26,6 +27,7 @@
 #include "modules/skparagraph/include/FontCollection.h"
 #include "txt/asset_font_manager.h"
 #include "txt/text_style.h"
+#include "txt/variation_font_cache.h"
 #include "utils.h"
 
 namespace txt {
@@ -54,6 +56,8 @@ public:
 
     void RemoveCacheByUniqueId(uint32_t uniqueId);
 
+    // Remove all cached variations for a given original uniqueId
+    void RemoveVariationCacheByOriginalUniqueId(uint32_t originalUniqueId);
 private:
     std::shared_ptr<RSFontMgr> defaultFontManager_{nullptr};
     std::shared_ptr<RSFontMgr> assetFontManager_{nullptr};
@@ -67,6 +71,9 @@ private:
 
     std::vector<std::shared_ptr<RSFontMgr>> GetFontManagerOrder() const;
     void UpdateDefaultFamiliesInner();
+
+    // Variation font cache - owned by txt::FontCollection
+    std::unique_ptr<VariationFontCache> variationFontCache_{nullptr};
 
     DISALLOW_COPY_AND_ASSIGN(FontCollection);
 };
