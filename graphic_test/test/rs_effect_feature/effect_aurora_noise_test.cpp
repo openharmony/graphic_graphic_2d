@@ -151,12 +151,22 @@ GRAPHIC_TEST(AuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Foreground_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        auto containerNode = RSCanvasNode::Create();
+        containerNode->SetBounds({x, y, sizeX, sizeY});
+        containerNode->SetFrame({x, y, sizeX, sizeY});
+        containerNode->SetBackgroundColor(0xff102040);
+
+        auto backgroundNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
+        backgroundNode->SetBounds({0, 0, sizeX, sizeY});
+        backgroundNode->SetFrame({0, 0, sizeX, sizeY});
         backgroundNode->SetForegroundShader(shader);
-        GetRootNode()->AddChild(backgroundNode);
+
+        containerNode->AddChild(backgroundNode);
+        GetRootNode()->AddChild(containerNode);
         RegisterNode(backgroundNode);
+        RegisterNode(containerNode);
         if (captureNode == nullptr) {
-            captureNode = backgroundNode;
+            captureNode = containerNode;
         }
     }
 
@@ -165,6 +175,8 @@ GRAPHIC_TEST(AuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Foreground_Test)
     auto callback = std::make_shared<AuroraNoiseCaptureCallback>();
     RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(captureNode, callback);
     EXPECT_TRUE(CheckSurfaceCaptureCallback(callback));
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 } // namespace OHOS::Rosen
