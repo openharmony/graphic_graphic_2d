@@ -111,16 +111,18 @@ void DoRegisterTypeface()
     uint64_t uniqueId1 = static_cast<NodeId>(g_pid) << 32 | GetData<uint32_t>();
     uint32_t size = GetData<uint32_t>();
     auto ashmem = Ashmem::CreateAshmem("test", size);
-    ashmem->MapReadAndWriteAshmem();
-    option.SetFlags(MessageOption::TF_SYNC);
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    Drawing::SharedTypeface sharedTypeface;
-    sharedTypeface.id_ = uniqueId1;
-    sharedTypeface.size_ = size;
-    sharedTypeface.index_ = GetData<uint32_t>();
-    sharedTypeface.fd_ = ashmem->GetAshmemFd();
-    RSMarshallingHelper::Marshalling(dataParcel, sharedTypeface);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    if (ashmem != nullptr) {
+        ashmem->MapReadAndWriteAshmem();
+        option.SetFlags(MessageOption::TF_SYNC);
+        dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        Drawing::SharedTypeface sharedTypeface;
+        sharedTypeface.id_ = uniqueId1;
+        sharedTypeface.size_ = size;
+        sharedTypeface.index_ = GetData<uint32_t>();
+        sharedTypeface.fd_ = ashmem->GetAshmemFd();
+        RSMarshallingHelper::Marshalling(dataParcel, sharedTypeface);
+        toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    }
 }
 
 void DoRegisterSharedTypeface()
