@@ -115,7 +115,7 @@ RSRenderThread& RSRenderThread::Instance()
 
 RSRenderThread::RSRenderThread()
 {
-    FontCollection::RegisterUnloadFontFinishCallback([](const FontCollection*, const FontEventInfo& info) {
+    auto fontCollectionReleaseCallback = [](const FontCollection*, const FontEventInfo& info) {
         std::vector uniqueIds = info.uniqueIds;
         auto task = [uniqueIds]() {
             auto context = RSRenderThread::Instance().GetRenderContext()->GetDrGPUContext();
@@ -124,7 +124,9 @@ RSRenderThread::RSRenderThread()
             }
         };
         RSRenderThread::Instance().PostTask(task);
-    });
+    };
+    FontCollection::RegisterUnloadFontFinishCallback(fontCollectionReleaseCallback);
+    FontCollection::RegisterFreeFontCacheCallback(fontCollectionReleaseCallback);
     mainFunc_ = [&]() {
         uint64_t renderStartTimeStamp = jankDetector_->GetSysTimeNs();
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));

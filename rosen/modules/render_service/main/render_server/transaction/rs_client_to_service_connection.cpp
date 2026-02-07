@@ -2442,12 +2442,13 @@ int32_t RSClientToServiceConnection::RegisterTypeface(Drawing::SharedTypeface& s
         return -1;
     }
     int realSize = AshmemGetSize(sharedTypeface.fd_);
-    if (realSize < 0 || static_cast<uint32_t>(realSize) < sharedTypeface.size_) {
-        RS_LOGE("RegisterTypeface, realSize < 0 or realSize < given size");
+    if (realSize < 0) {
+        RS_LOGE("RegisterTypeface, realSize < 0");
         ::close(sharedTypeface.fd_);
         needUpdate = -1;
         return -1;
     }
+    sharedTypeface.size_ = static_cast<uint32_t>(realSize);
     auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
     if (tf != nullptr) {
         ::close(sharedTypeface.fd_);
