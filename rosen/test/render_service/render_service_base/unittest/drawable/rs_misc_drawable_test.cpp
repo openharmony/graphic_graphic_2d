@@ -780,11 +780,12 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable007, TestSize.Level1)
     // Clear stagingColorPicker_ to test nullptr branch
     drawable->stagingColorPicker_ = nullptr;
 
-    // Prepare should return early and not set needExecute
+    // Prepare should return early and not set needColorPick
     uint64_t vsyncTime = 1000000000; // 1 second in nanoseconds
-    drawable->Prepare(vsyncTime);
+    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
 
-    EXPECT_FALSE(drawable->needExecute_.load(std::memory_order_relaxed));
+    EXPECT_FALSE(needColorPick);
+    EXPECT_FALSE(needSync);
 }
 
 /**
@@ -808,11 +809,12 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable008, TestSize.Level1)
     params->interval = 0;
     drawable->stagingColorPicker_ = params;
 
-    // Prepare should return early and not set needExecute
+    // Prepare should return early and not set needColorPick
     uint64_t vsyncTime = 1000000000;
-    drawable->Prepare(vsyncTime);
+    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
 
-    EXPECT_FALSE(drawable->needExecute_.load(std::memory_order_relaxed));
+    EXPECT_FALSE(needColorPick);
+    EXPECT_FALSE(needSync);
 }
 
 /**
@@ -839,9 +841,10 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable009, TestSize.Level1)
 
     // vsyncTime is 1500ms (1000000000 ns = 1000ms), interval not elapsed
     uint64_t vsyncTime = 1500000000;
-    drawable->Prepare(vsyncTime);
+    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
 
-    EXPECT_FALSE(drawable->needExecute_.load(std::memory_order_relaxed));
+    EXPECT_FALSE(needColorPick);
+    EXPECT_TRUE(needSync); // stagingNeedColorPick_ changed from true to false
 }
 
 /**
@@ -868,9 +871,10 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable010, TestSize.Level1)
 
     // vsyncTime is 2500ms (2500000000 ns), interval has elapsed (2500 >= 1000 + 1000)
     uint64_t vsyncTime = 2500000000;
-    drawable->Prepare(vsyncTime);
+    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
 
-    EXPECT_TRUE(drawable->needExecute_.load(std::memory_order_relaxed));
+    EXPECT_TRUE(needColorPick);
+    EXPECT_TRUE(needSync); // stagingNeedColorPick_ changed from false to true
     EXPECT_EQ(drawable->lastUpdateTime_, 2500u); // lastUpdateTime_ should be updated
 }
 
@@ -897,18 +901,20 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable011, TestSize.Level1)
     drawable->lastUpdateTime_ = 1000;
     drawable->isTaskScheduled_ = false;
 
-    // vsyncTime is 1500ms, interval not elapsed but task should be scheduled
+    // vsyncTime is 1500ms, interval not elapsed (1500 < 1000 + 1000) so task should be scheduled
     uint64_t vsyncTime = 1500000000;
-    drawable->Prepare(vsyncTime);
+    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
 
     // Task should be scheduled (isTaskScheduled_ set to true)
     // Note: We can't easily verify the actual task was posted without mocking
-    EXPECT_FALSE(drawable->needExecute_.load(std::memory_order_relaxed));
+    EXPECT_FALSE(needColorPick);
+    EXPECT_FALSE(needSync); // stagingNeedColorPick_ stays false, darkMode unchanged
+    EXPECT_TRUE(drawable->isTaskScheduled_);
 }
 
 /**
  * @tc.name: RSColorPickerDrawable012
- * @tc.desc: Test OnDraw with needExecute logic
+ * @tc.desc: Test OnDraw with needColorPick logic and OnSync
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -927,19 +933,27 @@ HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable012, TestSize.Level1)
         DrawableV2::RSColorPickerDrawable::OnGenerate(node));
     ASSERT_NE(drawable, nullptr);
 
-    // Set needExecute to true
-    drawable->needExecute_.store(true, std::memory_order_relaxed);
+    // Test OnSync syncs needColorPick_ from stagingNeedColorPick_
+    drawable->stagingNeedColorPick_ = true;
+    drawable->OnSync();
+    EXPECT_TRUE(drawable->needColorPick_);
 
+    drawable->stagingNeedColorPick_ = false;
+    drawable->OnSync();
+    EXPECT_FALSE(drawable->needColorPick_);
+
+    // Test with different needColorPick values
+    drawable->needColorPick_ = true;
     auto canvas = std::make_shared<Drawing::Canvas>();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     auto rect = std::make_shared<Drawing::Rect>();
 
-    // OnDraw should execute color picking when needExecute is true
+    // OnDraw should execute color picking when needColorPick is true
     drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 
-    // Set needExecute to false and test again
-    drawable->needExecute_.store(false, std::memory_order_relaxed);
+    // Set needColorPick to false and test again
+    drawable->needColorPick_ = false;
     drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 

@@ -17,7 +17,10 @@
 #define RENDER_SERVICE_BASE_PROPERTY_RS_COLOR_PICKER_DEF_H
 
 #include <cstdint>
+#include <optional>
 #include <utility>
+
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -73,6 +76,8 @@ struct ColorPickerParam {
     // {darkThreshold, lightThreshold} (0-255).
     // Notify when luminance drops below darkThreshold or rises above lightThreshold.
     std::pair<uint32_t, uint32_t> notifyThreshold = { 150, 220 };
+    // Optional custom rect for color picking(left, top, right, bottom)
+    std::optional<Drawing::Rect> rect;
 
     ColorPickerParam() = default;
     ColorPickerParam(ColorPlaceholder ph, ColorPickStrategyType st, uint64_t itv)
@@ -82,7 +87,7 @@ struct ColorPickerParam {
     bool operator==(const ColorPickerParam& other) const
     {
         return placeholder == other.placeholder && strategy == other.strategy && interval == other.interval &&
-               notifyThreshold == other.notifyThreshold;
+               notifyThreshold == other.notifyThreshold && rect == other.rect;
     }
 };
 } // namespace Rosen

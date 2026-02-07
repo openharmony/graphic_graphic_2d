@@ -1590,4 +1590,32 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest009, testing::ext:
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, bounds, true);
 }
 
+/**
+ * @tc.name: PickColorAndGpuScaleImageTest001
+ * @tc.desc: test PickColor and GpuScaleImage null handling and void* semaphore
+ * @tc.type: FUNC
+ * @tc.require: issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, PickColorAndGpuScaleImageTest001, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    Drawing::Canvas canvas;
+    auto gpuContext = canvas.GetGPUContext();
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::ColorQuad color;
+
+    // PickColor: null context/image should return false
+    EXPECT_FALSE(utils->PickColor(nullptr, image, color));
+    EXPECT_FALSE(utils->PickColor(gpuContext, nullptr, color));
+
+    // GpuScaleImage: null context/image/invalid should return nullptr
+    EXPECT_EQ(utils->GpuScaleImage(nullptr, image), nullptr);
+    EXPECT_EQ(utils->GpuScaleImage(gpuContext, nullptr), nullptr);
+    EXPECT_EQ(utils->GpuScaleImage(gpuContext, image), nullptr); // invalid dims
+
+    // void* semaphore parameter (default nullptr, works on all backends)
+    utils->PickColor(gpuContext, image, color, nullptr);
+    utils->GpuScaleImage(gpuContext, image, nullptr);
+}
+
 } // namespace OHOS::Rosen

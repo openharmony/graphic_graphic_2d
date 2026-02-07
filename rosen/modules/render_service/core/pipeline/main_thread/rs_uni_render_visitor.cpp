@@ -94,6 +94,7 @@
 // blur predict
 #include "rs_frame_blur_predict.h"
 #include "rs_uni_render_visitor.h"
+
 #include "drawable/rs_misc_drawable.h"
 
 #undef LOG_TAG
@@ -884,9 +885,6 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     }
     rsScreenNodeChildNum_ = 0;
     RSHdrUtil::LuminanceChangeSetDirty(node);
-
-    // Clear ColorPicker disabled surfaces from previous frame before Prepare phase
-    hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
 
     QuickPrepareChildren(node);
     TryNotifyUIBufferAvailable();
@@ -3301,9 +3299,9 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (nodeParent == nullptr) {
         return;
     }
-    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter()
     // Handle ColorPickerDrawable - MERGE into filter handling
-    || node.GetColorPickerDrawable()) {
+    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter() ||
+        node.GetColorPickerDrawable()) {
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }
@@ -3488,6 +3486,7 @@ void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
             continue;
         }
 
+        // Prepare ColorPicker drawable for disable decision
         PrepareColorPickerDrawable(*filterNode);
 
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateFilterRegionInSkippedSurfaceNode node[%" PRIu64 "]", filterNode->GetId());
@@ -3513,6 +3512,7 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
             continue;
         }
 
+        // Prepare ColorPicker drawable for disable decision
         PrepareColorPickerDrawable(*filterNode);
 
         RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterNodeInSkippedSubTreeNeedClearCache node[%lld]", filterNode->GetId());
@@ -3576,6 +3576,7 @@ void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
             continue;
         }
 
+        // Prepare ColorPicker drawable for disable decision
         PrepareColorPickerDrawable(*filterNode);
 
         auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode);
@@ -4157,28 +4158,19 @@ bool RSUniRenderVisitor::IsCurrentSubTreeForcePrepare(RSRenderNode& node)
     return false;
 }
 
-void RSUniRenderVisitor::PrepareColorPickerDrawable(const RSRenderNode& node)
+void RSUniRenderVisitor::PrepareColorPickerDrawable(RSRenderNode& node)
 {
-    auto colorPickerDrawable = node.GetColorPickerDrawable();
-    if (!colorPickerDrawable) {
+    if (!node.GetColorPickerDrawable()) {
         return;
     }
-
-    RS_OPTIONAL_TRACE_NAME_FMT(
-        "ColorPicker: Preparing in filter iteration node id:%" PRIu64, node.GetId());
-
-    auto drawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(colorPickerDrawable);
-    if (drawable) {
-        drawable->SetIsSystemDarkColorMode(RSMainThread::Instance()->GetGlobalDarkColorMode());
-        uint64_t vsyncTime = RSMainThread::Instance()->GetCurrentVsyncTime();
-        drawable->Prepare(vsyncTime);
-        bool needExecute = drawable->NeedExecute();
-        if (needExecute && curSurfaceNode_) {
-            // Get the ColorPicker rect from current surface node (in screen coordinates)
-            RectI colorPickerRect = curSurfaceNode_->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-            // Store surface ID with its rect for intersection checking later
-            hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(), colorPickerRect);
-        }
+    const auto* ctx = RSMainThread::Instance();
+    const bool needColorPick =
+        node.PrepareColorPickerForExecution(ctx->GetCurrentVsyncTime(), ctx->GetGlobalDarkColorMode());
+    if (needColorPick && curSurfaceNode_) {
+        // Get the ColorPicker rect from current surface node (in screen coordinates)
+        RectI colorPickerRect = curSurfaceNode_->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        // Store surface ID with its rect for intersection checking later
+        hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(), colorPickerRect);
     }
 }
 
