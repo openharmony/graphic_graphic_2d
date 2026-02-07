@@ -14,8 +14,10 @@
  */
 
 #include <algorithm>
+#include <unistd.h>
 
 #include "rs_graphic_test.h"
+#include "rs_graphic_test_director.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
@@ -27,6 +29,7 @@ namespace {
 
 constexpr size_t screenWidth = 1200;
 constexpr size_t screenHeight = 2000;
+constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100 ms
 
 struct BorderLightParams {
     Vector3f position;
@@ -219,6 +222,9 @@ GRAPHIC_TEST(BorderLightTest, EFFECT_TEST, Set_Border_Light_Background_Test)
         GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 GRAPHIC_TEST(BorderLightTest, EFFECT_TEST, Set_Border_Light_Foreground_Test)
@@ -237,11 +243,23 @@ GRAPHIC_TEST(BorderLightTest, EFFECT_TEST, Set_Border_Light_Foreground_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        auto containerNode = RSCanvasNode::Create();
+        containerNode->SetBounds({x, y, sizeX, sizeY});
+        containerNode->SetFrame({x, y, sizeX, sizeY});
+        containerNode->SetBackgroundColor(0xff182028);
+
+        auto backgroundNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
+        backgroundNode->SetBounds({0, 0, sizeX, sizeY});
+        backgroundNode->SetFrame({0, 0, sizeX, sizeY});
         backgroundNode->SetForegroundShader(shader);
-        GetRootNode()->AddChild(backgroundNode);
+        containerNode->AddChild(backgroundNode);
+        GetRootNode()->AddChild(containerNode);
         RegisterNode(backgroundNode);
+        RegisterNode(containerNode);
     }
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 } // namespace OHOS::Rosen
