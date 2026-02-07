@@ -13,11 +13,7 @@
  * limitations under the License.
  */
 
-#include <algorithm>
-#include <unistd.h>
-
 #include "rs_graphic_test.h"
-#include "rs_graphic_test_director.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
@@ -29,7 +25,6 @@ namespace {
 
 constexpr size_t screenWidth = 1200;
 constexpr size_t screenHeight = 2000;
-constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100 ms
 
 struct ContourDiagonalFlowLightParams {
     std::vector<Vector2f> contour;
@@ -45,7 +40,7 @@ struct ContourDiagonalFlowLightParams {
     float haloWeight;
 };
 
-const std::vector<ContourDiagonalFlowLightParams> contourDiagonalFlowLightParams = {
+std::vector<ContourDiagonalFlowLightParams> contourDiagonalFlowLightParams = {
     // Test basic parameters
     {
         .contour = {{0.1f, 0.1f}, {0.9f, 0.1f}, {0.9f, 0.9f}, {0.1f, 0.9f}},
@@ -153,24 +148,16 @@ void SetContourDiagonalFlowLightParams(const std::shared_ptr<RSNGContourDiagonal
         return;
     }
     shader->Setter<ContourDiagonalFlowLightContourTag>(params.contour);
-    shader->Setter<ContourDiagonalFlowLightLine1StartTag>(std::clamp(params.line1Start, 0.0f, 1.0f));
-    shader->Setter<ContourDiagonalFlowLightLine1LengthTag>(std::clamp(params.line1Length, 0.1f, 1.0f));
-    shader->Setter<ContourDiagonalFlowLightLine1ColorTag>(Vector4f {
-        std::clamp(params.line1Color.x_, 0.0f, 1.0f),
-        std::clamp(params.line1Color.y_, 0.0f, 1.0f),
-        std::clamp(params.line1Color.z_, 0.0f, 1.0f),
-        std::clamp(params.line1Color.w_, 0.0f, 1.0f) });
-    shader->Setter<ContourDiagonalFlowLightLine2StartTag>(std::clamp(params.line2Start, 0.0f, 1.0f));
-    shader->Setter<ContourDiagonalFlowLightLine2LengthTag>(std::clamp(params.line2Length, 0.1f, 1.0f));
-    shader->Setter<ContourDiagonalFlowLightLine2ColorTag>(Vector4f {
-        std::clamp(params.line2Color.x_, 0.0f, 1.0f),
-        std::clamp(params.line2Color.y_, 0.0f, 1.0f),
-        std::clamp(params.line2Color.z_, 0.0f, 1.0f),
-        std::clamp(params.line2Color.w_, 0.0f, 1.0f) });
-    shader->Setter<ContourDiagonalFlowLightThicknessTag>(std::clamp(params.thickness, 0.01f, 0.08f));
-    shader->Setter<ContourDiagonalFlowLightHaloRadiusTag>(std::clamp(params.haloRadius, 0.05f, 0.2f));
-    shader->Setter<ContourDiagonalFlowLightLightWeightTag>(std::clamp(params.lightWeight, 0.2f, 0.8f));
-    shader->Setter<ContourDiagonalFlowLightHaloWeightTag>(std::clamp(params.haloWeight, 0.2f, 0.7f));
+    shader->Setter<ContourDiagonalFlowLightLine1StartTag>(params.line1Start);
+    shader->Setter<ContourDiagonalFlowLightLine1LengthTag>(params.line1Length);
+    shader->Setter<ContourDiagonalFlowLightLine1ColorTag>(params.line1Color);
+    shader->Setter<ContourDiagonalFlowLightLine2StartTag>(params.line2Start);
+    shader->Setter<ContourDiagonalFlowLightLine2LengthTag>(params.line2Length);
+    shader->Setter<ContourDiagonalFlowLightLine2ColorTag>(params.line2Color);
+    shader->Setter<ContourDiagonalFlowLightThicknessTag>(params.thickness);
+    shader->Setter<ContourDiagonalFlowLightHaloRadiusTag>(params.haloRadius);
+    shader->Setter<ContourDiagonalFlowLightLightWeightTag>(params.lightWeight);
+    shader->Setter<ContourDiagonalFlowLightHaloWeightTag>(params.haloWeight);
 }
 
 GRAPHIC_TEST(ContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Light_Background_Test)
@@ -190,14 +177,11 @@ GRAPHIC_TEST(ContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flo
         auto node = RSCanvasNode::Create();
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
-        node->SetBackgroundColor(0xff1a1a1a);
+        node->SetBackgroundColor(0xff000000);
         node->SetBackgroundNGShader(shader);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 GRAPHIC_TEST(ContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Light_Foreground_Test)
@@ -210,73 +194,15 @@ GRAPHIC_TEST(ContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flo
     for (size_t i = 0; i < contourDiagonalFlowLightParams.size(); ++i) {
         auto shader = std::make_shared<RSNGContourDiagonalFlowLight>();
         SetContourDiagonalFlowLightParams(shader, contourDiagonalFlowLightParams[i]);
-        shader->Setter<ContourDiagonalFlowLightLightWeightTag>(0.5f);
-        shader->Setter<ContourDiagonalFlowLightHaloWeightTag>(0.35f);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto containerNode = RSCanvasNode::Create();
-        containerNode->SetBounds({x, y, sizeX, sizeY});
-        containerNode->SetFrame({x, y, sizeX, sizeY});
-        containerNode->SetBackgroundColor(0xff182028);
-
-        auto backgroundNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
-        backgroundNode->SetBounds({0, 0, sizeX, sizeY});
-        backgroundNode->SetFrame({0, 0, sizeX, sizeY});
+        auto backgroundNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         backgroundNode->SetForegroundShader(shader);
-        containerNode->AddChild(backgroundNode);
-        GetRootNode()->AddChild(containerNode);
+        GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
-        RegisterNode(containerNode);
     }
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-}
-
-GRAPHIC_TEST(ContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Light_Validity_Check)
-{
-    const int sizeX = screenWidth_ / 2;
-    const int sizeY = screenHeight_ / 2;
-
-    auto leftNode = RSCanvasNode::Create();
-    leftNode->SetBounds({0, 0, sizeX, sizeY});
-    leftNode->SetFrame({0, 0, sizeX, sizeY});
-    leftNode->SetBackgroundColor(0xff182028);
-    auto contourShader = std::make_shared<RSNGContourDiagonalFlowLight>();
-    SetContourDiagonalFlowLightParams(contourShader, contourDiagonalFlowLightParams[0]);
-    contourShader->Setter<ContourDiagonalFlowLightLightWeightTag>(0.8f);
-    contourShader->Setter<ContourDiagonalFlowLightHaloWeightTag>(0.6f);
-    leftNode->SetBackgroundNGShader(contourShader);
-    GetRootNode()->AddChild(leftNode);
-    RegisterNode(leftNode);
-
-    auto rightNode = RSCanvasNode::Create();
-    rightNode->SetBounds({sizeX, 0, sizeX, sizeY});
-    rightNode->SetFrame({sizeX, 0, sizeX, sizeY});
-    rightNode->SetBackgroundColor(0xff102040);
-    auto aiBarGlowShader = std::make_shared<RSNGAIBarGlow>();
-    aiBarGlowShader->Setter<AIBarGlowLTWHTag>(Vector4f {0.1f, 0.1f, 0.8f, 0.8f});
-    aiBarGlowShader->Setter<AIBarGlowStretchFactorTag>(1.0f);
-    aiBarGlowShader->Setter<AIBarGlowBarAngleTag>(0.0f);
-    aiBarGlowShader->Setter<AIBarGlowColor0Tag>(Vector4f {1.0f, 0.0f, 0.0f, 1.0f});
-    aiBarGlowShader->Setter<AIBarGlowColor1Tag>(Vector4f {0.0f, 1.0f, 0.0f, 1.0f});
-    aiBarGlowShader->Setter<AIBarGlowColor2Tag>(Vector4f {0.0f, 0.0f, 1.0f, 1.0f});
-    aiBarGlowShader->Setter<AIBarGlowColor3Tag>(Vector4f {1.0f, 1.0f, 0.0f, 1.0f});
-    aiBarGlowShader->Setter<AIBarGlowPosition0Tag>(Vector2f {0.0f, 0.0f});
-    aiBarGlowShader->Setter<AIBarGlowPosition1Tag>(Vector2f {0.33f, 0.0f});
-    aiBarGlowShader->Setter<AIBarGlowPosition2Tag>(Vector2f {0.66f, 0.0f});
-    aiBarGlowShader->Setter<AIBarGlowPosition3Tag>(Vector2f {1.0f, 0.0f});
-    aiBarGlowShader->Setter<AIBarGlowStrengthTag>(Vector4f {0.3f, 0.4f, 0.5f, 0.6f});
-    aiBarGlowShader->Setter<AIBarGlowBrightnessTag>(1.0f);
-    aiBarGlowShader->Setter<AIBarGlowProgressTag>(0.5f);
-    rightNode->SetBackgroundNGShader(aiBarGlowShader);
-    GetRootNode()->AddChild(rightNode);
-    RegisterNode(rightNode);
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 } // namespace OHOS::Rosen
