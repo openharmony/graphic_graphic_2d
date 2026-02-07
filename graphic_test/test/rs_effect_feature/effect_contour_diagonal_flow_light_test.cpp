@@ -14,8 +14,10 @@
  */
 
 #include <algorithm>
+#include <unistd.h>
 
 #include "rs_graphic_test.h"
+#include "rs_graphic_test_director.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
@@ -27,6 +29,7 @@ namespace {
 
 constexpr size_t screenWidth = 1200;
 constexpr size_t screenHeight = 2000;
+constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100 ms
 
 struct ContourDiagonalFlowLightParams {
     std::vector<Vector2f> contour;
@@ -192,6 +195,9 @@ GRAPHIC_TEST(ContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flo
         GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 GRAPHIC_TEST(ContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Light_Foreground_Test)
@@ -210,11 +216,67 @@ GRAPHIC_TEST(ContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flo
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        auto containerNode = RSCanvasNode::Create();
+        containerNode->SetBounds({x, y, sizeX, sizeY});
+        containerNode->SetFrame({x, y, sizeX, sizeY});
+        containerNode->SetBackgroundColor(0xff182028);
+
+        auto backgroundNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
+        backgroundNode->SetBounds({0, 0, sizeX, sizeY});
+        backgroundNode->SetFrame({0, 0, sizeX, sizeY});
         backgroundNode->SetForegroundShader(shader);
-        GetRootNode()->AddChild(backgroundNode);
+        containerNode->AddChild(backgroundNode);
+        GetRootNode()->AddChild(containerNode);
         RegisterNode(backgroundNode);
+        RegisterNode(containerNode);
     }
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+}
+
+GRAPHIC_TEST(ContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Light_Validity_Check)
+{
+    const int sizeX = screenWidth_ / 2;
+    const int sizeY = screenHeight_ / 2;
+
+    auto leftNode = RSCanvasNode::Create();
+    leftNode->SetBounds({0, 0, sizeX, sizeY});
+    leftNode->SetFrame({0, 0, sizeX, sizeY});
+    leftNode->SetBackgroundColor(0xff182028);
+    auto contourShader = std::make_shared<RSNGContourDiagonalFlowLight>();
+    SetContourDiagonalFlowLightParams(contourShader, contourDiagonalFlowLightParams[0]);
+    contourShader->Setter<ContourDiagonalFlowLightLightWeightTag>(0.8f);
+    contourShader->Setter<ContourDiagonalFlowLightHaloWeightTag>(0.6f);
+    leftNode->SetBackgroundNGShader(contourShader);
+    GetRootNode()->AddChild(leftNode);
+    RegisterNode(leftNode);
+
+    auto rightNode = RSCanvasNode::Create();
+    rightNode->SetBounds({sizeX, 0, sizeX, sizeY});
+    rightNode->SetFrame({sizeX, 0, sizeX, sizeY});
+    rightNode->SetBackgroundColor(0xff102040);
+    auto aiBarGlowShader = std::make_shared<RSNGAIBarGlow>();
+    aiBarGlowShader->Setter<AIBarGlowLTWHTag>(Vector4f {0.1f, 0.1f, 0.8f, 0.8f});
+    aiBarGlowShader->Setter<AIBarGlowStretchFactorTag>(1.0f);
+    aiBarGlowShader->Setter<AIBarGlowBarAngleTag>(0.0f);
+    aiBarGlowShader->Setter<AIBarGlowColor0Tag>(Vector4f {1.0f, 0.0f, 0.0f, 1.0f});
+    aiBarGlowShader->Setter<AIBarGlowColor1Tag>(Vector4f {0.0f, 1.0f, 0.0f, 1.0f});
+    aiBarGlowShader->Setter<AIBarGlowColor2Tag>(Vector4f {0.0f, 0.0f, 1.0f, 1.0f});
+    aiBarGlowShader->Setter<AIBarGlowColor3Tag>(Vector4f {1.0f, 1.0f, 0.0f, 1.0f});
+    aiBarGlowShader->Setter<AIBarGlowPosition0Tag>(Vector2f {0.0f, 0.0f});
+    aiBarGlowShader->Setter<AIBarGlowPosition1Tag>(Vector2f {0.33f, 0.0f});
+    aiBarGlowShader->Setter<AIBarGlowPosition2Tag>(Vector2f {0.66f, 0.0f});
+    aiBarGlowShader->Setter<AIBarGlowPosition3Tag>(Vector2f {1.0f, 0.0f});
+    aiBarGlowShader->Setter<AIBarGlowStrengthTag>(Vector4f {0.3f, 0.4f, 0.5f, 0.6f});
+    aiBarGlowShader->Setter<AIBarGlowBrightnessTag>(1.0f);
+    aiBarGlowShader->Setter<AIBarGlowProgressTag>(0.5f);
+    rightNode->SetBackgroundNGShader(aiBarGlowShader);
+    GetRootNode()->AddChild(rightNode);
+    RegisterNode(rightNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 } // namespace OHOS::Rosen
