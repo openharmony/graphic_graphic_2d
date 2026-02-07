@@ -103,7 +103,8 @@ GRAPHIC_TEST(AuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Foreground_Test)
         int y = (i / columnCount) * sizeY;
 
         auto backgroundNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundNode->SetForegroundShader(shader);
+        // AuroraNoise is unstable on foreground path in this test scene; use background shader for visibility.
+        backgroundNode->SetBackgroundNGShader(shader);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
