@@ -16,6 +16,7 @@
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 
 #include <memory>
+#include "parameters.h"
 #include <sys/mman.h>
 
 #include "draw/surface.h"
@@ -50,6 +51,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint32_t ALPHA_MASK = 0xFF000000;
 #ifdef RS_ENABLE_GPU
 inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
