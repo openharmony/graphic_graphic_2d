@@ -86,7 +86,7 @@ public:
 
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode);
 
-    ErrCode DropFrameByPid(const std::vector<int32_t> pidList);
+    ErrCode DropFrameByPid(const std::vector<int32_t> pidList, int32_t dropFrameLevel);
 
     ErrCode SetAncoForceDoDirect(bool direct, bool& res);
 
@@ -129,7 +129,7 @@ public:
         NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints);
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
-        std::shared_ptr<Media::PixelMap> &pixelMap);  
+        std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled = false);  
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom);
@@ -186,7 +186,6 @@ public:
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
     ErrCode ForceRefreshOneFrameWithNextVSync();
-    ErrCode SetAppWindowNum(uint32_t num);
     std::string GetBundleName(pid_t pid);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
     bool RemoveConnection(const sptr<RSIConnectionToken>& token);

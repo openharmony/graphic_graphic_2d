@@ -109,6 +109,7 @@ HWTEST_F(RsRenderComposerAgentTest, ForwardingMethods_NullAndNonNullBranches, Te
     nullAgent->OnScreenDisconnected();
     EXPECT_EQ(nullAgent->ClearFrameBuffers(true), GSERROR_INVALID_ARGUMENTS);
     nullAgent->OnScreenVBlankIdleCallback(static_cast<ScreenId>(0), 123456ULL);
+    nullAgent->HandlePowerStatus(POWER_STATUS_ON);
 
     // Non-null composer: methods should forward to composer and execute without crash
     auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
@@ -126,6 +127,7 @@ HWTEST_F(RsRenderComposerAgentTest, ForwardingMethods_NullAndNonNullBranches, Te
 
     // VBlank callback forwarding
     agent->OnScreenVBlankIdleCallback(static_cast<ScreenId>(5u), 98765ULL);
+    agent->HandlePowerStatus(POWER_STATUS_ON);
 }
 
 /**

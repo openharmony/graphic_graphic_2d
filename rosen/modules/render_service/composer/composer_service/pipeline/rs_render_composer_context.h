@@ -26,7 +26,7 @@ public:
     RSRenderComposerContext() = default;
     ~RSRenderComposerContext() = default;
 
-    std::vector<std::shared_ptr<RSLayer>> GetRSLayersVec();
+    std::vector<std::shared_ptr<RSLayer>> GetNeedCompositionLayersVec();
     std::shared_ptr<RSLayer> GetRSRenderLayer(RSLayerId rsLayerId);
     void AddRSRenderLayer(RSLayerId rsLayerId, std::shared_ptr<RSLayer> rsLayer);
     void RemoveRSRenderLayer(RSLayerId rsLayerId);

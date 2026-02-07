@@ -244,14 +244,6 @@ ErrCode RSClientToRenderConnection::ForceRefreshOneFrameWithNextVSync()
     return renderPipelineAgent_->ForceRefreshOneFrameWithNextVSync();
 }
 
-ErrCode RSClientToRenderConnection::SetAppWindowNum(uint32_t num)
-{
-    if (renderPipelineAgent_ == nullptr) {
-        return ERR_INVALID_VALUE;
-    }
-    return renderPipelineAgent_->SetAppWindowNum(num);
-}
-
 ErrCode RSClientToRenderConnection::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
@@ -488,7 +480,7 @@ ErrCode RSClientToRenderConnection::DropFrameByPid(const std::vector<int32_t>& p
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    return renderPipelineAgent_->DropFrameByPid(pidList);
+    return renderPipelineAgent_->DropFrameByPid(pidList, dropFrameLevel);
 }
 
 ErrCode RSClientToRenderConnection::SetAncoForceDoDirect(bool direct, bool& res)
@@ -637,6 +629,8 @@ std::string RSClientToRenderConnection::GetBundleName(pid_t pid)
         return {};
     }
     return renderPipelineAgent_->GetBundleName(pid);
+}
+
 int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
     ScreenId screenId, ScreenRotation logicalCorrection)
 {

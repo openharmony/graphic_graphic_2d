@@ -296,12 +296,12 @@ void HgmCore::SetPerformanceConfig(const PolicyConfigData::ScreenSetting& curScr
     }
     if (auto iter = curScreenSetting.performanceConfig.find("rsPhaseOffset");
         iter != curScreenSetting.performanceConfig.end() && XMLParser::IsNumber(iter->second)) {
-        rsPhaseOffset_.store(GetFixedVsyncOffset(std::stoll(it->second)));
+        rsPhaseOffset_.store(GetFixedVsyncOffset(std::stoll(iter->second)));
         isVsyncOffsetCustomized_.store(true);
     }
     if (auto iter = curScreenSetting.performanceConfig.find("appPhaseOffset");
         iter != curScreenSetting.performanceConfig.end() && XMLParser::IsNumber(iter->second)) {
-        appPhaseOffset_.store(GetFixedVsyncOffset(std::stoll(it->second)));
+        appPhaseOffset_.store(GetFixedVsyncOffset(std::stoll(iter->second)));
         isVsyncOffsetCustomized_.store(true);
     }
 }

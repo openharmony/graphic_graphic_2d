@@ -18,7 +18,7 @@
 #define LOG_TAG "RSRenderComposerContext"
 namespace OHOS {
 namespace Rosen {
-std::vector<std::shared_ptr<RSLayer>> RSRenderComposerContext::GetRSLayersVec()
+std::vector<std::shared_ptr<RSLayer>> RSRenderComposerContext::GetNeedCompositionLayersVec()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     std::vector<std::shared_ptr<RSLayer>> layersVector;
@@ -55,8 +55,8 @@ void RSRenderComposerContext::RemoveRSRenderLayer(RSLayerId rsLayerId)
         return;
     }
     auto surfaceName = (iter != layersMap_.end() && iter->second) ? iter->second->GetSurfaceName() : "";
-    RS_TRACE_NAME_FMT("RSRenderComposerContext::RemoveRSRenderLayer layerId: %" PRIu64 ", surfaceName: %s",
-        rsLayerId, surfaceName.c_str());
+    RS_TRACE_NAME_FMT("%s layerId: %" PRIu64 ", surfaceName: %s",
+        __func__, rsLayerId, surfaceName.c_str());
     RS_LOGI("%{public}s: removing layerId=%{public}" PRIu64 ", surfaceName=%{public}s",
         __func__, rsLayerId, surfaceName.c_str());
     layersMap_.erase(iter);

@@ -36,7 +36,7 @@ public:
 void HdiLayerSysTest::SetUpTestCase()
 {
     hdiLayer_ = HdiLayer::CreateHdiLayer(0);
-    rsLayer_ = std::make_shared<RSSurfaceLayer>();
+    rsLayer_ = std::make_shared<RSSurfaceLayer>(0, nullptr);
     hdiLayer_->Init(rsLayer_);
     hdiLayer_->UpdateRSLayer(rsLayer_);
 }

@@ -37,7 +37,7 @@ class RSSpecialLayerUtils {
 public:
     // Check if virtual screen region intersects with special layer
     static void CheckSpecialLayerIntersectMirrorDisplay(const RSLogicalDisplayRenderNode& mirrorNode,
-        RSLogicalDisplayRenderNode& sourceNode, bool enableVisibleRect);
+        RSLogicalDisplayRenderNode& sourceNode);
     static DisplaySpecialLayerState GetSpecialLayerStateInVisibleRect(
         RSLogicalDisplayRenderParams* displayParams, RSScreenRenderParams* screenParams);
     static DisplaySpecialLayerState GetSpecialLayerStateInSubTree(

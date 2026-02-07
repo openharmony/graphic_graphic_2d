@@ -56,10 +56,10 @@ HWTEST(RSLayerTransactionHandlerTest, AddRSLayerParcel_Null_Ignored, TestSize.Le
 {
     RSLayerTransactionHandler handler;
     std::shared_ptr<RSLayerParcel> nullParcel;
-    handler.AddRSLayerParcel(nullParcel, 0);
+    handler.AddRSLayerParcel(0, nullParcel);
     EXPECT_TRUE(handler.IsEmpty());
     handler.rsLayerTransactionData_ = std::make_unique<RSLayerTransactionData>();
-    handler.AddRSLayerParcel(nullParcel, 0);
+    handler.AddRSLayerParcel(0, nullParcel);
 }
 
 /**
@@ -79,7 +79,7 @@ HWTEST(RSLayerTransactionHandlerTest, Commit_WithNonEmpty_WithoutConnection_Fail
     auto zCmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
     RSLayerId id = static_cast<RSLayerId>(100u);
     std::shared_ptr<RSLayerParcel> parcel = std::make_shared<RSUpdateRSLayerCmd>(id, zCmd);
-    handler.AddRSLayerParcel(parcel, id);
+    handler.AddRSLayerParcel(id, parcel);
     EXPECT_FALSE(handler.IsEmpty());
 
     ComposerInfo info;
@@ -103,7 +103,7 @@ HWTEST(RSLayerTransactionHandlerTest, SetProxy_NonNull_CommitFail_KeepsData, Tes
     auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(3);
     auto zCmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
     std::shared_ptr<RSLayerParcel> parcel = std::make_shared<RSUpdateRSLayerCmd>(id, zCmd);
-    handler.AddRSLayerParcel(parcel, id);
+    handler.AddRSLayerParcel(id, parcel);
     ASSERT_FALSE(handler.IsEmpty());
 
     class MockRemoteLocal : public IRemoteObject {

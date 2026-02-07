@@ -200,18 +200,6 @@ ErrCode RSRenderPipelineAgent::ForceRefreshOneFrameWithNextVSync()
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::SetAppWindowNum(uint32_t num)
-{
-    if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [renderPipeline = rsRenderPipeline_, num]() -> void {
-        renderPipeline->GetMainThread()->SetAppWindowNum(num);
-    };
-    rsRenderPipeline_->PostMainThreadTask(task);
-    return ERR_OK; 
-}
-
 ErrCode RSRenderPipelineAgent::CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success)
 {
     if (rsRenderPipeline_ == nullptr) {
@@ -746,15 +734,15 @@ ErrCode RSRenderPipelineAgent::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSta
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::DropFrameByPid(const std::vector<int32_t> pidList)
+ErrCode RSRenderPipelineAgent::DropFrameByPid(const std::vector<int32_t> pidList, int32_t dropFrameLevel)
 {
     if (rsRenderPipeline_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
     rsRenderPipeline_->ScheduleMainThreadTask(
-        [renderPipeline = rsRenderPipeline_, pidList]() {
+        [renderPipeline = rsRenderPipeline_, pidList, dropFrameLevel]() {
             // don't use 'this' directly
-            renderPipeline->GetMainThread()->AddPidNeedDropFrame(pidList);
+            renderPipeline->GetMainThread()->AddPidNeedDropFrame(pidList, dropFrameLevel);
         }
     );
     return ERR_OK;
@@ -1218,7 +1206,7 @@ int32_t RSRenderPipelineAgent::UnRegisterSurfaceOcclusionChangeCallback(NodeId i
 }
 
 ErrCode RSRenderPipelineAgent::CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
-    std::shared_ptr<Media::PixelMap> &pixelMap)
+    std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled)
 {
     if (rsRenderPipeline_ != nullptr) {
         OHOS::Media::Rect rect = {
@@ -1228,7 +1216,7 @@ ErrCode RSRenderPipelineAgent::CreatePixelMapFromSurface(sptr<Surface> surface, 
             .height = srcRect.h,
         };
         RSBackgroundThread::Instance().PostSyncTask(
-            [surface, rect, &pixelMap]() { pixelMap = Rosen::CreatePixelMapFromSurface(surface, rect); });
+            [surface, rect, &pixelMap, transformEnabled]() { pixelMap = Rosen::CreatePixelMapFromSurface(surface, rect, transformEnabled); });
         return ERR_OK;
     }
     return ERR_INVALID_VALUE;
@@ -1478,7 +1466,7 @@ void RSRenderPipelineAgent::NotifyHwcEventToRender(
     if (rsRenderPipeline_ == nullptr) {
         return;
     }
-    RSUniHwcEventManager::GetInstance().OnHwcEvent(deviceId, eventId, eventData, nullptr);
+    RSUniHwcPrevalidateUtil::GetInstance().HandleHwcEvent(deviceId, eventId, eventData);
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -1491,6 +1479,7 @@ ErrCode RSRenderPipelineAgent::SetOverlayDisplayMode(int32_t mode)
     return RSOverlayDisplayManager::Instance().SetOverlayDisplayMode(mode) == 0 ? ERR_OK : ERR_INVALID_VALUE;
 }
 #endif
+
 void RSRenderPipelineAgent::SetVmaCacheStatus(bool flag)
 {
     if (rsRenderPipeline_ == nullptr) {

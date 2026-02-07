@@ -122,7 +122,7 @@ HWTEST_F(RSLayerTransactionTest, AddLayerTest, Level1)
     };
     auto parcel = std::make_shared<FakeLayerParcel>();
     std::shared_ptr<RSLayerParcel> baseParcel = std::static_pointer_cast<RSLayerParcel>(parcel);
-    handler_->AddRSLayerParcel(baseParcel, 0);
+    handler_->AddRSLayerParcel(0, baseParcel);
     ASSERT_EQ(handler_->rsLayerTransactionData_->GetCommandCount(), 1u);
 }
 

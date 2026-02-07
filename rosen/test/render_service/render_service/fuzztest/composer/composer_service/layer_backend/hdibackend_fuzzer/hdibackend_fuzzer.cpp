@@ -127,7 +127,7 @@ namespace OHOS {
         // test
         OutputPtr outputptr = HdiOutput::CreateHdiOutput(screenId);
         outputptr->Init();
-        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
         std::vector<std::shared_ptr<RSLayer>> rsLayers;
         sptr<IConsumerSurface> cSurface = IConsumerSurface::Create();
         rsLayer->SetSurface(cSurface);

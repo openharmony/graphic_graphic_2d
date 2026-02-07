@@ -254,7 +254,7 @@ public:
         if (buffer != nullptr) {
             buffer_.seqNum = buffer->GetSeqNum();
             if (buffer_.bufferOwnerCount_) {
-                buffer_.bufferOwnerCount_->bufferId_ = buffer_.seqNum;
+                buffer_.bufferOwnerCount_->bufferId_ = buffer->GetBufferId();
             }
         }
         buffer_.acquireFence = acquireFence;

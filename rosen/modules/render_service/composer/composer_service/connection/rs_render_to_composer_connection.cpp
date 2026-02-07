@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,7 +28,7 @@ RSRenderToComposerConnection::RSRenderToComposerConnection(const std::string& na
 
 bool RSRenderToComposerConnection::CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData)
 {
-    RS_TRACE_NAME_FMT("RSRenderToComposerConnection::CommitLayers screenId:%" PRIu64, screenId_);
+    RS_TRACE_NAME_FMT("%s screenId:%" PRIu64, __func__, screenId_);
     if (transactionData.get() == nullptr) {
         RS_LOGE("%{public}s param nullptr", __func__);
         return false;
@@ -38,7 +38,7 @@ bool RSRenderToComposerConnection::CommitLayers(std::unique_ptr<RSLayerTransacti
 
 void RSRenderToComposerConnection::ClearFrameBuffers()
 {
-    RS_TRACE_NAME_FMT("RSRenderToComposerConnection::ClearFrameBuffers screenId:" PRIu64, screenId_);
+    RS_TRACE_NAME_FMT("%s screenId:" PRIu64, __func__, screenId_);
     if (rsRenderComposerAgent_ == nullptr) {
         RS_LOGE("%{public}s param illegal", __func__);
         return;
@@ -48,7 +48,7 @@ void RSRenderToComposerConnection::ClearFrameBuffers()
 
 void RSRenderToComposerConnection::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
-    RS_TRACE_NAME_FMT("RSRenderToComposerConnection::CleanLayerBufferBySurfaceId screenId:" PRIu64, screenId_);
+    RS_TRACE_NAME_FMT("%s screenId:" PRIu64, __func__, screenId_);
     if (surfaceId == 0 || rsRenderComposerAgent_ == nullptr) {
         RS_LOGE("%{public}s param illegal", __func__);
         return;
@@ -58,7 +58,7 @@ void RSRenderToComposerConnection::CleanLayerBufferBySurfaceId(uint64_t surfaceI
 
 void RSRenderToComposerConnection::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
 {
-    RS_TRACE_NAME_FMT("RSComposerConnection::OnScreenVBlankIdleCallback screenId:" PRIu64, screenId);
+    RS_TRACE_NAME_FMT("%s screenId:" PRIu64, __func__, screenId);
     if (rsRenderComposerAgent_ == nullptr) {
         RS_LOGE("%{public}s param nullptr", __func__);
         return;
@@ -68,8 +68,7 @@ void RSRenderToComposerConnection::OnScreenVBlankIdleCallback(ScreenId screenId,
 
 void RSRenderToComposerConnection::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
-    RS_TRACE_NAME_FMT("RSRenderToComposerConnection::ClearRedrawGPUCompositionCache screenId:%" PRIu64"",
-        screenId_);
+    RS_TRACE_NAME_FMT("%s screenId:%" PRIu64"", __func__, screenId_);
     if (rsRenderComposerAgent_ == nullptr) {
         RS_LOGE("%{public}s param illegal", __func__);
         return;
@@ -79,7 +78,7 @@ void RSRenderToComposerConnection::ClearRedrawGPUCompositionCache(const std::uno
 
 void RSRenderToComposerConnection::SetScreenBacklight(uint32_t level)
 {
-    RS_TRACE_NAME_FMT("RSComposerConnection::SetScreenBacklight level:%" PRIu32"", level);
+    RS_TRACE_NAME_FMT("%s level:%" PRIu32"", __func__, level);
     if (rsRenderComposerAgent_ == nullptr) {
         RS_LOGE("%{public}s param illegal", __func__);
         return;
@@ -90,7 +89,7 @@ void RSRenderToComposerConnection::SetScreenBacklight(uint32_t level)
 void RSRenderToComposerConnection::SetComposerToRenderConnection(
     const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
-    RS_TRACE_NAME_FMT("RSComposerConnection::SetComposerToRenderConnection");
+    RS_TRACE_NAME_FMT("%s", __func__);
     if (rsRenderComposerAgent_ == nullptr) {
         RS_LOGE("%{public}s param illegal", __func__);
         return;
@@ -100,7 +99,7 @@ void RSRenderToComposerConnection::SetComposerToRenderConnection(
 
 void RSRenderToComposerConnection::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
 {
-    RS_TRACE_NAME_FMT("RSRenderToComposerConnection::PreAllocProtectedFrameBuffers");
+    RS_TRACE_NAME_FMT("%s", __func__);
     if (rsRenderComposerAgent_ == nullptr) {
         RS_LOGE("%{public}s param illegal", __func__);
         return;

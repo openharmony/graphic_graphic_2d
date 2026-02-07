@@ -196,7 +196,7 @@ uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string& name,
 }
 
 void RSInterfaces::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
-    const std::vector<NodeId>& nodeList)
+    const std::vector<NodeId>& nodeIdList)
 {
     renderInterface_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
 }
@@ -383,7 +383,7 @@ bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::
 bool RSInterfaces::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
     bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return RSRenderInterface::GetInstance().TakeUICaptureInRangeWithConfig(beginNode, endNode,
+    return renderInterface_->TakeUICaptureInRangeWithConfig(beginNode, endNode,
         useBeginNodeSize, callback, captureConfig);
 }
 
@@ -770,12 +770,6 @@ int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t
     return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, nullptr);
 }
 
-void RSInterfaces::SetAppWindowNum(uint32_t num)
-{
-    renderInterface_->SetAppWindowNum(num);
-}
-
-
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSRenderInterface::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
@@ -986,7 +980,7 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 void RSInterfaces::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
-    renderInterface_->DropFrameByPid(pidList);
+    renderInterface_->DropFrameByPid(pidList, dropFrameLevel);
 }
 
 int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured)
@@ -1142,7 +1136,7 @@ bool RSInterfaces::AvcodecVideoGetRecent()
 
 int32_t RSInterfaces::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {
-    return RSRenderInterface::GetInstance().SetLogicalCameraRotationCorrection(id, logicalCorrection);
+    return renderInterface_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
 } // namespace Rosen
 } // namespace OHOS

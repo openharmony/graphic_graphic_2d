@@ -1097,7 +1097,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer composerClient is nullptr");
         return nullptr;
     }
-    RSLayerPtr layer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), surfaceHandler->GetNodeId());
+    RSLayerPtr layer = RSSurfaceLayer::Create(surfaceHandler->GetNodeId(), composerClient_->GetComposerContext());
     if (layer != nullptr) {
         layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
         layer->SetUniRenderFlag(true);
@@ -1149,7 +1149,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer composerClient is nullptr");
         return nullptr;
     }
-    RSLayerPtr layer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), surfaceHandler->GetNodeId());
+    RSLayerPtr layer = RSSurfaceLayer::Create(surfaceHandler->GetNodeId(), composerClient_->GetComposerContext());
     if (layer != nullptr) {
         layer->SetNodeId(node.GetId());
         layer->SetUniRenderFlag(true);
@@ -1183,7 +1183,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer composerClient is nullptr");
         return nullptr;
     }
-    auto layer = RSSurfaceRCDLayer::Create(composerClient_->GetComposerContext(), node.GetId());
+    auto layer = RSSurfaceRCDLayer::Create(node.GetId(), composerClient_->GetComposerContext());
     if (layer != nullptr) {
         auto rcdLayer = std::static_pointer_cast<RSSurfaceRCDLayer>(layer);
         rcdLayer->SetPixelMap(node.GetPixelMap());

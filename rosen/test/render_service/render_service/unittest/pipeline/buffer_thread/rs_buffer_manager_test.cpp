@@ -105,7 +105,7 @@ HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_AllBranches, TestSize.Level1
     auto mgr = std::make_shared<RSBufferManager>();
 
     // Prepare a concrete RSLayer and bufferOwnerCount
-    auto layer = std::static_pointer_cast<RSSurfaceLayer>(std::make_shared<RSSurfaceLayer>());
+    auto layer = std::static_pointer_cast<RSSurfaceLayer>(RSSurfaceLayer::Create(0, nullptr));
     layer->SetUniRenderFlag(true);
     auto owner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     owner->bufferId_ = 9999ULL;

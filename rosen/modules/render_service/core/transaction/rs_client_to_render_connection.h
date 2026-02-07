@@ -166,8 +166,6 @@ private:
 
     ErrCode ForceRefreshOneFrameWithNextVSync() override;
 
-    ErrCode SetAppWindowNum(uint32_t num) override;
-
     std::string GetBundleName(pid_t pid) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 

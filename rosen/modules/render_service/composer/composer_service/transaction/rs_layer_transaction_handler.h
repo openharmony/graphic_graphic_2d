@@ -31,8 +31,9 @@ public:
     ~RSLayerTransactionHandler() = default;
 
     void SetRSComposerConnectionProxy(const sptr<IRSRenderToComposerConnection>& rsComposerConnection);
-    void AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId = 0);
-    bool CommitRSLayerTransaction(ComposerInfo& composerInfo, uint64_t timestamp = 0, const std::string& abilityName = "");
+    void AddRSLayerParcel(RSLayerId layerId, std::shared_ptr<RSLayerParcel>& layerParcel);
+    bool CommitRSLayerTransaction(ComposerInfo& composerInfo,
+        uint64_t timestamp = 0, const std::string& abilityName = "");
     bool IsEmpty() const;
 
 private:

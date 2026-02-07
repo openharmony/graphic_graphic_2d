@@ -104,7 +104,6 @@ public:
     void OnScreenConnected(const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
-    bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void UpdateFocusNodeId(NodeId focusNodeId);
     bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
@@ -389,7 +388,7 @@ public:
     {
         ifStatusBarDirtyOnly_.store(ifStatusBarDirtyOnly);
     }
-
+    void SetAnimationOcclusionInfo(const std::string& sceneId, bool isStart);
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
 #ifdef RS_ENABLE_GPU
     void InitGPUCacheManager();

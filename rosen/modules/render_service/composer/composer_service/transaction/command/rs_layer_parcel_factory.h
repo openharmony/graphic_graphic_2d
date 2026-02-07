@@ -41,12 +41,12 @@ private:
 };
 
 // helper class for automatically registry
-template<uint16_t rsLayerParacelType, UnmarshallingFunc func>
+template<uint16_t rsLayerParcelType, UnmarshallingFunc func>
 class RSLayerParcelRegister {
 public:
     RSLayerParcelRegister()
     {
-        RSLayerParcelFactory::Instance().Register(rsLayerParacelType, func);
+        RSLayerParcelFactory::Instance().Register(rsLayerParcelType, func);
     }
 };
 } // namespace Rosen

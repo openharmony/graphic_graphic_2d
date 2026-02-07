@@ -21,8 +21,6 @@
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
 #include "feature/gpuComposition/rs_gpu_cache_manager.h"
-#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
-#include "feature/hdr/hetero_hdr/rs_hetero_hdr_util.h"
 #include "graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"

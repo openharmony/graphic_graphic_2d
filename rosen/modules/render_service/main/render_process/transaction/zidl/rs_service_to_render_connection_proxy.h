@@ -111,7 +111,7 @@ public:
     ErrCode RepaintEverything() override;
     ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) override;
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect& srcRect,
-        std::shared_ptr<Media::PixelMap>& pixelMap) override;
+        std::shared_ptr<Media::PixelMap>& pixelMap, bool transformEnabled = false) override;
     ErrCode SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh) override;
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;

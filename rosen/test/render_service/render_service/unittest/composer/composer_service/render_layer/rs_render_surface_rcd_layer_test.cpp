@@ -147,12 +147,6 @@ HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_Regions_And_Timestamp_Appli
     auto cmdD = std::make_shared<RSRenderLayerDirtyRegionsCmd>(propD);
     layer->UpdateRSLayerCmd(cmdD);
     ASSERT_EQ(layer->GetDirtyRegions().size(), 1u);
-
-    GraphicPresentTimestamp ts { GRAPHIC_DISPLAY_PTS_TIMESTAMP, 999 };
-    auto propTs = std::make_shared<RSRenderLayerCmdProperty<GraphicPresentTimestamp>>(ts);
-    auto cmdTs = std::make_shared<RSRenderLayerPresentTimestampCmd>(propTs);
-    layer->UpdateRSLayerCmd(cmdTs);
-    EXPECT_EQ(layer->GetPresentTimestamp().time, 999);
 }
 
 /**
@@ -212,11 +206,6 @@ HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_LayerMask_And_Flags_Applied
     auto cmdMask = std::make_shared<RSRenderLayerLayerMaskInfoCmd>(propMask);
     layer->UpdateRSLayerCmd(cmdMask);
     EXPECT_EQ(layer->GetLayerMaskInfo(), LayerMask::LAYER_MASK_HBM_SYNC);
-
-    auto propFlag = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
-    auto cmdFlag = std::make_shared<RSRenderLayerIsSupportedPresentTimestampCmd>(propFlag);
-    layer->UpdateRSLayerCmd(cmdFlag);
-    EXPECT_TRUE(layer->GetIsSupportedPresentTimestamp());
 }
 
 /**

@@ -171,6 +171,7 @@ public:
     void SetDisablePowerOffRenderControl(bool disable);
 
     bool GetAndResetWhiteListChange();
+    void SetWhiteListChange(bool whiteListChange);  //change by jianghongxi
     void SetScreenSwitchStatus(bool status);
 
     using OnPropertyChangeCallback = std::function<void(ScreenId, ScreenPropertyType, const sptr<ScreenPropertyBase>&)>;
@@ -234,7 +235,12 @@ private:
 
     std::atomic<bool> hasLogBackLightAfterPowerStatusChanged_ = false;
 
-    std::function<void(const sptr<RSScreenProperty>&)> onPropertyChange_;
+    // status for full screen dirty region update   // change by jianghongxi
+    std::atomic<bool> pSurfaceChange_ = false;
+    std::atomic<bool> virtualScreenPlay_ = false;
+    std::atomic<bool> whiteListChange_ = false;
+
+    OnPropertyChangeCallback onPropertyChange_;  //change by jianghongxi
     RSScreenThreadSafeProperty property_;
 };
 } // namespace Rosen

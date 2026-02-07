@@ -34,7 +34,7 @@ HdiLayerContext::HdiLayerContext(GraphicIRect dstRect, GraphicIRect srcRect, uin
     cSurface_->RegisterConsumerListener(listener);
     sptr<IBufferProducer> producer = cSurface_->GetProducer();
     pSurface_ = Surface::CreateSurfaceAsProducer(producer);
-    rsLayer_ = std::make_shared<RSSurfaceLayer>();
+    rsLayer_ = std::make_shared<RSSurfaceLayer>(0, nullptr);
 }
 
 HdiLayerContext::~HdiLayerContext()

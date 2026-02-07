@@ -32,15 +32,19 @@ void RSComposerClientManager::AddComposerClient(ScreenId screenId,
         RS_LOGI("GetComposerClient, return.");
         return;
     }
-    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-    composerClientMap_[screenId] = rsComposerClient;
+    {
+        std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
+        composerClientMap_[screenId] = rsComposerClient;
+    }
     RsFrameReport::ReportAddScreenId(screenId);
 }
 
 void RSComposerClientManager::DeleteComposerClient(ScreenId screenId)
 {
-    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-    composerClientMap_.erase(screenId);
+    {
+        std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
+        composerClientMap_.erase(screenId);
+    }
     RsFrameReport::ReportDelScreenId(screenId);
 }
 
@@ -178,7 +182,7 @@ void RSComposerClientManager::DumpSurfaceInfo(std::string& dumpString)
     for (auto iter = clientMap.begin(); iter != clientMap.end(); iter++) {
         if (iter->second != nullptr) {
             dumpString.append("\n");
-            dumpString.append("-- LayerInfo " + std::to_string(iter->first) + "\n");
+            dumpString.append("-- LayerInfo ScreenId: " + std::to_string(iter->first) + "\n");
             iter->second->DumpLayersInfo(dumpString);
         }
     }

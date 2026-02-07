@@ -16,9 +16,9 @@
 #include "rs_uni_hwc_event_manager.h"
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_pointer_window_manager.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSUniHwcEventManager"

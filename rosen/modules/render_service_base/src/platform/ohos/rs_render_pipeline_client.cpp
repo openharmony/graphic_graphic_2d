@@ -490,14 +490,6 @@ void RSRenderPipelineClient::ForceRefreshOneFrameWithNextVSync()
     clientToRender->ForceRefreshOneFrameWithNextVSync();
 }
 
-void RSRenderPipelineClient::SetAppWindowNum(uint32_t num)
-{
-    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
-    if (clientToRender != nullptr) {
-        clientToRender->SetAppWindowNum(num);
-    }
-}
-
 bool RSRenderPipelineClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     const RSSurfaceCaptureBlurParam& blurParam)
@@ -993,6 +985,8 @@ int32_t RSRenderPipelineClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId 
         return RENDER_SERVICE_NULL;
     }
     return clientToRender->UnRegisterSurfaceOcclusionChangeCallback(id);
+}
+
 int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {
     auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();

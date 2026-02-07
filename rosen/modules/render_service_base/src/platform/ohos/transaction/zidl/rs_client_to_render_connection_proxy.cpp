@@ -187,30 +187,6 @@ ErrCode RSClientToRenderConnectionProxy::ForceRefreshOneFrameWithNextVSync()
     return ERR_OK;
 }
 
-ErrCode RSClientToRenderConnectionProxy::SetAppWindowNum(uint32_t num)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("SetAppWindowNum: WriteInterfaceToken GetDescriptor err.");
-        return ERR_INVALID_VALUE;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteUint32(num)) {
-        ROSEN_LOGE("SetAppWindowNum: WriteUint32 num err.");
-        return ERR_INVALID_VALUE;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_APP_WINDOW_NUM);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetAppWindowNum: Send Request err.");
-        return ERR_INVALID_VALUE;
-    }
-
-    return ERR_OK;
-}
-
 ErrCode RSClientToRenderConnectionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
     if (task == nullptr) {
@@ -999,7 +975,8 @@ ErrCode RSClientToRenderConnectionProxy::FreezeScreen(NodeId id, bool isFreeze)
 }
 
 void RSClientToRenderConnectionProxy::TakeUICaptureInRange(
-    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    RSSurfaceCapturePermissions /* permissions */)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("%{public}s callback == nullptr", __func__);
@@ -1042,6 +1019,7 @@ bool RSClientToRenderConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
         !data.WriteBool(captureConfig.isHdrCapture) ||
         !data.WriteBool(captureConfig.needF16WindowCaptureForScRGB) ||
+        !data.WriteBool(captureConfig.needErrorCode) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
@@ -1053,7 +1031,12 @@ bool RSClientToRenderConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteFloat(captureConfig.specifiedAreaRect.right_) ||
         !data.WriteFloat(captureConfig.specifiedAreaRect.bottom_) ||
         !data.WriteUInt64Vector(captureConfig.blackList) ||
-        !data.WriteUint32(captureConfig.backGroundColor)) {
+        !data.WriteUint32(captureConfig.backGroundColor) ||
+        !data.WriteUint32(captureConfig.colorSpace.first) ||
+        !data.WriteBool(captureConfig.colorSpace.second) ||
+        !data.WriteUint32(captureConfig.dynamicRangeMode.first) ||
+        !data.WriteBool(captureConfig.dynamicRangeMode.second) ||
+        !data.WriteBool(captureConfig.isSyncRender)) {
         ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
         return false;
     }
@@ -1187,7 +1170,7 @@ ErrCode RSClientToRenderConnectionProxy::GetScreenHDRStatus(ScreenId id, HdrStat
     return ERR_OK;
 }
 
-ErrCode RSClientToRenderConnectionProxy::DropFrameByPid(const std::vector<int32_t> pidList)
+ErrCode RSClientToRenderConnectionProxy::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1202,6 +1185,10 @@ ErrCode RSClientToRenderConnectionProxy::DropFrameByPid(const std::vector<int32_
         return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInt32(dropFrameLevel)) {
+        ROSEN_LOGE("DropFrameByPid: WriteInt32 dropFrameLevel err.");
+        return ERR_INVALID_VALUE;
+    }
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::DROP_FRAME_BY_PID);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1705,6 +1692,39 @@ int32_t RSClientToRenderConnectionProxy::UnRegisterSurfaceOcclusionChangeCallbac
     int32_t result{0};
     if (!reply.ReadInt32(result)) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::UnRegisterSurfaceOcclusionChangeCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+int32_t RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection(
+    ScreenId id, ScreenRotation logicalCorrection)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetLogicalCameraRotationCorrection: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetLogicalCameraRotationCorrection: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(logicalCorrection))) {
+        ROSEN_LOGE("SetLogicalCameraRotationCorrection: WriteUint32 logicalCorrection err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection Read result failed");
         return READ_PARCEL_ERR;
     }
     return result;

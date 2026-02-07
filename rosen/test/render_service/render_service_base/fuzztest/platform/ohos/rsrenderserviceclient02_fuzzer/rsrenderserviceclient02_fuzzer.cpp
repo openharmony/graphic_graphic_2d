@@ -271,7 +271,6 @@ bool DoRegisterTypeface(const uint8_t* data, size_t size)
     renderServiceClient->RegisterTypeface(typeface, GetData<uint32_t>());
     RSRenderServiceConnectHub::GetInstance()->Destroy();
     renderServiceClient->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
-    renderServiceClient->SetAppWindowNum(num);
     renderServiceClient->SetFreeMultiWindowStatus(enable);
     renderServiceClient->UnregisterSurfaceBufferCallback(pid, uid);
 

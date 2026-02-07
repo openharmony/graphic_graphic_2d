@@ -28,12 +28,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
-<<<<<<< HEAD
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
-=======
-#include "platform/ohos/rs_irender_service.h"
-#include "transaction/zidl/rs_client_to_render_connection_stub.h"
->>>>>>> master
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
@@ -134,13 +129,8 @@ void DoRegisterSurfaceOcclusionChangeCallback()
     if (!dataP.WriteFloatVector(partitionPoints)) {
         return;
     }
-<<<<<<< HEAD
     uint32_t code = static_cast<uint32_t>(
         RSIClientToServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
-=======
-    uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
->>>>>>> master
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
@@ -157,13 +147,8 @@ void DoUnRegisterSurfaceOcclusionChangeCallback()
     if (!dataP.WriteUint64(id)) {
         return;
     }
-<<<<<<< HEAD
     uint32_t code = static_cast<uint32_t>(
         RSIClientToServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
-=======
-    uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
->>>>>>> master
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 }  // namespace Rosen

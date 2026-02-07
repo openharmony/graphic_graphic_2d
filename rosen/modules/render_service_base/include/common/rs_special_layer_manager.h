@@ -116,7 +116,7 @@ private :
     static std::unordered_map<SpecialLayerType,
         std::unordered_map<NodeId, std::unordered_set<ScreenId>>> screenSpecialLayerInfoByNode_;
     static std::unordered_set<NodeId> globalBlackList_;
-}
+};
 
 class AutoSpecialLayerStateRecover {
 public:

@@ -41,15 +41,18 @@ const std::map<SpecialLayerType, GetFunc> GET_SCREEN_SPECIAL_LAYER = {
 }
 
 void RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(const RSLogicalDisplayRenderNode& mirrorNode,
-    RSLogicalDisplayRenderNode& sourceNode, bool enableVisibleRect)
+    RSLogicalDisplayRenderNode& sourceNode)
 {
     // Use screen AbsDrawRect when VisibleRect is not enabled
     ScreenId screenId = mirrorNode.GetScreenId();
     RectI visibleRect = sourceNode.GetAbsDrawRect();
-    auto screenManager = CreateOrGetScreenManager();
-    if (enableVisibleRect && screenManager) {
-        const auto& rect = screenManager->GetMirrorScreenVisibleRect(screenId);
-        visibleRect = {rect.x, rect.y, rect.w, rect.h};
+    auto mirrorScreenNode = std::static_pointer_cast<RSScreenRenderNode>(mirrorNode.GetParent().lock());
+    if (mirrorScreenNode) {
+        const auto& screenProperty = mirrorScreenNode->GetScreenProperty();
+        if (screenProperty.GetEnableVisibleRect()) {
+            const auto& rect = screenProperty.GetVisibleRect();
+            visibleRect = {rect.x, rect.y, rect.w, rect.h};
+        }
     }
 
     const auto& specialLayerMgr = sourceNode.GetSpecialLayerMgr();

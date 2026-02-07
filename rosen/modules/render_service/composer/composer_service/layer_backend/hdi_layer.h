@@ -67,6 +67,7 @@ public:
     /* only used for mock tests */
     int32_t SetHdiDeviceMock(HdiDevice* hdiDeviceMock);
     void ClearBufferCache();
+    void ResetBufferCache();
 
 private:
     // layer buffer & fence

@@ -44,7 +44,7 @@ public:
     void HitchsDump(std::string& dumpString, std::string& layerArg);
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
-    void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
+    void HandlePowerStatus(ScreenPowerStatus status);
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
 
 private:

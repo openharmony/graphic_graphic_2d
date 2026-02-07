@@ -66,12 +66,6 @@ public:
         RSSurfaceCaptureConfig captureConfig = {});
 
     /**
-     * @brief Set appWindow number.
-     * @param num winodw number.
-     */
-    void SetAppWindowNum(uint32_t num);
-
-    /**
      * @brief Call RequestNextVsync to force refresh one frame with the interface.
      */
     void ForceRefreshOneFrameWithNextVSync();
@@ -389,8 +383,8 @@ public:
      * @return 0 success, else failed.
      */
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
-private:
-    std::unique_ptr<RSRenderPipelineClient> renderPipelineClient_;
+
+    /**
      * @brief Set logical camera rotation correction, used to correct logical rotation.
      * @param id Screen id.
      * @param logicalCorrection Logical camera rotation correction, see ScreenRotation.
@@ -399,7 +393,7 @@ private:
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
 private:
-    std::unique_ptr<RSRenderPipelineClient> renderPiplineClient_;
+    std::unique_ptr<RSRenderPipelineClient> renderPipelineClient_;
     friend class RSUIContext;
     friend class RSApplicationAgentImpl;
     friend class RSDisplayNode;

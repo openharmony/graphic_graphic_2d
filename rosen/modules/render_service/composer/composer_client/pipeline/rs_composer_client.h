@@ -32,7 +32,6 @@ namespace OHOS {
 namespace Rosen {
 class RSComposerClient {
 public:
-    RSComposerClient(const sptr<IRSRenderToComposerConnection>& renderToComposerConn);
     ~RSComposerClient() = default;
 
     static std::shared_ptr<RSComposerClient> Create(
@@ -61,19 +60,24 @@ public:
     void SetOutput(const std::shared_ptr<HdiOutput>& output);
 
 private:
+    explicit RSComposerClient(const sptr<IRSRenderToComposerConnection>& renderToComposerConn);
+
     bool WaitComposerThreadTaskExecute(std::unique_lock<std::mutex>& lock);
     void NotifyComposerThreadCanExecuteTask();
     void IncUnExecuteTaskNum();
     void SubUnExecuteTaskNum();
     std::mutex clientMutex_; /* Locking is only necessary if not running on uni render thread */
     std::shared_ptr<RSComposerContext> rsComposerContext_;
-    sptr<IRSRenderToComposerConnection> renderToComposerConn_;
     std::condition_variable composerThreadTaskCond_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
     std::atomic<int> acquiredBufferCount_ = 0;
     bool isPreAllocProtectedFrameBuffer_ = false;
     PipelineParam pipelineParam_;
     std::shared_ptr<HdiOutput> output_ = nullptr;
+
+    friend std::shared_ptr<RSComposerClient> Create(
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
 };
 } // namespace Rosen
 } // namespace OHOS

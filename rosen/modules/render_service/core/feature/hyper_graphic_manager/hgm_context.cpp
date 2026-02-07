@@ -401,9 +401,9 @@ ErrCode HgmContext::NotifyAppStrategyConfigChangeEvent(pid_t pid, const std::str
     return ERR_OK;
 }
 
-void HgmContext::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt)
+void HgmContext::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
-    frameRateManager_->HandleTouchEvent(pid, touchStatus, touchCnt);
+    frameRateManager_->HandleTouchEvent(pid, touchStatus, touchCnt, sourceType);
 }
 
 void HgmContext::NotifyPackageEvent(pid_t pid, const std::vector<std::string>& packageList)

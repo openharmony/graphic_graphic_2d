@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -95,6 +95,8 @@ public:
     virtual GraphicTransformType GetTransform() const = 0;
     virtual void SetCompositionType(GraphicCompositionType type) = 0;
     virtual GraphicCompositionType GetCompositionType() const = 0;
+    virtual void SetHdiCompositionType(GraphicCompositionType type) = 0;
+    virtual GraphicCompositionType GetHdiCompositionType() const = 0;
     virtual void SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions) = 0;
     virtual const std::vector<GraphicIRect>& GetVisibleRegions() const = 0;
     virtual void SetDirtyRegions(const std::vector<GraphicIRect>& dirtyRegions) = 0;
@@ -198,6 +200,7 @@ public:
     virtual bool GetIgnoreAlpha() const = 0;
     virtual void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) = 0;
     virtual const GraphicIRect& GetAncoSrcRect() const = 0;
+    virtual void SetDeleteLayer(bool isDeleteLayer) const = 0;
 
     virtual void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) = 0;
     virtual void Dump(std::string& result) const = 0;

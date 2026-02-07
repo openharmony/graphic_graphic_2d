@@ -30,11 +30,11 @@ void RSScreenManagerAgentListener::OnScreenConnected(ScreenId id,
         RS_LOGW("RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
         return;
     }
-    if (reason == ScreenChangeReason::HWCDEAD && (id == 0 || !MultiScreenParam::IsRsReportHwcDead())) {
-        RS_LOGI("RSScreenManagerAgentListener::%{public}s don't invoke callback, screenId:%{public}" PRIu64,
-                __func__, id);
-        return;
-    }
+    // if (reason == ScreenChangeReason::HWCDEAD && (id == 0 || !MultiScreenParam::IsRsReportHwcDead())) {
+    //     RS_LOGI("RSScreenManagerAgentListener::%{public}s don't invoke callback, screenId:%{public}" PRIu64,
+    //             __func__, id);
+    //     return;
+    // }   change by jianghongxi
     RS_LOGI("%{public}s id:%{public}" PRIu64 "event connected reason %{public}u.", __func__, id,
         static_cast<uint8_t>(reason));
     screenChangeCallback_->OnScreenChanged(id, ScreenEvent::CONNECTED, reason, remoteConn);
@@ -274,6 +274,10 @@ int32_t RSScreenManagerAgent::SetVirtualScreenTypeBlackList(ScreenId id, const s
     if (typeBlackList.empty()) {
         RS_LOGW("%{public}s typeBlackList is empty", __func__);
     }
+    if (typeBlackList.size() > MAX_SPECIAL_LAYER_NUM) {
+        RS_LOGW("%{public}s: typeBlackList is over max size!", __func__);
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return StatusCode::SCREEN_NOT_FOUND;
@@ -350,9 +354,13 @@ int32_t RSScreenManagerAgent::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwi
     return screenManager_->SetScreenSwitchingNotifyCallback(callback);
 }
 
-int32_t RSScreenManagerAgent::SetVirtualScreenSecurityExemptionList(ScreenId id,
-    const std::vector<NodeId>& securityExemptionList)
+int32_t RSScreenManagerAgent::SetVirtualScreenSecurityExemptionList(
+    ScreenId id, const std::vector<NodeId>& securityExemptionList)
 {
+    if (securityExemptionList.size() > MAX_SPECIAL_LAYER_NUM) {
+        RS_LOGW("%{public}s: securityExemptionList is over max size!", __func__);
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return StatusCode::SCREEN_NOT_FOUND;

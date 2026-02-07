@@ -354,12 +354,12 @@ void HdiOutput::GetComposeClientLayers(std::vector<std::shared_ptr<HdiLayer>>& c
 {
     std::unique_lock<std::mutex> lock(mutex_);
     for (const auto& [first, hdiLayer] : layerIdMap_) {
-        if (hdiLayer == nullptr || hdiLayer->GetRSLayer() == nullptr) {
+        if (hdiLayer == nullptr || hdiLayer->GetRSLayer()) {
             continue;
         }
-        if (hdiLayer->GetRSLayer()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT ||
-            hdiLayer->GetRSLayer()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR ||
-            hdiLayer->GetRSLayer()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL) {
+        if (hdiLayer->GetRSLayer()->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT ||
+            hdiLayer->GetRSLayer()->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR ||
+            hdiLayer->GetRSLayer()->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL) {
             clientLayers.emplace_back(hdiLayer);
         }
     }
@@ -726,7 +726,7 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
     // get present timestamp from and set present timestamp to cSurface
     for (const auto& [id, hdiLayer] : layerIdMap_) {
         if (hdiLayer == nullptr || hdiLayer->GetRSLayer() == nullptr) {
-            HLOGW("HdiOutput::ReleaseLayers: hdiLayer or rsLayer is nullptr");
+            HLOGW("%{public}s: hdiLayer or rsLayer is nullptr", __func__);
             continue;
         }
         releaseLayerInfo.timestampVec.push_back(std::tuple(hdiLayer->GetRSLayer()->GetRSLayerId(),
@@ -740,20 +740,20 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
         // This situation may happen when killing composer_host
         for (const auto& [id, hdiLayer] : layerIdMap_) {
             if (hdiLayer == nullptr || hdiLayer->GetRSLayer() == nullptr) {
-                HLOGD("HdiOutput::ReleaseLayers: hdiLayer or rsLayer is nullptr");
+                HLOGD("%{public}s: hdiLayer or rsLayer is nullptr", __func__);
                 continue;
             }
             releaseBufferFenceMap[hdiLayer->GetRSLayer()->GetRSLayerId()] = SyncFence::InvalidFence();
             releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(hdiLayer->GetRSLayer()->GetRSLayerId(),
                 hdiLayer->GetRSLayer()->GetPreBuffer(), SyncFence::InvalidFence()));
         }
-        HLOGD("HdiOutput::ReleaseLayers: no layer needs to release");
+        HLOGD("%{public}s: no layer needs to release", __func__);
     } else {
         for (const auto& [rsLayer, fence] : layersReleaseFence) {
             if (rsLayer != nullptr) {
                 releaseBufferFenceMap[rsLayer->GetRSLayerId()] = fence;
-                RS_OPTIONAL_TRACE_NAME_FMT("HdiOutput::ReleaseLayers releaseBufferFenceVec bufferId %" PRIu64
-                    " Fence %d", rsLayer->GetPreBuffer() ? rsLayer->GetPreBuffer()->GetBufferId() : 0,
+                RS_OPTIONAL_TRACE_NAME_FMT("%s releaseBufferFenceVec bufferId %" PRIu64
+                    " Fence %d", __func__, rsLayer->GetPreBuffer() ? rsLayer->GetPreBuffer()->GetBufferId() : 0,
                     fence ? fence->Get() : -1);
                 releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(rsLayer->GetRSLayerId(),
                     rsLayer->GetPreBuffer(), fence));
@@ -1045,7 +1045,6 @@ int32_t HdiOutput::PrepareCompleteIfNeed(bool needFlush)
 void HdiOutput::Repaint()
 {
     RS_TRACE_NAME("Repaint");
-    HLOGD("%{public}s: start", __func__);
 
     int32_t ret = PreProcessLayersComp();
     GraphicIRect activeRect = {0};
@@ -1059,8 +1058,8 @@ void HdiOutput::Repaint()
     bool needFlush = false;
     int32_t skipState = INT32_MAX;
     ret = CommitAndGetReleaseFence(fbFence, skipState, needFlush, false);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS || skipState != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("mjt first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
     }
 
     if (screenPowerOnChanged_) {
@@ -1080,8 +1079,8 @@ void HdiOutput::Repaint()
         skipState = INT32_MAX;
         ret = CommitAndGetReleaseFence(fbFence, skipState, needFlush, true);
         HLOGD("%{public}s: ValidateDisplay", __func__);
-        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            HLOGE("second commit failed, ret is %{public}d", ret);
+        if (ret != GRAPHIC_DISPLAY_SUCCESS  || skipState != GRAPHIC_DISPLAY_SUCCESS) {
+            HLOGE("second commit failed, ret is %{public}d skipState is %{public}d", ret, skipState);
         }
     }
 

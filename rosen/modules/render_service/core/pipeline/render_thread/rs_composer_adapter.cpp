@@ -72,7 +72,6 @@ void RSComposerAdapter::CommitLayers(const std::vector<RSLayerPtr>& layers)
         RS_LOGE("RSComposerAdapter::CommitLayers: output or composerClient is nullptr");
         return;
     }
-
     DumpLayersToFile(layers);
 
     // do composition.

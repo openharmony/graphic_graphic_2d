@@ -227,7 +227,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VMA_CACHE_STATUS): {
             bool flag{false};
             if (!data.ReadBool(flag)) {
-                RS_LOGE("RSClientToRenderConnectionStub::SET_VMA_CACHE_STATUS read flag failed!");
+                RS_LOGE("RSServiceToRenderStub::SET_VMA_CACHE_STATUS read flag failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -505,7 +505,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 if (!reply.WriteInt32(0)) {
-                    RS_LOGE("RSClientToRenderConnectionStub::CREATE_PIXEL_MAP_FROM_SURFACE Write Object failed!");
+                    RS_LOGE("RSServiceToRenderStub::CREATE_PIXEL_MAP_FROM_SURFACE Write Object failed!");
                     ret = ERR_INVALID_REPLY;
                     break;
                 }
@@ -516,7 +516,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bufferProducer);
             if (surface == nullptr) {
                 if (!reply.WriteInt32(0)) {
-                    RS_LOGE("RSClientToRenderConnectionStub::CREATE_PIXEL_MAP_FROM_SURFACE Write parcel failed!");
+                    RS_LOGE("RSServiceToRenderStub::CREATE_PIXEL_MAP_FROM_SURFACE Write parcel failed!");
                     ret = ERR_INVALID_REPLY;
                     break;
                 }
@@ -528,7 +528,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             int32_t w = 0;
             int32_t h = 0;
             if (!data.ReadInt32(x) || !data.ReadInt32(y) || !data.ReadInt32(w) || !data.ReadInt32(h)) {
-                RS_LOGE("RSClientToRenderConnectionStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed!");
+                RS_LOGE("RSServiceToRenderStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -539,10 +539,16 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 .h = h
             };
             std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-            CreatePixelMapFromSurface(surface, srcRect, pixelMap);
+            bool transformEnabled = false;
+            if (!data.ReadBool(transformEnabled)) {
+                RS_LOGE("RSServiceToRenderStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            CreatePixelMapFromSurface(surface, srcRect, pixelMap, transformEnabled);
             if (pixelMap) {
                 if (!reply.WriteBool(true)) {
-                    RS_LOGE("RSClientToRenderConnectionStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed");
+                    RS_LOGE("RSServiceToRenderStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed");
                     ret = ERR_INVALID_REPLY;
                     break;
                 }
@@ -552,7 +558,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 }
             } else {
                 if (!reply.WriteBool(false)) {
-                    RS_LOGE("RSClientToRenderConnectionStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed!");
+                    RS_LOGE("RSServiceToRenderStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed!");
                     ret = ERR_INVALID_REPLY;
                     break;
                 }
@@ -763,7 +769,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO): {
             const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
             if (!reply.WriteInt32(activeDirtyRegionInfos.size())) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_ACTIVE_DIRTY_REGION_INFO Write activeDirtyRegionInfosSize "
+                RS_LOGE("RSServiceToRenderStub::GET_ACTIVE_DIRTY_REGION_INFO Write activeDirtyRegionInfosSize "
                         "failed!");
                 ret = ERR_INVALID_REPLY;
                 break;

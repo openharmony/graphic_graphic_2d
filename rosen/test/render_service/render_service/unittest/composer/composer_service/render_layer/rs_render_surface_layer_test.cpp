@@ -246,27 +246,6 @@ HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_Visible_And_Dirty_Regions_Appl
 }
 
 /**
- * Function: UpdateRSLayerCmd_PresentTimestamp_And_SupportFlag_Applied
- * Type: Function
- * Rank: Important(2)
- * CaseDescription: apply PresentTimestamp and IsSupportedPresentTimestamp commands and verify
- */
-HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_PresentTimestamp_And_SupportFlag_Applied, TestSize.Level1)
-{
-    auto layer = std::make_shared<RSRenderSurfaceLayer>();
-    GraphicPresentTimestamp ts { GRAPHIC_DISPLAY_PTS_TIMESTAMP, 12345678 };
-    auto propTs = std::make_shared<RSRenderLayerCmdProperty<GraphicPresentTimestamp>>(ts);
-    auto cmdTs = std::make_shared<RSRenderLayerPresentTimestampCmd>(propTs);
-    layer->UpdateRSLayerCmd(cmdTs);
-    EXPECT_EQ(layer->GetPresentTimestamp().time, 12345678);
-
-    auto propSupp = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
-    auto cmdSupp = std::make_shared<RSRenderLayerIsSupportedPresentTimestampCmd>(propSupp);
-    layer->UpdateRSLayerCmd(cmdSupp);
-    EXPECT_TRUE(layer->GetIsSupportedPresentTimestamp());
-}
-
-/**
  * Function: UpdateRSLayerCmd_TunnelHandleChange_And_NodeId_Applied
  * Type: Function
  * Rank: Important(2)
@@ -714,11 +693,6 @@ HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_CopiesSelectedFields, TestSize.Le
         std::make_shared<RSRenderLayerCmdProperty<GraphicLayerColor>>(GraphicLayerColor{5,6,7,8})));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerCornerRadiusInfoForDRMCmd>(
         std::make_shared<RSRenderLayerCmdProperty<std::vector<float>>>(std::vector<float>{0.1f, 0.2f})));
-    src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerIsSupportedPresentTimestampCmd>(
-        std::make_shared<RSRenderLayerCmdProperty<bool>>(true)));
-    src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerPresentTimestampCmd>(
-        std::make_shared<RSRenderLayerCmdProperty<GraphicPresentTimestamp>>(
-            GraphicPresentTimestamp{GRAPHIC_DISPLAY_PTS_TIMESTAMP, 999})));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerWindowsNameCmd>(
         std::make_shared<RSRenderLayerCmdProperty<std::vector<std::string>>>(std::vector<std::string>{"w1"})));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerAncoFlagsCmd>(

@@ -31,16 +31,17 @@ void RSLayerTransactionHandler::SetRSComposerConnectionProxy(const sptr<IRSRende
     rsComposerConnection_ = rsComposerConnection;
 }
 
-void RSLayerTransactionHandler::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId)
+void RSLayerTransactionHandler::AddRSLayerParcel(RSLayerId layerId, std::shared_ptr<RSLayerParcel>& layerParcel)
 {
     if (rsLayerTransactionData_ == nullptr || layerParcel == nullptr) {
         RS_LOGE("%{public}s param is nullptr", __func__);
         return;
     }
-    rsLayerTransactionData_->AddRSLayerParcel(layerParcel, layerId);
+    rsLayerTransactionData_->AddRSLayerParcel(layerId, layerParcel);
 }
 
-bool RSLayerTransactionHandler::CommitRSLayerTransaction(ComposerInfo& composerInfo, uint64_t timestamp, const std::string& abilityName)
+bool RSLayerTransactionHandler::CommitRSLayerTransaction(ComposerInfo& composerInfo,
+    uint64_t timestamp, const std::string& abilityName)
 {
     timestamp_ = std::max(timestamp_, timestamp);
     if (rsComposerConnection_ == nullptr || rsLayerTransactionData_->IsEmpty()) {

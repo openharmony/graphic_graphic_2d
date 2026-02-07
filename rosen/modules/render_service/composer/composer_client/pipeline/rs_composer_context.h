@@ -62,9 +62,12 @@ protected:
         }
     }
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
+    void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds);
+    void SetScreenBacklight(uint32_t level);
 
 private:
-    void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer, const sptr<SyncFence>& previousReleaseFence);
+    void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer,
+        const sptr<SyncFence>& previousReleaseFence);
     mutable std::recursive_mutex rsLayerTransMutex_;
     std::shared_ptr<RSLayerTransactionHandler> rsLayerTransactionHandler_;
     mutable std::mutex rsLayerMutex_;

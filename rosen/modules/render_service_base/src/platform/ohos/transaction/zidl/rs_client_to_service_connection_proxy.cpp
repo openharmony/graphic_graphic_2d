@@ -549,7 +549,7 @@ ErrCode RSClientToServiceConnectionProxy::AddVirtualScreenWhiteList(
         repCode = WRITE_PARCEL_ERR;
         return ERR_INVALID_VALUE;
     }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: Send Request err.", __func__);
@@ -585,7 +585,7 @@ ErrCode RSClientToServiceConnectionProxy::RemoveVirtualScreenWhiteList(
         repCode = WRITE_PARCEL_ERR;
         return ERR_INVALID_VALUE;
     }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: Send Request err.", __func__);
@@ -1884,6 +1884,68 @@ void RSClientToServiceConnectionProxy::SetScreenBacklight(ScreenId id, uint32_t 
     }
 }
 
+ErrCode RSClientToServiceConnectionProxy::GetPanelPowerStatus(uint64_t screenId, PanelPowerStatus& status)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ROSEN_LOGE("GetPanelPowerStatus: WriteInterfaceToken GetDescriptor err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint64(screenId)) {
+        ROSEN_LOGE("GetPanelPowerStatus: WriteUint64 id err.");
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: sendrequest error: %{public}d", __func__, err);
+        return ERR_INVALID_OPERATION;
+    }
+    uint32_t readStatus = 0;
+    if (!reply.ReadUint32(readStatus)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetPanelPowerStatus Read status failed");
+        return ERR_INVALID_VALUE;
+    }
+    status = static_cast<PanelPowerStatus>(readStatus);
+    return ERR_OK;
+}
+
+int32_t RSClientToServiceConnectionProxy::SetDualScreenState(ScreenId id, DualScreenStatus status)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetDualScreenState: WriteInterfaceToken GetDescriptor err.");
+        return StatusCode::WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetDualScreenState: WriteUint64 id err.");
+        return StatusCode::WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint64(static_cast<uint64_t>(status))) {
+        ROSEN_LOGE("SetDualScreenState: WriteUint64 status err.");
+        return StatusCode::WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("SetDualScreenState: SendRequest error: %{public}d", err);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+    int32_t ret{0};
+    if (!reply.ReadInt32(ret)) {
+        ROSEN_LOGE("SetDualScreenState: Read ret failed");
+        return StatusCode::READ_PARCEL_ERR;
+    }
+    return ret;
+}
+
 int32_t RSClientToServiceConnectionProxy::GetScreenSupportedColorGamuts(
     ScreenId id, std::vector<ScreenColorGamut>& mode)
 {
@@ -3128,7 +3190,7 @@ ErrCode RSClientToServiceConnectionProxy::AvcodecVideoGet(uint64_t uniqueId)
         ROSEN_LOGE("AvcodecVideoGet: WriteUint64 uniqueId err.");
         return ERR_INVALID_VALUE;
     }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::AvcodecVideoGet: Send Request err.");
@@ -3153,7 +3215,7 @@ ErrCode RSClientToServiceConnectionProxy::AvcodecVideoGetRecent()
         return RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::AvcodecVideoGetRecent: Send Request err.");

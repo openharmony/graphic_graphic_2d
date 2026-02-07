@@ -25,7 +25,6 @@
 #include <unistd.h>
 
 #include "dfx/rs_service_dump_manager.h"
-#include "feature/param_manager/rs_param_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "hgm_core.h"
 #include "parameter.h"

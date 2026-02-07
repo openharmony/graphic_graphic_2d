@@ -571,7 +571,7 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp001, Function | SmallTest |
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
@@ -593,7 +593,7 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp002, Function | SmallTest |
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
@@ -612,7 +612,7 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp003, Function | SmallTest |
     uint32_t height = 1080;
     CreateComposerAdapterWithScreenInfo(
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     ASSERT_NE(consumer, nullptr);

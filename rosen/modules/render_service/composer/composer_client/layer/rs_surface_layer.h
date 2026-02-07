@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,10 +35,8 @@ class RSRenderLayerCmd;
 
 class RSSurfaceLayer : public RSLayer {
 public:
-    RSSurfaceLayer(RSLayerId rsLayerId = 0, std::shared_ptr<RSComposerContext> rsComposerContext = nullptr);
     virtual ~RSSurfaceLayer();
-    static std::shared_ptr<RSLayer> Create(const std::shared_ptr<RSComposerContext>& context,
-        RSLayerId rsLayerId);
+    static std::shared_ptr<RSLayer> Create(RSLayerId rsLayerId, const std::shared_ptr<RSComposerContext>& context);
 
     RSLayerId GetRSLayerId() const override;
     void SetRSLayerId(RSLayerId rsLayerId) override;
@@ -54,6 +52,11 @@ public:
     GraphicTransformType GetTransform() const override;
     void SetCompositionType(GraphicCompositionType type) override;
     GraphicCompositionType GetCompositionType() const override;
+    void SetHdiCompositionType(GraphicCompositionType type) override {}
+    GraphicCompositionType GetHdiCompositionType() const override
+    {
+        return GraphicCompositionType::GRAPHIC_COMPOSITION_BUTT;
+    }
     void SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions) override;
     const std::vector<GraphicIRect>& GetVisibleRegions() const override;
     void SetDirtyRegions(const std::vector<GraphicIRect>& dirtyRegions) override;
@@ -159,40 +162,42 @@ public:
     bool GetIgnoreAlpha() const override;
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override;
     const GraphicIRect& GetAncoSrcRect() const override;
+    void SetDeleteLayer(bool isDeleteLayer) const override {}
 
     void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) override {};
     void Dump(std::string& result) const override;
     void DumpCurrentFrameLayer() const override;
 
 protected:
-    bool AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId);
+    bool AddRSLayerParcel(RSLayerId layerId, std::shared_ptr<RSLayerParcel>& layerParcel);
 
 private:
+    RSSurfaceLayer(RSLayerId rsLayerId, std::shared_ptr<RSComposerContext> rsComposerContext);
     template<typename RSRenderLayerCmdName, typename T>
     void SetRSLayerCmd(const T& value);
     // rs layer pipeline info
     std::weak_ptr<RSComposerContext> rsComposerContext_;
-    RSLayerId rsLayerId_;
+    RSLayerId rsLayerId_ = 0;
     bool isNeedComposition_ = false;
 
     // rs layer property info
     int32_t zOrder_ = 0;
     GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
-    GraphicIRect layerRect_;
-    GraphicIRect boundRect_; // node's bound width and height related to this layer, used for uni render redraw
+    GraphicIRect layerRect_ = {0};
+    GraphicIRect boundRect_ = {0}; // node's bound width and height related to this layer, used for uni render redraw
     std::vector<GraphicIRect> visibleRegions_;
     std::vector<GraphicIRect> dirtyRegions_;
-    GraphicIRect cropRect_;
-    GraphicMatrix matrix_; // matrix used for uni render redraw
+    GraphicIRect cropRect_ = {0};
+    GraphicMatrix matrix_ = {0.0}; // matrix used for uni render redraw
     int32_t gravity_ = 0; // used for uni render redraw
     bool isUniRender_ = false; // true for uni render layer (DisplayNode)
     GraphicLayerAlpha layerAlpha_ = {0};
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
-    GraphicCompositionType compositionType_;
-    GraphicBlendType blendType_;
+    GraphicCompositionType compositionType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_BUTT;
+    GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;
     std::vector<float> colorTransformMatrix_;
-    GraphicLayerColor layerColor_;
-    GraphicLayerColor backgroundColor_;
+    GraphicLayerColor layerColor_ = {0};
+    GraphicLayerColor backgroundColor_ = {0};
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;
@@ -233,6 +238,8 @@ private:
     bool useDeviceOffline_ = false;
     bool ignoreAlpha_ = false;
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
+    friend class RSSurfaceRCDLayer;
+    friend std::shared_ptr<RSLayer> Create(RSLayerId rsLayerId, const std::shared_ptr<RSComposerContext>& context);
 };
 } // namespace Rosen
 } // namespace OHOS

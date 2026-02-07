@@ -172,6 +172,30 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetWhiteList(
     return { ScreenPropertyType::WHITE_LIST, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::AddWhiteList(
+    const std::vector<uint64_t>& whiteList)
+{
+    UniqueLock lock(propertyMutex_);
+    auto tmpList = property_->Get<ScreenPropertyType::WHITE_LIST>();
+    tmpList.insert(whiteList.cbegin(), whiteList.cend());
+
+    auto prop = property_->Set<ScreenPropertyType::WHITE_LIST>(tmpList);
+    return { ScreenPropertyType::WHITE_LIST, prop };
+}
+
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::RemoveWhiteList(
+    const std::vector<uint64_t>& whiteList)
+{
+    UniqueLock lock(propertyMutex_);
+    auto tmpList = property_->Get<ScreenPropertyType::WHITE_LIST>();
+    for (auto id : whiteList) {
+        tmpList.erase(id);
+    }
+
+    auto prop = property_->Set<ScreenPropertyType::WHITE_LIST>(tmpList);
+    return { ScreenPropertyType::WHITE_LIST, prop };
+}
+
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetBlackList(
     const std::unordered_set<uint64_t>& blackList)
 {

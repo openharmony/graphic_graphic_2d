@@ -1276,6 +1276,7 @@ uint32_t VSyncDistributor::GetRefreshRate()
     return dvsync_->GetRefreshRate();
 #else
     return generatorRefreshRate_;
+#endif
 }
 
 bool  VSyncDistributor::IsUiDvsyncOn()

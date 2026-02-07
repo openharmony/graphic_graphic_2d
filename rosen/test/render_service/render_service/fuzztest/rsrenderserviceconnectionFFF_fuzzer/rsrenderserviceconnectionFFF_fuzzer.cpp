@@ -45,19 +45,9 @@ auto g_pid = getpid();
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
 auto mainThread_ = RSMainThread::Instance();
 
-<<<<<<< HEAD
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
-=======
-sptr<VSyncConnection> connServerApp_ = nullptr;
-DVSyncFeatureParam dvsyncParam;
-auto generator = CreateVSyncGenerator();
-auto appVSyncController = new VSyncController(generator, 0);
-sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToServiceConnection(
-    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
->>>>>>> master
 namespace {
 const uint8_t DO_NOTIFY_LIGHT_FACTOR_STATUS = 0;
 const uint8_t DO_NOTIFY_PACKAGE_EVENT = 1;
@@ -370,7 +360,6 @@ void DoSetLayerTopForHWC()
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-<<<<<<< HEAD
     OHOS::Rosen::g_pid = getpid();
     OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
     OHOS::Rosen::mainThread_->handler_ =
@@ -411,8 +400,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     // reset recevier, otherwise maybe crash
     OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
     OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
-=======
->>>>>>> master
     return 0;
 }
 

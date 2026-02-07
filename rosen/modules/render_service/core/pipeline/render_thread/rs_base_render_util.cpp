@@ -983,7 +983,8 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     bool acqiureWithPTSEnable =
         RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
     if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
-        consumer->SetDropFrameLevel(dropFrameConfig.level);
+        // todo car
+        // consumer->SetDropFrameLevel(dropFrameConfig.level);
         RS_LOGD("RsDebug RSBaseRenderUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
             "), set drop frame level=%{public}d", surfaceHandler.GetNodeId(), dropFrameConfig.level);
     }
@@ -1003,9 +1004,10 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
 
         // Reset drop frame level after acquire to avoid affecting subsequent acquires
-        if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
-            consumer->SetDropFrameLevel(0);
-        }
+        // TODO CAR
+        // if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
+        //     consumer->SetDropFrameLevel(0);
+        // }
 
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             auto holdReturnValue = surfaceHandler.GetHoldReturnValue();

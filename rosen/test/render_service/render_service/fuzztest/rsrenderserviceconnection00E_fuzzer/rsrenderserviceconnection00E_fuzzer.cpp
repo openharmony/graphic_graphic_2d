@@ -99,12 +99,8 @@ void DoRegisterTypeface()
     std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
     RSMarshallingHelper::Marshalling(dataParcel, typeface);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-<<<<<<< HEAD
 
     code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
-=======
-    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
->>>>>>> master
     MessageParcel dataParcel1;
     MessageParcel replyParcel1;
     MessageOption option1;

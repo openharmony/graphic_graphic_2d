@@ -360,7 +360,7 @@ void RSRenderComposerAgent::HandlePowerStatus(ScreenPowerStatus status)
 void RSRenderComposerAgent::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
 {
     if (buffer && rsRenderComposer_) {
-        RS_TRACE_NAME_FMT("PreAllocateProtectedBuffer");
+        RS_TRACE_NAME_FMT("%s", __func__);
         ffrt::submit([weakThis = weak_from_this(), buffer]() {
             std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
             if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {

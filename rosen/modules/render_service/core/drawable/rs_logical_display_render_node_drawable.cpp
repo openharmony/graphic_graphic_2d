@@ -226,8 +226,8 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (needOffscreen) {
         scaleManager_ = uniParam->GetSLRScaleManager();
-        UpdateSlrScale(screenInfo, params->GetFixedWidth(), params->GetFixedHeight(),screenParams);
-        ScaleCanvasIfNeeded(screenInfo);
+        UpdateSlrScale(screenProperty, params->GetFixedWidth(), params->GetFixedHeight(),screenParams);
+        ScaleCanvasIfNeeded(screenProperty);  // change by jianghongxi
         auto rect = curCanvas_->GetDeviceClipBounds();
         if (screenProperty.GetIsSamplingOn() && scaleManager_ != nullptr) {
             screenParams->SetSlrMatrix(scaleManager_->GetScaleMatrix());
@@ -313,15 +313,16 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
     sptr<SurfaceBuffer> virtualBuffer = nullptr;
     sptr<SyncFence> virtualFence = nullptr;
-    auto screenManager = CreateOrGetScreenManager();
-    sptr<Surface> producerSurface_ = screenManager->GetProducerSurface(params->GetScreenId());
+    const auto& screenProperty = screenParam->GetScreenProperty();
     bool virtualHasBuffer = false;
-    if (producerSurface_) {
+    if (auto producerSurface = screenProperty.GetProducerSurface()) {
         float matrix[16];
         bool isUseNewMatrix = false;
-        GSError sRet = producerSurface_->GetLastFlushedBuffer(virtualBuffer, virtualFence, matrix, isUseNewMatrix);
-        virtualHasBuffer = sRet == GSERROR_OK;
-        RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNodeDrawable::OnCapture Using buffer from virtual screen");
+        GSError sRet = producerSurface->GetLastFlushedBuffer(virtualBuffer, virtualFence, matrix, isUseNewMatrix);
+        if (sRet == GSERROR_OK) {
+            virtualHasBuffer = true;
+            RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNodeDrawable::OnCapture Using buffer from virtual screen");
+        }
     }
     bool noBuffer = (RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
         screenDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr) && !virtualHasBuffer;
@@ -329,7 +330,6 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RS_LOGW("RSLogicalDisplayRenderNodeDrawable::OnCapture: buffer is null!");
     }
 
-    const auto& screenProperty = screenParam->GetScreenProperty();
     auto specialLayerType = RSSpecialLayerUtils::GetSpecialLayerStateInSubTree(*params, screenParam);
     // Screenshot blackList, exclude surfaceNode in blackList while capturing displayNode
     auto currentBlackList = RSUniRenderThread::Instance().GetBlackList();

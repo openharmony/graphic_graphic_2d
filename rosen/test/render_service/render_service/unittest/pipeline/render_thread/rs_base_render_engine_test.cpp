@@ -222,7 +222,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedForceCPU001, TestSize.Level1)
     ASSERT_EQ(false, ret);
 
     layers.clear();
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layers.emplace_back(layer);
     ret = RSBaseRenderEngine::NeedForceCPU(layers);
     ASSERT_EQ(false, ret);
@@ -240,7 +240,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
 
     std::vector<RSLayerPtr> layers;
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetBuffer(buffer, node->GetRSSurfaceHandler()->GetAcquireFence());
     layers.emplace_back(layer);
     bool ret = RSBaseRenderEngine::NeedForceCPU(layers);

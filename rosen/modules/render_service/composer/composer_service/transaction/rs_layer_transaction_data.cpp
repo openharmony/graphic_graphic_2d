@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,7 @@
 #define LOG_TAG "RSLayerTransactionData"
 namespace OHOS {
 namespace Rosen {
-static constexpr size_t PARCEL_MAX_CPACITY = 4000 * 1024; // upper bound of parcel capacity
+static constexpr size_t PARCEL_MAX_CAPACITY = 4000 * 1024; // upper bound of parcel capacity
 static constexpr uint64_t MAX_ADVANCE_TIME = 1000000000;  // one second advance most
 
 RSLayerTransactionData::~RSLayerTransactionData()
@@ -139,9 +139,9 @@ bool RSLayerTransactionData::Marshalling(std::shared_ptr<OHOS::MessageParcel>& p
         RS_LOGE("%{public}s parcel nullptr", __func__);
         return false;
     }
-    parcel->SetMaxCapacity(PARCEL_MAX_CPACITY);
+    parcel->SetMaxCapacity(PARCEL_MAX_CAPACITY);
     std::unique_lock<std::mutex> lock(rsLayerParcelMutex_);
-    bool success = parcel->WriteInt32(static_cast<int32_t>(payload_.size()));
+    bool success = parcel->WriteUint64(static_cast<uint64_t>(payload_.size()));
     while (marshallingIndex_ < payload_.size()) {
         auto& [layerId, rsLayerParcel] = payload_[marshallingIndex_];
         success = success && parcel->WriteUint64(layerId);
@@ -193,8 +193,8 @@ RSLayerTransactionData* RSLayerTransactionData::Unmarshalling(OHOS::MessageParce
 bool RSLayerTransactionData::UnmarshallingRsLayerParcel(OHOS::MessageParcel& parcel)
 {
     Clear();
-    int32_t payloadSize = 0;
-    if (!parcel.ReadInt32(payloadSize)) {
+    uint64_t payloadSize = 0;
+    if (!parcel.ReadUint64(payloadSize)) {
         RS_LOGE("%{public}s read payloadSize failed", __func__);
         return false;
     }
@@ -203,7 +203,7 @@ bool RSLayerTransactionData::UnmarshallingRsLayerParcel(OHOS::MessageParcel& par
     uint16_t rsLayerParcelType = 0;
 
     size_t len = static_cast<size_t>(payloadSize);
-    if (len > PARCEL_MAX_CPACITY) {
+    if (len > PARCEL_MAX_CAPACITY) {
         RS_LOGE("%{public}s fail read vector, size:%{public}zu", __func__, len);
         return false;
     }
@@ -250,7 +250,7 @@ void RSLayerTransactionData::Clear()
     timestamp_ = 0;
 }
 
-void RSLayerTransactionData::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId)
+void RSLayerTransactionData::AddRSLayerParcel(RSLayerId layerId, std::shared_ptr<RSLayerParcel>& layerParcel)
 {
     std::unique_lock<std::mutex> lock(rsLayerParcelMutex_);
     layerParcel->indexVerifier_ = payload_.size();

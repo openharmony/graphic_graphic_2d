@@ -151,7 +151,7 @@ int32_t HdiLayer::CreateLayer(const std::shared_ptr<RSLayer>& rsLayer)
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);
         return ret;
     }
-    ClearBufferCache();
+    ResetBufferCache();
     bufferCache_.reserve(bufferCacheCountMax_);
     layerId_ = layerId;
 
@@ -187,11 +187,7 @@ int32_t HdiLayer::SetLayerAlpha()
     if (doLayerInfoCompare_) {
         const GraphicLayerAlpha& layerAlpha1 = rsLayer_->GetAlpha();
         const GraphicLayerAlpha& layerAlpha2 = prevRSLayer_->GetAlpha();
-        bool isSame = layerAlpha1.enGlobalAlpha == layerAlpha2.enGlobalAlpha &&
-                      layerAlpha1.enPixelAlpha == layerAlpha2.enPixelAlpha &&
-                      layerAlpha1.alpha0 == layerAlpha2.alpha0 && layerAlpha1.alpha1 == layerAlpha2.alpha1 &&
-                      layerAlpha1.gAlpha == layerAlpha2.gAlpha;
-        if (isSame) {
+        if (layerAlpha1 == layerAlpha2) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
     }
@@ -327,7 +323,7 @@ int32_t HdiLayer::SetLayerBuffer()
 
 int32_t HdiLayer::SetLayerCompositionType()
 {
-    if (doLayerInfoCompare_ && rsLayer_->GetCompositionType() == prevRSLayer_->GetCompositionType()) {
+    if (doLayerInfoCompare_ && rsLayer_->GetCompositionType() == prevRSLayer_->GetHdiCompositionType()) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
 
@@ -570,7 +566,7 @@ int32_t HdiLayer::SetHdiLayerInfo(bool isActiveRectSwitching)
     // All layer properities need to set to hwc when the layer is created firstly or the previous layer's composition
     // type is COMPOSITION_DEVICE for COMPOSITION_DEVICE can not reuse COMPOSITION_CLIENT layers info.
     doLayerInfoCompare_ = prevRSLayer_ != nullptr &&
-                          prevRSLayer_->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE &&
+                          prevRSLayer_->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE &&
                           !isActiveRectSwitching;
 
     ret = SetLayerAlpha();
@@ -652,6 +648,7 @@ void HdiLayer::UpdateRSLayer(const std::shared_ptr<RSLayer>& rsLayer)
 
     isInUsing_ = true;
     rsLayer_ = rsLayer;
+    rsLayer_->SetHdiCompositionType(rsLayer->GetCompositionType());
 
     prevSbuffer_ = currBufferInfo_->sbuffer_;
     currBufferInfo_->sbuffer_ = rsLayer_->GetBuffer();
@@ -749,8 +746,7 @@ void HdiLayer::UpdateCompositionType(GraphicCompositionType type)
     if (rsLayer_ == nullptr) {
         return;
     }
-
-    rsLayer_->SetCompositionType(type);
+    rsLayer_->SetHdiCompositionType(type);
 }
 /* backend get layer info end */
 
@@ -931,7 +927,7 @@ void HdiLayer::ClearBufferCache()
     if (rsLayer_->GetBuffer() != nullptr) {
         currBuffer_ = rsLayer_->GetBuffer();
     }
-    RS_TRACE_NAME_FMT("HdiOutput::ClearBufferCache, screenId=%u, layerId=%u, bufferCacheSize=%zu", screenId_, layerId_,
+    RS_TRACE_NAME_FMT("%s, screenId=%u, layerId=%u, bufferCacheSize=%zu", __func__, screenId_, layerId_,
         bufferCache_.size());
     ResetBufferCache();
     if (device_ == nullptr) {

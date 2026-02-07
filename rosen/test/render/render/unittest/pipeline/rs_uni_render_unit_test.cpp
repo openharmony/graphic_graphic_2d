@@ -218,7 +218,7 @@ HWTEST_F(RSUniRenderUnitTest, GetMatrixOfBufferToRelRect_002, Function | SmallTe
 HWTEST_F(RSUniRenderUnitTest, CreateLayerBufferDrawParam_001, Function | SmallTest | Level2)
 {
     bool forceCPU = false;
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
 
@@ -234,7 +234,7 @@ HWTEST_F(RSUniRenderUnitTest, CreateLayerBufferDrawParam_002, Function | SmallTe
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
@@ -250,7 +250,7 @@ HWTEST_F(RSUniRenderUnitTest, CreateLayerBufferDrawParam_003, Function | SmallTe
     bool forceCPU = false;
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetBuffer(nullptr, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
@@ -266,7 +266,7 @@ HWTEST_F(RSUniRenderUnitTest, CreateLayerBufferDrawParam_004, Function | SmallTe
     bool forceCPU = false;
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetBuffer(nullptr, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     auto csurface = IConsumerSurface::Create();
     layer->SetSurface(csurface);

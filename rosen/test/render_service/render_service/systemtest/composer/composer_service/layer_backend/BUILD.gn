@@ -48,6 +48,8 @@ lb_sys_cflags = [
   "-Wall",
   "-Werror",
   "-g3",
+  "-Dprivate=public",
+  "-Dprotected=public",
 ]
 
 lb_sys_core_deps = [

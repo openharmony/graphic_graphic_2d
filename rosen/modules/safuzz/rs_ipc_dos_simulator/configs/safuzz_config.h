@@ -41,8 +41,8 @@ constexpr int RS_SAID = 10;
 
 /* render service ipc configs */
 constexpr size_t ASHMEM_SIZE_THRESHOLD = 100 * 1024; // cannot > 500K in TF_ASYNC mode
-constexpr size_t PARCEL_MAX_CPACITY_VARIANT = UINT32_MAX; // upper bound of parcel capacity
-constexpr size_t PARCEL_SPLIT_THRESHOLD_VARIANT = UINT32_MAX; // should be < PARCEL_MAX_CPACITY
+constexpr size_t PARCEL_MAX_CAPACITY_VARIANT = UINT32_MAX; // upper bound of parcel capacity
+constexpr size_t PARCEL_SPLIT_THRESHOLD_VARIANT = UINT32_MAX; // should be < PARCEL_MAX_CAPACITY
 } // namespace Rosen
 } // namespace OHOS
 

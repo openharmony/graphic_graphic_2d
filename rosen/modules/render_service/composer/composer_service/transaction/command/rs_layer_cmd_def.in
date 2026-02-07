@@ -28,7 +28,6 @@ DECLARE_RSLAYER_CMD(BlendType, GraphicBlendType, BLEND_TYPE)
 DECLARE_RSLAYER_CMD(PreMulti, bool, PRE_MULTI)
 DECLARE_RSLAYER_CMD(UniRenderFlag, bool, UNI_RENDER_FLAG)
 DECLARE_RSLAYER_CMD(TunnelHandleChange, bool, TUNNEL_HANDLE_CHANGE)
-DECLARE_RSLAYER_CMD(IsSupportedPresentTimestamp, bool, IS_SUPPORTED_PRESENT_TIMESTAMP)
 DECLARE_RSLAYER_CMD(RotationFixed, bool, ROTATION_FIXED)
 DECLARE_RSLAYER_CMD(LayerArsr, bool, LAYER_ARSR)
 DECLARE_RSLAYER_CMD(LayerCopybit, bool, LAYER_COPYBIT)
@@ -37,6 +36,7 @@ DECLARE_RSLAYER_CMD(IsMaskLayer, bool, IS_MASK_LAYER)
 DECLARE_RSLAYER_CMD(IsNeedComposition, bool, IS_NEED_COMPOSITION)
 DECLARE_RSLAYER_CMD(UseDeviceOffline, bool, USE_DEVICE_OFFLINE)
 DECLARE_RSLAYER_CMD(IgnoreAlpha, bool, IGNORE_ALPHA)
+DECLARE_RSLAYER_CMD(DeleteLayer, bool, DELETE_LAYER)
 
 // float command
 DECLARE_RSLAYER_CMD(SdrNit, float, SDR_NIT)
@@ -74,9 +74,6 @@ DECLARE_RSLAYER_CMD(ColorDataSpace, GraphicColorDataSpace, COLOR_DATA_SPACE)
 // metaData command
 DECLARE_RSLAYER_CMD(MetaData, std::vector<GraphicHDRMetaData>, META_DATA)
 DECLARE_RSLAYER_CMD(MetaDataSet, GraphicHDRMetaDataSet, META_DATA_SET)
-
-// timestamp command
-DECLARE_RSLAYER_CMD(PresentTimestamp, GraphicPresentTimestamp, PRESENT_TIMESTAMP)
 
 // solid color layer property command
 DECLARE_RSLAYER_CMD(SolidColorLayerProperty, GraphicSolidColorLayerProperty, SOLID_COLOR_LAYER_PROPERTY)

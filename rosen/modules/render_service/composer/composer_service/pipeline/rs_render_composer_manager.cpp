@@ -39,7 +39,7 @@ void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>
         return;
     }
     auto screenId = output->GetScreenId();
-    RS_TRACE_NAME_FMT("RSRenderComposerManager::OnScreenConnected screenId %u", screenId);
+    RS_TRACE_NAME_FMT("%s screenId %u", __func__, screenId);
     RS_LOGI("%{public}s screenId:%{public}u", __func__, screenId);
     std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
     bool isReuseComposer = false;
@@ -66,7 +66,7 @@ void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>
 
 void RSRenderComposerManager::OnScreenDisconnected(ScreenId screenId)
 {
-    RS_TRACE_NAME_FMT("RSRenderComposerManager::OnScreenDisconnected screenId %u", screenId);
+    RS_TRACE_NAME_FMT("%s screenId %u", __func__, screenId);
     RS_LOGI("%{public}s screenId:%{public}" PRIu64, __func__, screenId);
     if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         RS_LOGE("%{public}s not uni render", __func__);
@@ -93,7 +93,7 @@ void RSRenderComposerManager::OnHwcRestored(const std::shared_ptr<HdiOutput>& ou
         return;
     }
     auto screenId = output->GetScreenId();
-    RS_TRACE_NAME_FMT("RSRenderComposerManager::OnHwcRestored screenId %u", screenId);
+    RS_TRACE_NAME_FMT("%s screenId %u", __func__, screenId);
     RS_LOGI("%{public}s screenId:%{public}u", __func__, screenId);
     std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
     {
@@ -111,7 +111,7 @@ void RSRenderComposerManager::OnHwcRestored(const std::shared_ptr<HdiOutput>& ou
 
 void RSRenderComposerManager::OnHwcDead(ScreenId screenId)
 {
-    RS_TRACE_NAME_FMT("RSRenderComposerManager::OnHwcDead screenId %u", screenId);
+    RS_TRACE_NAME_FMT("%s screenId %u", __func__, screenId);
     RS_LOGI("%{public}s screenId:%{public}" PRIu64, __func__, screenId);
     std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
     {
@@ -128,7 +128,7 @@ void RSRenderComposerManager::OnHwcDead(ScreenId screenId)
 
 sptr<RSRenderToComposerConnection> RSRenderComposerManager::GetRSComposerConnection(ScreenId screenId)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::GetRSComposerConnection screenId %u", screenId);
+    RS_OPTIONAL_TRACE_NAME_FMT("%s screenId %u", __func__, screenId);
     std::lock_guard<std::mutex> lock(mutex_);
     auto iter = rsComposerConnectionMap_.find(screenId);
     if (iter == rsComposerConnectionMap_.end()) {
@@ -161,7 +161,7 @@ void RSRenderComposerManager::PostDelayTask(const std::function<void()>& task, i
 
 void RSRenderComposerManager::SurfaceDump(std::string& dumpString)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::SurfaceDump");
+    RS_OPTIONAL_TRACE_NAME_FMT("%s", __func__);
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -178,7 +178,7 @@ void RSRenderComposerManager::SurfaceDump(std::string& dumpString)
 
 void RSRenderComposerManager::GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::GetRefreshInfoToSP");
+    RS_OPTIONAL_TRACE_NAME_FMT("%s", __func__);
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -196,7 +196,7 @@ void RSRenderComposerManager::GetRefreshInfoToSP(std::string& dumpString, NodeId
 
 void RSRenderComposerManager::FpsDump(std::string& dumpString, const std::string& layerName)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::FpsDump");
+    RS_OPTIONAL_TRACE_NAME_FMT("%s", __func__);
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -214,7 +214,7 @@ void RSRenderComposerManager::FpsDump(std::string& dumpString, const std::string
 
 void RSRenderComposerManager::ClearFpsDump(std::string& dumpString, std::string& layerName)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::ClearFpsDump");
+    RS_OPTIONAL_TRACE_NAME_FMT("%s", __func__);
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -232,7 +232,7 @@ void RSRenderComposerManager::ClearFpsDump(std::string& dumpString, std::string&
 
 void RSRenderComposerManager::HitchsDump(std::string& dumpString, std::string& layerArg)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::HitchsDump");
+    RS_OPTIONAL_TRACE_NAME_FMT("%s", __func__);
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> renderComposerAgentMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -250,7 +250,7 @@ void RSRenderComposerManager::HitchsDump(std::string& dumpString, std::string& l
 
 void RSRenderComposerManager::RefreshRateCounts(std::string& dumpString)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::RefreshRateCounts");
+    RS_OPTIONAL_TRACE_NAME_FMT("%s", __func__);
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -267,7 +267,7 @@ void RSRenderComposerManager::RefreshRateCounts(std::string& dumpString)
 
 void RSRenderComposerManager::ClearRefreshRateCounts(std::string& dumpString)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::ClearRefreshRateCounts");
+    RS_OPTIONAL_TRACE_NAME_FMT("%s", __func__);
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);

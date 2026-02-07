@@ -401,7 +401,7 @@ HWTEST_F(HdiOutputTest, DumpFps001, Function | MediumTest | Level1)
     ASSERT_NE(output, nullptr);
     for (size_t i = 0; i < 3; i++) {
         output->surfaceIdMap_[i] = HdiLayer::CreateHdiLayer(i);
-        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
         output->surfaceIdMap_[i]->UpdateRSLayer(rsLayer);
     }
     std::string result;
@@ -473,7 +473,7 @@ HWTEST_F(HdiOutputTest, RecordCompositionTime001, Function | MediumTest | Level1
 HWTEST_F(HdiOutputTest, CheckIfDoArsrPre001, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     bool res = hdiOutput->CheckIfDoArsrPre(nullptr);
     EXPECT_FALSE(res);
 
@@ -504,7 +504,7 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPre001, Function | MediumTest | Level1)
 HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm001, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("xcomponentIdSurface");
     rsLayer->SetSurface(cSurface);
     bool res = hdiOutput->CheckIfDoArsrPreForVm(rsLayer);
@@ -607,7 +607,7 @@ HWTEST_F(HdiOutputTest, ClearFpsDump001, Function | MediumTest | Level1)
     surfaceIdMap.clear();
     uint64_t id = 0;
     std::shared_ptr<HdiLayer> layer = std::make_shared<HdiLayer>(id);
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->UpdateRSLayer(rsLayer);
     rsLayer->SetSurface(nullptr);
     surfaceIdMap[id] = layer;
@@ -687,7 +687,7 @@ HWTEST_F(HdiOutputTest, ReleaseFramebuffer002, Function | MediumTest | Level1)
     hdiOutput->ReleaseFramebuffer(releaseFence);
     EXPECT_EQ(releaseFence, nullptr);
 
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->UpdateRSLayer(rsLayer);
     rsLayer->SetSurface(nullptr);
     hdiOutput->ReleaseFramebuffer(releaseFence);
@@ -726,7 +726,7 @@ HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_001, testing::ext::TestSize.
     output->surfaceIdMap_.clear();
     for (size_t i = 0; i < 3; i++) {
         output->surfaceIdMap_[i] = HdiLayer::CreateHdiLayer(i);
-        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
         output->surfaceIdMap_[i]->UpdateRSLayer(rsLayer);
     }
     output->surfaceIdMap_[3] = nullptr;
@@ -755,24 +755,24 @@ HWTEST_F(HdiOutputTest, SetRSLayers001, Function | MediumTest | Level3)
     std::shared_ptr<RSLayer> layer1 = nullptr;
     rsLayers.push_back(layer1);
     // layer not nullptr and is maskLayer
-    std::shared_ptr<RSLayer> layer2 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> layer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer2, nullptr);
     layer2->SetIsMaskLayer(true);
     rsLayers.push_back(layer2);
     // layer not nullptr and not maskLayer, compositionType is SOLID_COLOR
-    std::shared_ptr<RSLayer> layer3 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> layer3 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer3, nullptr);
     layer3->SetIsMaskLayer(false);
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     rsLayers.push_back(layer3);
     // layer not nullptr and not maskLayer, compositionType is CLIENT, solidLayerCount is 0
-    std::shared_ptr<RSLayer> layer4 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> layer4 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer4, nullptr);
     layer4->SetIsMaskLayer(false);
     layer4->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
     rsLayers.push_back(layer4);
     // layer not nullptr and not maskLayer, compositionType is CLIENT, solidLayerCount is 1
-    std::shared_ptr<RSLayer> layer5 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> layer5 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer5, nullptr);
     layer5->SetIsMaskLayer(false);
     layer5->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
@@ -794,7 +794,7 @@ HWTEST_F(HdiOutputTest, SetRSLayers001, Function | MediumTest | Level3)
  */
 HWTEST_F(HdiOutputTest, DirtyRegions001, Function | MediumTest | Level1)
 {
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetIsMaskLayer(false);
     uint32_t solidLayerCount = 0;
     HdiOutputTest::hdiOutput_->DirtyRegions(solidLayerCount, rsLayer);
@@ -918,7 +918,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked001, Function | MediumTest | Level1)
     auto ret = HdiOutputTest::hdiOutput_->CreateLayerLocked(1, nullptr);
     ASSERT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
     // hdiLayer init success
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetIsMaskLayer(true);
     rsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
     auto preDevice = HdiOutputTest::hdiOutput_->device_;
@@ -943,7 +943,7 @@ HWTEST_F(HdiOutputTest, FlushScreen001, Function | MediumTest | Level1)
 {
     std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(1);
     ASSERT_NE(hdiLayer, nullptr);
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(rsLayer, nullptr);
     hdiLayer->UpdateRSLayer(rsLayer);
     auto preFbSurface = HdiOutputTest::hdiOutput_->fbSurface_;
@@ -1007,7 +1007,7 @@ HWTEST_F(HdiOutputTest, FlushScreen002, Function | MediumTest | Level1)
 {
     std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(1);
     ASSERT_NE(hdiLayer, nullptr);
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(rsLayer, nullptr);
     hdiLayer->UpdateRSLayer(rsLayer);
     auto preFbSurface = HdiOutputTest::hdiOutput_->fbSurface_;
@@ -1075,20 +1075,20 @@ HWTEST_F(HdiOutputTest, ReleaseLayers001, Function | MediumTest | Level1)
     // has rslayer but no surface
     std::shared_ptr<HdiLayer> hdiLayer2 = HdiLayer::CreateHdiLayer(2);
     ASSERT_NE(hdiLayer2, nullptr);
-    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(rsLayer2, nullptr);
     hdiLayer2->UpdateRSLayer(rsLayer2);
     // has rslayer and surface
     std::shared_ptr<HdiLayer> hdiLayer3 = HdiLayer::CreateHdiLayer(3);
     ASSERT_NE(hdiLayer3, nullptr);
-    std::shared_ptr<RSLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(rsLayer3, nullptr);
     hdiLayer3->UpdateRSLayer(rsLayer3);
     rsLayer3->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
     // has rslayer and surface SetIsSupportedPresentTimestamp
     std::shared_ptr<HdiLayer> hdiLayer4 = HdiLayer::CreateHdiLayer(4);
     ASSERT_NE(hdiLayer4, nullptr);
-    std::shared_ptr<RSLayer> rsLayer4 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer4 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(rsLayer4, nullptr);
     rsLayer4->SetIsSupportedPresentTimestamp(true);
     hdiLayer4->UpdateRSLayer(rsLayer4);
@@ -1096,7 +1096,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers001, Function | MediumTest | Level1)
     // has rslayer and surface SetIsSupportedPresentTimestamp and set buffer
     std::shared_ptr<HdiLayer> hdiLayer5 = HdiLayer::CreateHdiLayer(5);
     ASSERT_NE(hdiLayer5, nullptr);
-    std::shared_ptr<RSLayer> rsLayer5 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer5 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(rsLayer5, nullptr);
     rsLayer5->SetIsSupportedPresentTimestamp(true);
     rsLayer5->SetBuffer(new SurfaceBufferImpl());
@@ -1160,14 +1160,14 @@ HWTEST_F(HdiOutputTest, DumpHitchs001, Function | MediumTest | Level1)
 
     // hdilayer has rslayer SetUniRenderFlag false
     std::shared_ptr<HdiLayer> hdiLayer1 = HdiLayer::CreateHdiLayer(1);
-    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer1->SetUniRenderFlag(false);
     hdiLayer1->UpdateRSLayer(rsLayer1);
     HdiOutputTest::hdiOutput_->surfaceIdMap_[1] = hdiLayer1;
 
     // hdilayer has rslayer SetUniRenderFlag true
     std::shared_ptr<HdiLayer> hdiLayer2 = HdiLayer::CreateHdiLayer(2);
-    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer2->SetUniRenderFlag(true);
     hdiLayer2->UpdateRSLayer(rsLayer2);
     HdiOutputTest::hdiOutput_->surfaceIdMap_[2] = hdiLayer2;
@@ -1200,14 +1200,14 @@ HWTEST_F(HdiOutputTest, DumpFps002, Function | MediumTest | Level1)
 
     // hdilayer has rslayer SetUniRenderFlag false
     std::shared_ptr<HdiLayer> hdiLayer0 = HdiLayer::CreateHdiLayer(0);
-    std::shared_ptr<RSLayer> rsLayer0 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer0 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer0->SetUniRenderFlag(false);
     hdiLayer0->UpdateRSLayer(rsLayer0);
     HdiOutputTest::hdiOutput_->surfaceIdMap_[0] = hdiLayer0;
 
     // hdilayer has rslayer SetUniRenderFlag false
     std::shared_ptr<HdiLayer> hdiLayer1 = HdiLayer::CreateHdiLayer(1);
-    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer1->SetUniRenderFlag(false);
     rsLayer1->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
     rsLayer1->SetSurfaceName("HdiOutputTest");
@@ -1218,7 +1218,7 @@ HWTEST_F(HdiOutputTest, DumpFps002, Function | MediumTest | Level1)
 
     // hdilayer has rslayer SetUniRenderFlag true
     std::shared_ptr<HdiLayer> hdiLayer2 = HdiLayer::CreateHdiLayer(2);
-    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer2->SetUniRenderFlag(true);
     rsLayer2->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
     rsLayer2->SetSurfaceName("xcomponentIdSurface");
@@ -1255,7 +1255,7 @@ HWTEST_F(HdiOutputTest, DumpFps003, Function | MediumTest | Level1)
 
     // hdilayer has rslayer SetUniRenderFlag true, windowsName not find
     std::shared_ptr<HdiLayer> hdiLayer3 = HdiLayer::CreateHdiLayer(3);
-    std::shared_ptr<RSLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer3->SetUniRenderFlag(true);
     rsLayer3->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
     std::vector<std::string> windowsName3 = {};
@@ -1265,7 +1265,7 @@ HWTEST_F(HdiOutputTest, DumpFps003, Function | MediumTest | Level1)
 
     // hdilayer has rslayer SetUniRenderFlag true, windowsName find
     std::shared_ptr<HdiLayer> hdiLayer4 = HdiLayer::CreateHdiLayer(4);
-    std::shared_ptr<RSLayer> rsLayer4 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer4 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer4->SetUniRenderFlag(true);
     rsLayer4->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
     std::vector<std::string> windowsName4 = {"xcomponentIdSurface"};
@@ -1300,13 +1300,13 @@ HWTEST_F(HdiOutputTest, Dump002, Function | MediumTest | Level1)
 
     // hdilayer has rslayer SetUniRenderFlag false
     std::shared_ptr<HdiLayer> hdiLayer1 = HdiLayer::CreateHdiLayer(1);
-    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer1->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
     hdiLayer1->UpdateRSLayer(rsLayer1);
     HdiOutputTest::hdiOutput_->surfaceIdMap_[1] = hdiLayer1;
 
     std::shared_ptr<HdiLayer> hdiLayer2 = HdiLayer::CreateHdiLayer(2);
-    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     hdiLayer2->UpdateRSLayer(rsLayer2);
     HdiOutputTest::hdiOutput_->surfaceIdMap_[2] = hdiLayer2;
 
@@ -1346,7 +1346,7 @@ HWTEST_F(HdiOutputTest, GetVsyncSamplerEnabled001, Function | MediumTest | Level
  */
 HWTEST_F(HdiOutputTest, CheckIfDoArsrPre002, Function | MediumTest | Level1)
 {
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetIsSupportedPresentTimestamp(true);
     auto buffer = new SurfaceBufferImpl();
     BufferHandle *handle = new BufferHandle();
@@ -1421,7 +1421,7 @@ HWTEST_F(HdiOutputTest, ReorderRSLayers001, Function | MediumTest | Level1)
 {
     std::vector<std::shared_ptr<RSLayer>> newRSLayers;
     std::shared_ptr<RSLayer> rsLayer1 = nullptr;
-    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(rsLayer2, nullptr);
     newRSLayers.push_back(rsLayer1);
     newRSLayers.push_back(rsLayer2);
@@ -1478,7 +1478,7 @@ HWTEST_F(HdiOutputTest, GetRSLayers001, Function | MediumTest | Level1)
 
     HdiOutputTest::hdiOutput_->layerIdMap_[0] = nullptr;
     std::shared_ptr<HdiLayer> hdiLayer1 = std::make_shared<HdiLayer>(1);
-    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     hdiLayer1->UpdateRSLayer(rsLayer1);
     HdiOutputTest::hdiOutput_->layerIdMap_[1] = hdiLayer1;
     std::vector<std::shared_ptr<RSLayer>> rsLayers = {};
@@ -1518,7 +1518,7 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm002, Function | MediumTest | Level1
     hdiOutput->vmArsrWhiteList_ = "xcomponentIdSurface;HdiOutputTest";
 
     // getsurface is nullptr
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     bool ret = hdiOutput->CheckIfDoArsrPreForVm(rsLayer);
     ASSERT_EQ(ret, false);
     // getsurface is not nullptr, not find in vmLayers
@@ -1591,20 +1591,20 @@ HWTEST_F(HdiOutputTest, ClearFpsDump002, Function | MediumTest | Level1)
     std::string arg = "xcomponentIdSurface";
     // getSurface is nullptr
     std::shared_ptr<HdiLayer> layer1 = std::make_shared<HdiLayer>(1);
-    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer1->UpdateRSLayer(rsLayer1);
     rsLayer1->SetSurface(nullptr);
     HdiOutputTest::hdiOutput_->surfaceIdMap_[1] = layer1;
     // name != arg
     std::shared_ptr<HdiLayer> layer2 = std::make_shared<HdiLayer>(2);
-    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer2->UpdateRSLayer(rsLayer2);
     rsLayer2->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
     rsLayer2->SetSurfaceName("HdiOutputTest");
     HdiOutputTest::hdiOutput_->surfaceIdMap_[2] = layer2;
     // name == arg
     std::shared_ptr<HdiLayer> layer3 = std::make_shared<HdiLayer>(3);
-    std::shared_ptr<RSLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer3->UpdateRSLayer(rsLayer3);
     rsLayer3->SetSurface(IConsumerSurface::Create(arg));
     rsLayer3->SetSurfaceName(arg);
@@ -1719,7 +1719,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked003, Function | MediumTest | Level1)
     auto vmArsrWhiteList = HdiOutputTest::hdiOutput_->vmArsrWhiteList_;
     HdiOutputTest::hdiOutput_->vmArsrWhiteList_ = "HdiOutputTest";
 
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetIsMaskLayer(false);
     rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
     rsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
@@ -1781,7 +1781,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked004, Function | MediumTest | Level1)
     auto vmArsrWhiteList = HdiOutputTest::hdiOutput_->vmArsrWhiteList_;
     HdiOutputTest::hdiOutput_->vmArsrWhiteList_ = "HdiOutputTest";
 
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetIsMaskLayer(false);
     rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
     rsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
@@ -1878,7 +1878,7 @@ HWTEST_F(HdiOutputTest, Repaint001, Function | MediumTest | Level1)
     // preProcessLayersComp return success
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     std::shared_ptr<HdiLayer> layer = std::make_shared<HdiLayer>(0);
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->UpdateRSLayer(rsLayer);
     rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
     HdiOutputTest::hdiOutput_->layerIdMap_[0] = layer;
@@ -1938,7 +1938,7 @@ HWTEST_F(HdiOutputTest, Repaint002, Function | MediumTest | Level1)
     // preProcessLayersComp return success
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     std::shared_ptr<HdiLayer> layer = std::make_shared<HdiLayer>(0);
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->UpdateRSLayer(rsLayer);
     rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
     HdiOutputTest::hdiOutput_->layerIdMap_[0] = layer;
@@ -1975,7 +1975,7 @@ HWTEST_F(HdiOutputTest, Repaint002, Function | MediumTest | Level1)
 HWTEST_F(HdiOutputTest, SetAncoSrcRect, Function | MediumTest | Level3)
 {
     GraphicIRect tmpRect {-1, -1, -1, -1};
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     GraphicIRect srcRect = layer->GetAncoSrcRect();
     EXPECT_EQ(srcRect.x, tmpRect.x);
     EXPECT_EQ(srcRect.y, tmpRect.y);
@@ -2054,7 +2054,7 @@ HWTEST_F(HdiOutputTest, RegPrepareComplete_ValidCallback, Function | MediumTest 
     };
     ASSERT_EQ(out->RegPrepareComplete(cb, &called), ROSEN_ERROR_OK);
     std::vector<std::shared_ptr<RSLayer>> layers;
-    layers.emplace_back(std::make_shared<RSSurfaceLayer>());
+    layers.emplace_back(std::make_shared<RSSurfaceLayer>(0, nullptr));
     out->OnPrepareComplete(true, layers);
     EXPECT_TRUE(called);
 }
@@ -2166,13 +2166,13 @@ HWTEST_F(HdiOutputTest, GetComposeClientLayers_ClientClear_And_Tunnel, Function 
     out->layerIdMap_.clear();
     // CLIENT_CLEAR
     auto l1 = HdiLayer::CreateHdiLayer(1);
-    auto rs1 = std::make_shared<RSSurfaceLayer>();
+    auto rs1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rs1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR);
     l1->UpdateRSLayer(rs1);
     out->layerIdMap_[1] = l1;
     // TUNNEL
     auto l2 = HdiLayer::CreateHdiLayer(2);
-    auto rs2 = std::make_shared<RSSurfaceLayer>();
+    auto rs2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rs2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL);
     l2->UpdateRSLayer(rs2);
     out->layerIdMap_[2] = l2;
@@ -2195,7 +2195,7 @@ HWTEST_F(HdiOutputTest, PrepareCompleteIfNeed_FlushWhenClientLayersExist, Functi
     out->fbSurface_ = HdiFramebufferSurface::CreateFramebufferSurface();
     // setup client layer
     auto l1 = HdiLayer::CreateHdiLayer(1);
-    auto rs1 = std::make_shared<RSSurfaceLayer>();
+    auto rs1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rs1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     l1->UpdateRSLayer(rs1);
     out->layerIdMap_[1] = l1;
@@ -2258,7 +2258,7 @@ HWTEST_F(HdiOutputTest, RegPrepareComplete_ValidCallback, Function | MediumTest 
     };
     ASSERT_EQ(out->RegPrepareComplete(cb, &called), ROSEN_ERROR_OK);
     std::vector<std::shared_ptr<RSLayer>> layers;
-    layers.emplace_back(std::make_shared<RSSurfaceLayer>());
+    layers.emplace_back(std::make_shared<RSSurfaceLayer>(0, nullptr));
     out->OnPrepareComplete(true, layers);
     EXPECT_TRUE(called);
 }
@@ -2370,13 +2370,13 @@ HWTEST_F(HdiOutputTest, GetComposeClientLayers_ClientClear_And_Tunnel, Function 
     out->layerIdMap_.clear();
     // CLIENT_CLEAR
     auto l1 = HdiLayer::CreateHdiLayer(1);
-    auto rs1 = std::make_shared<RSSurfaceLayer>();
+    auto rs1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rs1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR);
     l1->UpdateRSLayer(rs1);
     out->layerIdMap_[1] = l1;
     // TUNNEL
     auto l2 = HdiLayer::CreateHdiLayer(2);
-    auto rs2 = std::make_shared<RSSurfaceLayer>();
+    auto rs2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rs2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL);
     l2->UpdateRSLayer(rs2);
     out->layerIdMap_[2] = l2;
@@ -2399,7 +2399,7 @@ HWTEST_F(HdiOutputTest, PrepareCompleteIfNeed_FlushWhenClientLayersExist, Functi
     out->fbSurface_ = HdiFramebufferSurface::CreateFramebufferSurface();
     // setup client layer
     auto l1 = HdiLayer::CreateHdiLayer(1);
-    auto rs1 = std::make_shared<RSSurfaceLayer>();
+    auto rs1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rs1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     l1->UpdateRSLayer(rs1);
     out->layerIdMap_[1] = l1;

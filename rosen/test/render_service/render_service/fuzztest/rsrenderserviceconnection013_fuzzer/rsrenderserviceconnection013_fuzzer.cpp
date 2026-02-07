@@ -66,13 +66,8 @@ const uint8_t DO_GET_DISPLAY_IDENTIFICATION_DATA = 19;
 const uint8_t DO_RESIZE_VIRTUAL_SCREEN = 20;
 const uint8_t DO_CLEAN_VIRTUAL_SCREENS = 21;
 constexpr uint8_t DO_SET_ROG_SCREEN_RESOLUTION = 22;
-<<<<<<< HEAD
+constexpr uint8_t DO_SET_SCREEN_SECURITY_MASK = 23;
 const uint8_t TARGET_SIZE = 24;
-=======
-constexpr uint8_t DO_GET_ROG_SCREEN_RESOLUTION = 23;
-constexpr uint8_t DO_SET_SCREEN_SECURITY_MASK = 24;
-const uint8_t TARGET_SIZE = 25;
->>>>>>> master
 } // namespace
 
 auto g_pid = getpid();
@@ -626,15 +621,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_SET_ROG_SCREEN_RESOLUTION:
             OHOS::Rosen::DoSetRogScreenResolution(fdp);
             break;
-<<<<<<< HEAD
-=======
-        case OHOS::Rosen::DO_GET_ROG_SCREEN_RESOLUTION:
-            OHOS::Rosen::DoGetRogScreenResolution(fdp);
-            break;
         case OHOS::Rosen::DO_SET_SCREEN_SECURITY_MASK:
             OHOS::Rosen::DoSetScreenSecurityMask(fdp);
             break;
->>>>>>> master
         default:
             return -1;
     }

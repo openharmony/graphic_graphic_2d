@@ -107,7 +107,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, CheckSpecialLayerIntersectMirrorDisplay, TestS
     mirrorNode->isMirrorDisplay_ = true;
 
     mirrorNode->SetMirrorSource(sourceNode);
-    RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(*mirrorNode, *sourceNode, true);
+    RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(*mirrorNode, *sourceNode);
     ASSERT_NE(mirrorNode->GetMirrorSource().lock(), nullptr);
 }
 

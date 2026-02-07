@@ -920,22 +920,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterFirstFrameCommitCallback,
 }
 
 /**
-<<<<<<< HEAD
-=======
- * @tc.name: SetSystemAnimatedScenes Test
- * @tc.desc: SetSystemAnimatedScenes Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, SetSystemAnimatedScenes, TestSize.Level1)
-{
-    bool success;
-    proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false, success);
-    ASSERT_FALSE(success);
-}
-
-/**
->>>>>>> master
  * @tc.name: ResizeVirtualScreen Test
  * @tc.desc: ResizeVirtualScreen Test
  * @tc.type:FUNC
@@ -1355,7 +1339,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, AvcodecVideoStopTest, TestSize.Le
 }
 
 /**
-<<<<<<< HEAD
  * @tc.name: SetScreenFrameGravity Test
  * @tc.desc: SetScreenFrameGravity Test
  * @tc.type:FUNC
@@ -1369,7 +1352,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetScreenFrameGravity, TestSize.L
     ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
 
-=======
+/**
  * @tc.name: AvcodecVideoGet Test
  * @tc.desc: AvcodecVideoGet Test
  * @tc.type:FUNC
@@ -1422,6 +1405,5 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState002, TestSize.L
     auto ret = mockproxy->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
     EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
 }
->>>>>>> master
 } // namespace Rosen
 } // namespace OHOS

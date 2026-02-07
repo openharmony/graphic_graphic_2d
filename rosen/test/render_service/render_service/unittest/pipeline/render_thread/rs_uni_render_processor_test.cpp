@@ -516,7 +516,7 @@ HWTEST_F(RSUniRenderProcessorTest, HandleTunnelLayerParameters001, TestSize.Leve
     params.SetTunnelLayerId(0);
     renderProcessor->HandleTunnelLayerParameters(params, layer);
 
-    layer = std::make_shared<RSSurfaceLayer>();
+    layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     renderProcessor->HandleTunnelLayerParameters(params, layer);
 
     ASSERT_EQ(layer->GetTunnelLayerId(), params.GetTunnelLayerId());
@@ -685,7 +685,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
  */
 HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayerTest, TestSize.Level1)
 {
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetZorder(5);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
@@ -718,7 +718,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayerTest, TestSize.Level1)
 HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer001, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
         layer->SetZorder(5);
         auto surfaceNode = RSTestUtil::CreateSurfaceNode();
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
@@ -754,7 +754,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer001, TestSize.Level1)
 HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer002, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
         layer->SetZorder(5);
         auto surfaceNode = RSTestUtil::CreateSurfaceNode();
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
@@ -785,7 +785,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer002, TestSize.Level1)
 HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer003, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
         layer->SetZorder(5);
         auto surfaceNode = RSTestUtil::CreateSurfaceNode();
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
@@ -829,7 +829,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer003, TestSize.Level1)
 HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer004, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
         layer->SetZorder(0);
         auto surfaceNode = RSTestUtil::CreateSurfaceNode();
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
@@ -865,7 +865,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer004, TestSize.Level1)
 HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer005, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+        RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
         layer->SetZorder(-1);
         auto surfaceNode = RSTestUtil::CreateSurfaceNode();
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
@@ -922,7 +922,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer006, TestSize.Level1)
 
         for (const auto& colorCase : testColors) {
             // Create a new layer for each iteration
-            RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+            RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
             layer->SetZorder(3);
 
             auto surfaceNode = RSTestUtil::CreateSurfaceNode();
@@ -973,7 +973,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer007, TestSize.Level1)
 
         for (const auto& rectCase : testRects) {
             // Create a new layer for each iteration
-            RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+            RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
             layer->SetZorder(2);
 
             auto surfaceNode = RSTestUtil::CreateSurfaceNode();

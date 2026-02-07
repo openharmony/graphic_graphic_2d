@@ -57,7 +57,7 @@ void RSRenderServiceListener::OnBufferAvailable()
     if (ForceRefresh(node)) {
         return;
     }
-
+    auto doFastCompose = false;
     if (consumer) {
         bool supportFastCompose = false;
         GSError ret =  consumer->GetBufferSupportFastCompose(supportFastCompose);

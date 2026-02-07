@@ -1087,32 +1087,33 @@ void RSProfiler::UnmarshalSelfDrawingBuffers()
 
 void RSProfiler::SurfaceNodeUpdateBuffer(std::shared_ptr<RSRenderNode> node, sptr<SurfaceBuffer> buffer)
 {
-    auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(node);
-    if (!surfaceNode) {
-        HRPE("SurfaceNodeUpdateBuffer: failed get surface node");
-        return;
-    }
-    auto handler = surfaceNode->GetRSSurfaceHandler();
-    if (!handler) {
-        HRPE("SurfaceNodeUpdateBuffer: handler not found");
-        return;
-    }
+    // TODO CAR
+    // auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(node);
+    // if (!surfaceNode) {
+    //     HRPE("SurfaceNodeUpdateBuffer: failed get surface node");
+    //     return;
+    // }
+    // auto handler = surfaceNode->GetRSSurfaceHandler();
+    // if (!handler) {
+    //     HRPE("SurfaceNodeUpdateBuffer: handler not found");
+    //     return;
+    // }
 
-    BufferFlushConfigWithDamages flushConfig = {
-        .damages = { {
-            .w = buffer->GetWidth(),
-            .h = buffer->GetHeight(),
-        } },
-    };
-    g_mainThread->PostSyncTask([&handler, &surfaceNode, &buffer, &flushConfig] {
-        handler->SetBuffer(buffer, SyncFence::InvalidFence(), flushConfig.damages[0], 0);
-        surfaceNode->UpdateBufferInfo(buffer, flushConfig.damages[0], handler->GetAcquireFence(), nullptr);
+    // BufferFlushConfigWithDamages flushConfig = {
+    //     .damages = { {
+    //         .w = buffer->GetWidth(),
+    //         .h = buffer->GetHeight(),
+    //     } },
+    // };
+    // g_mainThread->PostSyncTask([&handler, &surfaceNode, &buffer, &flushConfig] {
+    //     handler->SetBuffer(buffer, SyncFence::InvalidFence(), flushConfig.damages[0], 0);
+    //     surfaceNode->UpdateBufferInfo(buffer, flushConfig.damages[0], handler->GetAcquireFence(), nullptr);
 
-        surfaceNode->SetNodeDirty(true);
-        surfaceNode->SetDirty();
-        surfaceNode->SetContentDirty();
-        g_mainThread->SetDirtyFlag();
-    });
+    //     surfaceNode->SetNodeDirty(true);
+    //     surfaceNode->SetDirty();
+    //     surfaceNode->SetContentDirty();
+    //     g_mainThread->SetDirtyFlag();
+    // });
     AwakeRenderServiceThread();
 }
 

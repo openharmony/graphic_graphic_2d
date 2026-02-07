@@ -88,10 +88,13 @@ RSComposerError RSRenderToComposerConnectionProxy::SendLayers(std::vector<std::s
         int32_t err = NO_ERROR;
         do {
             err = Remote()->SendRequest(IRENDER_TO_COMPOSER_CONNECTION_COMMIT_LAYERS, *parcel, reply, option);
-            if (err != NO_ERROR && retryCount < MAX_RETRY_COUNT) {
+            if (err == NO_ERROR) {
+                break;
+            }
+            if (retryCount < MAX_RETRY_COUNT) {
                 retryCount++;
                 usleep(RETRY_WAIT_TIME_US);
-            } else if (err != NO_ERROR) {
+            } else {
                 RS_LOGE("%{public}s SendRequest failed, err:%{public}d, data size:%{public}zu",
                     __func__, err, parcel->GetDataSize());
                 return COMPOSITOR_ERROR_BINDER_ERROR;
@@ -172,10 +175,13 @@ void RSRenderToComposerConnectionProxy::ClearRedrawGPUCompositionCache(const std
     int32_t retryCount = 0;
     do {
         err = SendRequest(IRENDER_TO_COMPOSER_CONNECTION_CLEAR_REDRAW_GPU_COMPOSITION_CACHE, parcel, reply, option);
-        if (err != NO_ERROR && retryCount < MAX_RETRY_COUNT) {
+        if (err == NO_ERROR) {
+            break;
+        }
+        if (retryCount < MAX_RETRY_COUNT) {
             retryCount++;
             usleep(RETRY_WAIT_TIME_US);
-        } else if (err != NO_ERROR) {
+        } else {
             RS_LOGE("%{public}s SendRequest failed, err:%{public}d", __func__, err);
             break;
         }

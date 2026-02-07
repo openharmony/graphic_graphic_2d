@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,8 +24,8 @@
 #define LOG_TAG "RSSurfaceLayer"
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<RSLayer> RSSurfaceLayer::Create(const std::shared_ptr<RSComposerContext>& context,
-    RSLayerId rsLayerId)
+std::shared_ptr<RSLayer> RSSurfaceLayer::Create(RSLayerId rsLayerId,
+    const std::shared_ptr<RSComposerContext>& context)
 {
     if (context == nullptr) {
         RS_LOGE("%{public}s context is nullptr", __func__);
@@ -33,20 +33,20 @@ std::shared_ptr<RSLayer> RSSurfaceLayer::Create(const std::shared_ptr<RSComposer
     }
     std::shared_ptr<RSLayer> layer = context->GetRSLayer(rsLayerId);
     if (layer != nullptr) {
-        RS_TRACE_NAME_FMT("RSSurfaceLayer::Create use exist layer, id: %" PRIu64 ", name: %s",
-            rsLayerId, layer->GetSurfaceName().c_str());
-        RS_LOGD("%{publiic}s get cache layer by layer id: %{public}" PRIu64, __func__, rsLayerId);
+        RS_TRACE_NAME_FMT("%s use exist layer, id: %" PRIu64 ", name: %s",
+            __func__, rsLayerId, layer->GetSurfaceName().c_str());
+        RS_LOGD("%{public}s get cache layer by layer id: %{public}" PRIu64, __func__, rsLayerId);
         layer->SetRSLayerId(rsLayerId);
         return layer;
     }
-    layer = std::make_shared<RSSurfaceLayer>(rsLayerId, context);
+    layer = std::shared_ptr<RSSurfaceLayer>(new RSSurfaceLayer(rsLayerId, context));
     context->AddRSLayer(layer);
     return layer;
 }
 
 RSSurfaceLayer::RSSurfaceLayer(RSLayerId rsLayerId, std::shared_ptr<RSComposerContext> rsComposerContext)
 {
-    RS_TRACE_NAME_FMT("RSSurfaceLayer::RSSurfaceLayer id: %" PRIu64, rsLayerId);
+    RS_TRACE_NAME_FMT("%s id: %" PRIu64, __func__, rsLayerId);
     ROSEN_LOGI("Constructing RSSurfaceLayer, id: %{public}" PRIu64, rsLayerId);
     rsLayerId_ = rsLayerId;
     rsComposerContext_ = rsComposerContext;
@@ -56,16 +56,16 @@ RSSurfaceLayer::RSSurfaceLayer(RSLayerId rsLayerId, std::shared_ptr<RSComposerCo
 
 RSSurfaceLayer::~RSSurfaceLayer()
 {
-    RS_TRACE_NAME_FMT("RSSurfaceLayer::~RSSurfaceLayer id: %" PRIu64 ", name %s",
-        rsLayerId_, surfaceName_.c_str());
+    RS_TRACE_NAME_FMT("%s id: %" PRIu64 ", name %s",
+        __func__, rsLayerId_, surfaceName_.c_str());
     ROSEN_LOGI("Destructing RSSurfaceLayer, id: %{public}" PRIu64 ", name %{public}s",
         rsLayerId_, surfaceName_.c_str());
-    auto destroyCmd = std::make_shared<RSRenderLayerCmdProperty<bool>>(false);
-    auto renderLayerCmd = std::make_shared<RSRenderLayerPreMultiCmd>(destroyCmd);
+    auto destroyCmd = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+    auto renderLayerCmd = std::make_shared<RSRenderLayerDeleteLayerCmd>(destroyCmd);
     std::shared_ptr<RSLayerParcel> layerParcel =
         std::make_shared<RSDestroyRSLayerCmd>(rsLayerId_, renderLayerCmd);
 
-    bool success = AddRSLayerParcel(layerParcel, rsLayerId_);
+    bool success = AddRSLayerParcel(rsLayerId_, layerParcel);
     if (!success) {
         ROSEN_LOGE("%{public}s failed to send destroy command, layerId: %{public}" PRIu64, __func__, GetRSLayerId());
     } else {
@@ -88,7 +88,7 @@ RSLayerId RSSurfaceLayer::GetRSLayerId() const
     return rsLayerId_;
 }
 
-bool RSSurfaceLayer::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId rsLayerId)
+bool RSSurfaceLayer::AddRSLayerParcel(RSLayerId rsLayerId, std::shared_ptr<RSLayerParcel>& layerParcel)
 {
     auto rsComposerContext = rsComposerContext_.lock();
     if (!rsComposerContext) {
@@ -96,7 +96,7 @@ bool RSSurfaceLayer::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParce
     }
     auto rsLayerTransaction = rsComposerContext->GetRSLayerTransaction();
     if (rsLayerTransaction != nullptr) {
-        rsLayerTransaction->AddRSLayerParcel(layerParcel, rsLayerId);
+        rsLayerTransaction->AddRSLayerParcel(rsLayerId, layerParcel);
         return true;
     }
     return false;
@@ -109,7 +109,7 @@ void RSSurfaceLayer::SetRSLayerCmd(const T& value)
     auto renderLayerCmd = std::make_shared<RSRenderLayerCmdName>(renderProperty);
     std::shared_ptr<RSLayerParcel> layerParcel =
         std::make_shared<RSUpdateRSLayerCmd>(GetRSLayerId(), renderLayerCmd);
-    AddRSLayerParcel(layerParcel, GetRSLayerId());
+    AddRSLayerParcel(GetRSLayerId(), layerParcel);
 }
 
 void RSSurfaceLayer::SetAlpha(const GraphicLayerAlpha& alpha)
@@ -498,7 +498,6 @@ void RSSurfaceLayer::SetPresentTimestamp(const GraphicPresentTimestamp& timestam
         return;
     }
     presentTimestamp_ = timestamp;
-    SetRSLayerCmd<RSRenderLayerPresentTimestampCmd>(timestamp);
 }
 
 const GraphicPresentTimestamp& RSSurfaceLayer::GetPresentTimestamp() const
@@ -512,7 +511,6 @@ void RSSurfaceLayer::SetIsSupportedPresentTimestamp(bool isSupported)
         return;
     }
     isSupportedPresentTimestamp_ = isSupported;
-    SetRSLayerCmd<RSRenderLayerIsSupportedPresentTimestampCmd>(isSupported);
 }
 
 bool RSSurfaceLayer::GetIsSupportedPresentTimestamp() const

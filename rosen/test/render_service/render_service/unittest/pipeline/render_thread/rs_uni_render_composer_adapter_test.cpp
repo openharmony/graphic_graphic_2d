@@ -515,7 +515,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayerTest, TestSize.Le
     auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, bufferOwnerCount);
     ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetUniRenderFlag(true);
     composerAdapter_->SetMetaDataInfoToLayer(layer, info.buffer, surfaceHandler->GetConsumer());
     if (buffer) {

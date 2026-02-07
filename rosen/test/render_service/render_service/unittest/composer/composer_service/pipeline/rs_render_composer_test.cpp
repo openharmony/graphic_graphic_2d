@@ -235,6 +235,7 @@ public:
     bool GetUseDeviceOffline() const override { return useDeviceOffline_; }
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override { ancoSrcRect_ = ancoSrcRect; }
     const GraphicIRect& GetAncoSrcRect() const override { return ancoSrcRect_; }
+    void SetDeleteLayer(bool isDeleteLayer) const override {}
 
     void CopyLayerInfo(const RSLayerPtr& rsLayer) override { (void)rsLayer; }
     void Dump(std::string& result) const override { (void)result; }
@@ -1890,7 +1891,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD, TestSize.Level1)
         RSRcdManager::GetInstance().AddLayer(rcdLayerNames[i], i + 10, rcLayerTypes[i]);
         layers.emplace_back(rcdLayer);
     }
-    auto rcdLayer1 = std::static_pointer_cast<RSLayer>(std::make_shared<RSSurfaceRCDLayer>(100u, nullptr));
+    auto rcdLayer1 = std::static_pointer_cast<RSLayer>(std::make_shared<RSRenderSurfaceRCDLayer>());
     layers.emplace_back(rcdLayer1);
     EXPECT_NE(layers.size(), 0u);
     rsRenderComposer_->RedrawScreenRCD(paintFilterCanvas, layers);

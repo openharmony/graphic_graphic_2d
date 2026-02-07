@@ -536,10 +536,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PANEL_POWER_STATUS");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_LOGICAL_CAMERA_ROTATION_CORRECTION): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_LOGICAL_CAMERA_ROTATION_CORRECTION");
-            break;
-        }
         default: {
             break;
         }

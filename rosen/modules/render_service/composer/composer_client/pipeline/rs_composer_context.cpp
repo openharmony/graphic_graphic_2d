@@ -138,7 +138,8 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
             lastCommitLayersId_.push_back(id);
         }
     }
-    auto layerPresentTimestamp = [](const std::shared_ptr<RSLayer>& layer, const sptr<IConsumerSurface>& cSurface) -> void {
+    auto layerPresentTimestamp = [](const std::shared_ptr<RSLayer>& layer,
+        const sptr<IConsumerSurface>& cSurface) -> void {
         if (cSurface == nullptr) {
             RS_LOGE("layerPresentTimestamp cSurface is nullptr");
             return;
@@ -148,7 +149,7 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
         }
         const auto& buffer = layer->GetBuffer();
         if (buffer == nullptr) {
-             RS_LOGE("layerPresentTimestamp buffer is nullptr");
+            RS_LOGE("layerPresentTimestamp buffer is nullptr");
             return;
         }
         if (cSurface->SetPresentTimestamp(buffer->GetSeqNum(), layer->GetPresentTimestamp()) != GSERROR_OK) {
@@ -206,6 +207,26 @@ void RSComposerContext::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>&
         return;
     }
     rsComposerConnection_->PreAllocProtectedFrameBuffers(buffer);
+}
+
+void RSComposerContext::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
+{
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
+    if (rsComposerConnection_ == nullptr) {
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
+        return;
+    }
+    rsComposerConnection_->ClearRedrawGPUCompositionCache(bufferIds);
+}
+
+void RSComposerContext::SetScreenBacklight(uint32_t level)
+{
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
+    if (rsComposerConnection_ == nullptr) {
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
+        return;
+    }
+    rsComposerConnection_->SetScreenBacklight(level);
 }
 } // namespace Rosen
 } // namespace OHOS

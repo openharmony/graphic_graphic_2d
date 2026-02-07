@@ -28,18 +28,17 @@ constexpr uint32_t WAIT_FOR_COMPOSER_THREAD_TASK_TIMEOUT = 3000;
 RSComposerClient::RSComposerClient(const sptr<IRSRenderToComposerConnection>& renderToComposerConn)
 {
     rsComposerContext_ = std::make_shared<RSComposerContext>(renderToComposerConn);
-    renderToComposerConn_ = renderToComposerConn;
 }
 
 std::shared_ptr<RSComposerClient> RSComposerClient::Create(
     const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
     const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
-    RS_TRACE_NAME_FMT("RSComposerClient::Create");
+    RS_TRACE_NAME_FMT("%s", __func__);
     if (renderToComposerConn != nullptr) {
         renderToComposerConn->SetComposerToRenderConnection(composerToRenderConn);
     }
-    return std::make_shared<RSComposerClient>(renderToComposerConn);
+    return std::shared_ptr<RSComposerClient>(new RSComposerClient(renderToComposerConn));
 }
 
 void RSComposerClient::SetOutput(const std::shared_ptr<HdiOutput>& output)
@@ -123,16 +122,12 @@ int RSComposerClient::GetAccumulatedBufferCount() const
 
 void RSComposerClient::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
-    if (renderToComposerConn_ != nullptr) {
-        renderToComposerConn_->ClearRedrawGPUCompositionCache(bufferIds);
-    }
+    rsComposerContext_->ClearRedrawGPUCompositionCache(bufferIds);
 }
 
 void RSComposerClient::SetScreenBacklight(uint32_t level)
 {
-    if (renderToComposerConn_ != nullptr) {
-        renderToComposerConn_->SetScreenBacklight(level);
-    }
+    rsComposerContext_->SetScreenBacklight(level);
 }
 
 uint32_t RSComposerClient::GetUnExecuteTaskNum() const
@@ -142,14 +137,14 @@ uint32_t RSComposerClient::GetUnExecuteTaskNum() const
 
 void RSComposerClient::IncUnExecuteTaskNum()
 {
-    ++acquiredBufferCount_;
+    acquiredBufferCount_.fetch_add(1);
     RS_TRACE_NAME_FMT("Inc Acq BufferCount %d", acquiredBufferCount_.load());
     unExecuteTaskNum_.fetch_add(1);
 }
 
 void RSComposerClient::SubUnExecuteTaskNum()
 {
-    --acquiredBufferCount_;
+    acquiredBufferCount_.fetch_sub(1);
     RS_TRACE_NAME_FMT("Dec Acq BufferCount %d", acquiredBufferCount_.load());
     unExecuteTaskNum_.fetch_sub(1);
 }
@@ -157,7 +152,7 @@ void RSComposerClient::SubUnExecuteTaskNum()
 bool RSComposerClient::WaitComposerThreadTaskExecute(std::unique_lock<std::mutex>& lock)
 {
 #ifdef RS_ENABLE_GPU
-    RS_TRACE_NAME_FMT("RSComposerClient::WaitComposerThreadTaskExecute task num: %d", GetUnExecuteTaskNum());
+    RS_TRACE_NAME_FMT("%s task num: %d", __func__, GetUnExecuteTaskNum());
     return composerThreadTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
         std::chrono::milliseconds(WAIT_FOR_COMPOSER_THREAD_TASK_TIMEOUT),
         [this]() { return GetUnExecuteTaskNum() <= COMPOSER_THREAD_TASK_NUM; });

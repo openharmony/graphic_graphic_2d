@@ -172,11 +172,7 @@ void DoSetVirtualMirrorScreenCanvasRotation()
     }
 
     uint32_t code = static_cast<uint32_t>(
-<<<<<<< HEAD
         RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION);
-=======
-        RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION);
->>>>>>> master
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -388,7 +384,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
         OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
 
     OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
-<<<<<<< HEAD
         OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
         screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
     OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
@@ -403,10 +398,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
     OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
     OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
-=======
-        OHOS::Rosen::g_pid, nullptr, OHOS::Rosen::mainThread_,
-        OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
->>>>>>> master
     return 0;
 }
 

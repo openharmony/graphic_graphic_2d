@@ -536,21 +536,21 @@ public:
 private:
     uint32_t zOrder_ = 0;
     GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
-    GraphicIRect layerRect_;
-    GraphicIRect boundRect_; // node's bound width and height related to this layer, used for uni render redraw
+    GraphicIRect layerRect_ = {0};
+    GraphicIRect boundRect_ = {0}; // node's bound width and height related to this layer, used for uni render redraw
     std::vector<GraphicIRect> visibleRegions_;
     std::vector<GraphicIRect> dirtyRegions_;
-    GraphicIRect cropRect_;
-    GraphicMatrix matrix_; // matrix used for uni render redraw
-    int32_t gravity_; // used for uni render redraw
+    GraphicIRect cropRect_ = {0};
+    GraphicMatrix matrix_ = {0.0}; // matrix used for uni render redraw
+    int32_t gravity_ = 0; // used for uni render redraw
     bool isUniRender_ = false; // true for uni render layer (DisplayNode)
-    GraphicLayerAlpha layerAlpha_;
+    GraphicLayerAlpha layerAlpha_ = {0};
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
-    GraphicCompositionType compositionType_;
-    GraphicBlendType blendType_;
+    GraphicCompositionType compositionType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_BUTT;
+    GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;
     std::vector<float> colorTransformMatrix_;
-    GraphicLayerColor layerColor_;
-    GraphicLayerColor backgroundColor_;
+    GraphicLayerColor layerColor_ = {0};
+    GraphicLayerColor backgroundColor_ = {0};
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;

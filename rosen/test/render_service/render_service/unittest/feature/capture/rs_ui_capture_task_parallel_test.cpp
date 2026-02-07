@@ -401,12 +401,8 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync002, Function |
     canvasNode->SetFrame(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
     canvasNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-<<<<<<< HEAD
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.0, 1.0, true);
     ASSERT_EQ(ret, true);
-=======
-    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.0, 1.0, true);
->>>>>>> master
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);

@@ -629,7 +629,7 @@ void RSScreen::SetProducerSurface(sptr<Surface> producerSurface)
 {
     UPDATE_PROPERTY(ProducerSurface, producerSurface);
     if (producerSurface) {
-        UPDATE_PROPERTY(State, ScreenState::SOFTWARE_OUTPUT_ENABLE);
+        UPDATE_PROPERTY(State, ScreenState::PRODUCER_SURFACE_ENABLE);  // jianghongxi
     } else {
         UPDATE_PROPERTY(State, ScreenState::DISABLED);
     }
@@ -1247,28 +1247,21 @@ std::unordered_set<NodeId> RSScreen::GetWhiteList() const
     return property_.GetWhiteList();
 }
 
-void RSScreen::SetWhiteList(const std::unordered_set<NodeId>& whiteList)
+void RSScreen::SetWhiteList(const std::unordered_set<NodeId>& whiteList)  //change by jianghongxi
 {
-    property_.SetWhiteList(whiteList);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    UPDATE_PROPERTY(WhiteList, whiteList);
 }
 
-void RSScreen::AddWhiteList(const std::vector<NodeId>& whiteList)
+void RSScreen::AddWhiteList(const std::vector<NodeId>& whiteList)   //change by jianghongxi
 {
-    property_.AddWhiteList(whiteList);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+    auto prop = property_.AddWhiteList(whiteList);
+    NotifyScreenPropertyChange(prop);
 }
 
-void RSScreen::RemoveWhiteList(const std::vector<NodeId>& whiteList)
-{
-    property_.RemoveWhiteList(whiteList);
-    if (onPropertyChange_) {
-        onPropertyChange_(property_.Clone());
-    }
+void RSScreen::RemoveWhiteList(const std::vector<NodeId>& whiteList)  //change by jianghongxi
+{ 
+    auto prop = property_.RemoveWhiteList(whiteList);
+    NotifyScreenPropertyChange(prop);
 }
 
 void RSScreen::SetBlackList(const std::unordered_set<NodeId>& blackList)

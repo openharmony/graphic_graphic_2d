@@ -64,7 +64,7 @@ ErrCode RSServiceToRenderConnectionProxy::SetForceRefresh(const std::string& nod
 }
 
 ErrCode RSServiceToRenderConnectionProxy::CreatePixelMapFromSurface(sptr<Surface> surface, const Rect& srcRect,
-    std::shared_ptr<Media::PixelMap>& pixelMap)
+    std::shared_ptr<Media::PixelMap>& pixelMap, bool transformEnabled)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -92,6 +92,12 @@ ErrCode RSServiceToRenderConnectionProxy::CreatePixelMapFromSurface(sptr<Surface
         ROSEN_LOGE("CreatePixelMapFromSurface: WriteInt32 srcRect err.");
         return ERR_INVALID_VALUE;
     }
+
+    if (!data.WriteBool(transformEnabled)) {
+        ROSEN_LOGE("CreatePixelMapFromSurface: WriteBool err.");
+        return -1;
+    }
+    
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1360,7 +1366,7 @@ LayerComposeInfo RSServiceToRenderConnectionProxy::GetLayerComposeInfo()
         ROSEN_LOGE("%{public}s: Read parcel failed", __func__);
         return layerComposeInfo;
     }
-    return LayerComposeInfo(uniformRenderFrameNumber, offlineComposeFrameNumber, redrawFrameNumber);
+    return LayerComposeInfo();
 }
 
 HwcDisabledReasonInfos RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo()

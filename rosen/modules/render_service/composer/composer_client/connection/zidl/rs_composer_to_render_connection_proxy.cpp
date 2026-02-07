@@ -103,7 +103,7 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
     uint32_t code = static_cast<uint32_t>(ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
         return -1;
     }
 
@@ -146,7 +146,7 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
     uint32_t code = static_cast<uint32_t>(NOTIFY_LPP_LAYER_TO_RENDER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
         return -1;
     }
     auto replyMessage = reply.ReadInt32();

@@ -89,7 +89,7 @@ void RSSurfaceLayerTest::TearDown() {}
 HWTEST_F(RSSurfaceLayerTest, CreateTest, Function | SmallTest | Level2)
 {
     std::shared_ptr<RSComposerContext> context = nullptr;
-    EXPECT_EQ(RSSurfaceLayer::Create(context, 0), nullptr);
+    EXPECT_EQ(RSSurfaceLayer::Create(0, context), nullptr);
 }
 
 /**
@@ -100,10 +100,10 @@ HWTEST_F(RSSurfaceLayerTest, CreateTest, Function | SmallTest | Level2)
  */
 HWTEST_F(RSSurfaceLayerTest, CreateLayerTest, Function | SmallTest | Level2)
 {
-    auto layer1 = std::make_shared<RSSurfaceLayer>();
+    auto layer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     EXPECT_NE(layer1, nullptr);
 
-    auto layer2 = std::make_shared<RSSurfaceLayer>();
+    auto layer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     EXPECT_NE(layer2, nullptr);
 }
 
@@ -115,7 +115,7 @@ HWTEST_F(RSSurfaceLayerTest, CreateLayerTest, Function | SmallTest | Level2)
  */
 HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest, Function | SmallTest | Level2)
 {
-    layer = std::make_shared<RSSurfaceLayer>();
+    layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     EXPECT_NE(layer, nullptr);
 
     GraphicLayerAlpha alpha;
@@ -343,7 +343,7 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest5, Function | SmallTest | 
     layer->SetIgnoreAlpha(false);
     EXPECT_EQ(layer->GetIgnoreAlpha(), false);
 
-    auto layer1 = std::make_shared<RSSurfaceLayer>();
+    auto layer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer1->CopyLayerInfo(layer);
 
     layer->cSurface_ = nullptr;
@@ -444,7 +444,7 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest7, Function | SmallTest | 
  */
 HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_SetGetAndSeqRetrieve, Function | SmallTest | Level2)
 {
-    auto lyr = std::make_shared<RSSurfaceLayer>();
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(lyr, nullptr);
 
     auto boc = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
@@ -475,7 +475,7 @@ HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_SetGetAndSeqRetrieve, Function | S
  */
 HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_Null_NoCrash, Function | SmallTest | Level2)
 {
-    auto lyr = std::make_shared<RSSurfaceLayer>();
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
     lyr->SetBufferOwnerCount(nullptr, true);
     EXPECT_EQ(lyr->GetBufferOwnerCount(), nullptr);
     EXPECT_EQ(lyr->PopBufferOwnerCountById(123u), nullptr);
@@ -488,7 +488,7 @@ HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_Null_NoCrash, Function | SmallTest
  */
 HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_ReplaceSeq_UpdatesCurrentAndRetrieval, Function | SmallTest | Level2)
 {
-    auto lyr = std::make_shared<RSSurfaceLayer>();
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
     auto boc1 = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     auto boc2 = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     boc1->bufferId_ = 1u;
@@ -530,7 +530,7 @@ HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_ReplaceSeq_UpdatesCurrentAndRetrie
  */
 HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_UnknownSeq_NoRemoval, Function | SmallTest | Level2)
 {
-    auto lyr = std::make_shared<RSSurfaceLayer>();
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
     auto boc = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     boc->bufferId_ = 9u;
     lyr->SetBufferOwnerCount(boc, true);

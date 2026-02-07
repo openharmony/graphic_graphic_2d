@@ -105,7 +105,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
 #endif
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -765,16 +765,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             ForceRefreshOneFrameWithNextVSync();
             break;
         }
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_APP_WINDOW_NUM): {
-            uint32_t num{0};
-            if (!data.ReadUint32(num)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_APP_WINDOW_NUM Read num failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetAppWindowNum(num);
-            break;
-        }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO): {
             int32_t pid{0};
             if (!data.ReadInt32(pid)) {
@@ -943,7 +933,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             RSSurfaceCapturePermissions permissions;
             permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+                RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
                 "::TAKE_UI_CAPTURE_IN_RANGE");
             TakeUICaptureInRange(id, cb, captureConfig, permissions);
             break;
@@ -1491,7 +1481,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             if (!reply.WriteInt32(status)) {
                 RS_LOGE(
                     "RSClientToRenderConnectionStub::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Write status failed!");
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION): {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION): {
             ScreenId id { INVALID_SCREEN_ID };
             uint32_t logicalCorrection { 0 };
             if (!data.ReadUint64(id) || !data.ReadUint32(logicalCorrection)) {
@@ -1547,8 +1541,8 @@ bool RSClientToRenderConnectionStub::WriteBrightnessInfo(const BrightnessInfo& b
     return true;
 }
 
-bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(
-    RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
+bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig,
+    MessageParcel& data)
 {
     uint8_t captureType { 0 };
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||

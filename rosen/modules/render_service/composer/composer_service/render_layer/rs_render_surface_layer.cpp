@@ -41,16 +41,16 @@ static std::unordered_map<RSLayerCmdType, RSLayerCmdHandler> cmdHandlers_ = {
 
 RSRenderSurfaceLayer::RSRenderSurfaceLayer()
 {
-    RS_TRACE_NAME_FMT("Constructing RSRenderSurfaceLayer");
-    RS_LOGD("Constructing RSRenderSurfaceLayer");
+    RS_TRACE_NAME_FMT("Constructing %s", __func__);
+    RS_LOGD("Constructing %{public}s", __func__);
 }
 
 RSRenderSurfaceLayer::~RSRenderSurfaceLayer()
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::~RSRenderSurfaceLayer id: %" PRIu64 ", name: %s, layer type: %d",
-        rsLayerId_, surfaceName_.c_str(), layerType_);
-    RS_LOGD("Destructing RSRenderSurfaceLayer, id: %{public}" PRIu64 ", surface name: %{public}s, layer type: %{public}d",
-        rsLayerId_, surfaceName_.c_str(), layerType_);
+    RS_TRACE_NAME_FMT("%s id: %" PRIu64 ", name: %s, layer type: %d",
+        __func__, rsLayerId_, surfaceName_.c_str(), layerType_);
+    RS_LOGD("Destructing %{public}s, id: %{public}" PRIu64 ", surface name: %{public}s, layer type: %{public}d",
+        __func__, rsLayerId_, surfaceName_.c_str(), layerType_);
 }
 
 RSLayerId RSRenderSurfaceLayer::GetRSLayerId() const
@@ -111,6 +111,16 @@ void RSRenderSurfaceLayer::SetCompositionType(GraphicCompositionType type)
 GraphicCompositionType RSRenderSurfaceLayer::GetCompositionType() const
 {
     return compositionType_;
+}
+
+void RSRenderSurfaceLayer::SetHdiCompositionType(GraphicCompositionType type)
+{
+    hdiCompositionType_ = type;
+}
+
+GraphicCompositionType RSRenderSurfaceLayer::GetHdiCompositionType() const
+{
+    return hdiCompositionType_;
 }
 
 void RSRenderSurfaceLayer::SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions)
@@ -632,6 +642,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     layerAlpha_ = rsLayer->GetAlpha();
     transformType_ = rsLayer->GetTransform();
     compositionType_ = rsLayer->GetCompositionType();
+    hdiCompositionType_ = rsLayer->GetHdiCompositionType();
     blendType_ = rsLayer->GetBlendType();
     colorTransformMatrix_ = rsLayer->GetColorTransform();
     colorSpace_ = rsLayer->GetColorDataSpace();

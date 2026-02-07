@@ -647,21 +647,6 @@ HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_VisibleRegions_VectorTooLarge, Test
 }
 
 /**
- * Function: Unmarshall_Fail_IsSupportedPresentTimestamp_PayloadMissing
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: IS_SUPPORTED_PRESENT_TIMESTAMP missing bool -> fail
- */
-HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_IsSupportedPresentTimestamp_PayloadMissing, TestSize.Level1)
-{
-    MessageParcel parcel;
-    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::IS_SUPPORTED_PRESENT_TIMESTAMP)));
-    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
-    EXPECT_EQ(out, nullptr);
-}
-
-/**
  * Function: Marshall_Unmarshall_WindowsName_Success
  * Type: Function
  * Rank: Important(2)
@@ -1088,45 +1073,6 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_HDR_MetaDataSet_Success, TestSi
 }
 
 /**
- * Function: Marshall_Unmarshall_PresentTimestamp_Success
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: Round-trip GraphicPresentTimestamp (PRESENT_TIMESTAMP)
- */
-HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_PresentTimestamp_Success, TestSize.Level1)
-{
-    GraphicPresentTimestamp ts{};
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicPresentTimestamp>>(ts);
-    auto cmd = std::make_shared<RSRenderLayerPresentTimestampCmd>(prop);
-
-    MessageParcel parcel;
-    ASSERT_TRUE(cmd->Marshalling(parcel));
-    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
-    ASSERT_NE(out, nullptr);
-    EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::PRESENT_TIMESTAMP);
-}
-
-/**
- * Function: Marshall_Unmarshall_IsSupportedPresentTimestamp_Success
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: Round-trip bool command for IS_SUPPORTED_PRESENT_TIMESTAMP
- */
-HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_IsSupportedPresentTimestamp_Success, TestSize.Level1)
-{
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(false);
-    auto cmd = std::make_shared<RSRenderLayerIsSupportedPresentTimestampCmd>(prop);
-
-    MessageParcel parcel;
-    ASSERT_TRUE(cmd->Marshalling(parcel));
-    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
-    ASSERT_NE(out, nullptr);
-    EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::IS_SUPPORTED_PRESENT_TIMESTAMP);
-}
-
-/**
  * Function: Marshall_Unmarshall_Gravity_Success
  * Type: Function
  * Rank: Important(2)
@@ -1195,21 +1141,6 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_CornerRadiusInfoForDRM_Success,
     EXPECT_FLOAT_EQ(outProp->Get()[0], 1.0f);
     EXPECT_FLOAT_EQ(outProp->Get()[1], 0.5f);
     EXPECT_FLOAT_EQ(outProp->Get()[2], 0.0f);
-}
-
-/**
- * Function: Unmarshall_Fail_PresentTimestamp_PayloadMissing
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: Write type only for PRESENT_TIMESTAMP, missing payload
- */
-HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_PresentTimestamp_PayloadMissing, TestSize.Level1)
-{
-    MessageParcel parcel;
-    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::PRESENT_TIMESTAMP)));
-    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
-    EXPECT_EQ(out, nullptr);
 }
 
 /**
@@ -2121,22 +2052,6 @@ HWTEST(RSRenderLayerCmdTest, Marshall_TunnelHandleChange_Fail, TestSize.Level1)
 }
 
 /**
- * Function: Marshall_IsSupportedPresentTimestamp_Fail
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: IsSupportedPresentTimestamp command with null property; expect Marshalling returns false.
- */
-HWTEST(RSRenderLayerCmdTest, Marshall_IsSupportedPresentTimestamp_Fail, TestSize.Level1)
-{
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
-    auto cmd = std::make_shared<RSRenderLayerIsSupportedPresentTimestampCmd>(prop);
-    MessageParcel parcel;
-    cmd->rsRenderLayerProperty_ = nullptr;
-    ASSERT_FALSE(cmd->Marshalling(parcel));
-}
-
-/**
  * Function: Marshall_RotationFixed_Fail
  * Type: Function
  * Rank: Important(2)
@@ -2676,23 +2591,6 @@ HWTEST(RSRenderLayerCmdTest, Marshall_MetaDataSet_Fail, TestSize.Level1)
     set.metaData = {};
     auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicHDRMetaDataSet>>(set);
     auto cmd = std::make_shared<RSRenderLayerMetaDataSetCmd>(prop);
-    MessageParcel parcel;
-    cmd->rsRenderLayerProperty_ = nullptr;
-    ASSERT_FALSE(cmd->Marshalling(parcel));
-}
-
-/**
- * Function: Marshall_PresentTimestamp_Fail
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: PresentTimestamp command with null property; expect Marshalling returns false.
- */
-HWTEST(RSRenderLayerCmdTest, Marshall_PresentTimestamp_Fail, TestSize.Level1)
-{
-    GraphicPresentTimestamp ts{GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_TIMESTAMP, 1234567};
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicPresentTimestamp>>(ts);
-    auto cmd = std::make_shared<RSRenderLayerPresentTimestampCmd>(prop);
     MessageParcel parcel;
     cmd->rsRenderLayerProperty_ = nullptr;
     ASSERT_FALSE(cmd->Marshalling(parcel));

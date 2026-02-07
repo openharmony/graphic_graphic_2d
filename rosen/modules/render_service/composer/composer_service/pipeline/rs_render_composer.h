@@ -59,7 +59,7 @@ private:
 
 class RSRenderComposer {
 public:
-    explicit RSRenderComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
+    RSRenderComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     ~RSRenderComposer() = default;
     void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
 

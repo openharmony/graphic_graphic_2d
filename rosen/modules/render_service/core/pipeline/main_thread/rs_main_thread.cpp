@@ -60,7 +60,6 @@
 #include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/hwc_event/rs_uni_hwc_event_manager.h"
-#include "feature/lpp/lpp_video_handler.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
@@ -176,7 +175,6 @@
 #include "rs_render_composer_manager.h"
 
 // HDRHeterogeneous
-#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 #ifdef HETERO_HDR_ENABLE
 #include "rs_hetero_hdr_manager.h"
 #endif
@@ -505,7 +503,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #endif
         }
         RenderFrameStart(timestamp_);
-        PerfMultiWindow();
         // TODO CAR
         // RSRenderNodeGC::Instance().SetGCTaskEnable(true);
         SetRSEventDetectorLoopStartTag();
@@ -1229,24 +1226,6 @@ void RSMainThread::UpdateFocusNodeId(NodeId focusNodeId)
         return;
     }
     focusNodeId_ = focusNodeId;
-}
-
-void RSMainThread::UpdateNeedDrawFocusChange(NodeId id)
-{
-    const auto& nodeMap = context_->GetNodeMap();
-    auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(id));
-    // while nodeMap can't find node, return instantly
-    if (!node) {
-        return;
-    }
-    auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock());
-    // while node's parent isn't LEASH_WINDOW_NODE, itselt need SetNeedDrawFocusChange
-    if (!parentNode || parentNode->GetSurfaceNodeType() != RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-        node->SetNeedDrawFocusChange(true);
-        return;
-    }
-    // while node's parent is LEASH_WINDOW_NODE, parent need SetNeedDrawFocusChange
-    parentNode->SetNeedDrawFocusChange(true);
 }
 
 void RSMainThread::RegisterScreenSwitchFinishCallback(sptr<RSIRenderToServiceConnection> conn)

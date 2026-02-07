@@ -18,9 +18,7 @@
 
 namespace OHOS {
 namespace Rosen {
-RSScreenProperty::RSScreenProperty() {}
-RSScreenProperty::~RSScreenProperty() {}
-
+// LCOV_EXCL_START
 ScreenId RSScreenProperty::GetScreenId() const
 {
     return Get<ScreenPropertyType::ID>();
@@ -318,6 +316,18 @@ ScreenInfo RSScreenProperty::GetScreenInfo() const
     info.powerStatus = GetScreenPowerStatus();
     return info;
 }
+// LCOV_EXCL_STOP
+
+#define MARSHALL_CASE(ENUM_TYPE)                                                                        \
+    case ENUM_TYPE: {                                                                                   \
+        using T = PropertyTypeMapper<ENUM_TYPE>::value_type;                                            \
+        auto property = static_cast<ScreenProperty<T>*>(prop.GetRefPtr());                              \
+        if (!property || !property->Marshalling(data)) {                                                \
+            RS_LOGE("%{public}s failed, type: %{public}u", __func__, static_cast<uint32_t>(ENUM_TYPE)); \
+            return false;                                                                               \
+        }                                                                                               \
+        break;                                                                                          \
+    }
 
 bool RSScreenProperty::Marshalling(Parcel& data) const
 {
@@ -330,69 +340,47 @@ bool RSScreenProperty::Marshalling(Parcel& data) const
             RS_LOGE("%{public}s write type failed, type: %{public}u", __func__, static_cast<uint32_t>(type));
             return false;
         }
-    }
 
-    if (!data.WriteBool(skipWindow_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool skipWindow err.");
-        return false;
-    }
-    if (!data.WriteUint32(powerStatus_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool powerStatus err.");
-        return false;
-    }
-    if (!data.WriteUint32(static_cast<uint32_t>(scaleMode_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool scaleMode err.");
-        return false;
-    }
-
-#ifndef ROSEN_CROSS_PLATFORM
-    if (!producerSurface_ || !producerSurface_->GetProducer()) {
-        data.WriteBool(false);
-    } else {
-        data.WriteBool(true);
-        auto producer = producerSurface_->GetProducer();
-        if (!data.WriteRemoteObject(producer->AsObject())) {
-            ROSEN_LOGE("WriteScreenProperty: WriteRemoteObject producer->AsObject() err.");
-            return false;
+        switch (type) {
+            MARSHALL_CASE(ScreenPropertyType::ID)
+            MARSHALL_CASE(ScreenPropertyType::IS_VIRTUAL)
+            MARSHALL_CASE(ScreenPropertyType::NAME)
+            MARSHALL_CASE(ScreenPropertyType::RENDER_RESOLUTION)
+            MARSHALL_CASE(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE)
+            MARSHALL_CASE(ScreenPropertyType::OFFSET)
+            MARSHALL_CASE(ScreenPropertyType::SAMPLING_OPTION)
+            MARSHALL_CASE(ScreenPropertyType::COLOR_GAMUT)
+            MARSHALL_CASE(ScreenPropertyType::GAMUT_MAP)
+            MARSHALL_CASE(ScreenPropertyType::STATE)
+            MARSHALL_CASE(ScreenPropertyType::CORRECTION)
+            MARSHALL_CASE(ScreenPropertyType::CANVAS_ROTATION)
+            MARSHALL_CASE(ScreenPropertyType::AUTO_BUFFER_ROTATION)
+            MARSHALL_CASE(ScreenPropertyType::ACTIVE_RECT_OPTION)
+            MARSHALL_CASE(ScreenPropertyType::SKIP_FRAME_OPTION)
+            MARSHALL_CASE(ScreenPropertyType::PIXEL_FORMAT)
+            MARSHALL_CASE(ScreenPropertyType::HDR_FORMAT)
+            MARSHALL_CASE(ScreenPropertyType::VISIBLE_RECT_OPTION)
+            MARSHALL_CASE(ScreenPropertyType::WHITE_LIST)
+            MARSHALL_CASE(ScreenPropertyType::BLACK_LIST)
+            MARSHALL_CASE(ScreenPropertyType::TYPE_BLACK_LIST)
+            MARSHALL_CASE(ScreenPropertyType::SECURITY_EXEMPTION_LIST)
+            MARSHALL_CASE(ScreenPropertyType::SECURITY_MASK)
+            MARSHALL_CASE(ScreenPropertyType::ENABLE_SKIP_WINDOW)
+            MARSHALL_CASE(ScreenPropertyType::POWER_STATUS)
+            MARSHALL_CASE(ScreenPropertyType::SCREEN_TYPE)
+            MARSHALL_CASE(ScreenPropertyType::CONNECTION_TYPE)
+            MARSHALL_CASE(ScreenPropertyType::PRODUCER_SURFACE)
+            MARSHALL_CASE(ScreenPropertyType::SCALE_MODE)
+            MARSHALL_CASE(ScreenPropertyType::SCREEN_STATUS)
+            MARSHALL_CASE(ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION)
+            MARSHALL_CASE(ScreenPropertyType::IS_HARD_CURSOR_SUPPORT)
+            MARSHALL_CASE(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS)
+            MARSHALL_CASE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL)
+            MARSHALL_CASE(ScreenPropertyType::SCREEN_SWITCH_STATUS)
+            MARSHALL_CASE(ScreenPropertyType::SCREEN_FRAME_GRAVITY)
+            default:
+                RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
         }
-    }
-#endif
-
-    if (!data.WriteUint32(static_cast<uint32_t>(screenStatus_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 screenStatus err.");
-        return false;
-    }
-    if (!data.WriteInt32(virtualSecLayerOption_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteInt32 virtualSecLayerOption err.");
-        return false;
-    }
-    if (!data.WriteUint32(static_cast<uint32_t>(screenType_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 screenType err.");
-        return false;
-    }
-    if (!data.WriteUint32(static_cast<uint32_t>(connectionType_))) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUint32 connectionType_ err.");
-        return false;
-    }
-    if (!data.WriteBool(isHardCursorSupport_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool isHardCursorSupport err.");
-        return false;
-    }
-
-    std::vector<uint32_t> supportedColorGamuts;
-    supportedColorGamuts.assign(supportedColorGamuts_.begin(), supportedColorGamuts_.end());
-    if (!data.WriteUInt32Vector(supportedColorGamuts)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteUInt32Vector supportedColorGamut err.");
-        return false;
-    }
-
-    if (!data.WriteBool(disablePowerOffRenderControl_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool disablePowerOffRenderControl err.");
-        return false;
-    }
-    if (!data.WriteBool(screenSwitchStatus_)) {
-        ROSEN_LOGE("WriteScreenProperty: WriteBool screenSwitchStatus err.");
-        return false;
     }
     return true;
 }

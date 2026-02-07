@@ -94,6 +94,14 @@ void RSVsyncRateReduceManager::PushWindowNodeId(NodeId nodeId)
     curAllMainAndLeashWindowNodesIds_.emplace_back(nodeId);
 }
 
+void RSVsyncRateReduceManager::ClearLastVisMapForVsyncRate()
+{
+    if (!vRateReduceEnabled_) {
+        return;
+    }
+    lastVisMapForVSyncVisLevel_.clear();
+}
+
 void RSVsyncRateReduceManager::FrameDurationBegin()
 {
     if (!vRateConditionQualified_.load()) {
@@ -112,6 +120,14 @@ void RSVsyncRateReduceManager::FrameDurationEnd()
         EnqueueFrameDuration(val);
     }
     curTime_ = 0;
+}
+
+void RSVsyncRateReduceManager::SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes)
+{
+    if (!vRateReduceEnabled_) {
+        return;
+    }
+    isReduceBySystemAnimatedScenes_ = isReduceBySystemAnimatedScenes;
 }
 
 void RSVsyncRateReduceManager::EnqueueFrameDuration(float duration)
@@ -407,12 +423,18 @@ bool RSVsyncRateReduceManager::CheckNeedNotify()
     if (focusChanged) {
         lastFocusedNodeId_ = focusedNodeId_;
     }
+    if (needRefresh) {
+        isReduceBySystemAnimatedScenes_ = false;
+    }
     if (surfaceIdsChanged || needRefresh) {
         for (const auto& [nodeId, rate]: lastVSyncRateMap_) {
             if (vSyncRateMap_.find(nodeId) == vSyncRateMap_.end()) {
                 vSyncRateMap_.emplace(nodeId, DEFAULT_RATE);
             }
         }
+    }
+    if (isSystemAnimatedScenes_) {
+        isReduceBySystemAnimatedScenes_ = true;
     }
     return true;
 }

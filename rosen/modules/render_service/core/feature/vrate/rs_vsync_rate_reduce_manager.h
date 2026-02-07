@@ -58,10 +58,10 @@ public:
     void FrameDurationBegin();
     void FrameDurationEnd();
 
-    bool GetIsReduceBySystemAnimatedScenes() const
-    {
-        return isReduceBySystemAnimatedScenes_;
-    }
+    // bool GetIsReduceBySystemAnimatedScenes() const   // todo chuliangliang  change by jianghongxi
+    // {
+    //     return isReduceBySystemAnimatedScenes_;
+    // }
     void SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes);
     void Init();
     void ResetFrameValues(uint32_t rsRefreshRate);
@@ -99,6 +99,8 @@ private:
     std::unordered_map<NodeId, int> lastVSyncRateMap_;
     std::vector<NodeId> curAllMainAndLeashWindowNodesIds_;
     std::vector<NodeId> lastAllMainAndLeashWindowNodesIds_;
+    std::map<NodeId, RSVisibleLevel> visMapForVSyncVisLevel_;
+    std::map<NodeId, RSVisibleLevel> lastVisMapForVSyncVisLevel_;
 
     NodeId focusedNodeId_ = 0;
     NodeId lastFocusedNodeId_ = 0;
@@ -112,6 +114,7 @@ private:
     std::deque<float> frameDurations_;
 
     bool isSystemAnimatedScenes_ = false;
+    bool isReduceBySystemAnimatedScenes_ = false;
 
     bool isDeviceSupprotVRate_ = false;
     std::map<NodeId, SurfaceVRateInfo> surfaceVRateMap_;

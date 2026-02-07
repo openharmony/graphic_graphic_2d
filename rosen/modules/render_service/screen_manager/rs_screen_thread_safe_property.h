@@ -48,8 +48,8 @@ public:
     ResType SetScreenHDRFormat(ScreenHDRFormat hdrFormat);
     ResType SetVisibleRectOption(bool enableVisibleRect, const Rect& mainScreenRect, bool supportRotation);
     ResType SetWhiteList(const std::unordered_set<NodeId>& whiteList);
-    void AddWhiteList(const std::vector<NodeId>& whiteList);
-    void RemoveWhiteList(const std::vector<NodeId>& whiteList);
+    ResType AddWhiteList(const std::vector<NodeId>& whiteList);
+    ResType RemoveWhiteList(const std::vector<NodeId>& whiteList);
     ResType SetBlackList(const std::unordered_set<NodeId>& blackList);
     ResType AddBlackList(const std::vector<NodeId>& blackList);
     ResType RemoveBlackList(const std::vector<NodeId>& blackList);

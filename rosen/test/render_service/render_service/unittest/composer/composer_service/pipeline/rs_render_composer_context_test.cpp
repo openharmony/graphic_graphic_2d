@@ -52,13 +52,13 @@ void RsRenderComposerContextTest::TearDown() {}
  * Rank: Important(2)
  * EnvConditions: N/A
  * CaseDescription: 1. create RSRenderComposerContext
- *                  2. call GetRSLayersVec()
+ *                  2. call GetNeedCompositionLayersVec()
  *                  3. check returned vector is empty
  */
 HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_Empty_ReturnsEmpty, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
-    auto vec = ctx->GetRSLayersVec();
+    auto vec = ctx->GetNeedCompositionLayersVec();
     EXPECT_TRUE(vec.empty());
 }
 
@@ -68,7 +68,7 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_Empty_ReturnsEmpty, TestSiz
  * Rank: Important(2)
  * EnvConditions: N/A
  * CaseDescription: 1. create RSRenderComposerContext and add two layers (one used, one unused)
- *                  2. call GetRSLayersVec()
+ *                  2. call GetNeedCompositionLayersVec()
  *                  3. check returned vector only contains the used layer
  */
 HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_FiltersByisNeedComposition, TestSize.Level1)
@@ -83,7 +83,7 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_FiltersByisNeedComposition,
     ctx->AddRSRenderLayer(1, l1);
     ctx->AddRSRenderLayer(2, l2);
 
-    auto vec = ctx->GetRSLayersVec();
+    auto vec = ctx->GetNeedCompositionLayersVec();
     ASSERT_EQ(vec.size(), 1u);
     EXPECT_EQ(vec[0], l2);
 }
@@ -188,7 +188,7 @@ HWTEST_F(RsRenderComposerContextTest, AddRSRenderLayer_OverrideExisting, TestSiz
  * Rank: Important(2)
  * EnvConditions: N/A
  * CaseDescription: 1. add two layers both with isNeedComposition=false
- *                  2. GetRSLayersVec returns empty
+ *                  2. GetNeedCompositionLayersVec returns empty
  */
 HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_AllUnused_ReturnsEmpty, TestSize.Level1)
 {
@@ -201,7 +201,7 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_AllUnused_ReturnsEmpty, Tes
     b->SetSurfaceName("B");
     ctx->AddRSRenderLayer(1, a);
     ctx->AddRSRenderLayer(2, b);
-    auto vec = ctx->GetRSLayersVec();
+    auto vec = ctx->GetNeedCompositionLayersVec();
     EXPECT_TRUE(vec.empty());
 }
 
@@ -230,7 +230,7 @@ HWTEST_F(RsRenderComposerContextTest, SetRSLayersVec_Override, TestSize.Level1)
     b->SetIsNeedComposition(true);
     ctx->AddRSRenderLayer(2, a);
     ctx->AddRSRenderLayer(3, b);
-    auto vec = ctx->GetRSLayersVec();
+    auto vec = ctx->GetNeedCompositionLayersVec();
     EXPECT_EQ(vec.size(), 2u);
 }
 
@@ -247,7 +247,7 @@ HWTEST_F(RsRenderComposerContextTest, SetRSLayersVec_WithEmptyVector, TestSize.L
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
     // without adding any layers, returned vector should be empty
-    EXPECT_TRUE(ctx->GetRSLayersVec().empty());
+    EXPECT_TRUE(ctx->GetNeedCompositionLayersVec().empty());
 }
 
 /**
@@ -266,12 +266,12 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_ToggleNeedComposition, Test
     layer->SetSurfaceName("toggle");
     layer->SetIsNeedComposition(true);
     ctx->AddRSRenderLayer(77, layer);
-    auto vec1 = ctx->GetRSLayersVec();
+    auto vec1 = ctx->GetNeedCompositionLayersVec();
     ASSERT_EQ(vec1.size(), 1u);
     EXPECT_EQ(vec1[0], layer);
 
     layer->SetIsNeedComposition(false);
-    auto vec2 = ctx->GetRSLayersVec();
+    auto vec2 = ctx->GetNeedCompositionLayersVec();
     EXPECT_TRUE(vec2.empty());
 }
 

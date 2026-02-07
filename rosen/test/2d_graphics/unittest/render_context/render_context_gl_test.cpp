@@ -183,13 +183,8 @@ HWTEST_F(RenderContextGLTest, AcquireSurfaceTest, Function | SmallTest | Level2)
     EXPECT_TRUE(surface == nullptr);
 
     renderContext->SetPixelFormat(GRAPHIC_PIXEL_FMT_YCBCR_P010);
-<<<<<<< HEAD
-    surface = renderContext->AcquireSurface(0, 0);
-    EXPECT_TRUE(surface != nullptr);
-=======
     surface = renderContext->AcquireSurface(400, 800);
     EXPECT_FALSE(surface == nullptr);
->>>>>>> master
 }
 
 /**

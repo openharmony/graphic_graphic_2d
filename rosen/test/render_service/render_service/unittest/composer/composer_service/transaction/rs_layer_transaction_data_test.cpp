@@ -134,7 +134,7 @@ HWTEST_F(RSLayerTransactionDataTest, Unmarshalling_FullSuccess_OneValidParcel, T
     auto prop = std::make_shared<OHOS::Rosen::RSRenderLayerCmdProperty<int32_t>>(3);
     auto zCmd = std::make_shared<OHOS::Rosen::RSRenderLayerZorderCmd>(prop);
     std::shared_ptr<OHOS::Rosen::RSLayerParcel> parcel = std::make_shared<OHOS::Rosen::RSUpdateRSLayerCmd>(id, zCmd);
-    data.AddRSLayerParcel(parcel, id);
+    data.AddRSLayerParcel(id, parcel);
     ComposerInfo info {};
     info.composerScreenInfo.id = 1u;
     info.pipelineParam.vsyncId = 1u;
@@ -312,13 +312,13 @@ HWTEST_F(RSLayerTransactionDataTest, Unmarshalling_FullSuccess_MultiParcels, Tes
     auto propZ = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(100);
     auto zCmd = std::make_shared<RSRenderLayerZorderCmd>(propZ);
     std::shared_ptr<RSLayerParcel> parcel1 = std::make_shared<RSUpdateRSLayerCmd>(id1, zCmd);
-    data.AddRSLayerParcel(parcel1, id1);
+    data.AddRSLayerParcel(id1, parcel1);
 
     GraphicIRect rect {1, 2, 3, 4};
     auto propRect = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(rect);
     auto sizeCmd = std::make_shared<RSRenderLayerLayerSizeCmd>(propRect);
     std::shared_ptr<RSLayerParcel> parcel2 = std::make_shared<RSUpdateRSLayerCmd>(id2, sizeCmd);
-    data.AddRSLayerParcel(parcel2, id2);
+    data.AddRSLayerParcel(id2, parcel2);
 
     ComposerInfo info {};
     info.composerScreenInfo.id = 1u;

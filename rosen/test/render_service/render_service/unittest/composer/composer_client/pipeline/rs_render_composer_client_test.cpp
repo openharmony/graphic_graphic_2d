@@ -92,7 +92,7 @@ HWTEST_F(RSRenderComposerClientTest, ClientCreateTest, Function | SmallTest | Le
  */
 HWTEST_F(RSRenderComposerClientTest, LayerFuncTest, Function | SmallTest | Level2)
 {
-    auto layer = std::make_shared<RSSurfaceLayer>();
+    auto layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(client, nullptr);
     auto context = client->GetComposerContext();
     ASSERT_NE(context, nullptr);
@@ -107,7 +107,7 @@ HWTEST_F(RSRenderComposerClientTest, LayerFuncTest, Function | SmallTest | Level
  */
 HWTEST_F(RSRenderComposerClientTest, CommitRSLayerTest, Function | SmallTest | Level2)
 {
-    auto layer = std::make_shared<RSSurfaceLayer>();
+    auto layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetTunnelHandleChange(true);
     ASSERT_NE(client, nullptr);
     auto context = client->GetComposerContext();

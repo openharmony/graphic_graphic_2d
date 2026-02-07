@@ -316,8 +316,6 @@ public:
  
     ErrCode AvcodecVideoGetRecent() override;
 
-    bool GetHighContrastTextState() override;
-
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;

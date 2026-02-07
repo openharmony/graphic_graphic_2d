@@ -174,10 +174,11 @@ bool RSSpecialLayerManager::FindWithScreen(ScreenId screenId, uint32_t type) con
 
 uint32_t RSSpecialLayerManager::GetWithScreen(ScreenId screenId) const
 {
-    if (screenSpecialLayer_.find(screenId) == screenSpecialLayer_.end()) {
+    auto iter = screenSpecialLayer_.find(screenId);
+    if (iter == screenSpecialLayer_.end()) {
         return SpecialLayerType::NONE;
     }
-    return screenSpecialLayer_.at(screenId);
+    return iter->second;
 }
 
 void RSSpecialLayerManager::AddIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id)
@@ -200,24 +201,14 @@ void RSSpecialLayerManager::RemoveIdsWithScreen(ScreenId screenId, uint32_t type
     uint32_t isType = type & IS_GENERAL_SPECIAL;
     uint32_t currentType = SpecialLayerType::SECURITY;
     while (isType != 0) {
-        auto IsSpecial = isType & 1;
-        if (IsSpecial) {
-            if (screenSpecialLayerIds_.find(screenId) == screenSpecialLayerIds_.end()) {
-                break;
-            }
-            auto& specialLayerIds = screenSpecialLayerIds_.at(screenId);
-            if (specialLayerIds.find(currentType) == specialLayerIds.end()) {
-                break;
-            }
-            auto& typeIds = specialLayerIds.at(currentType);
-            typeIds.erase(id);
-            // check weather 'screenSpecialLayerIds_[screenId][currentType]' is empty
-            if (typeIds.empty()) {
-                specialLayerIds.erase(currentType);
+        bool isSpecial = (isType & 1) != 0;
+        if (isSpecial) {
+            screenSpecialLayerIds_[screenId][currentType].erase(id);
+            if (screenSpecialLayerIds_[screenId][currentType].empty()) {
+                screenSpecialLayerIds_[screenId].erase(currentType);
                 DeleteType(screenSpecialLayer_[screenId], currentType << SPECIAL_TYPE_NUM);
             }
-            // check weather 'screenSpecialLayerIds_[screenId]' is empty
-            if (specialLayerIds.empty()) {
+            if (screenSpecialLayerIds_[screenId].empty()) {
                 screenSpecialLayerIds_.erase(screenId);
             }
         }

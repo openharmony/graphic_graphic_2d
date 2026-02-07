@@ -134,8 +134,6 @@ public:
 
     virtual ErrCode ForceRefreshOneFrameWithNextVSync() = 0;
 
-    virtual ErrCode SetAppWindowNum(uint32_t num) = 0;
-
     virtual void TakeUICaptureInRange(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;

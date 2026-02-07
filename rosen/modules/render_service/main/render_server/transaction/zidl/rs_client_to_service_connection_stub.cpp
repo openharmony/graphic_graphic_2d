@@ -68,8 +68,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT),
@@ -184,8 +184,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_START),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP),
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT),
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST),
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -502,7 +502,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST): {
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST): {
             // read the parcel data.
             ScreenId id{INVALID_SCREEN_ID};
             std::vector<NodeId> whiteList;
@@ -519,7 +519,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST): {
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST): {
             // read the parcel data.
             ScreenId id{INVALID_SCREEN_ID};
             std::vector<NodeId> whiteList;
@@ -1048,7 +1048,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE): {
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE): {
             ScreenId id{INVALID_SCREEN_ID};
             uint64_t status{0};
             if (!data.ReadUint64(id) || !data.ReadUint64(status)) {
@@ -1069,23 +1069,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
-            pid_t pid = GetCallingPid();
-            RS_PROFILER_PATCH_PID(data, pid);
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            sptr<IApplicationAgent> app = iface_cast<IApplicationAgent>(remoteObject);
-            if (app == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            RegisterApplicationAgent(pid, app);
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION): {
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_VIRTUAL_SCREEN_RESOLUTION Read id failed!");
@@ -1459,7 +1443,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS): {
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
                 RS_LOGE("RSRenderServiceConnectionStub::GET_PANEL_POWER_STATUS Read id failed!");
@@ -1475,7 +1459,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION): {
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION): {
             std::string name;
             if (!data.ReadString(name)) {
                 RS_LOGE("RSClientToServiceConnectionStub::CREATE_VSYNC_CONNECTION read name failed!");

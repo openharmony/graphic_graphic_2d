@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -111,7 +111,7 @@ public:
     {
         return payload_;
     }
-    ComposerScreenInfo GetComposerScreenInfo()
+    const ComposerScreenInfo& GetComposerScreenInfo()
     {
         return composerInfo_.composerScreenInfo;
     }
@@ -133,7 +133,7 @@ private:
     bool MarshallingComposerScreenInfo(std::shared_ptr<OHOS::MessageParcel>& parcel);
     bool UnMarshallingPipelineParam(OHOS::MessageParcel& parcel);
     bool MarshallingPipelineParam(std::shared_ptr<OHOS::MessageParcel>& parcel);
-    void AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId);
+    void AddRSLayerParcel(RSLayerId layerId, std::shared_ptr<RSLayerParcel>& layerParcel);
 
     std::vector<std::tuple<RSLayerId, std::shared_ptr<RSLayerParcel>>> payload_ = {};
     uint64_t timestamp_ = 0;

@@ -99,8 +99,8 @@ void RSTransactionHandler::MoveCommandByNodeId(std::shared_ptr<RSTransactionHand
 
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (renderPipelineClient_ != nullptr) {
-    // Add a lock to the destination handler to prevent multiple threads from reading and writing commands.
-    std::unique_lock<std::mutex> dstHandlerCmdLock(transactionHandler->mutex_)
+        // Add a lock to the destination handler to prevent multiple threads from reading and writing commands.
+        std::unique_lock<std::mutex> dstHandlerCmdLock(transactionHandler->mutex_);
         MoveRemoteCommandByNodeId(transactionHandler, nodeId);
     }
     if (renderThreadClient_ != nullptr) {
@@ -331,8 +331,8 @@ void RSTransactionHandler::CommitSyncTransaction(uint64_t syncId, uint64_t times
         ProcessSyncTransactionStack(implicitCommonTransactionDataStack_, *renderThreadClient_,
             syncId, timestamp, tid, abilityName);
     }
-    if (renderServiceClient_) {
-        ProcessSyncTransactionStack(implicitRemoteTransactionDataStack_, *renderServiceClient_,
+    if (renderPipelineClient_) {
+        ProcessSyncTransactionStack(implicitRemoteTransactionDataStack_, *renderPipelineClient_,
             syncId, timestamp, tid, "");
     }
 }

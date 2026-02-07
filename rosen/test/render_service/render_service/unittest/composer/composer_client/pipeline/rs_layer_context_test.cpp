@@ -115,7 +115,7 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
     std::shared_ptr<RSSurfaceLayer> layer = nullptr;
     context->AddRSLayer(layer);
     context->RemoveRSLayer(0);
-    layer = std::make_shared<RSSurfaceLayer>();
+    layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
 
     context->rsLayerTransactionHandler_ = nullptr;
     context->AddRSLayer(layer);
@@ -142,7 +142,7 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
     };
     auto parcel = std::make_shared<FakeLayerParcel>();
     std::shared_ptr<RSLayerParcel> baseParcel = std::static_pointer_cast<RSLayerParcel>(parcel);
-    context->rsLayerTransactionHandler_->AddRSLayerParcel(baseParcel, 0);
+    context->rsLayerTransactionHandler_->AddRSLayerParcel(0, baseParcel);
     EXPECT_TRUE(context->CommitLayers(composerInfo));
     EXPECT_EQ(client->GetUnExecuteTaskNum(), 0u);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -169,7 +169,7 @@ HWTEST_F(RSLayerContextTest, DumpLayersInfoTest, Function | SmallTest | Level2)
 
     std::string dumpString;
     context->DumpLayersInfo(dumpString);
-    std::shared_ptr<RSSurfaceLayer> layer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSSurfaceLayer> layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetNodeId(0);
     context->AddRSLayer(layer);
     context->DumpLayersInfo(dumpString);
@@ -195,7 +195,7 @@ HWTEST_F(RSLayerContextTest, DumpCurrentFrameLayersTest, Function | SmallTest | 
     auto context = std::make_shared<RSComposerContext>(connect);
     EXPECT_NE(context, nullptr);
     context->DumpCurrentFrameLayers();
-    std::shared_ptr<RSSurfaceLayer> layer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSSurfaceLayer> layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetNodeId(0);
     context->AddRSLayer(layer);
     context->DumpCurrentFrameLayers();
@@ -260,7 +260,7 @@ HWTEST_F(RSLayerContextTest, ReleaseLayerBuffersTest, Function | SmallTest | Lev
     releaseBufferFenceVec.push_back({0, nullptr, nullptr});
     context->ReleaseLayerBuffers(0, timestampVec, releaseBufferFenceVec);
 
-    std::shared_ptr<RSSurfaceLayer> layer = std::make_shared<RSSurfaceLayer>();
+    std::shared_ptr<RSSurfaceLayer> layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetRSLayerId(0);
     context->AddRSLayer(layer);
     sptr<IConsumerSurface> surface = sptr<ConsumerSurface>::MakeSptr("test");

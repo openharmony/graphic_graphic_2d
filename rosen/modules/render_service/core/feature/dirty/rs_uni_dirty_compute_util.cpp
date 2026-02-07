@@ -364,7 +364,7 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
     // All other factors that may prevent skipping virtual expand display need to be considered
     // update accumulated dirty region
     params.SetAccumulatedDirty(params.GetAccumulatedDirty() ||
-        (screenDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
+        (screenNodeDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));  // change by jianghongxi
 
     // update accumulated hdr status changed
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());

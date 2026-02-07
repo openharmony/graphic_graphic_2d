@@ -67,7 +67,7 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
     offsetY_ = screenProperty.GetOffsetY();
     ScreenState state = screenProperty.GetState();
     switch (state) {
-        case ScreenState::SOFTWARE_OUTPUT_ENABLE:
+        case ScreenState::PRODUCER_SURFACE_ENABLE:
             node.SetCompositeType(CompositeType::SOFTWARE_COMPOSITE);
             break;
         case ScreenState::HDI_OUTPUT_ENABLE:

@@ -197,7 +197,7 @@ const std::string RSSurfaceFpsManager::GetSelfDrawSurfaceNameByPid(pid_t nodePid
 {
     for (auto [id, surfaceFps] : surfaceFpsMap_) {
         auto name = surfaceFps->GetName();
-        if (ExtractPid(id) == nodePid && name.find("RosenWeb") != std::string::npos) {
+        if (ExtractPid(id) == nodePid && name.find("RosenWeb") == std::string::npos) {
             return name;
         }
     }

@@ -86,7 +86,7 @@ namespace OHOS {
         bool change = GetData<bool>();
 
         // test
-        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
         rsLayer->SetZorder(zOrder);
         rsLayer->SetAlpha(alpha);
         rsLayer->SetTransform(transformType);

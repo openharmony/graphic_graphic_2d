@@ -156,9 +156,9 @@ ErrCode RSServiceToRenderConnection::SetLayerTop(const std::string &nodeIdStr, b
 }
 
 ErrCode RSServiceToRenderConnection::CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
-    std::shared_ptr<Media::PixelMap> &pixelMap)
+    std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled)
 {
-    return renderPipelineAgent_->CreatePixelMapFromSurface(surface, srcRect, pixelMap);
+    return renderPipelineAgent_->CreatePixelMapFromSurface(surface, srcRect, pixelMap, transformEnabled);
 }
 
 int32_t RSServiceToRenderConnection::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)

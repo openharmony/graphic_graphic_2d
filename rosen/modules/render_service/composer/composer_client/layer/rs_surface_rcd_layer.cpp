@@ -29,8 +29,8 @@ RSSurfaceRCDLayer::RSSurfaceRCDLayer(RSLayerId rsLayerId, std::shared_ptr<RSComp
 {
 }
 
-std::shared_ptr<RSLayer> RSSurfaceRCDLayer::Create(const std::shared_ptr<RSComposerContext>& context,
-    RSLayerId rsLayerId)
+std::shared_ptr<RSLayer> RSSurfaceRCDLayer::Create(RSLayerId rsLayerId,
+    const std::shared_ptr<RSComposerContext>& context)
 {
     if (context == nullptr) {
         RS_LOGE("%{public}s context is nullptr", __func__);
@@ -38,13 +38,13 @@ std::shared_ptr<RSLayer> RSSurfaceRCDLayer::Create(const std::shared_ptr<RSCompo
     }
     std::shared_ptr<RSLayer> layer = context->GetRSLayer(rsLayerId);
     if (layer != nullptr && layer->IsScreenRCDLayer()) {
-        RS_TRACE_NAME_FMT("RSSurfaceRCDLayer::Create use exist layer, id: %" PRIu64 ", name: %s, isRCD: %d",
-            rsLayerId, layer->GetSurfaceName().c_str(), static_cast<int>(layer->IsScreenRCDLayer()));
+        RS_TRACE_NAME_FMT("%s use exist layer, id: %" PRIu64 ", name: %s, isRCD: %d",
+            __func__, rsLayerId, layer->GetSurfaceName().c_str(), static_cast<int>(layer->IsScreenRCDLayer()));
         RS_LOGD("%{public}s get cache layer by layer id: %{public}" PRIu64, __func__, rsLayerId);
         layer->SetRSLayerId(rsLayerId);
         return layer;
     }
-    layer = std::make_shared<RSSurfaceRCDLayer>(rsLayerId, context);
+    layer = std::shared_ptr<RSSurfaceRCDLayer>(new RSSurfaceRCDLayer(rsLayerId, context));
     context->AddRSLayer(layer);
     return layer;
 }
@@ -56,11 +56,14 @@ void RSSurfaceRCDLayer::SetRSLayerCmd(const T& value)
     auto renderLayerCmd = std::make_shared<RSRenderLayerCmdName>(renderProperty);
     std::shared_ptr<RSLayerParcel> layerParcel =
         std::make_shared<RSUpdateRSRCDLayerCmd>(GetRSLayerId(), renderLayerCmd);
-    AddRSLayerParcel(layerParcel, GetRSLayerId());
+    AddRSLayerParcel(GetRSLayerId(), layerParcel);
 }
 
 void RSSurfaceRCDLayer::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap)
 {
+    if (pixelMap_ == pixelMap) {
+        return;
+    }
     pixelMap_ = pixelMap;
     SetRSLayerCmd<RSRenderLayerPixelMapCmd>(pixelMap);
 }

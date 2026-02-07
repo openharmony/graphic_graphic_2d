@@ -920,22 +920,6 @@ void DoRegisterOcclusionChangeCallback()
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
-<<<<<<< HEAD
-void DoSetAppWindowNum()
-{
-    uint32_t code = static_cast<uint32_t>(DO_SET_APP_WINDOW_NUM);
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    MessageOption option;
-
-    uint32_t num = GetData<uint32_t>();
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataParcel.WriteUint32(num);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-}
-
-=======
->>>>>>> master
 void DoSetSystemAnimatedScenes()
 {
     MessageParcel dataP;

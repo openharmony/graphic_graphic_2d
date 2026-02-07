@@ -541,7 +541,6 @@ HWTEST_F(RSPipelineClientTest, FreezeScreen, TestSize.Level1)
 }
 
 /**
-<<<<<<< HEAD
  * @tc.name: SetSystemAnimatedScenesTest
  * @tc.desc: test SetSystemAnimatedScenes when rsRenderServiceClient is nullptr or not
  * @tc.type: FUNC
@@ -579,7 +578,7 @@ HWTEST_F(RSPipelineClientTest, SurfaceWatermarkTest01, TestSize.Level1)
     RSRenderServiceConnectHub::Init();
 }
 
-=======
+/**
  * @tc.name: TriggerSurfaceCaptureCallback001
  * @tc.desc: TriggerSurfaceCaptureCallback
  * @tc.type:FUNC
@@ -697,6 +696,5 @@ HWTEST_F(RSPipelineClientTest, SetLogicalCameraRotationCorrection, TestSize.Leve
     ret = rsClient->SetLogicalCameraRotationCorrection(screenId, ScreenRotation::ROTATION_90);
     ASSERT_EQ(ret, SUCCESS);
 }
->>>>>>> master
 } // namespace Rosen
 } // namespace OHOS

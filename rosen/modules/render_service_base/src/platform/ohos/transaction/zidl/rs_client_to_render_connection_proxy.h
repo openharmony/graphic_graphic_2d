@@ -117,8 +117,6 @@ public:
     
     ErrCode ForceRefreshOneFrameWithNextVSync() override;
 
-    ErrCode SetAppWindowNum(uint32_t num) override;
-
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
     void ClearUifirstCache(NodeId id) override;

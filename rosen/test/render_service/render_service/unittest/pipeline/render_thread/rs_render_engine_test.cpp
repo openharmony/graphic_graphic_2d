@@ -168,13 +168,13 @@ HWTEST_F(RSRenderEngineTest, DrawLayers001, TestSize.Level1)
     }
     std::vector<RSLayerPtr> layers;
     layers.emplace_back(nullptr);
-    RSLayerPtr layer1 = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layers.emplace_back(layer1);
-    RSLayerPtr layer2 = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
     layers.emplace_back(layer2);
-    RSLayerPtr layer3 = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer3 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     RSRenderNodeMap& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();

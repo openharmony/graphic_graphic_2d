@@ -117,13 +117,13 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
     if (!RSSystemProperties::IsUseVulkan()) {
         layers.emplace_back(nullptr);
     }
-    RSLayerPtr layer1 = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
-    RSLayerPtr layer2 = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
 
-    RSLayerPtr layer3 = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer3 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("layer3");
     layer3->SetSurface(cSurface);

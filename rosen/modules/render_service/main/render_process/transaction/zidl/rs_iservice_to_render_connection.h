@@ -113,7 +113,7 @@ public:
     virtual ErrCode RepaintEverything() = 0;
     virtual ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) = 0;
     virtual ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect& srcRect,
-        std::shared_ptr<Media::PixelMap>& pixelMap) = 0;
+        std::shared_ptr<Media::PixelMap>& pixelMap, bool transformEnabled = false) = 0;
     virtual void SetVmaCacheStatus(bool flag) = 0;
     virtual ErrCode SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh) = 0;
     virtual int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,

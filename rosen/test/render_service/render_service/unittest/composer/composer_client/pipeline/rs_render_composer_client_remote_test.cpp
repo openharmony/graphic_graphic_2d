@@ -153,7 +153,7 @@ void RSRenderComposerClientRemoteTest::TearDownTestCase()
  */
 HWTEST_F(RSRenderComposerClientRemoteTest, CommitLayers001, TestSize.Level0)
 {
-    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), 1);
+    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(1, composerClient_->GetComposerContext());
     EXPECT_NE(rsLayer, nullptr);
     GraphicLayerAlpha alpha = {1, 0, 1, 0, 1};
     rsLayer->SetAlpha(alpha);
@@ -252,7 +252,7 @@ HWTEST_F(RSRenderComposerClientRemoteTest, CommitLayers001, TestSize.Level0)
  */
 HWTEST_F(RSRenderComposerClientRemoteTest, CommitLayers002, TestSize.Level0)
 {
-    std::shared_ptr<RSLayer> rsLayer = RSSurfaceRCDLayer::Create(composerClient_->GetComposerContext(), 2);
+    std::shared_ptr<RSLayer> rsLayer = RSSurfaceRCDLayer::Create(2, composerClient_->GetComposerContext());
     EXPECT_NE(rsLayer, nullptr);
     auto rcdLayer = std::static_pointer_cast<RSSurfaceRCDLayer>(rsLayer);
     std::shared_ptr<Media::PixelMap> pixelMap = std::make_shared<Media::PixelMap>();
@@ -271,7 +271,7 @@ HWTEST_F(RSRenderComposerClientRemoteTest, CommitLayers002, TestSize.Level0)
  */
 HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo001, TestSize.Level0)
 {
-    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), 3);
+    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(3, composerClient_->GetComposerContext());
     EXPECT_NE(rsLayer, nullptr);
     const GraphicLayerAlpha alpha = {1, 0, 1, 0, 1};
     rsLayer->SetAlpha(alpha);
@@ -428,7 +428,7 @@ HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo001, TestSize.Level0)
  */
 HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo002, TestSize.Level0)
 {
-    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), 4);
+    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(4, composerClient_->GetComposerContext());
     EXPECT_NE(rsLayer, nullptr);
     GraphicLayerAlpha alpha = {1, 0, 1, 0, 1};
     rsLayer->SetAlpha(alpha);

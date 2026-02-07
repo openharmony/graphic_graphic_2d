@@ -35,7 +35,7 @@ void RSLayerParcelFactory::Register(uint16_t type, UnmarshallingFunc func)
 {
     auto result = unmarshallingFuncLUT_.try_emplace(MakeKey(type), func);
     if (!result.second) {
-        ROSEN_LOGD("%{public}s faile, type:%{public}d", __func__, type);
+        ROSEN_LOGE("%{public}s faile, type:%{public}d", __func__, type);
     }
 }
 

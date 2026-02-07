@@ -162,7 +162,7 @@ HWTEST_F(RSComposerClientManagerTest, CleanLayerBufferBySurfaceId_WithLayer_Forw
     // Create a layer with matching node id in the client's context so GetRSLayer(nodeId) != nullptr
     auto ctx = client->GetComposerContext();
     RSLayerId layerId = 3001ULL;
-    auto layer = RSSurfaceLayer::Create(ctx, layerId);
+    auto layer = RSSurfaceLayer::Create(layerId, ctx);
     ASSERT_NE(layer, nullptr);
     layer->SetNodeId(layerId); // make NodeId equal RSLayerId to satisfy Dump filter logic later
 
@@ -320,7 +320,7 @@ HWTEST_F(RSComposerClientManagerTest, DumpSurfaceInfo_WithCommittedLayer_HasOutp
     // Create a layer and mark it as part of last commit via ReleaseLayerBuffers
     auto ctx = client->GetComposerContext();
     RSLayerId layerId = 8001ULL;
-    auto layer = RSSurfaceLayer::Create(ctx, layerId);
+    auto layer = RSSurfaceLayer::Create(layerId, ctx);
     ASSERT_NE(layer, nullptr);
     layer->SetNodeId(layerId);
     layer->SetSurfaceName("ut-surface");

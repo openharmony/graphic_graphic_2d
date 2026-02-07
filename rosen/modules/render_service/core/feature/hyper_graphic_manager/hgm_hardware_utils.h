@@ -44,7 +44,6 @@ public:
     HgmHardwareUtils() = default;
     ~HgmHardwareUtils() noexcept = default;
 
-    void ExecuteSwitchRefreshRate(ScreenId screenId);
     void PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output);
     void ResetRetryCount(ScreenPowerStatus status);
     void SetScreenVBlankIdle() { vblankIdleCorrector_.SetScreenVBlankIdle(); }
@@ -71,6 +70,8 @@ private:
     void ReportRetryOverLimit(uint64_t vsyncId, uint32_t rate);
 
     HgmCore& hgmCore_ = HgmCore::Instance();
+    // key: ScreenId, value: <needRetrySetRate, retryCount>
+    std::unordered_map<ScreenId, std::pair<bool, int32_t>> setRateRetryMap_;
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RefreshRateParam refreshRateParam_;
     SetRateRetryParam setRateRetryParam_;

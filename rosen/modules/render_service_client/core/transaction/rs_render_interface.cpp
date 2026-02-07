@@ -299,11 +299,6 @@ bool RSRenderInterface::RegisterTransactionDataCallback(
     return renderPipelineClient_->RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
-void RSRenderInterface::SetAppWindowNum(uint32_t num)
-{
-    renderPipelineClient_->SetAppWindowNum(num);
-}
-
 void RSRenderInterface::ForceRefreshOneFrameWithNextVSync()
 {
     renderPipelineClient_->ForceRefreshOneFrameWithNextVSync();
@@ -495,6 +490,8 @@ int32_t RSRenderInterface::RegisterSurfaceOcclusionChangeCallback(
 int32_t RSRenderInterface::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
 {
     return renderPipelineClient_->UnRegisterSurfaceOcclusionChangeCallback(id);
+}
+
 int32_t RSRenderInterface::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {
     return renderPipelineClient_->SetLogicalCameraRotationCorrection(id, logicalCorrection);

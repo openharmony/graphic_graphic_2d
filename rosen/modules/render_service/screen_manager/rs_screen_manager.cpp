@@ -506,6 +506,46 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     return newId;
 }
 
+int32_t RSScreenManager::AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
+{
+    auto virtualScreen = GetScreen(id);
+    if (virtualScreen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (!virtualScreen->IsVirtual()) {
+        RS_LOGW("%{public}s: Screen[%{public}" PRIu64 "] isn't a virtual screen, " \
+            "unable to set whitelist.", __func__, id);
+        return SCREEN_TYPE_ERROR;
+    }
+    if (virtualScreen->GetWhiteList().size() + whiteList.size() > MAX_SPECIAL_LAYER_NUM) {
+        RS_LOGW("%{public}s: whitelist is over max size!", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    virtualScreen->AddWhiteList(whiteList);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_WHITE_LIST, id, virtualScreen->GetWhiteList());
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
+{
+    auto virtualScreen = GetScreen(id);
+    if (virtualScreen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (!virtualScreen->IsVirtual()) {
+        RS_LOGW("%{public}s: Screen[%{public}" PRIu64 "] isn't a virtual screen, " \
+            "unable to set whitelist.", __func__, id);
+        return SCREEN_TYPE_ERROR;
+    }
+    virtualScreen->RemoveWhiteList(whiteList);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_WHITE_LIST, id, virtualScreen->GetWhiteList());
+    return SUCCESS;
+}
+
 int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     std::unordered_set<NodeId> screenBlackList(blackList.begin(), blackList.end());
@@ -555,7 +595,7 @@ int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vecto
     return SUCCESS;
 }
 
-int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
+int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     if (id == INVALID_SCREEN_ID) {
         return RemoveGlobalBlackList(blackList);
@@ -622,8 +662,7 @@ int32_t RSScreenManager::RemoveGlobalBlackList(const std::vector<uint64_t>& blac
 }
 
 int32_t RSScreenManager::SetVirtualScreenSecurityExemptionList(
-    ScreenId id,
-    const std::vector<uint64_t>& securityExemptionList)
+    ScreenId id, const std::vector<uint64_t>& securityExemptionList)
 {
     if (id == INVALID_SCREEN_ID) {
         RS_LOGW("%{public}s: INVALID_SCREEN_ID.", __func__);
