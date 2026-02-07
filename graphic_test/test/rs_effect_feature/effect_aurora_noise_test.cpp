@@ -27,6 +27,8 @@ namespace {
 
 constexpr size_t screenWidth = 1200;
 constexpr size_t screenHeight = 2000;
+constexpr float FOREGROUND_NOISE_MIN = 0.02f;
+constexpr float FOREGROUND_NOISE_MAX = 0.55f;
 
 const std::vector<float> auroraNoiseParams = {
     0.0f,   // No noise
@@ -70,8 +72,7 @@ GRAPHIC_TEST(AuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Background_Test)
 
     for (size_t i = 0; i < auroraNoiseParams.size(); ++i) {
         auto shader = std::make_shared<RSNGAuroraNoise>();
-        // Foreground path is more prone to overexposure; keep to a moderate range.
-        SetAuroraNoiseParams(shader, std::clamp(auroraNoiseParams[i], 0.05f, 0.8f));
+        SetAuroraNoiseParams(shader, auroraNoiseParams[i]);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
@@ -95,7 +96,8 @@ GRAPHIC_TEST(AuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Foreground_Test)
 
     for (size_t i = 0; i < auroraNoiseParams.size(); ++i) {
         auto shader = std::make_shared<RSNGAuroraNoise>();
-        SetAuroraNoiseParams(shader, auroraNoiseParams[i]);
+        // Foreground path tends to overexpose when noise is too high.
+        SetAuroraNoiseParams(shader, std::clamp(auroraNoiseParams[i], FOREGROUND_NOISE_MIN, FOREGROUND_NOISE_MAX));
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
