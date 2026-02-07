@@ -335,6 +335,8 @@ protected:
 
     virtual void DumpSubDrawableTree(std::string& out) const {}
 
+    virtual void ClearCustomResource() {}
+
     // Register utils
     using Generator = Ptr (*)(std::shared_ptr<const RSRenderNode>);
     template<RSRenderNodeType type, Generator generator>
