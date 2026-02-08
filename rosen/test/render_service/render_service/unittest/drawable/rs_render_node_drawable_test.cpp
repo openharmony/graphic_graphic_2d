@@ -19,7 +19,6 @@
 #include "feature/render_group/rs_render_group_cache_drawable.h"
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "feature_cfg/feature_param/performance_feature/opinc_param.h"
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
@@ -60,14 +59,6 @@ void RSRenderNodeDrawableTest::TearDown()
     RSRenderNodeDrawable::isOffScreenWithClipHole_ = false;
     RSRenderGroupCacheDrawable::SetDrawBlurForCache(false);
     RSRenderGroupCacheDrawable::SetDrawExcludedSubTreeForCache(false);
-
-    // Clear RSUniRenderThread global state
-    CaptureParam emptyParam;
-    RSUniRenderThread::SetCaptureParam(emptyParam);
-    RSUniRenderThread::Instance().SetWhiteList({});
-
-    // Clear OPIncParam global state (protected method, but accessible in tests via -Dprotected=public)
-    OPIncParam::SetImageAliasEnable(true);
 }
 
 std::shared_ptr<RSRenderNodeDrawable> RSRenderNodeDrawableTest::CreateDrawable()
@@ -154,7 +145,8 @@ HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedTest, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    Drawing::Canvas canvas;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     drawable->CheckCacheTypeAndDraw(canvas, params);
     params.childHasVisibleFilter_ = true;
@@ -210,7 +202,8 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
 HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest002, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    Drawing::Canvas canvas;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     RSRenderParams params(RSRenderNodeDrawableTest::id);
  
     NodeId id = 1;
@@ -244,7 +237,8 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest002, TestSize.Level1
 HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    Drawing::Canvas canvas;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     RSRenderParams params(RSRenderNodeDrawableTest::id);
  
     NodeId id = 1;
