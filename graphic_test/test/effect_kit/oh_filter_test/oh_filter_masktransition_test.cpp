@@ -27,9 +27,6 @@ namespace OHOS::Rosen {
 namespace {
 const std::string BG_TEST_JPG_PATH = "/data/local/tmp/bg_test.jpg";
 const std::string FG_TEST_JPG_PATH = "/data/local/tmp/fg_test.jpg";
-
-const int screenWidth = 1200;
-const int screenHeight = 2000;
 }
 
 class OHFilterMaskTransitionTest : public RSGraphicTest {
@@ -54,6 +51,10 @@ public:
         GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
+
+private:
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 };
 
 GRAPHIC_TEST(OHFilterMaskTransitionTest, EFFECT_TEST, LinearGradientMaskTest)
