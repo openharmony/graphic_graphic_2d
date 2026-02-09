@@ -599,7 +599,11 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     rsSubThreadCache.SetHDRPresent(isHdrOn);
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(screenParams->GetNewColorSpace()) &&
         GetUiFirstSwitch();
-    bool changeColorSpace = rsSubThreadCache.GetTargetColorGamut() != colorGamut;
+    GraphicColorGamut effectiveColorGamut = colorGamut;
+    if (effectiveColorGamut == GRAPHIC_COLOR_GAMUT_BT2020) {
+        effectiveColorGamut = screenParams->GetNewColorSpace();
+    }
+    bool changeColorSpace = rsSubThreadCache.GetTargetColorGamut() != effectiveColorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
         // When ScRGB or Adaptive P3 is enabled, some operations may cause the window color gamut to change.
         // If the buffer format is not FP16, the uifirst cache need to be cleared when colorspace changed.
@@ -612,7 +616,7 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
             drawable->GetRsSubThreadCache().ClearCacheSurfaceInThread();
         }
         rsSubThreadCache.SetScreenId(id);
-        rsSubThreadCache.SetTargetColorGamut(colorGamut);
+        rsSubThreadCache.SetTargetColorGamut(effectiveColorGamut);
     }
     RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f", rsSubThreadCache.GetHDRPresent(),
         surfaceParams->GetBrightnessRatio());
