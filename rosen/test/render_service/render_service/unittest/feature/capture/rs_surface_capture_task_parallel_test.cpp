@@ -1314,6 +1314,49 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurfaceSyncCopyTaskWithDoublePi
 }
 
 /*
+ * @tc.name: AddBlurTest
+ * @tc.desc: Test AddBlurFunc
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, AddBlurTest, TestSize.Level2)
+{
+    NodeId id = 33;
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    task.surfaceNode_ = node;
+    auto pixmap = task.CreatePixelMapBySurfaceNode(node, false);
+    EXPECT_EQ(pixmap, nullptr);
+    node->renderProperties_.SetBoundsWidth(50.0f);
+    node->renderProperties_.SetBoundsHeight(50.0f);
+    pixmap = task.CreatePixelMapBySurfaceNode(node, false);
+    EXPECT_NE(pixmap, nullptr);
+
+    std::shared_ptr<Drawing::Surface> surfaceNull = std::make_shared<Drawing::Surface>();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    task.AddBlur(canvas, surfaceNull, 35.0f);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 480;
+    opts.size.height = 320;
+    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    auto address = const_cast<uint32_t*>(pixelmap->GetPixel32(0, 0));
+    ASSERT_NE(address, nullptr);
+    Drawing::ImageInfo info { pixelmap->GetWidth(), pixelmap->GetHeight(), Drawing::ColorType::COLORTYPE_RGBA_8888,
+        Drawing::AlphaType::ALPHATYPE_PREMUL };
+    auto surface = Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    ASSERT_NE(surface, nullptr);
+
+    RSPaintFilterCanvas canvasFilter(surface.get());
+    task.AddBlur(canvasFilter, surface, 35.0f);
+    task.AddBlur(canvasFilter, surface, 275.0f);
+    EXPECT_NE(pixmap, nullptr);
+}
+
+/*
  * @tc.name: PixelMapCopy001
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.PixelMapCopy
  * @tc.type: FUNC
