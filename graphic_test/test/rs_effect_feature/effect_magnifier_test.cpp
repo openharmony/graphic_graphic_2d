@@ -45,20 +45,20 @@ struct MagnifierCaseConfig {
 
 class MagnifierEffectTest : public RSGraphicTest {
 private:
-    static constexpr int SCREEN_WIDTH = 1200;
-    static constexpr int SCREEN_HEIGHT = 2000;
+    static constexpr int screenWidth = 1200;
+    static constexpr int screenHeight = 2000;
 
     void BuildBackdrop()
     {
         auto backLayer = RSCanvasNode::Create();
-        backLayer->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
-        backLayer->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        backLayer->SetBounds({0, 0, screenWidth, screenHeight});
+        backLayer->SetFrame({0, 0, screenWidth, screenHeight});
         backLayer->SetBackgroundColor(0xff101820);
         GetRootNode()->AddChild(backLayer);
         RegisterNode(backLayer);
 
-        const int halfW = SCREEN_WIDTH / K_GRID_COLUMNS;
-        const int halfH = SCREEN_HEIGHT / K_GRID_COLUMNS;
+        const int halfW = screenWidth / K_GRID_COLUMNS;
+        const int halfH = screenHeight / K_GRID_COLUMNS;
         for (int i = 0; i < K_PATCH_COUNT; ++i) {
             auto patch = RSCanvasNode::Create();
             const int px = (i % K_GRID_COLUMNS) * halfW;
@@ -74,8 +74,8 @@ private:
     std::shared_ptr<RSCanvasNode> BuildMagnifierHost(const MagnifierCaseConfig& config)
     {
         auto magnifierHost = RSCanvasNode::Create();
-        magnifierHost->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
-        magnifierHost->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        magnifierHost->SetBounds({0, 0, screenWidth, screenHeight});
+        magnifierHost->SetFrame({0, 0, screenWidth, screenHeight});
         magnifierHost->SetBackgroundColor(0x00000000);
 
         auto magnifierParams = std::make_shared<Rosen::RSMagnifierParams>();
@@ -104,7 +104,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        SetScreenSize(screenWidth, screenHeight);
     }
 };
 

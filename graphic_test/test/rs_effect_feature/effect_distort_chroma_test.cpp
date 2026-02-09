@@ -30,12 +30,12 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        SetScreenSize(screenWidth, screenHeight);
     }
 
 private:
-    static constexpr int SCREEN_WIDTH = 1200;
-    static constexpr int SCREEN_HEIGHT = 2000;
+    static constexpr int screenWidth = 1200;
+    static constexpr int screenHeight = 2000;
 };
 
 struct DistortChromaInfo {
@@ -149,8 +149,8 @@ void SetParameterForRipple(std::shared_ptr<RSNGDistortChroma> distortChroma, int
 GRAPHIC_TEST(DistortChromaTest, EFFECT_TEST, Set_DistortChroma_DupoliNoiseMask_Test)
 {
     int rowCount = static_cast<int>(DistortChromaParams.size());
-    auto sizeX = SCREEN_WIDTH / K_COLUMN_COUNT;
-    auto sizeY = SCREEN_HEIGHT * K_COLUMN_COUNT / rowCount;
+    auto sizeX = screenWidth / K_COLUMN_COUNT;
+    auto sizeY = screenHeight * K_COLUMN_COUNT / rowCount;
     for (size_t index = 0; index < DistortChromaParams.size(); ++index) {
         auto distortChroma = std::make_shared<RSNGDistortChroma>();
         SetParameter(distortChroma, index);
@@ -166,8 +166,8 @@ GRAPHIC_TEST(DistortChromaTest, EFFECT_TEST, Set_DistortChroma_DupoliNoiseMask_T
 GRAPHIC_TEST(DistortChromaTest, EFFECT_TEST, Set_DistortChroma_RippleMask_Test)
 {
     int rowCount = static_cast<int>(DistortChromaParams.size());
-    auto sizeX = SCREEN_WIDTH / K_COLUMN_COUNT;
-    auto sizeY = SCREEN_HEIGHT * K_COLUMN_COUNT / rowCount;
+    auto sizeX = screenWidth / K_COLUMN_COUNT;
+    auto sizeY = screenHeight * K_COLUMN_COUNT / rowCount;
     for (size_t index = 0; index < DistortChromaParams.size(); ++index) {
         auto distortChroma = std::make_shared<RSNGDistortChroma>();
         SetParameterForRipple(distortChroma, index);
