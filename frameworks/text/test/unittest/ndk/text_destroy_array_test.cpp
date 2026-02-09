@@ -455,17 +455,6 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest014, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest015
- * @tc.desc: Test destroying null array pointer
- * @tc.type: FUNC
- */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest015, TestSize.Level0)
-{
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(nullptr);
-    EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_ERROR_INCORRECT_PARAMETER);
-}
-
-/**
  * @tc.name: DestroyArrayTest016
  * @tc.desc: Test destroying array with invalid type (INVALID ObjectType)
  * @tc.type: FUNC

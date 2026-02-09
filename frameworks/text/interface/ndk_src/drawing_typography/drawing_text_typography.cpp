@@ -625,8 +625,6 @@ OH_Drawing_ErrorCode OH_Drawing_DestroyArray(OH_Drawing_Array* array)
             OH_Drawing_DestroyStringRangeArray(array);
             break;
         case ObjectType::INVALID:
-            TEXT_LOGE("Failed to destroy array: invalid array");
-            return OH_Drawing_ErrorCode::OH_DRAWING_ERROR_INCORRECT_PARAMETER;
         default:
             TEXT_LOGE("Failed to destroy array: not supported array");
             return OH_Drawing_ErrorCode::OH_DRAWING_ERROR_INCORRECT_PARAMETER;

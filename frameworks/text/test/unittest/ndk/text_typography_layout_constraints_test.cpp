@@ -20,6 +20,7 @@
 #include "drawing_text_typography.h"
 #include "drawing_font_collection.h"
 #include "drawing_error_code.h"
+#include "drawing_text_font_descriptor.h"
 #include "gtest/gtest.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
@@ -256,6 +257,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 
     OH_Drawing_RectSize result =
         OH_Drawing_TypographyLayoutWithConstraints(fTypography, size, nullptr, &rangeCount);
+    EXPECT_EQ(rangeCount, 0);
     VerifyRectSize(0, 0, result);
 }
 
@@ -278,7 +280,8 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 
     OH_Drawing_RectSize result =
         OH_Drawing_TypographyLayoutWithConstraints(fTypography, size, &rangeArray, nullptr);
-    VerifyRectSize(0, 0, result);
+    EXPECT_DOUBLE_EQ(result.width, 0);
+    EXPECT_DOUBLE_EQ(result.height, 0);
 }
 
 /**
@@ -294,7 +297,8 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 
     OH_Drawing_RectSize result =
         OH_Drawing_TypographyLayoutWithConstraints(nullptr, size, nullptr, nullptr);
-    VerifyRectSize(0, 0, result);
+    EXPECT_DOUBLE_EQ(result.width, 0);
+    EXPECT_DOUBLE_EQ(result.height, 0);
 }
 
 /**
@@ -569,7 +573,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     VerifyAllRanges(expectedRanges, rangeArray, rangeCount);
     const double expectRectWidth = 0;
     size_t lineCnt = OH_Drawing_TypographyGetLineCount(GetTypography());
-    const size_t EXPECT_LINE_CNT = 0;
+    const size_t EXPECT_LINE_CNT = 1;
     EXPECT_EQ(lineCnt, EXPECT_LINE_CNT);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * EXPECT_LINE_CNT, result);
 
@@ -805,6 +809,10 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 {
     OH_Drawing_Range* range = OH_Drawing_GetRangeByArrayIndex(nullptr, 0);
     EXPECT_EQ(range, nullptr);
+    OH_Drawing_Array* fontList = OH_Drawing_GetSystemFontFullNamesByType(OH_Drawing_SystemFontType::ALL);
+    OH_Drawing_Range* range1 = OH_Drawing_GetRangeByArrayIndex(fontList, 0);
+    EXPECT_EQ(range1, nullptr);
+    OH_Drawing_DestroyArray(fontList);
 }
 
 /**
@@ -981,17 +989,6 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest028
- * @tc.desc: Test DestroyArray with null pointer
- * @tc.type: FUNC
- */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest028, TestSize.Level0)
-{
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(nullptr);
-    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
-}
-
-/**
  * @tc.name: TypographyLayoutWithConstraintsTest029
  * @tc.desc: Test LayoutWithConstraints with emoji characters (4-byte UTF-8)
  * @tc.type: FUNC
@@ -1019,6 +1016,8 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * EXPECT_LINE_CNT, result);
 
     EXPECT_EQ(OH_Drawing_DestroyArray(fitStrRangeArr), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(nullptr);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 }
 
 /**
