@@ -85,7 +85,7 @@ private:
         const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
-    ErrCode FreezeScreen(NodeId id, bool isFreeze) override;
+    ErrCode FreezeScreen(NodeId id, bool isFreeze, bool needSync = false) override;
 
     void TakeUICaptureInRange(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,

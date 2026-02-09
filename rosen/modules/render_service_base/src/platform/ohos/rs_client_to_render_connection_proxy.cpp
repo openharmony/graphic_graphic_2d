@@ -309,7 +309,7 @@ ErrCode RSClientToRenderConnectionProxy::TakeSurfaceCaptureWithAllWindows(NodeId
     return ERR_OK;
 }
 
-ErrCode RSClientToRenderConnectionProxy::FreezeScreen(NodeId id, bool isFreeze)
+ErrCode RSClientToRenderConnectionProxy::FreezeScreen(NodeId id, bool isFreeze, bool needSync)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -318,13 +318,17 @@ ErrCode RSClientToRenderConnectionProxy::FreezeScreen(NodeId id, bool isFreeze)
         ROSEN_LOGE("%{public}s GetDescriptor err", __func__);
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(needSync ? MessageOption::TF_SYNC : MessageOption::TF_ASYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("%{public}s write id failed", __func__);
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteBool(isFreeze)) {
         ROSEN_LOGE("%{public}s write isFreeze failed", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteBool(needSync)) {
+        ROSEN_LOGE("%{public}s write needSync failed", __func__);
         return ERR_INVALID_VALUE;
     }
 

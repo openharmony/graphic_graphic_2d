@@ -66,6 +66,11 @@ void RSCanvasDmaBufferCache::NotifyCanvasSurfaceBufferChanged(
 bool RSCanvasDmaBufferCache::AddPendingBuffer(
     NodeId nodeId, const sptr<SurfaceBuffer>& buffer, uint32_t resetSurfaceIndex)
 {
+    if (buffer == nullptr && resetSurfaceIndex == 0) {
+        ClearPendingBufferByNodeId(nodeId);
+        return true;
+    }
+
     std::lock_guard<std::mutex> lock(pendingBufferMutex_);
     auto it = pendingBufferMap_.find(nodeId);
     // Cache first buffer for the node

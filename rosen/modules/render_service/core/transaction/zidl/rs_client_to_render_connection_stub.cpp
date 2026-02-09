@@ -559,7 +559,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            ret = FreezeScreen(id, isFreeze);
+            bool needSync { false };
+            if (!data.ReadBool(needSync)) {
+                RS_LOGE("RSClientToRenderConnectionStub::FREEZE_SCREEN read needSync failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ret = FreezeScreen(id, isFreeze, needSync);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION): {

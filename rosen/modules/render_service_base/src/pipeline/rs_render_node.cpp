@@ -1373,6 +1373,11 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", colorSpace: " + std::to_string(surfaceNode->GetColorSpace());
         out += ", uifirstColorGamut: " + std::to_string(surfaceNode->GetFirstLevelNodeColorGamut());
         out += ", isSurfaceBufferOpaque: " + std::to_string(surfaceNode->GetSurfaceBufferOpaque());
+        if (surfaceNode->IsCloneNode()) {
+            out += ", isCloneNode: " + std::to_string(surfaceNode->IsCloneNode());
+            out += ", isRelated: " + std::to_string(surfaceNode->IsRelated());
+            out += ", sourceNodeId: " + std::to_string(surfaceNode->GetClonedNodeId());
+        }
     } else if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
         out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
@@ -1548,7 +1553,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%lu] filterInGlobal_[%d]",
             GetId(), filterInGlobal);
     }
-    // if clean without filter skip subtree
+    // if clean without filter / colorPicker skip subtree
     return ChildHasVisibleFilter() ? filterInGlobal : false;
 }
 
@@ -2032,7 +2037,6 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     __builtin_prefetch(&(properties.frameGeo_), 0, 2);
 #endif
     // 1. update self drawrect if dirty
-    UpdateFilterRectInfo();
     bool selfDrawRectChanged = IsDirty() ? UpdateSelfDrawRect() : false;
     if (selfDrawRectChanged) {
         UpdateChildrenOutOfRectFlag(!childrenRect_.ConvertTo<float>().IsInsideOf(selfDrawRect_));
@@ -2687,6 +2691,17 @@ bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
     return true;
 }
 #endif
+
+std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerDrawable() const
+{
+    if (auto& drawable = GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)]) {
+        if (auto colorPickerDrawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(drawable)) {
+            return colorPickerDrawable;
+        }
+    }
+    return nullptr;
+}
+
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -3237,6 +3252,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     UpdateDrawableVecV2();
 
     UpdateFilterCacheWithBackgroundDirty();
+    UpdateFilterRectInfo();
 
     // update state
     dirtyTypesNG_.reset();
@@ -4051,7 +4067,7 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 {
     if (childNode.GetRenderProperties().NeedFilter() || childNode.GetHwcRecorder().IsBlendWithBackground() ||
-        childNode.GetHwcRecorder().IsForegroundColorValid()) {
+        childNode.GetHwcRecorder().IsForegroundColorValid() || childNode.GetColorPickerDrawable()) {
         visibleFilterChild_.emplace_back(childNode.GetId());
     }
     auto& childFilterNodes = childNode.GetVisibleFilterChild();

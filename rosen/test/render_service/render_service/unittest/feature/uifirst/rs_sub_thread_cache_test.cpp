@@ -459,36 +459,36 @@ HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest005, TestSize.Leve
 }
 
 /**
- * @tc.name: UpadteAllSurfaceUifirstDirtyEnableState
- * @tc.desc: Test UpadteAllSurfaceUifirstDirtyEnableState
+ * @tc.name: UpdateAllSurfaceUifirstDirtyEnableState
+ * @tc.desc: Test UpdateAllSurfaceUifirstDirtyEnableState
  * @tc.type: FUNC
  * @tc.require: issueI9NVOG
  */
-HWTEST_F(RSSubThreadCacheTest, UpadteAllSurfaceUifirstDirtyEnableState, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, UpdateAllSurfaceUifirstDirtyEnableState, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto dirtyEnableFlag = false;
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
     system::SetParameter("rosen.ui.first.dirty.enabled", "0");
-    surfaceDrawable_->GetRsSubThreadCache().UpadteAllSurfaceUifirstDirtyEnableState(
+    surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
     ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
     system::SetParameter("rosen.ui.first.dirty.enabled", "1");
-    surfaceDrawable_->GetRsSubThreadCache().UpadteAllSurfaceUifirstDirtyEnableState(
+    surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
     ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
     system::SetParameter("rosen.ui.first.dirty.enabled", "0");
-    surfaceDrawable_->GetRsSubThreadCache().UpadteAllSurfaceUifirstDirtyEnableState(
+    surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
     ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
     system::SetParameter("rosen.ui.first.dirty.enabled", "1");
-    surfaceDrawable_->GetRsSubThreadCache().UpadteAllSurfaceUifirstDirtyEnableState(
+    surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
     ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
@@ -537,7 +537,7 @@ HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest001, TestSiz
     uifirstParams->windowInfo_.isLeashWindow_ = true;
     uifirstParams->absDrawRect_ = {0, 0, 15, 15};
     uifirstParams->screenRect_ = {0, 0, 100, 100};
-    surfaceDrawable_->GetRsSubThreadCache().isDirtyRecordCompletated_ = true;
+    surfaceDrawable_->GetRsSubThreadCache().isDirtyRecordCompleted_ = true;
     dirtyEnableFlag = surfaceDrawable_->GetRsSubThreadCache().MergeUifirstAllSurfaceDirtyRegion(
         surfaceDrawable_.get(), dirtyRect);
     ASSERT_EQ(dirtyEnableFlag, true);
@@ -628,10 +628,10 @@ HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest006, TestSiz
     // leash window
     surfaceParam->SetWindowInfo(false, true, false);
     surfaceDrawable_->uifirstRenderParams_ = std::move(surfaceParam);
-    subCache.isDirtyRecordCompletated_ = false;
+    subCache.isDirtyRecordCompleted_ = false;
     ASSERT_FALSE(subCache.MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable_.get(), dirtyRect));
 
-    subCache.isDirtyRecordCompletated_ = true;
+    subCache.isDirtyRecordCompleted_ = true;
     ASSERT_TRUE(subCache.MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable_.get(), dirtyRect));
 }
 
@@ -1338,18 +1338,18 @@ HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceDirtyManagerTest002, TestSize.L
 }
 
 /**
- * @tc.name: IsDirtyRecordCompletatedTest
- * @tc.desc: Test IsDirtyRecordCompletated
+ * @tc.name: IsDirtyRecordCompletedTest
+ * @tc.desc: Test IsDirtyRecordCompleted
  * @tc.type: FUNC
  * @tc.require: issuesICFWAC
  */
-HWTEST_F(RSSubThreadCacheTest, IsDirtyRecordCompletatedTest, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, IsDirtyRecordCompletedTest, TestSize.Level1)
 {
     RsSubThreadCache subCache;
-    subCache.UpdateDirtyRecordCompletatedState(true);
-    ASSERT_TRUE(subCache.IsDirtyRecordCompletated());
-    subCache.UpdateDirtyRecordCompletatedState(false);
-    ASSERT_FALSE(subCache.IsDirtyRecordCompletated());
+    subCache.UpdateDirtyRecordCompletedState(true);
+    ASSERT_TRUE(subCache.IsDirtyRecordCompleted());
+    subCache.UpdateDirtyRecordCompletedState(false);
+    ASSERT_FALSE(subCache.IsDirtyRecordCompleted());
 }
 
 /**

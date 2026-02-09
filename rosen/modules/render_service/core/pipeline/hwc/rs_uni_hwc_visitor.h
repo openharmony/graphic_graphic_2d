@@ -69,6 +69,7 @@ public:
         RSSurfaceRenderNode& hwcNode);
     void UpdateHwcNodeEnableByGlobalDirtyFilter(const std::vector<std::pair<NodeId, RectI>>& dirtyFilter,
         RSSurfaceRenderNode& hwcNode);
+    void UpdateHwcNodeEnableByColorPicker();
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void UpdatePrepareClip(RSRenderNode& node);
     void UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
@@ -115,6 +116,20 @@ private:
     bool IsTargetSolidLayer(RSSurfaceRenderNode& node);
     bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
 
+    // ColorPicker helper methods
+    /**
+     * @brief Check if HWC node intersects with ColorPicker region and disable if so
+     * @param hwcNode The HWC-enabled node to check
+     * @param colorPickerRect The ColorPicker region rectangle in screen coordinates
+     */
+    void CheckHwcNodeIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+        const RectI& colorPickerRect);
+    /**
+     * @brief Process all surfaces to check HWC node intersection with ColorPicker region
+     * @param colorPickerRect The ColorPicker region rectangle in screen coordinates
+     */
+    void ProcessSurfaceForColorPicker(const RectI& colorPickerRect);
+
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;
 
@@ -122,6 +137,9 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcCleanFilter_;
     // record nodes which has transparent dirty filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcDirtyFilter_;
+
+    // Track surfaces that have ColorPicker tasks this frame with their rects for intersection checking
+    std::unordered_map<NodeId, RectI> colorPickerHwcDisabledSurfaces_;
 
     uint32_t curZOrderForHwcEnableByFilter_ = 0;
 

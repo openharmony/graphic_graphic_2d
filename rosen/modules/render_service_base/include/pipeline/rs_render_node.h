@@ -54,6 +54,8 @@ namespace OHOS {
 namespace Rosen {
 namespace DrawableV2 {
 class RSChildrenDrawable;
+class RSColorPickerDrawable;
+class RSFilterDrawable;
 class RSRenderNodeDrawableAdapter;
 class RSRenderNodeShadowDrawable;
 }
@@ -1055,6 +1057,8 @@ public:
     virtual void AfterTreeStatueChanged() {}
 
     RectI GetFilterDrawableSnapshotRegion() const;
+
+    std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
 protected:
     void ResetDirtyStatus();
 

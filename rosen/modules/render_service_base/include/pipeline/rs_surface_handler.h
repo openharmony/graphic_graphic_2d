@@ -276,6 +276,27 @@ public:
         return sourceType_;
     }
 
+    void SetLastBufferId(const uint64_t bufferId) // must call thisFunc in rsMainThread
+    {
+        lastBufferId_ = bufferId;
+        lastBufferReclaimNum_ = 0;
+    }
+
+    void ResetLastBufferInfo() // must call thisFunc in rsMainThread
+    {
+        lastBufferId_ = 0;
+        lastBufferReclaimNum_ = 0;
+    }
+
+    bool IsNeedSwapLastBuffer() // must call thisFunc in rsMainThread
+    {
+        return lastBufferId_ != 0;
+    }
+
+    bool ReclaimLastBufferProcess();
+    bool ReclaimLastBufferPrepare();
+    void TryResumeLastBuffer();
+
     bool GetBufferSizeChanged()
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -354,6 +375,8 @@ private:
     bool bufferTransformTypeChanged_ = false;
     uint32_t sourceType_ = 0;
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
+    uint64_t lastBufferId_ = 0;
+    uint32_t lastBufferReclaimNum_ = 0;
 };
 }
 }

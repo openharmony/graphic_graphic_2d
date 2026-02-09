@@ -567,6 +567,10 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
         }
     });
     PrintHiperfCounterLog("counter1", static_cast<uint64_t>(inputHwclayers));
+
+    // NEW: Apply ColorPicker disable
+    UpdateHwcNodeEnableByColorPicker();
+
     uniRenderVisitor_.PrevalidateHwcNode();
     UpdateHwcNodeEnableByNodeBelow();
     uniRenderVisitor_.UpdateAncoNodeHWCDisabledState(ancoNodes);
@@ -1036,6 +1040,50 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalDirtyFilter(
                 HwcDisabledReasons::DISABLED_BY_TRANSPARENT_DIRTY_FLITER, hwcNode.GetName());
             break;
         }
+    }
+}
+
+void RSUniHwcVisitor::CheckHwcNodeIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+    const RectI& colorPickerRect)
+{
+    if (!hwcNode || !hwcNode->IsOnTheTree()) {
+        return;
+    }
+
+    RectI hwcNodeRect = hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+    RectI intersectionRect = colorPickerRect.IntersectRect(hwcNodeRect);
+    bool intersects = !intersectionRect.IsEmpty();
+    if (intersects) {
+        hwcNode->SetHardwareForcedDisabledState(true);
+        RS_OPTIONAL_TRACE_FMT("ColorPicker: rect [%d,%d,%d,%d] intersects node %s id:%" PRIu64
+            " (rect: [%d,%d,%d,%d]) - disabling",
+            colorPickerRect.left_, colorPickerRect.top_, colorPickerRect.width_, colorPickerRect.height_,
+            hwcNode->GetName().c_str(), hwcNode->GetId(), hwcNodeRect.left_, hwcNodeRect.top_,
+            hwcNodeRect.width_, hwcNodeRect.height_);
+    }
+}
+
+void RSUniHwcVisitor::ProcessSurfaceForColorPicker(const RectI& colorPickerRect)
+{
+    auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
+    for (auto& surfaceNodePtr : curMainAndLeashSurfaces) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNodePtr);
+        if (!surfaceNode) {
+            continue;
+        }
+
+        const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
+        for (const auto& hwcNodeWeak : hwcNodes) {
+            auto hwcNode = hwcNodeWeak.lock();
+            CheckHwcNodeIntersection(hwcNode, colorPickerRect);
+        }
+    }
+}
+
+void RSUniHwcVisitor::UpdateHwcNodeEnableByColorPicker()
+{
+    for (const auto& [surfaceId, colorPickerRect] : colorPickerHwcDisabledSurfaces_) {
+        ProcessSurfaceForColorPicker(colorPickerRect);
     }
 }
 

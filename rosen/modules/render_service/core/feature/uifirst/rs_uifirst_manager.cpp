@@ -1146,7 +1146,7 @@ bool RSUifirstManager::IsPreFirstLevelNodeDoingAndTryClear(std::shared_ptr<RSRen
     return false;
 }
 
-void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result, PendingPostNodeMap& pendingNode)
+void RSUifirstManager::SetNodePriority(std::list<NodeId>& result, PendingPostNodeMap& pendingNode)
 {
     auto isFocusId = RSMainThread::Instance()->GetFocusNodeId();
     auto isLeashId = RSMainThread::Instance()->GetFocusLeashWindowId();
@@ -1191,7 +1191,7 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result, PendingPostNode
         rsSubThreadCache.SetHighPostPriority(false);
         sortedSubThreadNodeIds_.emplace_back(id);
     }
-    RS_TRACE_NAME_FMT("SetNodePriorty result [%zu] pendingNode [%zu]", result.size(), pendingNode.size());
+    RS_TRACE_NAME_FMT("SetNodePriority result [%zu] pendingNode [%zu]", result.size(), pendingNode.size());
 }
 
 void RSUifirstManager::SortSubThreadNodesPriority()
@@ -1199,9 +1199,9 @@ void RSUifirstManager::SortSubThreadNodesPriority()
     sortedSubThreadNodeIds_.clear();
     isFocusNodeFound_ = false;
     focusNodeThreadIndex_ = UINT32_MAX;
-    SetNodePriorty(sortedSubThreadNodeIds_, pendingPostNodes_);
-    SetNodePriorty(sortedSubThreadNodeIds_, pendingPostCardNodes_);
-    RS_LOGD("SetNodePriorty result [%{public}zu] pendingNode [%{public}zu] pendingCardNode [%{public}zu]",
+    SetNodePriority(sortedSubThreadNodeIds_, pendingPostNodes_);
+    SetNodePriority(sortedSubThreadNodeIds_, pendingPostCardNodes_);
+    RS_LOGD("SetNodePriority result [%{public}zu] pendingNode [%{public}zu] pendingCardNode [%{public}zu]",
         sortedSubThreadNodeIds_.size(), pendingPostNodes_.size(), pendingPostCardNodes_.size());
     sortedSubThreadNodeIds_.sort([this](const auto& first, const auto& second) -> bool {
         auto drawable1 = GetSurfaceDrawableByID(first);

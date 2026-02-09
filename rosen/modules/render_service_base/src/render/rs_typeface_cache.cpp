@@ -439,6 +439,7 @@ uint32_t CalcCustomFontPss()
 
 void RSTypefaceCache::Dump(DfxString& log) const
 {
+    RS_TRACE_NAME_FMT("RSTypefaceCache::Dump typefaceHashCode size:%d", typefaceHashCode_.size());
     std::lock_guard<std::mutex> lock(mapMutex_);
     uint32_t totalMem = std::accumulate(typefaceHashMap_.begin(), typefaceHashMap_.end(), 0u,
         [](uint32_t sum, const auto& item) { return sum + std::get<0>(item.second)->GetSize(); });

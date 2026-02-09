@@ -72,6 +72,8 @@ ohos_unittest("feature_cfg_test") {
     "vma_block_param_test.cpp",
     "spirv_cache_param_parse_test.cpp",
     "spirv_cache_param_test.cpp",
+    "buffer_reclaim_param_test.cpp",
+    "buffer_reclaim_param_parse_test.cpp",
   ]
 
   include_dirs = [

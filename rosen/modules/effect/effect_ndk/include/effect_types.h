@@ -36,8 +36,8 @@
 #ifndef C_INCLUDE_EFFECT_TYPES_H
 #define C_INCLUDE_EFFECT_TYPES_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -276,6 +276,192 @@ typedef struct {
     float progress;
 } OH_Filter_WaterDropletParams;
 
+/**
+ * @brief Specify parameters for the water ripple effect filter, including wave shape, lighting conditions, refraction
+ *        frequency, and intensity variation at different positions.
+ *
+ * @since 24
+ * @version 1.0
+ */
+typedef struct {
+    /** Wave center position. When = (0.0f, 0.0f), the point is at the center of the control.
+     *  When = (0.5f, 0.5f), the point is at the bottom-right corner of the control.
+     *  Can extend beyond the control.
+     *  Range: No limitation.
+     */
+    OH_Filter_Vec2 waveCenter;
+
+    /** Wave motion source position. When = (0.0f, 0.0f), the point is at the center of the control.
+     *  When = (0.5f, 0.5f), the point is at the bottom-right corner of the control.
+     *  Can extend beyond the control.
+     *  Range: No limitation.
+     */
+    OH_Filter_Vec2 waveSourceXY;
+
+    /** Degree of waveform distortion in the X and Y directions from the center point.
+     *  Range: [(0.0f, 0.0f), (1.0f, 1.0f)]
+     */
+    OH_Filter_Vec2 waveDistortXY;
+
+    /** Water wave density. Higher density results in more waves, lower density results in fewer and thicker waves.
+     *  Range: [(0.0f, 0.0f), (100.0f, 100.0f)]
+     */
+    OH_Filter_Vec2 waveDensityXY;
+
+    /** Water wave strength.
+     *  Range: [0.0f, 10.0f]
+     */
+    float waveStrength;
+
+    /** Water wave lighting strength.
+     *  Range: [0.0f, 10.0f]
+     */
+    float waveLightStrength;
+
+    /** Refraction strength. When the background is very blurry, it is recommended to set this parameter to 0.0f.
+     *  Range: [0.0f, 10.0f]
+     */
+    float waveRefraction;
+
+    /** Water wave specular intensity, reflection strength.
+     *  Range: [0.0f, 1.0f]
+     */
+    float waveSpecular;
+
+    /** Frequency of water wave light and shadow changes. Higher values create more of a sparkling effect.
+     *  Range: [0.0f, 10.0f]
+     */
+    float waveFrequency;
+
+    /** Degree of distortion in the water wave shape. Higher values result in more intense and irregular shapes.
+     *  Range: [0.0f, 2.0f]
+     */
+    float waveShapeDistortion;
+
+    /** Water wave refraction frequency. Higher values result in faster frequency.
+     *  Range: [0.0f, 1.0f]
+     */
+    float waveNoiseStrength;
+
+    /** Inner edge size of the mask. When 0.0f, there is no mask occlusion; when 1.0f, the entire control effect is
+     *  occluded, resulting in no effect.
+     *  Range: [(0.0f, 0.0f), (1.0f, 1.0f)]
+     */
+    OH_Filter_Vec2 waveMaskSize;
+
+    /** Transition degree of the water wave mask edge. Higher values cause the mask to spread more toward the edges.
+     * When 0.0f, the mask does not spread and has no transition, stopping at waveMaskSize;
+     * when 1.0f, it spreads to the boundary, stopping at [1.0f,1.0f].
+     * Range: [(0.0f,0.0f),(1.0f,1.0f)]
+     */
+    float waveMaskRadius;
+
+    /** Corner radius outside the edge. When 0.0f, it is a rectangle;
+     *  when > 0.0f, it is a rounded rectangle.
+     *  Range: [0.0f, 1.0f]
+     */
+    float borderRadius;
+
+    /** Internal thickness of the edge.
+     *  Range: [0.0f, 1.0f]
+     */
+    float borderThickness;
+
+    /** Weakening range of the edge. When 0.0f, there is no edge weakening;
+     *  when 1.0f, the edge weakening range covers the entire control.
+     *  Refers to the distance from the edge to the center.
+     *  Range: [0.0f, 1.0f]
+     */
+    float borderScope;
+
+    /** Transition degree of weakening within the edge mask weakening range.
+     *  Smaller values result in more obvious weakening; larger values result in less obvious weakening.
+     *  Range: [0.0f, 1.0f]
+     */
+    float borderStrength;
+
+    /** Wave progress, animation progress.
+     * Range: [0.0f, +∞)
+     */
+    float progress;
+} OH_Filter_WaterGlassDataParams;
+
+/**
+ * @brief Specify the parameters for the reeded glass filter, including grid count, refraction strength, dispersion
+ *        strength, parallel beam intensity, point light source position, and intensity.
+ *
+ * @since 24
+ * @version 1.0
+ */
+typedef struct {
+    /** Higher values result in stronger refraction; 0.0f means no refraction.
+     *  Range: [0.0f, 1.0f]
+     */
+    float refractionFactor;
+
+    /** Higher values result in stronger dispersion; 0.0f means no dispersion.
+     * Dispersion adjustment has no effect when refractionFactor is 0.0f.
+     * Range: [0.0f, 1.0f]
+     */
+    float dispersionStrength;
+
+    /** Higher values result in greater roughness.
+     *  Range: [0.0f, 1.0f]
+     */
+    float roughness;
+
+    /** Higher frequency results in finer grain.
+     *  Range: [0.0f, 1.0f]
+     */
+    float noiseFrequency;
+
+    /** Specifies the number of grids.
+     *  Range: [0.0f, 100.0f]
+     */
+    uint8_t horizontalPatternNumber;
+
+    /** Specifies overall color saturation; 0.0f results in a black-and-white image.
+     *  Range: [0.0f, 2.0f]
+     */
+    float saturationFactor;
+
+    /** Specifies the light intensity of grid gaps.
+     *  Range: [0.0f, 1.0f]
+     */
+    float borderLightStrength;
+
+    /** Specifies the light width of grid gaps; 0.0f means no light, 1.0f means light smoothly fills the grid.
+     *  Range: [0.0f, 1.0f]
+     */
+    float borderLightWidth;
+
+    /** Follows OH_Filter_Color; alpha is meaningless.
+     *  Range: [0.0f, 1.0f]
+     */
+    OH_Filter_Color pointLightColor;
+
+    /** Specifies position of point light 1.0f; within [0.0f,1.0f] is inside the UI component, outside is beyond the UI
+     *  component.
+     *  Range: No limitation
+     */
+    OH_Filter_Vec2 pointLight1Position;
+
+    /** Specifies intensity of point light 1.0f.
+     *  Range: [0.0f, 1.0f]
+     */
+    float pointLight1Strength;
+
+    /** Specifies position of point light 2.0f; within [0.0f,1.0f] is inside the UI component, outside is beyond the UI
+     *  component.
+     *  Range: No limitation
+     */
+    OH_Filter_Vec2 pointLight2Position;
+
+    /** Specifies intensity of point light 2.0f.
+     *  Range: [0.0f, 1.0f]
+     */
+    float pointLight2Strength;
+} OH_Filter_ReededGlassDataParams;
 #ifdef __cplusplus
 }
 #endif

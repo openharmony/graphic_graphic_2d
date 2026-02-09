@@ -2824,7 +2824,7 @@
   {
     "testCaseDesc": "FREEZE_SCREEN_TEST_001",
     "interfaceName": "FREEZE_SCREEN",
-    "inputParams": "WriteUint64;WriteBool",
+    "inputParams": "WriteUint64;WriteBool;WriteBool",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },

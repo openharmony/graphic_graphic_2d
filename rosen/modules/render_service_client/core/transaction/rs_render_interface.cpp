@@ -258,13 +258,13 @@ bool RSRenderInterface::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDispl
         node->GetId(), callback, captureConfig, checkDrmAndSurfaceLock);
 }
 
-bool RSRenderInterface::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze)
+bool RSRenderInterface::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze, bool needSync)
 {
     if (!node) {
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
-    return renderPiplineClient_->FreezeScreen(node->GetId(), isFreeze);
+    return renderPiplineClient_->FreezeScreen(node->GetId(), isFreeze, needSync);
 }
 
 bool RSRenderInterface::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,

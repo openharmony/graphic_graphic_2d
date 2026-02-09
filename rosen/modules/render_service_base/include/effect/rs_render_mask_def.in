@@ -52,6 +52,13 @@ DECLARE_MASK(WaveGradientMask, WAVE_GRADIENT_MASK,
     ADD_PROPERTY_TAG(WaveGradientMask, TurbulenceStrength)
 );
 
+DECLARE_MASK(WaveDisturbanceMask, WAVE_DISTURBANCE_MASK,
+    ADD_PROPERTY_TAG(WaveDisturbanceMask, Progress),
+    ADD_PROPERTY_TAG(WaveDisturbanceMask, ClickPos),
+    ADD_PROPERTY_TAG(WaveDisturbanceMask, WaveRD),
+    ADD_PROPERTY_TAG(WaveDisturbanceMask, WaveLWH)
+);
+
 DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
     ADD_PROPERTY_TAG(DoubleRippleMask, Center1),
     ADD_PROPERTY_TAG(DoubleRippleMask, Center2),
@@ -62,9 +69,13 @@ DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
 );
 
 DECLARE_MASK(FrameGradientMask, FRAME_GRADIENT_MASK,
-    ADD_PROPERTY_TAG(FrameGradientMask, GradientBezierControlPoints),
+    ADD_PROPERTY_TAG(FrameGradientMask, InnerBezier),
+    ADD_PROPERTY_TAG(FrameGradientMask, OuterBezier),
     ADD_PROPERTY_TAG(FrameGradientMask, CornerRadius),
-    ADD_PROPERTY_TAG(FrameGradientMask, FrameWidth)
+    ADD_PROPERTY_TAG(FrameGradientMask, InnerFrameWidth),
+    ADD_PROPERTY_TAG(FrameGradientMask, OuterFrameWidth),
+    ADD_PROPERTY_TAG(FrameGradientMask, RectWH),
+    ADD_PROPERTY_TAG(FrameGradientMask, RectPos)
 );
 
 DECLARE_MASK(DupoliNoiseMask, DUPOLI_NOISE_MASK,

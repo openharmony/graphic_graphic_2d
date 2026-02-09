@@ -337,7 +337,7 @@ void DoAvcodecVideoGet()
     MessageParcel replyParcel;
     uint64_t uniqueId = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataParcel.WriteUint32(uniqueId);
+    dataParcel.WriteUint64(uniqueId);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 } // namespace Rosen

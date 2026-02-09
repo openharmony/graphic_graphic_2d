@@ -541,6 +541,7 @@ void RSRenderNodeDrawableAdapter::SkipDrawBackGroundAndClipHoleForBlur(
     RS_OPTIONAL_TRACE_NAME_FMT(
         "ClipHoleForBlur filterRect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
     Drawing::AutoCanvasRestore arc(*curCanvas, true);
+    curCanvas->ResetClip();
     curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
     curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     UpdateFilterInfoForNodeGroup(curCanvas);
@@ -668,7 +669,12 @@ int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
 void RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(const NodeId nodeId)
 {
     std::lock_guard<std::mutex> lock(cacheMapMutex_);
-    RenderNodeDrawableCache_.erase(nodeId);
+    if (const auto cacheIt = RenderNodeDrawableCache_.find(nodeId); cacheIt != RenderNodeDrawableCache_.end()) {
+        if (const auto drawable = cacheIt->second.lock()) {
+            drawable->ClearCustomResource();
+        }
+        RenderNodeDrawableCache_.erase(cacheIt);
+    }
 }
 
 void RSRenderNodeDrawableAdapter::RegisterClearSurfaceFunc(ClearSurfaceTask task)

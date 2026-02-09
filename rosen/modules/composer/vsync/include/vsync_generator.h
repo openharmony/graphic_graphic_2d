@@ -77,6 +77,8 @@ public:
     virtual uint32_t GetVsyncRefreshRate() = 0;
     virtual uint32_t GetVSyncMaxRefreshRate() = 0;
     virtual VsyncError SetVSyncMaxRefreshRate(uint32_t refreshRate) = 0;
+    virtual VsyncError SetVSyncMaxTE(uint32_t maxTE) = 0;
+    virtual VsyncError SetVSyncMaxTE144(uint32_t maxTE144) = 0;
     virtual void Dump(std::string &result) = 0;
     virtual bool GetFrameRateChaingStatus() = 0;
     virtual VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) = 0;
@@ -137,6 +139,8 @@ public:
     uint32_t GetVsyncRefreshRate() override;
     uint32_t GetVSyncMaxRefreshRate() override;
     VsyncError SetVSyncMaxRefreshRate(uint32_t refreshRate) override;
+    VsyncError SetVSyncMaxTE(uint32_t maxTE) override;
+    VsyncError SetVSyncMaxTE144(uint32_t maxTE144) override;
     void Dump(std::string &result) override;
     bool GetFrameRateChaingStatus() override;
     VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) override;
@@ -200,6 +204,7 @@ private:
 #endif
     void PeriodCheckLocked(int64_t hardwareVsyncInterval);
     void UpdateChangeRefreshRatesLocked(const ListenerRefreshRateData &listenerRefreshRates);
+    void ChangeVSyncTE(uint32_t generatorRefreshRate);
     VsyncError SetExpectNextVsyncTimeInternal(int64_t expectNextVsyncTime);
     void ClearAllSamplesInternal(bool clearAllSamplesFlag);
     void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);
@@ -257,6 +262,8 @@ private:
     int64_t targetPeriod_ = 0;
     bool clearAllSamplesFlag_ = false;
     uint32_t vsyncMaxRefreshRate_ = 360; // default max TE
+    uint32_t vsyncMaxTE_ = 360; // default max TE
+    uint32_t vsyncMaxTE144_ = 0; // default max TE 144, not support
     int64_t vsyncOffset_ = 0;
     int64_t nextTimeStamp_ = 0;
     bool isAdaptive_ = false;

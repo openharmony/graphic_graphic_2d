@@ -85,7 +85,8 @@ public:
         const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse);
     DrawingError ApplyWaterDropletTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
         const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams);
-
+    DrawingError ApplyWaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& waterGlassDate);
+    DrawingError ApplyReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& reededGlassDate);
     DrawingError Draw();
 
     std::shared_ptr<Media::PixelMap> GetPixelMap();

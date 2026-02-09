@@ -72,12 +72,6 @@ RSCanvasDrawingRenderNodeDrawable::~RSCanvasDrawingRenderNodeDrawable()
         curThreadInfo_.second(std::move(surface_));
     }
 #endif
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (preAllocateDmaEnabled_) {
-        RSCanvasDmaBufferCache::GetInstance().ClearPendingBufferByNodeId(GetId());
-    }
-#endif
 }
 
 RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -790,10 +784,6 @@ bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
                 width, height);
             return false;
         }
-    } else {
-#ifdef ROSEN_OHOS
-        ReleaseDmaSurfaceBuffer(false);
-#endif
     }
     return true;
 }
@@ -1284,6 +1274,15 @@ void RSCanvasDrawingRenderNodeDrawable::DumpSubDrawableTree(std::string& out) co
     if (preAllocateDmaEnabled_) {
         out += ", dmaAllocationCount:" + std::to_string(dmaAllocationCount_.load());
         out += ", dmaFallbackCount:" + std::to_string(dmaFallbackCount_.load());
+    }
+#endif
+}
+
+void RSCanvasDrawingRenderNodeDrawable::ClearCustomResource()
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (preAllocateDmaEnabled_) {
+        RSCanvasDmaBufferCache::GetInstance().ClearPendingBufferByNodeId(GetId());
     }
 #endif
 }

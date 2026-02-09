@@ -25,6 +25,7 @@ namespace OHOS {
 namespace Rosen {
 RSUIContext::RSUIContext(uint64_t token) : token_(token)
 {
+    RS_LOGI("RSUIContext ctor: Token:%{public}" PRIu64, token);
     rsTransactionHandler_ = std::make_shared<RSTransactionHandler>(token);
     rsSyncTransactionHandler_ = std::shared_ptr<RSSyncTransactionHandler>(new RSSyncTransactionHandler());
     rsSyncTransactionHandler_->SetTransactionHandler(rsTransactionHandler_);
@@ -32,7 +33,10 @@ RSUIContext::RSUIContext(uint64_t token) : token_(token)
 
 RSUIContext::RSUIContext() : RSUIContext(0) {}
 
-RSUIContext::~RSUIContext() {}
+RSUIContext::~RSUIContext()
+{
+    RS_LOGI("~RSUIContext: Token:%{public}" PRIu64, token_);
+}
 
 const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
 {
@@ -128,6 +132,7 @@ void RSUIContext::RequestVsyncCallback()
 
 void RSUIContext::SetUITaskRunner(const TaskRunner& uiTaskRunner)
 {
+    RS_LOGI("RSUIContext::SetUITaskRunner, Context token:%{public}" PRIu64, GetToken());
     std::lock_guard<std::recursive_mutex> lock(uiTaskRunnersVisitorMutex_);
     taskRunner_ = uiTaskRunner;
     if (rsTransactionHandler_) {

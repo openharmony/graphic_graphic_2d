@@ -48,6 +48,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGRenderWaveGradientMask>();
         }
     },
+    {RSNGEffectType::WAVE_DISTURBANCE_MASK, [] {
+            return std::make_shared<RSNGRenderWaveDisturbanceMask>();
+        }
+    },
     {RSNGEffectType::IMAGE_MASK, [] {
             return std::make_shared<RSNGRenderImageMask>();
         }

@@ -387,25 +387,15 @@ static bool UnmarshallingAndCacheDrawingImage(
 }
 
 
-static bool UnmarshallingAndCachePixelMap(Parcel& parcel, std::shared_ptr<Media::PixelMap>& pixelMap,
-    uint64_t uniqueId, uint32_t versionId)
+static bool UnmarshallingAndCachePixelMap(Parcel& parcel, std::shared_ptr<Media::PixelMap>& pixelMap, uint64_t uniqueId)
 {
     if (pixelMap != nullptr) {
         // match a cached pixelMap
-        if (versionId == pixelMap->GetVersionId()) {
-            if (!RSMarshallingHelper::SkipPixelMap(parcel)) {
-                return false;
-            }
-        } else {
-            RSImageCache::Instance().ReleasePixelMapCache(uniqueId);
-            if (!RSMarshallingHelper::Unmarshalling(parcel, pixelMap)) {
-                return false;
-            }
-            // unmarshalling the pixelmap and cache it
-            RSImageCache::Instance().CachePixelMap(uniqueId, pixelMap);
+        if (!RSMarshallingHelper::SkipPixelMap(parcel)) {
+            return false;
         }
     } else if (RSMarshallingHelper::Unmarshalling(parcel, pixelMap, uniqueId)) {
-        if (pixelMap) {
+        if (pixelMap && !pixelMap->IsEditable()) {
             // unmarshalling the pixelMap and cache it
             RSImageCache::Instance().CachePixelMap(uniqueId, pixelMap);
         }
@@ -438,10 +428,6 @@ bool RSImageBase::UnmarshallingDrawingImageAndPixelMap(Parcel& parcel, uint64_t 
     if (!RSMarshallingHelper::Unmarshalling(parcel, useSkImage)) {
         return false;
     }
-    uint32_t versionId = 0;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, versionId)) {
-        return false;
-    }
     if (useSkImage) {
         img = RSImageCache::Instance().GetDrawingImageCache(uniqueId);
         RS_TRACE_NAME_FMT("RSImageBase::Unmarshalling Image uniqueId:%lu, size:[%d %d], cached:%d",
@@ -454,7 +440,7 @@ bool RSImageBase::UnmarshallingDrawingImageAndPixelMap(Parcel& parcel, uint64_t 
         pixelMap = RSImageCache::Instance().GetPixelMapCache(uniqueId);
         RS_TRACE_NAME_FMT("RSImageBase::Unmarshalling pixelMap uniqueId:%lu, size:[%d %d], cached:%d",
             uniqueId, pixelMap ? pixelMap->GetWidth() : 0, pixelMap ? pixelMap->GetHeight() : 0, pixelMap != nullptr);
-        if (!UnmarshallingAndCachePixelMap(parcel, pixelMap, uniqueId, versionId)) {
+        if (!UnmarshallingAndCachePixelMap(parcel, pixelMap, uniqueId)) {
             RS_LOGE("RSImageBase::Unmarshalling UnmarshalAndCachePixelMap fail");
             return false;
         }
@@ -467,7 +453,7 @@ void RSImageBase::IncreaseCacheRefCount(uint64_t uniqueId, bool useSkImage, std:
 {
     if (useSkImage) {
         RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(uniqueId);
-    } else if (pixelMap) {
+    } else if (pixelMap && !pixelMap->IsEditable()) {
         RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
     }
 }
@@ -475,12 +461,10 @@ void RSImageBase::IncreaseCacheRefCount(uint64_t uniqueId, bool useSkImage, std:
 bool RSImageBase::Marshalling(Parcel& parcel) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    uint32_t versionId = pixelMap_ == nullptr ? 0 : pixelMap_->GetVersionId();
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, srcRect_) &&
                    RSMarshallingHelper::Marshalling(parcel, dstRect_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
-                   RSMarshallingHelper::Marshalling(parcel, versionId) &&
                    pixelMap_ == nullptr ? RSMarshallingHelper::Marshalling(parcel, image_) :
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_);
     if (!success) {
@@ -523,6 +507,7 @@ RSImageBase* RSImageBase::Unmarshalling(Parcel& parcel)
 void RSImageBase::ConvertPixelMapToDrawingImage()
 {
     if (!image_ && pixelMap_ && !pixelMap_->IsAstc() && !isYUVImage_) {
+        if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
                 image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_);
@@ -532,17 +517,20 @@ void RSImageBase::ConvertPixelMapToDrawingImage()
 #else
             image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_);
 #endif
+        }
         if (!image_) {
             image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMap_);
+            if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
-            } else {
-                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, gettid());
-            }
+                if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                    RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
+                } else {
+                    RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, gettid());
+                }
 #else
-            RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
 #endif
+            }
         }
     }
 }
@@ -713,12 +701,12 @@ void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
         }
         if (imageCache) {
             image_ = imageCache;
-        } else {
-            image_ = MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap_->GetFd()));
-            if (image_) {
-                SKResourceManager::Instance().HoldResource(image_);
-                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, threadId);
-            }
+            return;
+        }
+        image_ = MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap_->GetFd()));
+        if (!pixelMap_->IsEditable() && image_) {
+            SKResourceManager::Instance().HoldResource(image_);
+            RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, threadId);
         }
     }
 }

@@ -214,7 +214,7 @@ HWTEST_F(EffectImageRenderUnittest, MapColorByBrightnessTest, TestSize.Level1)
     Vector4f color1 = {1.0f, 0.0f, 0.5f, 1.0f}; // color rgba
     Vector4f color2 = {1.0f, 0.5f, 0.5f, 1.0f}; // color rgba
     Vector4f color3 = {0.0f, 0.5f, 0.5f, 1.0f}; // color rgba
-    colors = {color1, color3, color3};
+    colors = {color1, color2, color3};
     flag = EffectImageFilter::MapColorByBrightness(colors, positions);
     EXPECT_EQ(flag, nullptr);
 
@@ -224,6 +224,21 @@ HWTEST_F(EffectImageRenderUnittest, MapColorByBrightnessTest, TestSize.Level1)
 
     colors = {};
     flag = EffectImageFilter::MapColorByBrightness(colors, positions);
+    EXPECT_EQ(flag, nullptr);
+}
+
+/**
+ * @tc.name: MapColorByBrightnessTestNotEqual
+ * @tc.desc: Test MapColorByBrightness by colors and positions are not equal
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectImageRenderUnittest, MapColorByBrightnessTestNotEqual, TestSize.Level1)
+{
+    Vector4f color1 = {1.0f, 0.0f, 0.5f, 1.0f}; // color rgba
+    Vector4f color2 = {1.0f, 0.5f, 0.5f, 1.0f}; // color rgba
+    std::vector<Vector4f> colors = {color1, color2};
+    std::vector<float> positions = {0.2f, 0.5f, 1.0f};
+    auto flag = EffectImageFilter::MapColorByBrightness(colors, positions);
     EXPECT_EQ(flag, nullptr);
 }
 
@@ -417,5 +432,82 @@ HWTEST_F(EffectImageFilterUnittest, WaterDropletTransitionFilterTest002, TestSiz
     EXPECT_TRUE(filter != nullptr);
 }
 
+/**
+ * @tc.name: ReededGlassMethod
+ * @tc.desc: Test ReededGlass
+ */
+HWTEST_F(EffectImageRenderUnittest, ReededGlassMethod, TestSize.Level1)
+{
+    auto params = std::make_shared<Drawing::GEReededGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    auto filter = EffectImageFilter::ReededGlass(params);
+    ASSERT_NE(filter, nullptr);
+
+    // Verify that the filter is of the correct type
+    ASSERT_NE(std::static_pointer_cast<EffectImageReededGlassFilter>(filter), nullptr);
+}
+
+/**
+ * @tc.name: WaterGlassMethod
+ * @tc.desc: Test WaterGlass
+ */
+HWTEST_F(EffectImageRenderUnittest, WaterGlassMethod, TestSize.Level1)
+{
+    auto params = std::make_shared<Drawing::GEWaterGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    auto filter = EffectImageFilter::WaterGlass(params);
+    ASSERT_NE(filter, nullptr);
+
+    // Verify that the filter is of the correct type
+    ASSERT_NE(std::static_pointer_cast<EffectImageWaterGlassFilter>(filter), nullptr);
+}
+
+/**
+ * @tc.name: ApplyrReededGlassMethod
+ * @tc.desc: Test EffectImageReededGlassFilter filter application
+ */
+HWTEST_F(EffectImageRenderUnittest, ApplyrReededGlassMethod, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::GEReededGlassDataParams> params = std::make_shared<Drawing::GEReededGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    std::shared_ptr<EffectImageReededGlassFilter> filter = std::make_shared<EffectImageReededGlassFilter>(params);
+    ASSERT_NE(filter, nullptr);
+
+    auto image = std::make_shared<EffectImageChain>();
+    EXPECT_TRUE(image != nullptr);
+    image->prepared_ = true;
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    image->Prepare(srcPixelMap, false);
+
+    DrawingError result = filter->Apply(image);
+    ASSERT_EQ(result, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyWaterGlassMethod
+ * @tc.desc: Test EffectImageWaterGlassFilter filter application
+ */
+HWTEST_F(EffectImageRenderUnittest, ApplyWaterGlassMethod, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::GEWaterGlassDataParams> params = std::make_shared<Drawing::GEWaterGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+
+    std::shared_ptr<EffectImageWaterGlassFilter> filter = std::make_shared<EffectImageWaterGlassFilter>(params);
+    ASSERT_NE(filter, nullptr);
+
+    auto image = std::make_shared<EffectImageChain>();
+    EXPECT_TRUE(image != nullptr);
+    image->prepared_ = true;
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    image->Prepare(srcPixelMap, false);
+    DrawingError result = filter->Apply(image);
+    ASSERT_EQ(result, DrawingError::ERR_OK);
+}
 } // namespace Rosen
 } // namespace OHOS

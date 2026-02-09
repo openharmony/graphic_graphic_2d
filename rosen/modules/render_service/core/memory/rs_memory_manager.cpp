@@ -119,6 +119,7 @@ static std::string Data2String(std::string data, uint32_t targetNumber)
 void MemoryManager::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
     std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize)
 {
+    RS_TRACE_NAME_FMT("MemoryManager::GetNodeInfo MemNodeMap size:%d", MemoryTrack::Instance().GetMemNodeMap().size());
     for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
         auto node = RSMainThread::Instance()->GetContext().GetMutableNodeMap().GetRenderNode(nodeId);
         int pid = info.pid;
@@ -143,6 +144,7 @@ void MemoryManager::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& no
 
 void MemoryManager::RenderServiceAllNodeDump(DfxString& log)
 {
+    RS_TRACE_NAME("MemoryManager::RenderServiceAllNodeDump");
     std::unordered_map<int, std::pair<int, int>> node_info; // [pid, [count, ontreecount]]
     std::unordered_map<int, int> nullnode_info; // [pid, count]
     std::unordered_map<pid_t, size_t> modifierSize; // [pid, modifiersize]
@@ -191,24 +193,39 @@ void MemoryManager::RenderServiceAllNodeDump(DfxString& log)
 
 void MemoryManager::RenderServiceAllSurfaceDump(DfxString& log)
 {
+    RS_TRACE_NAME("MemoryManager::RenderServiceAllSurfaceDump");
     log.AppendFormat("%s\n", "the memory of size of all surfaces buffer: ");
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    nodeMap.TraversalNodes([&log](const std::shared_ptr<RSBaseRenderNode>& node) {
-        if (node == nullptr || !node->IsInstanceOf<RSSurfaceRenderNode>()) {
-            return;
-        }
-        const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
-        const auto& surfaceConsumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
-        if (surfaceConsumer == nullptr) {
-            return;
-        }
+    nodeMap.TraverseSurfaceNodes([&log](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        const auto& surfaceHandler = node->GetRSSurfaceHandler();
+        const auto& surfaceConsumer = surfaceHandler->GetConsumer();
         std::string dumpSurfaceInfo;
-        surfaceConsumer->Dump(dumpSurfaceInfo);
-        if (dumpSurfaceInfo.find("sequence") == std::string::npos) {
-            return;
+        if (surfaceConsumer != nullptr) {
+            surfaceConsumer->Dump(dumpSurfaceInfo);
+            if (dumpSurfaceInfo.find("sequence") == std::string::npos) {
+                dumpSurfaceInfo = "";
+            }
         }
-        log.AppendFormat("pid = %d nodeId:%llu", ExtractPid(node->GetId()), node->GetId());
-        log.AppendFormat("%s\n", dumpSurfaceInfo.c_str());
+        if (dumpSurfaceInfo.empty()) {
+            auto buffer = surfaceHandler->GetBuffer();
+            if (buffer) {
+                dumpSurfaceInfo += "\nseqNum = " + std::to_string(buffer->GetSeqNum()) +
+                    " , bufferWidth = " + std::to_string(buffer->GetWidth()) +
+                    " , bufferHeight = " + std::to_string(buffer->GetHeight()) +
+                    " , bufferSize = " + std::to_string(buffer->GetSize()) + "\n";
+            }
+            auto preBuffer = surfaceHandler->GetPreBuffer();
+            if (preBuffer) {
+                dumpSurfaceInfo += "preSeqNum = " + std::to_string(preBuffer->GetSeqNum()) +
+                    " , preBufferWidth = " + std::to_string(preBuffer->GetWidth()) +
+                    " , preBufferHeight = " + std::to_string(preBuffer->GetHeight()) +
+                    " , preBufferSize = " + std::to_string(preBuffer->GetSize()) + "\n";
+            }
+        }
+        if (!dumpSurfaceInfo.empty()) {
+            log.AppendFormat("pid = %d nodeId:%llu ", ExtractPid(node->GetId()), node->GetId());
+            log.AppendFormat("%s\n", dumpSurfaceInfo.c_str());
+        }
     });
 }
 
@@ -720,6 +737,7 @@ void MemoryManager::DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext*
 void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* gpuContext,
     std::vector<std::pair<NodeId, std::string>>& nodeTags, bool isLite)
 {
+    RS_TRACE_NAME_FMT("MemoryManager::DumpDrawingGpuMemory nodeTags size:%d", nodeTags.size());
     if (!gpuContext) {
         log.AppendFormat("No valid gpu cache instance.\n");
         return;

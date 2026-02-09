@@ -1293,14 +1293,14 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest002, te
     // prepare canvas and set picked color to black -> light
     Drawing::Canvas canvasDark;
     RSPaintFilterCanvas paintFilterCanvasDark(&canvasDark);
-    paintFilterCanvasDark.SetColorPicked(ColorPlaceholder::SURFACE_CONTRAST, Drawing::Color::COLOR_BLACK);
+    paintFilterCanvasDark.SetColorPicked(Drawing::Color::COLOR_BLACK);
 
     RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvasDark, drawingFilter);
 
     // prepare canvas and set picked color to white -> dark
     Drawing::Canvas canvasLight;
     RSPaintFilterCanvas paintFilterCanvasLight(&canvasLight);
-    paintFilterCanvasLight.SetColorPicked(ColorPlaceholder::SURFACE_CONTRAST, Drawing::Color::COLOR_WHITE);
+    paintFilterCanvasLight.SetColorPicked(Drawing::Color::COLOR_WHITE);
 
     RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvasLight, drawingFilter);
 

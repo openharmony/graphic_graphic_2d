@@ -111,7 +111,7 @@ public:
         std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         bool checkDrmAndSurfaceLock);
 
-    bool FreezeScreen(NodeId id, bool isFreeze);
+    bool FreezeScreen(NodeId id, bool isFreeze, bool needSync = false);
 
     bool TakeUICaptureInRange(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
