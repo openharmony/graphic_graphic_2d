@@ -83,6 +83,8 @@ public:
 
     float DetectIndents(size_t index) override;
 
+    bool isRunCombinated() { return paragraph_->isRunCombinated(); }
+
     void Layout(double width) override;
 
     void Paint(SkCanvas* canvas, double x, double y) override;
@@ -135,8 +137,7 @@ public:
     std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const override;
     std::unique_ptr<Paragraph> CloneSelf() override;
     TextStyle SkStyleToTextStyle(const skt::TextStyle& skStyle) override;
-    void UpdateColor(size_t from, size_t to, const RSColor& color,
-        skia::textlayout::UtfEncodeType encodeType) override;
+    void UpdateColor(size_t from, size_t to, const RSColor& color, skia::textlayout::UtfEncodeType encodeType) override;
     Drawing::RectI GeneratePaintRegion(double x, double y) override;
     void UpdateForegroundBrush(const TextStyle& spTextStyle) override;
 
@@ -154,8 +155,6 @@ public:
     bool HasSkipTextBlobDrawing() const override;
 
     void SetSkipTextBlobDrawing(bool state) override;
-
-    bool isRunCombinated() { return paragraph_->isRunCombinated(); }
 
     bool CanPaintAllText() const override;
 
