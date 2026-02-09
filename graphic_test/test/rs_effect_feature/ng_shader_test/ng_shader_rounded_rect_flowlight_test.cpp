@@ -44,9 +44,11 @@ void InitRoundedRectFlowlight(std::shared_ptr<RSNGRoundedRectFlowlight>& rounded
     // Feathering
     roundedRectFlowlight->Setter<RoundedRectFlowlightFeatheringTag>(1.0f);
     // FeatheringBezierControlPoints
-    roundedRectFlowlight->Setter<RoundedRectFlowlightFeatheringBezierControlPointsTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
+    Vector4f featheringPoints{0.0f, 0.0f, 1.0f, 1.0f};
+    roundedRectFlowlight->Setter<RoundedRectFlowlightFeatheringBezierControlPointsTag>(featheringPoints);
     // GradientBezierControlPoints
-    roundedRectFlowlight->Setter<RoundedRectFlowlightGradientBezierControlPointsTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
+    Vector4f gradientPoints{0.0f, 0.0f, 1.0f, 1.0f};
+    roundedRectFlowlight->Setter<RoundedRectFlowlightGradientBezierControlPointsTag>(gradientPoints);
     // Color
     roundedRectFlowlight->Setter<RoundedRectFlowlightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
     // Progress

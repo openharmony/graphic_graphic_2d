@@ -18,7 +18,6 @@
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui/rs_effect_node.h"
-#include "ng_mask_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -31,6 +30,47 @@ const int SCREEN_HEIGHT = 2000;
 const std::string BACKGROUND_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const std::string DISTOR_IMAGE_PATH = "/data/local/tmp/Images/perlin_worley_noise_3d_64.png";
 const std::string CLOCK_IMAGE_PATH = "/data/local/tmp/Images/clockEffect.png";
+
+void InitHarmoniumEffect(std::shared_ptr<RSNGHarmoniumEffect>& harmoniumEffect)
+{
+    auto useEffectMask = std::make_shared<RSNGUseEffectMask>();
+    useEffectMask->Setter<UseEffectMaskUseEffectTag>(true);
+    harmoniumEffect->Setter<HarmoniumEffectUseEffectMaskTag>(std::static_pointer_cast<RSNGMaskBase>(useEffectMask));
+    harmoniumEffect->Setter<HarmoniumEffectRippleProgressTag>(0.f);
+    harmoniumEffect->Setter<HarmoniumEffectTintColorTag>(Vector4f{1.f, 1.f, 1.0f, 1.0f});
+    harmoniumEffect->Setter<HarmoniumEffectDistortProgressTag>(0.f);
+    harmoniumEffect->Setter<HarmoniumEffectDistortFactorTag>(0.f);
+    harmoniumEffect->Setter<HarmoniumEffectReflectionFactorTag>(1.f);
+    harmoniumEffect->Setter<HarmoniumEffectRefractionFactorTag>(0.4f);
+    harmoniumEffect->Setter<HarmoniumEffectMaterialFactorTag>(1.f);
+    harmoniumEffect->Setter<HarmoniumEffectRateTag>(1.f);
+    harmoniumEffect->Setter<HarmoniumEffectLightUpDegreeTag>(2.f);
+    harmoniumEffect->Setter<HarmoniumEffectCubicCoeffTag>(0.f);
+    harmoniumEffect->Setter<HarmoniumEffectQuadCoeffTag>(0.f);
+    harmoniumEffect->Setter<HarmoniumEffectSaturationTag>(1.5f);
+    harmoniumEffect->Setter<HarmoniumEffectPosRGBTag>(Vector3f{0.4f, 1.f, 0.2f});
+    harmoniumEffect->Setter<HarmoniumEffectNegRGBTag>(Vector3f{1.f, 1.f, 0.5f});
+    harmoniumEffect->Setter<HarmoniumEffectFractionTag>(1.f);
+}
+
+std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const int i, const int columnCount,
+    const int rowCount, std::shared_ptr<RSEffectNode>& effectNode,
+    std::shared_ptr<RSNGHarmoniumEffect>& harmoniumEffect)
+{
+    auto sizeX = (columnCount != 0) ? (SCREEN_WIDTH / columnCount) : SCREEN_WIDTH;
+    auto sizeY = (rowCount != 0) ? (SCREEN_HEIGHT * columnCount / rowCount) : SCREEN_HEIGHT;
+
+    int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
+    int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
+
+    auto effectChildNode = RSCanvasNode::Create();
+    effectChildNode->SetBounds(x, y, sizeX, sizeY);
+    effectChildNode->SetFrame(x, y, sizeX, sizeY);
+    effectChildNode->SetCornerRadius(0.f);
+    effectChildNode->SetBackgroundNGShader(harmoniumEffect);
+    effectNode->AddChild(effectChildNode);
+    return effectChildNode;
+}
 
 class NGMaskImageTest : public RSGraphicTest {
 public:
