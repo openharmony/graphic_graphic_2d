@@ -2025,7 +2025,6 @@ void RSMainThread::WaitUntilUnmarshallingTaskFinished()
     }
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUnmarshallingTaskFinished");
     std::unique_lock<std::mutex> lock(unmarshalMutex_);
-    RSUnmarshalThread::Instance().WaitUntilParallelTasksFinished();
     if (unmarshalFinishedCount_ > 0) {
         waitForDVSyncFrame_.store(false);
     } else {
