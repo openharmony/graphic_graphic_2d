@@ -5686,57 +5686,6 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId004, TestSize.Level1)
     mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
 }
 
-// /**
-//  * @tc.name: DoDirectComposition003
-//  * @tc.desc: Test DoDirectComposition
-//  * @tc.type: FUNC
-//  * @tc.require: icc3sm
-//  */
-// HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
-// {
-//     auto mainThread = RSMainThread::Instance();
-//     ASSERT_NE(mainThread, nullptr);
-//     NodeId rootId = 0;
-//     auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
-//     ASSERT_NE(rootNode, nullptr);
-//     auto displayNode = GetAndInitScreenRenderNode();
-//     ASSERT_NE(displayNode, nullptr);
-//     auto otherNode = std::make_shared<RSRenderNode>(2);
-//     displayNode->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(otherNode);
-
-//     auto drawable = DrawableV2::RSScreenRenderNodeDrawable::OnGenerate(otherNode);
-//     auto displayDrawable = static_cast<DrawableV2::RSScreenRenderNodeDrawable*>(drawable);
-//     ASSERT_NE(displayDrawable, nullptr);
-//     ASSERT_NE(displayDrawable->surfaceHandler_, nullptr);
-//     displayDrawable->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
-//     auto handle = new BufferHandle();
-//     handle->usage = BUFFER_USAGE_CPU_READ;
-//     displayDrawable->surfaceHandler_->buffer_.buffer->SetBufferHandle(handle);
-//     displayNode->renderDrawable_.reset(displayDrawable);
-
-//     rootNode->AddChild(displayNode);
-//     rootNode->GenerateFullChildrenList();
-//     auto childNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(rootNode->GetChildren()->front());
-//     childNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
-//     auto type = system::GetParameter("persist.sys.graphic.anco.disableHebc", "-1");
-//     system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
-//     RSSurfaceRenderNode::SetAncoForceDoDirect(true);
-//     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
-
-//     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
-//     ChangeHardwareEnabledNodesBufferData(hardwareEnabledNodes);
-
-//     NodeId displayId2 = 2;
-//     auto context = std::make_shared<RSContext>();
-//     auto displayNode2 = std::make_shared<RSScreenRenderNode>(displayId2, 0, context);
-//     rootNode->AddChild(displayNode2);
-//     rootNode->GenerateFullChildrenList();
-
-//     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
-//     system::SetParameter("persist.sys.graphic.anco.disableHebc", type);
-//     delete handle;
-// }
-
 /**
  * @tc.name: InitHgmTaskHandleThreadTest
  * @tc.desc: InitHgmTaskHandleThreadTest
