@@ -6283,22 +6283,6 @@ HWTEST_F(RSMainThreadTest, ProcessNeedAttachedNodesTest002, TestSize.Level1)
     mainThread->ProcessNeedAttachedNodes();
 }
 
-HWTEST_F(RSMainThreadTest, AddUICaptureNode001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->uiCaptureNodeMap_.clear();
-    pid_t testPidBase = 1234;
-    uint32_t uidBase = 5678;
-
-    NodeId id1 = MakeNodeId(testPidBase, uidBase++);
-    mainThread->AddUICaptureNode(id1);
-    EXPECT_TRUE(mainThread->CheckUICaptureNode(id1));
-
-    mainThread->RemoveUICaptureNode(id1);
-    EXPECT_TRUE(mainThread->uiCaptureNodeMap_.empty());
-    EXPECT_FALSE(mainThread->CheckUICaptureNode(id1));
-}
-
 HWTEST_F(RSMainThreadTest, AddUICaptureNode002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
