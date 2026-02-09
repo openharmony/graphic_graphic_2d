@@ -32,6 +32,9 @@ using SoloistIdType = uint32_t;
 using TimestampType = int64_t;
 using DisplaySoloistOnFrameCallback = std::function<void(long long, long long, void*)>;
 
+constexpr int32_t EXEC_SUCCESS = 0;
+constexpr int32_t SOLOIST_ERROR = -1;
+
 enum class ActiveStatus : int32_t {
     INACTIVE = 0,
     ACTIVE = 1,
