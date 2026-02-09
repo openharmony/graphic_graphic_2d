@@ -21,6 +21,7 @@
 #include <string>
 #include <unistd.h>
 
+#include "config_policy_utils.h"
 #include "hgm_frame_rate_manager.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_log.h"
@@ -31,7 +32,6 @@
 #include "sandbox_utils.h"
 #include "hgm_screen_info.h"
 #include "syspara/parameter.h"
-#include "config_policy_utils.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -54,10 +54,28 @@ std::map<uint32_t, int64_t> IDEAL_PERIOD = {
 };
 constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MIN = -16000000; // ns
 constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MAX = 16000000; // ns
+static constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 
 int64_t GetFixedVsyncOffset(int64_t value)
 {
     return (value >= RENDER_VSYNC_OFFSET_DELAY_MIN && value <= RENDER_VSYNC_OFFSET_DELAY_MAX) ? value : 0;
+}
+
+std::string GetXmlPath() const
+{
+    std::string fileSuffix = "etc/graphic/hgm_policy_config.xml";
+    char pathBuff[MAX_PATH_LEN] = {'\0'};
+    char* flexConfigPath = GetOneCfgFile(fileSuffix.c_str(), pathBuff, MAX_PATH_LEN);
+    if (flexConfigPath == nullptr) {
+        return CONFIG_FILE_PRODUCT;
+    }
+    std::string resPath(flexConfigPath);
+    std::string targetPrefix("/sys_prod");
+    if (resPath.substr(0, targetPrefix.size()) == targetPrefix) {
+        HGM_LOGI("flex hgm config path is %{public}s", resPath.c_str());
+        return resPath;
+    }
+    return CONFIG_FILE_PRODUCT;
 }
 } // namespace
 
@@ -161,23 +179,6 @@ void HgmCore::CheckCustomFrameRateModeValid()
     }
     HGM_LOGE("auto repair mode: %{public}d -> %{public}d", customFrameRateMode_, maxMode);
     customFrameRateMode_ = maxMode;
-}
-
-std::string HgmCore::GetXmlPath() const
-{
-    std::string fileSuffix = "etc/graphic/hgm_policy_config.xml";
-    char pathBuff[MAX_PATH_LEN] = {'\0'};
-    auto flexConfigPath = GetOneCfgFile(fileSuffix.c_str(), pathBuff, MAX_PATH_LEN);
-    if (flexConfigPath == nullptr) {
-        return CONFIG_FILE_PRODUCT;
-    }
-    std::string resPath(flexConfigPath);
-    std::string targetPrefix("/sys_prod");
-    if (resPath.substr(0, targetPrefix.size()) == targetPrefix) {
-        HGM_LOGI("flex hgm config path is %{public}s", resPath.c_str());
-        return resPath;
-    }
-    return CONFIG_FILE_PRODUCT;
 }
 
 int32_t HgmCore::InitXmlConfig()

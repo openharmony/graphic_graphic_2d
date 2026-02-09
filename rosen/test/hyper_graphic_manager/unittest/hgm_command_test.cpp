@@ -35,7 +35,7 @@ extern "C" {
 #define MAX_CFG_POLICY_DIRS_CNT 32
 #define MAX_PATH_LEN    256  // max length of a filepath
  
-char* GetOneCfgFile(const char *pathSuffix, char *buf, unsigned int bufLength);
+char* GetOneCfgFile(const char* pathSuffix, char* buf, unsigned int bufLength);
  
 #ifdef __cplusplus
 #if __cplusplus
@@ -46,10 +46,11 @@ char* GetOneCfgFile(const char *pathSuffix, char *buf, unsigned int bufLength);
 namespace OHOS {
 namespace Rosen {
 namespace {
-std::string g_mockStr(HgmCore::Instance().CONFIG_FILE_PRODUCT);
+static constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
+std::string g_mockStr(CONFIG_FILE_PRODUCT);
 }
  
-extern "C" char* GetOneCfgFile(const char *pathSuffix, char *buf, unsigned int bufLength)
+extern "C" char* GetOneCfgFile(const char* pathSuffix, char* buf, unsigned int bufLength)
 {
     if (!g_mockStr.size()) {
         return nullptr;
@@ -470,7 +471,7 @@ HWTEST_F(HgmCommandTest, GetXmlPath, Function | SmallTest | Level0)
     auto& hgmCore = HgmCore::Instance();
     g_mockStr = "";
     auto path = hgmCore.GetXmlPath();
-    EXPECT_TRUE(path == hgmCore.CONFIG_FILE_PRODUCT);
+    EXPECT_TRUE(path == CONFIG_FILE_PRODUCT);
  
     g_mockStr = "/sys_prod/variant/hw_oem/AAA-72/etc/graphic/hgm_policy_config.xml";
     path = hgmCore.GetXmlPath();
@@ -479,10 +480,10 @@ HWTEST_F(HgmCommandTest, GetXmlPath, Function | SmallTest | Level0)
  
     g_mockStr = "/chip_prod/etc/graphic/hgm_policy_config.xml";
     path = hgmCore.GetXmlPath();
-    EXPECT_TRUE(path == hgmCore.CONFIG_FILE_PRODUCT);
+    EXPECT_TRUE(path == CONFIG_FILE_PRODUCT);
  
     hgmCore.InitXmlConfig();
-    g_mockStr = HgmCore::Instance().CONFIG_FILE_PRODUCT;
+    g_mockStr = CONFIG_FILE_PRODUCT;
 }
 } // namespace Rosen
 } // namespace OHOS
