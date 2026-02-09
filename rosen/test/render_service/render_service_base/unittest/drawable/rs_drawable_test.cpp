@@ -246,7 +246,7 @@ HWTEST_F(RSDrawableTest, ResetPixelStretchSlotTest, TestSize.Level1)
     RSRenderNode node(id);
     RSDrawable::Vec drawableVec;
     RSDrawable::ResetPixelStretchSlot(node, drawableVec);
-    std::shared_ptr<RSDrawable> drawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    std::shared_ptr<RSDrawable> drawable = std::make_shared<DrawableV2::RSPixelStretchDrawable>();
     ASSERT_NE(drawable, nullptr);
     drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)] = drawable;
     RSDrawable::ResetPixelStretchSlot(node, drawableVec);

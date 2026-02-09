@@ -23,6 +23,6 @@ extern bool g_animationOpenNull;
 extern bool g_animationCloseNull;
 extern bool g_animationOpenReturnNull;
 
-} // namespace OHOS
 } // namespace Rosen
+} // namespace OHOS
 #endif // HPAE_BASE_MOCK_DLFCN_H
