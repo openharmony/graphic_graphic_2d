@@ -61,7 +61,7 @@ int64_t GetFixedVsyncOffset(int64_t value)
     return (value >= RENDER_VSYNC_OFFSET_DELAY_MIN && value <= RENDER_VSYNC_OFFSET_DELAY_MAX) ? value : 0;
 }
 
-std::string GetXmlPath() const
+std::string GetXmlPath()
 {
     std::string fileSuffix = "etc/graphic/hgm_policy_config.xml";
     char pathBuff[MAX_PATH_LEN] = {'\0'};

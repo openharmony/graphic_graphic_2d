@@ -462,27 +462,22 @@ HWTEST_F(HgmCommandTest, SettingModeId2XmlModeId, Function | SmallTest | Level0)
 
 /**
  * @tc.name: SettingModeId2XmlModeId
- * @tc.desc: Verify the result of GetXmlPath
+ * @tc.desc: Verify the result of InitXmlConfig
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, GetXmlPath, Function | SmallTest | Level0)
+HWTEST_F(HgmCommandTest, InitXmlConfig, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     g_mockStr = "";
-    auto path = hgmCore.GetXmlPath();
-    EXPECT_TRUE(path == CONFIG_FILE_PRODUCT);
- 
+    EXPECT_EQ(hgmCore.InitXmlConfig() == XML_FILE_LOAD_FAIL);
+
     g_mockStr = "/sys_prod/variant/hw_oem/AAA-72/etc/graphic/hgm_policy_config.xml";
-    path = hgmCore.GetXmlPath();
-    EXPECT_TRUE(path == g_mockStr);
-    hgmCore.InitXmlConfig();
- 
+    EXPECT_EQ(hgmCore.InitXmlConfig() == EXEC_SUCCESS);
+
     g_mockStr = "/chip_prod/etc/graphic/hgm_policy_config.xml";
-    path = hgmCore.GetXmlPath();
-    EXPECT_TRUE(path == CONFIG_FILE_PRODUCT);
- 
-    hgmCore.InitXmlConfig();
+    EXPECT_EQ(hgmCore.InitXmlConfig() == EXEC_SUCCESS);
+
     g_mockStr = CONFIG_FILE_PRODUCT;
 }
 } // namespace Rosen
