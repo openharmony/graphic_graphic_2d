@@ -21,6 +21,9 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 
+#define WIDTH_INDEX 2
+#define HEIGHT_INDEX 3
+
 namespace OHOS::Rosen {
 
 OH_PixelmapNative* CreateTestPixelMap(const std::string path);
