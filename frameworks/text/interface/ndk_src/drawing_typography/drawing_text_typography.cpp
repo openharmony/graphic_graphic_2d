@@ -534,6 +534,8 @@ OH_Drawing_RectSize OH_Drawing_TypographyLayoutWithConstraints(OH_Drawing_Typogr
     RangeObject* data = new (std::nothrow) RangeObject[*fitStrRangeArrayLen];
     if (data == nullptr) {
         TEXT_LOGE("Failed to create fitStrRange array");
+        *fitStrRangeArr = nullptr;
+        *fitStrRangeArrayLen = 0;
         return OH_Drawing_RectSize();
     }
     for (size_t rangeIndex = 0; rangeIndex < *fitStrRangeArrayLen; ++rangeIndex) {
@@ -542,6 +544,13 @@ OH_Drawing_RectSize OH_Drawing_TypographyLayoutWithConstraints(OH_Drawing_Typogr
         data[rangeIndex].end = range.end;
     }
     ObjectArray* array = new (std::nothrow) ObjectArray();
+    if (array == nullptr) {
+        TEXT_LOGE("Failed to create array");
+        delete[] data;
+        *fitStrRangeArr = nullptr;
+        *fitStrRangeArrayLen = 0;
+        return OH_Drawing_RectSize();
+    }
     array->addr = data;
     array->num = *fitStrRangeArrayLen;
     array->type = ObjectType::TEXT_RANGE;
