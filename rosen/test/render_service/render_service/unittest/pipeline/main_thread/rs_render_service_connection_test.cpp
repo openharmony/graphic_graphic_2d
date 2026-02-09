@@ -219,8 +219,8 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
         connection->UpdateAnimationOcclusionStatus(sceneId, false);
         sleep(1);
         ASSERT_EQ(isAnimationOcclusion, false);
-        delete mainThread;
     }
+    delete mainThread;
 }
 
 /**
