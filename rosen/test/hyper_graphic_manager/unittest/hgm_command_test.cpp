@@ -461,7 +461,7 @@ HWTEST_F(HgmCommandTest, SettingModeId2XmlModeId, Function | SmallTest | Level0)
 }
 
 /**
- * @tc.name: SettingModeId2XmlModeId
+ * @tc.name: InitXmlConfig
  * @tc.desc: Verify the result of InitXmlConfig
  * @tc.type: FUNC
  * @tc.require:
