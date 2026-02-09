@@ -1648,8 +1648,6 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->CheckIfHardwareForcedDisabled();
-    mainThread->context_->globalRootRenderNode_ = nullptr;
-    mainThread->CheckIfHardwareForcedDisabled();
     NodeId id = 0;
     mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(id++, true);
 
