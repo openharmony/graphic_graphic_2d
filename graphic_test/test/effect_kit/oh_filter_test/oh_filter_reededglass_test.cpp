@@ -31,6 +31,21 @@ public:
         SetScreenSize(screenWidth, screenHeight);
     }
 
+void DrawBackgroundNodeOHPixelMap(OH_PixelmapNative* pixelMapNative, const Rosen::Vector4f bounds)
+{
+    auto pixelmap = pixelMapNative->GetInnerPixelmap();
+    auto image = std::make_shared<Rosen::RSImage>();
+    image->SetPixelMap(pixelmap);
+    image->SetImageFit((int)ImageFit::FILL);
+    auto node = Rosen::RSCanvasNode::Create();
+    node->SetBounds(bounds);
+    node->SetFrame(bounds);
+    node->SetBgImageSize(bounds[WIDTH_INDEX], bounds[HEIGHT_INDEX]);
+    node->SetBgImage(image);
+    GetRootNode()->AddChild(node);
+    RegisterNode(node);
+}
+
 private:
     const int screenWidth = 1200;
     const int screenHeight = 2000;

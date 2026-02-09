@@ -25,8 +25,6 @@ namespace OHOS::Rosen {
 
 OH_PixelmapNative* CreateTestPixelMap(const std::string path);
 OH_Filter* CreateFilter(OH_PixelmapNative* pixelMapNative);
-void DrawBackgroundNodeOHPixelMap(OH_PixelmapNative* pixelMapNative,
-    const Rosen::Vector4f bounds);
 
 }  // namespace OHOS::Rosen
 #endif // OH_FILTER_TEST_UTILS_H

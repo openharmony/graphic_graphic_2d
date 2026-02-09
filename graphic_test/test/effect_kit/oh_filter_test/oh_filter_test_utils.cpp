@@ -35,19 +35,5 @@ OH_Filter* CreateFilter(OH_PixelmapNative* pixelMapNative)
     return filter;
 }
 
-void DrawBackgroundNodeOHPixelMap(OH_PixelmapNative* pixelMapNative, const Rosen::Vector4f bounds)
-{
-    auto pixelmap = pixelMapNative->GetInnerPixelmap();
-    auto image = std::make_shared<Rosen::RSImage>();
-    image->SetPixelMap(pixelmap);
-    image->SetImageFit((int)ImageFit::FILL);
-    auto node = Rosen::RSCanvasNode::Create();
-    node->SetBounds(bounds);
-    node->SetFrame(bounds);
-    node->SetBgImageSize(bounds[WIDTH_INDEX], bounds[HEIGHT_INDEX]);
-    node->SetBgImage(image);
-    GetRootNode()->AddChild(node);
-    RegisterNode(node);
-}
 }  // namespace Rosen
 }  // namespace OHOS
