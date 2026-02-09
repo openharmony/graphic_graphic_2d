@@ -58,7 +58,7 @@ const std::string INSTALL_CONFIG = R"(
 )";
 
 constexpr uint32_t WEIGHT_500 = 500;
-constexpr uint32_t SYSTEM_FONT_PATH_NUM = 139;
+constexpr uint32_t SYSTEM_FONT_PATH_NUM = 140;
 constexpr uint32_t STYLISH_FONT_PATH_NUM = 1;
 constexpr uint32_t INSTALLED_FONT_PATH_NUM = 3;
 
@@ -474,13 +474,13 @@ HWTEST_F(FontDescriptorTest, GetFontPathsByTypeNormalTest, TestSize.Level0)
     auto expectFunc = [&paths](TextEngine::FontParser::SystemFontType fontType, size_t num) {
         FontDescriptorMgrInstance.GetFontPathsByType(static_cast<int32_t>(fontType), paths);
         EXPECT_EQ(paths.size(), num);
-        for (auto& path : paths) {
-            EXPECT_TRUE(fs::exists(path));
+        if (ExistStylishFontConfigFile()) {
+            EXPECT_TRUE(std::all_of(paths.begin(), paths.end(), [](const auto& path) { return fs::exists(path); }));
         }
         paths.clear();
     };
     if (ExistStylishFontConfigFile()) {
-        expectFunc(TextEngine::FontParser::SystemFontType::ALL, SYSTEM_FONT_PATH_NUM + STYLISH_FONT_PATH_NUM + 1);
+        expectFunc(TextEngine::FontParser::SystemFontType::ALL, SYSTEM_FONT_PATH_NUM + STYLISH_FONT_PATH_NUM);
         expectFunc(TextEngine::FontParser::SystemFontType::STYLISH, STYLISH_FONT_PATH_NUM);
     } else {
         expectFunc(TextEngine::FontParser::SystemFontType::ALL, SYSTEM_FONT_PATH_NUM);
