@@ -130,15 +130,24 @@ HWTEST_F(RSDrawCmdTest, Playback001, TestSize.Level1)
     RSExtendImageObject extendImageObject(image, data, imageInfo);
     extendImageObject.Playback(canvas, rect, sampling, isBackground);
     ASSERT_TRUE(true);
-    Media::InitializationOptions opts;
-    opts.size.width = 200;
-    opts.size.height = 150;
-    opts.editable = true;
-    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
-    RSExtendImageObject extendImageObjectT(pixelMapT, imageInfo);
-    extendImageObjectT.Playback(canvas, rect, sampling, isBackground);
-    pixelMapT->isAstc_ = true;
-    extendImageObjectT.Playback(canvas, rect, sampling, isBackground);
+    {
+        Media::InitializationOptions opts;
+        opts.size.width = 200;
+        opts.size.height = 150;
+        opts.editable = true;
+        std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+        uint64_t uniqueId = pixelMapT->GetUniqueId();
+
+        RSExtendImageObject extendImageObjectT(pixelMapT, imageInfo);
+        extendImageObjectT.Playback(canvas, rect, sampling, isBackground);
+        pixelMapT->isAstc_ = true;
+        extendImageObjectT.Playback(canvas, rect, sampling, isBackground);
+
+        extendImageObjectT.Purge();
+        RSImageCache::Instance().ReleaseDrawingImageCache(uniqueId);
+        RSImageCache::Instance().ReleasePixelMapCache(uniqueId);
+    }
+    RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
 }
 
 /**

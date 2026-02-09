@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "animation/rs_render_particle_animation.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "params/rs_render_params.h"
@@ -715,7 +716,7 @@ HWTEST_F(PropertiesTest, SetEmitterUpdaterTest, TestSize.Level1)
     PropertyId propertyId = 0;
     AnimationId animationId = 0;
     renderNode->animationManager_.particleAnimations_.insert({ propertyId, animationId });
-    auto renderAnimation = std::make_shared<RSRenderAnimation>();
+    auto renderAnimation = std::make_shared<RSRenderParticleAnimation>();
     renderNode->animationManager_.animations_.insert({ animationId, renderAnimation });
     properties.SetEmitterUpdater(para);
     EXPECT_EQ(renderNode->animationManager_.animations_.empty(), false);
@@ -1411,9 +1412,9 @@ HWTEST_F(PropertiesTest, SetColorPickerPlaceholderTest, TestSize.Level1)
     RSProperties properties;
     ASSERT_EQ(properties.GetColorPicker(), nullptr);
 
-    properties.SetColorPickerPlaceholder(-100); // below NONE
+    properties.SetColorPickerPlaceholder(-100); // below NONE, but cast to uint
     ASSERT_NE(properties.GetColorPicker(), nullptr);
-    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::NONE);
+    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::MAX);
     EXPECT_TRUE(properties.IsDirty());
 
     properties.ResetDirty();
