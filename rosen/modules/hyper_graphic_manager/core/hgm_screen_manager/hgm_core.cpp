@@ -192,8 +192,8 @@ int32_t HgmCore::InitXmlConfig()
         HGM_LOGW("HgmCore failed to load prod xml configuration file, errNum:%{public}d", ret);
         return ret;
     }
-    if (mParser_->Parse() != EXEC_SUCCESS) {	 
-        HGM_LOGW("HgmCore failed to parse prod xml configuration");	 
+    if (mParser_->Parse() != EXEC_SUCCESS) {
+        HGM_LOGW("HgmCore failed to parse prod xml configuration");
     }
 
     if (!mPolicyConfigData_) {
