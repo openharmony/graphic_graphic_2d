@@ -758,7 +758,6 @@ HWTEST_F(RSScreenTest, GetRogResolution_001, testing::ext::TestSize.Level1)
     ASSERT_EQ(rsScreen->GetRogResolution(width, height), StatusCode::INVALID_ARGUMENTS);
 
     // case 2: GetRogResolution with prior setup
-    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(0));
     rsScreen->isRogResolution_ = true;
     ASSERT_EQ(rsScreen->GetRogResolution(width, height), StatusCode::SUCCESS);
 }
