@@ -3819,7 +3819,7 @@ void OH_Drawing_DestroyPositionAndAffinity(OH_Drawing_PositionAndAffinity* posit
     delete ConvertToOriginalText<IndexAndAffinity>(positionAndAffinity);
 }
 
-OH_Drawing_Range* OH_Drawing_TypographyGetCharacterRangeForGlyphRange(OH_Drawing_Typography* typography,
+OH_Drawing_Range* OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(OH_Drawing_Typography* typography,
     size_t glyphRangeStart, size_t glyphRangeEnd, OH_Drawing_Range **actualGlyphRange,
     OH_Drawing_TextEncoding textEncodingType)
 {
@@ -3863,7 +3863,7 @@ OH_Drawing_Range* OH_Drawing_TypographyGetCharacterRangeForGlyphRange(OH_Drawing
     return reinterpret_cast<OH_Drawing_Range*>(resultCharacterRange);
 }
 
-OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetCharacterPositionAtCoordinate(OH_Drawing_Typography* typography,
+OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(OH_Drawing_Typography* typography,
     double dx, double dy, OH_Drawing_TextEncoding textEncodingType)
 {
     if (typography == nullptr) {
@@ -3886,7 +3886,7 @@ OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetCharacterPositionAtCoord
     return reinterpret_cast<OH_Drawing_PositionAndAffinity*>(charPosAndAffinityResult);
 }
 
-OH_Drawing_Range* OH_Drawing_TypographyGetGlyphRangeForCharacterRange(OH_Drawing_Typography* typography,
+OH_Drawing_Range* OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(OH_Drawing_Typography* typography,
     size_t characterRangeStart, size_t characterRangeEnd, OH_Drawing_Range** actualCharacterRange,
     OH_Drawing_TextEncoding textEncodingType)
 {
@@ -3930,7 +3930,7 @@ OH_Drawing_Range* OH_Drawing_TypographyGetGlyphRangeForCharacterRange(OH_Drawing
     return reinterpret_cast<OH_Drawing_Range*>(glyphRangeResult);
 }
 
-void OH_Drawing_DestroyRange(OH_Drawing_Range* range)
+void OH_Drawing_ReleaseRangeBuffer(OH_Drawing_Range* range)
 {
     if (range == nullptr) {
         TEXT_LOGE("Null range");

@@ -113,7 +113,7 @@ void NdkTypographyCharacterIndexTest::SetupTypographyWithEncodedText(const char1
 HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateNullTypographyUtf8Test001,
     TestSize.Level0)
 {
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         nullptr, TEST_COORDINATE_X, TEST_COORDINATE_Y, TEXT_ENCODING_UTF8);
     EXPECT_EQ(positionAndAffinity, nullptr);
     OH_Drawing_DestroyPositionAndAffinity(positionAndAffinity);
@@ -127,7 +127,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateNullTypographyUtf16Test001,
     TestSize.Level0)
 {
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         nullptr, TEST_COORDINATE_X, TEST_COORDINATE_Y, TEXT_ENCODING_UTF16);
     EXPECT_EQ(positionAndAffinity, nullptr);
     OH_Drawing_DestroyPositionAndAffinity(positionAndAffinity);
@@ -142,7 +142,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, TEST_COORDINATE_X, TEST_COORDINATE_Y, (OH_Drawing_TextEncoding)999);
     EXPECT_EQ(positionAndAffinity, nullptr);
     OH_Drawing_DestroyPositionAndAffinity(positionAndAffinity);
@@ -157,7 +157,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, TEST_COORDINATE_X, TEST_COORDINATE_Y, TEXT_ENCODING_UTF8);
     ASSERT_NE(positionAndAffinity, nullptr);
     size_t pos = OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
@@ -176,7 +176,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, NEGATIVE_COORDINATE, NEGATIVE_COORDINATE, TEXT_ENCODING_UTF8);
     ASSERT_NE(positionAndAffinity, nullptr);
     size_t pos = OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
@@ -195,7 +195,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, BIG_VALUE_COORDINATE, BIG_VALUE_COORDINATE, TEXT_ENCODING_UTF8);
     ASSERT_NE(positionAndAffinity, nullptr);
     size_t pos = OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
@@ -214,7 +214,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypography(COMPLEX_TEXT_UTF8);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, TEST_COORDINATE_X, TEST_COORDINATE_Y, TEXT_ENCODING_UTF8);
     ASSERT_NE(positionAndAffinity, nullptr);
     size_t pos = OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
@@ -233,7 +233,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypography(ARABIC_TEXT_UTF8);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, TEST_COORDINATE_X, TEST_COORDINATE_Y, TEXT_ENCODING_UTF8);
     ASSERT_NE(positionAndAffinity, nullptr);
     size_t pos = OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
@@ -252,7 +252,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, TEST_COORDINATE_X, TEST_COORDINATE_Y, TEXT_ENCODING_UTF16);
     ASSERT_NE(positionAndAffinity, nullptr);
     size_t pos = OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
@@ -271,7 +271,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, NEGATIVE_COORDINATE, NEGATIVE_COORDINATE, TEXT_ENCODING_UTF16);
     ASSERT_NE(positionAndAffinity, nullptr);
     size_t pos = OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
@@ -290,7 +290,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, BIG_VALUE_COORDINATE, BIG_VALUE_COORDINATE, TEXT_ENCODING_UTF16);
     ASSERT_NE(positionAndAffinity, nullptr);
     size_t pos = OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
@@ -309,7 +309,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypographyWithEncodedText(COMPLEX_TEXT_UTF16);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, TEST_COORDINATE_X, TEST_COORDINATE_Y, TEXT_ENCODING_UTF16);
     ASSERT_NE(positionAndAffinity, nullptr);
     size_t pos = OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
@@ -328,7 +328,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
     TestSize.Level0)
 {
     SetupTypographyWithEncodedText(ARABIC_TEXT_UTF16);
-    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinate(
+    OH_Drawing_PositionAndAffinity* positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
         fTypography, TEST_COORDINATE_X, TEST_COORDINATE_Y, TEXT_ENCODING_UTF16);
     ASSERT_NE(positionAndAffinity, nullptr);
     size_t pos = OH_Drawing_GetPositionFromPositionAndAffinity(positionAndAffinity);
@@ -347,7 +347,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* actualGlyphRange = nullptr;
-    OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRange(
+    OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
         fTypography, 3, 9, &actualGlyphRange, TEXT_ENCODING_UTF8);
     ASSERT_NE(characterRange, nullptr);
     ASSERT_NE(actualGlyphRange, nullptr);
@@ -355,9 +355,9 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
     EXPECT_EQ(OH_Drawing_GetEndFromRange(characterRange), 31);
     EXPECT_EQ(OH_Drawing_GetStartFromRange(actualGlyphRange), 2);
     EXPECT_EQ(OH_Drawing_GetEndFromRange(actualGlyphRange), 9);
-    OH_Drawing_DestroyRange(nullptr);
-    OH_Drawing_DestroyRange(characterRange);
-    OH_Drawing_DestroyRange(actualGlyphRange);
+    OH_Drawing_ReleaseRangeBuffer(nullptr);
+    OH_Drawing_ReleaseRangeBuffer(characterRange);
+    OH_Drawing_ReleaseRangeBuffer(actualGlyphRange);
 }
 
 /*
@@ -369,7 +369,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* actualCharacterRange = nullptr;
-    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRange(
+    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
         fTypography, 3, 9, &actualCharacterRange, TEXT_ENCODING_UTF8);
     ASSERT_NE(glyphRange, nullptr);
     ASSERT_NE(actualCharacterRange, nullptr);
@@ -377,8 +377,8 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
     EXPECT_EQ(OH_Drawing_GetEndFromRange(glyphRange), 6);
     EXPECT_EQ(OH_Drawing_GetStartFromRange(actualCharacterRange), 2);
     EXPECT_EQ(OH_Drawing_GetEndFromRange(actualCharacterRange), 11);
-    OH_Drawing_DestroyRange(glyphRange);
-    OH_Drawing_DestroyRange(actualCharacterRange);
+    OH_Drawing_ReleaseRangeBuffer(glyphRange);
+    OH_Drawing_ReleaseRangeBuffer(actualCharacterRange);
 }
 
 /*
@@ -390,7 +390,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
     OH_Drawing_Range* actualGlyphRange = nullptr;
-    OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRange(
+    OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
         fTypography, 3, 8, &actualGlyphRange, TEXT_ENCODING_UTF16);
     ASSERT_NE(characterRange, nullptr);
     ASSERT_NE(actualGlyphRange, nullptr);
@@ -398,8 +398,8 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
     EXPECT_EQ(OH_Drawing_GetEndFromRange(characterRange), 14);
     EXPECT_EQ(OH_Drawing_GetStartFromRange(actualGlyphRange), 2);
     EXPECT_EQ(OH_Drawing_GetEndFromRange(actualGlyphRange), 8);
-    OH_Drawing_DestroyRange(characterRange);
-    OH_Drawing_DestroyRange(actualGlyphRange);
+    OH_Drawing_ReleaseRangeBuffer(characterRange);
+    OH_Drawing_ReleaseRangeBuffer(actualGlyphRange);
 }
 
 /*
@@ -411,7 +411,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
     OH_Drawing_Range* actualCharacterRange = nullptr;
-    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRange(
+    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
         fTypography, 3, 9, &actualCharacterRange, TEXT_ENCODING_UTF16);
     ASSERT_NE(glyphRange, nullptr);
     ASSERT_NE(actualCharacterRange, nullptr);
@@ -420,8 +420,8 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
     EXPECT_EQ(OH_Drawing_GetStartFromRange(actualCharacterRange), 2);
     EXPECT_EQ(OH_Drawing_GetEndFromRange(actualCharacterRange), 14);
 
-    OH_Drawing_DestroyRange(glyphRange);
-    OH_Drawing_DestroyRange(actualCharacterRange);
+    OH_Drawing_ReleaseRangeBuffer(glyphRange);
+    OH_Drawing_ReleaseRangeBuffer(actualCharacterRange);
 }
 
 /*
@@ -433,14 +433,14 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 {
     SetupTypography(ARABIC_TEXT_UTF8);
     OH_Drawing_Range* actualGlyphRange = nullptr;
-    OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRange(
+    OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
         fTypography, 0, 5, &actualGlyphRange, TEXT_ENCODING_UTF8);
     ASSERT_NE(characterRange, nullptr);
     ASSERT_NE(actualGlyphRange, nullptr);
     EXPECT_EQ(OH_Drawing_GetStartFromRange(characterRange), 0);
     EXPECT_EQ(OH_Drawing_GetEndFromRange(characterRange), 12);
-    OH_Drawing_DestroyRange(characterRange);
-    OH_Drawing_DestroyRange(actualGlyphRange);
+    OH_Drawing_ReleaseRangeBuffer(characterRange);
+    OH_Drawing_ReleaseRangeBuffer(actualGlyphRange);
 }
 
 /*
@@ -452,14 +452,14 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 {
     SetupTypography(ARABIC_TEXT_UTF8);
     OH_Drawing_Range* actualCharacterRange = nullptr;
-    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRange(
+    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
         fTypography, 3, 9, &actualCharacterRange, TEXT_ENCODING_UTF8);
     ASSERT_NE(glyphRange, nullptr);
     ASSERT_NE(actualCharacterRange, nullptr);
     EXPECT_EQ(OH_Drawing_GetStartFromRange(glyphRange), 1);
     EXPECT_EQ(OH_Drawing_GetEndFromRange(glyphRange), 4);
-    OH_Drawing_DestroyRange(glyphRange);
-    OH_Drawing_DestroyRange(actualCharacterRange);
+    OH_Drawing_ReleaseRangeBuffer(glyphRange);
+    OH_Drawing_ReleaseRangeBuffer(actualCharacterRange);
 }
 
 /*
@@ -471,14 +471,14 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 {
     SetupTypographyWithEncodedText(ARABIC_TEXT_UTF16);
     OH_Drawing_Range* actualGlyphRange = nullptr;
-    OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRange(
+    OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
         fTypography, 0, 5, &actualGlyphRange, TEXT_ENCODING_UTF16);
     ASSERT_NE(characterRange, nullptr);
     ASSERT_NE(actualGlyphRange, nullptr);
     EXPECT_EQ(OH_Drawing_GetStartFromRange(characterRange), 0);
     EXPECT_EQ(OH_Drawing_GetEndFromRange(characterRange), 6);
-    OH_Drawing_DestroyRange(characterRange);
-    OH_Drawing_DestroyRange(actualGlyphRange);
+    OH_Drawing_ReleaseRangeBuffer(characterRange);
+    OH_Drawing_ReleaseRangeBuffer(actualGlyphRange);
 }
 
 /*
@@ -490,7 +490,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 {
     SetupTypographyWithEncodedText(ARABIC_TEXT_UTF16);
     OH_Drawing_Range* actualCharacterRange = nullptr;
-    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRange(
+    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
         fTypography, 3, 5, &actualCharacterRange, TEXT_ENCODING_UTF16);
     ASSERT_NE(glyphRange, nullptr);
     ASSERT_NE(actualCharacterRange, nullptr);
@@ -498,8 +498,8 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
     EXPECT_EQ(OH_Drawing_GetEndFromRange(glyphRange), 4);
     EXPECT_EQ(OH_Drawing_GetStartFromRange(actualCharacterRange), 3);
     EXPECT_EQ(OH_Drawing_GetEndFromRange(actualCharacterRange), 5);
-    OH_Drawing_DestroyRange(glyphRange);
-    OH_Drawing_DestroyRange(actualCharacterRange);
+    OH_Drawing_ReleaseRangeBuffer(glyphRange);
+    OH_Drawing_ReleaseRangeBuffer(actualCharacterRange);
 }
 
 /*
@@ -510,12 +510,12 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexNullActualRangeTest001, TestSize.Level0)
 {
     SetupTypographyWithEncodedText(ARABIC_TEXT_UTF16);
-    OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRange(
+    OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
         fTypography, 0, 5, nullptr, TEXT_ENCODING_UTF16);
     ASSERT_NE(characterRange, nullptr);
     EXPECT_EQ(OH_Drawing_GetStartFromRange(characterRange), 0);
     EXPECT_EQ(OH_Drawing_GetEndFromRange(characterRange), 6);
-    OH_Drawing_DestroyRange(characterRange);
+    OH_Drawing_ReleaseRangeBuffer(characterRange);
 }
 
 /*
@@ -526,12 +526,12 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexNullActualRang
 HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexNullActualRangeTest002, TestSize.Level0)
 {
     SetupTypographyWithEncodedText(ARABIC_TEXT_UTF16);
-    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRange(
+    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
         fTypography, 3, 5, nullptr, TEXT_ENCODING_UTF16);
     ASSERT_NE(glyphRange, nullptr);
     EXPECT_EQ(OH_Drawing_GetStartFromRange(glyphRange), 2);
     EXPECT_EQ(OH_Drawing_GetEndFromRange(glyphRange), 4);
-    OH_Drawing_DestroyRange(glyphRange);
+    OH_Drawing_ReleaseRangeBuffer(glyphRange);
 }
 
 /*
@@ -543,7 +543,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRan
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
-    OH_Drawing_Range* range = OH_Drawing_TypographyGetGlyphRangeForCharacterRange(
+    OH_Drawing_Range* range = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
         nullptr, 0, 5, nullptr, TEXT_ENCODING_UTF8);
     EXPECT_EQ(range, nullptr);
 }
@@ -556,7 +556,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRan
 HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRangeInvalidRange1Test001, TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
-    OH_Drawing_Range* range = OH_Drawing_TypographyGetGlyphRangeForCharacterRange(
+    OH_Drawing_Range* range = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
         fTypography, 5, 0, nullptr, TEXT_ENCODING_UTF8);
     EXPECT_EQ(range, nullptr);
 }
@@ -570,7 +570,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRan
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* actualCharacterRange = nullptr;
-    OH_Drawing_Range* range = OH_Drawing_TypographyGetGlyphRangeForCharacterRange(
+    OH_Drawing_Range* range = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
         fTypography, 0, 0, &actualCharacterRange, TEXT_ENCODING_UTF8);
     EXPECT_EQ(range, nullptr);
 }
@@ -585,7 +585,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRan
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* actualCharacterRange = nullptr;
-    OH_Drawing_Range* range = OH_Drawing_TypographyGetGlyphRangeForCharacterRange(
+    OH_Drawing_Range* range = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
         fTypography, 0, 5, &actualCharacterRange, (OH_Drawing_TextEncoding)999);
     EXPECT_EQ(range, nullptr);
 }
@@ -599,7 +599,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRan
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
-    OH_Drawing_Range* range = OH_Drawing_TypographyGetCharacterRangeForGlyphRange(
+    OH_Drawing_Range* range = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
         nullptr, 0, 5, nullptr, TEXT_ENCODING_UTF8);
     EXPECT_EQ(range, nullptr);
 }
@@ -612,7 +612,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRan
 HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRangeInvalidRange1Test001, TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
-    OH_Drawing_Range* range = OH_Drawing_TypographyGetCharacterRangeForGlyphRange(
+    OH_Drawing_Range* range = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
         fTypography, 5, 0, nullptr, TEXT_ENCODING_UTF8);
     EXPECT_EQ(range, nullptr);
 }
@@ -626,7 +626,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRan
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* actualGlyphRange = nullptr;
-    OH_Drawing_Range* range = OH_Drawing_TypographyGetCharacterRangeForGlyphRange(
+    OH_Drawing_Range* range = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
         fTypography, 0, 0, &actualGlyphRange, TEXT_ENCODING_UTF8);
     EXPECT_EQ(range, nullptr);
 }
@@ -641,7 +641,7 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRan
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* actualGlyphRange = nullptr;
-    OH_Drawing_Range* range = OH_Drawing_TypographyGetCharacterRangeForGlyphRange(
+    OH_Drawing_Range* range = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
         fTypography, 0, 5, &actualGlyphRange, (OH_Drawing_TextEncoding)999);
     EXPECT_EQ(range, nullptr);
 }
