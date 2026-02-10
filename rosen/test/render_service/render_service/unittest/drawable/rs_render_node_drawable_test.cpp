@@ -148,6 +148,9 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSRenderParams params(RSRenderNodeDrawableTest::id);
+
+    auto renderNode = std::make_shared<RSRenderNode>(101);
+    drawable->curDrawingCacheRoot_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode).get();
     drawable->CheckCacheTypeAndDraw(canvas, params);
     params.childHasVisibleFilter_ = true;
     drawable->CheckCacheTypeAndDraw(canvas, params);
