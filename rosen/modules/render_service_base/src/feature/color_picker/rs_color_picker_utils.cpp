@@ -18,17 +18,19 @@
 #include "feature/color_picker/i_color_picker_manager.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/color_picker/rs_hetero_color_picker.h"
-#include "pipeline/rs_paint_filter_canvas.h"
 
 #include "common/rs_common_def.h"
 #include "draw/surface.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "image/gpu_context.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+
+#include "platform/ohos/backend/rs_vulkan_context.h"
+
 #endif
 
 namespace OHOS::Rosen::RSColorPickerUtils {
@@ -110,31 +112,21 @@ void ScheduleColorPickWithSemaphore(
         RS_LOGE("ScheduleColorPickWithSemaphore: ColorPickerInfo is null");
         return;
     }
-    // Create semaphore for GPU task chaining
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    VkSemaphore semaphore = VK_NULL_HANDLE;
-    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    semaphore = vkContext.RequireSemaphore();
-    info->SetSemaphore(semaphore);
-#endif
-
     // Flush with semaphore signaling instead of finishedProc callback
     Drawing::FlushInfo flushInfo;
     flushInfo.backendSurfaceAccess = true;
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (semaphore != VK_NULL_HANDLE) {
-        auto backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
-        flushInfo.numSemaphores = 1;
-        flushInfo.backendSemaphore = &backendSemaphore;
-    }
-#endif
-
+    flushInfo.finishedContext = info.release();
+    flushInfo.finishedProc = [](void* ctx) {
+        if (!ctx) {
+            return;
+        }
+        RSColorPickerThread::Instance().PostTask([ctx]() {
+            auto* colorInfo = reinterpret_cast<ColorPickerInfo*>(ctx);
+            ExecColorPick(colorInfo->manager_, *colorInfo);
+            delete colorInfo;
+        });
+    };
     surface.Flush(&flushInfo);
-
-    // Post task directly to ColorPickerThread with semaphore for GPU chaining
-    ColorPickerInfo* colorInfo = info.release();
-    RSColorPickerThread::Instance().PostTask([colorInfo]() { ExecColorPick(colorInfo->manager_, *colorInfo); });
 }
 
 std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColorForPlaceholder(ColorPlaceholder placeholder)
@@ -172,9 +164,7 @@ Drawing::ColorQuad InterpolateColor(Drawing::ColorQuad start, Drawing::ColorQuad
 }
 
 bool ExtractSnapshotAndScheduleColorPick(
-    RSPaintFilterCanvas& canvas,
-    const Drawing::Rect* rect,
-    const std::shared_ptr<IColorPickerManager>& manager)
+    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const std::shared_ptr<IColorPickerManager>& manager)
 {
     if (!rect) {
         RS_LOGE("ExtractSnapshotAndScheduleColorPick: rect is null");
