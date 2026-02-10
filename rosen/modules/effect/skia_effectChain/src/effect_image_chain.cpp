@@ -759,7 +759,7 @@ DrawingError EffectImageChain::ApplyWaterGlass(const std::shared_ptr<Drawing::GE
     if (dmShader == nullptr) {
         EFFECT_LOG_E("EffectImageChain::ApplyWaterGlass: GenerateExtShaderWaterGlass fail.");
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        return DrawingError::ERR_MEMORY;
+        return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
     image_ = dmShader->ProcessImage(*canvas_, image_,
@@ -797,7 +797,7 @@ DrawingError EffectImageChain::ApplyReededGlass(
     if (!dmShader) {
         EFFECT_LOG_E("EffectImageChain::ApplyReededGlass: GenerateExtShaderReededGlass fail.");
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        return DrawingError::ERR_MEMORY;
+        return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
     image_ = dmShader->ProcessImage(*canvas_, image_,

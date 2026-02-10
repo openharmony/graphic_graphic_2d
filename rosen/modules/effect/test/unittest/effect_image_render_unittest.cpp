@@ -474,7 +474,6 @@ HWTEST_F(EffectImageRenderUnittest, ApplyrReededGlassMethod, TestSize.Level1)
     ASSERT_NE(filter, nullptr);
 
     auto image = std::make_shared<EffectImageChain>();
-    EXPECT_TRUE(image != nullptr);
     image->prepared_ = true;
     Media::InitializationOptions opts;
     opts.size = { 1, 1 };
@@ -484,6 +483,21 @@ HWTEST_F(EffectImageRenderUnittest, ApplyrReededGlassMethod, TestSize.Level1)
 
     DrawingError result = filter->Apply(image);
     ASSERT_EQ(result, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyMethod
+ * @tc.desc: Test EffectImageReededGlassFilter filter application, image is null
+ */
+HWTEST_F(EffectImageRenderUnittest, ApplyrMethod, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::GEReededGlassDataParams> params = std::make_shared<Drawing::GEReededGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    std::shared_ptr<EffectImageReededGlassFilter> filter = std::make_shared<EffectImageReededGlassFilter>(params);
+    ASSERT_NE(filter, nullptr);
+
+    DrawingError result = filter->Apply(nullptr);
+    ASSERT_EQ(result, DrawingError::ERR_IMAGE_NULL);
 }
 
 /**
@@ -499,7 +513,6 @@ HWTEST_F(EffectImageRenderUnittest, ApplyWaterGlassMethod, TestSize.Level1)
     ASSERT_NE(filter, nullptr);
 
     auto image = std::make_shared<EffectImageChain>();
-    EXPECT_TRUE(image != nullptr);
     image->prepared_ = true;
     Media::InitializationOptions opts;
     opts.size = { 1, 1 };
@@ -508,6 +521,21 @@ HWTEST_F(EffectImageRenderUnittest, ApplyWaterGlassMethod, TestSize.Level1)
     image->Prepare(srcPixelMap, false);
     DrawingError result = filter->Apply(image);
     ASSERT_EQ(result, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyMethod
+ * @tc.desc: Test EffectImageWaterGlassFilter filter application, image is null
+ */
+HWTEST_F(EffectImageRenderUnittest, ApplyMethod, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::GEWaterGlassDataParams> params = std::make_shared<Drawing::GEWaterGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    std::shared_ptr<EffectImageWaterGlassFilter> filter = std::make_shared<EffectImageWaterGlassFilter>(params);
+    ASSERT_NE(filter, nullptr);
+
+    DrawingError result = filter->Apply(nullptr);
+    ASSERT_EQ(result, DrawingError::ERR_IMAGE_NULL);
 }
 } // namespace Rosen
 } // namespace OHOS
