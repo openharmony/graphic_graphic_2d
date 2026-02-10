@@ -393,6 +393,57 @@ HWTEST_F(HgmFrameRateMgrTest, HgmUiFrameworkDirtyNodeTest, Function | SmallTest 
 }
 
 /**
+ * @tc.name: HgmUiFrameworkDirtyNodeTest002
+ * @tc.desc: Test HgmUiFrameworkDirtyNodeTest function with a node that is on the tree
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmUiFrameworkDirtyNodeTest002, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager frameRateMgr;
+    std::vector<std::weak_ptr<RSRenderNode>> uiFwkDirtyNodes;
+    PART("HgmUiFrameworkDirtyNodeTest") {
+        STEP("1. Test empty uiFwkDirtyNodes") {
+            ASSERT_EQ(uiFwkDirtyNodes.size(), 0);
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
+            frameRateMgr.voterTouchEffective_ = true;
+            {
+                std::shared_ptr<RSRenderNode> renderNode1 = std::make_shared<RSRenderNode>(0);
+                renderNode1->isOnTheTree_ = true;
+                uiFwkDirtyNodes.emplace_back(renderNode1);
+                ASSERT_EQ(uiFwkDirtyNodes.size(), 1);
+            }
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
+            ASSERT_EQ(uiFwkDirtyNodes.size(), 0);
+        }
+        STEP("2. Test uiFwkDirtyNodes with a clean renderNode") {
+            std::shared_ptr<RSRenderNode> renderNode2 = std::make_shared<RSRenderNode>(0);
+            renderNode2->isOnTheTree_ = true;
+            uiFwkDirtyNodes.emplace_back(renderNode2);
+            ASSERT_EQ(uiFwkDirtyNodes.size(), 1);
+            ASSERT_EQ(renderNode2->IsDirty(), false);
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
+            ASSERT_EQ(uiFwkDirtyNodes.size(), 1);
+        }
+        STEP("3. Test uiFwkDirtyNodes with a dirty renderNode") {
+            std::shared_ptr<RSRenderNode> renderNode3 = std::make_shared<RSRenderNode>(0);
+            renderNode3->isOnTheTree_ = true;
+            uiFwkDirtyNodes.emplace_back(renderNode3);
+            ASSERT_EQ(uiFwkDirtyNodes.size(), 2);
+
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
+            ASSERT_EQ(uiFwkDirtyNodes.size(), 1);
+
+            renderNode3->SetDirty();
+            ASSERT_EQ(renderNode3->IsDirty(), true);
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
+            ASSERT_EQ(uiFwkDirtyNodes.size(), 1);
+        }
+    }
+    sleep(1);
+}
+
+/**
  * @tc.name: ProcessPendingRefreshRate
  * @tc.desc: Verify the result of ProcessPendingRefreshRate function
  * @tc.type: FUNC
