@@ -57,6 +57,8 @@ void RSRenderNodeDrawableTest::TearDown()
     RSRenderNodeDrawable::drawingCacheUpdateTimeMap_.clear();
     RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.clear();
     RSRenderNodeDrawable::isOffScreenWithClipHole_ = false;
+    RSRenderNodeDrawable::isOpDropped_ = true;
+    RSRenderNodeDrawable::occlusionCullingEnabled_ = false;
     RSRenderGroupCacheDrawable::SetDrawBlurForCache(false);
     RSRenderGroupCacheDrawable::SetDrawExcludedSubTreeForCache(false);
 }
