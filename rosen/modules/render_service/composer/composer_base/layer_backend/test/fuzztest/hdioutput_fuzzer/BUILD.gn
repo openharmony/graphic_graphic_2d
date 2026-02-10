@@ -39,8 +39,8 @@ group("fuzztest") {
   testonly = true
   deps = []
   deps += [
-    # deps file
-    ":HdiOutputFuzzTest",
+    # Temporarily disabled due to CFI issues with layer_backend_test_impl
+    # ":HdiOutputFuzzTest",
   ]
 }
 ###############################################################################
