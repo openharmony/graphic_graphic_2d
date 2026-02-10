@@ -48,7 +48,7 @@ public:
     int16_t CallBaseGetterForCoverage() const
     {
         return this->ModifierNG::RSCustomModifier::Getter(
-            RSPropertyType::CUSTOM_INDEX, static_cast<int16_t>(0));
+            ModifierNG::RSPropertyType::CUSTOM_INDEX, static_cast<int16_t>(0));
     }
 
     void Draw(ModifierNG::RSDrawingContext& context) const override
