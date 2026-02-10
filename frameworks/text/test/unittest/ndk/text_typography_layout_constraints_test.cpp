@@ -1038,7 +1038,8 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     OH_Drawing_Array* rangeArray = nullptr;
     size_t rangeCount = 0;
 
-    OH_Drawing_RectSize result = CallLayoutWithConstraints(LAYOUT_WIDTH_MEDIUM, LAYOUT_HEIGHT_SMALL, &rangeArray, &rangeCount);
+    OH_Drawing_RectSize result = CallLayoutWithConstraints(LAYOUT_WIDTH_MEDIUM, LAYOUT_HEIGHT_SMALL,
+        &rangeArray, &rangeCount);
 
     ASSERT_NE(rangeArray, nullptr);
 
@@ -1112,7 +1113,8 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     OH_Drawing_Array* rangeArray = nullptr;
     size_t rangeCount = 0;
 
-    OH_Drawing_RectSize result = CallLayoutWithConstraints(LAYOUT_WIDTH_MEDIUM, LAYOUT_HEIGHT_MEDIUM, &rangeArray, &rangeCount);
+    OH_Drawing_RectSize result = CallLayoutWithConstraints(LAYOUT_WIDTH_MEDIUM, LAYOUT_HEIGHT_MEDIUM,
+        &rangeArray, &rangeCount);
 
     ASSERT_NE(rangeArray, nullptr);
 
