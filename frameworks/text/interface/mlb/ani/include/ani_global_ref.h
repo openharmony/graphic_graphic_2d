@@ -88,6 +88,8 @@ public:
     ani_class point;
     ani_class path;
     ani_class placeholderSpan;
+    ani_class textLayoutResult;
+    ani_class textRectSize;
 
 private:
     AniGlobalClass() = default;
@@ -270,8 +272,12 @@ public:
     ani_method rangeCtor;
     ani_method rangeStart;
     ani_method rangeEnd;
+    ani_method textRectSizeCtor;
+    ani_method textRectSizeWidth;
+    ani_method textRectSizeHeight;
     ani_method textBoxCtor;
     ani_method typographicBoundsCtor;
+    ani_method textLayoutResultCtor;
 
 private:
     AniGlobalMethod() = default;
@@ -292,11 +298,13 @@ private:
     void InitFontFeatureMethod(ani_env* env);
     void InitFontVariationMethod(ani_env* env);
     void InitRectStyleMethod(ani_env* env);
+    void InitTextLayoutResultMethod(ani_env* env);
     void InitPlaceholderMethod(ani_env* env);
     void InitGlobalResourceMethod(ani_env* env);
     void InitRangeMethod(ani_env* env);
     void InitPointMethod(ani_env* env);
     void InitTextTabMethod(ani_env* env);
+    void InitTextRectSizeMethod(ani_env* env);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_GLOBAL_REF_H

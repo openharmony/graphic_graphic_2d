@@ -36,6 +36,11 @@ struct Range {
     T start;
     T end;
 };
+
+struct Rect {
+    double width{0.0};
+    double height{0.0};
+};
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

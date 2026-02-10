@@ -65,6 +65,7 @@ public:
     static napi_value IsStrutStyleEqual(napi_env env, napi_callback_info info);
     static napi_value UpdateColor(napi_env env, napi_callback_info info);
     static napi_value UpdateDecoration(napi_env env, napi_callback_info info);
+    static napi_value LayoutWithConstraints(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnLayout(napi_env env, napi_callback_info info);
@@ -99,6 +100,7 @@ private:
     napi_value OnLayoutAsync(napi_env env, napi_callback_info info);
     napi_value OnUpdateColor(napi_env env, napi_callback_info info);
     napi_value OnUpdateDecoration(napi_env env, napi_callback_info info);
+    napi_value OnLayoutWithConstraints(napi_env env, napi_callback_info info);
     static bool CreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;
     static std::mutex constructorMutex_;
