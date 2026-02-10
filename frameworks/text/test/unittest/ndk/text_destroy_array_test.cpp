@@ -57,7 +57,7 @@ constexpr const char* NOTO_SANS_FILE = "/system/fonts/NotoSans[wdth,wght].ttf";
 } // namespace
 
 /**
- * @brief Test fixture for NDK DestroyArray functionality
+ * @brief Test fixture for DestroyArray functionality
  *
  * This test class provides comprehensive testing for the OH_Drawing_DestroyArray API,
  * covering all 6 ObjectType types: STRING, TEXT_LINE, TEXT_RUN, DRAWING_RECT,
@@ -300,8 +300,8 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest006, TestSize.Level0)
  */
 HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest007, TestSize.Level0)
 {
-    const size_t ARRAY_SIZE = 1;
-    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(ARRAY_SIZE);
+    const size_t arraySize = 1;
+    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(arraySize);
     ASSERT_NE(rectArray, nullptr);
 
     OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(rectArray);
@@ -315,14 +315,14 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest007, TestSize.Level0)
  */
 HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest008, TestSize.Level0)
 {
-    const size_t ARRAY_SIZE = 5;
-    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(ARRAY_SIZE);
+    const size_t arraySize = 5;
+    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(arraySize);
     ASSERT_NE(rectArray, nullptr);
 
     size_t size = 0;
     OH_Drawing_ErrorCode sizeErrorCode = OH_Drawing_RectGetArraySize(rectArray, &size);
     EXPECT_EQ(sizeErrorCode, OH_DRAWING_SUCCESS);
-    EXPECT_EQ(size, ARRAY_SIZE);
+    EXPECT_EQ(size, arraySize);
 
     OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(rectArray);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
@@ -335,14 +335,14 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest008, TestSize.Level0)
  */
 HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest009, TestSize.Level0)
 {
-    const size_t ARRAY_SIZE = 100;
-    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(ARRAY_SIZE);
+    const size_t arraySize = 100;
+    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(arraySize);
     ASSERT_NE(rectArray, nullptr);
 
     size_t size = 0;
     OH_Drawing_ErrorCode sizeErrorCode = OH_Drawing_RectGetArraySize(rectArray, &size);
     EXPECT_EQ(sizeErrorCode, OH_DRAWING_SUCCESS);
-    EXPECT_EQ(size, ARRAY_SIZE);
+    EXPECT_EQ(size, arraySize);
 
     OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(rectArray);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);

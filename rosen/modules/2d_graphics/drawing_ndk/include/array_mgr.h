@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-#include <cstddef>
-
 #ifndef ARRAY_MGR_H
 #define ARRAY_MGR_H
+#include <cstddef>
 
 namespace OHOS {
 namespace Rosen {

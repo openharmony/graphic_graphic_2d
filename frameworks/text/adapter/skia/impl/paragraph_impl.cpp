@@ -642,7 +642,8 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
 }
 #endif
 
-TextLayoutResult ParagraphImpl::LayoutWithConstraints(const TextRectSize& limitRect) {
+TextLayoutResult ParagraphImpl::LayoutWithConstraints(const TextRectSize& limitRect)
+{
     if (limitRect.width > 0 && limitRect.height > 0) {
         paragraph_->setLayoutConstraintsFlag(true);
         paragraph_->setLayoutConstraintsHeight(limitRect.height);
@@ -661,7 +662,8 @@ TextLayoutResult ParagraphImpl::LayoutWithConstraints(const TextRectSize& limitR
     return layoutResult;
 }
 
-void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges) {
+void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges)
+{
     Range<size_t> ellipsisRange = GetEllipsisTextRange();
     skt::TextRange textRange = paragraph_->getUtf16TextRange();
     skt::TextRange lastLineTextRange = paragraph_->getLineUtf16TextRange(GetLineCount() - 1, true);

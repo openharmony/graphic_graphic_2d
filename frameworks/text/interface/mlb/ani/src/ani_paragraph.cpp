@@ -130,9 +130,11 @@ std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
 {
     std::vector<ani_native_function> methods = {
         ani_native_function{"layoutSync", "d:", reinterpret_cast<void*>(LayoutSync)},
-        ani_native_function{"layoutWithConstraints",
+        ani_native_function{
+            "layoutWithConstraints",
             "C{" ANI_INTERFACE_TEXT_RECT_SIZE "}:C{" ANI_INTERFACE_TEXT_LAYOUT_RESULT "}",
-            reinterpret_cast<void*>(LayoutWithConstraints)},
+            reinterpret_cast<void*>(LayoutWithConstraints)
+        },
         ani_native_function{"paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint)},
         ani_native_function{"paintOnPath", PAINT_ON_PATH_SIGN.c_str(), reinterpret_cast<void*>(PaintOnPath)},
         ani_native_function{"getMaxWidth", ":d", reinterpret_cast<void*>(GetMaxWidth)},

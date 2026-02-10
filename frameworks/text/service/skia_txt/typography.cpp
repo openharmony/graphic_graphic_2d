@@ -639,7 +639,8 @@ std::shared_ptr<OHOS::Media::PixelMap> Typography::GetTextPathImageByIndex(
 }
 #endif
 
-TextLayoutResult Typography::LayoutWithConstraints(const TextRectSize &constraint) {
+TextLayoutResult Typography::LayoutWithConstraints(const TextRectSize &constraint)
+{
     return paragraph_->LayoutWithConstraints(constraint);
 }
 } // namespace AdapterTxt
