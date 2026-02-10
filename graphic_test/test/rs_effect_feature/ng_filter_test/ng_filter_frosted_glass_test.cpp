@@ -69,6 +69,7 @@ constexpr uint32_t SHADOW_RADIUS = 50;
 constexpr uint32_t SHADOW_OFFSET_X = 50;
 constexpr uint32_t SHADOW_OFFSET_Y = 50;
 constexpr uint32_t colorList[NUM_4] = { COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_BLUE };
+constexpr float DEFAULT_BG_ALPHA = 1.0f;
 }
 class NGFilterFrostedGlassTest : public RSGraphicTest {
 public:
@@ -173,6 +174,7 @@ static std::shared_ptr<RSNGFrostedGlassFilter> CreateDefaultFrostedGlassFilter()
     frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(DEFAULT_MATERIAL_COLOR);
     frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(DEFAULT_BASE_VIBRANCY_ENABLED);
     frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(DEFAULT_SAMPLING_SCALE);
+    frostedGlassFilter->Setter<FrostedGlassBgAlphaTag>(DEFAULT_BG_ALPHA);
 
     return frostedGlassFilter;
 }
