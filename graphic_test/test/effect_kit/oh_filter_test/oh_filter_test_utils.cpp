@@ -22,13 +22,22 @@ namespace Rosen {
 OH_PixelmapNative* CreateTestPixelMap(const std::string path)
 {
     std::shared_ptr<Media::PixelMap> pixelMap = DecodePixelMap(path, Media::AllocatorType::SHARE_MEM_ALLOC);
+    if (!pixelMap) {
+        return nullptr;
+    }
     return new OH_PixelmapNative(pixelMap);
 }
 
 OH_Filter* CreateFilter(OH_PixelmapNative* pixelMapNative)
 {
+    if (!pixelMapNative) {
+        return nullptr;
+    }
     OH_Filter* filter = nullptr;
-    OH_Filter_CreateEffect(pixelMapNative, &filter);
+    EffectErrorCode ret = OH_Filter_CreateEffect(pixelMapNative, &filter);
+    if (ret != EFFECT_SUCCESS || !filter) {
+        return nullptr;
+    }
     return filter;
 }
 

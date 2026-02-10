@@ -84,6 +84,10 @@ const std::vector<std::array<float, REEDED_GLASS_PARAMS_COUNT>> reededGlassParam
      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}
 };
 
+const std::vector<float> blurParams = {
+    -10.0f, 0.0f, 10.0f, 25.0f, 50.0f, 500.0f
+};
+
 const std::vector<float> gammaCorrectionParams = {
     -1.0f, 0.5f, 1.0f, 1.8f, 5.0f, 0.0f
 };
