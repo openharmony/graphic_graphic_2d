@@ -33,8 +33,14 @@ public:
     static void TearDownTestCase();
 };
 
-void RSTransitionTest::SetUpTestCase() {}
-void RSTransitionTest::TearDownTestCase() {}
+void RSTransitionTest::SetUpTestCase()
+{
+    RSAnimationBaseTest::SetUpTestCase();
+}
+void RSTransitionTest::TearDownTestCase()
+{
+    RSAnimationBaseTest::TearDownTestCase();
+}
 
 /**
  * @tc.name: SetTransitionEffectTest

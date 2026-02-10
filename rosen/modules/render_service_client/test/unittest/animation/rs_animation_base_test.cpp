@@ -20,6 +20,7 @@
 #include "event_handler.h"
 #include "common/rs_color.h"
 #include "transaction/rs_transaction.h"
+#include "ui/rs_ui_context_manager.h"
 #include "wm/window_option.h"
 
 namespace OHOS {
@@ -53,12 +54,13 @@ void RSAnimationBaseTest::TearDown()
 
 void RSAnimationBaseTest::InitNode(int width, int height)
 {
-    rootNode = RSRootNode::Create();
+    auto rsUIContext = std::make_shared<RSUIContext>(0);
+    rootNode = RSRootNode::Create(false, false, rsUIContext);
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
     rootNode->SetBackgroundColor(SK_ColorYELLOW);
 
-    canvasNode = RSCanvasNode::Create();
+    canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetBounds(ANIMATION_START_BOUNDS);
     canvasNode->SetFrame(ANIMATION_START_BOUNDS);
     canvasNode->SetBackgroundColor(SK_ColorBLUE);
@@ -109,7 +111,8 @@ void RSAnimationBaseTest::RemoveAnimationCanvasNode()
 
 void RSAnimationBaseTest::ResetAnimationCanvasNode()
 {
-    canvasNode = RSCanvasNode::Create();
+    auto rsUIContext = std::make_shared<RSUIContext>(0);
+    canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetBounds(ANIMATION_START_BOUNDS);
     canvasNode->SetFrame(ANIMATION_START_BOUNDS);
     canvasNode->SetBackgroundColor(SK_ColorBLUE);
