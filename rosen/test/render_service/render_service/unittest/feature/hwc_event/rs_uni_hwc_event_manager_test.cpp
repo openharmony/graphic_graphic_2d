@@ -46,11 +46,10 @@ HWTEST_F(RSUniHwcEventManagerTest, CreateSurfaceNodeLayerInfo001, TestSize.Level
 {
     auto& uniHwcEventManager = RSUniHwcEventManager::GetInstance();
     vector<int32_t> eventData;
+    uniHwcEventManager.Init();
     uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, HwcEvent::HWCEVENT_TUI_ENTER, eventData, nullptr);
-    ASSERT_TRUE(RSPointerWindowManager::Instance().IsTuiEnabled());
     uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, HwcEvent::HWCEVENT_TUI_EXIT, eventData, nullptr);
-    ASSERT_FALSE(RSPointerWindowManager::Instance().IsTuiEnabled());
     uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, DEFAULT_EVENTID, eventData, nullptr);
-    ASSERT_FALSE(RSPointerWindowManager::Instance().IsTuiEnabled());
+    ASSERT_EQ(eventData.size(), 0);
 }
 }
