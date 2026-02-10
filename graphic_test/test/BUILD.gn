@@ -125,9 +125,15 @@ rs_display_effect_sources = [
 ]
 rs_effect_feature_sources = [
   "rs_effect_feature/effect_background_blur_test.cpp",
+  "rs_effect_feature/effect_ai_bar_glow_test.cpp",
+  "rs_effect_feature/effect_aurora_noise_test.cpp",
   "rs_effect_feature/effect_linear_gradient_blur_test.cpp",
+  "rs_effect_feature/effect_light_cave_test.cpp",
   "rs_effect_feature/effect_magnifier_test.cpp",
+  "rs_effect_feature/effect_particle_circular_halo_test.cpp",
   "rs_effect_feature/effect_pixel_stretch_test.cpp",
+  "rs_effect_feature/effect_gradient_flow_colors_test.cpp",
+  "rs_effect_feature/effect_wavy_ripple_light_test.cpp",
   "rs_effect_feature/effect_distort_chroma_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_effect_test.cpp",
   "rs_effect_feature/ng_mask_test/ng_mask_image_test.cpp",
