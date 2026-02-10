@@ -69,7 +69,7 @@ constexpr uint32_t SHADOW_RADIUS = 50;
 constexpr uint32_t SHADOW_OFFSET_X = 50;
 constexpr uint32_t SHADOW_OFFSET_Y = 50;
 constexpr uint32_t colorList[NUM_4] = { COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_BLUE };
-const float DEFAULT_BG_ALPHA = 1.0f;
+constexpr float DEFAULT_BG_ALPHA = 1.0f;
 }
 class NGFilterFrostedGlassTest : public RSGraphicTest {
 public:
