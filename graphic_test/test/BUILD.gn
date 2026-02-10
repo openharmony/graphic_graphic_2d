@@ -211,6 +211,16 @@ rs_perform_feature_sources = [
   "rs_perform_feature/hybrid_render/hybrid_render_test.cpp",
   "rs_perform_feature/gpu_composer/gpu_composer_test.cpp",
 ]
+effect_kit_sources = [
+  "effect_kit/oh_filter_test/oh_filter_blurwithdirection_test.cpp",
+  "effect_kit/oh_filter_test/oh_filter_gammacorrection_test.cpp",
+  "effect_kit/oh_filter_test/oh_filter_mapcolorbybrightness_test.cpp",
+  "effect_kit/oh_filter_test/oh_filter_masktransition_test.cpp",
+  "effect_kit/oh_filter_test/oh_filter_reededglass_test.cpp",
+  "effect_kit/oh_filter_test/oh_filter_waterdroplettransition_test.cpp",
+  "effect_kit/oh_filter_test/oh_filter_waterglass_test.cpp",
+  "effect_kit/oh_filter_test/oh_filter_test_utils.cpp",
+]
 
 group("test") {
   testonly = true
@@ -232,14 +242,17 @@ ohos_unittest("RSGraphicTest") {
   sources += rs_framework_sources
   sources += rs_func_feature_sources
   sources += rs_perform_feature_sources
+  sources += effect_kit_sources
 
   include_dirs = [
+    "$graphic_2d_root/rosen/modules/effect",
     "$rosen_text_root/adapter/skia",
     "rs_effect_feature/ng_shape_test",
   ]
 
   deps = [
     "$graphic_2d_root/graphic_test/graphic_test_framework:rs_graphic_test_main",
+    "$graphic_2d_root/rosen/modules/effect/effect_ndk:native_effect_ndk",
     "$rosen_text_root:rosen_text",
   ]
 
@@ -255,6 +268,8 @@ ohos_unittest("RSGraphicTest") {
     "init:libbegetutil",
     "selinux_adapter:librestorecon",
     "image_framework:image_native",
+    "image_framework:pixelmap", 
+    "image_framework:pixelmap_ndk",
   ]
 
   defines += gpu_defines
