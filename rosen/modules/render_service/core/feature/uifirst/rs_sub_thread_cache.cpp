@@ -301,7 +301,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
 
     float width = 0.0f;
     float height = 0.0f;
-    if (const auto& params = nodeDrawable->GetRenderParams()) {
+    if (const auto& params = nodeDrawable->GetUifirstRenderParams()) {
         auto size = params->GetCacheSize();
         nodeDrawable->boundsWidth_ = size.x_;
         nodeDrawable->boundsHeight_ = size.y_;
