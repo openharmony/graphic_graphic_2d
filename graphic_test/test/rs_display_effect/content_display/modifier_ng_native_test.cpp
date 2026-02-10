@@ -65,11 +65,11 @@ public:
 };
 
 /*
- * @tc.name: ColorPickerModifier_NativeCoverage_Test
+ * @tc.name: ColorPickerModifier_Test
  * @tc.desc: Cover RSColorPickerModifier getter/setter interfaces in native graphic test style.
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(ModifierNGNativeTest, CONTENT_DISPLAY_TEST, ColorPickerModifier_NativeCoverage_Test)
+GRAPHIC_TEST(ModifierNGNativeTest, CONTENT_DISPLAY_TEST, ColorPickerModifier_Test)
 {
     auto backgroundNode = SetUpNodeBgImage(TEST_IMAGE_PATH, { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
     ASSERT_NE(backgroundNode, nullptr);
@@ -100,11 +100,11 @@ GRAPHIC_TEST(ModifierNGNativeTest, CONTENT_DISPLAY_TEST, ColorPickerModifier_Nat
 }
 
 /*
- * @tc.name: CustomModifier_NativeCoverage_Test
+ * @tc.name: CustomModifier_Test
  * @tc.desc: Cover RSCustomModifier interfaces with native modifier drawing case.
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(ModifierNGNativeTest, CONTENT_DISPLAY_TEST, CustomModifier_NativeCoverage_Test)
+GRAPHIC_TEST(ModifierNGNativeTest, CONTENT_DISPLAY_TEST, CustomModifier_Test)
 {
     auto backgroundNode = SetUpNodeBgImage(TEST_IMAGE_PATH, { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
     ASSERT_NE(backgroundNode, nullptr);
