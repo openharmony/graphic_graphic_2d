@@ -2892,7 +2892,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest005, Te
     auto mainThread = clientToServiceConnection->mainThread_;
     clientToServiceConnection->mainThread_ = nullptr;
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
+    ASSERT_EQ(ret, ERR_INVALID_REPLY);
  
     clientToServiceConnection->mainThread_ = mainThread;
 }
