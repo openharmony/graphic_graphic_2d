@@ -267,6 +267,10 @@ DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& s
         }
 
         dstPixelMap = effectImage->GetPixelMap();
+        if(dstPixelMap == nullptr){
+            EFFECT_LOG_E("EffectImageRender::Render: dstPixelMap null.");
+            break;
+        }
         dstPixelMap->MarkDirty();
     } while (false);
 
