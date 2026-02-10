@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -76,10 +76,7 @@ HWTEST_F(TypographyEllipsisTest, TypographyEllipsisTest001, TestSize.Level0)
     typography2->Layout(100.0);
     auto longestLine2 = typography2->GetLongestLineWithIndent();
 
-    // Assert
     // The two typographies should have different longest lines due to different ellipsis lengths
-    // Longer ellipsis ("......") should result in shorter longest line than shorter ellipsis ("...")
-    // This tests that the cache correctly differentiates based on ellipsis string
     EXPECT_LT(longestLine1, longestLine2);
 }
 
@@ -132,7 +129,7 @@ HWTEST_F(TypographyEllipsisTest, TypographyEllipsisTest002, TestSize.Level0)
     typography2->Layout(100.0);
     auto longestLine2 = typography2->GetLongestLineWithIndent();
 
-    // Assert - Verify that different ellipsis strings result in different longest lines
+    // Verify that different ellipsis strings result in different longest lines
     // The cache should treat them as different due to different ellipsis
     EXPECT_LT(longestLine1, longestLine2);
 }
@@ -183,7 +180,6 @@ HWTEST_F(TypographyEllipsisTest, TypographyEllipsisTest003, TestSize.Level0)
     typography2->Layout(100.0);
     auto longestLine2 = typography2->GetLongestLineWithIndent();
 
-    // Assert - Both should have the same longest line when using same configuration
     // When ellipsis is the same, cache should work and produce identical results
     EXPECT_FLOAT_EQ(longestLine1, longestLine2);
 }
@@ -246,12 +242,9 @@ HWTEST_F(TypographyEllipsisTest, TypographyEllipsisTest004, TestSize.Level0)
     typography3->Layout(200.0);
     auto longestLine3 = typography3->GetLongestLineWithIndent();
 
-    // Assert: Different ellipsis should result in different longest line widths
-    // Shorter ellipsis allows more text content, so longest line should be longer
+    // Different ellipsis should result in different longest line widths
     EXPECT_GT(longestLine1, longestLine2);
-    // No ellipsis should allow the most text content
     EXPECT_GT(longestLine2, longestLine3);
-    // All should be positive
     EXPECT_GT(longestLine1, 0.0);
     EXPECT_GT(longestLine2, 0.0);
     EXPECT_GT(longestLine3, 0.0);
