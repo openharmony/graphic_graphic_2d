@@ -1327,6 +1327,17 @@ void RSProperties::SetColorPickerNotifyThreshold(int packedThresholds)
     SetDirty();
 }
 
+void RSProperties::SetColorPickerRect(const Vector4f& rect)
+{
+    if (!colorPicker_) {
+        colorPicker_ = std::make_shared<ColorPickerParam>();
+    }
+    // Convert Vector4f [left, top, right, bottom] to Drawing::Rect
+    auto effectiveRect = Drawing::Rect(rect.x_, rect.y_, rect.z_, rect.w_);
+    colorPicker_->rect = effectiveRect.IsValid() ? std::make_optional(effectiveRect) : std::nullopt;
+    SetDirty();
+}
+
 std::shared_ptr<ColorPickerParam> RSProperties::GetColorPicker() const
 {
     return colorPicker_;

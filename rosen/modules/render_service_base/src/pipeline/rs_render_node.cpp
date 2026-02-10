@@ -2695,11 +2695,25 @@ bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
 std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerDrawable() const
 {
     if (auto& drawable = GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)]) {
-        if (auto colorPickerDrawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(drawable)) {
-            return colorPickerDrawable;
-        }
+        return std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(drawable);
     }
     return nullptr;
+}
+
+bool RSRenderNode::PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode)
+{
+    auto colorPickerDrawable = GetColorPickerDrawable();
+    if (!colorPickerDrawable) {
+        return false;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "ColorPicker: Preparing in filter iteration node id:%" PRIu64, GetId());
+
+    const auto [needColorPick, needSync] = colorPickerDrawable->PrepareForExecution(vsyncTime, darkMode);
+    if (needSync) {
+        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COLOR_PICKER);
+    }
+    return needColorPick;
 }
 
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()

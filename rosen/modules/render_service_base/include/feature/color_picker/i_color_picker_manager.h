@@ -42,6 +42,10 @@ public:
 
     // Sets the system dark color mode for color picker.
     virtual void SetSystemDarkColorMode(bool isSystemDarkColorMode) = 0;
+
+    // Handles color update after GPU work completes.
+    // Each implementation can have different business logic (e.g., animation, luminance zones).
+    virtual void HandleColorUpdate(Drawing::ColorQuad newColor) = 0;
 };
 
 } // namespace OHOS::Rosen

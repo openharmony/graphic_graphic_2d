@@ -1059,6 +1059,9 @@ public:
     RectI GetFilterDrawableSnapshotRegion() const;
 
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
+    // returns true if color picker will execute this frame
+    bool PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode);
+
 protected:
     void ResetDirtyStatus();
 

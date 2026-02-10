@@ -1043,17 +1043,16 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalDirtyFilter(
     }
 }
 
-void RSUniHwcVisitor::CheckHwcNodeIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+namespace {
+void ColorPickerCheckHwcIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
     const RectI& colorPickerRect)
 {
-    if (!hwcNode || !hwcNode->IsOnTheTree()) {
+    if (!hwcNode || !hwcNode->IsOnTheTree() || hwcNode->IsHardwareForcedDisabled()) {
         return;
     }
 
     RectI hwcNodeRect = hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-    RectI intersectionRect = colorPickerRect.IntersectRect(hwcNodeRect);
-    bool intersects = !intersectionRect.IsEmpty();
-    if (intersects) {
+    if (!colorPickerRect.IntersectRect(hwcNodeRect).IsEmpty()) {
         hwcNode->SetHardwareForcedDisabledState(true);
         RS_OPTIONAL_TRACE_FMT("ColorPicker: rect [%d,%d,%d,%d] intersects node %s id:%" PRIu64
             " (rect: [%d,%d,%d,%d]) - disabling",
@@ -1062,28 +1061,24 @@ void RSUniHwcVisitor::CheckHwcNodeIntersection(const std::shared_ptr<RSSurfaceRe
             hwcNodeRect.width_, hwcNodeRect.height_);
     }
 }
-
-void RSUniHwcVisitor::ProcessSurfaceForColorPicker(const RectI& colorPickerRect)
-{
-    auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
-    for (auto& surfaceNodePtr : curMainAndLeashSurfaces) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNodePtr);
-        if (!surfaceNode) {
-            continue;
-        }
-
-        const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
-        for (const auto& hwcNodeWeak : hwcNodes) {
-            auto hwcNode = hwcNodeWeak.lock();
-            CheckHwcNodeIntersection(hwcNode, colorPickerRect);
-        }
-    }
-}
+} // namespace
 
 void RSUniHwcVisitor::UpdateHwcNodeEnableByColorPicker()
 {
-    for (const auto& [surfaceId, colorPickerRect] : colorPickerHwcDisabledSurfaces_) {
-        ProcessSurfaceForColorPicker(colorPickerRect);
+    for (const auto& [_, colorPickerRect] : colorPickerHwcDisabledSurfaces_) {
+        auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
+        for (auto& surfaceNodePtr : curMainAndLeashSurfaces) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNodePtr);
+            if (!surfaceNode) {
+                continue;
+            }
+
+            const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
+            for (const auto& hwcNodeWeak : hwcNodes) {
+                auto hwcNode = hwcNodeWeak.lock();
+                ColorPickerCheckHwcIntersection(hwcNode, colorPickerRect);
+            }
+        }
     }
 }
 

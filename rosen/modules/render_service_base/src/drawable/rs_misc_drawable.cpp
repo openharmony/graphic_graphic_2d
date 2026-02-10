@@ -175,18 +175,20 @@ RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
     return nullptr;
 }
 
-void RSColorPickerDrawable::Prepare(uint64_t vsyncTime)
+std::pair<bool, bool> RSColorPickerDrawable::PrepareForExecution(uint64_t vsyncTime, bool darkMode)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSColorPickerDrawable::Preparing node %" PRIu64 ", ", nodeId_);
-    needExecute_.store(false, std::memory_order_relaxed);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSColorPickerDrawable::Preparing node %" PRIu64 " darkMode=%d", nodeId_, darkMode);
+    const bool darkModeChanged = std::exchange(stagingIsSystemDarkColorMode_, darkMode) != darkMode;
+    const bool prev = std::exchange(stagingNeedColorPick_, false);
     if (!stagingColorPicker_ || stagingColorPicker_->strategy == ColorPickStrategyType::NONE) {
-        return;
+        return { false, prev != stagingNeedColorPick_ || darkModeChanged };
     }
 
+    constexpr uint64_t NS_TO_MS = 1000000; // Convert nanoseconds to milliseconds
     uint64_t interval = stagingColorPicker_->interval;
-    uint64_t vsyncTimeMs = vsyncTime / 1000000;
+    uint64_t vsyncTimeMs = vsyncTime / NS_TO_MS;
     if (vsyncTimeMs >= interval + lastUpdateTime_) {
-        needExecute_.store(true, std::memory_order_relaxed);
+        stagingNeedColorPick_ = true;
         lastUpdateTime_ = vsyncTimeMs;
         isTaskScheduled_ = false; // Reset flag when processing a new frame
     } else if (!isTaskScheduled_) {
@@ -194,9 +196,10 @@ void RSColorPickerDrawable::Prepare(uint64_t vsyncTime)
         uint64_t remainingDelay = (interval + lastUpdateTime_) - vsyncTimeMs;
         isTaskScheduled_ = true;
         RSColorPickerThread::Instance().PostTask(
-            [nodeId = stagingNodeId_]() { RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); },
+            [nodeId = stagingNodeId_]() { RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); }, false,
             static_cast<int64_t>(remainingDelay));
     }
+    return { stagingNeedColorPick_, prev != stagingNeedColorPick_ || darkModeChanged };
 }
 
 bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)
@@ -209,15 +212,15 @@ bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)
 
 void RSColorPickerDrawable::OnSync()
 {
+    needColorPick_ = stagingNeedColorPick_;
+    if (colorPickerManager_) {
+        colorPickerManager_->SetSystemDarkColorMode(stagingIsSystemDarkColorMode_);
+    }
     if (!needSync_) {
         return;
     }
     nodeId_ = stagingNodeId_;
     params_ = stagingColorPicker_ ? *stagingColorPicker_ : ColorPickerParam();
-
-    if (colorPickerManager_) {
-        colorPickerManager_->SetSystemDarkColorMode(stagingIsSystemDarkColorMode_);
-    }
 
     needSync_ = false;
 }
@@ -236,11 +239,10 @@ void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
     if (maybeColor.has_value()) {
         paintFilterCanvas->SetColorPicked(maybeColor.value());
     }
-    bool needExecute = needExecute_.load(std::memory_order_relaxed);
     RS_OPTIONAL_TRACE_NAME_FMT("ColorPicker: onDraw nodeId=%" PRIu64 " rect=[%s], need execute = %d", nodeId_,
-        rect ? rect->ToString().c_str() : "null", needExecute);
+        rect ? rect->ToString().c_str() : "null", needColorPick_);
 
-    if (needExecute) {
+    if (needColorPick_) {
         colorPickerManager_->ScheduleColorPick(*paintFilterCanvas, rect, params_);
     }
 }
@@ -252,7 +254,6 @@ void RSColorPickerDrawable::SetIsSystemDarkColorMode(bool isSystemDarkColorMode)
         needSync_ = true;
     }
 }
-
 
 // ==================== RSCustomModifierDrawable ===================
 RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, ModifierNG::RSModifierType type)

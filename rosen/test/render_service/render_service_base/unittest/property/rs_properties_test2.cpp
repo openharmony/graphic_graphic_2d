@@ -394,6 +394,64 @@ HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetColorPickerRectTest001
+ * @tc.desc: Test SetColorPickerRect with valid rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerRectTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetColorPicker(), nullptr);
+
+    // Valid rect: [left=0, top=0, right=100, bottom=100]
+    Vector4f rect(0.f, 0.f, 100.f, 100.f);
+    properties.SetColorPickerRect(rect);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    ASSERT_TRUE(colorPicker->rect.has_value());
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetLeft(), 0.f);
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetTop(), 0.f);
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetRight(), 100.f);
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetBottom(), 100.f);
+}
+
+/**
+ * @tc.name: SetColorPickerRectTest002
+ * @tc.desc: Test SetColorPickerRect with invalid rect (left > right)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerRectTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    // Invalid rect: left=100, top=0, right=50, bottom=100 (left > right)
+    Vector4f rect(100.f, 0.f, 50.f, 100.f);
+    properties.SetColorPickerRect(rect);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_FALSE(colorPicker->rect.has_value());
+}
+
+/**
+ * @tc.name: SetColorPickerRectTest003
+ * @tc.desc: Test SetColorPickerRect with boundary case (left == right)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerRectTest003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::SURFACE));
+    // Boundary case: left=50, top=0, right=50, bottom=100 (left == right)
+    Vector4f rect(50.f, 0.f, 50.f, 100.f);
+    properties.SetColorPickerRect(rect);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_FALSE(colorPicker->rect.has_value());
+}
+
+/**
  * @tc.name: SetParticlesTest
  * @tc.desc: test results of SetParticles
  * @tc.type: FUNC

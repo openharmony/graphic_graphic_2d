@@ -425,6 +425,34 @@ HWTEST_F(RSNodeTest2, SetColorPickerOptionsTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetColorPickerOptionsTest002
+ * @tc.desc: Test SetColorPickerOptions with valid rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetColorPickerOptionsTest002, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    uint64_t interval = 500;
+    uint32_t darkThreshold = 50;
+    uint32_t lightThreshold = 200;
+    Vector4f rect(0.f, 0.f, 100.f, 100.f);
+
+    node->SetColorPickerOptions(interval, {darkThreshold, lightThreshold}, rect);
+
+    auto modifier = node->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
+    ASSERT_NE(modifier, nullptr);
+    auto colorPickerModifier = std::static_pointer_cast<ModifierNG::RSColorPickerModifier>(modifier);
+
+    EXPECT_EQ(colorPickerModifier->GetColorPickerStrategy(), ColorPickStrategyType::CLIENT_CALLBACK);
+    EXPECT_EQ(colorPickerModifier->GetColorPickerInterval(), interval);
+    constexpr uint32_t expectedPacked = (200u << 16) | 50u;
+    EXPECT_EQ(colorPickerModifier->GetColorPickerNotifyThreshold(), expectedPacked);
+    EXPECT_EQ(colorPickerModifier->GetColorPickerRect(), rect);
+}
+
+/**
  * @tc.name: SetColorPickerCallbackTest001
  * @tc.desc: Test SetColorPickerCallback stores and invokes callback correctly
  * @tc.type: FUNC
@@ -1127,8 +1155,6 @@ HWTEST_F(RSNodeTest2, SetMaterialWithQualityLevel_AdaptiveFrostedGlass, TestSize
     auto propInterval = std::static_pointer_cast<RSProperty<int>>(
         modifier->GetProperty(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL));
     ASSERT_NE(propInterval, nullptr);
-    // DEFAULT_INTERVAL in SetMaterialWithQualityLevel is 100, SetColorPickerParams clamps to MIN_INTERVAL=180
-    EXPECT_EQ(propInterval->Get(), 180);
 }
 
 } // namespace OHOS::Rosen

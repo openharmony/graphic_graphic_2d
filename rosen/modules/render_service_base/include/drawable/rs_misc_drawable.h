@@ -80,15 +80,14 @@ public:
     /**
      * @brief Prepare ColorPicker for execution on main thread
      * @param vsyncTime Current vsync time in nanoseconds
+     * @param darkMode Whether current system is in dark color mode
      *
      * Checks cooldown interval and determines if color pick should execute this frame.
-     * Sets needExecute_ flag for render thread to check. Called during Prepare phase.
+     * Sets needColorPick flag for render thread to check. Called during Prepare phase.
+     * @return pair<needColorPick, needSync> - @c needColorPick indicates if color pick should run this frame, @c
+     * needSync indicates if @c needColorPick are updated and need to be synced to render thread
      */
-    RSB_EXPORT void Prepare(uint64_t vsyncTime);
-    bool NeedExecute() const
-    {
-        return needExecute_.load(std::memory_order_relaxed);
-    }
+    RSB_EXPORT std::pair<bool, bool> PrepareForExecution(uint64_t vsyncTime, bool darkMode);
 
 private:
     NodeId stagingNodeId_ = INVALID_NODEID;
@@ -98,11 +97,12 @@ private:
 
     std::shared_ptr<IColorPickerManager> colorPickerManager_;
 
-    bool needSync_ = false;
-    std::atomic<bool> needExecute_ { false }; // Set in Prepare (main thread), read in OnDraw (render thread)
-    bool isTaskScheduled_ = false;            // Flag to indicate if a task is already scheduled during cooldown
-    uint64_t lastUpdateTime_ = 0;             // Set in Prepare
+    bool stagingNeedColorPick_ = false;
+    bool needColorPick_ = false;
     bool stagingIsSystemDarkColorMode_ = false;
+    bool needSync_ = false;
+    bool isTaskScheduled_ = false; // Flag to indicate if a task is already scheduled during cooldown
+    uint64_t lastUpdateTime_ = 0;  // Set in Prepare
 };
 
 // RSCustomModifierDrawable, for drawing custom modifiers
