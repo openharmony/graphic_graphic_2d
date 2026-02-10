@@ -219,7 +219,9 @@ rs_perform_feature_sources = [
   "rs_perform_feature/gpu_composer/gpu_composer_test.cpp",
 ]
 effect_kit_sources = [
+  "effect_kit/oh_filter_test/oh_filter_blur_cascade_test.cpp",
   "effect_kit/oh_filter_test/oh_filter_blurwithdirection_test.cpp",
+  "effect_kit/oh_filter_test/oh_filter_cascade_test.cpp",
   "effect_kit/oh_filter_test/oh_filter_gammacorrection_test.cpp",
   "effect_kit/oh_filter_test/oh_filter_mapcolorbybrightness_test.cpp",
   "effect_kit/oh_filter_test/oh_filter_masktransition_test.cpp",
