@@ -244,18 +244,16 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
     params.childHasVisibleFilter_ = true;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(params.ChildHasVisibleFilter());
- 
+
     drawable->isOffScreenWithClipHole_ = false;
     drawable->SetDrawBlurForCache(true);
     params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
- 
- 
+
     drawable->SetCacheType(DrawableCacheType::CONTENT);
     drawable->isOffScreenWithClipHole_ = false;
     drawable->SetDrawBlurForCache(false);
- 
     drawable->CheckCacheTypeAndDraw(canvas, params);
     EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
     EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), false);
