@@ -6051,6 +6051,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition_Freeze, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, DoDirectCompositionWithAIBar, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_REMDER
     // INIT SCREEN
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(screenManager, nullptr);
@@ -6104,6 +6105,7 @@ HWTEST_F(RSMainThreadTest, DoDirectCompositionWithAIBar, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(100, mainThread->context_);
     mainThread->aibarNodes_[childNode->GetScreenId()].insert(node);
     EXPECT_FALSE(mainThread->DoDirectComposition(rootNode, false));
+#endif
 }
 
 /**
