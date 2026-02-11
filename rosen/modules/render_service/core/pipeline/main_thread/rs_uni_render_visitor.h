@@ -134,11 +134,8 @@ public:
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 
     bool GetDumpRsTreeDetailEnabled() { return isDumpRsTreeDetailEnabled_; }
-
     uint16_t IncreasePrepareSeq() { return ++nodePreparedSeqNum_; }
-
     uint16_t IncreasePostPrepareSeq() { return ++nodePostPreparedSeqNum_; }
-
     void UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTreeSkipped = false, bool isPostPrepare = false);
 
     void ResetCrossNodesVisitedStatus();
