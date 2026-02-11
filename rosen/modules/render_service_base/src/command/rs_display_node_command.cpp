@@ -20,6 +20,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -144,6 +145,16 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
     if (!TrySetScreenNodeByScreenId(context, screenId, lambda)) {
         RS_LOGE("%{public}s Invalid ScreenId NodeId: %{public}" PRIu64
             ", curNodeId: %{public}" PRIu64, __func__, screenId, id);
+    }
+}
+
+void DisplayNodeCommandHelper::SetDisplayContentRect(RSContext& context, NodeId id,
+    const Drawing::Rect& contentRect)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {
+        node->SetDisplayContentRect(contentRect);
+    } else {
+        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
     }
 }
 

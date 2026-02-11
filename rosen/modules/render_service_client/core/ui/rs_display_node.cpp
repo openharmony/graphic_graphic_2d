@@ -26,6 +26,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_ui_context.h"
+#include "utils/rect.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -192,6 +193,16 @@ void RSDisplayNode::SetScreenId(uint64_t screenId)
     HILOG_COMM_INFO(
         "RSDisplayNode::SetScreenId, DisplayNode: %{public}" PRIu64 ", ScreenId: %{public}" PRIu64, GetId(), screenId);
     RS_TRACE_NAME_FMT("RSDisplayNode::SetScreenId, DisplayNode: %" PRIu64 ", ScreenId: %" PRIu64, GetId(), screenId);
+}
+
+void RSDisplayNode::SetDisplayContentRect(const Drawing::Rect& contentRect)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSDisplayNodeSetDisplayContentRect>(GetId(), contentRect);
+    AddCommand(command, true);
+    HILOG_COMM_INFO("RSDisplayNode::SetDisplayContentRect, DisplayNode: %{public}" PRIu64
+        ", contentRect: [%{public}f, %{public}f, %{public}f, %{public}f]",
+        GetId(), contentRect.left_, contentRect.top_, contentRect.right_, contentRect.bottom_);
 }
 
 void RSDisplayNode::SetForceCloseHdr(bool isForceCloseHdr)

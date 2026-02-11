@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_display_node.h"
+#include "utils/rect.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -448,5 +449,61 @@ HWTEST_F(RSDisplayNodeTest, SetVirtualScreenMuteStatus, TestSize.Level1)
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction();
     }
+}
+
+/**
+ * @tc.name: SetDisplayContentRect001
+ * @tc.desc: Test SetDisplayContentRect with normal rect values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, SetDisplayContentRect001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_TRUE(displayNode != nullptr);
+
+    Drawing::Rect contentRect(0.0f, 0.0f, 1920.0f, 1080.0f);
+    displayNode->SetDisplayContentRect(contentRect);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayContentRect002
+ * @tc.desc: Test SetDisplayContentRect with different rect values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, SetDisplayContentRect002, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_TRUE(displayNode != nullptr);
+
+    Drawing::Rect contentRect(100.0f, 50.0f, 1280.0f, 720.0f);
+    displayNode->SetDisplayContentRect(contentRect);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+
+    Drawing::Rect contentRect2(0.0f, 0.0f, 2560.0f, 1440.0f);
+    displayNode->SetDisplayContentRect(contentRect2);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayContentRect003
+ * @tc.desc: Test SetDisplayContentRect with null transaction proxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, SetDisplayContentRect003, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_TRUE(displayNode != nullptr);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+
+    Drawing::Rect contentRect(0.0f, 0.0f, 1920.0f, 1080.0f);
+    displayNode->SetDisplayContentRect(contentRect);
+    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 } // namespace OHOS::Rosen

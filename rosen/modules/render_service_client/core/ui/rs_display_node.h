@@ -114,6 +114,13 @@ public:
     void SetScreenId(uint64_t screenId);
 
     /**
+     * @brief Sets the display content rect.
+     *
+     * @param contentRect Indicates the content rect of the display.
+     */
+    void SetDisplayContentRect(const Drawing::Rect& contentRect);
+
+    /**
      * @brief Sets whether it is a security screen.
      *
      * The secure screen processes secure layers, while the non-secure screen processes insecure layers

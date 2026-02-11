@@ -23,6 +23,7 @@
 
 #include "params/rs_logical_display_render_params.h"
 #include "pipeline/rs_render_node.h"
+#include "utils/rect.h"
 
 
 namespace OHOS {
@@ -55,6 +56,16 @@ public:
     ScreenId GetScreenId() const
     {
         return screenId_;
+    }
+
+    void SetDisplayContentRect(const Drawing::Rect& contentRect)
+    {
+        contentRect_ = contentRect;
+    }
+
+    const Drawing::Rect& GetDisplayContentRect() const
+    {
+        return contentRect_;
     }
 
     bool IsValidScreenId() const
@@ -190,6 +201,7 @@ private:
     void InitRenderParams() override;
 
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    Drawing::Rect contentRect_;
     std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
 
     // bounds rotation

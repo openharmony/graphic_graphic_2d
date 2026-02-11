@@ -80,6 +80,7 @@ void RSLogicalDisplayRenderNode::UpdateRenderParams()
         return;
     }
     logicalDisplayRenderParam->screenId_ = screenId_;
+    logicalDisplayRenderParam->contentRect_ = contentRect_;
     logicalDisplayRenderParam->SetTopSurfaceOpaqueRects(std::move(topSurfaceOpaqueRects_));
     logicalDisplayRenderParam->screenRotation_ = GetScreenRotation();
     logicalDisplayRenderParam->nodeRotation_ = GetRotation();
