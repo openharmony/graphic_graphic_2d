@@ -30,7 +30,6 @@
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-#include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
 #endif
@@ -44,20 +43,19 @@ namespace OHOS::Rosen::DrawableV2 {
 namespace {
 constexpr int EDGE_WIDTH_LIMIT = 1000;
 constexpr float DRAW_REGION_FOR_DFX_BORDER = 5.0f;
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-const bool RENDER_DMA_ENABLED = RSUniRenderJudgement::IsUniRender() &&
-                                RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled() &&
-                                NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled();
-const bool PRE_ALLOCATE_DMA_ENABLED = RSUniRenderJudgement::IsUniRender() &&
-                                      RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled() &&
-                                      NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled();
-#endif
 } // namespace
 RSCanvasDrawingRenderNodeDrawable::Registrar RSCanvasDrawingRenderNodeDrawable::instance_;
 
 RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawable(std::move(node))
 {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    static std::once_flag flag;
+    std::call_once(flag, []() {
+        renderDmaEnabled_ &= NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled();
+        preAllocateDmaEnabled_ &= NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled();
+    });
+#endif
     auto renderNode = renderNode_.lock();
     if (renderNode == nullptr) {
         return;
@@ -72,12 +70,6 @@ RSCanvasDrawingRenderNodeDrawable::~RSCanvasDrawingRenderNodeDrawable()
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (curThreadInfo_.second && surface_) {
         curThreadInfo_.second(std::move(surface_));
-    }
-#endif
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (PRE_ALLOCATE_DMA_ENABLED) {
-        RSCanvasDmaBufferCache::GetInstance().ClearPendingBufferByNodeId(GetId());
     }
 #endif
 }
@@ -212,8 +204,9 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 {
     {
         std::optional<RSTagTracker> tagTracer;
-        if (renderParams_ && canvas_) {
-            tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+        auto gpuContext = GetGpuContext();
+        if (gpuContext && renderParams_) {
+            tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
                 RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
         }
         DrawContent(*canvas_, rect);
@@ -328,8 +321,8 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
         }
 
         std::optional<RSTagTracker> tagTracer;
-        if (canvas_) {
-            tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+        if (auto gpuContext = GetGpuContext()) {
+            tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
                 RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
         }
 
@@ -497,8 +490,9 @@ void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::sh
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     std::optional<RSTagTracker> tagTracer;
-    if (renderParams_ && canvas_) {
-        tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+    auto gpuContext = GetGpuContext();
+    if (gpuContext && renderParams_) {
+        tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
             RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
     }
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -790,10 +784,6 @@ bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
                 width, height);
             return false;
         }
-    } else {
-#ifdef ROSEN_OHOS
-        ReleaseDmaSurfaceBuffer(false);
-#endif
     }
     return true;
 }
@@ -801,7 +791,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
 #ifdef ROSEN_OHOS
 bool RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture(pid_t pid, int width, int height)
 {
-    if (!PRE_ALLOCATE_DMA_ENABLED && !RENDER_DMA_ENABLED) {
+    if (!preAllocateDmaEnabled_ && !renderDmaEnabled_) {
         return false;
     }
 
@@ -815,19 +805,19 @@ bool RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture(pid_t pid, int w
     bool hasClientBuffer = false;
     auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
     sptr<SurfaceBuffer> surfaceBuffer = nullptr;
-    if (PRE_ALLOCATE_DMA_ENABLED) {
+    if (preAllocateDmaEnabled_) {
         // Step 1: Check Pending Buffer
         surfaceBuffer = bufferCache.AcquirePendingBuffer(nodeId_, resetSurfaceIndex);
         dmaAllocationCount_.fetch_add(1, std::memory_order_relaxed);
         RS_TRACE_NAME_FMT("AcquirePendingBuffer: nodeId=%" PRIu64, nodeId_);
     }
     if (surfaceBuffer == nullptr) {
-        if (PRE_ALLOCATE_DMA_ENABLED) {
+        if (preAllocateDmaEnabled_) {
             dmaFallbackCount_.fetch_add(1, std::memory_order_relaxed);
             RS_TRACE_NAME_FMT("AcquirePendingBuffer fail, nodeId=%" PRIu64, nodeId_);
             RS_LOGE("AcquirePendingBuffer fail, nodeId=%{public}" PRIu64, nodeId_);
         }
-        if (RENDER_DMA_ENABLED) {
+        if (renderDmaEnabled_) {
             // Step 2: Create DMA SurfaceBuffer if no pending buffer
             surfaceBuffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(pid, width, height);
             willNotify = surfaceBuffer != nullptr;
@@ -860,7 +850,7 @@ bool RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture(pid_t pid, int w
 void RSCanvasDrawingRenderNodeDrawable::ReleaseDmaSurfaceBuffer(bool notifyOnly)
 {
     const auto& params = GetRenderParams();
-    if ((PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED) && params != nullptr) {
+    if ((preAllocateDmaEnabled_ || renderDmaEnabled_) && params != nullptr) {
         auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
         auto resetSurfaceIndex = params->GetCanvasDrawingResetSurfaceIndex();
         // Notify client to release DMA buffer
@@ -998,6 +988,17 @@ bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContext(std::shared_ptr<Drawin
         }
     }
     return true;
+}
+
+std::shared_ptr<Drawing::GPUContext> RSCanvasDrawingRenderNodeDrawable::GetGpuContext()
+{
+    if (canvas_ != nullptr) {
+        return canvas_->GetGPUContext();
+    }
+
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    GetCurrentContext(gpuContext);
+    return gpuContext;
 }
 
 bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetGL(
@@ -1270,9 +1271,18 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRegionForDfx(Drawing::Canvas& canvas
 void RSCanvasDrawingRenderNodeDrawable::DumpSubDrawableTree(std::string& out) const
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (PRE_ALLOCATE_DMA_ENABLED) {
+    if (preAllocateDmaEnabled_) {
         out += ", dmaAllocationCount:" + std::to_string(dmaAllocationCount_.load());
         out += ", dmaFallbackCount:" + std::to_string(dmaFallbackCount_.load());
+    }
+#endif
+}
+
+void RSCanvasDrawingRenderNodeDrawable::ClearCustomResource()
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (preAllocateDmaEnabled_) {
+        RSCanvasDmaBufferCache::GetInstance().ClearPendingBufferByNodeId(GetId());
     }
 #endif
 }

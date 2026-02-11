@@ -258,13 +258,13 @@ bool RSRenderInterface::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDispl
         node->GetId(), callback, captureConfig, checkDrmAndSurfaceLock);
 }
 
-bool RSRenderInterface::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze)
+bool RSRenderInterface::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze, bool needSync)
 {
     if (!node) {
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
-    return renderPiplineClient_->FreezeScreen(node->GetId(), isFreeze);
+    return renderPiplineClient_->FreezeScreen(node->GetId(), isFreeze, needSync);
 }
 
 bool RSRenderInterface::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
@@ -364,13 +364,13 @@ bool RSRenderInterface::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode
         node->GetId(), isFreeze, callback, captureConfig, blurParam);
 }
 
-void RSRenderInterface::DropFrameByPid(const std::vector<int32_t> pidList)
+void RSRenderInterface::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
     if (pidList.empty()) {
         return;
     }
     RS_TRACE_NAME("DropFrameByPid");
-    renderPiplineClient_->DropFrameByPid(pidList);
+    renderPiplineClient_->DropFrameByPid(pidList, dropFrameLevel);
 }
 
 void RSRenderInterface::SetWindowContainer(NodeId nodeId, bool value)
@@ -408,5 +408,10 @@ int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
     return renderPiplineClient_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif
+
+int32_t RSRenderInterface::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
+{
+    return renderPiplineClient_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+}
 }
 }

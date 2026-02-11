@@ -37,7 +37,6 @@ constexpr uint32_t MEM_UID_STRING_LEN = 8;
 constexpr uint32_t MEM_SURNODE_STRING_LEN = 40;
 constexpr uint32_t MEM_FRAME_STRING_LEN = 35;
 constexpr uint32_t MEM_NODEID_STRING_LEN = 20;
-constexpr uint32_t NUM_OF_NODE_THRESHOLD = 40000;
 const std::string ASHMEM_INFO_PATH = "/proc/ashmem_process_info";
 const std::string DMABUF_INFO_PATH = "/proc/process_dmabuf_info";
 #ifdef RS_ENABLE_UNI_RENDER
@@ -187,22 +186,6 @@ void MemoryTrack::AddNodeRecord(const NodeId id, const MemoryInfo& info)
     if (itr == memNodeMap_.end()) {
         memNodeMap_.emplace(id, info);
         memNodeOfPidMap_[info.pid].push_back(nodeInfoOfPid);
-        if (RSSystemProperties::GetRSNodeExceedKillEnabled()
-            && memNodeOfPidMap_[info.pid].size() > NUM_OF_NODE_THRESHOLD
-            && reportKillProcessSet_.find(info.pid) == reportKillProcessSet_.end()) {
-            std::string reason = "pid:[" + std::to_string(info.pid) + "], the number of node exceeds ths limit: "
-                + std::to_string(memNodeOfPidMap_[info.pid].size());
-            RS_LOGE("KillProcess, %{public}s", reason.c_str());
-            RS_TRACE_NAME_FMT("killProcess, %s", reason.c_str());
-#ifdef RS_ENABLE_UNI_RENDER
-            AAFwk::ExitReason killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
-            int32_t ret =
-                (int32_t)AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(info.pid, killReason);
-            if (ret == ERR_OK) {
-                reportKillProcessSet_.insert(info.pid);
-            }
-#endif
-        }
         return;
     } else if (info.size > itr->second.size) {
         nodeInfoOfPid.SetMemSize(itr->second.size);
@@ -274,7 +257,6 @@ MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
     auto nodeInfoOfPid = memNodeOfPidMap_[pid];
     if (nodeInfoOfPid.empty()) {
         memNodeOfPidMap_.erase(pid);
-        reportKillProcessSet_.erase(pid);
     } else {
         uint64_t totalMemSize = 0;
         std::for_each(nodeInfoOfPid.begin(), nodeInfoOfPid.end(), [&totalMemSize](MemoryNodeOfPid& info) {
@@ -313,6 +295,7 @@ void MemoryTrack::DumpMemoryStatistics(DfxString& log,
 
 void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log, bool isLite)
 {
+    RS_TRACE_NAME_FMT("MemoryTrack::DumpMemoryNodeStatistics pixlmap record size:%d", memPicRecord_.size());
     log.AppendFormat("\nRSRenderNode:\n");
     uint64_t totalSize = 0;
     int count = 0;
@@ -347,7 +330,6 @@ void MemoryTrack::RemovePidRecord(const pid_t pid)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     memNodeOfPidMap_.erase(pid);
-    reportKillProcessSet_.erase(pid);
 }
 
 void MemoryTrack::UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid)
@@ -495,6 +477,7 @@ std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::stri
 void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     std::function<std::tuple<uint64_t, std::string, RectI, bool>(uint64_t)> func, bool isLite)
 {
+    RS_TRACE_NAME_FMT("MemoryTrack::DumpMemoryPicStatistics memPicRecord_ size:%d", memPicRecord_.size());
     log.AppendFormat("RSImageCache:\n");
     MemoryStats stats;
     if (!isLite) log.AppendFormat("%s:\n", GenerateDumpTitle().c_str());

@@ -416,14 +416,6 @@ uint32_t CmdList::SetupImageLatticeObject(const std::vector<std::shared_ptr<Exte
     return imageLatticeObjectVec_.size();
 }
 
-void CmdList::CopyObjectTo(CmdList& other) const
-{
-#ifdef SUPPORT_OHOS_PIXMAP
-    other.imageObjectVec_ = imageObjectVec_;
-#endif
-    other.imageBaseObjVec_ = imageBaseObjVec_;
-}
-
 uint32_t CmdList::GetOpCnt() const
 {
     return opCnt_;

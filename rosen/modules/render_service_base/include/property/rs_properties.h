@@ -368,11 +368,7 @@ public:
     void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
     const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const
     {
-        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
-        if (effect_) {
-            return effect_->foregroundFilterCache_;
-        }
-        return defaultValue;
+        return foregroundFilterCache_;
     }
 
     // filter properties
@@ -394,16 +390,20 @@ public:
     std::shared_ptr<RSNGRenderShaderBase> GetBackgroundNGShader() const;
     void SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
     std::shared_ptr<RSNGRenderShaderBase> GetForegroundShader() const;
+    void InternalSetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape);
     void SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape);
     std::shared_ptr<RSNGRenderShapeBase> GetSDFShape() const;
     void SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetMaterialNGFilter() const;
+    void SetCompositingNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
+    std::shared_ptr<RSNGRenderFilterBase> GetCompositingNGFilter() const;
 
     // setter and getter of color picker related properties
     void SetColorPickerPlaceholder(int placeholder);
     void SetColorPickerStrategy(int strategy);
     void SetColorPickerInterval(int interval);
-    void SetColorPickerNotifyThreshold(int threshold);
+    void SetColorPickerNotifyThreshold(int packedThresholds); // packed: lower 16 bits = dark, upper 16 bits = light
+    void SetColorPickerRect(const Vector4f& rect); // [left, top, right, bottom]
     std::shared_ptr<ColorPickerParam> GetColorPicker() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
@@ -463,11 +463,7 @@ public:
     void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const
     {
-        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
-        if (effect_) {
-            return effect_->backgroundFilter_;
-        }
-        return defaultValue;
+        return backgroundFilter_;
     }
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::vector<std::shared_ptr<EmitterUpdater>>& GetEmitterUpdater() const;
@@ -477,11 +473,7 @@ public:
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const
     {
-        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
-        if (effect_) {
-            return effect_->filter_;
-        }
-        return defaultValue;
+        return filter_;
     }
     const std::shared_ptr<RSFilter>& GetMaterialFilter() const
     {
@@ -508,11 +500,7 @@ public:
     }
     const std::shared_ptr<RSFilter>& GetForegroundFilter() const
     {
-        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
-        if (effect_) {
-            return effect_->foregroundFilter_;
-        }
-        return defaultValue;
+        return foregroundFilter_;
     }
     void SetForegroundFilter(const std::shared_ptr<RSFilter>& foregroundFilter);
 
@@ -939,7 +927,6 @@ private:
         std::optional<float> dynamicDimDegree_;
         bool needDrawBehindWindow_ = false;
         int useEffectType_ = 0;
-        std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
         std::optional<RSShadowBlenderPara> shadowBlenderParams_;
         std::optional<std::vector<float>> complexShaderParam_;
         int pixelStretchTileMode_ = 0;
@@ -978,19 +965,16 @@ private:
         Color backgroundMaskColor_ = RSColor();
         Color foregroundMaskColor_ = RSColor();
         std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
-        std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
         float foregroundEffectRadius_ = 0.f;
-        std::shared_ptr<RSFilter> foregroundFilter_ = nullptr;
-        std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
         int colorBlendMode_ = 0;
         int colorBlendApplyType_ = 0;
         std::optional<Color> colorBlend_;
-        std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
-        std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
-        std::shared_ptr<RSNGRenderFilterBase> mtNGRenderFilter_ = nullptr;
+        std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr; // for background render
+        std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr; // for foreground render
+        std::shared_ptr<RSNGRenderFilterBase> mtNGRenderFilter_ = nullptr; // for material filter render
+        std::shared_ptr<RSNGRenderFilterBase> cgNGRenderFilter_ = nullptr; // for compositing render
         std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
-        std::shared_ptr<RSFilter> filter_ = nullptr;
         std::shared_ptr<RSFilter> materialFilter_ = nullptr;
     };
     inline float DecreasePrecision(float value)
@@ -1040,10 +1024,19 @@ private:
     std::unique_ptr<CommonEffectParams> effect_;
 
     /**
-    * Avoid using this unless you need to modify CommonEffectParams.
-    * Creates the object with memory allocation if it doesn't exist.
-    * Prefer the const version for read-only access.
-    */
+     * Use this only when you need to ensure CommonEffectParams exists for modification.
+     * Creates the object with memory allocation if it doesn't exist.
+     * For conditional modifications within this class, prefer USING WITH_EFFECT macro
+     * or GetXXXMember func to avoid unnecessary memory allocation.
+     * Examples:
+     * ✅ GetEffect().requiredMember = value;        // Must exist, value is meaningful
+     * ❌ GetEffect().optionalMem = nullptr;         // May create unnecessarily
+     * ❌ GetEffect().optionalMem = std::nullopt;    // May create unnecessarily
+     * ❌ GetEffect().optionalMem.reset();           // May create unnecessarily
+     * ✅ WITH_EFFECT(optionalMem = nullptr);        // Safe, no allocation
+     * ✅ WITH_EFFECT(optionalMem = std::nullopt);   // Safe, no allocation
+     * ✅ WITH_EFFECT(optionalMem.reset());          // Safe, no allocation
+     */
     CommonEffectParams& GetEffect()
     {
         if (effect_ == nullptr) {
@@ -1099,11 +1092,16 @@ private:
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
+    std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
+    std::shared_ptr<RSFilter> filter_ = nullptr;
+    std::shared_ptr<RSFilter> foregroundFilter_ = nullptr;
+    std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     std::weak_ptr<RSRenderNode> backref_;
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
     RRect rrect_ = RRect{};
     RSObjGeometry frameGeo_;
     std::optional<Vector4f> cornerRadius_;
+    std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
     int cornerApplyType_ = 0;
 
     std::optional<Decoration> decoration_;

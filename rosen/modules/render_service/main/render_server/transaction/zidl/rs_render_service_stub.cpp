@@ -58,12 +58,11 @@ int RSRenderServiceStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-
             if (!remoteObj->IsProxyObject()) {
+                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION remoteObj !IsProxyObject() failed!");
                 ret = ERR_UNKNOWN_OBJECT;
                 break;
             }
-
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
             auto [newConn, newRenderConn] = CreateConnection(token);
             if (newConn != nullptr && newRenderConn != nullptr) {

@@ -51,7 +51,7 @@ std::optional<double> CommonUtils::StringToDouble(const std::string& str)
 {
     char* end = nullptr;
     errno = 0;
-    float val = strtod(str.c_str(), &end);
+    double val = strtod(str.c_str(), &end);
     if (end == str) {
         SAFUZZ_LOGE("Conversion failed: No valid number.");
         return std::nullopt;

@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
-#include "transaction/rs_render_service_client.h"
 #include "transaction/rs_render_pipeline_client.h"
+
+#include <iremote_stub.h>
+#include "rs_render_service_connect_hub.h"
 #include "surface_type.h"
 #include "rs_trace.h"
 #include "surface_utils.h"
@@ -32,7 +34,9 @@
 #include "command/rs_node_showing_command.h"
 #include "common/rs_xcollie.h"
 #include "ipc_callbacks/brightness_info_change_callback_stub.h"
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
+#endif
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/screen_switching_notify_callback_stub.h"
@@ -48,7 +52,6 @@
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
 #include "render/rs_typeface_cache.h"
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
@@ -288,14 +291,14 @@ bool RSRenderPipelineClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
     return true;
 }
 
-bool RSRenderPipelineClient::FreezeScreen(NodeId id, bool isFreeze)
+bool RSRenderPipelineClient::FreezeScreen(NodeId id, bool isFreeze, bool needSync)
 {
     auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("%{public}s renderPipeline == nullptr!", __func__);
         return false;
     }
-    renderPipeline->FreezeScreen(id, isFreeze);
+    renderPipeline->FreezeScreen(id, isFreeze, needSync);
     return true;
 }
 
@@ -369,11 +372,11 @@ int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSt
     return resCode;
 }
 
-void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t> pidList)
+void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
     auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline != nullptr) {
-        renderPipeline->DropFrameByPid(pidList);
+        renderPipeline->DropFrameByPid(pidList, dropFrameLevel);
     }
 }
 
@@ -607,5 +610,17 @@ int32_t RSRenderPipelineClient::SubmitCanvasPreAllocatedBuffer(
     return renderPipeline->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif // ROSEN_OHOS && RS_ENABLE_VK
+
+int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::SetLogicalCameraRotationCorrection renderPipeline is nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    RS_LOGD("RSRenderPipelineClient::SetLogicalCameraRotationCorrection, screenId: %{public}"
+        PRIu64 ", logicalCorrection: %{public}u", id, logicalCorrection);
+    return renderPipeline->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+}
 } // namespace Rosen
 } // namespace OHOS

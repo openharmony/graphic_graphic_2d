@@ -46,6 +46,7 @@ int32_t g_pid;
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
 RSMainThread* mainThread_ = RSMainThread::Instance();
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
 sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
 const std::string CONFIG_FILE = "/etc/unirender.config";
 std::string g_originTag = "";
@@ -63,8 +64,10 @@ const uint8_t DO_GET_SCREEN_COLORSPACE = 8;
 const uint8_t DO_SET_SCREEN_COLORSPACE = 9;
 const uint8_t DO_GET_SCREEN_TYPE = 10;
 const uint8_t DO_SET_SCREEN_SKIP_FRAME_INTERVAL = 11;
+const uint8_t DO_GET_SCREEN_HDR_STATUS = 12;
+const uint8_t DO_SET_LOGICAL_CAMERA_ROTATION_CORRECTION = 13;
 const uint8_t TARGET_SIZE = 14;
-const uint8_t DO_GET_SCREEN_HDR_STATUS = 15;
+
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -311,7 +314,22 @@ void DoGetScreenHDRStatus()
     ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoSetLogicalCameraRotationCorrection()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    uint32_t logicalCorrection = GetData<uint32_t>();
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint32(logicalCorrection);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -333,6 +351,8 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
     OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr,
+        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token->AsObject(), appVSyncDistributor_);
+    OHOS::Rosen::toRenderConnectionStub_ = new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, nullptr,
         OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token->AsObject(), appVSyncDistributor_);
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
@@ -391,6 +411,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_SCREEN_HDR_STATUS:
             OHOS::Rosen::DoGetScreenHDRStatus();
+            break;
+        case OHOS::Rosen::DO_SET_LOGICAL_CAMERA_ROTATION_CORRECTION:
+            OHOS::Rosen::DoSetLogicalCameraRotationCorrection();
             break;
         default:
             return -1;

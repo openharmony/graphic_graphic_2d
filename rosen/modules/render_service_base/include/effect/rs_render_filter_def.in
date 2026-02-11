@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,17 @@
 
 DECLARE_FILTER(Blur, BLUR,
     ADD_PROPERTY_TAG(Blur, RadiusX),
-    ADD_PROPERTY_TAG(Blur, RadiusY)
+    ADD_PROPERTY_TAG(Blur, RadiusY),
+    ADD_PROPERTY_TAG(Blur, DisableSystemAdaptation)
+);
+
+DECLARE_FILTER(MaterialBlur, MATERIAL_BLUR,
+    ADD_PROPERTY_TAG(MaterialBlur, Radius),
+    ADD_PROPERTY_TAG(MaterialBlur, Saturation),
+    ADD_PROPERTY_TAG(MaterialBlur, Brightness),
+    ADD_PROPERTY_TAG(MaterialBlur, MaskColor),
+    ADD_PROPERTY_TAG(MaterialBlur, ColorMode),
+    ADD_PROPERTY_TAG(MaterialBlur, DisableSystemAdaptation)
 );
 
 DECLARE_FILTER(DispDistort, DISPLACEMENT_DISTORT,
@@ -120,6 +130,7 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, BgKBS),
     ADD_PROPERTY_TAG(FrostedGlass, BgPos),
     ADD_PROPERTY_TAG(FrostedGlass, BgNeg),
+    ADD_PROPERTY_TAG(FrostedGlass, BgAlpha),
     ADD_PROPERTY_TAG(FrostedGlass, RefractParams),
     ADD_PROPERTY_TAG(FrostedGlass, SdParams),
     ADD_PROPERTY_TAG(FrostedGlass, SdRates),
@@ -139,6 +150,7 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, EdLightPos),
     ADD_PROPERTY_TAG(FrostedGlass, EdLightNeg),
     ADD_PROPERTY_TAG(FrostedGlass, Shape),
+    ADD_PROPERTY_TAG(FrostedGlass, WaveMask),
     ADD_PROPERTY_TAG(FrostedGlass, BaseVibrancyEnabled),
     ADD_PROPERTY_TAG(FrostedGlass, BaseMaterialType),
     ADD_PROPERTY_TAG(FrostedGlass, MaterialColor),
@@ -172,12 +184,6 @@ DECLARE_FILTER(GridWarp, GRID_WARP,
     ADD_PROPERTY_TAG(GridWarp, RotationAngle8)
 );
 
-DECLARE_FILTER(FrostedGlassBlur, FROSTED_GLASS_BLUR,
-    ADD_PROPERTY_TAG(FrostedGlassBlur, Radius),
-    ADD_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK),
-    ADD_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx)
-);
-
 DECLARE_FILTER(Magnifier, MAGNIFIER,
     ADD_PROPERTY_TAG(Magnifier, Factor),
     ADD_PROPERTY_TAG(Magnifier, Width),
@@ -196,6 +202,12 @@ DECLARE_FILTER(Magnifier, MAGNIFIER,
     ADD_PROPERTY_TAG(Magnifier, GradientMaskColor2),
     ADD_PROPERTY_TAG(Magnifier, OuterContourColor1),
     ADD_PROPERTY_TAG(Magnifier, OuterContourColor2)
+);
+
+DECLARE_FILTER(FrostedGlassBlur, FROSTED_GLASS_BLUR,
+    ADD_PROPERTY_TAG(FrostedGlassBlur, Radius),
+    ADD_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK),
+    ADD_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx)
 );
 
 DECLARE_FILTER(SDFEdgeLight, SDF_EDGE_LIGHT,

@@ -68,9 +68,8 @@ constexpr int64_t REMAINING_TIME_THRESHOLD_LARGER = 500000; // 500000ns == 0.5ms
 constexpr int64_t ONE_SECOND_FOR_CALCUTE_FREQUENCY = 1000000000; // 1000000000ns == 1s
 constexpr uint32_t MAX_LISTENERS_AMOUNT = 2;
 constexpr uint32_t MAX_ADAPTIVE_PERIOD = 2;
-constexpr uint32_t BLOCK_ADAPTIVE_SYNC_COUNT = 1;
-constexpr uint32_t LAST_VSYNC_TIME_THRESHOLD = 2;
-constexpr int64_t VSYNC_RS_OFFSET_FOR_AS = 1620000; // 2.7ms * 0.6 == 1.62ms
+constexpr uint32_t BLOCK_ADAPTIVE_SYNC_COUNT = 2; // threshold of prohibited periods for triggering AdaptiveSync
+constexpr uint32_t LAST_VSYNC_TIME_THRESHOLD = 2; // threshold between the now and lastVsyncTime
 
 // minimum ratio of dvsync thread
 constexpr double DVSYNC_PERIOD_MIN_INTERVAL = 0.6;
@@ -709,10 +708,6 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, referenceTime);
         if (t - SystemTime() < ERROR_THRESHOLD) {
-            if (listeners_[i].isRS_) {
-                lastVsyncRsInterval_ = t - listeners_[i].lastTime_;
-                lastVsyncRsTime_ = t;
-            }
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
         }
@@ -823,15 +818,20 @@ void VSyncGenerator::SetAdaptive(bool isAdaptive)
     isAdaptive_ = isAdaptive;
 }
 
+void VSyncGenerator::SetUpdateModeTimeForAS(int64_t time)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    updateModeTimeForAS_ = time;
+}
+
 bool VSyncGenerator::IsNeedAdaptiveAfterUpdateMode()
 {
     std::lock_guard<std::mutex> locker(mutex_);
     int64_t now = SystemTime();
-    bool needAS = std::abs(lastVsyncRsInterval_ - period_) < VSYNC_RS_OFFSET_FOR_AS ||
-                  now - lastVsyncRsTime_ > static_cast<int64_t>(BLOCK_ADAPTIVE_SYNC_COUNT) * period_;
+    bool needAS = now - updateModeTimeForAS_ > static_cast<int64_t>(BLOCK_ADAPTIVE_SYNC_COUNT) * period_;
     if (!needAS) {
-        RS_TRACE_NAME_FMT("block AS, lastVsyncRsInterval: %" PRId64 ", period: %" PRId64 ", lastVsyncTime: "
-            "%" PRId64 ", now: %" PRId64, lastVsyncRsInterval_, period_, lastVsyncRsTime_, now);
+        RS_TRACE_NAME_FMT("block AS, updateModeTimeForAS: %" PRId64 ", period: %" PRId64 ", now: %" PRId64,
+                           updateModeTimeForAS_, period_, now);
     }
     return needAS;
 }
@@ -965,6 +965,8 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
 
     VsyncError ret = SetExpectNextVsyncTimeInternal(expectNextVsyncTime);
 
+    ChangeVSyncTE(generatorRefreshRate);
+
     if ((generatorRefreshRate <= 0 || (vsyncMaxRefreshRate_ % generatorRefreshRate != 0))) {
         RS_TRACE_NAME_FMT("Not support this refresh rate: %u", generatorRefreshRate);
         VLOGE("Not support this refresh rate: %{public}u", generatorRefreshRate);
@@ -991,6 +993,22 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
 
     WaitForTimeoutConNotifyLockedForRefreshRate();
     return ret;
+}
+
+void VSyncGenerator::ChangeVSyncTE(uint32_t generatorRefreshRate)
+{
+    // triggers only when set to a multiple of 144hz and switch 144hz
+    if (vsyncMaxTE144_ != 0) {
+        if (generatorRefreshRate == VSYNC_144_HZ) {
+            vsyncMaxRefreshRate_ = vsyncMaxTE144_;
+            pulse_ = ONE_SECOND_FOR_CALCUTE_FREQUENCY / static_cast<int64_t>(vsyncMaxRefreshRate_);
+            RS_TRACE_NAME_FMT("vsync TE change to %u, pulse:%" PRId64, vsyncMaxRefreshRate_, pulse_);
+        } else if (vsyncMaxRefreshRate_ == vsyncMaxTE144_) {
+            vsyncMaxRefreshRate_ = vsyncMaxTE_;
+            pulse_ = ONE_SECOND_FOR_CALCUTE_FREQUENCY / static_cast<int64_t>(vsyncMaxRefreshRate_);
+            RS_TRACE_NAME_FMT("vsync TE change back to %u, pulse:%" PRId64, vsyncMaxRefreshRate_, pulse_);
+        }
+    }
 }
 
 void VSyncGenerator::UpdateChangeRefreshRatesLocked(const ListenerRefreshRateData &listenerRefreshRates)
@@ -1071,6 +1089,30 @@ VsyncError VSyncGenerator::SetVSyncMaxRefreshRate(uint32_t refreshRate)
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     vsyncMaxRefreshRate_ = refreshRate;
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VSyncGenerator::SetVSyncMaxTE(uint32_t maxTE)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    if (maxTE < VSYNC_MAX_REFRESHRATE_RANGE_MIN ||
+        maxTE > VSYNC_MAX_REFRESHRATE_RANGE_MAX) {
+        VLOGE("Not support max TE: %{public}u", maxTE);
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    vsyncMaxTE_ = maxTE;
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VSyncGenerator::SetVSyncMaxTE144(uint32_t maxTE144)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    if (maxTE144 < VSYNC_MAX_REFRESHRATE_RANGE_MIN ||
+        maxTE144 > VSYNC_MAX_REFRESHRATE_RANGE_MAX) {
+        VLOGE("Not support max TE 144: %{public}u", maxTE144);
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    vsyncMaxTE144_ = maxTE144;
     return VSYNC_ERROR_OK;
 }
 

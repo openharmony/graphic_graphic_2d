@@ -167,6 +167,7 @@ export default namespace text {
       this.cleaner = new Cleaner("Paragraph", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
+    native layoutWithConstraints(constraint: TextRectSize): TextLayoutResult;
     native layoutSync(width: double): void;
     async layout(width: double): Promise<void> {
       return taskpool.execute((): void => {
@@ -201,6 +202,9 @@ export default namespace text {
     private native nativeGetLineMetricsAt(lineNumber: int): LineMetrics | undefined;
     native updateColor(color: common2D.Color): void;
     native updateDecoration(decoration: Decoration): void;
+    native getCharacterRangeForGlyphRange(glyphRange: Range, encoding: drawing.TextEncoding): Array<Range>;
+    native getGlyphRangeForCharacterRange(characterRange: Range, encoding: drawing.TextEncoding): Array<Range>;
+    native getCharacterPositionAtCoordinate(x: double, y: double, encoding: drawing.TextEncoding): PositionWithAffinity;
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
@@ -279,6 +283,11 @@ export default namespace text {
     BREAK_HYPHEN,
   }
 
+  export enum LineHeightStyle {
+    FONT_SIZE = 0,
+    FONT_HEIGHT = 1,
+  }
+
   export interface StrutStyle {
     fontFamilies?: Array<string>;
     fontStyle?: FontStyle;
@@ -314,6 +323,7 @@ export default namespace text {
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
+    lineSpacing?: double;
   }
 
   export interface TextShadow {
@@ -359,6 +369,10 @@ export default namespace text {
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
     badgeType?: TextBadgeType;
+    lineHeightMaximum?: double;
+    lineHeightMinimum?: double;
+    lineHeightStyle?: LineHeightStyle;
+    fontWidth?: FontWidth;
   }
 
   class TextStyleInternal implements TextStyle {
@@ -383,6 +397,10 @@ export default namespace text {
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
     badgeType?: TextBadgeType;
+    lineHeightMaximum?: double;
+    lineHeightMinimum?: double;
+    lineHeightStyle?: LineHeightStyle;
+    fontWidth?: FontWidth;
     constructor(
       decoration: Decoration,
       color: common2D.Color,
@@ -403,7 +421,11 @@ export default namespace text {
       fontFeatures: Array<FontFeature>,
       textShadows: Array<TextShadow>,
       backgroundRect: RectStyle,
-      badgeType: TextBadgeType
+      badgeType: TextBadgeType,
+      lineHeightMaximum: double,
+      lineHeightMinimum: double,
+      lineHeightStyle: LineHeightStyle,
+      fontWidth: FontWidth
     ) {
       this.decoration = decoration;
       this.color = color;
@@ -425,6 +447,10 @@ export default namespace text {
       this.textShadows = textShadows;
       this.backgroundRect = backgroundRect;
       this.badgeType = badgeType;
+      this.lineHeightMaximum = lineHeightMaximum;
+      this.lineHeightMinimum = lineHeightMinimum;
+      this.lineHeightStyle = lineHeightStyle;
+      this.fontWidth = fontWidth;
     }
   }
 
@@ -1017,4 +1043,35 @@ export default namespace text {
 
   export native function setTextUndefinedGlyphDisplay(noGlyphShow: TextUndefinedGlyphDisplay): void;
   export native function isFontSupported(fontURL: Resource | string): boolean;
+
+  export interface TextRectSize {
+    width: double;
+    height: double;
+  }
+
+  class TextRectSizeInternal implements TextRectSize {
+    width: double;
+    height: double;
+    constructor(width: double, height: double) {
+      this.width = width;
+      this.height = height;
+    }
+  }
+
+  export interface TextLayoutResult {
+    fitStrRange: Array<Range>;
+    correctRect: TextRectSize;
+  }
+
+  class TextLayoutResultInternal implements TextLayoutResult {
+    fitStrRange: Array<Range>;
+    correctRect: TextRectSize;
+    constructor(
+      fitStrRange: Array<Range>,
+      correctRect: TextRectSize
+    ) {
+      this.fitStrRange = fitStrRange;
+      this.correctRect = correctRect;
+    }
+  }
 }

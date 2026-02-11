@@ -409,6 +409,29 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     return true;
 }
 
+bool GetTextRectFromJS(napi_env env, napi_value argValue, TextRectSize& rect)
+{
+    napi_valuetype valueType = napi_undefined;
+    if (argValue == nullptr || napi_typeof(env, argValue, &valueType) != napi_ok || valueType != napi_object) {
+        return false;
+    }
+    SetDoubleValueFromJS(env, argValue, "width", rect.width);
+    SetDoubleValueFromJS(env, argValue, "height", rect.height);
+    return true;
+}
+
+napi_value CreateLayoutResultJsValue(napi_env env, const OHOS::Rosen::TextLayoutResult& layoutResult)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "fitStrRange",
+            CreateFitRangeArrayJsValue(env, layoutResult.fitStrRange));
+        napi_set_named_property(env, objValue, "correctRect", CreateLayoutRectJsValue(env, layoutResult.correctRect));
+    }
+    return objValue;
+}
+
 static void SetAlignValueForParagraphStyle(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
 {
     if (argValue == nullptr) {
@@ -647,6 +670,40 @@ napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& line
     return objValue;
 }
 
+napi_value CreateLayoutRectJsValue(napi_env env, const OHOS::Rosen::TextRectSize& rect)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "width", CreateJsNumber(env, rect.width));
+        napi_set_named_property(env, objValue, "height", CreateJsNumber(env, rect.height));
+    }
+    return objValue;
+}
+
+napi_value CreateFitRangeArrayJsValue(napi_env env, const std::vector<OHOS::Rosen::TextRange>& fitRangeArr)
+{
+    napi_value returnFitRangeArr = nullptr;
+    NAPI_CALL(env, napi_create_array(env, &returnFitRangeArr));
+    int num = static_cast<int>(fitRangeArr.size());
+    for (int index = 0; index < num; ++index) {
+        napi_value tempValue = CreateFitRangeJsValue(env, fitRangeArr[index]);
+        napi_set_element(env, returnFitRangeArr, index, tempValue);
+    }
+    return returnFitRangeArr;
+}
+
+napi_value CreateFitRangeJsValue(napi_env env, const OHOS::Rosen::TextRange& fitRange)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "start", CreateJsNumber(env, (uint32_t)fitRange.start));
+        napi_set_named_property(env, objValue, "end", CreateJsNumber(env, (uint32_t)fitRange.end));
+    }
+    return objValue;
+}
+
 napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>& textShadows)
 {
     napi_value jsArray = nullptr;
@@ -678,7 +735,7 @@ napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>&
         }
         index++;
     }
-    
+
     return jsArray;
 }
 
@@ -1097,7 +1154,7 @@ NapiTextResult ProcessResource(ResourceInfo& info, std::function<NapiTextResult(
         return fileCB(rawData.get(), dataLen);
     }
     TEXT_LOGE("Invalid resource type %{public}d", info.type);
-    return NapiTextResult::Invalid();
+    return NapiTextResult::BusinessInvalid();
 }
 
 bool SplitAbsolutePath(std::string& absolutePath)

@@ -4181,6 +4181,9 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed003, TestSiz
     rsRenderThreadParams->SetWatermark(true, img);
     params->screenRotation_ = ScreenRotation::ROTATION_0;
     displayDrawable_->DrawWatermarkIfNeed(canvas);
+    
+    Drawing::Rect dstRect(0, 0, 400, 400);
+    displayDrawable_->DrawWatermarkIfNeed(canvas, dstRect);
 }
 
 /**

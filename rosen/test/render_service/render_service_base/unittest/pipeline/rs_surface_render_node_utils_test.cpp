@@ -48,6 +48,7 @@ HWTEST_F(RSSurfaceRenderNodeUtilsTest, IntersectHwcDamageWithTest, TestSize.Leve
     EXPECT_FALSE(RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(*node, rect));
 
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    node->SetHardwareEnabled(true);
     auto tempHandler = node->surfaceHandler_;
     node->surfaceHandler_ = nullptr;
     EXPECT_FALSE(RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(*node, rect));

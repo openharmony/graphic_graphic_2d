@@ -46,7 +46,6 @@
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
-#include "rs_hrp_service.h"
 #include "rs_irender_client.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "screen_manager/rs_screen_capability.h"
@@ -80,7 +79,6 @@ using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
 using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigData>)>;
-using OnRemoteDiedCallback = std::function<void()>;
 using HgmRefreshRateModeChangeCallback = std::function<void(int32_t)>;
 using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
 using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, const std::string&, int32_t)>;
@@ -88,17 +86,16 @@ using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData
 using SelfDrawingNodeRectChangeCallback = std::function<void(std::shared_ptr<RSSelfDrawingNodeRectData>)>;
 using FirstFrameCommitCallback = std::function<void(uint64_t, int64_t)>;
 
-
 class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient {
 public:
     RSRenderPipelineClient() = default;
     ~RSRenderPipelineClient() = default;
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
+
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig,
-        const RSSurfaceCaptureBlurParam& blurParam = {},
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
@@ -114,7 +111,7 @@ public:
         std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         bool checkDrmAndSurfaceLock);
 
-    bool FreezeScreen(NodeId id, bool isFreeze);
+    bool FreezeScreen(NodeId id, bool isFreeze, bool needSync = false);
 
     bool TakeUICaptureInRange(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
@@ -130,7 +127,7 @@ public:
 
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
-    void DropFrameByPid(const std::vector<int32_t> pidList);
+    void DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0);
 
     bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         std::shared_ptr<SurfaceBufferCallback> callback);
@@ -150,6 +147,8 @@ public:
 
     int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
+
+    int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
@@ -212,4 +211,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICE_BASE_CLIENT_RENDER_COMM_DEF_INFO_H
+#endif // RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_PIPELINE_CLIENT_H

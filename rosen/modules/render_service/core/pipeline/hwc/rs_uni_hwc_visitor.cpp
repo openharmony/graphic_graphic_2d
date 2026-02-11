@@ -567,6 +567,10 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
         }
     });
     PrintHiperfCounterLog("counter1", static_cast<uint64_t>(inputHwclayers));
+
+    // NEW: Apply ColorPicker disable
+    UpdateHwcNodeEnableByColorPicker();
+
     uniRenderVisitor_.PrevalidateHwcNode();
     UpdateHwcNodeEnableByNodeBelow();
     uniRenderVisitor_.UpdateAncoNodeHWCDisabledState(ancoNodes);
@@ -875,8 +879,7 @@ void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRen
     if (!node) {
         return;
     }
-    if (filterZOrder != 0 && node->GetHwcRecorder().GetZOrderForHwcEnableByFilter() != 0 &&
-        node->GetInstanceRootNodeId() == filterNode.GetInstanceRootNodeId() &&
+    if (node->GetInstanceRootNodeId() == filterNode.GetInstanceRootNodeId() &&
         RSUniHwcComputeUtil::IsBlendNeedBackground(filterNode) && uniRenderVisitor_.curSurfaceNode_ &&
         uniRenderVisitor_.curSurfaceNode_->GetId() == node->GetInstanceRootNodeId() &&
         RsCommonHook::Instance().GetFilterUnderHwcConfigByApp(node->GetBundleName()) == "1") {
@@ -1036,6 +1039,45 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalDirtyFilter(
             Statistics().UpdateHwcDisabledReasonForDFX(hwcNode.GetId(),
                 HwcDisabledReasons::DISABLED_BY_TRANSPARENT_DIRTY_FLITER, hwcNode.GetName());
             break;
+        }
+    }
+}
+
+namespace {
+void ColorPickerCheckHwcIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+    const RectI& colorPickerRect)
+{
+    if (!hwcNode || !hwcNode->IsOnTheTree() || hwcNode->IsHardwareForcedDisabled()) {
+        return;
+    }
+
+    RectI hwcNodeRect = hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+    if (!colorPickerRect.IntersectRect(hwcNodeRect).IsEmpty()) {
+        hwcNode->SetHardwareForcedDisabledState(true);
+        RS_OPTIONAL_TRACE_FMT("ColorPicker: rect [%d,%d,%d,%d] intersects node %s id:%" PRIu64
+            " (rect: [%d,%d,%d,%d]) - disabling",
+            colorPickerRect.left_, colorPickerRect.top_, colorPickerRect.width_, colorPickerRect.height_,
+            hwcNode->GetName().c_str(), hwcNode->GetId(), hwcNodeRect.left_, hwcNodeRect.top_,
+            hwcNodeRect.width_, hwcNodeRect.height_);
+    }
+}
+} // namespace
+
+void RSUniHwcVisitor::UpdateHwcNodeEnableByColorPicker()
+{
+    for (const auto& [_, colorPickerRect] : colorPickerHwcDisabledSurfaces_) {
+        auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
+        for (auto& surfaceNodePtr : curMainAndLeashSurfaces) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNodePtr);
+            if (!surfaceNode) {
+                continue;
+            }
+
+            const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
+            for (const auto& hwcNodeWeak : hwcNodes) {
+                auto hwcNode = hwcNodeWeak.lock();
+                ColorPickerCheckHwcIntersection(hwcNode, colorPickerRect);
+            }
         }
     }
 }
@@ -1322,12 +1364,14 @@ void RSUniHwcVisitor::PrintHiperfLog(const std::shared_ptr<RSSurfaceRenderNode>&
 void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     const Drawing::Matrix& absMatrix, bool subTreeSkipped)
 {
-    if (!node.IsHardwareForcedDisabled() && node.HwcSurfaceRecorder().IsIntersectWithPreviousFilter()) {
-        node.SetHardwareForcedDisabledState(true);
-        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by node intersect with previous filter",
-            node.GetName().c_str(), node.GetId());
-        Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
-            HwcDisabledReasons::DISABLED_BY_PREVIOUS_FLITER_RECT, node.GetName());
+    if (node.IsHardwareForcedDisabled() != node.HwcSurfaceRecorder().IsIntersectWithPreviousFilter()) {
+        node.SetHardwareForcedDisabledState(node.HwcSurfaceRecorder().IsIntersectWithPreviousFilter());
+        if (node.HwcSurfaceRecorder().IsIntersectWithPreviousFilter()) {
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by node intersect with previous filter",
+                node.GetName().c_str(), node.GetId());
+            Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
+                HwcDisabledReasons::DISABLED_BY_PREVIOUS_FLITER_RECT, node.GetName());
+        }
     }
     node.HwcSurfaceRecorder().SetIntersectWithPreviousFilter(false);
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||

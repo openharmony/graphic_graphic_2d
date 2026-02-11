@@ -80,6 +80,9 @@ void RSRenderNodeGC::NodeDestructor(RSRenderNode* ptr)
 
 void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
 {
+    if (ptr == nullptr) {
+        return;
+    }
     AddNodeToBucket(ptr);
     DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
 }
@@ -169,6 +172,9 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
             if (isEnable_.load() == false &&
                 nodeGCLevel_ != GCLevel::IMMEDIATE) {
                 return;
+            }
+            if (nodeGCLevel_ == GCLevel::IMMEDIATE) {
+                RS_LOGI_LIMIT("RSRenderNodeGC::ReleaseNodeMemory IMMEDIATE");
             }
             ReleaseNodeBucket();
             if (highPriority && drawableReleaseFunc_) {

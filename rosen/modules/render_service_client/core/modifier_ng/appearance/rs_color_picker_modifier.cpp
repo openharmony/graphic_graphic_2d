@@ -55,4 +55,14 @@ uint32_t RSColorPickerModifier::GetColorPickerNotifyThreshold() const
 {
     return static_cast<uint32_t>(Getter(RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD, 0));
 }
+
+void RSColorPickerModifier::SetColorPickerRect(const Vector4f& rect)
+{
+    Setter<RSProperty>(RSPropertyType::COLOR_PICKER_RECT, rect);
+}
+
+Vector4f RSColorPickerModifier::GetColorPickerRect() const
+{
+    return Getter<Vector4f>(RSPropertyType::COLOR_PICKER_RECT, Vector4f());
+}
 } // namespace OHOS::Rosen::ModifierNG

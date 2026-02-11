@@ -439,6 +439,7 @@ uint32_t CalcCustomFontPss()
 
 void RSTypefaceCache::Dump(DfxString& log) const
 {
+    RS_TRACE_NAME_FMT("RSTypefaceCache::Dump typefaceHashCode size:%d", typefaceHashCode_.size());
     std::lock_guard<std::mutex> lock(mapMutex_);
     uint32_t totalMem = std::accumulate(typefaceHashMap_.begin(), typefaceHashMap_.end(), 0u,
         [](uint32_t sum, const auto& item) { return sum + std::get<0>(item.second)->GetSize(); });
@@ -473,66 +474,91 @@ void RSTypefaceCache::Dump(DfxString& log) const
     }
 }
 
-void RSTypefaceCache::ReplaySerialize(std::stringstream& ss)
+void RSTypefaceCache::ReplaySerialize(std::stringstream& stream)
 {
-    size_t fontCount = 0;
-    ss.write(reinterpret_cast<const char*>(&fontCount), sizeof(fontCount));
+    mapMutex_.lock();
+    const auto hashCode = typefaceHashCode_;
+    const auto hashMap = typefaceHashMap_;
+    mapMutex_.unlock();
 
-    std::lock_guard<std::mutex> lock(mapMutex_);
-    for (auto co : typefaceHashCode_) {
-        if (typefaceHashMap_.find(co.second) != typefaceHashMap_.end()) {
-            auto [typeface, ref] = typefaceHashMap_.at(co.second);
-
-            if (auto data = typeface->Serialize()) {
-                const void* stream = data->GetData();
-                size_t size = data->GetSize();
-
-                ss.write(reinterpret_cast<const char*>(&co.first), sizeof(co.first));
-                ss.write(reinterpret_cast<const char*>(&size), sizeof(size));
-                ss.write(reinterpret_cast<const char*>(stream), size);
-                fontCount++;
-            }
+    std::unordered_map<std::shared_ptr<Drawing::Typeface>, std::vector<uint64_t>> fonts;
+    for (const auto& [id, hash] : hashCode) {
+        const auto entry = hashMap.find(hash);
+        const auto font = (entry != hashMap.end()) ? std::get<0>(entry->second) : nullptr;
+        if (font) {
+            fonts[font].push_back(id);
         }
     }
 
-    ss.seekp(0, std::ios_base::beg);
-    ss.write(reinterpret_cast<const char*>(&fontCount), sizeof(fontCount));
-    ss.seekp(0, std::ios_base::end);
+    size_t count = 0;
+    stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
+
+    for (const auto& [font, ids] : fonts) {
+        const auto blob = font->Serialize();
+        const auto data = blob ? blob->GetData() : nullptr;
+        const size_t size = blob ? blob->GetSize() : 0;
+        if (!data || !size) {
+            continue;
+        }
+
+        stream.write(reinterpret_cast<const char*>(&ids[0]), sizeof(ids[0]));
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        stream.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(size));
+
+        constexpr size_t dummy = std::numeric_limits<size_t>::max();
+        for (size_t index = 1; index < ids.size(); index++) {
+            stream.write(reinterpret_cast<const char*>(&ids[index]), sizeof(ids[index]));
+            stream.write(reinterpret_cast<const char*>(&dummy), sizeof(dummy));
+        }
+
+        count += ids.size();
+    }
+
+    stream.seekp(0, std::ios_base::beg);
+    stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    stream.seekp(0, std::ios_base::end);
 }
 
-std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& ss)
+std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& stream)
 {
-    constexpr int bitNumber = 30 + 32;
-    uint64_t replayMask = (uint64_t)1 << bitNumber;
-    size_t fontCount;
-    uint64_t uniqueId;
-    size_t dataSize;
+    constexpr size_t maxSize = 40'000'000;
+    constexpr uint32_t bitNumber = 30 + 32;
+    constexpr uint64_t replayMask = uint64_t(1) << bitNumber;
+
+    size_t count = 0;
+    stream.read(reinterpret_cast<char*>(&count), sizeof(count));
+
+    std::shared_ptr<Drawing::Typeface> typeface;
     std::vector<uint8_t> data;
-    constexpr size_t maxTypefaceDataSize = 40'000'000;
+    for (size_t i = 0; i < count; i++) {
+        uint64_t uniqueId = 0;
+        stream.read(reinterpret_cast<char*>(&uniqueId), sizeof(uniqueId));
 
-    ss.read(reinterpret_cast<char*>(&fontCount), sizeof(fontCount));
-    for (size_t i = 0; i < fontCount; i++) {
-        ss.read(reinterpret_cast<char*>(&uniqueId), sizeof(uniqueId));
-        ss.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
+        size_t size = 0;
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
 
-        if (dataSize > maxTypefaceDataSize) {
+        constexpr size_t dummy = std::numeric_limits<size_t>::max();
+        if (dummy == size) {
+            CacheDrawingTypeface(uniqueId | replayMask, typeface);
+            continue;
+        }
+
+        if (size > maxSize) {
             return "Typeface serialized data is over 40MB";
         }
-        data.resize(dataSize);
-        ss.read(reinterpret_cast<char*>(data.data()), data.size());
 
-        if (ss.eof()) {
-            return "Typeface track damaged";
+        data.resize(size);
+        stream.read(reinterpret_cast<char*>(data.data()), data.size());
+
+        if (stream.eof()) {
+            return "Typeface track is damaged";
         }
 
-        std::shared_ptr<Drawing::Typeface> typeface;
         typeface = Drawing::Typeface::Deserialize(data.data(), data.size());
-        if (typeface) {
-            uniqueId |= replayMask;
-            CacheDrawingTypeface(uniqueId, typeface);
-        } else {
+        if (!typeface) {
             return "Typeface unmarshalling failed";
         }
+        CacheDrawingTypeface(uniqueId | replayMask, typeface);
     }
     return {};
 }

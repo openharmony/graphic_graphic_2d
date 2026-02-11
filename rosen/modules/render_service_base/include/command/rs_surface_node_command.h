@@ -79,6 +79,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_ANCO_SRC_CROP = 44,
     SURFACE_NODE_SET_SURFACE_BUFFER_OPAQUE = 45,
     SURFACE_NODE_SET_CONTAINER_WINDOW_TRANSPARENT = 46,
+    SURFACE_NODE_SET_APP_ROTATION_CORRECTION = 47,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -119,7 +120,8 @@ public:
 #endif
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
-    static void SetClonedNodeInfo(RSContext& context, NodeId nodeId, NodeId cloneNodeId, bool needOffscreen);
+    static void SetClonedNodeInfo(RSContext& context, NodeId nodeId, NodeId cloneNodeId,
+        bool needOffscreen, bool isRelated);
     static void SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst);
     static void SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
@@ -128,14 +130,15 @@ public:
     static void SetAbilityState(RSContext& context, NodeId nodeId, RSSurfaceNodeAbilityState abilityState);
     static void SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion);
     static void SetHardwareEnableHint(RSContext& context, NodeId nodeId, bool enable);
+    static void SetSourceVirtualScreenId(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void SetRegionToBeMagnified(RSContext& context, NodeId nodeId, const Vector4<int>& regionToBeMagnified);
-    static void SetSourceVirtualDisplayId(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void AttachToWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void SetFrameGravityNewVersionEnabled(RSContext& context, NodeId nodeId, bool isEnabled);
     static void SetAncoSrcCrop(RSContext& context, NodeId nodeId, const Rect& srcCrop);
     static void SetSurfaceBufferOpaque(RSContext& context, NodeId nodeId, bool isOpaque);
     static void SetContainerWindowTransparent(RSContext& context, NodeId nodeId, bool isContainerWindowTransparent);
+    static void SetAppRotationCorrection(RSContext& context, NodeId nodeId, ScreenRotation appRotationCorrection);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -233,7 +236,7 @@ ADD_COMMAND(RSSurfaceNodeSetForeground,
         SurfaceNodeCommandHelper::SetForeground, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetClonedNodeId,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_CLONED_NODE_ID,
-        SurfaceNodeCommandHelper::SetClonedNodeInfo, NodeId, NodeId, bool))
+        SurfaceNodeCommandHelper::SetClonedNodeInfo, NodeId, NodeId, bool, bool))
 ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST,
         SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))
@@ -267,9 +270,9 @@ ADD_COMMAND(RSSurfaceNodeAttachToWindowContainer,
 ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
         SurfaceNodeCommandHelper::DetachFromWindowContainer, NodeId, ScreenId))
-ADD_COMMAND(RSSurfaceNodeSetSourceVirtualDisplayId,
+ADD_COMMAND(RSSurfaceNodeSetSourceVirtualScreenId,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID,
-        SurfaceNodeCommandHelper::SetSourceVirtualDisplayId, NodeId, ScreenId))
+        SurfaceNodeCommandHelper::SetSourceVirtualScreenId, NodeId, ScreenId))
 ADD_COMMAND(RSSurfaceNodeSetFrameGravityNewVersionEnabled,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED,
         SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled, NodeId, bool))
@@ -282,6 +285,9 @@ ADD_COMMAND(RSSurfaceNodeSetSurfaceBufferOpaque,
 ADD_COMMAND(RSSurfaceNodeSetContainerWindowTransparent,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW_TRANSPARENT,
         SurfaceNodeCommandHelper::SetContainerWindowTransparent, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetAppRotationCorrection,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_APP_ROTATION_CORRECTION,
+        SurfaceNodeCommandHelper::SetAppRotationCorrection, NodeId, ScreenRotation))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

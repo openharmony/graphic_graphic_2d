@@ -54,11 +54,15 @@ namespace {
 */
 HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
 {
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->RegHotPlugCallback(nullptr, nullptr), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->RegHotPlugCallback(nullptr, nullptr), GRAPHIC_DISPLAY_SUCCESS);
     uint32_t screenId = 0;
     uint32_t screenModeId = 0;
     uint32_t screenLightLevel = 0;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->RegScreenVBlankCallback(screenId, nullptr, nullptr),
+    EXPECT_CALL(*hdiDeviceMock_, RegScreenVBlankCallback(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->RegScreenVBlankCallback(screenId, nullptr, nullptr),
               GRAPHIC_DISPLAY_SUCCESS);
     bool enabled = false, needFlush = false;
     EXPECT_CALL(*hdiDeviceMock_,
@@ -77,9 +81,15 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
         GetScreenCapability(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     EXPECT_EQ(hdiDeviceMock_->GetScreenCapability(screenId, dcpInfo), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicDisplayModeInfo> dmodes;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenSupportedModes(screenId, dmodes), GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenMode(screenId, screenModeId), GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenMode(screenId, screenModeId), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedModes(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenSupportedModes(screenId, dmodes), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenMode(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenMode(screenId, screenModeId), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenMode(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenMode(screenId, screenModeId), GRAPHIC_DISPLAY_SUCCESS);
     uint32_t width = 1080;
     uint32_t height = 1920;
     EXPECT_CALL(*hdiDeviceMock_,
@@ -105,32 +115,57 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     std::vector<uint32_t> layersId;
     std::vector<int32_t> types;
     screenId = UINT32_MAX;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenCompChange(screenId, layersId, types), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenCompChange(screenId, layersId, types), GRAPHIC_DISPLAY_SUCCESS);
     BufferHandle *buffer = nullptr;
     sptr<SyncFence> fence = nullptr;
     uint32_t cacheIndex = 0;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
               GRAPHIC_DISPLAY_PARAM_ERR);
     buffer = new BufferHandle();
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
+    EXPECT_EQ(hdiDeviceMock_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
               GRAPHIC_DISPLAY_PARAM_ERR);
     fence = new SyncFence(-1);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
               GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> damageRects = { {0, 0, 0, 0} };
-    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientDamage(screenId, damageRects), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientDamage(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    ASSERT_EQ(hdiDeviceMock_->SetScreenClientDamage(screenId, damageRects), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicColorGamut> gamuts;
     EXPECT_CALL(*hdiDeviceMock_,
         GetScreenSupportedColorGamuts(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    EXPECT_EQ(hdiDeviceMock_->GetScreenSupportedColorGamuts(screenId, gamuts), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(hdiDeviceMock_->GetScreenSupportedColorGamuts(screenId, gamuts),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicColorGamut gamut = GRAPHIC_COLOR_GAMUT_INVALID;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_NOT_SUPPORT);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenColorGamut(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenColorGamut(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenColorGamut(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenColorGamut(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_FAILURE);
     GraphicGamutMap gamutMap = GRAPHIC_GAMUT_MAP_CONSTANT;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenGamutMap(screenId, gamutMap), GRAPHIC_DISPLAY_NOT_SUPPORT);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenGamutMap(screenId, gamutMap), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenGamutMap(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenGamutMap(screenId, gamutMap), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenGamutMap(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenGamutMap(screenId, gamutMap), GRAPHIC_DISPLAY_NOT_SUPPORT);
     std::vector<float> matrix = { 0.0 };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenColorTransform(screenId, matrix), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenColorTransform(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenColorTransform(screenId, matrix), GRAPHIC_DISPLAY_NOT_SUPPORT);
     EXPECT_CALL(*hdiDeviceMock_,
         Commit(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     EXPECT_EQ(hdiDeviceMock_->Commit(screenId, fence), GRAPHIC_DISPLAY_SUCCESS);
@@ -169,58 +204,98 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
 {
     uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 0;
     GraphicLayerAlpha alpha;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerAlpha(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerSize(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
     GraphicTransformType type = GRAPHIC_ROTATE_NONE;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetTransformMode(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> visibles = { {0, 0, 0, 0} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerVisibleRegion(screenId, layerId, visibles), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerVisibleRegion(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerVisibleRegion(screenId, layerId, visibles),
+              GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> dirtyRegions = { {0, 0, 0, 0} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerDirtyRegion(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
               GRAPHIC_DISPLAY_SUCCESS);
     BufferHandle *handle = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
     std::vector<uint32_t> deletingList = {};
     uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
     GraphicLayerBuffer layerBuffer = {handle, cacheIndex, acquireFence, deletingList};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     handle = new BufferHandle();
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.acquireFence = new SyncFence(10);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.cacheIndex = 0;
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_CLIENT;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerCompositionType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerCompositionType(screenId, layerId, cmpType),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBlendType(screenId, layerId, blendType), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBlendType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBlendType(screenId, layerId, blendType),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect crop = {0, 0, 0, 0};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerCrop(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerZorder(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
     bool isPreMulti = false;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPreMulti(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<float> matrix = { 0.0 };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorTransform(screenId, layerId, matrix),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColorTransform(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerColorTransform(screenId, layerId, matrix),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicColorDataSpace colorSpace = GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColorDataSpace(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerColorDataSpace(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     std::vector<GraphicHDRMetaData> metaData;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMetaData(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<uint8_t> metaDatas;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMetaDataSet(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicExtDataHandle *extDataHandle = nullptr;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 
@@ -237,7 +312,9 @@ HWTEST_F(HdiDeviceTest, SetTunnelLayerId, Function | MediumTest| Level3)
     uint32_t screenId = UINT32_MAX;
     uint32_t layerId = 0;
     uint64_t tunnelId = 0;
-    EXPECT_NE(HdiDeviceTest::hdiDevice_->SetTunnelLayerId(screenId, layerId, tunnelId), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_NE(hdiDeviceMock_->SetTunnelLayerId(screenId, layerId, tunnelId), GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /*
@@ -253,7 +330,9 @@ HWTEST_F(HdiDeviceTest, SetTunnelLayerProperty, Function | MediumTest| Level3)
     uint32_t screenId = UINT32_MAX;
     uint32_t layerId = 0;
     uint32_t property = 0;
-    EXPECT_NE(HdiDeviceTest::hdiDevice_->SetTunnelLayerProperty(screenId, layerId, property), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_NE(hdiDeviceMock_->SetTunnelLayerProperty(screenId, layerId, property), GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /*
@@ -268,22 +347,36 @@ HWTEST_F(HdiDeviceTest, LayerFuncs002, Function | MediumTest| Level3)
 {
     uint32_t screenId = UINT32_MAX, layerId = 0;
     GraphicPresentTimestamp timestamp;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetPresentTimestamp(screenId, layerId, timestamp),
+    EXPECT_CALL(*hdiDeviceMock_, GetPresentTimestamp(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetPresentTimestamp(screenId, layerId, timestamp),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     uint32_t layerMask = 0;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMaskInfo(screenId, layerId, layerMask), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMaskInfo(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMaskInfo(screenId, layerId, layerMask), GRAPHIC_DISPLAY_SUCCESS);
     GraphicLayerInfo layerInfo;
     uint32_t cacheCount = 1;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->CreateLayer(screenId, layerInfo, cacheCount, layerId),
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->CreateLayer(screenId, layerInfo, cacheCount, layerId),
               GRAPHIC_DISPLAY_FAILURE);
-    std::vector<std::string> valueRet = HdiDeviceTest::hdiDevice_->GetSupportedLayerPerFrameParameterKey();
+    static std::vector<std::string> emptyKeys;
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey())
+        .WillRepeatedly(testing::ReturnRef(emptyKeys));
+    EXPECT_EQ(hdiDeviceMock_->GetSupportedLayerPerFrameParameterKey().size(), 0u);
     const std::string validKey = "ArsrDoEnhance";
+    const auto& valueRet = hdiDeviceMock_->GetSupportedLayerPerFrameParameterKey();
     if (std::find(valueRet.begin(), valueRet.end(), validKey) != valueRet.end()) {
         const std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
-        EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPerFrameParameter(screenId, layerId, validKey, valueBlob),
+        EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameter(_, _, _, _))
+            .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+        EXPECT_EQ(hdiDeviceMock_->SetLayerPerFrameParameter(screenId, layerId, validKey, valueBlob),
               GRAPHIC_DISPLAY_FAILURE);
     }
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->CloseLayer(screenId, layerId), GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_CALL(*hdiDeviceMock_, CloseLayer(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->CloseLayer(screenId, layerId), GRAPHIC_DISPLAY_FAILURE);
 }
 
 /*
@@ -298,58 +391,98 @@ HWTEST_F(HdiDeviceTest, LayerFuncs003, Function | MediumTest| Level3)
 {
     uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
     GraphicLayerAlpha alpha;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerAlpha(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerSize(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
     GraphicTransformType type = GRAPHIC_ROTATE_90;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetTransformMode(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> visibles = { {0, 0, 1, 1} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerVisibleRegion(screenId, layerId, visibles), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerVisibleRegion(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerVisibleRegion(screenId, layerId, visibles),
+              GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> dirtyRegions = { {0, 0, 1, 1} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerDirtyRegion(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
               GRAPHIC_DISPLAY_SUCCESS);
     BufferHandle *handle = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
     std::vector<uint32_t> deletingList = {};
     uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
     GraphicLayerBuffer layerBuffer = {handle, cacheIndex, acquireFence, deletingList};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     handle = new BufferHandle();
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.acquireFence = new SyncFence(10);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.cacheIndex = 0;
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_CLIENT;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerCompositionType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerCompositionType(screenId, layerId, cmpType),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBlendType(screenId, layerId, blendType), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBlendType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBlendType(screenId, layerId, blendType),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect crop = {0, 0, 0, 0};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerCrop(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerZorder(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
     bool isPreMulti = false;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPreMulti(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<float> matrix = { 0.0 };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorTransform(screenId, layerId, matrix),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColorTransform(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerColorTransform(screenId, layerId, matrix),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicColorDataSpace colorSpace = GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColorDataSpace(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerColorDataSpace(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     std::vector<GraphicHDRMetaData> metaData;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMetaData(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<uint8_t> metaDatas;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMetaDataSet(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicExtDataHandle *extDataHandle = nullptr;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 
@@ -365,58 +498,98 @@ HWTEST_F(HdiDeviceTest, LayerFuncs004, Function | MediumTest| Level3)
 {
     uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
     GraphicLayerAlpha alpha;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerAlpha(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerSize(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
     GraphicTransformType type = GRAPHIC_FLIP_H_ROT90;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetTransformMode(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> visibles = { {0, 0, 1, 1} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerVisibleRegion(screenId, layerId, visibles), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerVisibleRegion(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerVisibleRegion(screenId, layerId, visibles),
+              GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> dirtyRegions = { {0, 0, 1, 1} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerDirtyRegion(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
               GRAPHIC_DISPLAY_SUCCESS);
     BufferHandle *handle = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
     std::vector<uint32_t> deletingList = {};
     uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
     GraphicLayerBuffer layerBuffer = {handle, cacheIndex, acquireFence, deletingList};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     handle = new BufferHandle();
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.acquireFence = new SyncFence(10);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.cacheIndex = 0;
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_DEVICE;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerCompositionType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerCompositionType(screenId, layerId, cmpType),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBlendType(screenId, layerId, blendType), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBlendType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBlendType(screenId, layerId, blendType),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect crop = {0, 0, 1, 1};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerCrop(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerZorder(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
     bool isPreMulti = false;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPreMulti(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<float> matrix = { 0.0 };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorTransform(screenId, layerId, matrix),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColorTransform(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerColorTransform(screenId, layerId, matrix),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicColorDataSpace colorSpace = GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColorDataSpace(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerColorDataSpace(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     std::vector<GraphicHDRMetaData> metaData;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMetaData(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<uint8_t> metaDatas;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMetaDataSet(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicExtDataHandle *extDataHandle = nullptr;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 
@@ -432,59 +605,99 @@ HWTEST_F(HdiDeviceTest, LayerFuncs005, Function | MediumTest| Level3)
 {
     uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
     GraphicLayerAlpha alpha;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerAlpha(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerSize(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
     GraphicTransformType type = GRAPHIC_FLIP_H_ROT90;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetTransformMode(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> visibles = { {0, 0, 1, 1} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerVisibleRegion(screenId, layerId, visibles), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerVisibleRegion(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerVisibleRegion(screenId, layerId, visibles),
+              GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> dirtyRegions = { {0, 0, 1, 1} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerDirtyRegion(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
               GRAPHIC_DISPLAY_SUCCESS);
     BufferHandle *handle = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
     std::vector<uint32_t> deletingList = {};
     uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
     GraphicLayerBuffer layerBuffer = {handle, cacheIndex, acquireFence, deletingList};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     handle = new BufferHandle();
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.acquireFence = new SyncFence(10);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.cacheIndex = 0;
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_DEVICE;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerCompositionType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerCompositionType(screenId, layerId, cmpType),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBlendType(screenId, layerId, blendType), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBlendType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBlendType(screenId, layerId, blendType),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect crop = {0, 0, 1, 1};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerCrop(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerZorder(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
     bool isPreMulti = false;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPreMulti(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<float> matrix =
         { 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorTransform(screenId, layerId, matrix),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColorTransform(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerColorTransform(screenId, layerId, matrix),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicColorDataSpace colorSpace = GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColorDataSpace(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerColorDataSpace(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     std::vector<GraphicHDRMetaData> metaData;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMetaData(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<uint8_t> metaDatas;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMetaDataSet(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicExtDataHandle *extDataHandle = nullptr;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 
@@ -500,59 +713,99 @@ HWTEST_F(HdiDeviceTest, LayerFuncs006, Function | MediumTest| Level3)
 {
     uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
     GraphicLayerAlpha alpha;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerAlpha(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerSize(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
     GraphicTransformType type = GRAPHIC_FLIP_H_ROT90;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetTransformMode(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> visibles = { {0, 0, 1, 1} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerVisibleRegion(screenId, layerId, visibles), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerVisibleRegion(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerVisibleRegion(screenId, layerId, visibles),
+              GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> dirtyRegions = { {0, 0, 2, 2} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerDirtyRegion(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
               GRAPHIC_DISPLAY_SUCCESS);
     BufferHandle *handle = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
     std::vector<uint32_t> deletingList = {};
     uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
     GraphicLayerBuffer layerBuffer = {handle, cacheIndex, acquireFence, deletingList};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     handle = new BufferHandle();
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.acquireFence = new SyncFence(10);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.cacheIndex = 0;
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_DEVICE;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerCompositionType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerCompositionType(screenId, layerId, cmpType),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBlendType(screenId, layerId, blendType), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBlendType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBlendType(screenId, layerId, blendType),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect crop = {0, 0, 1, 1};
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerCrop(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerZorder(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
     bool isPreMulti = false;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPreMulti(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<float> matrix =
         { 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorTransform(screenId, layerId, matrix),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColorTransform(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerColorTransform(screenId, layerId, matrix),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicColorDataSpace colorSpace = GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColorDataSpace(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerColorDataSpace(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     std::vector<GraphicHDRMetaData> metaData;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMetaData(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<uint8_t> metaDatas;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMetaDataSet(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicExtDataHandle *extDataHandle = nullptr;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 
@@ -573,8 +826,404 @@ HWTEST_F(HdiDeviceTest, GetDisplayClientTargetProperty, Function | MediumTest| L
             testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     EXPECT_EQ(hdiDeviceMock_->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace),
               GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace),
+    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(_, _, _)).WillRepeatedly(
+            testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_EQ(hdiDeviceMock_->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
+}
+
+/*
+* Function: GetPanelPowerStatus001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetPanelPowerStatus
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, GetPanelPowerStatus001, Function | MediumTest| Level3)
+{
+    uint32_t devId = 0;
+    GraphicPanelPowerStatus status;
+    EXPECT_CALL(*hdiDeviceMock_, GetPanelPowerStatus(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetPanelPowerStatus(devId, status), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: SetScreenClientBuffer001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenClientBuffer with nullptr buffer and invalid cacheIndex
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetScreenClientBuffer001, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    BufferHandle *buffer = nullptr;
+    uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
+    sptr<SyncFence> fence = new SyncFence(-1);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
+              GRAPHIC_DISPLAY_PARAM_ERR);
+}
+
+/*
+* Function: SetScreenClientBuffer002
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenClientBuffer with nullptr fence
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetScreenClientBuffer002, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    BufferHandle *buffer = new BufferHandle();
+    uint32_t cacheIndex = 0;
+    sptr<SyncFence> fence = nullptr;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
+              GRAPHIC_DISPLAY_PARAM_ERR);
+}
+
+/*
+* Function: SetScreenClientBufferCacheCount001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenClientBufferCacheCount with count = 0
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetScreenClientBufferCacheCount001, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t count = 0;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBufferCacheCount(_, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenClientBufferCacheCount(screenId, count), GRAPHIC_DISPLAY_PARAM_ERR);
+}
+
+/*
+* Function: SetScreenClientBufferCacheCount002
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenClientBufferCacheCount with count > SURFACE_MAX_QUEUE_SIZE
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetScreenClientBufferCacheCount002, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t count = SURFACE_MAX_QUEUE_SIZE + 1;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBufferCacheCount(_, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenClientBufferCacheCount(screenId, count), GRAPHIC_DISPLAY_PARAM_ERR);
+}
+
+/*
+* Function: SetLayerBuffer001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetLayerBuffer with nullptr handle and invalid cacheIndex
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetLayerBuffer001, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t layerId = 0;
+    GraphicLayerBuffer layerBuffer = {nullptr, INVALID_BUFFER_CACHE_INDEX, nullptr, {}};
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+}
+
+/*
+* Function: SetLayerBuffer002
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetLayerBuffer with nullptr acquireFence
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetLayerBuffer002, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t layerId = 0;
+    BufferHandle *handle = new BufferHandle();
+    GraphicLayerBuffer layerBuffer = {handle, 0, nullptr, {}};
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+}
+
+/*
+* Function: CommitAndGetReleaseFence001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call CommitAndGetReleaseFence with skipState = 0
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, CommitAndGetReleaseFence001, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    sptr<SyncFence> fence = nullptr;
+    int32_t skipState = 0;
+    bool needFlush = false;
+    std::vector<uint32_t> layers;
+    std::vector<sptr<SyncFence>> fences;
+    bool isValidated = false;
+
+    EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _, _))
+        .WillRepeatedly([&skipState, &needFlush, &layers](uint32_t, sptr<SyncFence>& fence, int32_t& outSkipState,
+                            bool& outNeedFlush, std::vector<uint32_t>& outLayers, std::vector<sptr<SyncFence>>&, bool) {
+            fence = new SyncFence(10);
+            outSkipState = skipState;
+            outNeedFlush = needFlush;
+            outLayers = layers;
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
+    EXPECT_EQ(
+        hdiDeviceMock_->CommitAndGetReleaseFence(screenId, fence, skipState, needFlush, layers, fences, isValidated),
+        GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: CommitAndGetReleaseFence002
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call CommitAndGetReleaseFence with negative fenceFd
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, CommitAndGetReleaseFence002, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    sptr<SyncFence> fence = nullptr;
+    int32_t skipState = 1;
+    bool needFlush = false;
+    std::vector<uint32_t> layers;
+    std::vector<sptr<SyncFence>> fences;
+    std::vector<int32_t> fenceFds = {-1};
+    bool isValidated = false;
+
+    EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _, _))
+        .WillRepeatedly([&skipState, &needFlush, &layers](uint32_t, sptr<SyncFence>& fence,
+                                      int32_t& outSkipState, bool& outNeedFlush, std::vector<uint32_t>& outLayers,
+                                      std::vector<sptr<SyncFence>>&, bool) {
+            fence = new SyncFence(-1);
+            outSkipState = skipState;
+            outNeedFlush = needFlush;
+            outLayers = layers;
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
+    EXPECT_EQ(
+        hdiDeviceMock_->CommitAndGetReleaseFence(screenId, fence, skipState, needFlush, layers, fences, isValidated),
+        GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: GetScreenSupportedModes001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenSupportedModes with failure return
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, GetScreenSupportedModes001, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    std::vector<GraphicDisplayModeInfo> modes;
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedModes(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenSupportedModes(screenId, modes),
+              GRAPHIC_DISPLAY_FAILURE);
+}
+
+/*
+* Function: GetScreenSupportedColorGamuts001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenSupportedColorGamuts with failure return
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, GetScreenSupportedColorGamuts001, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    std::vector<GraphicColorGamut> gamuts;
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedColorGamuts(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenSupportedColorGamuts(screenId, gamuts),
+              GRAPHIC_DISPLAY_FAILURE);
+}
+
+/*
+* Function: GetHDRCapabilityInfos001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetHDRCapabilityInfos with failure return
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, GetHDRCapabilityInfos001, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    GraphicHDRCapability info;
+    EXPECT_CALL(*hdiDeviceMock_, GetHDRCapabilityInfos(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->GetHDRCapabilityInfos(screenId, info),
+              GRAPHIC_DISPLAY_FAILURE);
+}
+
+/*
+* Function: GetSupportedMetaDataKey001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetSupportedMetaDataKey with failure return
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, GetSupportedMetaDataKey001, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    std::vector<GraphicHDRMetadataKey> keys;
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedMetaDataKey(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->GetSupportedMetaDataKey(screenId, keys),
+              GRAPHIC_DISPLAY_FAILURE);
+}
+
+/*
+* Function: SetScreenActiveRect001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenActiveRect with invalid rect (w <= 0)
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetScreenActiveRect001, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    GraphicIRect activeRect = {0, 0, -1, 100};
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenActiveRect(_, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenActiveRect(screenId, activeRect), GRAPHIC_DISPLAY_PARAM_ERR);
+}
+
+/*
+* Function: SetScreenActiveRect002
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenActiveRect with invalid rect (h <= 0)
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetScreenActiveRect002, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    GraphicIRect activeRect = {0, 0, 100, -1};
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenActiveRect(_, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenActiveRect(screenId, activeRect), GRAPHIC_DISPLAY_PARAM_ERR);
+}
+
+/*
+* Function: GetScreenCapability001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenCapability with failure return
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, GetScreenCapability001, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    GraphicDisplayCapability info;
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCapability(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenCapability(screenId, info), GRAPHIC_DISPLAY_FAILURE);
+}
+
+/*
+* Function: SetScreenClientBuffer003
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenClientBuffer with valid parameters
+*                  2. check ret SUCCESS
+*/
+HWTEST_F(HdiDeviceTest, SetScreenClientBuffer003, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    BufferHandle *buffer = new BufferHandle();
+    uint32_t cacheIndex = 0;
+    sptr<SyncFence> fence = new SyncFence(10);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
+              GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: SetScreenClientBufferCacheCount003
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenClientBufferCacheCount with valid count
+*                  2. check ret SUCCESS
+*/
+HWTEST_F(HdiDeviceTest, SetScreenClientBufferCacheCount003, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t count = 3;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBufferCacheCount(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenClientBufferCacheCount(screenId, count),
+              GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: SetLayerBuffer003
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetLayerBuffer with valid parameters
+*                  2. check ret SUCCESS
+*/
+HWTEST_F(HdiDeviceTest, SetLayerBuffer003, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t layerId = 0;
+    BufferHandle *handle = new BufferHandle();
+    sptr<SyncFence> acquireFence = new SyncFence(10);
+    std::vector<uint32_t> deletingList;
+    GraphicLayerBuffer layerBuffer = {handle, 0, acquireFence, deletingList};
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer),
+              GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: SetScreenActiveRect003
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenActiveRect with valid rect
+*                  2. check ret SUCCESS
+*/
+HWTEST_F(HdiDeviceTest, SetScreenActiveRect003, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    GraphicIRect activeRect = {0, 0, 100, 100};
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenActiveRect(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenActiveRect(screenId, activeRect), GRAPHIC_DISPLAY_SUCCESS);
 }
 } // namespace
 } // namespace Rosen

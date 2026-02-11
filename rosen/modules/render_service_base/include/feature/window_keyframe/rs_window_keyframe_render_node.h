@@ -32,10 +32,12 @@ public:
 
     virtual ~RSWindowKeyFrameRenderNode();
 
+    // LCOV_EXCL_START
     RSRenderNodeType GetType() const override
     {
         return RSRenderNodeType::WINDOW_KEYFRAME_NODE;
     }
+    // LCOV_EXCL_STOP
 
     void OnTreeStateChanged() override;
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;

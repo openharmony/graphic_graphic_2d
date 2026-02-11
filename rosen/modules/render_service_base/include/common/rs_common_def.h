@@ -57,7 +57,7 @@ constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
 constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
-static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
+inline const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
 constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
 constexpr uint32_t DYNAMIC_RANGE_MODE_CONSTRAINT = 1;
@@ -398,6 +398,8 @@ struct RSSurfaceCaptureConfig {
     std::pair<uint32_t, bool> colorSpace = {OHOS::ColorManager::ColorSpaceName::SRGB, false};
     // {dynamicRangeMode, isAutoAjust}
     std::pair<uint32_t, bool> dynamicRangeMode = {DEFAULT_DYNAMIC_RANGE_MODE_STANDARD, false};
+    bool isSyncRender = false;
+    bool isConfigTriggered = false;
 
     // When adding new members, please ensure to add the corresponding comparison logic in the operator== and
     // serialization/deserialization logic in the OnSurfaceCapture method.
@@ -433,6 +435,7 @@ struct RSSurfaceCaptureParam {
     bool isFreeze = false;
     RSSurfaceCaptureBlurParam blurParam = {};
     bool needCaptureSpecialLayer = false;
+    bool hasDirtyContentInSurfaceCapture = false;
 };
 
 struct RSSurfaceCapturePermissions {

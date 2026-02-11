@@ -146,6 +146,7 @@ public:
 
     ErrCode GetRefreshInfo(pid_t pid, std::string& enable) override;
     ErrCode GetRefreshInfoToSP(NodeId id, std::string& enable) override;
+    ErrCode GetRefreshInfoByPidAndUniqueId(pid_t pid, uint64_t uniqueId, std::string& enable) override;
 
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
@@ -370,6 +371,10 @@ public:
 
     ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
+
+    ErrCode AvcodecVideoGet(uint64_t uniqueId) override;
+ 
+    ErrCode AvcodecVideoGetRecent() override;
 
     bool GetHighContrastTextState() override;
 

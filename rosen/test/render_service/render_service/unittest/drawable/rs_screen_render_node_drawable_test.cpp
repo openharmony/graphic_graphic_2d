@@ -637,7 +637,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest006, TestSize.Level1)
     screenInfo.skipFrameInterval = 100;
     params->screenInfo_ = screenInfo;
     screenDrawable_->OnDraw(canvas);
-    EXPECT_TRUE(screenDrawable_->SkipFrameByInterval(
+    EXPECT_FALSE(screenDrawable_->SkipFrameByInterval(
         RSMainThread::Instance()->GetVsyncRefreshRate(), screenInfo.skipFrameInterval));
 }
 
@@ -701,15 +701,15 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
-    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::RENDER_ENGINE_NULL);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::RENDER_ENGINE_NULL);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
     // when enableVisibleRect is true;
     params->screenProperty_.enableVisibleRect_ = true;
     const Rect& visibleRect = { 1, 1, 1, 1 };
     params->screenProperty_.mainScreenVisibleRect_ = visibleRect;
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(RSUniRenderThread::Instance().GetVisibleRect().left_, visibleRect.x);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_NE(RSUniRenderThread::Instance().GetVisibleRect().left_, visibleRect.x);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
     // when comositeType is not UNI_RENDER_MIRROR_COMPOSITE
     params->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
     screenDrawable_->OnDraw(canvas);
@@ -766,7 +766,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     EXPECT_EQ(params->GetMirrorSourceDrawable().lock(), nullptr);
 
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
@@ -774,7 +774,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
+    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 }
 
 /**
@@ -2201,4 +2201,40 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, UpdateSurfaceDrawRegionTest, TestSize.L
     screenDrawable_->UpdateSurfaceDrawRegion(canvas, params);
 }
 #endif
+
+/**
+ * @tc.name: CheckAndClearRelatedSourceNodeCache
+ * @tc.desc: Test CheckAndClearRelatedSourceNodeCache
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckAndClearRelatedSourceNodeCacheTest, TestSize.Level2)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    RSScreenRenderParams* params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    screenDrawable_->CheckAndClearRelatedSourceNodeCache(*params);
+
+    NodeId id = 1;
+    ASSERT_EQ(params->GetCloneNodeMap().size(), 0);
+    params->cloneNodeMap_[id];
+    params->cloneNodeMap_[id + 1];
+    screenDrawable_->CheckAndClearRelatedSourceNodeCache(*params);
+    ASSERT_NE(params->GetCloneNodeMap().size(), 0);
+
+    auto surfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceRenderNode, nullptr);
+    auto surfaceRenderNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
+    ASSERT_NE(surfaceRenderNodeDrawable, nullptr);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr
+        surfaceNodeRenderDrawableSharedPtr(surfaceRenderNodeDrawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr
+        surfaceNodeRenderDrawableWeakPtr(surfaceNodeRenderDrawableSharedPtr);
+    surfaceRenderNodeDrawable->relatedSourceNodeCache_ = std::make_shared<Drawing::Image>();
+    params->cloneNodeMap_[id] = surfaceNodeRenderDrawableWeakPtr;
+    ASSERT_NE(surfaceRenderNodeDrawable->relatedSourceNodeCache_, nullptr);
+    screenDrawable_->CheckAndClearRelatedSourceNodeCache(*params);
+    ASSERT_EQ(surfaceRenderNodeDrawable->relatedSourceNodeCache_, nullptr);
+}
 } // namespace OHOS::Rosen

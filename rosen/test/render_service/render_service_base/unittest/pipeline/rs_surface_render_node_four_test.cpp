@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -407,6 +408,8 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, ChildrenBlurBehindWindowTest, TestSize.Lev
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    auto modifier = std::make_shared<ModifierNG::RSBehindWindowFilterRenderModifier>();
+    node->AddModifier(modifier);
     NodeId idOne = 1;
     NodeId idTwo = 2;
     node->AddChildBlurBehindWindow(idOne);
@@ -477,6 +480,42 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, SetIsParticipateInOcclusion, TestSize.Leve
     surfaceNode->SetIsParticipateInOcclusion(true);
     ASSERT_TRUE(surfaceNode->isParticipateInOcclusion_);
     ASSERT_TRUE(surfaceNode->GetIsParticipateInOcclusion());
+}
+
+/**
+ * @tc.name: SetAppRotationCorrection
+ * @tc.desc: Test SetAppRotationCorrection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, SetAppRotationCorrection, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    node->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+    EXPECT_EQ(surfaceParams->GetAppRotationCorrection(), ScreenRotation::ROTATION_180);
+    node->stagingRenderParams_ = nullptr;
+    node->SetAppRotationCorrection(ScreenRotation::ROTATION_270);
+}
+
+/**
+ * @tc.name: SetRotationCorrectionDegree
+ * @tc.desc: Test SetRotationCorrectionDegree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, SetRotationCorrectionDegree, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    node->SetRotationCorrectionDegree(180);
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
+    node->stagingRenderParams_ = nullptr;
+    node->SetRotationCorrectionDegree(270);
 }
 } // namespace Rosen
 } // namespace OHOS

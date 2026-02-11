@@ -28,8 +28,8 @@
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "metadata_helper.h"
 #include "params/rs_render_params.h"
-#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "rs_render_composer_manager.h"
@@ -786,7 +786,6 @@ bool RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNod
     }
     const auto& dstRect = node.GetDstRect();
     const auto& srcRect = node.GetSrcRect();
-
     // check if the node's srcRect and dstRect are valid.
     if (srcRect.width_ <= 0 || srcRect.height_ <= 0 || dstRect.width_ <= 0 || dstRect.height_ <= 0) {
         RS_LOGD("RSUniRenderComposerAdapter::CheckBeforeCreateLayer false, data check lt 0");

@@ -25,7 +25,7 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render_server/rs_render_service.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "transaction/zidl/rs_client_to_render_connection_stub.h"
+#include "zidl/rs_client_to_render_connection_stub.h"
 #include "vsync_distributor.h"
 
 namespace OHOS {
@@ -85,7 +85,7 @@ private:
         const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
-    ErrCode FreezeScreen(NodeId id, bool isFreeze) override;
+    ErrCode FreezeScreen(NodeId id, bool isFreeze, bool needSync = false) override;
 
     void TakeUICaptureInRange(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
@@ -96,15 +96,15 @@ private:
 
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
 
-    ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;
+    ErrCode DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0) override;
 
     ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
-
-    ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) override;
 
     ErrCode RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback) override;
     ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+
+    ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) override;
 
     void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
@@ -121,6 +121,7 @@ private:
     int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;
 #endif
+    int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

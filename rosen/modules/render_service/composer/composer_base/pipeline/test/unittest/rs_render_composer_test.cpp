@@ -810,9 +810,9 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_IsSuperFoldDisplay, TestSize.Lev
     auto tmpReviseRect = rsScreen->property_.GetReviseRect();
     auto tmpMaskRect = rsScreen->property_.GetMaskRect();
 
-    rsScreen->property_.SetActiveRect(RectI{ 0, 1008, 2232, 128 });
-    rsScreen->property_.SetReviseRect(RectI{ 0, 1008, 2232, 128 });
-    rsScreen->property_.SetMaskRect(RectI{ 0, 1008, 2232, 128 });
+    rsScreen->property_.SetActiveRect(RectI{0, 1008, 2232, 128});
+    rsScreen->property_.SetReviseRect(RectI{0, 1008, 2232, 128});
+    rsScreen->property_.SetMaskRect(RectI{0, 1008, 2232, 128});
     screenManager->MockHdiScreenConnected(rsScreen);
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
     const RectI& reviseRect = screenInfo.reviseRect;
@@ -1037,11 +1037,11 @@ HWTEST_F(RsRenderComposerTest, RecordTimestamp, TestSize.Level1)
 
     uint64_t vsyncId = 1;
     auto output = HdiOutput::CreateHdiOutput(0);
-    rsRenderComposer_->RecordTimestamp(vsyncId, output, layers);
+    rsRenderComposer_->RecordTimestamp(vsyncId, output);
     ASSERT_EQ(layers.size(), 4);
 
     l3->SetUniRenderFlag(true);
-    rsRenderComposer_->RecordTimestamp(vsyncId, output, layers);
+    rsRenderComposer_->RecordTimestamp(vsyncId, output);
     EXPECT_EQ(layers.size(), 4);
 }
 
@@ -2174,6 +2174,42 @@ HWTEST_F(RsRenderComposerTest, CalculateDelayTime, TestSize.Level1)
 }
 
 /**
+ * Function: CalculateDelayTime2
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. change TE settings
+ *                  3. call CalculateDelayTime
+ *                  4. check result
+ */
+HWTEST_F(RsRenderComposerTest, CalculateDelayTime2, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    RefreshRateParam param;
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.isLtpoMode_.store(true);
+    hgmCore.SetSupportedMaxTE144(0);
+    tmpRsRenderComposer->CalculateDelayTime(hgmCore, param, 0, -1);
+    EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
+    tmpRsRenderComposer->CalculateDelayTime(hgmCore, param, 144, -1);
+    EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
+    hgmCore.SetSupportedMaxTE144(432);
+    hgmCore.SetIdealPipelineOffset144(6);
+    tmpRsRenderComposer->CalculateDelayTime(hgmCore, param, 0, -1);
+    EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
+    tmpRsRenderComposer->CalculateDelayTime(hgmCore, param, 144, -1);
+    EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
  * Function: ExecuteSwitchRefreshRate
  * Type: Function
  * Rank: Important(2)
@@ -2458,6 +2494,57 @@ HWTEST_F(RsRenderComposerTest, ResetRetryCount_004, TestSize.Level1)
     tmpRsRenderComposer->hgmHardwareUtils_.ResetRetryCount(powerstatus);
     EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.needRetrySetRate, false);
     EXPECT_EQ(tmpRsRenderComposer->hgmHardwareUtils_.setRateRetryParam_.isRetryOverLimit, true);
+}
+
+/**
+ * Function: ReportRetryOverLimit_002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call ReportRetryOverLimit
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, ReportRetryOverLimit, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    auto& hgmCore_ = HgmCore::Instance();
+    auto frameRateMgr = hgmCore_.GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+    uint64_t vsyncId = 111111;
+    int32_t rate = 120;
+    tmpRsRenderComposer->hgmHardwareUtils_.ReportRetryOverLimit(vsyncId, rate);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+}
+
+/**
+ * Function: ReportRetryOverLimit
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call ReportRetryOverLimit
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerTest, ReportRetryOverLimit_002, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+    uint64_t vsyncId = 111111;
+    int32_t rate = 120;
+    auto& hgmCore_ = HgmCore::Instance();
+    auto frameRateMgr = hgmCore_.GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+    hgmCore_.hgmFrameRateMgr_ = nullptr;
+    tmpRsRenderComposer->hgmHardwareUtils_.ReportRetryOverLimit(vsyncId, rate);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 } // namespace Rosen
 } // namespace OHOS

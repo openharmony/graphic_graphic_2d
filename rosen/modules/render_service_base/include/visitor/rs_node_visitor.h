@@ -61,11 +61,11 @@ public:
     virtual void ProcessChildren(RSRenderNode& node) = 0;
     virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) = 0;
     virtual void ProcessScreenRenderNode(RSScreenRenderNode& node) = 0;
-    virtual void ProcessProxyRenderNode(RSProxyRenderNode& node) = 0;
+    virtual void ProcessEffectRenderNode(RSEffectRenderNode& node) = 0;
     virtual void ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) = 0;
+    virtual void ProcessProxyRenderNode(RSProxyRenderNode& node) = 0;
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) = 0;
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
-    virtual void ProcessEffectRenderNode(RSEffectRenderNode& node) = 0;
     virtual void RegisterHpaeCallback(RSRenderNode& node) {};
     virtual void AddSurfaceChangedCallBack(uint64_t id,
         const std::function<void(float, float, float, float)>& callback) {};

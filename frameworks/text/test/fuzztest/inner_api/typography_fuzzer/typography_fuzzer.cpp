@@ -39,8 +39,13 @@ void TypographyFuzzTest(const uint8_t* data, size_t size)
     paragraphBuilder->AddText(u"Str8ToStr16ByIcu(text)");
     auto paragraph = paragraphBuilder->Build();
     paragraph->Layout(1000.0f);
-    ImageOptions options{fdp.ConsumeIntegral<int32_t>(), fdp.ConsumeIntegral<int32_t>(),
-        fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>()};
+
+    int32_t width = fdp.ConsumeIntegralInRange<int32_t>(-4096, 4096);
+    int32_t height = fdp.ConsumeIntegralInRange<int32_t>(-4096, 4096);
+
+    ImageOptions options{width, height, fdp.ConsumeFloatingPointInRange<float>(-1000.0f, 1000.0f),
+        fdp.ConsumeFloatingPointInRange<float>(-1000.0f, 1000.0f)};
+
     std::shared_ptr<OHOS::Media::PixelMap> pixelMap = paragraph->GetTextPathImageByIndex(
         fdp.ConsumeIntegral<size_t>(), fdp.ConsumeIntegral<size_t>(), options, fdp.ConsumeBool());
     if (pixelMap == nullptr) {

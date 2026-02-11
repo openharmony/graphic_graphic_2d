@@ -15,8 +15,6 @@
 #ifndef RENDER_SERVICE_BASE_RENDER_RS_EFFECT_LUMINANCE_MANAGER_H
 #define RENDER_SERVICE_BASE_RENDER_RS_EFFECT_LUMINANCE_MANAGER_H
 
-#include <map>
-
 #include "common/rs_common_def.h"
 #include "draw/color.h"
 #include "effect/rs_render_filter_base.h"

@@ -63,6 +63,8 @@
 #include "socperf_param.h"
 #include "surface_capture_param_parse.h"
 #include "surface_capture_param.h"
+#include "gpu_resource_release_param_parse.h"
+#include "gpu_resource_release_param.h"
 #include "ui_capture_param_parse.h"
 #include "ui_capture_param.h"
 #include "image_enhance_param_parse.h"
@@ -72,6 +74,12 @@
 #include "smart_cache_param_parse.h"
 #include "smart_cache_param.h"
 #include "gpu_cache_param_parse.h"
+#include "vma_block_param_parse.h"
+#include "vma_block_param.h"
+#include "spirv_cache_param_parse.h"
+#include "spirv_cache_param.h"
+#include "buffer_reclaim_param_parse.h"
+#include "buffer_reclaim_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -112,6 +120,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<SurfaceCaptureParam>(); }},
     {FEATURE_CONFIGS[UI_CAPTURE], [] {return std::make_unique<UICaptureParamParse>(); },
         [] {return std::make_unique<UICaptureParam>(); }},
+    {FEATURE_CONFIGS[DEEPLY_REL_GPU_RES], [] { return std::make_unique<DeeplyRelGpuResParamParse>(); },
+        [] { return std::make_unique<DeeplyRelGpuResParam>(); }},
     {FEATURE_CONFIGS[ACCESSIBILITY], [] { return std::make_unique<AccessibilityParamParse>(); },
         [] { return std::make_unique<AccessibilityParam>(); }},
     {FEATURE_CONFIGS[VRATE], [] { return std::make_unique<VRateParamParse>(); },
@@ -130,6 +140,12 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<GpuCacheParam>(); }},
     {FEATURE_CONFIGS[NODE_MEM_RELEASE], [] { return std::make_unique<NodeMemReleaseParamParse>(); },
         [] { return std::make_unique<NodeMemReleaseParam>(); }},
+    {FEATURE_CONFIGS[VMA_BLOCK], [] { return std::make_unique<VMABlockParamParse>(); },
+        [] { return std::make_unique<VMABlockParam>(); }},
+    {FEATURE_CONFIGS[SPIRV_CACHE], [] { return std::make_unique<SpirvCacheParamParse>(); },
+        [] { return std::make_unique<SpirvCacheParam>(); }},
+    {FEATURE_CONFIGS[BUFFER_RECLAIM], [] { return std::make_unique<BufferReclaimParamParse>(); },
+        [] { return std::make_unique<BufferReclaimParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

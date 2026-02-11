@@ -21,10 +21,10 @@
 #include <set>
 #include <unordered_map>
 
-#include "common/rs_occlusion_region.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_screen_render_params.h"
+#include "common/rs_occlusion_region.h"
 
 namespace OHOS {
 namespace Rosen {

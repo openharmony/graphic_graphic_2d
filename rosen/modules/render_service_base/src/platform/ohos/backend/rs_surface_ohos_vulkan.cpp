@@ -402,12 +402,13 @@ void RSSurfaceOhosVulkan::SubmitHapeTask(const uint64_t& curFrameId)
 
     auto hpaePostFunc = [curFrameId, taskId = hpaeTask.taskId, this] () {
         std::lock_guard<std::mutex> lock(taskHandleMapMutex_);
-        int32_t ret = HianimationManager::GetInstance().HianimationDestroyTaskAndNotify(taskId);
-        HPAE_LOGD("GP aae postfunc deinit[%u], retusn[%d]", taskId, ret);
+        int32_t ret = RSHpaeFfrtPatternManager::Instance().MHCQueryTask(curFrameId, MHC_PatternTaskName::BLUR_HPAE);
+        HPAE_LOGD("GP aae postfunc deinit: taskId[%u], return[%d]", taskId, ret);
         if (UNLIKELY(ret == MHC_ERROR_HPAE_BLUR)) {
             HPAE_LOGE("HPAE task error: %{public}d", ret);
             HianimationManager::GetInstance().HianimationDumpDebugInfo(taskId);
         }
+        HianimationManager::GetInstance().HianimationDestroyTaskAndNotify(taskId);
         taskHandleMap_.erase(curFrameId);
     };
     RSHpaeFfrtPatternManager::Instance().MHCSubmitTask(curFrameId, MHC_PatternTaskName::BLUR_HPAE,
@@ -487,11 +488,20 @@ void RSSurfaceOhosVulkan::SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& 
 }
 #endif
 
+void RSSurfaceOhosVulkan::CancelBuffer(NativeBufferUtils::NativeSurfaceInfo& surface)
+{
+    surface.fence.reset();
+    auto buffer = mSurfaceList.front();
+    mSurfaceList.pop_front();
+    NativeWindowCancelBuffer(mNativeWindow, buffer);
+    mSurfaceMap.erase(buffer);
+}
+
 void RSSurfaceOhosVulkan::CancelBufferForCurrentFrame()
 {
     if (mSurfaceList.empty()) {
         RS_LOGE("CancelBuffer failed: mSurfaceList is empty");
-        return ;
+        return;
     }
     auto buffer = mSurfaceList.back();
     mSurfaceList.pop_back();
@@ -529,8 +539,6 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
 
-    std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-
     std::vector<GrBackendSemaphore> semaphoreVec = { backendSemaphore };
 #ifdef HETERO_HDR_ENABLE
     std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
@@ -538,7 +546,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 #endif
 
 #ifdef MHC_ENABLE
-    RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface.drawingSurface);
+    auto&& pendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface.drawingSurface);
 #endif
 
 #if defined(ROSEN_OHOS)
@@ -582,7 +590,9 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 #endif
     
 #ifdef MHC_ENABLE
-    RSMhcManager::Instance().MHCSubmitTask();
+    if (pendingSubmit) {
+        RSMhcManager::Instance().MHCSubmitTask(*pendingSubmit);
+    }
 #endif
 
     int fenceFd = -1;
@@ -597,6 +607,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         if (err == VK_ERROR_DEVICE_LOST) {
             vkContext.DestroyAllSemaphoreFence();
         }
+        CancelBuffer(surface);
         RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(callbackInfo);
         callbackInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan QueueSignalReleaseImageOHOS failed %{public}d", err);
@@ -615,6 +626,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {
+        CancelBuffer(surface);
         RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(callbackInfo);
         callbackInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan NativeWindowFlushBuffer failed");
@@ -694,7 +706,6 @@ void RSSurfaceOhosVulkan::ReleasePreAllocateBuffer()
     if (mPreAllocateProtectedBuffer == nullptr) {
         return;
     }
-    NativeWindowCancelBuffer(mNativeWindow, mPreAllocateProtectedBuffer);
     mPreAllocateProtectedBuffer = nullptr;
     mProtectedFenceFd = -1;
     NativeWindowCleanCache(mNativeWindow);

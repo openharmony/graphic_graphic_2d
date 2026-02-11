@@ -215,11 +215,6 @@ void GPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPU
     impl_->DumpMemoryStatisticsByTag(traceMemoryDump, tag);
 }
 
-uint64_t GPUContext::NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const
-{
-    return impl_->NewDumpMemoryStatisticsByTag(traceMemoryDump, tag);
-}
-
 void GPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) const
 {
     impl_->DumpMemoryStatistics(traceMemoryDump);
@@ -346,6 +341,16 @@ void GPUContextOptions::SetStoreCachePath(const std::string& filePath)
 std::string GPUContextOptions::GetStoreCachePath() const
 {
     return filePath_;
+}
+
+ void GPUContextOptions::SetIsUniRender(bool isUniRender)
+{
+    isUniRender_ = isUniRender;
+}
+
+bool GPUContextOptions::GetIsUniRender() const
+{
+    return isUniRender_;
 }
 
 void GPUContext::SetParam(const std::string& name, const std::string& value)

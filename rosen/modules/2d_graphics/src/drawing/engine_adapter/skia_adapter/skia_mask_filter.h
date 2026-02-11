@@ -33,7 +33,7 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
-    void InitWithBlur(BlurType t, scalar sigma, bool respectCTM) override;
+    void InitWithBlur(BlurType t, scalar sigma, bool respectCTM, bool disableSDF) override;
     sk_sp<SkMaskFilter> GetMaskFilter() const;
     /*
      * @brief  Update the member variable to filter, adaptation layer calls.

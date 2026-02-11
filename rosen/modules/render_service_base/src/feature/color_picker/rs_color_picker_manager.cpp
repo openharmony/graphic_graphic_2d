@@ -19,140 +19,73 @@
 #include <memory>
 
 #include "feature/color_picker/rs_color_picker_thread.h"
-#include "feature/color_picker/rs_hetero_color_picker.h"
-#include "rs_trace.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
 
-#include "common/rs_color.h"
 #include "common/rs_optional_trace.h"
-#include "draw/color.h"
-#include "drawable/rs_property_drawable_utils.h"
-#include "platform/common/rs_log.h"
-#include "property/rs_color_picker_def.h"
 
 namespace OHOS::Rosen {
 namespace {
-constexpr int32_t TRACE_LEVEL_TWO = 2;
-constexpr int64_t TASK_DELAY_TIME = 16;                 // 16ms
-constexpr float COLOR_PICKER_ANIMATE_DURATION = 350.0f; // 350ms
+constexpr float COLOR_PICKER_ANIMATE_DURATION = 133.0f;
 
 inline uint64_t NowMs()
 {
     using namespace std::chrono;
     return static_cast<uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
+
+inline Drawing::ColorQuad GetColorOrDefault(Drawing::ColorQuad colorValue, bool darkMode)
+{
+    return colorValue != Drawing::Color::COLOR_TRANSPARENT
+               ? colorValue
+               : (darkMode ? Drawing::Color::COLOR_WHITE : Drawing::Color::COLOR_BLACK);
+}
 } // namespace
 
-std::optional<Drawing::ColorQuad> RSColorPickerManager::GetColorPicked(
-    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, const ColorPickerParam& params)
+std::optional<Drawing::ColorQuad> RSColorPickerManager::GetColorPick()
 {
     uint64_t currTime = NowMs();
     const auto [prevColor, curColor] = GetColor();
     const float animFraction = static_cast<float>(currTime - animStartTime_) / COLOR_PICKER_ANIMATE_DURATION;
-    const auto res = InterpolateColor(prevColor, curColor, animFraction);
-    RS_TRACE_NAME_FMT(
-        "RSColorPickerManager::GetColorPicked: animFraction = %f, color = %x, prevColor = %x, interpolated color = %x",
-        animFraction, curColor, prevColor, res);
-
+    // Continue animation if in progress
     if (animFraction <= 1.0f) {
-        RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); // continue animation
+        RSColorPickerThread::Instance().NotifyNodeDirty(nodeId_); // continue animation
     }
+    return InterpolateColor(prevColor, curColor, animFraction);
+}
 
-    if (params.strategy != ColorPickStrategyType::NONE &&
-        currTime >= params.interval + lastUpdateTime_) { // cooldown check
-        ScheduleColorPick(canvas, rect, nodeId, params.strategy);
-        lastUpdateTime_ = currTime;
-    }
-    return res;
+void RSColorPickerManager::SetSystemDarkColorMode(bool isSystemDarkColorMode)
+{
+    isSystemDarkColorMode_.store(isSystemDarkColorMode, std::memory_order_relaxed);
 }
 
 void RSColorPickerManager::ScheduleColorPick(
-    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, ColorPickStrategyType strategy)
+    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params)
 {
-    if (rect == nullptr) {
-        RS_LOGE("RSColorPickerManager::GetSnapshot rect invalid!");
-        return;
-    }
-
-    canvas.Save();
-    canvas.ClipRect(*rect, Drawing::ClipOp::INTERSECT, false);
-    Drawing::RectI snapshotIBounds = canvas.GetRoundInDeviceClipBounds();
-    canvas.Restore();
-
-    auto drawingSurface = canvas.GetSurface();
-    if (drawingSurface == nullptr) {
-        RS_LOGE("RSColorPickerManager::GetSnapshot surface nullptr!");
-        return;
-    }
-    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
-    if (snapshot == nullptr) {
-        RS_LOGE("RSColorPickerManager::GetSnapshot snapshot nullptr!");
-        return;
-    }
-
-    auto ptr = std::static_pointer_cast<RSColorPickerManager>(shared_from_this());
-    if (RSHeteroColorPicker::Instance().GetColor(
-        [ptr, nodeId, strategy](
-                Drawing::ColorQuad& newColor) { ptr->HandleColorUpdate(newColor, nodeId, strategy); },
-            drawingSurface, snapshot)) {
-        return; // accelerated color picker
-    }
-
-    auto colorPickTask = [snapshot, nodeId, strategy, weakThis = weak_from_this()]() {
-        auto manager = weakThis.lock();
-        if (!manager) {
-            RS_LOGD("RSColorPickerThread manager not valid, return");
-            return;
-        }
-        manager->PickColor(snapshot, nodeId, strategy);
-    };
-    RSColorPickerThread::Instance().PostTask(colorPickTask, TASK_DELAY_TIME);
+    auto ptr = std::static_pointer_cast<IColorPickerManager>(shared_from_this());
+    RSColorPickerUtils::ExtractSnapshotAndScheduleColorPick(canvas, rect, ptr);
 }
 
-void RSColorPickerManager::PickColor(
-    const std::shared_ptr<Drawing::Image>& snapshot, uint64_t nodeId, ColorPickStrategyType strategy)
+void RSColorPickerManager::HandleColorUpdate(Drawing::ColorQuad newColor)
 {
-    Drawing::ColorQuad colorPicked;
-    bool prevDark;
-    {
-        std::lock_guard<std::mutex> lock(colorMtx_);
-        prevDark = (colorPicked_ == Drawing::Color::COLOR_BLACK);
+    const bool darkMode = isSystemDarkColorMode_.load(std::memory_order_relaxed);
+    Drawing::ColorQuad prevColor = GetColorOrDefault(prevColor_.load(std::memory_order_relaxed), darkMode);
+    Drawing::ColorQuad curColor = GetColorOrDefault(colorPicked_.load(std::memory_order_relaxed), darkMode);
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "RSColorPickerManager::extracted isSystemDarkColorMode: %d background color = %x, prevColor = %x"
+        ", nodeId = %lu",
+        darkMode, newColor, prevColor, nodeId_);
+    newColor = GetContrastColor(newColor, curColor == Drawing::Color::COLOR_BLACK);
+    if (newColor == curColor) {
+        return;
     }
-#if defined(RS_ENABLE_UNI_RENDER)
-    auto gpuCtx = RSColorPickerThread::Instance().GetShareGPUContext();
-#else
-    auto gpuCtx = nullptr;
-#endif
-    if (RSPropertyDrawableUtils::PickColor(gpuCtx, snapshot, colorPicked)) {
-        HandleColorUpdate(colorPicked, nodeId, strategy);
-    } else {
-        RS_LOGE("RSColorPickerThread colorPick failed");
-    }
-}
 
-void RSColorPickerManager::HandleColorUpdate(
-    Drawing::ColorQuad newColor, uint64_t nodeId, ColorPickStrategyType strategy)
-{
-    {
-        RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
-            "RSColorPickerManager::extracted background color = %x, prevColor = %x, nodeId = %lu", newColor, prevColor_,
-            nodeId);
-        std::lock_guard<std::mutex> lock(colorMtx_);
-        if (strategy == ColorPickStrategyType::CONTRAST) {
-            newColor = GetContrastColor(newColor);
-        }
-        if (newColor == colorPicked_) {
-            return;
-        }
-
-        const uint64_t now = NowMs();
-        float animFraction = static_cast<float>(now - animStartTime_) / COLOR_PICKER_ANIMATE_DURATION;
-        animFraction = std::clamp(animFraction, 0.0f, 1.0f);
-        prevColor_ = InterpolateColor(prevColor_, colorPicked_, animFraction);
-        colorPicked_ = newColor;
-        animStartTime_ = now;
-    }
-    RS_TRACE_NAME_FMT("RSColorPickerManager::notifyNodeDirty, prevColor = %x, newColor = %x", prevColor_, colorPicked_);
-    RSColorPickerThread::Instance().NotifyNodeDirty(nodeId);
+    const uint64_t now = NowMs();
+    float animFraction = static_cast<float>(now - animStartTime_) / COLOR_PICKER_ANIMATE_DURATION;
+    animFraction = std::clamp(animFraction, 0.0f, 1.0f);
+    prevColor_.store(InterpolateColor(prevColor, curColor, animFraction), std::memory_order_relaxed);
+    colorPicked_.store(newColor, std::memory_order_relaxed);
+    animStartTime_ = now;
+    RSColorPickerThread::Instance().NotifyNodeDirty(nodeId_);
 }
 
 Drawing::ColorQuad RSColorPickerManager::InterpolateColor(
@@ -180,37 +113,25 @@ Drawing::ColorQuad RSColorPickerManager::InterpolateColor(
     return Drawing::Color::ColorQuadSetARGB(a, r, g, b);
 }
 
-inline std::pair<Drawing::ColorQuad, Drawing::ColorQuad> RSColorPickerManager::GetColor()
+std::pair<Drawing::ColorQuad, Drawing::ColorQuad> RSColorPickerManager::GetColor() const
 {
-    std::lock_guard<std::mutex> lock(colorMtx_);
-    return { prevColor_, colorPicked_ };
+    const bool darkMode = isSystemDarkColorMode_.load(std::memory_order_relaxed);
+    auto prevColor = GetColorOrDefault(prevColor_.load(std::memory_order_relaxed), darkMode);
+    auto curColor = GetColorOrDefault(colorPicked_.load(std::memory_order_relaxed), darkMode);
+    return { prevColor, curColor };
 }
 
 namespace {
-constexpr float RED_LUMINANCE_COEFF = 0.299f;
-constexpr float GREEN_LUMINANCE_COEFF = 0.587f;
-constexpr float BLUE_LUMINANCE_COEFF = 0.114f;
 constexpr float THRESHOLD_HIGH = 220.0f;
 constexpr float THRESHOLD_LOW = 150.0f;
 } // namespace
 
-Drawing::ColorQuad RSColorPickerManager::GetContrastColor(Drawing::ColorQuad color)
+Drawing::ColorQuad RSColorPickerManager::GetContrastColor(Drawing::ColorQuad color, bool prevDark)
 {
-    auto red = Drawing::Color::ColorQuadGetR(color);
-    auto green = Drawing::Color::ColorQuadGetG(color);
-    auto blue = Drawing::Color::ColorQuadGetB(color);
-    float luminance = red * RED_LUMINANCE_COEFF + green * GREEN_LUMINANCE_COEFF + blue * BLUE_LUMINANCE_COEFF;
+    float luminance = RSColorPickerUtils::CalculateLuminance(color);
 
-    static std::atomic<Drawing::ColorQuad> g_color = Drawing::Color::COLOR_BLACK;
-    if (luminance <= THRESHOLD_LOW) {
-        g_color = Drawing::Color::COLOR_WHITE;
-        return Drawing::Color::COLOR_WHITE;
-    } else if (luminance >= THRESHOLD_HIGH) {
-        g_color = Drawing::Color::COLOR_BLACK;
-        return Drawing::Color::COLOR_BLACK;
-    }
-    // Stick to previously selected color if luminance is between thresholds
-    // Use a global status to better align color theme
-    return g_color.load(std::memory_order_relaxed);
+    // Use hysteresis thresholds based on previous contrast color state
+    const float threshold = prevDark ? THRESHOLD_LOW : THRESHOLD_HIGH;
+    return luminance > threshold ? Drawing::Color::COLOR_BLACK : Drawing::Color::COLOR_WHITE;
 }
 } // namespace OHOS::Rosen

@@ -109,11 +109,14 @@ protected:
     static void IncreaseCacheRefCount(uint64_t uniqueId,
             bool useSkImage = true, std::shared_ptr<Media::PixelMap> pixelMap = nullptr);
 
+    static constexpr bool PIXELMAP_IS_PROPERTIES_DIRTY_DEFAULT = false;
+
     mutable std::mutex mutex_;
     std::shared_ptr<Drawing::Image> image_;
     void* imagePixelAddr_ = nullptr;
     std::shared_ptr<Media::PixelMap> pixelMap_;
     // used for astc render
+    mutable std::mutex compressDataMutex_;
     std::shared_ptr<Drawing::Data> compressData_;
 
     RectF srcRect_;

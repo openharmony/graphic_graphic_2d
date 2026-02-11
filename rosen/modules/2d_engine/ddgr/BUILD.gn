@@ -35,7 +35,9 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
     ldflags = ddgr_link_config_set.ldflags
     deps = [ ":ddgr_compiler_src_set" ]
     external_deps = ddgr_compiler_src_set.public_external_deps
-
+    if (current_os == "ohos") {
+      version_script = ddgr_compiler_src_set.version_script
+    }
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -82,6 +84,14 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
     public_configs = [ ":public_ddgr_config" ]
     external_deps = ddgr_src_set.public_external_deps
 
+    if (is_ohos && is_clang && target_cpu == "arm64" && defined(build_ext_path)) {
+      ldflags += [ 
+        "-Wl,--emit-relocs",
+        "-Wl,--no-relax", 
+        "-mno-fix-cortex-a53-843419" 
+      ]
+    }
+
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -113,6 +123,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
     cflags_cc = ddgr_src_set.cflags_cc
     defines = ddgr_src_set.defines
     include_dirs = ddgr_src_set.include_dirs
+    inputs = ddgr_src_set.inputs
   }
 
   config("public_ddgr_config") {

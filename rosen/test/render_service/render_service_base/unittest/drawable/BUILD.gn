@@ -24,6 +24,7 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
   sources = [
     "rs_drawable_test.cpp",
     "rs_misc_drawable_test.cpp",
+    "rs_point_light_drawable_test.cpp",
     "rs_property_drawable_background_test.cpp",
     "rs_property_drawable_foreground_test.cpp",
     "rs_property_drawable_test.cpp",

@@ -23,7 +23,7 @@ namespace OHOS {
 namespace Rosen {
 class RSIScreenSwitchingNotifyCallback : public IRemoteBroker {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.ScreenSwitchingNotifyListener");
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.ScreenSwitchingNotifyCallback");
  
     RSIScreenSwitchingNotifyCallback() = default;
     virtual ~RSIScreenSwitchingNotifyCallback() noexcept = default;

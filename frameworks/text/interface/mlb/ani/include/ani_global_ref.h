@@ -88,6 +88,8 @@ public:
     ani_class point;
     ani_class path;
     ani_class placeholderSpan;
+    ani_class textLayoutResult;
+    ani_class textRectSize;
 
 private:
     AniGlobalClass() = default;
@@ -109,6 +111,7 @@ public:
     void Init(ani_env* env);
 
     ani_enum fontWeight;
+    ani_enum fontWidth;
     ani_enum affinity;
     ani_enum textDirection;
     ani_enum fontStyle;
@@ -117,6 +120,7 @@ public:
     ani_enum textDecorationType;
     ani_enum textDecorationStyle;
     ani_enum textBadgeType;
+    ani_enum lineHeightStyle;
 
 private:
     AniGlobalEnum() = default;
@@ -189,6 +193,7 @@ public:
     ani_method paragraphStyleVerticalAlign;
     ani_method paragraphStyleIncludeFontPadding;
     ani_method paragraphStyleFallbackLineSpacing;
+    ani_method paragraphStyleLineSpacing;
     ani_method strutStyleFontStyle;
     ani_method strutStyleFontWidth;
     ani_method strutStyleFontWeight;
@@ -205,6 +210,7 @@ public:
     ani_method textStyleCtor;
     ani_method textStyleColor;
     ani_method textStyleFontWeight;
+    ani_method textStyleFontWidth;
     ani_method textStyleFontStyle;
     ani_method textStyleBaseline;
     ani_method textStyleFontFamilies;
@@ -224,6 +230,9 @@ public:
     ani_method textStyleFontVariations;
     ani_method textStyleBackgroundRect;
     ani_method textStyleBadgeType;
+    ani_method textStyleMaxLineHeight;
+    ani_method textStyleMinLineHeight;
+    ani_method textStyleLineHeightStyle;
     ani_method decorationCtor;
     ani_method decorationDecorationType;
     ani_method decorationDecorationStyle;
@@ -263,8 +272,12 @@ public:
     ani_method rangeCtor;
     ani_method rangeStart;
     ani_method rangeEnd;
+    ani_method textRectSizeCtor;
+    ani_method textRectSizeWidth;
+    ani_method textRectSizeHeight;
     ani_method textBoxCtor;
     ani_method typographicBoundsCtor;
+    ani_method textLayoutResultCtor;
 
 private:
     AniGlobalMethod() = default;
@@ -285,11 +298,13 @@ private:
     void InitFontFeatureMethod(ani_env* env);
     void InitFontVariationMethod(ani_env* env);
     void InitRectStyleMethod(ani_env* env);
+    void InitTextLayoutResultMethod(ani_env* env);
     void InitPlaceholderMethod(ani_env* env);
     void InitGlobalResourceMethod(ani_env* env);
     void InitRangeMethod(ani_env* env);
     void InitPointMethod(ani_env* env);
     void InitTextTabMethod(ani_env* env);
+    void InitTextRectSizeMethod(ani_env* env);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_GLOBAL_REF_H

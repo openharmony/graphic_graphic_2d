@@ -30,6 +30,95 @@
 namespace OHOS::Rosen {
 namespace {
 const std::string CLASS_NAME = "Paragraph";
+
+// Result array indices for range conversion functions
+constexpr size_t RESULT_INDEX_PRIMARY_RANGE = 0;
+constexpr size_t RESULT_INDEX_ACTUAL_RANGE = 1;
+
+// Structure to hold range and encoding parameters
+struct RangeAndEncodingParams {
+    size_t start = 0;
+    size_t end = 0;
+    int encoding = 0;
+};
+
+NapiTextResult ParseRangeAndEncodingFromJs(napi_env env, napi_value rangeObj,
+    napi_value encodingObj, RangeAndEncodingParams& params)
+{
+    napi_value tempValue = nullptr;
+    napi_status status = napi_get_named_property(env, rangeObj, "start", &tempValue);
+    if (status != napi_ok || tempValue == nullptr) {
+        TEXT_LOGE("Failed to get start property, status %{public}d", status);
+        return NapiTextResult::Invalid("Invalid params.");
+    }
+    bool isStartOk = ConvertFromJsValue(env, tempValue, params.start);
+
+    tempValue = nullptr;
+    status = napi_get_named_property(env, rangeObj, "end", &tempValue);
+    if (status != napi_ok || tempValue == nullptr) {
+        TEXT_LOGE("Failed to get end property, status %{public}d", status);
+        return NapiTextResult::Invalid("Invalid params.");
+    }
+    bool isEndOk = ConvertFromJsValue(env, tempValue, params.end);
+    if (!(isStartOk && isEndOk)) {
+        TEXT_LOGE("Failed to convert, start ok:%{public}d, end ok:%{public}d", isStartOk, isEndOk);
+        return NapiTextResult::Invalid("Invalid params.");
+    }
+
+    if (!(encodingObj != nullptr && ConvertFromJsValue(env, encodingObj, params.encoding))) {
+        TEXT_LOGE("Failed to get encoding property");
+        return NapiTextResult::Invalid("Invalid params.");
+    }
+
+    // Business logic validation
+    if (params.start >= params.end) {
+        TEXT_LOGE("Invalid range: start >= end");
+        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM, "Invalid parameters");
+    }
+
+    if (params.encoding != static_cast<int>(TextEncoding::UTF8) &&
+        params.encoding != static_cast<int>(TextEncoding::UTF16)) {
+        TEXT_LOGE("Invalid encoding value");
+        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM, "Invalid parameters");
+    }
+
+    return NapiTextResult::Success();
+}
+
+napi_property_descriptor properties[] = {
+    DECLARE_NAPI_FUNCTION("layoutWithConstraints", JsParagraph::LayoutWithConstraints),
+    DECLARE_NAPI_FUNCTION("layoutSync", JsParagraph::Layout),
+    DECLARE_NAPI_FUNCTION("paint", JsParagraph::Paint),
+    DECLARE_NAPI_FUNCTION("paintOnPath", JsParagraph::PaintOnPath),
+    DECLARE_NAPI_FUNCTION("getMaxWidth", JsParagraph::GetMaxWidth),
+    DECLARE_NAPI_FUNCTION("getHeight", JsParagraph::GetHeight),
+    DECLARE_NAPI_FUNCTION("getLongestLine", JsParagraph::GetLongestLine),
+    DECLARE_NAPI_FUNCTION("getLongestLineWithIndent", JsParagraph::GetLongestLineWithIndent),
+    DECLARE_NAPI_FUNCTION("getMinIntrinsicWidth", JsParagraph::GetMinIntrinsicWidth),
+    DECLARE_NAPI_FUNCTION("getMaxIntrinsicWidth", JsParagraph::GetMaxIntrinsicWidth),
+    DECLARE_NAPI_FUNCTION("getAlphabeticBaseline", JsParagraph::GetAlphabeticBaseline),
+    DECLARE_NAPI_FUNCTION("getIdeographicBaseline", JsParagraph::GetIdeographicBaseline),
+    DECLARE_NAPI_FUNCTION("getRectsForRange", JsParagraph::GetRectsForRange),
+    DECLARE_NAPI_FUNCTION("getRectsForPlaceholders", JsParagraph::GetRectsForPlaceholders),
+    DECLARE_NAPI_FUNCTION("getGlyphPositionAtCoordinate", JsParagraph::GetGlyphPositionAtCoordinate),
+    DECLARE_NAPI_FUNCTION("getCharacterPositionAtCoordinate", JsParagraph::GetCharacterPositionAtCoordinate),
+    DECLARE_NAPI_FUNCTION("getCharacterRangeForGlyphRange", JsParagraph::GetCharacterRangeForGlyphRange),
+    DECLARE_NAPI_FUNCTION("getGlyphRangeForCharacterRange", JsParagraph::GetGlyphRangeForCharacterRange),
+    DECLARE_NAPI_FUNCTION("getWordBoundary", JsParagraph::GetWordBoundary),
+    DECLARE_NAPI_FUNCTION("getLineCount", JsParagraph::GetLineCount),
+    DECLARE_NAPI_FUNCTION("getLineHeight", JsParagraph::GetLineHeight),
+    DECLARE_NAPI_FUNCTION("getLineWidth", JsParagraph::GetLineWidth),
+    DECLARE_NAPI_FUNCTION("didExceedMaxLines", JsParagraph::DidExceedMaxLines),
+    DECLARE_NAPI_FUNCTION("getTextLines", JsParagraph::GetTextLines),
+    DECLARE_NAPI_FUNCTION("getActualTextRange", JsParagraph::GetActualTextRange),
+    DECLARE_NAPI_FUNCTION("getLineMetrics", JsParagraph::GetLineMetrics),
+    DECLARE_NAPI_FUNCTION("getFontMetricsByTextStyle", JsParagraph::GetFontMetricsByTextStyle),
+    DECLARE_NAPI_FUNCTION("getLineFontMetrics", JsParagraph::GetLineFontMetrics),
+    DECLARE_NAPI_FUNCTION("layout", JsParagraph::LayoutAsync),
+    DECLARE_NAPI_FUNCTION("isStrutStyleEqual", JsParagraph::IsStrutStyleEqual),
+    DECLARE_NAPI_FUNCTION("updateColor", JsParagraph::UpdateColor),
+    DECLARE_NAPI_FUNCTION("updateDecoration", JsParagraph::UpdateDecoration),
+};
 }
 
 std::mutex JsParagraph::constructorMutex_;
@@ -100,36 +189,6 @@ bool JsParagraph::CreateConstructor(napi_env env)
     if (constructor_) {
         return true;
     }
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("layoutSync", JsParagraph::Layout),
-        DECLARE_NAPI_FUNCTION("paint", JsParagraph::Paint),
-        DECLARE_NAPI_FUNCTION("paintOnPath", JsParagraph::PaintOnPath),
-        DECLARE_NAPI_FUNCTION("getMaxWidth", JsParagraph::GetMaxWidth),
-        DECLARE_NAPI_FUNCTION("getHeight", JsParagraph::GetHeight),
-        DECLARE_NAPI_FUNCTION("getLongestLine", JsParagraph::GetLongestLine),
-        DECLARE_NAPI_FUNCTION("getLongestLineWithIndent", JsParagraph::GetLongestLineWithIndent),
-        DECLARE_NAPI_FUNCTION("getMinIntrinsicWidth", JsParagraph::GetMinIntrinsicWidth),
-        DECLARE_NAPI_FUNCTION("getMaxIntrinsicWidth", JsParagraph::GetMaxIntrinsicWidth),
-        DECLARE_NAPI_FUNCTION("getAlphabeticBaseline", JsParagraph::GetAlphabeticBaseline),
-        DECLARE_NAPI_FUNCTION("getIdeographicBaseline", JsParagraph::GetIdeographicBaseline),
-        DECLARE_NAPI_FUNCTION("getRectsForRange", JsParagraph::GetRectsForRange),
-        DECLARE_NAPI_FUNCTION("getRectsForPlaceholders", JsParagraph::GetRectsForPlaceholders),
-        DECLARE_NAPI_FUNCTION("getGlyphPositionAtCoordinate", JsParagraph::GetGlyphPositionAtCoordinate),
-        DECLARE_NAPI_FUNCTION("getWordBoundary", JsParagraph::GetWordBoundary),
-        DECLARE_NAPI_FUNCTION("getLineCount", JsParagraph::GetLineCount),
-        DECLARE_NAPI_FUNCTION("getLineHeight", JsParagraph::GetLineHeight),
-        DECLARE_NAPI_FUNCTION("getLineWidth", JsParagraph::GetLineWidth),
-        DECLARE_NAPI_FUNCTION("didExceedMaxLines", JsParagraph::DidExceedMaxLines),
-        DECLARE_NAPI_FUNCTION("getTextLines", JsParagraph::GetTextLines),
-        DECLARE_NAPI_FUNCTION("getActualTextRange", JsParagraph::GetActualTextRange),
-        DECLARE_NAPI_FUNCTION("getLineMetrics", JsParagraph::GetLineMetrics),
-        DECLARE_NAPI_FUNCTION("getFontMetricsByTextStyle", JsParagraph::GetFontMetricsByTextStyle),
-        DECLARE_NAPI_FUNCTION("getLineFontMetrics", JsParagraph::GetLineFontMetrics),
-        DECLARE_NAPI_FUNCTION("layout", JsParagraph::LayoutAsync),
-        DECLARE_NAPI_FUNCTION("isStrutStyleEqual", JsParagraph::IsStrutStyleEqual),
-        DECLARE_NAPI_FUNCTION("updateColor", JsParagraph::UpdateColor),
-        DECLARE_NAPI_FUNCTION("updateDecoration", JsParagraph::UpdateDecoration),
-    };
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
@@ -495,6 +554,132 @@ napi_value JsParagraph::OnGetGlyphPositionAtCoordinate(napi_env env, napi_callba
     }
     IndexAndAffinity positionWithAffinity = paragraph_->GetGlyphIndexByCoordinate(dx, dy);
     return GetPositionWithAffinityAndConvertToJsValue(env, &positionWithAffinity);
+}
+
+napi_value JsParagraph::GetCharacterPositionAtCoordinate(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetCharacterPositionAtCoordinate(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetCharacterPositionAtCoordinate(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("Null paragraph");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    size_t requiredArgc = ARGC_THREE;
+    napi_value argv[ARGC_THREE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &requiredArgc, argv, nullptr, nullptr);
+    if (status != napi_ok || requiredArgc < ARGC_THREE) {
+        TEXT_LOGE("Failed to get parameter, arg %{public}zu, ret %{public}d", requiredArgc, status);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    double dx = 0.0;
+    double dy = 0.0;
+    int encoding = 0;
+    if (!(argv[ARGC_ZERO] != nullptr && ConvertFromJsValue(env, argv[ARGC_ZERO], dx) &&
+        argv[ARGC_ONE] != nullptr && ConvertFromJsValue(env, argv[ARGC_ONE], dy) &&
+        argv[ARGC_TWO] != nullptr && ConvertFromJsValue(env, argv[ARGC_TWO], encoding))) {
+        TEXT_LOGE("Failed to convert");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    if (encoding != static_cast<int>(TextEncoding::UTF8) &&
+        encoding != static_cast<int>(TextEncoding::UTF16)) {
+        TEXT_LOGE("Invalid encoding type");
+        return NapiThrowError(env, MLB::ERROR_INVALID_PARAM, "Invalid parameters");
+    }
+    IndexAndAffinity positionWithAffinity = paragraph_->GetCharacterIndexByCoordinate(dx, dy,
+        static_cast<Rosen::TextEncoding>(encoding));
+    return GetPositionWithAffinityAndConvertToJsValue(env, &positionWithAffinity);
+}
+
+napi_value JsParagraph::GetCharacterRangeForGlyphRange(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetCharacterRangeForGlyphRange(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetCharacterRangeForGlyphRange(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("Null paragraph");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    size_t maxArgc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &maxArgc, argv, nullptr, nullptr);
+    if (status != napi_ok || maxArgc < ARGC_TWO) {
+        TEXT_LOGE("Failed to get parameter, arg %{public}zu, ret %{public}d", maxArgc, status);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_valuetype valueType = napi_undefined;
+    if (argv[ARGC_ZERO] == nullptr || napi_typeof(env, argv[ARGC_ZERO], &valueType) != napi_ok ||
+        valueType != napi_object) {
+        TEXT_LOGE("Invalid argv[0]");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    RangeAndEncodingParams params;
+    auto result = ParseRangeAndEncodingFromJs(env, argv[ARGC_ZERO], argv[1], params);
+    if (!result.success) {
+        return NapiThrowError(env, static_cast<int32_t>(result.errorCode), result.detailedInfo);
+    }
+
+    Boundary actualGlyphRange{0, 0};
+    Boundary charRange = paragraph_->GetCharacterRangeForGlyphRange(
+        params.start, params.end, &actualGlyphRange, static_cast<Rosen::TextEncoding>(params.encoding));
+    napi_value resultArray = nullptr;
+    NAPI_CALL(env, napi_create_array(env, &resultArray));
+    napi_value jsCharRange = GetRangeAndConvertToJsValue(env, &charRange);
+    NAPI_CALL(env, napi_set_element(env, resultArray, RESULT_INDEX_PRIMARY_RANGE, jsCharRange));
+    napi_value jsActualGlyphRange = GetRangeAndConvertToJsValue(env, &actualGlyphRange);
+    NAPI_CALL(env, napi_set_element(env, resultArray, RESULT_INDEX_ACTUAL_RANGE, jsActualGlyphRange));
+    return resultArray;
+}
+
+napi_value JsParagraph::GetGlyphRangeForCharacterRange(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetGlyphRangeForCharacterRange(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetGlyphRangeForCharacterRange(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("Null paragraph");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    size_t maxArgc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &maxArgc, argv, nullptr, nullptr);
+    if (status != napi_ok || maxArgc < ARGC_TWO) {
+        TEXT_LOGE("Failed to get parameter, arg %{public}zu, ret %{public}d", maxArgc, status);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_valuetype valueType = napi_undefined;
+    if (argv[ARGC_ZERO] == nullptr || napi_typeof(env, argv[ARGC_ZERO], &valueType) != napi_ok
+        || valueType != napi_object) {
+        TEXT_LOGE("Invalid argv[0]");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    RangeAndEncodingParams params;
+    auto result = ParseRangeAndEncodingFromJs(env, argv[ARGC_ZERO], argv[ARGC_ONE], params);
+    if (!result.success) {
+        return NapiThrowError(env, static_cast<int32_t>(result.errorCode), result.detailedInfo);
+    }
+
+    Boundary actualCharRange{0, 0};
+    Boundary glyphRange = paragraph_->GetGlyphRangeForCharacterRange(params.start, params.end, &actualCharRange,
+        static_cast<Rosen::TextEncoding>(params.encoding));
+    napi_value resultArray = nullptr;
+    NAPI_CALL(env, napi_create_array(env, &resultArray));
+    napi_value jsGlyphRange = GetRangeAndConvertToJsValue(env, &glyphRange);
+    NAPI_CALL(env, napi_set_element(env, resultArray, RESULT_INDEX_PRIMARY_RANGE, jsGlyphRange));
+    napi_value jsActualCharRange = GetRangeAndConvertToJsValue(env, &actualCharRange);
+    NAPI_CALL(env, napi_set_element(env, resultArray, RESULT_INDEX_ACTUAL_RANGE, jsActualCharRange));
+    return resultArray;
 }
 
 napi_value JsParagraph::GetWordBoundary(napi_env env, napi_callback_info info)
@@ -952,6 +1137,31 @@ napi_value JsParagraph::OnUpdateDecoration(napi_env env, napi_callback_info info
     GetDecorationFromJSForUpdate(env, argv[0], textStyleTemplate);
     paragraph_->UpdateAllTextStyles(textStyleTemplate);
     return NapiGetUndefined(env);
+}
+
+napi_value JsParagraph::LayoutWithConstraints(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnLayoutWithConstraints(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnLayoutWithConstraints(napi_env env, napi_callback_info info)
+{
+    NAPI_CHECK_AND_THROW_ERROR(paragraph_ != nullptr, TextErrorCode::ERROR_INVALID_PARAM, "Paragraph is null");
+
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    TextRectSize textRect;
+    if (!GetTextRectFromJS(env, argv[0], textRect)) {
+        return NapiGetUndefined(env);
+    }
+    TextLayoutResult layoutResult = paragraph_->LayoutWithConstraints(textRect);
+    return CreateLayoutResultJsValue(env, layoutResult);
 }
 
 napi_value JsParagraph::IsStrutStyleEqual(napi_env env, napi_callback_info info)

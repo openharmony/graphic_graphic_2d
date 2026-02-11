@@ -1056,6 +1056,63 @@ HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckHasTransAndFilter003
+ * @tc.desc: Test strategy with trans and blur scenes by uifirst.
+ * @tc.type: FUNC
+ * @tc.require: issue21834
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter003, TestSize.Level1)
+{
+    auto leashWindow = RSTestUtil::CreateSurfaceNode();
+    leashWindow->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashWindow->childHasVisibleFilter_ = true;
+
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto subWindow = RSTestUtil::CreateSurfaceNode();
+    subWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+
+    leashWindow->AddChild(appWindow);
+    leashWindow->AddChild(subWindow);
+    leashWindow->GenerateFullChildrenList();
+
+    // app window is opaque
+    appWindow->SetGlobalAlpha(1.0f);
+    appWindow->SetAbilityBGAlpha(255);
+    appWindow->absDrawRect_ = { 0, 0, 100, 100 };
+    appWindow->childHasVisibleFilter_ = true;
+    auto rootNode = std::make_shared<RSRootRenderNode>(100);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(200);
+    rootNode->AddChild(canvasNode);
+    appWindow->AddChild(rootNode);
+
+    auto subRootNode = std::make_shared<RSRootRenderNode>(300);
+    auto subCanvasNode = std::make_shared<RSCanvasRenderNode>(400);
+    subRootNode->AddChild(subCanvasNode);
+    subWindow->AddChild(subRootNode);
+
+    // sub window is opaque
+    subWindow->SetGlobalAlpha(1.0f);
+    subWindow->SetAbilityBGAlpha(255);
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
+
+    // sub window is transparent
+    subWindow->SetGlobalAlpha(0.f);
+    subWindow->SetAbilityBGAlpha(0);
+    subWindow->childHasVisibleFilter_ = false;
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
+
+    subWindow->childHasVisibleFilter_ = true;
+    // sub window inside main window
+    subWindow->absDrawRect_ = { 10, 10, 50, 50 };
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
+
+    // sub window outside main window
+    subWindow->absDrawRect_ = { 0, 0, 200, 200 };
+    ASSERT_TRUE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
+}
+
+/**
  * @tc.name: GetCacheSurfaceProcessedStatusTest
  * @tc.desc: Test GetCacheSurfaceProcessedStatus
  * @tc.type: FUNC
@@ -1323,10 +1380,10 @@ HWTEST_F(RSUifirstManagerTest2, ProcessSkippedNodeTest, TestSize.Level1)
     ASSERT_EQ(uifirstManager_.pendingPostNodes_.size(), 1);
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingPostNodes_.clear();
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode1->GetId());
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode2->GetId());
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode3->GetId());
-    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(canvasNode->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode1->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode2->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode3->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(canvasNode->GetId());
 }
 
 /**
@@ -1725,5 +1782,165 @@ HWTEST_F(RSUifirstManagerTest2, ShouldAutoCleanCacheTest005, TestSize.Level1)
     ASSERT_FALSE(uifirstManager_.markedClearCacheNodes_.empty());
 
     uifirstManager_.subthreadProcessingNode_.clear();
+}
+
+/**
+ * @tc.name: NotifyUIStartingWindowTest001
+ * @tc.desc: Test block first frame callback failed
+ * @tc.type:FUNC
+ * @tc.require: issue21674
+ */
+HWTEST_F(RSUifirstManagerTest2, NotifyUIStartingWindowTest001, TestSize.Level1)
+{
+    RSUifirstManager uifirstManager;
+    NodeId id = 100;
+    auto& nodeMap = mainThread_->context_->nodeMap;
+    nodeMap.UnregisterRenderNode(id);
+    // node is null
+    uifirstManager.NotifyUIStartingWindow(id, false);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    nodeMap.RegisterRenderNode(surfaceNode);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
+    // node is not leash
+    uifirstManager.NotifyUIStartingWindow(surfaceNode->GetId(), false);
+    ASSERT_FALSE(surfaceNode->IsWaitUifirstFirstFrame());
+
+    nodeMap.UnregisterRenderNode(surfaceNode->GetId());
+}
+
+/**
+ * @tc.name: NotifyUIStartingWindowTest002
+ * @tc.desc: Test block first callback in different case
+ * @tc.type:FUNC
+ * @tc.require: issue21674
+ */
+HWTEST_F(RSUifirstManagerTest2, NotifyUIStartingWindowTest002, TestSize.Level1)
+{
+    RSUifirstManager uifirstManager;
+    bool waitUifirstFrame;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    NodeId id = surfaceNode->GetId();
+    auto& nodeMap = mainThread_->context_->nodeMap;
+    nodeMap.RegisterRenderNode(surfaceNode);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    auto startingWindow = std::make_shared<RSCanvasRenderNode>(200);
+
+    surfaceNode->AddChild(appWindow);
+    surfaceNode->AddChild(startingWindow);
+    surfaceNode->GenerateFullChildrenList();
+
+    // test child is not main window
+    appWindow->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    appWindow->SetWaitUifirstFirstFrame(true);
+    waitUifirstFrame = false;
+    uifirstManager.NotifyUIStartingWindow(id, waitUifirstFrame);
+    ASSERT_TRUE(appWindow->IsWaitUifirstFirstFrame());
+
+    // test no need to set when IsWaitUifirstFirstFrame equals waitUifirstFrame
+    appWindow->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    appWindow->SetWaitUifirstFirstFrame(false);
+    waitUifirstFrame = false;
+    uifirstManager.NotifyUIStartingWindow(id, waitUifirstFrame);
+    ASSERT_FALSE(appWindow->IsWaitUifirstFirstFrame());
+
+    // test set not wait uifirst without check
+    appWindow->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    appWindow->SetWaitUifirstFirstFrame(true);
+    waitUifirstFrame = false;
+    uifirstManager.NotifyUIStartingWindow(id, waitUifirstFrame, nullptr, false);
+    ASSERT_FALSE(appWindow->IsWaitUifirstFirstFrame());
+
+    // test check if child is drawn by subthread, but drawable is null
+    appWindow->SetWaitUifirstFirstFrame(true);
+    waitUifirstFrame = false;
+    uifirstManager.NotifyUIStartingWindow(id, waitUifirstFrame, nullptr, true);
+    ASSERT_FALSE(appWindow->IsWaitUifirstFirstFrame());
+
+    // test when child not drawn by subthread, still wait uifirst
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    auto& subCache = surfaceDrawable->GetRsSubThreadCache();
+    subCache.cacheCompletedSurfaceInfo_.processedSubSurfaceNodeIds.clear();
+    appWindow->SetWaitUifirstFirstFrame(true);
+    waitUifirstFrame = false;
+    uifirstManager.NotifyUIStartingWindow(id, waitUifirstFrame, surfaceDrawable, true);
+    ASSERT_TRUE(appWindow->IsWaitUifirstFirstFrame());
+
+    // test success cancel wait uifirst frame
+    appWindow->SetWaitUifirstFirstFrame(true);
+    waitUifirstFrame = false;
+    subCache.cacheCompletedSurfaceInfo_.processedNodeCount = 10;
+    subCache.cacheCompletedSurfaceInfo_.processedSubSurfaceNodeIds.emplace(appWindow->GetId());
+    uifirstManager.NotifyUIStartingWindow(id, waitUifirstFrame, surfaceDrawable, true);
+    ASSERT_FALSE(appWindow->IsWaitUifirstFirstFrame());
+
+    nodeMap.UnregisterRenderNode(id);
+}
+
+/**
+ * @tc.name: CheckAndBlockFirstFrameCallbackTest001
+ * @tc.desc: Test CheckAndBlockFirstFrameCallback
+ * @tc.type:FUNC
+ * @tc.require: issue21674
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckAndBlockFirstFrameCallbackTest001, TestSize.Level1)
+{
+    RSUifirstManager uifirstManager;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    surfaceNode->SetUifirstHasContentAppWindow(false);
+    surfaceNode->SetUifirstStartingWindowId(0);
+    // no starting window, not block
+    uifirstManager.CheckAndBlockFirstFrameCallback(*surfaceNode);
+    EXPECT_FALSE(surfaceNode->GetUifirstHasContentAppWindow());
+
+    surfaceNode->SetUifirstHasContentAppWindow(true);
+    surfaceNode->SetUifirstStartingWindowId(100);
+    // aleary has content app window, not block
+    uifirstManager.CheckAndBlockFirstFrameCallback(*surfaceNode);
+    EXPECT_TRUE(surfaceNode->GetUifirstHasContentAppWindow());
+}
+
+/**
+ * @tc.name: CheckAndBlockFirstFrameCallbackTest002
+ * @tc.desc: Test block first frame callback in special case
+ * @tc.type:FUNC
+ * @tc.require: issue21674
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckAndBlockFirstFrameCallbackTest002, TestSize.Level1)
+{
+    RSUifirstManager uifirstManager;
+    NodeId startingWindowNodeId = 100;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    surfaceNode->SetUifirstStartingWindowId(startingWindowNodeId);
+    surfaceNode->SetUifirstHasContentAppWindow(false);
+    // no child
+    uifirstManager.CheckAndBlockFirstFrameCallback(*surfaceNode);
+    EXPECT_FALSE(surfaceNode->GetUifirstHasContentAppWindow());
+
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    auto startingWindow = std::make_shared<RSCanvasRenderNode>(startingWindowNodeId);
+
+    surfaceNode->AddChild(appWindow);
+    surfaceNode->AddChild(startingWindow);
+    surfaceNode->GenerateFullChildrenList();
+    appWindow->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    uifirstManager.CheckAndBlockFirstFrameCallback(*surfaceNode);
+    EXPECT_FALSE(appWindow->IsWaitUifirstFirstFrame());
+    EXPECT_FALSE(surfaceNode->GetUifirstHasContentAppWindow());
+
+    appWindow->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    appWindow->leashPersistentId_ = 1;
+    uifirstManager.CheckAndBlockFirstFrameCallback(*surfaceNode);
+    EXPECT_FALSE(appWindow->IsWaitUifirstFirstFrame());
+    EXPECT_FALSE(surfaceNode->GetUifirstHasContentAppWindow());
+
+    // block first frame callback
+    appWindow->leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
+    uifirstManager.CheckAndBlockFirstFrameCallback(*surfaceNode);
+    EXPECT_TRUE(appWindow->IsWaitUifirstFirstFrame());
+    EXPECT_TRUE(surfaceNode->GetUifirstHasContentAppWindow());
 }
 }

@@ -23,6 +23,7 @@
 #include "ui_effect/mask/include/wave_gradient_mask_para.h"
 #include "ui_effect/mask/include/image_mask_para.h"
 #include "ui_effect/mask/include/use_effect_mask_para.h"
+#include "ui_effect/mask/include/wave_disturbance_mask_para.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGMaskBase"
@@ -49,16 +50,20 @@ thread_local std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGWaveGradientMask>();
         }
     },
-    {RSNGEffectType::FRAME_GRADIENT_MASK, [] {
-            return std::make_shared<RSNGFrameGradientMask>();
-        }
-    },
+    {RSNGEffectType::WAVE_DISTURBANCE_MASK, [] {
+ 	        return std::make_shared<RSNGWaveDisturbanceMask>();
+ 	    }
+ 	},
     {RSNGEffectType::IMAGE_MASK, [] {
             return std::make_shared<RSNGImageMask>();
         }
     },
     {RSNGEffectType::USE_EFFECT_MASK, [] {
             return std::make_shared<RSNGUseEffectMask>();
+        }
+    },
+    {RSNGEffectType::FRAME_GRADIENT_MASK, [] {
+            return std::make_shared<RSNGFrameGradientMask>();
         }
     },
     {RSNGEffectType::DUPOLI_NOISE_MASK, [] {
@@ -147,6 +152,21 @@ std::shared_ptr<RSNGMaskBase> ConvertWaveGradientMaskPara(std::shared_ptr<MaskPa
     return waveGradientMask;
 }
 
+std::shared_ptr<RSNGMaskBase> ConvertWaveDisturbanceMaskPara(std::shared_ptr<MaskPara> maskPara)
+{
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::WAVE_DISTURBANCE_MASK);
+    if (mask == nullptr) {
+        return nullptr;
+    }
+    auto waveDisturbanceMask = std::static_pointer_cast<RSNGWaveDisturbanceMask>(mask);
+    auto waveDisturbanceMaskPara = std::static_pointer_cast<WaveDisturbanceMaskPara>(maskPara);
+    waveDisturbanceMask->Setter<WaveDisturbanceMaskProgressTag>(waveDisturbanceMaskPara->GetProgress());
+    waveDisturbanceMask->Setter<WaveDisturbanceMaskClickPosTag>(waveDisturbanceMaskPara->GetClickPos());
+    waveDisturbanceMask->Setter<WaveDisturbanceMaskWaveRDTag>(waveDisturbanceMaskPara->GetWaveRD());
+    waveDisturbanceMask->Setter<WaveDisturbanceMaskWaveLWHTag>(waveDisturbanceMaskPara->GetWaveLWH());
+    return waveDisturbanceMask;
+}
+
 std::shared_ptr<RSNGMaskBase> ConvertUseEffectMaskPara(std::shared_ptr<MaskPara> maskPara)
 {
     auto mask = RSNGMaskBase::Create(RSNGEffectType::USE_EFFECT_MASK);
@@ -167,6 +187,7 @@ thread_local std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
     { MaskPara::Type::PIXEL_MAP_MASK, ConvertPixelMapMaskPara },
     { MaskPara::Type::RADIAL_GRADIENT_MASK, ConvertRadialGradientMaskPara },
     { MaskPara::Type::WAVE_GRADIENT_MASK, ConvertWaveGradientMaskPara },
+    { MaskPara::Type::WAVE_DISTURBANCE_MASK, ConvertWaveDisturbanceMaskPara },
     { MaskPara::Type::IMAGE_MASK, ConvertImageMaskPara},
     { MaskPara::Type::USE_EFFECT_MASK, ConvertUseEffectMaskPara },
 };

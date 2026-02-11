@@ -162,10 +162,11 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
     ASSERT_FALSE(!params.ChildHasVisibleEffect());
 
     drawable->CheckCacheTypeAndDraw(canvas, params);
-    ASSERT_FALSE(drawable->HasFilterOrEffect());
+    ASSERT_FALSE(drawable->HasFilterOrEffect(params));
     drawable->drawCmdIndex_.shadowIndex_ = 1;
+    params.SetShadowRect({0, 0, 10, 10});
     drawable->CheckCacheTypeAndDraw(canvas, params);
-    ASSERT_TRUE(drawable->HasFilterOrEffect());
+    ASSERT_TRUE(drawable->HasFilterOrEffect(params));
     RSRenderNodeDrawable::isOffScreenWithClipHole_ = true;
     params.foregroundFilterCache_ = std::make_shared<RSFilter>();
     drawable->CheckCacheTypeAndDraw(canvas, params);
@@ -256,6 +257,8 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
 
     drawable->SetCanceledByParentRenderGroup(true);
     drawable->isOffScreenWithClipHole_ = false;
+    drawable->SetDrawBlurForCache(false);
+    params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
     EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), false);
@@ -276,7 +279,7 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheInfoForDfxTest, TestSize.Level1)
     drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
     drawable->isDrawingCacheDfxEnabled_ = true;
     drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
-    ASSERT_EQ(drawable->isDrawingCacheEnabled_, true);
+    ASSERT_EQ(drawable->isDrawingCacheEnabled_, false);
 }
 
 /**
@@ -293,7 +296,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawDfxForCacheInfoTest, TestSize.Level1)
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     auto renderParams = std::make_unique<RSRenderParams>(0);
     drawable->DrawDfxForCacheInfo(paintFilterCanvas, renderParams);
-    ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
+    ASSERT_FALSE(drawable->isDrawingCacheEnabled_);
     ASSERT_TRUE(drawable->isDrawingCacheDfxEnabled_);
     ASSERT_FALSE(drawable->autoCacheDrawingEnable_);
     ASSERT_FALSE(!drawable->isDrawingCacheDfxEnabled_);
@@ -607,8 +610,13 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutNodeGroupCache, TestSize.Level1)
     auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
     drawable->SetDrawBlurForCache(true);
     drawable->curDrawingCacheRoot_ = rootDrawable;
+    drawable->SetCanceledByParentRenderGroup(false);
     drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
-    ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+    EXPECT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+
+    drawable->SetCanceledByParentRenderGroup(true);
+    drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
+    EXPECT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
 }
 
 /**
@@ -791,10 +799,12 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckRegionAndDrawWithFilter, TestSize.Level1
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
-    Drawing::RectI rect;
+    Drawing::RectI rect(0, 0, 100, 100);
     Drawing::Matrix matrix;
     const std::vector<RSRenderNodeDrawableAdapter::FilterNodeInfo> filterInfoVec = {
-        RSRenderNodeDrawableAdapter::FilterNodeInfo(0, matrix, { rect })
+        RSRenderNodeDrawableAdapter::FilterNodeInfo(0, matrix, { rect }),
+        RSRenderNodeDrawableAdapter::FilterNodeInfo(1, matrix, { rect }),
+        RSRenderNodeDrawableAdapter::FilterNodeInfo(2, matrix, { rect })
     };
     drawable->filterInfoVec_ = filterInfoVec;
     auto begin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
@@ -806,23 +816,24 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckRegionAndDrawWithFilter, TestSize.Level1
     auto rootRenderNode = std::make_shared<RSRenderNode>(id);
     auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
     drawable->curDrawingCacheRoot_ = rootDrawable;
+    params.ExcludedFromNodeGroup(true);
     drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
     ASSERT_FALSE(drawable->filterInfoVec_.empty());
 
+    params.ExcludedFromNodeGroup(false);
+    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
     drawable->filterInfoVec_.clear();
     ASSERT_TRUE(drawable->filterInfoVec_.empty());
     ASSERT_NE(drawable->GetRenderParams(), nullptr);
-    drawable->GetRenderParams()->ExcludedFromNodeGroup(true);
-    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
 }
 
 /**
- * @tc.name: UpdateCacheSurface
+ * @tc.name: UpdateCacheSurfaceTest001
  * @tc.desc: Test If UpdateCacheSurface Can Run
  * @tc.type: FUNC
  * @tc.require: issueIB1KMY
  */
-HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest001, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
@@ -851,6 +862,47 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
     drawable->opincDrawCache_.isOpincMarkCached_ = true;
     ASSERT_TRUE(drawable->GetOpincDrawCache().OpincGetCachedMark());
     drawable->UpdateCacheSurface(paintFilterCanvas1, params);
+}
+
+/**
+ * @tc.name: UpdateCacheSurface
+ * @tc.desc: Test If UpdateCacheSurface Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest002, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+    ASSERT_FALSE(params.GetRSFreezeFlag());
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    params.SetCacheSize({ 100, 200 });
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto threadId = gettid();
+    drawable->GetOpincDrawCache().isAdd_ = false;
+    drawable->GetOpincDrawCache().opCanCache_ = false;
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), threadId);
+    EXPECT_NE(drawable->GetCachedSurface(threadId), nullptr);
+    EXPECT_EQ(drawable->GetOpincDrawCache().isAdd_, false);
+
+    drawable->opincDrawCache_.isOpincMarkCached_ = true;
+    ASSERT_TRUE(drawable->GetOpincDrawCache().OpincGetCachedMark());
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    drawable->opincDrawCache_.isOpincMarkCached_ = false;
+    ASSERT_FALSE(drawable->GetOpincDrawCache().OpincGetCachedMark());
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    OPIncParam::SetImageAliasEnable(false);
+    ASSERT_FALSE(OPIncParam::IsImageAliasEnable());
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+    OPIncParam::SetImageAliasEnable(true);
+    ASSERT_TRUE(OPIncParam::IsImageAliasEnable());
+#endif
 }
 
 /**
@@ -1122,6 +1174,74 @@ HWTEST_F(RSRenderNodeDrawableTest, ProcessedNodeCountTest, TestSize.Level1)
     ASSERT_EQ(drawable->GetProcessedNodeCount(), 0);
 }
 
+/**
+ * @tc.name: RemoveDrawableFromCacheWithNullDrawableTest001
+ * @tc.desc: Test RemoveDrawableFromCache when drawable is null (weak_ptr expired)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeDrawableTest, RemoveDrawableFromCacheWithNullDrawableTest001, TestSize.Level1)
+{
+    using DrawableV2::RSRenderNodeDrawableAdapter;
+    // Test Case 1: Remove drawable when cache entry exists but weak_ptr is expired
+    {
+        NodeId nodeId = 100;
+        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+        auto drawable1 = std::static_pointer_cast<RSRenderNodeDrawable>(
+            RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+        ASSERT_NE(drawable1, nullptr);
+        ASSERT_EQ(drawable1->GetId(), nodeId);
+        auto cachedDrawable = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cachedDrawable, drawable1);
+        drawable1.reset();
+        RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(nodeId);
+        auto cachedDrawable2 = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cachedDrawable2, nullptr);
+    }
+    // Test Case 2: Remove drawable when cache entry has valid drawable
+    {
+        NodeId nodeId = 200;
+        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+        auto drawable2 = std::static_pointer_cast<RSRenderNodeDrawable>(
+            RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+        ASSERT_NE(drawable2, nullptr);
+        auto cachedDrawable = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cachedDrawable, drawable2);
+        RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(nodeId);
+        auto cachedDrawable2 = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cachedDrawable2, nullptr);
+    }
+}
+
+/**
+ * @tc.name: RemoveDrawableFromCacheWithNullDrawableTest002
+ * @tc.desc: Test RemoveDrawableFromCache edge cases
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeDrawableTest, RemoveDrawableFromCacheWithNullDrawableTest002, TestSize.Level1)
+{
+    using DrawableV2::RSRenderNodeDrawableAdapter;
+    // Test Case 3: Remove non-existent drawable from cache
+    {
+        NodeId nodeId = 999;
+        RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(nodeId);
+        auto cachedDrawable = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cachedDrawable, nullptr);
+    }
+    // Test Case 4: Multiple removals of the same node
+    {
+        NodeId nodeId = 300;
+        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+        auto drawable3 = std::static_pointer_cast<RSRenderNodeDrawable>(
+            RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+        ASSERT_NE(drawable3, nullptr);
+        RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(nodeId);
+        auto cached1 = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cached1, nullptr);
+        RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(nodeId);
+        auto cached2 = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cached2, nullptr);
+    }
+}
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 /**

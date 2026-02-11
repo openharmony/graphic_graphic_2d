@@ -469,6 +469,11 @@ bool RSSurfaceRenderParams::IsCloneNode() const
     return isCloneNode_;
 }
 
+bool RSSurfaceRenderParams::IsRelated() const
+{
+    return isRelated_;
+}
+
 bool RSSurfaceRenderParams::GetSkipDraw() const
 {
     return isSkipDraw_;
@@ -602,6 +607,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable_;
     targetSurfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
     targetSurfaceParams->isCloneNode_ = isCloneNode_;
+    targetSurfaceParams->isRelated_ = isRelated_;
+    targetSurfaceParams->isRelatedSourceNode_ = isRelatedSourceNode_;
     targetSurfaceParams->clonedSourceNode_ = clonedSourceNode_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
@@ -627,7 +634,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
     targetSurfaceParams->uiFirstParentFlag_ = uiFirstParentFlag_;
-    targetSurfaceParams->uifirstUseStarting_ = uifirstUseStarting_;
+    targetSurfaceParams->uifirstStartingWindowId_ = uifirstStartingWindowId_;
     targetSurfaceParams->childrenDirtyRect_ = childrenDirtyRect_;
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     targetSurfaceParams->leashPersistentId_ = leashPersistentId_;
@@ -694,6 +701,14 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     targetSurfaceParams->isSurfaceBufferOpaque_ = isSurfaceBufferOpaque_;
     targetSurfaceParams->uiFirstVisibleFilterRect_ = uiFirstVisibleFilterRect_;
+    if (captureConfig_ && captureConfig_->isConfigTriggered == false) {
+        // avoid being double moved by uifirstRenderParams_
+        captureConfig_->isConfigTriggered = true;
+        targetSurfaceParams->captureConfig_ = std::move(captureConfig_);
+        targetSurfaceParams->captureCallback_ = std::move(captureCallback_);
+    }
+    targetSurfaceParams->appRotationCorrection_ = appRotationCorrection_;
+    targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
     RSRenderParams::OnSync(target);
 }
 
@@ -781,5 +796,33 @@ void RSSurfaceRenderParams::SetScreenId(ScreenId screenId)
 ScreenId RSSurfaceRenderParams::GetScreenId() const
 {
     return screenId_;
+}
+
+void RSSurfaceRenderParams::SetAppRotationCorrection(ScreenRotation appRotationCorrection)
+{
+    if (appRotationCorrection_ == appRotationCorrection) {
+        return;
+    }
+    appRotationCorrection_ = appRotationCorrection;
+    needSync_ = true;
+}
+
+ScreenRotation RSSurfaceRenderParams::GetAppRotationCorrection() const
+{
+    return appRotationCorrection_;
+}
+
+void RSSurfaceRenderParams::SetRotationCorrectionDegree(int32_t rotationCorrectionDegree)
+{
+    if (rotationCorrectionDegree_ == rotationCorrectionDegree) {
+        return;
+    }
+    rotationCorrectionDegree_ = rotationCorrectionDegree;
+    needSync_ = true;
+}
+
+int32_t RSSurfaceRenderParams::GetRotationCorrectionDegree() const
+{
+    return rotationCorrectionDegree_;
 }
 } // namespace OHOS::Rosen

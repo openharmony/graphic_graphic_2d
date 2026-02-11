@@ -72,6 +72,9 @@
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
 #endif
+#ifdef MHC_ENABLE
+#include "rs_mhc_manager.h"
+#endif
 #include "render_frame_trace.h"
 
 namespace OHOS {
@@ -1108,6 +1111,9 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
         RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
 #endif
+#ifdef MHC_ENABLE
+        auto&& pendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface);
+#endif
         Drawing::FlushInfo drawingFlushInfo;
         drawingFlushInfo.backendSurfaceAccess = true;
         drawingFlushInfo.numSemaphores = semaphoreVec.size();
@@ -1119,6 +1125,11 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
 #ifdef HETERO_HDR_ENABLE
         RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);
+#endif
+#ifdef MHC_ENABLE
+        if (pendingSubmit) {
+            RSMhcManager::Instance().MHCSubmitTask(*pendingSubmit);
+        }
 #endif
     } else {
         surface->FlushAndSubmit(true);

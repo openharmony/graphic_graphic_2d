@@ -1370,8 +1370,8 @@ bool FilterNapi::BuildFrostedGlassPara(napi_env env, napi_value* argv,
 
 napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
 {
-    static const size_t maxArgc = NUM_29;
-    static const size_t minArgc = NUM_28;
+    constexpr size_t maxArgc = 31; // 31 is the number of params the frostedglassfilter has
+    constexpr size_t minArgc = NUM_28;
 
     napi_status status;
     napi_value thisVar = nullptr;
@@ -1397,10 +1397,21 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi::SetFrostedGlass materialColor parse fail"));
     para->SetMaterialColor(materialColor);
 
-    if (realArgc >= maxArgc) {
+    if (realArgc >= maxArgc - NUM_2) {
         float samplingScale = 0.f;
         samplingScale = GetSpecialValue(env, argv[NUM_28]);
         para->SetSamplingScale(samplingScale);
+    }
+    if (realArgc >= maxArgc - NUM_1) {
+        float bgAlpha = 1.f;
+        bgAlpha = GetSpecialValue(env, argv[NUM_29]);
+        para->SetBgAlpha(bgAlpha);
+    }
+    if (realArgc >= maxArgc) {
+        Mask* mask = nullptr;
+        if (napi_unwrap(env, argv[NUM_30], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
+            para->SetMask(mask->GetMaskPara());
+        }
     }
 
     Filter* filterObj = nullptr;

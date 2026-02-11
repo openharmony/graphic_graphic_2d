@@ -176,6 +176,7 @@ private:
 
     ErrCode GetRefreshInfo(pid_t pid, std::string& enable) override;
     ErrCode GetRefreshInfoToSP(NodeId id, std::string& enable) override;
+    ErrCode GetRefreshInfoByPidAndUniqueId(pid_t pid, uint64_t uniqueId, std::string& enable) override;
 
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
@@ -431,6 +432,10 @@ private:
 
     ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
+
+    ErrCode AvcodecVideoGet(uint64_t uniqueId) override;
+ 
+    ErrCode AvcodecVideoGetRecent() override;
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
 

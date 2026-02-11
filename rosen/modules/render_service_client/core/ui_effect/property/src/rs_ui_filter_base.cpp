@@ -52,6 +52,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGBlurFilter>();
         }
     },
+    {RSNGEffectType::MATERIAL_BLUR, [] {
+            return std::make_shared<RSNGMaterialBlurFilter>();
+        }
+    },
     {RSNGEffectType::DISPLACEMENT_DISTORT, [] {
             return std::make_shared<RSNGDispDistortFilter>();
         }
@@ -334,6 +338,7 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(frostedGlassFilterPara->GetBgKBS());
     frostedGlassFilter->Setter<FrostedGlassBgPosTag>(frostedGlassFilterPara->GetBgPos());
     frostedGlassFilter->Setter<FrostedGlassBgNegTag>(frostedGlassFilterPara->GetBgNeg());
+    frostedGlassFilter->Setter<FrostedGlassBgAlphaTag>(frostedGlassFilterPara->GetBgAlpha());
     frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(frostedGlassFilterPara->GetRefractParams());
     frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(frostedGlassFilterPara->GetSdParams());
     frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(frostedGlassFilterPara->GetSdRates());
@@ -356,6 +361,7 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassBaseMaterialTypeTag>(frostedGlassFilterPara->GetBaseMaterialType());
     frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(frostedGlassFilterPara->GetMaterialColor());
     frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(frostedGlassFilterPara->GetSamplingScale());
+    frostedGlassFilter->Setter<FrostedGlassWaveMaskTag>(RSNGMaskBase::Create(frostedGlassFilterPara->GetMask()));
     ConvertOptionalAdaptivePara(frostedGlassFilterPara.get(), frostedGlassFilter.get());
     return frostedGlassFilter;
 }
@@ -431,5 +437,28 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(std::shared_ptr<FilterPar
     return it != convertorLUT.end() ? it->second(filterPara) : nullptr;
 }
 
+std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGBlurFilter(
+    float blurRadiusX, float blurRadiusY, bool disableSystemAdaptation)
+{
+    auto filter = std::static_pointer_cast<RSNGBlurFilter>(RSNGFilterBase::Create(RSNGEffectType::BLUR));
+    filter->Setter<BlurRadiusXTag>(blurRadiusX);
+    filter->Setter<BlurRadiusYTag>(blurRadiusY);
+    filter->Setter<BlurDisableSystemAdaptationTag>(disableSystemAdaptation);
+    return filter;
+}
+
+std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGMaterialBlurFilter(
+    const MaterialParam& materialParam, BLUR_COLOR_MODE mode)
+{
+    auto filter = std::static_pointer_cast<RSNGMaterialBlurFilter>(
+        RSNGFilterBase::Create(RSNGEffectType::MATERIAL_BLUR));
+    filter->Setter<MaterialBlurRadiusTag>(materialParam.radius);
+    filter->Setter<MaterialBlurSaturationTag>(materialParam.saturation);
+    filter->Setter<MaterialBlurBrightnessTag>(materialParam.brightness);
+    filter->Setter<MaterialBlurColorModeTag>(static_cast<int>(mode));
+    filter->Setter<MaterialBlurMaskColorTag>(materialParam.maskColor);
+    filter->Setter<MaterialBlurDisableSystemAdaptationTag>(materialParam.disableSystemAdaptation);
+    return filter;
+}
 } // namespace Rosen
 } // namespace OHOS

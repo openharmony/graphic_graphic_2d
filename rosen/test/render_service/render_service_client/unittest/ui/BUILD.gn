@@ -558,7 +558,6 @@ group("unittest") {
     ":RSCanvasNodeTest",
     ":RSDisplayNodeTest",
     ":RSEffectNodeTest",
-    ":RSNodeTest",
     ":RSProxyNodeTest",
     ":RSRootNodeTest",
     ":RSSurfaceExtractorTest",

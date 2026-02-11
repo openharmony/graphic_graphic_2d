@@ -19,35 +19,34 @@
 #include <atomic>
 #include <memory>
 
+#include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
 #include "i_color_picker_manager.h"
 
-#include "draw/canvas.h"
-#include "draw/color.h"
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "property/rs_color_picker_def.h"
-#include "property/rs_properties_def.h"
-#include "utils/rect.h"
+#include "common/rs_common_def.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-class Image;
-}
+
 class ColorPickAltManager : public std::enable_shared_from_this<ColorPickAltManager>, public IColorPickerManager {
 public:
-    ColorPickAltManager() = default;
+    explicit ColorPickAltManager(NodeId nodeId) : nodeId_(nodeId) {}
     ~ColorPickAltManager() noexcept = default;
-    std::optional<Drawing::ColorQuad> GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
-        uint64_t nodeId, const ColorPickerParam& params) override;
 
-private:
+    // IColorPickerManager interface
+    std::optional<Drawing::ColorQuad> GetColorPick() override;
     void ScheduleColorPick(
-        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId);
-    void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId);
+        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params) override;
+    void SetSystemDarkColorMode(bool isSystemDarkColorMode) override {}
 
-    std::atomic<Drawing::ColorQuad> pickedColor_ = Drawing::Color::COLOR_BLACK;
-    uint64_t lastUpdateTime_ = 0;
-    std::atomic<uint32_t> notifyThreshold_ = 0;
+    void HandleColorUpdate(Drawing::ColorQuad newColor) override;
+
+    const NodeId nodeId_;
+
+    std::atomic<uint32_t> pickedLuminance_ = RGBA_MAX + 1; // invalid initial luminance to force first notification
+    std::atomic<uint32_t> darkThreshold_ = 150;
+    std::atomic<uint32_t> lightThreshold_ = 220;
 };
 } // namespace Rosen
 } // namespace OHOS

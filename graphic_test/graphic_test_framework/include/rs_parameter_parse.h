@@ -32,7 +32,7 @@ public:
     void SetSkipCapture(bool isSkip);
 
     std::string imageSavePath = "/data/local/graphic_test/";
-    int testCaseWaitTime = 1000; //ms
+    int testCaseWaitTime = 1000; // ms
     int normalWaitTime = 10; // ms
     int surfaceCaptureWaitTime = 1000; //ms
     int manualTestWaitTime = 1500; //ms

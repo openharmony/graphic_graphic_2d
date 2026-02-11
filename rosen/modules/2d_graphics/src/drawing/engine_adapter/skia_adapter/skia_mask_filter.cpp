@@ -24,7 +24,7 @@ namespace Rosen {
 namespace Drawing {
 SkiaMaskFilter::SkiaMaskFilter() noexcept : filter_(nullptr) {}
 
-void SkiaMaskFilter::InitWithBlur(BlurType t, scalar sigma, bool respectCTM)
+void SkiaMaskFilter::InitWithBlur(BlurType t, scalar sigma, bool respectCTM, bool disableSDF)
 {
     filter_ = SkMaskFilter::MakeBlur(static_cast<SkBlurStyle>(t), sigma, respectCTM);
 }

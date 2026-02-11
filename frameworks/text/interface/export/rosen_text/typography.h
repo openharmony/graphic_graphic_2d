@@ -37,6 +37,15 @@
 
 namespace OHOS {
 namespace Rosen {
+
+// Text encoding type enum
+enum class TextEncoding {
+    UTF8,
+    UTF16,
+    UTF32,
+    GLYPH_ID,
+};
+
 enum class TextRectWidthStyle {
     TIGHT,
     MAX,
@@ -160,6 +169,12 @@ public:
         TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle) = 0;
     virtual std::vector<TextRect> GetTextRectsOfPlaceholders() = 0;
     virtual IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) = 0;
+    virtual IndexAndAffinity GetCharacterIndexByCoordinate(double x, double y,
+        TextEncoding encodeType = TextEncoding::UTF8) const = 0;
+    virtual Boundary GetCharacterRangeForGlyphRange(size_t glyphStart, size_t glyphEnd, Boundary* actualGlyphRange,
+        TextEncoding encodeType = TextEncoding::UTF8) const = 0;
+    virtual Boundary GetGlyphRangeForCharacterRange(size_t charStart, size_t charEnd, Boundary* actualCharRange,
+        TextEncoding encodeType = TextEncoding::UTF8) const = 0;
     virtual Boundary GetWordBoundaryByIndex(size_t index) = 0;
     virtual Boundary GetActualTextRange(int lineNumber, bool includeSpaces) = 0;
     virtual Boundary GetEllipsisTextRange() = 0;
@@ -196,6 +211,7 @@ public:
     virtual std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;
 #endif
+    virtual TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

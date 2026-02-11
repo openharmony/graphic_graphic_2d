@@ -58,6 +58,7 @@ public:
     bool GetTouchOrPointerAction(int32_t pointerAction);
 
     const std::unordered_set<std::string>& GetPageNameList() const;
+
 private:
     RSFrameRatePolicy() = default;
     ~RSFrameRatePolicy();

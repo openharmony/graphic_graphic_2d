@@ -67,7 +67,6 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
         }
 
         // DISPLAY ENGINE
-        RsCommonHook::Instance().SetCurrentPkgName(pkgName);
         CheckImageEnhanceList(pkgName, pid, imageEnhancePidList);
 
         pidAppTypeMap_[pkgName] = { pid, appType };

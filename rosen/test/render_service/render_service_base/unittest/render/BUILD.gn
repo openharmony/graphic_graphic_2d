@@ -130,8 +130,7 @@ ohos_unittest("RSAlwaysSnapshotShaderFilterTest") {
 ohos_unittest("RSBorderTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_border_test.cpp",
-              "rs_border_light_shader_test.cpp", ]
+  sources = [ "rs_border_test.cpp" ]
 
   cflags = [
     "-Dprivate=public",

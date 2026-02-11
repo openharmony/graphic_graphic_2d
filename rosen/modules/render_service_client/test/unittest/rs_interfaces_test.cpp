@@ -22,6 +22,7 @@
 #include "ibuffer_consumer_listener.h"
 #include "surface_utils.h"
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
@@ -1880,6 +1881,46 @@ HWTEST_F(RSInterfacesTest, DropFrameByPid002, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: DropFrameByPid003
+ * @tc.desc: Test DropFrameByPid with dropFrameLevel parameter
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid003, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    // Test with dropFrameLevel = 1 (keep latest 1 frame)
+    rsInterfaces->DropFrameByPid({getpid()}, 1);
+}
+
+/*
+ * @tc.name: DropFrameByPid004
+ * @tc.desc: Test DropFrameByPid with dropFrameLevel = 0 (no drop)
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid004, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    // Test with dropFrameLevel = 0 (no frame dropping)
+    rsInterfaces->DropFrameByPid({getpid()}, 0);
+}
+
+/*
+ * @tc.name: DropFrameByPid005
+ * @tc.desc: Test DropFrameByPid with multiple pids and dropFrameLevel
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid005, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    // Test with multiple PIDs and dropFrameLevel = 2
+    std::vector<int32_t> pidList = {getpid(), 1000, 2000};
+    rsInterfaces->DropFrameByPid(pidList, 2);
+}
+
+/*
  * @tc.name: SetVirtualScreenUsingStatus001
  * @tc.desc: Test SetVirtualScreenUsingStatus interface while input is true.
  * @tc.type: FUNC
@@ -3111,6 +3152,31 @@ HWTEST_F(RSInterfacesTest, AvcodecVideoStop001, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: AvcodecVideoGet001
+ * @tc.desc: Test AvcodecVideoGet
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, AvcodecVideoGet001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint64_t uniqueId = 1;
+    rsInterfaces->AvcodecVideoGet(uniqueId);
+}
+ 
+/*
+ * @tc.name: AvcodecVideoGetRecent001
+ * @tc.desc: Test AvcodecVideoGetRecent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, AvcodecVideoGetRecent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->AvcodecVideoGetRecent();
+}
+
+/*
 * Function: SetDualScreenState
 * Type: Function
 * Rank: Important(2)
@@ -3211,6 +3277,20 @@ HWTEST_F(RSInterfacesTest, ModifyVirtualScreenBlackList001, Function | SmallTest
 
     // restore
     RSRenderServiceConnectHub::instance_ = new RSRenderServiceConnectHub();
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrection
+ * @tc.desc: SetLogicalCameraRotationCorrection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetLogicalCameraRotationCorrection, Function | SmallTest | Level2)
+{
+    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    ScreenId screenId = 0;
+    ScreenRotation logicalRotation = ScreenRotation::ROTATION_90;
+    EXPECT_EQ(instance.SetLogicalCameraRotationCorrection(screenId, logicalRotation), SUCCESS);
 }
 } // namespace Rosen
 } // namespace OHOS

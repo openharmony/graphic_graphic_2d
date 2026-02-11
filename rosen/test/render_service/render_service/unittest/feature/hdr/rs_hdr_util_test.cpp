@@ -45,6 +45,8 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
+constexpr NodeId NODE_ID = 10;
+constexpr ScreenId SCREEN_ID = 1;
 BufferRequestConfig requestConfig = {
     .width = 0x100,
     .height = 0x100,
@@ -154,6 +156,69 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckIsHdrSurfaceBufferTest001
+ * @tc.desc: Test CheckIsHdrSurfaceBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest001, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+    RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    HdrStatus ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    
+    staticMetadata.cta861.maxContentLightLevel = 400.0f;
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    EXPECT_EQ(ret, HdrStatus::HDR_VIDEO);
+}
+
+/**
+ * @tc.name: CheckIsHDRSelfProcessingBufferTest001
+ * @tc.desc: Test CheckIsHDRSelfProcessingBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, CheckIsHDRSelfProcessingBufferTest001, TestSize.Level1)
+{
+    using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+    RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    bool ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, false);
+
+    CM_HDR_Metadata_Type hdrMetadataType = CM_IMAGE_HDR_VIVID_SINGLE;
+    MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
+    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, false);
+
+    hdrMetadataType = CM_METADATA_NONE;
+    staticMetadata.cta861.maxContentLightLevel = 400.0f;
+    MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, true);
+}
+
+/**
  * @tc.name: CheckIsSurfaceWithMetadata
  * @tc.desc: Test CheckIsSurfaceWithMetadata
  * @tc.type: FUNC
@@ -221,6 +286,69 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest, TestSize.Level1)
     node->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
     ASSERT_EQ(retUpdateNit, false); // context from surfaceNode is nullptr
+}
+
+/**
+ * @tc.name: UpdateSelfDrawingNodesNit
+ * @tc.desc: Test UpdateSelfDrawingNodesNit
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, UpdateSelfDrawingNodeNitTest, TestSize.Level1)
+{
+    RSMainThread::Instance()->ClearSelfDrawingNodes();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(NODE_ID, SCREEN_ID, context);
+    ASSERT_NE(screenNode, nullptr);
+
+    auto& selfDrawingNodes = const_cast<std::vector<std::shared_ptr<RSSurfaceRenderNode>>&>(
+        RSMainThread::Instance()->GetSelfDrawingNodes());
+    selfDrawingNodes.emplace_back(nullptr);
+
+    auto notOnTreeNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(notOnTreeNode, nullptr);
+    notOnTreeNode->SetIsOnTheTree(false);
+    RSMainThread::Instance()->AddSelfDrawingNodes(notOnTreeNode);
+
+    auto noAncestorNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(noAncestorNode, nullptr);
+    noAncestorNode->SetIsOnTheTree(true);
+    RSMainThread::Instance()->AddSelfDrawingNodes(noAncestorNode);
+
+    auto otherScreenNode = std::make_shared<RSScreenRenderNode>(NODE_ID + 1, SCREEN_ID + 1, context);
+    ASSERT_NE(otherScreenNode, nullptr);
+    auto mismatchAncestorNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(mismatchAncestorNode, nullptr);
+    mismatchAncestorNode->SetIsOnTheTree(true);
+    mismatchAncestorNode->SetAncestorScreenNode(otherScreenNode);
+    RSMainThread::Instance()->AddSelfDrawingNodes(mismatchAncestorNode);
+
+    auto updateFailNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(updateFailNode, nullptr);
+    updateFailNode->SetIsOnTheTree(true);
+    updateFailNode->SetAncestorScreenNode(screenNode);
+    updateFailNode->SetVideoHdrStatus(HdrStatus::NO_HDR);
+    RSMainThread::Instance()->AddSelfDrawingNodes(updateFailNode);
+
+    auto updateSuccessNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(updateSuccessNode, nullptr);
+    updateSuccessNode->SetIsOnTheTree(true);
+    updateSuccessNode->SetAncestorScreenNode(screenNode);
+    updateSuccessNode->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
+    updateSuccessNode->context_ = context;
+    NodeId logicalDisplayNodeId = 20U;
+    RSDisplayNodeConfig config;
+    auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(logicalDisplayNodeId, config, context);
+    updateSuccessNode->logicalDisplayNodeId_ = logicalDisplayNodeId;
+    context->nodeMap.RegisterRenderNode(logicalDisplayNode);
+    RSMainThread::Instance()->AddSelfDrawingNodes(updateSuccessNode);
+
+    RSHdrUtil::UpdateSelfDrawingNodesNit(*screenNode);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    float expectedSdrNit = RSLuminanceControl::Get().GetSdrDisplayNits(screenNode->GetScreenId());
+    EXPECT_EQ(stagingSurfaceParams->GetSdrNit(), expectedSdrNit);
+    RSMainThread::Instance()->ClearSelfDrawingNodes();
 }
 
 /**

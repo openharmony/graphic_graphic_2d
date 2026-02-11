@@ -357,7 +357,7 @@ void RSRenderComposer::ProcessComposerFrame(RefreshRateParam param, uint32_t cur
         RSTvMetadataManager::CombineMetadataForAllLayers(layers);
 #endif
         hdiOutput_->Repaint();
-        RecordTimestamp(param.vsyncId, hdiOutput_, layers);
+        RecordTimestamp(param.vsyncId, hdiOutput_);
     }
     hdiOutput_->ReleaseLayers(releaseFence_);
     RSUniRenderThread::Instance().NotifyScreenNodeBufferReleased(screenId_);
@@ -481,29 +481,12 @@ void RSRenderComposer::EndCheck(RSTimer timer)
     }
 }
 
-void RSRenderComposer::RecordTimestamp(uint64_t vsyncId,
-    const std::shared_ptr<HdiOutput> output,
-    const std::vector<std::shared_ptr<RSLayer>>& layers)
+void RSRenderComposer::RecordTimestamp(uint64_t vsyncId, const std::shared_ptr<HdiOutput> output)
 {
-    for (const auto& layer : layers) {
-        if (layer == nullptr) {
-            continue;
-        }
-        uint64_t id = layer->GetNodeId();
-        auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-        if (layer->GetBuffer() == nullptr) {
-            continue;
-        }
-        if (layer->GetUniRenderFlag()) {
-            surfaceFpsManager.RecordPresentFdForUniRender(vsyncId, output->GetCurrentFramePresentFd());
-            surfaceFpsManager.RecordPresentTimeForUniRender(output->GetThirdFrameAheadPresentFd(),
-                output->GetThirdFrameAheadPresentTime());
-        } else {
-            surfaceFpsManager.RecordPresentFd(id, vsyncId, output->GetCurrentFramePresentFd());
-            surfaceFpsManager.RecordPresentTime(id, output->GetThirdFrameAheadPresentFd(),
-                output->GetThirdFrameAheadPresentTime());
-        }
-    }
+    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    surfaceFpsManager.RecordPresentFd(vsyncId, output->GetCurrentFramePresentFd());
+    surfaceFpsManager.RecordPresentTime(output->GetThirdFrameAheadPresentFd(),
+        output->GetThirdFrameAheadPresentTime());
 }
 
 void RSRenderComposer::ChangeLayersForActiveRectOutside(std::vector<std::shared_ptr<RSLayer>>& layers,
@@ -653,6 +636,7 @@ void RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, const RefreshRatePar
     int64_t frameOffset = 0;
     int64_t vsyncOffset = 0;
     int64_t idealPipelineOffset = 0;
+    int64_t idealPulse = 0;
     int64_t pipelineOffset = 0;
     int64_t expectCommitTime = 0;
     int64_t periodNum = 0;
@@ -666,7 +650,13 @@ void RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, const RefreshRatePar
         // 2 period for draw and composition, pipelineOffset = 2 * period
         frameOffset = 2 * period + vsyncOffset - static_cast<int64_t>(param.fastComposeTimeStampDiff);
     } else {
-        idealPipelineOffset = hgmCore.GetIdealPipelineOffset();
+        if (hgmCore.GetSupportedMaxTE144() != 0 && currentRate == OLED_144_HZ) {
+            idealPipelineOffset = hgmCore.GetIdealPipelineOffset144();
+            idealPulse = IDEAL_PULSE144;
+        } else {
+            idealPipelineOffset = hgmCore.GetIdealPipelineOffset();
+            idealPulse = IDEAL_PULSE;
+        }
         pipelineOffset = hgmCore.GetPipelineOffset();
         vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
         periodNum = idealPeriod == 0 ? 0 : idealPipelineOffset / idealPeriod;
@@ -674,7 +664,7 @@ void RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, const RefreshRatePar
         if (vsyncOffset >= period) {
             vsyncOffset = 0;
         }
-        if (periodNum * idealPeriod + vsyncOffset + IDEAL_PULSE < idealPipelineOffset) {
+        if (periodNum * idealPeriod + vsyncOffset + idealPulse < idealPipelineOffset) {
             periodNum = periodNum + 1;
         }
         frameOffset = periodNum * idealPeriod + vsyncOffset +

@@ -97,6 +97,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int64_t id2 = GetData<int64_t>();
     uint64_t windowNodeId = GetData<uint64_t>();
     int32_t pid1 = GetData<int32_t>();
+    uint64_t uniqueId = GetData<uint64_t>();
     int32_t uid = GetData<int32_t>();
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
@@ -304,6 +305,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid1,
         rsIFrameRateLinkerExpectedFpsUpdateCallback);
     rsFrameRateLinkerExpectedFpsUpdateCallbackProxy.OnFrameRateLinkerExpectedFpsUpdate(pid, XCOMPONENT_ID, expectedFps);
+    rsClientToServiceConnectionProxy.GetRefreshInfoByPidAndUniqueId(pid, uniqueId, getRefreshInfoEnable);
     return true;
 }
 

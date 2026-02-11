@@ -73,6 +73,56 @@ static void CheckSkColorSpaceEqual(sk_sp<SkColorSpace> cs0, sk_sp<SkColorSpace> 
     }
 }
 
+// Helper function to check if a Matrix3x3 is all zeros
+bool IsZeroMatrix(const Matrix3x3& m)
+{
+    for (size_t i = 0; i < m.size(); ++i) {
+        for (size_t j = 0; j < m[i].size(); ++j) {
+            if (!FloatNearlyEqualZero(m[i][j])) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool IsIdentityMatrix(const Matrix3x3& m)
+{
+    for (int i = 0; i < DIMES_9; ++i) {
+        const int row = i / 3;
+        const int col = i % 3;
+        const float expected = (row == col) ? 1.0f : 0.0f;
+        if (!FloatNearlyEqual(m[row][col], expected)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Helper: Check if a Matrix3x3 has at least one non-zero element
+bool HasNonZeroElement(const Matrix3x3& m)
+{
+    for (size_t i = 0; i < m.size(); ++i) {
+        for (size_t j = 0; j < m[i].size(); ++j) {
+            if (!FloatNearlyEqualZero(m[i][j])) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Helper: Check if a Vector3 is zero (within floating-point tolerance)
+bool IsZeroVector(const Vector3& v)
+{
+    for (float x : v) {
+        if (!FloatNearlyEqualZero(x)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 static bool IsFinite(float x)
 {
     return x * 0 == 0;
@@ -868,28 +918,29 @@ HWTEST_F(ColorManagerTest, Vector3Division_DenominatorNearZero, TestSize.Level1)
 {
     Vector3 a = {1.0f, 1.0f, 1.0f};
 
-    // Scene 1: Denominator is exactly 0
+    // Scene 1: Denominator is exactly 0 (should return zero matrix)
     Vector3 b_zero = {1.0f, 0.0f, 1.0f};
     Matrix3x3 res1 = a / b_zero;
-    EXPECT_EQ(res1[0][0], 0.0f); // Should return all-zero matrix
-    EXPECT_EQ(res1[1][1], 0.0f);
+    EXPECT_TRUE(IsZeroMatrix(res1));
 
-    // Scene 2: Denominator less than FLT_EPSILON
+    // Scene 2: Denominator less than FLT_EPSILON (near zero)
     Vector3 b_eps = {1.0f, FLT_EPSILON * 0.5f, 1.0f};
     Matrix3x3 res2 = a / b_eps;
-    EXPECT_EQ(res2[0][0], 0.0f); // Should return all-zero matrix
-    EXPECT_EQ(res2[1][1], 0.0f);
+    EXPECT_TRUE(IsZeroMatrix(res2));
 
-    // Scene 3: Denominator is exactly FLT_EPSILON (False branch, normal case)
+    // Scene 3: Denominator exactly FLT_EPSILON (normal case, should NOT be zero)
     Vector3 b_normal = {1.0f, FLT_EPSILON, 1.0f};
     Matrix3x3 res3 = a / b_normal;
-    EXPECT_NE(res3[1][1], 0.0f); // Result should not be 0
+    // Verify at least one element is non-zero (specifically the [1][1] element)
+    EXPECT_FALSE(FloatNearlyEqualZero(res3[1][1]));
 
-    // Scene 4: Normal denominator value, ensure False branch coverage
+    // Scene 4: Normal denominator value (full coverage)
     Vector3 b_valid = {2.0f, 2.0f, 2.0f};
     Matrix3x3 res4 = a / b_valid;
+    // Verify diagonal elements (should be 0.5f)
     EXPECT_FLOAT_EQ(res4[0][0], 0.5f);
     EXPECT_FLOAT_EQ(res4[1][1], 0.5f);
+    EXPECT_FLOAT_EQ(res4[2][2], 0.5f);
 }
 
 // Test ComputeXYZD50 denominator zero (primaries Y component) (True branch)
@@ -897,27 +948,27 @@ HWTEST_F(ColorManagerTest, ComputeXYZD50_PrimaryYZero, TestSize.Level1)
 {
     ColorSpacePrimaries p = {0.64f, 0.33f, 0.30f, 0.60f, 0.15f, 0.06f, 0.3127f, 0.3290f};
 
-    // Scene 1: rY is 0
+    // Scenario 1: rY is 0 (invalid input)
     p.rY = 0.0f;
-    Matrix3x3 res = ComputeXYZD50(p);
-    EXPECT_EQ(res[0][0], 0.0f);
+    Matrix3x3 res1 = ComputeXYZD50(p);
+    EXPECT_TRUE(IsZeroMatrix(res1));
 
-    // Scene 2: gY near 0
+    // Scenario 2: gY near zero (invalid input)
     p.rY = 0.33f;
-    p.gY = FLT_EPSILON * 0.1f;
-    res = ComputeXYZD50(p);
-    EXPECT_EQ(res[0][0], 0.0f);
+    p.gY = FLT_EPSILON * 0.1f; // Tiny value (less than FLT_EPSILON)
+    Matrix3x3 res2 = ComputeXYZD50(p);
+    EXPECT_TRUE(IsZeroMatrix(res2));
 
-    // Scene 3: wY is 0
+    // Scenario 3: wY is 0 (invalid input)
     p.gY = 0.60f;
     p.wY = 0.0f;
-    res = ComputeXYZD50(p);
-    EXPECT_EQ(res[0][0], 0.0f);
+    Matrix3x3 res3 = ComputeXYZD50(p);
+    EXPECT_TRUE(IsZeroMatrix(res3));
 
-    // Scene 4: Normal Primaries (False branch)
+    // Scenario 4: Normal primaries (valid input)
     p.rY = 0.33f; p.gY = 0.60f; p.wY = 0.3290f;
-    res = ComputeXYZD50(p);
-    EXPECT_NE(res[0][0], 0.0f); // Should calculate valid matrix
+    Matrix3x3 res4 = ComputeXYZD50(p);
+    EXPECT_TRUE(HasNonZeroElement(res4));
 }
 
 // Test ComputeXYZD50 intermediate denominator zero (GxGy - RxRy) (True branch)
@@ -934,7 +985,7 @@ HWTEST_F(ColorManagerTest, ComputeXYZD50_SingularRatio, TestSize.Level1)
 
     Matrix3x3 res = ComputeXYZD50(p);
     // (GxGy - RxRy) should be 0, triggering FloatNearlyEqualZero, returns empty matrix
-    EXPECT_EQ(res[0][0], 0.0f);
+    EXPECT_TRUE(IsZeroMatrix(res));
 }
 
 /**
@@ -963,9 +1014,7 @@ HWTEST_F(ColorManagerTest, ColorSpaceName_Construction_LinearToNonLinear_ZeroDen
     cs.transferFunc.a = 0;
     {
         Vector3 res = cs.ToNonLinear(input);
-        ASSERT_EQ(res[0], 0.0f);
-        ASSERT_EQ(res[1], 0.0f);
-        ASSERT_EQ(res[2], 0.0f);
+        EXPECT_TRUE(IsZeroVector(res));
     }
     cs.transferFunc.a = a;
 
@@ -974,9 +1023,7 @@ HWTEST_F(ColorManagerTest, ColorSpaceName_Construction_LinearToNonLinear_ZeroDen
     cs.transferFunc.b = 0;
     {
         Vector3 res = cs.ToNonLinear(input);
-        ASSERT_EQ(res[0], 0.0f);
-        ASSERT_EQ(res[1], 0.0f);
-        ASSERT_EQ(res[2], 0.0f);
+        EXPECT_TRUE(IsZeroVector(res));
     }
     cs.transferFunc.b = b;
 
@@ -1020,15 +1067,7 @@ HWTEST_F(ColorManagerTest, CustomPrimaries_Construction_ZeroDenominator, TestSiz
 
     // ComputeXYZD50 detects bY=0 via FloatNearlyEqualZero and returns {}
     // Verify toXYZ is effectively empty (or initialized to 0)
-    bool isZero = true;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            if (!FloatNearlyEqualZero(cs.toXYZ[i][j])) {
-                isZero = false;
-            }
-        }
-    }
-    EXPECT_TRUE(isZero);
+    EXPECT_TRUE(IsZeroMatrix(cs.toXYZ));
 }
 
 /**
@@ -1047,7 +1086,7 @@ HWTEST_F(ColorManagerTest, CustomTF_Construction_HLG_A_ZeroDenominator, TestSize
 
     Vector3 res = cs.ToLinear(input);
     // Should hit return {} inside FloatNearlyEqualZero(p.a)
-    EXPECT_EQ(res[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res));
 }
 
 /**
@@ -1066,32 +1105,31 @@ HWTEST_F(ColorManagerTest, CustomTF_Construction_PQ_F_ZeroDenominator, TestSize.
 
     Vector3 res = cs.ToNonLinear(input);
     // Should hit return {} inside FloatNearlyEqualZero(p.f)
-    EXPECT_EQ(res[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res));
 }
 
 // Test Matrix3x3 Invert when determinant is zero (True branch)
 HWTEST_F(ColorManagerTest, MatrixInvert_ZeroDeterminant, TestSize.Level1)
 {
-    // Scenario 1: Zero matrix
+    // Scenario 1: Zero matrix (determinant = 0)
     Matrix3x3 m1 = {};
     auto res1 = Invert(m1);
-    EXPECT_EQ(res1[0][0], 0.0f);
+    EXPECT_TRUE(IsZeroMatrix(res1));
 
-    // Scenario 2: Matrix with linearly dependent rows (two identical rows)
+    // Scenario 2: Matrix with linearly dependent rows (determinant = 0)
     Matrix3x3 m2 = {{{1.0f, 2.0f, 3.0f},
                      {1.0f, 2.0f, 3.0f},
                      {0.0f, 0.0f, 1.0f}}};
     auto res2 = Invert(m2);
-    EXPECT_EQ(res2[0][0], 0.0f);
+    EXPECT_TRUE(IsZeroMatrix(res2));
 
-    // Scenario 3: Valid invertible matrix (False branch)
+    // Scenario 3: Valid invertible matrix (determinant != 0)
     Matrix3x3 m3 = {{{1.0f, 0.0f, 0.0f},
                      {0.0f, 1.0f, 0.0f},
                      {0.0f, 0.0f, 1.0f}}};
     auto res3 = Invert(m3);
-    EXPECT_FLOAT_EQ(res3[0][0], 1.0f);
-    EXPECT_FLOAT_EQ(res3[1][1], 1.0f);
-    EXPECT_FLOAT_EQ(res3[2][2], 1.0f);
+
+    EXPECT_TRUE(IsIdentityMatrix(res3));
 }
 
 /**
@@ -1111,20 +1149,20 @@ HWTEST_F(ColorManagerTest, ToLinear_HLG_DenominatorChecks, TestSize.Level1)
     // Scenario 1: p.a is 0 (denominator check: p.g * p.a * p.b) (True branch)
     cs.transferFunc.a = 0.0f;
     auto res1 = cs.ToLinear(input);
-    EXPECT_EQ(res1[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res1));
     cs.transferFunc.a = origA;
 
     // Scenario 2: p.b is 0 (denominator check: p.g * p.a * p.b) (True branch)
     cs.transferFunc.b = 0.0f;
     auto res2 = cs.ToLinear(input);
-    EXPECT_EQ(res2[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res2));
     cs.transferFunc.b = origB;
 
     // Scenario 3: Both p.a and p.b are 0 (covers || logic) (True branch)
     cs.transferFunc.a = 0.0f;
     cs.transferFunc.b = 0.0f;
     auto res3 = cs.ToLinear(input);
-    EXPECT_EQ(res3[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res3));
     cs.transferFunc.a = origA;
     cs.transferFunc.b = origB;
 
@@ -1157,7 +1195,7 @@ HWTEST_F(ColorManagerTest, ToLinear_PQ_DenominatorChecks, TestSize.Level1)
 
     auto res = cs.ToLinear(input);
     // Triggers FloatNearlyEqualZero(0.0f) → returns zero vector
-    EXPECT_EQ(res[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res));
 
     // Restore original parameters
     cs.transferFunc.d = origD;
@@ -1189,20 +1227,20 @@ HWTEST_F(ColorManagerTest, ToLinear_LOG_DenominatorChecks, TestSize.Level1)
     // Scenario 1: p.a = 0 (True branch)
     cs.transferFunc.a = 0.0f;
     auto res1 = cs.ToLinear(input);
-    EXPECT_EQ(res1[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res1));
     cs.transferFunc.a = origA;
 
     // Scenario 2: p.c = 0 (True branch)
     cs.transferFunc.c = 0.0f;
     auto res2 = cs.ToLinear(input);
-    EXPECT_EQ(res2[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res2));
     cs.transferFunc.c = origC;
 
     // Scenario 3: p.a = 0 and p.c = 0 (True branch)
     cs.transferFunc.a = 0.0f;
     cs.transferFunc.c = 0.0f;
     auto res3 = cs.ToLinear(input);
-    EXPECT_EQ(res3[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res3));
     cs.transferFunc.a = origA;
     cs.transferFunc.c = origC;
 
@@ -1211,7 +1249,7 @@ HWTEST_F(ColorManagerTest, ToLinear_LOG_DenominatorChecks, TestSize.Level1)
     cs.transferFunc.e = 0.0f;
     cs.transferFunc.f = 0.0f;
     auto res4 = cs.ToLinear(inputSmall);
-    EXPECT_EQ(res4[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res4));
 
     // Restore original parameters
     cs.transferFunc.e = origE;
@@ -1241,19 +1279,19 @@ HWTEST_F(ColorManagerTest, ToNonLinear_HLG_DenominatorChecks, TestSize.Level1)
     // 1.1 p.a = 0
     cs.transferFunc.a = 0.0f;
     auto res1 = cs.ToNonLinear(input);
-    EXPECT_EQ(res1[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res1));
     cs.transferFunc.a = origA;
 
     // 1.2 p.b = 0
     cs.transferFunc.b = 0.0f;
     auto res2 = cs.ToNonLinear(input);
-    EXPECT_EQ(res2[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res2));
     cs.transferFunc.b = origB;
 
     // 1.3 p.c = 0
     cs.transferFunc.c = 0.0f;
     auto res3 = cs.ToNonLinear(input);
-    EXPECT_EQ(res3[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res3));
     cs.transferFunc.c = origC;
 
     // Scenario 2: Normal parameters (False branch)
@@ -1283,7 +1321,7 @@ HWTEST_F(ColorManagerTest, ToNonLinear_PQ_DenominatorChecks, TestSize.Level1)
     // Scenario 1: p.f = 0 (True branch)
     cs.transferFunc.f = 0.0f;
     auto res1 = cs.ToNonLinear(input);
-    EXPECT_EQ(res1[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res1));
     cs.transferFunc.f = origF;
 
     // Scenario 2: tmp2 (p.b - p.e * tmp) equals 0 (True branch)
@@ -1291,7 +1329,7 @@ HWTEST_F(ColorManagerTest, ToNonLinear_PQ_DenominatorChecks, TestSize.Level1)
     cs.transferFunc.e = 2.0f;
     cs.transferFunc.b = 1.0f; // 1.0 - 2.0 * 0.5 = 0.0
     auto res2 = cs.ToNonLinear(input);
-    EXPECT_EQ(res2[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res2));
 
     // Restore
     cs.transferFunc.b = origB;
@@ -1300,7 +1338,7 @@ HWTEST_F(ColorManagerTest, ToNonLinear_PQ_DenominatorChecks, TestSize.Level1)
     // Scenario 3: p.c = 0 (True branch)
     cs.transferFunc.c = 0.0f;
     auto res3 = cs.ToNonLinear(input);
-    EXPECT_EQ(res3[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res3));
     cs.transferFunc.c = origC;
 
     // Scenario 4: Normal parameters (False branch)
@@ -1326,20 +1364,20 @@ HWTEST_F(ColorManagerTest, ToNonLinear_Standard_DenominatorChecks, TestSize.Leve
     // Scenario 1: p.g = 0 (True branch)
     cs.transferFunc.g = 0.0f;
     auto res1 = cs.ToNonLinear(input);
-    EXPECT_EQ(res1[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res1));
     cs.transferFunc.g = origG;
 
     // Scenario 2: p.a = 0 (True branch)
     cs.transferFunc.a = 0.0f;
     auto res2 = cs.ToNonLinear(input);
-    EXPECT_EQ(res2[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res2));
     cs.transferFunc.a = origA;
 
     // Scenario 3: p.c = 0 (used in linear segment: n = (n - p.f) / p.c) (True branch)
     Vector3 inputSmall = {-0.01f, -0.01f, -0.01f};
     cs.transferFunc.c = 0.0f;
     auto res3 = cs.ToNonLinear(inputSmall);
-    EXPECT_EQ(res3[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res3));
     cs.transferFunc.c = origC;
 
     // Scenario 4: Combination p.g=0, p.a=0, p.c=0 (True branch)
@@ -1348,7 +1386,7 @@ HWTEST_F(ColorManagerTest, ToNonLinear_Standard_DenominatorChecks, TestSize.Leve
     cs.transferFunc.a = 0.0f;
     cs.transferFunc.c = 0.0f;
     auto res4 = cs.ToNonLinear(inputGamma);
-    EXPECT_EQ(res4[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res4));
 
     // Restore
     cs.transferFunc.g = origG;
@@ -1383,46 +1421,38 @@ HWTEST_F(ColorManagerTest, ComputeXYZD50_TmpDenominatorZero, TestSize.Level1)
 {
     ColorSpacePrimaries p;
     p.rX = 0.64f; p.rY = 0.33f;
-    p.gX = 0.30f; p.gY = 0.60f;  // Add missing green primary
+    p.gX = 0.30f; p.gY = 0.60f;
     p.bX = 0.15f; p.bY = 0.06f;
     p.wX = 0.3127f; p.wY = 0.3290f;
 
-    // Construct a scenario where tmp = 0 by making red and blue primaries identical (collinear)
+    // === Scenario 1: tmp denominator is zero (collinear red and blue primaries) ===
     p.bX = p.rX;
-    p.bY = p.rY;
-    // Now BxBy == RxRy and oneBxBy == oneRxRy.
-    // tmp = (oneRx - oneRx) * (...) - (Rx - Rx) * (...) = 0.
-    Matrix3x3 res = ComputeXYZD50(p);
-    EXPECT_EQ(res[0][0], 0.0f);
+    p.bY = p.rY;  // Now red == blue → degenerate gamut → tmp = 0
 
-    // Construct a normal valid scenario (False branch) – use standard BT.709 primaries
+    Matrix3x3 res = ComputeXYZD50(p);
+    EXPECT_TRUE(IsZeroMatrix(res));
+
+    // === Scenario 2: Valid BT.709-like primaries (normal case) ===
     p.rX = 0.64f; p.rY = 0.33f;
-    p.gX = 0.30f; p.gY = 0.60f;  // Ensure valid green primary
+    p.gX = 0.30f; p.gY = 0.60f;
     p.bX = 0.15f; p.bY = 0.06f;
     p.wX = 0.3127f; p.wY = 0.3290f;
-    res = ComputeXYZD50(p);
-    // For a valid color gamut, the resulting matrix should not be all zeros.
-    // Check that the first element is non-zero.
-    EXPECT_NE(res[0][0], 0.0f);
-    // Or alternatively, verify at least one element is non-zero.
-    bool hasNonZeroElement = false;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            if (res[i][j] != 0.0f) {
-                hasNonZeroElement = true;
-                break;
-            }
-        }
-        if (hasNonZeroElement) {
-            break;
-        }
-    }
-    EXPECT_TRUE(hasNonZeroElement);
 
-    // Construct scenario where wY = 0 (white point Y is zero) (True branch)
+    res = ComputeXYZD50(p);
+    EXPECT_TRUE(HasNonZeroElement(res));
+
+    // === Scenario 3: White point Y = 0 (invalid white point) ===
     p.wY = 0.0f;
     res = ComputeXYZD50(p);
-    EXPECT_EQ(res[0][0], 0.0f);
+    EXPECT_TRUE(IsZeroMatrix(res));
+
+    // === Scenario 4: (gxGy - rxRy) is near zero (but tmp is not zero) ===
+    p.rX = 0.64f; p.rY = 0.33f;
+    p.gX = 0.30f; p.gY = 0.704f + FLT_EPSILON * 10.0f;  // gxGy = 0.2112 + 0.15*FLT_EPSILON (near rxRy=0.2112)
+    p.bX = 0.15f; p.bY = 0.06f;
+    p.wX = 0.3127f; p.wY = 0.3290f;
+    res = ComputeXYZD50(p);
+    EXPECT_FALSE(IsZeroMatrix(res));
 }
 
 /**
@@ -1434,20 +1464,33 @@ HWTEST_F(ColorManagerTest, Vector3Division_BoundaryChecks, TestSize.Level1)
 {
     Vector3 a = {1.0f, 1.0f, 1.0f};
 
-    // Scenario 1: Denominator slightly less than FLT_EPSILON (should trigger near-zero check) (True branch)
+    // Scenario 1: Denominator slightly less than FLT_EPSILON (should trigger near-zero check) → returns zero matrix
     Vector3 b_tiny = {1.0f, FLT_EPSILON * 0.5f, 1.0f};
     Matrix3x3 res1 = a / b_tiny;
-    EXPECT_EQ(res1[0][0], 0.0f); // Returns zero matrix
+    EXPECT_TRUE(IsZeroMatrix(res1));
 
-    // Scenario 2: Denominator is a tiny negative value (True branch)
+    // Scenario 2: Denominator is a tiny negative value (also triggers near-zero check) → zero matrix
     Vector3 b_tiny_neg = {1.0f, -FLT_EPSILON * 0.5f, 1.0f};
     Matrix3x3 res2 = a / b_tiny_neg;
-    EXPECT_EQ(res2[0][0], 0.0f);
+    EXPECT_TRUE(IsZeroMatrix(res2));
 
-    // Scenario 3: Denominator exactly equals FLT_EPSILON (should NOT trigger check; normal division) (False branch)
+    // Scenario 3: Denominator exactly equals FLT_EPSILON → normal division (no near-zero trigger)
     Vector3 b_eps = {1.0f, FLT_EPSILON, 1.0f};
     Matrix3x3 res3 = a / b_eps;
-    EXPECT_NE(res3[1][1], 0.0f);
+
+    // Only the [1][1] element should be 1.0f / FLT_EPSILON; others are 1.0f / 1.0f = 1.0f
+    EXPECT_FLOAT_EQ(res3[0][0], 1.0f);
+    EXPECT_FLOAT_EQ(res3[1][1], 1.0f / FLT_EPSILON);
+    EXPECT_FLOAT_EQ(res3[2][2], 1.0f);
+
+    // Off-diagonal elements must be zero (since operator/ creates diagonal matrix)
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            if (i != j) {
+                EXPECT_FLOAT_EQ(res3[i][j], 0.0f) << "Off-diagonal element [" << i << "][" << j << "] should be zero.";
+            }
+        }
+    }
 }
 
 /**
@@ -1462,7 +1505,7 @@ HWTEST_F(ColorManagerTest, Matrix3x3Invert_DeterminantNearZero, TestSize.Level1)
                              {2.0f, 4.0f, 6.0f}, // Row 2 is 2× Row 1
                              {0.0f, 0.0f, 1.0f}}};
     auto res1 = Invert(m_singular);
-    EXPECT_EQ(res1[0][0], 0.0f);
+    EXPECT_TRUE(IsZeroMatrix(res1));
 
     // Construct a valid invertible matrix (False branch)
     Matrix3x3 m_valid = {{{2.0f, 0.0f, 0.0f},
@@ -1484,19 +1527,19 @@ HWTEST_F(ColorManagerTest, ComputeXYZD50_NearZeroPrimaries, TestSize.Level1)
     // Scenario 1: rY < FLT_EPSILON (True branch)
     p.rY = FLT_EPSILON * 0.1f;
     auto res1 = ComputeXYZD50(p);
-    EXPECT_EQ(res1[0][0], 0.0f);
+    EXPECT_TRUE(IsZeroMatrix(res1));
 
     // Scenario 2: wY < FLT_EPSILON (including negative values) (True branch)
     p.rY = 0.33f; // restore
     p.wY = -FLT_EPSILON * 0.1f; // negative tiny value
     auto res2 = ComputeXYZD50(p);
-    EXPECT_EQ(res2[0][0], 0.0f);
+    EXPECT_TRUE(IsZeroMatrix(res2));
 
     // Scenario 3: Normal primaries (False branch)
     p.rY = 0.33f;
     p.wY = 0.3290f;
     auto res3 = ComputeXYZD50(p);
-    EXPECT_NE(res3[0][0], 0.0f);
+    EXPECT_TRUE(HasNonZeroElement(res3));
 }
 
 /**
@@ -1514,14 +1557,14 @@ HWTEST_F(ColorManagerTest, ToLinear_TransferFunc_BoundaryChecks, TestSize.Level1
     auto origA = cs_hlg.transferFunc.a;
     cs_hlg.transferFunc.a = FLT_EPSILON * 0.5f;
     auto res_hlg_a = cs_hlg.ToLinear(input);
-    EXPECT_EQ(res_hlg_a[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_hlg_a));
     cs_hlg.transferFunc.a = origA;
 
     // HLG check: FloatNearlyEqualZero(p.b) (True branch)
     auto origB = cs_hlg.transferFunc.b;
     cs_hlg.transferFunc.b = FLT_EPSILON * 0.5f;
     auto res_hlg_b = cs_hlg.ToLinear(input);
-    EXPECT_EQ(res_hlg_b[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_hlg_b));
     cs_hlg.transferFunc.b = origB;
 
     // HLG with normal parameters (False branch)
@@ -1535,7 +1578,7 @@ HWTEST_F(ColorManagerTest, ToLinear_TransferFunc_BoundaryChecks, TestSize.Level1
     cs_pq.transferFunc.d = FLT_EPSILON * 0.5f;
     cs_pq.transferFunc.e = 0.0f;
     auto res_pq_d = cs_pq.ToLinear(input);
-    EXPECT_EQ(res_pq_d[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_pq_d));
     cs_pq.transferFunc.d = origD;
 
     // PQ with normal parameters (False branch)
@@ -1548,14 +1591,14 @@ HWTEST_F(ColorManagerTest, ToLinear_TransferFunc_BoundaryChecks, TestSize.Level1
     auto origLogA = cs_log.transferFunc.a;
     cs_log.transferFunc.a = -FLT_EPSILON * 0.5f;
     auto res_log_a = cs_log.ToLinear(input);
-    EXPECT_EQ(res_log_a[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_log_a));
     cs_log.transferFunc.a = origLogA;
 
     // LOG check: FloatNearlyEqualZero(p.c) (True branch)
     auto origLogC = cs_log.transferFunc.c;
     cs_log.transferFunc.c = FLT_EPSILON * 0.5f;
     auto res_log_c = cs_log.ToLinear(input);
-    EXPECT_EQ(res_log_c[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_log_c));
     cs_log.transferFunc.c = origLogC;
 
     // LOG check: FloatNearlyEqualZero(p.e) → enters else-if branch and returns zero vector (True branch)
@@ -1563,7 +1606,7 @@ HWTEST_F(ColorManagerTest, ToLinear_TransferFunc_BoundaryChecks, TestSize.Level1
     cs_log.transferFunc.e = FLT_EPSILON * 0.5f;
     cs_log.transferFunc.f = 0.0f;
     auto res_log_e = cs_log.ToLinear(inputZero);
-    EXPECT_EQ(res_log_e[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_log_e));
 
     // LOG with normal parameters (False branch)
     cs_log.transferFunc.e = 1.0f; // restore non-zero e
@@ -1586,14 +1629,14 @@ HWTEST_F(ColorManagerTest, ToNonLinear_TransferFunc_BoundaryChecks, TestSize.Lev
     auto origA = cs_hlg.transferFunc.a;
     cs_hlg.transferFunc.a = FLT_EPSILON * 0.1f;
     auto res_hlg_coef = cs_hlg.ToNonLinear(input);
-    EXPECT_EQ(res_hlg_coef[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_hlg_coef));
     cs_hlg.transferFunc.a = origA;
 
     // HLG check: FloatNearlyEqualZero(p.c) (True branch)
     auto origC = cs_hlg.transferFunc.c;
     cs_hlg.transferFunc.c = FLT_EPSILON * 0.1f;
     auto res_hlg_c = cs_hlg.ToNonLinear(input);
-    EXPECT_EQ(res_hlg_c[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_hlg_c));
     cs_hlg.transferFunc.c = origC;
 
     // HLG with normal parameters (False branch)
@@ -1606,7 +1649,7 @@ HWTEST_F(ColorManagerTest, ToNonLinear_TransferFunc_BoundaryChecks, TestSize.Lev
     auto origF = cs_pq.transferFunc.f;
     cs_pq.transferFunc.f = 0.0f;
     auto res_pq_f = cs_pq.ToNonLinear(input);
-    EXPECT_EQ(res_pq_f[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_pq_f));
     cs_pq.transferFunc.f = origF;
 
     // PQ check: FloatNearlyEqualZero(tmp2), where tmp2 = p.b - p.e * tmp (True branch)
@@ -1614,7 +1657,7 @@ HWTEST_F(ColorManagerTest, ToNonLinear_TransferFunc_BoundaryChecks, TestSize.Lev
     cs_pq.transferFunc.b = FLT_EPSILON * 0.5f;
     cs_pq.transferFunc.e = 0.0f;
     auto res_pq_tmp2 = cs_pq.ToNonLinear(input);
-    EXPECT_EQ(res_pq_tmp2[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_pq_tmp2));
     cs_pq.transferFunc.b = origB;
 
     // PQ with normal parameters (False branch)
@@ -1627,14 +1670,14 @@ HWTEST_F(ColorManagerTest, ToNonLinear_TransferFunc_BoundaryChecks, TestSize.Lev
     auto origG = cs_srgb.transferFunc.g;
     cs_srgb.transferFunc.g = FLT_EPSILON * 0.5f;
     auto res_srgb_g = cs_srgb.ToNonLinear(input);
-    EXPECT_EQ(res_srgb_g[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_srgb_g));
     cs_srgb.transferFunc.g = origG;
 
     // Standard check: FloatNearlyEqualZero(p.a) (True branch)
     auto origSrgbA = cs_srgb.transferFunc.a;
     cs_srgb.transferFunc.a = 0.0f;
     auto res_srgb_a = cs_srgb.ToNonLinear(input);
-    EXPECT_EQ(res_srgb_a[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_srgb_a));
     cs_srgb.transferFunc.a = origSrgbA;
 
     // Standard check: FloatNearlyEqualZero(p.c) (linear segment) (True branch)
@@ -1642,7 +1685,7 @@ HWTEST_F(ColorManagerTest, ToNonLinear_TransferFunc_BoundaryChecks, TestSize.Lev
     auto origSrgbC = cs_srgb.transferFunc.c;
     cs_srgb.transferFunc.c = 0.0f;
     auto res_srgb_c = cs_srgb.ToNonLinear(inputNeg);
-    EXPECT_EQ(res_srgb_c[0], 0.0f);
+    EXPECT_TRUE(IsZeroVector(res_srgb_c));
     cs_srgb.transferFunc.c = origSrgbC;
 
     // Standard with normal parameters (False branch)
@@ -1684,26 +1727,13 @@ HWTEST_F(ColorManagerTest, DXToD50_WhitePointZeroCheck, TestSize.Level1)
                            {0.0f, 1.0f, 0.0f},
                            {0.0f, 0.0f, 1.0f}}};
 
-    std::array<float, 2> wpTinyY = {0.3127f, FLT_EPSILON * 0.5f};
+    std::array<float, 2> wpTinyY = {0.3127f, FLT_EPSILON * 0.1f}; // Y near zero
     TransferFunc tf = TF_LINEAR;
 
     ColorSpace cs(baseToXYZ, wpTinyY, tf);
-    // The actual behavior depends on the result of ComputeWhitePoint
-    // If wp[1] is near zero, it may affect downstream calculations
-    bool hasValidToXYZ = false;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            if (!FloatNearlyEqualZero(cs.toXYZ[i][j])) {
-                hasValidToXYZ = true;
-                break;
-            }
-        }
-        if (hasValidToXYZ) {
-            break;
-        }
-    }
-    // Adjust expected result based on actual implementation logic
-    EXPECT_TRUE(true); // Update according to real requirements
+
+    // Verify that DXToD50 returns a zero matrix when white point Y is near zero
+    EXPECT_TRUE(IsZeroMatrix(cs.toXYZ));
 }
 
 /**
@@ -1713,19 +1743,18 @@ HWTEST_F(ColorManagerTest, DXToD50_WhitePointZeroCheck, TestSize.Level1)
  */
 HWTEST_F(ColorManagerTest, IsFinite_ZeroDenominator, TestSize.Level1)
 {
-    // In Invert(), if invdet becomes infinite, IsFinite is called
+    // Test singular matrix (determinant = 0)
     Matrix3x3 singularMatrix = {{{1.0f, 2.0f, 3.0f},
-                                {2.0f, 4.0f, 6.0f},  // linearly dependent row
+                                {2.0f, 4.0f, 6.0f},  // Linearly dependent row (2x first row)
                                 {0.0f, 0.0f, 1.0f}}};
-
     auto result = Invert(singularMatrix);
-    EXPECT_EQ(result[0][0], 0.0f); // Should return zero matrix
+    EXPECT_TRUE(IsZeroMatrix(result));
 
-    // Test special infinity cases explicitly
+    // Test special infinity cases (for IsFinite function)
     float inf = 1.0f / 0.0f;
     EXPECT_FALSE(IsFinite(inf));
     EXPECT_FALSE(IsFinite(-inf));
-    EXPECT_TRUE(IsFinite(1.0f)); // ordinary finite number
+    EXPECT_TRUE(IsFinite(1.0f));
 }
 
 // Test special cases in the LOG_G branch
@@ -1749,8 +1778,8 @@ HWTEST_F(ColorManagerTest, ToLinearLogGWithNonZeroPE, TestSize.Level1)
 
     Vector3 result = colorSpace.ToLinear(input);
 
-    // Verify result is not a zero vector
-    EXPECT_FALSE(result[0] == 0 && result[1] == 0 && result[2] == 0);
+    // Verify result is not a zero vector (using tolerance)
+    EXPECT_FALSE(IsZeroVector(result));
 }
 
 // Test the LOG_G branch when p.e is near zero
@@ -1775,7 +1804,7 @@ HWTEST_F(ColorManagerTest, ToLinearLogGWithNearZeroPE, TestSize.Level1)
     Vector3 result = colorSpace.ToLinear(input);
 
     // Since p.e is near zero, a zero vector should be returned
-    EXPECT_TRUE(result[0] == 0 && result[1] == 0 && result[2] == 0);
+    EXPECT_TRUE(IsZeroVector(result));
 }
 
 // Helper test function specifically for the LOG_G branch with non-zero p.e

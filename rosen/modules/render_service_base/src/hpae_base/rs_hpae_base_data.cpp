@@ -112,6 +112,14 @@ Vector4f RSHpaeBaseData::GetPixelStretch()
     }
 }
 
+void RSHpaeBaseData::SwapPixelStretch()
+{
+    if (hpaeStatus_.pixelStretch) {
+        std::swap(hpaeStatus_.pixelStretch->x_, hpaeStatus_.pixelStretch->y_);
+        std::swap(hpaeStatus_.pixelStretch->z_, hpaeStatus_.pixelStretch->w_);
+    }
+}
+
 Vector2f RSHpaeBaseData::GetGreyCoef()
 {
     if (hpaeStatus_.greyCoef) {

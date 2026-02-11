@@ -77,6 +77,8 @@ public:
     virtual uint32_t GetVsyncRefreshRate() = 0;
     virtual uint32_t GetVSyncMaxRefreshRate() = 0;
     virtual VsyncError SetVSyncMaxRefreshRate(uint32_t refreshRate) = 0;
+    virtual VsyncError SetVSyncMaxTE(uint32_t maxTE) = 0;
+    virtual VsyncError SetVSyncMaxTE144(uint32_t maxTE144) = 0;
     virtual void Dump(std::string &result) = 0;
     virtual bool GetFrameRateChaingStatus() = 0;
     virtual VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) = 0;
@@ -96,10 +98,13 @@ public:
     virtual VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     virtual bool IsUiDvsyncOn() = 0;
     // End of DVSync
+
+    // Adaptive Sync
     virtual bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) = 0;
     virtual void SetAdaptive(bool isAdaptive) = 0;
     virtual bool IsNeedAdaptiveAfterUpdateMode() = 0;
     virtual bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) = 0;
+    virtual void SetUpdateModeTimeForAS(int64_t time) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -134,6 +139,8 @@ public:
     uint32_t GetVsyncRefreshRate() override;
     uint32_t GetVSyncMaxRefreshRate() override;
     VsyncError SetVSyncMaxRefreshRate(uint32_t refreshRate) override;
+    VsyncError SetVSyncMaxTE(uint32_t maxTE) override;
+    VsyncError SetVSyncMaxTE144(uint32_t maxTE144) override;
     void Dump(std::string &result) override;
     bool GetFrameRateChaingStatus() override;
     VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) override;
@@ -154,10 +161,13 @@ public:
     VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     bool IsUiDvsyncOn() override;
     // End of DVSync
+
+    // Adaptive Sync
     bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) override;
     void SetAdaptive(bool isAdaptive) override;
     bool IsNeedAdaptiveAfterUpdateMode() override;
     bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) override;
+    void SetUpdateModeTimeForAS(int64_t time) override;
 private:
     friend class OHOS::Rosen::VSyncGenerator;
 
@@ -194,6 +204,7 @@ private:
 #endif
     void PeriodCheckLocked(int64_t hardwareVsyncInterval);
     void UpdateChangeRefreshRatesLocked(const ListenerRefreshRateData &listenerRefreshRates);
+    void ChangeVSyncTE(uint32_t generatorRefreshRate);
     VsyncError SetExpectNextVsyncTimeInternal(int64_t expectNextVsyncTime);
     void ClearAllSamplesInternal(bool clearAllSamplesFlag);
     void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);
@@ -206,8 +217,9 @@ private:
     int64_t phase_ = 0;
     int64_t referenceTime_ = 0;
     int64_t wakeupDelay_ = 0;
-    int64_t lastVsyncRsTime_ = 0;
-    int64_t lastVsyncRsInterval_ = 0;
+
+    // Adaptive Sync
+    int64_t updateModeTimeForAS_ = 0;
 
     std::vector<Listener> listeners_;
 
@@ -250,6 +262,8 @@ private:
     int64_t targetPeriod_ = 0;
     bool clearAllSamplesFlag_ = false;
     uint32_t vsyncMaxRefreshRate_ = 360; // default max TE
+    uint32_t vsyncMaxTE_ = 360; // default max TE
+    uint32_t vsyncMaxTE144_ = 0; // default max TE 144, not support
     int64_t vsyncOffset_ = 0;
     int64_t nextTimeStamp_ = 0;
     bool isAdaptive_ = false;

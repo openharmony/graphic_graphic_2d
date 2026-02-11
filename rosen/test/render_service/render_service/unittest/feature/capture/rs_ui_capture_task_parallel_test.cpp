@@ -911,6 +911,41 @@ HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture003, Function | SmallTest | Le
 }
 
 /*
+ * @tc.name: IsHdrCapture004
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsHdrCapture
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture004, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId nodeId = 126;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.dynamicRangeMode.first = DEFAULT_DYNAMIC_RANGE_MODE_STANDARD;
+    captureConfig.dynamicRangeMode.second = true;
+    captureConfig.isSync = false;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(500.f);
+    renderNode->renderProperties_.SetBoundsHeight(500.f);
+    renderNode->InitRenderParams();
+    nodeMap.RegisterRenderNode(renderNode);
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), false);
+    captureConfig.isSync = true;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), false);
+    captureConfig.dynamicRangeMode.second = false;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), false);
+    captureConfig.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_HIGH;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), true);
+    captureConfig.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_CONSTRAINT;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), true);
+}
+
+/*
  * @tc.name: SelectColorSpace001
  * @tc.desc: Test RSUiCaptureTaskParallel::SelectColorSpace
  * @tc.type: FUNC

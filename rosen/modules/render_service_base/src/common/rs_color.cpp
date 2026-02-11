@@ -274,7 +274,9 @@ void RSColor::ConvertToSRGBColorSpace()
 
 Drawing::Color RSColor::ConvertToDrawingColor() const
 {
-    return IsPlaceholder() ? Drawing::Color(GetPlaceholder()) : Drawing::Color(AsArgbInt());
+    auto color = Drawing::Color(AsArgbInt());
+    color.SetPlaceholder(GetPlaceholder());
+    return color;
 }
 
 void RSColor::Dump(std::string& out) const
@@ -306,6 +308,10 @@ ColorPlaceholder RSColor::GetPlaceholder() const
 bool RSColor::IsPlaceholder() const
 {
     return placeholder_ != 0;
+}
+void RSColor::SetPlaceholder(ColorPlaceholder ph)
+{
+    placeholder_ = static_cast<uint16_t>(ph);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -52,9 +52,16 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 return ret;
             }
             if (!reply.WriteFileDescriptor(fd)) {
-                VLOGE("IVSYNC_CONNECTION_GET_RECEIVE_FD Write fd failed");
+                VLOGE("IVSYNC_CONNECTION_GET_RECEIVE_FD Write fd = %d failed", fd);
                 return VSYNC_ERROR_INVALID_ARGUMENTS;
             }
+
+            /**
+             * close receive fd after writen to binder, we do not use receive fd anymore,
+             * if we do not close receive fd, it will ref the kernel socket together with dh composer
+             * and other apps.
+             */
+            CloseReceiveFd();
             break;
         }
         case IVSYNC_CONNECTION_SET_RATE: {
@@ -152,6 +159,7 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     return 0;
 }
 
+// LCOV_EXCL_START
 bool VSyncConnectionStub::CheckCallingPermission()
 {
     Security::AccessToken::AccessTokenID tokenId = OHOS::IPCSkeleton::GetCallingTokenID();
@@ -163,5 +171,6 @@ bool VSyncConnectionStub::CheckCallingPermission()
     }
     return true;
 }
+// LCOV_EXCL_STOP
 } // namespace Rosen
 } // namespace OHOS

@@ -732,6 +732,57 @@ HWTEST_F(RSScreenRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent002, Tes
 }
 
 /**
+ * @tc.name: GetDisappearedSurfaceRegionBelowCurrent003
+ * @tc.desc: test results of the surface in the middle layer switches to the upper layer
+ * @tc.type:FUNC
+ * @tc.require: issues27594
+ */
+HWTEST_F(RSScreenRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent003, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
+
+    constexpr NodeId bottomSurfaceNodeId = 1;
+    const RectI bottomSurfacePos(0, 0, 1, 1);
+    const std::pair<NodeId, RectI> bottomSurface{ bottomSurfaceNodeId, bottomSurfacePos };
+    constexpr NodeId midSurfaceNodeId = 2;
+    const RectI midpSurfacePos(0, 0, 2, 2);
+    const std::pair<NodeId, RectI> midSurface{ midSurfaceNodeId, midpSurfacePos };
+    constexpr NodeId topSurfaceNodeId = 3;
+    const RectI topSurfacePos(0, 0, 3, 3);
+    const std::pair<NodeId, RectI> topSurface{ topSurfaceNodeId, topSurfacePos };
+    constexpr NodeId removedSurfaceNodeId = 4;
+    const RectI removedSurfacePos(0, 0, 4, 4);
+    const std::pair<NodeId, RectI> removedSurface{ removedSurfaceNodeId, removedSurfacePos };
+
+    screenNode->UpdateSurfaceNodePos(removedSurface.first, removedSurface.second);
+    screenNode->AddSurfaceNodePosByDescZOrder(removedSurface.first, removedSurface.second);
+    screenNode->UpdateSurfaceNodePos(topSurface.first, topSurface.second);
+    screenNode->AddSurfaceNodePosByDescZOrder(topSurface.first, topSurface.second);
+    screenNode->UpdateSurfaceNodePos(midSurface.first, midSurface.second);
+    screenNode->AddSurfaceNodePosByDescZOrder(midSurface.first, midSurface.second);
+    screenNode->UpdateSurfaceNodePos(bottomSurface.first, bottomSurface.second);
+    screenNode->AddSurfaceNodePosByDescZOrder(bottomSurface.first, bottomSurface.second);
+    screenNode->ClearCurrentSurfacePos();
+    screenNode->UpdateSurfaceNodePos(midSurface.first, midSurface.second);
+    screenNode->AddSurfaceNodePosByDescZOrder(midSurface.first, midSurface.second);
+    screenNode->UpdateSurfaceNodePos(topSurface.first, topSurface.second);
+    screenNode->AddSurfaceNodePosByDescZOrder(topSurface.first, topSurface.second);
+    screenNode->UpdateSurfaceNodePos(bottomSurface.first, bottomSurface.second);
+    screenNode->AddSurfaceNodePosByDescZOrder(bottomSurface.first, bottomSurface.second);
+
+    NodeId id = 0;
+    auto region1 = screenNode->GetDisappearedSurfaceRegionBelowCurrent(id);
+    EXPECT_TRUE(region1.IsEmpty());
+
+    auto region2 = screenNode->GetDisappearedSurfaceRegionBelowCurrent(removedSurfaceNodeId);
+    EXPECT_TRUE(region2.IsEmpty());
+
+    auto region3 = screenNode->GetDisappearedSurfaceRegionBelowCurrent(topSurfaceNodeId);
+    EXPECT_TRUE(region3.GetBound() == midSurface.second);
+}
+
+/**
  * @tc.name: RecordMainAndLeashSurfaces001
  * @tc.desc: test RecordMainAndLeashSurfaces
  * @tc.type:FUNC
@@ -1222,4 +1273,43 @@ HWTEST_F(RSScreenRenderNodeTest, ResetVideoHeadroomInfo, TestSize.Level1)
     CheckWithStatusLevel(map, HdrStatus::HDR_UICOMPONENT, level);
 }
 
+/**
+ * @tc.name: SetCloneNodeMapTest
+ * @tc.desc: test results of SetCloneNodeMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetCloneNodeMapTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> nodeMap;
+    nodeMap[1];
+    auto screenParams = static_cast<RSScreenRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_EQ(screenParams->GetCloneNodeMap().size(), 0);
+    node->SetCloneNodeMap(nodeMap);
+    ASSERT_EQ(screenParams->GetCloneNodeMap().size(), 1);
+
+    node->stagingRenderParams_ = nullptr;
+    node->SetCloneNodeMap(nodeMap);
+    ASSERT_EQ(node->stagingRenderParams_.get(), nullptr);
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrectionTest
+ * @tc.desc: test results of SetLogicalCameraRotationCorrection
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetLogicalCameraRotationCorrectionTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    auto screenParams = static_cast<RSScreenRenderParams*>(node->stagingRenderParams_.get());
+    node->stagingRenderParams_->SetNeedSync(true);
+    node->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
+    EXPECT_EQ(screenParams->GetLogicalCameraRotationCorrection(), ScreenRotation::ROTATION_90);
+    node->stagingRenderParams_ = nullptr;
+    node->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
+}
 } // namespace OHOS::Rosen

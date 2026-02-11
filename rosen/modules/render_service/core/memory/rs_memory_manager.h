@@ -23,6 +23,7 @@
 #include "memory/rs_memory_snapshot.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_context.h"
 
 namespace OHOS::Rosen {
 
@@ -64,11 +65,19 @@ public:
         Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
     static void DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext* grContext,
         const std::vector<std::pair<NodeId, std::string>>& nodeTags);
-    static void DumpGpuNodeMemory(DfxString& log);
+    static void RenderServiceAllNodeDump(DfxString& log);
+    static void RenderServiceAllSurfaceDump(DfxString& log);
+    static void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
+        std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize);
+    static void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type,
+        pid_t pid = 0, bool isLite = false);
+    static void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
+        const std::string& type);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log, bool isLite = false);
     static void DumpDrawingCpuMemory(DfxString& log);
+    static void DumpGpuNodeMemory(DfxString& log);
     static void DumpGpuCache(DfxString& log, const Drawing::GPUContext* gpuContext,
         Drawing::GPUResourceTag* tag, std::string& name);
     static float DumpGpuCacheNew(DfxString& log, const Drawing::GPUContext* gpuContext,

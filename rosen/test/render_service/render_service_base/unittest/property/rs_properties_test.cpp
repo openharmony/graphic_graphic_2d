@@ -402,12 +402,12 @@ HWTEST_F(RSPropertiesTest, CreateFilterCacheManagerIfNeed001, TestSize.Level1)
     RSProperties properties;
     properties.CreateFilterCacheManagerIfNeed();
 
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
     properties.CreateFilterCacheManagerIfNeed();
 
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     properties.CreateFilterCacheManagerIfNeed();
-    EXPECT_TRUE(properties.GetEffect().filter_ != nullptr);
+    EXPECT_TRUE(properties.filter_ != nullptr);
 }
 
 /**
@@ -427,8 +427,8 @@ HWTEST_F(RSPropertiesTest, ClearFilterCache001, TestSize.Level1)
     EXPECT_TRUE(properties.backgroundFilterCacheManager_ != nullptr);
 
     auto maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(BLUR_COLOR_MODE::DEFAULT, RSColor());
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSDrawingFilter>(maskColorShaderFilter);
-    properties.GetEffect().filter_ = std::make_shared<RSDrawingFilter>(maskColorShaderFilter);
+    properties.backgroundFilter_ = std::make_shared<RSDrawingFilter>(maskColorShaderFilter);
+    properties.filter_ = std::make_shared<RSDrawingFilter>(maskColorShaderFilter);
     properties.ClearFilterCache();
     EXPECT_NE(maskColorShaderFilter, nullptr);
 }
@@ -480,13 +480,13 @@ HWTEST_F(RSPropertiesTest, OnApplyModifiers001, TestSize.Level1)
 
     properties.GetEffect().shadow_ = std::make_optional<RSShadow>();
     properties.GetEffect().shadow_->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
-    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.filter_ = std::make_shared<RSFilter>();
     properties.GetEffect().foregroundEffectRadius_ = 1.f;
     Vector2f scaleAnchor = Vector2f(0.f, 0.f);
     properties.GetEffect().motionBlurPara_ = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     properties.OnApplyModifiers();
-    EXPECT_TRUE(properties.GetEffect().filter_ != nullptr);
+    EXPECT_TRUE(properties.filter_ != nullptr);
 }
 
 /**
@@ -674,6 +674,60 @@ HWTEST_F(RSPropertiesTest, IsPixelStretchPercentValid004, TestSize.Level1)
     properties.SetPixelStretchPercent(stretchPercent);
     properties.OnApplyModifiers();
     EXPECT_EQ(properties.GetPixelStretch(), std::nullopt);
+}
+
+/**
+ * @tc.name: PixelStretchTest001
+ * @tc.desc: test results of OnApplyModifiers pixelStretch has value
+ * @tc.type:FUNC
+ * @tc.require: issue21869
+ */
+HWTEST_F(RSPropertiesTest, PixelStretchTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.geoDirty_ = true;
+    properties.SetPixelStretch(Vector4f(10.0, 10.0, 10.0, 10.0));
+
+    properties.OnApplyModifiers();
+
+    EXPECT_TRUE(properties.needFilter_);
+}
+
+/**
+ * @tc.name: PixelStretchTest002
+ * @tc.desc: test results of OnApplyModifiers pixelStretchPercent has value
+ * @tc.type:FUNC
+ * @tc.require: issue21869
+ */
+HWTEST_F(RSPropertiesTest, PixelStretchTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetBounds(bounds);
+    Vector4f pixelStretchPercent(0.1f, 0.2f, 0.3f, 0.4f);
+    properties.SetPixelStretchPercent(pixelStretchPercent);
+
+    properties.OnApplyModifiers();
+
+    EXPECT_TRUE(properties.needFilter_);
+}
+
+/**
+ * @tc.name: PixelStretchTest003
+ * @tc.desc: test results of OnApplyModifiers pixelStretch and percent are invalid
+ * @tc.type:FUNC
+ * @tc.require: issue21869
+ */
+HWTEST_F(RSPropertiesTest, PixelStretchTest003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.geoDirty_ = true;
+    properties.GetEffect().useEffect_ = true;
+
+    properties.OnApplyModifiers();
+
+    // false: ensure filterNeedUpdate is false even if geoDirty is true after check pixelStretch update
+    EXPECT_FALSE(properties.needFilter_);
 }
 
 /**
@@ -1415,8 +1469,8 @@ HWTEST_F(RSPropertiesTest, SetBackgroundFilter001, TestSize.Level1)
 {
     RSProperties properties;
     std::shared_ptr<RSFilter> backgroundFilter = std::make_shared<RSFilter>();
-    properties.GetEffect().backgroundFilter_ = backgroundFilter;
-    EXPECT_NE(properties.GetEffect().backgroundFilter_, nullptr);
+    properties.backgroundFilter_ = backgroundFilter;
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
     EXPECT_EQ(properties.GetBackgroundFilter(), backgroundFilter);
 }
 
@@ -1805,8 +1859,8 @@ HWTEST_F(RSPropertiesTest, SetFilter001, TestSize.Level1)
 {
     RSProperties properties;
     std::shared_ptr<RSFilter> filter = std::make_shared<RSFilter>();
-    properties.GetEffect().filter_ = filter;
-    EXPECT_NE(properties.GetEffect().filter_, nullptr);
+    properties.filter_ = filter;
+    EXPECT_NE(properties.filter_, nullptr);
     EXPECT_EQ(properties.GetFilter(), filter);
 }
 
@@ -2702,7 +2756,7 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
 
     properties.GetEffect().bgNGRenderFilter_ = std::make_shared<RSNGRenderEdgeLightFilter>();
     properties.GenerateBackgroundFilter();
-    EXPECT_NE(properties.GetEffect().backgroundFilter_, nullptr);
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
 
     properties.GetEffect().waterRippleProgress_ = 0.1f;
     uint32_t waveCount = 2;
@@ -3414,6 +3468,22 @@ HWTEST_F(RSPropertiesTest, SetColorBlendMode001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InternalSetSDFShape001
+ * @tc.desc: test results of InternalSetSDFShape
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, InternalSetSDFShape001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.InternalSetSDFShape(nullptr);
+    ASSERT_EQ(properties.renderSDFShape_, nullptr);
+    auto sdfShape = std::make_shared<RSNGRenderSDFRRectShape>();
+    properties.InternalSetSDFShape(sdfShape);
+    ASSERT_NE(properties.renderSDFShape_, nullptr);
+}
+
+/**
  * @tc.name: SetSDFShape001
  * @tc.desc: test results of SetSDFShape
  * @tc.type:FUNC
@@ -3765,5 +3835,21 @@ HWTEST_F(RSPropertiesTest, ReportServerXXFilterCascadeCheck_DailyAttempt, TestSi
     EXPECT_TRUE(props.hasReportedServerXXFilterCascade_.test(0));
 }
 
+/**
+ * @tc.name: SetAndGetCompositingNGFilter
+ * @tc.desc: test results of SetCompositingNGFilter, GetCompositingNGFilter
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSPropertiesTest, SetAndGetCompositingNGFilter, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetCompositingNGFilter(), nullptr); // for coverage nullptr
+    auto blurFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.SetCompositingNGFilter(blurFilter);
+    properties.SetCompositingNGFilter(blurFilter);  // for coverage
+    auto testFilter = properties.GetCompositingNGFilter();
+    EXPECT_EQ(blurFilter, testFilter);
+}
 } // namespace Rosen
 } // namespace OHOS

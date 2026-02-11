@@ -88,6 +88,7 @@ ohos_unittest("RSClientToServiceConnectionStubTest") {
   sources = [
     "../pipeline/mock/mock_hdi_device.cpp",
     "rs_client_to_service_connection_stub_test.cpp",
+    "${rosen_root}/modules/render_service_base/src/pipeline/rs_uni_render_judgement.cpp",
   ]
   deps = [
     ":rs_test_common",

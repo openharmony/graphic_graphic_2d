@@ -57,6 +57,11 @@ LocalSocketPair::~LocalSocketPair()
     CloseFd(receiveFd_);
 }
 
+void LocalSocketPair::CloseReceiveDataFd()
+{
+    CloseFd(receiveFd_);
+}
+
 int32_t LocalSocketPair::SetSockopt(size_t sendSize, size_t receiveSize, int32_t* socketPair, int32_t socketPairSize)
 {
     for (int i = 0; i < socketPairSize; ++i) {

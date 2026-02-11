@@ -87,7 +87,8 @@ HWTEST_F(RSDrawCmdTest, GetDrawingImageFromSurfaceBuffer, TestSize.Level1)
 {
     RSExtendImageObject extendImageObject(pixelMap, imageInfo);
     Drawing::Canvas canvas(1, 1);
-    OHOS::SurfaceBuffer* surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    sptr<SurfaceBuffer> surfaceBufferSptr = SurfaceBuffer::Create();
+    OHOS::SurfaceBuffer* surfaceBuffer = surfaceBufferSptr.GetRefPtr();
     ASSERT_FALSE(extendImageObject.GetDrawingImageFromSurfaceBuffer(canvas, surfaceBuffer));
     ASSERT_FALSE(extendImageObject.GetDrawingImageFromSurfaceBuffer(canvas, nullptr));
     extendImageObject.eglImage_ = EGL_NO_IMAGE_KHR;

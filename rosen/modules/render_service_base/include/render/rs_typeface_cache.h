@@ -61,13 +61,13 @@ public:
      * @brief    Serialize drawing typeface cache (used for profiler replay).
      * @param ss String stream to write serialized data.
      */
-    void ReplaySerialize(std::stringstream& ss);
+    void ReplaySerialize(std::stringstream& stream);
 
     /**
      * @brief    Deserialize drawing typeface cache (used for profiler replay).
      * @param ss Serialized data.
      */
-    std::string ReplayDeserialize(std::stringstream& ss);
+    std::string ReplayDeserialize(std::stringstream& stream);
 
     RSTypefaceCache() = default;
     ~RSTypefaceCache() = default;

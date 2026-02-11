@@ -19,10 +19,11 @@
 #include <functional>
 #include <string>
 
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
+#include "feature/hwc_event/rs_uni_hwc_event_manager.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_pointer_window_manager.h"
-#include "feature/hwc/rs_uni_hwc_compute_util.h"
 
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -36,6 +37,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr size_t MATRIX_SIZE = 9;
 constexpr uint32_t ROTATION_360 = 360;
 constexpr uint64_t USAGE_HARDWARE_CURSOR = 1ULL << 61;
 constexpr uint64_t USAGE_UNI_LAYER = 1ULL << 60;
@@ -48,9 +50,15 @@ RSUniHwcPrevalidateUtil& RSUniHwcPrevalidateUtil::GetInstance()
 
 RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
 {
-    preValidateHandle_ = dlopen("libdss_enhance.z.so", RTLD_NOW);
+    preValidateHandle_ = dlopen("libprevalidate_client.z.so", RTLD_NOW);
     if (preValidateHandle_ == nullptr) {
         RS_LOGW("[%{public}s_%{public}d]:load library failed, reason: %{public}s", __func__, __LINE__, dlerror());
+        return;
+    }
+    PreValidateInitFunc initFunc = reinterpret_cast<PreValidateInitFunc>(dlsym(preValidateHandle_, "InitPrevalidate"));
+    if ((initFunc == nullptr) || (initFunc() != 0)) {
+        RS_LOGW("[%{public}s]: prevalidate init failed", __func__);
+        dlclose(preValidateHandle_);
         return;
     }
     preValidateFunc_ = reinterpret_cast<PreValidateFunc>(dlsym(preValidateHandle_, "RequestLayerStrategy"));
@@ -69,21 +77,8 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     isCopybitSupported_ = RSSystemParameters::GetIsCopybitSupported();
 }
 
-void RSUniHwcPrevalidateUtil::Init()
-{
-    RS_LOGI("[%{public}s]:register OnHwcEvent Func", __func__);
-    if (handleEventFunc_ == nullptr) {
-        RS_LOGW("[%{public}s]:handleEventFunc is nullptr", __func__);
-        return;
-    }
-    auto hdiBackend = HdiBackend::GetInstance();
-    if (hdiBackend && hdiBackend->RegHwcEventCallback(&RSUniHwcPrevalidateUtil::OnHwcEvent, this) != 0) {
-        RS_LOGW("[%{public}s]:Failed to register OnHwcEvent Func", __func__);
-    }
-}
- 
 void RSUniHwcPrevalidateUtil::OnHwcEvent(
-    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data)
+    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
     if (!GetInstance().handleEventFunc_) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::HandleEvent handleEventFunc is null");
@@ -145,7 +140,7 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     info.zOrder = zorder;
     info.bufferUsage = node->GetRSSurfaceHandler()->GetBuffer()->GetUsage();
     info.layerUsage = node->IsHardwareEnabledTopSurface() &&
-        RSPointerWindowManager::Instance().CheckHardCursorSupport(node->GetScreenId()) ?
+        node->GetHardCursorStatus() ?
         info.layerUsage | USAGE_HARDWARE_CURSOR : info.layerUsage;
     info.format = node->GetRSSurfaceHandler()->GetBuffer()->GetFormat();
     info.fps = fps;
@@ -166,6 +161,14 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     node->SetDeviceOfflineEnable(false);
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
     stagingSurfaceParams->SetOfflineOriginBufferSynced(true);
+    const auto& layerLinearMatrix = stagingSurfaceParams->GetLayerLinearMatrix();
+    if (layerLinearMatrix.size() == MATRIX_SIZE) {
+        std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
+        if (memcpy_s(valueBlob.data(), valueBlob.size(), layerLinearMatrix.data(),
+            MATRIX_SIZE * sizeof(float)) == EOK) {
+            info.perFrameParameters["LayerLinearMatrix"] = valueBlob;
+        }
+    }
     RS_LOGD_IF(DEBUG_PREVALIDATE, "CreateSurfaceNodeLayerInfo %{public}s,"
         " %{public}" PRIu64 ", src: %{public}s, dst: %{public}s, z: %{public}" PRIu32 ","
         " bufferUsage: %{public}" PRIu64 ", layerUsage: %{public}" PRIu64 ","
@@ -242,7 +245,7 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     if (!node || !node->GetConsumer() || !node->GetBuffer()) {
         return false;
     }
-    
+
     info.id = node->GetId();
     auto src = node->GetSrcRect();
     info.srcRect = {src.left_, src.top_, src.width_, src.height_};

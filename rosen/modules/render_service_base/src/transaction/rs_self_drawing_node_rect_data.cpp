@@ -56,7 +56,6 @@ RSSelfDrawingNodeRectData* RSSelfDrawingNodeRectData::Unmarshalling(Parcel& parc
 
     for (uint32_t index = 0; index < mapSize; ++index) {
         uint64_t nodeId;
-        std::string nodeName;
         RectI rect;
         if (!parcel.ReadUint64(nodeId) || !parcel.ReadInt32(rect.left_) || !parcel.ReadInt32(rect.top_) ||
             !parcel.ReadInt32(rect.width_) || !parcel.ReadInt32(rect.height_)) {

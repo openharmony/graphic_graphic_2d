@@ -318,7 +318,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     bool optFenceWait = (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
         !rsSubThreadCache.IsHighPostPriority()) ? false : true;
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
-    rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable);
+    rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable, surfaceParams);
     rsSubThreadCache.UpdateBackendTexture();
     rsSubThreadCache.SetCacheBehindWindowData(rscanvas->GetCacheBehindWindowData());
 

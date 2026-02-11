@@ -21,6 +21,7 @@
 #include "ge_visual_effect_impl.h"
 #include "ge_visual_effect_container.h"
 
+#include "common/rs_optional_trace.h"
 #include "effect/rs_render_mask_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "platform/common/rs_log.h"
@@ -32,6 +33,10 @@ using FilterCreator = std::function<std::shared_ptr<RSNGRenderFilterBase>()>;
 static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     {RSNGEffectType::BLUR, [] {
             return std::make_shared<RSNGRenderBlurFilter>();
+        }
+    },
+    {RSNGEffectType::MATERIAL_BLUR, [] {
+            return std::make_shared<RSNGRenderMaterialBlurFilter>();
         }
     },
     {RSNGEffectType::DISPLACEMENT_DISTORT, [] {
@@ -116,6 +121,10 @@ static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRect
             auto blurRadius = frostedGlass->Getter<OHOS::Rosen::FrostedGlassBlurParamsRenderTag>()->Get();
             auto tmp = frostedGlass->Getter<OHOS::Rosen::FrostedGlassEnvLightParamsRenderTag>()->Get();
             auto samplingScale = frostedGlass->Getter<OHOS::Rosen::FrostedGlassSamplingScaleRenderTag>()->Get();
+            auto weightsEmboss = frostedGlass->Getter<OHOS::Rosen::FrostedGlassWeightsEmbossRenderTag>()->Get();
+            if (ROSEN_LE(weightsEmboss[1], 0.0f)) {
+                return rect;
+            }
             auto refractOutPx = tmp[0];
             const float maxRefractOutPx = 500.0f;
             float outStep = std::max(blurRadius[0] +
@@ -230,6 +239,7 @@ bool RSNGRenderFilterHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase
     auto current = filter;
     while (current) {
         if (RSEffectLuminanceManager::GetEnableHdrEffect(current)) {
+            RS_OPTIONAL_TRACE_NAME_FMT("CheckEnableEDR:find edr filter, type=%d", static_cast<int>(current->GetType()));
             return true;
         }
         current = current->nextEffect_;

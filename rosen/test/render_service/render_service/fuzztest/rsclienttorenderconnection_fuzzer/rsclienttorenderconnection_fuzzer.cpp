@@ -73,7 +73,9 @@ const uint8_t DO_TAKE_SURFACE_CAPTURE_WITH_ALLWINDOWS = 12;
 const uint8_t DO_FREEZE_SCREEN = 13;
 const uint8_t DO_REGISTER_CANVAS_CALLBACK = 14;
 const uint8_t DO_SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER = 15;
-const uint8_t TARGET_SIZE = 16;
+const uint8_t DO_GET_SCREEN_HDR_STATUS = 16;
+const uint8_t DO_SET_SCREEN_FRAME_GRAVITY = 17;
+const uint8_t TARGET_SIZE = 18;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -408,6 +410,69 @@ void DoSetWindowContainer()
     toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
+void DoSetScreenFrameGravity()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY);
+
+    MessageParcel dataParcel1;
+    MessageParcel replyParcel1;
+    MessageOption option1;
+    ScreenId id = GetData<uint64_t>();
+    int32_t gravity = GetData<int32_t>();
+    if (!dataParcel1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor()) ||
+        !dataParcel1.WriteUint64(id) || !dataParcel1.WriteInt32(gravity)) {
+        return;
+    }
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel1, replyParcel1, option1);
+
+    MessageParcel dataParcel2;
+    MessageParcel replyParcel2;
+    MessageOption option2;
+    if (!dataParcel2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel2, replyParcel2, option2);
+
+    MessageParcel dataParcel3;
+    MessageParcel replyParcel3;
+    MessageOption option3;
+    if (!dataParcel3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor()) ||
+        !dataParcel3.WriteUint64(0)) {
+        return;
+    }
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel3, replyParcel3, option3);
+
+    MessageParcel dataParcel4;
+    MessageParcel replyParcel4;
+    MessageOption option4;
+    if (!dataParcel4.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor()) ||
+        !dataParcel4.WriteUint64(0) || !dataParcel4.WriteInt32(-1)) {
+        return;
+    }
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel4, replyParcel4, option4);
+
+    MessageParcel dataParcel5;
+    MessageParcel replyParcel5;
+    MessageOption option5;
+    if (!dataParcel5.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor()) ||
+        !dataParcel5.WriteUint64(0) ||
+        !dataParcel5.WriteInt32(static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT) + 1)) {
+        return;
+    }
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel5, replyParcel5, option5);
+
+    MessageParcel dataParcel6;
+    MessageParcel replyParcel6;
+    MessageOption option6;
+    if (!dataParcel6.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor()) ||
+        !dataParcel6.WriteUint64(0) ||
+        !dataParcel6.WriteInt32(static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT) - 1)) {
+        return;
+    }
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel6, replyParcel6, option6);
+}
+
 void DoTakeSelfSurfaceCapture()
 {
     uint32_t code =
@@ -587,13 +652,51 @@ bool DoFreezeScreen()
 
     NodeId nodeId = GetData<NodeId>();
     bool isFreeze = GetData<bool>();
+    bool needSync = GetData<bool>();
     dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteBool(isFreeze);
+    dataParcel.WriteBool(needSync);
     dataParcel.RewindRead(0);
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetScreenHDRStatus()
+{
+    auto newPid = getpid();
+    bool hasMainThread = GetData<bool>();
+    auto mainThread = hasMainThread ? RSMainThread::Instance() : nullptr;
+    if (mainThread) {
+        auto context = std::make_shared<RSContext>();
+        auto screenNode = std::make_shared<RSScreenRenderNode>(1, 1, context);
+        auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+        nodeMap.RegisterRenderNode(screenNode);
+    }
+    auto screenManagerPtr = RSScreenManager::GetInstance();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =
+        new RSClientToRenderConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    bool hasScreenId = GetData<bool>();
+    if (hasScreenId) {
+        static constexpr uint64_t idFactor = 3; // Restrict the value range of id.
+        dataParcel.WriteUint64(GetData<uint64_t>() % idFactor);
+    } else {
+        dataParcel.WriteBool(hasScreenId);
+    }
+    dataParcel.RewindRead(0);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
     toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -702,6 +805,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_SET_WINDOW_CONTAINER:
             OHOS::Rosen::DoSetWindowContainer();
             break;
+        case OHOS::Rosen::DO_SET_SCREEN_FRAME_GRAVITY:
+            OHOS::Rosen::DoSetScreenFrameGravity();
+            break;
         case OHOS::Rosen::DO_TAKE_SELF_SURFACE_CAPTURE:
             OHOS::Rosen::DoTakeSelfSurfaceCapture();
             break;
@@ -716,6 +822,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_FREEZE_SCREEN:
             OHOS::Rosen::DoFreezeScreen();
+            break;
+        case OHOS::Rosen::DO_GET_SCREEN_HDR_STATUS:
+            OHOS::Rosen::DoGetScreenHDRStatus();
             break;
         case OHOS::Rosen::DO_REGISTER_CANVAS_CALLBACK:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

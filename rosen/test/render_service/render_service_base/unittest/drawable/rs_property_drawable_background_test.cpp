@@ -345,6 +345,9 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable004, TestSize
     rspaintfiltercanvas->SetEffectData(effectData);
     drawable->OnDraw(rspaintfiltercanvas.get(), rect.get());
     ASSERT_TRUE(true);
+
+    rspaintfiltercanvas->SetEffectIntersectWithDRM(true);
+    drawable->OnDraw(rspaintfiltercanvas.get(), rect.get());
 }
 
 /**
@@ -540,10 +543,10 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     ASSERT_EQ(drawable, nullptr);
     std::shared_ptr<RSFilter> backgroundFilter =
         std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    node.GetMutableRenderProperties().GetEffect().backgroundFilter_ = backgroundFilter;
+    node.GetMutableRenderProperties().backgroundFilter_ = backgroundFilter;
     ASSERT_NE(DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node), nullptr);
     RSEffectRenderNode nodeTwo(id);
-    nodeTwo.GetMutableRenderProperties().GetEffect().backgroundFilter_ = backgroundFilter;
+    nodeTwo.GetMutableRenderProperties().backgroundFilter_ = backgroundFilter;
     ASSERT_TRUE(nodeTwo.IsInstanceOf<RSEffectRenderNode>());
     ASSERT_TRUE(nodeTwo.GetRenderProperties().GetBackgroundFilter());
     auto drawableTwo = std::static_pointer_cast<DrawableV2::RSBackgroundEffectDrawable>(
@@ -551,7 +554,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     ASSERT_NE(drawableTwo, nullptr);
     drawableTwo->OnSync();
     auto drawableThree = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
-    node.GetMutableRenderProperties().GetEffect().backgroundFilter_ = nullptr;
+    node.GetMutableRenderProperties().backgroundFilter_ = nullptr;
     ASSERT_FALSE(drawableThree->OnUpdate(node));
     auto drawableFour = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     ASSERT_FALSE(drawableFour->OnUpdate(node));
@@ -1072,8 +1075,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableCalVisibleRect001
     drawable->stagingRelativeRectInfo_->drawRect_ = drawRect;
     drawable->CalVisibleRect(canvas.GetTotalMatrix(), clipRect, defaultRelativeRect);
     ASSERT_NE(drawable->stagingVisibleRectInfo_, nullptr);
-    EXPECT_EQ(drawable->stagingVisibleRectInfo_->snapshotRect_, snapshotRect.ConvertTo<int>());
-    EXPECT_EQ(drawable->stagingVisibleRectInfo_->totalRect_, totalRect.ConvertTo<int>());
+    EXPECT_EQ(drawable->stagingVisibleRectInfo_->snapshotRect_, snapshotRect.ConvertTo<int>().IntersectRect(clipRect));
+    EXPECT_EQ(drawable->stagingVisibleRectInfo_->totalRect_, totalRect.ConvertTo<int>().IntersectRect(clipRect));
 }
 
 /**
@@ -1118,6 +1121,18 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnDraw001, TestSi
 
     drawable->OnDraw(&canvas, &rect);
     ASSERT_TRUE(drawable->emptyShape_);
+
+    drawable->emptyShape_ = false;
+    std::vector<std::pair<float, float>> fractionStops;
+    auto para = std::make_shared<RSLinearGradientBlurPara>(1.0f, fractionStops, GradientDirection::LEFT);
+    auto shaderFilter = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.0f, 1.0f);
+    drawable->stagingFilter_ = std::make_shared<RSDrawingFilter>(shaderFilter);
+    drawable->stagingFilter_->SetFilterType(RSFilter::LINEAR_GRADIENT_BLUR);
+    drawable->OnSync();
+    drawable->filter_ = std::make_shared<RSDrawingFilter>(shaderFilter);
+    drawable->renderIntersectWithDRM_ = true;
+    drawable->OnDraw(&canvas, &rect);
+    ASSERT_FALSE(drawable->emptyShape_);
 }
 
 /**

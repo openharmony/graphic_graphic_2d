@@ -5295,29 +5295,32 @@ HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed002, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed003, TestSize.Level1)
 {
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->lazyLoad_ = true;
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto rsNode = RSCanvasNode::Create();
+        rsNode->lazyLoad_ = true;
 
-    auto uiDirector = RSUIDirector::Create();
-    uiDirector->Init(true, true);
-    auto rsUIContext = uiDirector->GetRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    auto trueChild = RSCanvasNode::Create();
-    auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
-        trueChild->IsTextureExportNode(), rsUIContext);
+        auto uiDirector = RSUIDirector::Create();
+        uiDirector->Init(true, true);
+        auto rsUIContext = uiDirector->GetRSUIContext();
+        ASSERT_NE(rsUIContext, nullptr);
+        auto trueChild = RSCanvasNode::Create();
+        auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
+            trueChild->IsTextureExportNode(), rsUIContext);
 
-    rsNode->children_.emplace_back();
-    constexpr int index{1};
-    rsNode->AddChild(shadowChild, index);
+        rsNode->children_.emplace_back();
+        constexpr int index{1};
+        rsNode->AddChild(shadowChild, index);
 
-    constexpr int commandSize{64};
-    std::vector<RSCanvasNode::SharedPtr> children;
-    for (int n = 0; n < commandSize; ++n) {
-        auto child = RSCanvasNode::Create();
-        children.emplace_back(child);
-        rsNode->AddChild(child, n);
+        constexpr int commandSize{64};
+        std::vector<RSCanvasNode::SharedPtr> children;
+        for (int n = 0; n < commandSize; ++n) {
+            auto child = RSCanvasNode::Create();
+            children.emplace_back(child);
+            rsNode->AddChild(child, n);
+        }
+        EXPECT_EQ(rsNode->lazyLoad_, false);
     }
-    EXPECT_EQ(rsNode->lazyLoad_, false);
 }
 
 /**
@@ -7115,18 +7118,21 @@ HWTEST_F(RSNodeTest, AddChildTest004, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest, AddChildTest005, TestSize.Level1)
 {
-    auto uiDirector = RSUIDirector::Create();
-    uiDirector->Init(true, true);
-    auto rsUIContext = uiDirector->GetRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
-    auto trueChild = RSCanvasNode::Create();
-    auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
-        trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto uiDirector = RSUIDirector::Create();
+        uiDirector->Init(true, true);
+        auto rsUIContext = uiDirector->GetRSUIContext();
+        ASSERT_NE(rsUIContext, nullptr);
+        auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
+        auto trueChild = RSCanvasNode::Create();
+        auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
+            trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
 
-    trueChild->lazyLoad_ = true;
-    rsNode->AddChild(shadowChild, 1);
-    EXPECT_EQ(trueChild->lazyLoad_, true);
+        trueChild->lazyLoad_ = true;
+        rsNode->AddChild(shadowChild, 1);
+        EXPECT_EQ(trueChild->lazyLoad_, true);
+    }
 }
 
 /**

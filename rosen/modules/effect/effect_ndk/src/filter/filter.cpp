@@ -22,6 +22,11 @@ namespace Rosen {
 Filter::Filter(std::shared_ptr<OHOS::Media::PixelMap> pixelMap) : srcPixelMap_(pixelMap)
 {}
 
+std::shared_ptr<OHOS::Media::PixelMap> Filter::GetSrcPixelMap()
+{
+    return srcPixelMap_;
+}
+
 bool Filter::Render(bool forceCPU)
 {
     if (srcPixelMap_ == nullptr) {
@@ -48,6 +53,16 @@ std::shared_ptr<OHOS::Media::PixelMap> Filter::GetPixelMap(bool useCpuRender)
 bool Filter::Blur(float radius, Drawing::TileMode tileMode)
 {
     auto blur = EffectImageFilter::Blur(radius, tileMode);
+    if (!blur) {
+        return false;
+    }
+    AddNextFilter(blur);
+    return true;
+}
+
+bool Filter::Blur(float radius, float angle, Drawing::TileMode tileMode)
+{
+    auto blur = EffectImageFilter::Blur(radius, angle, tileMode);
     if (!blur) {
         return false;
     }
@@ -85,6 +100,26 @@ bool Filter::Invert()
     return true;
 }
 
+bool Filter::MapColorByBrightness(const std::vector<Vector4f>& colors, const std::vector<float>& positions)
+{
+    auto filter = EffectImageFilter::MapColorByBrightness(colors, positions);
+    if (!filter) {
+        return false;
+    }
+    AddNextFilter(filter);
+    return true;
+}
+
+bool Filter::GammaCorrection(float gamma)
+{
+    auto filter = EffectImageFilter::GammaCorrection(gamma);
+    if (!filter) {
+        return false;
+    }
+    AddNextFilter(filter);
+    return true;
+}
+
 bool Filter::SetColorMatrix(const Drawing::ColorMatrix& matrix)
 {
     auto applyColorMatrix = EffectImageFilter::ApplyColorMatrix(matrix);
@@ -92,6 +127,45 @@ bool Filter::SetColorMatrix(const Drawing::ColorMatrix& matrix)
         return false;
     }
     AddNextFilter(applyColorMatrix);
+    return true;
+}
+
+bool Filter::MaskTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
+    const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse)
+{
+    auto filter = EffectImageFilter::MaskTransition(topLayer, mask, factor, inverse);
+    if (!filter) {
+        return false;
+    }
+    AddNextFilter(filter);
+    return true;
+}
+
+bool Filter::WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
+    const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams)
+{
+    auto filter = EffectImageFilter::WaterDropletTransition(topLayer, geWaterDropletParams);
+    if (!filter) {
+        return false;
+    }
+    AddNextFilter(filter);
+    return true;
+}
+
+bool Filter::WaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params)
+{
+    auto glass = EffectImageFilter::WaterGlass(params);
+    AddNextFilter(glass);
+
+    return true;
+}
+
+bool Filter::ReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& params)
+{
+    auto glass = EffectImageFilter::ReededGlass(params);
+
+    AddNextFilter(glass);
+
     return true;
 }
 } // namespace Rosen

@@ -17,6 +17,7 @@
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "gtest/gtest.h"
+#include "params/rs_surface_render_params.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -96,6 +97,37 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfo003, TestSize.Le
     bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
         DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
     ASSERT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: CreateSurfaceNodeLayerInfoLayerLinearMatrix
+ * @tc.desc: CreateSurfaceNodeLayerInfo, layer linear matrix branches
+ * @tc.type: FUNC
+ * @tc.require: issueIBQDHZ
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoLayerLinearMatrix, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+
+    std::vector<float> layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    stagingSurfaceParams->SetLayerLinearMatrix(layerLinearMatrix);
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
+    ASSERT_EQ(ret, true);
+    EXPECT_NE(info.perFrameParameters.find("LayerLinearMatrix"), info.perFrameParameters.end());
+
+    std::vector<float> smallMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f};
+    stagingSurfaceParams->SetLayerLinearMatrix(smallMatrix);
+    RequestLayerInfo infoSmall;
+    ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, infoSmall);
+    ASSERT_EQ(ret, true);
+    EXPECT_EQ(infoSmall.perFrameParameters.find("LayerLinearMatrix"), infoSmall.perFrameParameters.end());
 }
 
 /**

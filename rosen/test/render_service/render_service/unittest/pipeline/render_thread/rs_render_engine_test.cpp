@@ -20,7 +20,6 @@
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "recording/recording_canvas.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -190,42 +189,11 @@ HWTEST_F(RSRenderEngineTest, DrawLayers001, TestSize.Level1)
 
 /**
  * @tc.name: DrawWithParams001
- * @tc.desc: test DrawWithParams when preProcessFunc and postProcessFunc are null
- * @tc.type: FUNC
- * @tc.require: issueI6R34I
- */
-HWTEST_F(RSRenderEngineTest, DrawWithParams001, TestSize.Level1)
-{
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        auto renderEngine = std::make_shared<RSRenderEngine>();
-        std::shared_ptr<Drawing::RecordingCanvas> drawingRecordingCanvas = nullptr;
-        std::unique_ptr<Drawing::Canvas> drawingCanvas =
-            std::make_unique<Drawing::Canvas>(DEFAULT_DRAWING_CANVAS_WIDTH, DEFAULT_DRAWING_CANVAS_HEIGHT);
-        std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
-        if (!RSSystemProperties::IsUseVulkan()) {
-            canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-        } else {
-            renderEngine->Init();
-            const int canvasWidth = 10;
-            const int canvasHeight = 10;
-            drawingRecordingCanvas = std::make_shared<Drawing::RecordingCanvas>(canvasWidth, canvasHeight);
-            drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
-            visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(std::move(drawingRecordingCanvas).get());
-        }
-        auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-        auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
-        param.useCPU = true;
-        renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
-    }
-}
-
-/**
- * @tc.name: DrawWithParams002
  * @tc.desc: test DrawWithParams when param.setColorDilter are false
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderEngineTest, DrawWithParams002, TestSize.Level1)
+HWTEST_F(RSRenderEngineTest, DrawWithParams001, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
     ASSERT_NE(renderEngine, nullptr);
@@ -238,29 +206,12 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams002, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawWithParams003
- * @tc.desc: test DrawWithParams when param.setColorDilter are true
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderEngineTest, DrawWithParams003, TestSize.Level1)
-{
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
-    param.setColorFilter = true;
-    renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
-}
-
-/**
- * @tc.name: DrawWithParams004
+ * @tc.name: DrawWithParams002
  * @tc.desc: test DrawWithParams when param.useCPU are true
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderEngineTest, DrawWithParams004, TestSize.Level1)
+HWTEST_F(RSRenderEngineTest, DrawWithParams002, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
@@ -272,29 +223,12 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams004, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawWithParams005
+ * @tc.name: DrawWithParams003
  * @tc.desc: test DrawWithParams when param.useCPU are true
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderEngineTest, DrawWithParams005, TestSize.Level1)
-{
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
-    param.useCPU = false;
-    renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
-}
-
-/**
- * @tc.name: DrawWithParams006
- * @tc.desc: test DrawWithParams when param.useCPU are true
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderEngineTest, DrawWithParams006, TestSize.Level1)
+HWTEST_F(RSRenderEngineTest, DrawWithParams003, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
@@ -308,12 +242,12 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams006, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawWithParams007
+ * @tc.name: DrawWithParams004
  * @tc.desc: test DrawWithParams when param.useCPU are true
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderEngineTest, DrawWithParams007, TestSize.Level1)
+HWTEST_F(RSRenderEngineTest, DrawWithParams004, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);

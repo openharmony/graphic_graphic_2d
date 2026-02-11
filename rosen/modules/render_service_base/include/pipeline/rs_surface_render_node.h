@@ -31,6 +31,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
+#include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -228,7 +229,7 @@ public:
         return isHardwareEnableHint_;
     }
 
-    void SetSourceDisplayRenderNodeId(NodeId nodeId)
+    void SetSourceScreenRenderNodeId(NodeId nodeId)
     {
         sourceDisplayRenderNodeId_ = nodeId;
     }
@@ -697,7 +698,13 @@ public:
     {
         return isCloneNode_;
     }
-    void SetClonedNodeInfo(NodeId id, bool needOffscreen);
+    bool IsRelated() const;
+    bool IsRelatedSourceNode() const;
+    void SetRelated(bool value);
+    void SetRelatedSourceNode(bool value);
+    void SetClonedNodeInfo(NodeId id, bool needOffscreen, bool isRelated);
+    bool CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> currentNode,
+        std::shared_ptr<RSSurfaceRenderNode> clonedNode, RSContext& rsContext);
     void SetIsCloned(bool isCloned);
     void SetIsClonedNodeOnTheTree(bool isOnTheTree)
     {
@@ -725,7 +732,8 @@ public:
     {
         return UIFirstIsPurge_;
     }
-    void SetUifirstUseStarting(NodeId id); // only cache app window, first frame not wait
+    void SetUifirstStartingWindowId(NodeId id); // only cache app window, first frame not wait
+    NodeId GetUifirstStartingWindowId() const;
 
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
@@ -993,7 +1001,7 @@ public:
 
     void UpdateSurfaceDefaultSize(float width, float height);
 
-    void UpdateInfoForClonedNode(NodeId nodeId);
+    void UpdateInfoForClonedNode(bool isClonedNode);
 
     // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
@@ -1428,6 +1436,15 @@ public:
         return uifirstStartTime_;
     }
 
+    void SetUifirstHasContentAppWindow(bool hasAppWindow)
+    {
+        uifirstHasContentAppWindow_ = hasAppWindow;
+    }
+    bool GetUifirstHasContentAppWindow() const
+    {
+        return uifirstHasContentAppWindow_;
+    }
+
     void SetUIFirstVisibleFilterRect(const RectI& rect);
 
     RSBaseRenderNode::WeakPtr GetAncestorScreenNode() const
@@ -1754,8 +1771,14 @@ public:
     bool GetSurfaceBufferOpaque() const;
 
     bool IsAncestorScreenFrozen() const;
+
     void AfterTreeStateChanged();
 
+    // only use for window capture when isSyncRender is true
+    void RegisterCaptureCallback(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& config);
+
+    void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
+    void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1976,6 +1999,7 @@ private:
     GamutCollector gamutCollector_;
     // UIFirst
     int64_t uifirstStartTime_ = -1;
+    bool uifirstHasContentAppWindow_ = false;
     size_t lastFrameChildrenCnt_ = 0;
     sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
     sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;

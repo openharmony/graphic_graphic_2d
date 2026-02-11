@@ -18,6 +18,7 @@
 
 #include <iremote_broker.h>
 #include <string>
+#include <surface.h>
 
 #include "feature/capture/rs_ui_capture.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
@@ -30,6 +31,8 @@
 
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
+#include "common/rs_self_draw_rect_change_callback_constraint.h"
+#include "feature/capture/rs_ui_capture.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
@@ -43,6 +46,7 @@
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
+#include "ipc_callbacks/screen_switching_notify_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -55,15 +59,21 @@
 #include "transaction/rs_transaction_data.h"
 
 #include "transaction/rs_render_service_client_info.h"
+#include "ivsync_connection.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "ipc_callbacks/rs_ifirst_frame_commit_callback.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_iuiextension_callback.h"
+#include "vsync_iconnection_token.h"
+
+#include "variable_frame_rate/rs_variable_frame_rate.h"
+#include "info_collection/rs_layer_compose_collection.h"
+#include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-    static constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
+constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 }
 
 class RSIClientToRenderConnection : public IRemoteBroker {
@@ -71,7 +81,7 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.ClientToRenderConnection");
 
     RSIClientToRenderConnection() = default;
-    virtual ~RSIClientToRenderConnection() = default;
+    virtual ~RSIClientToRenderConnection() noexcept = default;
 
     virtual ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
     virtual ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
@@ -82,25 +92,24 @@ public:
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
-    virtual std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(NodeId id,
-        const RSSurfaceCaptureConfig& captureConfig,
+    virtual std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
+        NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual void TakeSelfSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig) = 0;
 
-    virtual ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze,
-        sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
-        const RSSurfaceCaptureBlurParam& blurParam = {}) = 0;
+    virtual ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {}) = 0;
 
     virtual ErrCode TakeSurfaceCaptureWithAllWindows(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
-    virtual ErrCode FreezeScreen(NodeId id, bool isFreeze) = 0;
+    virtual ErrCode FreezeScreen(NodeId id, bool isFreeze, bool needSync = false) = 0;
 
-    virtual void TakeUICaptureInRange(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig,
+    virtual void TakeUICaptureInRange(
+        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual ErrCode SetHwcNodeBounds(
@@ -108,15 +117,15 @@ public:
 
     virtual ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) = 0;
 
-    virtual ErrCode DropFrameByPid(const std::vector<int32_t> pidList) = 0;
+    virtual ErrCode DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0) = 0;
 
-    virtual ErrCode RegisterSurfaceBufferCallback(
-        pid_t pid, uint64_t uid, sptr<RSISurfaceBufferCallback> callback) = 0;
+    virtual ErrCode RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) = 0;
 
     virtual ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 
-    virtual void RegisterTransactionDataCallback(
-        uint64_t token, uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) = 0;
+    virtual void RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+        sptr<RSITransactionDataCallback> callback) = 0;
 
     virtual ErrCode SetWindowContainer(NodeId nodeId, bool value) = 0;
 
@@ -136,6 +145,7 @@ public:
     virtual int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) = 0;
 #endif
+    virtual int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) = 0;
 };
 
 } // namespace Rosen

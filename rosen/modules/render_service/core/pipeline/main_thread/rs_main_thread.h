@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -99,8 +99,8 @@ public:
     void Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
         const std::shared_ptr<AppExecFwk::EventHandler>& handler);
     void Start();
-    bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void UpdateFocusNodeId(NodeId focusNodeId);
+    bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync(
@@ -114,8 +114,6 @@ public:
     void TransactionDataMapDump(const TransactionDataMap& transactionDataMap, std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true,
         bool needUpdateJankStats = false);
-    void RenderServiceAllNodeDump(DfxString& log);
-    void RenderServiceAllSurafceDump(DfxString& log);
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
     void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
@@ -124,8 +122,6 @@ public:
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
     void SetForceRsDVsync(const std::string& sceneId);
-    void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
-        std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -205,9 +201,6 @@ public:
     bool CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type,
-        pid_t pid = 0, bool isLite = false);
-    void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, const std::string& type);
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
@@ -275,9 +268,11 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
-    void AddPidNeedDropFrame(std::vector<int32_t> pid);
+    void AddPidNeedDropFrame(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0);
     void ClearNeedDropframePidList();
+    void RemoveDropFramePid(pid_t pid);
     bool IsNeedDropFrameByPid(NodeId nodeId);
+    int32_t GetDropFrameLevelByPid(NodeId nodeId);
     void SetLuminanceChangingStatus(ScreenId id, bool isLuminanceChanged);
     bool ExchangeLuminanceChangingStatus(ScreenId id);
 
@@ -407,17 +402,12 @@ public:
 
     void SetAnimationOcclusionInfo(const std::string& sceneId, bool isStart);
 
-    bool GetIsAnimationOcclusion() const
-    {
-        return isAnimationOcclusion_.first;
-    }
-
     void ClearUnmappedCache();
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
     void NotifyUnmarshalTask(int64_t uiTimestamp);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
-    void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
+    void SetBufferInfo(uint64_t id, const std::string& name, uint32_t queueSize,
         int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
     void GetFrontBufferDesiredPresentTimeStamp(
         const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp);
@@ -588,7 +578,11 @@ private:
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
 
     void ProcessNeedAttachedNodes();
-
+    void AddUICaptureNode(NodeId nodeId);
+    void RemoveUICaptureNode(NodeId nodeId);
+    bool CheckUICaptureNode(NodeId nodeId);
+    void PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        std::shared_ptr<RSSurfaceHandler> surfaceHandler);
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
     bool clearMemoryFinished_ = true;
@@ -647,7 +641,6 @@ private:
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
     bool isImplicitAnimationEnd_ = false;
-    std::pair<bool, time_t> isAnimationOcclusion_;
 
     pid_t lastCleanCachePid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
@@ -820,7 +813,7 @@ private:
     RSDrawFrame drawFrame_;
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
-    std::unordered_set<int32_t> surfacePidNeedDropFrame_;
+    std::unordered_map<int32_t, int32_t> surfacePidNeedDropFrame_;  // pid -> dropFrameLevel
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
     RSSurfaceWatermarkHelper surfaceWatermarkHelper_;
 
@@ -843,6 +836,10 @@ private:
     std::mutex dumpInfoMutex_;
 
     bool hasCanvasDrawingNodeCachedOp_ = false;
+
+    uint32_t curFrameBufferReclaimCount_ = 0;
+    std::mutex uiCaptureNodeMapMutex_;
+    std::map<uint32_t, std::map<NodeId, uint32_t>> uiCaptureNodeMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

@@ -16,13 +16,14 @@
 #include "paragraph_impl.h"
 
 #include <algorithm>
+#include <limits>
 #include <numeric>
 
 #include "common_utils/path_util.h"
 #include "common_utils/pixel_map_util.h"
 #include "convert.h"
 #include "drawing_painter_impl.h"
-#include "text_font_utils.h"
+#include "include/DartTypes.h"
 #include "include/core/SkMatrix.h"
 #include "modules/skparagraph/include/Paragraph.h"
 #include "modules/skparagraph/include/TextStyle.h"
@@ -33,6 +34,7 @@
 #include "skia_adapter/skia_convert_utils.h"
 #include "static_factory.h"
 #include "symbol_engine/hm_symbol_run.h"
+#include "text_font_utils.h"
 #include "text/font_metrics.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
@@ -42,6 +44,8 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 using PaintID = skt::ParagraphPainter::PaintID;
+constexpr double INFINITE_WIDTH = std::numeric_limits<double>::max();
+constexpr size_t INFINTE_RANGE_INDEX = std::numeric_limits<size_t>::max();
 
 namespace {
 std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
@@ -51,6 +55,16 @@ std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
         boxes.emplace_back(box.rect, static_cast<TextDirection>(box.direction));
     }
     return boxes;
+}
+
+Range<size_t> FromSkRange(const skt::SkRange<size_t>& skRange)
+{
+    return Range<size_t>(skRange.start, skRange.end);
+}
+
+Range<size_t> FromTextRange(const skt::TextRange& textRange)
+{
+    return Range<size_t>(textRange.start, textRange.end);
 }
 } // anonymous namespace
 
@@ -380,6 +394,56 @@ std::vector<std::unique_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines()
     return lines;
 }
 
+PositionWithAffinity ParagraphImpl::GetCharacterPositionAtCoordinate(double dx, double dy, TextEncoding encoding) const
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("paragraph_ is null");
+        return {0, Affinity::DOWNSTREAM};
+    }
+
+    skt::PositionWithAffinity pos = paragraph_->getCharacterPositionAtCoordinate(dx, dy,
+        static_cast<skt::TextEncoding>(encoding));
+    return PositionWithAffinity(pos.position, static_cast<Affinity>(pos.affinity));
+}
+
+Range<size_t> ParagraphImpl::GetCharacterRangeForGlyphRange(size_t glyphStart, size_t glyphEnd,
+    Range<size_t>* actualGlyphRange, TextEncoding encoding) const
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("paragraph_ is null");
+        return {0, 0};
+    }
+
+    skt::SkRange<size_t> actualTextRange;
+    skt::TextRange result = paragraph_->getCharacterRangeForGlyphRange(glyphStart, glyphEnd,
+        &actualTextRange, static_cast<skt::TextEncoding>(encoding));
+
+    // Only set actualGlyphRange if caller requested it (non-NULL)
+    if (actualGlyphRange != nullptr) {
+        *actualGlyphRange = FromSkRange(actualTextRange);
+    }
+    return FromTextRange(result);
+}
+
+Range<size_t> ParagraphImpl::GetGlyphRangeForCharacterRange(size_t charStart, size_t charEnd,
+    Range<size_t>* actualCharRange, TextEncoding encoding) const
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("paragraph_ is null");
+        return {0, 0};
+    }
+
+    skt::TextRange actualTextRange;
+    skt::SkRange<size_t> result = paragraph_->getGlyphRangeForCharacterRange(charStart, charEnd,
+        &actualTextRange, static_cast<skt::TextEncoding>(encoding));
+
+    // Only set actualCharRange if caller requested it (non-NULL)
+    if (actualCharRange != nullptr) {
+        *actualCharRange = FromTextRange(actualTextRange);
+    }
+    return FromSkRange(result);
+}
+
 std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
 {
     if (!paragraph_) {
@@ -577,6 +641,49 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
     return TextPixelMapUtil::CreatePixelMap(options, pathInfos);
 }
 #endif
+
+TextLayoutResult ParagraphImpl::LayoutWithConstraints(const TextRectSize& limitRect)
+{
+    if (limitRect.width > 0 && limitRect.height > 0) {
+        paragraph_->setLayoutConstraintsFlag(true);
+        paragraph_->setLayoutConstraintsHeight(limitRect.height);
+        paragraph_->setLayoutConstraintsWidth(limitRect.width);
+    }
+
+    paragraph_->layout(INFINITE_WIDTH);
+
+    // Build result after layout
+    TextLayoutResult layoutResult;
+    layoutResult.correctRect.height = GetHeight();
+    layoutResult.correctRect.width = GetLongestLineWithIndent();
+
+    BuildFitStrRange(layoutResult.fitStrRange);
+
+    return layoutResult;
+}
+
+void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges)
+{
+    Range<size_t> ellipsisRange = GetEllipsisTextRange();
+    skt::TextRange textRange = paragraph_->getUtf16TextRange();
+    skt::TextRange lastLineTextRange = paragraph_->getLineUtf16TextRange(GetLineCount() - 1, true);
+    // If there is no ellipsis, the fit range is 0 to end index of last line.
+    if (ellipsisRange.start == INFINTE_RANGE_INDEX) {
+        fitRanges.push_back({0, lastLineTextRange.end});
+        return;
+    }
+
+    // If there is one line head ellipsis, the fit range is the text range after ellipsis.
+    if (ellipsisRange.start == 0) {
+        fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
+    } else {
+        fitRanges.push_back({textRange.start, ellipsisRange.start});
+        // If there is middle ellipsis or multiple line head ellipsis, the fit ranges are 2 ranges.
+        if (paragraph_->getParagraphStyle().getEllipsisMod() != skt::EllipsisModal::TAIL) {
+            fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
+        }
+    }
+}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

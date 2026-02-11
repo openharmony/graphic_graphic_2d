@@ -18,40 +18,30 @@
 
 #include <atomic>
 #include <memory>
-#include <mutex>
 
+#include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
 #include "i_color_picker_manager.h"
 
-#include "draw/canvas.h"
-#include "draw/color.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "property/rs_color_picker_def.h"
-#include "property/rs_properties_def.h"
-#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-class Image;
-}
+
 class RSColorPickerManager : public std::enable_shared_from_this<RSColorPickerManager>, public IColorPickerManager {
 public:
-    RSColorPickerManager() = default;
+    explicit RSColorPickerManager(NodeId nodeId) : nodeId_(nodeId) {}
     ~RSColorPickerManager() noexcept = default;
-    /**
-     * @brief Return previously picked color and conditionally schedule a new color pick task on the current canvas.
-     * @param strategy Only CONTRAST is currently supported.
-     */
-    std::optional<Drawing::ColorQuad> GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
-        uint64_t nodeId, const ColorPickerParam& params) override;
+
+    std::optional<Drawing::ColorQuad> GetColorPick() override;
+    void ScheduleColorPick(
+        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params) override;
+    void SetSystemDarkColorMode(bool isSystemDarkColorMode) override;
+
+    void HandleColorUpdate(Drawing::ColorQuad newColor) override;
 
 private:
-    void ScheduleColorPick(
-        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, ColorPickStrategyType strategy);
-    void PickColor(const std::shared_ptr<Drawing::Image>& snapshot, uint64_t nodeId, ColorPickStrategyType strategy);
-    void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId, ColorPickStrategyType strategy);
-
-    inline std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColor();
+    std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColor() const;
 
     static Drawing::ColorQuad InterpolateColor(
         Drawing::ColorQuad startColor, Drawing::ColorQuad endColor, float fraction);
@@ -60,15 +50,26 @@ private:
      * @brief Get a contrasting black or white color with hysteresis.
      *
      * @param color input to contrast with, usually the average color of the background.
+     * @param prevDark whether previously picked color was dark.
      */
-    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color);
+    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color, bool prevDark);
 
-    std::mutex colorMtx_;
-    Drawing::ColorQuad colorPicked_ = Drawing::Color::COLOR_BLACK;
-    Drawing::ColorQuad prevColor_ = Drawing::Color::COLOR_BLACK;
+    // Current contrast color (black/white) that contrasts with extracted background color.
+    // Uses COLOR_TRANSPARENT as sentinel for "not set yet" - defaults to white in dark mode,
+    // black in light mode.
+    std::atomic<Drawing::ColorQuad> colorPicked_ = Drawing::Color::COLOR_TRANSPARENT;
 
+    // Previous color used for smooth animation transitions between contrast colors.
+    // Uses COLOR_TRANSPARENT as sentinel for "not set yet".
+    std::atomic<Drawing::ColorQuad> prevColor_ = Drawing::Color::COLOR_TRANSPARENT;
+
+    // Animation start timestamp (ms since epoch) for interpolating prevColor_ to colorPicked_.
     std::atomic<uint64_t> animStartTime_ = 0;
-    uint64_t lastUpdateTime_ = 0;
+
+    const NodeId nodeId_;
+
+    // System dark mode flag - affects default color when colorPicked_/prevColor_ are not set.
+    std::atomic<bool> isSystemDarkColorMode_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

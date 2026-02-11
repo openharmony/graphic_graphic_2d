@@ -64,6 +64,7 @@ HWTEST_F(ShaderCacheTest, instance_test_001, TestSize.Level1)
     /**
      * @tc.steps: step2. test initialization function
      */
+    cache.initialized_ = false;
     cache.InitShaderCache(identity, 0, false);
     EXPECT_EQ(nullptr, cache.Load(*fakeData));
 #endif
@@ -93,6 +94,7 @@ HWTEST_F(ShaderCacheTest, initialization_test_001, TestSize.Level1)
     /**
      * @tc.steps: step2. test initialization function
      */
+    cache.initialized_ = false;
     cache.InitShaderCache(identity, 0, false);
     EXPECT_EQ(nullptr, cache.Load(*fakeData));
 #endif
@@ -127,6 +129,7 @@ HWTEST_F(ShaderCacheTest, initialization_test_002, TestSize.Level1)
     /**
      * @tc.steps: step2. test if the file direction is correctly set
      */
+    cache.initialized_ = false;
     cache.InitShaderCache(identity, 0, false);
     EXPECT_EQ(nullptr, cache.Load(*fakeData));
 #endif
@@ -159,6 +162,7 @@ HWTEST_F(ShaderCacheTest, store_test_001, TestSize.Level1)
     /**
      * @tc.steps: step2. test the store function with given parameters
      */
+    cache.initialized_ = false;
     cache.InitShaderCache(identity, 0, false);
     cache.Store(*fakeKey, *fakeData);
     EXPECT_EQ(nullptr, cache.Load(*fakeKey));
@@ -192,6 +196,7 @@ HWTEST_F(ShaderCacheTest, store_test_002, TestSize.Level1)
     /**
      * @tc.steps: step2. test the store function with given parameters
      */
+    cache.initialized_ = false;
     cache.InitShaderCache(identity, 0, false);
     cache.Store(*fakeKey, *fakeData);
     EXPECT_EQ(nullptr, cache.Load(*fakeKey));
@@ -228,6 +233,7 @@ HWTEST_F(ShaderCacheTest, writing_test_001, TestSize.Level1)
     /**
      * @tc.steps: step2. verify the empty result of writeToDisk function
      */
+    cache.initialized_ = false;
     cache.InitShaderCache(identity, 0, false);
     cache.Store(*fakeKey, *fakeData);
     EXPECT_EQ(fakeData->GetSize(), cache.Load(*fakeKey)->GetSize());
@@ -265,6 +271,7 @@ HWTEST_F(ShaderCacheTest, writing_test_002, TestSize.Level1)
     /**
      * @tc.steps: step2. verify the non-empty result of writeToDisk function
      */
+    cache.initialized_ = false;
     cache.InitShaderCache(identity, 16, false);
     cache.Store(*fakeKey, *fakeData);
     EXPECT_EQ(fakeData->GetSize(), cache.Load(*fakeKey)->GetSize());
@@ -297,6 +304,7 @@ HWTEST_F(ShaderCacheTest, cleanAllShaders_test_001, TestSize.Level1)
     auto &cache = ShaderCache::Instance();
     cache.CleanAllShaders();
     const char* identity = nullptr;
+    cache.initialized_ = false;
     cache.InitShaderCache(identity, 0, false);
     const char* testKey1 = "testKey1";
     const char* testValue1 = "testValue1";
@@ -317,6 +325,7 @@ HWTEST_F(ShaderCacheTest, querryShaderNum_test_001, TestSize.Level1)
 {
     auto &cache = ShaderCache::Instance();
     const char* identity = nullptr;
+    cache.initialized_ = false;
     cache.InitShaderCache(identity, 0, false);
     cache.CleanAllShaders();
     EXPECT_EQ(0, cache.QuerryShaderNum());
@@ -341,6 +350,7 @@ HWTEST_F(ShaderCacheTest, storeShader_test_001, TestSize.Level1)
     const char* identity = nullptr;
     std::shared_ptr<Drawing::Data> fakeKey = std::make_shared<Drawing::Data>();
     std::shared_ptr<Drawing::Data> fakeData = std::make_shared<Drawing::Data>();
+    cache.initialized_ = false;
     cache.InitShaderCache(identity, 0, false);
     cache.Store(*fakeKey, *fakeData);
     EXPECT_EQ(nullptr, cache.Load(*fakeKey));

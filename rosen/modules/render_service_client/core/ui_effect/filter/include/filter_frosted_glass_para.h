@@ -111,6 +111,16 @@ public:
         return bgNeg_;
     }
 
+    void SetBgAlpha(float bgAlpha)
+    {
+        bgAlpha_ = bgAlpha;
+    }
+
+    float GetBgAlpha() const
+    {
+        return bgAlpha_;
+    }
+
     void SetRefractParams(Vector3f& refractParams)
     {
         refractParams_ = refractParams;
@@ -220,7 +230,7 @@ public:
     {
         return envLightNeg_;
     }
-    
+
     void SetEdLightParams(Vector2f& edLightParams)
     {
         edLightParams_ = edLightParams;
@@ -291,26 +301,6 @@ public:
         return edLightNeg_;
     }
 
-    void SetBorderSize(Vector2f& borderSize)
-    {
-        borderSize_ = borderSize;
-    }
-
-    const Vector2f GetBorderSize() const
-    {
-        return borderSize_;
-    }
-
-    void SetCornerRadius(float& cornerRadius)
-    {
-        cornerRadius_ = cornerRadius;
-    }
-
-    const float& GetCornerRadius() const
-    {
-        return cornerRadius_;
-    }
-
     void SetBaseVibrancyEnabled(bool baseVibrancyEnabled)
     {
         baseVibrancyEnabled_ = baseVibrancyEnabled;
@@ -371,6 +361,16 @@ public:
         return darkScale_;
     }
 
+    void SetMask(std::shared_ptr<MaskPara> maskPara)
+    {
+        maskPara_ = maskPara;
+    }
+
+    const std::shared_ptr<MaskPara>& GetMask() const
+    {
+        return maskPara_;
+    }
+
 private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
@@ -380,6 +380,7 @@ private:
     Vector3f bgKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f bgPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f bgNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
+    float bgAlpha_ = 1.0f; // the alpha of brackground color
     // Refraction parameters
     Vector3f refractParams_ = Vector3f(0.0f, 0.0f, 0.0f);
     // Inner shadow parameters
@@ -396,20 +397,18 @@ private:
     Vector3f envLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
     // Edge highlights parameters
     Vector2f edLightParams_ = Vector2f(0.0f, 0.0f);
-    Vector2f edLightAngles_ = Vector2f(0.0f, 30.0f);
+    Vector2f edLightAngles_ = Vector2f(0.0f, 0.0f);
     Vector2f edLightDir_ = Vector2f(0.0f, 0.0f);
     Vector2f edLightRates_ = Vector2f(0.0f, 0.0f);
     Vector3f edLightKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f edLightPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
-    Vector2f borderSize_ = Vector2f(0.0f, 0.0f);
-    float cornerRadius_ = 0.0f;
     bool baseVibrancyEnabled_ = true;
     float baseMaterialType_ = 0.0f;
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
     float darkScale_ = 0.0f; // later will use interpolation between 0.0 and 1.0
     float samplingScale_ = 1.0f;
-
+    std::shared_ptr<MaskPara> maskPara_ = nullptr;
     std::shared_ptr<AdaptiveFrostedGlassParams> darkAdaptiveParams_;
 };
 } // namespace Rosen

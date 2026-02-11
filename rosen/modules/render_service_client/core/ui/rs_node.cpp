@@ -95,7 +95,6 @@
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
-#include "render/rs_border_light_shader.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
@@ -1494,14 +1493,13 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
         return;
     }
 
-    if (!animations_.empty()) {
-        ROSEN_LOGE("When RSNode has animations, the RSUIContext should not be modified! nodeId[%{public}" PRIu64"], "
-            "preUIContext[%{public}" PRIu64 "], rsUIContext[%{public}" PRIu64 "]",
-            id_, preUIContext->GetToken(), rsUIContext->GetToken());
-    }
-
     // if have old rsContext, should remove nodeId from old nodeMap and travel child
     if (preUIContext != nullptr) {
+        if (!animations_.empty()) {
+            ROSEN_LOGE("When RSNode has animations, RSUIContext should not be modified! nodeId[%{public}" PRIu64 "], "
+                       "preUIContext[%{public}" PRIu64 "], rsUIContext[%{public}" PRIu64 "]",
+                        id_, preUIContext->GetToken(), rsUIContext->GetToken());
+        }
         // step1 remove node from old context
         preUIContext->GetMutableNodeMap().UnregisterNode(id_);
         // sync child
@@ -1777,6 +1775,12 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 
 void RSNode::SetBackgroundColor(RSColor color)
 {
+    RSColor colorInP3 = color;
+    if (colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        isP3Color_ = true;
+        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), isP3Color_);
+        AddCommand(command, IsRenderServiceNode());
+    }
 #ifndef ROSEN_CROSS_PLATFORM
     color.ConvertToP3ColorSpace();
 #endif
@@ -1981,9 +1985,14 @@ bool RSNode::RegisterColorPickerCallback(uint64_t interval, ColorPickerCallback 
         return false;
     }
     SetColorPickerParams(ColorPlaceholder::NONE, ColorPickStrategyType::CLIENT_CALLBACK, interval);
-    // Set notify threshold via modifier
-    SetPropertyNG<ModifierNG::RSColorPickerModifier,
-        &ModifierNG::RSColorPickerModifier::SetColorPickerNotifyThreshold>(notifyThreshold);
+
+    // deprecated interface, single notifyThreshold replaced by dark/light thresholds
+    constexpr uint32_t DEFAULT_DARK_THRESHOLD = 150;
+    constexpr uint32_t DEFAULT_LIGHT_THRESHOLD = 220;
+    constexpr uint32_t packedThresholds = ((DEFAULT_LIGHT_THRESHOLD & 0xFFFF) << 16) |
+                          (DEFAULT_DARK_THRESHOLD & 0xFFFF);
+    SetPropertyNG<ModifierNG::RSColorPickerModifier, &ModifierNG::RSColorPickerModifier::SetColorPickerNotifyThreshold>(
+        packedThresholds);
     // Store callback locally
     colorPickerCallback_ = std::move(callback);
     return true;
@@ -2005,6 +2014,31 @@ void RSNode::SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrateg
     static constexpr uint64_t MIN_INTERVAL = 180; // unit: ms
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
         &ModifierNG::RSColorPickerModifier::SetColorPickerInterval>(std::max(interval, MIN_INTERVAL));
+}
+
+void RSNode::SetColorPickerOptions(uint64_t interval, std::pair<uint32_t, uint32_t> notifyThreshold,
+    std::optional<Vector4f> rect)
+{
+    SetColorPickerParams(ColorPlaceholder::NONE, ColorPickStrategyType::CLIENT_CALLBACK, interval);
+    // Pack both thresholds into a single uint32_t: lower 16 bits = dark, upper 16 bits = light
+    uint32_t packedThresholds = ((notifyThreshold.second & 0xFFFF) << 16) |
+                                (notifyThreshold.first & 0xFFFF);
+    SetPropertyNG<ModifierNG::RSColorPickerModifier,
+        &ModifierNG::RSColorPickerModifier::SetColorPickerNotifyThreshold>(packedThresholds);
+
+    // If rect is an nullopt, set an invalid value to inform RS service
+    Vector4f newRect = rect.has_value() ? rect.value() : Vector4f(0.0, 0.0, -1.0, -1.0);
+    SetPropertyNG<ModifierNG::RSColorPickerModifier, &ModifierNG::RSColorPickerModifier::SetColorPickerRect>(newRect);
+}
+
+void RSNode::SetColorPickerCallback(ColorPickerCallback callback)
+{
+    colorPickerCallback_ = std::move(callback);
+}
+
+bool RSNode::HasColorPickerCallback() const
+{
+    return static_cast<bool>(colorPickerCallback_);
 }
 
 struct FilterCascadeBundleInfo {
@@ -2066,7 +2100,7 @@ FilterCascadeBundleInfo GetBundleInfo()
     }
     filterCascadeBundleInfo.bundleName = bundleInfo.applicationInfo.bundleName;
     filterCascadeBundleInfo.versionName = bundleInfo.applicationInfo.versionName;
-    filterCascadeBundleInfo.versionCode = bundleInfo.applicationInfo.versionCode;
+    filterCascadeBundleInfo.versionCode = static_cast<int32_t>(bundleInfo.applicationInfo.versionCode);
 #endif
     return filterCascadeBundleInfo;
 }
@@ -2544,7 +2578,8 @@ void RSNode::SetMaterialWithQualityLevel(const std::shared_ptr<RSNGFilterBase> &
         return;
     }
     if (materialFilter->GetType() == RSNGEffectType::FROSTED_GLASS && quality == FilterQuality::ADAPTIVE) {
-        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, 0);
+        constexpr uint64_t INTERVAL_500MS = 500;
+        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, INTERVAL_500MS);
     }
 }
 

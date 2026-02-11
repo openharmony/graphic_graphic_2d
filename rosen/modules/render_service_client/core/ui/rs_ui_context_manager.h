@@ -26,8 +26,8 @@
  * @brief Defines the properties and methods for RSUIContextManager class.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_UI_CONTEXT_MANAGER_H
-#define RENDER_SERVICE_CLIENT_CORE_UI_RS_UI_CONTEXT_MANAGER_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_PIPLINE_RS_UI_CONTEXT_MAP_H
+#define RENDER_SERVICE_CLIENT_CORE_PIPLINE_RS_UI_CONTEXT_MAP_H
 
 #include "rs_ui_context.h"
 
@@ -61,7 +61,7 @@ public:
 
     /**
      * @brief Retrieves the RSUIContext associated with the given token.
-     * 
+     *
      * @param token The unique identifier for the RSUIContext.
      * @return A shared pointer to the RSUIContext if found; otherwise, nullptr.
      */
@@ -122,4 +122,4 @@ private:
 } // namespace OHOS
 
 /** @} */
-#endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_UI_CONTEXT_MANAGER_H
+#endif // RENDER_SERVICE_CLIENT_CORE_PIPLINE_RS_UI_CONTEXT_MAP_H

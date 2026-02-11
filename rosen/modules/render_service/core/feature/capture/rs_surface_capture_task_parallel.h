@@ -46,21 +46,22 @@ public:
     ~RSSurfaceCaptureTaskParallel() = default;
 
     // Confirm whether the node is occlusive which should apply modifiers
-    static void CheckModifiers(NodeId id, bool useCurWindow);
+    static void CheckModifiers(NodeId id, bool useCurWindow, bool* needSyncSurface = nullptr);
     // Do capture pipeline task
     static void Capture(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam);
 
 #ifdef RS_ENABLE_UNI_RENDER
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
         std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        sptr<RSISurfaceCaptureCallback> callback, int32_t rotation = 0);
+        sptr<RSISurfaceCaptureCallback> callback, int32_t rotation = 0, bool syncRender = false);
     static std::function<void()> CreateSurfaceSyncCopyTaskWithDoublePixelMap(
         std::shared_ptr<Drawing::Surface> surface, std::unique_ptr<Media::PixelMap> pixelMap,
         std::shared_ptr<Drawing::Surface> surfaceHDR, std::unique_ptr<Media::PixelMap> pixelMapHDR, NodeId id,
-        const RSSurfaceCaptureConfig& captureConfig, sptr<RSISurfaceCaptureCallback> callback, int32_t rotation);
+        const RSSurfaceCaptureConfig& captureConfig, sptr<RSISurfaceCaptureCallback> callback, int32_t rotation,
+        bool syncRender = false);
     static bool PixelMapCopy(std::unique_ptr<Media::PixelMap>& pixelmap,
         std::shared_ptr<Drawing::ColorSpace> colorSpace, const Drawing::BackendTexture& backendTexture,
-        Drawing::ColorType colorType, bool useDma, int32_t rotation);
+        Drawing::ColorType colorType, bool useDma, int32_t rotation, bool syncRender = false);
 #endif
 
     bool CreateResources();

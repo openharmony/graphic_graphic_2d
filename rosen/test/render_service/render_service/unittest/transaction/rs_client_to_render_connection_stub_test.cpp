@@ -158,8 +158,17 @@ void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, Mess
     data.WriteFloat(captureConfig.mainScreenRect.bottom_);
     data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
     data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data.WriteFloat(captureConfig.specifiedAreaRect.left_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.top_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.right_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data.WriteUInt64Vector(captureConfig.blackList);
     data.WriteUint32(captureConfig.backGroundColor);
+    data.WriteUint32(captureConfig.colorSpace.first);
+    data.WriteBool(captureConfig.colorSpace.second);
+    data.WriteUint32(captureConfig.dynamicRangeMode.first);
+    data.WriteBool(captureConfig.dynamicRangeMode.second);
+    data.WriteBool(captureConfig.isSyncRender);
 }
 
 /**
@@ -560,6 +569,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     data.WriteFloat(captureConfig.specifiedAreaRect.right_);
     data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data.WriteUint32(captureConfig.backGroundColor);
+    data.WriteUint32(captureConfig.colorSpace.first);
+    data.WriteBool(captureConfig.colorSpace.second);
+    data.WriteUint32(captureConfig.dynamicRangeMode.first);
+    data.WriteBool(captureConfig.dynamicRangeMode.second);
+    data.WriteBool(captureConfig.isSyncRender);
     auto res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
 #ifdef RS_ENABLE_UNI_RENDER
     EXPECT_LE(res, ERR_PERMISSION_DENIED);
@@ -722,6 +736,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data3.WriteUint64(1);
     data3.WriteBool(true);
+    data3.WriteBool(false);
     res = toRenderConnectionStub_->OnRemoteRequest(code, data3, reply, option);
     ASSERT_EQ(res, ERR_OK);
 
@@ -741,7 +756,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
 
     ASSERT_NE(mainThread, nullptr);
     connection->mainThread_ = mainThread;
-    res = connection->FreezeScreen(0, false);
+    res = connection->FreezeScreen(0, false, false);
     usleep(TIME_OF_FREEZE_TASK);
     ASSERT_EQ(res, ERR_OK);
 
@@ -809,6 +824,34 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
 
     RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
+}
+
+/**
+ * @tc.name: FreezeScreenTest003
+ * @tc.desc: Test FreezeScreen sync
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest003, TestSize.Level2)
+{
+    ASSERT_NE(toRenderConnectionStub_, nullptr);
+    MessageParcel data1;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN);
+    data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data1.WriteUint64(1);
+    data1.WriteBool(true);
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data1, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data2.WriteUint64(1);
+    data2.WriteBool(true);
+    data2.WriteBool(true);
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data2, reply, option);
+    ASSERT_EQ(res, ERR_OK);
 }
 
 /**
@@ -1084,4 +1127,82 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
     ASSERT_NE(ret, 0);
 }
 #endif
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrection001
+ * @tc.desc: Test SetLogicalCameraRotationCorrection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetLogicalCameraRotationCorrection001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint64(1);
+    data.WriteUint32(static_cast<uint32_t>(ScreenRotation::ROTATION_90));
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrection002
+ * @tc.desc: Test SetLogicalCameraRotationCorrection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetLogicalCameraRotationCorrection002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint64(1);
+    data.WriteUint32(6);
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrection003
+ * @tc.desc: Test SetLogicalCameraRotationCorrection when ReadUint64 failed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetLogicalCameraRotationCorrection003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteString("str");
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrection004
+ * @tc.desc: Test SetLogicalCameraRotationCorrection when screenRotation is invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetLogicalCameraRotationCorrection004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint64(0);
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
 } // namespace OHOS::Rosen

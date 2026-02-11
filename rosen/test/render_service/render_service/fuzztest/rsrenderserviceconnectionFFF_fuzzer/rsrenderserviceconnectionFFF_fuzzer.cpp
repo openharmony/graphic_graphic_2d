@@ -64,7 +64,8 @@ const uint8_t DO_NOTIFY_HGMCONFIG_EVENT = 6;
 const uint8_t DO_NOTIFY_SCREEN_SWITCHED = 7;
 const uint8_t DO_NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 8;
 const uint8_t DO_SET_BEHIND_WINDOW_FILTER_ENABLED = 9;
-const uint8_t TARGET_SIZE = 10;
+const uint8_t GET_REFRESH_INFO_BY_PID_AND_UNIQUEID = 10;
+const uint8_t TARGET_SIZE = 11;
 const uint16_t TASK_WAIT_MICROSECONDS = 50000;
 const uint32_t WAIT_TASK_RUN_TIME_NS = 10000;
 
@@ -359,6 +360,23 @@ void DoSetLayerTopForHWC()
     dataParcel.WriteUint32(zOrder);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
+
+void DoGetRefreshInfoByPidAndUniqueId()
+{
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+ 
+    int32_t pid = GetData<int32_t>();
+    uint64_t uniqueId = GetData<uint64_t>();
+ 
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    dataParcel.WriteInt32(pid);
+    dataParcel.WriteUint64(uniqueId);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -406,6 +424,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_BEHIND_WINDOW_FILTER_ENABLED:
             OHOS::Rosen::DoSetBehindWindowFilterEnabled();
+            break;
+        case OHOS::Rosen::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID:
+            OHOS::Rosen::DoGetRefreshInfoByPidAndUniqueId();
             break;
         default:
             return -1;

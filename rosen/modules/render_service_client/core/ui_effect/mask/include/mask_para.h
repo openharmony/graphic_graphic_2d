@@ -32,6 +32,7 @@ public:
         RADIAL_GRADIENT_MASK,
         PIXEL_MAP_MASK,
         WAVE_GRADIENT_MASK,
+        WAVE_DISTURBANCE_MASK,
         IMAGE_MASK,
         USE_EFFECT_MASK,
     };

@@ -19,6 +19,9 @@
 #include "common/rs_optional_trace.h"
 #include "effect/rs_render_property_tag.h"
 #include "effect/rs_render_shape_base.h"
+#include "ge_render.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 #include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_color_picker_def.h"
@@ -201,14 +204,21 @@ bool RSPropertyDrawableUtils::PickColorSyn(Drawing::Canvas* canvas, Drawing::Pat
 }
 
 bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> context,
-    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked)
+    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked, void* waitSemaphore)
 {
-    std::shared_ptr<Drawing::Pixmap> dst;
-    image = GpuScaleImage(context, image); // use shared GPU context
+    image = GpuScaleImage(context, image, waitSemaphore);
+    if (image == nullptr) {
+        RS_LOGE("RSPropertyDrawableUtils::PickColor GpuScaleImage failed");
+        return false;
+    }
     const int buffLen = image->GetWidth() * image->GetHeight();
     auto pixelPtr = std::make_unique<uint32_t[]>(buffLen);
     auto info = image->GetImageInfo();
-    dst = std::make_shared<Drawing::Pixmap>(info, pixelPtr.get(), info.GetWidth() * info.GetBytesPerPixel());
+    auto dst = std::make_shared<Drawing::Pixmap>(info, pixelPtr.get(), info.GetWidth() * info.GetBytesPerPixel());
+    if (!dst) {
+        RS_LOGE("RSPropertyDrawableUtils::PickColor PixelMap creation failed");
+        return false;
+    }
     bool flag = image->ReadPixels(*dst, 0, 0);
     if (!flag) {
         RS_LOGE("RSPropertyDrawableUtils::PickColor ReadPixel Failed");
@@ -222,43 +232,78 @@ bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> con
     return true;
 }
 
-std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(std::shared_ptr<Drawing::GPUContext> context,
-    std::shared_ptr<Drawing::Image> image)
+namespace {
+constexpr char PASS_THROUGH_PROG[] = R"(
+    uniform shader imageInput;
+
+    half4 main(float2 xy) {
+        half4 c = imageInput.eval(xy);
+        return half4(c.rgb, 1.0);
+    }
+)";
+
+// Validate image dimensions to prevent divide by zero and overflow
+bool IsImageValid(const Drawing::Image& image)
 {
-    std::string shaderString(R"(
-        uniform shader imageInput;
+    if (image.GetWidth() <= 0 || image.GetHeight() <= 0) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage invalid image dimensions");
+        return false;
+    }
+    constexpr int maxDimension = 65535; // Prevent overflow in area calculation
+    if (image.GetWidth() > maxDimension || image.GetHeight() > maxDimension) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage image dimensions too large");
+        return false;
+    }
+    return true;
+}
+// Color picker image scaling constants
+constexpr int SMALL_IMAGE_AREA_THRESHOLD = 10000; // 100 * 100 pixels
+constexpr int SMALL_SCALED_IMAGE_SIZE = 8;
+constexpr int LARGE_SCALED_IMAGE_SIZE = 64;
+} // namespace
 
-        half4 main(float2 xy) {
-            half4 c = imageInput.eval(xy);
-            return half4(c.rgb, 1.0);
-        }
-    )");
+std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(
+    std::shared_ptr<Drawing::GPUContext> context, std::shared_ptr<Drawing::Image> image, void* waitSemaphore)
+{
+    if (!image || !IsImageValid(*image)) {
+        return nullptr;
+    }
 
-    std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(shaderString);
-    if (!effect) {
+    static auto effectBuilder =
+        std::make_shared<Drawing::RuntimeShaderBuilder>(Drawing::RuntimeEffect::CreateForShader(PASS_THROUGH_PROG));
+    if (!effectBuilder) {
         ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage effect is null");
         return nullptr;
     }
 
-    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBuilder =
-        std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
-    Drawing::ImageInfo pcInfo;
+    // Safe to calculate area without overflow after dimension check
+    int targetSize = (image->GetWidth() * image->GetHeight() < SMALL_IMAGE_AREA_THRESHOLD) ? SMALL_SCALED_IMAGE_SIZE
+                                                                                           : LARGE_SCALED_IMAGE_SIZE;
+    auto pcInfo = Drawing::ImageInfo::MakeN32Premul(targetSize, targetSize);
     Drawing::Matrix matrix;
-    matrix.SetScale(1.0, 1.0);
-    if (image->GetWidth() * image->GetHeight() < 10000) { // 10000 = 100 * 100 pixels
-        pcInfo = Drawing::ImageInfo::MakeN32Premul(10, 10); // 10 * 10 pixels
-        matrix.SetScale(10.0 / image->GetWidth(), 10.0 / image->GetHeight()); // 10.0 pixels
-    } else {
-        pcInfo = Drawing::ImageInfo::MakeN32Premul(100, 100); // 100 * 100 pixels
-        matrix.SetScale(100.0 / image->GetWidth(), 100.0 / image->GetHeight());  // 100.0 pixels
-    }
-    effectBuilder->SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(
-        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, matrix));
-    std::shared_ptr<Drawing::Image> tmpColorImg = effectBuilder->MakeImage(
-        context.get(), nullptr, pcInfo, false);
+    matrix.SetScale(
+        static_cast<float>(targetSize) / image->GetWidth(), static_cast<float>(targetSize) / image->GetHeight());
 
-    return tmpColorImg;
+    // Create offscreen surface for GPU scale operation
+    auto offscreenSurface = Drawing::Surface::MakeRenderTarget(context.get(), true, pcInfo);
+    if (!offscreenSurface) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage failed to create offscreen surface");
+        return nullptr;
+    }
+#ifdef RS_ENABLE_VK
+    // Wait for snapshot to complete before starting GPU scale
+    if (waitSemaphore != nullptr) {
+        offscreenSurface->Wait(-1, reinterpret_cast<VkSemaphore>(waitSemaphore));
+    }
+#endif
+    auto canvas = offscreenSurface->GetCanvas();
+    effectBuilder->SetChild("imageInput",
+        Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
+            Drawing::SamplingOptions { Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE }, matrix));
+    auto paint = effectBuilder->MakeShader(nullptr, false);
+    canvas->AttachBrush(paint);
+    canvas->DrawRect(Drawing::Rect(0, 0, pcInfo.GetWidth(), pcInfo.GetHeight()));
+    return offscreenSurface->GetImageSnapshot();
 }
 
 void RSPropertyDrawableUtils::GetDarkColor(RSColor& color)
@@ -1296,52 +1341,39 @@ void RSPropertyDrawableUtils::DrawFilterWithDRM(Drawing::Canvas* canvas, bool is
 {
     Drawing::Brush brush;
     int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
-    RSColor demoColor;
-    if (isDark) {
-        int16_t rgb_dark = 80;
-        demoColor = RSColor(rgb_dark, rgb_dark, rgb_dark, alpha);
-    } else {
-        int16_t rgb_light = 235;
-        demoColor = RSColor(rgb_light, rgb_light, rgb_light, alpha);
-    }
-
-    float sat = 1.0f;
-    float brightness = 0.9f;
-    float normalizedDegree = brightness - sat;
-    const float brightnessMat[] = {
-        1.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        1.0f,
-        0.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-    };
-    Drawing::ColorMatrix cm;
-    cm.SetSaturation(sat);
-    float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
-    cm.GetArray(cmArray);
-    std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
-    auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*filterCompose, nullptr);
-    Drawing::Filter filter;
-    filter.SetImageFilter(colorImageFilter);
-    brush.SetFilter(filter);
+    int16_t rgb = isDark ? 55 : 210; // RGB values of the color filter to be replaced in the DRM scenario
+    RSColor demoColor = RSColor(rgb, rgb, rgb, alpha);
     brush.SetColor(demoColor.AsArgbInt());
     canvas->DrawBackground(brush);
+}
+
+void RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
+    const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
+    const std::string& shapeTag)
+{
+    if (!filterGEContainer) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM filterGEContainer null");
+        return;
+    }
+    auto visualEffect = filterGEContainer->GetGEVisualEffect(filterTag);
+    if (!visualEffect) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM visualEffect null");
+        return;
+    }
+    auto geShape = visualEffect->GetGEShaderShape(shapeTag);
+    auto sdfColorVisualEffect =
+        std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_SHADER_SDF_COLOR, Drawing::DrawingPaintType::BRUSH);
+    sdfColorVisualEffect->SetParam(Drawing::GE_SHADER_SDF_COLOR_SHAPE, geShape);
+    int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
+    int16_t rgb = isDark ? 55 : 210; // RGB values of the color filter to be replaced in the DRM scenario
+    Drawing::Color color(rgb, rgb, rgb, alpha);
+    Vector4f geColor(color.GetRedF(), color.GetGreenF(), color.GetBlueF(), color.GetAlphaF());
+    sdfColorVisualEffect->SetParam(Drawing::GE_SHADER_SDF_COLOR_COLOR, geColor);
+
+    auto geContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    geContainer->AddToChainedFilter(sdfColorVisualEffect);
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    geRender->DrawShaderEffect(*canvas, *geContainer, *rect);
 }
 
 void RSPropertyDrawableUtils::EndBlender(RSPaintFilterCanvas& canvas, int blendModeApplyType)

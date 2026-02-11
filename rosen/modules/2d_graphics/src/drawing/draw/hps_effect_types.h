@@ -42,14 +42,16 @@ typedef enum HpsEffect {
     STATISTICS,
     EDGE_LIGHT,
 } HpsEffect;
+
 /**
- * @enum HpsEffect
- * @brief Enumeration of different hps processing effects.
+ * @enum HpsMask
+ * @brief Enumeration of different masking effects used in hps.
  */
 typedef enum HpsMask {
     PIXEL_MAP_MASK,
     RADIAL_GRADIENT_MASK,
 } HpsMask;
+
 /**
  * @enum HpsImageStatistics
  * @brief Enumeration of different hps Image Statistics types.
@@ -57,6 +59,7 @@ typedef enum HpsMask {
 typedef enum HpsStatisticsType {
     MEAN = 0,
 } HpsStatisticsType;
+
 /**
  * @class HpsEffectParameter
  * @brief Base class for all hps effect arguments.
@@ -71,6 +74,7 @@ public:
     virtual ~HpsEffectParameter() = default;
     virtual HpsEffect GetEffectType() = 0;
 };
+
 /**
  * @class HpsMaskParameter
  * @brief Base class for all hps mask arguments.
@@ -78,11 +82,11 @@ public:
 class HpsMaskParameter {
 public:
     bool isSDFShaderMask = false;
-    HpsMaskParameter(bool isSDFShaderMask) : isSDFShaderMask(isSDFShaderMask)
-    {}
+    explicit HpsMaskParameter(bool isSDFShaderMask) : isSDFShaderMask(isSDFShaderMask) {}
     virtual ~HpsMaskParameter() = default;
     virtual HpsMask GetMaskType() = 0;
 };
+
 /**
  * @class HpsBlurEffectParameter
  * @brief Arguments for the gaussian blur effect.
@@ -103,6 +107,7 @@ public:
         return HpsEffect::BLUR;
     }
 };
+
 /**
  * @class HpsGreyParameter
  * @brief Arguments for the greyscale effect.
@@ -120,6 +125,7 @@ public:
         return HpsEffect::GREY;
     }
 };
+
 /**
  * @class HpsMesaParameter
  * @brief Arguments for the Mesa effect.
@@ -153,6 +159,7 @@ public:
         return HpsEffect::MESA;
     }
 };
+
 /**
  * @class HpsAiBarParameter
  * @brief Arguments for the AI-based bar effect.
@@ -175,6 +182,7 @@ public:
         return HpsEffect::AIBAR;
     }
 };
+
 /**
  * @class HpsStretchParameter
  * @brief Arguments for the pixel expansion effect.
@@ -197,6 +205,7 @@ public:
         return HpsEffect::STRETCH;
     }
 };
+
 /**
  * @class HpsGradientBlurParameter
  * @brief Arguments for the linear gradient blur effect.
@@ -223,6 +232,7 @@ public:
         return HpsEffect::LINEAR_GRADIENT_BLUR;
     }
 };
+
 /**
  * @class HpsStatisticsParameter
  * @brief Arguments for the image statistics effect.
@@ -238,6 +248,7 @@ public:
         return HpsEffect::STATISTICS;
     }
 };
+
 /**
  * @class HpsEdgeLightParameter
  * @brief Arguments for the edgeLight effect.
@@ -267,6 +278,7 @@ public:
         return HpsEffect::EDGE_LIGHT;
     }
 };
+
 /**
  * @class HpsPixelMapMaskParameter
  * @brief Arguments for the pixelMap mask.
@@ -286,6 +298,7 @@ public:
         return HpsMask::PIXEL_MAP_MASK;
     }
 };
+
 /**
  * @class HpsRadialGradientMaskParameter
  * @brief Arguments for the radialGradient mask.
@@ -301,7 +314,7 @@ public:
     HpsRadialGradientMaskParameter(float centerX, float centerY, float radiusX, float radiusY,
         const std::vector<float>& colors, const std::vector<float>& positions)
         : HpsMaskParameter(false), centerX(centerX), centerY(centerY), radiusX(radiusX),
-          radiusY(radiusY), colors(colors), positions(positions) {}
+        radiusY(radiusY), colors(colors), positions(positions) {}
     HpsMask GetMaskType() override
     {
         return HpsMask::RADIAL_GRADIENT_MASK;

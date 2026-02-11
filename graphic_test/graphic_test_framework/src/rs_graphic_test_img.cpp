@@ -26,7 +26,8 @@
 namespace OHOS {
 namespace Rosen {
 
-std::shared_ptr<Media::PixelMap> DecodePixelMap(const std::string& pathName, const Media::AllocatorType& allocatorType)
+std::shared_ptr<Media::PixelMap> DecodePixelMap(const std::string& pathName, const Media::AllocatorType& allocatorType,
+    const OHOS::Media::PixelFormat& dstFormat)
 {
     uint32_t errCode = 0;
     std::unique_ptr<Media::ImageSource> imageSource =
@@ -37,6 +38,7 @@ std::shared_ptr<Media::PixelMap> DecodePixelMap(const std::string& pathName, con
     }
     Media::DecodeOptions decodeOpt;
     decodeOpt.allocatorType = allocatorType;
+    decodeOpt.desiredPixelFormat = dstFormat;
     std::shared_ptr<Media::PixelMap> pixelmap = imageSource->CreatePixelMap(decodeOpt, errCode);
     if (pixelmap == nullptr || errCode != 0) {
         std::cout << "pixelmap == nullptr, err:" << errCode << std::endl;

@@ -315,13 +315,13 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
             SkiaTextureInfo::ConvertToGrBackendTexture(info),
             SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
             SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
-            SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
+            SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
 #else
         skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),
             SkiaTextureInfo::ConvertToGrBackendTexture(info),
             SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
             SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
-            SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
+            SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
 #endif
     }
 #else
@@ -329,11 +329,11 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
 #ifdef USE_M133_SKIA
     skiaImage_ = SkImages::BorrowTextureFrom(grContext_.get(), SkiaTextureInfo::ConvertToGrBackendTexture(info),
         SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
-        SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
+        SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
 #else
     skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),  SkiaTextureInfo::ConvertToGrBackendTexture(info),
         SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
-        SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
+        SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
 #endif
 #endif
     if (skiaImage_ == nullptr) {

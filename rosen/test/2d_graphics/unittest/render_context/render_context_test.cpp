@@ -169,6 +169,7 @@ HWTEST_F(RenderContextTest, ClearRedundantResourcesTest001, Level1)
     // start ClearRedundantResourcesTest001 test
     std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
     renderContext->Init();
+    renderContext->SetUpGpuContext();
     EXPECT_NE(renderContext->GetDrGPUContext(), nullptr);
     renderContext->ClearRedundantResources();
 #endif

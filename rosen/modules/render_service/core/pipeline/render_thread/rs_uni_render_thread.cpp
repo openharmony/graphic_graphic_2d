@@ -71,6 +71,10 @@
 #include "res_sched_client.h"
 #include "res_type.h"
 
+#ifdef MHC_ENABLE
+#include "rs_mhc_manager.h"
+#endif
+
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_utils.h"
 #include "rs_parallel_manager.h"
@@ -210,6 +214,13 @@ void RSUniRenderThread::Inittcache()
     }
 }
 
+void RSUniRenderThread::InitMhc()
+{
+#ifdef MHC_ENABLE
+    RSMhcManager::Instance().RegisterCaptureStatusCallback(&RSUniRenderThread::IsInCaptureProcess);
+#endif
+}
+
 void RSUniRenderThread::InitDrawOpOverCallback(Drawing::GPUContext *gpuContext)
 {
     gpuContext->RegisterDrawOpOverCallback([this](int32_t drawOpCount) {
@@ -247,6 +258,7 @@ void RSUniRenderThread::Start()
         RSHpaeManager::GetInstance().InitHpaeBlurResource();
 #endif
         tid_ = gettid();
+        InitMhc();
 #ifdef RES_SCHED_ENABLE
         SubScribeSystemAbility();
 #endif
@@ -502,7 +514,9 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
                 task();
             }
         };
-        RSRenderComposerManager::GetInstance().PostTaskWithInnerDelay(screenId, releaseBufferTask);
+        if (!RSRenderComposerManager::GetInstance().PostTaskWithInnerDelay(screenId, releaseBufferTask)) {
+            releaseBufferTask();
+        }
     }
 }
 
@@ -645,7 +659,9 @@ void RSUniRenderThread::NotifyScreenNodeBufferReleased(ScreenId curScreenId)
 
 void RSUniRenderThread::PerfForBlurIfNeeded()
 {
-    if (!SOCPerfParam::IsBlurSOCPerfEnable()) {
+    auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
+    if (socPerfParam != nullptr && !socPerfParam->IsBlurSOCPerfEnable()) {
         return;
     }
 
@@ -889,7 +905,13 @@ void RSUniRenderThread::DefaultClearMemoryCache()
 
 void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean)
 {
-    auto task = [this, moment, deeply, isDefaultClean]() {
+    bool isDeeplyRelGpuResEnable = false;
+    auto relGpuResParam = std::static_pointer_cast<DeeplyRelGpuResParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]));
+    if (relGpuResParam != nullptr) {
+        isDeeplyRelGpuResEnable = relGpuResParam->IsDeeplyRelGpuResEnable();
+    }
+    auto task = [this, moment, deeply, isDefaultClean, isDeeplyRelGpuResEnable]() {
         if (!uniRenderEngine_) {
             return;
         }
@@ -909,7 +931,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         SkGraphics::PurgeAllCaches(); // clear cpu cache
         auto pid = *(this->exitedPidSet_.begin());
         if (this->exitedPidSet_.size() == 1 && pid == -1) { // no exited app, just clear scratch resource
-            if (deeply || MEMParam::IsDeeplyRelGpuResEnable()) {
+            if (deeply || isDeeplyRelGpuResEnable) {
                 MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
             } else {
                 MemoryManager::ReleaseUnlockGpuResource(grContext);
@@ -949,7 +971,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             rate = defaultRefreshRate;
         }
         PostTask(task, CLEAR_GPU_CACHE,
-            (MEMParam::IsDeeplyRelGpuResEnable() ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / rate);
+            (isDeeplyRelGpuResEnable ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / rate);
     } else {
         PostTask(task, DEFAULT_CLEAR_GPU_CACHE, TIME_OF_DEFAULT_CLEAR_GPU_CACHE);
     }

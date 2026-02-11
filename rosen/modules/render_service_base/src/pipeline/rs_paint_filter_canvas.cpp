@@ -20,6 +20,7 @@
 #include "cache/ge_image_cache_provider.h"
 #include "common/rs_rect.h"
 #include "draw/canvas.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
 
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
@@ -1191,7 +1192,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
         p.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
     }
 
-    if (p.GetColor().IsPlaceholder()) {
+    if (NeedReplaceColor(p.GetColor())) {
         p.SetColor(GetColorPicked(p.GetColor().GetPlaceholder()));
     }
 
@@ -1230,7 +1231,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
         b.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
     }
 
-    if (b.GetColor().IsPlaceholder()) {
+    if (NeedReplaceColor(b.GetColor())) {
         b.SetColor(GetColorPicked(b.GetColor().GetPlaceholder()));
     }
 
@@ -1269,7 +1270,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
         p.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
     }
 
-    if (p.GetColor().IsPlaceholder()) {
+    if (NeedReplaceColor(p.GetColor())) {
         p.SetColor(GetColorPicked(p.GetColor().GetPlaceholder()));
     }
 
@@ -1437,20 +1438,23 @@ Drawing::ColorQuad RSPaintFilterCanvas::GetEnvForegroundColor() const
     return envStack_.top().envForegroundColor_.AsArgbInt();
 }
 
-void RSPaintFilterCanvas::SetColorPicked(ColorPlaceholder placeholder, Drawing::ColorQuad color)
+void RSPaintFilterCanvas::SetColorPicked(Drawing::ColorQuad color)
 {
     if (envStack_.empty()) {
         return;
     }
-    envStack_.top().pickedColorMap_[placeholder] = color;
+    envStack_.top().fractionColor_ = color;
+    envStack_.top().fractionColorReady_ = true;
 }
 
 Drawing::ColorQuad RSPaintFilterCanvas::GetColorPicked(ColorPlaceholder placeholder) const
 {
-    if (envStack_.empty() || envStack_.top().pickedColorMap_.count(placeholder) == 0) {
+    if (envStack_.empty()) {
         return Drawing::Color::COLOR_BLACK;
     }
-    return envStack_.top().pickedColorMap_.at(placeholder);
+    auto fraction = static_cast<float>(envStack_.top().fractionColor_ & 0x000000FF) / 255.f;
+    auto colorPair = RSColorPickerUtils::GetColorForPlaceholder(placeholder);
+    return RSColorPickerUtils::InterpolateColor(colorPair.first, colorPair.second, fraction);
 }
 
 RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::SaveAllStatus(SaveType type)
@@ -1552,6 +1556,7 @@ void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilter
         ROSEN_LOGE("RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas fail to copy behindWindowData");
         return;
     }
+    curEnv.filterClipBounds_ = Drawing::RectI();
 
     // cache related
     if (other.isHighContrastEnabled()) {
@@ -1964,6 +1969,7 @@ uint32_t RSPaintFilterCanvasBase::SaveClipRRect(std::shared_ptr<ClipRRectData> d
             return;
         }
         canvas.Save();
+        canvas.ResetClip();
         canvas.ClipRoundRect(clipRRectData->rRect_, Drawing::ClipOp::DIFFERENCE, true);
         canvas.ResetMatrix();
         for (auto& corner : clipRRectData->data_) {
@@ -1971,7 +1977,8 @@ uint32_t RSPaintFilterCanvasBase::SaveClipRRect(std::shared_ptr<ClipRRectData> d
                 Drawing::Brush brush;
                 brush.SetBlendMode(Drawing::BlendMode::SRC);
                 canvas.AttachBrush(brush);
-                canvas.DrawImageRect(*(corner->image_), corner->rect_, Drawing::SamplingOptions());
+                canvas.DrawImage(*(corner->image_), corner->rect_.GetLeft(), corner->rect_.GetTop(),
+                    Drawing::SamplingOptions());
                 canvas.DetachBrush();
             }
         }
@@ -2058,6 +2065,8 @@ std::shared_ptr<RSPaintFilterCanvasBase::CornerData> RSPaintFilterCanvas::Genera
     mat.MapRect(absRect, relativeRect);
     Drawing::RectI drawRect = absRect.RoundOut();
     drawRect.MakeOutset(1, 1);
+    auto surfaceRect = Drawing::RectI(0, 0, surface->Width(), surface->Height());
+    drawRect.Intersect(surfaceRect);
     return std::make_shared<RSPaintFilterCanvasBase::CornerData>(surface->GetImageSnapshot(drawRect, false), drawRect);
 }
 

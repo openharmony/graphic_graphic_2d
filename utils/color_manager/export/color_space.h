@@ -33,6 +33,7 @@ namespace OHOS {
 namespace ColorManager {
 #define DIMES_3 3
 #define DIMES_2 2
+#define DIMES_9 9
 
 using Vector3 = std::array<float, DIMES_3>;
 using Matrix3x3 = std::array<Vector3, DIMES_3>;
@@ -144,6 +145,11 @@ inline Vector3 XYZ(const Vector3& xyY)
 inline bool FloatEqual(const float src, const float dst)
 {
     return fabs(src - dst) < COLOR_EPSILON;
+}
+
+inline bool FloatNearlyEqual(float a, float b)
+{
+    return std::abs(a - b) < FLT_EPSILON;
 }
 
 inline bool FloatNearlyEqualZero(const float num)

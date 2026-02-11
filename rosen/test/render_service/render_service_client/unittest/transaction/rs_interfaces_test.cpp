@@ -542,6 +542,20 @@ HWTEST_F(RSInterfacesTest, GetRefreshInfoToSP001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRefreshInfoByPidAndUniqueId001
+ * @tc.desc: test results of GetRefreshInfoByPidAndUniqueId
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, GetRefreshInfoByPidAndUniqueId001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    GameStateData info;
+    std::string str = instance.GetRefreshInfoByPidAndUniqueId(info.pid, 0L);
+    EXPECT_TRUE(str == "");
+}
+
+/**
  * @tc.name: SetWatermark001
  * @tc.desc: test results of SetWatermark
  * @tc.type: FUNC
@@ -1007,5 +1021,19 @@ HWTEST_F(RSInterfacesTest, ClearSurfaceWatermarkForNodes001, TestSize.Level1)
     instance.ClearSurfaceWatermarkForNodes(0, name2, {});
 
     instance.ClearSurfaceWatermarkForNodes(0, "name", {});
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrection
+ * @tc.desc: SetLogicalCameraRotationCorrection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetLogicalCameraRotationCorrectionTest001, TestSize.Level1)
+{
+    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    ScreenId screenId = 0;
+    ScreenRotation logicalRotation = ScreenRotation::ROTATION_90;
+    EXPECT_EQ(instance.SetLogicalCameraRotationCorrection(screenId, logicalRotation), SUCCESS);
 }
 } // namespace OHOS::Rosen

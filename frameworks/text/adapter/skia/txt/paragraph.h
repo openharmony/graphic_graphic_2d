@@ -64,6 +64,13 @@ enum class Affinity {
     DOWNSTREAM,
 };
 
+enum class TextEncoding {
+    UTF8,
+    UTF16,
+    UTF32,
+    GLYPH_ID,
+};
+
 struct PositionWithAffinity {
     PositionWithAffinity(size_t p, Affinity a) : position(p), affinity(a) {}
 
@@ -179,6 +186,17 @@ public:
     // The upper left corner is the origin, and the +y direction is downward.
     virtual PositionWithAffinity GetGlyphPositionAtCoordinate(double dx, double dy) = 0;
 
+    // Returns the index of the character corresponding to the provided coordinates.
+    // The upper left corner is the origin, and the +y direction is downward.
+    virtual PositionWithAffinity GetCharacterPositionAtCoordinate(double dx, double dy,
+        TextEncoding encoding = TextEncoding::UTF8) const = 0;
+
+    virtual Range<size_t> GetCharacterRangeForGlyphRange(size_t glyphStart, size_t glyphEnd,
+        Range<size_t>* actualGlyphRange, TextEncoding encoding = TextEncoding::UTF8) const = 0;
+
+    virtual Range<size_t> GetGlyphRangeForCharacterRange(size_t charStart, size_t charEnd,
+        Range<size_t>* actualCharRange, TextEncoding encoding = TextEncoding::UTF8) const = 0;
+
     // Returns the word range of a given glyph in a paragraph.
     virtual Range<size_t> GetWordBoundary(size_t offset) = 0;
 
@@ -216,6 +234,7 @@ public:
     virtual void SetSkipTextBlobDrawing(bool state) = 0;
     virtual bool CanPaintAllText() const = 0;
     virtual std::string GetDumpInfo() const = 0;
+    virtual TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) = 0;
 #ifdef ENABLE_OHOS_ENHANCE
     virtual std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;

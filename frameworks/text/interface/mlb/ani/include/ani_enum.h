@@ -46,6 +46,7 @@ public:
     static const std::vector<uint32_t> textBadgeType;
     static const std::vector<uint32_t> textUndefinedGlyphDisplay;
     static const std::vector<uint32_t> textVerticalAlign;
+    static const std::vector<uint32_t> lineHeightStyle;
 };
 
 std::optional<size_t> aniGetEnumIndex(const std::vector<uint32_t>& enumValues, uint32_t enumValue);

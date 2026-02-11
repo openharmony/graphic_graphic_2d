@@ -32,8 +32,7 @@ namespace Rosen {
 class RSGraphicRootNode;
 class RSGraphicTestProfiler {
 public:
-    struct PlaybackInfo
-    {
+    struct PlaybackInfo {
         std::string fileName;
         std::string ohrType = "";
         int startTime;
@@ -44,6 +43,7 @@ public:
     int RunNodeTreeTest(const std::string& path);
     int RunPlaybackTest(const std::string& filePath);
     void SetUseBufferDump(bool useBufferDump);
+    void SetInterruptFlag(std::atomic<bool>* flag);
 private:
     void NodeTreeTestSetUp();
     void PlaybackTestSetUp();
@@ -56,10 +56,10 @@ private:
     Vector2f GetScreenSize() const;
 
     void LoadNodeTreeProfilerFile(const std::string& filePath, const std::string& savePath);
-    void PlaybackWithoutJson(const std::string& filePath, const std::string& savePath);
+    void LoadPlaybackProfilerFileWithoutJson(const std::string& filePath, const std::string& savePath);
     void LoadPlaybackProfilerFile(const std::string& filePath, const std::string& savePath, PlaybackInfo info);
 
-    void TestCaseCapture(bool isScreenshot, const std::string& savePath);
+    bool TestCaseCapture(bool isScreenshot, const std::string& savePath);
     void TestCaseBufferDump(bool isScreenshot, const std::string& savePath);
     bool CropRawFile(const std::string& srcFileName, const std::string& dstFileName, Size dumpBufferSize);
     void DumpBufferSetUp();
@@ -71,6 +71,9 @@ private:
     std::string rootPath_ = "";
     int runTestCaseNum_ = 0;
     bool useBufferDump_ = false;
+    std::atomic<bool>* interruptFlag_ = nullptr;
+
+    bool ShouldInterrupt() const;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -555,9 +555,10 @@ void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t insta
     }
 
     if (rsUIContext_ == nullptr) {
-        ROSEN_LOGD("multi-instance, RSUIDirector::SetUITaskRunner, rsUIContext_ is null!");
+        ROSEN_LOGE("multi-instance, RSUIDirector::SetUITaskRunner, rsUIContext_ is null!");
         return;
     }
+    rsUIContext_->SetUITaskRunner(uiTaskRunner);
     if (!isHgmConfigChangeCallbackReg_) {
         RSFrameRatePolicy::GetInstance()->RegisterHgmConfigChangeCallback();
         isHgmConfigChangeCallbackReg_ = true;

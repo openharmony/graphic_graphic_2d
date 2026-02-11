@@ -43,6 +43,9 @@ enum class RoundingStrategyType : uint8_t {
     ROUND_STATIC_CAST_INT,
     ROUND_BUTT,
 };
+namespace Drawing {
+class GEVisualEffectContainer;
+}
 
 class RSPropertyDrawableUtils {
 public:
@@ -66,9 +69,12 @@ public:
     static bool PickColorSyn(Drawing::Canvas* canvas, Drawing::Path& drPath, Drawing::Matrix& matrix,
         RSColor& colorPicked, const int& colorStrategy);
     static bool PickColor(std::shared_ptr<Drawing::GPUContext> context, std::shared_ptr<Drawing::Image> image,
-        Drawing::ColorQuad& colorPicked);
+        Drawing::ColorQuad& colorPicked, void* waitSemaphore = nullptr);
+    // Note: waitSemaphore uses void* instead of VkSemaphore to avoid preprocessor macro guards in
+    // function signatures. This keeps the API consistent across all build configurations. The
+    // implementation reinterpret_casts to VkSemaphore when RS_ENABLE_VK is defined.
     static std::shared_ptr<Drawing::Image> GpuScaleImage(std::shared_ptr<Drawing::GPUContext> context,
-        std::shared_ptr<Drawing::Image> image);
+        std::shared_ptr<Drawing::Image> image, void* waitSemaphore = nullptr);
     static void GetDarkColor(RSColor& color);
     static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
     static void DrawForegroundFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSFilter>& rsFilter);
@@ -117,6 +123,9 @@ public:
     static bool RSFilterSetPixelStretch(const RSProperties& property, const std::shared_ptr<RSFilter>& filter);
     static void RSFilterRemovePixelStretch(const std::shared_ptr<RSFilter>& filter);
     static void DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark);
+    static void DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
+        const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
+        const std::string& shapeTag);
 
     static std::shared_ptr<RSFilter> GenerateBehindWindowFilter(float radius, float saturation, float brightness,
         RSColor maskColor);

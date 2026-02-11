@@ -54,6 +54,8 @@ namespace OHOS {
 namespace Rosen {
 namespace DrawableV2 {
 class RSChildrenDrawable;
+class RSColorPickerDrawable;
+class RSFilterDrawable;
 class RSRenderNodeDrawableAdapter;
 class RSRenderNodeShadowDrawable;
 }
@@ -964,6 +966,7 @@ public:
     void ResetNodeColorSpace();
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetNodeColorSpace() const;
+    virtual void MarkNodeColorSpace(bool isP3) {}
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
@@ -1054,6 +1057,11 @@ public:
     virtual void AfterTreeStatueChanged() {}
 
     RectI GetFilterDrawableSnapshotRegion() const;
+
+    std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
+    // returns true if color picker will execute this frame
+    bool PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode);
+
 protected:
     void ResetDirtyStatus();
 
@@ -1270,6 +1278,8 @@ private:
     RectI oldAbsDrawRect_;
     // round in by absDrawRectF_, only used for opaque region calculations
     RectI innerAbsDrawRect_;
+    // map parentMatrix by cmdlist draw region
+    RectI absCmdlistDrawRect_;
     RectI oldDirty_;
     RectI oldDirtyInSurface_;
     RectI childrenRect_;
@@ -1281,6 +1291,8 @@ private:
     RectI subTreeDirtyRegion_;
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     RectI globalCornerRect_;
+    RectF selfDrawingNodeDirtyRect_;
+    RectI selfDrawingNodeAbsDirtyRect_;
     // used in old pipline
     RectI oldRectFromRenderProperties_;
     // for blur cache
@@ -1379,10 +1391,9 @@ private:
     void CollectAndUpdateLocalMagnifierEffectRect();
     void CollectAndUpdateLocalEffectRect();
     // update drawrect based on self's info
-    void UpdateBufferDirtyRegion(RectF& selfDrawingNodeDirtyRect);
-    bool UpdateSelfDrawRect(RectF& selfDrawingNodeDirtyRect);
-    void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect,
-        RectI& selfDrawingNodeAbsDirtyRect, RectI& absCmdlistDrawRect);
+    void UpdateBufferDirtyRegion();
+    bool UpdateSelfDrawRect();
+    void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
     void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;

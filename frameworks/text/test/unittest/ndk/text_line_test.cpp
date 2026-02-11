@@ -314,7 +314,7 @@ HWTEST_F(NdkTextLineTest, NdkTextLineTest006, TestSize.Level0)
     OH_Drawing_TextLine* textLine2 = OH_Drawing_GetTextLineByIndex(textLines, 2);
     double count2 = OH_Drawing_TextLineGetGlyphCount(textLine2);
     EXPECT_EQ(count2, 29);
-    
+
     OH_Drawing_DestroyTextLines(textLines);
 }
 
@@ -1248,7 +1248,7 @@ HWTEST_F(NdkTextLineTest, NdkTextLineTest037, TestSize.Level0)
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 250);
         double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
         EXPECT_EQ(count, countArr1[index]);
-        
+
         OH_Drawing_DestroyTextLine(truncatedLine);
         truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 80, ELLIPSIS_MODAL_MIDDLE, "...");
         EXPECT_TRUE(truncatedLine == nullptr);
@@ -1565,14 +1565,14 @@ HWTEST_F(NdkTextLineTest, NdkTextLineTest044, TestSize.Level0)
     constexpr double glyphCount = 3;
     constexpr double paintPosX = 30;
     constexpr double paintPosY = 150;
+    canvas_ = OH_Drawing_CanvasCreate();
+    ASSERT_NE(canvas_, nullptr);
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         ASSERT_NE(textLine, nullptr);
         OH_Drawing_TextLine* truncatedLine =
             OH_Drawing_TextLineCreateTruncatedLine(textLine, truncatedWidth, ELLIPSIS_MODAL_TAIL, "...");
         ASSERT_NE(truncatedLine, nullptr);
-        canvas_ = OH_Drawing_CanvasCreate();
-        ASSERT_NE(canvas_, nullptr);
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, paintPosX, paintPosY);
         double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
         // Evert textline contain glyph count 3
@@ -1602,14 +1602,14 @@ HWTEST_F(NdkTextLineTest, NdkTextLineTest045, TestSize.Level0)
     constexpr double paintPosX = 30;
     constexpr double paintPosY = 300;
     std::vector<double> glyphCountArr = {glyphCount1, glyphCount2, glyphCount3};
+    canvas_ = OH_Drawing_CanvasCreate();
+    ASSERT_NE(canvas_, nullptr);
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         ASSERT_NE(textLine, nullptr);
         OH_Drawing_TextLine* truncatedLine =
             OH_Drawing_TextLineCreateTruncatedLine(textLine, truncatedWidth, ELLIPSIS_MODAL_TAIL, "...");
         ASSERT_NE(truncatedLine, nullptr);
-        canvas_ = OH_Drawing_CanvasCreate();
-        ASSERT_NE(canvas_, nullptr);
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, paintPosX, paintPosY);
         // if ellipsis style change, glyph count will change.
         double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);

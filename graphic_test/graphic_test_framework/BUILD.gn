@@ -63,6 +63,7 @@ ohos_source_set("rs_graphic_test_src") {
   public_configs = [ ":rs_graphic_test_config" ]
 
   deps = [
+    # ":objcopy_resource",
     "$rosen_root/modules/2d_graphics:2d_graphics",
     "$rosen_root/modules/platform:eventhandler",
     "$rosen_root/modules/platform:hilog",
@@ -86,7 +87,6 @@ ohos_source_set("rs_graphic_test_src") {
     "libpng:libpng",
     "window_manager:libdm",
     "zlib:libz",
-    "image_framework:image_native",
   ]
 
   external_deps = [
@@ -105,9 +105,13 @@ ohos_source_set("rs_graphic_test_src") {
 ohos_shared_library("rs_graphic_test") {
   testonly = true
 
-  public_deps = [ ":rs_graphic_test_src" ]
+  public_deps = [
+    ":rs_graphic_test_src",
+  ]
 
-  external_deps = [ "googletest:gtest_main" ]
+  external_deps = [
+    "googletest:gtest_main",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -133,7 +137,6 @@ action_foreach("objcopy_resource") {
   # add resource file here
   sources = [
     "$rosen_root/modules/effect/test/resource/images/test.png",
-    # "resource/pngtest.png",
   ]
 
   resource_dir =

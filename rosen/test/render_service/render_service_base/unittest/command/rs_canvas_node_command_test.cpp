@@ -193,9 +193,11 @@ HWTEST_F(RSCanvasNodeCommandTest, SetColorGamut001, TestSize.Level1)
     auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
 
     RSCanvasNodeCommandHelper::SetColorGamut(context, id, 4); // 4 is SRGB
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(node->colorGamut_, 4); // 4 is SRGB
     RSCanvasNodeCommandHelper::SetColorGamut(context, id, 3); // 3 is DISPLAY_P3
     ASSERT_EQ(node->colorGamut_, 3); // 3 is DISPLAY_P3
+#endif
 }
 
 /**

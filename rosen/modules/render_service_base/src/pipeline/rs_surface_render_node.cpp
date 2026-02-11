@@ -248,11 +248,13 @@ bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 #endif
 }
 
-void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
+void RSSurfaceRenderNode::UpdateInfoForClonedNode(bool isClonedNode)
 {
-    bool isClonedNode = GetId() == nodeId;
-    if (isClonedNode && IsMainWindowType() && clonedSourceNodeNeedOffscreen_) {
-        SetNeedCacheSurface(true);
+    bool needCacheSurface = isClonedNode &&
+                            (IsRelatedSourceNode() ? IsLeashOrMainWindow() : IsMainWindowType()) &&
+                            clonedSourceNodeNeedOffscreen_;
+    if (needCacheSurface) {
+        SetNeedCacheSurface(!IsRelatedSourceNode());
         SetHwcChildrenDisabledState();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
             GetName().c_str(), GetId());
@@ -1154,21 +1156,52 @@ void RSSurfaceRenderNode::SetFingerprint(bool hasFingerprint)
     SetDirty();
 }
 
-void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen)
+void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen, bool isRelated)
 {
-    isCloneNode_ = (id != INVALID_NODEID);
-    clonedSourceNodeId_ = id;
     auto context = GetContext().lock();
     if (!context) {
         RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo invalid context");
         return;
     }
-    auto clonedSurfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(clonedSourceNodeId_);
-    if (clonedSurfaceNode) {
-        clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = needOffscreen;
+    auto clonedSurfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+    if (!clonedSurfaceNode) {
+        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo invalid clonedNodeId");
+        return;
     }
-    RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d",
-        id, needOffscreen);
+    if (CheckCloneCircle(std::static_pointer_cast<RSSurfaceRenderNode>(shared_from_this()),
+        clonedSurfaceNode, *context)) {
+        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo clone circle");
+        return;
+    }
+    clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = isRelated || needOffscreen;
+    isCloneNode_ = (id != INVALID_NODEID);
+    clonedSurfaceNode->SetRelatedSourceNode(isRelated);
+    SetRelated(isCloneNode_ && isRelated);
+    clonedSourceNodeId_ = id;
+    RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d"
+        "isRelated: %{public}d", id, needOffscreen, isRelated);
+}
+
+bool RSSurfaceRenderNode::CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> currentNode,
+    std::shared_ptr<RSSurfaceRenderNode> clonedNode, RSContext& rsContext)
+{
+    bool isCircle = false;
+    if (currentNode->GetId() == clonedNode->GetId()) {
+        isCircle = true;
+        return isCircle;
+    }
+    auto parentNode = currentNode->GetParent().lock();
+    if (parentNode) {
+        std::shared_ptr<RSSurfaceRenderNode> parentSurfaceNode = parentNode->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (parentSurfaceNode) {
+            isCircle = CheckCloneCircle(parentSurfaceNode, clonedNode, rsContext);
+        }
+    }
+    auto nextClonedNode = rsContext.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(clonedNode->clonedSourceNodeId_);
+    if (nextClonedNode) {
+        isCircle = CheckCloneCircle(currentNode, nextClonedNode, rsContext);
+    }
+    return isCircle;
 }
 
 void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
@@ -3285,14 +3318,24 @@ void RSSurfaceRenderNode::SetIsParentUifirstNodeEnableParam(bool b)
 #endif
 }
 
-void RSSurfaceRenderNode::SetUifirstUseStarting(NodeId id)
+void RSSurfaceRenderNode::SetUifirstStartingWindowId(NodeId id)
 {
 #ifdef RS_ENABLE_GPU
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetUifirstUseStarting(id);
+        stagingSurfaceParams->SetUifirstStartingWindowId(id);
         AddToPendingSyncList();
     }
+#endif
+}
+
+NodeId RSSurfaceRenderNode::GetUifirstStartingWindowId() const
+{
+#ifdef RS_ENABLE_GPU
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    return stagingSurfaceParams ? stagingSurfaceParams->GetUifirstStartingWindowId() : INVALID_NODEID;
+#else
+    return INVALID_NODEID;
 #endif
 }
 
@@ -3537,7 +3580,7 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
     return RSSystemProperties::GetBehindWindowFilterEnabled() && !GetRenderProperties().GetBackgroundFilter() &&
-        !childrenBlurBehindWindow_.empty();
+        !childrenBlurBehindWindow_.empty() && GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER);
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)
@@ -3836,6 +3879,85 @@ bool RSSurfaceRenderNode::IsAncestorScreenFrozen() const
     }
     screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(firstLevelNode->GetAncestorScreenNode().lock());
     return screenNode == nullptr ? false : screenNode->GetForceFreeze();
+}
+
+void RSSurfaceRenderNode::SetRelated(bool value)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetRelated(value);
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetRelatedSourceNode(bool value)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetRelatedSourceNode(value);
+    AddToPendingSyncList();
+}
+
+bool RSSurfaceRenderNode::IsRelated() const
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return false;
+    }
+    return surfaceParams->IsRelated();
+}
+
+// only use for window capture when isSyncRender is true
+void RSSurfaceRenderNode::RegisterCaptureCallback(
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& config)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::RegisterCaptureCallback stagingSurfaceParams is null");
+    } else {
+        stagingSurfaceParams->RegisterCaptureCallback(callback, config);
+        AddToPendingSyncList();
+    }
+}
+
+void RSSurfaceRenderNode::SetAppRotationCorrection(ScreenRotation appRotationCorrection)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetAppRotationCorrection(appRotationCorrection);
+    RS_LOGD("RSSurfaceRenderNode::SetAppRotationCorrection: Node: %{public}" PRIu64
+            ", appRotationCorrection: %{public}u", GetId(), appRotationCorrection);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+void RSSurfaceRenderNode::SetRotationCorrectionDegree(int32_t rotationCorrectionDegree)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetRotationCorrectionDegree(rotationCorrectionDegree);
+    RS_LOGD("RSSurfaceRenderNode::SetRotationCorrectionDegree: Node: %{public}" PRIu64
+            ", rotationCorrectionDegree: %{public}d", GetId(), rotationCorrectionDegree);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+bool RSSurfaceRenderNode::IsRelatedSourceNode() const
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return false;
+    }
+    return surfaceParams->IsRelatedSourceNode();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -39,6 +39,8 @@ public:
         RSLogicalDisplayRenderParams& displayParams, RSScreenRenderParams* screenParams);
     static void DumpScreenSpecialLayer(const std::string& funcName,
         SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds);
+    static bool NeedProcessSecLayerInDisplay(bool enableVisibleRect, RSScreenRenderParams& mirrorScreenParam,
+        RSLogicalDisplayRenderParams& mirrorParam, RSLogicalDisplayRenderParams& sourceParam);
 private:
     static bool CheckCurrentTypeIntersectVisibleRect(const std::unordered_set<NodeId>& nodeIds,
         uint32_t currentType, const RectI& visibleRect);

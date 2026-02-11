@@ -668,6 +668,31 @@ HWTEST_F(RSServiceClientTest, GetRefreshInfoToSP001, TestSize.Level1)
     EXPECT_EQ(rsClient->GetRefreshInfoToSP(-1), "");
 }
 
+/**
+ * @tc.name: GetRefreshInfoByPidAndUniqueId Test
+ * @tc.desc: GetRefreshInfoByPidAndUniqueId Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSServiceClientTest, GetRefreshInfoByPidAndUniqueId001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->GetRefreshInfoByPidAndUniqueId(-1, 0L), "");
+}
+ 
+/**
+ * @tc.name: GetRefreshInfoByPidAndUniqueId002
+ * @tc.desc: GetRefreshInfoByPidAndUniqueId002
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSServiceClientTest, GetRefreshInfoByPidAndUniqueId002, TestSize.Level1)
+{
+    RSRenderServiceConnectHub::Destroy();
+    auto result = rsClient->GetRefreshInfoByPidAndUniqueId(-1, 0L);
+    EXPECT_EQ(result, "");
+    RSRenderServiceConnectHub::Init();
+}
+
 /*
  * @tc.name: SetPhysicalScreenResolution Test
  * @tc.desc: SetPhysicalScreenResolution Test
@@ -1194,6 +1219,31 @@ HWTEST_F(RSServiceClientTest, AvcodecVideoStopTest, TestSize.Level1)
     std::vector<std::string> surfaceNameList = {"surface1"};
     uint32_t fps = 120;
     rsClient->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+}
+
+/**
+ * @tc.name: AvcodecVideoGet Test
+ * @tc.desc: AvcodecVideoGet
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, AvcodecVideoGetTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    uint64_t uniqueId = 1;
+    rsClient->AvcodecVideoGet(uniqueId);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoGetRecent Test
+ * @tc.desc: AvcodecVideoGetRecent
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, AvcodecVideoGetRecentTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->AvcodecVideoGetRecent();
 }
 
 /**

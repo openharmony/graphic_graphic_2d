@@ -23,6 +23,7 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "ipc_callbacks/surface_capture_callback.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
 #include "platform/common/rs_system_properties.h"
@@ -230,18 +231,18 @@ public:
         needSync_ = true;
     }
 
-    void SetUifirstUseStarting(NodeId id)
+    void SetUifirstStartingWindowId(NodeId id)
     {
-        if (uifirstUseStarting_ == id) {
+        if (uifirstStartingWindowId_ == id) {
             return;
         }
-        uifirstUseStarting_ = id;
+        uifirstStartingWindowId_ = id;
         needSync_ = true;
     }
 
-    NodeId GetUifirstUseStarting() const
+    NodeId GetUifirstStartingWindowId() const
     {
-        return uifirstUseStarting_;
+        return uifirstStartingWindowId_;
     }
 
     void SetUifirstChildrenDirtyRectParam(const RectI& rect)
@@ -626,6 +627,23 @@ public:
     // [Attention] The function only used for unlocking screen for PC currently
     bool IsCloneNode() const;
 
+    bool IsRelated() const;
+
+    void SetRelated(bool value)
+    {
+        isRelated_ = value;
+    }
+
+    void SetRelatedSourceNode(bool value)
+    {
+        isRelatedSourceNode_ = value;
+    }
+
+    bool IsRelatedSourceNode() const
+    {
+        return isRelatedSourceNode_;
+    }
+
     bool GetIsHwcEnabledBySolidLayer() const
     {
         return isHwcEnabledBySolidLayer_;
@@ -770,6 +788,30 @@ public:
         return lastCacheSize_;
     }
 
+    // only use for window capture when isSyncRender is true
+    void RegisterCaptureCallback(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& config)
+    {
+        captureCallback_ = callback;
+        captureConfig_ = std::make_shared<RSSurfaceCaptureConfig>(config);
+        needSync_ = true;
+    }
+
+    std::shared_ptr<RSSurfaceCaptureConfig> GetCaptureConfig()
+    {
+        return captureConfig_;
+    }
+
+    sptr<RSISurfaceCaptureCallback> GetCaptureCallback()
+    {
+        return captureCallback_;
+    }
+
+    void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
+    ScreenRotation GetAppRotationCorrection() const;
+
+    void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);
+    int32_t GetRotationCorrectionDegree() const;
+
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
@@ -782,7 +824,9 @@ private:
     bool isClonedNodeOnTheTree_ = false;
     bool isCrossNode_ = false;
     bool isCloneNode_ = false;
+    bool isRelated_ = false;
     bool clonedSourceNode_ = false;
+    bool isRelatedSourceNode_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;
@@ -790,7 +834,7 @@ private:
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
-    NodeId uifirstUseStarting_ = INVALID_NODEID;
+    NodeId uifirstStartingWindowId_ = INVALID_NODEID;
     RectI uiFirstVisibleFilterRect_;
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;
@@ -906,6 +950,13 @@ private:
     bool isBufferFlushed_ = false;
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
+
+    // only used for window capture
+    sptr<RSISurfaceCaptureCallback> captureCallback_;
+    std::shared_ptr<RSSurfaceCaptureConfig> captureConfig_;
+
+    ScreenRotation appRotationCorrection_ = ScreenRotation::ROTATION_0;
+    int32_t rotationCorrectionDegree_ = 0;
 
     ScreenId screenId_ = INVALID_SCREEN_ID;
 };

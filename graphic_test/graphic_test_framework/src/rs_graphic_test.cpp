@@ -122,9 +122,11 @@ void RSGraphicTest::SetUp()
         ::testing::UnitTest::GetInstance()->current_test_info();
     const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
         testInfo->test_case_name(), testInfo->name());
+
     if (extInfo == nullptr) {
         return;
     }
+
     auto size = GetScreenSize();
     cout << "SetUp:size:" << size.x_ << "*" << size.y_ << endl;
     if (!extInfo->isMultiple) {

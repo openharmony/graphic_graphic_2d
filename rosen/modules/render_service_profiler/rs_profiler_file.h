@@ -68,7 +68,7 @@ public:
     RSFile();
 
     bool Create(const std::string& fname);
-    bool Open(const std::string& fname);
+    bool Open(const std::string& fname, std::string& error);
 
     bool IsOpen() const;
 

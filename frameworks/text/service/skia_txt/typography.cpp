@@ -275,6 +275,43 @@ IndexAndAffinity Typography::GetGlyphIndexByCoordinate(double x, double y)
     return Convert(pos);
 }
 
+IndexAndAffinity Typography::GetCharacterIndexByCoordinate(double x, double y, TextEncoding encodeType) const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    auto pos = paragraph_->GetCharacterPositionAtCoordinate(x, y, static_cast<SPText::TextEncoding>(encodeType));
+    return Convert(pos);
+}
+
+Boundary Typography::GetCharacterRangeForGlyphRange(size_t glyphStart, size_t glyphEnd, Boundary* actualGlyphRange,
+    TextEncoding encodeType) const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    SPText::Range<size_t> tempActualGlyphRange;
+    auto charRange = paragraph_->GetCharacterRangeForGlyphRange(glyphStart, glyphEnd, &tempActualGlyphRange,
+        static_cast<SPText::TextEncoding>(encodeType));
+
+    // Only set output parameter if caller requested it (non-NULL)
+    if (actualGlyphRange != nullptr) {
+        *actualGlyphRange = {tempActualGlyphRange.start, tempActualGlyphRange.end};
+    }
+    return {charRange.start, charRange.end};
+}
+
+Boundary Typography::GetGlyphRangeForCharacterRange(size_t charStart, size_t charEnd, Boundary* actualCharRange,
+    TextEncoding encodeType) const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    SPText::Range<size_t> tempActualCharacterRange;
+    auto glyphRange = paragraph_->GetGlyphRangeForCharacterRange(charStart, charEnd, &tempActualCharacterRange,
+        static_cast<SPText::TextEncoding>(encodeType));
+
+    // Only set output parameter if caller requested it (non-NULL)
+    if (actualCharRange != nullptr) {
+        *actualCharRange = {tempActualCharacterRange.start, tempActualCharacterRange.end};
+    }
+    return {glyphRange.start, glyphRange.end};
+}
+
 Boundary Typography::GetWordBoundaryByIndex(size_t index)
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
@@ -601,6 +638,11 @@ std::shared_ptr<OHOS::Media::PixelMap> Typography::GetTextPathImageByIndex(
     return paragraph_->GetTextPathImageByIndex(start, end, options, fill);
 }
 #endif
+
+TextLayoutResult Typography::LayoutWithConstraints(const TextRectSize &constraint)
+{
+    return paragraph_->LayoutWithConstraints(constraint);
+}
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

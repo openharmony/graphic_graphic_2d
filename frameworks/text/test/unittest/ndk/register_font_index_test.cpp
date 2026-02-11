@@ -104,6 +104,8 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest002, TestSize.Level0)
     EXPECT_EQ(errorCode, ERROR_FILE_NOT_EXISTS);
     errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, fontFamily_, existFontPath_, 0);
     EXPECT_EQ(errorCode, SUCCESSED);
+    errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, nullptr, existFontPath_, 0);
+    EXPECT_EQ(errorCode, SUCCESSED);
 }
 
 /*
@@ -148,6 +150,9 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest005, TestSize.Level0)
     std::ifstream fileStream(existFontPath_);
     uint32_t result = OH_Drawing_RegisterFontBufferByIndex(
         fontCollection_, fontFamily_, existFontBuffer_.get(), bufferSize_, 0);
+    EXPECT_EQ(result, SUCCESSED);
+    result = OH_Drawing_RegisterFontBufferByIndex(
+        fontCollection_, nullptr, existFontBuffer_.get(), bufferSize_, 0);
     EXPECT_EQ(result, SUCCESSED);
  
     uint8_t invalidBuffer[] = { 0, 0, 0, 0, 0 };

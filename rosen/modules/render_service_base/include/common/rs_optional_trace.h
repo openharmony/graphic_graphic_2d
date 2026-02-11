@@ -107,7 +107,7 @@ public:
         va_end(vaList);
 
         if (result < 0) {
-            std::string traceStr(buf);
+            std::string traceStr(buf, maxSize_ - 1);
             const char* errorSuffix = "#length > 256, error";
             traceStr += errorSuffix;
             StartTrace(HITRACE_TAG_GRAPHIC_AGP, traceStr.c_str());
@@ -131,7 +131,7 @@ public:
         va_end(vaList);
 
         if (result < 0) {
-            std::string traceStr(buf);
+            std::string traceStr(buf, maxSize_ - 1);
             const char* errorSuffix = "#length > 256, error";
             traceStr += errorSuffix;
             StartTrace(HITRACE_TAG_GRAPHIC_AGP, traceStr.c_str());

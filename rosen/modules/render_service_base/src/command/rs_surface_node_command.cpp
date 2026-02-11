@@ -309,10 +309,10 @@ void SurfaceNodeCommandHelper::SetSurfaceId(RSContext& context, NodeId nodeId, S
 }
 
 void SurfaceNodeCommandHelper::SetClonedNodeInfo(
-    RSContext& context, NodeId nodeId, NodeId cloneNodeId, bool needOffscreen)
+    RSContext& context, NodeId nodeId, NodeId cloneNodeId, bool needOffscreen, bool isRelated)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetClonedNodeInfo(cloneNodeId, needOffscreen);
+        node->SetClonedNodeInfo(cloneNodeId, needOffscreen, isRelated);
     }
 }
 
@@ -384,14 +384,14 @@ void SurfaceNodeCommandHelper::SetHardwareEnableHint(RSContext& context, NodeId 
     }
 }
 
-void SurfaceNodeCommandHelper::SetSourceVirtualDisplayId(RSContext& context, NodeId nodeId, ScreenId screenId)
+void SurfaceNodeCommandHelper::SetSourceVirtualScreenId(RSContext& context, NodeId nodeId, ScreenId screenId)
 {
     if (auto surfaceRenderNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         const auto& nodeMap = context.GetNodeMap();
         nodeMap.TraverseScreenNodes(
             [surfaceRenderNode, screenId](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
                 if (screenRenderNode != nullptr && screenRenderNode->GetScreenId() == screenId) {
-                    surfaceRenderNode->SetSourceDisplayRenderNodeId(screenRenderNode->GetId());
+                    surfaceRenderNode->SetSourceScreenRenderNodeId(screenRenderNode->GetId());
                 }
             }
         );
@@ -473,6 +473,20 @@ void SurfaceNodeCommandHelper::SetContainerWindowTransparent(
 {
     if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetContainerWindowTransparent(isContainerWindowTransparent);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetAppRotationCorrection(
+    RSContext& context, NodeId nodeId, ScreenRotation appRotationCorrection)
+{
+    if (appRotationCorrection > ScreenRotation::INVALID_SCREEN_ROTATION) {
+        RS_LOGE("SurfaceNodeCommandHelper::SetAppRotationCorrection %{public}" PRIu64
+                " set invalid AppRotationCorrection",
+            nodeId);
+        return;
+    }
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetAppRotationCorrection(appRotationCorrection);
     }
 }
 } // namespace Rosen

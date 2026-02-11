@@ -540,6 +540,19 @@ typedef struct {
 } OH_Drawing_FontFeature;
 
 /**
+ * @brief Defines the rect size.
+ *
+ * @since 24
+ * @version 1.0
+ */
+typedef struct {
+    /** Rect's width */
+    double width;
+    /** Rect's height */
+    double height;
+} OH_Drawing_RectSize;
+
+/**
  * @brief Enumerates of heightmode of text.
  *
  * @since 12
@@ -1278,6 +1291,47 @@ void OH_Drawing_DestroyTypography(OH_Drawing_Typography*);
  * @version 1.0
  */
 void OH_Drawing_TypographyLayout(OH_Drawing_Typography*, double /* maxWidth */);
+
+/**
+ * @brief Layout text with constraints.
+ *
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param constraintsRect Constraints height and width for layout.
+ * @param fitStrRangeArr On return, contains the character range of the paragraph that actually fit.
+ * Indicates the pointer to the array object <b>OH_Drawing_Array</b>.
+ * @param fitStrRangeArrayLen On return, the size of the fit string array.
+ * @return Returns Indicates the pointer to an <b>OH_Drawing_RectSize</b> object that paragraph's actually rectangle.
+ * @since 24
+ */
+OH_Drawing_RectSize OH_Drawing_TypographyLayoutWithConstraints(OH_Drawing_Typography* typography,
+    OH_Drawing_RectSize constraintsRect, OH_Drawing_Array** fitStrRangeArr, size_t* fitStrRangeArrayLen);
+
+/**
+ * @brief Get range by array index.
+ *
+ * @param array Indicates the pointer to the text <b>OH_Drawing_Array</b> object.
+ * @param index Range's index in array.
+ * @return Returns Indicates the pointer to an <b>OH_Drawing_Range</b> object.
+ * @since 24
+ */
+OH_Drawing_Range* OH_Drawing_GetRangeByArrayIndex(OH_Drawing_Array* array, size_t index);
+
+/**
+ * @brief Releases the memory occupied by an <b>OH_Drawing_Array</b> object.
+ *
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Array</b> object.
+ * Supported array type: Fonts full name array, get by <b>OH_Drawing_GetSystemFontFullNamesByType</b>.
+ * Supported array type: Text lines array, get by <b>OH_Drawing_TypographyTextLines</b>.
+ * Supported array type: String indices array, get by <b>OH_Drawing_GetRunStringIndices</b>.
+ * Supported array type: Rect array, get by <b>OH_Drawing_RectCreateArray</b>.
+ * Supported array type: FontDescriptors array, get by <b>OH_Drawing_GetFontFullDescriptorsFromStream</b>.
+ * Supported array type: Text ranges array, get by <b>OH_Drawing_TypographyLayoutWithConstraints</b>.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the array is nullptr or not supported.
+ * @since 24
+ */
+OH_Drawing_ErrorCode OH_Drawing_DestroyArray(OH_Drawing_Array* array);
 
 /**
  * @brief Paints text on the canvas.
@@ -3250,6 +3304,75 @@ OH_Drawing_TextShadow *OH_Drawing_CopyTextShadow(OH_Drawing_TextShadow *shadow);
  * @since 23
  */
 void OH_Drawing_DestroyPositionAndAffinity(OH_Drawing_PositionAndAffinity* positionAndAffinity);
+
+/**
+ * @brief Gets the character range corresponding to the specified glyph range.
+ *
+ * @param typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param glyphRangeStart Indicates the start of the glyph range.
+ * @param glyphRangeEnd Indicates the end of the glyph range.
+ * @param actualGlyphRange Indicates the pointer to an <b>OH_Drawing_Range</b> pointer.
+ *     If this parameter is <b>NULL</b>, the actual glyph range will not be provided,
+ *     indicating that the actual glyph range information is not required.
+ *     Released through the <b>OH_Drawing_DestroyRange</b> interface after use.
+ * @param textEncodingType Indicates the text encoding type <b>OH_Drawing_TextEncoding</b>.
+ *     Currently only UTF-8 and UTF-16 encoding types are supported.
+ *     For UTF-8 encoding, the returned character range represents byte ranges.
+ *     For UTF-16 encoding, the returned character range represents UTF-16 code unit ranges.
+ * @return The pointer to the <b>OH_Drawing_Range</b> object representing the character range.
+ *     Released through the <b>OH_Drawing_DestroyRange</b> interface after use.
+ * @since 24
+ */
+OH_Drawing_Range* OH_Drawing_TypographyGetCharacterRangeForGlyphRange(OH_Drawing_Typography* typography,
+    size_t glyphRangeStart, size_t glyphRangeEnd, OH_Drawing_Range** actualGlyphRange,
+    OH_Drawing_TextEncoding textEncodingType);
+
+/**
+ * @brief Gets the character position and affinity from the specified coordinate.
+ *
+ * @param typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param dx Indicates the positionX of typography to set.
+ * @param dy Indicates the positionY of typography to set.
+ * @param textEncodingType Indicates the text encoding type <b>OH_Drawing_TextEncoding</b>.
+ *     Currently only UTF-8 and UTF-16 encoding types are supported.
+ *     For UTF-8 encoding, the returned position represents a byte offset.
+ *     For UTF-16 encoding, the returned position represents a UTF-16 code unit offset.
+ * @return The pointer to the <b>OH_Drawing_PositionAndAffinity</b> object.
+ *     Released through the <b>OH_Drawing_DestroyPositionAndAffinity</b> interface after use.
+ * @since 24
+ */
+OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetCharacterPositionAtCoordinate(OH_Drawing_Typography* typography,
+    double dx, double dy, OH_Drawing_TextEncoding textEncodingType);
+
+/**
+ * @brief Gets the glyph range corresponding to the specified character range.
+ *
+ * @param typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param characterRangeStart Indicates the start of the character range.
+ * @param characterRangeEnd Indicates the end of the character range.
+ * @param actualCharacterRange Indicates the pointer to an <b>OH_Drawing_Range</b> pointer.
+ *     If this parameter is <b>NULL</b>, the actual character range will not be provided,
+ *     indicating that the actual character range information is not required.
+ *     Released through the <b>OH_Drawing_DestroyRange</b> interface after use.
+ * @param textEncodingType Indicates the text encoding type <b>OH_Drawing_TextEncoding</b>.
+ *     Currently only UTF-8 and UTF-16 encoding types are supported.
+ *     For UTF-8 encoding, the input character range should be interpreted as byte ranges.
+ *     For UTF-16 encoding, the input character range should be interpreted as UTF-16 code unit ranges.
+ * @return The pointer to the <b>OH_Drawing_Range</b> object representing the glyph range.
+ *     Released through the <b>OH_Drawing_DestroyRange</b> interface after use.
+ * @since 24
+ */
+OH_Drawing_Range* OH_Drawing_TypographyGetGlyphRangeForCharacterRange(OH_Drawing_Typography* typography,
+    size_t characterRangeStart, size_t characterRangeEnd, OH_Drawing_Range** actualCharacterRange,
+    OH_Drawing_TextEncoding textEncodingType);
+
+/**
+ * @brief Releases the memory occupied by an <b>OH_Drawing_Range</b> object.
+ *
+ * @param range Indicates the pointer to an <b>OH_Drawing_Range</b> object.
+ * @since 24
+ */
+void OH_Drawing_DestroyRange(OH_Drawing_Range* range);
 #ifdef __cplusplus
 }
 #endif

@@ -48,8 +48,8 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGRenderWaveGradientMask>();
         }
     },
-    {RSNGEffectType::FRAME_GRADIENT_MASK, [] {
-            return std::make_shared<RSNGRenderFrameGradientMask>();
+    {RSNGEffectType::WAVE_DISTURBANCE_MASK, [] {
+            return std::make_shared<RSNGRenderWaveDisturbanceMask>();
         }
     },
     {RSNGEffectType::IMAGE_MASK, [] {
@@ -58,6 +58,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
     },
     {RSNGEffectType::USE_EFFECT_MASK, [] {
             return std::make_shared<RSNGRenderUseEffectMask>();
+        }
+    },
+    {RSNGEffectType::FRAME_GRADIENT_MASK, [] {
+            return std::make_shared<RSNGRenderFrameGradientMask>();
         }
     },
     {RSNGEffectType::DUPOLI_NOISE_MASK, [] {

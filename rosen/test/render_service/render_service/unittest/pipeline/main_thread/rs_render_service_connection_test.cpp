@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 
+#include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_service/core/transaction/rs_client_to_render_connection.h"
@@ -124,6 +125,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetBrightnessInfoChangeCallbackTest, Tes
     }
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: CleanBrightnessInfoChangeCallbacksTest
  * @tc.desc: test CleanBrightnessInfoChangeCallbacks
@@ -183,6 +185,7 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBrightnessInfoTest, TestSize.Level1)
         delete mainThread;
     }
 }
+#endif
 
 /**
  * @tc.name: UpdateAnimationOcclusionStatus001
@@ -195,6 +198,7 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
     RSMainThread* mainThread = new RSMainThread();
     ASSERT_NE(mainThread, nullptr);
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    bool& isAnimationOcclusion = RSUniDirtyOcclusionUtil::GetIsAnimationOcclusionRef().first;
 
     // case 1: mainThread null
     {
@@ -202,7 +206,7 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
             0, nullptr, nullptr, CreateOrGetScreenManager(), token->AsObject(), nullptr);
         string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
         connection->UpdateAnimationOcclusionStatus(sceneId, true);
-        ASSERT_EQ(mainThread->GetIsAnimationOcclusion(), false);
+        ASSERT_EQ(isAnimationOcclusion, false);
     }
 
     // case 2: mainThread not null
@@ -214,9 +218,9 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
         string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
         connection->UpdateAnimationOcclusionStatus(sceneId, false);
         sleep(1);
-        ASSERT_EQ(mainThread->GetIsAnimationOcclusion(), false);
-        delete mainThread;
+        ASSERT_EQ(isAnimationOcclusion, false);
     }
+    delete mainThread;
 }
 
 /**
@@ -227,6 +231,7 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
  */
 HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceSystemWatermarkTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     constexpr uint32_t defaultScreenWidth = 400;
     constexpr uint32_t defaultScreenHight = 320;
     auto mainThread = RSMainThread::Instance();
@@ -298,6 +303,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceSystemWatermarkTest001, TestSi
     mainThread->context_->nodeMap.UnregisterRenderNode(surfaceNodeId);
     mainThread->surfaceWatermarkHelper_.ClearSurfaceWatermark(pid, watermarkName, mainThread->GetContext(), true);
     EXPECT_EQ(mainThread->surfaceWatermarkHelper_.surfaceWatermarks_.size(), 0);
+#endif
 }
 
 /**
@@ -888,5 +894,75 @@ HWTEST_F(RSRenderServiceConnectionTest, SetVirtualScreenTypeBlackList002, TestSi
     std::vector<NodeType> typeList = {};
     ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenTypeBlackList(
         INVALID_SCREEN_ID, typeList, repCode), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrectionTest001
+ * @tc.desc: Test SetLogicalCameraRotationCorrection function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, SetLogicalCameraRotationCorrectionTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread_->runner_);
+    mainThread->runner_->Run();
+
+    pid_t testPid = 12345;
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto clientToRenderConnection = new RSClientToRenderConnection(
+        testPid, nullptr, mainThread, screenManager, token->AsObject(), nullptr);
+    ASSERT_NE(clientToRenderConnection, nullptr);
+
+    constexpr uint32_t defaultScreenWidth = 480;
+    constexpr uint32_t defaultScreenHight = 320;
+    
+    std::string name = "virtualScreen02";
+    uint32_t width = defaultScreenWidth;
+    uint32_t height = defaultScreenHight;
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, screenId);
+
+    NodeId nodeId = 0XFFFFFFFFFFFF1234;
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(nodeId, screenId);
+    screenRenderNode->screenInfo_.width = defaultScreenWidth;
+    screenRenderNode->screenInfo_.height = defaultScreenHight;
+    mainThread->context_->nodeMap.RegisterRenderNode(screenRenderNode);
+
+    NodeId surfaceNodeId = 502232;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    mainThread->context_->nodeMap.RegisterRenderNode(surfaceNode);
+    screenRenderNode->AddChild(surfaceNode);
+
+    ASSERT_EQ(
+        clientToRenderConnection->SetLogicalCameraRotationCorrection(screenId, ScreenRotation::ROTATION_90), SUCCESS);
+
+    mainThread = nullptr;
+}
+
+/**
+ * @tc.name: SetLogicalCameraRotationCorrectionTest002
+ * @tc.desc: Test SetLogicalCameraRotationCorrection function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, SetLogicalCameraRotationCorrectionTest002, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token1 = new IRemoteStub<RSIConnectionToken>();
+    auto clientToRenderConnectionWithNullThread = new RSClientToRenderConnection(
+        123, nullptr, nullptr, CreateOrGetScreenManager(), token1->AsObject(), nullptr);
+    ASSERT_NE(clientToRenderConnectionWithNullThread, nullptr);
+    clientToRenderConnectionWithNullThread->SetLogicalCameraRotationCorrection(0, ScreenRotation::ROTATION_90);
 }
 } // namespace OHOS::Rosen

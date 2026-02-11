@@ -198,6 +198,7 @@ ohos_shared_library("drawing_ani") {
     external_deps += [
       "ability_runtime:abilitykit_native",
       "ability_runtime:app_context",
+      "ability_runtime:napi_common",
     ]
   }
 

@@ -79,7 +79,7 @@ private:
     HianimationManager();
     ~HianimationManager();
 
-    hianimation_algo_device_t *hianimationDevice_ = nullptr;
+    hianimation_algo_device_t hianimationDevice_;
     void *libHandle_ = nullptr;
 
     std::set<uint32_t> taskIdMap_;

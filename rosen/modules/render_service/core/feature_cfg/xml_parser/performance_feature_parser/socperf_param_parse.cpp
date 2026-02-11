@@ -32,7 +32,7 @@ int32_t SOCPerfParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xm
             continue;
         }
 
-        if (ParseSOCPerfInternal(*currNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseSOCPerfInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGD("SOCPerfParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -41,22 +41,35 @@ int32_t SOCPerfParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xm
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t SOCPerfParamParse::ParseSOCPerfInternal(xmlNode &node)
+int32_t SOCPerfParamParse::ParseSOCPerfInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
+    xmlNode *currNode = &node;
+
+    auto iter = featureMap.find(FEATURE_CONFIGS[SOC_PERF]);
+    if (iter == featureMap.end()) {
+        RS_LOGD("SOCPerfParamParse stop parsing, no initializing param map");
+        return PARSE_NO_PARAM;
+    }
+    socPerfParam_ = std::static_pointer_cast<SOCPerfParam>(iter->second);
+
     // Start Parse Feature Params
-    int xmlParamType = GetXmlNodeAsInt(node);
-    auto name = ExtractPropertyValue("name", node);
-    auto val = ExtractPropertyValue("value", node);
+    int xmlParamType = GetXmlNodeAsInt(*currNode);
+    auto name = ExtractPropertyValue("name", *currNode);
+    auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "MultilayersSocperfEnabled") {
-            SOCPerfParam::SetMultilayersSOCPerfEnable(isEnabled);
+            socPerfParam_->SetMultilayersSOCPerfEnable(isEnabled);
             RS_LOGI("SOCPerfParamParse parse MultilayersSocperfEnabled %{public}d",
-                SOCPerfParam::IsMultilayersSOCPerfEnable());
+                socPerfParam_->IsMultilayersSOCPerfEnable());
+        } else if (name == "UnlockSocperfEnabled") {
+            socPerfParam_->SetUnlockSOCPerfEnable(isEnabled);
+            RS_LOGI("SOCPerfParamParse parse UnlockSocperfEnabled %{public}d",
+                socPerfParam_->IsUnlockSOCPerfEnable());
         } else if (name == "BlurSocperfEnabled") {
-            SOCPerfParam::SetBlurSOCPerfEnable(isEnabled);
+            socPerfParam_->SetBlurSOCPerfEnable(isEnabled);
             RS_LOGI("SOCPerfParamParse parse BlurSocperfEnabled %{public}d",
-                SOCPerfParam::IsBlurSOCPerfEnable());
+                socPerfParam_->IsBlurSOCPerfEnable());
         }
     }
     return PARSE_EXEC_SUCCESS;

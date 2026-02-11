@@ -394,7 +394,7 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
-    frameVoter_.SetDragScene(finalRange.type_ & ACE_COMPONENT_FRAME_RATE_TYPE);
+    frameVoter_.SetDragScene(finalRange.type_ & DRAG_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
         auto allTypeDescription = finalRange.GetAllTypeDescription();
@@ -859,7 +859,8 @@ void HgmFrameRateManager::HandlePointerTask(pid_t pid, int32_t pointerStatus, in
     if (pointerStatus ==  TOUCH_MOVE || pointerStatus ==  TOUCH_BUTTON_DOWN || pointerStatus ==  TOUCH_BUTTON_UP) {
         PolicyConfigData::StrategyConfig strategyRes;
         if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
-            strategyRes.pointerMode != PointerModeType::POINTER_DISENABLED) {
+            (strategyRes.pointerMode == PointerModeType::POINTER_ENABLED ||
+             (pointerStatus != TOUCH_MOVE && strategyRes.pointerMode == PointerModeType::POINTER_ENABLED_EX_MOVE))) {
             HGM_LOGD("[pointer manager] active");
             pointerManager_.HandleTimerReset();
             pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
@@ -958,7 +959,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
 
 void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect)
 {
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenRectFrameRate screenId:%{public}" PRIu64
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenRectFrameRate screenId:%" PRIu64
         " activeRect(%d, %d, %d, %d)", id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     auto& hgmCore = HgmCore::Instance();
@@ -1388,7 +1389,7 @@ bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
         if (renderNode == nullptr) {
             iter = uiFwkDirtyNodes.erase(iter);
         } else {
-            if (renderNode->IsDirty()) {
+            if (renderNode->IsOnTheTree() && renderNode->IsDirty()) {
                 uiFrameworkDirtyNodeName[renderNode->GetNodeName()] = ExtractPid(renderNode->GetId());
             }
             ++iter;

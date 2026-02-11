@@ -405,8 +405,6 @@ Filter FilterImpl::ContentLight(uintptr_t lightPosition, uintptr_t lightColor, d
     }
     para->SetLightPosition(lightPositionRes);
     para->SetLightColor(lightColorRes);
-    if (displacementMap.has_value()) {
-    }
     para->SetLightIntensity(static_cast<float>(lightIntensity));
 
     nativeFilter_->AddPara(para);

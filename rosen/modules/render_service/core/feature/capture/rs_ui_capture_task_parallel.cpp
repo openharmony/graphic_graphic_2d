@@ -16,6 +16,7 @@
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 
 #include <memory>
+#include "parameters.h"
 #include <sys/mman.h>
 
 #include "draw/surface.h"
@@ -308,6 +309,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     canvas.SetUICapture(true);
     if (isHdrCapture_) {
         canvas.SetHdrOn(true);
+        RS_TRACE_NAME_FMT("RSUiCaptureTaskParallel::Run: isHdrCapture_: %d, SetHdrOn", isHdrCapture_);
     }
     const auto& nodeParams = nodeDrawable_->GetRenderParams();
     if (UNLIKELY(!nodeParams)) {
@@ -410,9 +412,12 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         nodeDrawable_->OnCapture(canvas);
     }
     RS_LOGI("RSUiCaptureTaskParallel::Run: NodeId: [%{public}" PRIu64 "], "
-        "the number of total processedNodes: [%{public}d]; ExistCapturePixelMapOP: %{public}s",
+        "the number of total processedNodes: [%{public}d]; ExistCapturePixelMapOP: %{public}s"
+        "; colorspace[%{public}u, %{public}d], dynamicRange[%{public}u, %{public}d], finalIsHdr[%{public}d]",
         nodeId_, DrawableV2::RSRenderNodeDrawable::GetSnapshotProcessedNodeCount(),
-        canvas.GetExistCapturePixelMapFlag() ? "true" : "false");
+        canvas.GetExistCapturePixelMapFlag() ? "true" : "false",
+        captureConfig_.colorSpace.first, captureConfig_.colorSpace.second,
+        captureConfig_.dynamicRangeMode.first, captureConfig_.dynamicRangeMode.second, isHdrCapture_);
     DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
     RSUniRenderThread::ResetCaptureParam();
 #ifdef RS_PROFILER_ENABLED
@@ -554,6 +559,11 @@ bool RSUiCaptureTaskParallel::IsHdrCapture(ColorManager::ColorSpaceName colorSpa
         RS_LOGW("RSUiCaptureTaskParallel::IsHdrUiCapture colorSpace %{public}d not support", colorSpace);
         return false;
     }
+    // not on tree, not auto, set HDR, can't be detected in main loop, so use HDR as user wishes
+    if (captureConfig_.isSync && !isAutoAdjust && (dynamicRangeMode == DYNAMIC_RANGE_MODE_HIGH ||
+        dynamicRangeMode == DYNAMIC_RANGE_MODE_CONSTRAINT)) {
+        return true;
+    }
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
     if (node != nullptr && (node->GetHDRStatus() || node->ChildHasVisibleHDRContent())) {
         return true;
@@ -670,6 +680,8 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
             &UICaptureParam::IsUseDMAProcessEnabled).value_or(false) &&
             (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
+            RS_TRACE_NAME_FMT("RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask "
+                "useDma for HDR. NodeId: [%" PRIu64 "]", id);
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
             surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer, grContext);
             if (surface == nullptr) {

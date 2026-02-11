@@ -19,6 +19,7 @@
 #include "draw/surface.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shape_base.h"
+#include "ge_visual_effect_container.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_drawing_filter.h"
 #include "skia_adapter/skia_image.h"
@@ -547,6 +548,33 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetInvertedBackgroundColorTest015, testing
     paintFilterCanvasTest2.surface_ = &surfaceTest2;
     rsPropertyDrawableUtilsTest2->GetInvertBackgroundColor(
         paintFilterCanvasTest2, false, Vector4f(0.0f, 0.0f, 0.0f, 1.0f), backgroundColor);
+}
+
+/**
+ * @tc.name: DrawColorUsingSDFWithDRMTest
+ * @tc.desc: DrawColorUsingSDFWithDRM test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMTest, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+
+    Drawing::Canvas canvas;
+    bool isDark = true;
+    Drawing::Rect rect(0, 0, 0, 0);
+
+    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, nullptr, "Tag1", "Tag2");
+    EXPECT_TRUE(isDark);
+    auto filterGEContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    auto geVisualEffect = std::make_shared<Drawing::GEVisualEffect>("test");
+    filterGEContainer->AddToChainedFilter(geVisualEffect);
+    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "Tag1", "Tag2");
+    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "test", "Tag2");
+    EXPECT_TRUE(isDark);
+    isDark = false;
+    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "test", "Tag2");
+    EXPECT_FALSE(isDark);
 }
 
 /**
@@ -1265,14 +1293,14 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest002, te
     // prepare canvas and set picked color to black -> light
     Drawing::Canvas canvasDark;
     RSPaintFilterCanvas paintFilterCanvasDark(&canvasDark);
-    paintFilterCanvasDark.SetColorPicked(ColorPlaceholder::SURFACE_CONTRAST, Drawing::Color::COLOR_BLACK);
+    paintFilterCanvasDark.SetColorPicked(Drawing::Color::COLOR_BLACK);
 
     RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvasDark, drawingFilter);
 
     // prepare canvas and set picked color to white -> dark
     Drawing::Canvas canvasLight;
     RSPaintFilterCanvas paintFilterCanvasLight(&canvasLight);
-    paintFilterCanvasLight.SetColorPicked(ColorPlaceholder::SURFACE_CONTRAST, Drawing::Color::COLOR_WHITE);
+    paintFilterCanvasLight.SetColorPicked(Drawing::Color::COLOR_WHITE);
 
     RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvasLight, drawingFilter);
 
@@ -1560,6 +1588,34 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest009, testing::ext:
 
     // Call DrawBackgroundEffect with behindWindow = true
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, bounds, true);
+}
+
+/**
+ * @tc.name: PickColorAndGpuScaleImageTest001
+ * @tc.desc: test PickColor and GpuScaleImage null handling and void* semaphore
+ * @tc.type: FUNC
+ * @tc.require: issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, PickColorAndGpuScaleImageTest001, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    Drawing::Canvas canvas;
+    auto gpuContext = canvas.GetGPUContext();
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::ColorQuad color;
+
+    // PickColor: null context/image should return false
+    EXPECT_FALSE(utils->PickColor(nullptr, image, color));
+    EXPECT_FALSE(utils->PickColor(gpuContext, nullptr, color));
+
+    // GpuScaleImage: null context/image/invalid should return nullptr
+    EXPECT_EQ(utils->GpuScaleImage(nullptr, image), nullptr);
+    EXPECT_EQ(utils->GpuScaleImage(gpuContext, nullptr), nullptr);
+    EXPECT_EQ(utils->GpuScaleImage(gpuContext, image), nullptr); // invalid dims
+
+    // void* semaphore parameter (default nullptr, works on all backends)
+    utils->PickColor(gpuContext, image, color, nullptr);
+    utils->GpuScaleImage(gpuContext, image, nullptr);
 }
 
 } // namespace OHOS::Rosen

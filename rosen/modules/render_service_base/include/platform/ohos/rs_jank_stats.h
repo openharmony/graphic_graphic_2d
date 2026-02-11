@@ -38,6 +38,7 @@ constexpr int32_t TRACE_ID_INITIAL = -1;
 constexpr float TIMESTAMP_INITIAL_FLOAT = -1.f;
 constexpr float MS_TO_US = 1000.f; // ms to us
 constexpr std::string_view SWITCH_SCENE_NAME = "ABILITY_OR_PAGE_SWITCH";
+constexpr uint64_t VALUE_INITIAL = 0;
 
 struct JankFrames {
     bool isSetReportEventResponse_ = false;
@@ -162,6 +163,8 @@ public:
     void AvcodecVideoExpectionStop(const uint64_t uniqueId);
     void AvcodecVideoCollectFinish();
     void AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t sequence);
+    bool AvcodecVideoGet(uint64_t uniqueId);
+    bool AvcodecVideoGetRecent();
     bool GetEarlyZEnableFlag();
     bool GetFlushEarlyZ();
 
@@ -212,6 +215,9 @@ private:
     int64_t GetCurrentSystimeMs() const;
     int64_t GetCurrentSteadyTimeMs() const;
     float GetCurrentSteadyTimeMsFloat() const;
+    bool AvcodecVideoGetInternal(uint64_t uniqueId);
+    bool AvcodecVideoJankReport();
+    void UpdateVideoStats(AvcodecVideoParam& videoStats, uint32_t sequence, uint64_t now);
 
     static constexpr uint16_t ANIMATION_TRACE_CHECK_FREQ = 20;
     static constexpr uint32_t JANK_RANGE_VERSION = 1;
@@ -269,9 +275,11 @@ private:
     std::map<std::pair<int64_t, std::string>, JankFrames> animateJankFrames_;
     std::mutex mutex_;
     Rosen::AppInfo appInfo_;
-    bool avcodecVideoCollectOpen_ = false;
+    std::atomic<bool> avcodecVideoCollectOpen_ = false;
     std::unordered_map<uint64_t, AvcodecVideoParam> avcodecVideoMap_;
     std::mutex avcodecMutex_;
+    uint64_t recentUniqueId_ = VALUE_INITIAL;
+    uint64_t videoReportNum_ = VALUE_INITIAL;
 
     enum JankRangeType : size_t {
         JANK_FRAME_6_FREQ = 0,

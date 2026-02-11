@@ -143,6 +143,7 @@ private:
         std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor, std::index_sequence<Is...>);
     static bool ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
     static void FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc);
+    static void FillFontDescriptorWithFallback(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc);
     static std::vector<std::string> GetBcpTagList();
     bool SetFontDescriptor(const unsigned int languageId);
     std::unique_ptr<FontParser::FontDescriptor> ParseFontDescriptor(

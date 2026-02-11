@@ -79,6 +79,7 @@ public:
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void OnTreeStateChanged() override {}
     void UpdateNodeColorSpace() override {}
+    void MarkNodeColorSpace(bool isP3Color) override {}
 };
 
 class RSProfilerTest : public testing::Test {
@@ -358,9 +359,11 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
 
     RSFile testFile;
 
-    testFile.Open("RECORD_IN_MEMORY");
+    std::string error;
+    testFile.Open("RECORD_IN_MEMORY", error);
 
     EXPECT_TRUE(testFile.IsOpen());
+    EXPECT_TRUE(error.empty());
 
     std::vector<uint8_t> data;
     double readTime;

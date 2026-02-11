@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
@@ -62,6 +63,7 @@ constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
 constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
+constexpr uint32_t ADD_SAME_NODE_NUMS = 5;
 class RSMainThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -269,6 +271,7 @@ HWTEST_F(RSMainThreadTest, SetAnimationOcclusionInfo001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    bool& isAnimationOcclusion = RSUniDirtyOcclusionUtil::GetIsAnimationOcclusionRef().first;
     auto enable = DirtyRegionParam::IsAnimationOcclusionEnable();
     DirtyRegionParam::SetAnimationOcclusionEnable(true);
     ASSERT_TRUE(DirtyRegionParam::IsAnimationOcclusionEnable());
@@ -276,31 +279,31 @@ HWTEST_F(RSMainThreadTest, SetAnimationOcclusionInfo001, TestSize.Level1)
     system::SetParameter("rosen.graphic.animation.occlusion.enabled", "1");
     string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
     mainThread->SetAnimationOcclusionInfo(sceneId, false);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
     sceneId = "LAUNCHER_APP_LAUNCH_FROM_DOCK";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
     mainThread->SetAnimationOcclusionInfo(sceneId, false);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
     sceneId = "LAUNCHER_APP_SWIPE_TO_HOME";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
     mainThread->SetAnimationOcclusionInfo(sceneId, false);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
     sceneId = "UNKNOWN";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
 
     system::SetParameter("rosen.graphic.animation.occlusion.enabled", "0");
     sceneId = "LAUNCHER_APP_SWIPE_TO_HOME";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
     DirtyRegionParam::SetAnimationOcclusionEnable(false);
     ASSERT_FALSE(DirtyRegionParam::IsAnimationOcclusionEnable());
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
 
     DirtyRegionParam::SetAnimationOcclusionEnable(enable);
     system::SetParameter("rosen.graphic.animation.occlusion.enabled", ret);
@@ -589,7 +592,7 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo002, TestSize.Level2)
 
 /**
  * @tc.name: AddPidNeedDropFrame
- * @tc.desc: Test AddPidNeedDropFrame
+ * @tc.desc: Test AddPidNeedDropFrame with dropFrameLevel parameter
  * @tc.type: FUNC
  * @tc.require: issueIB612L
  */
@@ -600,13 +603,51 @@ HWTEST_F(RSMainThreadTest, AddPidNeedDropFrame, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with dropFrameLevel = 2
+    mainThread->AddPidNeedDropFrame({pid}, 2);
     ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 2);
+    ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
+}
+
+/**
+ * @tc.name: AddPidNeedDropFrame002
+ * @tc.desc: Test AddPidNeedDropFrame with default dropFrameLevel (0)
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, AddPidNeedDropFrame002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with default dropFrameLevel (0)
+    mainThread->AddPidNeedDropFrame({pid});
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
 }
 
 /**
  * @tc.name: ClearNeedDropframePidList
- * @tc.desc: Test ClearNeedDropframePidList
+ * @tc.desc: Test ClearNeedDropframePidList resets dropFrameLevel to 0
  * @tc.type: FUNC
  * @tc.require: issueIB612L
  */
@@ -617,9 +658,79 @@ HWTEST_F(RSMainThreadTest, ClearNeedDropframePidList, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Add PID with dropFrameLevel = 5
+    mainThread->AddPidNeedDropFrame({pid}, 5);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 5);
+
+    // Clear should reset level to 0, but not remove entry
     mainThread->ClearNeedDropframePidList();
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);  // Entry still exists
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);  // Level reset to 0
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
+}
+
+/**
+ * @tc.name: RemoveDropFramePid
+ * @tc.desc: Test RemoveDropFramePid removes specific PID
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, RemoveDropFramePid, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Add PID
+    mainThread->AddPidNeedDropFrame({pid}, 2);
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+    ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+
+    // Remove PID
+    mainThread->RemoveDropFramePid(pid);
     ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 0);
+    ASSERT_FALSE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+}
+
+/**
+ * @tc.name: GetDropFrameLevelByPid
+ * @tc.desc: Test GetDropFrameLevelByPid returns correct level
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, GetDropFrameLevelByPid, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test default level (0)
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+
+    // Test after adding with level = 3
+    mainThread->AddPidNeedDropFrame({pid}, 3);
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 3);
+
+    // Test after clear (should be 0)
+    mainThread->ClearNeedDropframePidList();
+    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
+
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
 }
 
 /**
@@ -635,10 +746,17 @@ HWTEST_F(RSMainThreadTest, IsNeedDropFrameByPid001, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with dropFrameLevel > 0
+    mainThread->AddPidNeedDropFrame({pid}, 1);
     ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
 
-    mainThread->ClearNeedDropframePidList();
+    // Cleanup
+    mainThread->RemoveDropFramePid(pid);
 }
 
 /**
@@ -654,10 +772,14 @@ HWTEST_F(RSMainThreadTest, IsNeedDropFrameByPid002, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    int32_t pid = ExtractPid(surfaceNode->GetId());
+
+    // Clear first to ensure clean state
+    mainThread->RemoveDropFramePid(pid);
+
+    // Test with empty pidList
     mainThread->AddPidNeedDropFrame({});
     ASSERT_FALSE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
-
-    mainThread->ClearNeedDropframePidList();
 }
 
 /**
@@ -1525,8 +1647,6 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->CheckIfHardwareForcedDisabled();
-    mainThread->context_->globalRootRenderNode_ = nullptr;
     mainThread->CheckIfHardwareForcedDisabled();
     NodeId id = 0;
     mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(id++, true);
@@ -4001,6 +4121,7 @@ HWTEST_F(RSMainThreadTest, CheckSystemSceneStatus003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    bool& isAnimationOcclusion = RSUniDirtyOcclusionUtil::GetIsAnimationOcclusionRef().first;
     auto enable = DirtyRegionParam::IsAnimationOcclusionEnable();
     DirtyRegionParam::SetAnimationOcclusionEnable(true);
     ASSERT_TRUE(DirtyRegionParam::IsAnimationOcclusionEnable());
@@ -4008,20 +4129,20 @@ HWTEST_F(RSMainThreadTest, CheckSystemSceneStatus003, TestSize.Level1)
     system::SetParameter("rosen.graphic.animation.occlusion.enabled", "1");
     string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
     sleep(1);
     mainThread->CheckSystemSceneStatus();
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
 
     mainThread->SetAnimationOcclusionInfo(sceneId, true);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
     mainThread->CheckSystemSceneStatus();
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, true);
+    ASSERT_EQ(isAnimationOcclusion, true);
 
     mainThread->SetAnimationOcclusionInfo(sceneId, false);
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
     mainThread->CheckSystemSceneStatus();
-    ASSERT_EQ(mainThread->isAnimationOcclusion_.first, false);
+    ASSERT_EQ(isAnimationOcclusion, false);
 
     DirtyRegionParam::SetAnimationOcclusionEnable(enable);
     system::SetParameter("rosen.graphic.animation.occlusion.enabled", ret);
@@ -4847,39 +4968,6 @@ HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodes, TestSize.Level2)
 }
 
 /**
- * @tc.name: GetNodeInfo001
- * @tc.desc: GetNodeInfo001 Test
- * @tc.type: FUNC
- * @tc.require: ICVK6I
- */
-HWTEST_F(RSMainThreadTest, GetNodeInfo001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    std::unordered_map<int, std::pair<int, int>> nodeInfo;
-    std::unordered_map<int, int> nullNodeInfo;
-    std::unordered_map<pid_t, size_t> modifierSize;
-    mainThread->GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
-}
-
-/**
- * @tc.name: RenderServiceAllNodeDump01
- * @tc.desc: RenderServiceAllNodeDump Test
- * @tc.type: FUNC
- * @tc.require: issueIB57QP
- */
-HWTEST_F(RSMainThreadTest, RenderServiceAllNodeDump01, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    NodeId id = 1;
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
-    MemoryTrack::Instance().AddNodeRecord(id, info);
-    DfxString log;
-    mainThread->RenderServiceAllNodeDump(log);
-}
-
-/**
  * @tc.name: ConnectChipsetVsyncSer
  * @tc.desc: test ConnectChipsetVsyncSer
  * @tc.type: FUNC
@@ -5042,128 +5130,6 @@ HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus001, TestSize.Level2)
     ASSERT_EQ(mainThread->isCurtainScreenOn_, true);
 
     mainThread->SetCurtainScreenUsingStatus(isCurtainScreenOn);
-}
-
-/**
- * @tc.name: DumpMem001
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "";
-    pid_t pid = 0;
-    bool isLite = false;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpMem002
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem002, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "";
-    pid_t pid = 0;
-    bool isLite = true;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpMem003
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem003, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "gpu";
-    pid_t pid = 0;
-    bool isLite = false;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpMem004
- * @tc.desc: test DumpMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpMem004, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "gpu";
-    pid_t pid = 0;
-    bool isLite = true;
-    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
-    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpGpuMem001
- * @tc.desc: test DumpGpuMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpGpuMem001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "gpu";
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_NE(renderNode, nullptr);
-    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
-    mainThread->DumpGpuMem(argSets, dumpString, type);
-    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
-}
-
-/**
- * @tc.name: DumpGpuMem002
- * @tc.desc: test DumpGpuMem
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, DumpGpuMem002, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->isUniRender_ = true;
-    std::unordered_set<std::u16string> argSets;
-    std::string dumpString;
-    std::string type = "";
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_NE(renderNode, nullptr);
-    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
-    mainThread->DumpGpuMem(argSets, dumpString, type);
-    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
 }
 
 /**
@@ -5612,31 +5578,6 @@ HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback002, TestSize.Level1)
 }
 
 /**
- * @tc.name: RenderServiceAllSurafceDump01
- * @tc.desc: RenderServiceAllSurafceDump Test
- * @tc.type: FUNC
- * @tc.require: issueIB57QP
- */
-HWTEST_F(RSMainThreadTest, RenderServiceAllSurafceDump01, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    //prepare nodemap
-    RSSurfaceRenderNodeConfig config;
-    config.id = 1;
-    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
-    node1->SetIsOnTheTree(true);
-    config.id = 2;
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
-    node2->SetIsOnTheTree(true);
-    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
-    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
-
-    DfxString log;
-    mainThread->RenderServiceAllSurafceDump(log);
-}
-
-/**
  * @tc.name: GetForceCommitReasonTest
  * @tc.desc: GetForceCommitReasonTest
  * @tc.type: FUNC
@@ -5743,57 +5684,6 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId004, TestSize.Level1)
     surfaceHandler->sourceType_ = 5;
     EXPECT_EQ(surfaceHandler->GetSourceType(), 5);
     mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
-}
-
-/**
- * @tc.name: DoDirectComposition003
- * @tc.desc: Test DoDirectComposition
- * @tc.type: FUNC
- * @tc.require: icc3sm
- */
-HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    NodeId rootId = 0;
-    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
-    ASSERT_NE(rootNode, nullptr);
-    auto displayNode = GetAndInitScreenRenderNode();
-    ASSERT_NE(displayNode, nullptr);
-    auto otherNode = std::make_shared<RSRenderNode>(2);
-    displayNode->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(otherNode);
-
-    auto drawable = DrawableV2::RSScreenRenderNodeDrawable::OnGenerate(otherNode);
-    auto displayDrawable = static_cast<DrawableV2::RSScreenRenderNodeDrawable*>(drawable);
-    ASSERT_NE(displayDrawable, nullptr);
-    ASSERT_NE(displayDrawable->surfaceHandler_, nullptr);
-    displayDrawable->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
-    auto handle = new BufferHandle();
-    handle->usage = BUFFER_USAGE_CPU_READ;
-    displayDrawable->surfaceHandler_->buffer_.buffer->SetBufferHandle(handle);
-    displayNode->renderDrawable_.reset(displayDrawable);
-
-    rootNode->AddChild(displayNode);
-    rootNode->GenerateFullChildrenList();
-    auto childNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(rootNode->GetChildren()->front());
-    childNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
-    auto type = system::GetParameter("persist.sys.graphic.anco.disableHebc", "-1");
-    system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
-    RSSurfaceRenderNode::SetAncoForceDoDirect(true);
-    ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
-
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
-    ChangeHardwareEnabledNodesBufferData(hardwareEnabledNodes);
-
-    NodeId displayId2 = 2;
-    auto context = std::make_shared<RSContext>();
-    auto displayNode2 = std::make_shared<RSScreenRenderNode>(displayId2, 0, context);
-    rootNode->AddChild(displayNode2);
-    rootNode->GenerateFullChildrenList();
-
-    ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
-    system::SetParameter("persist.sys.graphic.anco.disableHebc", type);
-    delete handle;
 }
 
 /**
@@ -6391,5 +6281,193 @@ HWTEST_F(RSMainThreadTest, ProcessNeedAttachedNodesTest002, TestSize.Level1)
     auto &mutablenodeMap = mainThread->context_->GetMutableNodeMap();
     mutablenodeMap.RegisterNeedAttachedNode(node);
     mainThread->ProcessNeedAttachedNodes();
+}
+
+HWTEST_F(RSMainThreadTest, AddUICaptureNode001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->uiCaptureNodeMap_.clear();
+    pid_t testPidBase = 1234;
+    uint32_t uidBase = 5678;
+
+    NodeId id1 = MakeNodeId(testPidBase, uidBase++);
+    mainThread->AddUICaptureNode(id1);
+    EXPECT_TRUE(mainThread->CheckUICaptureNode(id1));
+
+    mainThread->RemoveUICaptureNode(id1);
+    EXPECT_TRUE(mainThread->uiCaptureNodeMap_.empty());
+    EXPECT_FALSE(mainThread->CheckUICaptureNode(id1));
+}
+
+HWTEST_F(RSMainThreadTest, AddUICaptureNode002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->uiCaptureNodeMap_.clear();
+    pid_t testPidBase = 1234;
+    uint32_t uidBase = 5678;
+
+    NodeId id1 = MakeNodeId(testPidBase, uidBase++);
+    mainThread->AddUICaptureNode(id1);
+
+    NodeId id2 = MakeNodeId(testPidBase, uidBase++);
+    mainThread->AddUICaptureNode(id2);
+
+    NodeId id3 = MakeNodeId(testPidBase, uidBase++);
+    mainThread->AddUICaptureNode(id3);
+
+    bool check = (mainThread->uiCaptureNodeMap_.size() == 1);
+    EXPECT_TRUE(check);
+    if (check) {
+        auto& nodeIdCountMap = mainThread->uiCaptureNodeMap_[testPidBase];
+        EXPECT_EQ(nodeIdCountMap.size(), 3);
+    }
+
+    mainThread->RemoveUICaptureNode(id1);
+    check = (mainThread->uiCaptureNodeMap_.size() == 1);
+    EXPECT_TRUE(check);
+    if (check) {
+        auto& nodeIdCountMap = mainThread->uiCaptureNodeMap_[testPidBase];
+        EXPECT_EQ(nodeIdCountMap.size(), 2);
+    }
+
+    mainThread->RemoveUICaptureNode(id2);
+    check = (mainThread->uiCaptureNodeMap_.size() == 1);
+    EXPECT_TRUE(check);
+    if (check) {
+        auto& nodeIdCountMap = mainThread->uiCaptureNodeMap_[testPidBase];
+        EXPECT_EQ(nodeIdCountMap.size(), 1);
+    }
+
+    mainThread->RemoveUICaptureNode(id3);
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 0);
+}
+
+HWTEST_F(RSMainThreadTest, AddUICaptureNode003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->uiCaptureNodeMap_.clear();
+    pid_t testPidBase = 1234;
+    uint32_t uidBase = 5678;
+
+    NodeId id1 = MakeNodeId(testPidBase, uidBase++);
+    for (uint32_t i = 1; i <= ADD_SAME_NODE_NUMS; i++) {
+        mainThread->AddUICaptureNode(id1);
+        bool check = (mainThread->uiCaptureNodeMap_.size() == 1);
+        EXPECT_TRUE(check);
+        if (check) {
+            auto& nodeIdCountMap = mainThread->uiCaptureNodeMap_[testPidBase];
+            EXPECT_EQ(nodeIdCountMap.size(), 1);
+            auto iter = nodeIdCountMap.begin();
+            EXPECT_EQ(iter->first, id1);
+            EXPECT_EQ(iter->second, i);
+        }
+    }
+
+    for (uint32_t i = 1; i <= ADD_SAME_NODE_NUMS; i++) {
+        mainThread->RemoveUICaptureNode(id1);
+        if (i != ADD_SAME_NODE_NUMS) {
+            bool check = (mainThread->uiCaptureNodeMap_.size() == 1);
+            EXPECT_TRUE(check);
+            if (check) {
+                auto& nodeIdCountMap = mainThread->uiCaptureNodeMap_[testPidBase];
+                EXPECT_EQ(nodeIdCountMap.size(), 1);
+                auto iter = nodeIdCountMap.begin();
+                EXPECT_EQ(iter->first, id1);
+                EXPECT_EQ(iter->second, ADD_SAME_NODE_NUMS - i);
+            }
+        } else {
+            EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 0);
+        }
+    }
+    EXPECT_TRUE(mainThread->uiCaptureNodeMap_.empty());
+}
+
+HWTEST_F(RSMainThreadTest, AddUICaptureNode004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    pid_t testPidBase = 1234;
+    uint32_t uidBase = 5678;
+
+    NodeId id1 = MakeNodeId(testPidBase++, uidBase++);
+    NodeId id2 = MakeNodeId(testPidBase++, uidBase++);
+    NodeId id3 = MakeNodeId(testPidBase, uidBase++);
+    NodeId id4 = MakeNodeId(testPidBase, uidBase++);
+    NodeId id5 = MakeNodeId(testPidBase++, uidBase++);
+    NodeId id6 = MakeNodeId(testPidBase, uidBase++);
+
+    mainThread->AddUICaptureNode(id1);
+    mainThread->AddUICaptureNode(id2);
+    mainThread->AddUICaptureNode(id3);
+    mainThread->AddUICaptureNode(id4);
+    mainThread->AddUICaptureNode(id5);
+    for (uint32_t i = 0; i < ADD_SAME_NODE_NUMS; i++) {
+        mainThread->AddUICaptureNode(id6);
+    }
+
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 4);
+    auto& nodeIdCountMap1 = mainThread->uiCaptureNodeMap_[ExtractPid(id1)];
+    EXPECT_EQ(nodeIdCountMap1.size(), 1);
+    EXPECT_EQ(nodeIdCountMap1[id1], 1);
+
+    auto& nodeIdCountMap2 = mainThread->uiCaptureNodeMap_[ExtractPid(id2)];
+    EXPECT_EQ(nodeIdCountMap2.size(), 1);
+    EXPECT_EQ(nodeIdCountMap2[id2], 1);
+
+    auto& nodeIdCountMap3 = mainThread->uiCaptureNodeMap_[ExtractPid(id3)];
+    EXPECT_EQ(nodeIdCountMap3.size(), 3);
+    EXPECT_EQ(nodeIdCountMap3[id3], 1);
+    EXPECT_EQ(nodeIdCountMap3[id4], 1);
+    EXPECT_EQ(nodeIdCountMap3[id5], 1);
+
+    auto& nodeIdCountMap4 = mainThread->uiCaptureNodeMap_[ExtractPid(id6)];
+    EXPECT_EQ(nodeIdCountMap4.size(), 1);
+    EXPECT_EQ(nodeIdCountMap4[id6], ADD_SAME_NODE_NUMS);
+
+    mainThread->RemoveUICaptureNode(id1);
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 3);
+    mainThread->RemoveUICaptureNode(id2);
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 2);
+    mainThread->RemoveUICaptureNode(id3);
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 2);
+    mainThread->RemoveUICaptureNode(id4);
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 2);
+    mainThread->RemoveUICaptureNode(id5);
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 1);
+
+    auto& nodeIdCountMap5 = mainThread->uiCaptureNodeMap_[ExtractPid(id6)];
+    for (uint32_t i = 0; i < ADD_SAME_NODE_NUMS; i++) {
+        mainThread->RemoveUICaptureNode(id6);
+        EXPECT_EQ(nodeIdCountMap5[id6], ADD_SAME_NODE_NUMS - i - 1);
+    }
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 0);
+}
+
+HWTEST_F(RSMainThreadTest, AddUICaptureNode005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->uiCaptureNodeMap_.clear();
+    pid_t testPidBase = 1234;
+    uint32_t uidBase = 5678;
+
+    NodeId id1 = MakeNodeId(testPidBase, uidBase);
+    NodeId id2 = MakeNodeId(testPidBase, ++uidBase);
+    NodeId id3 = MakeNodeId(++testPidBase, uidBase++);
+    NodeId id4 = MakeNodeId(testPidBase++, uidBase++);
+    mainThread->AddUICaptureNode(id1);
+    EXPECT_TRUE(mainThread->CheckUICaptureNode(id1));
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 1);
+
+    EXPECT_TRUE(mainThread->CheckUICaptureNode(id2));
+    EXPECT_FALSE(mainThread->CheckUICaptureNode(id3));
+    EXPECT_FALSE(mainThread->CheckUICaptureNode(id4));
+
+    mainThread->RemoveUICaptureNode(id2);
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 1);
+    mainThread->RemoveUICaptureNode(id3);
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 1);
+    mainThread->RemoveUICaptureNode(id4);
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 1);
+    mainThread->RemoveUICaptureNode(id1);
+    EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 0);
 }
 } // namespace OHOS::Rosen

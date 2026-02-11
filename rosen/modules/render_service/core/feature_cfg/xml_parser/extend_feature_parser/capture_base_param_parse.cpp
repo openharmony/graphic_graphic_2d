@@ -57,7 +57,7 @@ int32_t CaptureBaseParamParse::ParseCaptureInternal(FeatureParamMapType &feature
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
-        if (name == "snapshotWithDMAEnabled") {
+        if (name == "GetSapshotWithDMAEnabled") {
             captureParam_->SetSnapshotWithDMAEnabled(isEnabled);
             RS_LOGI("ParseCaptureInternal snapshotWithDMAEnabled %{public}d", isEnabled);
         }

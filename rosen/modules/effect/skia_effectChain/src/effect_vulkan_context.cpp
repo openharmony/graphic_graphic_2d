@@ -13,14 +13,25 @@
  * limitations under the License.
  */
 
+#include "common/rs_optional_trace.h"
 #include "effect_vulkan_context.h"
+#include "effect_utils.h"
 
 namespace OHOS::Rosen {
+
+std::map<int, std::shared_ptr<Drawing::GPUContext>> EffectVulkanContext::drawingContextMap_;
+std::mutex EffectVulkanContext::drawingContextMutex_;
 
 EffectVulkanContext::EffectVulkanContext(std::string cacheDir)
 {
     vulkanInterface_ = std::make_shared<RsVulkanInterface>();
     vulkanInterface_->Init(VulkanInterfaceType::BASIC_RENDER, false);
+}
+
+EffectVulkanContext::~EffectVulkanContext()
+{
+    std::lock_guard<std::mutex> lock(drawingContextMutex_);
+    drawingContextMap_.clear();
 }
 
 EffectVulkanContext& EffectVulkanContext::GetSingleton(const std::string& cacheDir)
@@ -29,10 +40,38 @@ EffectVulkanContext& EffectVulkanContext::GetSingleton(const std::string& cacheD
     return singleton;
 }
 
+void EffectVulkanContext::ReleaseDrawingContextForThread(int tid)
+{
+    std::lock_guard<std::mutex> lock(drawingContextMutex_);
+    drawingContextMap_.erase(tid);
+}
+
+void EffectVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext)
+{
+    std::lock_guard<std::mutex> lock(drawingContextMutex_);
+    static thread_local auto func = [tid]() {
+        EffectVulkanContext::ReleaseDrawingContextForThread(tid);
+    };
+    static thread_local auto drawContextHolder = std::make_shared<DrawContextHolder>(func);
+    drawingContextMap_[tid] = drawingContext;
+}
+
 std::shared_ptr<Drawing::GPUContext> EffectVulkanContext::CreateDrawingContext()
 {
+    static thread_local int tid = gettid();
+    {
+        std::lock_guard<std::mutex> lock(drawingContextMutex_);
+        auto iter = drawingContextMap_.find(tid);
+        if (iter != drawingContextMap_.end() && iter->second != nullptr) {
+            RS_TRACE_NAME("EffectVulkanContext::CreateDrawingContext -> returned context from map");
+            return iter->second; // has created before
+        }
+    }
+
     auto context = vulkanInterface_->DoCreateDrawingContext();
+    RS_TRACE_NAME("EffectVulkanContext::CreateDrawingContext -> created new context");
     context->SetResourceCacheLimits(0, 0);
+    SaveNewDrawingContext(tid, context);
     return context;
 }
 }

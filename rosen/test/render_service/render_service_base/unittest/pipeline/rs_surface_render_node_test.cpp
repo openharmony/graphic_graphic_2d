@@ -621,10 +621,24 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsCloneNode, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeInfo, TestSize.Level1)
 {
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    surfaceRenderNode.SetClonedNodeInfo(id + 1, true);
-    bool result = surfaceRenderNode.clonedSourceNodeId_ == id + 1;
+    auto context = std::make_shared<RSContext>();
+    NodeId id = 1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    surfaceRenderNode->SetClonedNodeInfo(id, true, false);
+    bool result = surfaceRenderNode->clonedSourceNodeId_ == id;
+    ASSERT_FALSE(result);
+
+    auto surfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    context->nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(surfaceRenderNode2));
+    surfaceRenderNode->SetClonedNodeInfo(id + 1, true, false);
+    result = surfaceRenderNode->clonedSourceNodeId_ == id + 1;
     ASSERT_TRUE(result);
+
+    surfaceRenderNode->clonedSourceNodeId_ = INVALID_NODEID;
+    surfaceRenderNode->SetParent(surfaceRenderNode2);
+    surfaceRenderNode->SetClonedNodeInfo(id + 1, true, false);
+    result = surfaceRenderNode->clonedSourceNodeId_ == id + 1;
+    ASSERT_FALSE(result);
 }
 
 /**
@@ -676,9 +690,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateInfoForClonedNode, TestSize.Level1)
     surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     ASSERT_NE(surfaceRenderNode.stagingRenderParams_, nullptr);
 
-    surfaceRenderNode.UpdateInfoForClonedNode(surfaceRenderNode.clonedSourceNodeId_);
+    surfaceRenderNode.UpdateInfoForClonedNode(true);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
-    ASSERT_FALSE(surfaceParams->GetNeedCacheSurface());
+    ASSERT_TRUE(surfaceParams->GetNeedCacheSurface());
 }
 
 /**
@@ -2061,12 +2075,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.
     node->filterNodes_.emplace_back(mockNode2);
     auto mockNode3 = std::make_shared<RSRenderNode>(id + 3);
     mockNode3->isOnTheTree_ = true;
-    mockNode3->GetMutableRenderProperties().GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    mockNode3->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
     node->filterNodes_.emplace_back(mockNode3);
     auto mockNode4 = std::make_shared<RSRenderNode>(id + 4);
     mockNode4->isOnTheTree_ = true;
     mockNode4->GetMutableRenderProperties().needFilter_ = true;
-    mockNode4->GetMutableRenderProperties().GetEffect().filter_ = std::make_shared<RSFilter>();
+    mockNode4->GetMutableRenderProperties().filter_ = std::make_shared<RSFilter>();
     node->filterNodes_.emplace_back(mockNode4);
     std::shared_ptr<RSRenderNode> mockNode5 = nullptr;
     node->filterNodes_.emplace_back(mockNode5);
@@ -2075,7 +2089,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.
     std::shared_ptr<RSRenderNode> mockNode6 = std::make_shared<RSEffectRenderNode>(id + 6);
     mockNode6->isOnTheTree_ = true;
     mockNode6->GetMutableRenderProperties().needFilter_ = true;
-    mockNode6->GetMutableRenderProperties().GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    mockNode6->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
     node->filterNodes_.emplace_back(mockNode6);
     node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), false);
     ASSERT_NE(node->filterNodes_.size(), 0);
@@ -2717,7 +2731,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, DealWithDrawBehindWindowTransparentRegion002, 
 
     auto regionBeforeProcess = Occlusion::Region{Occlusion::Rect{defaultLargeRect}};
     testNode->opaqueRegion_ = regionBeforeProcess;
-    testNode->GetMutableRenderProperties().GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    testNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
     testNode->drawBehindWindowRegion_ = defaultSmallRect;
     testNode->childrenBlurBehindWindow_ = { INVALID_NODEID };
 
@@ -2770,7 +2784,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
     NodeId sourceDisplayRenderNodeId = 1;
-    testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
+    testNode->SetSourceScreenRenderNodeId(sourceDisplayRenderNodeId);
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
 
@@ -2860,6 +2874,129 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsAncestorScreenFrozenTest, TestSize.Level1)
     surfaceNode->firstLevelNodeId_ = firstLevelNode->GetId();
     EXPECT_TRUE(surfaceNode->IsAncestorScreenFrozen());
     context->GetMutableNodeMap().UnregisterRenderNode(firstLevelNode->GetId());
+}
+
+/**
+ * @tc.name: CheckCloneCircleTest
+ * @tc.desc: CheckCloneCircle
+ * @tc.type:FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, CheckCloneCircleTest, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto nodeId = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(nodeId, context);
+    EXPECT_TRUE(node1->CheckCloneCircle(node1, node1, *context));
+
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(nodeId + 1, context);
+    EXPECT_FALSE(node1->CheckCloneCircle(node1, node2, *context));
+
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(nodeId + 2, context);
+    node1->SetParent(node3);
+    context->nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(node3));
+    EXPECT_FALSE(node1->CheckCloneCircle(node1, node2, *context));
+
+    auto node4 = std::make_shared<RSSurfaceRenderNode>(nodeId + 3, context);
+    node2->clonedSourceNodeId_ = nodeId + 3;
+    context->nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(node4));
+    EXPECT_FALSE(node1->CheckCloneCircle(node1, node2, *context));
+
+    node4->clonedSourceNodeId_ = nodeId + 2;
+    EXPECT_TRUE(node1->CheckCloneCircle(node1, node2, *context));
+}
+
+/**
++ * @tc.name: SetRelatedTest
++ * @tc.desc: Test set Related filter region to surface node
++ * @tc.type:FUNC
++ * @tc.require: issue21227
++ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetRelatedTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->addedToPendingSyncList_ = false;
+    node->SetRelated(true);
+    ASSERT_FALSE(node->addedToPendingSyncList_);
+    ASSERT_FALSE(node->IsRelated());
+
+    auto context = std::make_shared<RSContext>();
+    node->context_ = context;
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    node->SetRelated(true);
+    ASSERT_TRUE(node->addedToPendingSyncList_);
+    ASSERT_TRUE(node->IsRelated());
+}
+
+/**
+ * @tc.name: SetRelatedSourceNodeTest
+ * @tc.desc: Test set RelatedSourceNode filter region to surface node
+ * @tc.type:FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetRelatedSourceNodeTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->addedToPendingSyncList_ = false;
+    node->SetRelatedSourceNode(true);
+    ASSERT_FALSE(node->addedToPendingSyncList_);
+    ASSERT_FALSE(node->IsRelatedSourceNode());
+
+    auto context = std::make_shared<RSContext>();
+    node->context_ = context;
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    node->SetRelatedSourceNode(true);
+    ASSERT_TRUE(node->addedToPendingSyncList_);
+    ASSERT_TRUE(node->IsRelatedSourceNode());
+}
+
+/**
+ * @tc.name: SetUifirstStartingWindowIdTest
+ * @tc.desc: Test set uifirst starting window id
+ * @tc.type:FUNC
+ * @tc.require: issue21674
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetUifirstStartingWindowIdTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    NodeId startingWindowId = 100;
+    node->stagingRenderParams_ = nullptr;
+    node->SetUifirstStartingWindowId(startingWindowId);
+    EXPECT_EQ(node->GetUifirstStartingWindowId(), INVALID_NODEID);
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    node->SetUifirstStartingWindowId(startingWindowId);
+    EXPECT_EQ(node->GetUifirstStartingWindowId(), startingWindowId);
+}
+
+/**
+ * @tc.name: RegisterCaptureCallbackTest
+ * @tc.desc: RegisterCaptureCallback
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, RegisterCaptureCallbackTest, TestSize.Level1)
+{
+    NodeId id = 10001;
+    auto context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    surfaceRenderNode->stagingRenderParams_ = nullptr;
+    surfaceRenderNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(surfaceRenderNode, nullptr);
+    EXPECT_TRUE(context->GetMutableNodeMap().RegisterRenderNode(surfaceRenderNode));
+    sptr<RSISurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig config;
+    config.isSyncRender = true;
+    surfaceRenderNode->RegisterCaptureCallback(callback, config);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->stagingRenderParams_.get());
+    surfaceParams->RegisterCaptureCallback(callback, config);
+    ASSERT_TRUE(surfaceParams->NeedSync());
+    surfaceParams = nullptr;
+    surfaceRenderNode->stagingRenderParams_ = nullptr;
+    surfaceRenderNode->RegisterCaptureCallback(callback, config);
 }
 } // namespace Rosen
 } // namespace OHOS

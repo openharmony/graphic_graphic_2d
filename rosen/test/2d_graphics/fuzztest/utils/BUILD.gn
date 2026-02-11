@@ -32,6 +32,6 @@ group("fuzztest") {
     "systemproperties_fuzzer:fuzztest",
     "vertices_fuzzer:fuzztest",
     "performancecaculate_fuzzer:fuzztest",
-    "perfmonitor_reporter_fuzzer:fuzztest",
+    "perfmonitorreporter_fuzzer:fuzztest",
   ]
 }

@@ -494,6 +494,14 @@ napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMetrics>&
 
 napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& lineMetrics);
 
+napi_value CreateLayoutResultJsValue(napi_env env, const OHOS::Rosen::TextLayoutResult& layoutResult);
+
+napi_value CreateFitRangeJsValue(napi_env env, const OHOS::Rosen::TextRange& fitRange);
+
+napi_value CreateFitRangeArrayJsValue(napi_env env, const std::vector<OHOS::Rosen::TextRange>& fitRangeArr);
+
+napi_value CreateLayoutRectJsValue(napi_env env, const OHOS::Rosen::TextRectSize& rect);
+
 inline void SetFontMetricsFloatValueFromJS(napi_env env, napi_value argValue, const std::string& str, float& cValue)
 {
     napi_value tempValue = nullptr;
@@ -541,6 +549,8 @@ bool GetDecorationFromJS(napi_env env, napi_value argValue, TextStyle& textStyle
 bool GetDecorationFromJSForUpdate(napi_env env, napi_value argValue, TextStyle& textStyle);
 
 bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+bool GetTextRectFromJS(napi_env env, napi_value argValue, TextRectSize& rect);
 
 bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
 

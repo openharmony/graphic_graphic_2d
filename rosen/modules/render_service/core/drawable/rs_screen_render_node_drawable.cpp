@@ -525,8 +525,6 @@ void RSScreenRenderNodeDrawable::SetAccumulateDirtyInSkipFrame(bool accumulateDi
 
 void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    // Clear cacheImgForCapture of each frame at first, only assign it when necessary
-    cacheImgForCapture_ = nullptr;
     RSSpecialLayerManager::ClearWhiteListRootIds();
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     SetDrawSkipType(DrawSkipType::NONE);
@@ -682,6 +680,8 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         params->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
         DirtyStatusAutoUpdate dirtyStatusAutoUpdate(*uniParam, params->GetChildDisplayCount() == 1);
         if (!processor->InitForRenderThread(*this, RSUniRenderThread::Instance().GetRenderEngine())) {
+            // Clear cacheImgForCapture so that mirrorScreen avoid using an expired cache
+            cacheImgForCapture_ = nullptr;
             SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);
             syncDirtyManager_->ResetDirtyAsSurfaceSize();
             syncDirtyManager_->UpdateDirty(false);
@@ -775,13 +775,14 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             params->ResetVirtualExpandAccumulatedParams();
             auto targetSurfaceRenderNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
                 params->GetTargetSurfaceRenderNodeDrawable().lock());
-            // Clear cacheImgForMultiScreenView here, do not put it earlier
-            cacheImgForMultiScreenView_ = nullptr;
             // Sometimes may require setting cacheImg, such as MultiScreenView and SingleAppCast
             if ((targetSurfaceRenderNodeDrawable || params->HasMirrorScreen()) && curCanvas_->GetSurface()) {
                 RS_TRACE_NAME("DrawExpandScreen cacheImg for capture and multiscreenview");
                 cacheImgForCapture_ = curCanvas_->GetSurface()->GetImageSnapshot();
                 cacheImgForMultiScreenView_ = cacheImgForCapture_;
+            } else {
+                cacheImgForCapture_ = nullptr;
+                cacheImgForMultiScreenView_ = nullptr;
             }
             // Restore the initial state of the canvas to avoid state accumulation
             curCanvas_->RestoreToCount(0);
@@ -965,9 +966,12 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (RSSystemProperties::GetDrawMirrorCacheImageEnabled() && params->HasMirrorScreen() &&
             curCanvas_->GetSurface() != nullptr) {
             cacheImgForCapture_ = curCanvas_->GetSurface()->GetImageSnapshot();
+        } else {
+            cacheImgForCapture_ = nullptr;
         }
     }
     RenderOverDraw();
+    CheckAndClearRelatedSourceNodeCache(*params);
     RSMainThread::Instance()->SetDirtyFlag(false);
 
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
@@ -1235,4 +1239,18 @@ bool RSScreenRenderNodeDrawable::CheckScreenFreezeSkip(RSScreenRenderParams& par
     return false;
 }
 
+void RSScreenRenderNodeDrawable::CheckAndClearRelatedSourceNodeCache(RSScreenRenderParams& params)
+{
+    auto cloneNodeMap = params.GetCloneNodeMap();
+    for (auto &iter : cloneNodeMap) {
+        auto surfaceDrawable =
+            std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(iter.second.lock());
+        if (!surfaceDrawable) {
+            RS_LOGE("RSScreenRenderNodeDrawable::CheckAndClearRelatedSourceNodeCache"
+                " surfaceDrawable is nullptr");
+            continue;
+        }
+        surfaceDrawable->ClearRelatedSourceCache();
+    }
+}
 } // namespace OHOS::Rosen::DrawableV2

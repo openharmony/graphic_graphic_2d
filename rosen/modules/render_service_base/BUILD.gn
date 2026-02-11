@@ -296,7 +296,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_attraction_effect_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
-    "src/render/rs_border_light_shader.cpp",
     "src/render/rs_color_adaptive_filter.cpp",
     "src/render/rs_color_extract.cpp",
     "src/render/rs_color_picker.cpp",
@@ -352,7 +351,6 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_data_callback_manager.cpp",
     "src/transaction/rs_transaction_handler.cpp",
-    "src/transaction/rs_transaction_metric_collector.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
     "src/transaction/rs_uiextension_data.cpp",
 
@@ -387,6 +385,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/color_picker/color_pick_alt_manager.cpp",
     "src/feature/color_picker/rs_color_picker_manager.cpp",
     "src/feature/color_picker/rs_color_picker_thread.cpp",
+    "src/feature/color_picker/rs_color_picker_utils.cpp",
     "src/feature/color_picker/rs_hetero_color_picker.cpp",
     "src/feature/hdr/rs_colorspace_util.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
@@ -399,6 +398,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/capture/rs_capture_pixelmap_manager.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_node_command.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_render_node.cpp",
+    "src/feature/buffer_reclaim/rs_buffer_reclaim.cpp",
 
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",
@@ -414,6 +414,7 @@ ohos_source_set("render_service_base_src") {
       "src/drawable/rs_property_drawable.cpp",
       "src/drawable/rs_property_drawable_background.cpp",
       "src/drawable/rs_property_drawable_foreground.cpp",
+      "src/drawable/rs_point_light_drawable.cpp",
       "src/drawable/rs_property_drawable_utils.cpp",
       "src/drawable/rs_render_node_drawable_adapter.cpp",
       "src/drawable/rs_render_node_shadow_drawable.cpp",
@@ -537,6 +538,7 @@ ohos_source_set("render_service_base_src") {
           "-mllvm",
           "-enable-partial-inlining",
         ]
+        inputs = [ "${graphic_2d_feature_pgo_path}/librender_service_base.profdata" ]
       }
       if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
         cflags += [ "-moutline-atomics" ]
@@ -741,7 +743,6 @@ ohos_source_set("render_service_base_src") {
   if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
       player_framework_enable) {
     defines += [ "RS_PROFILER_ENABLED" ]
-    defines += [ "RS_PROFILER_BETA_ENABLED" ]
     sources += [
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_archive.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp",
@@ -809,6 +810,13 @@ config("render_service_base_link_config") {
           "-Wl,--no-warn-symbol-ordering",
         ]
       }
+    }
+    if (target_cpu == "arm64" && defined(build_ext_path)) {
+      ldflags += [ 
+        "-Wl,--emit-relocs",
+        "-Wl,--no-relax", 
+        "-mno-fix-cortex-a53-843419" 
+      ]
     }
   }
 }

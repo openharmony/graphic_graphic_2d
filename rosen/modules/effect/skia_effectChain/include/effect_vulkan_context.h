@@ -15,11 +15,8 @@
 
 #ifndef EFFECT_VULKAN_CONTEXT_H
 #define EFFECT_VULKAN_CONTEXT_H
-#ifndef ROSEN_ARKUI_X
+
 #include "platform/ohos/backend/rs_vulkan_context.h"
-#else
-#include "rs_vulkan_context.h"
-#endif
 
 namespace OHOS::Rosen {
 class EffectVulkanContext {
@@ -42,10 +39,16 @@ public:
     EffectVulkanContext &operator=(const EffectVulkanContext&&) = delete;
 
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
-    
+
+    static void ReleaseDrawingContextForThread(int tid);
+    static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
+
 private:
     explicit EffectVulkanContext(std::string cacheDir = "");
-    ~EffectVulkanContext() = default;
+    ~EffectVulkanContext();
+
+    static std::map<int, std::shared_ptr<Drawing::GPUContext>> drawingContextMap_;
+    static std::mutex drawingContextMutex_;
     std::shared_ptr<RsVulkanInterface> vulkanInterface_;
 };
 }

@@ -38,6 +38,12 @@ class ColorPickerNapi {
 public:
     ColorPickerNapi();
     ~ColorPickerNapi();
+
+    static constexpr napi_type_tag NAPI_TYPE_TAG = {
+        .lower = 0xe52a6a6b55bf4d29,
+        .upper = 0x98cf1408b6253bc8
+    };
+
     static napi_value Init(napi_env env, napi_value exports);
     static napi_value CreateColorPickerFromPtr(napi_env env, std::shared_ptr<ColorPicker> picker);
     std::shared_ptr<ColorPicker> GetColorPicker(){ return nativeColorPicker_; }

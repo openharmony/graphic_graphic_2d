@@ -17,13 +17,16 @@
 #define RS_IMAGE_DETAIL_ENHANCER_THREAD_H
 
 #include <functional>
-#include <unordered_map>
+#include <list>
 #include <mutex>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "common/rs_common_hook.h"
 #include "common/rs_macros.h"
 #include "event_handler.h"
 #include "pipeline/rs_draw_cmd.h"
+#include "render/rs_pixel_map_util.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "surface_buffer.h"
@@ -35,9 +38,8 @@ struct RSImageParams {
     std::shared_ptr<Media::PixelMap> mPixelMap;
     uint64_t mNodeId;
     const Drawing::Rect mDst;
-    uint64_t mUniqueid;
+    uint64_t mUniqueId;
     std::shared_ptr<Drawing::Image> mImage;
-    bool mNeedDetachPen;
     float mMatrixScaleX;
 };
 
@@ -51,16 +53,19 @@ public:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void ScaleImageAsync(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& dst,
         uint64_t nodeId, uint64_t imageId, const std::shared_ptr<Drawing::Image>& image);
+    void ImageSamplingDump(uint64_t imageId);
 #endif
-    std::shared_ptr<Drawing::Image> EnhanceImageAsync (Drawing::Canvas& canvas,
-        const Drawing::SamplingOptions& samplingOptions, const RSImageParams& RSImageParams) const;
-    void SetOutImage(uint64_t imageId, const std::shared_ptr<Drawing::Image>& image);
-    std::shared_ptr<Drawing::Image> GetOutImage(uint64_t imageId) const;
-    void ReleaseOutImage(uint64_t imageId);
+    // used for ScaleImageAsync
+    std::shared_ptr<Drawing::Image> EnhanceImageAsync(bool& isScaledImageAsync, const RSImageParams& RSImageParams);
+    void SetScaledImage(uint64_t imageId, const std::shared_ptr<Drawing::Image>& image);
+    std::shared_ptr<Drawing::Image> GetScaledImage(uint64_t imageId);
+    void ReleaseScaledImage(uint64_t imageId);
+    void PushImageList(uint64_t imageId, const std::shared_ptr<Drawing::Image>& image);
     void SetProcessStatus(uint64_t imageId, bool flag);
     bool GetProcessStatus(uint64_t imageId) const;
-    bool GetEnableStatus() const;
-    bool IsEnableImageDetailEnhance(uint64_t nodeId) const;
+    bool GetEnabled();
+    void ReleaseAllScaledImage();
+    bool IsPidEnabled(uint64_t nodeId);
 
 private:
     RSImageDetailEnhancerThread();
@@ -70,11 +75,11 @@ private:
     RSImageDetailEnhancerThread& operator=(const RSImageDetailEnhancerThread&) = delete;
     RSImageDetailEnhancerThread& operator=(const RSImageDetailEnhancerThread&&) = delete;
 
-    void MarkDirty(uint64_t nodeId);
+    void MarkScaledImageDirty(uint64_t nodeId);
     void ResetStatus(int srcWidth, int srcHeight, int dstWidth, int dstHeight, uint64_t imageId);
     void SetProcessReady(uint64_t imageId, bool flag);
     bool GetProcessReady(uint64_t imageId) const;
-    bool IsSizeSupport(int srcWidth, int srcHeight, int dstWidth, int dstHeight);
+    bool IsSizeSupported(int srcWidth, int srcHeight, int dstWidth, int dstHeight);
     bool GetSharpness(RSImageDetailEnhanceAlgoParams& param, float scaleRatio, float& sharpness);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -85,19 +90,25 @@ private:
         const std::shared_ptr<Drawing::Image>& srcImage);
     void ExecuteTaskAsync(int dstWidth, int dstHeight, const std::shared_ptr<Drawing::Image>& image,
         uint64_t nodeId, uint64_t imageId);
+    void DumpImage(const std::shared_ptr<Drawing::Image>& image, uint64_t imageId);
 #endif
 
     bool isParamValidate_ = false;
+    bool ifReleaseAllScaledImage_ = false;
     RSImageDetailEnhanceParams params_ = {};
     RSImageDetailEnhanceAlgoParams slrParams_{};
     RSImageDetailEnhanceAlgoParams esrParams_{};
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-    std::unordered_map<uint64_t, std::shared_ptr<Drawing::Image>> outImageMap_ = {};
+    std::list<std::pair<uint64_t, std::shared_ptr<Drawing::Image>>> imageList_ = {};
+    std::unordered_map<uint64_t,
+        std::list<std::pair<uint64_t, std::shared_ptr<Drawing::Image>>>::iterator> keyMap_ = {};
     std::unordered_map<uint64_t, bool> processStatusMap_ = {};
     std::unordered_map<uint64_t, bool> processReadyMap_ = {};
     std::function<void(uint64_t)> callback_{};
     mutable std::mutex mapMutex_{};
+    float curCache_ = 0.0f;
+    long long releaseTime_ = 0;
 };
 
 class RSB_EXPORT DetailEnhancerUtils {
@@ -114,6 +125,9 @@ public:
     Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat);
     void SavePixelmapToFile(Drawing::Bitmap& bitmap, const std::string& dst);
 #endif
+
+    float GetImageSize(const std::shared_ptr<Drawing::Image>& image) const;
+    long long GetCurTime() const;
 };
 } // OHOS
 } // Rosen

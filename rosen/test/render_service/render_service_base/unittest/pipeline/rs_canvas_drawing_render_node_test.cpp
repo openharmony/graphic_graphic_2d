@@ -329,24 +329,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetPixelmapSurfaceImgValidTest, TestSize
 HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyTypeTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
-    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 100, RSDrawCmdList::UnmarshalMode::DEFERRED);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 100);
     node->outOfLimitCmdList_.emplace_back(drawCmdList);
     EXPECT_FALSE(node->outOfLimitCmdList_.empty());
     node->AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
     EXPECT_TRUE(node->outOfLimitCmdList_.empty());
-
-    Drawing::Brush brush;
-    drawCmdList->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    auto modifier1 = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
-    ASSERT_NE(modifier1, nullptr);
-    modifier1->properties_[ModifierNG::RSPropertyType::CONTENT_STYLE] = property;
-    auto indexProperty = std::make_shared<RSRenderProperty<int16_t>>(2, 0);
-    modifier1->properties_[ModifierNG::RSPropertyType::CUSTOM_INDEX] = indexProperty;
-    EXPECT_TRUE(!modifier1->GetPropertyDrawCmdList()->IsEmpty());
-    node->AddModifier(modifier1);
-    node->AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
 }
 
 /**
@@ -683,12 +670,12 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest001, TestSize.Level
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId_ + 1);
 
     node->cachedReversedOpTypes_.clear();
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList0 = nullptr;
-    node->GetDrawOpItemInfo(drawCmdList0, 1);
-    EXPECT_EQ(node->cachedReversedOpTypes_.size(), 0);
+    auto drawCmdList0 = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    node->GetDrawOpItemInfo(drawCmdList0);
+    EXPECT_EQ(node->cachedReversedOpTypes_.size(), 1);
     std::string outTest1;
     node->DumpSubClassNode(outTest1);
-    EXPECT_EQ(outTest1, ", lastResetSurfaceTime: 0, opCountAfterReset: 0, drawOpInfo: []");
+    EXPECT_EQ(outTest1, ", lastResetSurfaceTime: 0, opCountAfterReset: 0, drawOpInfo: [[0,0,0][]]");
 }
 
 /**
@@ -706,7 +693,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest002, TestSize.Level
     drawCmdList1->width_ = 1;
     drawCmdList1->height_ = 1;
     drawCmdList1->drawOpItems_.clear();
-    node->GetDrawOpItemInfo(drawCmdList1, drawCmdList1->drawOpItems_.size());
+    node->GetDrawOpItemInfo(drawCmdList1);
 
     auto drawCmdList2 = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     drawCmdList2->width_ = 2;
@@ -714,7 +701,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest002, TestSize.Level
     drawCmdList2->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
     drawCmdList2->AddDrawOp(nullptr);
     drawCmdList2->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
-    node->GetDrawOpItemInfo(drawCmdList2, drawCmdList2->drawOpItems_.size());
+    node->GetDrawOpItemInfo(drawCmdList2);
 
     std::string outTest1;
     node->DumpSubClassNode(outTest1);
@@ -737,7 +724,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest003, TestSize.Level
     drawCmdList->width_ = 2;
     drawCmdList->height_ = 2;
     drawCmdList->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
-    node->GetDrawOpItemInfo(drawCmdList, drawCmdList->drawOpItems_.size());
+    node->GetDrawOpItemInfo(drawCmdList);
 
     // could not happen
     node->cachedReversedOpTypes_[0].drawOpTypes.clear();
@@ -773,7 +760,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest004, TestSize.Level
     EXPECT_EQ(opItemsSize, drawOpItemsLimit);
 
     for (int i = 0; i < drawCmdListLimit; ++i) {
-        node->GetDrawOpItemInfo(drawCmdList, opItemsSize);
+        node->GetDrawOpItemInfo(drawCmdList);
     }
 
     EXPECT_EQ(node->cachedReversedOpTypes_.front().opItemSize, drawOpItemsLimit);
@@ -813,7 +800,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest005, TestSize.Level
     EXPECT_EQ(opItemsSize, drawOpItemsLimit);
 
     for (int i = 0; i < drawCmdListLimit; ++i) {
-        node->GetDrawOpItemInfo(drawCmdList, opItemsSize);
+        node->GetDrawOpItemInfo(drawCmdList);
     }
 
     EXPECT_EQ(node->cachedReversedOpTypes_.front().opItemSize, drawOpItemsLimit);
@@ -868,7 +855,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest006, TestSize.Level
     EXPECT_EQ(opItemsSize, drawOpItemsLimit);
 
     for (int i = 0; i < drawCmdListLimit; ++i) {
-        node->GetDrawOpItemInfo(drawCmdList, opItemsSize);
+        node->GetDrawOpItemInfo(drawCmdList);
     }
 
     EXPECT_EQ(node->cachedReversedOpTypes_.front().opItemSize, drawOpItemsLimit);
@@ -923,7 +910,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest007, TestSize.Level
     EXPECT_EQ(opItemsSize, drawOpItemsLimit);
 
     for (int i = 0; i < drawCmdListLimit; ++i) {
-        node->GetDrawOpItemInfo(drawCmdList, opItemsSize);
+        node->GetDrawOpItemInfo(drawCmdList);
     }
 
     EXPECT_EQ(node->cachedReversedOpTypes_.front().opItemSize, drawOpItemsLimit);
