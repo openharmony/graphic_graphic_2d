@@ -51,9 +51,7 @@ void RSRenderNodeDrawableTest::SetUpTestCase()
 }
 void RSRenderNodeDrawableTest::TearDownTestCase() {}
 void RSRenderNodeDrawableTest::SetUp() {}
-void RSRenderNodeDrawableTest::TearDown()
-{
-}
+void RSRenderNodeDrawableTest::TearDown() {}
 
 std::shared_ptr<RSRenderNodeDrawable> RSRenderNodeDrawableTest::CreateDrawable()
 {
@@ -139,12 +137,9 @@ HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedTest, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
 
-    auto renderNode = std::make_shared<RSRenderNode>(101);
-    drawable->curDrawingCacheRoot_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode).get();
     drawable->CheckCacheTypeAndDraw(canvas, params);
     params.childHasVisibleFilter_ = true;
     drawable->CheckCacheTypeAndDraw(canvas, params);
@@ -194,8 +189,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
 HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest002, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
  
     NodeId id = 1;
@@ -229,8 +223,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest002, TestSize.Level1
 HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
  
     NodeId id = 1;
