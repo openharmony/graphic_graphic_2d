@@ -24,6 +24,8 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
+const int SCREEN_WIDTH = 1200;
+const int SCREEN_HEIGHT = 2000;
 const std::vector<float> COLOR_GRADIENT_COLORS = {0.5f, 0.6f, 0.9f, 0.9f};
 const std::vector<float> COLOR_GRADIENT_POSITIONS = {0.2f, 0.8f};
 const std::vector<float> COLOR_GRADIENT_STRENGTHS = {1.5f};
