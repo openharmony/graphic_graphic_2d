@@ -461,7 +461,7 @@ void RSProfiler::DumpNodePropertiesShadow(const RSProperties& properties, JsonWr
         out["ShadowIsFilled"] = properties.GetShadowIsFilled();
     }
     if (!ROSEN_EQ(properties.GetShadowDisableSDFBlur(), false)) {
-        out["ShadowIsFilled"] = properties.GetShadowDisableSDFBlur();
+        out["ShadowDisableSDFBlur"] = properties.GetShadowDisableSDFBlur();
     }
 }
 

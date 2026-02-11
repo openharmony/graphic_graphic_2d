@@ -1187,7 +1187,7 @@ void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Draw
     brush.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetMaskFilter(
-        Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius, true));
+        Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius, true, disableSDFBlur));
     brush.SetFilter(filter);
     canvas->AttachBrush(brush);
     auto stencilVal = canvas->GetStencilVal();

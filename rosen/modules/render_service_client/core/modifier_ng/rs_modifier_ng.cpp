@@ -121,6 +121,7 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::COLOR_BLEND, ThresholdType::COLOR },
     { RSPropertyType::PARTICLE, ThresholdType::ZERO },
     { RSPropertyType::SHADOW_IS_FILLED, ThresholdType::ZERO },
+    { RSPropertyType::SHADOW_DISABLE_SDF_BLUR, ThresholdType::ZERO },
     { RSPropertyType::OUTLINE_COLOR, ThresholdType::COLOR },
     { RSPropertyType::OUTLINE_WIDTH, ThresholdType::LAYOUT },
     { RSPropertyType::OUTLINE_STYLE, ThresholdType::ZERO },
