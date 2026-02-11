@@ -531,6 +531,7 @@ HWTEST(RSProfilerDumpTest, DumpNodePropertiesShadow, TestSize.Level1)
     node->GetMutableRenderProperties().SetShadowElevation(16);
     node->GetMutableRenderProperties().SetShadowRadius(18);
     node->GetMutableRenderProperties().SetShadowIsFilled(true);
+    node->GetMutableRenderProperties().SetShadowDisableSDFBlur(true);
 
     RSProfiler::DumpNodePropertiesShadow(node->GetRenderProperties(), out);
 
@@ -539,7 +540,8 @@ HWTEST(RSProfilerDumpTest, DumpNodePropertiesShadow, TestSize.Level1)
                            "\"ShadowOffsetY\":14,"
                            "\"ShadowElevation\":16,"
                            "\"ShadowRadius\":18,"
-                           "\"ShadowIsFilled\":1" };
+                           "\"ShadowIsFilled\":1,"
+                           "\"ShadowDisableSDFBlur\":1" };
     expected.append(1, '\0');
     EXPECT_EQ(out.GetDumpString(), expected);
 }

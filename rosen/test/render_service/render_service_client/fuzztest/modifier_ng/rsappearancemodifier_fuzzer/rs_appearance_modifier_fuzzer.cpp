@@ -567,6 +567,9 @@ bool ShadowModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->SetShadowIsFilled(randomBool);
     modifier->GetShadowIsFilled();
 
+    modifier->SetShadowDisableSDFBlur(randomBool);
+    modifier->GetShadowDisableSDFBlur();
+
     modifier->SetUseShadowBatching(randomBool);
     modifier->GetUseShadowBatching();
     return true;

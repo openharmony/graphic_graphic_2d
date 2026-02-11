@@ -280,7 +280,7 @@ HWTEST_F(RSModifierExtractorTest, GetShadowDisableSDFBlur, TestSize.Level1)
 {
     NodeId id = 1;
     RSModifierExtractor extractor(id);
-    bool res = extractor.GetShadowIsFilled();
+    bool res = extractor.GetShadowDisableSDFBlur();
     EXPECT_FALSE(res);
 }
 

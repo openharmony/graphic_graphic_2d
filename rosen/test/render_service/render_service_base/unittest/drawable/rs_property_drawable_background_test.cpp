@@ -70,6 +70,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable001, TestSize.Level1)
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSShadowDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
     node.GetMutableRenderProperties().SetShadowIsFilled(true);
+    node.GetMutableRenderProperties().SetShadowDisableSDFBlur(true);
     node.GetMutableRenderProperties().GetEffect().shadow_->radius_ = 1.0f;
     ASSERT_TRUE(node.GetRenderProperties().IsShadowValid());
     node.GetMutableRenderProperties().GetEffect().shadow_->SetMask(true);

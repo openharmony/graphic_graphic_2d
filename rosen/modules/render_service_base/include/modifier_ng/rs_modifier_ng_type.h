@@ -247,6 +247,7 @@ public:
             case RSPropertyType::COLOR_BLEND: return "ColorBlend";
             case RSPropertyType::PARTICLE: return "Particle";
             case RSPropertyType::SHADOW_IS_FILLED: return "ShadowIsFilled";
+            case RSPropertyType::SHADOW_DISABLE_SDF_BLUR: return "ShadowDisableSDFBlur";
             case RSPropertyType::OUTLINE_COLOR: return "OutlineColor";
             case RSPropertyType::OUTLINE_WIDTH: return "OutlineWidth";
             case RSPropertyType::OUTLINE_STYLE: return "OutlineStyle";

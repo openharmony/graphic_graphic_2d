@@ -2015,6 +2015,21 @@ HWTEST_F(RSPropertiesTest, SetShadowIsFilled001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetShadowDisableSDFBlur
+ * @tc.desc: test results of SetShadowDisableSDFBlur
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSPropertiesTest, SetShadowDisableSDFBlur, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowDisableSDFBlur(true);
+    EXPECT_EQ(properties.contentDirty_, true);
+    properties.SetShadowDisableSDFBlur(false);
+    EXPECT_EQ(properties.contentDirty_, true);
+}
+
+/**
  * @tc.name: SetShadowColorStrategy001
  * @tc.desc: test results of SetShadowColorStrategy
  * @tc.type:FUNC

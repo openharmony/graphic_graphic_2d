@@ -2088,6 +2088,9 @@ void RSProperties::SetShadowDisableSDFBlur(bool disable)
     }
     GetEffect().shadow_->SetDisableSDFBlur(disable);
     SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
 }
 
 bool RSProperties::GetShadowDisableSDFBlur() const
