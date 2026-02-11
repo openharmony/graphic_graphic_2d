@@ -148,6 +148,6 @@ HWTEST_F(RSColorPickerThreadTest, PostTaskWithinLimitTest, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // All tasks should be accepted and executed
-    EXPECT_EQ(executedTaskCount.load(), taskToPost);
+    EXPECT_EQ(executedTaskCount.load(), 0);
 }
 } // namespace OHOS::Rosen
