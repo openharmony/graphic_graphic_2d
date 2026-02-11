@@ -58,7 +58,6 @@ public:
     {
         SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
-
 };
 
 // Test WaveDisturbanceMask with Progress property

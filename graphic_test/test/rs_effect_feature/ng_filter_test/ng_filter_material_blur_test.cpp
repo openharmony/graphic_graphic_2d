@@ -28,7 +28,6 @@ public:
     {
         SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
-
 };
 
 // Test MaterialBlur with all properties

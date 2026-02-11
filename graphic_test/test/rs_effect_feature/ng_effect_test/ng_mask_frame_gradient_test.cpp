@@ -56,7 +56,6 @@ public:
     {
         SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
-
 };
 
 // Test FrameGradientMask with InnerBezier and OuterBezier properties
