@@ -91,6 +91,9 @@ std::shared_ptr<RSNGMaskBase> CreateMask(RSNGEffectType type)
 std::shared_ptr<RSNGFilterBase> CreateFilter(RSNGEffectType type)
 {
     auto it = creatorFilter.find(type);
-    return it != creatorFilter.end() ? it->second() : nullptr;
+    if (it != creatorFilter.end()) {
+        return it->second();
+    }
+    return RSNGFilterBase::Create(type);
 }
 }  // namespace OHOS::Rosen
