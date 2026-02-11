@@ -4249,8 +4249,7 @@ void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr prePar
 {
     if (!selfAddForSubSurfaceCnt_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
-        subSurfaceCnt_ = (surfaceNode && (surfaceNode->IsLeashWindow() || surfaceNode->IsAppWindow())) ?
-            subSurfaceCnt_ + 1 : subSurfaceCnt_;
+        subSurfaceCnt_ = (surfaceNode && surfaceNode->IsLeashOrMainWindow()) ? subSurfaceCnt_ + 1 : subSurfaceCnt_;
         selfAddForSubSurfaceCnt_ = true;
     }
     if (subSurfaceCnt_ == 0) {
