@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ext/gex_complex_shader.h"
+#include "gex_complex_shader.h"
 #include "ge_external_dynamic_loader.h"
 #include "ge_visual_effect_impl.h"
 #include "gtest/gtest.h"

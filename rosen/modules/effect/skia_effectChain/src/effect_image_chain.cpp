@@ -23,7 +23,7 @@
 #include "ge_mesa_blur_shader_filter.h"
 #include "ge_radial_gradient_shader_mask.h"
 #include "ge_variable_radius_blur_shader_filter.h"
-#include "sdf/ge_sdf_from_image_filter.h"
+#include "ge_sdf_from_image_filter.h"
 #include "rs_trace.h"
 
 #include "pipeline/rs_paint_filter_canvas.h"

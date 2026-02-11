@@ -19,7 +19,7 @@
 
 #include "draw/color.h"
 #include "effect/shader_effect.h"
-#include "ext/gex_dot_matrix_shader_params.h"
+#include "gex_dot_matrix_shader_params.h"
 #include "random/random_data.h"
 #include "random/random_engine.h"
 #include "render/rs_flow_light_sweep_shader.h"
