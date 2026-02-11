@@ -48,6 +48,7 @@ public:
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params);
     static void ClearVirtualExpandScreenAccumulatedDirtyRegions(
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params);
+    static bool HasMirrorDisplay();
 };
 
 class DirtyStatusAutoUpdate {
