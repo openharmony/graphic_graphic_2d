@@ -1857,7 +1857,7 @@ HWTEST_F(RSMainThreadTest, UniRender003, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-#if define(RS_ENABLE_UNI_RENDER)
+#if defined(RS_ENABLE_UNI_RENDER)
 HWTEST_F(RSMainThreadTest, UniRender004, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
