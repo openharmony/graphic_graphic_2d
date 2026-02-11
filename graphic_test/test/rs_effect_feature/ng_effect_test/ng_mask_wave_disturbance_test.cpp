@@ -23,6 +23,32 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+const std::vector<float> COLOR_GRADIENT_COLORS = {0.5f, 0.6f, 0.9f, 0.9f};
+const std::vector<float> COLOR_GRADIENT_POSITIONS = {0.2f, 0.8f};
+const std::vector<float> COLOR_GRADIENT_STRENGTHS = {1.5f};
+
+void InitColorGradientFilter(const std::shared_ptr<RSNGColorGradientFilter>& filter)
+{
+    if (!filter) {
+        return;
+    }
+    filter->Setter<ColorGradientColorsTag>(COLOR_GRADIENT_COLORS);
+    filter->Setter<ColorGradientPositionsTag>(COLOR_GRADIENT_POSITIONS);
+    filter->Setter<ColorGradientStrengthsTag>(COLOR_GRADIENT_STRENGTHS);
+}
+
+void InitWaveDisturbanceMask(const std::shared_ptr<RSNGWaveDisturbanceMask>& mask)
+{
+    if (!mask) {
+        return;
+    }
+    mask->Setter<WaveDisturbanceMaskProgressTag>(0.5f);
+    mask->Setter<WaveDisturbanceMaskClickPosTag>(Vector2f(0.5f, 0.5f));
+    mask->Setter<WaveDisturbanceMaskWaveRDTag>(Vector2f(5.0f, 0.5f));
+    mask->Setter<WaveDisturbanceMaskWaveLWHTag>(Vector3f(120.0f, 40.0f, 30.0f));
+}
+} // namespace
 
 class NGMaskWaveDisturbanceTest : public RSGraphicTest {
 public:
@@ -49,10 +75,12 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
 
         // Create mask for each iteration
         auto mask = std::make_shared<RSNGWaveDisturbanceMask>();
+        InitWaveDisturbanceMask(mask);
         mask->Setter<WaveDisturbanceMaskProgressTag>(progressValues[i]);
 
         // Create effect for each iteration
         auto effect = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(effect);
         effect->Setter<ColorGradientMaskTag>(std::static_pointer_cast<RSNGMaskBase>(mask));
 
         backgroundNode->SetForegroundNGFilter(effect);
@@ -82,10 +110,12 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
 
         // Create mask for each iteration
         auto mask = std::make_shared<RSNGWaveDisturbanceMask>();
+        InitWaveDisturbanceMask(mask);
         mask->Setter<WaveDisturbanceMaskClickPosTag>(clickPosValues[i]);
 
         // Create effect for each iteration
         auto effect = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(effect);
         effect->Setter<ColorGradientMaskTag>(std::static_pointer_cast<RSNGMaskBase>(mask));
 
         backgroundNode->SetForegroundNGFilter(effect);
@@ -103,10 +133,10 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
     int row = 4;
 
     const std::vector<Vector2f> waveRDValues = {
-        Vector2f(20.0f, 20.0f),
-        Vector2f(40.0f, 40.0f),
-        Vector2f(60.0f, 60.0f),
-        Vector2f(80.0f, 80.0f)
+        Vector2f(1.0f, 0.0f),
+        Vector2f(5.0f, 0.3f),
+        Vector2f(10.0f, 0.6f),
+        Vector2f(20.0f, 1.0f)
     };
 
     for (int i = 0; i < row; i++) {
@@ -115,10 +145,12 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
 
         // Create mask for each iteration
         auto mask = std::make_shared<RSNGWaveDisturbanceMask>();
+        InitWaveDisturbanceMask(mask);
         mask->Setter<WaveDisturbanceMaskWaveRDTag>(waveRDValues[i]);
 
         // Create effect for each iteration
         auto effect = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(effect);
         effect->Setter<ColorGradientMaskTag>(std::static_pointer_cast<RSNGMaskBase>(mask));
 
         backgroundNode->SetForegroundNGFilter(effect);
@@ -148,10 +180,12 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
 
         // Create mask for each iteration
         auto mask = std::make_shared<RSNGWaveDisturbanceMask>();
+        InitWaveDisturbanceMask(mask);
         mask->Setter<WaveDisturbanceMaskWaveLWHTag>(waveLWHValues[i]);
 
         // Create effect for each iteration
         auto effect = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(effect);
         effect->Setter<ColorGradientMaskTag>(std::static_pointer_cast<RSNGMaskBase>(mask));
 
         backgroundNode->SetForegroundNGFilter(effect);
@@ -165,13 +199,15 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
 {
     // Create WaveDisturbanceMask with all properties
     auto waveDisturbanceMask = std::make_shared<RSNGWaveDisturbanceMask>();
+    InitWaveDisturbanceMask(waveDisturbanceMask);
     waveDisturbanceMask->Setter<WaveDisturbanceMaskProgressTag>(0.6f);
     waveDisturbanceMask->Setter<WaveDisturbanceMaskClickPosTag>(Vector2f(0.5f, 0.5f));
-    waveDisturbanceMask->Setter<WaveDisturbanceMaskWaveRDTag>(Vector2f(50.0f, 50.0f));
+    waveDisturbanceMask->Setter<WaveDisturbanceMaskWaveRDTag>(Vector2f(12.0f, 0.8f));
     waveDisturbanceMask->Setter<WaveDisturbanceMaskWaveLWHTag>(Vector3f(60.0f, 60.0f, 60.0f));
 
     // Create effect with mask
     auto colorGradientEffect = std::make_shared<RSNGColorGradientFilter>();
+    InitColorGradientFilter(colorGradientEffect);
     colorGradientEffect->Setter<ColorGradientMaskTag>(
         std::static_pointer_cast<RSNGMaskBase>(waveDisturbanceMask));
 

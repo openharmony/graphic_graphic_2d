@@ -23,6 +23,30 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+const std::vector<float> COLOR_GRADIENT_COLORS = {0.5f, 0.6f, 0.9f, 0.9f};
+const std::vector<float> COLOR_GRADIENT_POSITIONS = {0.2f, 0.8f};
+const std::vector<float> COLOR_GRADIENT_STRENGTHS = {1.5f};
+
+void InitColorGradientFilter(const std::shared_ptr<RSNGColorGradientFilter>& filter)
+{
+    if (!filter) {
+        return;
+    }
+    filter->Setter<ColorGradientColorsTag>(COLOR_GRADIENT_COLORS);
+    filter->Setter<ColorGradientPositionsTag>(COLOR_GRADIENT_POSITIONS);
+    filter->Setter<ColorGradientStrengthsTag>(COLOR_GRADIENT_STRENGTHS);
+}
+
+void InitFrameGradientMaskRect(const std::shared_ptr<RSNGFrameGradientMask>& mask, int width, int height)
+{
+    if (!mask) {
+        return;
+    }
+    mask->Setter<FrameGradientMaskRectWHTag>(Vector2f(static_cast<float>(width), static_cast<float>(height)));
+    mask->Setter<FrameGradientMaskRectPosTag>(Vector2f(0.0f, 0.0f));
+}
+} // namespace
 
 class NGMaskFrameGradientTest : public RSGraphicTest {
 public:
@@ -62,26 +86,12 @@ GRAPHIC_TEST(NGMaskFrameGradientTest, EFFECT_TEST, Set_NG_Mask_Frame_Gradient_Be
         auto mask = std::make_shared<RSNGFrameGradientMask>();
         mask->Setter<FrameGradientMaskInnerBezierTag>(innerBezierValues[i]);
         mask->Setter<FrameGradientMaskOuterBezierTag>(outerBezierValues[i]);
+        InitFrameGradientMaskRect(mask, nodeWidth, nodeHeight);
 
         // Create effect for each iteration with gradient colors
         auto effect = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(effect);
         effect->Setter<ColorGradientMaskTag>(std::static_pointer_cast<RSNGMaskBase>(mask));
-        // Set gradient colors for rendering
-        effect->Setter<ColorGradientEffectColor0Tag>(Vector4f(1.0f, 0.0f, 0.0f, 1.0f));  // Red
-        effect->Setter<ColorGradientEffectColor1Tag>(Vector4f(0.0f, 1.0f, 0.0f, 1.0f));  // Green
-        effect->Setter<ColorGradientEffectColor2Tag>(Vector4f(0.0f, 0.0f, 1.0f, 1.0f));  // Blue
-        effect->Setter<ColorGradientEffectColor3Tag>(Vector4f(1.0f, 1.0f, 0.0f, 1.0f));  // Yellow
-        effect->Setter<ColorGradientEffectPosition0Tag>(Vector2f(0.0f, 0.0f));
-        effect->Setter<ColorGradientEffectPosition1Tag>(Vector2f(1.0f, 0.0f));
-        effect->Setter<ColorGradientEffectPosition2Tag>(Vector2f(0.0f, 1.0f));
-        effect->Setter<ColorGradientEffectPosition3Tag>(Vector2f(1.0f, 1.0f));
-        effect->Setter<ColorGradientEffectStrength0Tag>(5.0f);
-        effect->Setter<ColorGradientEffectStrength1Tag>(5.0f);
-        effect->Setter<ColorGradientEffectStrength2Tag>(5.0f);
-        effect->Setter<ColorGradientEffectStrength3Tag>(5.0f);
-        effect->Setter<ColorGradientEffectColorNumberTag>(4.0f);
-        effect->Setter<ColorGradientEffectBlendTag>(1.0f);
-        effect->Setter<ColorGradientEffectBlendKTag>(1.0f);
 
         backgroundNode->SetForegroundNGFilter(effect);
         GetRootNode()->AddChild(backgroundNode);
@@ -106,26 +116,12 @@ GRAPHIC_TEST(NGMaskFrameGradientTest, EFFECT_TEST, Set_NG_Mask_Frame_Gradient_Co
         // Create mask for each iteration
         auto mask = std::make_shared<RSNGFrameGradientMask>();
         mask->Setter<FrameGradientMaskCornerRadiusTag>(cornerRadiusValues[i]);
+        InitFrameGradientMaskRect(mask, nodeWidth, nodeHeight);
 
         // Create effect for each iteration with gradient colors
         auto effect = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(effect);
         effect->Setter<ColorGradientMaskTag>(std::static_pointer_cast<RSNGMaskBase>(mask));
-        // Set gradient colors for rendering
-        effect->Setter<ColorGradientEffectColor0Tag>(Vector4f(1.0f, 0.0f, 0.0f, 1.0f));  // Red
-        effect->Setter<ColorGradientEffectColor1Tag>(Vector4f(0.0f, 1.0f, 0.0f, 1.0f));  // Green
-        effect->Setter<ColorGradientEffectColor2Tag>(Vector4f(0.0f, 0.0f, 1.0f, 1.0f));  // Blue
-        effect->Setter<ColorGradientEffectColor3Tag>(Vector4f(1.0f, 1.0f, 0.0f, 1.0f));  // Yellow
-        effect->Setter<ColorGradientEffectPosition0Tag>(Vector2f(0.0f, 0.0f));
-        effect->Setter<ColorGradientEffectPosition1Tag>(Vector2f(1.0f, 0.0f));
-        effect->Setter<ColorGradientEffectPosition2Tag>(Vector2f(0.0f, 1.0f));
-        effect->Setter<ColorGradientEffectPosition3Tag>(Vector2f(1.0f, 1.0f));
-        effect->Setter<ColorGradientEffectStrength0Tag>(5.0f);
-        effect->Setter<ColorGradientEffectStrength1Tag>(5.0f);
-        effect->Setter<ColorGradientEffectStrength2Tag>(5.0f);
-        effect->Setter<ColorGradientEffectStrength3Tag>(5.0f);
-        effect->Setter<ColorGradientEffectColorNumberTag>(4.0f);
-        effect->Setter<ColorGradientEffectBlendTag>(1.0f);
-        effect->Setter<ColorGradientEffectBlendKTag>(1.0f);
 
         backgroundNode->SetForegroundNGFilter(effect);
         GetRootNode()->AddChild(backgroundNode);
@@ -152,26 +148,12 @@ GRAPHIC_TEST(NGMaskFrameGradientTest, EFFECT_TEST, Set_NG_Mask_Frame_Gradient_Fr
         auto mask = std::make_shared<RSNGFrameGradientMask>();
         mask->Setter<FrameGradientMaskInnerFrameWidthTag>(innerFrameWidthValues[i]);
         mask->Setter<FrameGradientMaskOuterFrameWidthTag>(outerFrameWidthValues[i]);
+        InitFrameGradientMaskRect(mask, nodeWidth, nodeHeight);
 
         // Create effect for each iteration with gradient colors
         auto effect = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(effect);
         effect->Setter<ColorGradientMaskTag>(std::static_pointer_cast<RSNGMaskBase>(mask));
-        // Set gradient colors for rendering
-        effect->Setter<ColorGradientEffectColor0Tag>(Vector4f(1.0f, 0.0f, 0.0f, 1.0f));  // Red
-        effect->Setter<ColorGradientEffectColor1Tag>(Vector4f(0.0f, 1.0f, 0.0f, 1.0f));  // Green
-        effect->Setter<ColorGradientEffectColor2Tag>(Vector4f(0.0f, 0.0f, 1.0f, 1.0f));  // Blue
-        effect->Setter<ColorGradientEffectColor3Tag>(Vector4f(1.0f, 1.0f, 0.0f, 1.0f));  // Yellow
-        effect->Setter<ColorGradientEffectPosition0Tag>(Vector2f(0.0f, 0.0f));
-        effect->Setter<ColorGradientEffectPosition1Tag>(Vector2f(1.0f, 0.0f));
-        effect->Setter<ColorGradientEffectPosition2Tag>(Vector2f(0.0f, 1.0f));
-        effect->Setter<ColorGradientEffectPosition3Tag>(Vector2f(1.0f, 1.0f));
-        effect->Setter<ColorGradientEffectStrength0Tag>(5.0f);
-        effect->Setter<ColorGradientEffectStrength1Tag>(5.0f);
-        effect->Setter<ColorGradientEffectStrength2Tag>(5.0f);
-        effect->Setter<ColorGradientEffectStrength3Tag>(5.0f);
-        effect->Setter<ColorGradientEffectColorNumberTag>(4.0f);
-        effect->Setter<ColorGradientEffectBlendTag>(1.0f);
-        effect->Setter<ColorGradientEffectBlendKTag>(1.0f);
 
         backgroundNode->SetForegroundNGFilter(effect);
         GetRootNode()->AddChild(backgroundNode);
@@ -194,24 +176,9 @@ GRAPHIC_TEST(NGMaskFrameGradientTest, EFFECT_TEST, Set_NG_Mask_Frame_Gradient_Co
 
     // Create effect with mask and gradient colors
     auto colorGradientEffect = std::make_shared<RSNGColorGradientFilter>();
+    InitColorGradientFilter(colorGradientEffect);
     colorGradientEffect->Setter<ColorGradientMaskTag>(
         std::static_pointer_cast<RSNGMaskBase>(frameGradientMask));
-    // Set gradient colors for rendering
-    colorGradientEffect->Setter<ColorGradientEffectColor0Tag>(Vector4f(1.0f, 0.0f, 0.0f, 1.0f));  // Red
-    colorGradientEffect->Setter<ColorGradientEffectColor1Tag>(Vector4f(0.0f, 1.0f, 0.0f, 1.0f));  // Green
-    colorGradientEffect->Setter<ColorGradientEffectColor2Tag>(Vector4f(0.0f, 0.0f, 1.0f, 1.0f));  // Blue
-    colorGradientEffect->Setter<ColorGradientEffectColor3Tag>(Vector4f(1.0f, 1.0f, 0.0f, 1.0f));  // Yellow
-    colorGradientEffect->Setter<ColorGradientEffectPosition0Tag>(Vector2f(0.0f, 0.0f));
-    colorGradientEffect->Setter<ColorGradientEffectPosition1Tag>(Vector2f(1.0f, 0.0f));
-    colorGradientEffect->Setter<ColorGradientEffectPosition2Tag>(Vector2f(0.0f, 1.0f));
-    colorGradientEffect->Setter<ColorGradientEffectPosition3Tag>(Vector2f(1.0f, 1.0f));
-    colorGradientEffect->Setter<ColorGradientEffectStrength0Tag>(5.0f);
-    colorGradientEffect->Setter<ColorGradientEffectStrength1Tag>(5.0f);
-    colorGradientEffect->Setter<ColorGradientEffectStrength2Tag>(5.0f);
-    colorGradientEffect->Setter<ColorGradientEffectStrength3Tag>(5.0f);
-    colorGradientEffect->Setter<ColorGradientEffectColorNumberTag>(4.0f);
-    colorGradientEffect->Setter<ColorGradientEffectBlendTag>(1.0f);
-    colorGradientEffect->Setter<ColorGradientEffectBlendKTag>(1.0f);
 
     int nodeWidth = 350;
     int nodeHeight = 350;
