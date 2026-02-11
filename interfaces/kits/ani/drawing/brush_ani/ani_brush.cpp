@@ -171,17 +171,18 @@ void AniBrush::SetColor4f(ani_env* env, ani_object obj, ani_object aniColor4f, a
     }
 
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
-    ColorManager::AniColorSpaceManager* aniColorSpaceManager =
+    if (IsReferenceValid(env, aniColorSpace)) {
+        ColorManager::AniColorSpaceManager* aniColorSpaceManager =
         GetNativeFromObj<ColorManager::AniColorSpaceManager>(env, aniColorSpace,
                 AniGlobalField::GetInstance().colorSpaceManagerNativeobj);
-    if (aniColorSpaceManager != nullptr) {
-        auto colorManagerColorSpace = aniColorSpaceManager->GetColorSpaceToken();
-        if (colorManagerColorSpace != nullptr) {
-            drawingColorSpace = Drawing::ColorSpaceConvertor::
-                ColorSpaceConvertToDrawingColorSpace(colorManagerColorSpace);
+        if (aniColorSpaceManager != nullptr) {
+            auto colorManagerColorSpace = aniColorSpaceManager->GetColorSpaceToken();
+            if (colorManagerColorSpace != nullptr) {
+                drawingColorSpace = Drawing::ColorSpaceConvertor::
+                    ColorSpaceConvertToDrawingColorSpace(colorManagerColorSpace);
+            }
         }
     }
-
     aniBrush->GetBrush()->SetColor(drawingColor, drawingColorSpace);
     return;
 #else

@@ -481,18 +481,6 @@ bool MakeFontFeaturesFromAniObjArray(ani_env* env, std::shared_ptr<Drawing::Draw
             ROSEN_LOGE("GetFontFeaturesRef get fontFeatureRef failed");
             return false;
         }
-        if (i == 0) {
-            ani_class fontFeatureClass = AniGlobalClass::GetInstance().fontFeatureInterface;
-            if (fontFeatureClass == nullptr) {
-                ROSEN_LOGE("[ANI] can't find class %{public}s", ANI_CLASS_FONTFEATURE_NAME);
-                return false;
-            }
-            env->Object_InstanceOf(static_cast<ani_object>(fontFeatureRef), fontFeatureClass, &isFontFeatureClass);
-            if (!isFontFeatureClass) {
-                ROSEN_LOGE("fontFeatureRef is invalid");
-                return false;
-            }
-        }
         
         ani_method fontFeatureGetName = AniGlobalMethod::GetInstance().fontFeatureGetName;
         ani_ref nameRef = nullptr;

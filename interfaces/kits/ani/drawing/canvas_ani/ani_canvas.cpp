@@ -2162,7 +2162,7 @@ std::shared_ptr<Drawing::DrawingFontFeatures> ParseFontFeatures(ani_env* env, an
     if (ANI_OK != env->Array_GetLength(featuresobj, &aniLength)) {
         ROSEN_LOGE("AniCanvas::ParseFontFeatures featuresobj are invalid");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "AniCanvas::DrawSingleCharacterWithFeatures incorrect type points.");
+            "AniCanvas::ParseFontFeatures incorrect type points.");
         return nullptr;
     }
     uint32_t size = static_cast<uint32_t>(aniLength);
@@ -2170,7 +2170,7 @@ std::shared_ptr<Drawing::DrawingFontFeatures> ParseFontFeatures(ani_env* env, an
     std::shared_ptr<Drawing::DrawingFontFeatures> drawingFontFeatures =
                 std::make_shared<Drawing::DrawingFontFeatures>();
     if (!MakeFontFeaturesFromAniObjArray(env, drawingFontFeatures, size, featuresobj)) {
-        ROSEN_LOGE("AniCanvas::drawSingleCharacterWithFeatures MakeFontFeaturesFromAniObjArray is fail");
+        ROSEN_LOGE("AniCanvas::ParseFontFeatures MakeFontFeaturesFromAniObjArray is fail");
         return nullptr;
     }
     return drawingFontFeatures;

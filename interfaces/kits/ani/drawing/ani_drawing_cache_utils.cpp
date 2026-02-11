@@ -130,14 +130,14 @@ ani_method AniFindMethod(ani_env* env, ani_class cls, const DescriptorConfig& co
     return method;
 }
 
-ani_field AniFindField(ani_env* env, ani_class cls)
+ani_field AniFindField(ani_env* env, ani_class cls, const char* filedName = "nativeObj")
 {
     if (cls == nullptr) {
         ROSEN_LOGE("Failed to find field: cls is null");
         return nullptr;
     }
     ani_field field = nullptr;
-    ani_status status = env->Class_FindField(cls, NATIVE_OBJ, &field);
+    ani_status status = env->Class_FindField(cls, filedName, &field);
     if (status != ANI_OK) {
         ROSEN_LOGE("Failed to find field: find nativeObj failed");
         return nullptr;
@@ -306,7 +306,7 @@ void AniGlobalMethod::Init(ani_env* env)
 void AniGlobalField::Init(ani_env* env)
 {
     brushNativeObj = AniFindField(env, AniGlobalClass::GetInstance().brush);
-    colorSpaceManagerNativeobj = AniFindField(env, AniGlobalClass::GetInstance().colorSpaceManager);
+    colorSpaceManagerNativeobj = AniFindField(env, AniGlobalClass::GetInstance().colorSpaceManager, "nativePtr");
     samplingOptionsNativeObj = AniFindField(env, AniGlobalClass::GetInstance().samplingOptions);
     canvasNativeObj = AniFindField(env, AniGlobalClass::GetInstance().canvas);
     colorFilterNativeObj = AniFindField(env, AniGlobalClass::GetInstance().colorFilter);
