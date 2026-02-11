@@ -50,6 +50,6 @@ group("fuzztest") {
     "ndkdrawingcanvasutils_fuzzer:fuzztest",
   ]
   if (!is_emulator) {
-    deps += ["ndkdrawing_gpu_context_fuzzer:fuzztest"]
+    deps += ["ndkdrawinggpucontext_fuzzer:fuzztest"]
   }
 }

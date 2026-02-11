@@ -21,7 +21,7 @@ module_out_path = "graphic_2d/graphic_2d"
 ohos_fuzztest("NdkDrawingGpuContextFuzzTest") {
   module_out_path = module_out_path
   fuzz_config_file =
-      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/ndk/ndkdrawing_gpu_context_fuzzer"
+      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/ndk/ndkdrawinggpucontext_fuzzer"
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
