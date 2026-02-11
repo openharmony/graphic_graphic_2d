@@ -1303,7 +1303,7 @@ void OH_Drawing_TypographyLayout(OH_Drawing_Typography*, double /* maxWidth */);
  * @return Returns Indicates the pointer to an <b>OH_Drawing_RectSize</b> object that paragraph's actually rectangle.
  * @since 24
  */
-OH_Drawing_RectSize OH_Drawing_TypographyLayoutWithConstraints(OH_Drawing_Typography* typography,
+OH_Drawing_RectSize OH_Drawing_TypographyLayoutWithConstraintsWithBuffer(OH_Drawing_Typography* typography,
     OH_Drawing_RectSize constraintsRect, OH_Drawing_Array** fitStrRangeArr, size_t* fitStrRangeArrayLen);
 
 /**
@@ -1325,13 +1325,13 @@ OH_Drawing_Range* OH_Drawing_GetRangeByArrayIndex(OH_Drawing_Array* array, size_
  * Supported array type: String indices array, get by <b>OH_Drawing_GetRunStringIndices</b>.
  * Supported array type: Rect array, get by <b>OH_Drawing_RectCreateArray</b>.
  * Supported array type: FontDescriptors array, get by <b>OH_Drawing_GetFontFullDescriptorsFromStream</b>.
- * Supported array type: Text ranges array, get by <b>OH_Drawing_TypographyLayoutWithConstraints</b>.
+ * Supported array type: Text ranges array, get by <b>OH_Drawing_TypographyLayoutWithConstraintsWithBuffer</b>.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the array is nullptr or not supported.
  * @since 24
  */
-OH_Drawing_ErrorCode OH_Drawing_DestroyArray(OH_Drawing_Array* array);
+OH_Drawing_ErrorCode OH_Drawing_ReleaseArrayBuffer(OH_Drawing_Array* array);
 
 /**
  * @brief Paints text on the canvas.

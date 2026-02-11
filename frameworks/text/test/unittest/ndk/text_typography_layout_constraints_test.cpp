@@ -189,7 +189,7 @@ OH_Drawing_RectSize NdkTypographyLayoutConstraintsTest::CallLayoutWithConstraint
     OH_Drawing_RectSize size;
     size.width = width;
     size.height = height;
-    return OH_Drawing_TypographyLayoutWithConstraints(fTypography, size, rangeArray, rangeCount);
+    return OH_Drawing_TypographyLayoutWithConstraintsWithBuffer(fTypography, size, rangeArray, rangeCount);
 }
 
 void VerifyRange(size_t start, size_t end, OH_Drawing_Range* range)
@@ -232,7 +232,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     size.height = LAYOUT_HEIGHT_MEDIUM;
 
     OH_Drawing_RectSize result =
-        OH_Drawing_TypographyLayoutWithConstraints(nullptr, size, &rangeArray, &rangeCount);
+        OH_Drawing_TypographyLayoutWithConstraintsWithBuffer(nullptr, size, &rangeArray, &rangeCount);
     VerifyRectSize(0, 0, result);
     EXPECT_EQ(rangeCount, 0);
     EXPECT_EQ(rangeArray, nullptr);
@@ -256,7 +256,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     size.height = LAYOUT_HEIGHT_MEDIUM;
 
     OH_Drawing_RectSize result =
-        OH_Drawing_TypographyLayoutWithConstraints(fTypography, size, nullptr, &rangeCount);
+        OH_Drawing_TypographyLayoutWithConstraintsWithBuffer(fTypography, size, nullptr, &rangeCount);
     EXPECT_EQ(rangeCount, 0);
     VerifyRectSize(0, 0, result);
 }
@@ -279,7 +279,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     size.height = LAYOUT_HEIGHT_MEDIUM;
 
     OH_Drawing_RectSize result =
-        OH_Drawing_TypographyLayoutWithConstraints(fTypography, size, &rangeArray, nullptr);
+        OH_Drawing_TypographyLayoutWithConstraintsWithBuffer(fTypography, size, &rangeArray, nullptr);
     EXPECT_DOUBLE_EQ(result.width, 0);
     EXPECT_DOUBLE_EQ(result.height, 0);
 }
@@ -296,7 +296,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     size.height = LAYOUT_HEIGHT_MEDIUM;
 
     OH_Drawing_RectSize result =
-        OH_Drawing_TypographyLayoutWithConstraints(nullptr, size, nullptr, nullptr);
+        OH_Drawing_TypographyLayoutWithConstraintsWithBuffer(nullptr, size, nullptr, nullptr);
     EXPECT_DOUBLE_EQ(result.width, 0);
     EXPECT_DOUBLE_EQ(result.height, 0);
 }
@@ -329,7 +329,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 118.04988098144531;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -359,7 +359,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -389,7 +389,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -420,7 +420,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -451,7 +451,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -484,7 +484,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     OH_Drawing_TypographyLayout(GetTypography(), LAYOUT_WIDTH_LARGE);
     EXPECT_DOUBLE_EQ(result.width, OH_Drawing_TypographyGetLongestLineWithIndent(GetTypography()));
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -515,7 +515,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -546,7 +546,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -577,7 +577,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -608,7 +608,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -639,7 +639,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -670,7 +670,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -702,7 +702,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectHeight = 75;
     VerifyRectSize(expectRectWidth, expectHeight, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -733,7 +733,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -765,7 +765,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectHeight = 144;
     VerifyRectSize(expectRectWidth, expectHeight, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -797,7 +797,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectHeight = 76;
     VerifyRectSize(expectRectWidth, expectHeight, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -812,7 +812,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     OH_Drawing_Array* fontList = OH_Drawing_GetSystemFontFullNamesByType(OH_Drawing_SystemFontType::ALL);
     OH_Drawing_Range* range1 = OH_Drawing_GetRangeByArrayIndex(fontList, 0);
     EXPECT_EQ(range1, nullptr);
-    OH_Drawing_DestroyArray(fontList);
+    OH_Drawing_ReleaseArrayBuffer(fontList);
 }
 
 /**
@@ -843,7 +843,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -874,7 +874,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -905,7 +905,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -936,7 +936,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -968,7 +968,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result1);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray1), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray1), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 
     // Test with large constraint
     OH_Drawing_Array* rangeArray2 = nullptr;
@@ -985,7 +985,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     VerifyAllRanges(expectedRanges, rangeArray2, rangeCount2);
     VerifyRectSize(expectRectWidth2, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt2, result2);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray2), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray2), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1016,8 +1016,8 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(fitStrRangeArr), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(nullptr);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(fitStrRangeArr), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(nullptr);
     EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 }
 
@@ -1054,7 +1054,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1091,7 +1091,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1128,7 +1128,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1165,7 +1165,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1201,7 +1201,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     EXPECT_EQ(lineCnt, expectLineCnt);
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1234,7 +1234,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 93.549911499023438;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1267,7 +1267,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 113.14984130859375;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1300,7 +1300,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 306.2496337890625;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1333,7 +1333,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 90.549896240234375;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1366,7 +1366,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 110.14987182617188;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1399,7 +1399,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 299.10009765625;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1432,7 +1432,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 99.999908447265625;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1465,7 +1465,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 75.390625;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1501,7 +1501,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 316.8992919921875;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1536,7 +1536,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 298.14971923828125;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1572,7 +1572,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 635.44940185546875;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1608,7 +1608,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 282.24957275390625;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1644,7 +1644,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 275.99969482421875;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1677,7 +1677,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectRectWidth = 256.33111572265625;
     VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1712,7 +1712,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectHeight = 659;
     VerifyRectSize(expectWidth, expectHeight, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1747,7 +1747,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectHeight = 662;
     VerifyRectSize(expectWidth, expectHeight, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1782,7 +1782,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectHeight = 672;
     VerifyRectSize(expectWidth, expectHeight, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1818,7 +1818,7 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectHeight = 318;
     VerifyRectSize(expectWidth, expectHeight, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
 /**
@@ -1859,6 +1859,6 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const double expectHeight = 377;
     VerifyRectSize(expectWidth, expectHeight, result);
 
-    EXPECT_EQ(OH_Drawing_DestroyArray(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 } // namespace OHOS

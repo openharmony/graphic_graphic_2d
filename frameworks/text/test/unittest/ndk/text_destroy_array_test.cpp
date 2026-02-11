@@ -59,7 +59,7 @@ constexpr const char* NOTO_SANS_FILE = "/system/fonts/NotoSans[wdth,wght].ttf";
 /**
  * @brief Test fixture for DestroyArray functionality
  *
- * This test class provides comprehensive testing for the OH_Drawing_DestroyArray API,
+ * This test class provides comprehensive testing for the OH_Drawing_ReleaseArrayBuffer API,
  * covering all 6 ObjectType types: STRING, TEXT_LINE, TEXT_RUN, DRAWING_RECT,
  * FONT_FULL_DESCRIPTOR, and TEXT_RANGE.
  */
@@ -146,7 +146,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest001, TestSize.Level0)
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
     EXPECT_GT(size, 0);
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(fontList);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(fontList);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -161,7 +161,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest002, TestSize.Level0)
         static_cast<OH_Drawing_SystemFontType>(999)); // Invalid type to get empty list
     // May return nullptr or empty array depending on implementation
     if (fontList != nullptr) {
-        OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(fontList);
+        OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(fontList);
         EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
     }
 }
@@ -184,7 +184,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest003, TestSize.Level0)
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_GT(size, 0);
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(textLines);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(textLines);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -206,7 +206,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest004, TestSize.Level0)
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_GT(size, 1); // Should have multiple lines
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(textLines);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(textLines);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -251,7 +251,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest005, TestSize.Level0)
     size_t indicesSize = OH_Drawing_GetDrawingArraySize(stringIndices);
     EXPECT_GT(indicesSize, 0);
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(stringIndices);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(stringIndices);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 
     OH_Drawing_DestroyRuns(runs);
@@ -286,7 +286,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest006, TestSize.Level0)
     OH_Drawing_Array* stringIndices = OH_Drawing_GetRunStringIndices(run, 0, 0);
     ASSERT_NE(stringIndices, nullptr);
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(stringIndices);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(stringIndices);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 
     OH_Drawing_DestroyRuns(runs);
@@ -304,7 +304,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest007, TestSize.Level0)
     OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(arraySize);
     ASSERT_NE(rectArray, nullptr);
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(rectArray);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(rectArray);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -324,7 +324,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest008, TestSize.Level0)
     EXPECT_EQ(sizeErrorCode, OH_DRAWING_SUCCESS);
     EXPECT_EQ(size, arraySize);
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(rectArray);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(rectArray);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -344,7 +344,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest009, TestSize.Level0)
     EXPECT_EQ(sizeErrorCode, OH_DRAWING_SUCCESS);
     EXPECT_EQ(size, arraySize);
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(rectArray);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(rectArray);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -361,7 +361,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest010, TestSize.Level0)
     size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
     EXPECT_GT(size, 0);
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(fontFullDescArr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(fontFullDescArr);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -383,7 +383,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest011, TestSize.Level0)
     size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
     EXPECT_GT(size, 0);
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(fontFullDescArr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(fontFullDescArr);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -401,7 +401,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest012, TestSize.Level0)
     // CJK ttc has 10 ttf fonts
     EXPECT_GT(size, 1);
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(fontFullDescArr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(fontFullDescArr);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -422,11 +422,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest013, TestSize.Level0)
     size.width = LAYOUT_WIDTH;
     size.height = 200.0;
 
-    OH_Drawing_TypographyLayoutWithConstraints(fTypography, size, &rangeArray, &rangeCount);
+    OH_Drawing_TypographyLayoutWithConstraintsWithBuffer(fTypography, size, &rangeArray, &rangeCount);
 
     ASSERT_NE(rangeArray, nullptr);
     EXPECT_GT(rangeCount, 0);
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(rangeArray);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(rangeArray);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -447,10 +447,10 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest014, TestSize.Level0)
     size.width = 100.0;  // Small width to force multiple lines
     size.height = 50.0;   // Small height to force multiple ranges
 
-    OH_Drawing_TypographyLayoutWithConstraints(fTypography, size, &rangeArray, &rangeCount);
+    OH_Drawing_TypographyLayoutWithConstraintsWithBuffer(fTypography, size, &rangeArray, &rangeCount);
 
     ASSERT_NE(rangeArray, nullptr);
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(rangeArray);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(rangeArray);
     EXPECT_EQ(errorCode, OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
 
@@ -468,7 +468,7 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest016, TestSize.Level0)
     invalidArray->num = 1;
     invalidArray->type = ObjectType::INVALID;
 
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_DestroyArray(
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_ReleaseArrayBuffer(
         reinterpret_cast<OH_Drawing_Array*>(invalidArray));
 
     // Should return error for invalid type
