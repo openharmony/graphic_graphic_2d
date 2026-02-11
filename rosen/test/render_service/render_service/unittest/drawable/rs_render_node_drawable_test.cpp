@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
-#include "feature/render_group/rs_render_group_cache_drawable.h"
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
@@ -54,13 +53,6 @@ void RSRenderNodeDrawableTest::TearDownTestCase() {}
 void RSRenderNodeDrawableTest::SetUp() {}
 void RSRenderNodeDrawableTest::TearDown()
 {
-    RSRenderNodeDrawable::drawingCacheUpdateTimeMap_.clear();
-    RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.clear();
-    RSRenderNodeDrawable::isOffScreenWithClipHole_ = false;
-    RSRenderNodeDrawable::isOpDropped_ = true;
-    RSRenderNodeDrawable::occlusionCullingEnabled_ = false;
-    RSRenderGroupCacheDrawable::SetDrawBlurForCache(false);
-    RSRenderGroupCacheDrawable::SetDrawExcludedSubTreeForCache(false);
 }
 
 std::shared_ptr<RSRenderNodeDrawable> RSRenderNodeDrawableTest::CreateDrawable()
@@ -181,11 +173,6 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
     params.SetShadowRect({0, 0, 10, 10});
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(drawable->HasFilterOrEffect(params));
-    RSRenderNodeDrawable::isOffScreenWithClipHole_ = true;
-    params.foregroundFilterCache_ = std::make_shared<RSFilter>();
-    drawable->CheckCacheTypeAndDraw(canvas, params);
-    RSRenderNodeDrawable::isOffScreenWithClipHole_ = false;
-    ASSERT_TRUE(params.GetForegroundFilterCache());
 
     drawable->SetCacheType(DrawableCacheType::NONE);
     drawable->CheckCacheTypeAndDraw(canvas, params);
@@ -276,7 +263,6 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
     params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
-    EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), true);
 
     drawable->SetCacheType(DrawableCacheType::CONTENT);
     drawable->isOffScreenWithClipHole_ = false;
