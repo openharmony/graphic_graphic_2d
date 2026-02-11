@@ -712,7 +712,7 @@ HWTEST_F(RSServiceClientTest, SetPhysicalScreenResolution001, TestSize.Level1)
  * @tc.desc: Test SetRogScreenResolution
  * @tc.type: FUNC
  */
-HWTEST_F(RSServiceClientTest, SetRogScreenResolution001, TestSize.Level1)
+HWTEST_F(RSServiceClientTest, SetRogScreenResolutionTest001, TestSize.Level1)
 {
     auto id = rsClient->GetDefaultScreenId();
     EXPECT_NE(id, INVALID_SCREEN_ID);
@@ -723,10 +723,10 @@ HWTEST_F(RSServiceClientTest, SetRogScreenResolution001, TestSize.Level1)
 
 /*
  * @tc.name: SetRogScreenResolutionTest002
- * @tc.desc: Test SetRogScreenResolution with empty renderSerivce
+ * @tc.desc: Test SetRogScreenResolution with empty renderService
  * @tc.type: FUNC
  */
-HWTEST_F(RSServiceClientTest, SetRogScreenResolution002, TestSize.Level1)
+HWTEST_F(RSServiceClientTest, SetRogScreenResolutionTest002, TestSize.Level1)
 {
     auto id = rsClient->GetDefaultScreenId();
     EXPECT_NE(id, INVALID_SCREEN_ID);
@@ -742,9 +742,9 @@ HWTEST_F(RSServiceClientTest, SetRogScreenResolution002, TestSize.Level1)
  * @tc.desc: Test GetRogScreenResolution
  * @tc.type: FUNC
  */
-HWTEST_F(RSServiceClientTest, GetRogScreenResolution001, TestSize.Level1)
+HWTEST_F(RSServiceClientTest, GetRogScreenResolutionTest001, TestSize.Level1)
 {
-    auto id = INVALID_SCREEN_ID;
+    ScreenId id = INVALID_SCREEN_ID;
     uint32_t width{0};
     uint32_t height{0};
     auto ret = rsClient->GetRogScreenResolution(id, width, height);
@@ -753,10 +753,10 @@ HWTEST_F(RSServiceClientTest, GetRogScreenResolution001, TestSize.Level1)
 
 /*
  * @tc.name: GetRogScreenResolutionTest002
- * @tc.desc: Test GetRogScreenResolution with empty renderSerivce
+ * @tc.desc: Test GetRogScreenResolution with empty renderService
  * @tc.type: FUNC
  */
-HWTEST_F(RSServiceClientTest, GetRogScreenResolution002, TestSize.Level1)
+HWTEST_F(RSServiceClientTest, GetRogScreenResolutionTest002, TestSize.Level1)
 {
     auto id = rsClient->GetDefaultScreenId();
     EXPECT_NE(id, INVALID_SCREEN_ID);
@@ -1377,7 +1377,7 @@ HWTEST_F(RSServiceClientTest, SurfaceWatermarkTest01, TestSize.Level1)
  */
 HWTEST_F(RSServiceClientTest, SetDualScreenState001, TestSize.Level1)
 {
-    ScreenId screenId = rsClient->GetDefaultScreenId();
+    auto screenId = rsClient->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSRenderServiceConnectHub::Destroy();
     rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
