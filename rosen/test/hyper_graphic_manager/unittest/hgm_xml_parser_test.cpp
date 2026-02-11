@@ -127,6 +127,7 @@ HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level0)
     std::vector<std::pair<std::string, bool>> cases = {
         { "", false },
         { "123456789", false },
+        { "-", false },
         { "a023", false },
         { "02a3", false },
         { "023a", false },
