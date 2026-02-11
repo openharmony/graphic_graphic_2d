@@ -171,7 +171,9 @@ ani_object AniShaderEffect::CreateLinearGradient(ani_env* env, ani_object obj, a
                 "AniShaderEffect::CreateLinearGradient get matrix failed.");
             return CreateAniUndefined(env);
         }
-        drawingMatrixPtr = aniMatrixObj->GetMatrix().get();
+        if (aniMatrixObj->GetMatrix() != nullptr) {
+            drawingMatrixPtr = aniMatrixObj->GetMatrix().get();
+        }
     }
     std::shared_ptr<ShaderEffect> shaderEffect =
         ShaderEffect::CreateLinearGradient(startPoint, endPoint, colors, pos, mode, drawingMatrixPtr);
@@ -225,7 +227,9 @@ ani_object AniShaderEffect::CreateConicalGradient(ani_env* env, ani_object obj, 
                 "AniShaderEffect::CreateConicalGradient get matrix failed.");
             return CreateAniUndefined(env);
         }
-        drawingMatrixPtr = aniMatrixObj->GetMatrix().get();
+        if (aniMatrixObj->GetMatrix() != nullptr) {
+            drawingMatrixPtr = aniMatrixObj->GetMatrix().get();
+        }
     }
     std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateTwoPointConical(
         startPoint, startRadius, endPoint, endRadius, colors, pos, mode, drawingMatrixPtr);
@@ -274,7 +278,9 @@ ani_object AniShaderEffect::CreateSweepGradient(
                 "AniShaderEffect::CreateSweepGradient get matrix failed.");
             return CreateAniUndefined(env);
         }
-        drawingMatrixPtr = aniMatrixObj->GetMatrix().get();
+        if (aniMatrixObj->GetMatrix() != nullptr) {
+            drawingMatrixPtr = aniMatrixObj->GetMatrix().get();
+        }
     }
     std::shared_ptr<ShaderEffect> shaderEffect =
        ShaderEffect::CreateSweepGradient(centerPoint, colors, pos, mode, startAngle, endAngle, drawingMatrixPtr);
@@ -322,7 +328,9 @@ ani_object AniShaderEffect::CreateRadialGradient(ani_env* env, ani_object obj, a
                 "AniShaderEffect::CreateRadialGradient get matrix failed.");
             return CreateAniUndefined(env);
         }
-        drawingMatrixPtr = aniMatrixObj->GetMatrix().get();
+        if (aniMatrixObj->GetMatrix() != nullptr) {
+            drawingMatrixPtr = aniMatrixObj->GetMatrix().get();
+        }
     }
     std::shared_ptr<ShaderEffect> shaderEffect =
        ShaderEffect::CreateRadialGradient(centerPoint, radius, colors, pos, mode, drawingMatrixPtr);

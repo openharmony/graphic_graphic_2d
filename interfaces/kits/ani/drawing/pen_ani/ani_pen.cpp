@@ -564,7 +564,7 @@ void AniPen::SetImageFilter(ani_env* env, ani_object obj, ani_object aniImageFil
 void AniPen::SetMaskFilter(ani_env* env, ani_object obj, ani_object aniMaskFilterObj)
 {
     auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
-    if (aniPen == nullptr) {
+    if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetMaskFilter aniPen is nullptr.");
         return;
     }
