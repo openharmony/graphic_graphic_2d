@@ -71,7 +71,7 @@ enum class FrameEventType : int32_t {
  * Alpha will be determinated by runtime code.
  * If event doesn't exist, it won't draw.
  */
-static const std::map<FrameEventType, uint32_t> frameEventColorMap = {
+static inline const std::map<FrameEventType, uint32_t> frameEventColorMap = {
     // FrameEventType::HandleInputStart
     {FrameEventType::AnimateStart,     0x0000cc00}, // mid green
     {FrameEventType::BuildStart,       0x0000ffff}, // cyan
@@ -83,7 +83,7 @@ static const std::map<FrameEventType, uint32_t> frameEventColorMap = {
     {FrameEventType::FlushStart,       0x00ff0000}, // red
 };
 
-static const std::map<FrameEventType, std::string> frameEventTypeStringMap = {
+static inline const std::map<FrameEventType, std::string> frameEventTypeStringMap = {
     {FrameEventType::HandleInputStart, "HandleInput"},
     {FrameEventType::AnimateStart,     "Animate"},
     {FrameEventType::BuildStart,       "Build"},
