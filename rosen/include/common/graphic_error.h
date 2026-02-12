@@ -69,7 +69,7 @@ enum RosenError : int32_t {
 };
 
 #ifdef __cplusplus
-static const std::map<RosenError, std::string> RosenErrorStrs = {
+inline const std::map<RosenError, std::string> RosenErrorStrs = {
     {ROSEN_ERROR_OK,                    "<200 ok>"},
     {ROSEN_ERROR_INVALID_ARGUMENTS,     "<400 invalid arguments>"},
     {ROSEN_ERROR_NO_PERMISSION,         "<403 no permission>"},
