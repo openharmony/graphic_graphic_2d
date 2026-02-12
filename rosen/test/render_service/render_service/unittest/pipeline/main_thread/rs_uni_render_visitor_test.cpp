@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#if defined(RS_ENABLE_UNI_RENDER)
 #include <memory>
 
 #include "common/rs_common_hook.h"
@@ -5276,7 +5277,6 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterCacheNeedForceClearOrSave001, TestSi
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode001, TestSize.Level2)
 {
-#if defined(RS_ENABLE_UNI_RENDER)
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
@@ -5292,7 +5292,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode001, TestSize.Level2)
     rsSurfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
     rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
-#endif
 }
 
 /**
@@ -8583,3 +8582,4 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickerDrawable004, TestSize.Level1)
         rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.end());
 }
 } // OHOS::Rosen
+#endif // RS_ENABLE_UNI_RENDER
