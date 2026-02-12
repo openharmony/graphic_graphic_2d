@@ -208,6 +208,10 @@ bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> con
 {
     std::shared_ptr<Drawing::Pixmap> dst;
     image = GpuScaleImage(context, image); // use shared GPU context
+    if (image == nullptr) {
+        RS_LOGE("RSPropertyDrawableUtils::PickColor gpu scale image Failed");
+        return false;
+    }
     const int buffLen = image->GetWidth() * image->GetHeight();
     auto pixelPtr = std::make_unique<uint32_t[]>(buffLen);
     auto info = image->GetImageInfo();

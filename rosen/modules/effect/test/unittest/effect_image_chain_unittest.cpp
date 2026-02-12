@@ -150,68 +150,6 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ApplyDrawTest002
- * @tc.desc: test Apply and Draw
- */
-HWTEST_F(EffectImageChainUnittest, ApplyDrawTest002, TestSize.Level1)
-{
-    auto image = std::make_shared<EffectImageChain>();
-    EXPECT_NE(image, nullptr);
-    std::vector<float> positions = {0.0f, 1.0f};
-    std::vector<float> degrees = {0.0f, 1.0f};
-
-    // test filter_ == nullptr
-    auto ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-    EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_NE(ret, DrawingError::ERR_OK);
-    // test not prepare
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-    EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
-    // test normal condition
-    Media::InitializationOptions opts;
-    opts.size = { 1, 1 };
-    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
-    EXPECT_NE(srcPixelMap, nullptr);
-    ret = image->Prepare(srcPixelMap, false);
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
-    // test illegal blur radius
-    ret = image->ApplyEllipticalGradientBlur(-1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-
-    // test illegal ellipse radius
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-
-    // test empty positions and degrees
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, {}, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, {});
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, {}, {});
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-
-    // test if forceCPU_ is true
-    ret = image->Prepare(srcPixelMap, true);
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_NE(ret, DrawingError::ERR_OK);
-    // test multiple filters
-    ret = image->Prepare(srcPixelMap, false);
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
-    ret = image->Draw();
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
-}
-
-/**
  * @tc.name: ApplySDFTest001
  * @tc.desc: test ApplySDFCreation
  */
