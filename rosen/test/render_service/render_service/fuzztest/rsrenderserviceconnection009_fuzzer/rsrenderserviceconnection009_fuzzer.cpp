@@ -54,10 +54,6 @@ const uint8_t DO_CLEAR_SURFACE_WATERMARK_FOR_NODES = 3;
 const uint8_t DO_CLEAR_SURFACE_WATERMARK = 4;
 const uint8_t TARGET_SIZE = 5;
 
-<<<<<<< HEAD
-sptr<RSIClientToServiceConnection> CONN = nullptr;
-=======
->>>>>>> master
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -141,12 +137,8 @@ void DoSetWatermark()
     opts.size.height = height;
     std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
     dataP.WriteString(name);
-<<<<<<< HEAD
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK);
-=======
     dataP.WriteParcelable(pixelmap.get());
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK);
->>>>>>> master
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -158,24 +150,6 @@ void DoSetSurfaceWatermark()
     MessageParcel dataParcel;
     MessageParcel reply;
     MessageOption option;
-<<<<<<< HEAD
-    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
-        return;
-    }
-    uint64_t token = GetData<uint64_t>();
-    auto timeStamp = GetData<uint64_t>();
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    dataP.WriteUint64(token);
-    dataP.WriteUint64(timeStamp);
-    dataP.WriteRemoteObject(remoteObject);
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    if (toRenderConnectionStub_ == nullptr) {
-        return;
-    }
-    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
-=======
     if (!dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
@@ -254,7 +228,6 @@ void DoClearSurfaceWatermark()
         return;
     }
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
->>>>>>> master
 }
 
 } // namespace Rosen

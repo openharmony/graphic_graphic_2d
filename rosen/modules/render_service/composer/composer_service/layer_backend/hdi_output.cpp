@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <unordered_set>
+#include "common/rs_common_hook.h"
 #include "hdi_log.h"
 #include "hdi_output.h"
 #include "metadata_helper.h"
@@ -354,7 +355,7 @@ void HdiOutput::GetComposeClientLayers(std::vector<std::shared_ptr<HdiLayer>>& c
 {
     std::unique_lock<std::mutex> lock(mutex_);
     for (const auto& [first, hdiLayer] : layerIdMap_) {
-        if (hdiLayer == nullptr || hdiLayer->GetRSLayer()) {
+        if (hdiLayer == nullptr || hdiLayer->GetRSLayer() == nullptr) {
             continue;
         }
         if (hdiLayer->GetRSLayer()->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT ||
@@ -1045,6 +1046,7 @@ int32_t HdiOutput::PrepareCompleteIfNeed(bool needFlush)
 void HdiOutput::Repaint()
 {
     RS_TRACE_NAME("Repaint");
+    HLOGD("%{public}s: start", __func__);
 
     int32_t ret = PreProcessLayersComp();
     GraphicIRect activeRect = {0};
@@ -1058,8 +1060,8 @@ void HdiOutput::Repaint()
     bool needFlush = false;
     int32_t skipState = INT32_MAX;
     ret = CommitAndGetReleaseFence(fbFence, skipState, needFlush, false);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS || skipState != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("mjt first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
     }
 
     if (screenPowerOnChanged_) {
@@ -1079,7 +1081,7 @@ void HdiOutput::Repaint()
         skipState = INT32_MAX;
         ret = CommitAndGetReleaseFence(fbFence, skipState, needFlush, true);
         HLOGD("%{public}s: ValidateDisplay", __func__);
-        if (ret != GRAPHIC_DISPLAY_SUCCESS  || skipState != GRAPHIC_DISPLAY_SUCCESS) {
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
             HLOGE("second commit failed, ret is %{public}d skipState is %{public}d", ret, skipState);
         }
     }

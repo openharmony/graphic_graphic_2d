@@ -134,14 +134,7 @@ void DoSetScreenChangeCallback()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     uint32_t code =
-<<<<<<< HEAD
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIScreenChangeCallback> rsIScreenChangeCallback_ = iface_cast<RSIScreenChangeCallback>(remoteObject);
-=======
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
->>>>>>> master
 
     sptr<CustomTestScreenChangeCallback> rsIScreenChangeCallback_ = new CustomTestScreenChangeCallback();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());

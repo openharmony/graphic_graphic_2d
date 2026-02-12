@@ -41,8 +41,8 @@ public:
     void ClearFpsDump(std::string& dumpString, std::string& arg);
     void HitchsDump(std::string& dumpString, std::string& arg);
     void RefreshRateCounts(std::string& dumpString);
-    void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
     void ClearRefreshRateCounts(std::string& dumpString);
+    void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
 
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap_;

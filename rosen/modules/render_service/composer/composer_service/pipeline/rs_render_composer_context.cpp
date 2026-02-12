@@ -54,7 +54,7 @@ void RSRenderComposerContext::RemoveRSRenderLayer(RSLayerId rsLayerId)
         RS_LOGW("%{public}s: layerId=%{public}" PRIu64 " not found", __func__, rsLayerId);
         return;
     }
-    auto surfaceName = (iter != layersMap_.end() && iter->second) ? iter->second->GetSurfaceName() : "";
+    auto surfaceName = iter->second ? iter->second->GetSurfaceName() : "";
     RS_TRACE_NAME_FMT("%s layerId: %" PRIu64 ", surfaceName: %s",
         __func__, rsLayerId, surfaceName.c_str());
     RS_LOGI("%{public}s: removing layerId=%{public}" PRIu64 ", surfaceName=%{public}s",

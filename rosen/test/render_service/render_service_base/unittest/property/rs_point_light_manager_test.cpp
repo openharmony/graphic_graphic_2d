@@ -383,7 +383,6 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight005, TestSize.Level1)
     std::shared_ptr<RSRenderNode> lightSourceNode = std::make_shared<RSRenderNode>(1);
     dirtyList.push_back(lightSourceNode);
     instance->PrepareLight();
-<<<<<<< HEAD
     EXPECT_TRUE(instance->lastFrameIlluminatedNodeSet_.empty());
 }
 
@@ -420,9 +419,7 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated001, TestSize.Level1)
     instance->SetScreenRotation(ScreenRotation::ROTATION_270);
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_TRUE(true);
-=======
     EXPECT_TRUE(instance->previousFrameIlluminatedNodeMap_.empty());
->>>>>>> master
 }
 
 /**

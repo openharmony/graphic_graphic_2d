@@ -315,6 +315,9 @@ int32_t HdiLayer::SetLayerBuffer()
         layerBuffer.handle = nullptr;
     } else {
         layerBuffer.handle = currBuffer_->GetBufferHandle();
+        if (layerBuffer.handle == nullptr) {
+            HLOGE("Get buffer handle failed.");
+        }
     }
 
     bufferCleared_ = false;
@@ -920,12 +923,6 @@ void HdiLayer::ClearBufferCache()
 {
     if (bufferCache_.empty()) {
         return;
-    }
-    if (rsLayer_ == nullptr || device_ == nullptr) {
-        return;
-    }
-    if (rsLayer_->GetBuffer() != nullptr) {
-        currBuffer_ = rsLayer_->GetBuffer();
     }
     RS_TRACE_NAME_FMT("%s, screenId=%u, layerId=%u, bufferCacheSize=%zu", __func__, screenId_, layerId_,
         bufferCache_.size());

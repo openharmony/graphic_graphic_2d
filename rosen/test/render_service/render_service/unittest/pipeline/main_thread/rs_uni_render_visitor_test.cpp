@@ -800,13 +800,8 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyDisplayRegion, TestSize.Level1)
     rsUniRenderVisitor->curScreenNode_ = rsDisplayRenderNode;
 
     rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsDisplayRenderNode);
-<<<<<<< HEAD
-    rsSurfaceRenderNode->SetVisibleRegionRecursive(region, vData, pidVisMap);
-    screenManager_->RemoveVirtualScreen(screenId);
-=======
     rsSurfaceRenderNode->SetVisibleRegionRecursive(region, vData);
     screenManager->RemoveVirtualScreen(screenId);
->>>>>>> master
 }
 
 /*
@@ -1518,100 +1513,6 @@ HWTEST_F(RSUniRenderVisitorTest, CheckColorSpace001, TestSize.Level2)
 }
 
 /**
-<<<<<<< HEAD
-=======
- * @tc.name: UpdateBlackListRecord001
- * @tc.desc: Test UpdateBlackListRecord
- * @tc.type: FUNC
- * @tc.require: issueIC9I11
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord001, TestSize.Level1)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-    auto id = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
-    ScreenId screenId = id;
-    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext->weak_from_this());
-    rsDisplayRenderNode->InitRenderParams();
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->screenManager_ = screenManager;
-    ASSERT_NE(rsUniRenderVisitor->screenManager_, nullptr);
-
-    RSSurfaceRenderNodeConfig surfaceConfig;
-    surfaceConfig.id = 1;
-    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
-    ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    rsUniRenderVisitor->UpdateBlackListRecord(*rsSurfaceRenderNode);
-}
-
-/*
- * @tc.name: UpdateBlackListRecord003
- * @tc.desc: Test UpdateBlackListRecord while hasVirtualDisplay
- * @tc.type: FUNC
- * @tc.require: issueICWNX9
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord003, TestSize.Level2)
-{
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-    
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenState_ = ScreenState::PRODUCER_SURFACE_ENABLE;
-    rsUniRenderVisitor->screenManager_ = nullptr;
-    rsUniRenderVisitor->hasMirrorDisplay_ = false;
-    rsUniRenderVisitor->UpdateBlackListRecord(*node);
-    ASSERT_TRUE(screenManager->GetBlackListVirtualScreenByNode(node->GetId()).empty());
-}
-
-/*
- * @tc.name: UpdateBlackListRecord004
- * @tc.desc: Test UpdateBlackListRecord while hasVirtualDisplay and screenManager is valid
- * @tc.type: FUNC
- * @tc.require: issueICWNX9
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord004, TestSize.Level2)
-{
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-    
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenState_ = ScreenState::PRODUCER_SURFACE_ENABLE;
-    rsUniRenderVisitor->screenManager_ = screenManager;
-    rsUniRenderVisitor->hasMirrorDisplay_ = false;
-    rsUniRenderVisitor->UpdateBlackListRecord(*node);
-    ASSERT_TRUE(screenManager->GetBlackListVirtualScreenByNode(node->GetId()).empty());
-}
-
-/*
- * @tc.name: UpdateBlackListRecord005
- * @tc.desc: Test UpdateBlackListRecord while has virtual mirror display and screenManager is valid
- * @tc.type: FUNC
- * @tc.require: issueICWNX9
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord005, TestSize.Level2)
-{
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-    
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenState_ = ScreenState::PRODUCER_SURFACE_ENABLE;
-    rsUniRenderVisitor->screenManager_ = screenManager;
-    rsUniRenderVisitor->hasMirrorDisplay_ = true;
-    rsUniRenderVisitor->UpdateBlackListRecord(*node);
-    ASSERT_TRUE(screenManager->GetBlackListVirtualScreenByNode(node->GetId()).empty());
-}
-
-/**
->>>>>>> master
  * @tc.name: PrepareForCloneNode
  * @tc.desc: Test PrepareForCloneNode while node is not clone
  * @tc.type: FUNC

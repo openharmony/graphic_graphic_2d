@@ -95,7 +95,7 @@ void RSComposerClientManager::CleanLayerBufferBySurfaceId(uint64_t surfaceId, No
         clientMap = composerClientMap_;
     }
     for (auto iter = clientMap.begin(); iter != clientMap.end(); iter++) {
-        if (iter->second->GetRSLayer(nodeId) != nullptr) {
+        if (iter->second->IsFindRSLayer(nodeId)) {
             iter->second->CleanLayerBufferBySurfaceId(surfaceId);
             break;
         }

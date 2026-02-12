@@ -114,11 +114,7 @@ void RSSurfaceLayer::SetRSLayerCmd(const T& value)
 
 void RSSurfaceLayer::SetAlpha(const GraphicLayerAlpha& alpha)
 {
-    bool isSame = (layerAlpha_.enGlobalAlpha == alpha.enGlobalAlpha &&
-        layerAlpha_.enPixelAlpha == alpha.enPixelAlpha &&
-        layerAlpha_.alpha0 == alpha.alpha0 && layerAlpha_.alpha1 == alpha.alpha1 &&
-        layerAlpha_.gAlpha == alpha.gAlpha);
-    if (isSame) {
+    if (layerAlpha_ == alpha) {
         return;
     }
     layerAlpha_ = alpha;

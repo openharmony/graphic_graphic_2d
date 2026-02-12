@@ -29,11 +29,8 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
-<<<<<<< HEAD
 #include "feature/hyper_graphic_manager/hgm_rp_context.h"
-=======
 #include "feature_cfg/graphic_feature_param_manager.h"
->>>>>>> master
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
@@ -63,7 +60,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-<<<<<<< HEAD
 // constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVALID_VALUE = -1;
 // constexpr int32_t INVISBLE_WINDOW_RATE = 10;
@@ -76,14 +72,6 @@ constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 // constexpr uint64_t REFRESH_PERIOD = 16666667;
 // constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
-=======
-constexpr int32_t INVALID_VALUE = -1;
-constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
-constexpr int32_t SCREEN_PHYSICAL_WIDTH = 10;
-constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
-constexpr uint64_t REFRESH_PERIOD = 16666667;
-constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
->>>>>>> master
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
 constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
 class RSSingleRenderProcessManagerMock : public RSRenderProcessManager {
@@ -378,7 +366,6 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
 //     mainThread->Start();
 // }
 
-<<<<<<< HEAD
 // /**
 //  * @tc.name: ProcessCommand
 //  * @tc.desc: Test RSMainThreadTest.ProcessCommand
@@ -406,7 +393,7 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
 //     mainThread->context_->purgeType_ = RSContext::PurgeType::STRONGLY;
 //     mainThread->isUniRender_ = isUniRender;
 // }
-=======
+
 /**
  * @tc.name: SetAnimationOcclusionInfo001
  * @tc.desc: Test different animation change isAnimationOcclusion_
@@ -481,7 +468,6 @@ HWTEST_F(RSMainThreadTest, ProcessCommand, TestSize.Level1)
     mainThread->context_->purgeType_ = RSContext::PurgeType::STRONGLY;
     mainThread->isUniRender_ = isUniRender;
 }
->>>>>>> master
 
 /**
  * @tc.name: RsEventParamDump
@@ -3716,7 +3702,6 @@ HWTEST_F(RSMainThreadTest, PerfForBlurIfNeeded, TestSize.Level1)
 }
 
 /**
-<<<<<<< HEAD
  * @tc.name: PerfMultiWindow001
  * @tc.desc: PerfMultiWindow Test, not unirender
  * @tc.type: FUNC
@@ -3767,7 +3752,8 @@ HWTEST_F(RSMainThreadTest, PerfMultiWindow002, TestSize.Level1)
 //     ASSERT_NE(mainThread, nullptr);
 //     mainThread->RenderFrameStart(mainThread->timestamp_);
 // }
-=======
+
+/**
  * @tc.name: RenderFrameStart
  * @tc.desc: RenderFrameStart Test
  * @tc.type: FUNC
@@ -3779,7 +3765,6 @@ HWTEST_F(RSMainThreadTest, RenderFrameStart, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     mainThread->RenderFrameStart(mainThread->timestamp_);
 }
->>>>>>> master
 
 /**
  * @tc.name: SetSystemAnimatedScenes001
@@ -3858,7 +3843,6 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes003, TestSize.Level1)
 }
 
 /**
-<<<<<<< HEAD
  * @tc.name: CheckNodeHasToBePreparedByPid001
  * @tc.desc: CheckNodeHasToBePreparedByPid Test, Classify By Root
  * @tc.type: FUNC
@@ -4205,8 +4189,6 @@ HWTEST_F(RSMainThreadTest, CheckNodeHasToBePreparedByPid002, TestSize.Level1)
 // }
 
 /**
-=======
->>>>>>> master
  * @tc.name: SetSystemAnimatedScenes010
  * @tc.desc: SetSystemAnimatedScenes Test, check size is over max
  * @tc.type: FUNC
@@ -4257,21 +4239,12 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes010, TestSize.Level1)
 //     EXPECT_NE(rsRenderServiceConnection->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList),
 //         INVALID_SCREEN_ID);
 
-<<<<<<< HEAD
 //     for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
 //         whiteList.push_back(nodeId);
 //     }
 //     EXPECT_EQ(rsRenderServiceConnection->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList),
 //         INVALID_SCREEN_ID);
 // }
-=======
-    for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
-        whiteList.push_back(nodeId);
-    }
-    EXPECT_EQ(rsRenderServiceConnection->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList),
-        INVALID_SCREEN_ID);
-}
->>>>>>> master
 
 // /**
 //  * @tc.name: SetVirtualScreenBlackList
@@ -4286,7 +4259,6 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes010, TestSize.Level1)
 //     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
 //         nullptr, screenManagerAgent_, token->AsObject(), nullptr);
 
-<<<<<<< HEAD
 //     ScreenId id = 100;
 //     std::vector<uint64_t> blackList = {};
 //     EXPECT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), 5);
@@ -4296,17 +4268,6 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes010, TestSize.Level1)
 //     }
 //     EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), 5);
 // }
-=======
-    ScreenId id = 100;
-    std::vector<uint64_t> blackList = {};
-    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), SCREEN_NOT_FOUND);
-
-    for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
-        blackList.push_back(nodeId);
-    }
-    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), StatusCode::INVALID_ARGUMENTS);
-}
->>>>>>> master
 
 // /**
 //  * @tc.name: AddVirtualScreenBlackList
@@ -4321,7 +4282,6 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes010, TestSize.Level1)
 //     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
 //         nullptr, screenManagerAgent_, token->AsObject(), nullptr);
 
-<<<<<<< HEAD
 //     ScreenId id = 100;
 //     std::vector<uint64_t> blackList = {};
 //     int32_t repCode;
@@ -4332,18 +4292,6 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes010, TestSize.Level1)
 //     }
 //     EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);
 // }
-=======
-    ScreenId id = 100;
-    std::vector<uint64_t> blackList = {};
-    int32_t repCode;
-    EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), ERR_INVALID_VALUE);
-
-    for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
-        blackList.push_back(nodeId);
-    }
-    EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), ERR_INVALID_VALUE);
-}
->>>>>>> master
 
 /**
  * @tc.name: ReleaseSurface
@@ -6087,7 +6035,6 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync002, TestSize.Level1)
     mainThread->timestamp_ = timestamp;
 }
 
-<<<<<<< HEAD
 // /**
 //  * @tc.name: CheckFastCompose
 //  * @tc.desc: test CheckFastCompose
@@ -6132,54 +6079,6 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync002, TestSize.Level1)
 //     ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
 //     mainThread->timestamp_ = timestamp;
 // }
-=======
-/**
- * @tc.name: CheckFastCompose
- * @tc.desc: test CheckFastCompose
- * @tc.type: FUNC
- * @tc.require: issueIBGV2W
- */
-HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    bool result;
-    ASSERT_NE(mainThread, nullptr);
-    auto receiver = mainThread->receiver_;
-    if (mainThread->rsVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
-    }
-    sptr<VSyncConnection> conn = new VSyncConnection(mainThread->rsVSyncDistributor_, "rs");
-    mainThread->receiver_ = nullptr;
-    mainThread->CheckFastCompose(0);
-    mainThread->receiver_ = std::make_shared<VSyncReceiver>(conn);
-    mainThread->lastFastComposeTimeStamp_ = 0;
-    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
-    mainThread->lastFastComposeTimeStamp_ = mainThread->timestamp_;
-    result = mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
-    ASSERT_EQ(result, false);
-    mainThread->receiver_ = receiver;
-}
-
-/**
- * @tc.name: CheckFastCompose
- * @tc.desc: test CheckFastCompose
- * @tc.type: FUNC
- * @tc.require: issueICGGHY
- */
-HWTEST_F(RSMainThreadTest, CheckFastCompose002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    bool result;
-    ASSERT_NE(mainThread, nullptr);
-    uint64_t timestamp = mainThread->timestamp_;
-    mainThread->timestamp_ = mainThread->timestamp_ - 16666666;
-    result = mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
-    ASSERT_EQ(result, false);
-    mainThread->timestamp_ = timestamp;
-}
->>>>>>> master
 
 /**
  * @tc.name: InitVulkanErrorCallback001Test
@@ -6211,7 +6110,6 @@ HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback002, TestSize.Level1)
 }
 
 /**
-<<<<<<< HEAD
  * @tc.name: RenderServiceAllSurafceDump01
  * @tc.desc: RenderServiceAllSurafceDump Test
  * @tc.type: FUNC
@@ -6265,8 +6163,6 @@ HWTEST_F(RSMainThreadTest, ExistBufferIsVisibleAndUpdateTest, TestSize.Level1)
 }
 
 /**
-=======
->>>>>>> master
  * @tc.name: GetForceCommitReasonTest
  * @tc.desc: GetForceCommitReasonTest
  * @tc.type: FUNC

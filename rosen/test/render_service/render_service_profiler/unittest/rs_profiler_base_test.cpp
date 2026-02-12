@@ -515,20 +515,8 @@ public:
     void TearDown() override;
 
 private:
-<<<<<<< HEAD
-    sptr<RSRenderService> GetAndInitRenderService()
-    {
-        auto renderService = sptr<RSRenderService>::MakeSptr();
-        renderService->screenManager_ = sptr<RSScreenManager>::MakeSptr();
-        return renderService;
-    }
-
-private:
-    sptr<RSRenderService> renderService;
-=======
     static sptr<RSRenderService> renderService_;
     static RSMainThread* mainThread_;
->>>>>>> master
 };
 sptr<RSRenderService> RecorRsProfileRecordTest::renderService_ = nullptr;
 RSMainThread* RecorRsProfileRecordTest::mainThread_ = nullptr;

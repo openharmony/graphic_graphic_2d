@@ -440,14 +440,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
     };
     GSError ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
-<<<<<<< HEAD
 
     auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0, bufferOwnerCount);
 
-=======
-    surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
->>>>>>> master
     RSUniRenderComposerAdapter::SetBufferColorSpace(*screenDrawable);
 }
 

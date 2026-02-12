@@ -284,7 +284,7 @@ void RSRenderComposerManager::ClearRefreshRateCounts(std::string& dumpString)
 
 void RSRenderComposerManager::HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status)
 {
- 	RS_OPTIONAL_TRACE_NAME_FMT("%s: screenId %u", __func__, screenId);
+    RS_OPTIONAL_TRACE_NAME_FMT("%s: screenId %u", __func__, screenId);
     std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
     {
         std::lock_guard<std::mutex> lock(mutex_);

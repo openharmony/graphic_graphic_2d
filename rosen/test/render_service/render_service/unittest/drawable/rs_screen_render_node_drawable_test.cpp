@@ -626,7 +626,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest006, TestSize.Level1)
     ASSERT_NE(screenDrawable_, nullptr);
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-<<<<<<< HEAD
     RSMainThread::Instance()->receiver_->listener_->period_ = 15000001;
     RSMainThread::Instance()->receiver_->listener_->timeStamp_ = 1;
     {
@@ -651,29 +650,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest006, TestSize.Level1)
         EXPECT_TRUE(screenDrawable_->SkipFrameByInterval(
             RSMainThread::Instance()->GetVsyncRefreshRate(), skipFrameInterval));
     }
-=======
-    ScreenInfo screenInfo;
-    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_INTERVAL;
-    auto currentTime1 =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
-            .count();
-    screenDrawable_->lastRefreshTime_ = currentTime1;
-    screenInfo.skipFrameInterval = 1;
-    params->screenInfo_ = screenInfo;
-    screenDrawable_->OnDraw(canvas);
-    EXPECT_FALSE(screenDrawable_->SkipFrameByInterval(
-        RSMainThread::Instance()->GetVsyncRefreshRate(), screenInfo.skipFrameInterval));
-
-    auto currentTime2 =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
-            .count();
-    screenDrawable_->lastRefreshTime_ = currentTime2;
-    screenInfo.skipFrameInterval = 100;
-    params->screenInfo_ = screenInfo;
-    screenDrawable_->OnDraw(canvas);
-    EXPECT_FALSE(screenDrawable_->SkipFrameByInterval(
-        RSMainThread::Instance()->GetVsyncRefreshRate(), screenInfo.skipFrameInterval));
->>>>>>> master
 }
 
 /**
@@ -748,13 +724,8 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     params->screenProperty_.Set<ScreenPropertyType::VISIBLE_RECT_OPTION>(
         std::make_tuple(true, Rect{1, 1, 1, 1}, false));
     screenDrawable_->OnDraw(canvas);
-<<<<<<< HEAD
     EXPECT_EQ(RSUniRenderThread::Instance().GetVisibleRect().left_, 1);
     EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
-=======
-    EXPECT_NE(RSUniRenderThread::Instance().GetVisibleRect().left_, visibleRect.x);
-    EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
->>>>>>> master
     // when comositeType is not UNI_RENDER_MIRROR_COMPOSITE
     params->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
     screenDrawable_->OnDraw(canvas);

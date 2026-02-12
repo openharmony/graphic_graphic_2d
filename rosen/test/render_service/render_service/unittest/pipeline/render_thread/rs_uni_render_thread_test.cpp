@@ -580,8 +580,6 @@ HWTEST_F(RSUniRenderThreadTest, GetWatermarkImg, TestSize.Level1)
 }
 
 /**
-<<<<<<< HEAD
-=======
  * @tc.name: ReleaseSelfDrawingNodeBuffer001
  * @tc.desc: Test ReleaseSelfDrawingNodeBuffer
  * @tc.type: FUNC
@@ -629,7 +627,6 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
 }
 
 /**
->>>>>>> master
  * @tc.name: AddToReleaseQueueTest
  * @tc.desc: Test AddToReleaseQueue
  * @tc.type: FUNC

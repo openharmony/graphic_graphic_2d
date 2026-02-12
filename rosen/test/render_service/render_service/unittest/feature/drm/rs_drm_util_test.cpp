@@ -47,8 +47,6 @@ void RSDrmUtilTest::SetUp() {}
 void RSDrmUtilTest::TearDown() {}
 
 /**
-<<<<<<< HEAD
-=======
  * Function: PreAllocateProtectedBuffer
  * Type: Function
  * Rank: Important(2)
@@ -61,7 +59,8 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest001, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler());
+    auto composerClientManager = std::make_shared<RSComposerClientManager>()
+    RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler(), composerClientManager);
 }
 
 /**
@@ -84,7 +83,8 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest002, TestSize.Level1)
     ASSERT_NE(screenNode, nullptr);
     node->SetAncestorScreenNode(screenNode);
     ASSERT_EQ(node->GetAncestorScreenNode().lock(), screenNode);
-    RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler());
+    auto composerClientManager = std::make_shared<RSComposerClientManager>()
+    RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler(), composerClientManager);
 }
 
 /**
@@ -112,7 +112,8 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest003, TestSize.Level1)
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     node->SetAncestorScreenNode(screenNode);
     ASSERT_EQ(node->GetAncestorScreenNode().lock(), screenNode);
-    RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler());
+    auto composerClientManager = std::make_shared<RSComposerClientManager>()
+    RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler(), composerClientManager);
 }
 
 /**
@@ -141,7 +142,8 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest004, TestSize.Level1)
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     node->SetAncestorScreenNode(screenNode);
     ASSERT_EQ(node->GetAncestorScreenNode().lock(), screenNode);
-    RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler());
+    auto composerClientManager = std::make_shared<RSComposerClientManager>()
+    RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler(), composerClientManager);
 }
 
 /**
@@ -175,11 +177,11 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest005, TestSize.Level1)
     ASSERT_EQ(node->GetAncestorScreenNode().lock(), screenNode);
     auto surfaceHandler = std::make_shared<RSSurfaceHandler>(2);
     surfaceHandler->buffer_.buffer = nullptr;
-    RSDrmUtil::PreAllocateProtectedBuffer(node, surfaceHandler);
+    auto composerClientManager = std::make_shared<RSComposerClientManager>()
+    RSDrmUtil::PreAllocateProtectedBuffer(node, surfaceHandler, composerClientManager);
 }
 
 /**
->>>>>>> master
  * Function: MarkBlurIntersectWithDRM
  * Type: Function
  * Rank: Important(2)

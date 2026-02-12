@@ -458,38 +458,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest026, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest026 end";
 }
 
-<<<<<<< HEAD
-#ifndef MODIFIER_NG
-/**
- * @tc.name: RSNodeAnimateSupplementTest026
- * @tc.desc: Verify CloseImplicitCancelAnimationReturnStatus
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest027, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest027 start";
-    auto node = std::make_shared<RSNodeMock>(false);
-    EXPECT_TRUE(node != nullptr);
-    auto alphaProperty = std::make_shared<RSAnimatableProperty<float>>(0.1f);
-    auto alphaModifier = std::make_shared<RSAlphaModifier>(alphaProperty);
-    node->AddModifier(alphaModifier);
-
-    RSAnimationTimingProtocol protocol;
-    RSAnimationTimingCurve curve;
-    RSNode::Animate(rsUiDirector->GetRSUIContext(), protocol, curve, [&]() {
-        alphaProperty->Set(1.f);
-    });
-    protocol.SetDuration(0);
-    RSNode::OpenImplicitAnimation(rsUiDirector->GetRSUIContext(), protocol, curve);
-    alphaProperty->RequestCancelAnimation();
-    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus(rsUiDirector->GetRSUIContext());
-    EXPECT_EQ(ret, CancelAnimationStatus::SUCCESS);
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest027 end";
-}
-#endif
-
-=======
->>>>>>> master
 /**
  * @tc.name: RSNodeAnimateSupplementTest028
  * @tc.desc: Verify the RSNode::CloseImplicitCancelAnimation with multi-instance

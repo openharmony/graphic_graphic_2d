@@ -684,18 +684,11 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest002, TestSize
 {
     RSImageCache& imageCache = RSImageCache::Instance();
     auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
-<<<<<<< HEAD
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
     auto img = std::make_shared<Drawing::Image>();
     imageCache.CacheRenderDrawingImageByPixelMapId(1234, img, 0);
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     imageCache.ReleaseDrawingImageCacheByPixelMapId(1234);
-=======
-    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
-    rsImageDetailEnhancerThread.SetScaledImage(123, img);
-    imageCache.ReleaseDrawingImageCacheByPixelMapId(123);
-    EXPECT_TRUE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
->>>>>>> master
 
     auto img1 = std::make_shared<Drawing::Image>();
     imageCache.CacheRenderDrawingImageByPixelMapId(2345, img1, 0);

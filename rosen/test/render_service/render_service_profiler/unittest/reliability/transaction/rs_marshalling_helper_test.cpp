@@ -343,9 +343,5 @@ HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusIdNoChangeIfZero
     EXPECT_TRUE(ret);
     EXPECT_EQ(val, FLAG | 42);
 }
-<<<<<<< HEAD
-=======
-#endif
->>>>>>> master
 } // namespace Rosen
 } // namespace OHOS

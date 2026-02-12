@@ -44,11 +44,8 @@ int32_t g_pid;
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
 RSMainThread* mainThread_ = RSMainThread::Instance();
 sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
-<<<<<<< HEAD
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
-=======
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
->>>>>>> master
 namespace {
 const uint8_t DO_NOTIFY_TOUCH_EVENT = 0;
 const uint8_t TARGET_SIZE = 1;
@@ -85,7 +82,6 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-<<<<<<< HEAD
 namespace Mock {
 void CreateVirtualScreenStubbing(ScreenId screenId)
 {
@@ -117,8 +113,6 @@ void DoExecuteSynchronousTask()
     toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
-=======
->>>>>>> master
 void DoNotifyTouchEvent()
 {
     uint32_t touchStatus = 0;
@@ -140,7 +134,6 @@ void DoNotifyTouchEvent()
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
-<<<<<<< HEAD
 void DoSetHardwareEnabled()
 {
     MessageParcel dataP;
@@ -161,8 +154,6 @@ void DoSetHardwareEnabled()
     dataP.WriteBool(dynamicHardwareEnable);
     toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
-=======
->>>>>>> master
 } // namespace Rosen
 } // namespace OHOS
 

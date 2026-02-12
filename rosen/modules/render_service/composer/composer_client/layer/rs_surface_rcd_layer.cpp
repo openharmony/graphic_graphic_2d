@@ -14,9 +14,9 @@
  */
 
 #include "rs_surface_rcd_layer.h"
-#include <memory>
-#include "rs_layer_parcel.h"
+
 #include "rs_composer_context.h"
+#include "rs_layer_parcel.h"
 #include "rs_surface_layer_parcel.h"
 #include "surface_type.h"
 
@@ -64,6 +64,8 @@ void RSSurfaceRCDLayer::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixe
     if (pixelMap_ == pixelMap) {
         return;
     }
+    RS_OPTIONAL_TRACE_FMT("RSSurfaceRCDLayer::SetPixelMap %d", static_cast<int>(pixelMap != nullptr));
+    RS_LOGI("%{public}s rcdLayer id: %{public}" PRIu64, __func__, GetRSLayerId());
     pixelMap_ = pixelMap;
     SetRSLayerCmd<RSRenderLayerPixelMapCmd>(pixelMap);
 }

@@ -34,12 +34,9 @@
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
-<<<<<<< HEAD
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
-=======
 #include "ipc_callbacks/screen_switching_notify_callback_stub.h"
->>>>>>> master
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
@@ -92,10 +89,6 @@ bool Init(const uint8_t* data, size_t size)
     DATA = data;
     g_size = size;
     g_pos = 0;
-<<<<<<< HEAD
-
-=======
->>>>>>> master
     return true;
 }
 } // namespace
@@ -217,7 +210,6 @@ void DoSetGlobalDarkColorMode()
     sleep(1);
 }
 
-<<<<<<< HEAD
 void DoDropFrameByPid()
 {
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::DROP_FRAME_BY_PID);
@@ -234,7 +226,6 @@ void DoDropFrameByPid()
     toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     sleep(1);
 }
-=======
 class CustomTestScreenSwitchingNotifyCallback : public RSScreenSwitchingNotifyCallbackStub {
 public:
     explicit CustomTestScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback) : cb_(callback)
@@ -252,7 +243,6 @@ private:
     ScreenSwitchingNotifyCallback cb_;
 };
 
->>>>>>> master
 
 void DoSetScreenSwitchingNotifyCallback()
 {

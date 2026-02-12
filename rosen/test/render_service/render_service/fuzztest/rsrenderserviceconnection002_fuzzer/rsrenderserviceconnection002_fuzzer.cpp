@@ -97,18 +97,8 @@ bool Init(const uint8_t* data, size_t size)
 
 void DoCreateVirtualScreen()
 {
-<<<<<<< HEAD
-    MessageOption option;
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<IBufferProducer> bufferProducer_ = iface_cast<IBufferProducer>(remoteObject);
-=======
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
->>>>>>> master
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
 
     MessageOption option1;
     MessageParcel dataParcel1;

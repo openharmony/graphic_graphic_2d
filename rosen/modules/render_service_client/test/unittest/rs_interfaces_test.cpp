@@ -169,37 +169,6 @@ HWTEST_F(RSInterfacesTest, SetRogScreenResolution001, Function | SmallTest | Lev
 }
 
 /*
-<<<<<<< HEAD
-=======
- * @tc.name: GetRogScreenResolution001
- * @tc.desc: Test GetRogScreenResolution with valid screenId
- * @tc.type: FUNC
- */
-HWTEST_F(RSInterfacesTest, GetRogScreenResolution001, Function | SmallTest | Level2)
-{
-    auto screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    uint32_t width{0};
-    uint32_t height{0};
-    rsInterfaces->GetRogScreenResolution(screenId, width, height);
-}
-
-/*
- * @tc.name: GetRogScreenResolution002
- * @tc.desc: Test GetRogScreenResolution with invalid screenId
- * @tc.type: FUNC
- */
-HWTEST_F(RSInterfacesTest, GetRogScreenResolution002, Function | SmallTest | Level2)
-{
-    auto screenId = INVALID_SCREEN_ID;
-    uint32_t width{0};
-    uint32_t height{0};
-    auto ret = rsInterfaces->GetRogScreenResolution(screenId, width, height);
-    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
-}
-
-/*
->>>>>>> master
  * @tc.name: SetPhysicalScreenResolution001
  * @tc.desc: Test SetPhysicalScreenResolution
  * @tc.type: FUNC
@@ -1014,11 +983,6 @@ HWTEST_F(RSInterfacesTest, SetScreenColorGamut002, Function | SmallTest | Level2
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     auto screenId = rsInterfaces->GetDefaultScreenId();
     ret = rsInterfaces->SetScreenColorGamut(screenId, 0);
-<<<<<<< HEAD
-=======
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-#endif
->>>>>>> master
 }
 
 /*

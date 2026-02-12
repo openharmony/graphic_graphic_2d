@@ -37,7 +37,7 @@ public:
     static std::shared_ptr<RSComposerClient> Create(
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
-    std::shared_ptr<RSLayer> GetRSLayer(RSLayerId rsLayerId);
+    bool IsFindRSLayer(RSLayerId rsLayerId);
     void CommitLayers(ComposerInfo& composerInfo);
     void ReleaseLayerBuffers(uint64_t screenId,
         std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,

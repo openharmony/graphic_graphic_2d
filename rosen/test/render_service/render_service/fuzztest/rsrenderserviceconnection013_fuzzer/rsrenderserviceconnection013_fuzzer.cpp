@@ -169,19 +169,12 @@ void DoCreateVirtualScreen(FuzzedDataProvider& fdp)
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
-<<<<<<< HEAD
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<IBufferProducer> bufferProducer = iface_cast<IBufferProducer>(remoteObject);
-=======
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FuzzTest");
     sptr<IBufferProducer> bufferProducer = cSurface->GetProducer();
     if (!bufferProducer) {
         return;
     }
->>>>>>> master
 
     std::string name = fdp.ConsumeRandomLengthString();
     uint32_t width = fdp.ConsumeIntegral<uint32_t>();

@@ -21,6 +21,7 @@
 #include "common/rs_exception_check.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "concurrent_task_client.h"
 #ifdef RS_ENABLE_EGLIMAGE
 #include "feature/gpuComposition/rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
@@ -73,7 +74,6 @@
 #endif
 
 #ifdef RES_SCHED_ENABLE
-#include "concurrent_task_client.h"
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
@@ -1100,7 +1100,7 @@ bool RSRenderComposer::ConvertColorGamutToSpaceType(const GraphicColorGamut& col
     return true;
 }
 
-bool RSRenderComposer::GetDisplayClientTargetProperty(GraphicPixelFormat &pixelFormat, GraphicColorGamut &colorGamut,
+bool RSRenderComposer::GetDisplayClientTargetProperty(GraphicPixelFormat& pixelFormat, GraphicColorGamut& colorGamut,
     const std::vector<std::shared_ptr<RSLayer>>& layers)
 {
     int32_t pixelFormatInt = 0;
@@ -1179,7 +1179,7 @@ void RSRenderComposer::OnScreenDisconnected()
     RS_TRACE_NAME_FMT("%s", __func__);
     RS_LOGI("%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
     if (unExecuteTaskNum_ == 0) {
-        RS_TRACE_NAME_FMT("OnScreenDisconnected Clear output, screenId : %" PRIu64, screenId_);
+        RS_TRACE_NAME_FMT("%s Clear output, screenId : %" PRIu64, __func__, screenId_);
         ClearFrameBuffersInner();
         rsRenderComposerContext_ = nullptr;
         hdiOutput_ = nullptr;

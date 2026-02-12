@@ -15,11 +15,8 @@
 
 #include <memory>
 
-<<<<<<< HEAD
-=======
 #include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
->>>>>>> master
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
@@ -46,8 +43,6 @@
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
-<<<<<<< HEAD
-=======
 #include "ui_effect/effect/include/background_color_effect_para.h"
 #include "ui_effect/effect/include/border_light_effect_para.h"
 #include "ui_effect/effect/include/brightness_blender.h"
@@ -62,7 +57,6 @@
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
->>>>>>> master
 
 using namespace testing;
 using namespace testing::ext;
@@ -5287,8 +5281,6 @@ HWTEST_F(RSNodeTest, SetBounds001, TestSize.Level1)
 }
 
 /**
-<<<<<<< HEAD
-=======
  * @tc.name: LoadRenderNodeIfNeed001
  * @tc.desc: Test LoadRenderNodeIfNeed func with RSNode
  * @tc.type: FUNC
@@ -5357,7 +5349,6 @@ HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed003, TestSize.Level1)
 }
 
 /**
->>>>>>> master
  * @tc.name: SetPivotZ
  * @tc.desc: test results of SetPivotZ
  * @tc.type: FUNC
@@ -7133,8 +7124,6 @@ HWTEST_F(RSNodeTest, AddChildTest003, TestSize.Level1)
 }
 
 /**
-<<<<<<< HEAD
-=======
  * @tc.name: AddChildTest004
  * @tc.desc: Test AddChild with shadow child
  * @tc.type: FUNC
@@ -7178,7 +7167,6 @@ HWTEST_F(RSNodeTest, AddChildTest005, TestSize.Level1)
 }
 
 /**
->>>>>>> master
  * @tc.name: MoveChild
  * @tc.desc: test results of MoveChild
  * @tc.type: FUNC

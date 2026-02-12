@@ -51,9 +51,12 @@ std::shared_ptr<HdiOutput> RSComposerClient::GetOutput() const
     return output_;
 }
 
-std::shared_ptr<RSLayer> RSComposerClient::GetRSLayer(RSLayerId rsLayerId)
+bool RSComposerClient::IsFindRSLayer(RSLayerId rsLayerId)
 {
-    return rsComposerContext_->GetRSLayer(rsLayerId);
+    if (rsComposerContext_->GetRSLayer(rsLayerId) != nullptr) {
+        return true;
+    }
+    return false;
 }
 
 void RSComposerClient::CommitLayers(ComposerInfo& composerInfo)

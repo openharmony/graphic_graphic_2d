@@ -77,7 +77,6 @@ public:
 
     void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
 };
-<<<<<<< HEAD
 class RSSingleRenderProcessManagerMock : public RSRenderProcessManager {
 
 public:
@@ -173,7 +172,6 @@ public:
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
     sptr<RSIConnectToRenderProcess> connectToRenderConnection_ = nullptr;
 };
-=======
 
 class MockNativeToken {
 public:
@@ -216,7 +214,6 @@ AccessTokenID MockNativeToken::GetNativeTokenIdFromProcess(const std::string &pr
     iss >> tokenID;
     return tokenID;
 }
->>>>>>> master
 } // namespace
 
 class RSClientToServiceConnectionStubTest : public testing::Test {
@@ -588,17 +585,13 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIClientToServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE)), ERR_NULL_OBJECT);
     ASSERT_EQ(OnRemoteRequestTest(
-<<<<<<< HEAD
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES)), ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK)), ERR_INVALID_STATE);
+    ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT)), ERR_INVALID_DATA);
-=======
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK)), ERR_INVALID_STATE);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT)), ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED)), ERR_INVALID_DATA);
->>>>>>> master
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIClientToServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED)), IPC_STUB_INVALID_DATA_ERR);
 #ifdef TP_FEATURE_ENABLE
@@ -2212,13 +2205,9 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest001, Tes
     constexpr uint64_t SCREEN_ID = 0;
     uint32_t width{1920};
     uint32_t height{1080};
-<<<<<<< HEAD
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
-=======
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
     
     // case 1: entire pipeline
->>>>>>> master
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -2823,7 +2812,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenStatusTest004, Tes
 }
 
 /**
-<<<<<<< HEAD
  * @tc.name: NotifyHgmConfigEventTest
  * @tc.desc: Test NotifyHgmConfigEvent
  * @tc.type: FUNC
@@ -2864,7 +2852,9 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifyHgmConfigEventTest, TestSize
     res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
     EXPECT_EQ(res, ERR_OK);
     renderService_.hgmContext_ = orgHgmContext;
-=======
+}
+
+/**
  * @tc.name: ShowWatermarkTest
  * @tc.desc: Test ShowWatermark
  * @tc.type: FUNC
@@ -3074,7 +3064,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest005, Te
     ASSERT_EQ(ret, ERR_NONE);
  
     clientToServiceConnection->mainThread_ = mainThread;
->>>>>>> master
 }
 
 /**

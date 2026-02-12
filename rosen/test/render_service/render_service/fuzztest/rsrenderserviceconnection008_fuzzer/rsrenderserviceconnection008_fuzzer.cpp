@@ -47,11 +47,7 @@ sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::R
 RSMainThread* mainThread_ = RSMainThread::Instance();
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
-<<<<<<< HEAD
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
-=======
-sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
->>>>>>> master
 const std::string CONFIG_FILE = "/etc/unirender.config";
 std::string g_originTag = "";
 
@@ -123,10 +119,6 @@ bool Init(const uint8_t* data, size_t size)
     DATA = data;
     g_size = size;
     g_pos = 0;
-<<<<<<< HEAD
-
-=======
->>>>>>> master
     g_originTag = ReadUnirenderConfig();
     bool enableForAll = GetData<bool>();
     std::string tag = enableForAll ? "ENABLED_FOR_ALL" : "DISABLED";
@@ -313,7 +305,6 @@ void DoSetScreenSkipFrameInterval()
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
-<<<<<<< HEAD
 void DoGetBitmap()
 {
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_BITMAP);
@@ -345,8 +336,6 @@ void DoGetPixelmap()
     toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
-=======
->>>>>>> master
 void DoGetScreenHDRStatus()
 {
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
@@ -357,8 +346,6 @@ void DoGetScreenHDRStatus()
     dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-<<<<<<< HEAD
-=======
 }
 
 void DoSetLogicalCameraRotationCorrection()
@@ -374,7 +361,6 @@ void DoSetLogicalCameraRotationCorrection()
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint32(logicalCorrection);
     toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
->>>>>>> master
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -393,7 +379,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
     OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-<<<<<<< HEAD
 
     OHOS::Rosen::renderService_ = OHOS::sptr<OHOS::Rosen::RSRenderService>::MakeSptr();
     auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
@@ -432,19 +417,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 //     OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
 // #endif
 //     // OHOS::Rosen::RSHardwareThread::Instance().Start();
-=======
-    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr,
-        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token->AsObject(), appVSyncDistributor_);
-    OHOS::Rosen::toRenderConnectionStub_ = new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, nullptr,
-        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token->AsObject(), appVSyncDistributor_);
-#ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
-    }
-#endif
-    // OHOS::Rosen::RSHardwareThread::Instance().Start();
->>>>>>> master
     return 0;
 }
 

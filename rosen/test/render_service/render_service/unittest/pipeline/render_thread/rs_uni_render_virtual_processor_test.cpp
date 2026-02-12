@@ -685,11 +685,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, Fill, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, UniScale, TestSize.Level2)
 {
-<<<<<<< HEAD
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, 0);
-=======
     auto screenManager = CreateOrGetScreenManager();
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
     ASSERT_NE(surface, nullptr);
@@ -719,8 +714,10 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, UniScale, TestSize.Level2)
 
     auto& uniRenderThread = RSUniRenderThread::Instance();
     auto renderEngine = uniRenderThread.GetRenderEngine();
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
->>>>>>> master
+
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, 0);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, virtualProcessor);
     virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
@@ -1058,11 +1055,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread_00
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode, TestSize.Level2)
 {
-<<<<<<< HEAD
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, 0);
-=======
     auto screenManager = CreateOrGetScreenManager();
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
     ASSERT_NE(surface, nullptr);
@@ -1092,8 +1084,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode, TestS
 
     auto& uniRenderThread = RSUniRenderThread::Instance();
     auto renderEngine = uniRenderThread.GetRenderEngine();
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
->>>>>>> master
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, 0);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, virtualProcessor);
     virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);

@@ -111,7 +111,7 @@ public:
     {
         return payload_;
     }
-    const ComposerScreenInfo& GetComposerScreenInfo()
+    const ComposerScreenInfo& GetComposerScreenInfo() const
     {
         return composerInfo_.composerScreenInfo;
     }
