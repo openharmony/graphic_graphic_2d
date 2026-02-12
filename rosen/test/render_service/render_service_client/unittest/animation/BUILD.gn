@@ -27,6 +27,7 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
     "rs_implicit_animation_param_test.cpp",
     "rs_implicit_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
+    "rs_node_animation_test.cpp",
     "rs_path_animation_test.cpp",
     "rs_supplement_animation_test.cpp",
     "rs_timing_curve_animation_test.cpp",
