@@ -35,6 +35,7 @@ ohos_unittest("text_ndk_test") {
     "text_line_test.cpp",
     "text_run_test.cpp",
     "text_style_copy_test.cpp",
+    "text_style_font_edging_test.cpp",
     "text_typography_alignment_test.cpp",
     "text_typography_character_index_test.cpp",
     "text_typography_layout_constraints_test.cpp",

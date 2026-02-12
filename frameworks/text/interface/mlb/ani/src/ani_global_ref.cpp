@@ -175,6 +175,8 @@ constexpr CacheKey TEXT_STYLE_BADGE_TYPE_KEY{
     ANI_INTERFACE_TEXT_STYLE, "<get>badgeType", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BADGE_TYPE)};
 constexpr CacheKey TEXT_STYLE_LINE_HEIGHT_STYLE_KEY{
     ANI_INTERFACE_TEXT_STYLE, "<get>lineHeightStyle", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_LINE_HEIGHT_STYLE_TYPE)};
+constexpr CacheKey TEXT_STYLE_FONT_EDGING_KEY{
+    ANI_INTERFACE_TEXT_STYLE, "<get>fontEdging", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_EDGING)};
 
 constexpr CacheKey DECORATION_DECORATION_TYPE_KEY{
     ANI_INTERFACE_DECORATION, "<get>textDecoration", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_DECORATION_TYPE)};
@@ -209,7 +211,7 @@ constexpr std::string_view TEXT_STYLE_SIGN =
     "C{" ANI_INTERFACE_DECORATION "}C{" ANI_INTERFACE_COLOR "}E{" ANI_ENUM_FONT_WEIGHT "}E{" ANI_ENUM_FONT_STYLE
     "}E{" ANI_ENUM_TEXT_BASELINE "}C{" ANI_ARRAY "}ddddzzC{" ANI_STRING "}E{" ANI_ENUM_ELLIPSIS_MODE "}C{" ANI_STRING
     "}dC{" ANI_ARRAY "}C{" ANI_ARRAY "}C{" ANI_INTERFACE_RECT_STYLE "}E{" ANI_ENUM_TEXT_BADGE_TYPE
-    "}ddE{" ANI_ENUM_TEXT_LINE_HEIGHT_STYLE_TYPE "}E{" ANI_ENUM_FONT_WIDTH "}:";
+    "}ddE{" ANI_ENUM_TEXT_LINE_HEIGHT_STYLE_TYPE "}E{" ANI_ENUM_FONT_WIDTH "}E{" ANI_ENUM_FONT_EDGING "}:";
 constexpr CacheKey TEXT_STYLE_KEY{ANI_CLASS_TEXT_STYLE, "<ctor>", TEXT_STYLE_SIGN};
 
 constexpr std::string_view TEXT_SHADOW_SIGN = "C{" ANI_INTERFACE_COLOR "}C{" ANI_INTERFACE_POINT "}d:";
@@ -310,6 +312,7 @@ void AniGlobalEnum::Init(ani_env* env)
 {
     fontWeight = AniFindEnum(env, ANI_ENUM_FONT_WEIGHT);
     fontWidth = AniFindEnum(env, ANI_ENUM_FONT_WIDTH);
+    fontEdging = AniFindEnum(env, ANI_ENUM_FONT_EDGING);
     affinity = AniFindEnum(env, ANI_ENUM_AFFINITY);
     textDirection = AniFindEnum(env, ANI_ENUM_TEXT_DIRECTION);
     fontStyle = AniFindEnum(env, ANI_ENUM_FONT_STYLE);
@@ -505,6 +508,8 @@ void AniGlobalMethod::InitTextStyleMethod(ani_env* env)
         AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_BADGE_TYPE_KEY);
     textStyleLineHeightStyle =
         AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_LINE_HEIGHT_STYLE_KEY);
+    textStyleFontEdging =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_FONT_EDGING_KEY);
     textStyleMaxLineHeight =
         AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_MAX_LINE_HEIGHT_KEY);
     textStyleMinLineHeight =
