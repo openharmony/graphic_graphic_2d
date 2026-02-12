@@ -83,9 +83,13 @@ RSCanvasDrawingNode::~RSCanvasDrawingNode()
         auto id = GetId();
         // Unregister from callback router
         RSCanvasCallbackRouter::GetInstance().UnregisterNode(id);
-        if (resetSurfaceIndex_ > 0 &&
-            RSRenderInterface::GetInstance().SubmitCanvasPreAllocatedBuffer(id, nullptr, 0) != StatusCode::SUCCESS) {
-            RS_LOGE("Release RSCanvasDrawingNode, notify RS to clear DMA cache.");
+        if (resetSurfaceIndex_ > 0) {
+            ffrt::submit([id]() {
+                if (RSRenderInterface::GetInstance().SubmitCanvasPreAllocatedBuffer(id, nullptr, 0) !=
+                    StatusCode::SUCCESS) {
+                    RS_LOGE("Release RSCanvasDrawingNode, notify RS to clear DMA cache fail.");
+                }
+            });
         }
         // Clear DMA buffer reference (releases DMA memory from app process)
         {
