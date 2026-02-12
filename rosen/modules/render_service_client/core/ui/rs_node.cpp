@@ -687,6 +687,13 @@ bool RSNode::FallbackAnimationsToContext()
     }
     std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (auto& [animationId, animation] : animations_) {
+        // Skip null or infinite UI animations to destroy them:
+        // - Continue prevents animation from being moved to context/root (no owner)
+        // - animations_.clear() removes the last reference, triggering destruction
+        // - This ensures infinite loop UI animations stop when node falls back
+        if (!animation || (animation->GetRepeatCount() == -1 && animation->IsUiAnimation())) {
+            continue;
+        }
         rsUIContext->AddAnimationInner(std::move(animation));
     }
     animations_.clear();
@@ -695,14 +702,21 @@ bool RSNode::FallbackAnimationsToContext()
 
 void RSNode::FallbackAnimationsToRoot()
 {
-    auto target = RSNodeMap::Instance().GetAnimationFallbackNode(); // delete
+    auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
     if (target == nullptr) {
         ROSEN_LOGE("Failed to move animation to root, root node is null!");
         return;
     }
     std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (auto& [animationId, animation] : animations_) {
-        RSNodeMap::MutableInstance().RegisterAnimationInstanceId(animationId, id_, instanceId_); // delete
+        // Skip null or infinite UI animations to destroy them:
+        // - Continue prevents animation from being moved to root (no owner)
+        // - animations_.clear() removes the last reference, triggering destruction
+        // - This ensures infinite loop UI animations stop when node falls back
+        if (!animation || (animation->GetRepeatCount() == -1 && animation->IsUiAnimation())) {
+            continue;
+        }
+        RSNodeMap::MutableInstance().RegisterAnimationInstanceId(animationId, id_, instanceId_);
         target->AddAnimationInner(std::move(animation));
     }
     animations_.clear();
