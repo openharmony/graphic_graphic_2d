@@ -317,9 +317,9 @@ GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_Comple
     soundWaveFilter->Setter<SoundWaveProgressBTag>(0.6f);
     soundWaveFilter->Setter<SoundWaveTotalAlphaTag>(0.85f);
 
-    int nodeWidth = 220;
-    int nodeHeight = 220;
-    int start = 100;
+    int nodeWidth = 980;
+    int nodeHeight = 1600;
+    int start = 110;
 
     auto backgroundNode = SetUpNodeBgImage(BG_PATH,
         {start, start, nodeWidth, nodeHeight});

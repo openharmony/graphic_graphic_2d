@@ -44,13 +44,15 @@ GRAPHIC_TEST(NGFilterBlurExtendTest, EFFECT_TEST, Set_NG_Filter_Blur_DisableSyst
     // Set DisableSystemAdaptation tag
     blurFilter->Setter<BlurDisableSystemAdaptationTag>(true);
 
-    int nodeWidth = 200;
-    int nodeHeight = 200;
-    int start = 50;
+    int nodeWidth = 460;
+    int nodeHeight = 1400;
+    int startX = 120;
+    int startY = 300;
+    int gap = 40;
 
     for (int i = 0; i < 2; i++) {
         auto backgroundNode = SetUpNodeBgImage(BG_PATH,
-            {start, start + (nodeWidth + 20) * i, nodeWidth, nodeHeight});
+            {startX + (nodeWidth + gap) * i, startY, nodeWidth, nodeHeight});
         blurFilter->Setter<BlurDisableSystemAdaptationTag>(i == 0);
         backgroundNode->SetBackgroundNGFilter(blurFilter);
         GetRootNode()->AddChild(backgroundNode);

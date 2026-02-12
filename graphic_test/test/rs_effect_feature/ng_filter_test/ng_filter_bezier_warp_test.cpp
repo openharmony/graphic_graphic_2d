@@ -54,9 +54,9 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Cont
     bezierWarpFilter->Setter<BezierWarpControlPoint10Tag>(Vector2f(0.5f, 0.66f));
     bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f(1.0f, 1.0f));
 
-    int nodeWidth = 300;
-    int nodeHeight = 300;
-    int start = 100;
+    int nodeWidth = 980;
+    int nodeHeight = 1600;
+    int start = 110;
 
     auto backgroundNode = SetUpNodeBgImage(BG_PATH,
         {start, start, nodeWidth, nodeHeight});
@@ -84,9 +84,9 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Cont
     bezierWarpFilter->Setter<BezierWarpControlPoint10Tag>(Vector2f(0.85f, 0.4f));
     bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f(0.9f, 0.9f));
 
-    int nodeWidth = 300;
-    int nodeHeight = 300;
-    int start = 100;
+    int nodeWidth = 980;
+    int nodeHeight = 1600;
+    int start = 110;
 
     auto backgroundNode = SetUpNodeBgImage(BG_PATH,
         {start, start, nodeWidth, nodeHeight});
@@ -114,9 +114,9 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Cont
     bezierWarpFilter->Setter<BezierWarpControlPoint10Tag>(Vector2f(0.9f, 0.35f));
     bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f(0.95f, 0.95f));
 
-    int nodeWidth = 300;
-    int nodeHeight = 300;
-    int start = 100;
+    int nodeWidth = 980;
+    int nodeHeight = 1600;
+    int start = 110;
 
     auto backgroundNode = SetUpNodeBgImage(BG_PATH,
         {start, start, nodeWidth, nodeHeight});
@@ -128,9 +128,10 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Cont
 GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Multi_Test)
 {
     // Test multiple BezierWarp configurations in one test
-    int nodeWidth = 200;
-    int nodeHeight = 200;
-    int start = 50;
+    int nodeWidth = 430;
+    int nodeHeight = 700;
+    int start = 120;
+    int gap = 40;
     int row = 2;
     int col = 2;
 
@@ -155,7 +156,7 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Mult
             bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f(1.0f - offset, 1.0f - offset));
 
             auto backgroundNode = SetUpNodeBgImage(BG_PATH,
-                {start + (nodeWidth + 20) * i, start + (nodeHeight + 20) * j, nodeWidth, nodeHeight});
+                {start + (nodeWidth + gap) * i, start + (nodeHeight + gap) * j, nodeWidth, nodeHeight});
             backgroundNode->SetBackgroundNGFilter(bezierWarpFilter);
             GetRootNode()->AddChild(backgroundNode);
             RegisterNode(backgroundNode);
@@ -182,9 +183,9 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Extr
     bezierWarpFilter->Setter<BezierWarpControlPoint10Tag>(Vector2f(0.5f, 0.0f));
     bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f(1.0f, 1.0f));
 
-    int nodeWidth = 300;
-    int nodeHeight = 300;
-    int start = 100;
+    int nodeWidth = 980;
+    int nodeHeight = 1600;
+    int start = 110;
 
     auto backgroundNode = SetUpNodeBgImage(BG_PATH,
         {start, start, nodeWidth, nodeHeight});

@@ -189,13 +189,15 @@ GRAPHIC_TEST(NGFilterMaterialBlurTest, EFFECT_TEST, Set_NG_Filter_Material_Blur_
     // Set DisableSystemAdaptation tag
     materialBlurFilter->Setter<MaterialBlurDisableSystemAdaptationTag>(false);
 
-    int nodeWidth = 200;
-    int nodeHeight = 200;
-    int start = 50;
+    int nodeWidth = 460;
+    int nodeHeight = 1400;
+    int startX = 120;
+    int startY = 300;
+    int gap = 40;
 
     for (int i = 0; i < 2; i++) {
         auto backgroundNode = SetUpNodeBgImage(BG_PATH,
-            {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
+            {startX + (nodeWidth + gap) * i, startY, nodeWidth, nodeHeight});
         materialBlurFilter->Setter<MaterialBlurDisableSystemAdaptationTag>(i == 0);
         backgroundNode->SetBackgroundNGFilter(materialBlurFilter);
         GetRootNode()->AddChild(backgroundNode);
@@ -224,16 +226,17 @@ GRAPHIC_TEST(NGFilterMaterialBlurTest, EFFECT_TEST, Set_NG_Filter_Material_Blur_
     materialBlurFilter->Setter<MaterialBlurColorModeTag>(2);
     materialBlurFilter->Setter<MaterialBlurDisableSystemAdaptationTag>(true);
 
-    int nodeWidth = 250;
-    int nodeHeight = 250;
-    int start = 100;
+    int nodeWidth = 430;
+    int nodeHeight = 700;
+    int start = 120;
+    int gap = 40;
     int col = 2;
     int row = 2;
 
     for (int j = 0; j < row; j++) {
         for (int i = 0; i < col; i++) {
             auto backgroundNode = SetUpNodeBgImage(BG_PATH,
-                {start + (nodeWidth + 50) * i, start + (nodeHeight + 50) * j,
+                {start + (nodeWidth + gap) * i, start + (nodeHeight + gap) * j,
                  nodeWidth, nodeHeight});
             backgroundNode->SetBackgroundNGFilter(materialBlurFilter);
             GetRootNode()->AddChild(backgroundNode);
