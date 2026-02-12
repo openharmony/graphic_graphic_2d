@@ -196,12 +196,14 @@ HWTEST_F(RSUIDirectorTest, Init001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, Init002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSUIDirector> director1 = RSUIDirector::Create();
     director1->Init(true, true);
     ASSERT_NE(director1->GetRSUIContext(), nullptr);
     std::shared_ptr<RSUIDirector> director2 = RSUIDirector::Create();
     director2->Init(true, true, director1->GetRSUIContext());
     ASSERT_EQ(director1->GetRSUIContext(), director2->GetRSUIContext());
+#endif
 }
 
 /**
@@ -380,6 +382,7 @@ HWTEST_F(RSUIDirectorTest, DestroyTest, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, DestroyTest002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     director->Init(true, true);
     auto uiContext = director->GetRSUIContext();
@@ -391,6 +394,7 @@ HWTEST_F(RSUIDirectorTest, DestroyTest002, TestSize.Level1)
         childDirector->skipDestroyUIContext_ = false;
     }
     ASSERT_EQ(RSUIContextManager::Instance().GetRSUIContext(uiContext->GetToken()), nullptr);
+#endif
 }
 
 /**
@@ -400,6 +404,7 @@ HWTEST_F(RSUIDirectorTest, DestroyTest002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, DestroyTest003, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     director->Init(true, true);
     auto uiContext = director->GetRSUIContext();
@@ -410,6 +415,7 @@ HWTEST_F(RSUIDirectorTest, DestroyTest003, TestSize.Level1)
         childDirector->Init(true, true, uiContext);
     }
     ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(uiContext->GetToken()), nullptr);
+#endif
 }
 
 /**
@@ -775,6 +781,7 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessMessagesTest002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
     director->Init(true, true);
@@ -790,6 +797,7 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest002, TestSize.Level1)
     director->ProcessMessages(cmds);
     ASSERT_FALSE(cmds->IsEmpty());
     ASSERT_EQ(std::get<2>(cmds->payload_.front()), nullptr);
+#endif
 }
 
 /**
@@ -799,6 +807,7 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessMessagesTest003, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
     director->Init(true, true);
@@ -821,6 +830,7 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest003, TestSize.Level1)
     director->ProcessMessages(cmds);
     ASSERT_FALSE(cmds->IsEmpty());
     ASSERT_EQ(std::get<2>(cmds->payload_.front()), nullptr);
+#endif
 }
 
 /**
@@ -830,6 +840,7 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest003, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessInstanceMessagesTest, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
     director->Init(true, true);
@@ -853,6 +864,7 @@ HWTEST_F(RSUIDirectorTest, ProcessInstanceMessagesTest, TestSize.Level1)
     director->SetRequestVsyncCallback([]() -> void {});
     director->ProcessInstanceMessages(instanceCmdMap, 0);
     ASSERT_TRUE(director->RequestVsyncCallback(instanceId));
+#endif
 }
 
 /**
@@ -897,6 +909,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto director = RSUIDirector::Create();
     director->Init(true, true);
     auto uiContext = director->GetRSUIContext();
@@ -911,6 +924,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest002, TestSize.Level1)
     cmdMap[token] = std::move(commands);
     director->ProcessUIContextMessages(cmdMap, 1);
     ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
+#endif
 }
 
 /**
@@ -920,6 +934,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest003, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto director = RSUIDirector::Create();
     director->Init(true, true);
     auto uiContext = director->GetRSUIContext();
@@ -933,6 +948,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest003, TestSize.Level1)
     RSUIDirector::ProcessUIContextMessages(cmdMap, 1);
     ASSERT_EQ(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
     ASSERT_NE(RSUIContextManager::Instance().GetRandomUITaskRunnerCtx(), nullptr);
+#endif
 }
 
 /**
@@ -959,6 +975,7 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessor, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessorTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     director->Init(true, true);
@@ -982,6 +999,7 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessorTest001, TestSize.Level1)
     director->rsUIContext_ = nullptr;
     director->AnimationCallbackProcessor(nodeId, animId, token, event);
     ASSERT_TRUE(res);
+#endif
 }
 
 /**
@@ -1055,6 +1073,7 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     director->Init(true, true);
@@ -1064,6 +1083,7 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor002, TestSize.Level1)
     uint64_t token = uiContext->GetToken();
     director->DumpNodeTreeProcessor(rsNode->GetId(), 0, token, 0);
     ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
+#endif
 }
 
 /**
@@ -1287,6 +1307,7 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, TestTransactionHandler003, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     // isMultiInstance is true
@@ -1308,6 +1329,7 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler003, TestSize.Level1)
     ASSERT_NE(director->rsUIContext_->GetRSTransaction()->implicitRemoteTransactionData_, nullptr);
     director->SendMessages();
     director->Destroy();
+#endif
 }
 
 /**
@@ -1318,6 +1340,7 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler003, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
         std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
         ASSERT_TRUE(director != nullptr);
@@ -1328,6 +1351,7 @@ HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
             EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
         }
     }
+#endif
 }
 
 /**
