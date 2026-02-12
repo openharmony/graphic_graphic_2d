@@ -97,7 +97,7 @@ GRAPHIC_TEST(NGFilterDirectionLightTest, EFFECT_TEST, Set_NG_Filter_Direction_Li
         auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         directionLightFilter->Setter<DirectionLightMaskTag>(std::static_pointer_cast<RSNGMaskBase>(imageMask));
-        backgroundNode->SetForegroundNGFilter(directionLightFilter);
+        backgroundNode->SetBackgroundNGFilter(directionLightFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -123,7 +123,7 @@ GRAPHIC_TEST(NGFilterDirectionLightTest, EFFECT_TEST, Set_NG_Filter_Direction_Li
         auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         directionLightFilter->Setter<DirectionLightFactorTag>(factorValues[i]);
-        backgroundNode->SetForegroundNGFilter(directionLightFilter);
+        backgroundNode->SetBackgroundNGFilter(directionLightFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -153,7 +153,7 @@ GRAPHIC_TEST(NGFilterDirectionLightTest, EFFECT_TEST, Set_NG_Filter_Direction_Li
         auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         directionLightFilter->Setter<DirectionLightDirectionTag>(directionValues[i]);
-        backgroundNode->SetForegroundNGFilter(directionLightFilter);
+        backgroundNode->SetBackgroundNGFilter(directionLightFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -206,7 +206,7 @@ GRAPHIC_TEST(NGFilterDirectionLightTest, EFFECT_TEST, Set_NG_Filter_Direction_Li
             static_cast<float>(ca) / 255.0f
         );
         directionLightFilter->Setter<DirectionLightColorTag>(vec);
-        backgroundNode->SetForegroundNGFilter(directionLightFilter);
+        backgroundNode->SetBackgroundNGFilter(directionLightFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -231,7 +231,7 @@ GRAPHIC_TEST(NGFilterDirectionLightTest, EFFECT_TEST, Set_NG_Filter_Direction_Li
         auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         directionLightFilter->Setter<DirectionLightIntensityTag>(intensityValues[i]);
-        backgroundNode->SetForegroundNGFilter(directionLightFilter);
+        backgroundNode->SetBackgroundNGFilter(directionLightFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -273,7 +273,7 @@ GRAPHIC_TEST(NGFilterDirectionLightTest, EFFECT_TEST, Set_NG_Filter_Direction_Li
 
     auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
         {start, start, nodeWidth, nodeHeight});
-    backgroundNode->SetForegroundNGFilter(directionLightFilter);
+    backgroundNode->SetBackgroundNGFilter(directionLightFilter);
     GetRootNode()->AddChild(backgroundNode);
     RegisterNode(backgroundNode);
 }

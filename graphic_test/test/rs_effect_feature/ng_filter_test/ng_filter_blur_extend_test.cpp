@@ -52,7 +52,7 @@ GRAPHIC_TEST(NGFilterBlurExtendTest, EFFECT_TEST, Set_NG_Filter_Blur_DisableSyst
         auto backgroundNode = SetUpNodeBgImage(BG_PATH,
             {start, start + (nodeWidth + 20) * i, nodeWidth, nodeHeight});
         blurFilter->Setter<BlurDisableSystemAdaptationTag>(i == 0);
-        backgroundNode->SetForegroundNGFilter(blurFilter);
+        backgroundNode->SetBackgroundNGFilter(blurFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }

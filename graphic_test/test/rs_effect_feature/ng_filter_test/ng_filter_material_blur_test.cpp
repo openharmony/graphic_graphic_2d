@@ -52,7 +52,7 @@ GRAPHIC_TEST(NGFilterMaterialBlurTest, EFFECT_TEST, Set_NG_Filter_Material_Blur_
     for (int i = 0; i < row; i++) {
         auto backgroundNode = SetUpNodeBgImage(BG_PATH,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
-        backgroundNode->SetForegroundNGFilter(materialBlurFilter);
+        backgroundNode->SetBackgroundNGFilter(materialBlurFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -78,7 +78,7 @@ GRAPHIC_TEST(NGFilterMaterialBlurTest, EFFECT_TEST, Set_NG_Filter_Material_Blur_
         auto backgroundNode = SetUpNodeBgImage(BG_PATH,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         materialBlurFilter->Setter<MaterialBlurSaturationTag>(saturationValues[i]);
-        backgroundNode->SetForegroundNGFilter(materialBlurFilter);
+        backgroundNode->SetBackgroundNGFilter(materialBlurFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -104,7 +104,7 @@ GRAPHIC_TEST(NGFilterMaterialBlurTest, EFFECT_TEST, Set_NG_Filter_Material_Blur_
         auto backgroundNode = SetUpNodeBgImage(BG_PATH,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         materialBlurFilter->Setter<MaterialBlurBrightnessTag>(brightnessValues[i]);
-        backgroundNode->SetForegroundNGFilter(materialBlurFilter);
+        backgroundNode->SetBackgroundNGFilter(materialBlurFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -148,7 +148,7 @@ GRAPHIC_TEST(NGFilterMaterialBlurTest, EFFECT_TEST, Set_NG_Filter_Material_Blur_
         uint8_t cb = color & 0xFF;
         RSColor colorRS = RSColor(cr, cg, cb, ca);
         materialBlurFilter->Setter<MaterialBlurMaskColorTag>(colorRS);
-        backgroundNode->SetForegroundNGFilter(materialBlurFilter);
+        backgroundNode->SetBackgroundNGFilter(materialBlurFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -174,7 +174,7 @@ GRAPHIC_TEST(NGFilterMaterialBlurTest, EFFECT_TEST, Set_NG_Filter_Material_Blur_
         auto backgroundNode = SetUpNodeBgImage(BG_PATH,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         materialBlurFilter->Setter<MaterialBlurColorModeTag>(colorModeValues[i]);
-        backgroundNode->SetForegroundNGFilter(materialBlurFilter);
+        backgroundNode->SetBackgroundNGFilter(materialBlurFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -197,7 +197,7 @@ GRAPHIC_TEST(NGFilterMaterialBlurTest, EFFECT_TEST, Set_NG_Filter_Material_Blur_
         auto backgroundNode = SetUpNodeBgImage(BG_PATH,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         materialBlurFilter->Setter<MaterialBlurDisableSystemAdaptationTag>(i == 0);
-        backgroundNode->SetForegroundNGFilter(materialBlurFilter);
+        backgroundNode->SetBackgroundNGFilter(materialBlurFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -235,7 +235,7 @@ GRAPHIC_TEST(NGFilterMaterialBlurTest, EFFECT_TEST, Set_NG_Filter_Material_Blur_
             auto backgroundNode = SetUpNodeBgImage(BG_PATH,
                 {start + (nodeWidth + 50) * i, start + (nodeHeight + 50) * j,
                  nodeWidth, nodeHeight});
-            backgroundNode->SetForegroundNGFilter(materialBlurFilter);
+            backgroundNode->SetBackgroundNGFilter(materialBlurFilter);
             GetRootNode()->AddChild(backgroundNode);
             RegisterNode(backgroundNode);
         }
