@@ -120,7 +120,7 @@ void RSRenderService::InitCCMConfig()
 
 void RSRenderService::CoreComponentsInit()
 {
-    RS_LOGI("%{public}s: CoreComponentsInit", __func__);
+    RS_LOGI("%{public}s", __func__);
 
     // screenManager init
     screenManager_ = sptr<RSScreenManager>::MakeSptr();
@@ -128,7 +128,7 @@ void RSRenderService::CoreComponentsInit()
     // vsync manger
     vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
     if (vsyncManager_->init(screenManager_)) {
-        RS_LOGE("dmulti_process %{public}s: vsync init failed", __func__);
+        RS_LOGE("%{public}s: vsync init failed", __func__);
     }
 
     // composerManager init
@@ -161,7 +161,7 @@ void RSRenderService::HgmInit()
 
 void RSRenderService::FeatureComponentInit()
 {
-    RS_LOGI("%{public}s: FeatureComponentInit init", __func__);
+    RS_LOGI("%{public}s", __func__);
     // vk init
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
@@ -186,7 +186,7 @@ void RSRenderService::FeatureComponentInit()
 
 void RSRenderService::RenderProcessManagerInit()
 {
-    RS_LOGI("%{public}s: renderProcessManager_ init", __func__);
+    RS_LOGI("%{public}s", __func__);
     renderProcessManager_ = RSRenderProcessManager::Create(*this);
     auto screenManagerListener = sptr<ScreenManagerListener>::MakeSptr(*this);
     screenManager_->RegisterCoreListener(screenManagerListener);

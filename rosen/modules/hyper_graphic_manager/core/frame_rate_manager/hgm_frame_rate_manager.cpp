@@ -290,20 +290,20 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
         lastPendingRefreshRate_ = *pendingRefreshRate_;
         pendingRefreshRate_.reset();
-        RS_TRACE_NAME_FMT("%s: ProcessHgmFrameRate pendingRefreshRate: %d", __func__, lastPendingRefreshRate_);
+        RS_TRACE_NAME_FMT("%s: ProcessHgmFrameRate pendingRefreshRate: %u", __func__, lastPendingRefreshRate_);
     } else {
         if (lastPendingConstraintRelativeTime_ != 0) {
             hgmCore.SetPendingConstraintRelativeTime(lastPendingConstraintRelativeTime_);
         }
         if (lastPendingRefreshRate_ != 0) {
             hgmCore.SetPendingScreenRefreshRate(lastPendingRefreshRate_);
-            RS_TRACE_NAME_FMT("%s: ProcessHgmFrameRate pendingRefreshRate: %d", __func__, lastPendingRefreshRate_);
+            RS_TRACE_NAME_FMT("%s: ProcessHgmFrameRate pendingRefreshRate: %u", __func__, lastPendingRefreshRate_);
         }
     }
 
     if (hgmCore.GetLtpoEnabled() && IsLtpo() && rsRate > OLED_10_HZ && isUiDvsyncOn && isLtpoScreenStrategyId_.load()) {
         hgmCore.SetPendingScreenRefreshRate(rsRate);
-        RS_TRACE_NAME_FMT("%s: ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", __func__, rsRate);
+        RS_TRACE_NAME_FMT("%s: ProcessHgmFrameRate pendingRefreshRate: %u ui-dvsync", __func__, rsRate);
     }
     SetChangeGeneratorRateValid(true);
 }

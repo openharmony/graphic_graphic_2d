@@ -135,10 +135,10 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
 
 void HgmHardwareUtils::ResetRetryCount(ScreenPowerStatus status)
 {
-    RS_LOGD("%{public}s :PowerStatus change to %{public}d", __func__, status);
+    HGM_LOGD("PowerStatus change to %{public}d", status);
     if (status == POWER_STATUS_ON && setRateRetryParam_.isRetryOverLimit) {
-        RS_LOGI("%{public}s when ScreenPower On and last refresh rate failed more than %{public}d", __func__,
-            setRateRetryParam_.retryCount);
+        HGM_LOGI(
+            "when ScreenPower On and last refresh rate failed more than %{public}d", setRateRetryParam_.retryCount);
         setRateRetryParam_.needRetrySetRate = true;
         setRateRetryParam_.retryCount = 0;
         setRateRetryParam_.isRetryOverLimit = false;

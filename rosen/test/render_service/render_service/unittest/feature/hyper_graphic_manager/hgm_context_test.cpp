@@ -966,12 +966,12 @@ HWTEST_F(HgmContextTest, HandleTouchEventTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: NotifyPackageEventTouchEventTest001
+ * @tc.name: NotifyPackageEventTest001
  * @tc.desc: test NotifyPackageEvent
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmContextTest, NotifyPackageEventTouchEventTest001, TestSize.Level1)
+HWTEST_F(HgmContextTest, NotifyPackageEventTest001, TestSize.Level1)
 {
     if (frameRateMgr) {
         auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);

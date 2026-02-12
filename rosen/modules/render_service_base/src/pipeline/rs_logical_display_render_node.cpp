@@ -56,8 +56,8 @@ void RSLogicalDisplayRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisito
         return;
     }
     ApplyModifiers();
-    RSPointLightManager::Instance(GetLogicalDisplayNodeId())->PrepareLight();
     visitor->QuickPrepareLogicalDisplayRenderNode(*this);
+    RSPointLightManager::Instance(GetLogicalDisplayNodeId())->PrepareLight();
 }
 
 void RSLogicalDisplayRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -66,8 +66,8 @@ void RSLogicalDisplayRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& v
         return;
     }
     ApplyModifiers();
-    RSPointLightManager::Instance(GetLogicalDisplayNodeId())->PrepareLight();
     visitor->PrepareLogicalDisplayRenderNode(*this);
+    RSPointLightManager::Instance(GetLogicalDisplayNodeId())->PrepareLight();
 }
 
 void RSLogicalDisplayRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)

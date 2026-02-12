@@ -109,8 +109,8 @@ void HgmRPContext::HandleGameNode(const RSRenderNodeMap& nodeMap)
         }
         return false;
     });
-    RS_TRACE_NAME_FMT("HgmRPContext::HandleGameNode, game node on tree: %d, other node no tree: %d",
-        isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
+    RS_TRACE_NAME_FMT(
+        "%s: game node on tree: %d, other node no tree: %d", __func__, isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
     isGameNodeOnTree_ = isGameSelfNodeOnTree && !isOtherSelfNodeOnTree;
 }
 
