@@ -334,7 +334,7 @@ NapiTextResult JsFontCollection::OnLoadFont(napi_env env, napi_callback_info inf
             result.result = result.success ? NapiGetUndefined(env) : nullptr;
             return result;
         } else {
-            return NapiTextResult::Invalid("the file format is like 'file:///system/fonts...'");
+            return NapiTextResult::Invalid("File path must start with 'file://', e.g., file:///path/to/font.ttf");
         }
     };
     if (ConvertFromJsValue(env, argv[1], path)) {
@@ -402,13 +402,13 @@ void JsFontCollection::OnLoadFontAsyncExecutor(sptr<FontArgumentsConcreteContext
         napi_generic_failure, TextErrorCode::ERROR_INVALID_PARAM, return, context->result = NapiTextResult::Invalid(),
         "Failed to check local instance, familyName %s", context->familyName.c_str());
 
-    if (!context->filePath.empty()) {
-        NAPI_CHECK_ARGS_WITH_STATEMENT(context, SplitAbsolutePath(context->filePath), napi_invalid_arg,
+    if (context->filePath.has_value()) {
+        NAPI_CHECK_ARGS_WITH_STATEMENT(context, SplitAbsolutePath(*context->filePath), napi_invalid_arg,
             TextErrorCode::ERROR_INVALID_PARAM, return,
             context->result =
-                NapiTextResult::Invalid("the file format is like 'file:///system/fonts...'"),
+                NapiTextResult::Invalid("File path must start with 'file://', e.g., file:///path/to/font.ttf"),
             "Failed to get font file properties");
-        context->result = fontCollection->LoadFontFromPath(context->filePath, context->familyName, context->index);
+        context->result = fontCollection->LoadFontFromPath(*context->filePath, context->familyName, context->index);
         NAPI_CHECK_ARGS(context, context->result.success, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return,
             "Failed to get font file properties");
     } else {
@@ -416,7 +416,7 @@ void JsFontCollection::OnLoadFontAsyncExecutor(sptr<FontArgumentsConcreteContext
             if (SplitAbsolutePath(path)) {
                 return fontCollection->LoadFontFromPath(path, context->familyName, context->index);
             } else {
-                return NapiTextResult::Invalid("the file format is like 'file:///system/fonts...'");
+                return NapiTextResult::Invalid("File path must start with 'file://', e.g., file:///path/to/font.ttf");
             }
         };
         auto fileCB = [context, fontCollection](const void* data, size_t size) {
