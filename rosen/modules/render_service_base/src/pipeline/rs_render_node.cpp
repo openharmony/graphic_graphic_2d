@@ -5239,9 +5239,9 @@ void RSRenderNode::MapAndUpdateChildrenRect()
 void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
     const std::unordered_set<NodeId>& childHasProtectedNodeSet)
 {
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
-        IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
+        startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
     if (IsRenderGroupSubTreeDirty()) {
         SetDrawingCacheChanged(true);
         SetRenderGroupSubTreeDirty(false); // reset subtree dirty
@@ -5253,9 +5253,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
         if (parentNode) {
             parentNode->SetForceDisableNodeGroup(true);
         }
-    }
-    if (IsUifirstArkTsCardNode() || IsForceDisableNodeGroup()) {
-        // disable render group because cards will use uifirst cache.
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (isInBlackList) {
         stagingRenderParams_->SetNodeGroupHasChildInBlacklist(true);
@@ -5278,26 +5275,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
             GetId(), GetDrawingCacheType(), childHasVisibleFilter_, childHasVisibleEffect_);
     }
     AddToPendingSyncList();
-}
-
-bool RSRenderNode::IsUifirstArkTsCardNode()
-{
-    if (nodeGroupType_ == NodeGroupType::NONE) {
-        return false;
-    }
-    for (auto& child : *GetChildren()) {
-        if (!child) {
-            continue;
-        }
-        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (!surfaceChild) {
-            continue;
-        }
-        if (surfaceChild->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
-            return true;
-        }
-    }
-    return false;
 }
 
 void RSRenderNode::NodePostPrepare(

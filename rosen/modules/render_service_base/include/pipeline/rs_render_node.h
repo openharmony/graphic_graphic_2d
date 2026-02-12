@@ -1368,7 +1368,6 @@ private:
     void SetParent(WeakPtr parent);
     void ResetParent();
     void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
-    bool IsUifirstArkTsCardNode();
     virtual void OnResetParent() {}
 
     void GenerateFullChildrenList();
