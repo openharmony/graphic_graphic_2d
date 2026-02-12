@@ -15,6 +15,7 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
+#include "render_service_base/include/property/rs_color_picker_def.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -52,7 +53,8 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
     testNode->SetBackgroundColor(0xffff0000);
 
     // Set color picker parameters
-    testNode->SetColorPickerParams(1, 0.5f, 0.1f);
+    testNode->SetColorPickerParams(ColorPlaceholder::SURFACE, ColorPickStrategyType::AVERAGE, 500);
+    testNode->RegisterColorPickerCallback(1000, OnColorPicked, 200);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -66,12 +68,12 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
  */
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_002)
 {
-    std::vector<std::tuple<int, float, float>> paramsList = {
-        { 0, 0.0f, 0.0f },         // minimum values
-        { 1, 0.001f, 0.001f },     // near minimum
-        { 100, 0.5f, 0.5f },       // normal values
-        { 1000, 1.0f, 1.0f },      // maximum values
-        { -1, -0.1f, -0.1f }       // negative values (edge case)
+    std::vector<std::tuple<ColorPlaceholder, ColorPickStrategyType, uint64_t>> paramsList = {
+        { ColorPlaceholder::NONE, ColorPickStrategyType::NONE, 0 },
+        { ColorPlaceholder::SURFACE, ColorPickStrategyType::DOMINANT, 500 },
+        { ColorPlaceholder::TEXT_CONTRAST, ColorPickStrategyType::AVERAGE, 1000 },
+        { ColorPlaceholder::ACCENT, ColorPickStrategyType::CONTRAST, 2000 },
+        { ColorPlaceholder::FOREGROUND, ColorPickStrategyType::CLIENT_CALLBACK, 5000 }
     };
 
     for (size_t i = 0; i < paramsList.size(); i++) {
@@ -79,8 +81,8 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
         testNode->SetBounds({ (int)i * 220 + 50, 50, 200, 200 });
         testNode->SetBackgroundColor(0xffff0000);
 
-        auto [strategy, interval, threshold] = paramsList[i];
-        testNode->SetColorPickerParams(strategy, interval, threshold);
+        auto [placeholder, strategy, interval] = paramsList[i];
+        testNode->SetColorPickerParams(placeholder, strategy, interval);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -95,18 +97,27 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
  */
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_003)
 {
-    std::vector<int> strategies = { 0, 1, 2 };
+    std::vector<ColorPlaceholder> placeholders = {
+        ColorPlaceholder::SURFACE,
+        ColorPlaceholder::TEXT_CONTRAST,
+        ColorPlaceholder::ACCENT
+    };
+    std::vector<ColorPickStrategyType> strategies = {
+        ColorPickStrategyType::DOMINANT,
+        ColorPickStrategyType::AVERAGE,
+        ColorPickStrategyType::CONTRAST
+    };
 
-    for (size_t row = 0; row < strategies.size(); row++) {
-        for (size_t col = 0; col < 3; col++) {
+    for (size_t row = 0; row < placeholders.size(); row++) {
+        for (size_t col = 0; col < strategies.size(); col++) {
             auto testNode = RSCanvasNode::Create();
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
 
-            testNode->SetColorPickerParams(strategies[row], 0.5f, 0.1f);
+            testNode->SetColorPickerParams(placeholders[row], strategies[col], 500);
 
             // Register callback
-            testNode->RegisterColorPickerCallback(OnColorPicked);
+            testNode->RegisterColorPickerCallback(1000, OnColorPicked, 200);
 
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -126,10 +137,10 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
-    testNode->SetColorPickerParams(1, 0.5f, 0.1f);
+    testNode->SetColorPickerParams(ColorPlaceholder::SURFACE, ColorPickStrategyType::AVERAGE, 500);
 
     // Register null callback
-    testNode->RegisterColorPickerCallback(nullptr);
+    testNode->RegisterColorPickerCallback(1000, nullptr, 200);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -147,10 +158,10 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
-    testNode->SetColorPickerParams(1, 0.5f, 0.1f);
+    testNode->SetColorPickerParams(ColorPlaceholder::SURFACE, ColorPickStrategyType::AVERAGE, 500);
 
     // Register callback
-    testNode->RegisterColorPickerCallback(OnColorPicked);
+    testNode->RegisterColorPickerCallback(1000, OnColorPicked, 200);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -167,13 +178,12 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
  */
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_006)
 {
+    // Node with callback
     auto testNode1 = RSCanvasNode::Create();
     testNode1->SetBounds({ 50, 50, 400, 400 });
     testNode1->SetBackgroundColor(0xffff0000);
-    testNode1->SetColorPickerParams(1, 0.5f, 0.1f);
-
-    // Node with callback
-    testNode1->RegisterColorPickerCallback(OnColorPicked);
+    testNode1->SetColorPickerParams(ColorPlaceholder::SURFACE, ColorPickStrategyType::AVERAGE, 500);
+    testNode1->RegisterColorPickerCallback(1000, OnColorPicked, 200);
     GetRootNode()->AddChild(testNode1);
     RegisterNode(testNode1);
 
@@ -181,7 +191,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
     auto testNode2 = RSCanvasNode::Create();
     testNode2->SetBounds({ 500, 50, 400, 400 });
     testNode2->SetBackgroundColor(0xff00ff00);
-    testNode2->SetColorPickerParams(1, 0.5f, 0.1f);
+    testNode2->SetColorPickerParams(ColorPlaceholder::TEXT_CONTRAST, ColorPickStrategyType::DOMINANT, 1000);
     GetRootNode()->AddChild(testNode2);
     RegisterNode(testNode2);
 }
@@ -194,15 +204,20 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
  */
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_007)
 {
-    std::vector<float> intervals = { 0.0f, 0.1f, 0.5f, 1.0f };
+    std::vector<uint64_t> intervals = { 500, 1000, 2000, 5000 };
+    std::vector<ColorPlaceholder> placeholders = {
+        ColorPlaceholder::SURFACE,
+        ColorPlaceholder::TEXT_CONTRAST,
+        ColorPlaceholder::ACCENT
+    };
 
-    for (size_t row = 0; row < 3; row++) {
+    for (size_t row = 0; row < placeholders.size(); row++) {
         for (size_t col = 0; col < intervals.size(); col++) {
             auto testNode = RSCanvasNode::Create();
             testNode->SetBounds({ (int)col * 280 + 50, (int)row * 350 + 50, 250, 300 });
             testNode->SetBackgroundColor(0xffff0000);
 
-            testNode->SetColorPickerParams(row, intervals[col], 0.1f);
+            testNode->SetColorPickerParams(placeholders[row], ColorPickStrategyType::AVERAGE, intervals[col]);
 
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -212,20 +227,26 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
 
 /*
  * @tc.name: ColorPickerModifierTest_008
- * @tc.desc: Test SetColorPickerParams with different thresholds
+ * @tc.desc: Test SetColorPickerParams with different strategies
  * @tc.type: FUNC
  * @tc.require: issueI7N7M1
  */
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_008)
 {
-    std::vector<float> thresholds = { 0.0f, 0.1f, 0.2f, 0.5f, 1.0f };
+    std::vector<ColorPickStrategyType> strategies = {
+        ColorPickStrategyType::NONE,
+        ColorPickStrategyType::DOMINANT,
+        ColorPickStrategyType::AVERAGE,
+        ColorPickStrategyType::CONTRAST,
+        ColorPickStrategyType::CLIENT_CALLBACK
+    };
 
-    for (size_t i = 0; i < thresholds.size(); i++) {
+    for (size_t i = 0; i < strategies.size(); i++) {
         auto testNode = RSCanvasNode::Create();
         testNode->SetBounds({ (int)i * 220 + 50, 50, 200, 200 });
         testNode->SetBackgroundColor(0xffff0000);
 
-        testNode->SetColorPickerParams(1, 0.5f, thresholds[i]);
+        testNode->SetColorPickerParams(ColorPlaceholder::SURFACE, strategies[i], 1000);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -244,10 +265,10 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
-    testNode->SetColorPickerParams(1, 0.5f, 0.1f);
+    testNode->SetColorPickerParams(ColorPlaceholder::SURFACE, ColorPickStrategyType::AVERAGE, 500);
 
     // Register
-    testNode->RegisterColorPickerCallback(OnColorPicked);
+    testNode->RegisterColorPickerCallback(1000, OnColorPicked, 200);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -256,7 +277,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
     testNode->UnregisterColorPickerCallback();
 
     // Register again
-    testNode->RegisterColorPickerCallback(OnColorPicked);
+    testNode->RegisterColorPickerCallback(1000, OnColorPicked, 200);
 
     // Unregister again
     testNode->UnregisterColorPickerCallback();
@@ -270,18 +291,22 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
  */
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_010)
 {
-    std::vector<int> strategies = { 0, 1, 2 };
+    std::vector<ColorPlaceholder> placeholders = {
+        ColorPlaceholder::SURFACE,
+        ColorPlaceholder::TEXT_CONTRAST,
+        ColorPlaceholder::ACCENT
+    };
     std::vector<float> alphaList = { 0.3f, 0.6f, 1.0f };
 
-    for (size_t row = 0; row < strategies.size(); row++) {
+    for (size_t row = 0; row < placeholders.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
             auto testNode = RSCanvasNode::Create();
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaList[col]);
 
-            testNode->SetColorPickerParams(strategies[row], 0.5f, 0.1f);
-            testNode->RegisterColorPickerCallback(OnColorPicked);
+            testNode->SetColorPickerParams(placeholders[row], ColorPickStrategyType::AVERAGE, 500);
+            testNode->RegisterColorPickerCallback(1000, OnColorPicked, 200);
 
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);

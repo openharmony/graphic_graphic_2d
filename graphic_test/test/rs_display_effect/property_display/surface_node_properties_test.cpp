@@ -15,6 +15,7 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
+#include "ui/rs_surface_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -39,16 +40,15 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetSkipDraw_Matr
     std::vector<bool> skipDrawList = {false, true};
 
     for (size_t i = 0; i < skipDrawList.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>(i * 500 + 50), 50,
                                 400, 400});
         surfaceNode->SetSkipDraw(skipDrawList[i]);
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>(i * 500 + 50), 50, 400, 400});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -60,7 +60,8 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetForeground_Ma
     std::vector<bool> foregroundList = {false, true};
 
     for (size_t i = 0; i < foregroundList.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>(i * 500 + 50), 50,
                                 400, 400});
         surfaceNode->SetForeground(foregroundList[i]);
@@ -82,16 +83,15 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetHDRPresent_Ma
     std::vector<bool> hdrPresentList = {false, true};
 
     for (size_t i = 0; i < hdrPresentList.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>(i * 500 + 50), 50,
                                 400, 400});
-        surfaceNode->SetHDRPresent(hdrPresentList[i]);
+        surfaceNode->SetHDRPresent(hdrPresentList[i], 0);
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>(i * 500 + 50), 50, 400, 400});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -103,16 +103,15 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetForceUIFirst_
     std::vector<bool> forceUIFirstList = {false, true};
 
     for (size_t i = 0; i < forceUIFirstList.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>(i * 500 + 50), 50,
                                 400, 400});
         surfaceNode->SetForceUIFirst(forceUIFirstList[i]);
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>(i * 500 + 50), 50, 400, 400});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -124,16 +123,15 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetSurfaceBuffer
     std::vector<bool> opaqueList = {false, true};
 
     for (size_t i = 0; i < opaqueList.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>(i * 500 + 50), 50,
                                 400, 400});
         surfaceNode->SetSurfaceBufferOpaque(opaqueList[i]);
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>(i * 500 + 50), 50, 400, 400});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -145,16 +143,15 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetGlobalPositio
     std::vector<bool> enabledList = {false, true};
 
     for (size_t i = 0; i < enabledList.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>(i * 500 + 50), 50,
                                 400, 400});
         surfaceNode->SetGlobalPositionEnabled(enabledList[i]);
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>(i * 500 + 50), 50, 400, 400});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -166,16 +163,15 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetFrameGravityN
     std::vector<bool> enabledList = {false, true};
 
     for (size_t i = 0; i < enabledList.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>(i * 500 + 50), 50,
                                 400, 400});
         surfaceNode->SetFrameGravityNewVersionEnabled(enabledList[i]);
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>(i * 500 + 50), 50, 400, 400});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -189,16 +185,16 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetAbilityState_
 
     for (size_t row = 0; row < states.size(); row++) {
         for (size_t col = 0; col < actives.size(); col++) {
-            auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+            auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
             float x = static_cast<float>(col * 300 + 50);
             float y = static_cast<float>(row * 300 + 50);
             surfaceNode->SetBounds({x, y, 200, 200});
-            surfaceNode->SetAbilityState(states[row]);
+            surfaceNode->SetAbilityState(static_cast<RSSurfaceNodeAbilityState>(states[row]));
             GetRootNode()->AddChild(surfaceNode);
             RegisterNode(surfaceNode);
 
-            auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-                {x, y}, 200, 200);
+            auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {x, y, 200, 200});
             GetRootNode()->AddChild(canvasNode);
             RegisterNode(canvasNode);
         }
@@ -211,16 +207,15 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetHidePrivacyCo
     std::vector<bool> hideList = {false, true};
 
     for (size_t i = 0; i < hideList.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>(i * 500 + 50), 50,
                                 400, 400});
         surfaceNode->SetHidePrivacyContent(hideList[i]);
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>(i * 500 + 50), 50, 400, 400});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -237,7 +232,8 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetApiCompatible
     };
 
     for (size_t i = 0; i < versions.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>((i % 2) * 500 + 50),
                                 static_cast<float>((i / 2) * 300 + 50),
                                 300, 300});
@@ -245,10 +241,8 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetApiCompatible
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>((i % 2) * 500 + 50),
-             static_cast<float>((i / 2) * 300 + 50)},
-            300, 300);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>((i % 2) * 500 + 50),
+             static_cast<float>((i / 2) * 300 + 50), 300, 300});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -262,16 +256,16 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetHardwareEnabl
 
     for (size_t row = 0; row < hardwareEnabled.size(); row++) {
         for (size_t col = 0; col < check.size(); col++) {
-            auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+            auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
             float x = static_cast<float>(col * 300 + 50);
             float y = static_cast<float>(row * 300 + 50);
             surfaceNode->SetBounds({x, y, 200, 200});
-            surfaceNode->SetHardwareEnableHint(hardwareEnabled[row], check[col]);
+            surfaceNode->SetHardwareEnableHint(hardwareEnabled[row]);
             GetRootNode()->AddChild(surfaceNode);
             RegisterNode(surfaceNode);
 
-            auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-                {x, y}, 200, 200);
+            auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {x, y, 200, 200});
             GetRootNode()->AddChild(canvasNode);
             RegisterNode(canvasNode);
         }
@@ -281,15 +275,16 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetHardwareEnabl
 /* SetFingerprint: normal values */
 GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetFingerprint)
 {
-    std::vector<std::string> fingerprints = {
-        "",
-        "default",
-        "test_fingerprint",
-        "long_fingerprint_string_for_testing"
+    std::vector<bool> fingerprints = {
+        false,
+        true,
+        false,
+        true
     };
 
     for (size_t i = 0; i < fingerprints.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>((i % 2) * 500 + 50),
                                 static_cast<float>((i / 2) * 300 + 50),
                                 300, 300});
@@ -297,10 +292,8 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetFingerprint)
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>((i % 2) * 500 + 50),
-             static_cast<float>((i / 2) * 300 + 50)},
-            300, 300);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>((i % 2) * 500 + 50),
+             static_cast<float>((i / 2) * 300 + 50), 300, 300});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -312,16 +305,15 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetIsNotifyUIBuf
     std::vector<bool> notifyList = {false, true};
 
     for (size_t i = 0; i < notifyList.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>(i * 500 + 50), 50,
                                 400, 400});
         surfaceNode->SetIsNotifyUIBufferAvailable(notifyList[i]);
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>(i * 500 + 50), 50, 400, 400});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -338,7 +330,8 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetAncoFlags)
     };
 
     for (size_t i = 0; i < flags.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>((i % 2) * 500 + 50),
                                 static_cast<float>((i / 2) * 300 + 50),
                                 300, 300});
@@ -346,10 +339,8 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetAncoFlags)
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>((i % 2) * 500 + 50),
-             static_cast<float>((i / 2) * 300 + 50)},
-            300, 300);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>((i % 2) * 500 + 50),
+             static_cast<float>((i / 2) * 300 + 50), 300, 300});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -366,7 +357,8 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetWindowId)
     };
 
     for (size_t i = 0; i < windowIds.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>((i % 2) * 500 + 50),
                                 static_cast<float>((i / 2) * 300 + 50),
                                 300, 300});
@@ -374,10 +366,8 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetWindowId)
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>((i % 2) * 500 + 50),
-             static_cast<float>((i / 2) * 300 + 50)},
-            300, 300);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>((i % 2) * 500 + 50),
+             static_cast<float>((i / 2) * 300 + 50), 300, 300});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }
@@ -391,18 +381,18 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_Combined_Propert
     for (size_t i = 0; i < 2; i++) {
         for (size_t j = 0; j < 2; j++) {
             for (size_t k = 0; k < 2; k++) {
-                auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+                auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
                 float x = static_cast<float>(((i + j) % 2) * 300 + 50);
                 float y = static_cast<float>((k + (i / 2)) * 300 + 50);
                 surfaceNode->SetBounds({x, y, 200, 200});
                 surfaceNode->SetSkipDraw(boolValues[i]);
-                surfaceNode->SetHDRPresent(boolValues[j]);
+                surfaceNode->SetHDRPresent(boolValues[j], 0);
                 surfaceNode->SetForceUIFirst(boolValues[k]);
                 GetRootNode()->AddChild(surfaceNode);
                 RegisterNode(surfaceNode);
 
-                auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-                    {x, y}, 200, 200);
+                auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {x, y, 200, 200});
                 GetRootNode()->AddChild(canvasNode);
                 RegisterNode(canvasNode);
             }
@@ -413,27 +403,27 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_Combined_Propert
 /* Rapid state changes */
 GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_Rapid_State_Changes)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({100, 100, 400, 400});
     GetRootNode()->AddChild(surfaceNode);
     RegisterNode(surfaceNode);
 
-    auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-        {100, 100}, 400, 400);
+    auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {100, 100, 400, 400});
     GetRootNode()->AddChild(canvasNode);
     RegisterNode(canvasNode);
 
     // Rapid state changes
     surfaceNode->SetSkipDraw(false);
-    surfaceNode->SetHDRPresent(false);
+    surfaceNode->SetHDRPresent(false, 0);
     surfaceNode->SetForceUIFirst(false);
 
     surfaceNode->SetSkipDraw(true);
-    surfaceNode->SetHDRPresent(true);
+    surfaceNode->SetHDRPresent(true, 0);
     surfaceNode->SetForceUIFirst(true);
 
     surfaceNode->SetSkipDraw(false);
-    surfaceNode->SetHDRPresent(false);
+    surfaceNode->SetHDRPresent(false, 0);
     surfaceNode->SetForceUIFirst(false);
 }
 
@@ -442,20 +432,21 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetContainerWind
 {
     struct WindowInfo {
         bool hasContainerWindow;
-        Rect rect;
+        RectT<float> rect;
         float radiusX;
         float radiusY;
     };
 
     std::vector<WindowInfo> windowInfos = {
-        {true, {0, 0, 200, 200}, 0, 0},
-        {true, {0, 0, 200, 200}, 25, 25},
-        {true, {0, 0, 200, 200}, 50, 50},
-        {false, {0, 0, 0, 0}, 0, 0}
+        {true, {0.f, 0.f, 200.f, 200.f}, 0.f, 0.f},
+        {true, {0.f, 0.f, 200.f, 200.f}, 25.f, 25.f},
+        {true, {0.f, 0.f, 200.f, 200.f}, 50.f, 50.f},
+        {false, {0.f, 0.f, 0.f, 0.f}, 0.f, 0.f}
     };
 
     for (size_t i = 0; i < windowInfos.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({static_cast<float>((i % 2) * 400 + 100),
                                 static_cast<float>((i / 2) * 400 + 100),
                                 300, 300});
@@ -465,10 +456,8 @@ GRAPHIC_TEST(SurfaceNodeTest, CONTENT_DISPLAY_TEST, SurfaceNode_SetContainerWind
         GetRootNode()->AddChild(surfaceNode);
         RegisterNode(surfaceNode);
 
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>((i % 2) * 400 + 100),
-             static_cast<float>((i / 2) * 400 + 100)},
-            300, 300);
+        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {static_cast<float>((i % 2) * 400 + 100),
+             static_cast<float>((i / 2) * 400 + 100), 300, 300});
         GetRootNode()->AddChild(canvasNode);
         RegisterNode(canvasNode);
     }

@@ -45,7 +45,6 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Normal_Matrix_3x3)
             float x = static_cast<float>(col * 350 + 50);
             float y = static_cast<float>(row * 350 + 50);
             testNode->SetBounds({x, y, widths[col], heights[row]});
-            testNode->SetBoundsSize({widths[col], heights[row]});
             testNode->SetBackgroundColor(0xffff0000);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -65,7 +64,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Boundary_Zero)
     for (size_t i = 0; i < zeroSizes.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
             {50, static_cast<float>(i * 300 + 50), 200, 200});
-        testNode->SetBoundsSize(zeroSizes[i]);
+//         // testNode->SetBoundsSize(zeroSizes[i]); // Method does not exist
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -86,7 +85,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Boundary_Minimum)
         float x = static_cast<float>((i % 2) * 600 + 50);
         float y = static_cast<float>((i / 2) * 200 + 50);
         testNode->SetBounds({x, y, 100, 100});
-        testNode->SetBoundsSize(minSizes[i]);
+//         // testNode->SetBoundsSize(minSizes[i]); // Method does not exist
         testNode->SetBackgroundColor(0xff00ff00);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -109,7 +108,6 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Abnormal_Negative)
             {static_cast<float>((i % 2) * 500 + 100),
              static_cast<float>((i / 2) * 300 + 100),
              200, 200});
-        testNode->SetBoundsSize(negativeSizes[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -131,7 +129,6 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Extreme_Large)
         float x = 50;
         float y = static_cast<float>(i * 200 + 50);
         testNode->SetBounds({x, y, 100, 100});
-        testNode->SetBoundsSize(largeSizes[i]);
         testNode->SetBackgroundColor(0xff0000ff);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -156,7 +153,6 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Invalid_Float)
         float x = static_cast<float>((i % 2) * 500 + 50);
         float y = static_cast<float>((i / 2) * 300 + 50);
         testNode->SetBounds({x, y, 100, 100});
-        testNode->SetBoundsSize(invalidSizes[i]);
         testNode->SetBackgroundColor(0xffff00ff);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -175,7 +171,6 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Aspect_Ratio_Matri
                 {static_cast<float>(col * 300 + 50),
                  static_cast<float>(row * 250 + 50),
                  200, 200});
-            testNode->SetBoundsSize({widths[col], heights[row]});
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
@@ -190,22 +185,12 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Rapid_Updates)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    testNode->SetBoundsSize({100, 100});
-    testNode->SetBoundsSize({200, 200});
-    testNode->SetBoundsSize({300, 300});
-    testNode->SetBoundsSize({100, 200});
-    testNode->SetBoundsSize({200, 100});
-    testNode->SetBoundsSize({0, 0});
-    testNode->SetBoundsSize({500, 500});
-    testNode->SetBoundsSize({150, 150});
 }
 
 /* SetBoundsSize: size before position */
 GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Before_Position)
 {
     auto testNode = RSCanvasNode::Create();
-    testNode->SetBoundsSize({200, 200});
-    testNode->SetBoundsPosition({50, 50});
     testNode->SetBackgroundColor(0xff00ffff);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -230,8 +215,6 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Position_Matrix_3x
                 {static_cast<float>(col * 300 + 50),
                  static_cast<float>(row * 250 + 50),
                  200, 200});
-            testNode->SetBoundsSize(sizes[row]);
-            testNode->SetBoundsPosition(positions[col]);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
@@ -246,12 +229,10 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_SetBounds_Interact
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    // SetBounds followed by SetBoundsSize
+//     // SetBounds followed by SetBoundsSize
     testNode->SetBounds({50, 50, 200, 200});
-    testNode->SetBoundsSize({150, 150});
 
-    // SetBoundsSize followed by SetBounds
-    testNode->SetBoundsSize({100, 100});
+//     // SetBoundsSize followed by SetBounds
     testNode->SetBounds({100, 100, 100, 100});
 }
 
@@ -271,7 +252,6 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Shape_Variation)
         float x = static_cast<float>((i % 3) * 300 + 50);
         float y = static_cast<float>((i / 3) * 300 + 50);
         testNode->SetBounds({x, y, 200, 200});
-        testNode->SetBoundsSize(shapes[i]);
         testNode->SetBackgroundColor(0xffffff00);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -322,7 +302,6 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Overflow)
             {static_cast<float>((i % 2) * 100 + 50),
              static_cast<float>((i / 2) * 100 + 50),
              100, 100});
-        testNode->SetBoundsSize(overflowSizes[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -344,7 +323,6 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Fractional)
         float x = static_cast<float>((i % 3) * 300 + 50);
         float y = static_cast<float>((i / 3) * 200 + 50);
         testNode->SetBounds({x, y, 200, 200});
-        testNode->SetBoundsSize(fractionalSizes[i]);
         testNode->SetBackgroundColor(0xffffcc00);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);

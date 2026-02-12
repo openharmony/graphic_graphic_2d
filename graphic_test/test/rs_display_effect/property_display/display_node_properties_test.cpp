@@ -15,7 +15,7 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
-#include "screen_manager/screen_types.h"
+#include "ui/rs_display_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -54,7 +54,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_SetScreenId)
         auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
             {static_cast<float>((i % 2) * 500 + 50),
              static_cast<float>((i / 2) * 300 + 50),
-             300, 300});
+             300.0f, 300.0f});
         displayNode->AddChild(canvasNode);
         RegisterNode(displayNode);
         RegisterNode(canvasNode);
@@ -79,7 +79,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_SetScreenId_Boun
         auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
             {static_cast<float>((i % 2) * 400 + 100),
              static_cast<float>((i / 2) * 300 + 100),
-             200, 200});
+             200.0f, 200.0f});
         displayNode->AddChild(canvasNode);
         RegisterNode(displayNode);
         RegisterNode(canvasNode);
@@ -97,8 +97,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_SetForceCloseHdr
         displayNode->SetForceCloseHdr(forceCloseHdrList[i]);
 
         auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+            {static_cast<float>(i * 500 + 50), 50.0f, 400.0f, 400.0f});
         displayNode->AddChild(canvasNode);
         RegisterNode(displayNode);
         RegisterNode(canvasNode);
@@ -121,7 +120,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_ForceCloseHdr_Ro
             auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
                 {static_cast<float>(col * 300 + 100),
                  static_cast<float>(row * 300 + 100),
-                 200, 200});
+                 200.0f, 200.0f});
             displayNode->AddChild(canvasNode);
             RegisterNode(displayNode);
             RegisterNode(canvasNode);
@@ -140,8 +139,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_SetVirtualScreen
         displayNode->SetVirtualScreenMuteStatus(muteStatusList[i]);
 
         auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+            {static_cast<float>(i * 500 + 50), 50.0f, 400.0f, 400.0f});
         displayNode->AddChild(canvasNode);
         RegisterNode(displayNode);
         RegisterNode(canvasNode);
@@ -166,7 +164,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_Combined_Propert
                 auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
                     {static_cast<float>(((j + k) % 2) * 300 + 100),
                      static_cast<float>((i + (k / 2)) * 200 + 100),
-                     150, 150});
+                     150.0f, 150.0f});
                 displayNode->AddChild(canvasNode);
                 RegisterNode(displayNode);
                 RegisterNode(canvasNode);
@@ -185,8 +183,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_Multiple_Screens
         displayNode->SetScreenId(i);
 
         auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 350 + 50), 50},
-            300, 300);
+            {static_cast<float>(i * 350 + 50), 50.0f, 300.0f, 300.0f});
         displayNode->AddChild(canvasNode);
         RegisterNode(displayNode);
         RegisterNode(canvasNode);
@@ -204,8 +201,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_ClearModifierByP
         displayNode->ClearModifierByPid(pids[i]);
 
         auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 400 + 50), 50},
-            300, 300);
+            {static_cast<float>(i * 400 + 50), 50.0f, 300.0f, 300.0f});
         displayNode->AddChild(canvasNode);
         RegisterNode(displayNode);
         RegisterNode(canvasNode);
@@ -219,7 +215,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_Rapid_State_Chan
     auto displayNode = RSDisplayNode::Create(config);
 
     auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-        {100, 100}, 400, 400);
+        {100.0f, 100.0f, 400.0f, 400.0f});
     displayNode->AddChild(canvasNode);
     RegisterNode(displayNode);
     RegisterNode(canvasNode);

@@ -15,6 +15,8 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
+#include "ui/rs_surface_node.h"
+#include "ui/rs_display_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -22,12 +24,6 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 
 // Helper function to convert int to FilterQuality
-static FilterQuality IntToFilterQuality(int level)
-{
-    if (level < 0) return FilterQuality::NONE;
-    if (level > static_cast<int>(FilterQuality::HIGH)) return FilterQuality::HIGH;
-    return static_cast<FilterQuality>(level);
-}
 
 class RSNodeSurfaceDisplayTest : public RSGraphicTest {
 private:
@@ -78,7 +74,8 @@ static void OnInitType()
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_SetBoundsChangedCallback_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
     surfaceNode->SetBoundsChangedCallback(OnBoundsChanged);
@@ -94,7 +91,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_SetSurfaceTexture_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -113,7 +111,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST,
     RSNodeSurfaceDisplayTest_SetSurfaceTextureAttachCallBack_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -131,7 +130,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST,
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST,
     RSNodeSurfaceDisplayTest_SetSurfaceTextureUpdateCallBack_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -149,7 +149,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST,
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST,
     RSNodeSurfaceDisplayTest_SetSurfaceTextureInitTypeCallBack_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -169,7 +170,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
     std::vector<uint32_t> layerValues = { 0, 1, 2, 3 };
 
     for (size_t i = 0; i < layerValues.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         surfaceNode->SetBackgroundColor(0xffff0000);
         surfaceNode->SetCompositeLayer(layerValues[i]);
@@ -188,7 +190,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
     std::vector<uint64_t> displayIds = { 0, 1, 100, UINT64_MAX };
 
     for (size_t i = 0; i < displayIds.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         surfaceNode->SetBackgroundColor(0xffff0000);
         surfaceNode->SetSourceVirtualDisplayId(displayIds[i]);
@@ -204,7 +207,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_SetRegionToBeMagnified_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -225,7 +229,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
     std::vector<bool> transparentValues = { true, false, true };
 
     for (size_t i = 0; i < transparentValues.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({ (int)i * 380 + 50, 50, 350, 350 });
         surfaceNode->SetBackgroundColor(0xffff0000);
         surfaceNode->SetContainerWindowTransparent(transparentValues[i]);
@@ -241,7 +246,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_AttachToDisplay_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -259,7 +265,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_DetachToDisplay_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -278,7 +285,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_AttachToWindowContainer_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -296,7 +304,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_DetachFromWindowContainer_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -320,7 +329,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
 
     for (size_t row = 0; row < exportStates.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
-            auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+            auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
             surfaceNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             surfaceNode->SetBackgroundColor(0xffff0000);
             surfaceNode->SetAlpha(alphaList[col]);
@@ -342,7 +352,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_Display_ClearChildren_001)
 {
-    auto displayNode = RSDisplayNode::Create();
+        RSDisplayNodeConfig displayConfig;
+    auto displayNode = RSDisplayNode::Create(displayConfig);
     displayNode->SetBounds({ 50, 50, 1100, 1900 });
     displayNode->SetBackgroundColor(0xffff0000);
 
@@ -366,7 +377,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_Display_MultipleDisplays_001)
 {
     for (int i = 0; i < 2; i++) {
-        auto displayNode = RSDisplayNode::Create();
+        RSDisplayNodeConfig displayConfig;
+        auto displayNode = RSDisplayNode::Create(displayConfig);
         displayNode->SetBounds({ 50 + i * 600, 50, 550, 1900 });
         displayNode->SetBackgroundColor(0xffff0000 - i * 0x0000ff00);
         displayNode->AddDisplayNodeToTree();
@@ -386,12 +398,14 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_SurfaceDisplay_Hierarchy_001)
 {
-    auto displayNode = RSDisplayNode::Create();
+        RSDisplayNodeConfig displayConfig;
+    auto displayNode = RSDisplayNode::Create(displayConfig);
     displayNode->SetBounds({ 50, 50, 1100, 1900 });
     displayNode->SetBackgroundColor(0xffff0000);
 
     for (int i = 0; i < 2; i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({ 50 + i * 550, 50, 500, 1800 });
         surfaceNode->SetBackgroundColor(0xff00ff00);
         surfaceNode->AttachToDisplay(i);
@@ -409,7 +423,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_SurfaceWithCallbacks_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 600, 600 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -446,7 +461,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
     };
 
     for (size_t i = 0; i < boundsList.size(); i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         auto bounds = boundsList[i];
         surfaceNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         surfaceNode->SetBackgroundColor(0xffff0000);
@@ -472,7 +488,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
 
     for (size_t row = 0; row < rotationList.size(); row++) {
         for (size_t col = 0; col < scaleList.size(); col++) {
-            auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+            auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
             surfaceNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             surfaceNode->SetBackgroundColor(0xffff0000);
             surfaceNode->SetRotation(rotationList[row]);
@@ -562,7 +579,7 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
             testNode->SetBounds({ (int)col * 290 + 50, (int)row * 350 + 50, 250, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetShadowRadius(shadowRadius[col]);
-            testNode->SetMaterialWithQualityLevel(nullptr, IntToFilterQuality(qualityLevels[row]));
+            testNode->SetMaterialWithQualityLevel(nullptr, static_cast<FilterQuality>(qualityLevels[row] % 2));
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
@@ -580,13 +597,15 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_ComplexSurfaceDisplay_001)
 {
-    auto displayNode = RSDisplayNode::Create();
+        RSDisplayNodeConfig displayConfig;
+    auto displayNode = RSDisplayNode::Create(displayConfig);
     displayNode->SetBounds({ 50, 50, 1100, 1900 });
     displayNode->SetBackgroundColor(0xffff0000);
 
     // Create multiple surfaces attached to display
     for (int i = 0; i < 3; i++) {
-        auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
         surfaceNode->SetBounds({ 50 + i * 360, 50, 340, 1800 });
         surfaceNode->SetBackgroundColor(0xff00ff00 - i * 0x0000ff00);
         surfaceNode->AttachToDisplay(i);
@@ -608,7 +627,8 @@ GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDispla
  */
 GRAPHIC_TEST(RSNodeSurfaceDisplayTest, CONTENT_DISPLAY_TEST, RSNodeSurfaceDisplayTest_AllSurfaceCallbacks_001)
 {
-    auto surfaceNode = RSSurfaceNode::Create();
+        RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds({ 50, 50, 1100, 1800 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 

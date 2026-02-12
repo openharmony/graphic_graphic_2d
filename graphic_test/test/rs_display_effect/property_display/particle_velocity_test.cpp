@@ -15,6 +15,7 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
+#include "animation/rs_particle_velocity_field.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,7 +47,10 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
     testNode->SetBackgroundColor(0xffff0000);
 
     // Set particle velocity fields
-    testNode->SetParticleVelocityFields(1.0f, 2.0f, 3.0f);
+    auto fields = std::make_shared<ParticleVelocityFields>();
+    auto field = std::make_shared<ParticleVelocityField>(Vector2f(1.0f, 2.0f));
+    fields->AddVelocityField(field);
+    testNode->SetParticleVelocityFields(fields);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -74,7 +78,10 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
         testNode->SetBackgroundColor(0xffff0000);
 
         auto [param1, param2, param3] = paramsList[i];
-        testNode->SetParticleVelocityFields(param1, param2, param3);
+        auto fields = std::make_shared<ParticleVelocityFields>();
+        auto field = std::make_shared<ParticleVelocityField>(Vector2f(param1, param2));
+        fields->AddVelocityField(field);
+        testNode->SetParticleVelocityFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -99,7 +106,11 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaList[col]);
 
-            testNode->SetParticleVelocityFields(velocityValues[row], velocityValues[row] * 2, velocityValues[row] * 3);
+            auto fields = std::make_shared<ParticleVelocityFields>();
+            auto field = std::make_shared<ParticleVelocityField>(
+                Vector2f(velocityValues[row], velocityValues[row] * 2));
+            fields->AddVelocityField(field);
+            testNode->SetParticleVelocityFields(fields);
 
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -120,16 +131,25 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
     testNode->SetBackgroundColor(0xffff0000);
 
     // Set initial values
-    testNode->SetParticleVelocityFields(1.0f, 2.0f, 3.0f);
+    auto fields1 = std::make_shared<ParticleVelocityFields>();
+    auto field1 = std::make_shared<ParticleVelocityField>(Vector2f(1.0f, 2.0f));
+    fields1->AddVelocityField(field1);
+    testNode->SetParticleVelocityFields(fields1);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
     // Update to different values
-    testNode->SetParticleVelocityFields(5.0f, 10.0f, 15.0f);
+    auto fields2 = std::make_shared<ParticleVelocityFields>();
+    auto field2 = std::make_shared<ParticleVelocityField>(Vector2f(5.0f, 10.0f));
+    fields2->AddVelocityField(field2);
+    testNode->SetParticleVelocityFields(fields2);
 
     // Update again
-    testNode->SetParticleVelocityFields(10.0f, 20.0f, 30.0f);
+    auto fields3 = std::make_shared<ParticleVelocityFields>();
+    auto field3 = std::make_shared<ParticleVelocityField>(Vector2f(10.0f, 20.0f));
+    fields3->AddVelocityField(field3);
+    testNode->SetParticleVelocityFields(fields3);
 }
 
 /*
@@ -148,7 +168,12 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetRotation(rotationList[i]);
 
-        testNode->SetParticleVelocityFields(1.0f + i, 2.0f + i, 3.0f + i);
+        auto fields = std::make_shared<ParticleVelocityFields>();
+        float vx = 1.0f + i;
+        float vy = 2.0f + i;
+        auto field = std::make_shared<ParticleVelocityField>(Vector2f(vx, vy));
+        fields->AddVelocityField(field);
+        testNode->SetParticleVelocityFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -177,7 +202,11 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetScale(scaleList[col].first, scaleList[col].second);
 
-            testNode->SetParticleVelocityFields(velocityScale[row], velocityScale[row] * 2, velocityScale[row] * 3);
+            auto fields = std::make_shared<ParticleVelocityFields>();
+            auto field = std::make_shared<ParticleVelocityField>(
+                Vector2f(velocityScale[row], velocityScale[row] * 2));
+            fields->AddVelocityField(field);
+            testNode->SetParticleVelocityFields(fields);
 
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -205,7 +234,12 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
             zeroBounds[i].z_, zeroBounds[i].w_ });
         testNode->SetBackgroundColor(0xffff0000);
 
-        testNode->SetParticleVelocityFields(1.0f * (i + 1), 2.0f * (i + 1), 3.0f * (i + 1));
+        auto fields = std::make_shared<ParticleVelocityFields>();
+        float vx = 1.0f * (i + 1);
+        float vy = 2.0f * (i + 1);
+        auto field = std::make_shared<ParticleVelocityField>(Vector2f(vx, vy));
+        fields->AddVelocityField(field);
+        testNode->SetParticleVelocityFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -231,9 +265,14 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
         auto testNode = RSCanvasNode::Create();
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
-        testNode->SetTranslate(translateList[i].first, translateList[i].second);
+        testNode->SetTranslate(Vector2f(translateList[i].first, translateList[i].second));
 
-        testNode->SetParticleVelocityFields(1.0f + i, 2.0f + i, 3.0f + i);
+        auto fields = std::make_shared<ParticleVelocityFields>();
+        float vx = 1.0f + i;
+        float vy = 2.0f + i;
+        auto field = std::make_shared<ParticleVelocityField>(Vector2f(vx, vy));
+        fields->AddVelocityField(field);
+        testNode->SetParticleVelocityFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -261,7 +300,10 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
         testNode->SetBackgroundColor(0xffff0000);
 
         auto [param1, param2, param3] = extremeParams[i];
-        testNode->SetParticleVelocityFields(param1, param2, param3);
+        auto fields = std::make_shared<ParticleVelocityFields>();
+        auto field = std::make_shared<ParticleVelocityField>(Vector2f(param1, param2));
+        fields->AddVelocityField(field);
+        testNode->SetParticleVelocityFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -292,7 +334,10 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_01
         testNode->SetPixelmap(pixelMap);
 
         auto [param1, param2, param3] = paramsList[i];
-        testNode->SetParticleVelocityFields(param1, param2, param3);
+        auto fields = std::make_shared<ParticleVelocityFields>();
+        auto field = std::make_shared<ParticleVelocityField>(Vector2f(param1, param2));
+        fields->AddVelocityField(field);
+        testNode->SetParticleVelocityFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);

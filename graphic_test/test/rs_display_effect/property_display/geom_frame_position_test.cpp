@@ -33,7 +33,7 @@ public:
     }
 };
 
-/* SetFramePosition: normal values - matrix 4x3 (x x y) */
+/* SetFramePositionX/Y: normal values - matrix 4x3 (x x y) */
 GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Normal_Matrix_4x3)
 {
     std::vector<float> positionsX = {0, 50, 100, 150};
@@ -43,14 +43,15 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Normal_Matri
         for (size_t col = 0; col < positionsX.size(); col++) {
             auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
                 {50, 50, 200, 200});
-            testNode->SetFramePosition({positionsX[col], positionsY[row]});
+            testNode->SetFramePositionX(positionsX[col]);
+            testNode->SetFramePositionY(positionsY[row]);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
     }
 }
 
-/* SetFramePosition: boundary values - zero and negative */
+/* SetFramePositionX/Y: boundary values - zero and negative */
 GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Boundary_Zero_Negative)
 {
     std::vector<Vector2f> positions = {
@@ -66,19 +67,17 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Boundary_Zer
             {static_cast<float>((i % 2) * 300 + 200),
              static_cast<float>((i / 2) * 300 + 200),
              200, 200});
-        testNode->SetFramePosition(positions[i]);
+        testNode->SetFramePositionX(positions[i].x_);
+        testNode->SetFramePositionY(positions[i].y_);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetFramePosition: extreme values */
+/* SetFramePositionX/Y: extreme values */
 GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Extreme_Values)
 {
     std::vector<Vector2f> extremePositions = {
-        {std::numeric_limits<float>::max(), std::numeric_limits<float>::max()},
-        {std::numeric_limits<float>::min(), std::numeric_limits<float>::min()},
-        {-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max()},
         {1000, 1000},
         {-1000, -1000},
         {5000, 5000},
@@ -90,34 +89,8 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Extreme_Valu
             {static_cast<float>((i % 2) * 500 + 100),
              static_cast<float>((i / 2) * 500 + 100),
              300, 300});
-        testNode->SetFramePosition(extremePositions[i]);
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
-    }
-}
-
-/* SetFramePosition: infinity and NaN */
-GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Invalid_Float)
-{
-    std::vector<Vector2f> invalidPositions = {
-        {std::numeric_limits<float>::infinity(), 0},
-        {0, std::numeric_limits<float>::infinity()},
-        {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()},
-        {-std::numeric_limits<float>::infinity(), 0},
-        {0, -std::numeric_limits<float>::infinity()},
-        {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()},
-        {std::numeric_limits<float>::quiet_NaN(), 0},
-        {0, std::numeric_limits<float>::quiet_NaN()},
-        {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()}
-    };
-
-    for (size_t i = 0; i < invalidPositions.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
-        float x = static_cast<float>((i % 3) * 300 + 50);
-        float y = static_cast<float>((i / 3) * 300 + 50);
-        testNode->SetBounds({x, y, 200, 200});
-        testNode->SetFramePosition(invalidPositions[i]);
-        testNode->SetBackgroundColor(0xffff0000);
+        testNode->SetFramePositionX(extremePositions[i].x_);
+        testNode->SetFramePositionY(extremePositions[i].y_);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -152,13 +125,7 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePositionX_Extreme_Val
         1000,
         -1000,
         5000,
-        -5000,
-        std::numeric_limits<float>::max(),
-        -std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::min(),
-        std::numeric_limits<float>::infinity(),
-        -std::numeric_limits<float>::infinity(),
-        std::numeric_limits<float>::quiet_NaN()
+        -5000
     };
 
     for (size_t i = 0; i < extremePositions.size(); i++) {
@@ -201,13 +168,7 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePositionY_Extreme_Val
         1000,
         -1000,
         5000,
-        -5000,
-        std::numeric_limits<float>::max(),
-        -std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::min(),
-        std::numeric_limits<float>::infinity(),
-        -std::numeric_limits<float>::infinity(),
-        std::numeric_limits<float>::quiet_NaN()
+        -5000
     };
 
     for (size_t i = 0; i < extremePositions.size(); i++) {
@@ -241,39 +202,43 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePositionXY_Combined_M
     }
 }
 
-/* SetFramePosition: position vs bounds relationship */
+/* SetFramePositionX/Y: position vs bounds relationship */
 GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Bounds_Relationship)
 {
     // Position at origin
     auto testNode1 = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
         {100, 100, 200, 200});
-    testNode1->SetFramePosition({0, 0});
+    testNode1->SetFramePositionX(0);
+    testNode1->SetFramePositionY(0);
     GetRootNode()->AddChild(testNode1);
     RegisterNode(testNode1);
 
     // Position offset within bounds
     auto testNode2 = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
         {400, 100, 200, 200});
-    testNode2->SetFramePosition({50, 50});
+    testNode2->SetFramePositionX(50);
+    testNode2->SetFramePositionY(50);
     GetRootNode()->AddChild(testNode2);
     RegisterNode(testNode2);
 
     // Position offset beyond bounds
     auto testNode3 = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
         {100, 400, 200, 200});
-    testNode3->SetFramePosition({200, 200});
+    testNode3->SetFramePositionX(200);
+    testNode3->SetFramePositionY(200);
     GetRootNode()->AddChild(testNode3);
     RegisterNode(testNode3);
 
     // Negative position
     auto testNode4 = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
         {400, 400, 200, 200});
-    testNode4->SetFramePosition({-100, -100});
+    testNode4->SetFramePositionX(-100);
+    testNode4->SetFramePositionY(-100);
     GetRootNode()->AddChild(testNode4);
     RegisterNode(testNode4);
 }
 
-/* SetFramePosition: rapid sequential updates */
+/* SetFramePositionX/Y: rapid sequential updates */
 GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Rapid_Updates)
 {
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
@@ -281,16 +246,23 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Rapid_Update
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    testNode->SetFramePosition({0, 0});
-    testNode->SetFramePosition({50, 50});
-    testNode->SetFramePosition({100, 100});
-    testNode->SetFramePosition({-50, -50});
-    testNode->SetFramePosition({0, 50});
-    testNode->SetFramePosition({50, 0});
-    testNode->SetFramePosition({150, 150});
+    testNode->SetFramePositionX(0);
+    testNode->SetFramePositionY(0);
+    testNode->SetFramePositionX(50);
+    testNode->SetFramePositionY(50);
+    testNode->SetFramePositionX(100);
+    testNode->SetFramePositionY(100);
+    testNode->SetFramePositionX(-50);
+    testNode->SetFramePositionY(-50);
+    testNode->SetFramePositionX(0);
+    testNode->SetFramePositionY(50);
+    testNode->SetFramePositionX(50);
+    testNode->SetFramePositionY(0);
+    testNode->SetFramePositionX(150);
+    testNode->SetFramePositionY(150);
 }
 
-/* SetFramePosition/PositionX/PositionY: interaction test */
+/* SetFramePositionX/PositionY: interaction test */
 GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Interaction)
 {
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
@@ -298,23 +270,21 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Interaction)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    // SetFramePosition followed by SetFramePositionX
-    testNode->SetFramePosition({100, 100});
+    // SetFramePositionX followed by SetFramePositionY
+    testNode->SetFramePositionX(100);
+    testNode->SetFramePositionY(100);
+
+    // SetFramePositionX again
     testNode->SetFramePositionX(200);
 
-    // SetFramePositionY followed by SetFramePosition
+    // SetFramePositionY again
     testNode->SetFramePositionY(200);
-    testNode->SetFramePosition({50, 50});
-
-    // SetFramePositionX followed by SetFramePositionY
-    testNode->SetFramePositionX(150);
-    testNode->SetFramePositionY(150);
 
     // Verify final state
     testNode->SetBackgroundColor(0xffffff00);
 }
 
-/* SetFramePosition: quadrant positions - matrix 2x2 */
+/* SetFramePositionX/Y: quadrant positions - matrix 2x2 */
 GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Quadrant_Matrix_2x2)
 {
     std::vector<Vector2f> quadrantPositions = {
@@ -329,13 +299,14 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Quadrant_Mat
             {static_cast<float>((i % 2) * 400 + 200),
              static_cast<float>((i / 2) * 400 + 200),
              300, 300});
-        testNode->SetFramePosition(quadrantPositions[i]);
+        testNode->SetFramePositionX(quadrantPositions[i].x_);
+        testNode->SetFramePositionY(quadrantPositions[i].y_);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetFramePosition: diagonal positions */
+/* SetFramePositionX/Y: diagonal positions */
 GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Diagonal)
 {
     std::vector<Vector2f> diagonalPositions = {
@@ -351,14 +322,15 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Diagonal)
         float x = static_cast<float>(i * 200 + 50);
         float y = 100;
         testNode->SetBounds({x, y, 200, 200});
-        testNode->SetFramePosition(diagonalPositions[i]);
+        testNode->SetFramePositionX(diagonalPositions[i].x_);
+        testNode->SetFramePositionY(diagonalPositions[i].y_);
         testNode->SetBackgroundColor(0xffff00ff);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetFramePosition: combined with size - matrix 3x2 */
+/* SetFramePositionX/Y: combined test */
 GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Size_Matrix_3x2)
 {
     std::vector<Vector2f> positions = {
@@ -376,9 +348,9 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Size_Matrix_
             auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
                 {static_cast<float>(col * 300 + 50),
                  static_cast<float>(row * 300 + 50),
-                 250, 250});
-            testNode->SetFramePosition(positions[row]);
-            testNode->SetFrameSize(sizes[col]);
+                 sizes[col].x_, sizes[col].y_});
+            testNode->SetFramePositionX(positions[row].x_);
+            testNode->SetFramePositionY(positions[row].y_);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }

@@ -15,6 +15,7 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
+#include "animation/rs_particle_ripple_field.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,7 +47,10 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_001)
     testNode->SetBackgroundColor(0xffff0000);
 
     // Set particle ripple fields
-    testNode->SetParticleRippleFields(1.0f, 2.0f, 3.0f);
+    auto fields = std::make_shared<ParticleRippleFields>();
+    auto field = std::make_shared<ParticleRippleField>(Vector2f(200.0f, 200.0f), 100.0f, 50.0f, 200.0f);
+    fields->AddRippleField(field);
+    testNode->SetParticleRippleFields(fields);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -75,7 +79,11 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_002)
         testNode->SetBackgroundColor(0xffff0000);
 
         auto [param1, param2, param3] = paramsList[i];
-        testNode->SetParticleRippleFields(param1, param2, param3);
+        auto fields = std::make_shared<ParticleRippleFields>();
+        auto field = std::make_shared<ParticleRippleField>(
+            Vector2f(90.0f, 90.0f), param1, param2, param3);
+        fields->AddRippleField(field);
+        testNode->SetParticleRippleFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -90,17 +98,21 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_002)
  */
 GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_003)
 {
-    std::vector<float> param1Values = { 0.5f, 1.0f, 1.5f };
+    std::vector<float> amplitudeValues = { 50.0f, 100.0f, 150.0f };
     std::vector<float> alphaList = { 0.3f, 0.6f, 1.0f };
 
-    for (size_t row = 0; row < param1Values.size(); row++) {
+    for (size_t row = 0; row < amplitudeValues.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
             auto testNode = RSCanvasNode::Create();
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaList[col]);
 
-            testNode->SetParticleRippleFields(param1Values[row], 2.0f, 3.0f);
+            auto fields = std::make_shared<ParticleRippleFields>();
+            auto field = std::make_shared<ParticleRippleField>(
+                Vector2f(150.0f, 150.0f), amplitudeValues[row], 50.0f, 200.0f);
+            fields->AddRippleField(field);
+            testNode->SetParticleRippleFields(fields);
 
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -121,16 +133,25 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_004)
     testNode->SetBackgroundColor(0xffff0000);
 
     // Set initial values
-    testNode->SetParticleRippleFields(1.0f, 2.0f, 3.0f);
+    auto fields = std::make_shared<ParticleRippleFields>();
+    auto field1 = std::make_shared<ParticleRippleField>(Vector2f(200.0f, 200.0f), 100.0f, 50.0f, 200.0f);
+    fields->AddRippleField(field1);
+    testNode->SetParticleRippleFields(fields);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
     // Update to different values
-    testNode->SetParticleRippleFields(2.0f, 4.0f, 6.0f);
+    auto fields2 = std::make_shared<ParticleRippleFields>();
+    auto field2 = std::make_shared<ParticleRippleField>(Vector2f(200.0f, 200.0f), 200.0f, 100.0f, 400.0f);
+    fields2->AddRippleField(field2);
+    testNode->SetParticleRippleFields(fields2);
 
     // Update again
-    testNode->SetParticleRippleFields(3.0f, 6.0f, 9.0f);
+    auto fields3 = std::make_shared<ParticleRippleFields>();
+    auto field3 = std::make_shared<ParticleRippleField>(Vector2f(200.0f, 200.0f), 300.0f, 150.0f, 600.0f);
+    fields3->AddRippleField(field3);
+    testNode->SetParticleRippleFields(fields3);
 }
 
 /*
@@ -149,7 +170,10 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_005)
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetRotation(rotationList[i]);
 
-        testNode->SetParticleRippleFields(1.0f, 2.0f, 3.0f);
+        auto fields = std::make_shared<ParticleRippleFields>();
+        auto field = std::make_shared<ParticleRippleField>(Vector2f(150.0f, 150.0f), 100.0f, 50.0f, 200.0f);
+        fields->AddRippleField(field);
+        testNode->SetParticleRippleFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -164,21 +188,25 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_005)
  */
 GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_006)
 {
-    std::vector<float> param2Values = { 1.0f, 2.0f, 3.0f };
+    std::vector<float> wavelengthValues = { 50.0f, 100.0f, 150.0f };
     std::vector<std::pair<float, float>> scaleList = {
         { 0.5f, 0.5f },
         { 1.0f, 1.0f },
         { 1.5f, 1.5f }
     };
 
-    for (size_t row = 0; row < param2Values.size(); row++) {
+    for (size_t row = 0; row < wavelengthValues.size(); row++) {
         for (size_t col = 0; col < scaleList.size(); col++) {
             auto testNode = RSCanvasNode::Create();
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetScale(scaleList[col].first, scaleList[col].second);
 
-            testNode->SetParticleRippleFields(1.0f, param2Values[row], 3.0f);
+            auto fields = std::make_shared<ParticleRippleFields>();
+            auto field = std::make_shared<ParticleRippleField>(
+                Vector2f(150.0f, 150.0f), 100.0f, wavelengthValues[row], 200.0f);
+            fields->AddRippleField(field);
+            testNode->SetParticleRippleFields(fields);
 
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -206,7 +234,14 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_007)
             zeroBounds[i].z_, zeroBounds[i].w_ });
         testNode->SetBackgroundColor(0xffff0000);
 
-        testNode->SetParticleRippleFields(1.0f + i, 2.0f + i, 3.0f + i);
+        auto fields = std::make_shared<ParticleRippleFields>();
+        float amplitude = 100.0f + i * 50.0f;
+        float wavelength = 50.0f + i * 25.0f;
+        float waveSpeed = 200.0f + i * 100.0f;
+        auto field = std::make_shared<ParticleRippleField>(
+            Vector2f(50.0f, 50.0f), amplitude, wavelength, waveSpeed);
+        fields->AddRippleField(field);
+        testNode->SetParticleRippleFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -215,23 +250,27 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_007)
 
 /*
  * @tc.name: ParticleRippleTest_008
- * @tc.desc: Test SetParticleRippleFields with different param3 values (3x4 matrix)
+ * @tc.desc: Test SetParticleRippleFields with different wave speeds (3x4 matrix)
  * @tc.type: FUNC
  * @tc.require: issueI7N7M2
  */
 GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_008)
 {
-    std::vector<float> param3Values = { 1.0f, 2.0f, 3.0f };
+    std::vector<float> waveSpeedValues = { 100.0f, 200.0f, 300.0f };
     std::vector<float> alphaList = { 0.3f, 0.6f, 1.0f };
 
-    for (size_t row = 0; row < param3Values.size(); row++) {
+    for (size_t row = 0; row < waveSpeedValues.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
             auto testNode = RSCanvasNode::Create();
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaList[col]);
 
-            testNode->SetParticleRippleFields(1.0f, 2.0f, param3Values[row]);
+            auto fields = std::make_shared<ParticleRippleFields>();
+            auto field = std::make_shared<ParticleRippleField>(
+                Vector2f(150.0f, 150.0f), 100.0f, 50.0f, waveSpeedValues[row]);
+            fields->AddRippleField(field);
+            testNode->SetParticleRippleFields(fields);
 
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -251,10 +290,10 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_009)
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
 
     std::vector<std::tuple<float, float, float>> paramsList = {
-        { 0.5f, 1.0f, 1.5f },
-        { 1.0f, 2.0f, 3.0f },
-        { 1.5f, 3.0f, 4.5f },
-        { 2.0f, 4.0f, 6.0f }
+        { 50.0f, 50.0f, 150.0f },
+        { 100.0f, 50.0f, 200.0f },
+        { 150.0f, 50.0f, 300.0f },
+        { 200.0f, 50.0f, 400.0f }
     };
 
     for (size_t i = 0; i < paramsList.size(); i++) {
@@ -263,7 +302,11 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_009)
         testNode->SetPixelmap(pixelMap);
 
         auto [param1, param2, param3] = paramsList[i];
-        testNode->SetParticleRippleFields(param1, param2, param3);
+        auto fields = std::make_shared<ParticleRippleFields>();
+        auto field = std::make_shared<ParticleRippleField>(
+            Vector2f(125.0f, 125.0f), param1, param2, param3);
+        fields->AddRippleField(field);
+        testNode->SetParticleRippleFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -291,7 +334,11 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_010)
         testNode->SetBackgroundColor(0xffff0000);
 
         auto [param1, param2, param3] = extremeParams[i];
-        testNode->SetParticleRippleFields(param1, param2, param3);
+        auto fields = std::make_shared<ParticleRippleFields>();
+        auto field = std::make_shared<ParticleRippleField>(
+            Vector2f(125.0f, 125.0f), param1, param2, param3);
+        fields->AddRippleField(field);
+        testNode->SetParticleRippleFields(fields);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);

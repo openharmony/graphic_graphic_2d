@@ -387,7 +387,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
         auto testNode = RSCanvasNode::Create();
         testNode->SetBounds({ (int)i * 130 + 50, 50, 120, 120 });
         testNode->SetPixelmap(pixelMap);
-        testNode->SetTranslate(translateList[i].first, translateList[i].second);
+        testNode->SetTranslate(Vector2f(translateList[i].first, translateList[i].second));
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -563,7 +563,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
             testNode->SetPixelmap(pixelMap);
             testNode->SetRotation(rotations[row]);
             testNode->SetScale(scales[col].first, scales[col].second);
-            testNode->SetTranslate(10.0f, 10.0f);
+            testNode->SetTranslate(Vector2f(10.0f, 10.0f));
             testNode->SetAlpha(0.8f);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -626,7 +626,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
             auto testNode = RSCanvasNode::Create();
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetPixelmap(pixelMap);
-            testNode->SetBackgroundFilterRadius(blurRadius[row]);
+            testNode->SetBackgroundBlurRadius(blurRadius[row]);
             testNode->SetAlpha(alphaList[col]);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -747,7 +747,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     auto pixelMap = DecodePixelMap("/data/local/tmp/appearance_test.jpg",
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
 
-    auto surfaceNode = RSSurfaceNode::Create();
+    auto surfaceNode = RSCanvasNode::Create();
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetPixelmap(pixelMap);
     surfaceNode->SetAlpha(0.8f);

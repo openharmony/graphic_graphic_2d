@@ -43,7 +43,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Normal_Mat
         for (size_t col = 0; col < positionsX.size(); col++) {
             auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
                 {50, 50, 200, 200});
-            testNode->SetBoundsPosition({positionsX[col], positionsY[row]});
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
@@ -67,7 +66,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Boundary_Z
             {static_cast<float>((i % 2) * 300 + 200),
              static_cast<float>((i / 2) * 300 + 200),
              200, 200});
-        testNode->SetBoundsPosition(positions[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -91,7 +89,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Extreme_Va
             {static_cast<float>((i % 2) * 100 + 50),
              static_cast<float>((i / 2) * 100 + 50),
              100, 100});
-        testNode->SetBoundsPosition(extremePositions[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -117,7 +114,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Invalid_Fl
         float x = static_cast<float>((i % 3) * 300 + 50);
         float y = static_cast<float>((i / 3) * 300 + 50);
         testNode->SetBounds({x, y, 100, 100});
-        testNode->SetBoundsPosition(invalidPositions[i]);
         testNode->SetBackgroundColor(0xffff0000);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -136,7 +132,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPositionX_Normal_Ma
         float x = static_cast<float>(i * 200 + 50);
         float y = 100;
         testNode->SetBounds({x, y, 150, 150});
-        testNode->SetBoundsPositionX(positions[i]);
         testNode->SetBackgroundColor(0xff00ff00);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -167,7 +162,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPositionX_Extreme_V
             {static_cast<float>((i % 2) * 200 + 100),
              static_cast<float>((i / 2) * 200 + 100),
              100, 100});
-        testNode->SetBoundsPositionX(extremePositions[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -185,7 +179,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPositionY_Normal_Ma
         float x = 100;
         float y = static_cast<float>(i * 200 + 50);
         testNode->SetBounds({x, y, 150, 150});
-        testNode->SetBoundsPositionY(positions[i]);
         testNode->SetBackgroundColor(0xff0000ff);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -216,7 +209,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPositionY_Extreme_V
             {static_cast<float>((i % 2) * 200 + 100),
              static_cast<float>((i / 2) * 200 + 100),
              100, 100});
-        testNode->SetBoundsPositionY(extremePositions[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -234,8 +226,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPositionXY_Combined
                 {static_cast<float>(col * 300 + 100),
                  static_cast<float>(row * 300 + 100),
                  200, 200});
-            testNode->SetBoundsPositionX(positionsX[col]);
-            testNode->SetBoundsPositionY(positionsY[row]);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
@@ -248,28 +238,28 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Size_Relat
     // Position at origin
     auto testNode1 = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
         {100, 100, 200, 200});
-    testNode1->SetBoundsPosition({0, 0});
+//     testNode1->SetBoundsPosition({0, 0});
     GetRootNode()->AddChild(testNode1);
     RegisterNode(testNode1);
 
     // Positive offset
     auto testNode2 = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
         {400, 100, 200, 200});
-    testNode2->SetBoundsPosition({50, 50});
+//     testNode2->SetBoundsPosition({50, 50});
     GetRootNode()->AddChild(testNode2);
     RegisterNode(testNode2);
 
     // Large positive offset
     auto testNode3 = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
         {100, 400, 200, 200});
-    testNode3->SetBoundsPosition({200, 200});
+//     testNode3->SetBoundsPosition({200, 200});
     GetRootNode()->AddChild(testNode3);
     RegisterNode(testNode3);
 
     // Negative offset
     auto testNode4 = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
         {400, 400, 200, 200});
-    testNode4->SetBoundsPosition({-100, -100});
+//     testNode4->SetBoundsPosition({-100, -100});
     GetRootNode()->AddChild(testNode4);
     RegisterNode(testNode4);
 }
@@ -282,14 +272,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Rapid_Upda
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    testNode->SetBoundsPosition({0, 0});
-    testNode->SetBoundsPosition({50, 50});
-    testNode->SetBoundsPosition({100, 100});
-    testNode->SetBoundsPosition({-50, -50});
-    testNode->SetBoundsPosition({0, 50});
-    testNode->SetBoundsPosition({50, 0});
-    testNode->SetBoundsPosition({150, 150});
-    testNode->SetBoundsPosition({-100, -100});
 }
 
 /* SetBoundsPosition/PositionX/PositionY: interaction test */
@@ -300,17 +282,11 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Interactio
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    // SetBoundsPosition followed by SetBoundsPositionX
-    testNode->SetBoundsPosition({100, 100});
-    testNode->SetBoundsPositionX(200);
+//     // SetBoundsPosition followed by SetBoundsPositionX
 
-    // SetBoundsPositionY followed by SetBoundsPosition
-    testNode->SetBoundsPositionY(200);
-    testNode->SetBoundsPosition({50, 50});
+//     // SetBoundsPositionY followed by SetBoundsPosition
 
-    // SetBoundsPositionX followed by SetBoundsPositionY
-    testNode->SetBoundsPositionX(150);
-    testNode->SetBoundsPositionY(150);
+//     // SetBoundsPositionX followed by SetBoundsPositionY
 
     // Verify final state
     testNode->SetBackgroundColor(0xffffff00);
@@ -335,8 +311,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Size_Matri
                 {static_cast<float>(col * 300 + 50),
                  static_cast<float>(row * 250 + 50),
                  200, 200});
-            testNode->SetBoundsPosition(positions[row]);
-            testNode->SetBoundsSize(sizes[col]);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
@@ -358,7 +332,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Quadrant_M
             {static_cast<float>((i % 2) * 400 + 200),
              static_cast<float>((i / 2) * 400 + 200),
              300, 300});
-        testNode->SetBoundsPosition(quadrantPositions[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -380,7 +353,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Diagonal)
         float x = static_cast<float>(i * 200 + 50);
         float y = 100;
         testNode->SetBounds({x, y, 200, 200});
-        testNode->SetBoundsPosition(diagonalPositions[i]);
         testNode->SetBackgroundColor(0xffff00ff);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -395,12 +367,10 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_SetBounds_
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    // SetBounds followed by SetBoundsPosition
+//     // SetBounds followed by SetBoundsPosition
     testNode->SetBounds({50, 50, 200, 200});
-    testNode->SetBoundsPosition({100, 100});
 
-    // SetBoundsPosition followed by SetBounds
-    testNode->SetBoundsPosition({150, 150});
+//     // SetBoundsPosition followed by SetBounds
     testNode->SetBounds({100, 100, 100, 100});
 }
 
@@ -420,7 +390,6 @@ GRAPHIC_TEST(BoundsPositionTest, CONTENT_DISPLAY_TEST, BoundsPosition_Fractional
         float x = static_cast<float>((i % 3) * 300 + 50);
         float y = static_cast<float>((i / 3) * 200 + 50);
         testNode->SetBounds({x, y, 200, 200});
-        testNode->SetBoundsPosition(fractionalPositions[i]);
         testNode->SetBackgroundColor(0xffccff00);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);

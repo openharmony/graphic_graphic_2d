@@ -13,8 +13,11 @@
  * limitations under the License.
  */
 
+#include "common/rs_vector2.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
+#include "modifier_ng/appearance/rs_alpha_modifier.h"
+#include "modifier_ng/geometry/rs_transform_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,8 +49,9 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
     testNode->SetBackgroundColor(0xffff0000);
 
     // Create and attach property modifier
-    auto alphaModifier = std::make_shared<RSAlphaModifier>(0.5f);
-    testNode->AttachProperty(alphaModifier);
+    auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+    alphaModifier->SetAlpha(0.5f);
+    testNode->AddModifier(alphaModifier);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -66,8 +70,8 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
     testNode->SetBackgroundColor(0xffff0000);
 
     // Attach null property
-    std::shared_ptr<RSAlphaModifier> nullModifier = nullptr;
-    testNode->AttachProperty(nullModifier);
+    std::shared_ptr<ModifierNG::RSAlphaModifier> nullModifier = nullptr;
+    testNode->AddModifier(nullModifier);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -90,8 +94,9 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
             testNode->SetBackgroundColor(0xffff0000);
 
             // Attach alpha property
-            auto alphaModifier = std::make_shared<RSAlphaModifier>(alphaValues[col]);
-            testNode->AttachProperty(alphaModifier);
+            auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+            alphaModifier->SetAlpha(alphaValues[col]);
+            testNode->AddModifier(alphaModifier);
 
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -114,8 +119,9 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
 
-        auto rotationModifier = std::make_shared<RSRotationModifier>(rotationValues[i]);
-        testNode->AttachProperty(rotationModifier);
+        auto rotationModifier = std::make_shared<ModifierNG::RSTransformModifier>();
+        rotationModifier->SetRotation(rotationValues[i]);
+        testNode->AddModifier(rotationModifier);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -142,8 +148,9 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
 
-        auto scaleModifier = std::make_shared<RSScaleModifier>(scaleValues[i].first, scaleValues[i].second);
-        testNode->AttachProperty(scaleModifier);
+        auto scaleModifier = std::make_shared<ModifierNG::RSTransformModifier>();
+        scaleModifier->SetScale({ scaleValues[i].first, scaleValues[i].second });
+        testNode->AddModifier(scaleModifier);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -170,9 +177,9 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
 
-        auto translateModifier = std::make_shared<RSTranslationModifier>(
-            translateValues[i].first, translateValues[i].second);
-        testNode->AttachProperty(translateModifier);
+        auto translateModifier = std::make_shared<ModifierNG::RSTransformModifier>();
+        translateModifier->SetTranslate({ translateValues[i].first, translateValues[i].second });
+        testNode->AddModifier(translateModifier);
 
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -192,13 +199,16 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
     testNode->SetBackgroundColor(0xffff0000);
 
     // Attach multiple properties
-    auto alphaModifier = std::make_shared<RSAlphaModifier>(0.7f);
-    auto rotationModifier = std::make_shared<RSRotationModifier>(45.0f);
-    auto scaleModifier = std::make_shared<RSScaleModifier>(1.2f, 1.2f);
+    auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+    alphaModifier->SetAlpha(0.7f);
+    auto rotationModifier = std::make_shared<ModifierNG::RSTransformModifier>();
+    rotationModifier->SetRotation(45.0f);
+    auto scaleModifier = std::make_shared<ModifierNG::RSTransformModifier>();
+    scaleModifier->SetScale({ 1.2f, 1.2f });
 
-    testNode->AttachProperty(alphaModifier);
-    testNode->AttachProperty(rotationModifier);
-    testNode->AttachProperty(scaleModifier);
+    testNode->AddModifier(alphaModifier);
+    testNode->AddModifier(rotationModifier);
+    testNode->AddModifier(scaleModifier);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -217,8 +227,9 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
     parent->SetBackgroundColor(0xffff0000);
 
     // Attach property to parent
-    auto parentAlphaModifier = std::make_shared<RSAlphaModifier>(0.8f);
-    parent->AttachProperty(parentAlphaModifier);
+    auto parentAlphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+    parentAlphaModifier->SetAlpha(0.8f);
+    parent->AddModifier(parentAlphaModifier);
 
     // Add children with properties
     for (int i = 0; i < 4; i++) {
@@ -226,8 +237,9 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
         child->SetBounds({ 50 + (i % 2) * 300, 50 + (i / 2) * 300, 200, 200 });
         child->SetBackgroundColor(0xff00ff00);
 
-        auto childAlphaModifier = std::make_shared<RSAlphaModifier>(0.5f + i * 0.1f);
-        child->AttachProperty(childAlphaModifier);
+        auto childAlphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+        childAlphaModifier->SetAlpha(0.5f + i * 0.1f);
+        child->AddModifier(childAlphaModifier);
 
         parent->AddChild(child);
     }
@@ -249,15 +261,17 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
     testNode->SetBackgroundColor(0xffff0000);
 
     // Attach initial alpha property
-    auto alphaModifier1 = std::make_shared<RSAlphaModifier>(0.5f);
-    testNode->AttachProperty(alphaModifier1);
+    auto alphaModifier1 = std::make_shared<ModifierNG::RSAlphaModifier>();
+    alphaModifier1->SetAlpha(0.5f);
+    testNode->AddModifier(alphaModifier1);
 
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
     // Replace with new alpha property
-    auto alphaModifier2 = std::make_shared<RSAlphaModifier>(0.8f);
-    testNode->AttachProperty(alphaModifier2);
+    auto alphaModifier2 = std::make_shared<ModifierNG::RSAlphaModifier>();
+    alphaModifier2->SetAlpha(0.8f);
+    testNode->AddModifier(alphaModifier2);
 }
 
 /*
@@ -280,12 +294,13 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
 
-            auto pivotModifier = std::make_shared<RSPivotModifier>(
-                pivotValues[col].first, pivotValues[col].second);
-            auto rotationModifier = std::make_shared<RSRotationModifier>(45.0f);
+            auto pivotModifier = std::make_shared<ModifierNG::RSTransformModifier>();
+            pivotModifier->SetPivot({ pivotValues[col].first, pivotValues[col].second });
+            auto rotationModifier = std::make_shared<ModifierNG::RSTransformModifier>();
+            rotationModifier->SetRotation(45.0f);
 
-            testNode->AttachProperty(pivotModifier);
-            testNode->AttachProperty(rotationModifier);
+            testNode->AddModifier(pivotModifier);
+            testNode->AddModifier(rotationModifier);
 
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);

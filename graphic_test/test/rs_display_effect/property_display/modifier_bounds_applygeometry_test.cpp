@@ -15,6 +15,8 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
+#include "modifier_ng/geometry/rs_bounds_modifier.h"
+#include "common/rs_obj_abs_geometry.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -51,8 +53,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -79,8 +81,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -107,8 +109,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -135,8 +137,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -163,8 +165,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -212,8 +214,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -247,8 +249,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
         modifier->ApplyGeometry(geometry);
 
         testNode->SetBounds({
-            static_cast<int>(geometry->GetLeft()),
-            static_cast<int>(geometry->GetTop()),
+            static_cast<int>(geometry->GetX()),
+            static_cast<int>(geometry->GetY()),
             static_cast<int>(geometry->GetWidth()),
             static_cast<int>(geometry->GetHeight())
         });
@@ -284,8 +286,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
         modifier->ApplyGeometry(geometry);
 
         testNode->SetBounds({
-            static_cast<int>(geometry->GetLeft()),
-            static_cast<int>(geometry->GetTop()),
+            static_cast<int>(geometry->GetX()),
+            static_cast<int>(geometry->GetY()),
             static_cast<int>(geometry->GetWidth()),
             static_cast<int>(geometry->GetHeight())
         });
@@ -313,8 +315,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -341,8 +343,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -369,8 +371,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -397,8 +399,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -430,8 +432,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -458,8 +460,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -497,8 +499,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
         modifier->ApplyGeometry(geometry);
 
         testNode->SetBounds({
-            xOffset + 50 + static_cast<int>(geometry->GetLeft()),
-            yOffset + 50 + static_cast<int>(geometry->GetTop()),
+            xOffset + 50 + static_cast<int>(geometry->GetX()),
+            yOffset + 50 + static_cast<int>(geometry->GetY()),
             static_cast<int>(geometry->GetWidth()),
             static_cast<int>(geometry->GetHeight())
         });
@@ -533,8 +535,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
         modifier->ApplyGeometry(geometry);
 
         testNode->SetBounds({
-            static_cast<int>(geometry->GetLeft()),
-            static_cast<int>(geometry->GetTop()),
+            static_cast<int>(geometry->GetX()),
+            static_cast<int>(geometry->GetY()),
             static_cast<int>(geometry->GetWidth()),
             static_cast<int>(geometry->GetHeight())
         });
@@ -562,8 +564,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->ApplyGeometry(geometry);
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -593,8 +595,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     }
 
     testNode->SetBounds({
-        static_cast<int>(geometry->GetLeft()),
-        static_cast<int>(geometry->GetTop()),
+        static_cast<int>(geometry->GetX()),
+        static_cast<int>(geometry->GetY()),
         static_cast<int>(geometry->GetWidth()),
         static_cast<int>(geometry->GetHeight())
     });
@@ -630,8 +632,8 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
         modifier->ApplyGeometry(geometry);
 
         testNode->SetBounds({
-            static_cast<int>(geometry->GetLeft()),
-            static_cast<int>(geometry->GetTop()),
+            static_cast<int>(geometry->GetX()),
+            static_cast<int>(geometry->GetY()),
             static_cast<int>(geometry->GetWidth()),
             static_cast<int>(geometry->GetHeight())
         });

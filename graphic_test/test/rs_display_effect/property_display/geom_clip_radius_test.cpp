@@ -33,7 +33,7 @@ public:
     }
 };
 
-/* SetClipRectWithRadius: normal values - matrix 3x3 (rect x radius) */
+/* SetClipRRect: normal values - matrix 3x3 (rect x radius) */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Normal_Matrix_3x3)
 {
     std::vector<Vector4f> rects = {
@@ -53,14 +53,14 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Normal_Mat
                 {static_cast<float>(col * 300 + 50),
                  static_cast<float>(row * 300 + 50),
                  250, 250});
-            testNode->SetClipRectWithRadius(rects[row], radii[col]);
+            testNode->SetClipRRect(rects[row], radii[col]);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
     }
 }
 
-/* SetClipRectWithRadius: boundary values - zero radius */
+/* SetClipRRect: boundary values - zero radius */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Boundary_ZeroRadius)
 {
     std::vector<Vector4f> zeroRadii = {
@@ -76,14 +76,14 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Boundary_Z
             {static_cast<float>((i % 2) * 300 + 50),
              static_cast<float>((i / 2) * 300 + 50),
              200, 200});
-        testNode->SetClipRectWithRadius({0, 0, 150, 150},
+        testNode->SetClipRRect({0, 0, 150, 150},
                                         zeroRadii[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: boundary values - zero rect */
+/* SetClipRRect: boundary values - zero rect */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Boundary_ZeroRect)
 {
     std::vector<Vector4f> zeroRects = {
@@ -98,13 +98,13 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Boundary_Z
             {static_cast<float>((i % 2) * 300 + 50),
              static_cast<float>((i / 2) * 300 + 50),
              200, 200});
-        testNode->SetClipRectWithRadius(zeroRects[i], {20, 20, 20, 20});
+        testNode->SetClipRRect(zeroRects[i], {20, 20, 20, 20});
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: normal - uniform corner radius */
+/* SetClipRRect: normal - uniform corner radius */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Uniform_Radius)
 {
     std::vector<float> uniformRadii = {
@@ -116,14 +116,14 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Uniform_Ra
             {static_cast<float>(i * 150 + 50), 50,
              150, 150});
         float r = uniformRadii[i];
-        testNode->SetClipRectWithRadius({0, 0, 100, 100},
+        testNode->SetClipRRect({0, 0, 100, 100},
                                         {r, r, r, r});
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: normal - asymmetric corner radius */
+/* SetClipRRect: normal - asymmetric corner radius */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Asymmetric_Radius)
 {
     std::vector<Vector4f> asymmetricRadii = {
@@ -140,14 +140,14 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Asymmetric
             {static_cast<float>((i % 2) * 300 + 50),
              static_cast<float>((i / 2) * 300 + 50),
              200, 200});
-        testNode->SetClipRectWithRadius({0, 0, 150, 150},
+        testNode->SetClipRRect({0, 0, 150, 150},
                                         asymmetricRadii[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: extreme values - large radius */
+/* SetClipRRect: extreme values - large radius */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Extreme_LargeRadius)
 {
     std::vector<Vector4f> largeRadii = {
@@ -164,14 +164,14 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Extreme_La
             {static_cast<float>((i % 2) * 300 + 50),
              static_cast<float>((i / 2) * 300 + 50),
              200, 200});
-        testNode->SetClipRectWithRadius({0, 0, 100, 100},
+        testNode->SetClipRRect({0, 0, 100, 100},
                                         largeRadii[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: extreme values - negative radius */
+/* SetClipRRect: extreme values - negative radius */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Extreme_NegativeRadius)
 {
     std::vector<Vector4f> negativeRadii = {
@@ -188,14 +188,14 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Extreme_Ne
             {static_cast<float>((i % 2) * 300 + 50),
              static_cast<float>((i / 2) * 300 + 50),
              200, 200});
-        testNode->SetClipRectWithRadius({0, 0, 150, 150},
+        testNode->SetClipRRect({0, 0, 150, 150},
                                         negativeRadii[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: invalid float - infinity and NaN */
+/* SetClipRRect: invalid float - infinity and NaN */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Invalid_Float)
 {
     std::vector<Vector4f> invalidRadii = {
@@ -215,14 +215,14 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Invalid_Fl
         float y = static_cast<float>((i / 2) * 400 + 50);
         testNode->SetBounds({x, y, 200, 200});
         testNode->SetBackgroundColor(0xffff0000);
-        testNode->SetClipRectWithRadius({0, 0, 100, 100},
+        testNode->SetClipRRect({0, 0, 100, 100},
                                         invalidRadii[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: rect offset variations */
+/* SetClipRRect: rect offset variations */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Rect_Offset)
 {
     std::vector<Vector4f> rectOffsets = {
@@ -238,13 +238,13 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Rect_Offse
             {static_cast<float>((i % 2) * 300 + 100),
              static_cast<float>((i / 2) * 300 + 100),
              200, 200});
-        testNode->SetClipRectWithRadius(rectOffsets[i], {30, 30, 30, 30});
+        testNode->SetClipRRect(rectOffsets[i], {30, 30, 30, 30});
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: rect size variations */
+/* SetClipRRect: rect size variations */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Rect_Size)
 {
     std::vector<Vector4f> rectSizes = {
@@ -259,13 +259,13 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Rect_Size)
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
             {static_cast<float>(i * 310 + 50), 50,
              250, 250});
-        testNode->SetClipRectWithRadius(rectSizes[i], {25, 25, 25, 25});
+        testNode->SetClipRRect(rectSizes[i], {25, 25, 25, 25});
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: radius vs size relationship */
+/* SetClipRRect: radius vs size relationship */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Radius_Size_Relationship)
 {
     struct TestCase {
@@ -288,13 +288,13 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Radius_Siz
             {static_cast<float>((i % 2) * 300 + 100),
              static_cast<float>((i / 2) * 300 + 100),
              250, 250});
-        testNode->SetClipRectWithRadius(testCases[i].rect, testCases[i].radius);
+        testNode->SetClipRRect(testCases[i].rect, testCases[i].radius);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: rapid sequential updates */
+/* SetClipRRect: rapid sequential updates */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Rapid_Updates)
 {
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
@@ -302,15 +302,15 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Rapid_Upda
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    testNode->SetClipRectWithRadius({0, 0, 200, 200}, {0, 0, 0, 0});
-    testNode->SetClipRectWithRadius({0, 0, 200, 200}, {20, 20, 20, 20});
-    testNode->SetClipRectWithRadius({0, 0, 200, 200}, {50, 50, 50, 50});
-    testNode->SetClipRectWithRadius({50, 50, 150, 150}, {30, 30, 30, 30});
-    testNode->SetClipRectWithRadius({0, 0, 100, 100}, {100, 100, 100, 100});
-    testNode->SetClipRectWithRadius({0, 0, 200, 200}, {0, 0, 0, 0});
+    testNode->SetClipRRect({0, 0, 200, 200}, {0, 0, 0, 0});
+    testNode->SetClipRRect({0, 0, 200, 200}, {20, 20, 20, 20});
+    testNode->SetClipRRect({0, 0, 200, 200}, {50, 50, 50, 50});
+    testNode->SetClipRRect({50, 50, 150, 150}, {30, 30, 30, 30});
+    testNode->SetClipRRect({0, 0, 100, 100}, {100, 100, 100, 100});
+    testNode->SetClipRRect({0, 0, 200, 200}, {0, 0, 0, 0});
 }
 
-/* SetClipRectWithRadius: mixed corner radius - matrix 2x2 */
+/* SetClipRRect: mixed corner radius - matrix 2x2 */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_MixedCorners_Matrix_2x2)
 {
     std::vector<Vector4f> cornerRadii = {
@@ -325,14 +325,14 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_MixedCorne
             {static_cast<float>((i % 2) * 300 + 100),
              static_cast<float>((i / 2) * 300 + 100),
              200, 200});
-        testNode->SetClipRectWithRadius({0, 0, 150, 150},
+        testNode->SetClipRRect({0, 0, 150, 150},
                                         cornerRadii[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: fractional radius values */
+/* SetClipRRect: fractional radius values */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Fractional_Radius)
 {
     std::vector<Vector4f> fractionalRadii = {
@@ -347,14 +347,14 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Fractional
             {static_cast<float>((i % 2) * 300 + 50),
              static_cast<float>((i / 2) * 300 + 50),
              200, 200});
-        testNode->SetClipRectWithRadius({0, 0, 150, 150},
+        testNode->SetClipRRect({0, 0, 150, 150},
                                         fractionalRadii[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: elliptical corners (different x and y) */
+/* SetClipRRect: elliptical corners (different x and y) */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Elliptical_Corners)
 {
     std::vector<Vector4f> ellipticalRadii = {
@@ -369,14 +369,14 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Elliptical
             {static_cast<float>((i % 2) * 300 + 100),
              static_cast<float>((i / 2) * 300 + 100),
              200, 200});
-        testNode->SetClipRectWithRadius({0, 0, 150, 150},
+        testNode->SetClipRRect({0, 0, 150, 150},
                                         ellipticalRadii[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: complex asymmetric pattern - matrix 3x3 */
+/* SetClipRRect: complex asymmetric pattern - matrix 3x3 */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Asymmetric_Matrix_3x3)
 {
     std::vector<float> topLeft = {0, 10, 20};
@@ -388,7 +388,7 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Asymmetric
                 {static_cast<float>(col * 250 + 50),
                  static_cast<float>(row * 250 + 50),
                  200, 200});
-            testNode->SetClipRectWithRadius({0, 0, 150, 150},
+            testNode->SetClipRRect({0, 0, 150, 150},
                                             {topLeft[row], topLeft[row],
                                              bottomRight[col], bottomRight[col]});
             GetRootNode()->AddChild(testNode);
@@ -397,7 +397,7 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Asymmetric
     }
 }
 
-/* SetClipRectWithRadius: negative rect with positive radius */
+/* SetClipRRect: negative rect with positive radius */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Negative_Rect_Positive_Radius)
 {
     std::vector<Vector4f> negativeRects = {
@@ -412,13 +412,13 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Negative_R
             {static_cast<float>((i % 2) * 300 + 100),
              static_cast<float>((i / 2) * 300 + 100),
              200, 200});
-        testNode->SetClipRectWithRadius(negativeRects[i], {30, 30, 30, 30});
+        testNode->SetClipRRect(negativeRects[i], {30, 30, 30, 30});
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-/* SetClipRectWithRadius: minimum and maximum epsilon */
+/* SetClipRRect: minimum and maximum epsilon */
 GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Epsilon_Values)
 {
     std::vector<Vector4f> epsilonRadii = {
@@ -435,7 +435,7 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Epsilon_Va
             {static_cast<float>((i % 2) * 300 + 50),
              static_cast<float>((i / 2) * 300 + 50),
              200, 200});
-        testNode->SetClipRectWithRadius({0, 0, 100, 100},
+        testNode->SetClipRRect({0, 0, 100, 100},
                                         epsilonRadii[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
