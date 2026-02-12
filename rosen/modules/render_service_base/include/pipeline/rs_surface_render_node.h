@@ -1630,6 +1630,7 @@ public:
     }
 
     void SetNeedCacheSurface(bool needCacheSurface);
+    bool GetNeedCacheSurface() const;
     bool GetSubThreadAssignable() const
     {
         return subThreadAssignable_;
