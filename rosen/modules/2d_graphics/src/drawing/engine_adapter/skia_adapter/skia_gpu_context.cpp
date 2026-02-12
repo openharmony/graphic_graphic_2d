@@ -316,8 +316,9 @@ void SkiaGPUContext::PurgeUnlockedResources(bool scratchResourcesOnly)
         return;
     }
 #ifdef USE_M133_SKIA
-    size_t bytesToPurge = 0;
-    grContext_->purgeUnlockedResources(bytesToPurge, scratchResourcesOnly);
+    auto opts =
+        scratchResourcesOnly ? GrPurgeResourceOptions::kScratchResourcesOnly : GrPurgeResourceOptions::kAllResources;
+    grContext_->purgeUnlockedResources(opts);
 #else
     grContext_->purgeUnlockedResources(scratchResourcesOnly);
 #endif
