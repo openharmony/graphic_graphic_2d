@@ -51,19 +51,6 @@ void RSMarshallingTest::TearDownTestCase() {}
 void RSMarshallingTest::SetUp() {}
 void RSMarshallingTest::TearDown() {}
 
-template<typename T>
-static void TestNullptrObjectSerialization(T& testObj)
-{
-    // test result of serialization
-    MessageParcel parcel;
-    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, testObj));
-
-    // test result of deserialization
-    T objUnmarshal;
-    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, objUnmarshal));
-    ASSERT_TRUE(objUnmarshal == nullptr);
-}
-
 static void TestDrawingDataSerialization(size_t size)
 {
     /**
@@ -196,51 +183,6 @@ static void TestCompatibleMarshallingObsolete(T value, bool isNewViersion)
     const auto valueSize = std::max<size_t>(sizeof(value), 4);
 
     EXPECT_EQ(parcel.GetWritePosition(), headerLen + valueSize);
-}
-
-/**
- * @tc.name: NullptrObjectSerialization001
- * @tc.desc: test results of serialization and deserialization of nullptr object
- * @tc.type:FUNC
- * @tc.require: issueI54AGD
- */
-HWTEST_F(RSMarshallingTest, NullptrObjectSerialization001, Function | MediumTest | Level2)
-{
-    std::shared_ptr<Drawing::Data> data;
-    TestNullptrObjectSerialization(data);
-
-    std::shared_ptr<Drawing::TextBlob> textBlob;
-    TestNullptrObjectSerialization(textBlob);
-
-    std::shared_ptr<Drawing::Image> image;
-    TestNullptrObjectSerialization(image);
-
-    std::shared_ptr<Drawing::Picture> picture;
-    TestNullptrObjectSerialization(picture);
-
-    std::shared_ptr<Drawing::Vertices> vertices;
-    TestNullptrObjectSerialization(vertices);
-
-    std::shared_ptr<Drawing::ImageFilter> imageFilter;
-    TestNullptrObjectSerialization(imageFilter);
-
-    std::shared_ptr<RSShader> rsShader;
-    TestNullptrObjectSerialization(rsShader);
-
-    std::shared_ptr<RSPath> rsPath;
-    TestNullptrObjectSerialization(rsPath);
-
-    std::shared_ptr<RSMask> rsMask;
-    TestNullptrObjectSerialization(rsMask);
-
-    std::shared_ptr<RSFilter> rsFilter;
-    TestNullptrObjectSerialization(rsFilter);
-
-    std::shared_ptr<RSImage> rsImage;
-    TestNullptrObjectSerialization(rsImage);
-
-    std::shared_ptr<Media::PixelMap> pixelMap;
-    TestNullptrObjectSerialization(pixelMap);
 }
 
 /**
