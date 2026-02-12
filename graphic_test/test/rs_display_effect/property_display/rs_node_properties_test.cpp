@@ -15,6 +15,9 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
+#include "filter.h"
+#include "filter_blur_para.h"
+#include "filter_pixel_stretch_para.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -40,8 +43,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetSandBox_Matri
 
     for (size_t i = 0; i < sandboxList.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400});
+            {static_cast<float>(i * 500 + 50), 50, 400, 400});
         testNode->SetSandBox(sandboxList[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -51,32 +53,34 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetSandBox_Matri
 /* SetFgBrightnessRates: normal values - matrix 2x2 */
 GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetFgBrightnessRates_Matrix_2x2)
 {
-    std::vector<float> brightRates = {0, 0.5f, 1};
-    std::vector<float> darkRates = {0, 0.5f};
+    std::vector<Vector4f> ratesList = {
+        {0, 0, 0, 0},
+        {0.5f, 0, 0, 0},
+        {1, 0, 0, 0},
+        {0.5f, 0.5f, 0, 0}
+    };
 
-    for (size_t row = 0; row < brightRates.size(); row++) {
-        for (size_t col = 0; col < darkRates.size(); col++) {
-            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-                {static_cast<float>(col * 300 + 50),
-                 static_cast<float>(row * 300 + 50),
-                 200, 200});
-            testNode->SetFgBrightnessRates(brightRates[row], darkRates[col]);
-            GetRootNode()->AddChild(testNode);
-            RegisterNode(testNode);
-        }
+    for (size_t i = 0; i < ratesList.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+            {static_cast<float>((i % 2) * 300 + 50),
+             static_cast<float>((i / 2) * 300 + 50),
+             200, 200});
+        testNode->SetFgBrightnessRates(ratesList[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
     }
 }
 
 /* SetFgBrightnessRates: boundary values */
 GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetFgBrightnessRates_Boundary)
 {
-    std::vector<float> extremeRates = {
-        0,
-        0.1f,
-        0.9f,
-        1,
-        1.1f,
-        2
+    std::vector<Vector4f> extremeRates = {
+        {0, 0, 0, 0},
+        {0.1f, 0, 0, 0},
+        {0.9f, 0, 0, 0},
+        {1, 0, 0, 0},
+        {1.1f, 0, 0, 0},
+        {2, 0, 0, 0}
     };
 
     for (size_t i = 0; i < extremeRates.size(); i++) {
@@ -84,7 +88,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetFgBrightnessR
             {static_cast<float>((i % 2) * 400 + 100),
              static_cast<float>((i / 2) * 300 + 100),
              200, 200});
-        testNode->SetFgBrightnessRates(extremeRates[i], 0);
+        testNode->SetFgBrightnessRates(extremeRates[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -98,8 +102,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetFgBrightnessS
 
     for (size_t i = 0; i < saturations.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 200 + 50), 50},
-            150, 150);
+            {static_cast<float>(i * 200 + 50), 50, 150, 150});
         testNode->SetFgBrightnessSaturation(saturations[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -121,8 +124,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetFgBrightnessS
     for (size_t i = 0; i < boundarySaturations.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
             {static_cast<float>((i % 2) * 400 + 100),
-             static_cast<float>((i / 2) * 300 + 100),
-             200, 200});
+             static_cast<float>((i / 2) * 300 + 100), 200, 200});
         testNode->SetFgBrightnessSaturation(boundarySaturations[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -142,8 +144,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetFgBrightnessP
     for (size_t i = 0; i < coeffs.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
             {static_cast<float>((i % 2) * 300 + 100),
-             static_cast<float>((i / 2) * 300 + 100),
-             200, 200});
+             static_cast<float>((i / 2) * 300 + 100), 200, 200});
         testNode->SetFgBrightnessPosCoeff(coeffs[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -163,8 +164,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetFgBrightnessN
     for (size_t i = 0; i < coeffs.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
             {static_cast<float>((i % 2) * 300 + 100),
-             static_cast<float>((i / 2) * 300 + 700),
-             200, 200});
+             static_cast<float>((i / 2) * 300 + 700), 200, 200});
         testNode->SetFgBrightnessNegCoeff(coeffs[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -178,8 +178,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetFgBrightnessH
 
     for (size_t i = 0; i < hdrValues.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 350 + 50), 50},
-            300, 300);
+            {static_cast<float>(i * 350 + 50), 50, 300, 300});
         testNode->SetFgBrightnessHdr(hdrValues[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -190,12 +189,12 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetFgBrightnessH
 GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetCompositingFilter)
 {
     auto filterObj = std::make_unique<Filter>();
-    auto para = std::make_shared<FilterInnerShadowPara>();
-    para->SetShadowRadius(10);
+    auto para = std::make_shared<FilterBlurPara>();
+    para->SetRadius(10);
     filterObj->AddPara(para);
 
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-        {100, 100}, 300, 300);
+        {100, 100, 300, 300});
     testNode->SetCompositingFilter(filterObj);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -208,8 +207,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetHDRBrightness
 
     for (size_t i = 0; i < brightnessValues.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 275 + 50), 50},
-            250, 250);
+            {static_cast<float>(i * 275 + 50), 50, 250, 250});
         testNode->SetHDRBrightness(brightnessValues[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -230,8 +228,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetHDRBrightness
     for (size_t i = 0; i < boundaryValues.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
             {static_cast<float>((i % 2) * 400 + 100),
-             static_cast<float>((i / 2) * 300 + 50),
-             200, 200});
+             static_cast<float>((i / 2) * 300 + 50), 200, 200});
         testNode->SetHDRBrightness(boundaryValues[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -242,18 +239,13 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetHDRBrightness
 GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetHDRBrightnessFactor_Matrix_2x2)
 {
     std::vector<float> brightnessFactors = {0, 0.5f, 1};
-    std::vector<float> saturationFactors = {0, 1};
 
-    for (size_t row = 0; row < brightnessFactors.size(); row++) {
-        for (size_t col = 0; col < saturationFactors.size(); col++) {
-            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-                {static_cast<float>(col * 300 + 50),
-                 static_cast<float>(row * 300 + 50),
-                 200, 200});
-            testNode->SetHDRBrightnessFactor(brightnessFactors[row], saturationFactors[col]);
-            GetRootNode()->AddChild(testNode);
-            RegisterNode(testNode);
-        }
+    for (size_t i = 0; i < brightnessFactors.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+            {static_cast<float>(i * 350 + 50), 50, 300, 300});
+        testNode->SetHDRBrightnessFactor(brightnessFactors[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
     }
 }
 
@@ -264,8 +256,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetHDRUIBrightne
 
     for (size_t i = 0; i < uiBrightnessValues.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 350 + 50), 50},
-            300, 300);
+            {static_cast<float>(i * 350 + 50), 50, 300, 300});
         testNode->SetHDRUIBrightness(uiBrightnessValues[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -291,9 +282,8 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetAttractionEff
     for (size_t i = 0; i < attractions.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
             {static_cast<float>((i % 2) * 400 + 100),
-             static_cast<float>((i / 2) * 400 + 100),
-             300, 300});
-        testNode->SetAttractionEffect(attractions[i].x, attractions[i].y);
+             static_cast<float>((i / 2) * 400 + 100), 300, 300});
+        testNode->SetAttractionEffect(0.5f, Vector2f(attractions[i].x, attractions[i].y));
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -306,8 +296,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetAttractionEff
 
     for (size_t i = 0; i < fractions.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 275 + 50), 50},
-            250, 250);
+            {static_cast<float>(i * 275 + 50), 50, 250, 250});
         testNode->SetAttractionEffectFraction(fractions[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -324,9 +313,8 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetAttractionEff
         for (size_t col = 0; col < yValues.size(); col++) {
             auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
                 {static_cast<float>(col * 300 + 50),
-                 static_cast<float>(row * 300 + 50),
-                 200, 200});
-            testNode->SetAttractionEffectDstPoint(xValues[row], yValues[col]);
+                 static_cast<float>(row * 300 + 50), 200, 200});
+            testNode->SetAttractionEffectDstPoint(Vector2f(xValues[row], yValues[col]));
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
@@ -340,8 +328,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetAlwaysSnapsho
 
     for (size_t i = 0; i < snapshotList.size(); i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50},
-            400, 400);
+            {static_cast<float>(i * 500 + 50), 50, 400, 400});
         testNode->SetAlwaysSnapshot(snapshotList[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -357,16 +344,13 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_HDR_Brightness_C
 
     for (size_t i = 0; i < 2; i++) {
         for (size_t j = 0; j < 2; j++) {
-            for (size_t k = 0; k < 2; k++) {
-                auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-                    {static_cast<float>(((i + j) % 2) * 200 + 100),
-                     static_cast<float>((k + (i / 2)) * 200 + 100),
-                     150, 150});
-                testNode->SetHDRBrightness(brightnessValues[i]);
-                testNode->SetHDRBrightnessFactor(factorBrightness[j], factorSaturation[k]);
-                GetRootNode()->AddChild(testNode);
-                RegisterNode(testNode);
-            }
+            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+                {static_cast<float>(((i + j) % 2) * 400 + 100),
+                 static_cast<float>((j + (i / 2)) * 400 + 100), 300, 300});
+            testNode->SetHDRBrightness(brightnessValues[i]);
+            testNode->SetHDRBrightnessFactor(factorBrightness[j]);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
         }
     }
 }
@@ -380,7 +364,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetUIBackgroundF
     filterObj->AddPara(para);
 
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-        {100, 100}, 300, 300);
+        {100, 100, 300, 300});
     testNode->SetUIBackgroundFilter(filterObj.get());
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -396,7 +380,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetUICompositing
     filterObj->AddPara(para);
 
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-        {500, 100}, 300, 300);
+        {500, 100, 300, 300});
     testNode->SetUICompositingFilter(filterObj.get());
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -411,7 +395,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetUIForegroundF
     filterObj->AddPara(para);
 
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-        {900, 100}, 300, 300);
+        {900, 100, 300, 300});
     testNode->SetUIForegroundFilter(filterObj.get());
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -421,12 +405,12 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetUIForegroundF
 GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetUIMaterialFilter)
 {
     auto filterObj = std::make_unique<Filter>();
-    auto para = std::make_shared<FilterMaterialPara>();
-    para->SetElevation(10);
+    auto para = std::make_shared<FilterBlurPara>();
+    para->SetRadius(10);
     filterObj->AddPara(para);
 
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-        {100, 500}, 300, 300);
+        {100, 500, 300, 300});
     testNode->SetUIMaterialFilter(filterObj.get());
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -436,7 +420,7 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_SetUIMaterialFil
 GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_Rapid_Parameter_Changes)
 {
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-        {100, 100}, 400, 400);
+        {100, 100, 400, 400});
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
@@ -455,17 +439,16 @@ GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_Rapid_Parameter_
 /* Combined: Foreground brightness properties - matrix 3x3 */
 GRAPHIC_TEST(RSNodePropertiesTest, CONTENT_DISPLAY_TEST, RSNode_FgBrightness_Combined_Matrix_3x3)
 {
-    std::vector<float> rates = {0, 0.5f, 1};
+    std::vector<Vector4f> rates = {{0, 0, 0, 0}, {0.5f, 0, 0, 0}, {1, 0, 0, 0}};
     std::vector<float> saturations = {0, 0.5f, 1};
     std::vector<float> hdr = {0, 0.5f, 1};
 
-    for (size_t row = 0; row < 2; row++) {
+    for (size_t row = 0; row < rates.size(); row++) {
         for (size_t col = 0; col < saturations.size(); col++) {
             auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
                 {static_cast<float>(col * 200 + 100),
-                 static_cast<float>(row * 300 + 100),
-                 150, 150});
-            testNode->SetFgBrightnessRates(rates[row], 0);
+                 static_cast<float>(row * 200 + 100), 150, 150});
+            testNode->SetFgBrightnessRates(rates[row]);
             testNode->SetFgBrightnessSaturation(saturations[col]);
             testNode->SetFgBrightnessHdr(hdr[col]);
             GetRootNode()->AddChild(testNode);

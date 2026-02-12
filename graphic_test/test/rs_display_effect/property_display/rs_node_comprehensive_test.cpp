@@ -429,7 +429,6 @@ GRAPHIC_TEST(RSNodeComprehensiveTest, CONTENT_DISPLAY_TEST, RSNodeComprehensiveT
 
     GetRootNode()->AddChild(parent);
     RegisterNode(parent);
-    // parent->RemoveCrossParentChild(child, nullptr); // Requires second parent node
 }
 
 /*
@@ -1205,7 +1204,8 @@ GRAPHIC_TEST(RSNodeComprehensiveTest, CONTENT_DISPLAY_TEST, RSNodeComprehensive_
  */
 GRAPHIC_TEST(RSNodeComprehensiveTest, CONTENT_DISPLAY_TEST, RSNodeComprehensive_SetMaterialWithQualityLevel_001)
 {
-    std::vector<FilterQuality> qualityLevels = { FilterQuality::DEFAULT, FilterQuality::ADAPTIVE, FilterQuality::DEFAULT };
+    std::vector<FilterQuality> qualityLevels =
+        { FilterQuality::DEFAULT, FilterQuality::ADAPTIVE, FilterQuality::DEFAULT };
     std::vector<float> blurRadius = { 0, 10, 20, 30 };
 
     for (size_t row = 0; row < qualityLevels.size(); row++) {
