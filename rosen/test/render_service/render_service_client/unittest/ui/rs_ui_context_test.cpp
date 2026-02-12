@@ -39,6 +39,7 @@ void RSUIContextTest::TearDownTestCase() {}
 void RSUIContextTest::SetUp() {}
 void RSUIContextTest::TearDown() {}
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: PostDelayTaskTest001
  * @tc.desc: Test the case where the task runner is empty
@@ -77,6 +78,7 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
     uiContext2->rsTransactionHandler_ = nullptr;
     uiContext2->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
 }
+#endif
 
 /**
  * @tc.name: SetRequestVsyncCallback
