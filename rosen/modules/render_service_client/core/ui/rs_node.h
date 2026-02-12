@@ -1487,9 +1487,11 @@ public:
     void SetShadowColorStrategy(int shadowColorStrategy);
 
     /**
-     * @brief Enables or disables SDF blur for shadow rendering. Default state is enabled (false).
+     * @brief Controls SDF blur optimization for shadow rendering (enabled by default).
      *
-     * @param disable Set to true to disable SDF blur, false to enable it.
+     * @details When enabled (default), SDF blur approximates Gaussian blur with better performance.
+     *          Disable only if higher visual quality or better consistency is required.
+     * @param disable Set to true to disable SDF blur (better quality), false to enable it (better performance).
      */
     void SetShadowDisableSDFBlur(bool disable);
 
