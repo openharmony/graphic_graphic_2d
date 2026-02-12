@@ -97,7 +97,7 @@ GRAPHIC_TEST(NGFilterDispersionExtendTest, EFFECT_TEST, Set_NG_Filter_Dispersion
         auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         dispersionFilter->Setter<DispersionOpacityTag>(opacityValues[i]);
-        backgroundNode->SetForegroundNGFilter(dispersionFilter);
+        backgroundNode->SetBackgroundNGFilter(dispersionFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -123,7 +123,7 @@ GRAPHIC_TEST(NGFilterDispersionExtendTest, EFFECT_TEST, Set_NG_Filter_Dispersion
         auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         dispersionFilter->Setter<DispersionMaskTag>(std::static_pointer_cast<RSNGMaskBase>(imageMask));
-        backgroundNode->SetForegroundNGFilter(dispersionFilter);
+        backgroundNode->SetBackgroundNGFilter(dispersionFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -157,7 +157,7 @@ GRAPHIC_TEST(NGFilterDispersionExtendTest, EFFECT_TEST, Set_NG_Filter_Dispersion
         dispersionFilter->Setter<DispersionRedOffsetTag>(offsetValues[i]);
         dispersionFilter->Setter<DispersionGreenOffsetTag>(offsetValues[i]);
         dispersionFilter->Setter<DispersionBlueOffsetTag>(offsetValues[i]);
-        backgroundNode->SetForegroundNGFilter(dispersionFilter);
+        backgroundNode->SetBackgroundNGFilter(dispersionFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -185,7 +185,7 @@ GRAPHIC_TEST(NGFilterDispersionExtendTest, EFFECT_TEST, Set_NG_Filter_Dispersion
 
     auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
         {start, start, nodeWidth, nodeHeight});
-    backgroundNode->SetForegroundNGFilter(dispersionFilter);
+    backgroundNode->SetBackgroundNGFilter(dispersionFilter);
     GetRootNode()->AddChild(backgroundNode);
     RegisterNode(backgroundNode);
 }

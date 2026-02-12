@@ -60,7 +60,7 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Cont
 
     auto backgroundNode = SetUpNodeBgImage(BG_PATH,
         {start, start, nodeWidth, nodeHeight});
-    backgroundNode->SetForegroundNGFilter(bezierWarpFilter);
+    backgroundNode->SetBackgroundNGFilter(bezierWarpFilter);
     GetRootNode()->AddChild(backgroundNode);
     RegisterNode(backgroundNode);
 }
@@ -90,7 +90,7 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Cont
 
     auto backgroundNode = SetUpNodeBgImage(BG_PATH,
         {start, start, nodeWidth, nodeHeight});
-    backgroundNode->SetForegroundNGFilter(bezierWarpFilter);
+    backgroundNode->SetBackgroundNGFilter(bezierWarpFilter);
     GetRootNode()->AddChild(backgroundNode);
     RegisterNode(backgroundNode);
 }
@@ -120,7 +120,7 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Cont
 
     auto backgroundNode = SetUpNodeBgImage(BG_PATH,
         {start, start, nodeWidth, nodeHeight});
-    backgroundNode->SetForegroundNGFilter(bezierWarpFilter);
+    backgroundNode->SetBackgroundNGFilter(bezierWarpFilter);
     GetRootNode()->AddChild(backgroundNode);
     RegisterNode(backgroundNode);
 }
@@ -156,7 +156,7 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Mult
 
             auto backgroundNode = SetUpNodeBgImage(BG_PATH,
                 {start + (nodeWidth + 20) * i, start + (nodeHeight + 20) * j, nodeWidth, nodeHeight});
-            backgroundNode->SetForegroundNGFilter(bezierWarpFilter);
+            backgroundNode->SetBackgroundNGFilter(bezierWarpFilter);
             GetRootNode()->AddChild(backgroundNode);
             RegisterNode(backgroundNode);
         }
@@ -188,7 +188,7 @@ GRAPHIC_TEST(NGFilterBezierWarpTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_Extr
 
     auto backgroundNode = SetUpNodeBgImage(BG_PATH,
         {start, start, nodeWidth, nodeHeight});
-    backgroundNode->SetForegroundNGFilter(bezierWarpFilter);
+    backgroundNode->SetBackgroundNGFilter(bezierWarpFilter);
     GetRootNode()->AddChild(backgroundNode);
     RegisterNode(backgroundNode);
 }
