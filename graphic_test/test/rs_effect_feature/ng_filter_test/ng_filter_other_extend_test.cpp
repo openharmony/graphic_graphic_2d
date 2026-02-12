@@ -22,6 +22,10 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+const int SCREEN_WIDTH = 1200;
+const int SCREEN_HEIGHT = 2000;
+}  // namespace
 
 class NGFilterOtherExtendTest : public RSGraphicTest {
 public:
