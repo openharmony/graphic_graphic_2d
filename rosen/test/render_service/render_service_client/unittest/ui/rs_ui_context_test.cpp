@@ -80,6 +80,7 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
 }
 #endif
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: SetRequestVsyncCallback
  * @tc.desc:
@@ -112,6 +113,7 @@ HWTEST_F(RSUIContextTest, RequestVsyncCallback, TestSize.Level1)
     EXPECT_NE(uiContext->requestVsyncCallback_, nullptr);
     uiContext->RequestVsyncCallback();
 }
+#endif
 
 /**
  * @tc.name: DumpNodeTreeProcessorTest001
