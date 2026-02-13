@@ -328,12 +328,8 @@ void RSUniHwcComputeUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo&
     auto originSrcRect = srcRect;
 
     RectI dstRectI(dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_);
-    int32_t screenWidth = static_cast<int32_t>(screenInfo.phyWidth);
-    int32_t screenHeight = static_cast<int32_t>(screenInfo.phyHeight);
-    if (node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
-        screenWidth = static_cast<int32_t>(screenInfo.width);
-        screenHeight = static_cast<int32_t>(screenInfo.height);
-    }
+    auto screenWidth = static_cast<int32_t>(screenInfo.width);
+    auto screenHeight = static_cast<int32_t>(screenInfo.height);
     RectI screenRectI(0, 0, screenWidth, screenHeight);
     RectI resDstRect = dstRectI.IntersectRect(screenRectI);
     if (resDstRect == dstRectI) {
@@ -345,9 +341,9 @@ void RSUniHwcComputeUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo&
     }
     dstRect = {resDstRect.left_, resDstRect.top_, resDstRect.width_, resDstRect.height_};
     srcRect.left_ = (resDstRect.IsEmpty() || dstRectI.IsEmpty() || dstRectI.width_ == 0) ?
-        0 : std::floor((resDstRect.left_ - dstRectI.left_) * originSrcRect.width_ / dstRectI.width_);
+        0 : srcRect.left_ + std::floor((resDstRect.left_ - dstRectI.left_) * originSrcRect.width_ / dstRectI.width_);
     srcRect.top_ = (resDstRect.IsEmpty() || dstRectI.IsEmpty() || dstRectI.height_ == 0) ?
-        0 : std::floor((resDstRect.top_ - dstRectI.top_) * originSrcRect.height_ / dstRectI.height_);
+        0 : srcRect.top_ + std::floor((resDstRect.top_ - dstRectI.top_) * originSrcRect.height_ / dstRectI.height_);
     srcRect.width_ = (dstRectI.IsEmpty() || dstRectI.width_ == 0) ?
         0 : std::ceil(originSrcRect.width_ * resDstRect.width_ / dstRectI.width_);
     srcRect.height_ = (dstRectI.IsEmpty() || dstRectI.height_ == 0) ?
