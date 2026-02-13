@@ -552,7 +552,7 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest003, TestSize.Level1
     Drawing::SharedTypeface sharedTypeface1(
         (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetUniqueID()), typeface);
     rsRenderServiceConnection->RegisterTypeface(sharedTypeface1, needUpdate);
-    EXPECT_EQ(needUpdate, -1);
+    EXPECT_EQ(needUpdate, 1);
     EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(typeface->GetHash()));
 }
 
