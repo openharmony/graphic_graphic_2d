@@ -29,8 +29,6 @@
 
 namespace OHOS::Rosen {
 
-class RsVulkanContext;
-
 enum class DrawingError {
     ERR_OK = 0,
     ERR_NOT_PREPARED,
