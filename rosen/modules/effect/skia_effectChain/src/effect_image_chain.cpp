@@ -148,8 +148,8 @@ DrawingError EffectImageChain::Prepare(const std::shared_ptr<Media::PixelMap>& s
 }
 
 #ifdef RS_ENABLE_VK
-DrawingError EffectImageChain::PrepareDstNative(const std::shared_ptr<Media::PixelMap> &srcPixelMap,
-    std::shared_ptr<OH_NativeBuffer> &dstNativeBuffer, bool forceCPU)
+DrawingError EffectImageChain::PrepareNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+    std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer, bool forceCPU)
 {
     std::lock_guard<std::mutex> lock(apiMutex_);
     // CPU not supported
