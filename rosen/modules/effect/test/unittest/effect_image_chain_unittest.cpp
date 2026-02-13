@@ -254,7 +254,7 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest003, TestSize.Level1)
     auto ret = image->DrawNativeBuffer();
     ASSERT_NE(ret, DrawingError::ERR_OK);
 
-    ret = image->PrepareDstNative(srcPixelMap, dst);
+    ret = image->PrepareDstNative(srcPixelMap, dst, false);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
     ret = image->DrawNativeBuffer();
     ASSERT_EQ(ret, DrawingError::ERR_OK);
