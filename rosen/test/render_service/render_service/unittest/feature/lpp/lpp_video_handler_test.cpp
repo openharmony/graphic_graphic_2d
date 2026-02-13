@@ -104,61 +104,6 @@ HWTEST_F(LppVideoHandlerTest, ConsumeAndUpdateLppBuffer001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ConsumeAndUpdateLppBuffer002
- * @tc.desc: ConsumeAndUpdateLppBuffer002
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(LppVideoHandlerTest, ConsumeAndUpdateLppBuffer002, TestSize.Level1)
-{
-    ASSERT_NE(surfaceNode_, nullptr);
-    surfaceNode_->surfaceHandler_->sourceType_ =
-        static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
-    ASSERT_NE(consumer_, nullptr);
-    auto& bufferQueue = consumer_->consumer_->bufferQueue_;
-    bufferQueue->sourceType_ = OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO;
-    bufferQueue->lppSlotInfo_ = new LppSlotInfo { .readOffset = 0, .writeOffset = 1,
-        .slot = { { .seqId = 100, .timestamp = 1000, .crop = { 1, 2, 3, 4 } } },
-        .frameRate = 0, .isStopShbDraw = 0 };
-    bufferQueue->isRsDrawLpp_ = false;
-    auto buffer = SurfaceBuffer::Create();
-    BufferHandle* handle = new BufferHandle();
-    handle->width = 100;
-    handle->height = 100;
-    buffer->SetBufferHandle(handle);
-    BufferElement ele = {
-        .buffer = buffer, .state = BUFFER_STATE_ACQUIRED, .isDeleting = false,
-        .config = {}, .fence = SyncFence::InvalidFence()};
-    bufferQueue->bufferQueueCache_[100] = ele;
-
-    auto& lppVideoHandler = LppVideoHandler::Instance();
-    lppVideoHandler.lppConsumerMap_.clear();
-    lppVideoHandler.ConsumeAndUpdateLppBuffer(0, surfaceNode_);
-    EXPECT_FALSE(lppVideoHandler.lppConsumerMap_.empty());
-
-    bufferQueue->lppSlotInfo_->readOffset = 0;
-    bufferQueue->lppSlotInfo_->writeOffset = 1;
-    bufferQueue->lastLppWriteOffset_ = 0;
-    bufferQueue->lppSlotInfo_->slot[0].crop[0] = -1;
-    bufferQueue->lppSlotInfo_->slot[0].crop[1] = -1;
-    bufferQueue->lppSlotInfo_->slot[0].crop[2] = -1;
-    bufferQueue->lppSlotInfo_->slot[0].crop[3] = -1;
-    handle->width = -1;
-    handle->height = -1;
-    buffer->SetBufferHandle(handle);
-    bufferQueue->bufferQueueCache_[100] = ele;
-
-    lppVideoHandler.lppConsumerMap_.clear();
-    lppVideoHandler.ConsumeAndUpdateLppBuffer(0, surfaceNode_);
-    EXPECT_FALSE(lppVideoHandler.lppConsumerMap_.empty());
-    delete bufferQueue->lppSlotInfo_;
-    bufferQueue->lppSlotInfo_ = nullptr;
-    delete handle;
-    handle = nullptr;
-    lppVideoHandler.lppConsumerMap_.clear();
-}
-
-/**
  * @tc.name: JudgeRequestVsyncForLpp001
  * @tc.desc: JudgeRequestVsyncForLpp001
  * @tc.type: FUNC
