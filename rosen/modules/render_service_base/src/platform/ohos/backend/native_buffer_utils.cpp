@@ -409,8 +409,8 @@ std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUConte
 }
 
 std::shared_ptr<Drawing::Surface> CreateSurfaceFromNativeBuffer(RsVulkanContext& vkCtx,
-    const Drawing::ImageInfo &imageInfo, OH_NativeBuffer *nativeBuffer,
-    const std::shared_ptr<Drawing::ColorSpace> &colorSpace)
+    const Drawing::ImageInfo &imageInfo, OH_NativeBuffer* nativeBuffer,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
     if (nativeBuffer == nullptr) {
         ROSEN_LOGE("CreateFromNativeWindowBuffer: OH_NativeBufferFromNativeWindowBuffer failed");
