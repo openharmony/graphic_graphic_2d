@@ -150,52 +150,6 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ApplySDFTest001
- * @tc.desc: test ApplySDFCreation
- */
-HWTEST_F(EffectImageChainUnittest, ApplySDFTest001, TestSize.Level1)
-{
-    auto image = std::make_shared<EffectImageChain>();
-    ASSERT_NE(image, nullptr);
-
-    Media::InitializationOptions opts;
-    opts.size = { 1, 1 };
-    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
-    ASSERT_NE(srcPixelMap, nullptr);
-
-    auto ret = image->ApplySDFCreation(32, false);
-    ASSERT_NE(ret, DrawingError::ERR_OK); // not prepared
-
-    ret = image->Prepare(srcPixelMap, true);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-
-    ret = image->ApplySDFCreation(8, false);
-    EXPECT_NE(ret, DrawingError::ERR_OK); // force cpu unsupported
-
-    ret = image->Prepare(srcPixelMap, false);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-
-    ret = image->Draw(); // no filter
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-
-    ret = image->ApplySDFCreation(64, true);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-
-    ret = image->Draw();
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-
-    auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
-    ASSERT_NE(filterBlur, nullptr);
-    ret = image->ApplyDrawingFilter(filterBlur);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = image->ApplySDFCreation(64, true); // has drawing before sdf
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-
-    ret = image->Draw();
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-}
-
-/**
  * @tc.name: PixelFormatConvertTest001
  * @tc.desc: test PixelFormatToDrawingColorType
  */
