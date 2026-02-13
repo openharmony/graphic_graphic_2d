@@ -82,7 +82,6 @@ public:
         bool isDirection = false, float angle = 0.0);
     DrawingError ApplyMapColorByBrightness(const std::vector<Vector4f>& colors, const std::vector<float>& positions);
     DrawingError ApplyGammaCorrection(float gamma);
-    DrawingError ApplyBlur(float radius, const Drawing::TileMode& tileMode);
     DrawingError ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,
         float maskRadiusX, float maskRadiusY, const std::vector<float> &positions, const std::vector<float> &degrees);
     DrawingError ApplySDFCreation(int spreadFactor, bool generateDerivs);
