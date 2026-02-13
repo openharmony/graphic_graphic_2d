@@ -46,7 +46,7 @@ constexpr CacheKey TEXT_LINE_GET_NATIVE_KEY{ANI_CLASS_TEXT_LINE, TEXT_GET_NATIVE
 constexpr const std::string_view FONT_DESCRIPTOR_SIGN = "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}"
     "C{" ANI_STRING "}" "C{" ANI_STRING "}" "E{" ANI_ENUM_FONT_WEIGHT "}iizz" "C{" ANI_STRING "}" "C{" ANI_STRING "}"
     "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}"
-    "C{" ANI_STRING "}" "C{" ANI_STRING "}" "i:";
+    "C{" ANI_STRING "}" "C{" ANI_STRING "}" "iC{" ANI_ARRAY "}C{" ANI_ARRAY "}:";
 constexpr CacheKey FONT_DESCRIPTOR_KEY{ANI_CLASS_FONT_DESCRIPTOR, "<ctor>", FONT_DESCRIPTOR_SIGN};
 constexpr CacheKey FONT_DESCRIPTOR_GET_PATH_KEY{
     ANI_INTERFACE_FONT_DESCRIPTOR, "<get>path", ANI_WRAP_RETURN_C(ANI_STRING)};
@@ -66,6 +66,10 @@ constexpr CacheKey FONT_DESCRIPTOR_MONO_SPACE_KEY{
     ANI_INTERFACE_FONT_DESCRIPTOR, "<get>monoSpace", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 constexpr CacheKey FONT_DESCRIPTOR_SYMBOLIC_KEY{
     ANI_INTERFACE_FONT_DESCRIPTOR, "<get>symbolic", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
+constexpr CacheKey FONT_DESCRIPTOR_VARIATION_AXIS_RECORDS_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>variationAxisRecords", ANI_WRAP_RETURN_C(ANI_ARRAY)};
+constexpr CacheKey FONT_DESCRIPTOR_VARIATION_INSTANCE_RECORDS_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>variationInstanceRecords", ANI_WRAP_RETURN_C(ANI_ARRAY)};
 constexpr CacheKey LINE_TYPESET_KEY{ANI_CLASS_LINE_TYPESET, "<ctor>", ":"};
 constexpr CacheKey PARAGRAPH_BUILDER_KEY{ANI_CLASS_PARAGRAPH_BUILDER, "<ctor>", ":"};
 constexpr CacheKey CANVAS_GET_NATIVE_KEY{ANI_CLASS_CANVAS, TEXT_GET_NATIVE, ":l"};
@@ -199,9 +203,25 @@ constexpr CacheKey FONT_FEATURE_NAME_KEY{ANI_INTERFACE_FONT_FEATURE, "<get>name"
 constexpr CacheKey FONT_FEATURE_VALUE_KEY{ANI_INTERFACE_FONT_FEATURE, "<get>value", ":i"};
 
 constexpr CacheKey FONT_VARIATION_AXIS_KEY{ANI_INTERFACE_FONT_VARIATION, "<get>axis", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey FONT_VARIATION_VALUE_KEY{ANI_INTERFACE_FONT_VARIATION, "<get>value", ":d"};
+constexpr CacheKey FONT_VARIATION_VALUE_KEY{ANI_INTERFACE_FONT_VARIATION, "<get>value", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
 constexpr CacheKey FONT_VARIATION_IS_NORMALIZED_KEY{
     ANI_INTERFACE_FONT_VARIATION, "<get>isNormalized", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
+
+constexpr std::string_view FONT_VARIATION_AXIS_SIGN = "C{" ANI_STRING "}dddiC{" ANI_STRING "}C{" ANI_STRING "}:";
+constexpr CacheKey FONT_VARIATION_AXIS_KEY_CTOR{ANI_CLASS_FONT_VARIATION_AXIS, "<ctor>", FONT_VARIATION_AXIS_SIGN};
+constexpr CacheKey FONT_VARIATION_AXIS_KEY_GETTER{ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>key", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_VARIATION_AXIS_MIN_VALUE_KEY{ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>minValue", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
+constexpr CacheKey FONT_VARIATION_AXIS_MAX_VALUE_KEY{ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>maxValue", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
+constexpr CacheKey FONT_VARIATION_AXIS_DEFAULT_VALUE_KEY{ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>defaultValue", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
+constexpr CacheKey FONT_VARIATION_AXIS_FLAGS_KEY{ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>flags", ANI_WRAP_RETURN_C(ANI_INT)};
+constexpr CacheKey FONT_VARIATION_AXIS_NAME_KEY{ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>name", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_VARIATION_AXIS_LOCAL_NAME_KEY{ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>localName", ANI_WRAP_RETURN_C(ANI_STRING)};
+
+constexpr std::string_view FONT_VARIATION_INSTANCE_SIGN = "C{" ANI_STRING "}C{" ANI_STRING "}C{" ANI_ARRAY "}:";
+constexpr CacheKey FONT_VARIATION_INSTANCE_KEY_CTOR{ANI_CLASS_FONT_VARIATION_INSTANCE, "<ctor>", FONT_VARIATION_INSTANCE_SIGN};
+constexpr CacheKey FONT_VARIATION_INSTANCE_NAME_KEY{ANI_INTERFACE_FONT_VARIATION_INSTANCE, "<get>name", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_VARIATION_INSTANCE_LOCAL_NAME_KEY{ANI_INTERFACE_FONT_VARIATION_INSTANCE, "<get>localName", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_VARIATION_INSTANCE_COORDINATES_KEY{ANI_INTERFACE_FONT_VARIATION_INSTANCE, "<get>coordinates", ANI_WRAP_RETURN_C(ANI_ARRAY)};
 
 constexpr CacheKey RECT_STYLE_COLOR_KEY{ANI_INTERFACE_RECT_STYLE, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR)};
 constexpr CacheKey RECT_STYLE_LEFT_TOP_RADIUS_KEY{ANI_INTERFACE_RECT_STYLE, "<get>leftTopRadius", ":d"};
@@ -226,7 +246,7 @@ constexpr CacheKey DECORATION_KEY{ANI_CLASS_DECORATION, "<ctor>", DECORATION_SIG
 constexpr CacheKey RECT_STYLE_KEY{ANI_CLASS_RECT_STYLE, "<ctor>", "C{" ANI_INTERFACE_COLOR "}dddd:"};
 
 constexpr CacheKey FONT_FEATURE_KEY{ANI_CLASS_FONT_FEATURE, "<ctor>", "C{" ANI_STRING "}i:"};
-constexpr CacheKey FONT_VARIATION_KEY{ANI_CLASS_FONT_VARIATION, "<ctor>", ":"};
+constexpr CacheKey FONT_VARIATION_KEY{ANI_CLASS_FONT_VARIATION, "<ctor>", "C{" ANI_STRING "}d:"};
 
 constexpr CacheKey FONT_KEY{ANI_CLASS_FONT, "<ctor>", ":"};
 
@@ -297,6 +317,21 @@ void AniGlobalClass::Init(ani_env* env)
     rectStyle = AniFindClass(env, ANI_CLASS_RECT_STYLE);
     fontFeature = AniFindClass(env, ANI_CLASS_FONT_FEATURE);
     fontVariation = AniFindClass(env, ANI_CLASS_FONT_VARIATION);
+    fontVariationAxis = AniFindClass(env, ANI_CLASS_FONT_VARIATION_AXIS);
+    fontVariationInstance = AniFindClass(env, ANI_CLASS_FONT_VARIATION_INSTANCE);
+
+    if (fontVariationAxis == nullptr) {
+        TEXT_LOGE("AniGlobalClass::Init: Failed to find FontVariationAxis class");
+    } else {
+        TEXT_LOGI("AniGlobalClass::Init: FontVariationAxis class found successfully");
+    }
+
+    if (fontVariationInstance == nullptr) {
+        TEXT_LOGE("AniGlobalClass::Init: Failed to find FontVariationInstance class");
+    } else {
+        TEXT_LOGI("AniGlobalClass::Init: FontVariationInstance class found successfully");
+    }
+
     typographicBounds = AniFindClass(env, ANI_CLASS_TYPOGRAPHIC_BOUNDS);
     cleaner = AniFindClass(env, ANI_CLASS_CLEANER);
     canvas = AniFindClass(env, ANI_CLASS_CANVAS);
@@ -338,6 +373,8 @@ void AniGlobalMethod::Init(ani_env* env)
     InitTextShadowMethod(env);
     InitFontFeatureMethod(env);
     InitFontVariationMethod(env);
+    InitFontVariationAxisMethod(env);
+    InitFontVariationInstanceMethod(env);
     InitRectStyleMethod(env);
     InitPlaceholderMethod(env);
     InitGlobalResourceMethod(env);
@@ -416,6 +453,10 @@ void AniGlobalMethod::InitFontDescriptorMethod(ani_env* env)
         AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_MONO_SPACE_KEY);
     fontDescriptorGetSymbolic =
         AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_SYMBOLIC_KEY);
+    fontDescriptorGetVariationAxisRecords =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_VARIATION_AXIS_RECORDS_KEY);
+    fontDescriptorGetVariationInstanceRecords =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_VARIATION_INSTANCE_RECORDS_KEY);
 }
 void AniGlobalMethod::InitParagraphStyleMethod(ani_env* env)
 {

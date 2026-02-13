@@ -277,15 +277,30 @@ OH_Drawing_Array* OH_Drawing_GetFontFullDescriptorsFromStream(const void* data, 
 
 void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray)
 {
-    ObjectArray* descriptorList = ConvertToOriginalText<ObjectArray>(descriptorArray);
-    if (descriptorList == nullptr || descriptorList->type != ObjectType::FONT_FULL_DESCRIPTOR) {
+    if (descriptorArray == nullptr) {
         return;
     }
+
+    ObjectArray* descriptorList = ConvertToOriginalText<ObjectArray>(descriptorArray);
+    if (descriptorList == nullptr) {
+        return;
+    }
+
+    if (descriptorList->type != ObjectType::FONT_FULL_DESCRIPTOR) {
+        delete descriptorList;
+        return;
+    }
+
     Drawing::FontParser::FontDescriptor** descriptors =
         reinterpret_cast<Drawing::FontParser::FontDescriptor**>(descriptorList->addr);
     if (descriptors == nullptr) {
+        descriptorList->addr = nullptr;
+        descriptorList->num = 0;
+        descriptorList->type = ObjectType::INVALID;
+        delete descriptorList;
         return;
     }
+
     for (size_t i = 0; i < descriptorList->num; ++i) {
         if (descriptors[i] == nullptr) {
             continue;
@@ -403,4 +418,246 @@ OH_Drawing_String* OH_Drawing_GetFontPathsByType(OH_Drawing_SystemFontType fontT
         return nullptr;
     }
     return stringArr.release();
+}
+
+static OH_Drawing_Array* CreateVariationAxisArray(
+    const std::vector<TextEngine::FontParser::FontVariationAxis>& variationAxes)
+{
+    if (variationAxes.empty()) {
+        return nullptr;
+    }
+
+    std::unique_ptr array = std::make_unique<ObjectArray>();
+    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontVariationAxis*[]>(variationAxes.size());
+    array->type = ObjectType::FONT_VARIATION_AXIS;
+
+    size_t num = 0;
+    for (const auto& axis : variationAxes) {
+        addr[num] = new Drawing::FontParser::FontVariationAxis(axis);
+        num++;
+    }
+    array->addr = addr.release();
+    array->num = num;
+    return reinterpret_cast<OH_Drawing_Array*>(array.release());
+}
+
+static OH_Drawing_Array* CreateVariationInstanceArray(
+    const std::vector<TextEngine::FontParser::FontVariationInstance>& variationInstances)
+{
+    if (variationInstances.empty()) {
+        return nullptr;
+    }
+
+    std::unique_ptr array = std::make_unique<ObjectArray>();
+    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontVariationInstance*[]>(
+        variationInstances.size());
+    array->type = ObjectType::FONT_VARIATION_INSTANCE;
+
+    size_t num = 0;
+    for (const auto& instance : variationInstances) {
+        addr[num] = new Drawing::FontParser::FontVariationInstance(instance);
+        num++;
+    }
+    array->addr = addr.release();
+    array->num = num;
+    return reinterpret_cast<OH_Drawing_Array*>(array.release());
+}
+
+OH_Drawing_Array* OH_Drawing_GetFontFullDescriptorAttributeArray(const OH_Drawing_FontFullDescriptor* descriptor,
+    OH_Drawing_FontFullDescriptorAttributeId id)
+{
+    if (descriptor == nullptr) {
+        return nullptr;
+    }
+
+    const auto& fontDescriptor = *reinterpret_cast<const TextEngine::FontParser::FontDescriptor*>(descriptor);
+
+    if (id == FULL_DESCRIPTOR_ATTR_O_VARIATION_AXIS) {
+        return CreateVariationAxisArray(fontDescriptor.variationAxisRecords);
+    }
+    if (id == FULL_DESCRIPTOR_ATTR_O_VARIATION_INSTANCE) {
+        return CreateVariationInstanceArray(fontDescriptor.variationInstanceRecords);
+    }
+    return nullptr;
+}
+
+void OH_Drawing_DestroyFontVariationAxis(OH_Drawing_Array* array)
+{
+    if (array == nullptr) {
+        return;
+    }
+
+    ObjectArray* axisArray = reinterpret_cast<ObjectArray*>(array);
+    if (axisArray == nullptr) {
+        return;
+    }
+
+    if (axisArray->type != ObjectType::FONT_VARIATION_AXIS) {
+        delete axisArray;
+        return;
+    }
+
+    Drawing::FontParser::FontVariationAxis** axes =
+        reinterpret_cast<Drawing::FontParser::FontVariationAxis**>(axisArray->addr);
+    if (axes == nullptr) {
+        axisArray->addr = nullptr;
+        axisArray->num = 0;
+        axisArray->type = ObjectType::INVALID;
+        delete axisArray;
+        return;
+    }
+
+    for (size_t i = 0; i < axisArray->num; ++i) {
+        if (axes[i] == nullptr) {
+            continue;
+        }
+        delete axes[i];
+        axes[i] = nullptr;
+    }
+    delete[] axes;
+    axisArray->addr = nullptr;
+    axisArray->num = 0;
+    axisArray->type = ObjectType::INVALID;
+    delete axisArray;
+}
+
+void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* array)
+{
+    if (array == nullptr) {
+        return;
+    }
+
+    ObjectArray* instanceArray = reinterpret_cast<ObjectArray*>(array);
+    if (instanceArray == nullptr) {
+        return;
+    }
+
+    if (instanceArray->type != ObjectType::FONT_VARIATION_INSTANCE) {
+        delete instanceArray;
+        return;
+    }
+
+    Drawing::FontParser::FontVariationInstance** instances =
+        reinterpret_cast<Drawing::FontParser::FontVariationInstance**>(instanceArray->addr);
+    if (instances == nullptr) {
+        instanceArray->addr = nullptr;
+        instanceArray->num = 0;
+        instanceArray->type = ObjectType::INVALID;
+        delete instanceArray;
+        return;
+    }
+
+    for (size_t i = 0; i < instanceArray->num; ++i) {
+        if (instances[i] == nullptr) {
+            continue;
+        }
+        delete instances[i];
+        instances[i] = nullptr;
+    }
+    delete[] instances;
+    instanceArray->addr = nullptr;
+    instanceArray->num = 0;
+    instanceArray->type = ObjectType::INVALID;
+    delete instanceArray;
+}
+
+OH_Drawing_FontVariationAxis* OH_Drawing_GetFontVariationAxisByIndex(
+    OH_Drawing_Array* array, size_t index)
+{
+    if (array == nullptr) {
+        return nullptr;
+    }
+
+    ObjectArray* axisArray = reinterpret_cast<ObjectArray*>(array);
+    if (axisArray != nullptr && axisArray->addr != nullptr &&
+        axisArray->type == ObjectType::FONT_VARIATION_AXIS && index < axisArray->num) {
+        Drawing::FontParser::FontVariationAxis** variationAxis =
+            reinterpret_cast<Drawing::FontParser::FontVariationAxis**>(axisArray->addr);
+        return reinterpret_cast<OH_Drawing_FontVariationAxis*>(variationAxis[index]);
+    }
+
+    return nullptr;
+}
+
+OH_Drawing_FontVariationInstance* OH_Drawing_GetFontVariationInstanceByIndex(
+    OH_Drawing_Array* array, size_t index)
+{
+    if (array == nullptr) {
+        return nullptr;
+    }
+
+    ObjectArray* instanceArray = reinterpret_cast<ObjectArray*>(array);
+    if (instanceArray != nullptr && instanceArray->addr != nullptr &&
+        instanceArray->type == ObjectType::FONT_VARIATION_INSTANCE && index < instanceArray->num) {
+        Drawing::FontParser::FontVariationInstance** variationInstance =
+            reinterpret_cast<Drawing::FontParser::FontVariationInstance**>(instanceArray->addr);
+        return reinterpret_cast<OH_Drawing_FontVariationInstance*>(variationInstance[index]);
+    }
+
+    return nullptr;
+}
+OH_Drawing_FontFullDescriptor* OH_Drawing_GetFontFullDescriptorByFullName(const OH_Drawing_String* fullName,
+    OH_Drawing_SystemFontType fontType)
+{
+    if (fullName == nullptr) {
+        return nullptr;
+    }
+
+    auto systemFontType = static_cast<int32_t>(fontType);
+    using namespace OHOS::Rosen::Drawing;
+    std::string fullNameString;
+    if (!ConvertToString(fullName->strData, fullName->strLen, fullNameString)) {
+        TEXT_LOGE("Failed to convert string to utf8");
+        return nullptr;
+    }
+
+    std::shared_ptr<TextEngine::FontParser::FontDescriptor> result = nullptr;
+    FontDescriptorMgrInstance.GetFontDescSharedPtrByFullName(fullNameString, systemFontType, result);
+    if (result == nullptr) {
+        return nullptr;
+    }
+
+    Drawing::FontParser::FontDescriptor* descriptor = new (std::nothrow) Drawing::FontParser::FontDescriptor(*result);
+    if (descriptor == nullptr) {
+        return nullptr;
+    }
+
+    return reinterpret_cast<OH_Drawing_FontFullDescriptor*>(descriptor);
+}
+
+OH_Drawing_FontVariationInstanceCoordinate* OH_Drawing_GetFontVariationInstanceCoordinate(
+    OH_Drawing_FontVariationInstance* variationInstance, size_t* arrayLength)
+{
+    if (variationInstance == nullptr || arrayLength == nullptr) {
+        return nullptr;
+    }
+
+    const auto& instance = *reinterpret_cast<const Drawing::FontParser::FontVariationInstance*>(variationInstance);
+    if (instance.coordinates.empty()) {
+        *arrayLength = 0;
+        return nullptr;
+    }
+
+    *arrayLength = instance.coordinates.size();
+    OH_Drawing_FontVariationInstanceCoordinate* coordinates =
+        new (std::nothrow) OH_Drawing_FontVariationInstanceCoordinate[*arrayLength];
+    if (coordinates == nullptr) {
+        *arrayLength = 0;
+        return nullptr;
+    }
+
+    for (size_t i = 0; i < *arrayLength; ++i) {
+        coordinates[i].axisKey = strdup(instance.coordinates[i].axis.c_str());
+        if (coordinates[i].axisKey == nullptr) {
+            for (size_t j = 0; j < i; ++j) {
+                free(coordinates[j].axisKey);
+            }
+            delete[] coordinates;
+            *arrayLength = 0;
+            return nullptr;
+        }
+        coordinates[i].value = instance.coordinates[i].value;
+    }
+
+    return coordinates;
 }

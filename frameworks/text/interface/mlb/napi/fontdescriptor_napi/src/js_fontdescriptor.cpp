@@ -197,14 +197,86 @@ bool JsFontDescriptor::ConvertFontDescWeight(napi_env env, napi_value obj, int w
 
 bool JsFontDescriptor::CreateAndSetProperties(napi_env env, napi_value fontDescriptor, FontDescSharedPtr item)
 {
+    TEXT_ERROR_CHECK(item != nullptr, return false, "FontDescSharedPtr is nullptr");
     auto properties = GenerateDescriptorPropList(item);
     for (const auto& prop : properties) {
         TEXT_CHECK(std::visit([&](auto& p) -> bool {
-            TEXT_CHECK(SetProperty(env, fontDescriptor, prop.first, CreateJsValue(env, p.get())), return false);
-            return true;
+            return SetProperty(env, fontDescriptor, prop.first, CreateJsValue(env, p.get()));
         }, prop.second), return false);
     }
+
+    if (!item->variationAxisRecords.empty()) {
+        napi_value axisArray = CreateVariationAxisArray(env, item->variationAxisRecords);
+        TEXT_CHECK(axisArray != nullptr, return false);
+        TEXT_CHECK(SetProperty(env, fontDescriptor, "variationAxisRecords", axisArray), return false);
+    }
+
+    if (!item->variationInstanceRecords.empty()) {
+        napi_value instanceArray = CreateVariationInstanceArray(env, item->variationInstanceRecords);
+        TEXT_CHECK(instanceArray != nullptr, return false);
+        TEXT_CHECK(SetProperty(env, fontDescriptor, "variationInstanceRecords", instanceArray), return false);
+    }
+
     return true;
+}
+
+napi_value JsFontDescriptor::CreateVariationAxisArray(
+    napi_env env, const std::vector<TextEngine::FontParser::FontVariationAxis>& axes)
+{
+    napi_value axisArray = nullptr;
+    TEXT_ERROR_CHECK(napi_create_array(env, &axisArray) == napi_ok, return nullptr,
+        "Failed to create variation axis array");
+    uint32_t index = 0;
+    for (const auto& axis : axes) {
+        napi_value axisObj = nullptr;
+        TEXT_ERROR_CHECK(napi_create_object(env, &axisObj) == napi_ok, return nullptr,
+            "Failed to create axis object");
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "key", CreateJsValue(env, axis.key)), nullptr);
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "minValue", CreateJsValue(env, axis.minValue)), nullptr);
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "maxValue", CreateJsValue(env, axis.maxValue)), nullptr);
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "defaultValue", CreateJsValue(env, axis.defaultValue)), nullptr);
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "flags", CreateJsValue(env, axis.flags)), nullptr);
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "name", CreateJsValue(env, axis.name)), nullptr);
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "localName", CreateJsValue(env, axis.localName)), nullptr);
+        TEXT_ERROR_CHECK(napi_set_element(env, axisArray, index++, axisObj) == napi_ok, return nullptr,
+            "Failed to set axis element");
+    }
+    return axisArray;
+}
+
+napi_value JsFontDescriptor::CreateVariationInstanceArray(
+    napi_env env, const std::vector<TextEngine::FontParser::FontVariationInstance>& instances)
+{
+    napi_value instanceArray = nullptr;
+    TEXT_ERROR_CHECK(napi_create_array(env, &instanceArray) == napi_ok, return nullptr,
+        "Failed to create variation instance array");
+    uint32_t index = 0;
+    for (const auto& instance : instances) {
+        napi_value instanceObj = nullptr;
+        TEXT_ERROR_CHECK(napi_create_object(env, &instanceObj) == napi_ok, return nullptr,
+            "Failed to create instance object");
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, instanceObj, "name", CreateJsValue(env, instance.name)), nullptr);
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, instanceObj, "localName", CreateJsValue(env, instance.localName)), nullptr);
+
+        napi_value coordArray = nullptr;
+        TEXT_ERROR_CHECK(napi_create_array(env, &coordArray) == napi_ok, return nullptr,
+            "Failed to create coordinates array");
+        uint32_t coordIndex = 0;
+        for (const auto& coord : instance.coordinates) {
+            napi_value coordObj = nullptr;
+            TEXT_ERROR_CHECK(napi_create_object(env, &coordObj) == napi_ok, return nullptr,
+                "Failed to create coordinate object");
+            TEXT_CHECK_RETURN_VALUE(SetProperty(env, coordObj, "axis", CreateJsValue(env, coord.axis)), nullptr);
+            TEXT_CHECK_RETURN_VALUE(SetProperty(env, coordObj, "value", CreateJsValue(env, coord.value)), nullptr);
+            TEXT_ERROR_CHECK(napi_set_element(env, coordArray, coordIndex++, coordObj) == napi_ok, return nullptr,
+                "Failed to set coordinate element");
+        }
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, instanceObj, "coordinates", coordArray), nullptr);
+
+        TEXT_ERROR_CHECK(napi_set_element(env, instanceArray, index++, instanceObj) == napi_ok, return nullptr,
+            "Failed to set instance element");
+    }
+    return instanceArray;
 }
 
 napi_value JsFontDescriptor::CreateFontDescriptorArray(napi_env env, const std::set<FontDescSharedPtr>& result)

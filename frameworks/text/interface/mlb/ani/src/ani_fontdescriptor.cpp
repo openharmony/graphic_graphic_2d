@@ -93,6 +93,260 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
     return ANI_OK;
 }
 
+static ani_status ParseFontVariationToNative(ani_env* env, ani_ref ref,
+    TextEngine::FontParser::FontVariation& variation)
+{
+    if (ref == nullptr) {
+        return ANI_ERROR;
+    }
+    ani_object variationObj = reinterpret_cast<ani_object>(ref);
+
+    ani_ref axisRef = nullptr;
+    ani_status ret = env->Object_CallMethod_Ref(variationObj,
+        AniGlobalMethod::GetInstance().fontVariationAxis, &axisRef);
+    if (ret != ANI_OK || axisRef == nullptr) {
+        TEXT_LOGE("ParseFontVariationToNative: Failed to get axisRef, ret=%{public}d", ret);
+        return ret;
+    }
+    ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(axisRef), variation.axis);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseFontVariationToNative: Failed to convert axis to string, ret=%{public}d", ret);
+        return ret;
+    }
+
+    ret = AniTextUtils::ReadOptionalDoubleField(env, variationObj,
+        AniGlobalMethod::GetInstance().fontVariationValue, variation.value);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseFontVariationToNative: Failed to read value, ret=%{public}d", ret);
+        return ret;
+    }
+
+    return ANI_OK;
+}
+
+static ani_status ParseVariationAxisNumericFields(ani_env* env, ani_object axisObj,
+    TextEngine::FontParser::FontVariationAxis& variationAxis)
+{
+    ani_status ret = AniTextUtils::ReadOptionalDoubleField(env, axisObj,
+        AniGlobalMethod::GetInstance().fontVariationAxisMinValue, variationAxis.minValue);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseVariationAxisNumericFields: Failed to read minValue, ret=%{public}d", ret);
+        return ret;
+    }
+
+    ret = AniTextUtils::ReadOptionalDoubleField(env, axisObj,
+        AniGlobalMethod::GetInstance().fontVariationAxisMaxValue, variationAxis.maxValue);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseVariationAxisNumericFields: Failed to read maxValue, ret=%{public}d", ret);
+        return ret;
+    }
+
+    ret = AniTextUtils::ReadOptionalDoubleField(env, axisObj,
+        AniGlobalMethod::GetInstance().fontVariationAxisDefaultValue, variationAxis.defaultValue);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseVariationAxisNumericFields: Failed to read defaultValue, ret=%{public}d", ret);
+        return ret;
+    }
+
+    ret = AniTextUtils::ReadOptionalIntField(env, axisObj,
+        AniGlobalMethod::GetInstance().fontVariationAxisFlags, variationAxis.flags);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseVariationAxisNumericFields: Failed to read flags, ret=%{public}d", ret);
+        return ret;
+    }
+
+    return ANI_OK;
+}
+
+ani_status ParseFontVariationAxisToNative(ani_env* env, ani_ref ref,
+    TextEngine::FontParser::FontVariationAxis& variationAxis)
+{
+    if (ref == nullptr) {
+        TEXT_LOGE("ParseFontVariationAxisToNative: ref is nullptr");
+        return ANI_ERROR;
+    }
+    ani_object axisObj = reinterpret_cast<ani_object>(ref);
+
+    // Parse required string fields
+    ani_status ret = AniTextUtils::ReadOptionalStringField(env, axisObj,
+        AniGlobalMethod::GetInstance().fontVariationAxisKey, variationAxis.key);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseFontVariationAxisToNative: Failed to read key, ret=%{public}d", ret);
+        return ret;
+    }
+
+    ret = AniTextUtils::ReadOptionalStringField(env, axisObj,
+        AniGlobalMethod::GetInstance().fontVariationAxisName, variationAxis.name);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseFontVariationAxisToNative: Failed to read name, ret=%{public}d", ret);
+        return ret;
+    }
+
+    ret = AniTextUtils::ReadOptionalStringField(env, axisObj,
+        AniGlobalMethod::GetInstance().fontVariationAxisLocalName, variationAxis.localName);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseFontVariationAxisToNative: Failed to read localName, ret=%{public}d", ret);
+        return ret;
+    }
+
+    return ParseVariationAxisNumericFields(env, axisObj, variationAxis);
+}
+
+ani_status ParseFontVariationInstanceToNative(ani_env* env, ani_ref ref,
+    TextEngine::FontParser::FontVariationInstance& variationInstance)
+{
+    if (ref == nullptr) {
+        TEXT_LOGE("ParseFontVariationInstanceToNative: ref is nullptr");
+        return ANI_ERROR;
+    }
+    ani_object instanceObj = reinterpret_cast<ani_object>(ref);
+
+    ani_status ret = AniTextUtils::ReadOptionalStringField(env, instanceObj,
+        AniGlobalMethod::GetInstance().fontVariationInstanceName, variationInstance.name);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseFontVariationInstanceToNative: Failed to read name, ret=%{public}d", ret);
+        return ret;
+    }
+
+    ret = AniTextUtils::ReadOptionalStringField(env, instanceObj,
+        AniGlobalMethod::GetInstance().fontVariationInstanceLocalName, variationInstance.localName);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseFontVariationInstanceToNative: Failed to read localName, ret=%{public}d", ret);
+        return ret;
+    }
+
+    ret = AniTextUtils::ReadArrayField<TextEngine::FontParser::FontVariation>(env, instanceObj,
+        AniGlobalMethod::GetInstance().fontVariationInstanceCoordinates, variationInstance.coordinates,
+        [](ani_env* env, ani_ref ref) -> TextEngine::FontParser::FontVariation {
+            TextEngine::FontParser::FontVariation variation;
+            ani_status ret = ParseFontVariationToNative(env, ref, variation);
+            if (ret != ANI_OK) {
+                TEXT_LOGE("ParseFontVariationInstanceToNative: Failed to parse variation element");
+            }
+            return variation;
+        });
+    if (ret != ANI_OK) {
+        TEXT_LOGE("ParseFontVariationInstanceToNative: Failed to read coordinates, ret=%{public}d", ret);
+        return ret;
+    }
+
+    return ANI_OK;
+}
+
+ani_object CreateFontVariationAxisArray(ani_env* env,
+    const std::vector<TextEngine::FontParser::FontVariationAxis>& variationAxes)
+{
+    TEXT_LOGI("CreateFontVariationAxisArray: called with %{public}zu axes", variationAxes.size());
+
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, variationAxes.size());
+    TEXT_LOGI("CreateFontVariationAxisArray: CreateAniArray returned: arrayObj=%p, size=%{public}zu",
+        (void*)arrayObj, variationAxes.size());
+    ani_boolean isUndefined = false;
+    env->Reference_IsUndefined(arrayObj, &isUndefined);
+    TEXT_LOGI("CreateFontVariationAxisArray: Reference_IsUndefined: isUndefined=%{public}d, arrayObj=%p",
+        isUndefined, (void*)arrayObj);
+    if (isUndefined) {
+        TEXT_LOGE("Failed to create FontVariationAxis array, returning empty array");
+        return AniTextUtils::CreateAniArray(env, 0);
+    }
+
+    ani_size index = 0;
+    for (const auto& axis : variationAxes) {
+        TEXT_LOGI("CreateFontVariationAxisArray: creating axis[%{public}zu] key=%{public}s minValue=%{public}f maxValue=%{public}f defaultValue=%{public}f flags=%{public}d",
+            index, axis.key.c_str(), axis.minValue, axis.maxValue, axis.defaultValue, axis.flags);
+
+        ani_object axisObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontVariationAxis,
+            AniGlobalMethod::GetInstance().fontVariationAxisCtor,
+            AniTextUtils::CreateAniStringObj(env, axis.key),
+            ani_double(axis.minValue),
+            ani_double(axis.maxValue),
+            ani_double(axis.defaultValue),
+            ani_int(axis.flags),
+            AniTextUtils::CreateAniStringObj(env, axis.name),
+            AniTextUtils::CreateAniStringObj(env, axis.localName));
+
+        if (axisObj == nullptr) {
+            TEXT_LOGE("Failed to create FontVariationAxis object for key=%{public}s", axis.key.c_str());
+            continue;
+        }
+
+        ani_status status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, axisObj);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to set FontVariationAxis item, index %{public}zu status=%{public}d", index, status);
+            continue;
+        }
+        index++;
+    }
+    TEXT_LOGI("CreateFontVariationAxisArray: created %{public}zu axes successfully", index);
+    return arrayObj;
+}
+
+ani_object CreateFontVariationInstanceArray(ani_env* env,
+    const std::vector<TextEngine::FontParser::FontVariationInstance>& variationInstances)
+{
+    TEXT_LOGI("CreateFontVariationInstanceArray: called with %{public}zu instances", variationInstances.size());
+
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, variationInstances.size());
+    ani_boolean isUndefined = false;
+    env->Reference_IsUndefined(arrayObj, &isUndefined);
+    if (isUndefined) {
+        TEXT_LOGE("Failed to create FontVariationInstance array, returning empty array");
+        return AniTextUtils::CreateAniArray(env, 0);
+    }
+
+    ani_size index = 0;
+    for (const auto& instance : variationInstances) {
+        TEXT_LOGI("CreateFontVariationInstanceArray: creating instance[%{public}zu] name=%{public}s localName=%{public}s coordinates=%{public}zu",
+            index, instance.name.c_str(), instance.localName.c_str(), instance.coordinates.size());
+
+        // Create coordinates array
+        ani_object coordinatesArray = AniTextUtils::CreateAniArray(env, instance.coordinates.size());
+        ani_boolean coordUndefined = false;
+        env->Reference_IsUndefined(coordinatesArray, &coordUndefined);
+        if (!coordUndefined) {
+            ani_size coordIndex = 0;
+            for (const auto& coord : instance.coordinates) {
+                TEXT_LOGI("CreateFontVariationInstanceArray:   coordinate[%{public}zu] axis=%{public}s value=%{public}f",
+                    coordIndex, coord.axis.c_str(), coord.value);
+
+                ani_object coordObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontVariation,
+                    AniGlobalMethod::GetInstance().fontVariationCtor,
+                    AniTextUtils::CreateAniStringObj(env, coord.axis),
+                    ani_double(coord.value));
+
+                if (coordObj != nullptr) {
+                    ani_status status = env->Object_CallMethod_Void(coordinatesArray, AniGlobalMethod::GetInstance().arraySet, coordIndex, coordObj);
+                    if (status != ANI_OK) {
+                        TEXT_LOGE("Failed to set coordinate, index %{public}zu status=%{public}d", coordIndex, status);
+                    } else {
+                        coordIndex++;
+                    }
+                }
+            }
+        }
+
+        ani_object instanceObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontVariationInstance,
+            AniGlobalMethod::GetInstance().fontVariationInstanceCtor,
+            AniTextUtils::CreateAniStringObj(env, instance.name),
+            AniTextUtils::CreateAniStringObj(env, instance.localName),
+            coordinatesArray);
+
+        if (instanceObj == nullptr) {
+            TEXT_LOGE("Failed to create FontVariationInstance object for name=%{public}s", instance.name.c_str());
+            continue;
+        }
+
+        ani_status status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, instanceObj);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to set FontVariationInstance item, index %{public}zu status=%{public}d", index, status);
+            continue;
+        }
+        index++;
+    }
+    TEXT_LOGI("CreateFontVariationInstanceArray: created %{public}zu instances successfully", index);
+    return arrayObj;
+}
+
 ani_status FontDescriptorGetFontWeight(ani_env* env, ani_object obj, FontDescSharedPtr& fontDesc)
 {
     ani_ref ref = nullptr;
@@ -142,20 +396,101 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
         env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetSymbolic, symbolic, Bool, fontDesc.get(), status);
 
     status = FontDescriptorGetFontWeight(env, aniObj, fontDesc);
-    return status;
+    if (status != ANI_OK) {
+        return status;
+    }
+
+    // Parse variationAxisRecords
+    ani_ref variationAxesRef = nullptr;
+    status = AniTextUtils::ReadOptionalField(env, aniObj,
+        AniGlobalMethod::GetInstance().fontDescriptorGetVariationAxisRecords, variationAxesRef);
+    if (status == ANI_OK && variationAxesRef != nullptr) {
+        ani_array variationAxesArray = reinterpret_cast<ani_array>(variationAxesRef);
+        ani_size length = 0;
+        status = env->Array_GetLength(variationAxesArray, &length);
+        if (status == ANI_OK) {
+            for (ani_size i = 0; i < length; i++) {
+                ani_ref elementRef = nullptr;
+                status = env->Array_Get(variationAxesArray, i, &elementRef);
+                if (status == ANI_OK && elementRef != nullptr) {
+                    TextEngine::FontParser::FontVariationAxis axis;
+                    status = ParseFontVariationAxisToNative(env, elementRef, axis);
+                    if (status == ANI_OK) {
+                        fontDesc->variationAxisRecords.push_back(axis);
+                    }
+                }
+            }
+        }
+    }
+
+    // Parse variationInstanceRecords
+    ani_ref variationInstancesRef = nullptr;
+    status = AniTextUtils::ReadOptionalField(env, aniObj,
+        AniGlobalMethod::GetInstance().fontDescriptorGetVariationInstanceRecords, variationInstancesRef);
+    if (status == ANI_OK && variationInstancesRef != nullptr) {
+        ani_array variationInstancesArray = reinterpret_cast<ani_array>(variationInstancesRef);
+        ani_size length = 0;
+        status = env->Array_GetLength(variationInstancesArray, &length);
+        if (status == ANI_OK) {
+            for (ani_size i = 0; i < length; i++) {
+                ani_ref elementRef = nullptr;
+                status = env->Array_Get(variationInstancesArray, i, &elementRef);
+                if (status == ANI_OK && elementRef != nullptr) {
+                    TextEngine::FontParser::FontVariationInstance instance;
+                    status = ParseFontVariationInstanceToNative(env, elementRef, instance);
+                    if (status == ANI_OK) {
+                        fontDesc->variationInstanceRecords.push_back(instance);
+                    }
+                }
+            }
+        }
+    }
+
+    return ANI_OK;
 }
 
 ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDesc, ani_object& aniObj)
 {
     if (fontDesc == nullptr) {
-        TEXT_LOGE("Empty data fontDesc");
+        TEXT_LOGE("ParseFontDescriptorToAni: Empty data fontDesc");
         return ANI_ERROR;
     }
+
+    TEXT_LOGI("ParseFontDescriptorToAni: path=%{public}s postScriptName=%{public}s fullName=%{public}s width=%{public}d index=%{public}d axes=%{public}zu instances=%{public}zu",
+        fontDesc->path.c_str(),
+        fontDesc->postScriptName.c_str(),
+        fontDesc->fullName.c_str(),
+        fontDesc->width,
+        fontDesc->index,
+        fontDesc->variationAxisRecords.size(),
+        fontDesc->variationInstanceRecords.size());
 
     int result = -1;
     if (!OHOS::MLB::FindFontWeight(OHOS::MLB::RegularWeight(fontDesc->weight), result)) {
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
+    }
+
+    // Only create and pass variation arrays if they exist (similar to JS implementation)
+    ani_ref variationAxesRef;
+    ani_ref variationInstancesRef;
+
+    if (!fontDesc->variationAxisRecords.empty()) {
+        TEXT_LOGI("ParseFontDescriptorToAni: creating variationAxisRecords with %{public}zu axes",
+            fontDesc->variationAxisRecords.size());
+        variationAxesRef = CreateFontVariationAxisArray(env, fontDesc->variationAxisRecords);
+    } else {
+        TEXT_LOGI("ParseFontDescriptorToAni: skipping variationAxisRecords (empty)");
+        variationAxesRef = AniTextUtils::CreateAniUndefined(env);
+    }
+
+    if (!fontDesc->variationInstanceRecords.empty()) {
+        TEXT_LOGI("ParseFontDescriptorToAni: creating variationInstanceRecords with %{public}zu instances",
+            fontDesc->variationInstanceRecords.size());
+        variationInstancesRef = CreateFontVariationInstanceArray(env, fontDesc->variationInstanceRecords);
+    } else {
+        TEXT_LOGI("ParseFontDescriptorToAni: skipping variationInstanceRecords (empty)");
+        variationInstancesRef = AniTextUtils::CreateAniUndefined(env);
     }
 
     aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontDescriptor,
@@ -180,39 +515,48 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         AniTextUtils::CreateAniStringObj(env, fontDesc->copyright),
         AniTextUtils::CreateAniStringObj(env, fontDesc->trademark),
         AniTextUtils::CreateAniStringObj(env, fontDesc->license),
-        ani_int(fontDesc->index)
+        ani_int(fontDesc->index),
+        variationAxesRef,
+        variationInstancesRef
     );
 
+    TEXT_LOGI("ParseFontDescriptorToAni: completed for path=%{public}s", fontDesc->path.c_str());
     return ANI_OK;
 }
 
 ani_object CreateFontDescriptorArray(ani_env* env, const std::vector<FontDescSharedPtr>& fontDescripters)
 {
+    TEXT_LOGI("CreateFontDescriptorArray: called with %{public}zu descriptors", fontDescripters.size());
+
     std::set<FontDescSharedPtr> fontDescripterList(fontDescripters.begin(), fontDescripters.end());
 
     ani_object arrayObj = AniTextUtils::CreateAniArray(env, fontDescripterList.size());
     ani_boolean isUndefined = false;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to create arrayObject");
+        TEXT_LOGE("CreateFontDescriptorArray: Failed to create arrayObject");
         return AniTextUtils::CreateAniArray(env, 0);
     }
 
     ani_size index = 0;
     for (const auto& item : fontDescripterList) {
+        TEXT_LOGI("CreateFontDescriptorArray: processing descriptor[%{public}zu] path=%{public}s", index, item->path.c_str());
+
         ani_object aniObj = nullptr;
         ani_status status = ParseFontDescriptorToAni(env, item, aniObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to parse FontDescriptor to ani,index %{public}zu,status %{public}d", index, status);
+            TEXT_LOGE("CreateFontDescriptorArray: Failed to parse FontDescriptor to ani, index %{public}zu, status %{public}d", index, status);
             continue;
         }
         status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to set FontDescriptor item,index %{public}zu,status %{public}d", index, status);
+            TEXT_LOGE("CreateFontDescriptorArray: Failed to set FontDescriptor item, index %{public}zu, status %{public}d", index, status);
             continue;
         }
         index++;
     }
+
+    TEXT_LOGI("CreateFontDescriptorArray: completed, created %{public}zu descriptor objects", index);
     return arrayObj;
 }
 
@@ -224,13 +568,20 @@ ani_object ProcessStringPath(ani_env* env, ani_object path)
     std::string pathStr;
     ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(path), pathStr);
     if (ret != ANI_OK) {
+        TEXT_LOGE("ProcessStringPath: Failed to convert path to string, ret=%{public}d", ret);
         return AniTextUtils::CreateAniArray(env, 0);
     }
+
+    TEXT_LOGI("ProcessStringPath: parsing font from path=%{public}s", pathStr.c_str());
+
     if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data).success) {
-        TEXT_LOGE("Failed to split absolute font path");
+        TEXT_LOGE("ProcessStringPath: Failed to split absolute font path or read file");
         return AniTextUtils::CreateAniArray(env, 0);
     }
+
     auto fontDescripters = TextEngine::FontParser::ParserFontDescriptorsFromPath(pathStr);
+    TEXT_LOGI("ProcessStringPath: parsed %{public}zu font descriptors from path=%{public}s", fontDescripters.size(), pathStr.c_str());
+
     return CreateFontDescriptorArray(env, fontDescripters);
 }
 
