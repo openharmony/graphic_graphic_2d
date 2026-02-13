@@ -4176,7 +4176,8 @@ bool RSMainThread::IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool
         return false;
     }
     // if vsynctimestamp updated but timestamp_ not, diff > 1/2 vsync， don't fastcompose
-    if (static_cast<uint64_t>(vsyncTimeStamp) - timestamp_ > REFRESH_PERIOD / 2) {
+    if (static_cast<uint64_t>(vsyncTimeStamp) > timestamp_ &&
+        static_cast<uint64_t>(vsyncTimeStamp) - timestamp_ > REFRESH_PERIOD / 2) { // 1/2 vsync
         return false;
     }
     // when buffer come near vsync time, difference value need to add offset before division
