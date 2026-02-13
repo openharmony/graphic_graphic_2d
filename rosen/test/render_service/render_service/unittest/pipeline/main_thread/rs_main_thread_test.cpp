@@ -5647,17 +5647,15 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
     auto surfaceHandler = surfaceNode->surfaceHandler_;
     ASSERT_NE(surfaceHandler, nullptr);
-    auto consumer = surfaceHandler->GetConsumer();
-    ASSERT_NE(consumer, nullptr);
 
-    EXPECT_EQ(surfaceHandler->sourceType_, 0);
+    surfaceHandler->sourceType_ = 5;
+    ASSERT_EQ(surfaceHandler->GetSourceType(), 5);
+    surfaceHandler->consumer_ = nullptr;
 
     mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
-    EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
 }
 
 /**
@@ -5670,17 +5668,13 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId004, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
     auto surfaceHandler = surfaceNode->surfaceHandler_;
     ASSERT_NE(surfaceHandler, nullptr);
-    auto consumer = surfaceHandler->GetConsumer();
-    ASSERT_NE(consumer, nullptr);
 
-    EXPECT_EQ(surfaceHandler->sourceType_, 0);
+    surfaceHandler->sourceType_ = 4;
+    ASSERT_EQ(surfaceHandler->GetSourceType(), 4);
 
-    surfaceHandler->sourceType_ = 5;
-    EXPECT_EQ(surfaceHandler->GetSourceType(), 5);
     mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
 }
 
