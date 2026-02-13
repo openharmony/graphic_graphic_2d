@@ -495,6 +495,38 @@ HWTEST_F(RSColorspaceConvertTest, GetFovMetadata002, TestSize.Level1)
     ASSERT_TRUE(ret == GSERROR_OK);
 }
 
+
+/**
+ * @tc.name: GetAIHDRVideoMetadata001
+ * @tc.desc: test get AIHDR video metadata normal case
+ * @tc.type:FUNC
+ * @tc.require: IAJ26A
+ */
+HWTEST_F(RSColorspaceConvertTest, GetAIHDRVideoMetadata001, TestSize.Level1)
+{
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_VENDOR_PRI10,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    sptr<SurfaceBuffer> surfaceBuffer = new SurfaceBufferImpl(0);
+    GSError ret = surfaceBuffer->Alloc(requestConfig);
+    ASSERT_TRUE(ret == GSERROR_OK);
+    ASSERT_TRUE(surfaceBuffer != nullptr);
+
+    std::vector<uint8_t> getMetadata;
+    RSColorSpaceConvert::Instance().GetAIHDRVideoMetadata(surfaceBuffer, getMetadata, ret);
+    ASSERT_TRUE(ret == GSERROR_OK);
+    ASSERT_FALSE(getMetadata.empty());
+    sptr<SurfaceBuffer> nullBuffer = nullptr;
+    RSColorSpaceConvert::Instance().GetAIHDRVideoMetadata(nullBuffer, getMetadata, ret);
+    ASSERT_TRUE(ret == GSERROR_NO_BUFFER);
+}
+
 /**
  * @tc.name: GetSDRDynamicMetadata001
  * @tc.desc: test get video dynamic metadata normal case
