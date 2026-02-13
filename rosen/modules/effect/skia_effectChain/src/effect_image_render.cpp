@@ -305,4 +305,44 @@ DrawingError EffectImageReededGlassFilter::Apply(const std::shared_ptr<EffectIma
     return image->ApplyReededGlass(reededGlassData_);
 }
 
+DrawingError EffectImageRender::RenderDstNative(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+    std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer,
+    const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU)
+{
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageRender::Render");
+ 
+    auto ret = DrawingError::ERR_OK;
+    do {
+        auto effectImage = std::make_shared<EffectImageChain>();
+        ret = effectImage->PrepareNativeBuffer(srcPixelMap, dstNativeBuffer, forceCPU);
+        if (ret != DrawingError::ERR_OK) {
+            EFFECT_LOG_E("EffectImageRender::Render: Failed to prepare image, ret=%{public}d.", ret);
+            break;
+        }
+ 
+        for (const auto& filter : effectFilters) {
+            if (filter == nullptr) {
+                continue;
+            }
+ 
+            ret = filter->Apply(effectImage);
+            if (ret != DrawingError::ERR_OK) {
+                EFFECT_LOG_E("EffectImageRender::Render: Failed to apply filter, ret=%{public}d.", ret);
+                break;
+            }
+        }
+        if (ret != DrawingError::ERR_OK) {
+            EFFECT_LOG_E("EffectImageRender::Render: Break on filter");
+            break;
+        }
+        ret = effectImage->DrawNativeBuffer();
+        if (ret != DrawingError::ERR_OK) {
+            EFFECT_LOG_E("EffectImageRender::Render: Failed to draw image, ret=%{public}d.", ret);
+            break;
+        }
+    } while (false);
+ 
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return ret;
+}
 } // namespace OHOS::Rosen

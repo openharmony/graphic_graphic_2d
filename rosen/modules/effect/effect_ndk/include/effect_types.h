@@ -60,6 +60,14 @@ typedef struct OH_Filter OH_Filter;
 typedef struct OH_PixelmapNative OH_PixelmapNative;
 
 /**
+ * @brief Defines a NativeBuffer.
+ *
+ * @since 24
+ * @version 1.0
+ */
+typedef struct OH_NativeBuffer OH_NativeBuffer;
+
+/**
  * @brief Defines a matrix for create effect filter.
  *
  * @since 12
