@@ -89,12 +89,33 @@ public:
         backgroundPath_ = GetAvailableBackgroundPath();
     }
 
+    void AddSceneBase() const
+    {
+        auto sceneNode = RSCanvasNode::Create();
+        sceneNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        sceneNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        sceneNode->SetBackgroundColor(0xFF0F1A2E);
+        GetRootNode()->AddChild(sceneNode);
+        RegisterNode(sceneNode);
+    }
+
+    void AddTileBase(int x, int y, int width, int height) const
+    {
+        auto tileNode = RSCanvasNode::Create();
+        tileNode->SetBounds({x, y, width, height});
+        tileNode->SetFrame({x, y, width, height});
+        tileNode->SetBackgroundColor(0xFF1C2F4A);
+        GetRootNode()->AddChild(tileNode);
+        RegisterNode(tileNode);
+    }
+
     std::string backgroundPath_ = BG_PATH;
 };
 
 // Test WaveDisturbanceMask with Progress property
 GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbance_Progress_Test)
 {
+    AddSceneBase();
     int nodeWidth = 460;
     int nodeHeight = 420;
     int startX = 120;
@@ -109,6 +130,7 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
     for (int i = 0; i < row; i++) {
         int x = startX + (i % col) * (nodeWidth + gapX);
         int y = startY + (i / col) * (nodeHeight + gapY);
+        AddTileBase(x, y, nodeWidth, nodeHeight);
         auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
             {x, y, nodeWidth, nodeHeight});
         backgroundNode->SetBackgroundColor(0xFF22324A);
@@ -131,6 +153,7 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
 // Test WaveDisturbanceMask with ClickPos property
 GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbance_ClickPos_Test)
 {
+    AddSceneBase();
     int nodeWidth = 460;
     int nodeHeight = 420;
     int startX = 120;
@@ -150,6 +173,7 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
     for (int i = 0; i < row; i++) {
         int x = startX + (i % col) * (nodeWidth + gapX);
         int y = startY + (i / col) * (nodeHeight + gapY);
+        AddTileBase(x, y, nodeWidth, nodeHeight);
         auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
             {x, y, nodeWidth, nodeHeight});
         backgroundNode->SetBackgroundColor(0xFF22324A);
@@ -172,6 +196,7 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
 // Test WaveDisturbanceMask with WaveRD property
 GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbance_WaveRD_Test)
 {
+    AddSceneBase();
     int nodeWidth = 460;
     int nodeHeight = 420;
     int startX = 120;
@@ -191,6 +216,7 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
     for (int i = 0; i < row; i++) {
         int x = startX + (i % col) * (nodeWidth + gapX);
         int y = startY + (i / col) * (nodeHeight + gapY);
+        AddTileBase(x, y, nodeWidth, nodeHeight);
         auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
             {x, y, nodeWidth, nodeHeight});
         backgroundNode->SetBackgroundColor(0xFF22324A);
@@ -213,6 +239,7 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
 // Test WaveDisturbanceMask with WaveLWH property
 GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbance_WaveLWH_Test)
 {
+    AddSceneBase();
     int nodeWidth = 460;
     int nodeHeight = 420;
     int startX = 120;
@@ -232,6 +259,7 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
     for (int i = 0; i < row; i++) {
         int x = startX + (i % col) * (nodeWidth + gapX);
         int y = startY + (i / col) * (nodeHeight + gapY);
+        AddTileBase(x, y, nodeWidth, nodeHeight);
         auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
             {x, y, nodeWidth, nodeHeight});
         backgroundNode->SetBackgroundColor(0xFF22324A);
@@ -254,6 +282,7 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
 // Test WaveDisturbanceMask with all properties together
 GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbance_Complete_Test)
 {
+    AddSceneBase();
     // Create WaveDisturbanceMask with all properties
     auto waveDisturbanceMask = std::make_shared<RSNGWaveDisturbanceMask>();
     int nodeWidth = 920;
@@ -272,6 +301,7 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
     int startX = 140;
     int startY = 200;
 
+    AddTileBase(startX, startY, nodeWidth, nodeHeight);
     auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
         {startX, startY, nodeWidth, nodeHeight});
     backgroundNode->SetBackgroundColor(0xFF22324A);
