@@ -627,7 +627,7 @@ void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingO
     
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
-    if (dstRect_.width_ == 0 || dstRect_.height_ == 0) {
+    if (ROSEN_EQ<float>(dstRect_.width_, 0) || ROSEN_EQ<float>(dstRect_.height_, 0)) {
         RS_LOGE("RSImage::CalcRepeatBounds dst rect width or height is invalid");
         return;
     }
