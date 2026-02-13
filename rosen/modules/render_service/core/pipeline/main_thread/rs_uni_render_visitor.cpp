@@ -3581,6 +3581,12 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         CollectFilterInfoAndUpdateDirty(*filterNode, dirtyManager, filterRect, filterRect);
     }
 
+    UpdateVisibleEffectChildrenStatus(rootNode);
+}
+
+void RSUniRenderVisitor::UpdateVisibleEffectChildrenStatus(const RSRenderNode& rootNode)
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (auto& child : rootNode.GetVisibleFilterChild()) {
         auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
         auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode);
