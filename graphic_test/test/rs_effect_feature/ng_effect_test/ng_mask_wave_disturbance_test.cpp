@@ -17,7 +17,7 @@
 #include "rs_graphic_test_img.h"
 #include "../ng_filter_test/ng_filter_test_utils.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
-#include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -26,6 +26,19 @@ namespace OHOS::Rosen {
 namespace {
 const int SCREEN_WIDTH = 1200;
 const int SCREEN_HEIGHT = 2000;
+const std::vector<float> COLOR_GRADIENT_COLORS = {
+    0.05f, 0.35f, 1.0f, 1.0f,
+    0.0f, 0.85f, 0.75f, 1.0f,
+    1.0f, 0.35f, 0.7f, 1.0f,
+    1.0f, 0.85f, 0.2f, 1.0f,
+};
+const std::vector<float> COLOR_GRADIENT_POSITIONS = {
+    0.0f, 0.0f,
+    1.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+};
+const std::vector<float> COLOR_GRADIENT_STRENGTHS = {2.8f, 2.8f, 2.8f, 2.8f};
 
 std::string GetAvailableBackgroundPath()
 {
@@ -43,53 +56,16 @@ std::string GetAvailableBackgroundPath()
     return BG_PATH;
 }
 
-void InitColorGradientEffect(const std::shared_ptr<RSNGColorGradientEffect>& effect,
+void InitColorGradientFilter(const std::shared_ptr<RSNGColorGradientFilter>& filter,
     const std::shared_ptr<RSNGMaskBase>& mask)
 {
-    if (!effect || !mask) {
+    if (!filter || !mask) {
         return;
     }
-    effect->Setter<ColorGradientEffectColor0Tag>(Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
-    effect->Setter<ColorGradientEffectColor1Tag>(Vector4f(0.0f, 0.6f, 1.0f, 1.0f));
-    effect->Setter<ColorGradientEffectColor2Tag>(Vector4f(1.0f, 0.2f, 0.8f, 1.0f));
-    effect->Setter<ColorGradientEffectColor3Tag>(Vector4f(1.0f, 0.9f, 0.2f, 1.0f));
-    effect->Setter<ColorGradientEffectColor4Tag>(Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
-    effect->Setter<ColorGradientEffectColor5Tag>(Vector4f(0.0f, 0.6f, 1.0f, 1.0f));
-    effect->Setter<ColorGradientEffectColor6Tag>(Vector4f(1.0f, 0.2f, 0.8f, 1.0f));
-    effect->Setter<ColorGradientEffectColor7Tag>(Vector4f(1.0f, 0.9f, 0.2f, 1.0f));
-    effect->Setter<ColorGradientEffectColor8Tag>(Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
-    effect->Setter<ColorGradientEffectColor9Tag>(Vector4f(0.0f, 0.6f, 1.0f, 1.0f));
-    effect->Setter<ColorGradientEffectColor10Tag>(Vector4f(1.0f, 0.2f, 0.8f, 1.0f));
-    effect->Setter<ColorGradientEffectColor11Tag>(Vector4f(1.0f, 0.9f, 0.2f, 1.0f));
-    effect->Setter<ColorGradientEffectPosition0Tag>(Vector2f(0.0f, 1.0f));
-    effect->Setter<ColorGradientEffectPosition1Tag>(Vector2f(1.0f, 0.0f));
-    effect->Setter<ColorGradientEffectPosition2Tag>(Vector2f(0.0f, 0.0f));
-    effect->Setter<ColorGradientEffectPosition3Tag>(Vector2f(1.0f, 1.0f));
-    effect->Setter<ColorGradientEffectPosition4Tag>(Vector2f(0.0f, 1.0f));
-    effect->Setter<ColorGradientEffectPosition5Tag>(Vector2f(1.0f, 0.0f));
-    effect->Setter<ColorGradientEffectPosition6Tag>(Vector2f(0.0f, 0.0f));
-    effect->Setter<ColorGradientEffectPosition7Tag>(Vector2f(1.0f, 1.0f));
-    effect->Setter<ColorGradientEffectPosition8Tag>(Vector2f(0.0f, 1.0f));
-    effect->Setter<ColorGradientEffectPosition9Tag>(Vector2f(1.0f, 0.0f));
-    effect->Setter<ColorGradientEffectPosition10Tag>(Vector2f(0.0f, 0.0f));
-    effect->Setter<ColorGradientEffectPosition11Tag>(Vector2f(1.0f, 1.0f));
-    effect->Setter<ColorGradientEffectStrength0Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength1Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength2Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength3Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength4Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength5Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength6Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength7Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength8Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength9Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength10Tag>(5.4f);
-    effect->Setter<ColorGradientEffectStrength11Tag>(5.4f);
-    effect->Setter<ColorGradientEffectColorNumberTag>(4.0f);
-    effect->Setter<ColorGradientEffectBlendTag>(6.0f);
-    effect->Setter<ColorGradientEffectBlendKTag>(20.0f);
-    effect->Setter<ColorGradientEffectBrightnessTag>(0.0f);
-    effect->Setter<ColorGradientEffectMaskTag>(mask);
+    filter->Setter<ColorGradientColorsTag>(COLOR_GRADIENT_COLORS);
+    filter->Setter<ColorGradientPositionsTag>(COLOR_GRADIENT_POSITIONS);
+    filter->Setter<ColorGradientStrengthsTag>(COLOR_GRADIENT_STRENGTHS);
+    filter->Setter<ColorGradientMaskTag>(mask);
 }
 
 void InitWaveDisturbanceMask(const std::shared_ptr<RSNGWaveDisturbanceMask>& mask, int width, int height)
@@ -143,10 +119,10 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
         mask->Setter<WaveDisturbanceMaskProgressTag>(progressValues[i]);
 
         // Create effect for each iteration
-        auto effect = std::make_shared<RSNGColorGradientEffect>();
-        InitColorGradientEffect(effect, std::static_pointer_cast<RSNGMaskBase>(mask));
+        auto filter = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(filter, std::static_pointer_cast<RSNGMaskBase>(mask));
 
-        backgroundNode->SetForegroundShader(effect);
+        backgroundNode->SetBackgroundNGFilter(filter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -184,10 +160,10 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
         mask->Setter<WaveDisturbanceMaskClickPosTag>(clickPosValues[i]);
 
         // Create effect for each iteration
-        auto effect = std::make_shared<RSNGColorGradientEffect>();
-        InitColorGradientEffect(effect, std::static_pointer_cast<RSNGMaskBase>(mask));
+        auto filter = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(filter, std::static_pointer_cast<RSNGMaskBase>(mask));
 
-        backgroundNode->SetForegroundShader(effect);
+        backgroundNode->SetBackgroundNGFilter(filter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -225,10 +201,10 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
         mask->Setter<WaveDisturbanceMaskWaveRDTag>(waveRDValues[i]);
 
         // Create effect for each iteration
-        auto effect = std::make_shared<RSNGColorGradientEffect>();
-        InitColorGradientEffect(effect, std::static_pointer_cast<RSNGMaskBase>(mask));
+        auto filter = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(filter, std::static_pointer_cast<RSNGMaskBase>(mask));
 
-        backgroundNode->SetForegroundShader(effect);
+        backgroundNode->SetBackgroundNGFilter(filter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -266,10 +242,10 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
         mask->Setter<WaveDisturbanceMaskWaveLWHTag>(waveLWHValues[i]);
 
         // Create effect for each iteration
-        auto effect = std::make_shared<RSNGColorGradientEffect>();
-        InitColorGradientEffect(effect, std::static_pointer_cast<RSNGMaskBase>(mask));
+        auto filter = std::make_shared<RSNGColorGradientFilter>();
+        InitColorGradientFilter(filter, std::static_pointer_cast<RSNGMaskBase>(mask));
 
-        backgroundNode->SetForegroundShader(effect);
+        backgroundNode->SetBackgroundNGFilter(filter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
     }
@@ -290,8 +266,8 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
     waveDisturbanceMask->Setter<WaveDisturbanceMaskWaveLWHTag>(Vector3f(360.0f, 100.0f, 65.0f));
 
     // Create effect with mask
-    auto colorGradientEffect = std::make_shared<RSNGColorGradientEffect>();
-    InitColorGradientEffect(colorGradientEffect, std::static_pointer_cast<RSNGMaskBase>(waveDisturbanceMask));
+    auto colorGradientFilter = std::make_shared<RSNGColorGradientFilter>();
+    InitColorGradientFilter(colorGradientFilter, std::static_pointer_cast<RSNGMaskBase>(waveDisturbanceMask));
 
     int startX = 140;
     int startY = 200;
@@ -299,7 +275,7 @@ GRAPHIC_TEST(NGMaskWaveDisturbanceTest, EFFECT_TEST, Set_NG_Mask_Wave_Disturbanc
     auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
         {startX, startY, nodeWidth, nodeHeight});
     backgroundNode->SetBackgroundColor(0xFF22324A);
-    backgroundNode->SetForegroundShader(colorGradientEffect);
+    backgroundNode->SetBackgroundNGFilter(colorGradientFilter);
     GetRootNode()->AddChild(backgroundNode);
     RegisterNode(backgroundNode);
 }

@@ -100,16 +100,16 @@ GRAPHIC_TEST(NGMaskFrameGradientTest, EFFECT_TEST, Set_NG_Mask_Frame_Gradient_Be
     int col = 2;
 
     const std::vector<Vector4f> innerBezierValues = {
-        Vector4f(0.0f, 0.0f, 0.5f, 0.5f),
-        Vector4f(0.0f, 0.5f, 1.0f, 0.5f),
-        Vector4f(0.5f, 0.0f, 0.5f, 1.0f),
-        Vector4f(1.0f, 1.0f, 1.0f, 1.0f)
+        Vector4f(0.0f, 0.0f, 1.0f, 1.0f),
+        Vector4f(0.0f, 0.0f, 0.8f, 1.0f),
+        Vector4f(0.2f, 0.0f, 1.0f, 0.8f),
+        Vector4f(0.0f, 0.2f, 1.0f, 1.0f)
     };
     const std::vector<Vector4f> outerBezierValues = {
-        Vector4f(0.0f, 0.0f, 0.6f, 0.6f),
-        Vector4f(0.0f, 0.3f, 1.0f, 0.6f),
-        Vector4f(0.2f, 0.0f, 0.8f, 1.0f),
-        Vector4f(0.0f, 0.0f, 1.0f, 1.0f)
+        Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
+        Vector4f(0.0f, 0.8f, 0.2f, 1.0f),
+        Vector4f(0.2f, 1.0f, 0.0f, 0.8f),
+        Vector4f(0.0f, 1.0f, 0.2f, 0.8f)
     };
 
     for (int i = 0; i < row; i++) {
@@ -123,8 +123,8 @@ GRAPHIC_TEST(NGMaskFrameGradientTest, EFFECT_TEST, Set_NG_Mask_Frame_Gradient_Be
         auto mask = std::make_shared<RSNGFrameGradientMask>();
         mask->Setter<FrameGradientMaskInnerBezierTag>(innerBezierValues[i]);
         mask->Setter<FrameGradientMaskOuterBezierTag>(outerBezierValues[i]);
-        mask->Setter<FrameGradientMaskInnerFrameWidthTag>(12.0f + 2.0f * i);
-        mask->Setter<FrameGradientMaskOuterFrameWidthTag>(24.0f + 2.0f * i);
+        mask->Setter<FrameGradientMaskInnerFrameWidthTag>(10.0f + 1.0f * i);
+        mask->Setter<FrameGradientMaskOuterFrameWidthTag>(20.0f + 1.0f * i);
         InitFrameGradientMaskRect(mask, nodeWidth, nodeHeight);
 
         // Create effect for each iteration with gradient colors
