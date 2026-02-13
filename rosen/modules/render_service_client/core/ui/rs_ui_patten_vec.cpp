@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,20 +12,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_UI_PATTEN_VEC_H
-#define RENDER_SERVICE_UI_PATTEN_VEC_H
-#include <set>
-#include <string>
+#include "ui/rs_ui_patten_vec.h"
 
 namespace OHOS {
 namespace Rosen {
-extern const std::set<std::string> g_rbPattenVec;
-
-inline bool CheckRbPatten(const std::string& tag)
-{
-    return g_rbPattenVec.find(tag) != g_rbPattenVec.end();
-}
+// subtree parallel judgment conditions vec
+const std::set<std::string> g_rbPattenVec = {
+    "GridItem",
+    "Grid",
+    "GridCol",
+    "Column",
+    "Row",
+    "ListItemGroup",
+    "ArcListItem",
+    "ListItem",
+    "List",
+    "NodeContainer",
+    "RelativeContainer",
+    "Stack",
+    "Swiper",
+    "FlowItem",
+    "WaterFlow",
+    "Scroll",
+    "TabBar",
+    "Custom",
+    "__Common__"
+};
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // RENDER_SERVICE_UI_PATTEN_VEC_H
