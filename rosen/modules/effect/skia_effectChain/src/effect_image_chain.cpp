@@ -526,6 +526,10 @@ DrawingError EffectImageChain::ApplyWaterDropletTransitionFilter(const std::shar
         filters_ = nullptr; // clear filters_ to avoid apply again
     }
  
+    if (!geWaterDropletParams) {
+        EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: geWaterDropletParams is null.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
     geWaterDropletParams->topLayer = ConvertPixelMapToDrawingImage(topLayerMap);
     if (!geWaterDropletParams->topLayer) {
         EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: ConvertPixelMapToDrawingImage null.");
