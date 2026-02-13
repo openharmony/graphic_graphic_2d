@@ -267,7 +267,6 @@ EffectErrorCode OH_Filter_GammaCorrection(OH_Filter* filter, float gamma);
  * This function could transform the pixelmap with effect to a shared memory directly.
  * The user is suggested to align the size and format with the input pixelmap when creating the effect.
  *
- * @syscap SystemCapability.Multimedia.Image.Core
  * @param filter The OH_Filter pointer will be operated.
  * @param nativeBuffer The OH_NativeBuffer pointer will be operated.
  * @return Returns {@link EffectErrorCode}.
