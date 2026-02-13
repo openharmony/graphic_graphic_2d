@@ -50,8 +50,8 @@ DECLARE_SHADER(WavyRippleLight, WAVY_RIPPLE_LIGHT,
 
 DECLARE_SHADER(AuroraNoise, AURORA_NOISE,
     ADD_PROPERTY_TAG(AuroraNoise, Noise),
-    ADD_PROPERTY_TAG(AuroraNoise, FREQX),
-    ADD_PROPERTY_TAG(AuroraNoise, FREQY)
+    ADD_PROPERTY_TAG(AuroraNoise, FreqX),
+    ADD_PROPERTY_TAG(AuroraNoise, FreqY)
 );
 
 DECLARE_SHADER(ParticleCircularHalo, PARTICLE_CIRCULAR_HALO,
