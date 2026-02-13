@@ -624,8 +624,7 @@ void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingO
     
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
-    const float limitSize = 0.01f;
-    if (dstRect_.width_ < limitSize || dstRect_.height_ < limitSize) {
+    if (ROSEN_EQ<float>(dstRect_.width_, 0) || ROSEN_EQ<float>(dstRect_.height_, 0)) {
         RS_LOGE("RSImage::CalcRepeatBounds dst rect width or height is invalid");
         return;
     }
@@ -844,6 +843,9 @@ bool RSImage::Marshalling(Parcel& parcel) const
         image = nullptr;
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
+    if (pixelMap_ != nullptr) {
+        image = nullptr;
+    }
     uint32_t versionId = pixelMap_ == nullptr ? 0 : pixelMap_->GetVersionId();
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
@@ -851,7 +853,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, nodeId_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
                    RSMarshallingHelper::Marshalling(parcel, versionId) &&
-                   pixelMap_ == nullptr ? RSMarshallingHelper::Marshalling(parcel, image) :
+                   RSMarshallingHelper::Marshalling(parcel, image) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_) &&
                    RSMarshallingHelper::Marshalling(parcel, compressData) &&
                    RSMarshallingHelper::Marshalling(parcel, imageFit) &&
