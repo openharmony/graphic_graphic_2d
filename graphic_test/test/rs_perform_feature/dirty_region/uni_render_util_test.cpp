@@ -30,7 +30,6 @@ constexpr uint32_t COLOR_BLUE = 0xFF0000FF;
 constexpr uint32_t COLOR_RED = 0xFFFF0000;
 constexpr uint32_t COLOR_GREEN = 0xFF00FF00;
 constexpr uint32_t COLOR_CYAN = 0xFF00FFFF;
-constexpr uint32_t COLOR_MAGENTA = 0xFFFF00FF;
 
 class DirtyRegionTest09 : public RSGraphicTest {
 private:
