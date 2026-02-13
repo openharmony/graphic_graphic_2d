@@ -5453,6 +5453,10 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync001, TestSize.Level1)
     result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
         unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
     ASSERT_EQ(result, false);
+    vsyncTimeStamp = 15666666;
+    mainThread->timestamp_ = 1000;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
     vsyncTimeStamp = 16666666;
     mainThread->timestamp_ = 1000;
     result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
@@ -5482,9 +5486,9 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    uint64_t unsignedVsyncPeriod = 0;
+    uint64_t unsignedVsyncPeriod = 16666666;
     bool nextVsyncRequested = false;
-    uint64_t unsignedNowTime = 1000;
+    uint64_t unsignedNowTime = 16666666;
     uint64_t lastVsyncTime = 500;
     int64_t vsyncTimeStamp = 16666666;
     uint64_t timestamp = mainThread->timestamp_;
