@@ -197,6 +197,15 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ui_filter_test/ui_filter_test.cpp",
   "rs_effect_feature/ui_filter_test/ui_filter_test_data_manager.cpp",
   "rs_effect_feature/ui_filter_test/ui_filter_test_factory.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_bezier_warp_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_blur_extend_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_direction_light_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_dispersion_extend_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_edge_light_extend_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_material_blur_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_other_extend_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_sound_wave_test.cpp",
+  "rs_effect_feature/ng_effect_test/ng_mask_frame_gradient_test.cpp",
 ]
 rs_framework_sources = [
   "rs_framework/uni_render_ui/surface_test.cpp",
