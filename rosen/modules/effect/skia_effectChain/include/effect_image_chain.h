@@ -123,9 +123,6 @@ private:
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
     std::shared_ptr<Drawing::Canvas> canvas_ = nullptr;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
-
-    int32_t srcWidth_ = 0;
-    int32_t srcHeight_ = 0;
 };
 } // namespace OHOS::Rosen
 #endif // EFFECT_IMAGE_CHAIN_H
