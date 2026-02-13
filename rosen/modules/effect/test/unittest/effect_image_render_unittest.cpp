@@ -216,12 +216,16 @@ HWTEST_F(EffectImageRenderUnittest, RenderTest003, TestSize.Level1)
         [](OH_NativeBuffer* buffer) {}
     );
     EffectImageRender imageRender;
-    auto ret = imageRender.RenderDstNative(srcPixelMap, dst, imageFilter);
+    auto ret = imageRender.RenderDstNative(srcPixelMap, dst, imageFilter, false);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderDstNative(nullptr, dst, imageFilter);
+    ret = imageRender.RenderDstNative(nullptr, dst, imageFilter, false);
     ASSERT_NE(ret, DrawingError::ERR_OK);
     std::shared_ptr<OH_NativeBuffer> nullBuffer = nullptr;
-    ret = imageRender.RenderDstNative(srcPixelMap, nullBuffer, imageFilter);
+    ret = imageRender.RenderDstNative(srcPixelMap, nullBuffer, imageFilter, false);
+    ASSERT_NE(ret, DrawingError::ERR_OK);
+    ret = imageRender.RenderDstNative(srcPixelMap, nullBuffer, imageFilter, true);
+    ASSERT_NE(ret, DrawingError::ERR_OK);
+    ret = imageRender.RenderDstNative(srcPixelMap, dst, imageFilter, true);
     ASSERT_NE(ret, DrawingError::ERR_OK);
     OH_NativeBuffer_Unreference(dstBuffer);
 }
