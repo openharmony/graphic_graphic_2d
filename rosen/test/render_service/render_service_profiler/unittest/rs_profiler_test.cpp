@@ -415,4 +415,154 @@ HWTEST_F(RSProfilerTest, UnmarshalNodeModifiersTest, testing::ext::TestSize.Leve
     auto ret = RSProfiler::UnmarshalNodeModifiers(node, data, 0, node.GetType());
     EXPECT_EQ(ret, "");
 }
+
+/*
+ * @tc.name: PlaybackDeltaTimeNanoTest
+ * @tc.desc: Test PlaybackDeltaTimeNano
+ * @tc.type: FUNC
+ * @tc.require: 22491
+ */
+HWTEST_F(RSProfilerTest, PlaybackDeltaTimeNanoTest, TestSize.Level1)
+{
+    RSProfiler::SetReplayStartTimeNano(0);
+    ASSERT_EQ(RSProfiler::GetReplayStartTimeNano(), 0);
+    auto deltaTimePrev = RSProfiler::PlaybackDeltaTimeNano();
+    auto deltaTimeNext = RSProfiler::PlaybackDeltaTimeNano();
+    ASSERT_TRUE(deltaTimeNext >= deltaTimePrev);
+}
+
+class RSProfilerFileTest : public testing::Test {
+public:
+    static void SetUpTestCase() {}
+    static void TearDownTestCase() {}
+    void SetUp() override {}
+    void TearDown() override {}
+};
+
+/*
+ * @tc.name: RSFileOffsetVersionTest
+ * @tc.desc: Test RSFileOffsetVersion
+ * @tc.type: FUNC
+ * @tc.require: 22491
+ */
+HWTEST_F(RSProfilerFileTest, RSFileOffsetVersionTest, TestSize.Level1)
+{
+    RSFileOffsetVersion foVersion;
+    foVersion.SetVersion(RSFILE_VERSION_TRACE3D_ADDED);
+    const char* fileName = "rs_profiler_test.data";
+
+    FILE* file = fopen(fileName, "wb");
+    ASSERT_TRUE(file);
+    uint64_t wValue = 1;
+    foVersion.WriteU64(file, wValue);
+    fclose(file);
+
+    uint64_t rValue = 0;
+    file = fopen(fileName, "rb");
+    ASSERT_TRUE(file);
+    foVersion.ReadU64(file, rValue);
+    fclose(file);
+    ASSERT_EQ(rValue, wValue);
+}
+
+/*
+ * @tc.name: ReadAnimationStartTimeTest
+ * @tc.desc: Test ReadAnimationStartTime
+ * @tc.type: FUNC
+ * @tc.require: 22491
+ */
+HWTEST_F(RSProfilerFileTest, ReadAnimationStartTimeTest, TestSize.Level1)
+{
+    std::string fileName = "rs_profiler_test.data";
+    RSFile rsFile;
+    rsFile.SetVersion(RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED);
+    ASSERT_TRUE(rsFile.Create(fileName));
+    rsFile.WriteAnimationStartTime();
+    rsFile.Close();
+
+    std::string error = "";
+    ASSERT_TRUE(rsFile.Open(fileName, error));
+    EXPECT_TRUE(rsFile.ReadAnimationStartTime());
+    rsFile.Close();
+}
+
+/*
+ * @tc.name: ReadHeaderTest
+ * @tc.desc: Test ReadHeader
+ * @tc.type: FUNC
+ * @tc.require: 22491
+ */
+HWTEST_F(RSProfilerFileTest, ReadHeaderTest, TestSize.Level1)
+{
+    std::string fileName = "rs_profiler_test.data";
+    RSFile rsFile;
+    rsFile.SetVersion(RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED);
+    ASSERT_TRUE(rsFile.Create(fileName));
+    rsFile.WriteHeader();
+    rsFile.Close();
+
+    std::string error = "HasError";
+    ASSERT_TRUE(rsFile.Open(fileName, error));
+    EXPECT_TRUE(error.empty());
+    error = rsFile.ReadHeader();
+    EXPECT_TRUE(error.empty());
+    rsFile.Close();
+}
+
+/*
+ * @tc.name: GetEOFTimeTest
+ * @tc.desc: Test GetEOFTime
+ * @tc.type: FUNC
+ * @tc.require: 22491
+ */
+HWTEST_F(RSProfilerFileTest, GetEOFTimeTest, TestSize.Level1)
+{
+    std::string fileName = "rs_profiler_test.data";
+    RSFile rsFile;
+    rsFile.SetVersion(RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED);
+    ASSERT_TRUE(rsFile.Create(fileName));
+    EXPECT_EQ(rsFile.AddLayer(), 0);
+    double time = 100;
+    std::vector<uint8_t> data = { 1, 1, 1, 1 };
+    size_t size = data.size();
+    rsFile.WriteRSData(time, data.data(), size);
+    rsFile.Close();
+
+    std::string error = "HasError";
+    ASSERT_TRUE(rsFile.Open(fileName, error));
+    EXPECT_TRUE(error.empty());
+    EXPECT_EQ(rsFile.GetEOFTime(), time);
+    rsFile.Close();
+}
+
+/*
+ * @tc.name: WriteTrace3DMetricsTest
+ * @tc.desc: Test WriteTrace3DMetrics
+ * @tc.type: FUNC
+ * @tc.require: 22491
+ */
+HWTEST_F(RSProfilerFileTest, WriteTrace3DMetricsTest, TestSize.Level1)
+{
+    std::string fileName = "rs_profiler_test.data";
+    RSFile rsFile;
+    rsFile.SetVersion(RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED);
+    ASSERT_TRUE(rsFile.Create(fileName));
+    auto layerId = rsFile.AddLayer();
+    EXPECT_EQ(layerId, 0);
+    double time = 100;
+    uint32_t frame = 1;
+    std::vector<uint8_t> wData = { 1, 0, 0, 1 };
+    size_t size = wData.size();
+    rsFile.WriteTrace3DMetrics(layerId, time, frame, wData.data(), size);
+    rsFile.Close();
+
+    std::string error = "HasError";
+    ASSERT_TRUE(rsFile.Open(fileName, error));
+    EXPECT_TRUE(error.empty());
+    std::vector<uint8_t> rData = {};
+    double readTime = 0;
+    EXPECT_TRUE(rsFile.ReadTrace3DMetrics(time, layerId, rData, readTime));
+    EXPECT_EQ(readTime, time);
+    rsFile.Close();
+}
 } // namespace OHOS::Rosen

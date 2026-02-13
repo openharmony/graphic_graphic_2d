@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -861,8 +861,9 @@ private:
 
     static void PlaybackStart(const ArgList& args);
     static void PlaybackStop(const ArgList& args);
-    static double PlaybackUpdate(double deltaTime);
+    static double PlaybackUpdate(double deltaTime, double eofTime, double advanceTime);
     static double PlaybackDeltaTime();
+    static int64_t PlaybackDeltaTimeNano();
 
     static void RecordSendBinary(const ArgList& args);
 

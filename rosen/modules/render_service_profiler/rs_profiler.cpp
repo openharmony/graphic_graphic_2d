@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2317,14 +2317,21 @@ void RSProfiler::PlaybackStart(const ArgList& args)
     g_replayLastPauseTimeReported = 0;
     SetMode(Mode::READ);
 
-    const auto timeoutLimit = args.Int64();
-    std::thread thread([timeoutLimit]() {
+    std::thread thread([]() {
+        constexpr int fps = 120;
+        double advanceTime = 1.0 / fps;
+        const auto timeoutLimit = Utils::ToNanoseconds(1.0) / (2 * fps);
+        double eofTime = g_playbackFile.GetEOFTime();
         while (IsPlaying()) {
-            const int64_t timestamp = static_cast<int64_t>(RawNowNano());
-
-            PlaybackUpdate(PlaybackDeltaTime());
-
-            const int64_t timeout = timeoutLimit - static_cast<int64_t>(RawNowNano()) + timestamp;
+            int64_t nextPacketTimeNano =
+                Utils::ToNanoseconds(PlaybackUpdate(PlaybackDeltaTime(), eofTime, advanceTime));
+            // timeout - sleep time to next packet
+            int64_t timeout = nextPacketTimeNano - PlaybackDeltaTimeNano();
+            if (timeout < 0) {
+                timeout = 0;
+            }
+            timeout = timeout - (timeout % timeoutLimit);
+            timeout += timeoutLimit;
             if (timeout > 0) {
                 std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
             }
@@ -2375,14 +2382,19 @@ void RSProfiler::PlaybackStop(const ArgList& args)
 
 double RSProfiler::PlaybackDeltaTime()
 {
-    return Utils::ToSeconds(NowNano() - GetReplayStartTimeNano());
+    return Utils::ToSeconds(PlaybackDeltaTimeNano());
 }
 
-double RSProfiler::PlaybackUpdate(double deltaTime)
+int64_t RSProfiler::PlaybackDeltaTimeNano()
+{
+    return static_cast<int64_t>(NowNano()) - static_cast<int64_t>(GetReplayStartTimeNano());
+}
+
+double RSProfiler::PlaybackUpdate(double deltaTime, double eofTime, double advanceTime)
 {
     std::vector<uint8_t> data;
     double readTime = 0.0;
-    if (!g_playbackShouldBeTerminated && g_playbackFile.ReadRSData(deltaTime, data, readTime)) {
+    while (!g_playbackShouldBeTerminated && g_playbackFile.ReadRSData(deltaTime + advanceTime, data, readTime)) {
         std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
         stream.write(reinterpret_cast<const char*>(data.data()), data.size());
         stream.seekg(0);
@@ -2427,9 +2439,13 @@ double RSProfiler::PlaybackUpdate(double deltaTime)
             MessageParcel reply;
             connection->OnRemoteRequest(code, parcel.parcel, reply, option);
         }
+        if (g_playbackImmediate) {
+            deltaTime = readTime;
+            break;
+        }
     }
 
-    if (g_playbackFile.RSDataEOF()) {
+    if (deltaTime >= eofTime) {
         g_playbackShouldBeTerminated = true;
     }
     return readTime;

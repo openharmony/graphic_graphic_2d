@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -114,13 +114,13 @@ public:
     static size_t FileSize(FILE* file);
     static size_t FileTell(FILE* file);
     static void FileSeek(FILE* file, int64_t offset, int32_t origin);
-    static void FileRead(FILE* file, void* data, size_t size);
+    static bool FileRead(FILE* file, void* data, size_t size);
     static void FileWrite(FILE* file, const void* data, size_t size);
 
     template<typename T>
-    static void FileRead(FILE* file, T* data, size_t size)
+    static bool FileRead(FILE* file, T* data, size_t size)
     {
-        FileRead(file, reinterpret_cast<void*>(data), size);
+        return FileRead(file, reinterpret_cast<void*>(data), size);
     }
 
     template<typename T>
@@ -130,13 +130,13 @@ public:
     }
 
     // deprecated
-    static void FileRead(void* data, size_t size, size_t count, FILE* file);
+    static bool FileRead(void* data, size_t size, size_t count, FILE* file);
     static void FileWrite(const void* data, size_t size, size_t count, FILE* file);
 
     template<typename T>
-    static void FileRead(T* data, size_t size, size_t count, FILE* file)
+    static bool FileRead(T* data, size_t size, size_t count, FILE* file)
     {
-        FileRead(reinterpret_cast<void*>(data), size, count, file);
+        return FileRead(reinterpret_cast<void*>(data), size, count, file);
     }
 
     template<typename T>
