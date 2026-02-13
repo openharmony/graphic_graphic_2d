@@ -334,7 +334,7 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     auto& vkContext = RsVulkanContext::GetSingleton();
 
     return MakeBackendTextureFromNativeBufferImpl(vkContext, nativeBuffer, width, height, isProtected);
- }
+}
 
 std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
     const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface)
