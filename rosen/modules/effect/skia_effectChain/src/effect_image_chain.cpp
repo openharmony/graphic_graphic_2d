@@ -294,10 +294,10 @@ DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, flo
 
     Drawing::GEVariableRadiusBlurShaderFilterParams filterParams{radialGradientShaderMask, blurRadius, true};
     auto variableRadiusBlurFilter = std::make_shared<GEVariableRadiusBlurShaderFilter>(filterParams);
-    auto width = srcPixelMap_->GetWidth();
-    auto height = srcPixelMap_->GetHeight();
-    image_ = variableRadiusBlurFilter->ProcessImage(
-        *canvas_, image_, Drawing::Rect(0, 0, width, height), Drawing::Rect(0, 0, width, height ));
+    image_ = variableRadiusBlurFilter->ProcessImage(*canvas_,	 
+    image_,	 
+    Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),	 
+    Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawingError::ERR_OK;
 }
