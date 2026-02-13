@@ -98,6 +98,8 @@ GRAPHIC_TEST(NGMaskFrameGradientTest, EFFECT_TEST, Set_NG_Mask_Frame_Gradient_Co
     int gapY = 60;
     int row = 4;
     int col = 2;
+    constexpr float innerFrameWidth = 12.0f;
+    constexpr float outerFrameWidth = 24.0f;
 
     const std::vector<float> cornerRadiusValues = {0.0f, 10.0f, 20.0f, 50.0f};
 
@@ -110,6 +112,8 @@ GRAPHIC_TEST(NGMaskFrameGradientTest, EFFECT_TEST, Set_NG_Mask_Frame_Gradient_Co
 
         // Create mask for each iteration
         auto mask = std::make_shared<RSNGFrameGradientMask>();
+        mask->Setter<FrameGradientMaskInnerFrameWidthTag>(innerFrameWidth);
+        mask->Setter<FrameGradientMaskOuterFrameWidthTag>(outerFrameWidth);
         mask->Setter<FrameGradientMaskCornerRadiusTag>(cornerRadiusValues[i]);
         InitFrameGradientMaskRect(mask, nodeWidth, nodeHeight);
 
