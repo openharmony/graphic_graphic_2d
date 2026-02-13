@@ -45,7 +45,7 @@ bool Filter::Render(bool forceCPU, OH_NativeBuffer* dstNativeBuffer)
     EffectImageRender imageRender;
     auto dstNativeBufferSharedPtr = std::shared_ptr<OH_NativeBuffer>(
     dstNativeBuffer,
-    [](OH_NativeBuffer* p) { /* Custom deletion logic, e.g., OH_NativeBuffer_Destroy(p); */ }
+    [](OH_NativeBuffer* p) {}
     );
     // auto dstNativeBufferSharedPtr = std::make_shared<OH_NativeBuffer>(dstNativeBuffer);
     auto error = imageRender.RenderDstNative(srcPixelMap_, dstNativeBufferSharedPtr, effectFilters_, forceCPU);
