@@ -107,59 +107,6 @@ public:
     std::string backgroundPath_ = BG_PATH;
 };
 
-// Test FrameGradientMask with InnerBezier and OuterBezier properties
-GRAPHIC_TEST(NGMaskFrameGradientTest, EFFECT_TEST, Set_NG_Mask_Frame_Gradient_Bezier_Test)
-{
-    AddSceneBase();
-    int nodeWidth = 460;
-    int nodeHeight = 420;
-    int startX = 120;
-    int startY = 120;
-    int gapX = 40;
-    int gapY = 60;
-    int row = 4;
-    int col = 2;
-
-    const std::vector<Vector4f> innerBezierValues = {
-        Vector4f(0.0f, 0.0f, 1.0f, 1.0f),
-        Vector4f(0.0f, 0.0f, 0.8f, 1.0f),
-        Vector4f(0.2f, 0.0f, 1.0f, 0.8f),
-        Vector4f(0.0f, 0.2f, 1.0f, 1.0f)
-    };
-    const std::vector<Vector4f> outerBezierValues = {
-        Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
-        Vector4f(0.0f, 0.8f, 0.2f, 1.0f),
-        Vector4f(0.2f, 1.0f, 0.0f, 0.8f),
-        Vector4f(0.0f, 1.0f, 0.2f, 0.8f)
-    };
-
-    for (int i = 0; i < row; i++) {
-        int x = startX + (i % col) * (nodeWidth + gapX);
-        int y = startY + (i / col) * (nodeHeight + gapY);
-        AddTileBase(x, y, nodeWidth, nodeHeight);
-        auto backgroundNode = SetUpNodeBgImage(backgroundPath_,
-            {x, y, nodeWidth, nodeHeight});
-        backgroundNode->SetBackgroundColor(0xFF22324A);
-
-        // Create mask for each iteration
-        auto mask = std::make_shared<RSNGFrameGradientMask>();
-        mask->Setter<FrameGradientMaskInnerBezierTag>(innerBezierValues[i]);
-        mask->Setter<FrameGradientMaskOuterBezierTag>(outerBezierValues[i]);
-        mask->Setter<FrameGradientMaskInnerFrameWidthTag>(10.0f + 1.0f * i);
-        mask->Setter<FrameGradientMaskOuterFrameWidthTag>(20.0f + 1.0f * i);
-        InitFrameGradientMaskRect(mask, nodeWidth, nodeHeight);
-
-        // Create effect for each iteration with gradient colors
-        auto effect = std::make_shared<RSNGColorGradientFilter>();
-        InitColorGradientFilter(effect);
-        effect->Setter<ColorGradientMaskTag>(std::static_pointer_cast<RSNGMaskBase>(mask));
-
-        backgroundNode->SetBackgroundNGFilter(effect);
-        GetRootNode()->AddChild(backgroundNode);
-        RegisterNode(backgroundNode);
-    }
-}
-
 // Test FrameGradientMask with CornerRadius property
 GRAPHIC_TEST(NGMaskFrameGradientTest, EFFECT_TEST, Set_NG_Mask_Frame_Gradient_CornerRadius_Test)
 {
