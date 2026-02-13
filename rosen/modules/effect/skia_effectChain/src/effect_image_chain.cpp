@@ -196,8 +196,8 @@ DrawingError EffectImageChain::PrepareNativeBuffer(const std::shared_ptr<Media::
     return DrawingError::ERR_OK;
 }
 #else
-DrawingError EffectImageChain::PrepareDstNative(const std::shared_ptr<Media::PixelMap> &srcPixelMap,
-    std::shared_ptr<OH_NativeBuffer> &dstNativeBuffer, bool forceCPU)
+DrawingError EffectImageChain::PrepareNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+    std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer, bool forceCPU)
 {
     EFFECT_COMM_LOG_E("EffectImageChain::PrepareDstNative: Failed. Requires Vulkan backend");
     return DrawingError::ERR_ILLEGAL_INPUT;
