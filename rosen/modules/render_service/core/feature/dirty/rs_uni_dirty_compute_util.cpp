@@ -46,6 +46,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
     DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, ScreenInfo& screenInfo, RSScreenRenderParams& params)
 {
@@ -350,6 +351,10 @@ RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSSurfaceRenderNod
     const auto& nodeMap = context->GetNodeMap();
     for (auto& nodeId : node.GetVisibleFilterChild()) {
         if (auto subNode = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+            // Skip nodes that only have ColorPickerDrawable without any real filter
+            if (subNode->IsColorPickerOnlyNode()) {
+                continue;
+            }
             visibleFilterRect = visibleFilterRect.JoinRect(subNode->GetOldDirtyInSurface());
         }
     }
