@@ -58,9 +58,11 @@ public:
         return screenId_;
     }
 
-    void SetDisplayContentRect(const Drawing::Rect& contentRect)
+    void SetDisplayContentRect(const Drawing::Rect& contentRect);
+
+    const Drawing::Rect& GetDisplayContentRect() const
     {
-        contentRect_ = contentRect;
+        return contentRect_;
     }
 
     const Drawing::Rect& GetDisplayContentRect() const
