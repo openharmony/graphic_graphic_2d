@@ -120,6 +120,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
         RenderNodeDrawableCache_.erase(id);
     }
     drawableSptr = nullptr;
+
     // If we don't have a cached drawable, try to generate a new one and cache it.
     const auto it = GeneratorMap.find(node->GetType());
     if (it == GeneratorMap.end()) {
