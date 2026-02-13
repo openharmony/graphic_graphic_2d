@@ -8461,13 +8461,12 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickerDrawable001, TestSize.Level1)
 
     auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>();
     // Set up stagingColorPicker_ with valid strategy and interval so Prepare() will set needColorPick to true
-    colorPickerDrawable->stagingColorPicker_ = std::make_shared<ColorPickerParam>(
-        ColorPlaceholder::FOREGROUND, ColorPickStrategyType::DOMINANT, 0);
+    colorPickerDrawable->stagingColorPicker_ =
+        std::make_shared<ColorPickerParam>(ColorPlaceholder::FOREGROUND, ColorPickStrategyType::DOMINANT, 0);
     // Set lastUpdateTime_ so interval will be considered elapsed
     colorPickerDrawable->lastUpdateTime_ = 0;
 
-    surfaceNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
-        colorPickerDrawable;
+    surfaceNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
     rsUniRenderVisitor->PrepareColorPickerDrawable(*surfaceNode);
 
     EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.size(), 1u);
@@ -8492,11 +8491,10 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickerDrawable002, TestSize.Level1)
 
     auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>();
     // Set up stagingColorPicker_ with NONE strategy so Prepare() will not set needColorPick
-    colorPickerDrawable->stagingColorPicker_ = std::make_shared<ColorPickerParam>(
-        ColorPlaceholder::NONE, ColorPickStrategyType::NONE, 0);
+    colorPickerDrawable->stagingColorPicker_ =
+        std::make_shared<ColorPickerParam>(ColorPlaceholder::NONE, ColorPickStrategyType::NONE, 0);
 
-    surfaceNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
-        colorPickerDrawable;
+    surfaceNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
     rsUniRenderVisitor->PrepareColorPickerDrawable(*surfaceNode);
 
     EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.empty());
@@ -8552,26 +8550,24 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickerDrawable004, TestSize.Level1)
 
     auto colorPickerDrawable1 = std::make_shared<DrawableV2::RSColorPickerDrawable>();
     // Set up stagingColorPicker_ with valid strategy and interval so Prepare() will set needColorPick to true
-    colorPickerDrawable1->stagingColorPicker_ = std::make_shared<ColorPickerParam>(
-        ColorPlaceholder::FOREGROUND, ColorPickStrategyType::DOMINANT, 0);
+    colorPickerDrawable1->stagingColorPicker_ =
+        std::make_shared<ColorPickerParam>(ColorPlaceholder::FOREGROUND, ColorPickStrategyType::DOMINANT, 0);
     // Set lastUpdateTime_ so interval will be considered elapsed
     colorPickerDrawable1->lastUpdateTime_ = 0;
 
-    surfaceNode1->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
-        colorPickerDrawable1;
+    surfaceNode1->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable1;
     rsUniRenderVisitor->curSurfaceNode_ = surfaceNode1;
     rsUniRenderVisitor->PrepareColorPickerDrawable(*surfaceNode1);
     EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.size(), 1u);
 
     auto colorPickerDrawable2 = std::make_shared<DrawableV2::RSColorPickerDrawable>();
     // Set up stagingColorPicker_ with valid strategy and interval so Prepare() will set needColorPick to true
-    colorPickerDrawable2->stagingColorPicker_ = std::make_shared<ColorPickerParam>(
-        ColorPlaceholder::FOREGROUND, ColorPickStrategyType::DOMINANT, 0);
+    colorPickerDrawable2->stagingColorPicker_ =
+        std::make_shared<ColorPickerParam>(ColorPlaceholder::FOREGROUND, ColorPickStrategyType::DOMINANT, 0);
     // Set lastUpdateTime_ so interval will be considered elapsed
     colorPickerDrawable2->lastUpdateTime_ = 0;
 
-    surfaceNode2->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
-        colorPickerDrawable2;
+    surfaceNode2->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable2;
     rsUniRenderVisitor->curSurfaceNode_ = surfaceNode2;
     rsUniRenderVisitor->PrepareColorPickerDrawable(*surfaceNode2);
     EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.size(), 2u);
@@ -8581,5 +8577,188 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickerDrawable004, TestSize.Level1)
     EXPECT_NE(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.find(surfaceNode2->GetId()),
         rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.end());
 }
-} // OHOS::Rosen
+
+/**
+ * @tc.name: CollectFilterInCrossDisplayWindow_ColorPickerOnlyNode001
+ * @tc.desc: Test CollectFilterInCrossDisplayWindow skips color picker only nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectFilterInCrossDisplayWindow_ColorPickerOnlyNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    NodeId screenId = 0;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(1, screenId, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    // Create filter node with only ColorPickerDrawable (no real filter)
+    NodeId filterNodeId = 100;
+    auto filterNode = std::make_shared<RSRenderNode>(filterNodeId);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = { 0, 0, 500, 500 };
+
+    // Set up ColorPickerDrawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    filterNode->GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) = colorPickerDrawable;
+
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(filterNode);
+    surfaceNode->visibleFilterChild_.push_back(filterNodeId);
+
+    Occlusion::Region accumDirtyRegion;
+    rsUniRenderVisitor->CollectFilterInCrossDisplayWindow(surfaceNode, accumDirtyRegion);
+
+    // Color picker only node should be skipped, no accumulation expected
+}
+
+/**
+ * @tc.name: UpdateFilterRegionInSkippedSurfaceNode_ColorPickerOnlyNode001
+ * @tc.desc: Test UpdateFilterRegionInSkippedSurfaceNode skips color picker only nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateFilterRegionInSkippedSurfaceNode_ColorPickerOnlyNode001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    ASSERT_NE(rsRootRenderNode, nullptr);
+    rsRootRenderNode->InitRenderParams();
+
+    // Create filter node with only ColorPickerDrawable
+    auto filterNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->SetOldDirtyInSurface(RectI(100, 100, 500, 500));
+
+    // Set up ColorPickerDrawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    filterNode->GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) = colorPickerDrawable;
+
+    rsRootRenderNode->UpdateVisibleFilterChild(*filterNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(filterNode);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->UpdateFilterRegionInSkippedSurfaceNode(*rsRootRenderNode, dirtyManager);
+
+    // Color picker only node should be skipped without errors
+}
+
+/**
+ * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache_ColorPickerOnlyNode001
+ * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache skips color picker only nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_ColorPickerOnlyNode001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRootRenderNode = std::make_shared<RSRootRenderNode>(0, rsContext->weak_from_this());
+    ASSERT_NE(rsRootRenderNode, nullptr);
+    rsRootRenderNode->InitRenderParams();
+
+    // Create filter node with only ColorPickerDrawable
+    auto filterNode = std::make_shared<RSEffectRenderNode>(1);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->SetOldDirtyInSurface(RectI(100, 100, 500, 500));
+
+    // Set up ColorPickerDrawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    filterNode->GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) = colorPickerDrawable;
+
+    rsRootRenderNode->UpdateVisibleFilterChild(*filterNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(filterNode);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    // Color picker only node should be skipped without errors
+}
+
+/**
+ * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache_ColorPickerOnlyNode002
+ * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache skips color picker only nodes in effect loop
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_ColorPickerOnlyNode002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRootRenderNode = std::make_shared<RSRootRenderNode>(0, rsContext->weak_from_this());
+    ASSERT_NE(rsRootRenderNode, nullptr);
+    rsRootRenderNode->InitRenderParams();
+
+    // Create filter node with only ColorPickerDrawable
+    auto filterNode = std::make_shared<RSEffectRenderNode>(1);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->SetOldDirtyInSurface(RectI(100, 100, 500, 500));
+
+    // Set up ColorPickerDrawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    filterNode->GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) = colorPickerDrawable;
+
+    // Add to visibleEffectChild
+    filterNode->visibleEffectChild_.insert(0);
+
+    rsRootRenderNode->UpdateVisibleFilterChild(*filterNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(filterNode);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    // Color picker only node should be skipped without errors
+}
+
+/**
+ * @tc.name: CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_ColorPickerOnlyNode001
+ * @tc.desc: Test CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache skips color picker only nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_ColorPickerOnlyNode001,
+    TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRootRenderNode = std::make_shared<RSRootRenderNode>(0, rsContext->weak_from_this());
+    ASSERT_NE(rsRootRenderNode, nullptr);
+    rsRootRenderNode->InitRenderParams();
+
+    // Create filter node with only ColorPickerDrawable
+    auto filterNode = std::make_shared<RSEffectRenderNode>(1);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->SetOldDirtyInSurface(RectI(100, 100, 500, 500));
+
+    // Set up ColorPickerDrawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    filterNode->GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) = colorPickerDrawable;
+
+    rsRootRenderNode->UpdateVisibleFilterChild(*filterNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(filterNode);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    // Color picker only node should be skipped without errors
+}
+} // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

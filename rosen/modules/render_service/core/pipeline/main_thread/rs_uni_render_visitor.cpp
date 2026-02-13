@@ -3154,6 +3154,10 @@ void RSUniRenderVisitor::CollectFilterInCrossDisplayWindow(
         if (!filterNode) {
             continue;
         }
+        // Skip nodes that only have ColorPickerDrawable without any real filter
+        if (filterNode->IsColorPickerOnlyNode()) {
+            continue;
+        }
         auto filterRect = geoPtr->MapRect(filterNode->GetAbsDrawRect().ConvertTo<float>(),
             surfaceNode->GetCrossNodeSkipDisplayConversionMatrix(curScreenNode_->GetId()))
                 .IntersectRect(curScreenNode_->GetScreenRect());
@@ -3490,6 +3494,11 @@ void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
         // Prepare ColorPicker drawable for disable decision
         PrepareColorPickerDrawable(*filterNode);
 
+        // Skip nodes that only have ColorPickerDrawable without any real filter
+        if (filterNode->IsColorPickerOnlyNode()) {
+            continue;
+        }
+
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateFilterRegionInSkippedSurfaceNode node[%" PRIu64 "]", filterNode->GetId());
         RectI filterRect;
         filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect,
@@ -3515,6 +3524,10 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
 
         // Prepare ColorPicker drawable for disable decision
         PrepareColorPickerDrawable(*filterNode);
+        // Skip nodes that only have ColorPickerDrawable without any real filter
+        if (filterNode->IsColorPickerOnlyNode()) {
+            continue;
+        }
 
         RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterNodeInSkippedSubTreeNeedClearCache node[%lld]", filterNode->GetId());
         if (auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode)) {
@@ -3552,6 +3565,10 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         if (effectNode == nullptr) {
             continue;
         }
+        // Skip nodes that only have ColorPickerDrawable without any real filter
+        if (filterNode->IsColorPickerOnlyNode()) {
+            continue;
+        }
         effectNode->UpdateChildHasVisibleEffectWithoutEmptyRect();
     }
 }
@@ -3579,6 +3596,10 @@ void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
 
         // Prepare ColorPicker drawable for disable decision
         PrepareColorPickerDrawable(*filterNode);
+        // Skip nodes that only have ColorPickerDrawable without any real filter
+        if (filterNode->IsColorPickerOnlyNode()) {
+            continue;
+        }
 
         auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode);
         if (effectNode == nullptr) {
