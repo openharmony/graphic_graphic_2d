@@ -196,6 +196,7 @@ template("render_service_client_source_set") {
       "core/ui/rs_ui_context_manager.cpp",
       "core/ui/rs_ui_director.cpp",
       "core/ui/rs_union_node.cpp",
+      "core/ui/rs_ui_patten_vec.cpp",
 
       #ui_effect
       "core/ui_effect/effect/src/visual_effect_para.cpp",
