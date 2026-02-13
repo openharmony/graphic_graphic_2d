@@ -468,8 +468,16 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
 
     auto rotation = params->GetScreenRotation();
     auto screenCorrection = screenManager->GetScreenCorrection(params->GetScreenId());
+
+    // Use contentRect (if valid) instead of fixedWidth/fixedHeight
+    const Drawing::Rect& contentRect = params->GetDisplayContentRect();
     auto mainWidth = params->GetFixedWidth();
     auto mainHeight = params->GetFixedHeight();
+
+    if (contentRect.IsValid() && contentRect.GetWidth() > 0 && contentRect.GetHeight() > 0) {
+        mainWidth = contentRect.GetWidth();
+        mainHeight = contentRect.GetHeight();
+    }
 
     if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
         screenCorrection != ScreenRotation::ROTATION_0) {
@@ -1157,7 +1165,18 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     curCanvas_->Save();
     virtualProcesser->ScaleMirrorIfNeed(GetOriginScreenRotation(), *curCanvas_);
     auto mirroredScreenInfo = mirroredScreenParams->GetScreenInfo();
-    UpdateSlrScale(mirroredScreenInfo, mirroredParams->GetFixedWidth(), mirroredParams->GetFixedHeight());
+
+    // Use contentRect (if valid) instead of fixedWidth/fixedHeight
+    auto contentWidth = mirroredParams->GetFixedWidth();
+    auto contentHeight = mirroredParams->GetFixedHeight();
+
+    const Drawing::Rect& contentRect = mirroredParams->GetDisplayContentRect();
+    if (contentRect.IsValid() && contentRect.GetWidth() > 0 && contentRect.GetHeight() > 0) {
+        contentWidth = contentRect.GetWidth();
+        contentHeight = contentRect.GetHeight();
+    }
+
+    UpdateSlrScale(mirroredScreenInfo, contentWidth, contentHeight);
     ScaleCanvasIfNeeded(mirroredScreenInfo);
 
     RSDirtyRectsDfx rsDirtyRectsDfx(*curScreenDrawable);
@@ -1262,8 +1281,17 @@ void RSLogicalDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(
         return;
     }
 
+    // Use contentRect (if valid) instead of fixedWidth/fixedHeight
     auto mainWidth = enableVisibleRect_ ? curVisibleRect_.GetWidth() : mirroredParams->GetFixedWidth();
     auto mainHeight = enableVisibleRect_ ? curVisibleRect_.GetHeight() : mirroredParams->GetFixedHeight();
+
+    const Drawing::Rect& contentRect = mirroredParams->GetDisplayContentRect();
+    if (!enableVisibleRect_ && contentRect.IsValid() &&
+        contentRect.GetWidth() > 0 && contentRect.GetHeight() > 0) {
+        mainWidth = contentRect.GetWidth();
+        mainHeight = contentRect.GetHeight();
+    }
+
     const auto& screenProperty = screenParam->GetScreenProperty();
     auto mirrorWidth = screenProperty.GetPhyWidth();
     auto mirrorHeight = screenProperty.GetPhyHeight();

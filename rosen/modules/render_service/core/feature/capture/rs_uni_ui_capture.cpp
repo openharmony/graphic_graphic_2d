@@ -32,6 +32,7 @@
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -157,6 +158,16 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::CreatePixelMapByNode(std::share
 {
     float pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     float pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
+
+    // Check if node is RSLogicalDisplayRenderNode and use contentRect if valid
+    if (auto displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>()) {
+        const Drawing::Rect& contentRect = displayNode->GetDisplayContentRect();
+        if (contentRect.IsValid() && contentRect.GetWidth() > 0 && contentRect.GetHeight() > 0) {
+            pixmapWidth = contentRect.GetWidth();
+            pixmapHeight = contentRect.GetHeight();
+        }
+    }
+
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);

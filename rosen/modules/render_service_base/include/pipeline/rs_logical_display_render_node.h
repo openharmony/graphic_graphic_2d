@@ -65,11 +65,6 @@ public:
         return contentRect_;
     }
 
-    const Drawing::Rect& GetDisplayContentRect() const
-    {
-        return contentRect_;
-    }
-
     bool IsValidScreenId() const
     {
         return screenId_ != INVALID_SCREEN_ID;
