@@ -141,13 +141,13 @@ HWTEST_F(EffectImageChainUnittest, PrepareTest004, TestSize.Level1)
 
     std::shared_ptr<Media::PixelMap> nullPixelmap = nullptr;
     std::shared_ptr<OH_NativeBuffer> nullBuffer = nullptr;
-    auto ret = image->PrepareDstNative(nullPixelmap, dst, false);
+    auto ret = image->PrepareNativeBuffer(nullPixelmap, dst, false);
     ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = image->PrepareDstNative(srcPixelMap, nullBuffer, false);
+    ret = image->PrepareNativeBuffer(srcPixelMap, nullBuffer, false);
     ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = image->PrepareDstNative(srcPixelMap, dst, false);
+    ret = image->PrepareNativeBuffer(srcPixelMap, dst, false);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = image->PrepareDstNative(srcPixelMap, dst, true);
+    ret = image->PrepareNativeBuffer(srcPixelMap, dst, true);
     ASSERT_NE(ret, DrawingError::ERR_OK);
     OH_NativeBuffer_Unreference(dstBuffer);
 }
@@ -254,7 +254,7 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest003, TestSize.Level1)
     auto ret = image->DrawNativeBuffer();
     ASSERT_NE(ret, DrawingError::ERR_OK);
 
-    ret = image->PrepareDstNative(srcPixelMap, dst, false);
+    ret = image->PrepareNativeBuffer(srcPixelMap, dst, false);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
     ret = image->DrawNativeBuffer();
     ASSERT_EQ(ret, DrawingError::ERR_OK);
