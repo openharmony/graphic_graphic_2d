@@ -511,13 +511,13 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     }
 
     if ((width == 0 || height == 0) ||
-        (width == property_.GetWidth() && height == property_.GetHeight()) ||
-        (width > property_.GetPhyWidth() || height > property_.GetPhyHeight())) {
+        (width == property_.GetWidth() && height == property_.GetHeight())) {
         RS_LOGD("%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
         return;
     }
 
-    if (hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
+    if (width < property_.GetPhyWidth() && height < property_.GetPhyHeight() &&
+        hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
         RS_LOGE("%{public}s: hdi set screen rog resolution failed.", __func__);
         return;
     }
