@@ -141,12 +141,14 @@ HWTEST_F(EffectImageChainUnittest, PrepareTest004, TestSize.Level1)
 
     std::shared_ptr<Media::PixelMap> nullPixelmap = nullptr;
     std::shared_ptr<OH_NativeBuffer> nullBuffer = nullptr;
-    auto ret = image->PrepareDstNative(nullPixelmap, dst);
+    auto ret = image->PrepareDstNative(nullPixelmap, dst, false);
     ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = image->PrepareDstNative(srcPixelMap, nullBuffer);
+    ret = image->PrepareDstNative(srcPixelMap, nullBuffer, false);
     ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = image->PrepareDstNative(srcPixelMap, dst);
+    ret = image->PrepareDstNative(srcPixelMap, dst, false);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
+    ret = image->PrepareDstNative(srcPixelMap, dst, true);
+    ASSERT_NE(ret, DrawingError::ERR_OK);
     OH_NativeBuffer_Unreference(dstBuffer);
 }
 
