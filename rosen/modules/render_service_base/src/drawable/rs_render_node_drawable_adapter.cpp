@@ -22,6 +22,7 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_common_tools.h"
 #include "common/rs_optional_trace.h"
+#include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
 #include "params/rs_canvas_drawing_render_params.h"

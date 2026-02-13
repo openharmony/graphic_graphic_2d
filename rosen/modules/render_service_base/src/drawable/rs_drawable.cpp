@@ -18,6 +18,7 @@
 #include <limits>
 
 #include "common/rs_common_tools.h"
+#include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_point_light_drawable.h"
 #include "drawable/rs_property_drawable.h"

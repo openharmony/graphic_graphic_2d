@@ -21,6 +21,8 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context_manager.h"
+#include "modifier_ng/geometry/rs_bounds_modifier.h"
+#include "modifier_ng/geometry/rs_frame_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1978,5 +1980,140 @@ HWTEST_F(RSSurfaceNodeTest, SetAppRotationCorrectionTest, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->SetAppRotationCorrection(ScreenRotation::ROTATION_90);
     ASSERT_NE(surfaceNode, nullptr);
+}
+
+/**
+ * @tc.name: SetGlobalPositionEnabledWithDeduplication001
+ * @tc.desc: Test SetGlobalPositionEnabled with deduplication modifier enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabledWithDeduplication001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    // Add RSBoundsModifier with deduplication enabled
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->SetDeduplicationEnabled(true);
+    surfaceNode->AddModifier(modifier);
+
+    // Verify deduplication is detected
+    EXPECT_TRUE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+
+    // First call should set the value
+    surfaceNode->SetGlobalPositionEnabled(true);
+    EXPECT_TRUE(surfaceNode->GetGlobalPositionEnabled());
+
+    // Second call with same value should still process due to deduplication enabled
+    // (command will be sent, value unchanged)
+    surfaceNode->SetGlobalPositionEnabled(true);
+    EXPECT_TRUE(surfaceNode->GetGlobalPositionEnabled());
+}
+
+/**
+ * @tc.name: SetGlobalPositionEnabledWithDeduplication002
+ * @tc.desc: Test SetGlobalPositionEnabled without deduplication modifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabledWithDeduplication002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    // Add RSBoundsModifier without deduplication enabled (default)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    surfaceNode->AddModifier(modifier);
+
+    // Verify deduplication is not detected
+    EXPECT_FALSE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+
+    // First call should set the value
+    surfaceNode->SetGlobalPositionEnabled(true);
+    EXPECT_TRUE(surfaceNode->GetGlobalPositionEnabled());
+
+    // Store reference to check if value changes
+    bool enabledBefore = surfaceNode->GetGlobalPositionEnabled();
+
+    // Second call with same value should be skipped (no deduplication)
+    surfaceNode->SetGlobalPositionEnabled(true);
+    // Value should not change (call was skipped)
+    EXPECT_EQ(surfaceNode->GetGlobalPositionEnabled(), enabledBefore);
+}
+
+/**
+ * @tc.name: SetGlobalPositionEnabledWithDeduplication003
+ * @tc.desc: Test SetGlobalPositionEnabled with different values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabledWithDeduplication003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    // Add modifier with deduplication enabled
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->SetDeduplicationEnabled(true);
+    surfaceNode->AddModifier(modifier);
+
+    // Test alternating values
+    surfaceNode->SetGlobalPositionEnabled(true);
+    EXPECT_TRUE(surfaceNode->GetGlobalPositionEnabled());
+
+    surfaceNode->SetGlobalPositionEnabled(false);
+    EXPECT_FALSE(surfaceNode->GetGlobalPositionEnabled());
+
+    surfaceNode->SetGlobalPositionEnabled(true);
+    EXPECT_TRUE(surfaceNode->GetGlobalPositionEnabled());
+}
+
+/**
+ * @tc.name: IsAnyModifierDeduplication001
+ * @tc.desc: Test IsAnyModifierDeduplicationEnabled with no modifiers
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, IsAnyModifierDeduplication001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    // No modifiers attached
+    EXPECT_FALSE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+}
+
+/**
+ * @tc.name: IsAnyModifierDeduplication002
+ * @tc.desc: Test IsAnyModifierDeduplicationEnabled with multiple modifiers
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, IsAnyModifierDeduplication002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto modifier1 = std::make_shared<ModifierNG::RSBoundsModifier>();
+    auto modifier2 = std::make_shared<ModifierNG::RSFrameModifier>();
+    surfaceNode->AddModifier(modifier1);
+    surfaceNode->AddModifier(modifier2);
+
+    // Both modifiers have deduplication disabled by default
+    EXPECT_FALSE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+
+    // Enable deduplication on one modifier
+    modifier1->SetDeduplicationEnabled(true);
+    EXPECT_TRUE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+
+    // Enable deduplication on second modifier
+    modifier2->SetDeduplicationEnabled(true);
+    EXPECT_TRUE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+
+    // Disable all
+    modifier1->SetDeduplicationEnabled(false);
+    modifier2->SetDeduplicationEnabled(false);
+    EXPECT_FALSE(surfaceNode->IsAnyModifierDeduplicationEnabled());
 }
 } // namespace OHOS::Rosen

@@ -25,6 +25,7 @@
 
 #include "consumer_surface.h"
 #include "draw/color.h"
+#include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"

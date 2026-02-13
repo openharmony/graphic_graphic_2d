@@ -32,6 +32,7 @@
 #include "common/rs_optional_trace.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
+#include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -3869,14 +3870,7 @@ void RSRenderNode::OnTreeStateChanged()
     }
     // Clear fullChildrenList_ and RSChildrenDrawable of the parent node; otherwise, it may cause a memory leak.
     if (!isOnTheTree_) {
-        isFullChildrenListValid_ = false;
-        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
-        assignOrEraseOnAccess(GetDrawableVec(__func__),
-            static_cast<int8_t>(RSDrawableSlot::CHILDREN), nullptr);
-        stagingDrawCmdList_.clear();
-        RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync_); // false only when used for debugging
-        uifirstNeedSync_ = true;
-        AddToPendingSyncList();
+        HandleNodeRemovedFromTree();
     }
     SetParentTreeStateChangeDirty();
     auto& properties = GetMutableRenderProperties();
@@ -3886,6 +3880,22 @@ void RSRenderNode::OnTreeStateChanged()
         ProcessBehindWindowOnTreeStateChanged();
     }
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(shared_from_this());
+}
+
+void RSRenderNode::HandleNodeRemovedFromTree()
+{
+    isFullChildrenListValid_ = false;
+    std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+    assignOrEraseOnAccess(GetDrawableVec(__func__),
+        static_cast<int8_t>(RSDrawableSlot::CHILDREN), nullptr);
+    stagingDrawCmdList_.clear();
+    RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync_); // false only when used for debugging
+    uifirstNeedSync_ = true;
+    AddToPendingSyncList();
+    // Reset color picker memory when node goes off the tree
+    if (auto colorPickerDrawable = GetColorPickerDrawable()) {
+        colorPickerDrawable->ResetColorMemory();
+    }
 }
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const
@@ -5024,7 +5034,23 @@ void RSRenderNode::AddModifier(
         ModifierNGContainer modifiers { modifier };
         modifiersNG_.emplace(type, modifiers);
     } else {
-        modifiersIt->second.emplace_back(modifier);
+        // Deduplication is disabled by default. Only apply deduplication logic when:
+        // modifier supports it (BOUNDS/FRAME) AND IsDeduplicationEnabled() returns true
+        if (modifier->IsDeduplicationEnabled()) {
+            // Apply deduplication: check if modifier with same ID exists
+            auto it = std::find_if(modifiersIt->second.begin(), modifiersIt->second.end(),
+                [modifier](const auto& m)->bool {return m->GetId() == modifier->GetId();});
+            if (it == modifiersIt->second.end()) {
+                modifiersIt->second.emplace_back(modifier);
+            } else {
+                ModifierNG::RSPropertyType propertyType = (type == ModifierNG::RSModifierType::BOUNDS
+                    ? ModifierNG::RSPropertyType::BOUNDS : ModifierNG::RSPropertyType::FRAME);
+                (*it)->Setter(propertyType, modifier->Getter(propertyType, Vector4f()));
+            }
+        } else {
+            // Default behavior: no deduplication, directly add modifier
+            modifiersIt->second.emplace_back(modifier);
+        }
     }
     modifier->OnAttachModifier(*this);
 }
