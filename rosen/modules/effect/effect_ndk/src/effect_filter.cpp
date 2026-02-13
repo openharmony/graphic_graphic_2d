@@ -237,12 +237,13 @@ EffectErrorCode OH_Filter_GetEffectNativeBuffer(OH_Filter* filter, OH_NativeBuff
     if (!dstNativeBuffer || !filter) {
         return EFFECT_BAD_PARAMETER;
     }
-    CastToFilter(filter)->RenderResult(false, dstNativeBuffer);
+    CastToFilter(filter)->RenderNativeBuffer(false, dstNativeBuffer);
     if (dstNativeBuffer == nullptr) {
         return EFFECT_BAD_PARAMETER;
     }
     return EFFECT_SUCCESS;
-}
+}
+
 EffectErrorCode LinearGradientMaskTransition(Filter* effectFilter,
     std::shared_ptr<OHOS::Media::PixelMap> topLayerPixelmap, const OH_Filter_LinearGradientMask* linearGradientMask,
     float factor, bool inverse)
