@@ -86,7 +86,7 @@ public:
         backgroundPath_ = GetAvailableBackgroundPath();
     }
 
-    void AddSceneBase() const
+    void AddSceneBase()
     {
         auto sceneNode = RSCanvasNode::Create();
         sceneNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
@@ -96,7 +96,7 @@ public:
         RegisterNode(sceneNode);
     }
 
-    void AddTileBase(int x, int y, int width, int height) const
+    void AddTileBase(int x, int y, int width, int height)
     {
         auto tileNode = RSCanvasNode::Create();
         tileNode->SetBounds({x, y, width, height});
