@@ -170,7 +170,7 @@ bool RSUniHwcVisitor::CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& no
             return true;
         }
 
-        bool willNotDraw = node->IsPureBackgroundColor();
+        bool willNotDraw = node->IsPureBackgroundColor() && !node->HasDrawCmdModifiers();
         RS_LOGD("solidLayer: id:%{public}" PRIu64 ", willNotDraw: %{public}d", node->GetId(), willNotDraw);
         if (!willNotDraw) {
             RS_LOGD("solidLayer: presence drawing, id:%{public}" PRIu64, node->GetId());
@@ -1093,7 +1093,7 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
     if (uniRenderVisitor_.curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
         return true;
     }
-    
+
     // screenId equals 0 or 5 means primary screen normally
     if (uniRenderVisitor_.curScreenNode_->GetScreenId() != 0 && uniRenderVisitor_.curScreenNode_->GetScreenId() != 5) {
         return true;
