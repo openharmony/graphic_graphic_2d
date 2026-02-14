@@ -407,7 +407,7 @@ void JsFontCollection::OnLoadFontAsyncExecutor(sptr<FontArgumentsConcreteContext
             TextErrorCode::ERROR_INVALID_PARAM, return,
             context->result =
                 NapiTextResult::Invalid("File path must start with 'file://', e.g., file:///path/to/font.ttf"),
-            "Failed to get font file properties");
+                "Failed to get font file properties");
         context->result = fontCollection->LoadFontFromPath(*context->filePath, context->familyName, context->index);
         NAPI_CHECK_ARGS(context, context->result.success, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return,
             "Failed to get font file properties");
