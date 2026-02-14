@@ -449,7 +449,7 @@ static OH_Drawing_Array* CreateVariationInstanceArray(
     }
 
     std::unique_ptr array = std::make_unique<ObjectArray>();
-    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontVariationInstance*[]>(
+    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontVariationInstance* []>(
         variationInstances.size());
     array->type = ObjectType::FONT_VARIATION_INSTANCE;
 

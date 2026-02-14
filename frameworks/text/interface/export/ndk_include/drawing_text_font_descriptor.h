@@ -523,8 +523,10 @@ void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* FontVariationInst
  *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if the attribute id is not recognized or supported.
  * @since 24
  */
-OH_Drawing_ErrorCode OH_Drawing_GetFontVariationInstanceAttributeStr(OH_Drawing_FontVariationInstance* variationInstance,
-    OH_Drawing_FontVariationInstanceAttributeId id, OH_Drawing_String *str);
+OH_Drawing_ErrorCode OH_Drawing_GetFontVariationInstanceAttributeStr(
+    OH_Drawing_FontVariationInstance* variationInstance,
+    OH_Drawing_FontVariationInstanceAttributeId id,
+    OH_Drawing_String *str);
 
 /**
  * @brief Get the <b>OH_Drawing_FontVariationInstanceCoordinate</b> object.
