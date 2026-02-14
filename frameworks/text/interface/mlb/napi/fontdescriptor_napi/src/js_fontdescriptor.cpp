@@ -234,7 +234,8 @@ napi_value JsFontDescriptor::CreateVariationAxisArray(
         TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "key", CreateJsValue(env, axis.key)), nullptr);
         TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "minValue", CreateJsValue(env, axis.minValue)), nullptr);
         TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "maxValue", CreateJsValue(env, axis.maxValue)), nullptr);
-        TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "defaultValue", CreateJsValue(env, axis.defaultValue)), nullptr);
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "defaultValue",
+            CreateJsValue(env, axis.defaultValue)), nullptr);
         TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "flags", CreateJsValue(env, axis.flags)), nullptr);
         TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "name", CreateJsValue(env, axis.name)), nullptr);
         TEXT_CHECK_RETURN_VALUE(SetProperty(env, axisObj, "localName", CreateJsValue(env, axis.localName)), nullptr);
@@ -256,7 +257,8 @@ napi_value JsFontDescriptor::CreateVariationInstanceArray(
         TEXT_ERROR_CHECK(napi_create_object(env, &instanceObj) == napi_ok, return nullptr,
             "Failed to create instance object");
         TEXT_CHECK_RETURN_VALUE(SetProperty(env, instanceObj, "name", CreateJsValue(env, instance.name)), nullptr);
-        TEXT_CHECK_RETURN_VALUE(SetProperty(env, instanceObj, "localName", CreateJsValue(env, instance.localName)), nullptr);
+        TEXT_CHECK_RETURN_VALUE(SetProperty(env, instanceObj, "localName",
+            CreateJsValue(env, instance.localName)), nullptr);
 
         napi_value coordArray = nullptr;
         TEXT_ERROR_CHECK(napi_create_array(env, &coordArray) == napi_ok, return nullptr,
