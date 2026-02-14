@@ -280,7 +280,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     auto& rsSubThreadCache = nodeDrawable->GetRsSubThreadCache();
     auto cacheSurface = rsSubThreadCache.GetCacheSurface(threadIndex_);
     bool isHdrSurface = false;
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
     if (surfaceParams != nullptr) {
         isHdrSurface = surfaceParams->GetHDRPresent();
     }
@@ -366,10 +366,6 @@ void RSSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface)
 void RSSubThread::ReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
     if (!nodeDrawable) {
-        return;
-    }
-    const auto& param = nodeDrawable->GetRenderParams();
-    if (!param) {
         return;
     }
     NodeId nodeId = nodeDrawable->GetId();
