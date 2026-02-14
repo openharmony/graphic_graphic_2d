@@ -619,7 +619,6 @@ void FontParser::FillFontDescriptorWithFallback(std::shared_ptr<Drawing::Typefac
 }
 
 namespace {
-
 std::string ExtractEnglishName(const std::unordered_map<std::string, std::string>& nameMap)
 {
     auto enIt = nameMap.find("en");
@@ -660,7 +659,6 @@ void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Ty
         axis.name = ExtractEnglishName(axisInfo.axisTagMapForLanguage);
         axis.localName = ExtractLocalName(axisInfo.axisTagMapForLanguage, bcpTagList);
         desc.variationAxisRecords.push_back(axis);
-
     }
 
     auto instanceInfoList = Drawing::FontVariationInfo::GenerateFontVariationInstanceInfo(typeface, bcpTagList);
