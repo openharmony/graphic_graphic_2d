@@ -21,10 +21,9 @@ group("unittest") {
   testonly = true
 
   deps = [
-    # Temporarily disabled due to CFI issues with layer_backend_test_impl
-    # ":hdibackend_unit_test",
-    # ":hdilayer_unit_test",
-    # ":hdioutput_unit_test",
+    ":hdibackend_unit_test",
+    ":hdilayer_unit_test",
+    ":hdioutput_unit_test",
   ]
 }
 
