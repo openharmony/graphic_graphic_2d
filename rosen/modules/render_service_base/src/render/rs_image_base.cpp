@@ -454,7 +454,11 @@ bool RSImageBase::UnmarshallingDrawingImageAndPixelMap(Parcel& parcel, uint64_t 
             RS_LOGE("RSImageBase::Unmarshalling UnmarshalAndCacheSkImage fail");
             return false;
         }
+        RSMarshallingHelper::SkipPixelMap(parcel);
     } else {
+        if (!RSMarshallingHelper::SkipImage(parcel)) {
+            return false;
+        }
         pixelMap = RSImageCache::Instance().GetPixelMapCache(uniqueId);
         if (pixelMap == nullptr) {
             pixelMap = RSImageCache::Instance().GetEditablePixelMapCache(uniqueId);
@@ -488,13 +492,17 @@ void RSImageBase::IncreaseCacheRefCount(uint64_t uniqueId, bool useSkImage, std:
 bool RSImageBase::Marshalling(Parcel& parcel) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    auto image = image_;
+    if (pixelMap_ != nullptr) {
+        image = nullptr;
+    }
     bool isPropertiesDirty = (pixelMap_ ? pixelMap_->IsPropertiesDirty() : PIXELMAP_IS_PROPERTIES_DIRTY_DEFAULT);
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, srcRect_) &&
                    RSMarshallingHelper::Marshalling(parcel, dstRect_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
                    RSMarshallingHelper::CompatibleMarshalling(parcel, isPropertiesDirty, RSPARCELVER_ADD_ISPROPDIRTY) &&
-                   pixelMap_ == nullptr ? RSMarshallingHelper::Marshalling(parcel, image_) :
+                   RSMarshallingHelper::Marshalling(parcel, image) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_);
     if (!success) {
         RS_LOGE("RSImageBase::Marshalling parcel fail");

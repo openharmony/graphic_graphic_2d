@@ -1743,9 +1743,11 @@ HWTEST_F(RSImageBaseTest, GetUniqueIdTest001, TestSize.Level1)
 HWTEST_F(RSImageBaseTest, MarshallingTest, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
-    imageBase->SetPixelMap(nullptr);
-    Parcel parcel1;
-    EXPECT_EQ(imageBase->Marshalling(parcel1), true);
+    auto pixelmap = std::make_shared<Media::PixelMap>();
+    imageBase->SetPixelMap(pixelmap);
+    EXPECT_NE(imageBase->pixelMap_, nullptr);
+    Parcel parcel;
+    EXPECT_EQ(imageBase->Marshalling(parcel), false);
 }
 
 /**
