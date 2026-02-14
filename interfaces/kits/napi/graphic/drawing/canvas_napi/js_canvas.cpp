@@ -321,7 +321,7 @@ napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas)
         ROSEN_LOGE("jsCanvas::CreateJsCanvas Create canvas object failed!");
         return nullptr;
     }
-    status = napi_wrap(env, result, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, result, jsCanvas, JsCanvas::Destructor, nullptr, &JsCanvas::NAPI_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsCanvas;
         ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");

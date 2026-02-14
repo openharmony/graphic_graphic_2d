@@ -46,6 +46,11 @@ public:
     explicit JsCanvas(Canvas* canvas, bool owned = false) : m_canvas(canvas), owned_(owned) {};
     ~JsCanvas();
 
+    static constexpr napi_type_tag NAPI_TYPE_TAG = {
+        .lower = 0x2710bc10cdee8db3,
+        .upper = 0xc5189f88510eadc1
+    };
+
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
