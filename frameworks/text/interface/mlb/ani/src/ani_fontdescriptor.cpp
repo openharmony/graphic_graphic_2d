@@ -288,7 +288,6 @@ ani_object CreateCoordinatesArray(ani_env* env,
             AniGlobalMethod::GetInstance().fontVariationCtor,
             AniTextUtils::CreateAniStringObj(env, coord.axis),
             ani_double(coord.value));
-
         if (coordObj != nullptr) {
             ani_status status = env->Object_CallMethod_Void(coordinatesArray,
                 AniGlobalMethod::GetInstance().arraySet, coordIndex, coordObj);

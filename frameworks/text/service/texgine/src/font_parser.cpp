@@ -676,7 +676,6 @@ void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Ty
             instance.coordinates.push_back(coord);
         }
         desc.variationInstanceRecords.push_back(instance);
-
     }
 }
 

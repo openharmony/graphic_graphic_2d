@@ -428,7 +428,7 @@ static OH_Drawing_Array* CreateVariationAxisArray(
     }
 
     std::unique_ptr array = std::make_unique<ObjectArray>();
-    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontVariationAxis*[]>(variationAxes.size());
+    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontVariationAxis* []>(variationAxes.size());
     array->type = ObjectType::FONT_VARIATION_AXIS;
 
     size_t num = 0;
