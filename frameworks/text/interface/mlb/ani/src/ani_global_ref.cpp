@@ -333,19 +333,6 @@ void AniGlobalClass::Init(ani_env* env)
     fontVariation = AniFindClass(env, ANI_CLASS_FONT_VARIATION);
     fontVariationAxis = AniFindClass(env, ANI_CLASS_FONT_VARIATION_AXIS);
     fontVariationInstance = AniFindClass(env, ANI_CLASS_FONT_VARIATION_INSTANCE);
-
-    if (fontVariationAxis == nullptr) {
-        TEXT_LOGE("AniGlobalClass::Init: Failed to find FontVariationAxis class");
-    } else {
-        TEXT_LOGI("AniGlobalClass::Init: FontVariationAxis class found successfully");
-    }
-
-    if (fontVariationInstance == nullptr) {
-        TEXT_LOGE("AniGlobalClass::Init: Failed to find FontVariationInstance class");
-    } else {
-        TEXT_LOGI("AniGlobalClass::Init: FontVariationInstance class found successfully");
-    }
-
     typographicBounds = AniFindClass(env, ANI_CLASS_TYPOGRAPHIC_BOUNDS);
     cleaner = AniFindClass(env, ANI_CLASS_CLEANER);
     canvas = AniFindClass(env, ANI_CLASS_CANVAS);
@@ -613,7 +600,6 @@ void AniGlobalMethod::InitFontVariationMethod(ani_env* env)
 
 void AniGlobalMethod::InitFontVariationAxisMethod(ani_env* env)
 {
-    TEXT_LOGI("InitFontVariationAxisMethod: start");
     fontVariationAxisCtor = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_KEY_CTOR);
     fontVariationAxisKey = AniClassFindMethod(
@@ -630,12 +616,10 @@ void AniGlobalMethod::InitFontVariationAxisMethod(ani_env* env)
         env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_NAME_KEY);
     fontVariationAxisLocalName = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_LOCAL_NAME_KEY);
-    TEXT_LOGI("InitFontVariationAxisMethod: completed");
 }
 
 void AniGlobalMethod::InitFontVariationInstanceMethod(ani_env* env)
 {
-    TEXT_LOGI("InitFontVariationInstanceMethod: start");
     fontVariationInstanceCtor = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().fontVariationInstance, FONT_VARIATION_INSTANCE_KEY_CTOR);
     fontVariationInstanceName = AniClassFindMethod(
@@ -644,7 +628,6 @@ void AniGlobalMethod::InitFontVariationInstanceMethod(ani_env* env)
         env, AniGlobalClass::GetInstance().fontVariationInstance, FONT_VARIATION_INSTANCE_LOCAL_NAME_KEY);
     fontVariationInstanceCoordinates = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().fontVariationInstance, FONT_VARIATION_INSTANCE_COORDINATES_KEY);
-    TEXT_LOGI("InitFontVariationInstanceMethod: completed");
 }
 
 void AniGlobalMethod::InitRectStyleMethod(ani_env* env)

@@ -1202,7 +1202,6 @@ HWTEST_F(FontParserTest, FillFontDescriptorWithVariationInfoMultipleLanguagesTes
 
     testFile.close();
 }
-
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
