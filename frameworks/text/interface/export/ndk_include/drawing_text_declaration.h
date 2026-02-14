@@ -174,7 +174,6 @@ typedef struct OH_Drawing_FontVariationAxis OH_Drawing_FontVariationAxis;
  * @since 24
  */
 typedef struct OH_Drawing_FontVariationInstance OH_Drawing_FontVariationInstance;
-
 #ifdef __cplusplus
 }
 #endif
