@@ -3484,8 +3484,6 @@ void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUICon
 void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty, bool colorAdaptive)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSForegroundFilterModifier,
-        &ModifierNG::RSForegroundFilterModifier::SetColorAdaptive>(colorAdaptive);
     if (isNodeGroup_ == isNodeGroup) {
         return;
     }

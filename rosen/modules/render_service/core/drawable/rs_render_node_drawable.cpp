@@ -943,7 +943,6 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
         RS_TRACE_NAME_FMT("RSRenderNodeDrawable::DrawCachedImage image width: %d, height: %d, %s, nodeID = %llu",
             cacheImage->GetWidth(), cacheImage->GetHeight(), rsFilter->GetDescription().c_str(), nodeId_);
         auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(rsFilter);
-        foregroundFilter->UpdateColor(canvas.GetColorPicked(ColorPlaceholder::FOREGROUND));
         foregroundFilter->DrawImageRect(canvas, cacheImage, Drawing::Rect(0, 0, cacheImage->GetWidth(),
         cacheImage->GetHeight()), Drawing::Rect(0, 0, cacheImage->GetWidth(), cacheImage->GetHeight()));
      } else {
