@@ -188,7 +188,7 @@ typedef enum {
     FONT_VARIATION_AIXS_ATTR_S_NAME = 5,
     /** The local name of the font variation aixs */
     FONT_VARIATION_AIXS_ATTR_S_LOCAL_NAME = 6,
-}OH_Drawing_FontVariationAxisAttributeId;
+} OH_Drawing_FontVariationAxisAttributeId;
 
 /**
  * @brief An enumeration of font variation instance attribute.
@@ -200,7 +200,7 @@ typedef enum {
     FONT_VARIATION_INSTANCE_ATTR_S_NAME = 0,
     /** The local name of the font variation instance */
     FONT_VARIATION_INSTANCE_ATTR_S_LOCAL_NAME = 1,
-}OH_Drawing_FontVariationInstanceAttributeId;
+} OH_Drawing_FontVariationInstanceAttributeId;
 
 /**
  * @brief Defines the font variation coordinate.
@@ -212,7 +212,7 @@ typedef struct {
     char* axisKey;
     /** value of font variation coordinate */
     double value;
-}OH_Drawing_FontVariationInstanceCoordinate;
+} OH_Drawing_FontVariationInstanceCoordinate;
 
 /**
  * @brief Obtain all system font descriptive symbols that match the specified font descriptor. Where the 'path' and

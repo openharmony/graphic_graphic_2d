@@ -643,16 +643,12 @@ std::string ExtractLocalName(const std::unordered_map<std::string, std::string>&
     }
     return "";
 }
-
 }
 
 void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Typeface> typeface,
                                                        FontDescriptor& desc, const std::vector<std::string>& bcpTagList)
 {
-    TEXT_LOGI("FillFontDescriptorWithVariationInfo: start for path=%{public}s", desc.path.c_str());
-
     auto axisInfoList = Drawing::FontVariationInfo::GenerateFontVariationAxisInfo(typeface, bcpTagList);
-    TEXT_LOGI("FillFontDescriptorWithVariationInfo: got %{public}zu axes from typeface", axisInfoList.size());
 
     for (const auto& axisInfo : axisInfoList) {
         FontVariationAxis axis;
@@ -668,7 +664,6 @@ void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Ty
     }
 
     auto instanceInfoList = Drawing::FontVariationInfo::GenerateFontVariationInstanceInfo(typeface, bcpTagList);
-    TEXT_LOGI("FillFontDescriptorWithVariationInfo: got %{public}zu instances from typeface", instanceInfoList.size());
 
     for (const auto& instanceInfo : instanceInfoList) {
         FontVariationInstance instance;
@@ -684,7 +679,6 @@ void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Ty
 
     }
 
-    TEXT_LOGI("FillFontDescriptorWithVariationInfo: completed - total axes=%{public}zu instances=%{public}zu",
         desc.variationAxisRecords.size(), desc.variationInstanceRecords.size());
 }
 
