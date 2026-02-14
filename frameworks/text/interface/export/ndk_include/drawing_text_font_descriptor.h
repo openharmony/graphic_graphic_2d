@@ -450,7 +450,7 @@ void OH_Drawing_DestroyFontVariationAxis(OH_Drawing_Array* fontVariaAxisArray);
  *         Returns <b>OH_DRAWING_SUCCESS</b> if the operation is successful.
  *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the variationAxis or value is NULL.
  *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if the attribute id is not recognized or supported.
- * @since 22
+ * @since 24
  */
 OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeDouble(OH_Drawing_FontVariationAxis* variationAxis,
     OH_Drawing_FontVariationAxisAttributeId id, double *value);
@@ -465,7 +465,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeDouble(OH_Drawing_F
  *         Returns <b>OH_DRAWING_SUCCESS</b> if the operation is successful.
  *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the variationAxis or value is NULL.
  *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if the attribute id is not recognized or supported.
- * @since 22
+ * @since 24
  */
 OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeInt(OH_Drawing_FontVariationAxis* variationAxis,
     OH_Drawing_FontVariationAxisAttributeId id, int *value);
@@ -484,7 +484,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeInt(OH_Drawing_Font
  *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the variationAxis or str is NULL.
  *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if the attribute id is not recognized or supported.
 
- * @since 22
+ * @since 24
  */
 OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeStr(OH_Drawing_FontVariationAxis* variationAxis,
     OH_Drawing_FontVariationAxisAttributeId id, OH_Drawing_String *str);
@@ -521,8 +521,7 @@ void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* FontVariationInst
  *         Returns <b>OH_DRAWING_SUCCESS</b> if the operation is successful.
  *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the variationInstance or str is NULL.
  *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if the attribute id is not recognized or supported.
-
- * @since 22
+ * @since 24
  */
 OH_Drawing_ErrorCode OH_Drawing_GetFontVariationInstanceAttributeStr(OH_Drawing_FontVariationInstance* variationInstance,
     OH_Drawing_FontVariationInstanceAttributeId id, OH_Drawing_String *str);
