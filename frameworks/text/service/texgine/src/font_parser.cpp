@@ -646,7 +646,7 @@ std::string ExtractLocalName(const std::unordered_map<std::string, std::string>&
 }
 
 void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Typeface> typeface,
-                                                       FontDescriptor& desc, const std::vector<std::string>& bcpTagList)
+    FontDescriptor& desc, const std::vector<std::string>& bcpTagList)
 {
     auto axisInfoList = Drawing::FontVariationInfo::GenerateFontVariationAxisInfo(typeface, bcpTagList);
 
@@ -736,12 +736,9 @@ std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
     const std::shared_ptr<Drawing::Typeface>& typeface, unsigned int languageId)
 {
     if (typeface == nullptr) {
-        TEXT_LOGE("CreateFontDescriptor: typeface is nullptr");
+        TEXT_LOGE("typeface is nullptr");
         return nullptr;
     }
-
-    TEXT_LOGI("CreateFontDescriptor: start for path=%{public}s languageId=%{public}u",
-        typeface->GetFontPath().c_str(), languageId);
 
     FontDescriptor desc;
     desc.requestedLid = languageId;
@@ -751,15 +748,11 @@ std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
     desc.weight = fontStyle.GetWeight();
     desc.width = fontStyle.GetWidth();
     if (!ParseTable(typeface, desc)) {
-        TEXT_LOGE("CreateFontDescriptor: ParseTable failed for path=%{public}s", desc.path.c_str());
+        TEXT_LOGE("ParseTable failed for path=%{public}s", desc.path.c_str());
         return nullptr;
     }
 
-    TEXT_LOGI("CreateFontDescriptor: calling FillFontDescriptorWithLocalInfo for path=%{public}s", desc.path.c_str());
     FillFontDescriptorWithLocalInfo(typeface, desc);
-
-    TEXT_LOGI("CreateFontDescriptor: completed for path=%{public}s axes=%{public}zu instances=%{public}zu",
-        desc.path.c_str(), desc.variationAxisRecords.size(), desc.variationInstanceRecords.size());
 
     return std::make_shared<FontParser::FontDescriptor>(desc);
 }
