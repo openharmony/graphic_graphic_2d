@@ -79,6 +79,7 @@ if (is_arkui_x) {
   ohos_source_set("skeffectchain") {
     include_dirs = [
       "//foundation/graphic/graphic_surface/interfaces/inner_api/common",
+      "//foundation/graphic/graphic_surface/interfaces/inner_api/utils",
       "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
     ]
 
