@@ -678,8 +678,6 @@ void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Ty
         desc.variationInstanceRecords.push_back(instance);
 
     }
-
-        desc.variationAxisRecords.size(), desc.variationInstanceRecords.size());
 }
 
 void FontParser::FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc)
