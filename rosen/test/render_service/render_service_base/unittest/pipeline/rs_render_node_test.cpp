@@ -4026,8 +4026,7 @@ HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode002, TestSize.Level1)
     ASSERT_NE(colorPickerDrawable, nullptr);
 
     // Set it at the COLOR_PICKER slot
-    node.GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) =
-        colorPickerDrawable;
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
     // With ColorPickerDrawable but no real filter (DisableHWCForFilter returns false)
     EXPECT_TRUE(node.IsColorPickerOnlyNode());
@@ -4048,8 +4047,7 @@ HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode003, TestSize.Level1)
     ASSERT_NE(colorPickerDrawable, nullptr);
 
     // Set it at the COLOR_PICKER slot
-    node.GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) =
-        colorPickerDrawable;
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
     // Set a background filter to make DisableHWCForFilter return true
     node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
@@ -4106,7 +4104,7 @@ HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable002, TestSize.Level1)
     ASSERT_NE(colorPickerDrawable, nullptr);
 
     // Set it at the COLOR_PICKER slot
-    node.GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) = colorPickerDrawable;
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
     // Verify GetColorPickerDrawable returns the correct drawable
     auto retrievedDrawable = node.GetColorPickerDrawable();

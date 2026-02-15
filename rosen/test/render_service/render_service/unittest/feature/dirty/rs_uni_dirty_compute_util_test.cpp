@@ -153,8 +153,8 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GetVisibleFilterRect_ColorPickerDrawable, Te
     // Create a ColorPicker drawable for the node
     auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
     ASSERT_NE(colorPickerDrawable, nullptr);
-    colorPickerOnlyNode->GetDrawableVec(__func__).at(
-        static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) = colorPickerDrawable;
+    colorPickerOnlyNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
+        colorPickerDrawable;
 
     // Register the node in nodeMap
     context->GetMutableNodeMap().RegisterRenderNode(colorPickerOnlyNode);
