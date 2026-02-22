@@ -25,7 +25,7 @@ namespace Rosen {
 enum class RSPropertyUnit : uint8_t;
 class RSRenderPropertyBase;
 using FrameRateGetFunc = std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>;
-using ComponentFrameRateFunc = std::function<void(FrameRateRange&, pid_t)>;
+using ComponentFrameRateFunc = std::function<void(pid_t, FrameRateRange&)>;
 using PropertyValue = std::shared_ptr<RSRenderPropertyBase>;
 
 struct FrameRateFunctions {

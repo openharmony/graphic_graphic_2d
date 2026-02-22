@@ -152,7 +152,7 @@ HWTEST_F(RSAnimationRateDeciderTest, MakeDecision001, TestSize.Level1)
     rateDecider_->AddDecisionElement(3, nullptr, {0, 0, 0});
 
     FrameRateFunctions func = { .frameRateGetFunc = [](const RSPropertyUnit unit, float velocity, int32_t area,
-                                                        int32_t length) -> int32_t { return 90; },
+                                                       int32_t length) -> int32_t { return 90; },
         .componentFrameRateFunc = nullptr };
     rateDecider_->MakeDecision(func);
     auto range = rateDecider_->GetFrameRateRange();
@@ -186,14 +186,14 @@ HWTEST_F(RSAnimationRateDeciderTest, MakeDecision002, TestSize.Level1)
     rateDecider_->AddDecisionElement(3, nullptr, {0, 0, 0});
 
     FrameRateFunctions frameRateFunctions = { .frameRateGetFunc = nullptr,
-        .componentFrameRateFunc = [](FrameRateRange& range, pid_t pid) {
+        .componentFrameRateFunc = [](pid_t pid, FrameRateRange& range) {
             range.min_ = 0;
             range.max_ = 90;
             range.preferred_ = 90;
         } };
     rateDecider_->MakeDecision(frameRateFunctions);
     auto range = rateDecider_->GetFrameRateRange();
-    EXPECT_EQ(range.preferred_, 90);
+    EXPECT_EQ(range.preferred_, 120);
 }
 
 /**

@@ -681,7 +681,6 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetComponentDefaultFpsInfo002, TestSize
     EXPECT_EQ(hgmEnergyConsumptionPolicy.energyInfo_.componentName, "");
 }
 
-
 /**
  * @tc.name: SetComponentDefaultFpsInfo003
  * @tc.desc: Test when energyInfo_.componentName != "" && !eventInfo.eventStatus
@@ -850,7 +849,6 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate001, TestSize.
     bool result = hgmEnergyConsumptionPolicy.DisableTouchHighFrameRate(finalRange);
     EXPECT_FALSE(result);
 }
-
 
 /**
  * @tc.name: DisableTouchHighFrameRate002

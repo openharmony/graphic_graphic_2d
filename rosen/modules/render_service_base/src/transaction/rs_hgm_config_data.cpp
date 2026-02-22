@@ -16,11 +16,12 @@
 #include "transaction/rs_hgm_config_data.h"
 
 #include <memory>
+
 #include "platform/common/rs_log.h"
 
 namespace {
-    constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
-    constexpr uint32_t MAX_PAGE_NAME_SIZE = 64;
+constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
+constexpr uint32_t MAX_PAGE_NAME_SIZE = 64;
 }
 
 namespace OHOS {
@@ -59,32 +60,28 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 
 bool RSHgmConfigData::Marshalling(Parcel& parcel) const
 {
-    bool flag = parcel.WriteBool(isSyncConfig_);
-    if (!flag) {
+    if (!parcel.WriteBool(isSyncConfig_)) {
         RS_LOGE("RSHgmConfigData::Marshalling parse isSyncConfig failed");
-        return flag;
+        return false;
     }
     if (isSyncConfig_) {
-        flag = MarshallingConfig(parcel);
-        if (!flag) {
+        if (!MarshallingConfig(parcel)) {
             RS_LOGE("RSHgmConfigData::Marshalling parse config failed");
-            return flag;
+            return false;
         }
     }
 
-    flag = parcel.WriteBool(isSyncEnergyData_);
-    if (!flag) {
+    if (!parcel.WriteBool(isSyncEnergyData_)) {
         RS_LOGE("RSHgmConfigData::Marshalling parse isSyncEnergyData failed");
-        return flag;
+        return false;
     }
     if (isSyncEnergyData_) {
-        flag = MarshallingEnergyData(parcel);
-        if (!flag) {
+        if (!MarshallingEnergyData(parcel)) {
             RS_LOGE("RSHgmConfigData::Marshalling parse energyData failed");
-            return flag;
+            return false;
         }
     }
-    return flag;
+    return true;
 }
 
 bool RSHgmConfigData::UnmarshallingConfig(Parcel& parcel)

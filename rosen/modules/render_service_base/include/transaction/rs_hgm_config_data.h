@@ -33,9 +33,9 @@ struct AnimDynamicItem {
 };
 
 struct EnergyInfo {
-    std::string componentName = "";
-    pid_t componentPid = 0;
-    int32_t componentDefaultFps = 0;
+    std::string componentName;
+    pid_t componentPid;
+    int32_t componentDefaultFps;
 };
 
 class RSB_EXPORT RSHgmConfigData : public Parcelable {
@@ -99,13 +99,10 @@ public:
     }
 
     bool GetIsSyncEnergyData() const { return isSyncEnergyData_; }
-
     void SetIsSyncConfig(bool isSyncConfig) { isSyncConfig_ = isSyncConfig; }
-
     bool GetIsSyncConfig() const  { return isSyncConfig_; }
 
-    void SetEnergyInfo(const EnergyInfo& energyInfo)
-    {
+    void SetEnergyInfo(const EnergyInfo& energyInfo) {
         isSyncEnergyData_ = true;
         energyInfo_ = energyInfo;
     }

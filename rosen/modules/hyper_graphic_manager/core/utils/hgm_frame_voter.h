@@ -37,14 +37,7 @@ public:
     const std::vector<std::string>& GetVoters() const { return voters_; }
     bool GetVoterGamesEffective() const { return voterGamesEffective_.load(); }
 
-    void SetDisableTouchHighFrame(bool isDisableTouchHighFrame)
-    {
-        if (isDisableTouchHighFrame_ == isDisableTouchHighFrame) {
-            return;
-        }
-        isUpdateTouchFramePolicy_ = true;
-        isDisableTouchHighFrame_ = isDisableTouchHighFrame;
-    }
+    void SetDisableTouchHighFrame(bool isDisableTouchHighFrame);
     void SetIsTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod)
     {
         isTouchUpLTPOFirstPeriod_ = isTouchUpLTPOFirstPeriod;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,6 @@
 
 #ifndef HGM_RP_ENERGY_H
 #define HGM_RP_ENERGY_H
-#include <string>
 
 #include "animation/rs_frame_rate_range.h"
 #include "transaction/rs_hgm_config_data.h"
@@ -25,10 +24,10 @@ namespace Rosen {
 class HgmRPEnergy {
 public:
     void SyncEnergyInfoToRP(const EnergyInfo& energyInfo);
-    void SetComponentDefaultFps(FrameRateRange& rsRange, pid_t pid);
+    void SetComponentDefaultFps(pid_t pid, FrameRateRange& rsRange);
 
 private:
-    EnergyInfo energyInfo_ = {};
+    EnergyInfo energyInfo_ {};
 };
 } // namespace Rosen
 } // namespace OHOS

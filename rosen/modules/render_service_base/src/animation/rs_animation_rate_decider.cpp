@@ -64,8 +64,8 @@ void RSAnimationRateDecider::MakeDecision(const FrameRateFunctions& func)
     }
     for (auto& [id, element] : decisionElements_) {
         FrameRateRange propertyRange;
-        if (func.componentFrameRateFunc != nullptr) {
-            func.componentFrameRateFunc(element.second, ExtractPid(id));
+        if (func.componentFrameRateFunc != nullptr && element.second.IsZero()) {
+            func.componentFrameRateFunc(ExtractPid(id), element.second);
         }
         RS_OPTIONAL_TRACE_BEGIN("MakeDecision property id: [" + std::to_string(id) + "]");
         if (element.first != nullptr && func.frameRateGetFunc != nullptr) {

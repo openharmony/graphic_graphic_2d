@@ -97,8 +97,7 @@ private:
     std::atomic<bool> dragSceneEnable_ = { true };
     std::atomic<pid_t> dragSceneDisablePid_ = { 0 };
     SyncEnergyInfoFunc syncEnergyInfoFunc_ = nullptr;
-
-    EnergyInfo energyInfo_ = {};
+    EnergyInfo energyInfo_ {};
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;

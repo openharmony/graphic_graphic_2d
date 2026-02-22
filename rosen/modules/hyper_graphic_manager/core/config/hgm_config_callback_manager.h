@@ -63,7 +63,7 @@ private:
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>>> xcomponentExpectedFrameRateCallbacks_;
     // <dstPid, <xcomponentId, frameRate>>
     std::unordered_map<pid_t, std::unordered_map<std::string, int32_t>> xcomponentExpectedFrameRate_;
-    EnergyInfo energyInfo_ = {};
+    EnergyInfo energyInfo_ {};
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CONFIG_CALLBACK_MANAGER_H

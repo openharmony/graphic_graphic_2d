@@ -404,8 +404,8 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
         }
         auto allTypeDescription = finalRange.GetAllTypeDescription();
         HGM_LOGD("ltpo desc: %{public}s", allTypeDescription.c_str());
-        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], videoSlideDisable: [%d], refreshRate: [%d], "
-            "lastLTPORefreshRate_: [%u], desc: [%s]", isDragScene, disableTouchHigh, refreshRate, lastLTPORefreshRate_,
+        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene: [%d], videoSlideDisable: [%d], refreshRate: [%d], "
+            "lastLTPORefreshRate: [%u], desc: [%s]", isDragScene, disableTouchHigh, refreshRate, lastLTPORefreshRate_,
             allTypeDescription.c_str());
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
