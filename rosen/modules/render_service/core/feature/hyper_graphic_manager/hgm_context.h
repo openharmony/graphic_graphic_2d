@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-struct FrameRateFunctions;
+
 class HgmContext {
 public:
     HgmContext();
@@ -44,17 +44,11 @@ public:
         return rsFrameRateLinker_;
     }
 
-    const FrameRateFunctions& GetFrameRateFunctions() const
-    {
-        return frameRateFunctions_;
-    }
+    const FrameRateFunctions& GetFrameRateFunctions() const { return frameRateFunctions_; }
 
     bool GetIsAdaptiveVsyncComposeReady() const { return isAdaptiveVsyncComposeReady_; }
 
-    std::shared_ptr<HgmRPEnergy> GetHgmRPEnergy() const
-    {
-        return hgmRPEnergy_;
-    }
+    std::shared_ptr<HgmRPEnergy> GetHgmRPEnergy() const { return hgmRPEnergy_; }
 
 private:
     void InitHgmUpdateCallback();

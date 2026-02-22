@@ -33,12 +33,8 @@ HgmContext::HgmContext()
     hgmRPEnergy_ = std::make_shared<HgmRPEnergy>();
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(
         [](const RSRenderFrameRateLinker& linker) { HgmCore::Instance().SetHgmTaskFlag(true); });
-    frameRateFunctions_.frameRateGetFunc = [this](RSPropertyUnit unit, float velocity, int32_t area,
-                                               int32_t length) -> int32_t {
+    frameRateFunctions_.frameRateGetFunc = [this](RSPropertyUnit unit, float velocity, int32_t area, int32_t length) {
         return rpFrameRatePolicy_.GetExpectedFrameRate(unit, velocity, area, length);
-    };
-    frameRateFunctions_.componentFrameRateFunc = [this](FrameRateRange& rsRange, pid_t pid) {
-        hgmRPEnergy_->SetComponentDefaultFps(rsRange, pid);
     };
 }
 
@@ -172,9 +168,19 @@ void HgmContext::ProcessHgmFrameRate(
 void HgmContext::InitEnergyInfoUpdateCallback()
 {
     auto syncEnergyFunc = [this](const EnergyInfo& energyInfo) {
-        RSMainThread::Instance()->PostTask([this, energyInfo]() { hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo); });
+        RSMainThread::Instance()->PostTask([this, energyInfo]() {
+            static ComponentFrameRateFunc func = [this](pid_t pid, FrameRateRange& rsRange) {
+                hgmRPEnergy_->SetComponentDefaultFps(pid, rsRange);
+            };
+            if (energyInfo.componentName == "" || energyInfo.componentPid == 0) {
+                frameRateFunctions_.componentFrameRateFunc = nullptr;
+            } else {
+                frameRateFunctions_.componentFrameRateFunc = func;
+            }
+            hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
+        });
     };
-    HgmTaskHandleThread::Instance().PostTask([callback = std::move(syncEnergyFunc)]() {
+    HgmTaskHandleThread::Instance().PostTask([callback = std::move(syncEnergyFunc)] {
         HgmEnergyConsumptionPolicy::Instance().SetSyncEnergyInfoFunc(callback);
     });
 }

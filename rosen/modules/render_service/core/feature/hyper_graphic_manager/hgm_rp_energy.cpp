@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,9 +23,9 @@ void HgmRPEnergy::SyncEnergyInfoToRP(const EnergyInfo& energyInfo)
     energyInfo_ = energyInfo;
 }
 
-void HgmRPEnergy::SetComponentDefaultFps(FrameRateRange& rsRange, pid_t pid)
+void HgmRPEnergy::SetComponentDefaultFps(pid_t pid, FrameRateRange& rsRange)
 {
-    if (energyInfo_.componentName != SWIPER_DRAG_SCENE || pid != energyInfo_.componentPid || !rsRange.IsZero()) {
+    if (pid != energyInfo_.componentPid || energyInfo_.componentName != SWIPER_DRAG_SCENE) {
         return;
     }
     if (rsRange.componentScene_ != ComponentScene::SWIPER_FLING && !(rsRange.type_ & SWIPER_DRAG_FRAME_RATE_TYPE)) {

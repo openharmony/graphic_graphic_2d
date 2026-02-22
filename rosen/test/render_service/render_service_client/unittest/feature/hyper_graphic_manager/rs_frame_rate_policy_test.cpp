@@ -260,9 +260,7 @@ HWTEST_F(RSFrameRatePolicyTest, TestDispatchUpdateBranch_Case1, TestSize.Level1)
     InitializeRSFrameRatePolicy();
 
     auto instance = RSFrameRatePolicy::GetInstance();
-
     instance->DispatchUpdateBranch(nullptr);
-
     EXPECT_EQ(instance->GetPageNameList().size(), 0);
     EXPECT_EQ(instance->ppi_, 1.0f);
     EXPECT_EQ(instance->xDpi_, 1.0f);
@@ -281,16 +279,13 @@ HWTEST_F(RSFrameRatePolicyTest, TestDispatchUpdateBranch_Case2, TestSize.Level1)
     InitializeRSFrameRatePolicy();
 
     auto instance = RSFrameRatePolicy::GetInstance();
-
     auto configData = std::make_shared<RSHgmConfigData>();
     configData->SetIsSyncConfig(true);
-
     configData->SetPpi(25.4f);
     configData->SetXDpi(25.4f);
     configData->SetYDpi(25.4f);
     std::string pageName = "TestPage";
     configData->AddPageName(pageName);
-
     AnimDynamicItem item;
     item.animType = "testType";
     item.animName = "testName";
@@ -300,8 +295,6 @@ HWTEST_F(RSFrameRatePolicyTest, TestDispatchUpdateBranch_Case2, TestSize.Level1)
     configData->AddAnimDynamicItem(item);
 
     instance->DispatchUpdateBranch(configData);
-
-    // Assert that config data is updated
     EXPECT_EQ(instance->GetPageNameList().size(), 1);
     EXPECT_EQ(instance->ppi_, 25.4f);
     EXPECT_EQ(instance->xDpi_, 25.4f);
@@ -320,10 +313,8 @@ HWTEST_F(RSFrameRatePolicyTest, TestDispatchUpdateBranch_Case3, TestSize.Level1)
     InitializeRSFrameRatePolicy();
 
     auto instance = RSFrameRatePolicy::GetInstance();
-
     auto configData = std::make_shared<RSHgmConfigData>();
     configData->SetIsSyncConfig(false);
-
     // Set energy info
     EnergyInfo energyInfo;
     energyInfo.componentName = "TestComponent";
@@ -332,7 +323,6 @@ HWTEST_F(RSFrameRatePolicyTest, TestDispatchUpdateBranch_Case3, TestSize.Level1)
     configData->SetEnergyInfo(energyInfo);
 
     instance->DispatchUpdateBranch(configData);
-
     EXPECT_EQ(instance->energyInfo_.componentName, "TestComponent");
     EXPECT_EQ(instance->energyInfo_.componentPid, 1234);
     EXPECT_EQ(instance->energyInfo_.componentDefaultFps, 60);
@@ -349,10 +339,8 @@ HWTEST_F(RSFrameRatePolicyTest, TestGetComponentDefaultFps_Case1, TestSize.Level
     InitializeRSFrameRatePolicy();
 
     auto instance = RSFrameRatePolicy::GetInstance();
-
     std::string scene = "testScene";
     int32_t frameRate = 30;
-
     instance->energyInfo_.componentName = "otherComponent";
     instance->energyInfo_.componentDefaultFps = 60;
 
@@ -371,10 +359,8 @@ HWTEST_F(RSFrameRatePolicyTest, TestGetComponentDefaultFps_Case2, TestSize.Level
     InitializeRSFrameRatePolicy();
 
     auto instance = RSFrameRatePolicy::GetInstance();
-
     std::string scene = "testScene";
     int32_t frameRate = 0;
-
     instance->energyInfo_.componentName = scene;
     instance->energyInfo_.componentDefaultFps = 0;
 
@@ -393,10 +379,8 @@ HWTEST_F(RSFrameRatePolicyTest, TestGetComponentDefaultFps_Case3, TestSize.Level
     InitializeRSFrameRatePolicy();
 
     auto instance = RSFrameRatePolicy::GetInstance();
-
     std::string scene = "testScene";
     int32_t frameRate = 0;
-
     instance->energyInfo_.componentName = scene;
     instance->energyInfo_.componentDefaultFps = 60;
 
@@ -415,10 +399,8 @@ HWTEST_F(RSFrameRatePolicyTest, TestGetComponentDefaultFps_Case4, TestSize.Level
     InitializeRSFrameRatePolicy();
 
     auto instance = RSFrameRatePolicy::GetInstance();
-
     std::string scene = "testScene";
     int32_t frameRate = 90;
-
     instance->energyInfo_.componentName = scene;
     instance->energyInfo_.componentDefaultFps = 60;
 
@@ -437,10 +419,8 @@ HWTEST_F(RSFrameRatePolicyTest, TestGetComponentDefaultFps_Case5, TestSize.Level
     InitializeRSFrameRatePolicy();
 
     auto instance = RSFrameRatePolicy::GetInstance();
-
     std::string scene = "testScene";
     int32_t frameRate = 30;
-
     instance->energyInfo_.componentName = scene;
     instance->energyInfo_.componentDefaultFps = 60;
 

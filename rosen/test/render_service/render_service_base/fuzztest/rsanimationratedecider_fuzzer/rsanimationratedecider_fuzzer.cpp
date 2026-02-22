@@ -73,7 +73,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     PropertyValue velocity;
     FrameRateRange range(min, max, preferred);
     FrameRateFunctions frameRateFunctions = { .frameRateGetFunc =
-        [](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t { return 0;  }};
+        [](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t { return 0; } };
     RSAnimationRateDecider rsAnimationRateDecider;
     rsAnimationRateDecider.SetEnable(true);
     rsAnimationRateDecider.SetNodeSize(width, height);

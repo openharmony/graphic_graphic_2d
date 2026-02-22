@@ -63,7 +63,6 @@ HWTEST_F(HgmRPEnergyTest, TestSyncEnergyInfoToRP, TestSize.Level1)
     energyInfo.componentDefaultFps = 60;
 
     hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-
     EXPECT_FALSE(hgmRPEnergy_->energyInfo_.componentName.empty());
     EXPECT_NE(hgmRPEnergy_->energyInfo_.componentPid, 0);
     EXPECT_NE(hgmRPEnergy_->energyInfo_.componentDefaultFps, 0);
@@ -84,13 +83,11 @@ HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case1, TestSize.Level1)
     energyInfo.componentPid = 1234;
     energyInfo.componentDefaultFps = 60;
     hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-
     FrameRateRange rsRange;
     rsRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
     rsRange.type_ = 0;
 
-    hgmRPEnergy_->SetComponentDefaultFps(rsRange, 1234);
-
+    hgmRPEnergy_->SetComponentDefaultFps(1234, rsRange);
     EXPECT_EQ(rsRange.min_, 0);
     EXPECT_EQ(rsRange.max_, 0);
     EXPECT_EQ(rsRange.preferred_, 0);
@@ -111,13 +108,11 @@ HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case2, TestSize.Level1)
     energyInfo.componentPid = 1234;
     energyInfo.componentDefaultFps = 60;
     hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-
     FrameRateRange rsRange;
     rsRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
     rsRange.type_ = 0;
 
-    hgmRPEnergy_->SetComponentDefaultFps(rsRange, 5678);
-
+    hgmRPEnergy_->SetComponentDefaultFps(5678, rsRange);
     EXPECT_EQ(rsRange.min_, 0);
     EXPECT_EQ(rsRange.max_, 0);
     EXPECT_EQ(rsRange.preferred_, 0);
@@ -138,7 +133,6 @@ HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case3, TestSize.Level1)
     energyInfo.componentPid = 1234;
     energyInfo.componentDefaultFps = 60;
     hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-
     FrameRateRange rsRange;
     rsRange.min_ = 10;
     rsRange.max_ = 20;
@@ -146,8 +140,7 @@ HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case3, TestSize.Level1)
     rsRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
     rsRange.type_ = 0;
 
-    hgmRPEnergy_->SetComponentDefaultFps(rsRange, 1234);
-
+    hgmRPEnergy_->SetComponentDefaultFps(1234, rsRange);
     EXPECT_EQ(rsRange.min_, 10);
     EXPECT_EQ(rsRange.max_, 20);
     EXPECT_EQ(rsRange.preferred_, 15);
@@ -168,13 +161,11 @@ HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case4, TestSize.Level1)
     energyInfo.componentPid = 1234;
     energyInfo.componentDefaultFps = 60;
     hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-
     FrameRateRange rsRange;
     rsRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
     rsRange.type_ = 0;
 
-    hgmRPEnergy_->SetComponentDefaultFps(rsRange, 1234);
-
+    hgmRPEnergy_->SetComponentDefaultFps(1234, rsRange);
     EXPECT_EQ(rsRange.min_, 0);
     EXPECT_EQ(rsRange.max_, 0);
     EXPECT_EQ(rsRange.preferred_, 0);
@@ -195,13 +186,11 @@ HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case5, TestSize.Level1)
     energyInfo.componentPid = 1234;
     energyInfo.componentDefaultFps = 60;
     hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-
     FrameRateRange rsRange;
     rsRange.componentScene_ = ComponentScene::SWIPER_FLING;
     rsRange.type_ = 0;
 
-    hgmRPEnergy_->SetComponentDefaultFps(rsRange, 1234);
-
+    hgmRPEnergy_->SetComponentDefaultFps(1234, rsRange);
     EXPECT_EQ(rsRange.min_, 0);
     EXPECT_EQ(rsRange.max_, 60);
     EXPECT_EQ(rsRange.preferred_, 60);
@@ -222,13 +211,11 @@ HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case6, TestSize.Level1)
     energyInfo.componentPid = 1234;
     energyInfo.componentDefaultFps = 60;
     hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-
     FrameRateRange rsRange;
     rsRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
     rsRange.type_ = SWIPER_DRAG_FRAME_RATE_TYPE;
 
-    hgmRPEnergy_->SetComponentDefaultFps(rsRange, 1234);
-
+    hgmRPEnergy_->SetComponentDefaultFps(1234, rsRange);
     EXPECT_EQ(rsRange.min_, 0);
     EXPECT_EQ(rsRange.max_, 60);
     EXPECT_EQ(rsRange.preferred_, 60);

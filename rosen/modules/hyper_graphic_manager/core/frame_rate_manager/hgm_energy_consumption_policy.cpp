@@ -139,7 +139,7 @@ void HgmEnergyConsumptionPolicy::SetComponentDefaultFpsInfo(const EventInfo& eve
 {
     if (eventInfo.eventStatus && currentRefreshMode_ == HGM_REFRESHRATE_MODE_AUTO) {
         auto [componentName, pid, _] = HgmMultiAppStrategy::AnalyzePkgParam(eventInfo.description);
-        if (pid == DEFAULT_PID || eventInfo.maxRefreshRate == 0) {
+        if (componentName == "" || pid == DEFAULT_PID || eventInfo.maxRefreshRate == 0) {
             return;
         }
         energyInfo_.componentName = std::move(componentName);

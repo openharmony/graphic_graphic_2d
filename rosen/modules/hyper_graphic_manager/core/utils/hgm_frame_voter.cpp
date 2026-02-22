@@ -52,6 +52,15 @@ HgmFrameVoter::HgmFrameVoter(HgmMultiAppStrategy& multiAppStrategy)
     }
 }
 
+void HgmFrameVoter::SetDisableTouchHighFrame(bool isDisableTouchHighFrame)
+{
+    if (isDisableTouchHighFrame_ == isDisableTouchHighFrame) {
+        return;
+    }
+    isUpdateTouchFramePolicy_ = true;
+    isDisableTouchHighFrame_ = isDisableTouchHighFrame;
+}
+
 void HgmFrameVoter::CleanVote(pid_t pid)
 {
     if (pidRecord_.count(pid) == 0) {
