@@ -1256,7 +1256,6 @@ Vector3f DARK_BG_NEG(1.1f, 1.2f, 1.3f);
 } // namespace
 
 /**
-/**
  * @tc.name: ApplyAdaptiveFrostedGlassParamsTest002
  * @tc.desc: ApplyAdaptiveFrostedGlassParams dark / light branch
  * @tc.type: FUNC
