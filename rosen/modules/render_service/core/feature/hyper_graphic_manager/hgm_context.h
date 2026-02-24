@@ -16,6 +16,7 @@
 #define HGM_CONTEXT_H
 
 #include "hgm_frame_rate_manager.h"
+#include "hgm_rp_energy.h"
 #include "rp_frame_rate_policy.h"
 #include "vsync_distributor.h"
 
@@ -43,15 +44,15 @@ public:
         return rsFrameRateLinker_;
     }
 
-    const std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>& GetConvertFrameRateFunc() const
-    {
-        return convertFrameRateFunc_;
-    }
+    const FrameRateFunctions& GetFrameRateFunctions() const { return frameRateFunctions_; }
 
     bool GetIsAdaptiveVsyncComposeReady() const { return isAdaptiveVsyncComposeReady_; }
 
+    std::shared_ptr<HgmRPEnergy> GetHgmRPEnergy() const { return hgmRPEnergy_; }
+
 private:
     void InitHgmUpdateCallback();
+    void InitEnergyInfoUpdateCallback();
 
     FrameRateRange rsCurrRange_;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
@@ -64,9 +65,10 @@ private:
 
     bool rpHgmConfigDataChange_ = false;
     std::shared_ptr<RPHgmConfigData> rpHgmConfigData_ = nullptr;
+    std::shared_ptr<HgmRPEnergy> hgmRPEnergy_ = nullptr;
 
     RPFrameRatePolicy rpFrameRatePolicy_;
-    std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)> convertFrameRateFunc_ = nullptr;
+    FrameRateFunctions frameRateFunctions_;
 
     std::atomic<bool> isAdaptiveVsyncComposeReady_ = false;
 };

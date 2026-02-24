@@ -26,9 +26,11 @@
 
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
+#include "transaction/rs_hgm_config_data.h"
 
 namespace OHOS::Rosen {
 
+using SyncEnergyInfoFunc = std::function<void(const EnergyInfo&)>;
 constexpr uint32_t DRAG_FRAME_RATE_TYPE = REFRESH_DRAG_FRAME_RATE_TYPE | SWIPER_DRAG_FRAME_RATE_TYPE |
     SCROLLABLE_DRAG_FRAME_RATE_TYPE | SCROLLBAR_DRAG_FRAME_RATE_TYPE | SPLIT_DRAG_FRAME_RATE_TYPE |
     PICKER_DRAG_FRAME_RATE_TYPE | SCROLLABLE_MULTI_TASK_FRAME_RATE_TYPE;
@@ -45,7 +47,7 @@ public:
     // called by RSMainThread
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
-    
+
     bool GetUiIdleFps(FrameRateRange& rsRange, pid_t pid = 0);
     void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
     void PrintEnergyConsumptionLog(const FrameRateRange& rsRange);
@@ -59,6 +61,11 @@ public:
     bool GetVideoCallFrameRate(pid_t pid, const std::string& vsyncName, FrameRateRange &finalRange);
     void SetCurrentPkgName(const std::vector<std::string>& pkgs);
     void SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo);
+
+    // component default fps
+    void SetComponentDefaultFpsInfo(const EventInfo& eventInfo);
+    bool DisableTouchHighFrameRate(const FrameRateRange& finalRange);
+    void SetSyncEnergyInfoFunc(const SyncEnergyInfoFunc& func) { syncEnergyInfoFunc_ = func; }
 
 private:
     // <rateType, <isEnable, idleFps>>
@@ -89,6 +96,8 @@ private:
     // concurrency protection <<<
     std::atomic<bool> dragSceneEnable_ = { true };
     std::atomic<pid_t> dragSceneDisablePid_ = { 0 };
+    SyncEnergyInfoFunc syncEnergyInfoFunc_ = nullptr;
+    EnergyInfo energyInfo_ {};
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;

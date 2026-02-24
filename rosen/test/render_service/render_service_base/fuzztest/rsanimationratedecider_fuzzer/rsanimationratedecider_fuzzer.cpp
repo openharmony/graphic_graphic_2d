@@ -72,22 +72,22 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int preferred = GetData<int>();
     PropertyValue velocity;
     FrameRateRange range(min, max, preferred);
-    auto frameRateGetFunc =
-        [](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t { return 0; };
+    FrameRateFunctions frameRateFunctions = { .frameRateGetFunc =
+        [](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t { return 0; } };
     RSAnimationRateDecider rsAnimationRateDecider;
     rsAnimationRateDecider.SetEnable(true);
     rsAnimationRateDecider.SetNodeSize(width, height);
     rsAnimationRateDecider.SetNodeScale(scaleX, scaleY);
     rsAnimationRateDecider.Reset();
     rsAnimationRateDecider.AddDecisionElement(id, velocity, range);
-    rsAnimationRateDecider.MakeDecision(frameRateGetFunc);
+    rsAnimationRateDecider.MakeDecision(frameRateFunctions);
     rsAnimationRateDecider.GetFrameRateRange();
     PropertyValue propertyVector4F = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
         Vector4f(), 1, RSPropertyUnit::PIXEL_POSITION);
-    rsAnimationRateDecider.CalculatePreferredRate(propertyVector4F, frameRateGetFunc);
+    rsAnimationRateDecider.CalculatePreferredRate(propertyVector4F, frameRateFunctions.frameRateGetFunc);
     PropertyValue propertyVector2F = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
         Vector2f(), 1, RSPropertyUnit::PIXEL_POSITION);
-    rsAnimationRateDecider.CalculatePreferredRate(propertyVector2F, frameRateGetFunc);
+    rsAnimationRateDecider.CalculatePreferredRate(propertyVector2F, frameRateFunctions.frameRateGetFunc);
     return true;
 }
 } // namespace Rosen

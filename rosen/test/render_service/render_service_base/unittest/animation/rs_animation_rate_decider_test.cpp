@@ -127,10 +127,10 @@ HWTEST_F(RSAnimationRateDeciderTest, AddDecisionElement, TestSize.Level1)
 
 /**
  * @tc.name: MakeDecision
- * @tc.desc: Test MakeDecision
+ * @tc.desc: Test MakeDecision001
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationRateDeciderTest, MakeDecision, TestSize.Level1)
+HWTEST_F(RSAnimationRateDeciderTest, MakeDecision001, TestSize.Level1)
 {
     auto rateDecider_ = std::make_shared<RSAnimationRateDecider>();
     ASSERT_NE(rateDecider_, nullptr);
@@ -151,11 +151,49 @@ HWTEST_F(RSAnimationRateDeciderTest, MakeDecision, TestSize.Level1)
     rateDecider_->AddDecisionElement(2, nullptr, {0, 120, 120});
     rateDecider_->AddDecisionElement(3, nullptr, {0, 0, 0});
 
-    rateDecider_->MakeDecision([](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
-        return 90;
-    });
+    FrameRateFunctions func = { .frameRateGetFunc = [](const RSPropertyUnit unit, float velocity, int32_t area,
+                                                       int32_t length) -> int32_t { return 90; },
+        .componentFrameRateFunc = nullptr };
+    rateDecider_->MakeDecision(func);
     auto range = rateDecider_->GetFrameRateRange();
     EXPECT_EQ(range.preferred_, 90);
+}
+
+/**
+ * @tc.name: MakeDecision
+ * @tc.desc: Test MakeDecision002
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationRateDeciderTest, MakeDecision002, TestSize.Level1)
+{
+    auto rateDecider_ = std::make_shared<RSAnimationRateDecider>();
+    ASSERT_NE(rateDecider_, nullptr);
+
+    rateDecider_->Reset();
+    PropertyValue value1 = std::make_shared<RSRenderAnimatableProperty<float>>(
+        0.0, 1, RSPropertyUnit::PIXEL_POSITION);
+    rateDecider_->AddDecisionElement(1, value1, {0, 120, 60});
+    PropertyValue value2 = std::make_shared<RSRenderAnimatableProperty<float>>(
+        10.0, 1, RSPropertyUnit::PIXEL_POSITION);
+    rateDecider_->AddDecisionElement(1, value2, {0, 120, 60});
+    PropertyValue value3 = std::make_shared<RSRenderAnimatableProperty<float>>(
+        10.0, 2, RSPropertyUnit::PIXEL_POSITION);
+    rateDecider_->AddDecisionElement(2, value3, {0, 120, 120});
+    PropertyValue value4 = std::make_shared<RSRenderAnimatableProperty<float>>(
+        10.0, 2, RSPropertyUnit::PIXEL_POSITION);
+    rateDecider_->AddDecisionElement(2, value4, {0, 0, 0});
+    rateDecider_->AddDecisionElement(2, nullptr, {0, 120, 120});
+    rateDecider_->AddDecisionElement(3, nullptr, {0, 0, 0});
+
+    FrameRateFunctions frameRateFunctions = { .frameRateGetFunc = nullptr,
+        .componentFrameRateFunc = [](pid_t pid, FrameRateRange& range) {
+            range.min_ = 0;
+            range.max_ = 90;
+            range.preferred_ = 90;
+        } };
+    rateDecider_->MakeDecision(frameRateFunctions);
+    auto range = rateDecider_->GetFrameRateRange();
+    EXPECT_EQ(range.preferred_, 120);
 }
 
 /**

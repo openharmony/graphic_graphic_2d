@@ -45,6 +45,7 @@ public:
     void SyncRefreshRateUpdateCallback(int32_t refreshRate);
     void SyncXComponentExpectedFrameRateCallback(pid_t pid, const std::string& xcomponentId, int32_t expectedFrameRate);
     void UnRegisterHgmConfigChangeCallback(pid_t pid);
+    void SyncEnergyDataCallback(const EnergyInfo& energyInfo);
 
 private:
     HgmConfigCallbackManager();
@@ -62,6 +63,7 @@ private:
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>>> xcomponentExpectedFrameRateCallbacks_;
     // <dstPid, <xcomponentId, frameRate>>
     std::unordered_map<pid_t, std::unordered_map<std::string, int32_t>> xcomponentExpectedFrameRate_;
+    EnergyInfo energyInfo_ {};
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CONFIG_CALLBACK_MANAGER_H

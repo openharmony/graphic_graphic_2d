@@ -40,7 +40,7 @@ RSFrameRatePolicy::~RSFrameRatePolicy()
 void RSFrameRatePolicy::RegisterHgmConfigChangeCallback()
 {
     auto callback =
-        [this](std::shared_ptr<RSHgmConfigData> data) { this->RSFrameRatePolicy::HgmConfigChangeCallback(data); };
+        [this](std::shared_ptr<RSHgmConfigData> data) { this->RSFrameRatePolicy::DispatchUpdateBranch(data); };
     if (RSInterfaces::GetInstance().RegisterHgmConfigChangeCallback(callback) != NO_ERROR) {
         ROSEN_LOGE("RegisterHgmConfigChangeCallback failed");
     }
@@ -51,13 +51,22 @@ const std::unordered_set<std::string>& RSFrameRatePolicy::GetPageNameList() cons
     return pageNameList_;
 }
 
-void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData)
+void RSFrameRatePolicy::DispatchUpdateBranch(std::shared_ptr<RSHgmConfigData> configData)
 {
     if (configData == nullptr) {
         ROSEN_LOGE("RSFrameRatePolicy configData is null");
         return;
     }
+    if (configData->GetIsSyncConfig()) {
+        HgmConfigChangeCallback(configData);
+    }
+    if (configData->GetIsSyncEnergyData()) {
+        HgmEnergyDataChangeCallback(configData);
+    }
+}
 
+void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData)
+{
     pageNameList_ = configData->GetPageNameList();
     auto data = configData->GetConfigData();
     if (data.empty()) {
@@ -81,6 +90,11 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
     }
 }
 
+void RSFrameRatePolicy::HgmEnergyDataChangeCallback(std::shared_ptr<RSHgmConfigData> configData)
+{
+    energyInfo_ = configData->GetEnergyInfo();
+}
+
 void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateMode)
 {
     RSUIDirector::PostFrameRateTask([this, refreshRateMode]() {
@@ -98,7 +112,7 @@ int32_t RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (animAttributes_.count(scene) == 0 || ppi_ == 0) {
-        return 0;
+        return GetComponentDefaultFps(scene, 0);
     }
     float speedMM = speed / ppi_ * INCH_2_MM;
     const auto& attributes = animAttributes_[scene];
@@ -109,9 +123,9 @@ int32_t RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed
     if (iter != attributes.end()) {
         RS_TRACE_NAME_FMT("GetPreferredFps: scene: %s, speed: %f, rate: %d",
             scene.c_str(), speedMM, iter->second.preferredFps);
-        return iter->second.preferredFps;
+        return GetComponentDefaultFps(scene, iter->second.preferredFps);
     }
-    return 0;
+    return GetComponentDefaultFps(scene, 0);
 }
 
 int32_t RSFrameRatePolicy::GetExpectedFrameRate(const RSPropertyUnit unit, float velocity)
@@ -127,6 +141,22 @@ int32_t RSFrameRatePolicy::GetExpectedFrameRate(const RSPropertyUnit unit, float
         default:
             return 0;
     }
+}
+
+int32_t RSFrameRatePolicy::GetComponentDefaultFps(const std::string& scene, int32_t frameRate)
+{
+    if (energyInfo_.componentName != scene || energyInfo_.componentDefaultFps == 0) {
+        return frameRate;
+    }
+
+    int32_t result = 0;
+    if (frameRate == 0) {
+        result = energyInfo_.componentDefaultFps;
+    } else {
+        result = std::min(energyInfo_.componentDefaultFps, frameRate);
+    }
+    RS_TRACE_NAME_FMT("GetComponentDefaultFps: speedFrameRate: %d finalFrameRate: %d", frameRate, result);
+    return result;
 }
 
 bool RSFrameRatePolicy::GetTouchOrPointerAction(int32_t pointerAction)

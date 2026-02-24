@@ -123,7 +123,7 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
         }
         return isFinished;
     });
-    rateDecider_.MakeDecision(frameRateGetFunc_);
+    rateDecider_.MakeDecision(frameRateFunctions_);
 
     return hasRunningAnimation;
 }
@@ -161,7 +161,7 @@ bool RSModifierManager::JudgeAnimateWhetherSkip(AnimationId animId, int64_t time
 
 void RSModifierManager::SetFrameRateGetFunc(const FrameRateGetFunc& func)
 {
-    frameRateGetFunc_ = func;
+    frameRateFunctions_.frameRateGetFunc = func;
 }
 
 const FrameRateRange RSModifierManager::GetFrameRateRange() const

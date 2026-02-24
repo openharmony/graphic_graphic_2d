@@ -132,10 +132,10 @@ HWTEST_F(HgmFrameVoterTest, TestGetVoterGamesEffective, Function | SmallTest | L
 HWTEST_F(HgmFrameVoterTest, TestDragScene, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
-    mgr.frameVoter_.SetDragScene(false);
-    EXPECT_EQ(mgr.frameVoter_.IsDragScene(), false);
-    mgr.frameVoter_.SetDragScene(true);
-    EXPECT_EQ(mgr.frameVoter_.IsDragScene(), true);
+    mgr.frameVoter_.SetDisableTouchHighFrame(false);
+    EXPECT_EQ(mgr.frameVoter_.isDisableTouchHighFrame_, false);
+    mgr.frameVoter_.SetDisableTouchHighFrame(true);
+    EXPECT_EQ(mgr.frameVoter_.isDisableTouchHighFrame_, true);
 }
 
 /**
@@ -224,7 +224,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     hgmFrameVoter.DeliverVote({ "VOTER_VIDEO", OLED_60_HZ, OLED_60_HZ, 3 }, true);
     std::shared_ptr<PolicyConfigData> policyConfigData = std::move(HgmCore::Instance().mPolicyConfigData_);
     HgmCore::Instance().mPolicyConfigData_ = nullptr;
-    hgmFrameVoter.isDragScene_ = true;
+    hgmFrameVoter.isDisableTouchHighFrame_ = true;
     auto voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
     VoteRange range;
     VoteInfo info;
@@ -243,7 +243,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     HgmCore::Instance().mPolicyConfigData_->videoFrameRateList_["testPkg"] = "1";
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
     range = { 0, 0 };
-    hgmFrameVoter.isDragScene_ = false;
+    hgmFrameVoter.isDisableTouchHighFrame_ = false;
     hgmFrameVoter.DeliverVote({ "VOTER_POINTER", OLED_120_HZ, OLED_120_HZ, 4 }, true);
     hgmFrameVoter.multiAppStrategy_.backgroundPid_.Put(4);
     hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
@@ -446,6 +446,42 @@ HWTEST_F(HgmFrameVoterTest, Callback, Function | SmallTest | Level0)
     hgmFrameVoter.SetCheckVoteCallback([](const std::string&, VoteInfo&) -> bool { return false; });
     auto [voteInfo1, voteRange1] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
     EXPECT_EQ(voteRange1.first, OLED_MIN_HZ);
+}
+
+/**
+ * @tc.name: SetDisableTouchHighFrame_SameValue
+ * @tc.desc: Test SetDisableTouchHighFrame when the input is the same as current value
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, SetDisableTouchHighFrame_SameValue, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
+
+    hgmFrameVoter.isDisableTouchHighFrame_ = false;
+    hgmFrameVoter.isUpdateTouchFramePolicy_ = false;
+    hgmFrameVoter.SetDisableTouchHighFrame(false);
+    EXPECT_FALSE(hgmFrameVoter.isDisableTouchHighFrame_);
+    EXPECT_FALSE(hgmFrameVoter.isUpdateTouchFramePolicy_);
+}
+
+/**
+ * @tc.name: SetDisableTouchHighFrame_DifferentValue
+ * @tc.desc: Test SetDisableTouchHighFrame when the input is different from current value
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, SetDisableTouchHighFrame_DifferentValue, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
+
+    hgmFrameVoter.isDisableTouchHighFrame_ = false;
+    hgmFrameVoter.isUpdateTouchFramePolicy_ = false;
+    hgmFrameVoter.SetDisableTouchHighFrame(true);
+    EXPECT_TRUE(hgmFrameVoter.isDisableTouchHighFrame_);
+    EXPECT_TRUE(hgmFrameVoter.isUpdateTouchFramePolicy_);
 }
 } // namespace Rosen
 } // namespace OHOS

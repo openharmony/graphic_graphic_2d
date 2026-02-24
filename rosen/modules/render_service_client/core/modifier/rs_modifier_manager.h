@@ -209,7 +209,7 @@ private:
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
 
     RSAnimationRateDecider rateDecider_;
-    FrameRateGetFunc frameRateGetFunc_;
+    FrameRateFunctions frameRateFunctions_;
     bool hasFirstFrameAnimation_ = false;
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderDisplaySync>> displaySyncs_;

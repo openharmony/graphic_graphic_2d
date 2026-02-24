@@ -30,9 +30,10 @@ constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 
 HgmContext::HgmContext()
 {
+    hgmRPEnergy_ = std::make_shared<HgmRPEnergy>();
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(
         [](const RSRenderFrameRateLinker& linker) { HgmCore::Instance().SetHgmTaskFlag(true); });
-    convertFrameRateFunc_ = [this](RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
+    frameRateFunctions_.frameRateGetFunc = [this](RSPropertyUnit unit, float velocity, int32_t area, int32_t length) {
         return rpFrameRatePolicy_.GetExpectedFrameRate(unit, velocity, area, length);
     };
 }
@@ -80,6 +81,7 @@ void HgmContext::InitHgmTaskHandleThread(
         });
 
     InitHgmUpdateCallback();
+    InitEnergyInfoUpdateCallback();
 }
 
 void HgmContext::InitHgmUpdateCallback()
@@ -161,6 +163,26 @@ void HgmContext::ProcessHgmFrameRate(
                 frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkers);
             }
         });
+}
+
+void HgmContext::InitEnergyInfoUpdateCallback()
+{
+    auto syncEnergyFunc = [this](const EnergyInfo& energyInfo) {
+        RSMainThread::Instance()->PostTask([this, energyInfo]() {
+            static ComponentFrameRateFunc func = [this](pid_t pid, FrameRateRange& rsRange) {
+                hgmRPEnergy_->SetComponentDefaultFps(pid, rsRange);
+            };
+            if (energyInfo.componentName == "" || energyInfo.componentPid == 0) {
+                frameRateFunctions_.componentFrameRateFunc = nullptr;
+            } else {
+                frameRateFunctions_.componentFrameRateFunc = func;
+            }
+            hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
+        });
+    };
+    HgmTaskHandleThread::Instance().PostTask([callback = std::move(syncEnergyFunc)] {
+        HgmEnergyConsumptionPolicy::Instance().SetSyncEnergyInfoFunc(callback);
+    });
 }
 } // namespace Rosen
 } // namespace OHOS

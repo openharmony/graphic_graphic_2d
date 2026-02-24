@@ -31,12 +31,24 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    void InitializeRSFrameRatePolicy();
 };
 
 void RSFrameRatePolicyTest::SetUpTestCase() {}
 void RSFrameRatePolicyTest::TearDownTestCase() {}
 void RSFrameRatePolicyTest::SetUp() {}
 void RSFrameRatePolicyTest::TearDown() {}
+void RSFrameRatePolicyTest::InitializeRSFrameRatePolicy()
+{
+    RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
+    instance->ppi_ = 1.0f;
+    instance->xDpi_ = 1.0f;
+    instance->yDpi_ = 1.0f;
+    instance->pageNameList_.clear();
+    instance->currentRefreshRateModeName_ = -1;
+    instance->animAttributes_.clear();
+    instance->energyInfo_ = EnergyInfo();
+}
 
 /**
  * @tc.name: interface
@@ -77,11 +89,7 @@ HWTEST_F(RSFrameRatePolicyTest, GetRefreshRateMode_Test, TestSize.Level1)
 HWTEST_F(RSFrameRatePolicyTest, HgmConfigChangeCallback, TestSize.Level1)
 {
     auto instance = RSFrameRatePolicy::GetInstance();
-    std::shared_ptr<RSHgmConfigData> configData;
-    instance->HgmConfigChangeCallback(configData);
-    EXPECT_TRUE(configData == nullptr);
-
-    configData = std::make_shared<RSHgmConfigData>();
+    std::shared_ptr<RSHgmConfigData> configData = std::make_shared<RSHgmConfigData>();
     instance->HgmConfigChangeCallback(configData);
     EXPECT_TRUE(configData->configData_.empty() == true);
 
@@ -239,6 +247,185 @@ HWTEST_F(RSFrameRatePolicyTest, GetTouchOrPointerAction, TestSize.Level1)
 
     usleep(sendMoveDuration);
     EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
+}
+
+/**
+ * @tc.name: TestDispatchUpdateBranch_Case1
+ * @tc.desc: Test DispatchUpdateBranch when configData is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRatePolicyTest, TestDispatchUpdateBranch_Case1, TestSize.Level1)
+{
+    InitializeRSFrameRatePolicy();
+
+    auto instance = RSFrameRatePolicy::GetInstance();
+    instance->DispatchUpdateBranch(nullptr);
+    EXPECT_EQ(instance->GetPageNameList().size(), 0);
+    EXPECT_EQ(instance->ppi_, 1.0f);
+    EXPECT_EQ(instance->xDpi_, 1.0f);
+    EXPECT_EQ(instance->yDpi_, 1.0f);
+    EXPECT_EQ(instance->animAttributes_.size(), 0);
+}
+
+/**
+ * @tc.name: TestDispatchUpdateBranch_Case2
+ * @tc.desc: Test DispatchUpdateBranch when IsSyncConfig and !IsSyncEnergyData
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRatePolicyTest, TestDispatchUpdateBranch_Case2, TestSize.Level1)
+{
+    InitializeRSFrameRatePolicy();
+
+    auto instance = RSFrameRatePolicy::GetInstance();
+    auto configData = std::make_shared<RSHgmConfigData>();
+    configData->SetIsSyncConfig(true);
+    configData->SetPpi(25.4f);
+    configData->SetXDpi(25.4f);
+    configData->SetYDpi(25.4f);
+    std::string pageName = "TestPage";
+    configData->AddPageName(pageName);
+    AnimDynamicItem item;
+    item.animType = "testType";
+    item.animName = "testName";
+    item.minSpeed = 1;
+    item.maxSpeed = 10;
+    item.preferredFps = 60;
+    configData->AddAnimDynamicItem(item);
+
+    instance->DispatchUpdateBranch(configData);
+    EXPECT_EQ(instance->GetPageNameList().size(), 1);
+    EXPECT_EQ(instance->ppi_, 25.4f);
+    EXPECT_EQ(instance->xDpi_, 25.4f);
+    EXPECT_EQ(instance->yDpi_, 25.4f);
+    EXPECT_EQ(instance->animAttributes_.size(), 1);
+}
+
+/**
+ * @tc.name: TestDispatchUpdateBranch_Case3
+ * @tc.desc: Test DispatchUpdateBranch when !IsSyncConfig and IsSyncEnergyData
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRatePolicyTest, TestDispatchUpdateBranch_Case3, TestSize.Level1)
+{
+    InitializeRSFrameRatePolicy();
+
+    auto instance = RSFrameRatePolicy::GetInstance();
+    auto configData = std::make_shared<RSHgmConfigData>();
+    configData->SetIsSyncConfig(false);
+    // Set energy info
+    EnergyInfo energyInfo;
+    energyInfo.componentName = "TestComponent";
+    energyInfo.componentPid = 1234;
+    energyInfo.componentDefaultFps = 60;
+    configData->SetEnergyInfo(energyInfo);
+
+    instance->DispatchUpdateBranch(configData);
+    EXPECT_EQ(instance->energyInfo_.componentName, "TestComponent");
+    EXPECT_EQ(instance->energyInfo_.componentPid, 1234);
+    EXPECT_EQ(instance->energyInfo_.componentDefaultFps, 60);
+}
+
+/**
+ * @tc.name: TestGetComponentDefaultFps_Case1
+ * @tc.desc: Test when energyInfo_.componentName != scene
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRatePolicyTest, TestGetComponentDefaultFps_Case1, TestSize.Level1)
+{
+    InitializeRSFrameRatePolicy();
+
+    auto instance = RSFrameRatePolicy::GetInstance();
+    std::string scene = "testScene";
+    int32_t frameRate = 30;
+    instance->energyInfo_.componentName = "otherComponent";
+    instance->energyInfo_.componentDefaultFps = 60;
+
+    int32_t result = instance->GetComponentDefaultFps(scene, frameRate);
+    EXPECT_EQ(result, frameRate);
+}
+
+/**
+ * @tc.name: TestGetComponentDefaultFps_Case2
+ * @tc.desc: Test when energyInfo_.componentName == scene and energyInfo_.componentDefaultFps == 0
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRatePolicyTest, TestGetComponentDefaultFps_Case2, TestSize.Level1)
+{
+    InitializeRSFrameRatePolicy();
+
+    auto instance = RSFrameRatePolicy::GetInstance();
+    std::string scene = "testScene";
+    int32_t frameRate = 0;
+    instance->energyInfo_.componentName = scene;
+    instance->energyInfo_.componentDefaultFps = 0;
+
+    int32_t result = instance->GetComponentDefaultFps(scene, frameRate);
+    EXPECT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: TestGetComponentDefaultFps_Case3
+ * @tc.desc: Test when energyInfo_.componentName == scene and energyInfo_.componentDefaultFps != 0, frameRate = 0
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRatePolicyTest, TestGetComponentDefaultFps_Case3, TestSize.Level1)
+{
+    InitializeRSFrameRatePolicy();
+
+    auto instance = RSFrameRatePolicy::GetInstance();
+    std::string scene = "testScene";
+    int32_t frameRate = 0;
+    instance->energyInfo_.componentName = scene;
+    instance->energyInfo_.componentDefaultFps = 60;
+
+    int32_t result = instance->GetComponentDefaultFps(scene, frameRate);
+    EXPECT_EQ(result, 60);
+}
+
+/**
+ * @tc.name: TestGetComponentDefaultFps_Case4
+ * @tc.desc: Test when energyInfo_.componentDefaultFps != 0, frameRate > energyInfo_.componentDefaultFps
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRatePolicyTest, TestGetComponentDefaultFps_Case4, TestSize.Level1)
+{
+    InitializeRSFrameRatePolicy();
+
+    auto instance = RSFrameRatePolicy::GetInstance();
+    std::string scene = "testScene";
+    int32_t frameRate = 90;
+    instance->energyInfo_.componentName = scene;
+    instance->energyInfo_.componentDefaultFps = 60;
+
+    int32_t result = instance->GetComponentDefaultFps(scene, frameRate);
+    EXPECT_EQ(result, 60);
+}
+
+/**
+ * @tc.name: TestGetComponentDefaultFps_Case5
+ * @tc.desc: Test when energyInfo_.componentDefaultFps != 0 and frameRate < energyInfo_.componentDefaultFps
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRatePolicyTest, TestGetComponentDefaultFps_Case5, TestSize.Level1)
+{
+    InitializeRSFrameRatePolicy();
+
+    auto instance = RSFrameRatePolicy::GetInstance();
+    std::string scene = "testScene";
+    int32_t frameRate = 30;
+    instance->energyInfo_.componentName = scene;
+    instance->energyInfo_.componentDefaultFps = 60;
+
+    int32_t result = instance->GetComponentDefaultFps(scene, frameRate);
+    EXPECT_EQ(result, 30);
 }
 } // namespace Rosen
 } // namespace OHOS

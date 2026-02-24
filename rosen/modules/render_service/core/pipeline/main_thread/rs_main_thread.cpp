@@ -3485,7 +3485,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
         node->animationManager_.SetRateDeciderEnable(
-            isRateDeciderEnabled, hgmContext_.GetConvertFrameRateFunc());
+            isRateDeciderEnabled, hgmContext_.GetFrameRateFunctions());
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
             node->Animate(timestamp, minLeftDelayTime, period, isDisplaySyncEnabled);
         if (!hasRunningAnimation) {

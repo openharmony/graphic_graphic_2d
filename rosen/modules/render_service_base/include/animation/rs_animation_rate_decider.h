@@ -25,7 +25,13 @@ namespace Rosen {
 enum class RSPropertyUnit : uint8_t;
 class RSRenderPropertyBase;
 using FrameRateGetFunc = std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>;
+using ComponentFrameRateFunc = std::function<void(pid_t, FrameRateRange&)>;
 using PropertyValue = std::shared_ptr<RSRenderPropertyBase>;
+
+struct FrameRateFunctions {
+    FrameRateGetFunc frameRateGetFunc = nullptr;
+    ComponentFrameRateFunc componentFrameRateFunc = nullptr;
+};
 
 class RSB_EXPORT RSAnimationRateDecider {
 public:
@@ -55,7 +61,7 @@ public:
     }
     void Reset();
     void AddDecisionElement(PropertyId id, const PropertyValue& velocity, FrameRateRange range);
-    void MakeDecision(const FrameRateGetFunc& func);
+    void MakeDecision(const FrameRateFunctions& func);
     const FrameRateRange& GetFrameRateRange() const;
 private:
     int32_t CalculatePreferredRate(const PropertyValue& property, const FrameRateGetFunc& func);

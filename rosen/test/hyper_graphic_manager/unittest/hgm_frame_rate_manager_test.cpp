@@ -564,16 +564,16 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
         hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
         hccMgr->RegisterHgmRefreshRateUpdateCallback(0, nullptr);
         hccMgr->RegisterHgmRefreshRateUpdateCallback(pid, cb);
+        hccMgr->energyInfo_.componentPid = pid;
         hccMgr->SyncHgmConfigChangeCallback();
         hccMgr->SyncRefreshRateModeChangeCallback(0);
-        hccMgr->refreshRateUpdateCallbacks_ = {
-            {0, nullptr},
-        };
+        hccMgr->refreshRateUpdateCallbacks_ = { { 0, nullptr } };
         hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
         ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), false);
         hccMgr->UnRegisterHgmConfigChangeCallback(pid);
         hccMgr->UnRegisterHgmConfigChangeCallback(0);
         hccMgr->animDynamicCfgCallbacks_.try_emplace(pid, cb);
+        hccMgr->energyInfo_.componentPid = DEFAULT_PID;
         hccMgr->SyncHgmConfigChangeCallback();
         hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
         hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
@@ -986,6 +986,8 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level0)
     eventInfo2.eventName = "VOTER_VIRTUALDISPLAY";
     mgr->HandleRefreshRateEvent(0, eventInfo2);
     eventInfo2.eventName = "VOTER_MULTISELFOWNEDSCREEN";
+    mgr->HandleRefreshRateEvent(0, eventInfo2);
+    eventInfo2.eventName = "COMPONENT_DEFAULT_FPS";
     mgr->HandleRefreshRateEvent(0, eventInfo2);
 }
 
@@ -1602,13 +1604,9 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | L
     if (frameRateMgr == nullptr) {
         return;
     }
-    
-    frameRateMgr->frameVoter_.isDragScene_ = false;
-    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
-    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
 
-    frameRateMgr->frameVoter_.isDragScene_ = true;
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
+    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 120);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
@@ -2029,6 +2027,129 @@ HWTEST_F(HgmFrameRateMgrTest, TestIsMouseOrTouchPadEvent, Function | SmallTest |
     touchStatus = -1;
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);
+}
+
+/**
+ * @tc.name: SyncEnergyDataCallback001
+ * @tc.desc: Verify that when receivePid == DEFAULT_PID, energyInfo_.receivePid == DEFAULT_PID
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, SyncEnergyDataCallback001, Function | SmallTest | Level0)
+{
+    EnergyInfo energyInfo;
+    energyInfo.componentPid = DEFAULT_PID;
+    sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
+    hccMgr->energyInfo_.componentPid = DEFAULT_PID;
+    hccMgr->SyncEnergyDataCallback(energyInfo);
+    EXPECT_EQ(hccMgr->energyInfo_.componentPid, DEFAULT_PID);
+}
+
+/**
+ * @tc.name: SyncEnergyDataCallback002
+ * @tc.desc: Verify the behavior when receivePid != DEFAULT_PID and animDynamicCfgCallbacks_ is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, SyncEnergyDataCallback002, Function | SmallTest | Level0)
+{
+    EnergyInfo energyInfo;
+    energyInfo.componentPid = 1234;
+    sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
+    hccMgr->energyInfo_.componentPid = DEFAULT_PID;
+    hccMgr->animDynamicCfgCallbacks_.clear();
+    hccMgr->SyncEnergyDataCallback(energyInfo);
+    EXPECT_EQ(hccMgr->energyInfo_.componentPid, energyInfo.componentPid);
+}
+
+/**
+ * @tc.name: SyncEnergyDataCallback003
+ * @tc.desc: Verify the behavior when iter == animDynamicCfgCallbacks_.end()
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, SyncEnergyDataCallback003, Function | SmallTest | Level0)
+{
+    EnergyInfo energyInfo;
+    energyInfo.componentPid = 1234;
+    sptr<CustomHgmCallback> cb = new CustomHgmCallback();
+    sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
+    hccMgr->animDynamicCfgCallbacks_[1235] = cb;
+    hccMgr->SyncEnergyDataCallback(energyInfo);
+    EXPECT_EQ(hccMgr->energyInfo_.componentPid, energyInfo.componentPid);
+}
+
+/**
+ * @tc.name: SyncEnergyDataCallback004
+ * @tc.desc: Verify the behavior when iter->second == nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, SyncEnergyDataCallback004, Function | SmallTest | Level0)
+{
+    EnergyInfo energyInfo;
+    energyInfo.componentPid = 1234;
+    sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
+    hccMgr->animDynamicCfgCallbacks_[1234] = nullptr;
+    hccMgr->SyncEnergyDataCallback(energyInfo);
+    EXPECT_EQ(hccMgr->energyInfo_.componentPid, energyInfo.componentPid);
+}
+
+/**
+ * @tc.name: SyncEnergyDataCallback005
+ * @tc.desc: Verify the behavior when iter->second != nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, SyncEnergyDataCallback005, Function | SmallTest | Level0)
+{
+    EnergyInfo energyInfo;
+    energyInfo.componentPid = 1234;
+    sptr<CustomHgmCallback> cb = new CustomHgmCallback();
+    sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
+    hccMgr->animDynamicCfgCallbacks_[1234] = cb;
+    hccMgr->SyncEnergyDataCallback(energyInfo);
+    EXPECT_EQ(hccMgr->energyInfo_.componentPid, energyInfo.componentPid);
+}
+
+/**
+ * @tc.name: TestProcessLtpoVote_DragSceneTrue
+ * @tc.desc: Verify the result of ProcessLtpoVote when isDragScene is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestProcessLtpoVote_DragSceneTrue, Function | SmallTest | Level0)
+{
+    std::shared_ptr<HgmFrameRateManager> mgr = std::make_shared<HgmFrameRateManager>();
+    FrameRateRange finalRange;
+    finalRange.min_ = 0;
+    finalRange.max_ = 120;
+    finalRange.preferred_ = 60;
+    finalRange.type_ = SWIPER_DRAG_FRAME_RATE_TYPE;
+
+    mgr->ProcessLtpoVote(finalRange);
+
+    ASSERT_TRUE(mgr->frameVoter_.isDisableTouchHighFrame_);
+}
+
+/**
+ * @tc.name: TestProcessLtpoVote_DragSceneFalse
+ * @tc.desc: Verify the result of ProcessLtpoVote when isDragScene is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestProcessLtpoVote_DragSceneFalse, Function | SmallTest | Level0)
+{
+    std::shared_ptr<HgmFrameRateManager> mgr = std::make_shared<HgmFrameRateManager>();
+    FrameRateRange finalRange;
+    finalRange.min_ = 0;
+    finalRange.max_ = 120;
+    finalRange.preferred_ = 60;
+    finalRange.type_ = 0;
+
+    mgr->ProcessLtpoVote(finalRange);
+
+    ASSERT_FALSE(mgr->frameVoter_.isDisableTouchHighFrame_);
 }
 } // namespace Rosen
 } // namespace OHOS

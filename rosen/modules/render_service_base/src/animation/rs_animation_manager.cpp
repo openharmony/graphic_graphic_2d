@@ -186,16 +186,16 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
         }
         return isFinished;
     });
-    rateDecider_.MakeDecision(frameRateGetFunc_);
+    rateDecider_.MakeDecision(frameRateFunctions_);
     isCalculateAnimationValue = isCalculateAnimationValue && nodeIsOnTheTree;
 
     return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
 }
 
-void RSAnimationManager::SetRateDeciderEnable(bool enabled, const FrameRateGetFunc& func)
+void RSAnimationManager::SetRateDeciderEnable(bool enabled, const FrameRateFunctions& func)
 {
     rateDecider_.SetEnable(enabled);
-    frameRateGetFunc_ = func;
+    frameRateFunctions_ = func;
 }
 
 void RSAnimationManager::SetRateDeciderSize(float width, float height)

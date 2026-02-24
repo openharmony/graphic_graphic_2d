@@ -52,6 +52,15 @@ HgmFrameVoter::HgmFrameVoter(HgmMultiAppStrategy& multiAppStrategy)
     }
 }
 
+void HgmFrameVoter::SetDisableTouchHighFrame(bool isDisableTouchHighFrame)
+{
+    if (isDisableTouchHighFrame_ == isDisableTouchHighFrame) {
+        return;
+    }
+    isUpdateTouchFramePolicy_ = true;
+    isDisableTouchHighFrame_ = isDisableTouchHighFrame;
+}
+
 void HgmFrameVoter::CleanVote(pid_t pid)
 {
     if (pidRecord_.count(pid) == 0) {
@@ -110,7 +119,8 @@ void HgmFrameVoter::DeliverVote(const VoteInfo& voteInfo, bool eventStatus)
             return;
         }
 
-        if ((*it).min != voteInfo.min || (*it).max != voteInfo.max) {
+        if ((*it).min != voteInfo.min || (*it).max != voteInfo.max || isUpdateTouchFramePolicy_) {
+            isUpdateTouchFramePolicy_ = false;
             // modify
             vec.erase(it);
             vec.push_back(voteInfo);
@@ -163,7 +173,8 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
             ProcessVoteLog(curVoteInfo, true);
             continue;
         }
-        if ((isDragScene_ || NeedSkipVoterTouch(existVoterLTPO)) && curVoteInfo.voterName == "VOTER_TOUCH") {
+        if ((isDisableTouchHighFrame_ || NeedSkipVoterTouch(existVoterLTPO)) &&
+            curVoteInfo.voterName == "VOTER_TOUCH") {
             continue;
         }
         if (curVoteInfo.voterName == "VOTER_LTPO") {

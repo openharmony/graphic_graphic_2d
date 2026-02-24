@@ -394,13 +394,19 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
-    frameVoter_.SetDragScene(finalRange.type_ & DRAG_FRAME_RATE_TYPE);
+    bool disableTouchHigh = HgmEnergyConsumptionPolicy::Instance().DisableTouchHighFrameRate(finalRange);
+    bool isDragScene = finalRange.type_ & DRAG_FRAME_RATE_TYPE;
+    frameVoter_.SetDisableTouchHighFrame(isDragScene || disableTouchHigh);
     if (finalRange.IsValid()) {
-        auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
+        auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
+        if (isDragScene) {
+            refreshRate = UpdateFrameRateWithDelay(refreshRate);
+        }
         auto allTypeDescription = finalRange.GetAllTypeDescription();
         HGM_LOGD("ltpo desc: %{public}s", allTypeDescription.c_str());
-        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%u],"
-            " desc: [%s]", frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_, allTypeDescription.c_str());
+        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene: [%d], videoSlideDisable: [%d], refreshRate: [%d], "
+            "lastLTPORefreshRate: [%u], desc: [%s]", isDragScene, disableTouchHigh, refreshRate, lastLTPORefreshRate_,
+            allTypeDescription.c_str());
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else {
@@ -410,10 +416,6 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 
 uint32_t HgmFrameRateManager::UpdateFrameRateWithDelay(uint32_t refreshRate)
 {
-    if (!frameVoter_.IsDragScene()) {
-        return refreshRate;
-    }
-
     auto curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()
                     .time_since_epoch()).count();
     if (refreshRate < lastLTPORefreshRate_ && curTime - lastLTPOVoteTime_ < DRAG_SCENE_CHANGE_RATE_TIMEOUT) {
@@ -772,6 +774,9 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         return;
     } else if (eventName == "VOTER_LOW_POWER_SLIDE") {
         HandleLowPowerSlideSceneEvent(eventInfo.description, eventInfo.eventStatus);
+        return;
+    } else if (eventName == "COMPONENT_DEFAULT_FPS") {
+        HgmEnergyConsumptionPolicy::Instance().SetComponentDefaultFpsInfo(eventInfo);
         return;
     }
     auto voters = frameVoter_.GetVoters();

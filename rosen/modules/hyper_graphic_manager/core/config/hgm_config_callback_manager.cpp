@@ -59,6 +59,7 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
     auto& hgmCore = HgmCore::Instance();
     auto data = std::make_shared<RSHgmConfigData>();
 
+    data->SetIsSyncConfig(true);
     auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
     auto settingMode = std::to_string(hgmCore.GetCurrentRefreshRateMode());
     auto configData = hgmCore.GetPolicyConfigData();
@@ -182,6 +183,7 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
     }
     auto data = std::make_shared<RSHgmConfigData>();
 
+    data->SetIsSyncConfig(true);
     auto screenType = frameRateMgr->GetCurScreenStrategyId();
     auto settingMode = std::to_string(hgmCore.GetCurrentRefreshRateMode());
     auto configData = hgmCore.GetPolicyConfigData();
@@ -317,6 +319,23 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
             ++iter;
         }
     }
+}
+
+void HgmConfigCallbackManager::SyncEnergyDataCallback(const EnergyInfo& energyInfo)
+{
+    HGM_LOGD("syncEnergyInfo pid: %d", energyInfo.componentPid);
+    pid_t receivePid = (energyInfo.componentPid == DEFAULT_PID) ? energyInfo_.componentPid : energyInfo.componentPid;
+    energyInfo_ = energyInfo;
+    if (receivePid == DEFAULT_PID) {
+        return;
+    }
+    auto iter = animDynamicCfgCallbacks_.find(receivePid);
+    if (iter == animDynamicCfgCallbacks_.end() || iter->second == nullptr) {
+        return;
+    }
+    auto data = std::make_shared<RSHgmConfigData>();
+    data->SetEnergyInfo(energyInfo_);
+    iter->second->OnHgmConfigChanged(data);
 }
 
 void HgmConfigCallbackManager::DestroyXComponent(pid_t pid, const std::string& xcomponentId)
