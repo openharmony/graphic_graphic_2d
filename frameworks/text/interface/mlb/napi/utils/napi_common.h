@@ -49,7 +49,7 @@ struct ResourceInfo {
 };
 
 struct FontPathResourceContext : public ContextBase {
-    std::string filePath;
+    std::optional<std::string> filePath;
     ResourceInfo info;
 };
 
@@ -106,9 +106,6 @@ enum TextErrorCode : int32_t {
 template<class T>
 T* CheckParamsAndGetThis(const napi_env env, napi_callback_info info, const char* name = nullptr)
 {
-    if (env == nullptr || info == nullptr) {
-        return nullptr;
-    }
     napi_value object = nullptr;
     napi_value propertyNameValue = nullptr;
     napi_value pointerValue = nullptr;
@@ -291,10 +288,6 @@ inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, size_t& value)
 template<class T>
 bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 {
-    if (jsValue == nullptr) {
-        return false;
-    }
-
     using ValueType = std::remove_cv_t<std::remove_reference_t<T>>;
     if constexpr (std::is_same_v<ValueType, bool>) {
         return napi_get_value_bool(env, jsValue, &value) == napi_ok;
@@ -312,6 +305,13 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
             return true;
         }
         return false;
+    } else if constexpr (std::is_same_v<ValueType, std::optional<std::string>>) {
+        std::string temp;
+        if (ConvertFromJsValue(env, jsValue, temp)) {
+            value = temp;
+            return true;
+        }
+        return false;
     } else if constexpr (std::is_enum_v<ValueType>) {
         std::make_signed_t<ValueType> numberValue = 0;
         if (!ConvertFromJsNumber(env, jsValue, numberValue)) {
@@ -325,9 +325,6 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 
 inline bool ConvertClampFromJsValue(napi_env env, napi_value jsValue, int32_t& value, int32_t lo, int32_t hi)
 {
-    if (jsValue == nullptr) {
-        return false;
-    }
     bool ret = napi_get_value_int32(env, jsValue, &value) == napi_ok;
     value = std::clamp(value, lo, hi);
     return ret;
