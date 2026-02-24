@@ -1368,7 +1368,9 @@ int32_t RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typefac
         RSTypefaceCache::GetTypefacePid(id), RSTypefaceCache::GetTypefaceId(id));
     int32_t needUpdate = 0;
     uint32_t size = typeface->GetSize();
+    uint32_t originUniqueId = typeface->GetRawUniqueId();
     Drawing::SharedTypeface sharedTypeface(id, typeface);
+    sharedTypeface.originId_ = originUniqueId == 0 ? 0 : RSTypefaceCache::GenGlobalUniqueId(originUniqueId);
     int32_t fd = clientToService->RegisterTypeface(sharedTypeface, needUpdate);
     if (fd != typeface->GetFd() && fd >= 0) {
         auto ashmem = std::make_unique<Ashmem>(fd, size);

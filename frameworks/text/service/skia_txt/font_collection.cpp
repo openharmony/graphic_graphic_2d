@@ -34,7 +34,6 @@ FontCollection::FontCallback FontCollection::loadFontStartCallback_ {};
 FontCollection::FontCallback FontCollection::loadFontFinishCallback_ {};
 FontCollection::FontCallback FontCollection::unloadFontStartCallback_ {};
 FontCollection::FontCallback FontCollection::unloadFontFinishCallback_ {};
-FontCollection::FontCallback FontCollection::freeFontCacheCallback_ {};
 
 std::shared_ptr<FontCollection> FontCollection::Create()
 {
@@ -394,11 +393,6 @@ void FontCollection::RegisterLoadFontFinishCallback(FontCallbackType cb)
 void FontCollection::RegisterUnloadFontFinishCallback(FontCallbackType cb)
 {
     unloadFontFinishCallback_.AddCallback(cb);
-}
-
-void FontCollection::RegisterFreeFontCacheCallback(FontCallbackType cb)
-{
-    freeFontCacheCallback_.AddCallback(cb);
 }
 
 void FontCollection::FontCallback::AddCallback(FontCallbackType cb)

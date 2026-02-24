@@ -205,15 +205,19 @@ public:
     void SetFullHash(uint64_t fullHash);
 
     uint64_t GetFullHash() const;
+    uint32_t GetRawUniqueId() const { return rawUniqueId_; }
+    void SetRawUniqueId(uint32_t rawUniqueId) { rawUniqueId_ = rawUniqueId; }
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
     uint32_t size_ = 0;
     uint32_t index_ = 0;
     uint64_t fullHash_ = 0;
+    uint32_t rawUniqueId_ = 0;
 };
 
 struct SharedTypeface {
     uint64_t id_ = 0;
+    uint64_t originId_ = 0;
     uint32_t size_ = 0;
     int32_t fd_ = -1;
     uint32_t hash_ = 0;

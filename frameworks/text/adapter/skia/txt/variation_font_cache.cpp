@@ -16,6 +16,7 @@
 #include "variation_font_cache.h"
 
 #include "text/typeface.h"
+#include "utils/text_log.h"
 
 namespace txt {
 
@@ -49,7 +50,6 @@ uint32_t VariationFontCache::CalculateHashKey(uint32_t originalUniqueId,
     uint32_t hash = 0;
     hash ^= originalUniqueId;
     hash ^= std::hash<skia::textlayout::FontArguments>()(fontArgs);
-
     return hash;
 }
 
@@ -88,58 +88,40 @@ std::shared_ptr<RSTypeface> VariationFontCache::RegisterVariationTypeface(
         return typeface;
     }
 
+    uint32_t needNotifyCacheId = 0;
+    std::shared_ptr<RSTypeface> variationTypeface = nullptr;
     uint32_t originalUniqueId = typeface->GetUniqueID();
     uint32_t hashKey = CalculateHashKey(originalUniqueId, fontArgs.value());
 
-    // Check cache first (read lock - allows concurrent readers)
     {
-        std::shared_lock<std::shared_mutex> sharedLock(mutex_);
+        std::unique_lock<std::shared_mutex> uniqueLock(mutex_);
         auto cacheIt = cacheIndex_.find(hashKey);
         if (cacheIt != cacheIndex_.end()) {
-            // Upgrade to write lock for updating access time
-            sharedLock.unlock();
-            std::unique_lock<std::shared_mutex> uniqueLock(mutex_);
-            // Re-check since we released the lock
-            cacheIt = cacheIndex_.find(hashKey);
-            if (cacheIt != cacheIndex_.end()) {
-                cacheIt->second->lastAccessTime = ++accessCounter_;
-                return cacheIt->second->variationTypeface;
-            }
-        }
-    }
-
-    // Clone the typeface with variation parameters (outside lock to prevent deadlock)
-    auto variationTypeface = fontArgs->CloneTypeface(typeface);
-    if (variationTypeface == nullptr) {
-        return typeface;
-    }
-
-    uint32_t variationUniqueId = variationTypeface->GetUniqueID();
-
-    // Register with RS (outside lock to prevent deadlock)
-    variationTypeface->SetFd(typeface->GetFd());
-    auto& registerCallback = RSDrawing::Typeface::GetTypefaceRegisterCallBack();
-    if (registerCallback != nullptr) {
-        registerCallback(variationTypeface);
-    }
-
-    uint32_t needNotifyCacheId = 0;
-    // Add to cache (write lock)
-    {
-        std::unique_lock<std::shared_mutex> lock(mutex_);
-
-        // Double-check if another thread already added this entry while we were cloning
-        auto cacheIt = cacheIndex_.find(hashKey);
-        if (cacheIt != cacheIndex_.end()) {
+            cacheIt->second->lastAccessTime = ++accessCounter_;
+            TEXT_LOGI_LIMIT3_MIN("Find variation font cache, originalUniqueId: %{public}u", originalUniqueId);
             return cacheIt->second->variationTypeface;
+        }
+
+        variationTypeface = fontArgs->CloneTypeface(typeface);
+        if (variationTypeface == nullptr) {
+            TEXT_LOGE("Failed to clone variation typeface, originalUniqueId: %{public}u", originalUniqueId);
+            return typeface;
+        }
+
+        uint32_t variationUniqueId = variationTypeface->GetUniqueID();
+        variationTypeface->SetFd(typeface->GetFd());
+        variationTypeface->SetRawUniqueId(originalUniqueId);
+        auto& registerCallback = RSDrawing::Typeface::GetTypefaceRegisterCallback();
+        if (registerCallback != nullptr) {
+            registerCallback(variationTypeface);
         }
 
         // Evict oldest entry if cache is full
         if (cacheList_.size() >= MAX_CACHE_SIZE) {
             needNotifyCacheId = EvictOldest();
+            TEXT_LOGD("EvictOldest typeface");
         }
 
-        // Add to cache
         CacheEntry entry;
         entry.originalUniqueId = originalUniqueId;
         entry.variationUniqueId = variationUniqueId;
@@ -151,7 +133,6 @@ std::shared_ptr<RSTypeface> VariationFontCache::RegisterVariationTypeface(
         cacheIndex_[hashKey] = std::prev(cacheList_.end());
     }
     NotifyCacheRemoved(needNotifyCacheId);
-
     return variationTypeface;
 }
 

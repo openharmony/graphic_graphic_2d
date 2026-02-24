@@ -30,8 +30,6 @@
 namespace txt {
 class VariationFontCache {
 public:
-    // Callback type for cache removal notifications
-    // Parameter: variationUniqueId of the typeface being removed from cache
     using CacheRemoveCallback = std::function<void(uint32_t)>;
 
     struct CacheEntry {
@@ -41,17 +39,11 @@ public:
         std::shared_ptr<RSTypeface> variationTypeface{nullptr};
         uint64_t lastAccessTime{0};
     };
-
     static constexpr size_t MAX_CACHE_SIZE = 32;
 
     VariationFontCache() = default;
     ~VariationFontCache();
 
-    /**
-     * @brief Set callback for cache removal notifications
-     * @param callback Function to be called when a cache entry is removed
-     * @note The callback will be invoked with the variationUniqueId as parameter
-     */
     void SetCacheRemoveCallback(CacheRemoveCallback callback);
 
     /**
@@ -75,22 +67,14 @@ private:
 
     uint32_t CalculateHashKey(uint32_t originalUniqueId,
                                const skia::textlayout::FontArguments& fontArgs) const;
-
-    /**
-     * @brief Evict the oldest entry from cache (LRU policy)
-     * @note Must be called with mutex already locked
-     */
     uint32_t EvictOldest();
 
     // Must be called with mutex already unlocked
     void NotifyCacheRemoved(uint32_t variationUniqueId);
 
-    // Cache storage
     std::list<CacheEntry> cacheList_;
     std::unordered_map<uint32_t, std::list<CacheEntry>::iterator> cacheIndex_;
     uint64_t accessCounter_{0};
-
-    // Callback for cache removal notifications
     CacheRemoveCallback cacheRemoveCallback_{nullptr};
     mutable std::shared_mutex mutex_;
 };

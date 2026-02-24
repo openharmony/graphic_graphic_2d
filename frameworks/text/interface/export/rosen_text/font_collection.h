@@ -68,7 +68,6 @@ public:
     static void RegisterUnloadFontFinishCallback(FontCallbackType cb);
     static void RegisterLoadFontStartCallback(FontCallbackType cb);
     static void RegisterLoadFontFinishCallback(FontCallbackType cb);
-    static void RegisterFreeFontCacheCallback(FontCallbackType cb);
 
 protected:
     struct FontCallback {
@@ -83,7 +82,6 @@ protected:
     static FontCallback unloadFontFinishCallback_;
     static FontCallback loadFontStartCallback_;
     static FontCallback loadFontFinishCallback_;
-    static FontCallback freeFontCacheCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS
