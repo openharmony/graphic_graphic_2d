@@ -1112,17 +1112,42 @@ public:
     void SetOutlineRadius(const Vector4f& radius);
 
     /**
-     * @brief Sets color picker params of the node
-     *
+     * @brief Sets color picker params of the node.
      * @param placeholder The handle to receive realtime color.
-     * @param strategy Strategy type to handle the color picked.
+     * @param strategy Strategy type to handle the color picked. Reset when placeholder is NONE.
      * @param interval Color picker task interval in ms, minimum is 500ms.
      */
     void SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrategyType strategy, uint64_t interval);
 
     /**
+     * @brief Sets the color picker parameters for callback mode.
+     *
+     * @param interval Cooldown interval between two color picking tasks in ms. Minimum is 180ms.
+     * @param notifyThreshold {darkThreshold, lightThreshold} (0-255).
+     *                        Notify when luminance crosses either thresholds.
+     * @param rect Optional snapshot region relative to node. If not provided, captures the entire node.
+     */
+    void SetColorPickerOptions(
+        uint64_t interval, std::pair<uint32_t, uint32_t> notifyThreshold, std::optional<Vector4f> rect = std::nullopt);
+
+    /**
+     * @brief Registers a callback to receive color picker notifications.
+     * @note The callback will be invoked when the color picker detects luminance changes based on the
+     *       threshold set by SetColorPickerParams.
+     *
+     * @param callback The callback function to be invoked with the picked color value (0-255 luminance).
+     */
+    void SetColorPickerCallback(ColorPickerCallback callback);
+
+    /**
+     * @return true if a color picker callback is set, false otherwise.
+     */
+    bool HasColorPickerCallback() const;
+
+    /**
      * @brief Registers a periodic task that extracts background luminance when the node is drawn and notifies
      * the client via callback.
+     * @deprecated to be removed soon. Call SetColorPickerParams and SetColorPickerCallback instead
      *
      * @param interval Cooldown interval between two color picking tasks in ms.
      * @param callback Only called when the change of background luminance > @p notifyThreshold.
@@ -1133,6 +1158,7 @@ public:
 
     /**
      * @brief Unregisters the color picking task.
+     * @deprecated combine SetColorPickerCallback(nullptr) and SetColorPickerParams
      *
      * @return true if unregistration is successful.
      */

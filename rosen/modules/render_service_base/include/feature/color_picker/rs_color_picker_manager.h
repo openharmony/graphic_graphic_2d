@@ -18,89 +18,30 @@
 
 #include <atomic>
 #include <memory>
-#include <mutex>
 
 #include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
 #include "i_color_picker_manager.h"
+
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-class Image;
-}
+
 class RSColorPickerManager : public std::enable_shared_from_this<RSColorPickerManager>, public IColorPickerManager {
 public:
-    RSColorPickerManager() = default;
+    explicit RSColorPickerManager(NodeId nodeId) : nodeId_(nodeId) {}
     ~RSColorPickerManager() noexcept = default;
-    /**
-     * @brief Return previously picked color and conditionally schedule a new color pick task on the current canvas.
-     * @param strategy Only CONTRAST is currently supported.
-     */
-    std::optional<Drawing::ColorQuad> GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
-        uint64_t nodeId, const ColorPickerParam& params) override;
+
+    std::optional<Drawing::ColorQuad> GetColorPick() override;
+    void ScheduleColorPick(
+        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params) override;
+    void SetSystemDarkColorMode(bool isSystemDarkColorMode) override;
+
+    void HandleColorUpdate(Drawing::ColorQuad newColor) override;
 
 private:
-    struct ColorPickerInfo {
-        std::shared_ptr<Drawing::ColorSpace> colorSpace_;
-        Drawing::BitmapFormat bitmapFormat_;
-        Drawing::BackendTexture backendTexture_;
-        std::shared_ptr<Drawing::Image> oldImage_;
-        NodeId nodeId_;
-        std::weak_ptr<RSColorPickerManager> manager_;
-        ColorPickStrategyType strategy_;
-
-        ColorPickerInfo(std::shared_ptr<Drawing::ColorSpace> colorSpace, Drawing::BitmapFormat bitmapFormat,
-            Drawing::BackendTexture backendTexture, std::shared_ptr<Drawing::Image> image, NodeId nodeId,
-            std::weak_ptr<RSColorPickerManager> manager, ColorPickStrategyType strategy)
-            : colorSpace_(colorSpace), bitmapFormat_(bitmapFormat), backendTexture_(backendTexture), oldImage_(image),
-              nodeId_(nodeId), manager_(manager), strategy_(strategy) {}
-
-        static void PickColor(void* context)
-        {
-            ColorPickerInfo* colorPickerInfo = static_cast<ColorPickerInfo*>(context);
-            if (colorPickerInfo == nullptr) {
-                RS_LOGE("ColorPickerInfo::PickColor context nullptr");
-                return;
-            }
-            std::shared_ptr<ColorPickerInfo> info(colorPickerInfo);
-            auto task = [info]() {
-                auto manager = info->manager_.lock();
-                if (manager == nullptr) {
-                    RS_LOGE("ColorPickerInfo::PickColor manager nullptr");
-                    return;
-                }
-#if defined(RS_ENABLE_UNI_RENDER)
-                auto gpuCtx = RSColorPickerThread::Instance().GetShareGPUContext();
-
-#else
-                std::shared_ptr<Drawing::GPUContext> gpuCtx = nullptr;
-#endif
-                if (gpuCtx == nullptr || info->oldImage_ == nullptr) {
-                    RS_LOGE("ColorPickerInfo::PickColor param invalid");
-                    return;
-                }
-                auto image = std::make_shared<Drawing::Image>();
-                Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-                if (!image->BuildFromTexture(*gpuCtx, info->backendTexture_.GetTextureInfo(), origin,
-                    info->bitmapFormat_, info->colorSpace_)) {
-                    RS_LOGE("ColorPickerInfo::PickColor BuildFromTexture failed");
-                    return;
-                }
-                manager->PickColor(image, info->nodeId_, info->strategy_);
-                image = nullptr;
-                info->oldImage_ = nullptr;
-            };
-            RSColorPickerThread::Instance().PostTask(task, 0);
-        }
-    };
-    void ScheduleColorPick(
-        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, ColorPickStrategyType strategy);
-    void PickColor(const std::shared_ptr<Drawing::Image>& snapshot, uint64_t nodeId, ColorPickStrategyType strategy);
-    void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId, ColorPickStrategyType strategy);
-
-    inline std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColor();
+    std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColor() const;
 
     static Drawing::ColorQuad InterpolateColor(
         Drawing::ColorQuad startColor, Drawing::ColorQuad endColor, float fraction);
@@ -109,15 +50,26 @@ private:
      * @brief Get a contrasting black or white color with hysteresis.
      *
      * @param color input to contrast with, usually the average color of the background.
+     * @param prevDark whether previously picked color was dark.
      */
-    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color);
+    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color, bool prevDark);
 
-    std::mutex colorMtx_;
-    Drawing::ColorQuad colorPicked_ = Drawing::Color::COLOR_BLACK;
-    Drawing::ColorQuad prevColor_ = Drawing::Color::COLOR_BLACK;
+    // Current contrast color (black/white) that contrasts with extracted background color.
+    // Uses COLOR_TRANSPARENT as sentinel for "not set yet" - defaults to white in dark mode,
+    // black in light mode.
+    std::atomic<Drawing::ColorQuad> colorPicked_ = Drawing::Color::COLOR_TRANSPARENT;
 
+    // Previous color used for smooth animation transitions between contrast colors.
+    // Uses COLOR_TRANSPARENT as sentinel for "not set yet".
+    std::atomic<Drawing::ColorQuad> prevColor_ = Drawing::Color::COLOR_TRANSPARENT;
+
+    // Animation start timestamp (ms since epoch) for interpolating prevColor_ to colorPicked_.
     std::atomic<uint64_t> animStartTime_ = 0;
-    uint64_t lastUpdateTime_ = 0;
+
+    const NodeId nodeId_;
+
+    // System dark mode flag - affects default color when colorPicked_/prevColor_ are not set.
+    std::atomic<bool> isSystemDarkColorMode_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

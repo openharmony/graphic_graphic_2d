@@ -3996,5 +3996,120 @@ HWTEST_F(RSRenderNodeTest, DumpSubClassNodeTest005, TestSize.Level1)
     ASSERT_TRUE(outTest.find("isRelated") != string::npos);
     ASSERT_TRUE(outTest.find("sourceNodeId") != string::npos);
 }
+
+/**
+ * @tc.name: IsColorPickerOnlyNode001
+ * @tc.desc: test IsColorPickerOnlyNode returns false when no ColorPickerDrawable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode001, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // No ColorPickerDrawable set, should return false
+    EXPECT_FALSE(node.IsColorPickerOnlyNode());
+}
+
+/**
+ * @tc.name: IsColorPickerOnlyNode002
+ * @tc.desc: test IsColorPickerOnlyNode returns true when ColorPickerDrawable exists but no real filter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode002, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at the COLOR_PICKER slot
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // With ColorPickerDrawable but no real filter (DisableHWCForFilter returns false)
+    EXPECT_TRUE(node.IsColorPickerOnlyNode());
+}
+
+/**
+ * @tc.name: IsColorPickerOnlyNode003
+ * @tc.desc: test IsColorPickerOnlyNode returns false when ColorPickerDrawable exists with real filter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode003, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at the COLOR_PICKER slot
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Set a background filter to make DisableHWCForFilter return true
+    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+
+    // With both ColorPickerDrawable and a real filter, should return false
+    EXPECT_FALSE(node.IsColorPickerOnlyNode());
+}
+
+/**
+ * @tc.name: IsColorPickerOnlyNode004
+ * @tc.desc: test IsColorPickerOnlyNode returns false when only real filter without ColorPickerDrawable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode004, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Set a background filter without ColorPickerDrawable
+    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+
+    // With real filter but no ColorPickerDrawable, should return false
+    EXPECT_FALSE(node.IsColorPickerOnlyNode());
+}
+
+/**
+ * @tc.name: GetColorPickerDrawable001
+ * @tc.desc: Test GetColorPickerDrawable returns nullptr when drawable is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+
+    // No ColorPicker drawable set
+    auto colorPickerDrawable = node->GetColorPickerDrawable();
+    EXPECT_EQ(colorPickerDrawable, nullptr);
+}
+
+/**
+ * @tc.name: GetColorPickerDrawable002
+ * @tc.desc: Test GetColorPickerDrawable successfully retrieves ColorPicker drawable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable002, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at the COLOR_PICKER slot
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Verify GetColorPickerDrawable returns the correct drawable
+    auto retrievedDrawable = node.GetColorPickerDrawable();
+    EXPECT_NE(retrievedDrawable, nullptr);
+    EXPECT_EQ(retrievedDrawable, colorPickerDrawable);
+}
 } // namespace Rosen
 } // namespace OHOS

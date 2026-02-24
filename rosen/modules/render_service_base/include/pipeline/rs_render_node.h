@@ -54,6 +54,8 @@ namespace OHOS {
 namespace Rosen {
 namespace DrawableV2 {
 class RSChildrenDrawable;
+class RSColorPickerDrawable;
+class RSFilterDrawable;
 class RSRenderNodeDrawableAdapter;
 class RSRenderNodeShadowDrawable;
 }
@@ -1022,6 +1024,7 @@ public:
 
     // Enable HWCompose
     RSHwcRecorder& GetHwcRecorder() { return hwcRecorder_; }
+    const RSHwcRecorder& GetConstHwcRecorder() const { return hwcRecorder_; }
 
     RSOpincCache& GetOpincCache()
     {
@@ -1055,6 +1058,13 @@ public:
     virtual void AfterTreeStatueChanged() {}
 
     RectI GetFilterDrawableSnapshotRegion() const;
+
+    std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
+    // returns true if color picker will execute this frame
+    bool PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode);
+    // returns true if node only has ColorPickerDrawable without any real filter
+    bool IsColorPickerOnlyNode() const;
+
 protected:
     void ResetDirtyStatus();
 
