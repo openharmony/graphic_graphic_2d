@@ -985,7 +985,8 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList001, TestSize.Level1)
     auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
     int width = 1024;
     int height = 1920;
-    Drawing::Canvas canvas(width, height);
+    Drawing::Canvas drawingCanvas(width, height);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     CaptureParam params;
     params.isMirror_ = true;
     std::unordered_set<NodeId> whiteList = {nodeId};
@@ -1046,7 +1047,8 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList002, TestSize.Level1)
     auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
     int width = 1024;
     int height = 1920;
-    Drawing::Canvas canvas(width, height);
+    Drawing::Canvas drawingCanvas(width, height);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     CaptureParam params;
     params.isMirror_ = true;
@@ -1094,7 +1096,8 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList003, TestSize.Level2)
     uniParams->SetSecurityDisplay(true);
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
 
-    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    Drawing::Canvas drawingCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
 }
 
@@ -1115,7 +1118,8 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList004, TestSize.Level2)
     // set render thread param
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
 
-    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    Drawing::Canvas drawingCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
 }
 
