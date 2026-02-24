@@ -16,10 +16,11 @@
 #ifndef RENDER_SERVICE_BASE_FEATURE_COLOR_PICKER_RS_COLOR_PICKER_THREAD_H
 #define RENDER_SERVICE_BASE_FEATURE_COLOR_PICKER_RS_COLOR_PICKER_THREAD_H
 
-#include <functional>
 #include <atomic>
+#include <functional>
 
 #include "event_handler.h"
+
 #include "common/rs_macros.h"
 
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
@@ -35,7 +36,7 @@ public:
     using NotifyClientCallback = std::function<void(uint64_t, uint32_t)>;
 
     static RSColorPickerThread& Instance();
-    void PostTask(const std::function<void()>& task, int64_t delayTime = 0);
+    bool PostTask(const std::function<void()>& task, bool limited = true, int64_t delayTime = 0);
     void RegisterNodeDirtyCallback(const NodeDirtyCallback& callback);
     void NotifyNodeDirty(uint64_t nodeId);
 
@@ -61,8 +62,8 @@ private:
     NotifyClientCallback notifyClient_ = nullptr;
 
     // Rate limiting for PostTask
-    std::atomic<uint32_t> taskCount_ {0};
-    std::atomic<int64_t> lastResetTime_ {0};
+    std::atomic<uint32_t> taskCount_ { 0 };
+    std::atomic<int64_t> lastResetTime_ { 0 };
 
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
@@ -70,5 +71,5 @@ private:
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
 #endif
 };
-}
+} // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_FEATURE_COLOR_PICKER_RS_COLOR_PICKER_THREAD_H

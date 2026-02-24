@@ -241,7 +241,7 @@ public:
     void RestoreEnv();
     int GetEnvSaveCount() const;
     void RestoreEnvToCount(int count);
-    void SetColorPicked(ColorPlaceholder placeholder, Drawing::ColorQuad color);
+    void SetColorPicked(Drawing::ColorQuad color);
     Drawing::ColorQuad GetColorPicked(ColorPlaceholder placeholder) const;
 
     // blendmode and blender related
@@ -503,7 +503,8 @@ protected:
         std::shared_ptr<CachedEffectData> behindWindowData_;
         std::shared_ptr<Drawing::Blender> blender_;
         bool hasOffscreenLayer_;
-        std::map<ColorPlaceholder, Drawing::ColorQuad> pickedColorMap_;
+        Drawing::ColorQuad fractionColor_;
+        bool fractionColorReady_;
         // use as the clip bounds of the filter with a custom snapshot/drawing rect
         // the value is the clip bounds of the surface render node
         Drawing::RectI filterClipBounds_;
@@ -540,6 +541,11 @@ protected:
 
     bool CopyCachedEffectData(std::shared_ptr<CachedEffectData>& dstEffectData,
         const std::shared_ptr<CachedEffectData>& srcEffectData, const RSPaintFilterCanvas& srcCanvas);
+    
+    inline bool NeedReplaceColor(Drawing::Color color)
+    {
+        return color.IsPlaceholder() && !envStack_.empty() && envStack_.top().fractionColorReady_;
+    }
 
 private:
     bool isParallelCanvas_ = false;

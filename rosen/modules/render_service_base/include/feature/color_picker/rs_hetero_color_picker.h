@@ -32,7 +32,7 @@ public:
     RSHeteroColorPicker() = default;
     ~RSHeteroColorPicker() = default;
 
-    bool GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor, Drawing::Surface* surface,
+    bool GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor, RSPaintFilterCanvas& canvas,
         std::shared_ptr<Drawing::Image>& image);
 
 private:

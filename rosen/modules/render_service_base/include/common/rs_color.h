@@ -111,6 +111,7 @@ public:
     }
     bool IsPlaceholder() const;
     ColorPlaceholder GetPlaceholder() const;
+    void SetPlaceholder(ColorPlaceholder ph);
 
     Drawing::Color ConvertToDrawingColor() const;
 

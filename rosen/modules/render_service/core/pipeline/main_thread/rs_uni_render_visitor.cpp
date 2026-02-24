@@ -94,6 +94,8 @@
 #include "rs_frame_blur_predict.h"
 #include "rs_uni_render_visitor.h"
 
+#include "drawable/rs_misc_drawable.h"
+
 #undef LOG_TAG
 #define LOG_TAG "RSUniRenderVisitor"
 
@@ -882,6 +884,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     }
     rsScreenNodeChildNum_ = 0;
     RSHdrUtil::LuminanceChangeSetDirty(node);
+
     QuickPrepareChildren(node);
     TryNotifyUIBufferAvailable();
 
@@ -1201,8 +1204,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
                        RSSystemProperties::GetPreparePhaseQuickSkipEnabled() && rsScreenNodeNum_ <= 1 &&
                        CheckQuickSkipSurfaceRenderNode(node);
     if (isQuickSkip) {
-        RS_TRACE_NAME_FMT("RSUniRender::QuickPrepare:[%s] nodeId[%" PRIu64 "] pid[%d] nodeType[%u]"
-                          " subTreeDirty[%d], crossDisplay:[%d], isBackgroundSkip:[%d], childHasFilter:[%d]",
+        RS_TRACE_NAME_FMT(
+            "RSUniRender::QuickPrepare:[%s] nodeId[%" PRIu64 "] pid[%d] nodeType[%u]"
+            " subTreeDirty[%d], crossDisplay:[%d], isBackgroundSkip:[%d], childHasFilter:[%d]",
             node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
             static_cast<uint>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(), node.IsFirstLevelCrossNode(),
             isBgWindowTraversalStarted_, node.ChildHasVisibleFilter());
@@ -2250,6 +2254,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     curScreenDirtyManager_->Clear();
     hwcVisitor_->transparentHwcCleanFilter_.clear();
     hwcVisitor_->transparentHwcDirtyFilter_.clear();
+    hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
     node.SetHasUniRenderHdrSurface(false);
@@ -3171,6 +3176,10 @@ void RSUniRenderVisitor::CollectFilterInCrossDisplayWindow(
         if (!filterNode) {
             continue;
         }
+        // Skip nodes that only have ColorPickerDrawable without any real filter
+        if (filterNode->IsColorPickerOnlyNode()) {
+            continue;
+        }
         auto filterRect = geoPtr->MapRect(filterNode->GetAbsDrawRect().ConvertTo<float>(),
             surfaceNode->GetCrossNodeSkipDisplayConversionMatrix(curScreenNode_->GetId()))
                 .IntersectRect(curScreenNode_->GetScreenRect());
@@ -3317,7 +3326,9 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (nodeParent == nullptr) {
         return;
     }
-    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter()) {
+    // Handle ColorPickerDrawable - MERGE into filter handling
+    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter() ||
+        node.GetColorPickerDrawable()) {
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }
@@ -3451,6 +3462,9 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     // planning: only do this if node is dirty
     node.UpdateRenderParams();
 
+    // Prepare ColorPicker drawable for disable decision
+    PrepareColorPickerDrawable(node);
+
     // add if node is dirty
     node.AddToPendingSyncList();
 }
@@ -3498,6 +3512,15 @@ void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
         if (filterNode == nullptr) {
             continue;
         }
+
+        // Prepare ColorPicker drawable for disable decision
+        PrepareColorPickerDrawable(*filterNode);
+
+        // Skip nodes that only have ColorPickerDrawable without any real filter
+        if (filterNode->IsColorPickerOnlyNode()) {
+            continue;
+        }
+
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateFilterRegionInSkippedSurfaceNode node[%" PRIu64 "]", filterNode->GetId());
         RectI filterRect;
         filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect,
@@ -3520,6 +3543,14 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         if (filterNode == nullptr) {
             continue;
         }
+
+        // Prepare ColorPicker drawable for disable decision
+        PrepareColorPickerDrawable(*filterNode);
+        // Skip nodes that only have ColorPickerDrawable without any real filter
+        if (filterNode->IsColorPickerOnlyNode()) {
+            continue;
+        }
+
         RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterNodeInSkippedSubTreeNeedClearCache node[%lld]", filterNode->GetId());
         if (auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode)) {
             UpdateRotationStatusForEffectNode(*effectNode);
@@ -3550,10 +3581,20 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         CollectFilterInfoAndUpdateDirty(*filterNode, dirtyManager, filterRect, filterRect);
     }
 
+    UpdateVisibleEffectChildrenStatus(rootNode);
+}
+
+void RSUniRenderVisitor::UpdateVisibleEffectChildrenStatus(const RSRenderNode& rootNode)
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (auto& child : rootNode.GetVisibleFilterChild()) {
         auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
         auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode);
         if (effectNode == nullptr) {
+            continue;
+        }
+        // Skip nodes that only have ColorPickerDrawable without any real filter
+        if (filterNode->IsColorPickerOnlyNode()) {
             continue;
         }
         effectNode->UpdateChildHasVisibleEffectWithoutEmptyRect();
@@ -3577,6 +3618,17 @@ void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
 
     for (auto& child : rootNode.GetVisibleFilterChild()) {
         auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
+        if (filterNode == nullptr) {
+            continue;
+        }
+
+        // Prepare ColorPicker drawable for disable decision
+        PrepareColorPickerDrawable(*filterNode);
+        // Skip nodes that only have ColorPickerDrawable without any real filter
+        if (filterNode->IsColorPickerOnlyNode()) {
+            continue;
+        }
+
         auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode);
         if (effectNode == nullptr) {
             continue;
@@ -4154,6 +4206,22 @@ bool RSUniRenderVisitor::IsCurrentSubTreeForcePrepare(RSRenderNode& node)
         return true;
     }
     return false;
+}
+
+void RSUniRenderVisitor::PrepareColorPickerDrawable(RSRenderNode& node)
+{
+    if (!node.GetColorPickerDrawable()) {
+        return;
+    }
+    const auto* ctx = RSMainThread::Instance();
+    const bool needColorPick =
+        node.PrepareColorPickerForExecution(ctx->GetCurrentVsyncTime(), ctx->GetGlobalDarkColorMode());
+    if (needColorPick && curSurfaceNode_) {
+        // Get the ColorPicker rect from current surface node (in screen coordinates)
+        RectI colorPickerRect = curSurfaceNode_->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        // Store surface ID with its rect for intersection checking later
+        hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(), colorPickerRect);
+    }
 }
 
 RSSubTreePrepareController::RSSubTreePrepareController(bool& isCurSubTreeForcePrepare, bool condition)
