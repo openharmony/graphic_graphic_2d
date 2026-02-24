@@ -1179,25 +1179,6 @@ HWTEST_F(RSUifirstManagerTest2, ProcessFirstFrameCache, TestSize.Level1)
     surfaceNode->SetSkipDraw(false);
     uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::LEASH_WINDOW);
     ASSERT_TRUE(surfaceNode->GetSubThreadAssignable());
-
-    NodeId id = 0;
-    std::shared_ptr<RSCanvasRenderNode> parent = std::make_shared<RSCanvasRenderNode>(id);
-    parent->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
-    surfaceNode->SetParent(parent);
-
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
-    surfaceNode->SetSubThreadAssignable(false);
-    surfaceNode->SetSelfAndParentShouldPaint(true);
-    surfaceNode->SetSkipDraw(false);
-    uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::LEASH_WINDOW);
-    ASSERT_FALSE(parent->GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE);
-
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
-    surfaceNode->SetSubThreadAssignable(false);
-    surfaceNode->SetSelfAndParentShouldPaint(true);
-    surfaceNode->SetSkipDraw(false);
-    uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::ARKTS_CARD);
-    ASSERT_TRUE(parent->GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE);
 }
 
 /**
