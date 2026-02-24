@@ -176,6 +176,7 @@ rosen/modules/render_service/core/feature/opinc/ @conan13234
 
 [composer]
 rosen/modules/render_service/core/pipeline/hardware_thread/ @conan13234
+rosen/modules/render_service/core/feature/gpuComposition/ @conan13234
 rosen/modules/render_service/composer/ @conan13234
 rosen/modules/composer/hdi_backend/ @conan13234
 
