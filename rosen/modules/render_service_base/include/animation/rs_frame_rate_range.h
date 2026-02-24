@@ -49,7 +49,7 @@ constexpr uint32_t DISPLAY_SYNC_FRAME_RATE_TYPE = (0b111 << 22);
 
 constexpr uint32_t FRAME_RATE_TYPE_MAX_BIT = 32;
 
-const inline std::string_view SWIPER_DRAG_SCENE = "swiper_drag_scene";
+inline constexpr std::string_view SWIPER_DRAG_SCENE = "swiper_drag_scene";
 
 enum ComponentScene : int32_t {
     UNKNOWN_SCENE = 0,
