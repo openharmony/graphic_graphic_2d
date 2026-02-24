@@ -39,7 +39,6 @@ public:
         std::shared_ptr<RSTypeface> variationTypeface{nullptr};
         uint64_t lastAccessTime{0};
     };
-    static constexpr size_t MAX_CACHE_SIZE = 32;
 
     VariationFontCache() = default;
     ~VariationFontCache();

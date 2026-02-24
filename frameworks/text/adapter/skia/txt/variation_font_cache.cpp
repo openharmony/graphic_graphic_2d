@@ -19,6 +19,7 @@
 #include "utils/text_log.h"
 
 namespace txt {
+constexpr size_t MAX_CACHE_SIZE = 32;
 
 VariationFontCache::~VariationFontCache()
 {
@@ -44,7 +45,7 @@ void VariationFontCache::NotifyCacheRemoved(uint32_t variationUniqueId)
 }
 
 uint32_t VariationFontCache::CalculateHashKey(uint32_t originalUniqueId,
-                                                const skia::textlayout::FontArguments& fontArgs) const
+                                              const skia::textlayout::FontArguments& fontArgs) const
 {
     // Combine originalUniqueId with fontArgs to create a unique hash key
     uint32_t hash = 0;
@@ -111,7 +112,7 @@ std::shared_ptr<RSTypeface> VariationFontCache::RegisterVariationTypeface(
         uint32_t variationUniqueId = variationTypeface->GetUniqueID();
         variationTypeface->SetFd(typeface->GetFd());
         variationTypeface->SetRawUniqueId(originalUniqueId);
-        auto& registerCallback = RSDrawing::Typeface::GetTypefaceRegisterCallback();
+        auto& registerCallback = RSDrawing::Typeface::GetTypefaceRegisterCallBack();
         if (registerCallback != nullptr) {
             registerCallback(variationTypeface);
         }

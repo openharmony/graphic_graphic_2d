@@ -563,6 +563,51 @@ HWTEST_F(RSTypefaceCacheTest, RemoveHashQueueTest, TestSize.Level1) {
 }
 
 /**
+ * @tc.name: InsertVariationTypeface001
+ * @tc.desc: Verify function InsertVariationTypeface
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, InsertVariationTypeface001, TestSize.Level1)
+{
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> baseTypeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(baseTypeface, nullptr);
+    uint64_t baseUniqueId = RSTypefaceCache::GenGlobalUniqueId(baseTypeface->GetUniqueID());
+    Drawing::FontArguments fontArgs;
+    std::vector<Drawing::FontArguments::VariationPosition::Coordinate> coords = {{2003265652, 100.0f}};
+    fontArgs.SetVariationDesignPosition({coords.data(), coords.size()});
+    auto variationTypeface = baseTypeface->MakeClone(fontArgs);
+    ASSERT_NE(variationTypeface, nullptr);
+    uint64_t varUniqueId = RSTypefaceCache::GenGlobalUniqueId(variationTypeface->GetUniqueID());
+    variationTypeface->SetFd(baseTypeface->GetFd());
+    Drawing::SharedTypeface sharedTypeface(varUniqueId, variationTypeface);
+    sharedTypeface.originId_ = baseUniqueId;
+
+    int32_t result = RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+    EXPECT_EQ(result, -1);
+
+    RSTypefaceCache::Instance().CacheDrawingTypeface(baseUniqueId, baseTypeface);
+    // not insert variation typeface
+    result = RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+    EXPECT_EQ(result, variationTypeface->GetFd());
+
+    // has insert variation typeface
+    result = RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+    EXPECT_EQ(result, variationTypeface->GetFd());
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(baseUniqueId);
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(varUniqueId);
+
+    // supplement coverage - clone failed
+    variationTypeface->typefaceImpl_ = nullptr;
+    RSTypefaceCache::Instance().CacheDrawingTypeface(baseUniqueId, variationTypeface);
+    result = RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+    EXPECT_EQ(result, -1);
+}
+
+/**
  * @tc.name: UpdateDrawingTypefaceRefTest001
  * @tc.desc: Verify function UpdateDrawingTypefaceRef
  * @tc.type:FUNC
