@@ -88,7 +88,6 @@ HWTEST_F(MultiScreenParamParseTest, ParseMultiScreenInternalTest, TestSize.Level
     node.type = xmlElementType::XML_ELEMENT_NODE;
     string name = "FeatureSwitch";
     node.name = reinterpret_cast<const xmlChar*>(name.c_str());
-    xmlSetProp(&node, (const xmlChar*)("name"), (const xmlChar*)("IsSkipFrameByActiveRefreshRate"));
     xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("true"));
     auto res = paramParse.ParseMultiScreenInternal(node);
     EXPECT_EQ(res, PARSE_EXEC_SUCCESS);

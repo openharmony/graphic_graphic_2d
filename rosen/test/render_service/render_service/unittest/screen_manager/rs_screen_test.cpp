@@ -2612,25 +2612,15 @@ HWTEST_F(RSScreenTest, SetScreenActiveRect, testing::ext::TestSize.Level1)
 HWTEST_F(RSScreenTest, PhysicalScreenInit, testing::ext::TestSize.Level1)
 {
     ScreenId id = 0;
-    MultiScreenParam::SetSkipFrameByActiveRefreshRate(false);
     auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));
     ASSERT_NE(nullptr, rsScreen);
+    rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL);
     EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_INTERVAL);
 
     id = 1;
     rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));
     ASSERT_NE(nullptr, rsScreen);
-    EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_INTERVAL);
-
-    id = 2;
-    rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));
-    ASSERT_NE(nullptr, rsScreen);
-    EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_INTERVAL);
-
-    id = 3;
-    MultiScreenParam::SetSkipFrameByActiveRefreshRate(true);
-    rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));
-    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
     EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
 }
 
