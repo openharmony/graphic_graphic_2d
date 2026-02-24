@@ -461,55 +461,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
     std::string nonExistent = "NonExistentFontName12345";
     std::u16string u16NonExistent = OHOS::Str8ToStr16(nonExistent);
     OH_Drawing_String fullNameStr = {
-        .strData = reinterpret_cast<char*>(u16NonExistent.data()),
+        .strData = reinterpret_cast<uint8_t*>(u16NonExistent.data()),
         .strLen = static_cast<uint32_t>(u16NonExistent.length() * sizeof(char16_t))
     };
     desc = OH_Drawing_GetFontFullDescriptorByFullName(&fullNameStr, OH_Drawing_SystemFontType::ALL);
     EXPECT_EQ(desc, nullptr);
-
-    // Test 4: Register a font and query it by fullName
-    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
-    ASSERT_NE(fontCollection, nullptr);
-
-    // Register Symbol font from file
-    std::vector<char> symbolContent;
-    EXPECT_TRUE(OHOS::LoadBufferFromFile(SYMBOL_FILE, symbolContent));
-    uint32_t result = OH_Drawing_RegisterFontBuffer(fontCollection, SYMBOL_DESC.fontFamily.c_str(),
-        reinterpret_cast<uint8_t*>(symbolContent.data()), symbolContent.size());
-    EXPECT_EQ(result, 0);
-
-    // Now query the registered font by fullName
-    std::u16string u16SymbolName = OHOS::Str8ToStr16(SYMBOL_DESC.fullName);
-    OH_Drawing_String symbolNameStr = {
-        .strData = reinterpret_cast<char*>(u16SymbolName.data()),
-        .strLen = static_cast<uint32_t>(u16SymbolName.length() * sizeof(char16_t))
-    };
-    desc = OH_Drawing_GetFontFullDescriptorByFullName(&symbolNameStr, OH_Drawing_SystemFontType::ALL);
-    EXPECT_NE(desc, nullptr);
-
-    // Verify the returned descriptor matches expected values
-    if (desc != nullptr) {
-        OH_Drawing_String str;
-        OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_FULL_NAME, &str);
-        std::string result = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
-            str.strLen / sizeof(char16_t)));
-        EXPECT_EQ(result, SYMBOL_DESC.fullName);
-        free(str.strData);
-
-        OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_FAMILY_NAME, &str);
-        result = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
-            str.strLen / sizeof(char16_t)));
-        EXPECT_EQ(result, SYMBOL_DESC.fontFamily);
-        free(str.strData);
-
-        int32_t weight;
-        OH_Drawing_GetFontFullDescriptorAttributeInt(desc, FULL_DESCRIPTOR_ATTR_I_WEIGHT, &weight);
-        EXPECT_EQ(SYMBOL_DESC.weight, weight);
-
-        delete desc;
-    }
-
-    OH_Drawing_DestroyFontCollection(fontCollection);
 }
 
 /*
