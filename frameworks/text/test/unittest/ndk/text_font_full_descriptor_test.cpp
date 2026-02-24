@@ -434,17 +434,14 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level
  */
 HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level0)
 {
-    // Test 1: nullptr fullName should return nullptr
     const OH_Drawing_FontFullDescriptor* desc = OH_Drawing_GetFontFullDescriptorByFullName(nullptr,
         OH_Drawing_SystemFontType::ALL);
     EXPECT_EQ(desc, nullptr);
 
-    // Test 2: empty fullName should return nullptr
     OH_Drawing_String emptyStr = { .strData = nullptr, .strLen = 0 };
     desc = OH_Drawing_GetFontFullDescriptorByFullName(&emptyStr, OH_Drawing_SystemFontType::ALL);
     EXPECT_EQ(desc, nullptr);
 
-    // Test 3: non-existent fullName should return nullptr
     std::string nonExistent = "NonExistentFontName12345";
     std::u16string u16NonExistent = OHOS::Str8ToStr16(nonExistent);
     OH_Drawing_String fullNameStr = {

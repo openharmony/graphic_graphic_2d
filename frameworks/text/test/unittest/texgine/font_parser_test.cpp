@@ -1104,7 +1104,7 @@ HWTEST_F(FontParserTest, FontDescriptorVariationWithVariableFontTest, TestSize.L
             EXPECT_GE(axis.maxValue, axis.minValue);
             EXPECT_GE(axis.defaultValue, axis.minValue);
             EXPECT_LE(axis.defaultValue, axis.maxValue);
-            EXPECT_GE(axis.flags, 0); // flags should be non-negative
+            EXPECT_GE(axis.flags, 0);
         }
     }
 

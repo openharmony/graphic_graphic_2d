@@ -289,11 +289,7 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
     }
 
     status = FontDescriptorGetFontWeight(env, aniObj, fontDesc);
-    if (status != ANI_OK) {
-        return status;
-    }
-
-    return ANI_OK;
+    return status;
 }
 
 ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDesc, ani_object& aniObj)
@@ -365,17 +361,16 @@ ani_object CreateFontDescriptorArray(ani_env* env, const std::vector<FontDescSha
         ani_object aniObj = nullptr;
         ani_status status = ParseFontDescriptorToAni(env, item, aniObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to parse FontDescriptor to ani");
+            TEXT_LOGE("Failed to parse FontDescriptor to ani,index %{public}zu,status %{public}d", index, status);
             continue;
         }
         status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to set FontDescriptor item");
+            TEXT_LOGE("Failed to set FontDescriptor item,index %{public}zu,status %{public}d", index, status);
             continue;
         }
         index++;
     }
-
     return arrayObj;
 }
 
@@ -387,17 +382,14 @@ ani_object ProcessStringPath(ani_env* env, ani_object path)
     std::string pathStr;
     ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(path), pathStr);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to convert path to string");
+        TEXT_LOGE("Failed to convert path to string,ret %{public}d", ret);
         return AniTextUtils::CreateAniArray(env, 0);
     }
-
     if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data).success) {
         TEXT_LOGE("Failed to split absolute font path or read file");
         return AniTextUtils::CreateAniArray(env, 0);
     }
-
     auto fontDescripters = TextEngine::FontParser::ParserFontDescriptorsFromPath(pathStr);
-
     return CreateFontDescriptorArray(env, fontDescripters);
 }
 
