@@ -23,7 +23,7 @@
 #include "common/rs_macros.h"
 #include "animation/rs_interpolator.h"
 #include "effect/runtime_effect.h"
-#include "ext/gex_complex_shader.h"
+#include "gex_complex_shader.h"
 #include "platform/common/rs_log.h"
 #include "rs_shader.h"
   

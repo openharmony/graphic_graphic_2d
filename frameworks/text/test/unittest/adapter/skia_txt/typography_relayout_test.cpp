@@ -21,6 +21,7 @@
 #include "impl/paragraph_impl.h"
 #include "modules/skparagraph/include/ParagraphStyle.h"
 #include "modules/skparagraph/include/TextStyle.h"
+#include "modules/skparagraph/src/ParagraphImpl.h"
 #include "typography.h"
 #include "typography_create.h"
 #include "typography_style.h"
@@ -1545,5 +1546,89 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0038, TestSize.L
     EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0039
+ * @tc.desc: test for relayout textstyle font edging from alias to anti-alias
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0039, TestSize.Level0)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"font edging relayout test";
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.textStyleUid = UNIQUEID;
+    textStyle.fontEdging = Drawing::FontEdging::ALIAS;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    auto paragraphImpl = reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(typography->GetParagraph());
+    auto skiaTextStyles = paragraphImpl->paragraph_->exportTextStyles();
+    EXPECT_EQ(skiaTextStyles[0].fStyle.getFontEdging(), Drawing::FontEdging::ALIAS);
+
+    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_EDGING));
+    textStyle.relayoutChangeBitmap = styleBitset;
+    textStyle.fontEdging = Drawing::FontEdging::ANTI_ALIAS;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+
+    skiaTextStyles = paragraphImpl->paragraph_->exportTextStyles();
+    EXPECT_EQ(skiaTextStyles[0].fStyle.getFontEdging(), Drawing::FontEdging::ANTI_ALIAS);
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0040
+ * @tc.desc: test for run combination with different and same font edging
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0040, TestSize.Level0)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+
+    // Add text twice with different font edging - expect two runs
+    OHOS::Rosen::TextStyle textStyle1;
+    textStyle1.textStyleUid = UNIQUEID;
+    textStyle1.fontEdging = Drawing::FontEdging::ANTI_ALIAS;
+    typographyCreate->PushStyle(textStyle1);
+    typographyCreate->AppendText(u"Hello");
+
+    OHOS::Rosen::TextStyle textStyle2;
+    textStyle2.textStyleUid = UNIQUEID + 1;
+    textStyle2.fontEdging = Drawing::FontEdging::SUBPIXEL_ANTI_ALIAS;
+    typographyCreate->PushStyle(textStyle2);
+    typographyCreate->AppendText(u"World");
+
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    auto paragraph = reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(typography->GetParagraph());
+    auto skParagraph = reinterpret_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());
+    ASSERT_NE(skParagraph, nullptr);
+    EXPECT_EQ(skParagraph->fRuns.size(), 2);
+
+    // Test relayout with same font edging - expect one run (merged)
+    textStyle2.fontEdging = Drawing::FontEdging::ANTI_ALIAS;
+    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_EDGING));
+    textStyle1.relayoutChangeBitmap = styleBitset;
+    textStyle2.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle1);
+    relayoutTextStyles.push_back(textStyle2);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    
+    EXPECT_EQ(skParagraph->fRuns.size(), 1);
+}
 } // namespace Rosen
 } // namespace OHOS

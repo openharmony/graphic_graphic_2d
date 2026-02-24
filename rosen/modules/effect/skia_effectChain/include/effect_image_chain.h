@@ -28,6 +28,7 @@
 #include "render_context/render_context.h"
 
 namespace OHOS::Rosen {
+
 enum class DrawingError {
     ERR_OK = 0,
     ERR_NOT_PREPARED,
@@ -72,7 +73,8 @@ public:
     ~EffectImageChain();
 
     DrawingError Prepare(const std::shared_ptr<Media::PixelMap>& srcPixelMap, bool forceCPU);
-
+    DrawingError PrepareNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+        std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer, bool forceCPU);
     DrawingError ApplyDrawingFilter(const std::shared_ptr<Drawing::ImageFilter>& filter);
     DrawingError ApplyBlur(float radius, const Drawing::TileMode& tileMode,
         bool isDirection = false, float angle = 0.0);
@@ -88,8 +90,10 @@ public:
     DrawingError ApplyWaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& waterGlassDate);
     DrawingError ApplyReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& reededGlassDate);
     DrawingError Draw();
+    DrawingError DrawNativeBuffer();
 
     std::shared_ptr<Media::PixelMap> GetPixelMap();
+    void Release();
 
 private:
     bool CheckPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);

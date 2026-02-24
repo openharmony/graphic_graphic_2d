@@ -146,6 +146,7 @@ void SetTextStyle(OH_Drawing_TextStyle* txtStyle, FuzzedDataProvider& fdp)
     OH_Drawing_SetTextStyleEllipsisModal(txtStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTextStyleEllipsis(txtStyle, "...");
     OH_Drawing_TextStyleAddFontVariation(txtStyle, dest.c_str(), fdp.ConsumeIntegral<uint32_t>());
+    OH_Drawing_SetTextStyleAttributeInt(txtStyle, TEXT_STYLE_ATTR_I_FONT_EDGING, fdp.ConsumeIntegral<uint32_t>());
     auto brus = OH_Drawing_BrushCreate();
     auto pen = OH_Drawing_PenCreate();
     OH_Drawing_SetTextStyleForegroundBrush(txtStyle, brus);

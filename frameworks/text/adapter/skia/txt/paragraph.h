@@ -24,6 +24,7 @@
 #include "modules/skparagraph/include/Paragraph.h"
 #include "paragraph_style.h"
 #include "rosen_text/symbol_animation_config.h"
+#include "text/font_types.h"
 #include "text_line_base.h"
 #include "txt/text_style.h"
 #include "utils.h"
@@ -45,6 +46,9 @@ struct FontMetrics;
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+
+using Drawing::TextEncoding;
+
 enum class RectWidthStyle {
     TIGHT,
     MAX
@@ -62,13 +66,6 @@ enum class RectHeightStyle {
 enum class Affinity {
     UPSTREAM,
     DOWNSTREAM,
-};
-
-enum class TextEncoding {
-    UTF8,
-    UTF16,
-    UTF32,
-    GLYPH_ID,
 };
 
 struct PositionWithAffinity {
@@ -234,6 +231,7 @@ public:
     virtual void SetSkipTextBlobDrawing(bool state) = 0;
     virtual bool CanPaintAllText() const = 0;
     virtual std::string GetDumpInfo() const = 0;
+    virtual TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) = 0;
 #ifdef ENABLE_OHOS_ENHANCE
     virtual std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;

@@ -638,6 +638,11 @@ std::shared_ptr<OHOS::Media::PixelMap> Typography::GetTextPathImageByIndex(
     return paragraph_->GetTextPathImageByIndex(start, end, options, fill);
 }
 #endif
+
+TextLayoutResult Typography::LayoutWithConstraints(const TextRectSize &constraint)
+{
+    return paragraph_->LayoutWithConstraints(constraint);
+}
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

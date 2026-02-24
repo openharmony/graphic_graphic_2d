@@ -314,4 +314,8 @@ group("test") {
       && defined(graphic_2d_subtree_configs.subtree_root)) {
     deps += [ "render_service/unittest/subtree:unittest" ]
   }
+  
+  if (graphic_2d_feature_mhc_enable) {
+    deps += [ "render_service_base/unittest/mhc:unittest" ]
+  }
 }

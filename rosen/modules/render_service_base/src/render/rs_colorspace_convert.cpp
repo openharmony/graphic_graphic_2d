@@ -170,6 +170,19 @@ void RSColorSpaceConvert::GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffe
     }
 }
 
+void RSColorSpaceConvert::GetAIHDRVideoMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+    std::vector<uint8_t>& aihdrVideoMetadata, GSError& ret)
+{
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("surfaceBuffer is nullptr. Failed to get aihdrVideo metadata.");
+        return;
+    }
+    ret = MetadataHelper::GetAIHDRVideoMetadata(surfaceBuffer, aihdrVideoMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSColorSpaceConvert::GetAIHDRVideoMetadata failed with ret: %{public}u.", ret);
+    }
+}
+
 void RSColorSpaceConvert::GetSDRDynamicMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
     std::vector<uint8_t>& sdrDynamicMetadata, GSError& ret)
 {

@@ -19,7 +19,7 @@
 #include "ge_visual_effect_impl.h"
 #include "platform/common/rs_log.h"
 #include "ge_external_dynamic_loader.h"
-#include "ext/gex_complex_shader.h"
+#include "gex_complex_shader.h"
   
 namespace OHOS {
 namespace Rosen {

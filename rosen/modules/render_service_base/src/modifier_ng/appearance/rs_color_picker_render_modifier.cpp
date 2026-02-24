@@ -28,6 +28,8 @@ const RSColorPickerRenderModifier::LegacyPropertyApplierMap
             &RSProperties::SetColorPickerInterval> },
         { RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD, RSRenderModifier::PropertyApplyHelper<int,
             &RSProperties::SetColorPickerNotifyThreshold> },
+        { RSPropertyType::COLOR_PICKER_RECT, RSRenderModifier::PropertyApplyHelper<Vector4f,
+            &RSProperties::SetColorPickerRect> },
     };
 
 void RSColorPickerRenderModifier::ResetProperties(RSProperties& properties)

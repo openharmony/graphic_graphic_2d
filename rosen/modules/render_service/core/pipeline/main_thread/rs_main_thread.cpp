@@ -316,7 +316,7 @@ void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::un
 
 class RSEventDumper : public AppExecFwk::Dumper {
 public:
-    void Dump(const std::string &message) override
+    void Dump(const std::string& message) override
     {
         dumpString.append(message);
     }
@@ -343,7 +343,7 @@ std::condition_variable g_dumpCond_;
 class AccessibilityObserver : public AccessibilityConfigObserver {
 public:
     AccessibilityObserver() = default;
-    void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
+    void OnConfigChanged(const CONFIG_ID id, const ConfigValue& value) override
     {
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
@@ -727,7 +727,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
 #if defined(ACCESSIBILITY_ENABLE)
     RS_LOGI("AccessibilityConfig init");
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
-    auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
+    auto& config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER, accessibilityObserver_);
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_INVERT_COLOR, accessibilityObserver_);
@@ -2446,7 +2446,7 @@ bool RSMainThread::IfStatusBarDirtyOnly()
 void RSMainThread::ProcessNeedAttachedNodes()
 {
     // Collect the nodes that need to be re-attached and call AfterTreeStateChanged
-    auto &mutablenodeMap = context_->GetMutableNodeMap();
+    auto& mutablenodeMap = context_->GetMutableNodeMap();
     auto needAttachedNodes = mutablenodeMap.GetNeedAttachedNode();
     if (needAttachedNodes.empty()) {
         return;
@@ -3089,7 +3089,7 @@ void RSMainThread::SurfaceOcclusionCallback()
     std::list<std::pair<sptr<RSISurfaceOcclusionChangeCallback>, float>> callbackList;
     {
         std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
-        for (auto &listener : surfaceOcclusionListeners_) {
+        for (auto& listener : surfaceOcclusionListeners_) {
             if (!CheckSurfaceOcclusionNeedProcess(listener.first)) {
                 continue;
             }
@@ -3118,7 +3118,7 @@ void RSMainThread::SurfaceOcclusionCallback()
                 } else if (!vectorEmpty && ROSEN_EQ(visibleAreaRatio, 1.0f)) {
                     level = partitionVector.size();
                 } else if (!vectorEmpty && (visibleAreaRatio > 0.0f)) {
-                    for (const auto &point : partitionVector) {
+                    for (const auto& point : partitionVector) {
                         if (visibleAreaRatio > point) {
                             level += 1;
                             continue;
@@ -3137,7 +3137,7 @@ void RSMainThread::SurfaceOcclusionCallback()
             }
         }
     }
-    for (auto &callback : callbackList) {
+    for (auto& callback : callbackList) {
         if (callback.first) {
             callback.first->OnSurfaceOcclusionVisibleChanged(callback.second);
         }
@@ -4245,7 +4245,8 @@ bool RSMainThread::IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool
         return false;
     }
     // if vsynctimestamp updated but timestamp_ not, diff > 1/2 vsync， don't fastcompose
-    if (static_cast<uint64_t>(vsyncTimeStamp) - timestamp_ > REFRESH_PERIOD / 2) {
+    if (static_cast<uint64_t>(vsyncTimeStamp) > timestamp_ &&
+        static_cast<uint64_t>(vsyncTimeStamp) - timestamp_ > REFRESH_PERIOD / 2) { // 1/2 vsync
         return false;
     }
     // when buffer come near vsync time, difference value need to add offset before division
@@ -5088,11 +5089,11 @@ void RSMainThread::SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag)
 {
     // use the same function as vsync to get current time
     int64_t currentTimestamp = SystemTime();
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     hgmCore.SetActualTimestamp(currentTimestamp);
     hgmCore.SetVsyncId(frameCount);
 
-    auto &frameDeadline = RsFrameDeadlinePredict::GetInstance();
+    auto& frameDeadline = RsFrameDeadlinePredict::GetInstance();
     frameDeadline.ReportRsFrameDeadline(hgmCore, forceRefreshFlag);
 }
 
@@ -5111,7 +5112,7 @@ void RSMainThread::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
     rsVSyncDistributor_->HandleTouchEvent(touchStatus, touchCnt);
 }
 
-void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
+void RSMainThread::SetBufferInfo(uint64_t id, const std::string& name, uint32_t queueSize,
     int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent)
 {
     rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, isUrgent);

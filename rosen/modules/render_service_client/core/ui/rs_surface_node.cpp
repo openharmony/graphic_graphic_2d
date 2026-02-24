@@ -734,7 +734,7 @@ bool RSSurfaceNode::GetBootAnimation() const
 
 void RSSurfaceNode::SetGlobalPositionEnabled(bool isEnabled)
 {
-    if (isGlobalPositionEnabled_ == isEnabled) {
+    if (isGlobalPositionEnabled_ == isEnabled && !IsAnyModifierDeduplicationEnabled()) {
         return;
     }
 

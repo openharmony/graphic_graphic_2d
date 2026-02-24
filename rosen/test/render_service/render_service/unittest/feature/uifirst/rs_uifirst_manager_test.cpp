@@ -568,6 +568,11 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam001, TestSize.Level1)
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    
+    screenParams->SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    EXPECT_EQ(surfaceDrawable->GetRsSubThreadCache().GetTargetColorGamut(),
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
 
 /**

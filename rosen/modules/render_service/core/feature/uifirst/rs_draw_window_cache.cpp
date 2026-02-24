@@ -145,6 +145,15 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
         RS_LOGE("DealWithCachedWindow buffer size is zero.");
         return false;
     }
+    // if its sub tree has a blacklist, draw empty cache
+    const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
+    auto screenId = RSUniRenderThread::GetCaptureParam().virtualScreenId_;
+    if (RSUniRenderThread::GetCaptureParam().isMirror_ &&
+        specialLayerManager.FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST)) {
+        RS_TRACE_NAME_FMT("%s skip by virtual screen blacklist: [%" PRIu64 "] %s",
+            __func__, surfaceDrawable->GetId(), surfaceDrawable->GetName().c_str());
+        return true;
+    }
     RS_TRACE_NAME_FMT("DealWithCachedWindow node[%lld] %s",
         surfaceDrawable->GetId(), surfaceDrawable->GetName().c_str());
     DrawCache(surfaceDrawable, canvas, surfaceParams, image_);

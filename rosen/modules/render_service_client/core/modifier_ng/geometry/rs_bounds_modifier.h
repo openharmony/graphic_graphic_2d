@@ -37,6 +37,15 @@ public:
         }
     }
 
+    bool IsDeduplicationEnabled() const override
+    {
+        return enableDeduplication_;
+    }
+
+    void SetDeduplicationEnabled(bool enable) override
+    {
+        enableDeduplication_ = enable;
+    }
     void ApplyGeometry(const std::shared_ptr<RSObjAbsGeometry>& geometry);
 
     void SetBounds(Vector4f bounds);
@@ -60,6 +69,9 @@ public:
     bool GetUseUnion() const;
     float GetUnionSpacing() const;
     std::shared_ptr<RSNGShapeBase> GetSDFShape() const;
+
+private:
+    bool enableDeduplication_ = false;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_MODIFIER_H

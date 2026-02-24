@@ -126,6 +126,8 @@ public:
     static void ResetMatrix(ani_env* env, ani_object obj);
     static ani_boolean QuickRejectPath(ani_env* env, ani_object obj, ani_object pathObj);
     static ani_boolean QuickRejectRect(ani_env* env, ani_object obj, ani_object rectObj);
+    static void DrawSingleCharacterWithFeatures(ani_env* env, ani_object obj, ani_string text, ani_object font,
+        ani_double x, ani_double y, ani_array features);
 
     Canvas* GetCanvas();
     DRAWING_API void ResetCanvas();

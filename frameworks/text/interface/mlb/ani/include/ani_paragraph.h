@@ -31,6 +31,7 @@ public:
 
 private:
     static void LayoutSync(ani_env* env, ani_object object, ani_double width);
+    static ani_object LayoutWithConstraints(ani_env* env, ani_object object, ani_object constraint);
     static void Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y);
     static void PaintOnPath(
         ani_env* env, ani_object object, ani_object canvas, ani_object path, ani_double hOffset, ani_double vOffset);

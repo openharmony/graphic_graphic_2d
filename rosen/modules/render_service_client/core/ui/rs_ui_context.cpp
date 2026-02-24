@@ -230,7 +230,7 @@ void RSUIContext::MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId
         return;
     }
 
-    if (auto dstModifierManager = dstUIContext->rsModifierManager_) {
+    if (auto dstModifierManager = dstUIContext->GetRSModifierManager()) {
         rsModifierManager_->MoveModifier(dstModifierManager, nodeId);
     }
 }

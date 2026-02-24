@@ -30,6 +30,13 @@
 #include "ani_drawing_cache_utils.h"
 #include "ani_drawing_log.h"
 #include "ani_drawing_common.h"
+#include "draw/color.h"
+#include "common/rs_common_def.h"
+#include "image/bitmap.h"
+
+#ifdef ROSEN_OHOS
+#include "pixel_map.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -77,16 +84,7 @@ inline ani_string CreateAniString(ani_env* env, const std::string& stdStr)
     return aniString;
 }
 
-inline std::string CreateStdString(ani_env* env, ani_string aniStr)
-{
-    ani_size aniStrSize = 0;
-    env->String_GetUTF8Size(aniStr, &aniStrSize);
-    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(aniStrSize + 1);
-    ani_size byteSize = 0;
-    env->String_GetUTF8(aniStr, buffer.get(), aniStrSize + 1, &byteSize);
-    buffer[byteSize] = '\0';
-    return std::string(buffer.get());
-}
+std::string CreateStdString(ani_env* env, ani_string aniStr);
 
 ani_status CreateStdStringUtf16(ani_env* env, const ani_string& str, std::u16string& utf16Str);
 
@@ -170,6 +168,15 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect);
 
 ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& obj);
 
+bool GetValueFromAniRectObj(ani_env* env, ani_object obj, std::vector<double>& ltrb);
+
+bool DrawingValueConvertToAniRect(ani_env* env, ani_object obj, ani_double left, ani_double top,
+    ani_double right, ani_double bottom);
+
+bool GetColor4fFromAniColor4fObj(ani_env* env, ani_object obj, Drawing::Color4f &color);
+
+ani_status CreateColor4fObj(ani_env* env, const Drawing::Color4f& color, ani_object& obj);
+
 ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& point);
 
 bool ConvertFromAniPointsArray(ani_env* env, ani_array aniPointArray, Drawing::Point* points, uint32_t pointSize);
@@ -179,6 +186,9 @@ ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object&
 bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_object& obj);
 
 bool GetPoint3FromPoint3dObj(ani_env* env, ani_object obj, Drawing::Point3& point3d);
+
+bool MakeFontFeaturesFromAniObjArray(ani_env* env, std::shared_ptr<Drawing::DrawingFontFeatures> fontfeatures,
+    uint32_t size, ani_array featuresobj);
 
 bool SetPointToAniPointArrayWithIndex(ani_env* env, Drawing::Point& point, ani_array& pointArray, uint32_t index);
 
@@ -220,6 +230,13 @@ std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font);
 std::shared_ptr<Font> MatchThemeFont(std::shared_ptr<Font> font, int32_t unicode);
 
 std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font);
+
+#ifdef ROSEN_OHOS
+extern std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Media::ColorSpace colorSpace);
+extern Drawing::ColorType PixelFormatToDrawingColorType(Media::PixelFormat pixelFormat);
+extern Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType);
+extern std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap);
+#endif
 
 } // namespace Drawing
 } // namespace Rosen

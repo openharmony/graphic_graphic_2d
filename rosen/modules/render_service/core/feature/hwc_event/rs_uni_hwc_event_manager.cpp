@@ -34,6 +34,7 @@ RSUniHwcEventManager& RSUniHwcEventManager::GetInstance()
 void RSUniHwcEventManager::Init()
 {
     RS_LOGI("[%{public}s]:register OnHwcEvent Func", __func__);
+    RSPointerWindowManager::Instance().SetTuiEnabled(false);
     auto hdiBackend = HdiBackend::GetInstance();
     if (!hdiBackend) {
         RS_LOGW("[%{public}s]:hdiBackend is nullptr", __func__);

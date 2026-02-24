@@ -40,6 +40,8 @@ public:
     static void SetSize(ani_env* env, ani_object obj, ani_double alpha);
     static void SetTypeface(ani_env* env, ani_object obj, ani_object typeface);
     static ani_double MeasureSingleCharacter(ani_env* env, ani_object obj, ani_string text);
+    static ani_double MeasureSingleCharacterWithFeatures(ani_env* env, ani_object obj, ani_string text,
+        ani_array featuresobj);
     static ani_double MeasureText(ani_env* env, ani_object obj, ani_string aniText, ani_enum_item encoding);
     static void SetScaleX(ani_env* env, ani_object obj, ani_double scaleX);
     static void SetBaselineSnap(ani_env* env, ani_object obj, ani_boolean isBaselineSnap);

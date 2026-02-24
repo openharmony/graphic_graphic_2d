@@ -175,6 +175,8 @@ constexpr CacheKey TEXT_STYLE_BADGE_TYPE_KEY{
     ANI_INTERFACE_TEXT_STYLE, "<get>badgeType", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BADGE_TYPE)};
 constexpr CacheKey TEXT_STYLE_LINE_HEIGHT_STYLE_KEY{
     ANI_INTERFACE_TEXT_STYLE, "<get>lineHeightStyle", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_LINE_HEIGHT_STYLE_TYPE)};
+constexpr CacheKey TEXT_STYLE_FONT_EDGING_KEY{
+    ANI_INTERFACE_TEXT_STYLE, "<get>fontEdging", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_EDGING)};
 
 constexpr CacheKey DECORATION_DECORATION_TYPE_KEY{
     ANI_INTERFACE_DECORATION, "<get>textDecoration", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_DECORATION_TYPE)};
@@ -209,7 +211,7 @@ constexpr std::string_view TEXT_STYLE_SIGN =
     "C{" ANI_INTERFACE_DECORATION "}C{" ANI_INTERFACE_COLOR "}E{" ANI_ENUM_FONT_WEIGHT "}E{" ANI_ENUM_FONT_STYLE
     "}E{" ANI_ENUM_TEXT_BASELINE "}C{" ANI_ARRAY "}ddddzzC{" ANI_STRING "}E{" ANI_ENUM_ELLIPSIS_MODE "}C{" ANI_STRING
     "}dC{" ANI_ARRAY "}C{" ANI_ARRAY "}C{" ANI_INTERFACE_RECT_STYLE "}E{" ANI_ENUM_TEXT_BADGE_TYPE
-    "}ddE{" ANI_ENUM_TEXT_LINE_HEIGHT_STYLE_TYPE "}E{" ANI_ENUM_FONT_WIDTH "}:";
+    "}ddE{" ANI_ENUM_TEXT_LINE_HEIGHT_STYLE_TYPE "}E{" ANI_ENUM_FONT_WIDTH "}E{" ANI_ENUM_FONT_EDGING "}:";
 constexpr CacheKey TEXT_STYLE_KEY{ANI_CLASS_TEXT_STYLE, "<ctor>", TEXT_STYLE_SIGN};
 
 constexpr std::string_view TEXT_SHADOW_SIGN = "C{" ANI_INTERFACE_COLOR "}C{" ANI_INTERFACE_POINT "}d:";
@@ -244,11 +246,17 @@ constexpr CacheKey GLOBAL_RESOURCE_TYPE_KEY{ANI_GLOBAL_RESOURCE, "<get>type", AN
 
 constexpr CacheKey RANGE_START_KEY{ANI_INTERFACE_RANGE, "<get>start", ":i"};
 constexpr CacheKey RANGE_END_KEY{ANI_INTERFACE_RANGE, "<get>end", ":i"};
+constexpr CacheKey TEXT_RECT_SIZE_WIDTH_KEY{ANI_INTERFACE_TEXT_RECT_SIZE, "<get>width", ":d"};
+constexpr CacheKey TEXT_RECT_SIZE_HEIGHT_KEY{ANI_INTERFACE_TEXT_RECT_SIZE, "<get>height", ":d"};
+constexpr CacheKey TEXT_RECT_SIZE_KEY{ANI_CLASS_TEXT_RECT_SIZE, "<ctor>", "dd:"};
 constexpr CacheKey TEXT_BOX_KEY{
     ANI_CLASS_TEXT_BOX, "<ctor>", "C{" ANI_INTERFACE_RECT "}C{" ANI_ENUM_TEXT_DIRECTION "}:"};
 constexpr CacheKey RANGE_KEY{ANI_CLASS_RANGE, "<ctor>", "ii:"};
 
 constexpr CacheKey TYPOGRAPHIC_BOUNDS_KEY{ANI_CLASS_TYPOGRAPHIC_BOUNDS, "<ctor>", "dddd:"};
+
+constexpr std::string_view TEXT_LAYOUT_RESULT_SIGN = "C{std.core.Array}C{" ANI_INTERFACE_TEXT_RECT_SIZE "}:";
+constexpr CacheKey TEXT_LAYOUT_RESULT_KEY{ANI_CLASS_TEXT_LAYOUT_RESULT, "<ctor>", TEXT_LAYOUT_RESULT_SIGN};
 
 constexpr CacheKey LINE_TYPESET_GET_NATIVE_KEY{ANI_CLASS_LINE_TYPESET, TEXT_GET_NATIVE, ":l"};
 } // namespace
@@ -296,12 +304,15 @@ void AniGlobalClass::Init(ani_env* env)
     point = AniFindClass(env, ANI_INTERFACE_POINT);
     path = AniFindClass(env, ANI_CLASS_PATH);
     placeholderSpan = AniFindClass(env, ANI_INTERFACE_PLACEHOLDER_SPAN);
+    textLayoutResult = AniFindClass(env, ANI_CLASS_TEXT_LAYOUT_RESULT);
+    textRectSize = AniFindClass(env, ANI_CLASS_TEXT_RECT_SIZE);
 }
 
 void AniGlobalEnum::Init(ani_env* env)
 {
     fontWeight = AniFindEnum(env, ANI_ENUM_FONT_WEIGHT);
     fontWidth = AniFindEnum(env, ANI_ENUM_FONT_WIDTH);
+    fontEdging = AniFindEnum(env, ANI_ENUM_FONT_EDGING);
     affinity = AniFindEnum(env, ANI_ENUM_AFFINITY);
     textDirection = AniFindEnum(env, ANI_ENUM_TEXT_DIRECTION);
     fontStyle = AniFindEnum(env, ANI_ENUM_FONT_STYLE);
@@ -331,6 +342,8 @@ void AniGlobalMethod::Init(ani_env* env)
     InitRangeMethod(env);
     InitPointMethod(env);
     InitTextTabMethod(env);
+    InitTextLayoutResultMethod(env);
+    InitTextRectSizeMethod(env);
 }
 
 void AniGlobalMethod::InitBaseMethod(ani_env* env)
@@ -495,6 +508,8 @@ void AniGlobalMethod::InitTextStyleMethod(ani_env* env)
         AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_BADGE_TYPE_KEY);
     textStyleLineHeightStyle =
         AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_LINE_HEIGHT_STYLE_KEY);
+    textStyleFontEdging =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_FONT_EDGING_KEY);
     textStyleMaxLineHeight =
         AniClassFindMethod(env, AniGlobalClass::GetInstance().textStyle, TEXT_STYLE_MAX_LINE_HEIGHT_KEY);
     textStyleMinLineHeight =
@@ -594,6 +609,19 @@ void AniGlobalMethod::InitTextTabMethod(ani_env* env)
 {
     textTabAlignment = AniClassFindMethod(env, AniGlobalClass::GetInstance().textTab, TEXT_TAB_ALIGNMENT_KEY);
     textTabLocation = AniClassFindMethod(env, AniGlobalClass::GetInstance().textTab, TEXT_TAB_LOCATION_KEY);
+}
+
+void AniGlobalMethod::InitTextLayoutResultMethod(ani_env* env)
+{
+    textLayoutResultCtor = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().textLayoutResult, TEXT_LAYOUT_RESULT_KEY);
+}
+
+void AniGlobalMethod::InitTextRectSizeMethod(ani_env* env)
+{
+    textRectSizeCtor = AniClassFindMethod(env, AniGlobalClass::GetInstance().textRectSize, TEXT_RECT_SIZE_KEY);
+    textRectSizeWidth = AniClassFindMethod(env, AniGlobalClass::GetInstance().textRectSize, TEXT_RECT_SIZE_WIDTH_KEY);
+    textRectSizeHeight = AniClassFindMethod(env, AniGlobalClass::GetInstance().textRectSize, TEXT_RECT_SIZE_HEIGHT_KEY);
 }
 
 ani_status InitAniGlobalRef(ani_vm* vm)

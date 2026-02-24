@@ -28,6 +28,14 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorMask = {
 };
 
 static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
+    {RSNGEffectType::BLUR,
+     [] {
+         return std::make_shared<RSNGBlurFilter>();
+     }},
+    {RSNGEffectType::MATERIAL_BLUR,
+     [] {
+         return std::make_shared<RSNGMaterialBlurFilter>();
+     }},
     {RSNGEffectType::DISPLACEMENT_DISTORT,
      [] {
          return std::make_shared<RSNGDispDistortFilter>();
@@ -47,6 +55,18 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
     {RSNGEffectType::DIRECTION_LIGHT,
      [] {
          return std::make_shared<RSNGDirectionLightFilter>();
+     }},
+    {RSNGEffectType::MASK_TRANSITION,
+     [] {
+         return std::make_shared<RSNGMaskTransitionFilter>();
+     }},
+    {RSNGEffectType::VARIABLE_RADIUS_BLUR,
+     [] {
+         return std::make_shared<RSNGVariableRadiusBlurFilter>();
+     }},
+    {RSNGEffectType::CONTENT_LIGHT,
+     [] {
+         return std::make_shared<RSNGContentLightFilter>();
      }},
     {RSNGEffectType::EDGE_LIGHT,
      [] {

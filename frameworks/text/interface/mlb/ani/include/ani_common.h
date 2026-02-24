@@ -64,9 +64,13 @@ namespace OHOS::Text::ANI {
 #define ANI_INTERFACE_FONT_DESCRIPTOR "@ohos.graphics.text.text.FontDescriptor"
 #define ANI_INTERFACE_DECORATION "@ohos.graphics.text.text.Decoration"
 #define ANI_INTERFACE_FONT_METRICS "@ohos.graphics.drawing.drawing.FontMetrics"
+#define ANI_INTERFACE_TEXT_RECT_SIZE "@ohos.graphics.text.text.TextRectSize"
+#define ANI_INTERFACE_TEXT_LAYOUT_RESULT "@ohos.graphics.text.text.TextLayoutResult"
 /**
  * define class
  */
+#define ANI_CLASS_TEXT_RECT_SIZE "@ohos.graphics.text.text.TextRectSizeInternal"
+#define ANI_CLASS_TEXT_LAYOUT_RESULT "@ohos.graphics.text.text.TextLayoutResultInternal"
 #define ANI_CLASS_CLEANER "@ohos.graphics.text.text.Cleaner"
 #define ANI_CLASS_PARAGRAPH "@ohos.graphics.text.text.Paragraph"
 #define ANI_CLASS_PARAGRAPH_BUILDER "@ohos.graphics.text.text.ParagraphBuilder"
@@ -111,6 +115,7 @@ namespace OHOS::Text::ANI {
 #define ANI_ENUM_BREAK_STRATEGY "@ohos.graphics.text.text.BreakStrategy"
 #define ANI_ENUM_TEXT_HEIGHT_BEHAVIOR "@ohos.graphics.text.text.TextHeightBehavior"
 #define ANI_ENUM_FONT_WIDTH "@ohos.graphics.text.text.FontWidth"
+#define ANI_ENUM_FONT_EDGING "@ohos.graphics.drawing.drawing.FontEdging"
 #define ANI_ENUM_TEXT_VERTICAL_ALIGN "@ohos.graphics.text.text.TextVerticalAlign"
 #define ANI_ENUM_TEXT_BADGE_TYPE "@ohos.graphics.text.text.TextBadgeType"
 #define ANI_ENUM_TEXT_HIGH_CONTRAST "@ohos.graphics.text.text.TextHighContrast"

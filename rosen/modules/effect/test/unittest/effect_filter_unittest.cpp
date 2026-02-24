@@ -874,11 +874,11 @@ HWTEST_F(EffectFilterUnittest, WaterGlassValidParameters, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReedsGlassNullParameters
+ * @tc.name: ReededGlassNullParameters
  * @tc.desc: Create a reeded glass effect filter with null parameters.
  * @tc.type: FUNC
  */
-HWTEST_F(EffectFilterUnittest, ReedsGlassNullParameters, TestSize.Level1)
+HWTEST_F(EffectFilterUnittest, ReededGlassNullParameters, TestSize.Level1)
 {
     OH_PixelmapNative* pixmap = nullptr;
     /** pixmap is necessary, otherwize can not create pixelmap*/
@@ -898,11 +898,11 @@ HWTEST_F(EffectFilterUnittest, ReedsGlassNullParameters, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReedsGlassValidParameters
+ * @tc.name: ReededGlassValidParameters
  * @tc.desc: Create a reeded glass effect filter with valid parameters.
  * @tc.type: FUNC
  */
-HWTEST_F(EffectFilterUnittest, ReedsGlassValidParameters, TestSize.Level1)
+HWTEST_F(EffectFilterUnittest, ReededGlassValidParameters, TestSize.Level1)
 {
     OH_PixelmapNative* pixmap = nullptr;
     /** pixmap is necessary, otherwize can not create pixelmap*/

@@ -119,7 +119,7 @@ static std::string Data2String(std::string data, uint32_t targetNumber)
 void MemoryManager::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
     std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize)
 {
-    RS_TRACE_NAME_FMT("MemoryManager::GetNodeInfo MemNodeMap size:%d", MemoryTrack::Instance().GetMemNodeMap().size());
+    RS_TRACE_NAME_FMT("MemoryManager::GetNodeInfo MemNodeMap size:%zu", MemoryTrack::Instance().GetMemNodeMap().size());
     for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
         auto node = RSMainThread::Instance()->GetContext().GetMutableNodeMap().GetRenderNode(nodeId);
         int pid = info.pid;
@@ -197,6 +197,9 @@ void MemoryManager::RenderServiceAllSurfaceDump(DfxString& log)
     log.AppendFormat("%s\n", "the memory of size of all surfaces buffer: ");
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&log](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        if (node == nullptr) {
+            return;
+        }
         const auto& surfaceHandler = node->GetRSSurfaceHandler();
         const auto& surfaceConsumer = surfaceHandler->GetConsumer();
         std::string dumpSurfaceInfo;
@@ -737,7 +740,7 @@ void MemoryManager::DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext*
 void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* gpuContext,
     std::vector<std::pair<NodeId, std::string>>& nodeTags, bool isLite)
 {
-    RS_TRACE_NAME_FMT("MemoryManager::DumpDrawingGpuMemory nodeTags size:%d", nodeTags.size());
+    RS_TRACE_NAME_FMT("MemoryManager::DumpDrawingGpuMemory nodeTags size:%zu", nodeTags.size());
     if (!gpuContext) {
         log.AppendFormat("No valid gpu cache instance.\n");
         return;

@@ -361,7 +361,6 @@ private:
         return mPolicyConfigData_ != nullptr && !mPolicyConfigData_->refreshRateForSettings_.empty();
     }
 
-    static constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_ = nullptr;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
     std::shared_ptr<PolicyConfigVisitor> mPolicyConfigVisitor_ = nullptr;

@@ -93,7 +93,17 @@ inline std::string GSErrorStr(GSError err)
     return "<GSError error index out of range>";
 }
 
+inline std::string WMErrorStr(GSError err)
+{
+    return GSErrorStr(err);
+}
+
 inline std::string SurfaceErrorStr(GSError err)
+{
+    return GSErrorStr(err);
+}
+
+inline std::string VsyncErrorStr(GSError err)
 {
     return GSErrorStr(err);
 }

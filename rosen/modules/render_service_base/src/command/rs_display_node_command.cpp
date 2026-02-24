@@ -138,6 +138,7 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
             info->first = screenId;
         }
     }
+    logicalDisplayNode->RemoveFromTree();
     auto lambda = [&logicalDisplayNode](auto& screenRenderNode) {
         screenRenderNode->AddChild(logicalDisplayNode);
     };

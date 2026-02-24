@@ -15,12 +15,9 @@
 
 #include "common/rs_optional_trace.h"
 #include "effect_vulkan_context.h"
+#include "effect_utils.h"
 
 namespace OHOS::Rosen {
-
-static const int GR_CACHE_MAX_COUNT = 8192;
-static const size_t GR_CACHE_MAX_BYTE_SIZE = 96 * (1 << 20);
-static const int32_t CACHE_LIMITS_TIMES = 5;  // this will change RS memory!
 
 std::map<int, std::shared_ptr<Drawing::GPUContext>> EffectVulkanContext::drawingContextMap_;
 std::mutex EffectVulkanContext::drawingContextMutex_;
@@ -73,16 +70,7 @@ std::shared_ptr<Drawing::GPUContext> EffectVulkanContext::CreateDrawingContext()
 
     auto context = vulkanInterface_->DoCreateDrawingContext();
     RS_TRACE_NAME("EffectVulkanContext::CreateDrawingContext -> created new context");
-    int maxResources = 0;
-    size_t maxResourcesSize = 0;
-    int cacheLimitsTimes = CACHE_LIMITS_TIMES;
-    context->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
-    if (maxResourcesSize > 0) {
-        context->SetResourceCacheLimits(cacheLimitsTimes * maxResources,
-            cacheLimitsTimes * std::fmin(maxResourcesSize, GR_CACHE_MAX_BYTE_SIZE));
-    } else {
-        context->SetResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
-    }
+    context->SetResourceCacheLimits(0, 0);
     SaveNewDrawingContext(tid, context);
     return context;
 }

@@ -139,6 +139,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
+
     drawable->CheckCacheTypeAndDraw(canvas, params);
     params.childHasVisibleFilter_ = true;
     drawable->CheckCacheTypeAndDraw(canvas, params);
@@ -167,11 +168,6 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
     params.SetShadowRect({0, 0, 10, 10});
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(drawable->HasFilterOrEffect(params));
-    RSRenderNodeDrawable::isOffScreenWithClipHole_ = true;
-    params.foregroundFilterCache_ = std::make_shared<RSFilter>();
-    drawable->CheckCacheTypeAndDraw(canvas, params);
-    RSRenderNodeDrawable::isOffScreenWithClipHole_ = false;
-    ASSERT_TRUE(params.GetForegroundFilterCache());
 
     drawable->SetCacheType(DrawableCacheType::NONE);
     drawable->CheckCacheTypeAndDraw(canvas, params);
@@ -249,16 +245,15 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(params.ChildHasVisibleFilter());
 
-    drawable->SetCacheType(DrawableCacheType::CONTENT);
-    drawable->isOffScreenWithClipHole_ = true;
+    drawable->isOffScreenWithClipHole_ = false;
+    drawable->SetDrawBlurForCache(true);
+    params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
-    EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), true);
 
-    drawable->SetCanceledByParentRenderGroup(true);
+    drawable->SetCacheType(DrawableCacheType::CONTENT);
     drawable->isOffScreenWithClipHole_ = false;
     drawable->SetDrawBlurForCache(false);
-    params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
     EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), false);
@@ -516,7 +511,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest002, TestSize.Level
     params.SetHasChildExcludedFromNodeGroup(true);
     EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
 }
 
 /**

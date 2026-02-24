@@ -239,6 +239,9 @@ bool RSRenderModifier::Marshalling(Parcel& parcel) const
         ret = RSMarshallingHelper::Marshalling(parcel, id_);
     }
     if (ret) {
+        ret = DeduplicationMarshalling(parcel);
+    }
+    if (ret) {
         ret = RSMarshallingHelper::Marshalling(parcel, properties_);
     }
     return ret;
@@ -259,8 +262,13 @@ std::shared_ptr<RSRenderModifier> RSRenderModifier::Unmarshalling(Parcel& parcel
         return nullptr;
     }
     auto ret = constructor();
-    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_) ||
-        !RSMarshallingHelper::Unmarshalling(parcel, ret->properties_)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_)) {
+        return nullptr;
+    }
+    if (!ret->DeduplicationUnmarshalling(parcel)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, ret->properties_)) {
         return nullptr;
     }
     for (auto& [type, property] : ret->properties_) {

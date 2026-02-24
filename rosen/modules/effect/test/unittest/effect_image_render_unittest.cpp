@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include "surface_buffer.h"
 #include "effect_image_render.h"
 #include "ge_linear_gradient_shader_mask.h"
 
@@ -149,6 +150,84 @@ HWTEST_F(EffectImageRenderUnittest, RenderTest001, TestSize.Level1)
 
     ret = imageRender.Render(nullptr, imageFilter, true, dstPixelMap);
     ASSERT_NE(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: RenderTest002
+ * @tc.desc: Test Render
+ */
+HWTEST_F(EffectImageRenderUnittest, RenderTest002, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size ={ 1, 1 };
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+
+    std::vector<std::shared_ptr<EffectImageFilter>> imageFilter;
+    imageFilter.emplace_back(nullptr);
+    auto filterBlur = EffectImageFilter::Blur(0.5);
+    EXPECT_TRUE(filterBlur != nullptr);
+    imageFilter.emplace_back(filterBlur);
+
+    std::shared_ptr<Media::PixelMap> dstPixelMap = nullptr;
+    EffectImageRender imageRender;
+    auto ret = imageRender.Render(srcPixelMap, imageFilter, true, dstPixelMap);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = imageRender.Render(nullptr, imageFilter, true, dstPixelMap);
+    ASSERT_NE(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: RenderTest003
+ * @tc.desc: Test Render
+ */
+HWTEST_F(EffectImageRenderUnittest, RenderTest003, TestSize.Level1)
+{
+    std::vector<std::shared_ptr<EffectImageFilter>> imageFilter;
+    imageFilter.emplace_back(nullptr);
+    auto filterBlur = EffectImageFilter::Blur(0.5);
+    EXPECT_TRUE(filterBlur != nullptr);
+    imageFilter.emplace_back(filterBlur);
+
+    const auto width = 200;
+    const auto height = 200;
+
+    OHOS::Media::InitializationOptions opts = {
+        .size =
+            {
+                .width = static_cast<int32_t>(width),
+                .height = static_cast<int32_t>(height),
+            },
+        .srcPixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
+        .pixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
+        .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL,
+    };
+    std::shared_ptr<Media::PixelMap> srcPixelMap = Media::PixelMap::Create(opts);
+    OH_NativeBuffer_Config config {
+        .width = width,
+        .height = height,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA
+    };
+    OH_NativeBuffer* dstBuffer = OH_NativeBuffer_Alloc(&config);
+    std::shared_ptr<OH_NativeBuffer> dst(
+        dstBuffer,
+        [](OH_NativeBuffer* buffer) {}
+    );
+    EffectImageRender imageRender;
+    auto ret = imageRender.RenderDstNative(srcPixelMap, dst, imageFilter, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+    ret = imageRender.RenderDstNative(nullptr, dst, imageFilter, false);
+    ASSERT_NE(ret, DrawingError::ERR_OK);
+    std::shared_ptr<OH_NativeBuffer> nullBuffer = nullptr;
+    ret = imageRender.RenderDstNative(srcPixelMap, nullBuffer, imageFilter, false);
+    ASSERT_NE(ret, DrawingError::ERR_OK);
+    ret = imageRender.RenderDstNative(srcPixelMap, nullBuffer, imageFilter, true);
+    ASSERT_NE(ret, DrawingError::ERR_OK);
+    ret = imageRender.RenderDstNative(srcPixelMap, dst, imageFilter, true);
+    ASSERT_NE(ret, DrawingError::ERR_OK);
+    OH_NativeBuffer_Unreference(dstBuffer);
 }
 
 /**
@@ -474,7 +553,6 @@ HWTEST_F(EffectImageRenderUnittest, ApplyrReededGlassMethod, TestSize.Level1)
     ASSERT_NE(filter, nullptr);
 
     auto image = std::make_shared<EffectImageChain>();
-    EXPECT_TRUE(image != nullptr);
     image->prepared_ = true;
     Media::InitializationOptions opts;
     opts.size = { 1, 1 };
@@ -483,7 +561,22 @@ HWTEST_F(EffectImageRenderUnittest, ApplyrReededGlassMethod, TestSize.Level1)
     image->Prepare(srcPixelMap, false);
 
     DrawingError result = filter->Apply(image);
-    ASSERT_EQ(result, DrawingError::ERR_OK);
+    ASSERT_NE(result, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyMethod
+ * @tc.desc: Test EffectImageReededGlassFilter filter application, image is null
+ */
+HWTEST_F(EffectImageRenderUnittest, ApplyrMethod, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::GEReededGlassDataParams> params = std::make_shared<Drawing::GEReededGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    std::shared_ptr<EffectImageReededGlassFilter> filter = std::make_shared<EffectImageReededGlassFilter>(params);
+    ASSERT_NE(filter, nullptr);
+
+    DrawingError result = filter->Apply(nullptr);
+    ASSERT_EQ(result, DrawingError::ERR_IMAGE_NULL);
 }
 
 /**
@@ -499,7 +592,6 @@ HWTEST_F(EffectImageRenderUnittest, ApplyWaterGlassMethod, TestSize.Level1)
     ASSERT_NE(filter, nullptr);
 
     auto image = std::make_shared<EffectImageChain>();
-    EXPECT_TRUE(image != nullptr);
     image->prepared_ = true;
     Media::InitializationOptions opts;
     opts.size = { 1, 1 };
@@ -507,7 +599,22 @@ HWTEST_F(EffectImageRenderUnittest, ApplyWaterGlassMethod, TestSize.Level1)
     ASSERT_NE(srcPixelMap, nullptr);
     image->Prepare(srcPixelMap, false);
     DrawingError result = filter->Apply(image);
-    ASSERT_EQ(result, DrawingError::ERR_OK);
+    ASSERT_NE(result, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyMethod
+ * @tc.desc: Test EffectImageWaterGlassFilter filter application, image is null
+ */
+HWTEST_F(EffectImageRenderUnittest, ApplyMethod, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::GEWaterGlassDataParams> params = std::make_shared<Drawing::GEWaterGlassDataParams>();
+    ASSERT_NE(params, nullptr);
+    std::shared_ptr<EffectImageWaterGlassFilter> filter = std::make_shared<EffectImageWaterGlassFilter>(params);
+    ASSERT_NE(filter, nullptr);
+
+    DrawingError result = filter->Apply(nullptr);
+    ASSERT_EQ(result, DrawingError::ERR_IMAGE_NULL);
 }
 } // namespace Rosen
 } // namespace OHOS

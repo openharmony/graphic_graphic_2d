@@ -612,33 +612,47 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetPhysicalScreenResolution, Test
 }
 
 /**
- * @tc.name: SetRogScreenResolution Test
- * @tc.desc: SetRogScreenResolution Test
+ * @tc.name: SetRogScreenResolutionTest001
+ * @tc.desc: Test SetRogScreenResolution
  * @tc.type: FUNC
  */
-HWTEST_F(RSClientToServiceConnectionProxyTest, SetRogScreenResolution, TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetRogScreenResolutionTest001, TestSize.Level1)
 {
     ScreenId id = INVALID_SCREEN_ID;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    auto ret = proxy->SetRogScreenResolution(id, width, height);
-    // SendRequest failed
-    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
+
+    // case 1: without mock method
+    proxy->SetRogScreenResolution(id, width, height);
+
+    // case 2: with mock method: SendRequest()
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockproxy->SetRogScreenResolution(id, width, height);
+    EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
 }
 
 /**
- * @tc.name: GetRogScreenResolution Test
- * @tc.desc: GetRogScreenResolution Test
+ * @tc.name: GetRogScreenResolutionTest001
+ * @tc.desc: Test GetRogScreenResolution
  * @tc.type: FUNC
  */
-HWTEST_F(RSClientToServiceConnectionProxyTest, GetRogScreenResolution, TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionProxyTest, GetRogScreenResolutionTest001, TestSize.Level1)
 {
     ScreenId id = INVALID_SCREEN_ID;
     uint32_t width = 0;
     uint32_t height = 0;
-    auto ret = proxy->GetRogScreenResolution(id, width, height);
-    // SendRequest failed
-    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
+
+    // case 1: without mock method
+    proxy->GetRogScreenResolution(id, width, height);
+
+    // case 2: with mock method: SendRequest()
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockproxy->GetRogScreenResolution(id, width, height);
+    EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
 }
 
 /**

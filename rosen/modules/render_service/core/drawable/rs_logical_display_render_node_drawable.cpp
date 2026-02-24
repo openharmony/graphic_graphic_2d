@@ -598,10 +598,12 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
     UpdateDisplayDirtyManager(curScreenDrawable.GetSyncDirtyManager(), bufferAge, false);
     auto extraDirty = curScreenDrawable.GetSyncDirtyManager()->GetDirtyRegion();
     mappedDamageRegion.OrSelf(Occlusion::Region(Occlusion::Rect(extraDirty)));
+    // Align all virtual mirror screen scenes.
+    mappedDamageRegion = mappedDamageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
 
     if (!virtualProcesser->GetDrawVirtualMirrorCopy()) {
         RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
-            mappedDamageRegion, mappedDamageRegion, *mirroredDrawable, canvasMatrix, false);
+            mappedDamageRegion, mappedDamageRegion, *mirroredDrawable, canvasMatrix, true);
     }
     auto mappedDamageRegionRects = mappedDamageRegion.GetRegionRectIs();
     if (!uniParam->IsVirtualDirtyDfxEnabled()) {

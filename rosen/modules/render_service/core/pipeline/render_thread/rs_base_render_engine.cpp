@@ -484,6 +484,7 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     RSColorSpaceConvert::Instance().GetHDRStaticMetadata(params.buffer, parameter.staticMetadata, ret);
     RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata, ret);
     RSColorSpaceConvert::Instance().GetFOVMetadata(params.buffer, parameter.adaptiveFOVMetadata);
+    RSColorSpaceConvert::Instance().GetAIHDRVideoMetadata(params.buffer, parameter.aihdrVideoMetadata, ret);
     if (RSHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer)) {
         RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor CheckIsHDRSelfProcessingBuffer is true");
         parameter.inputColorSpace.metadataType = static_cast<CM_HDR_Metadata_Type>(HDR_SELF_PROCESSING_TYPE);

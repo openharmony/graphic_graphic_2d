@@ -132,6 +132,8 @@ static const std::array g_methods = {
     ani_native_function { "getTextPath", nullptr, reinterpret_cast<void*>(AniFont::GetTextPath) },
     ani_native_function { "setThemeFontFollowed", nullptr, reinterpret_cast<void*>(AniFont::SetThemeFontFollowed) },
     ani_native_function { "isThemeFontFollowed", nullptr, reinterpret_cast<void*>(AniFont::IsThemeFontFollowed) },
+    ani_native_function { "measureSingleCharacterWithFeatures", nullptr,
+        reinterpret_cast<void*>(AniFont::MeasureSingleCharacterWithFeatures) },
 };
 
 ani_status AniFont::AniInit(ani_env *env)
@@ -284,6 +286,57 @@ void AniFont::SetTypeface(ani_env* env, ani_object obj, ani_object typeface)
     }
 
     aniFont->GetFont()->SetTypeface(aniTypeface->GetTypeface());
+}
+
+ani_double AniFont::MeasureSingleCharacterWithFeatures(ani_env* env, ani_object obj, ani_string text,
+    ani_array featuresobj)
+{
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
+    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniFont::MeasureSingleCharacterWithFeatures font is nullptr.");
+        return -1;
+    }
+
+    ani_size len = 0;
+    ani_status status = env->String_GetUTF8Size(text, &len);
+    if (status != ANI_OK || len == 0 || len > ARGC_FOUR) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniFont::MeasureSingleCharacterWithFeatures text should be single character.");
+        return -1;
+    }
+
+    char str[len + 1];
+    ani_size realLen = 0;
+    env->String_GetUTF8(text, str, len + 1, &realLen);
+    str[realLen] = '\0';
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
+    size_t byteLen = currentStr - str;
+    if (byteLen != len) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniFont::MeasureSingleCharacterWithFeatures text should be single character.");
+        return -1;
+    }
+    std::shared_ptr<Font> font = aniFont->GetFont();
+    std::shared_ptr<Font> themeFont = MatchThemeFont(font, unicode);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? font : themeFont;
+
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(featuresobj, &aniLength)) {
+        ROSEN_LOGE("AniFont::MeasureSingleCharacterWithFeatures features are invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawPoints incorrect type points.");
+        return -1;
+    }
+    uint32_t size = static_cast<uint32_t>(aniLength);
+
+    std::shared_ptr<Drawing::DrawingFontFeatures> drawingFontFeatures =
+        std::make_shared<Drawing::DrawingFontFeatures>();
+    if (!MakeFontFeaturesFromAniObjArray(env, drawingFontFeatures, size, featuresobj)) {
+        ROSEN_LOGE("AniFont::MeasureSingleCharacterWithFeatures MakeFontFeaturesFromAniObjArray is fail");
+        return -1;
+    }
+    return realFont->MeasureSingleCharacterWithFeatures(str, unicode, drawingFontFeatures);
 }
 
 ani_double AniFont::MeasureSingleCharacter(ani_env* env, ani_object obj, ani_string text)

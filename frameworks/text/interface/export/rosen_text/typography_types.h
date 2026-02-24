@@ -17,6 +17,7 @@
 #define ROSEN_TEXT_EXPORT_ROSEN_TEXT_TYPOGRAPHY_TYPES_H
 
 #include <cstddef>
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -150,6 +151,21 @@ struct Boundary {
     {
         return leftIndex == rhs.leftIndex && rightIndex == rhs.rightIndex;
     }
+};
+
+struct TextRange {
+    size_t start{0};
+    size_t end{0};
+};
+
+struct TextRectSize {
+    double width{0.0};
+    double height{0.0};
+};
+
+struct TextLayoutResult {
+    std::vector<TextRange> fitStrRange{};
+    TextRectSize correctRect{};
 };
 
 } // namespace Rosen

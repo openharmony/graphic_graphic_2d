@@ -230,6 +230,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.maxLineHeight = style.maxLineHeight;
     textStyle.minLineHeight = style.minLineHeight;
     textStyle.lineHeightStyle = style.lineHeightStyle;
+    textStyle.fontEdging = style.fontEdging;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;
@@ -284,6 +285,7 @@ void SplitTextStyleConvert(TextStyle& textStyle, const SPText::TextStyle& style)
     textStyle.lineHeightStyle = style.lineHeightStyle;
     textStyle.minLineHeight = style.minLineHeight;
     textStyle.maxLineHeight = style.maxLineHeight;
+    textStyle.fontEdging = style.fontEdging;
 }
 
 TextStyle Convert(const SPText::TextStyle& style)
@@ -319,6 +321,7 @@ TextStyle Convert(const SPText::TextStyle& style)
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;
     textStyle.badgeType = style.badgeType;
+    textStyle.fontEdging = style.fontEdging;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;

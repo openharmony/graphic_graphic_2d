@@ -1112,7 +1112,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
 #endif
 #ifdef MHC_ENABLE
-        bool pendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface);
+        auto&& pendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface);
 #endif
         Drawing::FlushInfo drawingFlushInfo;
         drawingFlushInfo.backendSurfaceAccess = true;
@@ -1128,7 +1128,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
 #endif
 #ifdef MHC_ENABLE
         if (pendingSubmit) {
-            RSMhcManager::Instance().MHCSubmitTask();
+            RSMhcManager::Instance().MHCSubmitTask(*pendingSubmit);
         }
 #endif
     } else {

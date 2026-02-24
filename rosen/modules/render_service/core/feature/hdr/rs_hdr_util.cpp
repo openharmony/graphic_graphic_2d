@@ -125,6 +125,12 @@ bool RSHdrUtil::CheckIsHDRSelfProcessingBuffer(const sptr<SurfaceBuffer>& surfac
     if (!noneHDRMetadataType) {
         return false;
     }
+    CM_ColorSpaceInfo colorSpaceInfo;
+    bool isHDRVideo = MetadataHelper::GetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) == GSERROR_OK &&
+        (colorSpaceInfo.transfunc == TRANSFUNC_PQ || colorSpaceInfo.transfunc == TRANSFUNC_HLG);
+    if (isHDRVideo) {
+        return false;
+    }
     const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
     return ROSEN_GNE(data.cta861.maxContentLightLevel, DEFAULT_SDR_NITS);
 }

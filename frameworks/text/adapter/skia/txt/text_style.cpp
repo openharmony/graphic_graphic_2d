@@ -116,7 +116,13 @@ bool TextStyle::operator==(TextStyle const& other) const
         skt::nearlyEqual(maxLineHeight, other.maxLineHeight) &&
         skt::nearlyEqual(minLineHeight, other.minLineHeight) &&
         lineHeightStyle == other.lineHeightStyle &&
-        badgeType == other.badgeType;
+        badgeType == other.badgeType &&
+        fontEdging == other.fontEdging;
+}
+
+bool TextStyle::operator!=(TextStyle const& other) const
+{
+    return !(*this == other);
 }
 } // namespace SPText
 } // namespace Rosen

@@ -33,6 +33,18 @@ public:
     // LCOV_EXCL_STOP
     static void ResetProperties(RSProperties& properties);
 
+    bool IsDeduplicationEnabled() const override
+    {
+        return enableDeduplication_;
+    }
+
+    void SetDeduplicationEnabled(bool enable) override
+    {
+        enableDeduplication_ = enable;
+    }
+
+    bool DeduplicationMarshalling(Parcel& parcel) const override;
+    bool DeduplicationUnmarshalling(Parcel& parcel) override;
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
     // LCOV_EXCL_START
@@ -43,6 +55,8 @@ private:
     // LCOV_EXCL_STOP
 
     void OnSetDirty() override {}
+
+    bool enableDeduplication_ = false;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_RENDER_MODIFIER_H

@@ -24,8 +24,6 @@
 #include <set>
 #include <unordered_set>
 
-#include "feature/color_picker/i_color_picker_manager.h"
-
 #include "common/rs_macros.h"
 #include "drawable/rs_drawable.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
@@ -33,8 +31,6 @@
 #include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
-class RSColorPickerManager;
-class ColorPickAltManager;
 namespace Drawing {
 class DrawCmdList;
 }
@@ -62,47 +58,6 @@ private:
     bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node);
     friend class RSRenderNode;
     friend class RSRenderNodeDrawableAdapter;
-};
-
-// RSColorPickerDrawable, pick color for current content of canvas
-class RSB_EXPORT RSColorPickerDrawable : public RSDrawable {
-public:
-    RSColorPickerDrawable() = default;
-    RSColorPickerDrawable(bool useAlt, NodeId nodeId);
-    ~RSColorPickerDrawable() override = default;
-
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& content) override;
-    void OnSync() override;
-    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-    void SetIsSystemDarkColorMode(bool isSystemDarkColorMode);
-
-    /**
-     * @brief Prepare ColorPicker for execution on main thread
-     * @param vsyncTime Current vsync time in nanoseconds
-     *
-     * Checks cooldown interval and determines if color pick should execute this frame.
-     * Sets needExecute_ flag for render thread to check. Called during Prepare phase.
-     */
-    RSB_EXPORT void Prepare(uint64_t vsyncTime);
-    bool NeedExecute() const
-    {
-        return needExecute_.load(std::memory_order_relaxed);
-    }
-
-private:
-    NodeId stagingNodeId_ = INVALID_NODEID;
-    NodeId nodeId_ = INVALID_NODEID;
-    std::shared_ptr<ColorPickerParam> stagingColorPicker_;
-    ColorPickerParam params_;
-
-    std::shared_ptr<IColorPickerManager> colorPickerManager_;
-
-    bool needSync_ = false;
-    std::atomic<bool> needExecute_ { false }; // Set in Prepare (main thread), read in OnDraw (render thread)
-    bool isTaskScheduled_ = false;            // Flag to indicate if a task is already scheduled during cooldown
-    uint64_t lastUpdateTime_ = 0;             // Set in Prepare
-    bool stagingIsSystemDarkColorMode_ = false;
 };
 
 // RSCustomModifierDrawable, for drawing custom modifiers

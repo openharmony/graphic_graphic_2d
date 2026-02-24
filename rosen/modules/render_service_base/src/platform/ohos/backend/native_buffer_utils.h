@@ -146,6 +146,13 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
 std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
     const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface);
 
+std::shared_ptr<Drawing::Surface> CreateSurfaceFromNativeBuffer(RsVulkanContext& vkCtx,
+    const Drawing::ImageInfo& imageInfo, OH_NativeBuffer* nativeBuffer,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace);
+ 
+Drawing::BackendTexture MakeBackendTextureFromNativeBufferImpl(RsVulkanContext& vkCtx,
+    OH_NativeBuffer* nativeBuffer, int width, int height, bool isProtected = false);
+
 #ifdef RS_ENABLE_VK
 uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,

@@ -25,6 +25,7 @@
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_clip_modifier.h"
 #include "modifier_ng/overlay/rs_overlay_style_modifier.h"
+#include "modifier_ng/geometry/rs_bounds_modifier.h"
 #include "recording/draw_cmd_list.h"
 #include "ui/rs_canvas_node.h"
 
@@ -99,5 +100,45 @@ HWTEST_F(RSModifierNGTest, AttachPropertyTest, TestSize.Level1)
     overlayModifier->AttachProperty(indexProperty);
     ASSERT_NE(indexProperty->target_.lock(), nullptr);
     ASSERT_TRUE(overlayModifier->IsCustom());
+}
+
+/**
+ * @tc.name: EnableDeduplicationTest
+ * @tc.desc: test the function SetDeduplicationEnabled and IsDeduplicationEnabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierNGTest, EnableDeduplicationTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    // Test default value (should be false)
+    ASSERT_FALSE(modifier->IsDeduplicationEnabled());
+
+    // Test SetDeduplicationEnabled with false
+    modifier->SetDeduplicationEnabled(false);
+    ASSERT_FALSE(modifier->IsDeduplicationEnabled());
+
+    // Test SetDeduplicationEnabled with true
+    modifier->SetDeduplicationEnabled(true);
+    ASSERT_TRUE(modifier->IsDeduplicationEnabled());
+}
+
+/**
+ * @tc.name: CreateRenderModifierWithEnableDeduplicationTest
+ * @tc.desc: test CreateRenderModifier transfers enableDeduplication correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierNGTest, CreateRenderModifierWithEnableDeduplicationTest, TestSize.Level1)
+{
+    auto modifier1 = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier1->SetDeduplicationEnabled(true);
+    auto renderModifier1 = modifier1->CreateRenderModifier();
+    ASSERT_NE(renderModifier1, nullptr);
+    ASSERT_TRUE(renderModifier1->IsDeduplicationEnabled());
+
+    auto modifier2 = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier2->SetDeduplicationEnabled(false);
+    auto renderModifier2 = modifier2->CreateRenderModifier();
+    ASSERT_NE(renderModifier2, nullptr);
+    ASSERT_FALSE(renderModifier2->IsDeduplicationEnabled());
 }
 } // namespace OHOS::Rosen

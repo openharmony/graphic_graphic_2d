@@ -54,6 +54,14 @@ public:
     void ReleasePixelMapCache(uint64_t uniqueId);
     bool CheckRefCntAndReleaseImageCache(uint64_t uniqueId, std::shared_ptr<Media::PixelMap>& pixelMapIn);
 
+    void CacheEditablePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap);
+    std::shared_ptr<Media::PixelMap> GetEditablePixelMapCache(uint64_t uniqueId) const;
+    void IncreaseEditablePixelMapCacheRefCount(uint64_t uniqueId);
+    void DiscardEditablePixelMapCache(uint64_t uniqueId);
+    void DecreaseRefCountAndDiscardEditablePixelMapCache(uint64_t uniqueId);
+    void DecreaseRefCountAndReleaseEditablePixelMapCache(uint64_t uniqueId);
+    void ReleaseEditablePixelMapCache();
+
     void CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img, pid_t tid = -1);
     std::shared_ptr<Drawing::Image> GetRenderDrawingImageCacheByPixelMapId(uint64_t uniqueId, pid_t tid = -1) const;
 
@@ -82,6 +90,10 @@ private:
     mutable std::mutex mapMutex_;
     std::unordered_map<uint64_t, std::unordered_map<pid_t, std::shared_ptr<Drawing::Image>>>
         pixelMapIdRelatedDrawingImageCache_;
+    mutable std::mutex editablePixelMapCacheMutex_;
+    std::unordered_map<uint64_t, std::pair<std::shared_ptr<Media::PixelMap>, uint64_t>> editablePixelMapCache_;
+    mutable std::mutex editablePixelMapCacheToReleaseMutex_;
+    std::vector<std::shared_ptr<Media::PixelMap>> editablePixelMapCacheToRelease_;
     std::mutex uniqueIdListMutex_;
     std::list<uint64_t> uniqueIdList_;
     std::unordered_map<NodeId, ImageContent> rsImageInfoMap;

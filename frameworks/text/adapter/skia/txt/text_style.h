@@ -111,6 +111,8 @@ public:
 
     bool operator==(TextStyle const& other) const;
 
+    bool operator!=(TextStyle const& other) const;
+
     void SetRelayoutBitMap(const std::bitset<static_cast<size_t>
         (RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> &relayoutChangeBitmap)
     {
@@ -160,6 +162,7 @@ public:
     double maxLineHeight{std::numeric_limits<float>::max()};
     double minLineHeight{0.0f};
     LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
+    Drawing::FontEdging fontEdging{Drawing::FontEdging::ANTI_ALIAS};
 };
 
 } // namespace SPText

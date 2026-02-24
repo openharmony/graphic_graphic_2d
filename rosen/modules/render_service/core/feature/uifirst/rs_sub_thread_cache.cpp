@@ -301,7 +301,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
 
     float width = 0.0f;
     float height = 0.0f;
-    if (const auto& params = nodeDrawable->GetRenderParams()) {
+    if (const auto& params = nodeDrawable->GetUifirstRenderParams()) {
         auto size = params->GetCacheSize();
         nodeDrawable->boundsWidth_ = size.x_;
         nodeDrawable->boundsHeight_ = size.y_;
@@ -1020,6 +1020,15 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         HILOG_COMM_INFO("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
             __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
             cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
+    }
+    // if its sub tree has a blacklist, draw empty cache
+    const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
+    auto screenId = RSUniRenderThread::GetCaptureParam().virtualScreenId_;
+    if (RSUniRenderThread::GetCaptureParam().isMirror_ &&
+        specialLayerManager.FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST)) {
+        RS_TRACE_NAME_FMT("%s skip by virtual screen blacklist: [%" PRIu64 "] %s",
+            __func__, surfaceDrawable->GetId(), surfaceDrawable->GetName().c_str());
+        return true;
     }
     RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d, cacheState:%d",
         surfaceParams.GetName().c_str(), surfaceParams.GetId(), enableType, cacheState);

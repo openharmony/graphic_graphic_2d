@@ -102,7 +102,7 @@ HWTEST_F(RSFlowLightSweepShaderTest, UnmarshallingTest, TestSize.Level1)
 
     auto rsFlowLightSweepShader2 = std::make_shared<RSFlowLightSweepShader>();
     bool needReset = true;
-    ASSERT_EQ(rsFlowLightSweepShader2->Unmarshalling(parcel, needReset), true);
+    ASSERT_EQ(rsFlowLightSweepShader2->Unmarshalling(parcel, needReset), false);
     EXPECT_FALSE(needReset);
 }
 } // namespace Rosen

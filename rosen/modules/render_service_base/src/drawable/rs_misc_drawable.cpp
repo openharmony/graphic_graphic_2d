@@ -17,9 +17,6 @@
 
 #include <chrono>
 
-#include "feature/color_picker/color_pick_alt_manager.h"
-#include "feature/color_picker/rs_color_picker_manager.h"
-#include "feature/color_picker/rs_color_picker_thread.h"
 #include "rs_profiler.h"
 
 #include "common/rs_common_def.h"
@@ -155,104 +152,6 @@ void RSChildrenDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* re
         drawable->Draw(*canvas);
     }
 }
-
-// ==================== RSColorPickerDrawable =====================
-RSColorPickerDrawable::RSColorPickerDrawable(bool useAlt, NodeId nodeId)
-{
-    if (useAlt) {
-        colorPickerManager_ = std::make_shared<ColorPickAltManager>(nodeId);
-    } else {
-        colorPickerManager_ = std::make_shared<RSColorPickerManager>(nodeId);
-    }
-}
-RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
-{
-    auto colorPicker = node.GetRenderProperties().GetColorPicker();
-    const bool useAlt = colorPicker ? colorPicker->strategy == ColorPickStrategyType::CLIENT_CALLBACK : false;
-    if (auto ret = std::make_shared<RSColorPickerDrawable>(useAlt, node.GetId()); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-}
-
-void RSColorPickerDrawable::Prepare(uint64_t vsyncTime)
-{
-    RS_OPTIONAL_TRACE_NAME_FMT("RSColorPickerDrawable::Preparing node %" PRIu64 ", ", nodeId_);
-    needExecute_.store(false, std::memory_order_relaxed);
-    if (!stagingColorPicker_ || stagingColorPicker_->strategy == ColorPickStrategyType::NONE) {
-        return;
-    }
-
-    uint64_t interval = stagingColorPicker_->interval;
-    uint64_t vsyncTimeMs = vsyncTime / 1000000;
-    if (vsyncTimeMs >= interval + lastUpdateTime_) {
-        needExecute_.store(true, std::memory_order_relaxed);
-        lastUpdateTime_ = vsyncTimeMs;
-        isTaskScheduled_ = false; // Reset flag when processing a new frame
-    } else if (!isTaskScheduled_) {
-        // Schedule a postponed task to catch frames rendered during cooldown
-        uint64_t remainingDelay = (interval + lastUpdateTime_) - vsyncTimeMs;
-        isTaskScheduled_ = true;
-        RSColorPickerThread::Instance().PostTask(
-            [nodeId = stagingNodeId_]() { RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); },
-            static_cast<int64_t>(remainingDelay));
-    }
-}
-
-bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)
-{
-    stagingNodeId_ = node.GetId();
-    stagingColorPicker_ = node.GetRenderProperties().GetColorPicker();
-    needSync_ = true;
-    return stagingColorPicker_ && stagingColorPicker_->strategy != ColorPickStrategyType::NONE;
-}
-
-void RSColorPickerDrawable::OnSync()
-{
-    if (!needSync_) {
-        return;
-    }
-    nodeId_ = stagingNodeId_;
-    params_ = stagingColorPicker_ ? *stagingColorPicker_ : ColorPickerParam();
-
-    if (colorPickerManager_) {
-        colorPickerManager_->SetSystemDarkColorMode(stagingIsSystemDarkColorMode_);
-    }
-
-    needSync_ = false;
-}
-
-void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
-{
-    if (!colorPickerManager_) {
-        return;
-    }
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-    if (!paintFilterCanvas) {
-        return;
-    }
-
-    auto maybeColor = colorPickerManager_->GetColorPick();
-    if (maybeColor.has_value()) {
-        paintFilterCanvas->SetColorPicked(maybeColor.value());
-    }
-    bool needExecute = needExecute_.load(std::memory_order_relaxed);
-    RS_OPTIONAL_TRACE_NAME_FMT("ColorPicker: onDraw nodeId=%" PRIu64 " rect=[%s], need execute = %d", nodeId_,
-        rect ? rect->ToString().c_str() : "null", needExecute);
-
-    if (needExecute) {
-        colorPickerManager_->ScheduleColorPick(*paintFilterCanvas, rect, params_);
-    }
-}
-
-void RSColorPickerDrawable::SetIsSystemDarkColorMode(bool isSystemDarkColorMode)
-{
-    if (stagingIsSystemDarkColorMode_ != isSystemDarkColorMode) {
-        stagingIsSystemDarkColorMode_ = isSystemDarkColorMode;
-        needSync_ = true;
-    }
-}
-
 
 // ==================== RSCustomModifierDrawable ===================
 RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, ModifierNG::RSModifierType type)
@@ -407,6 +306,8 @@ void RSBeginBlenderDrawable::PostUpdate(const RSRenderNode& node)
 {
     enableEDREffect_ = node.GetRenderProperties().GetFgBrightnessEnableEDR();
     if (enableEDREffect_) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSBeginBlenderDrawable:PostUpdate node[%" PRIu64 "] has edr brightness", node.GetId());
         screenNodeId_ = node.GetScreenNodeId();
     }
 }

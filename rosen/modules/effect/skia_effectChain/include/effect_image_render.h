@@ -203,6 +203,9 @@ public:
     DrawingError Render(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
         const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU,
         std::shared_ptr<Media::PixelMap>& dstPixelMap);
+    DrawingError RenderDstNative(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+        std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer,
+        const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU);
 };
 } // namespace OHOS::Rosen
 #endif // EFFECT_IMAGE_RENDER_H

@@ -22,6 +22,7 @@ import type common2D from '@ohos.graphics.common2D';
 import image from '@ohos.multimedia.image';
 import { Resource } from 'global.resource';
 import { ResourceColor } from 'arkui.component.units'
+import type colorSpaceManager from '@ohos.graphics.colorSpaceManager';
 
 /**
  * Provides functions such as 2D graphics rendering, text drawing, and image display.
@@ -499,6 +500,49 @@ namespace drawing {
     }
 
     private static native getSamplingOptionsAddr(input: SamplingOptions): long;
+  }
+
+  /**
+   * Describes font feature for drawing and measuring single character.
+   * @typedef FontFeature
+   * @syscap SystemCapability.Graphics.Drawing
+   * @crossplatform
+   * @atomicservice
+   * @since 24
+   */
+  export interface FontFeature {
+    /**
+     * The name of font feature.
+     * @type { string } feature name
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    /**
+     * The name of font feature.
+     * @type { string } feature name
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @atomicservice
+     * @since 23 static
+     */
+    name: string;
+    /**
+     * The value of font feature.
+     * @type { double } feature value
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    /**
+     * The value of font feature.
+     * @type { double } feature value
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @atomicservice
+     * @since 23
+     */
+    value: double;
   }
 
   export class Canvas {
@@ -1253,6 +1297,19 @@ namespace drawing {
      * @since 20
      */
     native quickRejectRect(rect: common2D.Rect): boolean;
+    
+    /**
+     * Draws a single character with font feature.
+     * @param { string } text - A string containing only a single character.
+     * @param { Font } font - Font object.
+     * @param { double } x - X coordinate of the single character start point.
+     * @param { double } y - Y coordinate of the single character start point.
+     * @param { Array<FontFeature> } features - Font Feature Array.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native drawSingleCharacterWithFeatures(text: string, font: Font, x: double, y: double, features: Array<FontFeature>): void;
   }
 
   /**
@@ -1435,6 +1492,19 @@ namespace drawing {
      * @since 20
      */
     static native createMatrixColorFilter(matrix: Array<double>): ColorFilter | undefined;
+
+    /**
+     * Makes a color filter with the given mutColor and addColor.
+     * @param { common2D.Color | int } mutColor - The range of color channels must be [0, 255],
+     *     used to multiply source color.
+     * @param { common2D.Color | int } addColor - The range of color channels must be [0, 255],
+     *     used to add to source color.
+     * @returns { ColorFilter | undefined } Colorfilter object.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native createLightingColorFilter(mutColor: common2D.Color | int, addColor: common2D.Color | int): ColorFilter | undefined;
   }
 
   /**
@@ -1797,6 +1867,25 @@ namespace drawing {
      * @since 20
      */
     native setImageFilter(filter: ImageFilter | null): void;
+
+    /**
+     * Set the color by four floating point values, unpremultiplied. The color values are interpreted as being in
+     * the colorSpace. If colorSpace is nullptr, then color is assumed to be in the sRGB color space.
+     *
+     * @param { common2D.Color4f } color4f - Indicates four floating point values that describes the color.
+     * @param { colorSpaceManager.ColorSpaceManager | null } colorSpace - Indicates colorSpaceManager.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native setColor4f(color4f: common2D.Color4f, colorSpace: colorSpaceManager.ColorSpaceManager | null): void;
+
+    /**
+     * Obtains the color of a pen. The color is used by the pen to outline a shape.
+     * @returns {  common2D.Color4f | undefined  } Returns four floating point values that describes the color.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native getColor4f(): common2D.Color4f | undefined;
   }
 
   /**
@@ -2040,6 +2129,25 @@ namespace drawing {
      * @since 20
      */
     native reset(): void;
+
+    /**
+     * Sets the color by four floating point values, unpremultiplied. The color values are interpreted as being in
+     * the colorSpace. If colorSpace is nullptr, then color is assumed to be in the sRGB color space.
+     *
+     * @param { common2D.Color4f } color4f - Indicates four floating point values that describes the color.
+     * @param { colorSpaceManager.ColorSpaceManager | null } colorSpace - Indicates colorSpaceManager.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native setColor4f(color4f: common2D.Color4f, colorSpace: colorSpaceManager.ColorSpaceManager | null): void;
+
+     /**
+     * Obtains the color of a brush. The color is used by the brush to outline a shape.
+     * @returns { common2D.Color4f | undefined } Returns four floating point values that describes the color.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native getColor4f(): common2D.Color4f | undefined;
   }
 
   /**
@@ -2646,6 +2754,17 @@ namespace drawing {
      * @since 20
      */
     native isThemeFontFollowed(): boolean;
+
+    /**
+     * Measure a single character with font feature.
+     * @param { string } text - A string containing only a single character.
+     * @param { Array<FontFeature> } features - Font Feature Array.
+     * @returns { double } The width of the single character, in px.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native measureSingleCharacterWithFeatures(text: string, features: Array<FontFeature>): double;
   }
 
   /**
@@ -3393,6 +3512,105 @@ namespace drawing {
      * @since 20.
      */
     native setPolyToPoly(src: Array<common2D.Point>, dst: Array<common2D.Point>, count: int): boolean;
+
+    /**
+     * Sets matrix to matrix multiplied by matrix constructed from skewing by (kx, ky) about pivot point (px, py).
+     * This can be thought of as scaling relative to a pivot point before applying matrix.
+     * @param { double } kx - Indicates the horizontal skew factor.
+     * @param { double } ky - Indicates the vertical skew factor.
+     * @param { double } px - Indicates the pivot on x-axis.
+     * @param { double } py - Indicates the pivot on y-axis.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native preSkew(kx: double, ky: double, px: double, py: double): void;
+
+    /**
+     * Query whether a rectangle will map to another rectangle after applying this matrix.
+     * @returns { boolean } Returns true if the transformation keeps rectangles as rectangles; returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native rectStaysRect(): boolean;
+
+    /**
+     * Sets matrix to the copy of anther matrix object.
+     * @param { Array<double> | Matrix } matrix - Indicates the Matrix object to copy.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20 dynamic
+     * @since 23 static
+     */
+    native setMatrix(matrix: Array<double> | Matrix): void;
+
+    /**
+     * Sets matrix to matrix constructed from skewing by (kx, ky) about pivot point (px, py), multiplied by matrix.
+     * This can be thought of as skewing relative to a pivot point after applying matrix.
+     * @param { double } kx - Indicates the horizontal skew factor.
+     * @param { double } ky - Indicates the vertical skew factor.
+     * @param { double } px - Indicates the pivot on x-axis.
+     * @param { double } py - Indicates the pivot on y-axis.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native postSkew(kx: double, ky: double, px: double, py: double): void;
+
+    /**
+     * Sets the skew transformation with a pivot point.
+     * @param { double } kx - The skew factor along the x-axis.
+     * @param { double } ky - The skew factor along the y-axis.
+     * @param { double } px - The x-coordinate of the point around which to apply the skew.
+     * @param { double } py - The y-coordinate of the point around which to apply the skew.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native setSkew(kx: double, ky: double, px: double, py: double): void;
+
+    /**
+     * Sets the sine and cosine values for a rotation transformation around a point.
+     * @param { double } sinValue - The sine of the angle of rotation.
+     * @param { double } cosValue - The cosine of the angle of rotation.
+     * @param { double } px - The x-coordinate of the point around which to rotate.
+     * @param { double } py - The y-coordinate of the point around which to rotate.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native setSinCos(sinValue: double, cosValue: double, px: double, py: double): void;
+
+    /**
+     * Sets matrix to the product of matrix A and matrix B.
+     * @param { Matrix } matrixA - Indicates the MatrixA object.
+     * @param { Matrix } matrixB - Indicates the MatrixB object.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native setConcat(matrixA: Matrix, matrixB: Matrix): void;
+
+    /**
+     * Sets matrix to the product of 'this' and another.
+     * @param { Matrix } matrix - Indicates the other Matrix object.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native postConcat(matrix: Matrix): void;
+
+    /**
+     * Query whether the current matrix is affine or not.
+     * @returns { boolean } Returns true if the matrix is affine; returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native isAffine(): boolean;
+
+    /**
+     * Forms a circle by radius and maps it to a ellipse, returns the average radius of the ellipse.
+     * The average radius is equal to the square root of the product of the major axis length and the minor axis length.
+     * @param { double } radius - circle size to map.
+     * @returns { double } Return average mapped radius.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native mapRadius(radius: double): double;
   }
 
   /**
@@ -3691,6 +3909,69 @@ namespace drawing {
      */
     static native createFromColorFilter(colorFilter: ColorFilter,
       imageFilter?: ImageFilter | null): ImageFilter | undefined;
+
+    /**
+     * Makes an ImageFilter object that instance with the provided x and y offset.
+     * @param { double } dx - Indicates the offset in the X direction.
+     * @param { double } dy - Indicates the offset in the Y direction.
+     * @param { ImageFilter | null } [input] - Indicates the input image filter used to generate offset effects, or uses
+     *     the source bitmap if this is null.
+     * @returns { ImageFilter | undefined } ImageFilter object.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native createOffsetImageFilter(dx: double, dy: double, input?: ImageFilter | null): ImageFilter | undefined;
+
+    /**
+     * Makes an ImageFilter object that combines the "inner" and "outer" filters, allowing the output of the "inner"
+     * filter to serve as the input source bitmap for the "outer" filter.
+     * @param { ImageFilter } cOuter - Indicates the instance to apply its effects to the output of the 'inner'
+     *     filter.
+     * @param { ImageFilter } cInner - Indicates the output as input for "outer" filters.
+     * @returns { ImageFilter | undefined } ImageFilter object.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native createComposeImageFilter(cOuter: ImageFilter, cInner: ImageFilter): ImageFilter | undefined;
+
+    /**
+     * Makes an ImageFilter object that applies the blend to the input.
+     * @param { BlendMode } mode - Blendmode.
+     * @param { ImageFilter } background - Indicates the input background filter.
+     * @param { ImageFilter } foreground - Indicates the input foreground filter.
+     * @returns { ImageFilter | undefined } ImageFilter object.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native createBlendImageFilter(mode: BlendMode, background: ImageFilter, foreground: ImageFilter): ImageFilter | undefined;
+
+    /**
+     * Makes an ImageFilter object that renders the contents of the input Shader.
+     *
+     * @param { ShaderEffect } shader - Indicates the shader effect to be applied to the image.
+     * @returns { ImageFilter | undefined } ImageFilter object.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native createFromShaderEffect(shader: ShaderEffect): ImageFilter | undefined;
+
+    /**
+     * Makes an ImageFilter object that applies the bitmap to the input.
+     *
+     * @param { image.PixelMap } pixelmap - The source input image.
+     * @param { common2D.Rect | null } [srcRect] - Indicates the input srcRect, or uses the source bitmap if this is null.
+     * @param { common2D.Rect | null } [dstRect] - Indicates the input dstRect, or uses the source bitmap if this is null.
+     * @returns { ImageFilter | undefined } ImageFilter object.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native createFromImage(pixelmap: image.PixelMap, srcRect?: common2D.Rect | null, dstRect?: common2D.Rect | null): ImageFilter | undefined;  
   }
 
   /**
@@ -4458,6 +4739,94 @@ namespace drawing {
      * @since 23
      */
     native toggleInverseFillType(): void;
+
+    /**
+     * Approximates the path with a series of line segments.
+     *
+     * @param { double } acceptableError - Indicates the acceptable error for a line on the path.
+     *     Should be no less than 0.
+     * @returns { Array<double> | undefined } - Returns with the array containing point components.
+     *     <br>There are three components for each point:
+     *     <br>1. Fraction along the length of the path that the point resides [0.0, 1.0].
+     *     <br>2. The x coordinate of the point.
+     *     <br>3. The y coordinate of the point.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native approximate(acceptableError: double): Array<double> | undefined;
+
+    /**
+     * Changes the last point of the path to specific value.
+     * @param { double } x - Indicates the new x-axis value for the last point.
+     * @param { double } y - Indicates the new y-axis value for the last point.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native setLastPoint(x: double, y: double): void;
+
+    /**
+     * Clears any lines and curves from the path but keeps the internal storage for faster reuse.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native rewind(): void;
+
+    /**
+     * Performs interpolation between the current path and another path based on a given weight,
+     * and stores the result in the target path object.
+     *
+     * @param { Path } other - Indicates the other path to be interpolated with the current path.
+     * @param { double } weight - Indicates the interpolation weight, which must be in the range [0, 1].
+     * @param { Path } interpolatedPath - Indicates the target path object where the interpolation
+     *     result will be stored.
+     * @returns { boolean } - Returns true if the interpolation operation was successful; returns false otherwise.
+     *     <br>Possible reasons for failure include:
+     *     <br>1. The 'other' is incompatible with the current path.
+     *     <br>2. The 'weight' is outside the [0, 1] range.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native interpolate(other: Path, weight: double, interpolatedPath: Path): boolean;
+
+    /**
+     * Check if the path is empty (has no line or curve).
+     *
+     * @returns { boolean } Returns true if the path is empty; returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native isEmpty(): boolean;
+
+    /**
+     * Sets the Path with the same content of another.
+     * @param { Path } src - the path to copy content from.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native set(src: Path): void;
+
+    /**
+     * Checks whether the current path is compatible with another path (other) for interpolation, which means
+     * they have exactly the same structure, both paths must have the same operations, in the same order.
+     * If any of the operations are of type PathIteratorVerb.CONIC, then the weights of those conics must also match.
+     *
+     * @param { Path } other - Indicates the path to be checked for compatibility with the current path.
+     * @returns { boolean } - Returns true if the current path and the other path are
+     *     compatible for interpolation; returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native isInterpolate(other: Path): boolean;
+
+    /**
+     * Gets fill type, the rule used to fill path.
+     * @returns { PathFillType | undefined } Returns the pathFillType.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native getFillType(): PathFillType | undefined;
   }
 
     /**
@@ -4593,6 +4962,36 @@ namespace drawing {
     static native createConicalGradient(startPt: common2D.Point, startRadius: double, endPt: common2D.Point,
       endRadius: double, colors: Array<int>, mode: TileMode,
       pos?: Array<double> | null, matrix?: Matrix | null): ShaderEffect | undefined;
+
+    /**
+     * Creates an ShaderEffect object that generates a shader with single image.
+     * @param { image.PixelMap } pixelmap - PixelMap.
+     * @param { TileMode } tileX - Indicates the type of tile mode for horizontal shader effect.
+     * @param { TileMode } tileY - Indicates the type of tile mode for vertical shader effect.
+     * @param { SamplingOptions } samplingOptions - SamplingOptions used to describe the sampling mode.
+     * @param { Matrix | null } [matrix] - Indicates the Matrix object. The default value is null.
+     * @returns { ShaderEffect | undefined } Returns the shader with single image ShaderEffect object.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native createImageShader(pixelmap: image.PixelMap, tileX: TileMode, tileY: TileMode,
+      samplingOptions: SamplingOptions, matrix?: Matrix | null): ShaderEffect | undefined;
+
+    /**
+     * Creates an ShaderEffect object that generates a blend ShaderEffect object by two shaders.
+     * @param { ShaderEffect } dstShaderEffect - Indicates a destination ShaderEffect pointer.
+     * @param { ShaderEffect } srcShaderEffect - Indicates a source ShaderEffect pointer.
+     * @param { BlendMode } blendMode - BlendMode.
+     * @returns { ShaderEffect | undefined } Returns a blend ShaderEffect object.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 23 static
+     */
+    static native createComposeShader(dstShaderEffect: ShaderEffect, srcShaderEffect: ShaderEffect,
+      blendMode: BlendMode): ShaderEffect | undefined;
   }
 
   /**
@@ -5104,6 +5503,66 @@ namespace drawing {
      * @since 23
      */
     native offset(dx: int, dy: int): void;
+
+    /**
+     * Determines whether region is intersect with another.
+     * @param { Region } region - Indicates the other region for comparasion.
+     * @returns { boolean } Returns true if the region dose not intersect the other, or the region is empty;
+     *     <br>returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native quickRejectRegion(region: Region): boolean;
+
+    /**
+     * Query whether the region contains multiple rectangles.
+     * @returns { boolean } Returns true if the region contains more than one rectangle;
+     * <br>returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native isComplex(): boolean;
+
+    /** Gets the boundary of the region, which represents by a path.
+     * Gets the bounds of the region.
+     * @returns { Path | undefined } Returns Path object.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native getBoundaryPath(): Path | undefined;
+
+    /**
+     * Sets the region to the specified region.
+     * @param { Region } region - Region object.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native setRegion(region: Region): void;
+
+    /**
+     * Query whether this region is equal to the other region.
+     * @param { Region } other - Indicates the region object for comparasion.
+     * @returns { boolean } Returns compare result.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native isEqual(other: Region): boolean;
+
+    /**
+     * Gets the bounds of the region.
+     * @returns { common2D.Rect | undefined } Returns Rect object.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native getBounds(): common2D.Rect | undefined;
+
+    /**
+     * Query whether the region is empty .
+     * @returns { boolean } Returns true if the region is empty; returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    native isEmpty(): boolean;
   }
 
   /**
@@ -5525,6 +5984,160 @@ namespace drawing {
      * @since 20
      */
     static native isEqual(rect: common2D.Rect, other: common2D.Rect): boolean;
+
+     /**
+     * Calculates the x-coordinate of the center point of the 2D rectangular object.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object to query.
+     * @returns { double } - Returns the center X coordinate.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native centerX(rect: common2D.Rect): double;
+ 
+    /**
+     * Makes a deep copy of a 2D rectangular object.
+     * @param { common2D.Rect } src - Indicates the source rectangle to copy.
+     * @returns { common2D.Rect | undefined } - Returns an Rect object has the same boundary coordinates with the source.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native makeCopy(src: common2D.Rect): common2D.Rect | undefined;
+ 
+    /**
+     * Makes a 2D rectangular object from boundary coordinates.
+     * @param { double } left - Indicates the X-coordinate of the left edge.
+     * @param { double } top - Indicates the Y-coordinate of the top edge.
+     * @param { double } right - Indicates the X-coordinate of the right edge.
+     * @param { double } bottom - Indicates the Y-coordinate of the bottom edge.
+     * @returns { common2D.Rect | undefined }
+     *     Returns an Rect object with the specific coordinates (left, top, right, bottom).
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native makeLtrb(left: double, top: double, right: double, bottom: double): common2D.Rect | undefined;
+ 
+    /**
+     * Makes an uninitialized 2D rectangular object with zero dimensions and origin at (0, 0).
+     *
+     * @returns { common2D.Rect | undefined } - Returns an empty Rect object with all
+     *     coordinates (left, top, right, bottom) set to 0.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native makeEmpty(): common2D.Rect | undefined;
+ 
+    /**
+     * Sets a 2D rectangular object to the union of itself and another.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object.
+     * @param { common2D.Rect } other - Indicates the other Rect object.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native union(rect: common2D.Rect, other: common2D.Rect): void;
+ 
+    /**
+     * Calculates the y-coordinate of the center point of the 2D rectangular object.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object to query.
+     * @returns { double } - Returns the center Y coordinate.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native centerY(rect: common2D.Rect): double;
+ 
+    /**
+     * Checks if two 2D rectangular objects intersect.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object.
+     * @param { common2D.Rect } other - Indicates the other Rect object.
+     * @returns { boolean } - Returns true if have area in common, otherwise return false.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native isIntersect(rect: common2D.Rect, other: common2D.Rect): boolean;
+ 
+    
+    /**
+     * Offsets the rectangle to a specific position and kepps the width and height unchanged.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object.
+     * @param { double } newLeft - Indicates the new left coordinates.
+     * @param { double } newTop - Indicates the new top coordinates.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native offsetTo(rect: common2D.Rect, newLeft: double, newTop: double): void;
+ 
+    /**
+     * Sets the boundary coordinates of a 2D rectangular object with that of specific value.
+     * @param { common2D.Rect } rect - Indicates the Rect object to be modified.
+     * @param { double } left - Indicates the X-coordinate of the left edge.
+     * @param { double } top - Indicates the Y-coordinate of the top edge.
+     * @param { double } right - Indicates the X-coordinate of the right edge.
+     * @param { double } bottom - Indicates the Y-coordinate of the bottom edge.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native setLtrb(rect: common2D.Rect, left: double, top: double, right: double, bottom: double): void;
+ 
+    /**
+     * Checks if one 2D rectangular object contains a specific point.
+     *
+     * @param { common2D.Rect } rect - The container Rect object.
+     * @param { double } x - Indicates the X-coordinate of the point to check.
+     * @param { double } y - Indicates the Y-coordinate of the point to check.
+     * @returns { boolean } - Returns true if 'rect' contains the specified point; returns false otherwise.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native contains(rect: common2D.Rect, x: double, y: double): boolean;
+ 
+    /**
+     * Checks if one 2D rectangular object fully contains the specified boundary coordinates.
+     *
+     * @param { common2D.Rect } rect - The container Rect object.
+     * @param { double } left - Indicates the left boundary of the target region.
+     * @param { double } top - Indicates the top boundary of the target region.
+     * @param { double } right - Indicates the right boundary of the target region.
+     * @param { double } bottom - Indicates the bottom boundary of the target region.
+     * @returns { boolean } - Returns true if 'rect' fully contains the specified boundary coordinates;
+     *     returns false otherwise.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native contains(rect: common2D.Rect, left: double, top: double, right: double, bottom: double): boolean;
+    
+    /**
+     * Sets the boundary coordinates of a 2D rectangular object to zero.
+     * @param { common2D.Rect } rect - Indicates the Rect object to be modified.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native setEmpty(rect: common2D.Rect): void;
+ 
+    /**
+     * Sets the boundary coordinates of a 2D rectangular object with that of another.
+     * @param { common2D.Rect } rect - Indicates the Rect object to be modified.
+     * @param { common2D.Rect } other - Indicates the source rectangle to copy.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native setRect(rect: common2D.Rect, other: common2D.Rect): void;
   }
 
   /**

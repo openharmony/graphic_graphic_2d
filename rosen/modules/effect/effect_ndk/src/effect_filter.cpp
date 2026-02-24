@@ -373,3 +373,15 @@ EffectErrorCode OH_Filter_ReededGlass(OH_Filter* filter, OH_Filter_ReededGlassDa
 
     return EFFECT_SUCCESS;
 }
+
+EffectErrorCode OH_Filter_GetEffectNativeBuffer(OH_Filter* filter, OH_NativeBuffer* dstNativeBuffer)
+{
+    if (!dstNativeBuffer || !filter) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    CastToFilter(filter)->RenderNativeBuffer(false, dstNativeBuffer);
+    if (dstNativeBuffer == nullptr) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}

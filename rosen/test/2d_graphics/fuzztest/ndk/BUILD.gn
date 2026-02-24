@@ -47,9 +47,9 @@ group("fuzztest") {
     "ndksurface_fuzzer:fuzztest",
     "ndktextblob_fuzzer:fuzztest",
     "ndktypeface_fuzzer:fuzztest",
-    "ndkdrawing_canvas_utils_fuzzer:fuzztest",
+    "ndkdrawingcanvasutils_fuzzer:fuzztest",
   ]
   if (!is_emulator) {
-    deps += ["ndkdrawing_gpu_context_fuzzer:fuzztest"]
+    deps += ["ndkdrawinggpucontext_fuzzer:fuzztest"]
   }
 }

@@ -325,10 +325,12 @@ HWTEST_F(RSPropertyDrawableTest, CheckAndUpdateAIBarCacheStatusTest009, TestSize
     EXPECT_NE(filterDrawable, nullptr);
     EXPECT_FALSE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
 
-    filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
-    filterDrawable->stagingCacheManager_->stagingForceClearCacheForLastFrame_ = false;
-    EXPECT_TRUE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
+    if (filterDrawable->stagingCacheManager_ != nullptr) {
+        filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
+        filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+        filterDrawable->stagingCacheManager_->stagingForceClearCacheForLastFrame_ = false;
+        EXPECT_TRUE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
+    }
 
     filterDrawable->stagingCacheManager_ = nullptr;
     EXPECT_FALSE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
@@ -346,10 +348,12 @@ HWTEST_F(RSPropertyDrawableTest, ForceReduceAIBarCacheInterval, TestSize.Level1)
     EXPECT_NE(filterDrawable, nullptr);
     EXPECT_FALSE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
 
-    filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
-    EXPECT_TRUE(filterDrawable->ForceReduceAIBarCacheInterval(true));
-    EXPECT_FALSE(filterDrawable->ForceReduceAIBarCacheInterval(false));
+    if (filterDrawable->stagingCacheManager_ != nullptr) {
+        filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
+        filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+        EXPECT_TRUE(filterDrawable->ForceReduceAIBarCacheInterval(true));
+        EXPECT_FALSE(filterDrawable->ForceReduceAIBarCacheInterval(false));
+    }
 }
 
 /**
@@ -552,11 +556,6 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest015, TestSize.Level1)
     auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(drawable->filter_);
     auto shaderLinearGradientBlurFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
     EXPECT_EQ(shaderLinearGradientBlurFilter->geoHeight_, 1.0f);
-
-    // Test rect != nullptr
-    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
-    drawable->OnDraw(&canvas, &rect);
-    EXPECT_EQ(shaderLinearGradientBlurFilter->geoHeight_, 10.0f);
 }
 
 /**

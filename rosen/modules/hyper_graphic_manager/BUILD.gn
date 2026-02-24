@@ -117,6 +117,7 @@ ohos_shared_library("libhyper_graphic_manager") {
 
   external_deps = [
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hicollie:libhicollie",

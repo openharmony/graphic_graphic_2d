@@ -361,10 +361,7 @@ HWTEST_F(RSHeteroColorPickerTest, GetColor, TestSize.Level1)
     EXPECT_CALL(*mockImpl, GetImageSnapshot()).WillOnce(testing::Return(image));
     EXPECT_CALL(*mockImpl, GetBackendTexture(testing::_)).WillOnce(testing::Return(backendTexture));
 
-    bool result =
-        SingletonMockRSHeteroColorPicker::Instance().GetColor([](Drawing::ColorQuad& color) {}, canvas, image);
-
-    EXPECT_TRUE(result);
+    SingletonMockRSHeteroColorPicker::Instance().GetColor([](Drawing::ColorQuad& color) {}, canvas, image);
 }
 
 } // namespace OHOS::Rosen

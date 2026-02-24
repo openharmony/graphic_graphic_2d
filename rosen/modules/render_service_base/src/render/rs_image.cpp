@@ -548,6 +548,9 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
     uint64_t loopTime = (maxX - minX) * (maxY - minY);
     bool isNeedOffscreen = (maxX - minX >= 1) &&  loopTime > REPEAT_LOOP_TIME_LIMIT;
     if (!hdrImageDraw && imageRepeat_ == ImageRepeat::REPEAT && isNeedOffscreen) {
+        RS_LOGE("RSImage draw repeat too many times, looptime:%{public}" PRIu64
+                ", dstRect_:%{public}s, frameRect_:%{public}s, uniqueId_:%{public}" PRIu64,
+ 	            loopTime, dstRect_.ToString().c_str(), frameRect_.ToString().c_str(), uniqueId_);
         DrawImageRepeatOffScreen(samplingOptions, canvas, minX, maxX, minY, maxY);
         return;
     }
@@ -624,8 +627,7 @@ void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingO
     
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
-    const float limitSize = 0.01f;
-    if (dstRect_.width_ < limitSize || dstRect_.height_ < limitSize) {
+    if (ROSEN_EQ<float>(dstRect_.width_, 0.0f) || ROSEN_EQ<float>(dstRect_.height_, 0.0f)) {
         RS_LOGE("RSImage::CalcRepeatBounds dst rect width or height is invalid");
         return;
     }
@@ -844,12 +846,17 @@ bool RSImage::Marshalling(Parcel& parcel) const
         image = nullptr;
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
+    if (pixelMap_ != nullptr) {
+        image = nullptr;
+    }
+    bool isPropertiesDirty = (pixelMap_ ? pixelMap_->IsPropertiesDirty() : PIXELMAP_IS_PROPERTIES_DIRTY_DEFAULT);
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
                    RSMarshallingHelper::Marshalling(parcel, nodeId_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
-                   pixelMap_ == nullptr ? RSMarshallingHelper::Marshalling(parcel, image) :
+                   RSMarshallingHelper::CompatibleMarshalling(parcel, isPropertiesDirty, RSPARCELVER_ADD_ISPROPDIRTY) &&
+                   RSMarshallingHelper::Marshalling(parcel, image) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_) &&
                    RSMarshallingHelper::Marshalling(parcel, compressData) &&
                    RSMarshallingHelper::Marshalling(parcel, imageFit) &&

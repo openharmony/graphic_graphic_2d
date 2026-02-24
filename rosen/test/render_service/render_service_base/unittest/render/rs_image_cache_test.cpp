@@ -209,6 +209,202 @@ HWTEST_F(RSImageCacheTest, CheckRefCntAndReleaseImageCacheTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CacheEditablePixelMapTest
+ * @tc.desc: Verify function CacheEditablePixelMap
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageCacheTest, CacheEditablePixelMapTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    uint64_t invalidUniqueId = 0;
+    uint64_t validUniqueId = 1;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_TRUE(pixelMap != nullptr);
+    imageCache.CacheEditablePixelMap(invalidUniqueId, nullptr);
+    imageCache.CacheEditablePixelMap(invalidUniqueId, pixelMap);
+    imageCache.CacheEditablePixelMap(validUniqueId, pixelMap);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        EXPECT_FALSE(imageCache.editablePixelMapCache_.empty());
+    }
+}
+
+/**
+ * @tc.name: GetEditablePixelMapCacheTest
+ * @tc.desc: Verify function GetEditablePixelMapCache
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageCacheTest, GetEditablePixelMapCacheTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    uint64_t invalidUniqueId = 0;
+    uint64_t validUniqueId = 1;
+    auto pixelMap = imageCache.GetEditablePixelMapCache(invalidUniqueId);
+    EXPECT_TRUE(pixelMap == nullptr);
+    pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_TRUE(pixelMap);
+    imageCache.CacheEditablePixelMap(validUniqueId, pixelMap);
+    pixelMap = imageCache.GetEditablePixelMapCache(validUniqueId);
+    EXPECT_TRUE(pixelMap != nullptr);
+}
+
+/**
+ * @tc.name: IncreaseEditablePixelMapCacheRefCountTest
+ * @tc.desc: Verify function IncreaseEditablePixelMapCacheRefCount
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageCacheTest, IncreaseEditablePixelMapCacheRefCountTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    uint64_t invalidUniqueId = 0;
+    uint64_t validUniqueId = 1;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_TRUE(pixelMap);
+    imageCache.IncreaseEditablePixelMapCacheRefCount(invalidUniqueId);
+    imageCache.CacheEditablePixelMap(validUniqueId, pixelMap);
+    imageCache.IncreaseEditablePixelMapCacheRefCount(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it != imageCache.editablePixelMapCache_.end());
+        EXPECT_TRUE(it->second.second > 0);
+    }
+}
+
+/**
+ * @tc.name: DiscardEditablePixelMapCacheTest
+ * @tc.desc: Verify function DiscardEditablePixelMapCache
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageCacheTest, DiscardEditablePixelMapCacheTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    uint64_t invalidUniqueId = 0;
+    uint64_t validUniqueId = 1;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_TRUE(pixelMap);
+    imageCache.DiscardEditablePixelMapCache(invalidUniqueId);
+    imageCache.CacheEditablePixelMap(validUniqueId, pixelMap);
+    imageCache.DiscardEditablePixelMapCache(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it == imageCache.editablePixelMapCache_.end());
+        imageCache.editablePixelMapCache_.emplace(validUniqueId, std::make_pair(nullptr, 0));
+    }
+    imageCache.DiscardEditablePixelMapCache(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it == imageCache.editablePixelMapCache_.end());
+    }
+}
+
+/**
+ * @tc.name: DecreaseRefCountAndDiscardEditablePixelMapCacheTest
+ * @tc.desc: Verify function DecreaseRefCountAndDiscardEditablePixelMapCache
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageCacheTest, DecreaseRefCountAndDiscardEditablePixelMapCacheTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    uint64_t invalidUniqueId = 0;
+    uint64_t validUniqueId = 1;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_TRUE(pixelMap);
+    imageCache.DecreaseRefCountAndDiscardEditablePixelMapCache(invalidUniqueId);
+    imageCache.DiscardEditablePixelMapCache(validUniqueId);
+    imageCache.CacheEditablePixelMap(validUniqueId, pixelMap);
+    imageCache.IncreaseEditablePixelMapCacheRefCount(validUniqueId);
+    imageCache.IncreaseEditablePixelMapCacheRefCount(validUniqueId);
+    imageCache.DecreaseRefCountAndDiscardEditablePixelMapCache(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it != imageCache.editablePixelMapCache_.end());
+        EXPECT_TRUE(it->second.second > 0);
+    }
+    imageCache.DecreaseRefCountAndDiscardEditablePixelMapCache(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it == imageCache.editablePixelMapCache_.end());
+        imageCache.editablePixelMapCache_.emplace(validUniqueId, std::make_pair(nullptr, 0));
+    }
+    imageCache.DecreaseRefCountAndDiscardEditablePixelMapCache(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it == imageCache.editablePixelMapCache_.end());
+    }
+}
+
+/**
+ * @tc.name: DecreaseRefCountAndReleaseEditablePixelMapCacheTest
+ * @tc.desc: Verify function DecreaseRefCountAndReleaseEditablePixelMapCache
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageCacheTest, DecreaseRefCountAndReleaseEditablePixelMapCacheTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    uint64_t invalidUniqueId = 0;
+    uint64_t validUniqueId = 1;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_TRUE(pixelMap);
+    imageCache.DecreaseRefCountAndReleaseEditablePixelMapCache(invalidUniqueId);
+    imageCache.DiscardEditablePixelMapCache(validUniqueId);
+    imageCache.CacheEditablePixelMap(validUniqueId, pixelMap);
+    imageCache.IncreaseEditablePixelMapCacheRefCount(validUniqueId);
+    imageCache.IncreaseEditablePixelMapCacheRefCount(validUniqueId);
+    imageCache.DecreaseRefCountAndReleaseEditablePixelMapCache(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it != imageCache.editablePixelMapCache_.end());
+        EXPECT_TRUE(it->second.second > 0);
+    }
+    imageCache.DecreaseRefCountAndReleaseEditablePixelMapCache(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it == imageCache.editablePixelMapCache_.end());
+        imageCache.editablePixelMapCache_.emplace(validUniqueId, std::make_pair(nullptr, 0));
+    }
+    imageCache.DecreaseRefCountAndReleaseEditablePixelMapCache(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it == imageCache.editablePixelMapCache_.end());
+    }
+}
+
+/**
+ * @tc.name: ReleaseEditablePixelMapCacheTest
+ * @tc.desc: Verify function ReleaseEditablePixelMapCache
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageCacheTest, ReleaseEditablePixelMapCacheTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    uint64_t validUniqueId = 1;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_TRUE(pixelMap);
+    imageCache.CacheEditablePixelMap(validUniqueId, pixelMap);
+    imageCache.ReleaseEditablePixelMapCache();
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheToReleaseMutex_);
+        EXPECT_TRUE(imageCache.editablePixelMapCacheToRelease_.empty());
+    }
+}
+
+/**
  * @tc.name: CacheRenderDrawingImageByPixelMapIdTest
  * @tc.desc: Verify function CacheRenderDrawingImageByPixelMapId
  * @tc.type:FUNC

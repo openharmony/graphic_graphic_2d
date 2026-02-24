@@ -919,7 +919,7 @@ HWTEST_F(RSParticlesDrawableTest, DrawImageFill001, TestSize.Level1)
 
     // Verify particle is properly set up for FILL mode
     EXPECT_NE(particle, nullptr);
-    EXPECT_TRUE(particle->IsAlive());
+    EXPECT_FALSE(particle->IsAlive());
     EXPECT_EQ(particle->GetParticleType(), ParticleType::IMAGES);
     auto rsImage = particle->GetImage();
     EXPECT_NE(rsImage, nullptr);

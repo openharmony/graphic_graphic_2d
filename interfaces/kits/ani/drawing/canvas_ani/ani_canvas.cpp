@@ -340,6 +340,8 @@ static const std::array g_methods = {
     ani_native_function { "resetMatrix", nullptr, reinterpret_cast<void*>(AniCanvas::ResetMatrix) },
     ani_native_function { "quickRejectPath", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectPath) },
     ani_native_function { "quickRejectRect", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectRect) },
+    ani_native_function { "drawSingleCharacterWithFeatures", nullptr,
+        reinterpret_cast<void*>(AniCanvas::DrawSingleCharacterWithFeatures) },
 };
 
 ani_status AniCanvas::AniInit(ani_env *env)
@@ -2153,6 +2155,79 @@ ani_boolean AniCanvas::QuickRejectPath(ani_env* env, ani_object obj, ani_object 
     Drawing::Canvas* canvas = aniCanvas->GetCanvas();
     bool result = canvas->QuickReject(*aniPath->GetPath());
     return static_cast<ani_boolean>(result);
+}
+std::shared_ptr<Drawing::DrawingFontFeatures> ParseFontFeatures(ani_env* env, ani_array featuresobj)
+{
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(featuresobj, &aniLength)) {
+        ROSEN_LOGE("AniCanvas::ParseFontFeatures featuresobj are invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniCanvas::ParseFontFeatures incorrect type points.");
+        return nullptr;
+    }
+    uint32_t size = static_cast<uint32_t>(aniLength);
+
+    std::shared_ptr<Drawing::DrawingFontFeatures> drawingFontFeatures =
+                std::make_shared<Drawing::DrawingFontFeatures>();
+    if (!MakeFontFeaturesFromAniObjArray(env, drawingFontFeatures, size, featuresobj)) {
+        ROSEN_LOGE("AniCanvas::ParseFontFeatures MakeFontFeaturesFromAniObjArray is fail");
+        return nullptr;
+    }
+    return drawingFontFeatures;
+}
+
+void AniCanvas::DrawSingleCharacterWithFeatures(ani_env* env, ani_object obj, ani_string text, ani_object fontobj,
+    ani_double x, ani_double y, ani_array featuresobj)
+{
+    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj, AniGlobalField::GetInstance().canvasNativeObj);
+    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniCanvas::drawSingleCharacterWithFeatures canvas is nullptr.");
+        return;
+    }
+
+    auto aniFont = GetNativeFromObj<AniFont>(env, fontobj, AniGlobalField::GetInstance().fontNativeObj);
+    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniCanvas::DrawSingleCharacterWithFeatures font is nullptr.");
+        return;
+    }
+
+    ani_size len = 0;
+    ani_status status = env->String_GetUTF8Size(text, &len);
+    if (status != ANI_OK || len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniCanvas::DrawSingleCharacterWithFeatures Parameter verification failed");
+        return;
+    }
+
+    char str[len + 1];
+    ani_size realLen = 0;
+    env->String_GetUTF8(text, str, len + 1, &realLen);
+    str[realLen] = '\0';
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
+
+    std::shared_ptr<Font> font = aniFont->GetFont();
+    std::shared_ptr<Font> themeFont = MatchThemeFont(font, unicode);
+    if (themeFont != nullptr) {
+        font = themeFont;
+    }
+    size_t byteLen = currentStr - str;
+    if (byteLen != len) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniCanvas::DrawSingleCharacterWithFeatures Parameter verification failed");
+        return;
+    }
+    auto drawingFontFeatures = ParseFontFeatures(env, featuresobj);
+    if (!drawingFontFeatures) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniCanvas::DrawSingleCharacterWithFeatures drawingFontFeatures is nullptr");
+        return;
+    }
+
+    aniCanvas->GetCanvas()->DrawSingleCharacterWithFeatures(str, *font, x, y, drawingFontFeatures);
+    aniCanvas->NotifyDirty();
 }
 
 ani_boolean AniCanvas::QuickRejectRect(ani_env* env, ani_object obj, ani_object rectObj)

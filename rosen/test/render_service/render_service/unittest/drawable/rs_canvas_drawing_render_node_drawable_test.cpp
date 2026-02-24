@@ -95,23 +95,24 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateCanvasDrawingRenderNodeDra
 
 #ifdef RS_ENABLE_VK
 /**
- * @tc.name: ReleaseSurfaceVk
- * @tc.desc: Test If ReleaseSurfaceVk Can Run
+ * @tc.name: ReleaseSurfaceVK
+ * @tc.desc: Test If ReleaseSurfaceVK Can Run
  * @tc.type: FUNC
  * @tc.require: issueIB2B14
  */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseSurfaceVkTest, TestSize.Level1)
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseSurfaceVKTest, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     int width = 10;
     int height = 10;
-    auto res = drawable->ReleaseSurfaceVk(width, height);
+    bool isDmaBackendTexture = false;
+    auto res = drawable->ReleaseSurfaceVK(width, height, isDmaBackendTexture);
     EXPECT_TRUE(res);
 
     drawable->backendTexture_ = Drawing::BackendTexture(false);
-    res = drawable->ReleaseSurfaceVk(width, height);
+    res = drawable->ReleaseSurfaceVK(width, height, isDmaBackendTexture);
     EXPECT_TRUE(res);
 }
 #endif
@@ -477,6 +478,13 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ProcessCPURenderInBackgroundThre
     drawable->surface_ = std::make_shared<Drawing::Surface>();
     drawable->ProcessCPURenderInBackgroundThread(drawCmdList, ctx, id);
     ASSERT_NE(drawable->surface_, nullptr);
+
+    RSRenderNodeDrawableAdapter::WeakPtr wNode = drawable;
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(id, wNode);
+    drawOpItem = std::make_shared<Drawing::DrawWithPaintOpItem>(paint, 0);
+    drawCmdList->AddDrawOp(std::move(drawOpItem));
+    drawable->ProcessCPURenderInBackgroundThread(drawCmdList, ctx, id);
+    EXPECT_FALSE(drawCmdList->IsEmpty());
 }
 
 /**
@@ -1070,7 +1078,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest001, 
     ASSERT_EQ(ret, RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled() &&
         NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled());
     drawable->backendTexture_ = {};
-    ret = drawable->ReleaseSurfaceVk(100, 100);
+    bool isDmaBackendTexture = false;
+    ret = drawable->ReleaseSurfaceVK(100, 100, isDmaBackendTexture);
     ASSERT_EQ(ret, true);
     Drawing::Canvas drawingCanvas;
     drawingCanvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
@@ -1103,10 +1112,15 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest002, 
     drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(2);
     drawable->renderParams_->SetCanvasDrawingResetSurfaceIndex(2);
     drawable->backendTexture_ = {};
-    ret = drawable->ReleaseSurfaceVk(100, 100);
+    bool isDmaBackendTexture = false;
+    ret = drawable->ReleaseSurfaceVK(100, 100, isDmaBackendTexture);
     ASSERT_EQ(ret, true);
     drawable->ResetSurface();
     ASSERT_EQ(drawable->surface_, nullptr);
+    drawable->backendTexture_ = {};
+    ret = drawable->ReleaseSurfaceVK(10000, 10001, isDmaBackendTexture);
+    ASSERT_EQ(ret, false);
+    ASSERT_EQ(isDmaBackendTexture, false);
 }
 
 /**
@@ -1243,4 +1257,60 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetGpuContextTest, TestSize.Leve
     context = drawable->GetGpuContext();
     ASSERT_NE(context, nullptr);
 }
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: CheckBackendTextureTest
+ * @tc.desc: Test If CheckBackendTexture Can Run
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CheckBackendTextureTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    bool ret = drawable->CheckBackendTexture(false, 100, 100, 1);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: CreateGpuSurfaceTest
+ * @tc.desc: Test If CreateGpuSurface Can Run
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateGpuSurfaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    Drawing::ImageInfo imageInfo =
+        Drawing::ImageInfo { 100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr };
+    bool newVulkanCleanupHelper = false;
+    drawable->CreateGpuSurface(imageInfo, gpuContext, newVulkanCleanupHelper, false);
+    ASSERT_EQ(drawable->surface_, nullptr);
+
+    imageInfo.width_ = 20000;
+    imageInfo.height_ = 20000;
+    drawable->CreateGpuSurface(imageInfo, gpuContext, newVulkanCleanupHelper, true);
+    ASSERT_EQ(drawable->surface_, nullptr);
+
+    imageInfo.width_ = 100;
+    imageInfo.height_ = 100;
+    drawable->backendTexture_ = {};
+    drawable->CreateGpuSurface(imageInfo, nullptr, newVulkanCleanupHelper, false);
+    ASSERT_EQ(drawable->surface_, nullptr);
+
+    drawable->backendTexture_ = NativeBufferUtils::MakeBackendTexture(imageInfo.width_, imageInfo.height_, getpid());
+    drawable->CreateGpuSurface(imageInfo, nullptr, newVulkanCleanupHelper, false);
+    ASSERT_EQ(drawable->surface_, nullptr);
+
+    drawable->ResetResource();
+    drawable->backendTexture_ = NativeBufferUtils::MakeBackendTexture(imageInfo.width_, imageInfo.height_, getpid());
+    auto vkTextureInfo = drawable->backendTexture_.GetTextureInfo().GetVKTextureInfo();
+    drawable->vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
+    newVulkanCleanupHelper = false;
+    drawable->CreateGpuSurface(imageInfo, gpuContext, newVulkanCleanupHelper, false);
+    ASSERT_EQ(drawable->surface_, nullptr);
+}
+#endif
 }

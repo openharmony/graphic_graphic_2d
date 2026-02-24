@@ -19,6 +19,7 @@
 #include "ani_drawing_utils.h"
 #include "ani_text_utils.h"
 #include "draw/color.h"
+#include "text/font_types.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -65,6 +66,8 @@ void AniTextStyleConverter::ParseEnumTextStyleToNative(ani_env* env, ani_object 
         AniGlobalMethod::GetInstance().textStyleLineHeightStyle, textStyle.lineHeightStyle);
     AniTextUtils::ReadOptionalEnumField(
         env, obj, AniTextEnum::fontWidth, AniGlobalMethod::GetInstance().textStyleFontWidth, textStyle.fontWidth);
+    AniTextUtils::ReadOptionalEnumField(
+        env, obj, AniTextEnum::fontEdging, AniGlobalMethod::GetInstance().textStyleFontEdging, textStyle.fontEdging);
 }
 
 void AniTextStyleConverter::ParseDoubleTextStyleToNative(
@@ -346,7 +349,9 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().lineHeightStyle,
             aniGetEnumIndex(AniTextEnum::lineHeightStyle, static_cast<uint32_t>(textStyle.lineHeightStyle))),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontWidth,
-            aniGetEnumIndex(AniTextEnum::fontWidth, static_cast<uint32_t>(textStyle.fontWidth)))
+            aniGetEnumIndex(AniTextEnum::fontWidth, static_cast<uint32_t>(textStyle.fontWidth))),
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontEdging,
+            aniGetEnumIndex(AniTextEnum::fontEdging, static_cast<uint32_t>(textStyle.fontEdging)))
     );
     return aniObj;
 }

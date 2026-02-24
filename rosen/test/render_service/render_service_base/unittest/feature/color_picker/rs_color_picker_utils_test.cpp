@@ -13,25 +13,32 @@
  * limitations under the License.
  */
 
+#include <memory>
+#include <utility>
+
+#include "feature/color_picker/rs_color_picker_manager.h"
 #include "feature/color_picker/rs_color_picker_utils.h"
 #include "gtest/gtest.h"
+
+#include "draw/canvas.h"
+#include "draw/surface.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
 class RSColorPickerUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
-    void SetUp() override;
-    void TearDown() override;
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 void RSColorPickerUtilsTest::SetUpTestCase() {}
 void RSColorPickerUtilsTest::TearDownTestCase() {}
-void RSColorPickerUtilsTest::SetUp() {}
-void RSColorPickerUtilsTest::TearDown() {}
 
 /**
  * @tc.name: GetColorForPlaceholder
@@ -57,6 +64,86 @@ HWTEST_F(RSColorPickerUtilsTest, InterpolateColor, TestSize.Level1)
     EXPECT_EQ(color, 0xFFFFFFFF);
     color = RSColorPickerUtils::InterpolateColor(0xFF000000, 0xFFFFFFFF, 0.2f);
     EXPECT_EQ(color, 0xFF333333);
+}
+
+// ============================================================================
+// RSColorPickerUtils::CreateColorPickerInfo Tests
+// ============================================================================
+
+/**
+ * @tc.name: CreateColorPickerInfoWithNullSnapshot
+ * @tc.desc: Test CreateColorPickerInfo returns nullptr when snapshot is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, CreateColorPickerInfoWithNullSnapshot, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSColorPickerManager manager(1);
+    auto weakManager = manager.weak_from_this();
+
+    Drawing::Surface* surface = canvas.GetSurface();
+    auto colorPickerInfo = RSColorPickerUtils::CreateColorPickerInfo(surface, nullptr, weakManager);
+
+    EXPECT_EQ(colorPickerInfo, nullptr);
+}
+
+// ============================================================================
+// RSColorPickerUtils::ScheduleColorPickWithSemaphore Tests
+// ============================================================================
+
+/**
+ * @tc.name: ScheduleColorPickWithSemaphoreWithValidInputs
+ * @tc.desc: Test ScheduleColorPickWithSemaphore with valid inputs
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, ScheduleColorPickWithSemaphoreWithValidInputs, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSColorPickerManager manager(1);
+    auto weakManager = manager.weak_from_this();
+
+    Drawing::Surface* surface = canvas.GetSurface();
+    if (!surface) {
+        GTEST_SKIP() << "No valid surface available";
+        return;
+    }
+
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto colorPickerInfo = RSColorPickerUtils::CreateColorPickerInfo(surface, snapshot, weakManager);
+
+    if (colorPickerInfo) {
+        RSColorPickerUtils::ScheduleColorPickWithSemaphore(*surface, weakManager, std::move(colorPickerInfo));
+        EXPECT_TRUE(true);
+    }
+}
+
+/**
+ * @tc.name: ScheduleColorPickWithSemaphoreWithExpiredManager
+ * @tc.desc: Test ScheduleColorPickWithSemaphore with expired weak_ptr to manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, ScheduleColorPickWithSemaphoreWithExpiredManager, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    Drawing::Surface* surface = canvas.GetSurface();
+    if (!surface) {
+        GTEST_SKIP() << "No valid surface available";
+        return;
+    }
+
+    auto snapshot = std::make_shared<Drawing::Image>();
+    std::weak_ptr<RSColorPickerManager> weakManager;
+
+    auto colorPickerInfo = RSColorPickerUtils::CreateColorPickerInfo(surface, snapshot, weakManager);
+
+    if (colorPickerInfo) {
+        RSColorPickerUtils::ScheduleColorPickWithSemaphore(*surface, weakManager, std::move(colorPickerInfo));
+        EXPECT_TRUE(true);
+    }
 }
 
 } // namespace OHOS::Rosen

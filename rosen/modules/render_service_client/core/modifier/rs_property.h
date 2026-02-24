@@ -218,6 +218,8 @@ protected:
         modifierNG_.reset();
     }
 
+    bool IsDeduplicationEnabled() const;
+    
     virtual void OnDetach() {}
 
     void MarkCustomModifierDirty();
@@ -395,7 +397,10 @@ public:
 
     virtual void Set(const T& value)
     {
-        if (ROSEN_EQ(value, stagingValue_) || !IsValid(value)) {
+        if (!IsValid(value)) {
+            return;
+        }
+        if (ROSEN_EQ(value, stagingValue_) && !IsDeduplicationEnabled()) {
             return;
         }
 
@@ -524,7 +529,10 @@ public:
 
     void Set(const T& value) override
     {
-        if (ROSEN_EQ(value, RSProperty<T>::stagingValue_) || !RSProperty<T>::IsValid(value)) {
+        if (!RSProperty<T>::IsValid(value)) {
+            return;
+        }
+        if (ROSEN_EQ(value, RSProperty<T>::stagingValue_) && !RSPropertyBase::IsDeduplicationEnabled()) {
             return;
         }
 

@@ -15,6 +15,7 @@
 
 #ifndef ARRAY_MGR_H
 #define ARRAY_MGR_H
+#include <cstddef>
 
 namespace OHOS {
 namespace Rosen {
@@ -25,6 +26,7 @@ enum ObjectType {
     TEXT_RUN = 2,
     DRAWING_RECT = 3,
     FONT_FULL_DESCRIPTOR = 4,
+    TEXT_RANGE = 5,
 };
 
 struct ObjectArray {
@@ -36,6 +38,11 @@ struct ObjectArray {
 struct LineObject {
     void* line = nullptr;
     bool isArray = false;
+};
+
+struct RangeObject {
+    size_t start{0};
+    size_t end{0};
 };
 } // namespace Rosen
 } // namespace OHOS
