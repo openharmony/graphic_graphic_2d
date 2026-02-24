@@ -53,7 +53,7 @@ FontDesc SYMBOL_DESC = { .path = "",
     .width = 5,
     .italic = false,
     .monoSpace = false,
-    .symbolic = false, 
+    .symbolic = false,
     .variationAxisRecords = {
         {
             .key = "wght",
@@ -379,7 +379,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest006, TestSize.Level
 
 /*
  * @tc.name: NdkFontFullDescriptorTest007
- * @tc.desc: test for OH_Drawing_GetFontFullDescriptorAttributeArray with HarmonyOS_Sans variable font
+ * @tc.desc: test for OH_Drawing_GetFontFullDescriptorAttributeArray with HMSymbolVF variable font
  * @tc.type: FUNC
  */
 HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level0)
@@ -457,7 +457,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
 
 /*
  * @tc.name: NdkFontFullDescriptorTest009
- * @tc.desc: test for all variation instances weight values in HarmonyOS_Sans variable font
+ * @tc.desc: test for all variation instances weight values in HMSymbolVF variable font
  * @tc.type: FUNC
  */
 HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level0)
