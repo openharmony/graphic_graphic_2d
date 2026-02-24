@@ -139,16 +139,17 @@ void HgmEnergyConsumptionPolicy::SetComponentDefaultFpsInfo(const EventInfo& eve
 {
     if (eventInfo.eventStatus && currentRefreshMode_ == HGM_REFRESHRATE_MODE_AUTO) {
         auto [componentName, pid, _] = HgmMultiAppStrategy::AnalyzePkgParam(eventInfo.description);
-        if (componentName == "" || pid == DEFAULT_PID || eventInfo.maxRefreshRate == 0) {
+        if (componentName.empty() || pid == DEFAULT_PID || eventInfo.maxRefreshRate == 0) {
             return;
         }
         energyInfo_.componentName = std::move(componentName);
         energyInfo_.componentDefaultFps = eventInfo.maxRefreshRate;
         energyInfo_.componentPid = pid;
     } else {
-        if (energyInfo_.componentName == "") {
+        if (energyInfo_.componentName.empty()) {
             return;
         }
+        // Reset data after exiting
         energyInfo_.componentName = "";
         energyInfo_.componentDefaultFps = 0;
         energyInfo_.componentPid = DEFAULT_PID;
