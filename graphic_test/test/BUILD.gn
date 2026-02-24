@@ -153,6 +153,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/effect_gradient_flow_colors_test.cpp",
   "rs_effect_feature/effect_wavy_ripple_light_test.cpp",
   "rs_effect_feature/effect_distort_chroma_test.cpp",
+  "rs_effect_feature/ng_effect_test/ng_colorgradient_effect_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_effect_test.cpp",
   "rs_effect_feature/ng_mask_test/ng_mask_image_test.cpp",
   "rs_effect_feature/ng_mask_test/ng_mask_use_effect_test.cpp",
