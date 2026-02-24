@@ -1367,33 +1367,6 @@ HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump002, TestSize.Level1)
 }
 
 /**
- * @tc.name: RenderServiceAllSurfaceDump003
- * @tc.desc: Test RenderServiceAllSurfaceDump with buffer only
- * @tc.type: FUNC
- * @tc.require: issueIB57QP
- */
-HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump003, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    // Create a surface node with buffer using RSTestUtil
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(node, nullptr);
-    node->SetIsOnTheTree(true);
-    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
-
-    DfxString log;
-    MemoryManager::RenderServiceAllSurfaceDump(log);
-
-    // Verify buffer branch is covered
-    ASSERT_TRUE(log.GetString().find("seqNum = ") != std::string::npos);
-    ASSERT_TRUE(log.GetString().find("bufferWidth = ") != std::string::npos);
-    ASSERT_TRUE(log.GetString().find("bufferHeight = ") != std::string::npos);
-    ASSERT_TRUE(log.GetString().find("bufferSize = ") != std::string::npos);
-}
-
-/**
  * @tc.name: RenderServiceAllSurfaceDump004
  * @tc.desc: Test RenderServiceAllSurfaceDump with both buffer and preBuffer
  * @tc.type: FUNC
@@ -1405,51 +1378,29 @@ HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump004, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
 
     // Create a surface node with buffer
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(node, nullptr);
     node->SetIsOnTheTree(true);
-
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
     // Get the surface handler and set another buffer (this will make current buffer become preBuffer)
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
     ASSERT_NE(surfaceHandler, nullptr);
-
-    // Create consumer and producer to get a second buffer
-    const auto& surfaceConsumer = surfaceHandler->GetConsumer();
-    ASSERT_NE(surfaceConsumer, nullptr);
-    auto producer = surfaceConsumer->GetProducer();
-    auto psurf = Surface::CreateSurfaceAsProducer(producer);
-    psurf->SetQueueSize(1);
-
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> requestFence = SyncFence::InvalidFence();
-    BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
-        .strideAlignment = 0x8,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-    };
-    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
-
-    BufferFlushConfig flushConfig = {
-        .damage = { .w = 0x100, .h = 0x100, },
-    };
-    sptr<SyncFence> flushFence = SyncFence::InvalidFence();
-    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
-
-    OHOS::sptr<SurfaceBuffer> cbuffer;
     Rect damage;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp = 0;
-    ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
-
+    OHOS::sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+    OHOS::sptr<SurfaceBuffer> cbuffer = SurfaceBuffer::Create();
     surfaceHandler->SetBuffer(cbuffer, acquireFence, damage, timestamp);
-
-    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
 
     DfxString log;
     MemoryManager::RenderServiceAllSurfaceDump(log);
+
+    // Verify buffer branch is covered
+    ASSERT_TRUE(log.GetString().find("seqNum = ") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("bufferWidth = ") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("bufferHeight = ") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("bufferSize = ") != std::string::npos);
 
     // Verify both buffer and preBuffer branches are covered
     ASSERT_TRUE(log.GetString().find("seqNum = ") != std::string::npos);

@@ -17,7 +17,7 @@
 
 #include <algorithm>
 
-#include "cache/ge_image_cache_provider.h"
+#include "ge_image_cache_provider.h"
 #include "common/rs_rect.h"
 #include "draw/canvas.h"
 #include "feature/color_picker/rs_color_picker_utils.h"

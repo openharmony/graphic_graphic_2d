@@ -216,6 +216,13 @@ HWTEST_F(RSHdrUtilTest, CheckIsHDRSelfProcessingBufferTest001, TestSize.Level1)
     MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
     ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
     EXPECT_EQ(ret, true);
+
+    CM_ColorSpaceInfo colorSpaceInfo = {
+        .transfunc = HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG
+    };
+    MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo);
+    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, false);
 }
 
 /**

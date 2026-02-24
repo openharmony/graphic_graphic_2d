@@ -28,7 +28,8 @@ config("drawing_ani_config") {
   include_dirs = [
     "$graphic_2d_root/interfaces/kits/ani/drawing",
     "$graphic_2d_root/interfaces/kits/napi/graphic",
-    "$graphic_2d_root/interfaces/kits/napi/graphic/drawing"
+    "$graphic_2d_root/interfaces/kits/napi/graphic/drawing",
+    "$graphic_2d_root/interfaces/kits/ani/color_manager/src"
   ]
   defines = [ "ROSEN_OHOS" ]
 }

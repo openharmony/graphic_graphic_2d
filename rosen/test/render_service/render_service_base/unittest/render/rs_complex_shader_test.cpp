@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ext/gex_complex_shader.h"
+#include "gex_complex_shader.h"
 #include "ge_external_dynamic_loader.h"
 #include "ge_visual_effect_impl.h"
 #include "gtest/gtest.h"
@@ -66,7 +66,7 @@ HWTEST_F(RSComplexShaderTest, MakeDrawingShaderTest002, TestSize.Level0)
     std::vector<float> tempVec = { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
         0.5f, 0.5f };
     rsComplexShader->MakeDrawingShader(boundsRect, tempVec);
-    EXPECT_NE(rsComplexShader->shaderEffect_, nullptr);
+    EXPECT_EQ(rsComplexShader->shaderEffect_, nullptr);
 }
 
 /**

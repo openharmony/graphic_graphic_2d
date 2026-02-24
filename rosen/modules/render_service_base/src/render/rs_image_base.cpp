@@ -70,8 +70,10 @@ RSImageBase::~RSImageBase()
         if (uniqueId_ > 0) {
             if (renderServiceImage_ || isDrawn_) {
                 RSImageCache::Instance().CollectUniqueId(uniqueId_);
+                RSImageCache::Instance().DecreaseRefCountAndDiscardEditablePixelMapCache(uniqueId_);
             } else {
                 RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
+                RSImageCache::Instance().DecreaseRefCountAndReleaseEditablePixelMapCache(uniqueId_);
             }
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -386,6 +388,14 @@ static bool UnmarshallingAndCacheDrawingImage(
     return true;
 }
 
+static bool ShouldCacheEditablePixelMap(std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (pixelMap && pixelMap->IsEditable() && pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
+        !pixelMap->IsAstc() && !pixelMap->IsYuvFormat()) {
+        return true;
+    }
+    return false;
+}
 
 static bool UnmarshallingAndCachePixelMap(Parcel& parcel, std::shared_ptr<Media::PixelMap>& pixelMap, uint64_t uniqueId)
 {
@@ -398,6 +408,8 @@ static bool UnmarshallingAndCachePixelMap(Parcel& parcel, std::shared_ptr<Media:
         if (pixelMap && !pixelMap->IsEditable()) {
             // unmarshalling the pixelMap and cache it
             RSImageCache::Instance().CachePixelMap(uniqueId, pixelMap);
+        } else if (ShouldCacheEditablePixelMap(pixelMap)) {
+            RSImageCache::Instance().CacheEditablePixelMap(uniqueId, pixelMap);
         }
     } else {
         return false;
@@ -428,6 +440,12 @@ bool RSImageBase::UnmarshallingDrawingImageAndPixelMap(Parcel& parcel, uint64_t 
     if (!RSMarshallingHelper::Unmarshalling(parcel, useSkImage)) {
         return false;
     }
+    bool isPropertiesDirty = false;
+    if (!RSMarshallingHelper::CompatibleUnmarshalling(parcel, isPropertiesDirty, PIXELMAP_IS_PROPERTIES_DIRTY_DEFAULT,
+        RSPARCELVER_ADD_ISPROPDIRTY)) {
+        RS_LOGE("RSImageBase::Unmarshalling isPropertiesDirty fail");
+        return false;
+    }
     if (useSkImage) {
         img = RSImageCache::Instance().GetDrawingImageCache(uniqueId);
         RS_TRACE_NAME_FMT("RSImageBase::Unmarshalling Image uniqueId:%lu, size:[%d %d], cached:%d",
@@ -436,8 +454,19 @@ bool RSImageBase::UnmarshallingDrawingImageAndPixelMap(Parcel& parcel, uint64_t 
             RS_LOGE("RSImageBase::Unmarshalling UnmarshalAndCacheSkImage fail");
             return false;
         }
+        RSMarshallingHelper::SkipPixelMap(parcel);
     } else {
+        if (!RSMarshallingHelper::SkipImage(parcel)) {
+            return false;
+        }
         pixelMap = RSImageCache::Instance().GetPixelMapCache(uniqueId);
+        if (pixelMap == nullptr) {
+            pixelMap = RSImageCache::Instance().GetEditablePixelMapCache(uniqueId);
+            if (pixelMap && isPropertiesDirty) {
+                pixelMap = nullptr;
+                RSImageCache::Instance().DiscardEditablePixelMapCache(uniqueId);
+            }
+        }
         RS_TRACE_NAME_FMT("RSImageBase::Unmarshalling pixelMap uniqueId:%lu, size:[%d %d], cached:%d",
             uniqueId, pixelMap ? pixelMap->GetWidth() : 0, pixelMap ? pixelMap->GetHeight() : 0, pixelMap != nullptr);
         if (!UnmarshallingAndCachePixelMap(parcel, pixelMap, uniqueId)) {
@@ -455,17 +484,25 @@ void RSImageBase::IncreaseCacheRefCount(uint64_t uniqueId, bool useSkImage, std:
         RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(uniqueId);
     } else if (pixelMap && !pixelMap->IsEditable()) {
         RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    } else if (ShouldCacheEditablePixelMap(pixelMap)) {
+        RSImageCache::Instance().IncreaseEditablePixelMapCacheRefCount(uniqueId);
     }
 }
 
 bool RSImageBase::Marshalling(Parcel& parcel) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    auto image = image_;
+    if (pixelMap_ != nullptr) {
+        image = nullptr;
+    }
+    bool isPropertiesDirty = (pixelMap_ ? pixelMap_->IsPropertiesDirty() : PIXELMAP_IS_PROPERTIES_DIRTY_DEFAULT);
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, srcRect_) &&
                    RSMarshallingHelper::Marshalling(parcel, dstRect_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
-                   pixelMap_ == nullptr ? RSMarshallingHelper::Marshalling(parcel, image_) :
+                   RSMarshallingHelper::CompatibleMarshalling(parcel, isPropertiesDirty, RSPARCELVER_ADD_ISPROPDIRTY) &&
+                   RSMarshallingHelper::Marshalling(parcel, image) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_);
     if (!success) {
         RS_LOGE("RSImageBase::Marshalling parcel fail");

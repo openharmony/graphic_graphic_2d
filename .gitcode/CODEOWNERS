@@ -117,9 +117,11 @@ rosen/modules/render_service_base/src/modifier_ng/foreground/rs_foreground_shade
 
 rosen/modules/render_service_base/include/property/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/property/rs_color_picker_def.h @hanamaru
+rosen/modules/render_service_base/include/drawable/rs_color_picker_drawable.h @hanamaru
 rosen/modules/render_service_base/include/property/rs_point_light_manager.h @hanamaru
 
 rosen/modules/render_service_base/src/property/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/drawable/rs_color_picker_drawable.cpp @hanamaru
 rosen/modules/render_service_base/src/property/rs_point_light_manager.cpp @hanamaru
 
 rosen/modules/render_service_base/include/drawable/ @xiaojianfeng_jeffery

@@ -33,6 +33,8 @@ public:
     static void SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter);
     static ani_int GetAlpha(ani_env* env, ani_object obj);
     static void SetColorWithObject(ani_env* env, ani_object obj, ani_object aniColor);
+    static void SetColor4f(ani_env* env, ani_object obj, ani_object aniColor4f, ani_object aniColorSpace);
+    static ani_object GetColor4f(ani_env* env, ani_object obj);
     static void SetColorWithARGB(ani_env* env, ani_object obj, ani_int alpha,
         ani_int red, ani_int green, ani_int blue);
     static void SetColor(ani_env* env, ani_object obj, ani_int color);

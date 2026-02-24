@@ -1144,8 +1144,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest005, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
-    // First line expect height is 34
-    EXPECT_DOUBLE_EQ(firstLineHeight, 34);
+    // First line expect height is 43
+    EXPECT_DOUBLE_EQ(firstLineHeight, 43);
     // Second line expect height is 30
     EXPECT_DOUBLE_EQ(middleLineHeight, 30);
     // Last line expect height is 35

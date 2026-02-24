@@ -16,7 +16,7 @@
 #define RENDER_SERVICE_BASE_CORE_RENDER_RS_FLOW_LIGHT_SWEEP_SHADER_H
 
 #include "render/rs_shader.h"
-#include "ext/gex_flow_light_sweep_shader.h"
+#include "gex_flow_light_sweep_shader.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -592,5 +592,19 @@ void RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(
         screenDirtyManager->ClearVirtualExpandScreenAccumulatedDirtyRegions();
     }
 }
+
+bool RSUniDirtyComputeUtil::HasMirrorDisplay()
+{
+    bool hasMirrorDisplay = false;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseLogicalDisplayNodes(
+        [&hasMirrorDisplay](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
+            if (displayRenderNode != nullptr && displayRenderNode->GetMirrorSource().lock()) {
+                hasMirrorDisplay = true;
+                return;
+            }
+    });
+    return hasMirrorDisplay;
+}
 } // namespace Rosen
 } // namespace OHOS

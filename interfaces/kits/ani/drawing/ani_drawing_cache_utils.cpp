@@ -42,6 +42,7 @@ constexpr DescriptorConfig FONT_METRICS_CTOR{ "<ctor>", "iddddddddddddddd:" };
 constexpr DescriptorConfig POINT_CTOR{ "<ctor>", "dd:" };
 constexpr DescriptorConfig RECT_CTOR{ "<ctor>", "dddd:" };
 constexpr DescriptorConfig COLOR_CTOR{ "<ctor>", "iiii:" };
+constexpr DescriptorConfig COLOR4F_CTOR{ "<ctor>", "dddd:" };
 constexpr DescriptorConfig BIND_NATIVE_PTR{ "bindNativePtr", "l:" };
 constexpr DescriptorConfig INT_GET{ "toInt", ":i"};
 constexpr DescriptorConfig DOUBLE_GET{ "toDouble", ":d"};
@@ -53,6 +54,12 @@ constexpr DescriptorConfig COLOR_GET_ALPHA{ "<get>alpha", ":i" };
 constexpr DescriptorConfig COLOR_GET_RED{ "<get>red", ":i" };
 constexpr DescriptorConfig COLOR_GET_GREEN{ "<get>green", ":i" };
 constexpr DescriptorConfig COLOR_GET_BLUE{ "<get>blue", ":i" };
+constexpr DescriptorConfig COLOR4F_GET_ALPHA{ "<get>alpha", ":d" };
+constexpr DescriptorConfig COLOR4F_GET_RED{ "<get>red", ":d" };
+constexpr DescriptorConfig COLOR4F_GET_GREEN{ "<get>green", ":d" };
+constexpr DescriptorConfig COLOR4F_GET_BLUE{ "<get>blue", ":d" };
+constexpr DescriptorConfig FONTFEATURE_GET_NAME{ "<get>name", ":C{std.core.String}"};
+constexpr DescriptorConfig FONTFEATURE_GET_VALUE{"<get>value", ":d"};
 constexpr DescriptorConfig RECT_GET_LEFT{ "<get>left", ":d" };
 constexpr DescriptorConfig RECT_GET_TOP{ "<get>top", ":d" };
 constexpr DescriptorConfig RECT_GET_RIGHT{ "<get>right", ":d" };
@@ -123,14 +130,14 @@ ani_method AniFindMethod(ani_env* env, ani_class cls, const DescriptorConfig& co
     return method;
 }
 
-ani_field AniFindField(ani_env* env, ani_class cls)
+ani_field AniFindField(ani_env* env, ani_class cls, const char* filedName = "nativeObj")
 {
     if (cls == nullptr) {
         ROSEN_LOGE("Failed to find field: cls is null");
         return nullptr;
     }
     ani_field field = nullptr;
-    ani_status status = env->Class_FindField(cls, NATIVE_OBJ, &field);
+    ani_status status = env->Class_FindField(cls, filedName, &field);
     if (status != ANI_OK) {
         ROSEN_LOGE("Failed to find field: find nativeObj failed");
         return nullptr;
@@ -152,6 +159,7 @@ void AniGlobalClass::InitBaseClass(ani_env* env)
 void AniGlobalClass::InitDrawingClass(ani_env* env)
 {
     brush = AniFindClass(env, ANI_CLASS_BRUSH_NAME);
+    colorSpaceManager = AniFindClass(env, ANI_CLASS_COLOR_SPACE_MANAGER_NAME);
     samplingOptions = AniFindClass(env, ANI_CLASS_SAMPLING_OPTIONS_NAME);
     canvas = AniFindClass(env, ANI_CLASS_CANVAS_NAME);
     colorFilter = AniFindClass(env, ANI_CLASS_COLORFILTER_NAME);
@@ -178,14 +186,17 @@ void AniGlobalClass::InitDrawingClass(ani_env* env)
 void AniGlobalClass::InitInterfaceClass(ani_env* env)
 {
     color = AniFindClass(env, ANI_CLASS_COLOR_NAME);
+    color4f = AniFindClass(env, ANI_CLASS_COLOR4F_NAME);
     fontMetrics = AniFindClass(env, ANI_CLASS_FONT_METRICS_NAME);
     point = AniFindClass(env, ANI_CLASS_POINT_NAME);
     rect = AniFindClass(env, ANI_CLASS_RECT_NAME);
     colorInterface = AniFindClass(env, ANI_INTERFACE_COLOR_NAME);
+    color4fInterface = AniFindClass(env, ANI_INTERFACE_COLOR4F_NAME);
     pointInterface = AniFindClass(env, ANI_INTERFACE_POINT_NAME);
     rectInterface = AniFindClass(env, ANI_INTERFACE_RECT_NAME);
     point3dInterface = AniFindClass(env, ANI_INTERFACE_POINT3D_NAME);
     runBufferInterface = AniFindClass(env, ANI_INTERFACE_TEXT_BLOB_RUN_BUFFER_NAME);
+    fontFeatureInterface = AniFindClass(env, ANI_INTERFACE_FONTFEATURE_NAME);
 }
 
 void AniGlobalClass::Init(ani_env* env)
@@ -203,6 +214,7 @@ void AniGlobalEnum::Init(ani_env* env)
     capStyle = AniFindEnum(env, ANI_CLASS_CAP_STYLE_NAME);
     joinStyle = AniFindEnum(env, ANI_CLASS_JOIN_STYLE_NAME);
     colorEnum = AniFindEnum(env, ANI_COLOR_ENUM_STRING);
+    pathFillType = AniFindEnum(env, ANI_ENUM_PATH_FILL_TYPE);
 }
 
 void AniGlobalMethod::InitCtorMethod(ani_env* env)
@@ -224,6 +236,7 @@ void AniGlobalMethod::InitCtorMethod(ani_env* env)
     shadowLayerCtor = AniFindMethod(env, AniGlobalClass::GetInstance().shadowLayer, SHADOW_LAYER_CTOR);
     textBlobCtor = AniFindMethod(env, AniGlobalClass::GetInstance().textBlob, TEXT_BLOB_CTOR);
     colorCtor = AniFindMethod(env, AniGlobalClass::GetInstance().color, COLOR_CTOR);
+    color4fCtor = AniFindMethod(env, AniGlobalClass::GetInstance().color4f, COLOR4F_CTOR);
     fontMetricsCtor = AniFindMethod(env, AniGlobalClass::GetInstance().fontMetrics, FONT_METRICS_CTOR);
     pointCtor = AniFindMethod(env, AniGlobalClass::GetInstance().point, POINT_CTOR);
     rectCtor = AniFindMethod(env, AniGlobalClass::GetInstance().rect, RECT_CTOR);
@@ -255,6 +268,12 @@ void AniGlobalMethod::InitGetSetMethod(ani_env* env)
     colorGetRed = AniFindMethod(env, AniGlobalClass::GetInstance().colorInterface, COLOR_GET_RED);
     colorGetGreen = AniFindMethod(env, AniGlobalClass::GetInstance().colorInterface, COLOR_GET_GREEN);
     colorGetBlue = AniFindMethod(env, AniGlobalClass::GetInstance().colorInterface, COLOR_GET_BLUE);
+    color4fGetAlpha = AniFindMethod(env, AniGlobalClass::GetInstance().color4fInterface, COLOR4F_GET_ALPHA);
+    color4fGetRed = AniFindMethod(env, AniGlobalClass::GetInstance().color4fInterface, COLOR4F_GET_RED);
+    color4fGetGreen = AniFindMethod(env, AniGlobalClass::GetInstance().color4fInterface, COLOR4F_GET_GREEN);
+    color4fGetBlue = AniFindMethod(env, AniGlobalClass::GetInstance().color4fInterface, COLOR4F_GET_BLUE);
+    fontFeatureGetName = AniFindMethod(env, AniGlobalClass::GetInstance().fontFeatureInterface, FONTFEATURE_GET_NAME);
+    fontFeatureGetValue = AniFindMethod(env, AniGlobalClass::GetInstance().fontFeatureInterface, FONTFEATURE_GET_VALUE);
     rectGetLeft = AniFindMethod(env, AniGlobalClass::GetInstance().rectInterface, RECT_GET_LEFT);
     rectGetTop = AniFindMethod(env, AniGlobalClass::GetInstance().rectInterface, RECT_GET_TOP);
     rectGetRight = AniFindMethod(env, AniGlobalClass::GetInstance().rectInterface, RECT_GET_RIGHT);
@@ -287,6 +306,7 @@ void AniGlobalMethod::Init(ani_env* env)
 void AniGlobalField::Init(ani_env* env)
 {
     brushNativeObj = AniFindField(env, AniGlobalClass::GetInstance().brush);
+    colorSpaceManagerNativeobj = AniFindField(env, AniGlobalClass::GetInstance().colorSpaceManager, "nativePtr");
     samplingOptionsNativeObj = AniFindField(env, AniGlobalClass::GetInstance().samplingOptions);
     canvasNativeObj = AniFindField(env, AniGlobalClass::GetInstance().canvas);
     colorFilterNativeObj = AniFindField(env, AniGlobalClass::GetInstance().colorFilter);

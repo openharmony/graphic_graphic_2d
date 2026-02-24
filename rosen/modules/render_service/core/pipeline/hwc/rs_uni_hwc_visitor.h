@@ -116,20 +116,6 @@ private:
     bool IsTargetSolidLayer(RSSurfaceRenderNode& node);
     bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
 
-    // ColorPicker helper methods
-    /**
-     * @brief Check if HWC node intersects with ColorPicker region and disable if so
-     * @param hwcNode The HWC-enabled node to check
-     * @param colorPickerRect The ColorPicker region rectangle in screen coordinates
-     */
-    void CheckHwcNodeIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-        const RectI& colorPickerRect);
-    /**
-     * @brief Process all surfaces to check HWC node intersection with ColorPicker region
-     * @param colorPickerRect The ColorPicker region rectangle in screen coordinates
-     */
-    void ProcessSurfaceForColorPicker(const RectI& colorPickerRect);
-
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;
 

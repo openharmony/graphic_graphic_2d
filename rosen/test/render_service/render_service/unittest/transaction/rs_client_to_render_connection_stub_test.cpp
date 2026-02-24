@@ -36,6 +36,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -1204,5 +1205,30 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetLogicalCameraRotationCorrection0
     data.WriteUint64(0);
     int res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetHwcNodeBounds
+ * @tc.desc: Test SetHwcNodeBounds when isPointerEnableHwc_ is true or false
+ * @tc.type: FUNC
+ * @tc.require: issue22079
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetHwcNodeBounds, TestSize.Level1)
+{
+    ASSERT_NE(toRenderConnectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint64(0);
+    data.WriteFloat(0);
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    rsPointerWindowManager.SetIsPointerEnableHwc(false);
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+    rsPointerWindowManager.SetIsPointerEnableHwc(true);
 }
 } // namespace OHOS::Rosen

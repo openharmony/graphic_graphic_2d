@@ -341,6 +341,7 @@ std::shared_ptr<RSRenderModifier> RSModifier::CreateRenderModifier() const
     }
     auto renderModifier = constructor();
     renderModifier->id_ = id_;
+    renderModifier->SetDeduplicationEnabled(IsDeduplicationEnabled());
     for (auto& [type, property] : properties_) {
         if (property == nullptr) {
             RS_LOGE("RSModifier::CreateRenderModifier property is null! type: %{public}d", static_cast<int32_t>(type));

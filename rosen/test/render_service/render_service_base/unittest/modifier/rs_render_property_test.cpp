@@ -23,6 +23,7 @@
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_render_node.h"
+#include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,6 +46,14 @@ void RSRenderPropertyTest::SetUpTestCase() {}
 void RSRenderPropertyTest::TearDownTestCase() {}
 void RSRenderPropertyTest::SetUp() {}
 void RSRenderPropertyTest::TearDown() {}
+
+static void GenRSMarshallingParcelHeader(Parcel& parcel)
+{
+    parcel.WriteInt32(0);
+    RSMarshallingHelper::MarshallingTransactionVer(parcel);
+    const auto headerLen = parcel.GetWritePosition();
+    parcel.SkipBytes(headerLen);
+}
 
 /**
  * @tc.name: LifeCycle001
@@ -607,15 +616,20 @@ HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrRSImageOnUnmarshalling, 
         std::make_shared<RSRenderProperty<std::shared_ptr<RSImage>>>(value, 1);
 
     Parcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
     std::shared_ptr<RSRenderPropertyBase> receivedProp;
     bool ret = RSRenderProperty<std::shared_ptr<RSImage>>::OnUnmarshalling(parcel, receivedProp);
     EXPECT_FALSE(ret);
 
+    parcel.FlushBuffer();
+    GenRSMarshallingParcelHeader(parcel);
     ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
     EXPECT_TRUE(ret);
     ret = RSRenderProperty<std::shared_ptr<RSImage>>::OnUnmarshalling(parcel, receivedProp);
     EXPECT_FALSE(ret);
 
+    parcel.FlushBuffer();
+    GenRSMarshallingParcelHeader(parcel);
     ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
     EXPECT_TRUE(ret);
     ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());

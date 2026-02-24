@@ -26,6 +26,7 @@
 #include "ani_text_line.h"
 #include "ani_text_rect_converter.h"
 #include "ani_text_style_converter.h"
+#include "ani_text_layout_result_converter.h"
 #include "ani_text_utils.h"
 #include "ani_transfer_util.h"
 #include "canvas_ani/ani_canvas.h"
@@ -129,6 +130,11 @@ std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
 {
     std::vector<ani_native_function> methods = {
         ani_native_function{"layoutSync", "d:", reinterpret_cast<void*>(LayoutSync)},
+        ani_native_function{
+            "layoutWithConstraints",
+            "C{" ANI_INTERFACE_TEXT_RECT_SIZE "}:C{" ANI_INTERFACE_TEXT_LAYOUT_RESULT "}",
+            reinterpret_cast<void*>(LayoutWithConstraints)
+        },
         ani_native_function{"paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint)},
         ani_native_function{"paintOnPath", PAINT_ON_PATH_SIGN.c_str(), reinterpret_cast<void*>(PaintOnPath)},
         ani_native_function{"getMaxWidth", ":d", reinterpret_cast<void*>(GetMaxWidth)},
@@ -210,6 +216,36 @@ void AniParagraph::LayoutSync(ani_env* env, ani_object object, ani_double width)
         return;
     }
     aniParagraph->typography_->Layout(width);
+}
+
+ani_object AniParagraph::LayoutWithConstraints(
+    ani_env* env, ani_object object, ani_object constraint)
+{
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(
+        env, object, AniGlobalMethod::GetInstance().paragraphGetNative);
+    if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
+        TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+
+    OHOS::Rosen::TextRectSize textRect;
+    ani_status ret = AniTextLayoutResultConverter::ParseTextRectSizeToNative(env, constraint, textRect);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to parse constraint, ret %{public}d", ret);
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+
+    OHOS::Rosen::TextLayoutResult layoutResult = aniParagraph->typography_->LayoutWithConstraints(textRect);
+
+    ani_object resultObj = nullptr;
+    ret = AniTextLayoutResultConverter::ParseTextLayoutResultToAni(env, layoutResult, resultObj);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to convert layout result, ret %{public}d", ret);
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+
+    return resultObj;
 }
 
 void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y)

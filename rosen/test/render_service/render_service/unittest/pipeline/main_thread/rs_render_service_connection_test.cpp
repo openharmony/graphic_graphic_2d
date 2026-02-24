@@ -219,8 +219,8 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
         connection->UpdateAnimationOcclusionStatus(sceneId, false);
         sleep(1);
         ASSERT_EQ(isAnimationOcclusion, false);
-        delete mainThread;
     }
+    delete mainThread;
 }
 
 /**
@@ -231,6 +231,7 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
  */
 HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceSystemWatermarkTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     constexpr uint32_t defaultScreenWidth = 400;
     constexpr uint32_t defaultScreenHight = 320;
     auto mainThread = RSMainThread::Instance();
@@ -302,6 +303,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceSystemWatermarkTest001, TestSi
     mainThread->context_->nodeMap.UnregisterRenderNode(surfaceNodeId);
     mainThread->surfaceWatermarkHelper_.ClearSurfaceWatermark(pid, watermarkName, mainThread->GetContext(), true);
     EXPECT_EQ(mainThread->surfaceWatermarkHelper_.surfaceWatermarks_.size(), 0);
+#endif
 }
 
 /**

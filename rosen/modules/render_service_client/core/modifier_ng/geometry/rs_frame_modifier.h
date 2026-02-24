@@ -37,6 +37,16 @@ public:
         }
     }
 
+    bool IsDeduplicationEnabled() const override
+    {
+        return enableDeduplication_;
+    }
+
+    void SetDeduplicationEnabled(bool enable) override
+    {
+        enableDeduplication_ = enable;
+    }
+
     void SetFrame(Vector4f frame);
     void SetFrameSize(Vector2f size);
     void SetFrameWidth(float width);
@@ -51,6 +61,9 @@ public:
     Vector2f GetFramePosition() const;
     float GetFramePositionX() const;
     float GetFramePositionY() const;
+
+private:
+    bool enableDeduplication_ = false;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_FRAME_MODIFIER_H

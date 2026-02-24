@@ -514,19 +514,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable007, TestSize.Le
     drawable->bgImage_ = image;
     drawable->OnDraw(canvas.get(), rect.get());
     ASSERT_TRUE(true);
-
-    auto shpPixelMap2 = std::shared_ptr<Media::PixelMap>();
-    shpPixelMap2->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
-    image->SetPixelMap(shpPixelMap2);
-    drawable->OnDraw(canvas.get(), rect.get());
-    ASSERT_TRUE(true);
-
-    auto surfaceBuffer = SurfaceBuffer::Create();
-    surfaceBuffer->SetBufferHandle(nullptr);
-    image->GetPixelMap()->context_ = surfaceBuffer;
-    drawable->bgImage_ = image;
-    drawable->OnDraw(canvas.get(), rect.get());
-    ASSERT_TRUE(true);
 }
 
 /**

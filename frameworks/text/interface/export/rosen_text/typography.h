@@ -25,6 +25,7 @@
 #include "include/core/SkCanvas.h" // SKIA
 #include "symbol_animation_config.h"
 #include "text/font_metrics.h"
+#include "text/font_types.h"
 #include "text/text_blob.h"
 #include "text_style.h"
 #include "text_line_base.h"
@@ -38,13 +39,7 @@
 namespace OHOS {
 namespace Rosen {
 
-// Text encoding type enum
-enum class TextEncoding {
-    UTF8,
-    UTF16,
-    UTF32,
-    GLYPH_ID,
-};
+using Drawing::TextEncoding;
 
 enum class TextRectWidthStyle {
     TIGHT,
@@ -211,6 +206,7 @@ public:
     virtual std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;
 #endif
+    virtual TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

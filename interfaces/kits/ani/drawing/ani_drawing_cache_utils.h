@@ -55,6 +55,7 @@ public:
     ani_class resourceCls;
 
     ani_class brush;
+    ani_class colorSpaceManager;
     ani_class samplingOptions;
     ani_class canvas;
     ani_class colorFilter;
@@ -81,7 +82,10 @@ public:
     ani_class rect;
     ani_class color;
     ani_class colorInterface;
+    ani_class color4f;
+    ani_class color4fInterface;
     ani_class pointInterface;
+    ani_class fontFeatureInterface;
     ani_class rectInterface;
     ani_class point3dInterface;
     ani_class runBufferInterface;
@@ -115,6 +119,7 @@ public:
     ani_enum capStyle;
     ani_enum joinStyle;
     ani_enum colorEnum;
+    ani_enum pathFillType;
 
 private:
     AniGlobalEnum() = default;
@@ -155,6 +160,7 @@ public:
     ani_method pointCtor;
     ani_method rectCtor;
     ani_method colorCtor;
+    ani_method color4fCtor;
 
     ani_method colorFilterBindNative;
     ani_method typefaceBindNative;
@@ -177,6 +183,12 @@ public:
     ani_method colorGetRed;
     ani_method colorGetGreen;
     ani_method colorGetBlue;
+    ani_method color4fGetAlpha;
+    ani_method color4fGetRed;
+    ani_method color4fGetGreen;
+    ani_method color4fGetBlue;
+    ani_method fontFeatureGetName;
+    ani_method fontFeatureGetValue;
     ani_method rectGetLeft;
     ani_method rectGetTop;
     ani_method rectGetRight;
@@ -220,6 +232,7 @@ public:
     void Init(ani_env* env);
 
     ani_field brushNativeObj;
+    ani_field colorSpaceManagerNativeobj;
     ani_field samplingOptionsNativeObj;
     ani_field canvasNativeObj;
     ani_field colorFilterNativeObj;

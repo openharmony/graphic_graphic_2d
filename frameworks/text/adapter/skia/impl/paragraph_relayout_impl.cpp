@@ -483,6 +483,12 @@ namespace {
             std::ignore = state;
             paragraph.UpdateForegroundBrush(spTextStyle);
         },
+
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+            skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
+            skiaTextStyle.setFontEdging(spTextStyle.fontEdging);
+            state = std::min(skt::InternalState::kIndexed, state);
+        },
     };
 
     SymbolFuncVecotr g_symbolStyleHandlers = {

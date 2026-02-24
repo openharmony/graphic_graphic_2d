@@ -44,6 +44,14 @@ void RSImageTest::TearDownTestCase() {}
 void RSImageTest::SetUp() {}
 void RSImageTest::TearDown() {}
 
+static void GenRSMarshallingParcelHeader(Parcel& parcel)
+{
+    parcel.WriteInt32(0);
+    RSMarshallingHelper::MarshallingTransactionVer(parcel);
+    const auto headerLen = parcel.GetWritePosition();
+    parcel.SkipBytes(headerLen);
+}
+
 /**
  * @tc.name: IsEqual001
  * @tc.desc:
@@ -529,6 +537,7 @@ HWTEST_F(RSImageTest, RSImageBase001, TestSize.Level1)
 
 #ifdef ROSEN_OHOS
     Parcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
     EXPECT_FALSE(imageBase.Marshalling(parcel));
     EXPECT_EQ(imageBase.Unmarshalling(parcel), nullptr);
 #endif
@@ -549,6 +558,7 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     rsImage->SetPixelMap(pixelMap);
 
     MessageParcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
     EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel, rsImage), true);
     std::shared_ptr<RSImage> newImage;
     EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
@@ -563,6 +573,7 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     canvas.DetachBrush();
 
     MessageParcel parcel2;
+    GenRSMarshallingParcelHeader(parcel2);
     EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel2, rsImage), true);
     std::shared_ptr<RSImage> newImage2;
     EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel2, newImage2), true);
@@ -580,6 +591,57 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(0);
     RSImageCache::Instance().pixelMapCache_.clear();
     RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
+}
+
+/**
+ * @tc.name: RSImageMarshallingTest001
+ * @tc.desc: Verify function Marshalling
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, RSImageMarshallingTest001, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    MessageParcel parcel;
+    EXPECT_TRUE(rsImage->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSImageMarshallingTest002
+ * @tc.desc: Verify function Marshalling
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, RSImageMarshallingTest002, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    auto pixelMap = CreatePixelMap(width, height);
+    EXPECT_TRUE(pixelMap != nullptr);
+    pixelMap->isPropertiesDirty_ = false;
+    rsImage->SetPixelMap(pixelMap);
+    MessageParcel parcel;
+    EXPECT_TRUE(rsImage->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSImageMarshallingTest003
+ * @tc.desc: Verify function Marshalling
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, RSImageMarshallingTest003, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    auto pixelMap = CreatePixelMap(width, height);
+    EXPECT_TRUE(pixelMap != nullptr);
+    pixelMap->MarkPropertiesDirty();
+    rsImage->SetPixelMap(pixelMap);
+    MessageParcel parcel;
+    EXPECT_TRUE(rsImage->Marshalling(parcel));
 }
 
 /**
@@ -726,8 +788,10 @@ HWTEST_F(RSImageTest, addImageMatrixMarshallingTest, TestSize.Level1)
     rsImage->SetFitMatrix(matrix);
 
     MessageParcel parcel;
-    EXPECT_EQ(rsImage->Marshalling(parcel), true);
-    EXPECT_EQ(rsImage->Unmarshalling(parcel), nullptr);
+    GenRSMarshallingParcelHeader(parcel);
+    EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel, rsImage), true);
+    std::shared_ptr<RSImage> newImage;
+    EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
 }
 
 /**
@@ -1335,28 +1399,6 @@ HWTEST_F(RSImageTest, DrawImageRepeatOffScreenTest, TestSize.Level1)
     rsImage->dstRect_ = RectF(0, 0, 100, 100);
     rsImage->frameRect_ = RectF(0, 0, 100, 100);
     rsImage->DrawImageRepeatOffScreen(sampling, canvas, minX, maxX, minY, maxY);
-}
-
-/**
- * @tc.name: RSImage Marshalling
- * @tc.desc: RSImage Marshalling test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSImageTest, MarshallingTest, TestSize.Level1)
-{
-    auto rsImage = std::make_shared<RSImage>();
-    std::shared_ptr<Media::PixelMap> pixelMap;
-    int width = 200;
-    int height = 300;
-    pixelMap = CreatePixelMap(width, height);
-    
-    rsImage->SetPixelMap(nullptr);
-    MessageParcel parcel1;
-    EXPECT_EQ(rsImage->Marshalling(parcel1), true);
-
-    rsImage->SetPixelMap(pixelMap);
-    MessageParcel parcel2;
-    EXPECT_EQ(rsImage->Marshalling(parcel2), true);
 }
 
 /**

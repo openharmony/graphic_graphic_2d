@@ -2025,7 +2025,10 @@ void RSNode::SetColorPickerOptions(uint64_t interval, std::pair<uint32_t, uint32
                                 (notifyThreshold.first & 0xFFFF);
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
         &ModifierNG::RSColorPickerModifier::SetColorPickerNotifyThreshold>(packedThresholds);
-    (void)rect; // Add support for rect parameter once RSPropertyType::COLOR_PICKER_RECT is available
+
+    // If rect is an nullopt, set an invalid value to inform RS service
+    Vector4f newRect = rect.has_value() ? rect.value() : Vector4f(0.0, 0.0, -1.0, -1.0);
+    SetPropertyNG<ModifierNG::RSColorPickerModifier, &ModifierNG::RSColorPickerModifier::SetColorPickerRect>(newRect);
 }
 
 void RSNode::SetColorPickerCallback(ColorPickerCallback callback)
@@ -2575,7 +2578,8 @@ void RSNode::SetMaterialWithQualityLevel(const std::shared_ptr<RSNGFilterBase> &
         return;
     }
     if (materialFilter->GetType() == RSNGEffectType::FROSTED_GLASS && quality == FilterQuality::ADAPTIVE) {
-        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, 0);
+        constexpr uint64_t INTERVAL_500MS = 500;
+        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, INTERVAL_500MS);
     }
 }
 
@@ -3249,6 +3253,18 @@ void RSNode::DoFlushModifier()
             AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
         }
     }
+}
+
+bool RSNode::IsAnyModifierDeduplicationEnabled() const
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    // Check if any modifier on this node has deduplication enabled
+    for (const auto& [_, modifier] : modifiersNG_) {
+        if (modifier && modifier->IsDeduplicationEnabled()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 const std::shared_ptr<RSPropertyBase> RSNode::GetProperty(const PropertyId& propertyId)

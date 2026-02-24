@@ -30,6 +30,7 @@
 
 #include "common/rs_macros.h"
 #include "typography_types.h"
+#include "text/font_types.h"
 #include "hm_symbol_txt.h"
 
 namespace OHOS {
@@ -63,6 +64,7 @@ enum class RelayoutTextStyleAttribute {
     SHADOWS = 19,
     HALF_LEADING = 20,
     FOREGROUND_BRUSH = 21,
+    FONT_EDGING = 22,
 
     TEXT_STYLE_ATTRIBUTE_BUTT,
 };
@@ -166,6 +168,7 @@ struct RS_EXPORT TextStyle {
     double maxLineHeight{std::numeric_limits<float>::max()};
     double minLineHeight{0.0f};
     LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
+    Drawing::FontEdging fontEdging{Drawing::FontEdging::ANTI_ALIAS};
 };
 } // namespace Rosen
 } // namespace OHOS

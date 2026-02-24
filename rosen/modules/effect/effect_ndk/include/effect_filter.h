@@ -262,6 +262,19 @@ EffectErrorCode OH_Filter_MapColorByBrightness(OH_Filter* filter, OH_Filter_MapC
  */
 EffectErrorCode OH_Filter_GammaCorrection(OH_Filter* filter, float gamma);
 
+ /**
+ * @brief Obtains the OH_NativeBuffer used to create a filter.
+ * This function could transform the pixelmap with effect to a shared memory directly.
+ * The user is suggested to align the size and format with the input pixelmap when creating the effect.
+ *
+ * @param filter The OH_Filter pointer will be operated.
+ * @param nativeBuffer The OH_NativeBuffer pointer will be operated.
+ * @return Returns {@link EffectErrorCode}.
+ * @since 24
+ * @version 1.0
+ */
+EffectErrorCode OH_Filter_GetEffectNativeBuffer(OH_Filter* filter, OH_NativeBuffer* dstNativeBuffer);
+
 #ifdef __cplusplus
 }
 #endif

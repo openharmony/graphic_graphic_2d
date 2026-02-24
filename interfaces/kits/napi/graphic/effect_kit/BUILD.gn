@@ -52,6 +52,16 @@ if (is_arkui_x) {
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
       "//foundation/graphic/graphic_surface/interfaces/inner_api/common",
       "//foundation/graphic/graphics_effect/include",
+      "//foundation/graphic/graphics_effect/include/core",
+      "//foundation/graphic/graphics_effect/include/pipeline",
+      "//foundation/graphic/graphics_effect/include/hps",
+      "//foundation/graphic/graphics_effect/include/ext",
+      "//foundation/graphic/graphics_effect/include/effect",
+      "//foundation/graphic/graphics_effect/include/effect/filter",
+      "//foundation/graphic/graphics_effect/include/effect/shader",
+      "//foundation/graphic/graphics_effect/include/effect/mask",
+      "//foundation/graphic/graphics_effect/include/effect/shape",
+      "//foundation/graphic/graphics_effect/include/util",
     ]
 
     if(target_os == "ios") {

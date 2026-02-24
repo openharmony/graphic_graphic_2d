@@ -36,6 +36,17 @@ bool Filter::Render(bool forceCPU)
     auto error = imageRender.Render(srcPixelMap_, effectFilters_, forceCPU, dstPixelMap_);
     return error == DrawingError::ERR_OK;
 }
+ 
+bool Filter::RenderNativeBuffer(bool forceCPU, OH_NativeBuffer* dstNativeBuffer)
+{
+    if (srcPixelMap_ == nullptr) {
+        return false;
+    }
+    EffectImageRender imageRender;
+    auto dstNativeBufferSharedPtr = std::shared_ptr<OH_NativeBuffer>(dstNativeBuffer, [](OH_NativeBuffer* p) {});
+    auto error = imageRender.RenderDstNative(srcPixelMap_, dstNativeBufferSharedPtr, effectFilters_, forceCPU);
+    return error == DrawingError::ERR_OK;
+}
 
 void Filter::AddNextFilter(std::shared_ptr<EffectImageFilter> filter)
 {

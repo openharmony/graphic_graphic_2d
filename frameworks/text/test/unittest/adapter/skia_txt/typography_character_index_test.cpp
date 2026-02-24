@@ -26,6 +26,7 @@
 #include "src/ParagraphImpl.h"
 #include "typography.h"
 #include "typography_create.h"
+#include "utils/string_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -41,12 +42,6 @@ const double MAX_WIDTH = 400.0;
 const double TEST_COORDINATE_X = 50.0;
 const double TEST_COORDINATE_Y = 10.0;
 const double NEGATIVE_COORDINATE = -10.0;
-
-std::u16string Utf8ToUtf16(const char* utf8Str)
-{
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-    return converter.from_bytes(utf8Str);
-}
 
 }
 
@@ -90,7 +85,7 @@ std::unique_ptr<Typography> TypographyCharacterIndexTest::CreateTypography(const
 
 std::unique_ptr<Typography> TypographyCharacterIndexTest::CreateTypography(const char* utf8Text)
 {
-    return CreateTypography(Utf8ToUtf16(utf8Text));
+    return CreateTypography(Str8ToStr16ByIcu(utf8Text));
 }
 
 /*
@@ -142,7 +137,7 @@ HWTEST_F(TypographyCharacterIndexTest, TypographyCharacterIndexNegativeCoordinat
  */
 HWTEST_F(TypographyCharacterIndexTest, TypographyCharacterIndexEmptyTextTest001, TestSize.Level0)
 {
-    auto typographyEmpty = CreateTypography(u"");
+    auto typographyEmpty = CreateTypography("");
     IndexAndAffinity resultEmpty = typographyEmpty->GetCharacterIndexByCoordinate(
         TEST_COORDINATE_X, TEST_COORDINATE_Y, TextEncoding::UTF8);
     EXPECT_EQ(resultEmpty.index, 0);

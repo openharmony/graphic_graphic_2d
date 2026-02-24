@@ -29,8 +29,6 @@ const std::string BG_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 const std::string FG_TEST_JPG_PATH = "/data/local/tmp/fg_test.jpg";
 const std::string MASK_RGB_PATH = "/data/local/tmp/Images/maskRGB.png";
 const std::string MASK_SHADOW_PATH = "/data/local/tmp/Images/maskShadow.png";
-const int SCREEN_WIDTH = 1200;
-const int SCREEN_HEIGHT = 2000;
 
 // Default values
 const Vector2f DEFAULT_BLUR_PARAMS = Vector2f(20.0f, 3.0f);
@@ -437,5 +435,50 @@ enum class TestDataGroupParamsType {
 };
 
 const std::vector<float> gasifyProgressVec = {-1.f, 0.01f, 0.2f, 1.5f};
+
+// BlurFilter初始化函数（2个参数：RadiusX, RadiusY）
+inline void InitBlurFilter(std::shared_ptr<RSNGBlurFilter>& blurFilter)
+{
+    blurFilter->Setter<BlurRadiusXTag>(20.0f);
+    blurFilter->Setter<BlurRadiusYTag>(20.0f);
+}
+
+// EdgeLight初始化函数（4个参数：Alpha, Color, Bloom, UseRawColor）
+inline void InitEdgeLight(std::shared_ptr<RSNGEdgeLightFilter>& edgeLight)
+{
+    edgeLight->Setter<EdgeLightAlphaTag>(1.0f);
+    edgeLight->Setter<EdgeLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    edgeLight->Setter<EdgeLightBloomTag>(false);
+    edgeLight->Setter<EdgeLightUseRawColorTag>(false);
+}
+
+// FrostedGlassBlurFilter初始化函数（2个参数：Radius, RadiusScaleK）
+inline void InitFrostedGlassBlurFilter(std::shared_ptr<RSNGFrostedGlassBlurFilter>& frostedGlassBlurFilter)
+{
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(20.0f);
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusScaleKTag>(1.0f);
+}
+
+// MaskTransition初始化函数（1个参数：Factor）
+inline void InitMaskTransition(std::shared_ptr<RSNGMaskTransitionFilter>& maskTransition)
+{
+    maskTransition->Setter<MaskTransitionFactorTag>(0.5f);
+}
+
+// SDFEdgeLight初始化函数（4个参数：SpreadFactor, LightMaxIntensity, MinBorderWidth, MaxBorderWidth）
+inline void InitSDFEdgeLight(std::shared_ptr<RSNGSDFEdgeLightFilter>& sdfEdgeLight)
+{
+    sdfEdgeLight->Setter<SDFEdgeLightSpreadFactorTag>(1.0f);
+    sdfEdgeLight->Setter<SDFEdgeLightLightMaxIntensityTag>(2.0f);
+    sdfEdgeLight->Setter<SDFEdgeLightMinBorderWidthTag>(1.0f);
+    sdfEdgeLight->Setter<SDFEdgeLightMaxBorderWidthTag>(10.0f);
+}
+
+// VariableRadiusBlur初始化函数（1个参数：Radius）
+inline void InitVariableRadiusBlur(std::shared_ptr<RSNGVariableRadiusBlurFilter>& variableRadiusBlur)
+{
+    variableRadiusBlur->Setter<VariableRadiusBlurRadiusTag>(20.0f);
+}
+
 }  // namespace OHOS::Rosen
 #endif // NG_FILTER_TEST_UTILS_H

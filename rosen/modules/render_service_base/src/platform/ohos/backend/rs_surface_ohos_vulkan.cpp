@@ -546,7 +546,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 #endif
 
 #ifdef MHC_ENABLE
-    bool pendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface.drawingSurface);
+    auto&& pendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface.drawingSurface);
 #endif
 
 #if defined(ROSEN_OHOS)
@@ -591,7 +591,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     
 #ifdef MHC_ENABLE
     if (pendingSubmit) {
-        RSMhcManager::Instance().MHCSubmitTask();
+        RSMhcManager::Instance().MHCSubmitTask(*pendingSubmit);
     }
 #endif
 

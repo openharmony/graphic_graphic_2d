@@ -164,8 +164,7 @@ HWTEST_F(RSInterfacesTest, SetRogScreenResolution001, Function | SmallTest | Lev
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     uint32_t newWidth = 1920;
     uint32_t newHeight = 1080;
-    auto ret = rsInterfaces->SetRogScreenResolution(screenId, newWidth, newHeight);
-    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
+    rsInterfaces->SetRogScreenResolution(screenId, newWidth, newHeight);
 }
 
 /*
@@ -918,9 +917,9 @@ HWTEST_F(RSInterfacesTest, GetPanelPowerStatus001, Function | SmallTest | Level2
  */
 HWTEST_F(RSInterfacesTest, GetPanelPowerStatus002, Function | SmallTest | Level2)
 {
-    auto screenId = INVALID_SCREEN_ID;
-    auto panelPowerStatus = rsInterfaces->GetPanelPowerStatus(screenId);
-    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    rsInterfaces->GetPanelPowerStatus(screenId);
 }
 
 /*

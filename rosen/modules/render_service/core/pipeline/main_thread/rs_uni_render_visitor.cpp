@@ -94,6 +94,7 @@
 // blur predict
 #include "rs_frame_blur_predict.h"
 #include "rs_uni_render_visitor.h"
+
 #include "drawable/rs_misc_drawable.h"
 
 #undef LOG_TAG
@@ -136,6 +137,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     auto mainThread = RSMainThread::Instance();
     renderEngine_ = mainThread->GetRenderEngine();
     hasMirrorDisplay_ = mainThread->HasMirrorDisplay();
+    hasMirrorUsedInDirtyRegion_ = RSUniDirtyComputeUtil::HasMirrorDisplay();
     // when occlusion enabled is false, subTree do not skip, but not influence visible region
     isOcclusionEnabled_ = RSSystemProperties::GetOcclusionEnabled();
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
@@ -631,7 +633,7 @@ bool RSUniRenderVisitor::IsSubTreeOccluded(RSRenderNode& node) const
                 "name:[%s] visibleRegionIsEmpty[%d]",
                 std::to_string(node.GetId()).c_str(), surfaceNode.GetName().c_str(),
                 surfaceNode.GetVisibleRegion().IsEmpty());
-            auto isOccluded = hasMirrorDisplay_ ?
+            auto isOccluded = hasMirrorUsedInDirtyRegion_ ?
                 surfaceNode.GetVisibleRegionInVirtual().IsEmpty() : surfaceNode.GetVisibleRegion().IsEmpty();
             isOccluded = isOccluded && (!RSUifirstManager::Instance().IsSubTreeNeedPrepareForSnapshot(surfaceNode));
             if (isOccluded && curSurfaceDirtyManager_) {
@@ -833,7 +835,7 @@ void RSUniRenderVisitor::UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTr
 {
     if (GetDumpRsTreeDetailEnabled()) {
         auto& curFrameInfoDetail = node.GetCurFrameInfoDetail();
-        curFrameInfoDetail.curFrameVsyncId = HgmCore::Instance().GetVsyncId();
+        curFrameInfoDetail.curFrameVsyncId = static_cast<uint32_t>(HgmCore::Instance().GetVsyncId());
         curFrameInfoDetail.curFrameSubTreeSkipped = subTreeSkipped;
         if (isPostPrepare) {
             curFrameInfoDetail.curFramePostPrepareSeqNum = IncreasePostPrepareSeq();
@@ -884,9 +886,6 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     }
     rsScreenNodeChildNum_ = 0;
     RSHdrUtil::LuminanceChangeSetDirty(node);
-
-    // Clear ColorPicker disabled surfaces from previous frame before Prepare phase
-    hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
 
     QuickPrepareChildren(node);
     TryNotifyUIBufferAvailable();
@@ -2565,7 +2564,7 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
         if (hwcNodePtr->IsLayerTop()) {
             topLayers.emplace_back(hwcNodePtr);
-            if (hasMirrorDisplay_ && hwcNodePtr->GetRSSurfaceHandler() &&
+            if (hasMirrorUsedInDirtyRegion_ && hwcNodePtr->GetRSSurfaceHandler() &&
                 hwcNodePtr->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
                 !(node->GetVisibleRegion().IsEmpty()) && curScreenDirtyManager_) {
                 // merge hwc top node dst rect for virtual screen dirty, in case the main display node skip
@@ -2683,7 +2682,7 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfac
     if (hwcNode->IsHardwareForcedDisabled() && hwcNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed()) {
         appNode->GetDirtyManager()->MergeDirtyRect(hwcNode->GetOldDirtyInSurface());
     }
-    if (hasMirrorDisplay_ && hwcNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
+    if (hasMirrorUsedInDirtyRegion_ && hwcNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
         !appNode->GetVisibleRegion().IsEmpty()) {
         // merge hwc node dst rect for virtual screen dirty, in case the main display node skip
         curScreenDirtyManager_->MergeHwcDirtyRect(hwcNode->GetDstRect());
@@ -2985,7 +2984,7 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparent(RSSurfaceRenderNode
     // surfaceNode is transparent
     const auto& dirtyRect = surfaceNode.GetDirtyManager()->GetCurrentFrameDirtyRegion();
     auto oldDirtyInSurface = surfaceNode.GetOldDirtyInSurface();
-    Occlusion::Region visibleRegion = hasMirrorDisplay_ ?
+    Occlusion::Region visibleRegion = hasMirrorUsedInDirtyRegion_ ?
         surfaceNode.GetVisibleRegionInVirtual() : surfaceNode.GetVisibleRegion();
     if (surfaceNode.IsMainWindowType() && !visibleRegion.IsIntersectWith(dirtyRect)) {
         return;
@@ -3301,9 +3300,9 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (nodeParent == nullptr) {
         return;
     }
-    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter()
     // Handle ColorPickerDrawable - MERGE into filter handling
-    || node.GetColorPickerDrawable()) {
+    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter() ||
+        node.GetColorPickerDrawable()) {
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }
@@ -3488,6 +3487,7 @@ void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
             continue;
         }
 
+        // Prepare ColorPicker drawable for disable decision
         PrepareColorPickerDrawable(*filterNode);
 
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateFilterRegionInSkippedSurfaceNode node[%" PRIu64 "]", filterNode->GetId());
@@ -3513,6 +3513,7 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
             continue;
         }
 
+        // Prepare ColorPicker drawable for disable decision
         PrepareColorPickerDrawable(*filterNode);
 
         RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterNodeInSkippedSubTreeNeedClearCache node[%lld]", filterNode->GetId());
@@ -3576,6 +3577,7 @@ void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
             continue;
         }
 
+        // Prepare ColorPicker drawable for disable decision
         PrepareColorPickerDrawable(*filterNode);
 
         auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode);
@@ -4157,28 +4159,19 @@ bool RSUniRenderVisitor::IsCurrentSubTreeForcePrepare(RSRenderNode& node)
     return false;
 }
 
-void RSUniRenderVisitor::PrepareColorPickerDrawable(const RSRenderNode& node)
+void RSUniRenderVisitor::PrepareColorPickerDrawable(RSRenderNode& node)
 {
-    auto colorPickerDrawable = node.GetColorPickerDrawable();
-    if (!colorPickerDrawable) {
+    if (!node.GetColorPickerDrawable()) {
         return;
     }
-
-    RS_OPTIONAL_TRACE_NAME_FMT(
-        "ColorPicker: Preparing in filter iteration node id:%" PRIu64, node.GetId());
-
-    auto drawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(colorPickerDrawable);
-    if (drawable) {
-        drawable->SetIsSystemDarkColorMode(RSMainThread::Instance()->GetGlobalDarkColorMode());
-        uint64_t vsyncTime = RSMainThread::Instance()->GetCurrentVsyncTime();
-        drawable->Prepare(vsyncTime);
-        bool needExecute = drawable->NeedExecute();
-        if (needExecute && curSurfaceNode_) {
-            // Get the ColorPicker rect from current surface node (in screen coordinates)
-            RectI colorPickerRect = curSurfaceNode_->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-            // Store surface ID with its rect for intersection checking later
-            hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(), colorPickerRect);
-        }
+    const auto* ctx = RSMainThread::Instance();
+    const bool needColorPick =
+        node.PrepareColorPickerForExecution(ctx->GetCurrentVsyncTime(), ctx->GetGlobalDarkColorMode());
+    if (needColorPick && curSurfaceNode_) {
+        // Get the ColorPicker rect from current surface node (in screen coordinates)
+        RectI colorPickerRect = curSurfaceNode_->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        // Store surface ID with its rect for intersection checking later
+        hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(), colorPickerRect);
     }
 }
 

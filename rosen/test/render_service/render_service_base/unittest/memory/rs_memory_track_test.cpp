@@ -737,11 +737,7 @@ HWTEST_F(RSMemoryTrackTest, FdOverReport, testing::ext::TestSize.Level1)
     std::string hidumperReport = "report";
     MemoryTrack::Instance().FdOverReport(pid, "RENDER_MEMORY_OVER_WARNING", hidumperReport);
     std::string filePath = "/data/service/el0/render_service/renderservice_fdmem.txt";
-#ifdef ROSEN_OHOS
-    ASSERT_TRUE(std::ifstream(filePath).good());
-#else
     ASSERT_FALSE(std::ifstream(filePath).good());
-#endif
 }
 
 /**
@@ -756,11 +752,7 @@ HWTEST_F(RSMemoryTrackTest, WriteInfoToFile, testing::ext::TestSize.Level1)
     std::string hidumperReport = "";
     std::string filePath = "/data/service/el0/render_service/renderservice_fdmem.txt";
     MemoryTrack::Instance().WriteInfoToFile(filePath, memInfo, hidumperReport);
-#ifdef ROSEN_OHOS
-    ASSERT_TRUE(std::ifstream(filePath).good());
-#else
     ASSERT_FALSE(std::ifstream(filePath).good());
-#endif
 }
 
 /**

@@ -20,16 +20,15 @@
 #include <memory>
 
 #include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
 #include "i_color_picker_manager.h"
 
-#include "drawable/rs_property_drawable_utils.h"
+#include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-class Image;
-}
+
 class ColorPickAltManager : public std::enable_shared_from_this<ColorPickAltManager>, public IColorPickerManager {
 public:
     explicit ColorPickAltManager(NodeId nodeId) : nodeId_(nodeId) {}
@@ -37,71 +36,12 @@ public:
 
     // IColorPickerManager interface
     std::optional<Drawing::ColorQuad> GetColorPick() override;
-    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect,
-        const ColorPickerParam& params) override;
-    void SetSystemDarkColorMode(bool isSystemDarkColorMode) override {};
+    void ScheduleColorPick(
+        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params) override;
+    void SetSystemDarkColorMode(bool isSystemDarkColorMode) override {}
+    void ResetColorMemory() override;
 
-private:
-    struct ColorPickerInfo {
-        std::shared_ptr<Drawing::ColorSpace> colorSpace_;
-        Drawing::BitmapFormat bitmapFormat_;
-        Drawing::BackendTexture backendTexture_;
-        std::shared_ptr<Drawing::Image> oldImage_;
-        NodeId nodeId_;
-        std::weak_ptr<ColorPickAltManager> manager_;
-
-        ColorPickerInfo(std::shared_ptr<Drawing::ColorSpace> colorSpace, Drawing::BitmapFormat bitmapFormat,
-            Drawing::BackendTexture backendTexture, std::shared_ptr<Drawing::Image> image, NodeId nodeId,
-            std::weak_ptr<ColorPickAltManager> manager)
-            : colorSpace_(colorSpace), bitmapFormat_(bitmapFormat), backendTexture_(backendTexture), oldImage_(image),
-              nodeId_(nodeId), manager_(manager) {}
-
-        static void PickColor(void* context)
-        {
-            ColorPickerInfo* colorPickerInfo = static_cast<ColorPickerInfo*>(context);
-            if (colorPickerInfo == nullptr) {
-                RS_LOGE("ColorPickerInfo::PickColor context nullptr");
-                return;
-            }
-            std::shared_ptr<ColorPickerInfo> info(colorPickerInfo);
-            auto task = [info]() {
-                auto manager = info->manager_.lock();
-                if (manager == nullptr) {
-                    RS_LOGE("ColorPickerInfo::PickColor manager nullptr");
-                    return;
-                }
-#if defined(RS_ENABLE_UNI_RENDER)
-                auto gpuCtx = RSColorPickerThread::Instance().GetShareGPUContext();
-
-#else
-                std::shared_ptr<Drawing::GPUContext> gpuCtx = nullptr;
-#endif
-                if (gpuCtx == nullptr || info->oldImage_ == nullptr) {
-                    RS_LOGE("ColorPickerInfo::PickColor param invalid");
-                    return;
-                }
-                auto image = std::make_shared<Drawing::Image>();
-                Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-                if (!image->BuildFromTexture(*gpuCtx, info->backendTexture_.GetTextureInfo(), origin,
-                    info->bitmapFormat_, info->colorSpace_)) {
-                    RS_LOGE("ColorPickerInfo::PickColor BuildFromTexture failed");
-                    return;
-                }
-                Drawing::ColorQuad colorPicked;
-                if (RSPropertyDrawableUtils::PickColor(gpuCtx, image, colorPicked)) {
-                    manager->HandleColorUpdate(colorPicked);
-                } else {
-                    RS_LOGE("ColorPickAltManager: PickColor failed");
-                }
-                image = nullptr;
-                info->oldImage_ = nullptr;
-            };
-            RSColorPickerThread::Instance().PostTask(task, 0);
-        }
-    };
-
-    void ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect);
-    void HandleColorUpdate(Drawing::ColorQuad newColor);
+    void HandleColorUpdate(Drawing::ColorQuad newColor) override;
 
     const NodeId nodeId_;
 

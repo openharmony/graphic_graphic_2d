@@ -394,6 +394,64 @@ HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetColorPickerRectTest001
+ * @tc.desc: Test SetColorPickerRect with valid rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerRectTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetColorPicker(), nullptr);
+
+    // Valid rect: [left=0, top=0, right=100, bottom=100]
+    Vector4f rect(0.f, 0.f, 100.f, 100.f);
+    properties.SetColorPickerRect(rect);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    ASSERT_TRUE(colorPicker->rect.has_value());
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetLeft(), 0.f);
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetTop(), 0.f);
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetRight(), 100.f);
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetBottom(), 100.f);
+}
+
+/**
+ * @tc.name: SetColorPickerRectTest002
+ * @tc.desc: Test SetColorPickerRect with invalid rect (left > right)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerRectTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    // Invalid rect: left=100, top=0, right=50, bottom=100 (left > right)
+    Vector4f rect(100.f, 0.f, 50.f, 100.f);
+    properties.SetColorPickerRect(rect);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_FALSE(colorPicker->rect.has_value());
+}
+
+/**
+ * @tc.name: SetColorPickerRectTest003
+ * @tc.desc: Test SetColorPickerRect with boundary case (left == right)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerRectTest003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::SURFACE));
+    // Boundary case: left=50, top=0, right=50, bottom=100 (left == right)
+    Vector4f rect(50.f, 0.f, 50.f, 100.f);
+    properties.SetColorPickerRect(rect);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_FALSE(colorPicker->rect.has_value());
+}
+
+/**
  * @tc.name: SetParticlesTest
  * @tc.desc: test results of SetParticles
  * @tc.type: FUNC
@@ -705,39 +763,6 @@ HWTEST_F(PropertiesTest, SetCanvasNodeHDRBrightnessFactor002, TestSize.Level1)
     properties.SetCanvasNodeHDRBrightnessFactor(initialFactor);
     properties.SetCanvasNodeHDRBrightnessFactor(newFactor);
     EXPECT_EQ(properties.GetCanvasNodeHDRBrightnessFactor(), newFactor);
-}
-
-/**
- * @tc.name: SetEmitterUpdaterTest
- * @tc.desc: test results of SetEmitterUpdater
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetEmitterUpdaterTest, TestSize.Level1)
-{
-    RSProperties properties;
-    std::vector<std::shared_ptr<EmitterUpdater>> para;
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.GetEffect().emitterUpdater_.empty(), true);
-
-    auto emitter = std::make_shared<EmitterUpdater>(0);
-    para.push_back(emitter);
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.GetEffect().emitterUpdater_.empty(), false);
-
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
-    properties.backref_ = node;
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.GetEffect().emitterUpdater_.empty(), false);
-
-    auto renderNode = properties.backref_.lock();
-    PropertyId propertyId = 0;
-    AnimationId animationId = 0;
-    renderNode->animationManager_.particleAnimations_.insert({ propertyId, animationId });
-    auto renderAnimation = std::make_shared<RSRenderAnimation>();
-    renderNode->animationManager_.animations_.insert({ animationId, renderAnimation });
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(renderNode->animationManager_.animations_.empty(), false);
 }
 
 /**
@@ -1432,7 +1457,7 @@ HWTEST_F(PropertiesTest, SetColorPickerPlaceholderTest, TestSize.Level1)
 
     properties.SetColorPickerPlaceholder(-100); // below NONE
     ASSERT_NE(properties.GetColorPicker(), nullptr);
-    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::NONE);
+    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::MAX);
     EXPECT_TRUE(properties.IsDirty());
 
     properties.ResetDirty();

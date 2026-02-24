@@ -26,6 +26,11 @@
 #include "mask_filter_ani/ani_mask_filter.h"
 #include "image_filter_ani/ani_image_filter.h"
 
+#ifdef ROSEN_OHOS
+#include "ani_color_space_manager.h"
+#include "utils/colorspace_convertor.h"
+#endif
+
 namespace OHOS::Rosen {
 namespace Drawing {
 
@@ -60,6 +65,8 @@ ani_status AniBrush::AniInit(ani_env *env)
         ani_native_function { "setMaskFilter", nullptr, reinterpret_cast<void*>(SetMaskFilter) },
         ani_native_function { "setShadowLayer", nullptr, reinterpret_cast<void*>(SetShadowLayer) },
         ani_native_function { "setShaderEffect", nullptr, reinterpret_cast<void*>(SetShaderEffect) },
+        ani_native_function { "setColor4f", nullptr, reinterpret_cast<void*>(SetColor4f) },
+        ani_native_function { "getColor4f", nullptr, reinterpret_cast<void*>(GetColor4f) },
     };
 
     ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -144,6 +151,57 @@ void AniBrush::SetColorWithObject(ani_env* env, ani_object obj, ani_object aniCo
     Drawing::Color drawingColor;
     drawingColor.SetColorQuad(color);
     aniBrush->GetBrush()->SetColor(drawingColor);
+}
+
+void AniBrush::SetColor4f(ani_env* env, ani_object obj, ani_object aniColor4f, ani_object aniColorSpace)
+{
+#ifdef ROSEN_OHOS
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::setColor4f brush is nullptr.");
+        return;
+    }
+
+    Drawing::Color4f drawingColor;
+    if (!GetColor4fFromAniColor4fObj(env, aniColor4f, drawingColor)) {
+        ROSEN_LOGE("AniBrush::SetColor4f failed cause by aniColor");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniBrush::setColor4f incorrect type color.");
+        return;
+    }
+
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+    if (IsReferenceValid(env, aniColorSpace)) {
+        ColorManager::AniColorSpaceManager* aniColorSpaceManager =
+        GetNativeFromObj<ColorManager::AniColorSpaceManager>(env, aniColorSpace,
+                AniGlobalField::GetInstance().colorSpaceManagerNativeobj);
+        if (aniColorSpaceManager != nullptr) {
+            auto colorManagerColorSpace = aniColorSpaceManager->GetColorSpaceToken();
+            if (colorManagerColorSpace != nullptr) {
+                drawingColorSpace = Drawing::ColorSpaceConvertor::
+                    ColorSpaceConvertToDrawingColorSpace(colorManagerColorSpace);
+            }
+        }
+    }
+    aniBrush->GetBrush()->SetColor(drawingColor, drawingColorSpace);
+    return;
+#else
+    return;
+#endif
+}
+
+ani_object AniBrush::GetColor4f(ani_env* env, ani_object obj)
+{
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj, AniGlobalField::GetInstance().brushNativeObj);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::GetColor4f brush is nullptr.");
+        return CreateAniUndefined(env);
+    }
+
+    const Color4f& color4f = aniBrush->GetBrush()->GetColor4f();
+    ani_object aniObj = nullptr;
+    CreateColor4fObj(env, color4f, aniObj);
+    return aniObj;
 }
 
 void AniBrush::SetColorWithARGB(ani_env* env, ani_object obj, ani_int alpha,

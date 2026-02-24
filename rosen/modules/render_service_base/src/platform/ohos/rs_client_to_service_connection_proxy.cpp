@@ -31,8 +31,8 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 static constexpr size_t ASHMEM_SIZE_THRESHOLD = 200 * 1024; // cannot > 500K in TF_ASYNC mode
-static constexpr int MAX_RETRY_COUNT = 20;
-static constexpr int RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
+static constexpr int MAX_RETRY_COUNT = 30;
+static constexpr int RETRY_WAIT_TIME_US = 5000; // wait 5ms before retry SendRequest
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 static constexpr uint32_t EDID_DATA_MAX_SIZE = 64 * 1024;
 static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map size not exceed 100

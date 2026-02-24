@@ -57,16 +57,6 @@ void MultiScreenParam::SetMirrorDisplayCloseP3(bool isEnabled)
     isMirrorDisplayCloseP3_ = isEnabled;
 }
 
-bool MultiScreenParam::IsSkipFrameByActiveRefreshRate()
-{
-    return isSkipFrameByActiveRefreshRate_;
-}
-
-void MultiScreenParam::SetSkipFrameByActiveRefreshRate(bool isEnabled)
-{
-    isSkipFrameByActiveRefreshRate_ = isEnabled;
-}
-
 bool MultiScreenParam::IsForceRenderForMirror()
 {
     return isForceRenderForMirror_;

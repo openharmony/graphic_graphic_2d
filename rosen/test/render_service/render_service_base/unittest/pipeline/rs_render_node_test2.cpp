@@ -20,6 +20,7 @@
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
+#include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "metadata_helper.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -32,6 +33,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_union_render_node.h"
+#include "feature/color_picker/color_pick_alt_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -1565,7 +1567,7 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     std::string outTest7;
     auto canvasDrawingNode = std::make_shared<RSCanvasDrawingRenderNode>(1);
     canvasDrawingNode->DumpSubClassNode(outTest7);
-    EXPECT_EQ(outTest7, ", lastResetSurfaceTime: 0, opCountAfterReset: 0, drawOpInfo: []");
+    EXPECT_EQ(outTest7, ", lastResetSurfaceTime: 0, opCountAfterReset: 0");
 }
 
 /**
@@ -3523,7 +3525,15 @@ HWTEST_F(RSRenderNodeTest2, GetFilterDrawableSnapshotRegion001, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, UpdateDrawableEnableEDR, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(2);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
     node->UpdateDrawableEnableEDR();
+    EXPECT_FALSE(node->enableHdrEffect_);
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    filterDrawable->enableEDREffect_ = true;
+    node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
+        filterDrawable;
+    node->UpdateDrawableEnableEDR();
+    EXPECT_TRUE(node->enableHdrEffect_);
 }
 
 /**
@@ -3592,6 +3602,42 @@ HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers002
 
     node->ApplyModifiers();
     ASSERT_FALSE(node->renderProperties_.useUnion_);
+}
+
+/**
+ * @tc.name: ResetColorPickerAltMemoryOnTreeStateChange
+ * @tc.desc: test ResetColorMemory is called when ColorPickAltManager node goes off the tree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, ResetColorPickerAltMemoryOnTreeStateChange, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+
+    // Create a color picker drawable with alt manager (useAlt = true)
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(true, node->GetId());
+    EXPECT_NE(colorPickerDrawable, nullptr);
+    EXPECT_NE(colorPickerDrawable->colorPickerManager_, nullptr);
+
+    // Add the color picker drawable to the node
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Cast to ColorPickAltManager to access pickedLuminance_
+    auto altManager = std::static_pointer_cast<ColorPickAltManager>(colorPickerDrawable->colorPickerManager_);
+    ASSERT_NE(altManager, nullptr);
+
+    // Set a valid luminance value
+    altManager->pickedLuminance_.store(200, std::memory_order_relaxed);
+    EXPECT_EQ(altManager->pickedLuminance_.load(std::memory_order_relaxed), 200u);
+
+    // Set node on the tree, then remove it - ResetColorMemory should reset luminance to invalid value
+    node->SetIsOnTheTree(true, 0, 1, 1, 1);
+    node->SetIsOnTheTree(false, 0, 1, 1, 1);
+
+    // Verify that pickedLuminance_ was reset to RGBA_MAX + 1 (invalid initial value)
+    EXPECT_EQ(altManager->pickedLuminance_.load(std::memory_order_relaxed),
+        static_cast<uint32_t>(RGBA_MAX + 1));
 }
 } // namespace Rosen
 } // namespace OHOS

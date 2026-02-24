@@ -1951,6 +1951,7 @@ protected:
     void DoFlushModifier();
 
     std::vector<PropertyId> GetModifierIds() const;
+    bool IsAnyModifierDeduplicationEnabled() const;
     bool isCustomTextType_ = false;
     bool isCustomTypeface_ = false;
 

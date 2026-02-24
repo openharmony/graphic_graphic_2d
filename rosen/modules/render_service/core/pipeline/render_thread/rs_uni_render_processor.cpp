@@ -358,7 +358,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetBackgroundColor(backgroundColor);
 
     std::vector<GraphicIRect> visibleRegions;
-    visibleRegions.emplace_back(layerInfo.dstRect);
+    visibleRegions.emplace_back(dstRect);
     layer->SetVisibleRegions(visibleRegions);
     std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {

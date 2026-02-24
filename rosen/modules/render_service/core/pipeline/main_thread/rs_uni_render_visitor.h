@@ -134,11 +134,8 @@ public:
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 
     bool GetDumpRsTreeDetailEnabled() { return isDumpRsTreeDetailEnabled_; }
-
-    uint32_t IncreasePrepareSeq() { return ++nodePreparedSeqNum_; }
-
-    uint32_t IncreasePostPrepareSeq() { return ++nodePostPreparedSeqNum_; }
-
+    uint16_t IncreasePrepareSeq() { return ++nodePreparedSeqNum_; }
+    uint16_t IncreasePostPrepareSeq() { return ++nodePostPreparedSeqNum_; }
     void UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTreeSkipped = false, bool isPostPrepare = false);
 
     void ResetCrossNodesVisitedStatus();
@@ -371,7 +368,7 @@ private:
 
     void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
 
-    void PrepareColorPickerDrawable(const RSRenderNode& node);
+    void PrepareColorPickerDrawable(RSRenderNode& node);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
@@ -455,6 +452,7 @@ private:
     bool curContainerDirty_ = false;
     bool isOcclusionEnabled_ = false;
     bool hasMirrorDisplay_ = false;
+    bool hasMirrorUsedInDirtyRegion_ = false;
     Drawing::Rect boundsRect_ {};
     Gravity frameGravity_ = Gravity::DEFAULT;
     // vector of current displaynode mainwindow surface visible info
@@ -512,8 +510,8 @@ private:
     std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> cloneNodeMap_;
 
     bool isDumpRsTreeDetailEnabled_ = false;
-    uint32_t nodePreparedSeqNum_ = 0;
-    uint32_t nodePostPreparedSeqNum_ = 0;
+    uint16_t nodePreparedSeqNum_ = 0;
+    uint16_t nodePostPreparedSeqNum_ = 0;
 
     // used in uifirst for checking whether leashwindow or its parent should paint or not
     bool globalShouldPaint_ = true;

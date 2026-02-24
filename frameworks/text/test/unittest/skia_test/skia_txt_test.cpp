@@ -13,12 +13,16 @@
  * limitations under the License.
  */
 
-#include "common/rs_rect.h"
-#include "gtest/gtest.h"
+#include <vector>
+
 #include "font_collection.h"
+#include "gtest/gtest.h"
 #include "text_style.h"
 #include "typography_style.h"
 #include "typography_types.h"
+
+#include "common/rs_rect.h"
+#include "text/font_types.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -114,6 +118,56 @@ HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest002, TestSize.Level0)
     // 1 is used for initialization
     Boundary boundary2(1, 1);
     EXPECT_EQ(boundary1 == boundary2, true);
+}
+
+/*
+ * @tc.name: OHSkiaTxtTest003
+ * @tc.desc: test for fontEdging in EqualByFonts and MatchOneAttribute
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest003, TestSize.Level0)
+{
+    TextStyle textStyle1;
+    TextStyle textStyle2;
+
+    // Test default fontEdging (ANTI_ALIAS) - should be equal
+    EXPECT_EQ(textStyle1.fontEdging, Drawing::FontEdging::ANTI_ALIAS);
+    EXPECT_EQ(textStyle2.fontEdging, Drawing::FontEdging::ANTI_ALIAS);
+    EXPECT_EQ(textStyle1.EqualByFonts(textStyle2), true);
+    EXPECT_EQ(textStyle1.MatchOneAttribute(FONT, textStyle2), true);
+
+    // Test different fontEdging values - EqualByFonts should return false
+    textStyle1.fontEdging = Drawing::FontEdging::ALIAS;
+    textStyle2.fontEdging = Drawing::FontEdging::SUBPIXEL_ANTI_ALIAS;
+    EXPECT_EQ(textStyle1.EqualByFonts(textStyle2), false);
+    EXPECT_EQ(textStyle1.MatchOneAttribute(FONT, textStyle2), false);
+
+    // Test same fontEdging values - EqualByFonts should return true
+    textStyle2.fontEdging = Drawing::FontEdging::ALIAS;
+    EXPECT_EQ(textStyle1.EqualByFonts(textStyle2), true);
+    EXPECT_EQ(textStyle1.MatchOneAttribute(FONT, textStyle2), true);
+
+    // Test with placeholder - EqualByFonts should return false regardless of fontEdging
+    textStyle1.isPlaceholder = true;
+    EXPECT_EQ(textStyle1.EqualByFonts(textStyle2), false);
+
+    // Test all fontEdging enum values
+    textStyle1.isPlaceholder = false;
+    std::vector<Drawing::FontEdging> edgingValues = {
+        Drawing::FontEdging::ALIAS,
+        Drawing::FontEdging::ANTI_ALIAS,
+        Drawing::FontEdging::SUBPIXEL_ANTI_ALIAS
+    };
+
+    for (size_t i = 0; i < edgingValues.size(); ++i) {
+        textStyle1.fontEdging = edgingValues[i];
+        for (size_t j = 0; j < edgingValues.size(); ++j) {
+            textStyle2.fontEdging = edgingValues[j];
+            bool expectedEqual = (i == j);
+            EXPECT_EQ(textStyle1.EqualByFonts(textStyle2), expectedEqual);
+            EXPECT_EQ(textStyle1.MatchOneAttribute(FONT, textStyle2), expectedEqual);
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

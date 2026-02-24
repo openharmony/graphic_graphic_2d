@@ -14,6 +14,7 @@
  */
 
 #include "modifier_ng/geometry/rs_bounds_render_modifier.h"
+#include "parcel.h"
 
 namespace OHOS::Rosen::ModifierNG {
 const RSBoundsRenderModifier::LegacyPropertyApplierMap RSBoundsRenderModifier::LegacyPropertyApplierMap_ = {
@@ -29,5 +30,15 @@ void RSBoundsRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetUseUnion(false);
     properties.SetUnionSpacing(0.f);
     properties.SetSDFShape(nullptr);
+}
+
+bool RSBoundsRenderModifier::DeduplicationMarshalling(Parcel& parcel) const
+{
+    return RSMarshallingHelper::Marshalling(parcel, enableDeduplication_);
+}
+
+bool RSBoundsRenderModifier::DeduplicationUnmarshalling(Parcel& parcel)
+{
+    return RSMarshallingHelper::Unmarshalling(parcel, enableDeduplication_);
 }
 } // namespace OHOS::Rosen::ModifierNG

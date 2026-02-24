@@ -510,9 +510,19 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
 {
     auto surface = surface_;
     auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
-    RSBackgroundThread::Instance().PostTask([drawable, cmds, surface, ctx, nodeId]() {
+    auto self = shared_from_this();
+    RSBackgroundThread::Instance().PostTask([self, drawable, cmds, surface, ctx, nodeId]() {
         if (!cmds || cmds->IsEmpty() || !surface || !ctx || !drawable) {
             return;
+        }
+        RSRenderNodeSingleDrawableLocker singleLocker(self.get());
+        if (UNLIKELY(!singleLocker.IsLocked())) {
+            singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread node %{public}" PRIu64
+                " multi-access", nodeId);
+            if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+                return;
+            }
         }
         Drawing::GPUResourceTag::SetCurrentNodeId(nodeId);
         auto canvasDrawingDrawable = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawable);
@@ -563,17 +573,7 @@ void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
         preThreadInfo_.second(std::move(surface_));
     }
 #endif
-    surface_ = nullptr;
-    recordingCanvas_ = nullptr;
-    image_ = nullptr;
-    canvas_ = nullptr;
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    backendTexture_ = {};
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        vulkanCleanupHelper_ = nullptr;
-    }
-#endif
+    ResetResource();
 }
 
 // use in IPC thread
@@ -757,33 +757,108 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
 #endif
 }
 
+void RSCanvasDrawingRenderNodeDrawable::ResetResource()
+{
+    surface_ = nullptr;
+    recordingCanvas_ = nullptr;
+    image_ = nullptr;
+    canvas_ = nullptr;
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    backendTexture_ = {};
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        vulkanCleanupHelper_ = nullptr;
+    }
+#endif
+}
+
+bool RSCanvasDrawingRenderNodeDrawable::CreateCpuSurface(const Drawing::ImageInfo& imageInfo)
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    ReleaseDmaSurfaceBuffer(true);
+#endif
+    surface_ = Drawing::Surface::MakeRaster(imageInfo);
+    if (!surface_) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::CreateCpuSurface, null surface, nodeId=%{public}" PRIu64, GetId());
+        ResetSurface();
+        return false;
+    }
+    recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(imageInfo.GetWidth(), imageInfo.GetHeight(), false);
+    canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
+    return true;
+}
+
 #ifdef RS_ENABLE_VK
-bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
+bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height, bool& isDmaBackendTexture)
 {
     if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
         auto pid = ExtractPid(nodeId_);
         bool dmaTextureCreated = false;
 #ifdef ROSEN_OHOS
         dmaTextureCreated = CreateDmaBackendTexture(pid, width, height);
+        isDmaBackendTexture = dmaTextureCreated;
 #endif
-        // Create DMA BackendTexture fail or DMA not enabled
-        if (!dmaTextureCreated) {
-            backendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, pid);
-        }
-        if (!backendTexture_.IsValid()) {
-            surface_ = nullptr;
-            recordingCanvas_ = nullptr;
-            image_ = nullptr;
-            canvas_ = nullptr;
-            backendTexture_ = {};
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                vulkanCleanupHelper_ = nullptr;
-            }
-            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK size too big [%{public}d, %{public}d] failed",
-                width, height);
+        // If dmaTextureCreated is false, create BackendTexture from GPU, otherwise, check BackendTexture valid only.
+        if (!CheckBackendTexture(!dmaTextureCreated, width, height, pid)) {
             return false;
         }
+    }
+    return true;
+}
+
+void RSCanvasDrawingRenderNodeDrawable::CreateGpuSurface(const Drawing::ImageInfo& imageInfo,
+    const std::shared_ptr<Drawing::GPUContext>& gpuContext, bool& newVulkanCleanupHelper, bool needReleaseSurface)
+{
+    auto width = imageInfo.GetWidth();
+    auto height = imageInfo.GetHeight();
+    bool isDmaBackendTexture = false;
+    if (needReleaseSurface && !ReleaseSurfaceVK(width, height, isDmaBackendTexture)) {
+        return;
+    }
+    auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
+    if (vkTextureInfo == nullptr || gpuContext == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::CreateGpuSurface vkTextureInfo or gpuContext null, %{public}d, "
+            "%{public}d", vkTextureInfo == nullptr, gpuContext == nullptr);
+        return;
+    }
+    newVulkanCleanupHelper = vulkanCleanupHelper_ == nullptr;
+    if (vulkanCleanupHelper_ == nullptr) {
+        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
+    }
+    REAL_ALLOC_CONFIG_SET_STATUS(true);
+    surface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(), backendTexture_.GetTextureInfo(),
+        Drawing::TextureOrigin::TOP_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, imageInfo.GetColorSpace(),
+        NativeBufferUtils::DeleteVkImage, newVulkanCleanupHelper ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
+    REAL_ALLOC_CONFIG_SET_STATUS(false);
+    if (surface_ == nullptr) {
+        ResetResource();
+    }
+    if (!isDmaBackendTexture || surface_ != nullptr) {
+        return;
+    }
+
+    if (preAllocateDmaEnabled_) {
+        dmaFallbackCount_.fetch_add(1, std::memory_order_relaxed);
+    }
+    // Create surface from DMA backendTexture fail, try again by GPU backendTexture.
+    // In this case, surface_ and vulkanCleanupHelper_ must be null, so newVulkanCleanupHelper can be reused.
+    if (!CheckBackendTexture(true, width, height, ExtractPid(nodeId_))) {
+        return;
+    }
+    CreateGpuSurface(imageInfo, gpuContext, newVulkanCleanupHelper, false);
+}
+
+bool RSCanvasDrawingRenderNodeDrawable::CheckBackendTexture(bool needCreateFromGpu, int width, int height, pid_t pid)
+{
+    if (needCreateFromGpu) {
+        backendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, pid);
+    }
+    if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
+        ResetResource();
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::CheckBackendTexture: MakeBackendTexture fail, width=%{public}d, "
+            "height=%{public}d, nodeId=%{public}" PRIu64, width, height, nodeId_);
+        return false;
     }
     return true;
 }
@@ -795,8 +870,7 @@ bool RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture(pid_t pid, int w
         return false;
     }
 
-    const auto& params = GetRenderParams();
-    auto resetSurfaceIndex = params != nullptr ? params->GetCanvasDrawingResetSurfaceIndex() : 0;
+    auto resetSurfaceIndex = renderParams_ != nullptr ? renderParams_->GetCanvasDrawingResetSurfaceIndex() : 0;
     if (resetSurfaceIndex == 0) {
         return false;
     }
@@ -813,7 +887,6 @@ bool RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture(pid_t pid, int w
     }
     if (surfaceBuffer == nullptr) {
         if (preAllocateDmaEnabled_) {
-            dmaFallbackCount_.fetch_add(1, std::memory_order_relaxed);
             RS_TRACE_NAME_FMT("AcquirePendingBuffer fail, nodeId=%" PRIu64, nodeId_);
             RS_LOGE("AcquirePendingBuffer fail, nodeId=%{public}" PRIu64, nodeId_);
         }
@@ -833,6 +906,9 @@ bool RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture(pid_t pid, int w
         dmaTextureCreated = backendTexture_.IsValid();
     }
     if (!dmaTextureCreated) {
+        if (preAllocateDmaEnabled_) {
+            dmaFallbackCount_.fetch_add(1, std::memory_order_relaxed);
+        }
         willNotify = hasClientBuffer;
         surfaceBuffer = nullptr;
         backendTexture_ = {};
@@ -887,34 +963,10 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
         ReleaseDmaSurfaceBuffer(false);
 #endif
     } else {
-        if (!ReleaseSurfaceVK(width, height)) {
-            return false;
-        }
-        auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
-        if (vulkanCleanupHelper_ == nullptr) {
-            vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-                vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
-            isNewCreate = true;
-        }
-        REAL_ALLOC_CONFIG_SET_STATUS(true);
-        surface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(), backendTexture_.GetTextureInfo(),
-            Drawing::TextureOrigin::TOP_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, drawingColorSpace,
-            NativeBufferUtils::DeleteVkImage, isNewCreate ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
-        REAL_ALLOC_CONFIG_SET_STATUS(false);
+        CreateGpuSurface(info, gpuContext, isNewCreate, true);
         if (!surface_) {
-#ifdef ROSEN_OHOS
-            ReleaseDmaSurfaceBuffer(true);
-#endif
             isGpuSurface_ = false;
-            surface_ = Drawing::Surface::MakeRaster(info);
-            if (!surface_) {
-                RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurface surface is nullptr");
-                ResetSurface();
-                return false;
-            }
-            recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height, false);
-            canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
-            return true;
+            return CreateCpuSurface(info);
         }
     }
 #else
@@ -1030,44 +1082,18 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
 {
     Drawing::ImageInfo info =
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-
-    bool isNewCreate = false;
 #if defined(RS_ENABLE_VK)
-    if (!ReleaseSurfaceVK(width, height)) {
-        return false;
-    }
-    auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
-    if (vulkanCleanupHelper_ == nullptr) {
-        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
-        isNewCreate = true;
-    }
-    REAL_ALLOC_CONFIG_SET_STATUS(true);
-    surface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(), backendTexture_.GetTextureInfo(),
-        Drawing::TextureOrigin::TOP_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
-        NativeBufferUtils::DeleteVkImage, isNewCreate ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
-    REAL_ALLOC_CONFIG_SET_STATUS(false);
+    bool newVulkanCleanupHelper = false;
+    CreateGpuSurface(info, gpuContext, newVulkanCleanupHelper, true);
     if (!surface_) {
-#ifdef ROSEN_OHOS
-        ReleaseDmaSurfaceBuffer(true);
-#endif
         isGpuSurface_ = false;
-        surface_ = Drawing::Surface::MakeRaster(info);
-        if (!surface_) {
-            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::VK Reset surface is nullptr, nodeId[%{public}" PRIu64 "]",
-                GetId());
-            ResetSurface();
-            return false;
-        }
-        recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height, false);
-        canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
-        return true;
+        return CreateCpuSurface(info);
     }
     return true;
 #else
     surface_ = Drawing::Surface::MakeRaster(info);
+    return surface_ != nullptr;
 #endif
-    return true;
 }
 
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback(int width, int height)

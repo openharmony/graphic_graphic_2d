@@ -29,6 +29,7 @@
 
 #define RSPARCELVER_ALWAYS 0x100
 #define RSPARCELVER_ADD_ANIMTOKEN 0
+#define RSPARCELVER_ADD_ISPROPDIRTY 1
 
 namespace OHOS {
 namespace Media {

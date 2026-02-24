@@ -41,6 +41,9 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Test_1)
 {
     int columnCount = 2;
     int rowCount = static_cast<int>(rectYParams.size());
+    if (columnCount == 0 || rowCount == 0) {
+        return;  // Invalid test configuration
+    }
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -66,6 +69,9 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Test_2)
 {
     int columnCount = 2;
     int rowCount = static_cast<int>(sdfShapeSpacingParams.size());
+    if (columnCount == 0 || rowCount == 0) {
+        return;  // Invalid test configuration
+    }
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     uint16_t rectIndex = 1;
@@ -92,6 +98,9 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Border_Test_1)
 {
     int columnCount = 2;
     int rowCount = static_cast<int>(sdfShapeSpacingParams.size());
+    if (columnCount == 0 || rowCount == 0) {
+        return;  // Invalid test configuration
+    }
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     uint16_t rectIndex = 1;
@@ -119,6 +128,9 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Border_Test_
 {
     int columnCount = 2;
     int rowCount = static_cast<int>(rectYParams.size());
+    if (columnCount == 0 || rowCount == 0) {
+        return;  // Invalid test configuration
+    }
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -147,6 +159,9 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Border_Test_
 {
     int columnCount = 2;
     int rowCount = static_cast<int>(sdfShapeSpacingParams.size());
+    if (columnCount == 0 || rowCount == 0) {
+        return;  // Invalid test configuration
+    }
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     uint16_t rectIndex = 1;
@@ -176,6 +191,9 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Clip_Test_1)
 {
     int columnCount = 2;
     int rowCount = static_cast<int>(sdfShapeSpacingParams.size());
+    if (columnCount == 0 || rowCount == 0) {
+        return;  // Invalid test configuration
+    }
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -214,6 +232,9 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Shadow_Tes
 {
     int columnCount = 2;
     int rowCount = static_cast<int>(sdfPixelmapShapePath.size());
+    if (columnCount == 0 || rowCount == 0) {
+        return;  // Invalid test configuration
+    }
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -244,6 +265,9 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Border_Tes
 {
     int columnCount = 2;
     int rowCount = static_cast<int>(sdfPixelmapShapePath.size());
+    if (columnCount == 0 || rowCount == 0) {
+        return;  // Invalid test configuration
+    }
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -275,6 +299,9 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Shadow_Bor
 {
     int columnCount = 2;
     int rowCount = static_cast<int>(sdfPixelmapShapePath.size());
+    if (columnCount == 0 || rowCount == 0) {
+        return;  // Invalid test configuration
+    }
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {

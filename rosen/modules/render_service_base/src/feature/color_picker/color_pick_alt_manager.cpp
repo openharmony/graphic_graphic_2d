@@ -15,12 +15,11 @@
 
 #include "feature/color_picker/color_pick_alt_manager.h"
 
-#include <chrono>
 #include <cstdint>
+#include <memory>
 
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/color_picker/rs_color_picker_utils.h"
-#include "feature/color_picker/rs_hetero_color_picker.h"
 
 #include "common/rs_optional_trace.h"
 
@@ -50,56 +49,15 @@ void ColorPickAltManager::ScheduleColorPick(
     if (params.strategy == ColorPickStrategyType::NONE) {
         return;
     }
-    // Update thresholds from params
     lightThreshold_.store(params.notifyThreshold.second, std::memory_order_relaxed);
     darkThreshold_.store(params.notifyThreshold.first, std::memory_order_relaxed);
 
-    ScheduleColorPick(canvas, rect);
-}
-
-void ColorPickAltManager::ScheduleColorPick(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect)
-{
-    if (IsNull(rect, "ColorPickAltManager::GetSnapshot rect nullptr!")) {
-        return;
-    }
-    canvas.Save();
-    canvas.ClipRect(*rect, Drawing::ClipOp::INTERSECT, false);
-    Drawing::RectI snapshotIBounds = canvas.GetRoundInDeviceClipBounds();
-    canvas.Restore();
-
-    auto drawingSurface = canvas.GetSurface();
-    if (IsNull(drawingSurface, "ColorPickAltManager::GetSnapshot surface nullptr!")) {
-        return;
-    }
-    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
-    if (IsNull(snapshot.get(), "ColorPickAltManager::GetSnapshot snapshot nullptr!")) {
-        return;
+    if (params.rect) {
+        rect = &params.rect.value();
     }
 
-    auto ptr = std::static_pointer_cast<ColorPickAltManager>(shared_from_this());
-    // accelerated color picker
-    if (RSHeteroColorPicker::Instance().GetColor(
-        [ptr](Drawing::ColorQuad& newColor) { ptr->HandleColorUpdate(newColor); }, canvas, snapshot)) {
-        return;
-    }
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    auto backendTexture = snapshot->GetBackendTexture(false, &origin);
-    if (!backendTexture.IsValid()) {
-        RS_LOGE("ColorPickAltManager::ScheduleColorPick backendTexture invalid");
-        return;
-    }
-    auto weakThis = weak_from_this();
-    auto imageInfo = drawingSurface->GetImageInfo();
-    auto colorSpace = imageInfo.GetColorSpace();
-    Drawing::BitmapFormat bitmapFormat = { imageInfo.GetColorType(), imageInfo.GetAlphaType() };
-    ColorPickerInfo* colorPickerInfo =
-        new ColorPickerInfo(colorSpace, bitmapFormat, backendTexture, snapshot, nodeId_, weakThis);
-
-    Drawing::FlushInfo drawingFlushInfo;
-    drawingFlushInfo.backendSurfaceAccess = true;
-    drawingFlushInfo.finishedProc = [](void* context) { ColorPickerInfo::PickColor(context); };
-    drawingFlushInfo.finishedContext = colorPickerInfo;
-    drawingSurface->Flush(&drawingFlushInfo);
+    auto ptr = std::static_pointer_cast<IColorPickerManager>(shared_from_this());
+    RSColorPickerUtils::ExtractSnapshotAndScheduleColorPick(canvas, rect, ptr);
 }
 
 namespace {
@@ -135,6 +93,11 @@ void ColorPickAltManager::HandleColorUpdate(Drawing::ColorQuad newColor)
         return;
     }
     RSColorPickerThread::Instance().NotifyClient(nodeId_, std::clamp(static_cast<uint32_t>(newLuminance), 0u, 255u));
+}
+
+void ColorPickAltManager::ResetColorMemory()
+{
+    pickedLuminance_.store(RGBA_MAX + 1, std::memory_order_relaxed);
 }
 
 } // namespace OHOS::Rosen

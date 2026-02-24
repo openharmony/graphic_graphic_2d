@@ -73,6 +73,16 @@ public:
         }
     }
 
+    virtual bool IsDeduplicationEnabled() const
+    {
+        return false;
+    }
+
+    virtual void SetDeduplicationEnabled(bool enable)
+    {
+        (void)enable;  // Default: do nothing, deduplication not supported
+    }
+
 protected:
     RSModifier() : id_(GenerateModifierId()) {}
     virtual ~RSModifier() = default;
