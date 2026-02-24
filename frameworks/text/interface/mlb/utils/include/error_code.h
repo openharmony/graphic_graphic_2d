@@ -36,8 +36,8 @@ enum TextErrorCode {
 };
 
 struct TextResultBase {
-    bool success;
-    TextErrorCode errorCode;
+    bool success { true };
+    TextErrorCode errorCode { ERROR_NONE };
     std::string detailedInfo;
 
     std::string ToString() const;
