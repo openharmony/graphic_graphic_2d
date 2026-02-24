@@ -632,7 +632,7 @@ std::string ExtractEnglishName(const std::unordered_map<std::string, std::string
 }
 
 std::string ExtractLocalName(const std::unordered_map<std::string, std::string>& nameMap,
-                             const std::vector<std::string>& bcpTagList)
+    const std::vector<std::string>& bcpTagList)
 {
     for (const auto& lang : bcpTagList) {
         auto it = nameMap.find(lang);
@@ -734,7 +734,6 @@ std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
         TEXT_LOGE("typeface is nullptr");
         return nullptr;
     }
-
     FontDescriptor desc;
     desc.requestedLid = languageId;
     desc.path = typeface->GetFontPath();
