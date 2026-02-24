@@ -28,7 +28,6 @@ constexpr const char* SYMBOL_FILE = "/system/fonts/HMSymbolVF.ttf";
 constexpr const char* SYMBOL_CONFIG_FILE = "/system/fonts/hm_symbol_config_next.json";
 constexpr const char* CJK_FILE = "/system/fonts/NotoSansCJK-Regular.ttc";
 constexpr const char* NOTO_SANS_FILE = "/system/fonts/NotoSans[wdth,wght].ttf";
-constexpr const char* HARMONYOS_SANS_FILE = "/system/fonts/HarmonyOS_Sans.ttf";
 
 #define CJK_SANS_DESC(lower, upper)                                                                                    \
     {                                                                                                                  \
@@ -54,42 +53,7 @@ FontDesc SYMBOL_DESC = { .path = "",
     .width = 5,
     .italic = false,
     .monoSpace = false,
-    .symbolic = false };
-
-FontDesc NOTO_SANS_DESC = {
-    .path = "",
-    .postScriptName = "NotoSans-Regular",
-    .fullName = "Noto Sans Regular",
-    .fontFamily = "Noto Sans",
-    .fontSubfamily = "Regular",
-    .weight = 400,
-    .width = 5,
-    .italic = false,
-    .monoSpace = false,
-    .symbolic = false,
-    .localPostscriptName = "NotoSans-Regular",
-    .localFullName = "Noto Sans Regular",
-    .localFamilyName = "Noto Sans",
-    .localSubFamilyName = "Regular",
-    .version = "Version 2.010",
-    .manufacture = "Monotype Imaging Inc.",
-    .copyright = "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)",
-    .license = "This Font Software is licensed under the SIL Open Font License,"
-        " Version 1.1. This license is available with a FAQ at: https://scripts.sil.org/OFL",
-    .index = 0
-};
-
-FontDesc HARMONYOS_SANS_DESC = {
-    .path = "",
-    .postScriptName = "HarmonyOS_Sans",
-    .fullName = "HarmonyOS Sans",
-    .fontFamily = "HarmonyOS Sans",
-    .fontSubfamily = "Regular",
-    .weight = 400,
-    .width = 5,
-    .italic = false,
-    .monoSpace = false,
-    .symbolic = false,
+    .symbolic = false, 
     .variationAxisRecords = {
         {
             .key = "wght",
@@ -147,7 +111,30 @@ FontDesc HARMONYOS_SANS_DESC = {
             .localName = "Black",
             .coordinates = {{.axis = "wght", .value = 844.0}},
         },
-    },
+    }
+};
+
+FontDesc NOTO_SANS_DESC = {
+    .path = "",
+    .postScriptName = "NotoSans-Regular",
+    .fullName = "Noto Sans Regular",
+    .fontFamily = "Noto Sans",
+    .fontSubfamily = "Regular",
+    .weight = 400,
+    .width = 5,
+    .italic = false,
+    .monoSpace = false,
+    .symbolic = false,
+    .localPostscriptName = "NotoSans-Regular",
+    .localFullName = "Noto Sans Regular",
+    .localFamilyName = "Noto Sans",
+    .localSubFamilyName = "Regular",
+    .version = "Version 2.010",
+    .manufacture = "Monotype Imaging Inc.",
+    .copyright = "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)",
+    .license = "This Font Software is licensed under the SIL Open Font License,"
+        " Version 1.1. This license is available with a FAQ at: https://scripts.sil.org/OFL",
+    .index = 0
 };
 
 std::vector<FontDesc> CJK_DESCS {
@@ -397,7 +384,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest006, TestSize.Level
  */
 HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level0)
 {
-    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(HARMONYOS_SANS_FILE);
+    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(SYMBOL_FILE);
     EXPECT_NE(fontFullDescArr, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
     EXPECT_EQ(size, 1);
@@ -417,25 +404,25 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level
     OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AIXS_ATTR_S_KEY, &str);
     std::string axisKey = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
         str.strLen / sizeof(char16_t)));
-    EXPECT_EQ(axisKey, HARMONYOS_SANS_DESC.variationAxisRecords[0].key);
+    EXPECT_EQ(axisKey, SYMBOL_DESC.variationAxisRecords[0].key);
     free(str.strData);
 
     OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AIXS_ATTR_S_NAME, &str);
     std::string axisName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
         str.strLen / sizeof(char16_t)));
-    EXPECT_EQ(axisName, HARMONYOS_SANS_DESC.variationAxisRecords[0].name);
+    EXPECT_EQ(axisName, SYMBOL_DESC.variationAxisRecords[0].name);
     free(str.strData);
 
     double doubleValue;
     OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AIXS_ATTR_D_MIN_VALUE, &doubleValue);
-    EXPECT_EQ(doubleValue, HARMONYOS_SANS_DESC.variationAxisRecords[0].minValue);
+    EXPECT_EQ(doubleValue, SYMBOL_DESC.variationAxisRecords[0].minValue);
 
     OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AIXS_ATTR_D_DEFAULT_VALUE,
         &doubleValue);
-    EXPECT_EQ(doubleValue, HARMONYOS_SANS_DESC.variationAxisRecords[0].defaultValue);
+    EXPECT_EQ(doubleValue, SYMBOL_DESC.variationAxisRecords[0].defaultValue);
 
     OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AIXS_ATTR_D_MAX_VALUE, &doubleValue);
-    EXPECT_EQ(doubleValue, HARMONYOS_SANS_DESC.variationAxisRecords[0].maxValue);
+    EXPECT_EQ(doubleValue, SYMBOL_DESC.variationAxisRecords[0].maxValue);
 
     OH_Drawing_DestroyFontVariationAxis(axisArray);
 }
@@ -475,7 +462,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
  */
 HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level0)
 {
-    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(HARMONYOS_SANS_FILE);
+    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(SYMBOL_FILE);
     EXPECT_NE(fontFullDescArr, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
     EXPECT_EQ(size, 1);
@@ -496,18 +483,18 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level
         OH_Drawing_GetFontVariationInstanceAttributeStr(instance, FONT_VARIATION_INSTANCE_ATTR_S_NAME, &str);
         std::string instanceName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
             str.strLen / sizeof(char16_t)));
-        EXPECT_EQ(instanceName, HARMONYOS_SANS_DESC.variationInstanceRecords[i].name);
+        EXPECT_EQ(instanceName, SYMBOL_DESC.variationInstanceRecords[i].name);
         free(str.strData);
 
         size_t coordLength = 0;
         OH_Drawing_FontVariationInstanceCoordinate* coords =
             OH_Drawing_GetFontVariationInstanceCoordinate(instance, &coordLength);
         EXPECT_NE(coords, nullptr);
-        EXPECT_EQ(coordLength, HARMONYOS_SANS_DESC.variationInstanceRecords[i].coordinates.size());
+        EXPECT_EQ(coordLength, SYMBOL_DESC.variationInstanceRecords[i].coordinates.size());
         for (size_t j = 0; j < coordLength; j++) {
             EXPECT_EQ(std::string(coords[j].axisKey),
-                HARMONYOS_SANS_DESC.variationInstanceRecords[i].coordinates[j].axis);
-            EXPECT_EQ(coords[j].value, HARMONYOS_SANS_DESC.variationInstanceRecords[i].coordinates[j].value);
+                SYMBOL_DESC.variationInstanceRecords[i].coordinates[j].axis);
+            EXPECT_EQ(coords[j].value, SYMBOL_DESC.variationInstanceRecords[i].coordinates[j].value);
         }
         free(coords);
     }

@@ -215,7 +215,8 @@ ani_object CreateFontVariationInstanceArray(ani_env* env,
         ani_object instanceObj = nullptr;
         ani_status status = ParseFontVariationInstanceToAni(env, instance, instanceObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to parse FontVariationInstance to ani, index %{public}zu, status %{public}d", index, status);
+            TEXT_LOGE("Failed to parse FontVariationInstance to ani, index %{public}zu, status %{public}d",
+                index, status);
             continue;
         }
         status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet,
