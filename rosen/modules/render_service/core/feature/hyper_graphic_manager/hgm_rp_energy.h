@@ -27,7 +27,7 @@ public:
     void SetComponentDefaultFps(pid_t pid, FrameRateRange& rsRange);
 
 private:
-    EnergyInfo energyInfo_ {};
+    EnergyInfo energyInfo_{};
 };
 } // namespace Rosen
 } // namespace OHOS

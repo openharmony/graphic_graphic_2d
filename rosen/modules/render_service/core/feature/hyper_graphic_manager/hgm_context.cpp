@@ -169,13 +169,12 @@ void HgmContext::InitEnergyInfoUpdateCallback()
 {
     auto syncEnergyFunc = [this](const EnergyInfo& energyInfo) {
         RSMainThread::Instance()->PostTask([this, energyInfo]() {
-            static ComponentFrameRateFunc func = [this](pid_t pid, FrameRateRange& rsRange) {
-                hgmRPEnergy_->SetComponentDefaultFps(pid, rsRange);
-            };
-            if (energyInfo.componentName == "" || energyInfo.componentPid == 0) {
+            if (energyInfo.componentName.empty() || energyInfo.componentPid == 0) {
                 frameRateFunctions_.componentFrameRateFunc = nullptr;
             } else {
-                frameRateFunctions_.componentFrameRateFunc = func;
+                frameRateFunctions_.componentFrameRateFunc = [this](pid_t pid, FrameRateRange& rsRange) {
+                    hgmRPEnergy_->SetComponentDefaultFps(pid, rsRange);
+                };
             }
             hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
         });

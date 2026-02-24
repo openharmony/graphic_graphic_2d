@@ -34,8 +34,8 @@ struct AnimDynamicItem {
 
 struct EnergyInfo {
     std::string componentName;
-    pid_t componentPid;
-    int32_t componentDefaultFps;
+    pid_t componentPid = 0;
+    int32_t componentDefaultFps = 0;
 };
 
 class RSB_EXPORT RSHgmConfigData : public Parcelable {
