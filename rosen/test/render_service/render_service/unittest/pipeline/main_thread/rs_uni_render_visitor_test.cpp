@@ -7315,6 +7315,90 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode002, TestSize.Level1
 }
 
 /**
+ * @tc.name: QuickPrepareUnionRenderNode003
+ * @tc.desc: Test QuickPrepareUnionRenderNode with curDirty_=false, isSubTreeNeedPrepare=false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    EXPECT_NE(dirtyManager, nullptr);
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
+    rsUniRenderVisitor->curDirty_ = false;
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    node->InitRenderParams();
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*node);
+    ASSERT_FALSE(rsUniRenderVisitor->curDirty_);
+}
+
+/**
+ * @tc.name: QuickPrepareUnionRenderNode004
+ * @tc.desc: Test QuickPrepareUnionRenderNode with curDirty_=false, isSubTreeNeedPrepare=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode004, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = nullptr;
+    rsUniRenderVisitor->curDirty_ = false;
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    node->InitRenderParams();
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*node);
+    ASSERT_FALSE(rsUniRenderVisitor->curDirty_);
+}
+
+/**
+ * @tc.name: QuickPrepareUnionRenderNode005
+ * @tc.desc: Test QuickPrepareUnionRenderNode with curDirty_=true, isSubTreeNeedPrepare=false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode005, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    EXPECT_NE(dirtyManager, nullptr);
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
+    rsUniRenderVisitor->curDirty_ = true;
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    node->InitRenderParams();
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*node);
+    ASSERT_TRUE(rsUniRenderVisitor->curDirty_);
+}
+
+/**
+ * @tc.name: QuickPrepareUnionRenderNode006
+ * @tc.desc: Test QuickPrepareUnionRenderNode with curDirty_=true, isSubTreeNeedPrepare=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode006, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = nullptr;
+    rsUniRenderVisitor->curDirty_ = true;
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    node->InitRenderParams();
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*node);
+    ASSERT_TRUE(rsUniRenderVisitor->curDirty_);
+}
+
+/**
  * @tc.name: DisableHardwareHdrTest001
  * @tc.desc: Test HandlePixelFormat with disable hardware hdr.
  * @tc.type: FUNC
