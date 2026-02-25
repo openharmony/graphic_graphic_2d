@@ -1621,27 +1621,6 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1
 }
 
 /**
- * @tc.name: IsUifirstArkTsCardNodeTest034
- * @tc.desc: Prepare QuickPrepare IsUifirstArkTsCardNode test
- * @tc.type: FUNC
- * @tc.require: issueIA5Y41
- */
-HWTEST_F(RSRenderNodeTest2, IsUifirstArkTsCardNodeTest034, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-
-    std::shared_ptr<RSNodeVisitor> visitor = nullptr;
-    nodeTest->Prepare(visitor);
-    nodeTest->QuickPrepare(visitor);
-
-    nodeTest->nodeGroupType_ = RSRenderNode::NONE;
-    EXPECT_FALSE(nodeTest->IsUifirstArkTsCardNode());
-    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
-    EXPECT_FALSE(nodeTest->IsUifirstArkTsCardNode());
-}
-
-/**
  * @tc.name: SetDrawRegionTest
  * @tc.desc: SetDrawRegionTest
  * @tc.type: FUNC
@@ -2299,45 +2278,6 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest02, TestSize.Level1)
     nodeTest->lastFrameHasChildrenOutOfRect_ = false;
     nodeTest->renderProperties_.boundsGeo_ = nullptr;
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest3, false, true, clipRectTest3);
-}
-
-/**
- * @tc.name: IsSubTreeNeedPrepareTest02
- * @tc.desc: Prepare QuickPrepare IsSubTreeNeedPrepare IsUifirstArkTsCardNode test
- * @tc.type: FUNC
- * @tc.require: issueIA5Y41
- */
-HWTEST_F(RSRenderNodeTest2, IsSubTreeNeedPrepareTest02, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-
-    std::shared_ptr<RSNodeVisitor> visitor = nullptr;
-    nodeTest->Prepare(visitor);
-    nodeTest->QuickPrepare(visitor);
-
-    nodeTest->shouldPaint_ = false;
-    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, false));
-    nodeTest->shouldPaint_ = true;
-    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, true));
-    nodeTest->isSubTreeDirty_ = true;
-    EXPECT_TRUE(nodeTest->IsSubTreeNeedPrepare(false, false));
-    nodeTest->isSubTreeDirty_ = false;
-    nodeTest->childHasSharedTransition_ = true;
-    EXPECT_TRUE(nodeTest->IsSubTreeNeedPrepare(false, false));
-    nodeTest->childHasSharedTransition_ = false;
-    nodeTest->childHasVisibleFilter_ = true;
-    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, false));
-
-    nodeTest->childHasSharedTransition_ = false;
-    nodeTest->isAccumulatedClipFlagChanged_ = true;
-    nodeTest->childHasVisibleFilter_ = true;
-    EXPECT_TRUE(nodeTest->IsSubTreeNeedPrepare(false, false));
-
-    nodeTest->nodeGroupType_ = RSRenderNode::NONE;
-    EXPECT_FALSE(nodeTest->IsUifirstArkTsCardNode());
-    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
-    EXPECT_FALSE(nodeTest->IsUifirstArkTsCardNode());
 }
 
 /**
