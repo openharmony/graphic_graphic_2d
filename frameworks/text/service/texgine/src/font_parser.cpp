@@ -647,7 +647,12 @@ std::string ExtractLocalName(const std::unordered_map<std::string, std::string>&
 void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Typeface> typeface,
     FontDescriptor& desc, const std::vector<std::string>& bcpTagList)
 {
-    auto axisInfoList = Drawing::FontVariationInfo::GenerateFontVariationAxisInfo(typeface, bcpTagList);
+    std::vector<std::string> combinedList = bcpTagList;
+    std::vector<std::string> defaultTags = {
+        "zh-Hant", "zh-TW", "zh-HK", "zh-MO", "zh-SG", "en-US", "en"
+    };
+    combinedList += defaultTags;
+    auto axisInfoList = Drawing::FontVariationInfo::GenerateFontVariationAxisInfo(typeface, combinedList);
 
     for (const auto& axisInfo : axisInfoList) {
         FontVariationAxis axis;
@@ -661,7 +666,7 @@ void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Ty
         desc.variationAxisRecords.push_back(axis);
     }
 
-    auto instanceInfoList = Drawing::FontVariationInfo::GenerateFontVariationInstanceInfo(typeface, bcpTagList);
+    auto instanceInfoList = Drawing::FontVariationInfo::GenerateFontVariationInstanceInfo(typeface, combinedList);
 
     for (const auto& instanceInfo : instanceInfoList) {
         FontVariationInstance instance;
@@ -742,7 +747,6 @@ std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
     desc.weight = fontStyle.GetWeight();
     desc.width = fontStyle.GetWidth();
     if (!ParseTable(typeface, desc)) {
-        TEXT_LOGE("ParseTable failed for path=%{public}s", desc.path.c_str());
         return nullptr;
     }
 
