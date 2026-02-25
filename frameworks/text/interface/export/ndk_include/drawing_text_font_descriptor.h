@@ -547,7 +547,7 @@ OH_Drawing_FontVariationInstanceCoordinate* OH_Drawing_GetFontVariationInstanceC
  * @return Returns the pointer to a font full descriptor object <b>OH_Drawing_FontFullDescriptor</b>.
  * @since 24
  */
-OH_Drawing_FontFullDescriptor* OH_Drawing_GetFontFullDescriptorByFullName(const OH_Drawing_String* fullName,
+const OH_Drawing_FontFullDescriptor* OH_Drawing_GetFontFullDescriptorByFullName(const OH_Drawing_String* fullName,
     OH_Drawing_SystemFontType fontType);
 
 /**

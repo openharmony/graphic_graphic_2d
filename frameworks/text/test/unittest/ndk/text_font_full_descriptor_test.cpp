@@ -435,6 +435,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level
     OH_Drawing_GetFontVariationAxisAttributeInt(axis, FONT_VARIATION_AXIS_ATTR_I_FLAGS, &flag);
     EXPECT_EQ(flag, 0);
 
+    OH_Drawing_DestroyFontFullDescriptors(fontFullDescArr);
     OH_Drawing_DestroyFontVariationAxis(axisArray);
     // test null input for DestroyFontVariationAxis
     OH_Drawing_DestroyFontVariationAxis(nullptr);
@@ -472,7 +473,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
         EXPECT_NE(fontFullName, nullptr);
-        OH_Drawing_FontFullDescriptor *descriptor = OH_Drawing_GetFontFullDescriptorByFullName(fontFullName, fontType);
+        const OH_Drawing_FontFullDescriptor *descriptor = OH_Drawing_GetFontFullDescriptorByFullName(fontFullName, fontType);
         EXPECT_NE(descriptor, nullptr);
     }
     OH_Drawing_DestroySystemFontFullNames(fontList);
@@ -529,6 +530,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level
         free(coords);
     }
 
+    OH_Drawing_DestroyFontFullDescriptors(fontFullDescArr);
     OH_Drawing_DestroyFontVariationInstance(instanceArray);
     // test null input for DestroyFontVariationInstance
     OH_Drawing_DestroyFontVariationInstance(nullptr);
