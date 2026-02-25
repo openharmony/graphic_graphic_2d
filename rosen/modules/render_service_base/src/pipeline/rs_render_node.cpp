@@ -2721,6 +2721,23 @@ bool RSRenderNode::PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkM
     return needColorPick;
 }
 
+namespace {
+// Internal helper to check if node has visible filter property
+// (real filter, blend with background, or foreground color)
+inline bool HasVisibleFilterProperty(const RSRenderNode& node)
+{
+    return node.GetRenderProperties().NeedFilter() || node.GetConstHwcRecorder().IsBlendWithBackground() ||
+           node.GetConstHwcRecorder().IsForegroundColorValid();
+}
+} // anonymous namespace
+
+bool RSRenderNode::IsColorPickerOnlyNode() const
+{
+    // Node is color-picker-only if it was added to visibleFilterChild_
+    // only because of ColorPickerDrawable, not because of real filter/blend/fg color
+    return GetColorPickerDrawable() != nullptr && !HasVisibleFilterProperty(*this);
+}
+
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -4094,8 +4111,7 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 }
 void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 {
-    if (childNode.GetRenderProperties().NeedFilter() || childNode.GetHwcRecorder().IsBlendWithBackground() ||
-        childNode.GetHwcRecorder().IsForegroundColorValid() || childNode.GetColorPickerDrawable()) {
+    if (HasVisibleFilterProperty(childNode) || childNode.GetColorPickerDrawable()) {
         visibleFilterChild_.emplace_back(childNode.GetId());
     }
     auto& childFilterNodes = childNode.GetVisibleFilterChild();

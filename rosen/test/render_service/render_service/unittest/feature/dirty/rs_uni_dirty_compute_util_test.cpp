@@ -130,6 +130,48 @@ public:
 };
 
 /**
+ * @tc.name: GetVisibleFilterRect_ColorPickerDrawable
+ * @tc.desc: test GetVisibleFilterRect skips color picker only nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, GetVisibleFilterRect_ColorPickerDrawable, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    surfaceNode->context_ = context;
+
+    // Create a filter node with only ColorPickerDrawable (no real filter)
+    NodeId colorPickerOnlyNodeId = 100;
+    auto colorPickerOnlyNode = std::make_shared<RSRenderNode>(colorPickerOnlyNodeId);
+    colorPickerOnlyNode->SetOldDirtyInSurface(RectI(100, 100, 500, 500));
+    surfaceNode->visibleFilterChild_.push_back(colorPickerOnlyNodeId);
+
+    // Create a ColorPicker drawable for the node
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+    colorPickerOnlyNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
+        colorPickerDrawable;
+
+    // Register the node in nodeMap
+    context->GetMutableNodeMap().RegisterRenderNode(colorPickerOnlyNode);
+
+    // GetVisibleFilterRect should skip color picker only nodes, resulting in empty rect
+    RectI filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);
+    ASSERT_TRUE(filterRect.IsEmpty());
+
+    // Now add a real filter to the node (background filter)
+    colorPickerOnlyNode->renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+
+    // GetVisibleFilterRect should now include the node since it has a real filter
+    filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);
+    ASSERT_FALSE(filterRect.IsEmpty());
+}
+
+/**
  * @tc.name: GetCurrentFrameVisibleDirty001
  * @tc.desc: test GetCurrentFrameVisibleDirty
  * @tc.type: FUNC
@@ -862,10 +904,10 @@ HWTEST_F(RSUniDirtyComputeUtilTest, HasMirrorDisplay001, TestSize.Level1)
     displayNode2->SetMirrorSource(nullptr);
 
     uint32_t index = 0;
-    nodeMap.logicaldisplayNodeMap_.emplace(index++, displayNode1);
-    nodeMap.logicaldisplayNodeMap_.emplace(index++, displayNode2);
-    nodeMap.logicaldisplayNodeMap_.emplace(index, nullptr);
+    nodeMap.logicalDisplayNodeMap_.emplace(index++, displayNode1);
+    nodeMap.logicalDisplayNodeMap_.emplace(index++, displayNode2);
+    nodeMap.logicalDisplayNodeMap_.emplace(index, nullptr);
     EXPECT_TRUE(RSUniDirtyComputeUtil::HasMirrorDisplay());
-    nodeMap.logicaldisplayNodeMap_.clear();
+    nodeMap.logicalDisplayNodeMap_.clear();
 }
 } // namespace OHOS::Rosen
