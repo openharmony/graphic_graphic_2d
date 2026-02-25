@@ -688,6 +688,7 @@ void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
 
     if (GetScreen(id)) {
         TriggerCallbacks(id, ScreenEvent::DISCONNECTED);
+        NotifyScreenNodeChange(id, false);
         RS_LOGW("%{public}s The screen for id %{public}" PRIu64 " already existed.", __func__, id);
     }
     auto screen = std::make_shared<RSScreen>(output);
