@@ -1107,7 +1107,16 @@ HWTEST_F(FontParserTest, FontDescriptorVariationWithVariableFontTest, TestSize.L
             EXPECT_GE(axis.flags, 0);
         }
     }
-
+    
+    std::unordered_map<std::string, std::string> nameMap = {
+        {"fr", "Nomfrançais"}
+    };
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, nameMap);
+    if (!desc.variationAxisRecords.empty()) {
+        for (const auto& axis : desc.variationAxisRecords) {
+            EXPECT_EQ(axis.name, "Nomfrançais");
+        }
+    }
     testFile.close();
 }
 

@@ -436,6 +436,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level
     EXPECT_EQ(flag, 0);
 
     OH_Drawing_DestroyFontVariationAxis(axisArray);
+    // test null input for DestroyFontVariationAxis
     OH_Drawing_DestroyFontVariationAxis(nullptr);
 }
 
@@ -507,6 +508,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level
         std::string instanceName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
             str.strLen / sizeof(char16_t)));
         EXPECT_EQ(instanceName, SYMBOL_DESC.variationInstanceRecords[i].name);
+        free(str.strData);
         OH_Drawing_GetFontVariationInstanceAttributeStr(instance, FONT_VARIATION_INSTANCE_ATTR_S_LOCAL_NAME, &str);
         instanceName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
             str.strLen / sizeof(char16_t)));
@@ -528,6 +530,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level
     }
 
     OH_Drawing_DestroyFontVariationInstance(instanceArray);
+    // test null input for DestroyFontVariationInstance
     OH_Drawing_DestroyFontVariationInstance(nullptr);
 }
 
@@ -600,17 +603,23 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest011, TestSize.Level
 
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeStr(nullptr,
         FONT_VARIATION_AXIS_ATTR_S_KEY, &str), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    free(str.strData);
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeStr(axis,
         FONT_VARIATION_AXIS_ATTR_S_KEY, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    free(str.strData);
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeStr(axis,
         (OH_Drawing_FontVariationAxisAttributeId)999, &str), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    free(str.strData);
 
     EXPECT_EQ(OH_Drawing_GetFontVariationInstanceAttributeStr(nullptr,
         FONT_VARIATION_INSTANCE_ATTR_S_NAME, &str), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    free(str.strData);
     EXPECT_EQ(OH_Drawing_GetFontVariationInstanceAttributeStr(instance,
         FONT_VARIATION_INSTANCE_ATTR_S_NAME, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    free(str.strData);
     EXPECT_EQ(OH_Drawing_GetFontVariationInstanceAttributeStr(instance,
         (OH_Drawing_FontVariationInstanceAttributeId)999, &str), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    free(str.strData);
 
     OH_Drawing_DestroyFontVariationAxis(axisArray);
     OH_Drawing_DestroyFontVariationInstance(instanceArray);

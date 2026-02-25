@@ -277,13 +277,9 @@ OH_Drawing_Array* OH_Drawing_GetFontFullDescriptorsFromStream(const void* data, 
 
 void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray)
 {
-    if (descriptorArray == nullptr) {
-        return;
-    }
-
-    ObjectArray* descriptorList = ConvertToOriginalText<ObjectArray>(descriptorArray);
-    if (descriptorList == nullptr) {
-        return;
+    ObjectArray* descriptorList = ConvertToOriginalText<ObjectArray>(descriptorArray);	 
+    if (descriptorList == nullptr || descriptorList->type != ObjectType::FONT_FULL_DESCRIPTOR) { 
+        return;	 
     }
 
     Drawing::FontParser::FontDescriptor** descriptors =
@@ -478,9 +474,6 @@ void OH_Drawing_DestroyFontVariationAxis(OH_Drawing_Array* array)
     }
 
     ObjectArray* axisArray = reinterpret_cast<ObjectArray*>(array);
-    if (axisArray == nullptr) {
-        return;
-    }
 
     Drawing::FontParser::FontVariationAxis** axes =
         reinterpret_cast<Drawing::FontParser::FontVariationAxis**>(axisArray->addr);
@@ -509,9 +502,6 @@ void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* array)
     }
 
     ObjectArray* instanceArray = reinterpret_cast<ObjectArray*>(array);
-    if (instanceArray == nullptr) {
-        return;
-    }
 
     Drawing::FontParser::FontVariationInstance** instances =
         reinterpret_cast<Drawing::FontParser::FontVariationInstance**>(instanceArray->addr);
@@ -609,8 +599,10 @@ OH_Drawing_FontVariationInstanceCoordinate* OH_Drawing_GetFontVariationInstanceC
 
     for (size_t i = 0; i < *arrayLength; ++i) {
         coordinates[i].axisKey = strdup(instance.coordinates[i].axis.c_str());
-        if (coordinates[i].axisKey == NULL) {
-            free(coordinates[i].axisKey);
+        if (coordinates[i].axisKey == nullptr) {
+            for (size_t j = 0; j < i; ++j) {
+                free(coordinates[j].axisKey);
+            }
             delete[] coordinates;
             return nullptr;
         }
