@@ -582,6 +582,7 @@ public:
     void SetShadowMask(int shadowMask);
     void SetShadowIsFilled(bool shadowIsFilled);
     void SetShadowColorStrategy(int shadowColorStrategy);
+    void SetShadowDisableSDFBlur(bool disable);
     const Color& GetShadowColor() const;
     float GetShadowOffsetX() const;
     float GetShadowOffsetY() const;
@@ -595,6 +596,7 @@ public:
     bool IsShadowMaskValid() const;
     bool GetShadowIsFilled() const;
     int GetShadowColorStrategy() const;
+    bool GetShadowDisableSDFBlur() const;
     const std::optional<RSShadow>& GetShadow() const;
     bool IsShadowValid() const;
 
