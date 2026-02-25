@@ -40,6 +40,7 @@ public:
     void SetShadowMask(int shadowMask);
     void SetShadowColorStrategy(int shadowColorStrategy);
     void SetShadowIsFilled(bool shadowIsFilled);
+    void SetShadowDisableSDFBlur(bool disable);
     void SetUseShadowBatching(bool useShadowBatching);
 
     Color GetShadowColor() const;
@@ -52,6 +53,7 @@ public:
     int GetShadowMask() const;
     int GetShadowColorStrategy() const;
     bool GetShadowIsFilled() const;
+    bool GetShadowDisableSDFBlur() const;
     bool GetUseShadowBatching() const;
 private:
     float shadowAlpha_;

@@ -124,6 +124,16 @@ bool RSShadowModifier::GetShadowIsFilled() const
     return Getter(RSPropertyType::SHADOW_IS_FILLED, false);
 }
 
+void RSShadowModifier::SetShadowDisableSDFBlur(bool disable)
+{
+    Setter<RSProperty>(RSPropertyType::SHADOW_DISABLE_SDF_BLUR, disable);
+}
+
+bool RSShadowModifier::GetShadowDisableSDFBlur() const
+{
+    return Getter(RSPropertyType::SHADOW_DISABLE_SDF_BLUR, false);
+}
+
 void RSShadowModifier::SetUseShadowBatching(bool useShadowBatching)
 {
     Setter<RSProperty>(RSPropertyType::USE_SHADOW_BATCHING, useShadowBatching);

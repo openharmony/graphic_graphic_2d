@@ -96,6 +96,7 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     stagingIsFilled_ = properties.GetShadowIsFilled();
     stagingColorStrategy_ = properties.GetShadowColorStrategy();
     stagingRadius_ = properties.GetShadowRadius();
+    stagingDisableSDFBlur_ = properties.GetShadowDisableSDFBlur();
     needSync_ = true;
 
     stagingGeContainer_ = nullptr;
@@ -131,6 +132,7 @@ void RSShadowDrawable::OnSync()
     isFilled_ = stagingIsFilled_;
     radius_ = stagingRadius_;
     colorStrategy_ = stagingColorStrategy_;
+    disableSDFBlur_ = stagingDisableSDFBlur_;
     geContainer_ = std::move(stagingGeContainer_);
     needSync_ = false;
 }
@@ -167,7 +169,7 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
     }
     if (ROSEN_GNE(radius_, 0.f)) {
         RSPropertyDrawableUtils::DrawShadowMaskFilter(canvas, path, offsetX_, offsetY_,
-            radius_, isFilled_, shadowColor);
+            radius_, isFilled_, shadowColor, disableSDFBlur_);
         return;
     }
 }

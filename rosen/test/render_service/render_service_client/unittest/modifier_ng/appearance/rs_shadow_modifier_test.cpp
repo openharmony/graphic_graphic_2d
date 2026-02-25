@@ -84,6 +84,9 @@ HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
     modifier->SetShadowIsFilled(true);
     EXPECT_EQ(modifier->GetShadowIsFilled(), true);
 
+    modifier->SetShadowDisableSDFBlur(true);
+    EXPECT_EQ(modifier->GetShadowDisableSDFBlur(), true);
+
     modifier->SetUseShadowBatching(true);
     EXPECT_EQ(modifier->GetUseShadowBatching(), true);
 
