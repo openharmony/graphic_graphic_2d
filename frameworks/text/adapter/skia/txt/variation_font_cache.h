@@ -65,7 +65,7 @@ private:
     VariationFontCache& operator=(const VariationFontCache&) = delete;
 
     uint32_t CalculateHashKey(uint32_t originalUniqueId,
-                               const skia::textlayout::FontArguments& fontArgs) const;
+                              const skia::textlayout::FontArguments& fontArgs) const;
     uint32_t EvictOldest();
 
     // Must be called with mutex already unlocked
