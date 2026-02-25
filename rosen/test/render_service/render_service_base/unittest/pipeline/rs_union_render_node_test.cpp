@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_union_render_node.h"
+#include "pipeline/rs_dirty_region_manager.h"
 #include "render_thread/rs_render_thread_visitor.h"
 
 using namespace testing;
@@ -593,7 +594,8 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape001, TestSize.Level1)
     auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
     EXPECT_NE(unionNode->GetContext().lock(), nullptr);
 
-    unionNode->ProcessSDFShape();
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
     ASSERT_TRUE(unionNode->unionChildren_.empty());
 }
 
@@ -637,7 +639,8 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape002, TestSize.Level1)
     ASSERT_NE(stagingRenderParams, nullptr);
     unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
 
-    unionNode->ProcessSDFShape();
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
     ASSERT_TRUE(unionNode->renderProperties_.renderSDFShape_ != nullptr);
 }
 
@@ -681,7 +684,8 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape003, TestSize.Level1)
     ASSERT_NE(stagingRenderParams, nullptr);
     unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
 
-    unionNode->ProcessSDFShape();
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
     ASSERT_TRUE(unionNode->renderProperties_.renderSDFShape_ != nullptr);
 }
 
@@ -698,7 +702,8 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape004, TestSize.Level1)
     auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
     unionNode->renderProperties_.SetSDFShape(shape);
 
-    unionNode->ProcessSDFShape();
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
     ASSERT_TRUE(unionNode->renderProperties_.renderSDFShape_->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE);
 }
 
@@ -715,7 +720,8 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape005, TestSize.Level1)
     auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
     unionNode->renderProperties_.SetSDFShape(shape);
 
-    unionNode->ProcessSDFShape();
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
     ASSERT_TRUE(unionNode->renderProperties_.renderSDFShape_->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE);
 }
 

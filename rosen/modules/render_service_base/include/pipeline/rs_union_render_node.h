@@ -43,7 +43,7 @@ public:
     void AddUnionChild(NodeId id);
     void RemoveUnionChild(NodeId id);
     void ResetUnionChildren();
-    void ProcessSDFShape();
+    void ProcessSDFShape(RSDirtyRegionManager& dirtyManager);
 
     static void ProcessUnionInfoOnTreeStateChanged(const std::shared_ptr<RSRenderNode> node);
     static void ProcessUnionInfoAfterApplyModifiers(const std::shared_ptr<RSRenderNode> node);

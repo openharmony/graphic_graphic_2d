@@ -69,7 +69,7 @@ void RSUnionRenderNode::ResetUnionChildren()
     unionChildren_.clear();
 }
 
-void RSUnionRenderNode::ProcessSDFShape()
+void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
 {
     RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, unionChildren_[%lu], UnionSpacing[%f]",
         unionChildren_.size(), GetRenderProperties().GetUnionSpacing());
@@ -95,6 +95,7 @@ void RSUnionRenderNode::ProcessSDFShape()
         }
     }
     GetMutableRenderProperties().InternalSetSDFShape(root);
+    dirtyManager.MergeDirtyRect(GetAbsDrawRect());
     UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BOUNDS);
 }
 
