@@ -41,7 +41,6 @@ public:
     bool OnUpdate(const RSRenderNode& content) override;
     void OnSync() override;
     void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-    void SetIsSystemDarkColorMode(bool isSystemDarkColorMode);
 
     /**
      * @brief Prepare ColorPicker for execution on main thread

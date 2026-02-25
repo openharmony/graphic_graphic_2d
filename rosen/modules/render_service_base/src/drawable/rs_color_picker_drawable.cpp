@@ -118,14 +118,6 @@ void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
     }
 }
 
-void RSColorPickerDrawable::SetIsSystemDarkColorMode(bool isSystemDarkColorMode)
-{
-    if (stagingIsSystemDarkColorMode_ != isSystemDarkColorMode) {
-        stagingIsSystemDarkColorMode_ = isSystemDarkColorMode;
-        needSync_ = true;
-    }
-}
-
 void RSColorPickerDrawable::ResetColorMemory()
 {
     if (colorPickerManager_) {
