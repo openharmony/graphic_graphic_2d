@@ -62,6 +62,7 @@ config("effect_SKeffectChian_public_config") {
       "//base/hiviewdfx/hilog/interfaces/native/innerkits",
       "//foundation/graphic/graphics_effect/include",
       "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
+      "//foundation/appframework/graphic_2d/${current_os}",
     ]
   }
 }
@@ -114,7 +115,6 @@ if (is_arkui_x) {
         sources += [
           "src/effect_vulkan_context.cpp",
         ]
-        deps = [ "$rosen_root/modules/render_service_base/src/platform:platform" ]
       }
     }
 
