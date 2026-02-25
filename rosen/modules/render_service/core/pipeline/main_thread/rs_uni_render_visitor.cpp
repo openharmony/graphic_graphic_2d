@@ -1466,9 +1466,7 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node)
 
     PostPrepare(node, !isSubTreeNeedPrepare);
     // the only difference between QuickPrepareUnionRenderNode and QuickPrepareCanvasRenderNode is to process SDFShape
-    if (curDirty_ || isSubTreeNeedPrepare) {
-        node.ProcessSDFShape(*dirtyManager);
-    }
+    node.ProcessSDFShape(*dirtyManager);
     curUnionNode_ = prevUnionNode;
     prepareClipRect_ = prepareClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;
