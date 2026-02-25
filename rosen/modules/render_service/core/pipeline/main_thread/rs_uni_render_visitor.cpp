@@ -1705,6 +1705,17 @@ CM_INLINE void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& no
         const auto& visibleFilterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(node);
         node.SetUIFirstVisibleFilterRect(visibleFilterRect);
     }
+    bool isUifirstCard = (node.IsAbilityComponent() && node.GetNeedCacheSurface()) ||
+        node.GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD;
+    if (isUifirstCard) {
+        for (auto& [_, nodePtr] : renderGroupCacheRoots_) {
+            // disable render group because cards will use uifirst cache
+            if (nodePtr->GetDrawingCacheType() == RSDrawingCacheType::FORCED_CACHE) {
+                nodePtr->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+                RS_TRACE_NAME_FMT("CardNodeId: %" PRIu64 " disable render group by uifirst", nodePtr->GetId());
+            }
+        }
+    }
 }
 
 void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)

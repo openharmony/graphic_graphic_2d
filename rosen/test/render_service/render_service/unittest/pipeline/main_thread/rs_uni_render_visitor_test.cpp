@@ -5272,14 +5272,13 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterCacheNeedForceClearOrSave001, TestSi
 
 /**
  * @tc.name: PrepareForUIFirstNode001
- * @tc.desc: Test PrepareForUIFirstNode with multi-rsSurfaceRenderNode
+ * @tc.desc: Test PrepareForUIFirstNode with with uifirst card and renderGroupCacheRoots_
  * @tc.type: FUNC
  * @tc.require: issueIASE3Z
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode001, TestSize.Level2)
 {
-    RSSurfaceRenderNodeConfig config;
-    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -5288,11 +5287,54 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode001, TestSize.Level2)
     ScreenId id = 1;
     auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(11, id, rsContext->weak_from_this());
     rsUniRenderVisitor->curScreenNode_ = rsDisplayRenderNode;
+
+    // Create canvas render nodes with different cache types to test both branches
+    auto canvasNodeForcedCache = std::make_shared<RSCanvasRenderNode>(101);
+    auto canvasNodeTargetedCache = std::make_shared<RSCanvasRenderNode>(102);
+    auto canvasNodeDisabledCache = std::make_shared<RSCanvasRenderNode>(103);
+    ASSERT_NE(canvasNodeForcedCache, nullptr);
+    ASSERT_NE(canvasNodeTargetedCache, nullptr);
+    ASSERT_NE(canvasNodeDisabledCache, nullptr);
+
+    // Set different cache types
+    canvasNodeForcedCache->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    canvasNodeTargetedCache->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
+    canvasNodeDisabledCache->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+
+    // Add nodes to renderGroupCacheRoots_
+    rsUniRenderVisitor->renderGroupCacheRoots_[101] = canvasNodeForcedCache;
+    rsUniRenderVisitor->renderGroupCacheRoots_[102] = canvasNodeTargetedCache;
+    rsUniRenderVisitor->renderGroupCacheRoots_[103] = canvasNodeDisabledCache;
+
+    // Verify initial state
+    ASSERT_EQ(canvasNodeForcedCache->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+    ASSERT_EQ(canvasNodeTargetedCache->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
+    ASSERT_EQ(canvasNodeDisabledCache->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+
+    RSUifirstManager::Instance().isUiFirstOn_ = true;
+    RSUifirstManager::Instance().isCardUiFirstOn_ = true;
+    rsSurfaceRenderNode->SetAncestorScreenNode(rsDisplayRenderNode->weak_from_this());
+    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
+    rsSurfaceRenderNode->name_ = "ArkTSCardNode";
+    rsSurfaceRenderNode->SetUIFirstSwitch(RSUIFirstSwitch::NONE);
+    RSUifirstManager::Instance().entryViewNodeId_ = rsSurfaceRenderNode->GetId();
+    RSUifirstManager::Instance().negativeScreenNodeId_ = rsSurfaceRenderNode->GetId();
+    rsSurfaceRenderNode->instanceRootNodeId_ = rsSurfaceRenderNode->GetId();
     rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
 
+    // Verify: FORCED_CACHE changed to DISABLED_CACHE (true branch)
+    EXPECT_EQ(canvasNodeForcedCache->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    // Verify: TARGETED_CACHE remains unchanged (false branch)
+    EXPECT_EQ(canvasNodeTargetedCache->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
+    // Verify: DISABLED_CACHE remains unchanged (false branch)
+    EXPECT_EQ(canvasNodeDisabledCache->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+
+    // Clear renderGroupCacheRoots_ for next test
+    rsUniRenderVisitor->renderGroupCacheRoots_.clear();
     rsSurfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
     rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
+    RSUifirstManager::Instance().isUiFirstOn_ = false;
 }
 
 /**

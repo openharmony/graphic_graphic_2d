@@ -3566,6 +3566,12 @@ void RSSurfaceRenderNode::SetNeedCacheSurface(bool needCacheSurface)
 #endif
 }
 
+bool RSSurfaceRenderNode::GetNeedCacheSurface() const
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    return surfaceParams ? surfaceParams->GetNeedCacheSurface() : false;
+}
+
 bool RSSurfaceRenderNode::NeedUpdateDrawableBehindWindow() const
 {
     bool needDrawBehindWindow = NeedDrawBehindWindow();
