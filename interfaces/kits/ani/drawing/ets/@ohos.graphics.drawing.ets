@@ -3534,16 +3534,6 @@ namespace drawing {
     native rectStaysRect(): boolean;
 
     /**
-     * Sets matrix to the copy of anther matrix object.
-     * @param { Array<double> | Matrix } matrix - Indicates the Matrix object to copy.
-     * @syscap SystemCapability.Graphics.Drawing
-     * @crossplatform
-     * @since 20 dynamic
-     * @since 23 static
-     */
-    native setMatrix(matrix: Array<double> | Matrix): void;
-
-    /**
      * Sets matrix to matrix constructed from skewing by (kx, ky) about pivot point (px, py), multiplied by matrix.
      * This can be thought of as skewing relative to a pivot point after applying matrix.
      * @param { double } kx - Indicates the horizontal skew factor.
