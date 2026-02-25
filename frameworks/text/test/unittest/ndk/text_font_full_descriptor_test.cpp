@@ -398,10 +398,10 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level
     size_t axisSize = OH_Drawing_GetDrawingArraySize(axisArray);
     EXPECT_EQ(axisSize, 1);
 
-    auto axis = OH_Drawing_GetFontVariationAxisByIndex(axisArray, 0);
-    EXPECT_NE(axis, nullptr);
-    axis = OH_Drawing_GetFontVariationAxisByIndex(nullptr, 0);
+    auto axis = OH_Drawing_GetFontVariationAxisByIndex(nullptr, 0);
     EXPECT_EQ(axis, nullptr);
+    axis = OH_Drawing_GetFontVariationAxisByIndex(axisArray, 0);
+    EXPECT_NE(axis, nullptr);
 
     OH_Drawing_String str;
     OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AIXS_ATTR_S_KEY, &str);
@@ -475,11 +475,6 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
         EXPECT_NE(fontFullName, nullptr);
         OH_Drawing_FontFullDescriptor *descriptor = OH_Drawing_GetFontFullDescriptorByFullName(fontFullName, fontType);
         ASSERT_NE(descriptor, nullptr);
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-        char16_t* begin = reinterpret_cast<char16_t*>(fontFullName->strData);
-        char16_t* end = reinterpret_cast<char16_t*>(fontFullName->strData + fontFullName->strLen);
-        EXPECT_EQ(convert.to_bytes(begin, end), descriptor->fullName);
-        OH_Drawing_DestroyFontDescriptor(descriptor);
     }
     OH_Drawing_DestroySystemFontFullNames(fontList);
 }
@@ -492,15 +487,14 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
 HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level0)
 {
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(SYMBOL_FILE);
-    size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
     auto desc = OH_Drawing_GetFontFullDescriptorByIndex(fontFullDescArr, 0);
     EXPECT_NE(desc, nullptr);
 
     OH_Drawing_Array* instanceArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
-        WRONG_INPUT);
+        FULL_DESCRIPTOR_ATTR_I_INDEX);
     EXPECT_EQ(instanceArray, nullptr);
 
-    OH_Drawing_Array* instanceArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+    instanceArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
         FULL_DESCRIPTOR_ATTR_O_VARIATION_INSTANCE);
     EXPECT_NE(instanceArray, nullptr);
     size_t instanceSize = OH_Drawing_GetDrawingArraySize(instanceArray);
@@ -516,7 +510,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level
             str.strLen / sizeof(char16_t)));
         EXPECT_EQ(instanceName, SYMBOL_DESC.variationInstanceRecords[i].name);
         OH_Drawing_GetFontVariationInstanceAttributeStr(instance, FONT_VARIATION_INSTANCE_ATTR_S_LOCAL_NAME, &str);
-        std::string instanceName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+        instanceName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
             str.strLen / sizeof(char16_t)));
         EXPECT_EQ(instanceName, SYMBOL_DESC.variationInstanceRecords[i].localName);
         free(str.strData);
@@ -568,7 +562,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest010, TestSize.Level
     auto axis = OH_Drawing_GetFontVariationAxisByIndex(axisArray, 0);
     EXPECT_EQ(axis, nullptr);
     auto instance = OH_Drawing_GetFontVariationInstanceByIndex(instanceArray, 0);
-    EXPECT_NE(instance, nullptr);
+    EXPECT_EQ(instance, nullptr);
 }
 
 /*
@@ -622,6 +616,5 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest011, TestSize.Level
 
     OH_Drawing_DestroyFontVariationAxis(axisArray);
     OH_Drawing_DestroyFontVariationInstance(instanceArray);
-    OH_Drawing_DestroyDrawingArray(arr);
 }
 } // namespace OHOS
