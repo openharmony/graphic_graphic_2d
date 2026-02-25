@@ -21,6 +21,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "params/rs_surface_render_params.h"
@@ -165,6 +166,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GetVisibleFilterRect_ColorPickerDrawable, Te
 
     // Now add a real filter to the node (background filter)
     colorPickerOnlyNode->renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    colorPickerOnlyNode->renderProperties_.needFilter_ = true;
 
     // GetVisibleFilterRect should now include the node since it has a real filter
     filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);

@@ -304,7 +304,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectDataOnDemandWithColorPick
     ASSERT_NE(colorPickerDrawable, nullptr);
 
     // Set it at the COLOR_PICKER slot
-    node->GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) = colorPickerDrawable;
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
     // Create effect drawable
     auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(node);
@@ -325,6 +325,6 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectDataOnDemandWithColorPick
     Drawing::Rect bounds(0, 0, width, height);
 
     // Call GenerateEffectDataOnDemand - should not crash and return true
-    EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, canvas, bounds, &paintFilterCanvas));
+    EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, bounds, &paintFilterCanvas));
 }
 }
