@@ -609,6 +609,11 @@ OH_Drawing_FontVariationInstanceCoordinate* OH_Drawing_GetFontVariationInstanceC
 
     for (size_t i = 0; i < *arrayLength; ++i) {
         coordinates[i].axisKey = strdup(instance.coordinates[i].axis.c_str());
+        if (coordinates[i].axisKey == NULL) {
+            free(coordinates[i].axisKey);
+            delete[] coordinates;
+            return nullptr;
+        }
         coordinates[i].value = instance.coordinates[i].value;
     }
 
