@@ -1047,7 +1047,7 @@ namespace {
 void ColorPickerCheckHwcIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
     const RectI& colorPickerRect)
 {
-    if (!hwcNode || !hwcNode->IsOnTheTree() || hwcNode->IsHardwareForcedDisabled()) {
+    if (!hwcNode || !hwcNode->IsOnTheTree() || hwcNode->IsHardwareForcedDisabled() || hwcNode->CheckIfDoArsrPre()) {
         return;
     }
 
