@@ -238,23 +238,23 @@ OH_Drawing_ErrorCode GetFontVariationInstanceLocalName(
 static std::unordered_map<OH_Drawing_FontVariationAxisAttributeId,
     OH_Drawing_ErrorCode(*)(const Drawing::FontParser::FontVariationAxis&, double&)>
     g_fontVariationAxisDoubleGetters = {
-        { FONT_VARIATION_AIXS_ATTR_D_MIN_VALUE, GetFontVariationAxisMinValue },
-        { FONT_VARIATION_AIXS_ATTR_D_MAX_VALUE, GetFontVariationAxisMaxValue },
-        { FONT_VARIATION_AIXS_ATTR_D_DEFAULT_VALUE, GetFontVariationAxisDefaultValue },
+        { FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, GetFontVariationAxisMinValue },
+        { FONT_VARIATION_AXIS_ATTR_D_MAX_VALUE, GetFontVariationAxisMaxValue },
+        { FONT_VARIATION_AXIS_ATTR_D_DEFAULT_VALUE, GetFontVariationAxisDefaultValue },
     };
 
 static std::unordered_map<OH_Drawing_FontVariationAxisAttributeId,
     OH_Drawing_ErrorCode(*)(const Drawing::FontParser::FontVariationAxis&, int&)>
     g_fontVariationAxisIntGetters = {
-        { FONT_VARIATION_AIXS_ATTR_I_FLAGS, GetFontVariationAxisFlags },
+        { FONT_VARIATION_AXIS_ATTR_I_FLAGS, GetFontVariationAxisFlags },
     };
 
 static std::unordered_map<OH_Drawing_FontVariationAxisAttributeId,
     OH_Drawing_ErrorCode(*)(const Drawing::FontParser::FontVariationAxis&, OH_Drawing_String&)>
     g_fontVariationAxisStrGetters = {
-        { FONT_VARIATION_AIXS_ATTR_S_KEY, GetFontVariationAxisKey },
-        { FONT_VARIATION_AIXS_ATTR_S_NAME, GetFontVariationAxisName },
-        { FONT_VARIATION_AIXS_ATTR_S_LOCAL_NAME, GetFontVariationAxisLocalName },
+        { FONT_VARIATION_AXIS_ATTR_S_KEY, GetFontVariationAxisKey },
+        { FONT_VARIATION_AXIS_ATTR_S_NAME, GetFontVariationAxisName },
+        { FONT_VARIATION_AXIS_ATTR_S_LOCAL_NAME, GetFontVariationAxisLocalName },
     };
 
 static std::unordered_map<OH_Drawing_FontVariationInstanceAttributeId,

@@ -174,20 +174,20 @@ typedef enum {
  * @since 24
  */
 typedef enum {
-    /** The key of the font variation aixs */
-    FONT_VARIATION_AIXS_ATTR_S_KEY = 0,
-    /** The min value of the font variation aixs */
-    FONT_VARIATION_AIXS_ATTR_D_MIN_VALUE = 1,
-    /** The max value of the font variation aixs */
-    FONT_VARIATION_AIXS_ATTR_D_MAX_VALUE = 2,
-    /** The default value of the font variation aixs */
-    FONT_VARIATION_AIXS_ATTR_D_DEFAULT_VALUE = 3,
-    /** The flags of the font variation aixs */
-    FONT_VARIATION_AIXS_ATTR_I_FLAGS = 4,
-    /** The name of the font variation aixs */
-    FONT_VARIATION_AIXS_ATTR_S_NAME = 5,
-    /** The local name of the font variation aixs */
-    FONT_VARIATION_AIXS_ATTR_S_LOCAL_NAME = 6,
+    /** The key of the font variation axis */
+    FONT_VARIATION_AXIS_ATTR_S_KEY = 0,
+    /** The min value of the font variation axis */
+    FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE = 1,
+    /** The max value of the font variation axis */
+    FONT_VARIATION_AXIS_ATTR_D_MAX_VALUE = 2,
+    /** The default value of the font variation axis */
+    FONT_VARIATION_AXIS_ATTR_D_DEFAULT_VALUE = 3,
+    /** The flags of the font variation axis */
+    FONT_VARIATION_AXIS_ATTR_I_FLAGS = 4,
+    /** The name of the font variation axis */
+    FONT_VARIATION_AXIS_ATTR_S_NAME = 5,
+    /** The local name of the font variation axis */
+    FONT_VARIATION_AXIS_ATTR_S_LOCAL_NAME = 6,
 } OH_Drawing_FontVariationAxisAttributeId;
 
 /**

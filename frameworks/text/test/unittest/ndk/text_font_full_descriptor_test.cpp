@@ -404,37 +404,37 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level
     EXPECT_NE(axis, nullptr);
 
     OH_Drawing_String str;
-    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AIXS_ATTR_S_KEY, &str);
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_KEY, &str);
     std::string axisKey = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
         str.strLen / sizeof(char16_t)));
     EXPECT_EQ(axisKey, SYMBOL_DESC.variationAxisRecords[0].key);
     free(str.strData);
 
-    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AIXS_ATTR_S_NAME, &str);
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_NAME, &str);
     std::string axisName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
         str.strLen / sizeof(char16_t)));
     EXPECT_EQ(axisName, SYMBOL_DESC.variationAxisRecords[0].name);
     free(str.strData);
 
-    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AIXS_ATTR_S_LOCAL_NAME, &str);
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_LOCAL_NAME, &str);
     std::string axisLocalName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
         str.strLen / sizeof(char16_t)));
     EXPECT_EQ(axisLocalName, SYMBOL_DESC.variationAxisRecords[0].localName);
     free(str.strData);
 
     double doubleValue;
-    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AIXS_ATTR_D_MIN_VALUE, &doubleValue);
+    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, &doubleValue);
     EXPECT_EQ(doubleValue, SYMBOL_DESC.variationAxisRecords[0].minValue);
-    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AIXS_ATTR_D_DEFAULT_VALUE,
+    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_DEFAULT_VALUE,
         &doubleValue);
     EXPECT_EQ(doubleValue, SYMBOL_DESC.variationAxisRecords[0].defaultValue);
-    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AIXS_ATTR_D_MAX_VALUE, &doubleValue);
+    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_MAX_VALUE, &doubleValue);
     EXPECT_EQ(doubleValue, SYMBOL_DESC.variationAxisRecords[0].maxValue);
-    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AIXS_ATTR_D_MAX_VALUE, &doubleValue);
+    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_MAX_VALUE, &doubleValue);
     EXPECT_EQ(doubleValue, SYMBOL_DESC.variationAxisRecords[0].maxValue);
 
     int flag;
-    OH_Drawing_GetFontVariationAxisAttributeInt(axis, FONT_VARIATION_AIXS_ATTR_I_FLAGS, &flag);
+    OH_Drawing_GetFontVariationAxisAttributeInt(axis, FONT_VARIATION_AXIS_ATTR_I_FLAGS, &flag);
     EXPECT_EQ(flag, 0);
 
     OH_Drawing_DestroyFontVariationAxis(axisArray);
@@ -587,23 +587,23 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest011, TestSize.Level
     OH_Drawing_String str = {nullptr, 0};
 
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeDouble(nullptr,
-        FONT_VARIATION_AIXS_ATTR_D_MIN_VALUE, &dVal), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+        FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, &dVal), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeDouble(axis,
-        FONT_VARIATION_AIXS_ATTR_D_MIN_VALUE, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+        FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeDouble(axis,
         (OH_Drawing_FontVariationAxisAttributeId)999, &dVal), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
 
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeInt(nullptr,
-        FONT_VARIATION_AIXS_ATTR_I_FLAGS, &iVal), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+        FONT_VARIATION_AXIS_ATTR_I_FLAGS, &iVal), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeInt(axis,
-        FONT_VARIATION_AIXS_ATTR_I_FLAGS, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+        FONT_VARIATION_AXIS_ATTR_I_FLAGS, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeInt(axis,
         (OH_Drawing_FontVariationAxisAttributeId)999, &iVal), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
 
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeStr(nullptr,
-        FONT_VARIATION_AIXS_ATTR_S_KEY, &str), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+        FONT_VARIATION_AXIS_ATTR_S_KEY, &str), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeStr(axis,
-        FONT_VARIATION_AIXS_ATTR_S_KEY, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+        FONT_VARIATION_AXIS_ATTR_S_KEY, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeStr(axis,
         (OH_Drawing_FontVariationAxisAttributeId)999, &str), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
 

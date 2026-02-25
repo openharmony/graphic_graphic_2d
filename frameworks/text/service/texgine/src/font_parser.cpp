@@ -651,7 +651,7 @@ void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Ty
     std::vector<std::string> defaultTags = {
         "zh-Hant", "zh-TW", "zh-HK", "zh-MO", "zh-SG", "en-US", "en"
     };
-    combinedList += defaultTags;
+    combinedList.insert(combinedList.end(), defaultTags.begin(), defaultTags.end());
     auto axisInfoList = Drawing::FontVariationInfo::GenerateFontVariationAxisInfo(typeface, combinedList);
 
     for (const auto& axisInfo : axisInfoList) {
