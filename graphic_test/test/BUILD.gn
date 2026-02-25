@@ -178,7 +178,6 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_shader_test/ng_shader_frosted_glass_effect_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_substracted_rect_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_content_light_test.cpp",
-  "rs_effect_feature/ng_filter_test/ng_filter_direction_light_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_dispersion_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_frosted_glass_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_gasify_blur_test.cpp",
