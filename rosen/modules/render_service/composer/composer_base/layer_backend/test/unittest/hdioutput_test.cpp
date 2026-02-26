@@ -2195,7 +2195,7 @@ public:
 };
 HWTEST_F(HdiOutputTest, UpdateInfosAfterCommitVerifyFramePresentFd, Function | MediumTest | Level1)
 {
-    sptr<MockSyncFence> fbFence = new MockSyncFence(1); //  Fd 1
+    sptr<MockSyncFence> fbFence = new MockSyncFence(-1);
     int64_t timeStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
     EXPECT_CALL(*fbFence, SyncFileReadTimestamp()).WillRepeatedly(testing::Return(timeStamp));
