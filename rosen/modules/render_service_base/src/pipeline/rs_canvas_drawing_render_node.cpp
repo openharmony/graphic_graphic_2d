@@ -54,8 +54,6 @@ constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 300; // limit of the drawcmdlists.
 constexpr uint32_t DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_PER_FRAME = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_FOR_CACHE = 200000;
-constexpr size_t DRAWCMDLIST_DUMP_LIMIT = 10; // limit of the DrawCmdListDump.
-constexpr size_t OP_DUMP_LIMIT_PER_CMD = 15; // limit of the DrawOpItemsDump.
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -510,76 +508,6 @@ CM_INLINE void RSCanvasDrawingRenderNode::ApplyModifiers()
     RSRenderNode::ApplyModifiers();
 }
 
-void RSCanvasDrawingRenderNode::DumpSubClassNode(std::string& out) const
-{
-    out += ", lastResetSurfaceTime: " + std::to_string(lastResetSurfaceTime_);
-    out += ", opCountAfterReset: " + std::to_string(opCountAfterReset_);
-    out += ", drawOpInfo: [";
-
-    for (auto it = cachedReversedOpTypes_.begin(); it != cachedReversedOpTypes_.end(); ++it) {
-        const auto& cachedReversedOpType = *it;
-        const auto& drawOpTypes = cachedReversedOpType.drawOpTypes;
-
-        out += "[";
-        out += std::to_string(cachedReversedOpType.width) + ",";
-        out += std::to_string(cachedReversedOpType.height) + ",";
-        auto opItemSize = cachedReversedOpType.opItemSize;
-        out += std::to_string(opItemSize) + "][";
-
-        if (opItemSize == 0) {
-            out += "],";
-            continue;
-        }
-        // Restore the original order of the drawOp
-        for (auto drawOpTypeIt = drawOpTypes.rbegin(); drawOpTypeIt != drawOpTypes.rend(); ++drawOpTypeIt) {
-            out += std::to_string(*drawOpTypeIt);
-            out += ",";
-        }
-        if (!drawOpTypes.empty()) {
-            out.pop_back();
-        }
-        out += "],";
-    }
-    if (!cachedReversedOpTypes_.empty()) {
-        out.pop_back();
-    }
-    out += "]";
-}
-
-void RSCanvasDrawingRenderNode::GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList)
-{
-    // drawCmdList not nullptr when called by AddDirtyType
-    auto cachedReversedOpTypesSize = cachedReversedOpTypes_.size();
-    const auto& drawOpItems = drawCmdList->GetDrawOpItems();
-    size_t opItemSize = drawOpItems.size();
-    RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasDrawingRenderNode::GetDrawOpItemInfo, nodeId:[%" PRIu64 "] opItemSize:[%zu] "
-        "cachedReversedOpTypes_ size:[%zu]", GetId(), opItemSize, cachedReversedOpTypesSize);
-    if (cachedReversedOpTypesSize >= DRAWCMDLIST_DUMP_LIMIT) {
-        cachedReversedOpTypes_.pop_front();
-    }
-    auto& opInfo = cachedReversedOpTypes_.emplace_back();
-    opInfo.width = drawCmdList->GetWidth();
-    opInfo.height = drawCmdList->GetHeight();
-    opInfo.opItemSize = opItemSize;
-
-    size_t opItemDumpSize = opItemSize < OP_DUMP_LIMIT_PER_CMD ? opItemSize : OP_DUMP_LIMIT_PER_CMD;
-    if (opItemDumpSize == 0) {
-        return;
-    }
-    size_t index = 0;
-    opInfo.drawOpTypes.reserve(opItemDumpSize);
-    for (auto itemIt = drawOpItems.rbegin(); itemIt != drawOpItems.rend(); ++itemIt) {
-        if (index >= opItemDumpSize) {
-            break;
-        }
-        if (*itemIt == nullptr) {
-            continue;
-        }
-        opInfo.drawOpTypes.emplace_back((*itemIt)->GetType());
-        ++index;
-    }
-}
-
 void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type)
 {
     auto& drawCmdLists = drawCmdListsNG_[type];
@@ -640,8 +568,6 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
             continue;
         }
         auto opItemSize = drawCmdList->GetOpItemSize();
-        GetDrawOpItemInfo(drawCmdList);
-
         if (opCount > OP_COUNT_LIMIT_PER_FRAME) {
             outOfLimitCmdList_.emplace_back(drawCmdList);
             cachedOpCount_ += opItemSize;
