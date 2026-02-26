@@ -63,7 +63,7 @@ public:
         std::vector<uint8_t>& hdrDynamicMetadata, GSError& ret);
     void GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffer, std::vector<uint8_t>& adaptiveFOVMetadata);
     void GetAIHDRVideoMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
-        std::vector<uint8_t>& aihdrVideoMetadata, GSError& ret);
+        std::vector<uint8_t>& aiHdrVideoMetadata, GSError& ret);
     void GetSDRDynamicMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
         std::vector<uint8_t>& sdrDynamicMetadata, GSError& ret);
     bool SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer, VPEParameter& parameter,
