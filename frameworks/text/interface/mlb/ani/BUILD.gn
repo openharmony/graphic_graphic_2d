@@ -41,7 +41,7 @@ config("text_config") {
 }
 
 ohos_shared_library("text_engine_ani") {
-  shlib_type = "ani"
+  version_script = "$rosen_text_root/interface/mlb/ani/text_ani.versionscript"
   branch_protector_ret = "pac_ret"
   sources = [
     "./src/ani_cache_manager.cpp",
