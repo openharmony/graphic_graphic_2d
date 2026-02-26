@@ -30,10 +30,22 @@ struct ColorPickerParam;
 class IColorPickerManager {
 public:
     virtual ~IColorPickerManager() = default;
-    // Returns an optional color: if value present a color was immediately available,
-    // otherwise (std::nullopt) the manager has scheduled an async pick/callback.
-    virtual std::optional<Drawing::ColorQuad> GetColorPicked(RSPaintFilterCanvas& canvas,
-        const Drawing::Rect* rect, uint64_t nodeId, const ColorPickerParam& params) = 0;
+
+    // Returns the interpolated color (if available), nullopt otherwise.
+    // Does NOT schedule any async color pick tasks.
+    virtual std::optional<Drawing::ColorQuad> GetColorPick() = 0;
+
+    // Schedules an async color pick task on the canvas content.
+    // The result will be delivered via callback or client notification.
+    virtual void ScheduleColorPick(
+        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params) = 0;
+
+    // Sets the system dark color mode for color picker.
+    virtual void SetSystemDarkColorMode(bool isSystemDarkColorMode) = 0;
+
+    // Handles color update after GPU work completes.
+    // Each implementation can have different business logic (e.g., animation, luminance zones).
+    virtual void HandleColorUpdate(Drawing::ColorQuad newColor) = 0;
 };
 
 } // namespace OHOS::Rosen

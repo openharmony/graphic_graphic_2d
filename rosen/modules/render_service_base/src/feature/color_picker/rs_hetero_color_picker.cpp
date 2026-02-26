@@ -70,8 +70,9 @@ bool RegisterMhcUpdate(const std::function<void(Drawing::ColorQuad&)>& updateCol
 } // namespace
 
 bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor,
-    Drawing::Surface* surface, std::shared_ptr<Drawing::Image>& image)
+    RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image>& image)
 {
+    auto surface = canvas.GetSurface();
     if (!ValidateInputs(updateColor, surface, image)) {
         return false;
     }
@@ -125,7 +126,7 @@ bool RSHeteroColorPicker::ValidateInputs(const std::function<void(Drawing::Color
         return false;
     }
     if (surface == nullptr) {
-        RS_LOGE("[HeteroColorPicker]:Invalid input surface: %p", surface);
+        RS_LOGE("[HeteroColorPicker]:Invalid input surface");
         return false;
     }
     if (!static_cast<bool>(image)) {

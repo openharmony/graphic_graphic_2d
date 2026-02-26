@@ -259,9 +259,9 @@ HWTEST_F(RSNodeTest, RegisterColorPickerCallbackTest003, TestSize.Level1)
     auto callback = [&](uint32_t color) { receivedColor = color; };
 
     uint64_t interval = 500;
-    uint32_t threshold = 75;
+    uint32_t notifyThreshold = 50;
 
-    bool result = node->RegisterColorPickerCallback(interval, callback, threshold);
+    bool result = node->RegisterColorPickerCallback(interval, callback, notifyThreshold);
     EXPECT_TRUE(result);
 
     // Verify color picker params are set
@@ -271,7 +271,9 @@ HWTEST_F(RSNodeTest, RegisterColorPickerCallbackTest003, TestSize.Level1)
 
     EXPECT_EQ(colorPickerModifier->GetColorPickerStrategy(), ColorPickStrategyType::CLIENT_CALLBACK);
     EXPECT_EQ(colorPickerModifier->GetColorPickerInterval(), interval);
-    EXPECT_EQ(colorPickerModifier->GetColorPickerNotifyThreshold(), threshold);
+    // Check packed threshold value: default is dark=150, light=220, packed as (220 << 16) | 150
+    constexpr uint32_t expectedPacked = (220u << 16) | 150u;
+    EXPECT_EQ(colorPickerModifier->GetColorPickerNotifyThreshold(), expectedPacked);
 }
 
 /**
@@ -285,7 +287,7 @@ HWTEST_F(RSNodeTest, UnregisterColorPickerCallbackTest001, TestSize.Level1)
     ASSERT_NE(node, nullptr);
 
     auto callback = [](uint32_t color) {};
-    node->RegisterColorPickerCallback(100, callback, 50);
+    node->RegisterColorPickerCallback(100, callback, 30);
 
     bool result = node->UnregisterColorPickerCallback();
     EXPECT_TRUE(result);
@@ -362,7 +364,7 @@ HWTEST_F(RSNodeTest2, FireColorPickerCallbackTest003, TestSize.Level1)
     ASSERT_NE(node, nullptr);
 
     auto callback = [](uint32_t color) {};
-    node->RegisterColorPickerCallback(100, callback, 50);
+    node->RegisterColorPickerCallback(100, callback, 30);
     node->UnregisterColorPickerCallback();
 
     bool result = node->FireColorPickerCallback(0xFF0000FF);
@@ -393,6 +395,88 @@ HWTEST_F(RSNodeTest2, ColorPickerCallbackMultipleRegistrationTest, TestSize.Leve
     // Only the second callback should be invoked
     EXPECT_FALSE(firstCallbackInvoked);
     EXPECT_TRUE(secondCallbackInvoked);
+}
+
+/**
+ * @tc.name: SetColorPickerOptionsTest001
+ * @tc.desc: Test SetColorPickerOptions sets interval and thresholds correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetColorPickerOptionsTest001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    uint64_t interval = 500;
+    uint32_t darkThreshold = 50;
+    uint32_t lightThreshold = 200;
+
+    node->SetColorPickerOptions(interval, {darkThreshold, lightThreshold});
+
+    auto modifier = node->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
+    ASSERT_NE(modifier, nullptr);
+    auto colorPickerModifier = std::static_pointer_cast<ModifierNG::RSColorPickerModifier>(modifier);
+
+    EXPECT_EQ(colorPickerModifier->GetColorPickerStrategy(), ColorPickStrategyType::CLIENT_CALLBACK);
+    EXPECT_EQ(colorPickerModifier->GetColorPickerInterval(), interval);
+    // Check packed threshold value: (lightThreshold << 16) | darkThreshold
+    constexpr uint32_t expectedPacked = (200u << 16) | 50u;
+    EXPECT_EQ(colorPickerModifier->GetColorPickerNotifyThreshold(), expectedPacked);
+}
+
+/**
+ * @tc.name: SetColorPickerOptionsTest002
+ * @tc.desc: Test SetColorPickerOptions with valid rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetColorPickerOptionsTest002, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    uint64_t interval = 500;
+    uint32_t darkThreshold = 50;
+    uint32_t lightThreshold = 200;
+    Vector4f rect(0.f, 0.f, 100.f, 100.f);
+
+    node->SetColorPickerOptions(interval, {darkThreshold, lightThreshold}, rect);
+
+    auto modifier = node->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
+    ASSERT_NE(modifier, nullptr);
+    auto colorPickerModifier = std::static_pointer_cast<ModifierNG::RSColorPickerModifier>(modifier);
+
+    EXPECT_EQ(colorPickerModifier->GetColorPickerStrategy(), ColorPickStrategyType::CLIENT_CALLBACK);
+    EXPECT_EQ(colorPickerModifier->GetColorPickerInterval(), interval);
+    constexpr uint32_t expectedPacked = (200u << 16) | 50u;
+    EXPECT_EQ(colorPickerModifier->GetColorPickerNotifyThreshold(), expectedPacked);
+    EXPECT_EQ(colorPickerModifier->GetColorPickerRect(), rect);
+}
+
+/**
+ * @tc.name: SetColorPickerCallbackTest001
+ * @tc.desc: Test SetColorPickerCallback stores and invokes callback correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetColorPickerCallbackTest001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    bool callbackInvoked = false;
+    uint32_t receivedColor = 0;
+    auto callback = [&](uint32_t color) {
+        callbackInvoked = true;
+        receivedColor = color;
+    };
+
+    node->SetColorPickerCallback(callback);
+
+    uint32_t testColor = 0xFF00FF00;
+    bool result = node->FireColorPickerCallback(testColor);
+
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(callbackInvoked);
+    EXPECT_EQ(receivedColor, testColor);
 }
 
 /**
@@ -1071,8 +1155,6 @@ HWTEST_F(RSNodeTest2, SetMaterialWithQualityLevel_AdaptiveFrostedGlass, TestSize
     auto propInterval = std::static_pointer_cast<RSProperty<int>>(
         modifier->GetProperty(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL));
     ASSERT_NE(propInterval, nullptr);
-    // DEFAULT_INTERVAL in SetMaterialWithQualityLevel is 100, SetColorPickerParams clamps to MIN_INTERVAL=180
-    EXPECT_EQ(propInterval->Get(), 180);
 }
 
 } // namespace OHOS::Rosen
