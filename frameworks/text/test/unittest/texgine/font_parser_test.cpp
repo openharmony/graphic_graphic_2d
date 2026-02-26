@@ -1101,10 +1101,11 @@ HWTEST_F(FontParserTest, FontDescriptorVariationWithVariableFontTest, TestSize.L
         // Verify axis structure
         for (const auto& axis : desc.variationAxisRecords) {
             EXPECT_FALSE(axis.key.empty());
-            EXPECT_GE(axis.maxValue, axis.minValue);
-            EXPECT_GE(axis.defaultValue, axis.minValue);
-            EXPECT_LE(axis.defaultValue, axis.maxValue);
-            EXPECT_GE(axis.flags, 0);
+            EXPECT_FALSE(axis.name.empty());
+            EXPECT_EQ(axis.maxValue, 900);
+            EXPECT_EQ(axis.defaultValue, 400);
+            EXPECT_EQ(axis.minValue, 40);
+            EXPECT_EQ(axis.flags, 0);
         }
     }
 
@@ -1113,7 +1114,7 @@ HWTEST_F(FontParserTest, FontDescriptorVariationWithVariableFontTest, TestSize.L
 
 /**
  * @tc.name: FillFontDescriptorWithVariationInfoGetValueTest
- * @tc.desc: Test getting variation axis and instance values from variable font
+ * @tc.desc: Test getting variation instance values from variable font
  * @tc.type: FUNC
  */
 HWTEST_F(FontParserTest, FillFontDescriptorWithVariationInfoGetValueTest, TestSize.Level0)
@@ -1132,18 +1133,6 @@ HWTEST_F(FontParserTest, FillFontDescriptorWithVariationInfoGetValueTest, TestSi
     std::vector<std::string> bcpTagList = {"en", "zh-Hans"};
 
     FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
-
-    // Verify variation axis records are populated
-    if (!desc.variationAxisRecords.empty()) {
-        for (const auto& axis : desc.variationAxisRecords) {
-            EXPECT_FALSE(axis.key.empty());
-            EXPECT_FALSE(axis.name.empty());
-            EXPECT_GT(axis.maxValue, axis.minValue);
-            EXPECT_GE(axis.defaultValue, axis.minValue);
-            EXPECT_LE(axis.defaultValue, axis.maxValue);
-            EXPECT_GE(axis.flags, 0);
-        }
-    }
 
     // Verify variation instance records are populated
     if (!desc.variationInstanceRecords.empty()) {

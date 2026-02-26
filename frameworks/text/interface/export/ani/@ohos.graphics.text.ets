@@ -689,7 +689,7 @@ export default namespace text {
       defaultValue: double,
       flags: int,
       name: string,
-      localName: string,
+      localName: string
     ) {
       this.key = key;
       this.minValue = minValue;
@@ -714,7 +714,7 @@ export default namespace text {
     constructor(
       name: string,
       localName: string,
-      coordinates: Array<FontVariation>,
+      coordinates: Array<FontVariation>
     ) {
       this.name = name;
       this.localName = localName;

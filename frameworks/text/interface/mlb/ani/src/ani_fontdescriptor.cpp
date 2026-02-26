@@ -93,7 +93,7 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
     return ANI_OK;
 }
 
-static ani_status ParseFontVariationAxisToAni(ani_env* env,
+ani_status ParseFontVariationAxisToAni(ani_env* env,
     const TextEngine::FontParser::FontVariationAxis& axis, ani_object& aniObj)
 {
     aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontVariationAxis,
@@ -116,7 +116,7 @@ ani_object CreateFontVariationAxisArray(ani_env* env,
     ani_boolean isUndefined = false;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to create FontVariationAxis array, returning empty array");
+        TEXT_LOGE("Failed to create font variation axis array, returning empty array");
         return AniTextUtils::CreateAniArray(env, 0);
     }
 
@@ -125,13 +125,13 @@ ani_object CreateFontVariationAxisArray(ani_env* env,
         ani_object axisObj = nullptr;
         ani_status status = ParseFontVariationAxisToAni(env, axis, axisObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to parse FontVariationAxis to ani, index %{public}zu, status %{public}d", index, status);
+            TEXT_LOGE("Failed to parse font variation axis to ani, index %{public}zu, status %{public}d",
+                index, status);
             continue;
         }
-        status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet,
-            index, axisObj);
+        status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, axisObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to set FontVariationAxis item, index %{public}zu, status %{public}d", index, status);
+            TEXT_LOGE("Failed to set font variation axis item, index %{public}zu, status %{public}d", index, status);
             continue;
         }
         index++;
@@ -140,8 +140,7 @@ ani_object CreateFontVariationAxisArray(ani_env* env,
     return arrayObj;
 }
 
-namespace {
-static ani_status ParseFontVariationToAni(ani_env* env,
+ani_status ParseFontVariationToAni(ani_env* env,
     const TextEngine::FontParser::FontVariation& variation, ani_object& aniObj)
 {
     aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontVariation,
@@ -167,7 +166,8 @@ ani_object CreateCoordinatesArray(ani_env* env,
         ani_object coordObj = nullptr;
         ani_status status = ParseFontVariationToAni(env, coord, coordObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to parse FontVariation to ani, index %{public}zu, status %{public}d", coordIndex, status);
+            TEXT_LOGE("Failed to parse font variation to ani, index %{public}zu, status %{public}d",
+                coordIndex, status);
             continue;
         }
         status = env->Object_CallMethod_Void(coordinatesArray,
@@ -180,9 +180,8 @@ ani_object CreateCoordinatesArray(ani_env* env,
     }
     return coordinatesArray;
 }
-}
 
-static ani_status ParseFontVariationInstanceToAni(ani_env* env,
+ani_status ParseFontVariationInstanceToAni(ani_env* env,
     const TextEngine::FontParser::FontVariationInstance& instance, ani_object& aniObj)
 {
     ani_object coordinatesArray = CreateCoordinatesArray(env, instance.coordinates);
@@ -206,7 +205,7 @@ ani_object CreateFontVariationInstanceArray(ani_env* env,
     ani_boolean isUndefined = false;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to create FontVariationInstance array, returning empty array");
+        TEXT_LOGE("Failed to create font variation instance array, returning empty array");
         return AniTextUtils::CreateAniArray(env, 0);
     }
 
@@ -215,14 +214,15 @@ ani_object CreateFontVariationInstanceArray(ani_env* env,
         ani_object instanceObj = nullptr;
         ani_status status = ParseFontVariationInstanceToAni(env, instance, instanceObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to parse FontVariationInstance to ani, index %{public}zu, status %{public}d",
+            TEXT_LOGE("Failed to parse font variation instance to ani, index %{public}zu, status %{public}d",
                 index, status);
             continue;
         }
         status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet,
             index, instanceObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to set FontVariationInstance item, index %{public}zu, status %{public}d", index, status);
+            TEXT_LOGE("Failed to set font variation instance item, index %{public}zu, status %{public}d",
+                index, status);
             continue;
         }
         index++;
