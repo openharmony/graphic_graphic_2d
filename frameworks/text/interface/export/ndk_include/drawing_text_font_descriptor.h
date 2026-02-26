@@ -435,7 +435,7 @@ OH_Drawing_FontVariationAxis* OH_Drawing_GetFontVariationAxisByIndex(OH_Drawing_
 /**
  * @brief Releases the memory occupied by an array of font variation axis.
  *
- * @param fontVariaAxisArray Indicates an array of font variaiton axis object <b>OH_Drawing_Array</b>.
+ * @param fontVariaAxisArray Indicates an array of font variation axis object <b>OH_Drawing_Array</b>.
  * @since 24
  */
 void OH_Drawing_DestroyFontVariationAxis(OH_Drawing_Array* fontVariaAxisArray);
@@ -474,7 +474,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeInt(OH_Drawing_Font
  * @brief Retrieves a string attribute value from a font variation axis.
  *
  * @note The caller is responsible for manually releasing the internal <b>strData</b> member of the
- *       <b>OH_Drawing_String></b> structure when it is no longer needed.
+ *       <b>OH_Drawing_String</b> structure when it is no longer needed.
  *
  * @param variationAxis Pointer to the font variation axis <b>OH_Drawing_FontVariationAxis</b>.
  * @param id Attribute identifier from <b>OH_Drawing_FontVariationAxisAttributeId</b> enumeration.
@@ -483,7 +483,6 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeInt(OH_Drawing_Font
  *         Returns <b>OH_DRAWING_SUCCESS</b> if the operation is successful.
  *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the variationAxis or str is NULL.
  *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if the attribute id is not recognized or supported.
-
  * @since 24
  */
 OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeStr(OH_Drawing_FontVariationAxis* variationAxis,
@@ -503,10 +502,10 @@ OH_Drawing_FontVariationInstance* OH_Drawing_GetFontVariationInstanceByIndex(OH_
 /**
  * @brief Releases the memory occupied by an array of font variation instance.
  *
- * @param fontVariaAxisInstance Indicates an array of font variaiton instance object <b>OH_Drawing_Array</b>.
+ * @param fontVariaAxisInstance Indicates an array of font variation instance object <b>OH_Drawing_Array</b>.
  * @since 24
  */
-void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* FontVariationInstance);
+void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* fontVariaAxisInstance);
 
 /**
  * @brief Retrieves a string attribute value from a font variation instance.
