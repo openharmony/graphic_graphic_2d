@@ -2435,6 +2435,11 @@ bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
 
 int32_t RSClientToServiceConnection::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
 {
+    if (sharedTypeface.originId_ > 0) {
+        ::close(sharedTypeface.fd_);
+        needUpdate = -1;
+        return RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+    }
     if (sharedTypeface.fd_ < 0 || sharedTypeface.size_ == 0) {
         RS_LOGE("RegisterTypeface: invalid parameters");
         ::close(sharedTypeface.fd_);

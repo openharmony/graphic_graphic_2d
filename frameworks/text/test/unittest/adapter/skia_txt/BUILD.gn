@@ -31,6 +31,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "typography_image_test.cpp",
     "typography_relayout_test.cpp",
     "typography_test.cpp",
+    "variation_font_cache_test.cpp",
   ]
   include_dirs = [
     "$rosen_text_root",
