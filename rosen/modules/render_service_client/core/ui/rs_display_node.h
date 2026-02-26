@@ -118,7 +118,7 @@ public:
      *
      * @param contentRect Indicates the content rect of the display.
      */
-    void SetDisplayContentRect(const Drawing::Rect& contentRect);
+    void SetDisplayContentRect(const Rect& contentRect);
 
     /**
      * @brief Sets whether it is a security screen.

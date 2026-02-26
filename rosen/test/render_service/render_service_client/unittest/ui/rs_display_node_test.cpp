@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_display_node.h"
-#include "utils/rect.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -462,7 +461,7 @@ HWTEST_F(RSDisplayNodeTest, SetDisplayContentRect001, TestSize.Level1)
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     ASSERT_TRUE(displayNode != nullptr);
 
-    Drawing::Rect contentRect(0.0f, 0.0f, 1920.0f, 1080.0f);
+    Rect contentRect{0, 0, 1920, 1080};
     displayNode->SetDisplayContentRect(contentRect);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
@@ -478,11 +477,11 @@ HWTEST_F(RSDisplayNodeTest, SetDisplayContentRect002, TestSize.Level1)
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     ASSERT_TRUE(displayNode != nullptr);
 
-    Drawing::Rect contentRect(100.0f, 50.0f, 1280.0f, 720.0f);
+    Rect contentRect{100, 50, 1280, 720};
     displayNode->SetDisplayContentRect(contentRect);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 
-    Drawing::Rect contentRect2(0.0f, 0.0f, 2560.0f, 1440.0f);
+    Rect contentRect2{0, 0, 2560, 1440};
     displayNode->SetDisplayContentRect(contentRect2);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
@@ -501,7 +500,7 @@ HWTEST_F(RSDisplayNodeTest, SetDisplayContentRect003, TestSize.Level1)
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
 
-    Drawing::Rect contentRect(0.0f, 0.0f, 1920.0f, 1080.0f);
+    Rect contentRect{0, 0, 1920, 1080};
     displayNode->SetDisplayContentRect(contentRect);
     ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();

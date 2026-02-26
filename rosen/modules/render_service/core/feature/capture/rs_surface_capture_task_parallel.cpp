@@ -514,20 +514,15 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     screenRotation_ = node->GetScreenRotation();
     finalRotationAngle_ = CalPixelMapRotation();
 
-    // Check if contentRect is valid and use its size
-    const Drawing::Rect& contentRect = node->GetDisplayContentRect();
     uint32_t pixmapWidth = static_cast<uint32_t>(node->GetFixedWidth());
     uint32_t pixmapHeight = static_cast<uint32_t>(node->GetFixedHeight());
     auto bounds = node->GetRenderProperties().GetBoundsGeometry();
     boundsX_ = bounds->GetX();
     boundsY_ = bounds->GetY();
-
-    if (contentRect.IsValid() && contentRect.GetWidth() > 0 && contentRect.GetHeight() > 0) {
-        pixmapWidth = static_cast<uint32_t>(contentRect.GetWidth());
-        pixmapHeight = static_cast<uint32_t>(contentRect.GetHeight());
-        // Update bounds offset to match contentRect position
-        boundsX_ = contentRect.GetLeft();
-        boundsY_ = contentRect.GetTop();
+    const Rect& contentRect = node->GetDisplayContentRect();
+    if (contentRect.w > 0 && contentRect.h > 0) {
+        pixmapWidth = static_cast<uint32_t>(contentRect.w);
+        pixmapHeight = static_cast<uint32_t>(contentRect.h);
     }
 
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;

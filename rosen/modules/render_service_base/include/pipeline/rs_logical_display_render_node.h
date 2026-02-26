@@ -23,8 +23,6 @@
 
 #include "params/rs_logical_display_render_params.h"
 #include "pipeline/rs_render_node.h"
-#include "utils/rect.h"
-
 
 namespace OHOS {
 namespace Rosen {
@@ -58,9 +56,12 @@ public:
         return screenId_;
     }
 
-    void SetDisplayContentRect(const Drawing::Rect& contentRect);
+    void SetDisplayContentRect(const Rect& contentRect)
+    {
+        contentRect_ = contentRect;
+    }
 
-    const Drawing::Rect& GetDisplayContentRect() const
+    const Rect& GetDisplayContentRect() const
     {
         return contentRect_;
     }
@@ -198,7 +199,7 @@ private:
     void InitRenderParams() override;
 
     ScreenId screenId_ = INVALID_SCREEN_ID;
-    Drawing::Rect contentRect_;
+    Rect contentRect_;
     std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
 
     // bounds rotation

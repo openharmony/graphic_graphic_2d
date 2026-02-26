@@ -195,14 +195,14 @@ void RSDisplayNode::SetScreenId(uint64_t screenId)
     RS_TRACE_NAME_FMT("RSDisplayNode::SetScreenId, DisplayNode: %" PRIu64 ", ScreenId: %" PRIu64, GetId(), screenId);
 }
 
-void RSDisplayNode::SetDisplayContentRect(const Drawing::Rect& contentRect)
+void RSDisplayNode::SetDisplayContentRect(const Rect& contentRect)
 {
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSDisplayNodeSetDisplayContentRect>(GetId(), contentRect);
     AddCommand(command, true);
     HILOG_COMM_INFO("RSDisplayNode::SetDisplayContentRect, DisplayNode: %{public}" PRIu64
         ", contentRect: [%{public}f, %{public}f, %{public}f, %{public}f]",
-        GetId(), contentRect.left_, contentRect.top_, contentRect.right_, contentRect.bottom_);
+        GetId(), contentRect.x, contentRect.y, contentRect.w, contentRect.h);
 }
 
 void RSDisplayNode::SetForceCloseHdr(bool isForceCloseHdr)

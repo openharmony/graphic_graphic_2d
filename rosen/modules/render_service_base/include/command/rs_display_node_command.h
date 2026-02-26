@@ -19,7 +19,6 @@
 #include "command/rs_command_templates.h"
 #include "screen_manager/screen_types.h"
 #include "common/rs_macros.h"
-#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -48,7 +47,7 @@ public:
     static std::shared_ptr<RSLogicalDisplayRenderNode> CreateWithConfigInRS(
         RSContext&, NodeId, const RSDisplayNodeConfig&);
     static void SetScreenId(RSContext&, NodeId, uint64_t);
-    static void SetDisplayContentRect(RSContext&, NodeId, const Drawing::Rect&);
+    static void SetDisplayContentRect(RSContext&, NodeId, const Rect&);
     static void SetSecurityDisplay(RSContext&, NodeId, bool);
     static void SetDisplayMode(RSContext&, NodeId, const RSDisplayNodeConfig&);
     static void SetScreenRotation(RSContext&, NodeId, const ScreenRotation&);
@@ -68,7 +67,7 @@ ADD_COMMAND(RSDisplayNodeSetScreenId,
         DisplayNodeCommandHelper::SetScreenId, NodeId, uint64_t))
 ADD_COMMAND(RSDisplayNodeSetDisplayContentRect,
     ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_DISPLAY_CONTENT_RECT,
-        DisplayNodeCommandHelper::SetDisplayContentRect, NodeId, Drawing::Rect))
+        DisplayNodeCommandHelper::SetDisplayContentRect, NodeId, Rect))
 ADD_COMMAND(RSDisplayNodeSetSecurityDisplay,
     ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_SECURITY_DISPLAY,
         DisplayNodeCommandHelper::SetSecurityDisplay, NodeId, bool))

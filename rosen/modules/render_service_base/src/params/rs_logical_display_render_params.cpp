@@ -100,13 +100,13 @@ void RSLogicalDisplayRenderParams::SetScreenId(uint64_t screenId)
     needSync_ = true;
 }
 
-void RSLogicalDisplayRenderParams::SetDisplayContentRect(const Drawing::Rect& contentRect)
+void RSLogicalDisplayRenderParams::SetDisplayContentRect(const Rect& contentRect)
 {
     contentRect_ = contentRect;
     needSync_ = true;
 }
 
-const Drawing::Rect& RSLogicalDisplayRenderParams::GetDisplayContentRect() const
+const Rect& RSLogicalDisplayRenderParams::GetDisplayContentRect() const
 {
     return contentRect_;
 }

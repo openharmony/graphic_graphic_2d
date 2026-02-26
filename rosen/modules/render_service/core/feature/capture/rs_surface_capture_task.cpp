@@ -159,14 +159,6 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
-
-    // Check if contentRect is valid and use its size
-    const Drawing::Rect& contentRect = node->GetDisplayContentRect();
-    if (contentRect.IsValid() && contentRect.GetWidth() > 0 && contentRect.GetHeight() > 0) {
-        pixmapWidth = static_cast<uint32_t>(contentRect.GetWidth());
-        pixmapHeight = static_cast<uint32_t>(contentRect.GetHeight());
-    }
-
     if (!isUniRender) {
         auto rotation = node->GetRotation();
         if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {

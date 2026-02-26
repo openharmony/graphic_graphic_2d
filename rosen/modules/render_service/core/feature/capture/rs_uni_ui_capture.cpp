@@ -158,16 +158,6 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::CreatePixelMapByNode(std::share
 {
     float pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     float pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
-
-    // Check if node is RSLogicalDisplayRenderNode and use contentRect if valid
-    if (auto displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>()) {
-        const Drawing::Rect& contentRect = displayNode->GetDisplayContentRect();
-        if (contentRect.IsValid() && contentRect.GetWidth() > 0 && contentRect.GetHeight() > 0) {
-            pixmapWidth = contentRect.GetWidth();
-            pixmapHeight = contentRect.GetHeight();
-        }
-    }
-
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);

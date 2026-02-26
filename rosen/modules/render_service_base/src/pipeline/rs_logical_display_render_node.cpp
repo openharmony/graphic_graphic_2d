@@ -141,17 +141,6 @@ void RSLogicalDisplayRenderNode::ClearModifiersByPid(pid_t pid)
     }
 }
 
-void RSLogicalDisplayRenderNode::SetDisplayContentRect(const Drawing::Rect& contentRect)
-{
-    RS_LOGI("RSLogicalDisplayRenderNode::SetDisplayContentRect node:[%{public}" PRIu64 "], "
-             "oldRect:[%{public}f,%{public}f,%{public}f,%{public}f], "
-             "newRect:[%{public}f,%{public}f,%{public}f,%{public}f]",
-             GetId(),
-             contentRect_.left_, contentRect_.top_, contentRect_.right_, contentRect_.bottom_,
-             contentRect.left_, contentRect.top_, contentRect.right_, contentRect.bottom_);
-    contentRect_ = contentRect;
-}
-
 void RSLogicalDisplayRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {

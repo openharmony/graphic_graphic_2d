@@ -22,7 +22,6 @@
 #include "common/rs_macros.h"
 #include "params/rs_render_params.h"
 #include "params/rs_screen_render_params.h"
-#include "utils/rect.h"
 namespace OHOS::Rosen {
 class RSB_EXPORT RSLogicalDisplayRenderParams : public RSRenderParams {
 public:
@@ -42,8 +41,8 @@ public:
     void SetScreenId(uint64_t screenId);
     uint64_t GetScreenId() const;
 
-    void SetDisplayContentRect(const Drawing::Rect& contentRect);
-    const Drawing::Rect& GetDisplayContentRect() const;
+    void SetDisplayContentRect(const Rect& contentRect);
+    const Rect& GetDisplayContentRect() const;
 
     void SetNeedOffscreen(bool needOffscreen);
     bool GetNeedOffscreen() const;
@@ -153,7 +152,7 @@ private:
     RSSpecialLayerManager specialLayerManager_;
     bool isSecurityExemption_ = false;
     uint64_t screenId_ = INVALID_SCREEN_ID;
-    Drawing::Rect contentRect_;
+    Rect contentRect_;
     bool needOffscreen_ = false;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
