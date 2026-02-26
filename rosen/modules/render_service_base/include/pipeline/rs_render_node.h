@@ -63,7 +63,6 @@ class RSRenderParams;
 class RSContext;
 class RSNodeVisitor;
 class RSCommand;
-class RSCanvasDrawingRenderNode;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -1083,7 +1082,7 @@ protected:
 
     static void DumpNodeType(RSRenderNodeType nodeType, std::string& out);
 
-    virtual void DumpSubClassNode(std::string& out) const;
+    void DumpSubClassNode(std::string& out) const;
     void DumpDrawCmdModifiers(std::string& out) const;
     void DumpModifiers(std::string& out) const;
 
