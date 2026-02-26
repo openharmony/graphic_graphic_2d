@@ -80,6 +80,8 @@ protected:
 
     void UpdateDrawCmdList();
 
+    void ClearDrawCmdList();
+
     void UpdateToRender() override;
 
 private:
