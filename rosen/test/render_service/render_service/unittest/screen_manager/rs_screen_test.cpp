@@ -733,6 +733,12 @@ HWTEST_F(RSScreenTest, SetRogResolution_002, testing::ext::TestSize.Level1)
     // case 2:hdiScreen_->SetScreenOverlayResolution success
     EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(0));
     rsScreen->SetRogResolution(width, height);
+
+    rsScreen->property_.SetPhyHeight(height - 1);
+    rsScreen->SetRogResolution(width, height);
+
+    rsScreen->property_.SetPhyWidth(width - 1);
+    rsScreen->SetRogResolution(width, height);
 }
 
 /**
