@@ -60,6 +60,8 @@ public:
     static void SetImageFilter(ani_env* env, ani_object obj, ani_object aniImageFilterObj);
     static void SetShadowLayer(ani_env* env, ani_object obj, ani_object aniShadowLayerObj);
     static void SetShaderEffect(ani_env* env, ani_object obj, ani_object aniShaderEffectObj);
+    static void SetColor4f(ani_env* env, ani_object obj, ani_object aniColor4f, ani_object aniColorSpace);
+    static ani_object GetColor4f(ani_env* env, ani_object obj);
 
     std::shared_ptr<Pen> GetPen();
 
