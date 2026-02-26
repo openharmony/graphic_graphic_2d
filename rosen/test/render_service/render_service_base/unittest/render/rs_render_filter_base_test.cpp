@@ -64,8 +64,7 @@ HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImpl001, TestSize.Level1
  */
 HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImpl002, TestSize.Level1)
 {
-    auto testEffect = std::make_shared<Drawing::GEVisualEffect>(
-        RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_RRECT_SHAPE));
+    auto testEffect = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_KAWASE_BLUR);
     EXPECT_NE(testEffect, nullptr);
 
     // 1 test value

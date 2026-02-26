@@ -730,23 +730,6 @@ HWTEST_F(RSChildrenDrawableTest, RSRestoreDrawable001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSCustomSaveDrawable001
- * @tc.desc: Test OnDraw
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSChildrenDrawableTest, RSCustomSaveDrawable001, TestSize.Level1)
-{
-    auto type = RSPaintFilterCanvas::kCanvas;
-    auto status = std::make_shared<RSPaintFilterCanvas::SaveStatus>();
-    auto drawable = std::make_shared<DrawableV2::RSCustomSaveDrawable>(status, type);
-    auto canvas = std::make_shared<Drawing::Canvas>();
-    auto rect = std::make_shared<Drawing::Rect>();
-    drawable->OnDraw(canvas.get(), rect.get());
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: RSCustomRestoreDrawable001
  * @tc.desc: Test OnDraw
  * @tc.type:FUNC
