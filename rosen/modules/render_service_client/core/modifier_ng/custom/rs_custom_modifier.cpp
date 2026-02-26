@@ -80,17 +80,28 @@ void RSCustomModifier::UpdateDrawCmdList()
         } else {
             property->stagingValue_ = drawCmdList;
         }
+        property->cmdListImages_ = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
         MarkNodeDirty();
         if (property->isCustom_) {
             property->MarkCustomModifierDirty();
         }
     } else {
         auto property = std::make_shared<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
+        property->cmdListImages_ = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
         property->SetPropertyTypeNG(propertyType);
         properties_[propertyType] = property;
         SetPropertyThresholdType(propertyType, property);
         property->Attach(*node, weak_from_this());
         MarkNodeDirty();
+    }
+}
+
+void RSCustomModifier::ClearDrawCmdList()
+{
+    if (auto property = GetProperty(GetInnerPropertyType())) {
+        auto animatableProperty = std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(property);
+        animatableProperty->showingValue_ = nullptr;
+        animatableProperty->stagingValue_ = nullptr;
     }
 }
 
@@ -126,6 +137,7 @@ void RSCustomModifier::UpdateToRender()
     } else {
         property->stagingValue_ = drawCmdList;
     }
+    property->cmdListImages_ = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
     UpdateProperty(node, drawCmdList, property->GetId());
 }
 

@@ -29,6 +29,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_CANVAS_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_CANVAS_NODE_H
 
+#include "modifier/rs_cmd_list_image_collector.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "ui/rs_node.h"
 
@@ -222,7 +223,7 @@ private:
     void CreateRenderNodeForTextureExportSwitch() override;
     void RegisterNodeMap() override;
 
-    Drawing::DrawCmdListPtr drawCmdList_ = nullptr;
+    std::unique_ptr<CmdListImage> cmdListImages_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -44,6 +44,7 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_animatable_arithmetic.h"
+#include "modifier/rs_cmd_list_image_collector.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -483,6 +484,7 @@ protected:
 
     static constexpr RSPropertyType type_ = RSPropertyTypeTraits<T>::type;
     ModifierNG::RSPropertyType typeNG_ = ModifierNG::RSPropertyType::INVALID;
+    std::unique_ptr<CmdListImage> cmdListImages_ = nullptr;
 
     T stagingValue_ {};
     bool isCustom_ { false };
