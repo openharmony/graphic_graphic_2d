@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
+#include <cJSON.h>
 #include <gtest/gtest.h>
-#include <json/json.h>
-#include <json/value.h>
 
 #include "symbol_resource/symbol_config_parser.h"
 
@@ -165,6 +164,18 @@ const char* ROOT_INVALID_JSON_STR = R"({
     "special_animations": {},
     "symbol_layers_grouping": {}
 })";
+
+// Helper function to delete item from cJSON object
+void DeleteItemFromObject(cJSON* parent, const char* key)
+{
+    if (parent == nullptr || key == nullptr || !cJSON_IsObject(parent)) {
+        return;
+    }
+    cJSON* item = cJSON_DetachItemFromObject(parent, key);
+    if (item != nullptr) {
+        cJSON_Delete(item);
+    }
+}
 }
 
 class SymbolConfigParserTest : public testing::Test {
@@ -176,27 +187,43 @@ public:
         BuildInvalidJson();
     }
 
-    Json::Value rootLayers_;
-    Json::Value rootAnimations_;
-    Json::Value rootInvalid_;
+    void TearDown() override
+    {
+        if (rootLayers_ != nullptr) {
+            cJSON_Delete(rootLayers_);
+            rootLayers_ = nullptr;
+        }
+        if (rootAnimations_ != nullptr) {
+            cJSON_Delete(rootAnimations_);
+            rootAnimations_ = nullptr;
+        }
+        if (rootInvalid_ != nullptr) {
+            cJSON_Delete(rootInvalid_);
+            rootInvalid_ = nullptr;
+        }
+    }
+
+    cJSON* rootLayers_ = nullptr;
+    cJSON* rootAnimations_ = nullptr;
+    cJSON* rootInvalid_ = nullptr;
 
 private:
     void BuildValidLayersGroupingJson()
     {
-        Json::Reader reader;
-        EXPECT_TRUE(reader.parse(ROOT_LAYERS_JSON_STR, rootLayers_));
+        rootLayers_ = cJSON_Parse(ROOT_LAYERS_JSON_STR);
+        EXPECT_NE(rootLayers_, nullptr);
     }
 
     void BuildValidAnimationsJson()
     {
-        Json::Reader reader;
-        EXPECT_TRUE(reader.parse(ROOT_ANIMATIONS_JSON_STR, rootAnimations_));
+        rootAnimations_ = cJSON_Parse(ROOT_ANIMATIONS_JSON_STR);
+        EXPECT_NE(rootAnimations_, nullptr);
     }
 
     void BuildInvalidJson()
     {
-        Json::Reader reader;
-        EXPECT_TRUE(reader.parse(ROOT_INVALID_JSON_STR, rootInvalid_));
+        rootInvalid_ = cJSON_Parse(ROOT_INVALID_JSON_STR);
+        EXPECT_NE(rootInvalid_, nullptr);
     }
 };
 
@@ -207,10 +234,16 @@ private:
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest001, TestSize.Level0)
 {
-    rootLayers_["symbol_layers_grouping"][0].removeMember("native_glyph_id");
+    cJSON* grouping = cJSON_GetObjectItem(rootLayers_, "symbol_layers_grouping");
+    ASSERT_NE(grouping, nullptr);
+    ASSERT_TRUE(cJSON_IsArray(grouping));
+    cJSON* firstItem = cJSON_GetArrayItem(grouping, 0);
+    ASSERT_NE(firstItem, nullptr);
+    DeleteItemFromObject(firstItem, "native_glyph_id");
+
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
     EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
-        rootLayers_["symbol_layers_grouping"], symbolConfig));
+        grouping, symbolConfig));
     EXPECT_TRUE(symbolConfig.empty());
 }
 
@@ -221,10 +254,16 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest001, TestSize.Level0)
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest002, TestSize.Level0)
 {
-    rootLayers_["symbol_layers_grouping"][0]["native_glyph_id"] = "invalid_id";
+    cJSON* grouping = cJSON_GetObjectItem(rootLayers_, "symbol_layers_grouping");
+    ASSERT_NE(grouping, nullptr);
+    ASSERT_TRUE(cJSON_IsArray(grouping));
+    cJSON* firstItem = cJSON_GetArrayItem(grouping, 0);
+    ASSERT_NE(firstItem, nullptr);
+    EXPECT_TRUE(cJSON_ReplaceItemInObject(firstItem, "native_glyph_id", cJSON_CreateString("invalid_id")));
+
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
     EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
-        rootLayers_["symbol_layers_grouping"], symbolConfig));
+        grouping, symbolConfig));
     EXPECT_TRUE(symbolConfig.empty());
 }
 
@@ -235,13 +274,29 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest002, TestSize.Level0)
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest003, TestSize.Level0)
 {
-    rootLayers_["symbol_layers_grouping"][0]["render_modes"][0]["render_groups"][0]["default_color"] = "INVALID_COLOR";
+    cJSON* grouping = cJSON_GetObjectItem(rootLayers_, "symbol_layers_grouping");
+    ASSERT_NE(grouping, nullptr);
+    ASSERT_TRUE(cJSON_IsArray(grouping));
+    cJSON* firstItem = cJSON_GetArrayItem(grouping, 0);
+    ASSERT_NE(firstItem, nullptr);
+    cJSON* renderModes = cJSON_GetObjectItem(firstItem, "render_modes");
+    ASSERT_NE(renderModes, nullptr);
+    ASSERT_TRUE(cJSON_IsArray(renderModes));
+    cJSON* firstRenderMode = cJSON_GetArrayItem(renderModes, 0);
+    ASSERT_NE(firstRenderMode, nullptr);
+    cJSON* renderGroups = cJSON_GetObjectItem(firstRenderMode, "render_groups");
+    ASSERT_NE(renderGroups, nullptr);
+    ASSERT_TRUE(cJSON_IsArray(renderGroups));
+    cJSON* firstRenderGroup = cJSON_GetArrayItem(renderGroups, 0);
+    ASSERT_NE(firstRenderGroup, nullptr);
+    EXPECT_TRUE(cJSON_SetValuestring(cJSON_GetObjectItem(firstRenderGroup, "default_color"), "INVALID_COLOR"));
+
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
     EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
-        rootLayers_["symbol_layers_grouping"], symbolConfig));
-    auto& renderGroups = symbolConfig.at(1001).renderModeGroups.begin()->second;
+        grouping, symbolConfig));
+    auto& renderGroupsResult = symbolConfig.at(1001).renderModeGroups.begin()->second;
     // default value is 0
-    EXPECT_EQ(renderGroups[0].color.r, 0);
+    EXPECT_EQ(renderGroupsResult[0].color.r, 0);
 }
 
 /*
@@ -251,10 +306,18 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest003, TestSize.Level0)
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest004, TestSize.Level0)
 {
-    rootAnimations_["animations"][0].removeMember("animation_type");
-    rootAnimations_["animations"][1].removeMember("animation_type");
+    cJSON* animations = cJSON_GetObjectItem(rootAnimations_, "animations");
+    ASSERT_NE(animations, nullptr);
+    ASSERT_TRUE(cJSON_IsArray(animations));
+    cJSON* firstItem = cJSON_GetArrayItem(animations, 0);
+    ASSERT_NE(firstItem, nullptr);
+    cJSON* secondItem = cJSON_GetArrayItem(animations, 1);
+    ASSERT_NE(secondItem, nullptr);
+    DeleteItemFromObject(firstItem, "animation_type");
+    DeleteItemFromObject(secondItem, "animation_type");
+
     std::unordered_map<RSAnimationType, RSAnimationInfo> animationInfos;
-    OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolAnimations(rootAnimations_["animations"], animationInfos);
+    OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolAnimations(animations, animationInfos);
     EXPECT_TRUE(animationInfos.empty());
 }
 
@@ -265,9 +328,20 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest004, TestSize.Level0)
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest005, TestSize.Level0)
 {
-    rootAnimations_["animations"][0]["animation_parameters"][0]["common_sub_type"] = "invalid_direction";
+    cJSON* animations = cJSON_GetObjectItem(rootAnimations_, "animations");
+    ASSERT_NE(animations, nullptr);
+    ASSERT_TRUE(cJSON_IsArray(animations));
+    cJSON* firstItem = cJSON_GetArrayItem(animations, 0);
+    ASSERT_NE(firstItem, nullptr);
+    cJSON* animParams = cJSON_GetObjectItem(firstItem, "animation_parameters");
+    ASSERT_NE(animParams, nullptr);
+    ASSERT_TRUE(cJSON_IsArray(animParams));
+    cJSON* firstParam = cJSON_GetArrayItem(animParams, 0);
+    ASSERT_NE(firstParam, nullptr);
+    EXPECT_TRUE(cJSON_SetValuestring(cJSON_GetObjectItem(firstParam, "common_sub_type"), "invalid_direction"));
+
     std::unordered_map<RSAnimationType, RSAnimationInfo> animationInfos;
-    OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolAnimations(rootAnimations_["animations"], animationInfos);
+    OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolAnimations(animations, animationInfos);
     auto& animInfo = animationInfos.at(RSAnimationType::SCALE_TYPE);
     EXPECT_EQ(animInfo.animationParas.begin()->second.commonSubType, RSCommonSubType::DOWN);
 }
@@ -279,10 +353,19 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest005, TestSize.Level0)
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest006, TestSize.Level0)
 {
-    rootLayers_["symbol_layers_grouping"][0]["layers"] = Json::arrayValue;
+    cJSON* grouping = cJSON_GetObjectItem(rootLayers_, "symbol_layers_grouping");
+    ASSERT_NE(grouping, nullptr);
+    ASSERT_TRUE(cJSON_IsArray(grouping));
+    cJSON* firstItem = cJSON_GetArrayItem(grouping, 0);
+    ASSERT_NE(firstItem, nullptr);
+
+    cJSON* emptyArray = cJSON_CreateArray();
+    ASSERT_NE(emptyArray, nullptr);
+    EXPECT_TRUE(cJSON_ReplaceItemInObject(firstItem, "layers", emptyArray));
+
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
     EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
-        rootLayers_["symbol_layers_grouping"], symbolConfig));
+        grouping, symbolConfig));
     EXPECT_TRUE(symbolConfig.at(1001).layers.empty());
 }
 
@@ -293,9 +376,12 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest006, TestSize.Level0)
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest007, TestSize.Level0)
 {
+    cJSON* grouping = cJSON_GetObjectItem(rootLayers_, "symbol_layers_grouping");
+    ASSERT_NE(grouping, nullptr);
+
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
     EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
-        rootLayers_["symbol_layers_grouping"], symbolConfig));
+        grouping, symbolConfig));
     auto& group = symbolConfig.at(1001);
     EXPECT_EQ(group.symbolGlyphId, 2001);
     EXPECT_EQ(group.layers.size(), 2);
@@ -311,8 +397,11 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest007, TestSize.Level0)
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest008, TestSize.Level0)
 {
+    cJSON* animations = cJSON_GetObjectItem(rootAnimations_, "animations");
+    ASSERT_NE(animations, nullptr);
+
     std::unordered_map<RSAnimationType, RSAnimationInfo> animationInfos;
-    OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolAnimations(rootAnimations_["animations"], animationInfos);
+    OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolAnimations(animations, animationInfos);
     EXPECT_FALSE(animationInfos.empty());
     auto& animPara = animationInfos.at(RSAnimationType::SCALE_TYPE).animationParas.begin()->second;
     EXPECT_EQ(animPara.animationMode, 1);
@@ -326,10 +415,13 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest008, TestSize.Level0)
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest009, TestSize.Level0)
 {
-    rootLayers_["symbol_layers_grouping"] = Json::objectValue;
+    cJSON* emptyObj = cJSON_CreateObject();
+    ASSERT_NE(emptyObj, nullptr);
+
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
     EXPECT_FALSE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
-        rootLayers_["symbol_layers_grouping"], symbolConfig));
+        emptyObj, symbolConfig));
+    cJSON_Delete(emptyObj);
 }
 
 /*
@@ -339,10 +431,13 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest009, TestSize.Level0)
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest010, TestSize.Level0)
 {
-    rootAnimations_["animations"] = Json::objectValue;
+    cJSON* emptyObj = cJSON_CreateObject();
+    ASSERT_NE(emptyObj, nullptr);
+
     std::unordered_map<RSAnimationType, RSAnimationInfo> animationInfos;
     EXPECT_FALSE(
-        OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolAnimations(rootAnimations_["animations"], animationInfos));
+        OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolAnimations(emptyObj, animationInfos));
+    cJSON_Delete(emptyObj);
 }
 
 /*
