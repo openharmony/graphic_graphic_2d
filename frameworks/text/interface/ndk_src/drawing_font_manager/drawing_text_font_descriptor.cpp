@@ -413,15 +413,15 @@ static OH_Drawing_Array* CreateVariationAxisArray(
         return nullptr;
     }
 
-    std::unique_ptr array = std::make_unique<ObjectArray>();
     std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontVariationAxis* []>(variationAxes.size());
-    array->type = ObjectType::FONT_VARIATION_AXIS;
 
     size_t num = 0;
     for (const auto& axis : variationAxes) {
         addr[num] = new Drawing::FontParser::FontVariationAxis(axis);
         num++;
     }
+    std::unique_ptr array = std::make_unique<ObjectArray>();
+    array->type = ObjectType::FONT_VARIATION_AXIS;
     array->addr = addr.release();
     array->num = num;
     return reinterpret_cast<OH_Drawing_Array*>(array.release());
@@ -558,6 +558,7 @@ OH_Drawing_FontVariationInstance* OH_Drawing_GetFontVariationInstanceByIndex(
 
     return nullptr;
 }
+
 const OH_Drawing_FontFullDescriptor* OH_Drawing_GetFontFullDescriptorByFullName(const OH_Drawing_String* fullName,
     OH_Drawing_SystemFontType fontType)
 {

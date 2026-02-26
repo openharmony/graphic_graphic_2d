@@ -77,15 +77,15 @@ public:
 
     struct FontVariation {
         std::string axis;
-        double value = 0.0;
+        double value{0.0};
     };
 
     struct FontVariationAxis {
         std::string key;
-        double minValue = 0.0;
-        double maxValue = 0.0;
-        double defaultValue = 0.0;
-        int flags = 0;
+        double minValue{0.0};
+        double maxValue{0.0};
+        double defaultValue{0.0};
+        int flags{0};
         std::string name;
         std::string localName;
     };
