@@ -71,6 +71,14 @@ static const std::array g_methods = {
     ani_native_function { "close", nullptr, reinterpret_cast<void*>(AniPath::Close) },
     ani_native_function { "isInverseFillType", nullptr, reinterpret_cast<void*>(AniPath::IsInverseFillType) },
     ani_native_function { "toggleInverseFillType", nullptr, reinterpret_cast<void*>(AniPath::ToggleInverseFillType) },
+    ani_native_function { "approximate", nullptr, reinterpret_cast<void*>(AniPath::Approximate) },
+    ani_native_function { "setLastPoint", nullptr, reinterpret_cast<void*>(AniPath::SetLastPoint) },
+    ani_native_function { "rewind", nullptr, reinterpret_cast<void*>(AniPath::ReWind) },
+    ani_native_function { "interpolate", nullptr, reinterpret_cast<void*>(AniPath::Interpolate) },
+    ani_native_function { "isEmpty", nullptr, reinterpret_cast<void*>(AniPath::IsEmpty) },
+    ani_native_function { "set", nullptr, reinterpret_cast<void*>(AniPath::Set) },
+    ani_native_function { "isInterpolate", nullptr, reinterpret_cast<void*>(AniPath::IsInterpolate) },
+    ani_native_function { "getFillType", nullptr, reinterpret_cast<void*>(AniPath::GetFillType) },
 };
 
 ani_status AniPath::AniInit(ani_env *env)
@@ -732,6 +740,151 @@ void AniPath::ToggleInverseFillType(ani_env* env, ani_object obj)
         return;
     }
     aniPath->GetPath()->ToggleInverseFillType();
+}
+
+ani_object AniPath::Approximate(ani_env* env, ani_object obj, ani_double acceptableErrorobj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return CreateAniUndefined(env);
+    }
+    if (acceptableErrorobj < 0.0) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniPath::approximate acceptableError is invaild.");
+        return CreateAniUndefined(env); 
+    }
+    std::vector<scalar> points;
+    aniPath->GetPath()->Approximate(static_cast<scalar>(acceptableErrorobj), points);
+
+    uint32_t arrayLength = static_cast<uint32_t>(points.size());
+    ani_array arrayObj = CreateAniArrayWithSize(env, arrayLength);
+    if (arrayObj == nullptr) {
+        return CreateAniUndefined(env);
+    }
+    
+    for (size_t i = 0; i < points.size(); ++i) {
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().doubleCls,
+            AniGlobalMethod::GetInstance().doubleCtor, points[i]);
+        if (IsUndefined(env, aniObj)) {
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "AniPath::approximate Failed to create width item .");
+            return aniObj;
+        }
+        ani_status ret = env->Array_Set(arrayObj, static_cast<ani_size>(i), aniObj);
+        if (ret != ANI_OK) {
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "AniPath::approximate Failed to set width item.");
+            return CreateAniUndefined(env);
+        }
+    }
+    return arrayObj;
+}
+
+void AniPath::SetLastPoint(ani_env* env, ani_object obj, ani_double x, ani_double y)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return ;
+    }
+    aniPath->GetPath()->SetLastPoint(x, y);
+}
+
+void AniPath::ReWind(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return ;
+    }
+    aniPath->GetPath()->ReWind();
+}
+
+ani_boolean AniPath::Interpolate(ani_env* env, ani_object obj, ani_object otherobj, ani_double weight,
+    ani_object interpolatedPathobj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return false;
+    }
+
+    auto other = GetNativeFromObj<AniPath>(env, otherobj, AniGlobalField::GetInstance().pathNativeObj);
+    if (other == nullptr || other->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param dst.");
+        return false;
+    }
+
+    auto interpolatedPath = GetNativeFromObj<AniPath>(env, interpolatedPathobj,
+        AniGlobalField::GetInstance().pathNativeObj);
+    if (interpolatedPath == nullptr || interpolatedPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param dst.");
+        return false;
+    }
+
+    return aniPath->GetPath()->Interpolate(*other->GetPath(), weight, *interpolatedPath->GetPath());
+}
+
+void AniPath::Set(ani_env* env, ani_object obj, ani_object srcobj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return ;
+    }
+
+    auto srcPath = GetNativeFromObj<AniPath>(env, srcobj, AniGlobalField::GetInstance().pathNativeObj);
+    if (srcPath == nullptr || srcPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param dst.");
+        return ;
+    }
+    aniPath->GetPath()->SetPath(*srcPath->GetPath());
+}
+
+ani_boolean AniPath::IsInterpolate(ani_env* env, ani_object obj, ani_object otherobj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return false;
+    }
+
+    auto other = GetNativeFromObj<AniPath>(env, otherobj, AniGlobalField::GetInstance().pathNativeObj);
+    if (other == nullptr || other->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param dst.");
+        return false;
+    }
+    return aniPath->GetPath()->IsInterpolate(*other->GetPath());
+}
+
+ani_enum_item AniPath::GetFillType(ani_env* env, ani_object obj)
+{
+    ani_enum_item value = nullptr;
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return value;
+    }
+
+    PathFillType fillType = aniPath->GetPath()->GetFillStyle();
+     if (!CreateAniEnumByEnumIndex(
+        env, AniGlobalEnum::GetInstance().pathFillType, static_cast<ani_size>(fillType), value)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Find enum for PathFillType failed.");
+        return value;
+    }
+    return value;
+}
+
+ani_boolean AniPath::IsEmpty(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return false;
+    }
+    return aniPath->GetPath()->IsEmpty();
 }
 
 ani_object AniPath::PathTransferStatic(

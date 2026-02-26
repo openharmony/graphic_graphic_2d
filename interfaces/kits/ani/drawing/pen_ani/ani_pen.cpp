@@ -26,6 +26,11 @@
 #include "mask_filter_ani/ani_mask_filter.h"
 #include "image_filter_ani/ani_image_filter.h"
 
+#ifdef ROSEN_OHOS
+#include "ani_color_space_manager.h"
+#include "utils/colorspace_convertor.h"
+#endif
+
 namespace OHOS::Rosen {
 namespace Drawing {
 
@@ -67,6 +72,8 @@ static const std::array g_methods = {
     ani_native_function { "setImageFilter", nullptr, reinterpret_cast<void*>(AniPen::SetImageFilter) },
     ani_native_function { "setShadowLayer", nullptr, reinterpret_cast<void*>(AniPen::SetShadowLayer) },
     ani_native_function { "setShaderEffect", nullptr, reinterpret_cast<void*>(AniPen::SetShaderEffect) },
+    ani_native_function { "setColor4f", nullptr, reinterpret_cast<void*>(AniPen::SetColor4f) },
+    ani_native_function { "getColor4f", nullptr, reinterpret_cast<void*>(AniPen::GetColor4f) },
 };
 
 ani_status AniPen::AniInit(ani_env *env)
@@ -624,6 +631,56 @@ void AniPen::SetShaderEffect(ani_env* env, ani_object obj, ani_object aniShaderE
         }
     }
     aniPen->GetPen()->SetShaderEffect(aniShaderEffect ? aniShaderEffect->GetShaderEffect() : nullptr);
+}
+
+void AniPen::SetColor4f(ani_env* env, ani_object obj, ani_object aniColor4f, ani_object aniColorSpace)
+{
+#ifdef ROSEN_OHOS
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
+    if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetShaderEffect aniPen is nullptr.");
+        return;
+    }
+
+    Drawing::Color4f drawingColor;
+    if(!GetColor4fFromAniColor4fObj(env, aniColor4f, drawingColor)) {
+        ROSEN_LOGE("AniBrush::SetColor4f failed cause by aniColor");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniBrush::setColor4f incorrect type color.");
+        return;
+    }
+
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+    ColorManager::AniColorSpaceManager* aniColorSpaceManager =
+        GetNativeFromObj<ColorManager::AniColorSpaceManager>(env, aniColorSpace,
+                AniGlobalField::GetInstance().colorSpaceManagerNativeobj);
+    if (aniColorSpaceManager != nullptr) {
+        auto colorManagerColorSpace = aniColorSpaceManager->GetColorSpaceToken();
+        if (colorManagerColorSpace != nullptr) {
+            drawingColorSpace = Drawing::ColorSpaceConvertor::
+                ColorSpaceConvertToDrawingColorSpace(colorManagerColorSpace);
+        }
+    }
+
+    aniPen->GetPen()->SetColor(drawingColor, drawingColorSpace);
+    return;
+#else
+    return;
+#endif
+}
+
+ani_object AniPen::GetColor4f(ani_env* env, ani_object obj)
+{
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
+    if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetShaderEffect aniPen is nullptr.");
+        return CreateAniUndefined(env);
+    }
+
+    const Color4f& color4f = aniPen->GetPen()->GetColor4f();
+    ani_object aniObj = nullptr;
+    CreateColor4fObj(env, color4f, aniObj);
+    return aniObj;
 }
 
 ani_object AniPen::PenTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
