@@ -57,9 +57,10 @@ ErrCode RSClientToServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTr
     std::vector<std::shared_ptr<MessageParcel>> parcelVector;
     auto func = [isUniMode, &parcelVector, &transactionData, this]() -> bool {
         if (isUniMode) {
-            transactionDataIndex_.fetch_add(1, std::memory_order_relaxed);
+            transactionData->SetIndex(transactionDataIndex_.fetch_add(1, std::memory_order_relaxed) + 1);
+        } else {
+            transactionData->SetIndex(transactionDataIndex_.load(std::memory_order_relaxed));
         }
-        transactionData->SetIndex(transactionDataIndex_);
         std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
         if (!FillParcelWithTransactionData(transactionData, parcel)) {
             ROSEN_LOGE("FillParcelWithTransactionData failed!");
