@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "modifier/rs_cmd_list_image_collector.h"
+#include "pipeline/rs_draw_cmd.h"
 #include "recording/cmd_list_helper.h"
 
 using namespace testing;
@@ -121,5 +122,4 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage006, TestSize.Level1)
     EXPECT_NE(result->imageLatticeObjectVec_, nullptr);
     EXPECT_GT(result->imageLatticeObjectVec_->size(), 0);
 }
-
 } // namespace OHOS::Rosen

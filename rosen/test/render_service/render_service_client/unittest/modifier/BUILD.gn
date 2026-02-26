@@ -22,11 +22,11 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_cmd_list_image_collector_test.cpp",
+    "rs_deduplication_test.cpp",
     "rs_modifier_extractor_test.cpp",
     "rs_modifier_manager_test.cpp",
     "rs_property_test.cpp",
-    "rs_deduplication_test.cpp",
-    "rs_cmd_list_image_collector_test.cpp",
   ]
 
   include_dirs = [

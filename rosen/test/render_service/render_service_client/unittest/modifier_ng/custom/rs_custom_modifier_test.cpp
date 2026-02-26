@@ -268,4 +268,32 @@ HWTEST_F(RSCustomModifierHelperTest, UpdateToRenderTest, TestSize.Level1)
     ASSERT_NE(it, rsCustomModifier->properties_.end());
     ASSERT_TRUE(it->second);
 }
+
+/**
+ * @tc.name: ClearDrawCmdListTest
+ * @tc.desc: Test the function ClearDrawCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, ClearDrawCmdListTest, TestSize.Level1)
+{
+    auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+
+    // case1: property is null
+    rsCustomModifier->ClearDrawCmdList();
+
+    // case2: property exists
+    auto node = RSCanvasNode::Create();
+    rsCustomModifier->OnAttach(*node);
+    rsCustomModifier->UpdateDrawCmdList();
+    rsCustomModifier->ClearDrawCmdList();
+
+    auto type = rsCustomModifier->GetInnerPropertyType();
+    auto it = rsCustomModifier->properties_.find(type);
+    ASSERT_NE(it, rsCustomModifier->properties_.end());
+    if (it->second) {
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(it->second);
+        EXPECT_EQ(property->showingValue_, nullptr);
+        EXPECT_EQ(property->stagingValue_, nullptr);
+    }
+}
 } // namespace OHOS::Rosen
