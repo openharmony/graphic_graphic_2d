@@ -3565,7 +3565,7 @@ HWTEST_F(RSCanvasNodeTest, DrawOnNode002, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
     canvasNode->DrawOnNode(ModifierNG::RSModifierType::BOUNDS, func);
-    EXPECT_TRUE(RSTransractionProxy::instance_ != nullptr);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
 }
 
 /**
