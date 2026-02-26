@@ -403,14 +403,14 @@ const std::vector<std::array<Vector2f, GRID_WARP_ANGLE_PARAMS_COUNT>> gridWarpAn
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
     },
     {
-        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f },
+        Vector2f{ 90.0f, 90.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 90.0f, 90.0f },
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }
+        Vector2f{ 90.0f, 90.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 90.0f, 90.0f }
     },
     {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 90.0f, 90.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 90.0f, 90.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 90.0f, 90.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 90.0f, 90.0f }, Vector2f{ 0.0f, 0.0f }
     },
     {
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },

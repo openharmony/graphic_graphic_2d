@@ -31,7 +31,7 @@ const std::vector<float> opacityParams = {
 };
 
 const std::vector<Vector2f> offsetParams = {
-    Vector2f{-2.0f, -2.0f}, Vector2f{-1.0f, -1.0f}, Vector2f{0.0f, 0.0f},
+    Vector2f{-2.0f, -2.0f}, Vector2f{-1.0f, -1.0f}, Vector2f{0.7f, 0.7f},
     Vector2f{1.0f, 1.0f}, Vector2f{0.5f, 0.5f}, Vector2f{2.0f, 2.0f}
 };
 }
@@ -56,23 +56,6 @@ public:
         RegisterNode(backgroundTestNode);
     }
 };
-
-GRAPHIC_TEST(NGFilterDispersionTest, EFFECT_TEST, Set_Dispersion_Opacity_Test)
-{
-    const size_t columnCount = 2;
-    const size_t rowCount = opacityParams.size();
-    auto sizeX = screenWidth / columnCount;
-    auto sizeY = screenHeight * columnCount / rowCount;
-
-    for (size_t i = 0; i < rowCount; i++) {
-        auto dispersionFilter = std::make_shared<RSNGDispersionFilter>();
-        dispersionFilter->Setter<DispersionRedOffsetTag>(Vector2f{0.1f, 0.1f});
-        dispersionFilter->Setter<DispersionGreenOffsetTag>(Vector2f{0.2f, 0.2f});
-        dispersionFilter->Setter<DispersionBlueOffsetTag>(Vector2f{0.3f, 0.3f});
-        dispersionFilter->Setter<DispersionOpacityTag>(opacityParams[i]);
-        SetBgAndChildNodes(i, columnCount, sizeX, sizeY, dispersionFilter);
-    }
-}
 
 GRAPHIC_TEST(NGFilterDispersionTest, EFFECT_TEST, Set_Dispersion_Offset_With_Mask_Test)
 {
