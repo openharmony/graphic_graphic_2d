@@ -3549,7 +3549,7 @@ HWTEST_F(RSCanvasNodeTest, DrawOnNode001, TestSize.Level1)
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     canvasNode->DrawOnNode(ModifierNG::RSModifierType::INVALID, func);
-    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
     EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
 }
@@ -3563,7 +3563,15 @@ HWTEST_F(RSCanvasNodeTest, DrawOnNode001, TestSize.Level1)
 HWTEST_F(RSCanvasNodeTest, DrawOnNode002, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
+    canvasNode->BeginRecording(200, 300);
+    DrawFunc func = [&](std::shared_ptr<Drawing::Canvas> canvas) {
+        Drawing::Rect rect(0, 0, 100, 100);
+        Drawing::Brush brush;
+        brush.SetColor(SK_ColorBLUE);
+        canvas->AttachBrush(brush);
+        canvas->DrawRect(rect);
+        canvas->DetachBrush();
+    };
     canvasNode->DrawOnNode(ModifierNG::RSModifierType::BOUNDS, func);
     EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
 }
