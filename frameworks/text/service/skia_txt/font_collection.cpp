@@ -48,7 +48,8 @@ std::shared_ptr<FontCollection> FontCollection::From(std::shared_ptr<txt::FontCo
 
 namespace AdapterTxt {
 FontCollection::FontCollection(std::shared_ptr<txt::FontCollection> fontCollection)
-    : fontCollection_(fontCollection), dfmanager_(Drawing::FontMgr::CreateDynamicFontMgr())
+    : fontCollection_(fontCollection),
+      dfmanager_(Drawing::FontMgr::CreateDynamicFontMgr())
 {
     if (fontCollection_ == nullptr) {
         fontCollection_ = std::make_shared<txt::FontCollection>();
@@ -270,6 +271,7 @@ void FontCollection::ClearThemeFont()
             TypefaceWithAlias ta(themeFamily, face);
             typefaceSet_.erase(ta);
             fontCollection_->RemoveCacheByUniqueId(face->GetUniqueID());
+            fontCollection_->RemoveVariationCacheByOriginalUniqueId(face->GetUniqueID());
         }
         dfmanager_->LoadThemeFont("", themeFamily, nullptr, 0);
     }
@@ -304,6 +306,7 @@ bool FontCollection::UnloadFont(const std::string& familyName)
             FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(familyName);
             fontCollection_->RemoveCacheByUniqueId(it->GetTypeface()->GetUniqueID());
             cb.AddTypefaceUniqueId(it->GetTypeface()->GetUniqueID());
+            fontCollection_->RemoveVariationCacheByOriginalUniqueId(it->GetTypeface()->GetUniqueID());
             ChangeLocalFontCollectionSize(LocalActionType::DEL, it->GetTypeface()->GetSize());
             typefaceSet_.erase(it++);
         } else {
