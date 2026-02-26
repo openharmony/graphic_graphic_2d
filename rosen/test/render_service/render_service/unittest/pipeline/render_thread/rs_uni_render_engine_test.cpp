@@ -142,6 +142,63 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawLayers002
+ * @tc.desc: test DrawLayers
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSUniRenderEngineTest, DrawLayers002, TestSize.Level1)
+{
+    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    // Resources for Vulkan and DDGR API
+    if (RSSystemProperties::IsUseVulkan()) {
+        uniRenderEngine->Init();
+    }
+    std::unique_ptr<Drawing::RecordingCanvas> drawingRecordingCanvas = nullptr;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    // End resources definition
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
+    if (!RSSystemProperties::IsUseVulkan()) {
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    } else {
+        drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
+        drawingRecordingCanvas->SetGrRecordingContext(uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext());
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
+    }
+    ASSERT_NE(canvas, nullptr);
+    std::vector<RSLayerPtr> layers;
+    if (!RSSystemProperties::IsUseVulkan()) {
+        layers.emplace_back(nullptr);
+    }
+
+    RSLayerPtr layer1 = std::make_shared<RSSurfaceLayer>();
+    layer1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("layer1");
+    layer1->SetSurface(cSurface);
+    layer1->SetRotationFixed(true);
+    layer1->SetUseDeviceOffline(true);
+
+    RSLayerPtr layer2 = std::make_shared<RSSurfaceLayer>();
+    layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    cSurface = IConsumerSurface::Create("layer2");
+    layer2->SetSurface(cSurface);
+    layer2->SetRotationFixed(false);
+    layer2->SetUseDeviceOffline(false);
+
+    if (RSSystemProperties::IsUseVulkan()) {
+        layer1->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+        layer2->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+    }
+
+    layers.emplace_back(layer1);
+    layers.emplace_back(layer2);
+    ScreenInfo screenInfo;
+    uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo);
+}
+
+/**
  * @tc.name: DrawHdiLayerWithParams001
  * @tc.desc: test DrawHdiLayerWithParams
  * @tc.type: FUNC
