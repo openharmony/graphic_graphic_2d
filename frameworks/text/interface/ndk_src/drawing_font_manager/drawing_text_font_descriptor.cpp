@@ -277,9 +277,9 @@ OH_Drawing_Array* OH_Drawing_GetFontFullDescriptorsFromStream(const void* data, 
 
 void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray)
 {
-    ObjectArray* descriptorList = ConvertToOriginalText<ObjectArray>(descriptorArray);	 
-    if (descriptorList == nullptr || descriptorList->type != ObjectType::FONT_FULL_DESCRIPTOR) { 
-        return;	 
+    ObjectArray* descriptorList = ConvertToOriginalText<ObjectArray>(descriptorArray);
+    if (descriptorList == nullptr || descriptorList->type != ObjectType::FONT_FULL_DESCRIPTOR) {
+        return;
     }
 
     Drawing::FontParser::FontDescriptor** descriptors =
