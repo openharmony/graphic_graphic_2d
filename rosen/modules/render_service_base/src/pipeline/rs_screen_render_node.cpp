@@ -457,6 +457,16 @@ void RSScreenRenderNode::SetHDRPresent(bool hdrPresent)
 #endif
 }
 
+bool RSScreenRenderNode::GetHDRPresent() const
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return false;
+    }
+    return screenParams->GetHDRPresent();
+}
+
 void RSScreenRenderNode::SetBrightnessRatio(float brightnessRatio)
 {
 #ifdef RS_ENABLE_GPU

@@ -2247,6 +2247,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     node.ResetVideoHeadroomInfo();
     node.SetIsLuminanceStatusChange(false);
     node.SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
+    node.SetBrightnessRatio(1.0f);
     node.SetExistHWCNode(false);
     CheckLuminanceStatusChange(curScreenNode_->GetScreenId());
     node.CheckSurfaceChanged();
