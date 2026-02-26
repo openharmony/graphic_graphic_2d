@@ -39,8 +39,8 @@ public:
     static ani_object CreateRadialGradient(ani_env* env, ani_object obj, ani_object centerPt, ani_double radius,
         ani_array colorsArray, ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix);
     std::shared_ptr<ShaderEffect> GetShaderEffect();
-    static ani_object CreateImageShader(ani_env* env, ani_object obj, ani_object pixelmapObj, ani_enum_item aniTileX, ani_enum_item aniTileY,
-        ani_object samplingOptionsobj, ani_object aniMatrix);
+    static ani_object CreateImageShader(ani_env* env, ani_object obj, ani_object pixelmapObj, ani_enum_item aniTileX,
+        ani_enum_item aniTileY, ani_object samplingOptionsobj, ani_object aniMatrix);
     static ani_object CreateComposeShader(ani_env* env, ani_object obj, ani_object dstShaderEffect,
         ani_object srcShaderEffect, ani_enum_item blendModeobj);
 private:

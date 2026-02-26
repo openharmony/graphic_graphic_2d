@@ -2259,7 +2259,7 @@ namespace drawing {
      * @crossplatform
      * @since 20
      */
-    static native makeFromFileWithArguments(filePath: string, typefaceArguments: TypefaceArguments): Typeface;
+    static native makeFromFileWithArguments(filePath: string, typefaceArguments: TypefaceArguments): Typeface | undefined;
 
     /**
      * Checks if the typeface is bold.
@@ -2276,6 +2276,29 @@ namespace drawing {
      * @since 23
      */
     native isItalic(): boolean;
+
+
+    /**
+     * Generate typeface from Rawfile and TypefaceArguments.
+     *
+     * @param { Resource } rawfile - RawFile for typeface.
+     * @param { TypefaceArguments } typefaceArguments - TypefaceArguments for typeface.
+     * @returns { Typeface | undefined } Typeface.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24 static
+     */
+    static native makeFromRawFileWithArguments(rawfile: Resource, typefaceArguments: TypefaceArguments): Typeface | undefined;
+
+    /**
+     * Generate typeface from current typeface and TypefaceArguments.
+     *
+     * @param { TypefaceArguments } typefaceArguments - TypefaceArguments for typeface.
+     * @returns { Typeface | undefined } Typeface.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24 static
+     */
+    native makeFromCurrent(typefaceArguments: TypefaceArguments): Typeface | undefined;    
   }
 
   /**

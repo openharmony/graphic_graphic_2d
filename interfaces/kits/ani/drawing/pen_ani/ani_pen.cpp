@@ -643,7 +643,7 @@ void AniPen::SetColor4f(ani_env* env, ani_object obj, ani_object aniColor4f, ani
     }
 
     Drawing::Color4f drawingColor;
-    if(!GetColor4fFromAniColor4fObj(env, aniColor4f, drawingColor)) {
+    if (!GetColor4fFromAniColor4fObj(env, aniColor4f, drawingColor)) {
         ROSEN_LOGE("AniBrush::SetColor4f failed cause by aniColor");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniBrush::setColor4f incorrect type color.");
