@@ -26,7 +26,6 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_ui_context.h"
-#include "utils/rect.h"
 namespace OHOS {
 namespace Rosen {
 
