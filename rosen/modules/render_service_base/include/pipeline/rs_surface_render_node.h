@@ -563,6 +563,32 @@ public:
     {
         arsrTag_ = arsrTag;
     }
+
+    bool CheckIfDoArsrPre()
+    {
+#ifndef ROSEN_CROSS_PLATFORM
+        if (surfaceHandler_ == nullptr || surfaceHandler_->GetBuffer() == nullptr) {
+            return false;
+        }
+        auto format = surfaceHandler_->GetBuffer()->GetFormat();
+        if (format >= GRAPHIC_PIXEL_FMT_YUV_422_I && format != GRAPHIC_PIXEL_FMT_RGBA_1010102 &&
+            format <= GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+            return true;
+        }
+        static const std::unordered_set<std::string> videoLayers {
+            "xcomponentIdSurface",
+            "componentIdSurface",
+            "SceneViewer Model totemweather0",
+            "UnityPlayerSurface",
+        };
+        if (videoLayers.count(GetName()) > 0) {
+            return true;
+        }
+        return false;
+#else
+        return false;
+#endif
+    }
     
     // hpae offline
     bool GetDeviceOfflineEnable() const { return deviceOfflineEnable_; }
