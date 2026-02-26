@@ -280,8 +280,7 @@ ani_object AniImageFilter::CreateFromImage(ani_env* env, ani_object obj, ani_obj
 
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().imageFilter,
         AniGlobalMethod::GetInstance().imageFilterCtor, AniGlobalMethod::GetInstance().imageFilterBindNative,
-        imageFilter);
-    
+            imageFilter);
     if (IsUndefined(env, aniObj)) {
         delete imageFilter;
         ROSEN_LOGE("AniImageFilter::CreateFromImage failed cause aniObj is undefined");

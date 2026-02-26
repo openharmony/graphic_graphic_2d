@@ -26,6 +26,45 @@ constexpr int32_t NUMBER_ZREO = 0;
 constexpr int32_t MATRIX_SIZE = 9;
 constexpr uint32_t POLY_POINT_COUNT_MAX = 4;
 
+static const std::array g_methods = {
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(AniMatrix::Constructor) },
+        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Matrix}:",
+            reinterpret_cast<void*>(AniMatrix::ConstructorWithMatrix) },
+        ani_native_function { "getValue", "i:d", reinterpret_cast<void*>(AniMatrix::GetValue) },
+        ani_native_function { "reset", ":", reinterpret_cast<void*>(AniMatrix::Reset) },
+        ani_native_function { "setTranslation", "dd:", reinterpret_cast<void*>(AniMatrix::SetTranslation) },
+        ani_native_function { "preConcat", "C{@ohos.graphics.drawing.drawing.Matrix}:",
+            reinterpret_cast<void*>(AniMatrix::preConcat)},
+        ani_native_function { "preRotate", nullptr, reinterpret_cast<void*>(AniMatrix::PreRotate) },
+        ani_native_function { "preScale", nullptr, reinterpret_cast<void*>(AniMatrix::PreScale) },
+        ani_native_function { "setRectToRect", nullptr, reinterpret_cast<void*>(AniMatrix::SetRectToRect) },
+        ani_native_function { "postScale", nullptr, reinterpret_cast<void*>(AniMatrix::PostScale) },
+        ani_native_function { "postTranslate", nullptr, reinterpret_cast<void*>(AniMatrix::PostTranslate) },
+        ani_native_function { "getAll", nullptr, reinterpret_cast<void*>(AniMatrix::GetAll) },
+        ani_native_function { "mapRect", nullptr, reinterpret_cast<void*>(AniMatrix::MapRect) },
+        ani_native_function { "postRotate", nullptr, reinterpret_cast<void*>(AniMatrix::PostRotate) },
+        ani_native_function { "invert", nullptr, reinterpret_cast<void*>(AniMatrix::Invert) },
+        ani_native_function { "isEqual", nullptr, reinterpret_cast<void*>(AniMatrix::IsEqual) },
+        ani_native_function { "setPolyToPoly", nullptr, reinterpret_cast<void*>(AniMatrix::SetPolyToPoly) },
+        ani_native_function { "isIdentity", nullptr, reinterpret_cast<void*>(AniMatrix::IsIdentity) },
+        ani_native_function { "mapPoints", nullptr, reinterpret_cast<void*>(AniMatrix::MapPoints) },
+        ani_native_function { "setRotation", nullptr, reinterpret_cast<void*>(AniMatrix::SetRotation) },
+        ani_native_function { "preTranslate", nullptr, reinterpret_cast<void*>(AniMatrix::PreTranslate) },
+        ani_native_function { "setScale", nullptr, reinterpret_cast<void*>(AniMatrix::SetScale) },
+        ani_native_function { "setMatrix", "C{std.core.Array}:", reinterpret_cast<void*>(AniMatrix::SetMatrix) },
+        ani_native_function { "setMatrix", "X{C{std.core.Array}C{@ohos.graphics.drawing.drawing.Matrix}}:",
+            reinterpret_cast<void*>(AniMatrix::SetMatrixWithObject) },
+        ani_native_function { "preSkew", nullptr, reinterpret_cast<void*>(AniMatrix::PreSkew) },
+        ani_native_function { "postSkew", nullptr, reinterpret_cast<void*>(AniMatrix::PostSkew) },
+        ani_native_function { "setSkew", nullptr, reinterpret_cast<void*>(AniMatrix::SetSkew) },
+        ani_native_function { "setSinCos", nullptr, reinterpret_cast<void*>(AniMatrix::SetSinCos) },
+        ani_native_function { "setConcat", nullptr, reinterpret_cast<void*>(AniMatrix::SetConcat) },
+        ani_native_function { "postConcat", nullptr, reinterpret_cast<void*>(AniMatrix::PostConcat) },
+        ani_native_function { "mapRadius", nullptr, reinterpret_cast<void*>(AniMatrix::MapRadius) },
+        ani_native_function { "rectStaysRect", nullptr, reinterpret_cast<void*>(AniMatrix::RectStaysRect) },
+        ani_native_function { "isAffine", nullptr, reinterpret_cast<void*>(AniMatrix::IsAffine) },
+    };
+
 ani_status AniMatrix::AniInit(ani_env *env)
 {
     ani_class cls = AniGlobalClass::GetInstance().matrix;
@@ -34,46 +73,7 @@ ani_status AniMatrix::AniInit(ani_env *env)
         return ANI_NOT_FOUND;
     }
 
-    std::array methods = {
-        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Matrix}:",
-            reinterpret_cast<void*>(ConstructorWithMatrix) },
-        ani_native_function { "getValue", "i:d", reinterpret_cast<void*>(GetValue) },
-        ani_native_function { "reset", ":", reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setTranslation", "dd:", reinterpret_cast<void*>(SetTranslation) },
-        ani_native_function { "preConcat", "C{@ohos.graphics.drawing.drawing.Matrix}:",
-            reinterpret_cast<void*>(preConcat)},
-        ani_native_function { "preRotate", nullptr, reinterpret_cast<void*>(PreRotate) },
-        ani_native_function { "preScale", nullptr, reinterpret_cast<void*>(PreScale) },
-        ani_native_function { "setRectToRect", nullptr, reinterpret_cast<void*>(SetRectToRect) },
-        ani_native_function { "postScale", nullptr, reinterpret_cast<void*>(PostScale) },
-        ani_native_function { "postTranslate", nullptr, reinterpret_cast<void*>(PostTranslate) },
-        ani_native_function { "getAll", nullptr, reinterpret_cast<void*>(GetAll) },
-        ani_native_function { "mapRect", nullptr, reinterpret_cast<void*>(MapRect) },
-        ani_native_function { "postRotate", nullptr, reinterpret_cast<void*>(PostRotate) },
-        ani_native_function { "invert", nullptr, reinterpret_cast<void*>(Invert) },
-        ani_native_function { "isEqual", nullptr, reinterpret_cast<void*>(IsEqual) },
-        ani_native_function { "setPolyToPoly", nullptr, reinterpret_cast<void*>(SetPolyToPoly) },
-        ani_native_function { "isIdentity", nullptr, reinterpret_cast<void*>(IsIdentity) },
-        ani_native_function { "mapPoints", nullptr, reinterpret_cast<void*>(MapPoints) },
-        ani_native_function { "setRotation", nullptr, reinterpret_cast<void*>(SetRotation) },
-        ani_native_function { "preTranslate", nullptr, reinterpret_cast<void*>(PreTranslate) },
-        ani_native_function { "setScale", nullptr, reinterpret_cast<void*>(SetScale) },
-        ani_native_function { "setMatrix", "C{std.core.Array}:", reinterpret_cast<void*>(SetMatrix) },
-        ani_native_function { "setMatrix", "X{C{std.core.Array}C{@ohos.graphics.drawing.drawing.Matrix}}:",
-            reinterpret_cast<void*>(SetMatrixWithObject) },
-        ani_native_function { "preSkew", nullptr, reinterpret_cast<void*>(PreSkew) },
-        ani_native_function { "postSkew", nullptr, reinterpret_cast<void*>(PostSkew) },
-        ani_native_function { "setSkew", nullptr, reinterpret_cast<void*>(SetSkew) },
-        ani_native_function { "setSinCos", nullptr, reinterpret_cast<void*>(SetSinCos) },
-        ani_native_function { "setConcat", nullptr, reinterpret_cast<void*>(SetConcat) },
-        ani_native_function { "postConcat", nullptr, reinterpret_cast<void*>(PostConcat) },
-        ani_native_function { "mapRadius", nullptr, reinterpret_cast<void*>(MapRadius) },
-        ani_native_function { "rectStaysRect", nullptr, reinterpret_cast<void*>(RectStaysRect) },
-        ani_native_function { "isAffine", nullptr, reinterpret_cast<void*>(IsAffine) },
-    };
-
-    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: ret %{public}d %{public}s", ret, ANI_CLASS_MATRIX_NAME);
         return ANI_NOT_FOUND;
@@ -598,7 +598,7 @@ void AniMatrix::SetConcat(ani_env* env, ani_object obj, ani_object matrixAobj, a
     auto aniMatrixA = GetNativeFromObj<AniMatrix>(env, matrixAobj, AniGlobalField::GetInstance().matrixNativeObj);
     if (aniMatrixA == nullptr || aniMatrixA->GetMatrix() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-        "AniMatrix::SetConcat invalid params: otherMatrix. ");
+            "AniMatrix::SetConcat invalid params: otherMatrix. ");
     }
 
     auto aniMatrixB = GetNativeFromObj<AniMatrix>(env, matrixBobj, AniGlobalField::GetInstance().matrixNativeObj);

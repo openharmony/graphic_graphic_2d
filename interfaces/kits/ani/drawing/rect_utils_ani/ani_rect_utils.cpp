@@ -206,7 +206,6 @@ void AniRectUtils::OffsetTo(ani_env* env, ani_object obj, ani_object aniRectObj,
 
 ani_double AniRectUtils::CenterX(ani_env* env, ani_object obj, ani_object aniRectObj)
 {
-
     std::vector<double> ltrb;
     if (!GetValueFromAniRectObj(env, aniRectObj, ltrb)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
