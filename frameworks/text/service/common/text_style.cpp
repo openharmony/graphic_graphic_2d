@@ -55,12 +55,12 @@ void FontFeatures::Clear()
     featureSet_.clear();
 }
 
-void FontVariations::SetAxisValue(const std::string& tag, float value)
+void FontVariations::SetAxisValue(const std::string& tag, float value, bool isNormalization)
 {
-    axis_[tag] = value;
+    axis_[tag] = {value, isNormalization};
 }
 
-const std::map<std::string, float>& FontVariations::GetAxisValues() const
+const std::map<std::string, std::pair<float, bool>>& FontVariations::GetAxisValues() const
 {
     return axis_;
 }

@@ -53,12 +53,12 @@ const std::vector<std::pair<std::string, int>>& FontFeatures::GetFontFeatures() 
     return features_;
 }
 
-void FontVariations::SetAxisValue(std::string tag, float value)
+void FontVariations::SetAxisValue(std::string tag, float value, bool isNormalization)
 {
-    axis_[tag] = value;
+    axis_[tag] = {value, isNormalization};
 }
 
-const std::map<std::string, float>& FontVariations::GetAxisValues() const
+const std::map<std::string, std::pair<float, bool>>& FontVariations::GetAxisValues() const
 {
     return axis_;
 }

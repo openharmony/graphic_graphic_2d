@@ -236,7 +236,8 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest010, TestSize.Level0)
     EXPECT_EQ(sptextStyle.fontFeatures.GetFontFeatures().begin()->first, "tag");
     EXPECT_EQ(sptextStyle.fontFeatures.GetFontFeatures().begin()->second, tagFeature);
     EXPECT_EQ(sptextStyle.fontVariations.GetAxisValues().size(), 2);
-    EXPECT_EQ(sptextStyle.fontVariations.GetAxisValues().at("tag"), tagAxis);
+    EXPECT_FLOAT_EQ(sptextStyle.fontVariations.GetAxisValues().at("tag").first, tagAxis);
+    EXPECT_EQ(sptextStyle.fontVariations.GetAxisValues().at("tag").second, false);
     EXPECT_EQ(sptextStyle.background->brush.value().GetColor(), Drawing::Color::COLOR_CYAN);
     EXPECT_EQ(sptextStyle.background->pen.value().GetColor(), Drawing::Color::COLOR_CYAN);
     EXPECT_EQ(sptextStyle.foreground->brush.value().GetColor(), Drawing::Color::COLOR_DKGRAY);
@@ -268,7 +269,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest011, TestSize.Level0)
     EXPECT_EQ(textStyle.fontFeatures.GetFontFeatures().begin()->first, "tag");
     EXPECT_EQ(textStyle.fontFeatures.GetFontFeatures().begin()->second, spTagFeature);
     EXPECT_EQ(textStyle.fontVariations.GetAxisValues().size(), 1);
-    EXPECT_EQ(textStyle.fontVariations.GetAxisValues().at("tag"), spTagAxis);
+    EXPECT_FLOAT_EQ(textStyle.fontVariations.GetAxisValues().at("tag").first, spTagAxis);
     EXPECT_EQ(textStyle.isSymbolGlyph, true);
     EXPECT_EQ(textStyle.backgroundBrush.value().GetColor(), Drawing::Color::COLOR_LTGRAY);
     EXPECT_EQ(textStyle.foregroundBrush.value().GetColor(), Drawing::Color::COLOR_MAGENTA);

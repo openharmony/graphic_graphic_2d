@@ -4753,6 +4753,43 @@ HWTEST_F(NdkTypographyTest, TextStyleAddFontVariationTest002, TestSize.Level0)
 }
 
 /*
+ * @tc.name: TextStyleAddFontVariationNormalizedTest001
+ * @tc.desc: test for the fontvariation axis with normalized.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TextStyleAddFontVariationNormalizedTest001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    const char* fontFamilies[] = {"Noto Sans"};
+    OH_Drawing_SetTextStyleFontFamilies(textStyle, 1, fontFamilies);
+    OH_Drawing_TextStyleAddFontVariationWithNormalization(textStyle, "wdth", -1);
+    OH_Drawing_TextStyleAddFontVariationWithNormalization(textStyle, "wght", 1);
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    ASSERT_NE(fontCollection, nullptr);
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, textStyle);
+    const char* text = "HelloWorld";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    constexpr double maxWidth = 1000.0;
+    OH_Drawing_TypographyLayout(typography, maxWidth);
+
+    constexpr double expectedResult = 64.41375732421875;
+    EXPECT_NEAR(OH_Drawing_TypographyGetLongestLine(typography), expectedResult, FLOAT_DATA_EPSILON);
+
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyFontCollection(fontCollection);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(textStyle);
+}
+
+/*
  * @tc.name: TextStyleAttributeFontWidthTest001
  * @tc.desc: test invalid data for font width.
  * @tc.type: FUNC

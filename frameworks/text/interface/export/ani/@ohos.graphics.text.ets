@@ -648,11 +648,13 @@ export default namespace text {
   export interface FontVariation {
     axis: string;
     value: double;
+    isNormalized?: boolean;
   }
 
   class FontVariationInternal implements FontVariation {
     axis: string;
     value: double;
+    isNormalized?: boolean;
   }
 
   export interface TextBox {

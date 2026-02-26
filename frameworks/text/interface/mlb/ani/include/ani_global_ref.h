@@ -252,6 +252,7 @@ public:
     ani_method fontVariationCtor;
     ani_method fontVariationAxis;
     ani_method fontVariationValue;
+    ani_method fontVariationIsNormalized;
     ani_method rectStyleCtor;
     ani_method rectStyleColor;
     ani_method rectStyleLeftTopRadius;
