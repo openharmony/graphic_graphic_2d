@@ -25,6 +25,7 @@ namespace OHOS {
 namespace Rosen {
 constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
 constexpr uint32_t MAX_PAGE_NAME_SIZE = 64;
+constexpr size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
 
 class RSHgmConfigDataTest : public testing::Test {
 public:
@@ -38,6 +39,22 @@ void RSHgmConfigDataTest::SetUpTestCase() {}
 void RSHgmConfigDataTest::TearDownTestCase() {}
 void RSHgmConfigDataTest::SetUp() {}
 void RSHgmConfigDataTest::TearDown() {}
+
+static void SetLeftSize(Parcel& parcel, uint32_t leftSize)
+{
+    parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
+    size_t useSize = PARCEL_MAX_CAPACITY - leftSize;
+    size_t writeInt32Count = useSize / 4;
+    size_t writeBoolCount = useSize % 4;
+
+    for (size_t i = 0; i < writeInt32Count; i++) {
+        parcel.WriteInt32(0);
+    }
+
+    for (size_t j = 0; j < writeBoolCount; j++) {
+        parcel.WriteBoolUnaligned(false);
+    }
+}
 
 /**
  * @tc.name: UnmarshallingTest001
@@ -429,5 +446,41 @@ HWTEST_F(RSHgmConfigDataTest, MarshallingEnergyDataTest001, TestSize.Level1)
     EXPECT_TRUE(result);
 }
 
+/**
+ * @tc.name: MarshallingEnergyDataTest002
+ * @tc.desc: Test MarshallingEnergyData when !parcel.WriteString(energyInfo_.componentName)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHgmConfigDataTest, MarshallingEnergyDataTest002, TestSize.Level1)
+{
+    Parcel parcel;
+    RSHgmConfigData rsHgmConfigData;
+    SetLeftSize(parcel, 0);
+    EnergyInfo energyInfo = { "componentName", 0, 60 };
+    rsHgmConfigData.SetEnergyInfo(energyInfo);
+
+    bool result = rsHgmConfigData.MarshallingEnergyData(parcel);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: MarshallingEnergyDataTest003
+ * @tc.desc: Test MarshallingEnergyData when !parcel.WriteInt32(energyInfo_.componentDefaultFps)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHgmConfigDataTest, MarshallingEnergyDataTest003, TestSize.Level1)
+{
+    Parcel parcel;
+    RSHgmConfigData rsHgmConfigData;
+    std::string componentName = "componentName";
+    SetLeftSize(parcel, componentName.size());
+    EnergyInfo energyInfo = { componentName, 0, 60 };
+    rsHgmConfigData.SetEnergyInfo(energyInfo);
+
+    bool result = rsHgmConfigData.MarshallingEnergyData(parcel);
+    EXPECT_FALSE(result);
+}
 } // namespace Rosen
 } // namespace OHOS
