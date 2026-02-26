@@ -27,7 +27,7 @@ public:
     static constexpr char ZH_CN_TTF[] = "/system/fonts/HarmonyOS_Sans_SC.ttf";
 
     explicit AniTypeface(std::shared_ptr<Typeface> typeface) : typeface_(typeface) {}
-    ~AniTypeface() = default;
+    ~AniTypeface();
 
     static ani_status AniInit(ani_env *env);
 
