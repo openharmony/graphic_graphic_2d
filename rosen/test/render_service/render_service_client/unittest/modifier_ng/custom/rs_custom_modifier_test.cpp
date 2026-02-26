@@ -59,7 +59,11 @@ public:
 
     void Draw(ModifierNG::RSDrawingContext& context) const override
     {
-        Drawing::Rect rect(0, 0, 100, 100);
+        float left = 0;
+        float top = 0;
+        float right = 100;
+        float bottom = 100;
+        Drawing::Rect rect(left, top, right, bottom);
         Drawing::Brush brush;
         brush.SetColor(SK_ColorBLUE);
         context.canvas->AttachBrush(brush);
