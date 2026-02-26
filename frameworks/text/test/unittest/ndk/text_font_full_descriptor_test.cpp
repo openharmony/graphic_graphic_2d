@@ -473,7 +473,8 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
         EXPECT_NE(fontFullName, nullptr);
-        const OH_Drawing_FontFullDescriptor *descriptor = OH_Drawing_GetFontFullDescriptorByFullName(fontFullName, fontType);
+        const OH_Drawing_FontFullDescriptor *descriptor = OH_Drawing_GetFontFullDescriptorByFullName(fontFullName,
+            fontType);
         EXPECT_NE(descriptor, nullptr);
     }
     OH_Drawing_DestroySystemFontFullNames(fontList);
