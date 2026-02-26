@@ -17,7 +17,6 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("rosen_text_skia_txt_test") {
   module_out_path = text_ut_out_path
-  use_exceptions = true
 
   configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
   sources = [

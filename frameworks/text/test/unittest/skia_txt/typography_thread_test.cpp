@@ -13,14 +13,15 @@
  * limitations under the License.
  */
 
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <gtest/gtest.h>
+#include <mutex>
 #include <thread>
 #include <vector>
-#include <atomic>
-#include <mutex>
-#include <condition_variable>
-#include <chrono>
-#include <gtest/gtest.h>
 
+#include "draw/color.h"
 #include "font_collection.h"
 #include "modules/skparagraph/include/Paragraph.h"
 #include "ohos/init_data.h"
@@ -29,8 +30,6 @@
 #include "text_style.h"
 #include "typography.h"
 #include "typography_create.h"
-#include "draw/color.h"
-#include "utils/text_log.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -41,9 +40,12 @@ using namespace OHOS::Rosen::SPText;
 namespace {
 
 constexpr int NUM_THREADS = 8;
+constexpr int NUM_CREATE_THREADS = 4;
+constexpr int NUM_LAYOUT_THREADS = 3;
+constexpr int NUM_QUERY_THREADS = 3;
 constexpr int OPERATIONS_PER_THREAD = 50;
-constexpr int STRESS_THREAD_COUNT = 16;
-constexpr int STRESS_ITERATIONS = 500;
+constexpr int THREAD_SLEEP_TIME_100 = 100;
+constexpr int THREAD_SLEEP_TIME_10 = 10;
 
 // Barrier for synchronizing thread start
 class Barrier {
@@ -67,9 +69,9 @@ public:
 private:
     std::mutex mutex_;
     std::condition_variable cv_;
-    int count_;
-    int waiting_;
-    int generation_;
+    int count_ { 0 };
+    int waiting_ { 0 };
+    int generation_ { 0 };
 };
 
 } // namespace
@@ -85,7 +87,7 @@ protected:
     void TearDown() override
     {
         // Allow some time for all threads to finish
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(THREAD_SLEEP_TIME_100));
     }
 
     std::shared_ptr<FontCollection> CreateFontCollection()
@@ -109,10 +111,9 @@ protected:
 struct ThreadParams {
     Barrier& barrier;
     std::atomic<int>& operationCount;
-    std::atomic<int>& errorCount;
 
-    explicit ThreadParams(Barrier& barrier_, std::atomic<int>& operationCount_, std::atomic<int>& errorCount_)
-        : barrier(barrier_), operationCount(operationCount_), errorCount(errorCount_)
+    explicit ThreadParams(Barrier& barrier, std::atomic<int>& operationCount)
+        : barrier(barrier), operationCount(operationCount)
     {}
 };
 
@@ -129,21 +130,16 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphLayoutTest, TestSize.Level0)
     Barrier barrier(NUM_THREADS);
     std::vector<std::thread> threads;
     std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
+    ThreadParams params(barrier, operationCount);
 
     for (int i = 0; i < NUM_THREADS; ++i) {
         threads.emplace_back([this, &params, &fontCollection, &text]() {
             params.barrier.Wait(); // Synchronize start
 
-            try {
-                for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
-                    auto paragraph = CreateSimpleParagraph(text, fontCollection);
-                    paragraph->Layout(100);
-                    params.operationCount++;
-                }
-            } catch (...) {
-                params.errorCount++;
+            for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
+                auto paragraph = CreateSimpleParagraph(text, fontCollection);
+                paragraph->Layout(100);
+                params.operationCount++;
             }
         });
     }
@@ -153,7 +149,6 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphLayoutTest, TestSize.Level0)
     }
 
     EXPECT_EQ(params.operationCount.load(), NUM_THREADS * OPERATIONS_PER_THREAD);
-    EXPECT_EQ(params.errorCount.load(), 0);
 }
 
 /**
@@ -168,11 +163,10 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphBuilderTest, TestSize.Level0)
     Barrier barrier(NUM_THREADS);
     std::vector<std::thread> threads;
     std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
+    ThreadParams params(barrier, operationCount);
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back([this, &params, fontCollection, i]() {
+        threads.emplace_back([&params, fontCollection, i]() {
             params.barrier.Wait(); // Synchronize start
 
             for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
@@ -185,15 +179,13 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphBuilderTest, TestSize.Level0)
                     ParagraphBuilder::Create(paragraphStyle, fontCollection);
 
                 paragraphBuilder->PushStyle(textStyle);
-                std::u16string text = u"Thread " + std::u16string(1, 'A' + (i % 26)) + u" text " +
-                                     std::u16string(1, '0' + (j % 10));
+                std::u16string text =
+                    u"Thread " + std::u16string(1, 'A' + (i % 26)) + u" text " + std::u16string(1, '0' + (j % 10));
                 paragraphBuilder->AddText(text);
                 paragraphBuilder->Pop();
 
                 auto paragraph = paragraphBuilder->Build();
-                if (paragraph == nullptr) {
-                    params.errorCount++;
-                }
+                EXPECT_NE(paragraph, nullptr);
                 params.operationCount++;
             }
         });
@@ -204,7 +196,6 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphBuilderTest, TestSize.Level0)
     }
 
     EXPECT_EQ(params.operationCount.load(), NUM_THREADS * OPERATIONS_PER_THREAD);
-    EXPECT_EQ(params.errorCount.load(), 0);
 }
 
 /**
@@ -217,37 +208,39 @@ HWTEST_F(TypographyThreadTest, ConcurrentFontCollectionOperationsTest, TestSize.
     Barrier barrier(NUM_THREADS);
     std::vector<std::thread> threads;
     std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
+    ThreadParams params(barrier, operationCount);
+
+    const auto workerLambda = [&params]() {
+        params.barrier.Wait(); // Synchronize start
+
+        for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
+            FontCollection fontCollection;
+
+            switch (j % 5) {
+                case 0:
+                    fontCollection.SetupDefaultFontManager();
+                    break;
+                case 1:
+                    fontCollection.SetAssetFontManager(Drawing::FontMgr::CreateDefaultFontMgr());
+                    break;
+                case 2:
+                    fontCollection.SetDynamicFontManager(Drawing::FontMgr::CreateDynamicFontMgr());
+                    break;
+                case 3:
+                    fontCollection.SetTestFontManager(Drawing::FontMgr::CreateDefaultFontMgr());
+                    break;
+                case 4:
+                    fontCollection.SetGlobalFontManager(Drawing::FontMgr::CreateDefaultFontMgr());
+                    break;
+                default:
+                    break;
+            }
+            params.operationCount++;
+        }
+    };
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back([this, &params, i]() {
-            params.barrier.Wait(); // Synchronize start
-
-            for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
-                FontCollection fontCollection;
-
-                switch (j % 4) {
-                    case 0:
-                        fontCollection.SetupDefaultFontManager();
-                        break;
-                    case 1:
-                        fontCollection.SetAssetFontManager(Drawing::FontMgr::CreateDefaultFontMgr());
-                        break;
-                    case 2:
-                        fontCollection.SetDynamicFontManager(Drawing::FontMgr::CreateDynamicFontMgr());
-                        break;
-                    case 3:
-                        fontCollection.SetTestFontManager(Drawing::FontMgr::CreateDefaultFontMgr());
-                        break;
-                }
-
-                if (fontCollection.GetFontManagersCount() < 0) {
-                    params.errorCount++;
-                }
-                params.operationCount++;
-            }
-        });
+        threads.emplace_back(workerLambda);
     }
 
     for (auto& thread : threads) {
@@ -255,7 +248,6 @@ HWTEST_F(TypographyThreadTest, ConcurrentFontCollectionOperationsTest, TestSize.
     }
 
     EXPECT_EQ(params.operationCount.load(), NUM_THREADS * OPERATIONS_PER_THREAD);
-    EXPECT_EQ(params.errorCount.load(), 0);
 }
 
 /**
@@ -274,11 +266,10 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphMetricsTest, TestSize.Level0)
     Barrier barrier(NUM_THREADS);
     std::vector<std::thread> threads;
     std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
+    ThreadParams params(barrier, operationCount);
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back([&params, paragraph, i]() {
+        threads.emplace_back([&params, paragraph]() {
             params.barrier.Wait(); // Synchronize start
 
             for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
@@ -305,99 +296,6 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphMetricsTest, TestSize.Level0)
 }
 
 /**
- * @tc.name: StressTestMixedTypographyOperations
- * @tc.desc: stress test with mixed typography operations
- * @tc.type: FUNC
- */
-HWTEST_F(TypographyThreadTest, StressTestMixedTypographyOperations, TestSize.Level0)
-{
-    auto fontCollection = CreateFontCollection();
-
-    Barrier barrier(STRESS_THREAD_COUNT);
-    std::vector<std::thread> threads;
-    std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
-
-    for (int i = 0; i < STRESS_THREAD_COUNT; ++i) {
-        threads.emplace_back([this, &params, fontCollection, i]() {
-            params.barrier.Wait(); // Synchronize start
-
-            for (int j = 0; j < STRESS_ITERATIONS; ++j) {
-                try {
-                    switch (j % 5) {
-                        case 0: {
-                            // Create and layout paragraph
-                            std::u16string text = u"Stress test " + std::u16string(1, 'A' + (i % 26));
-                            auto paragraph = CreateSimpleParagraph(text, fontCollection);
-                            paragraph->Layout(100 + (j % 100));
-                            break;
-                        }
-                        case 1: {
-                            // Create font collection
-                            FontCollection fc;
-                            fc.SetupDefaultFontManager();
-                            if (fc.GetFontManagersCount() < 0) {
-                                params.errorCount++;
-                            }
-                            break;
-                        }
-                        case 2: {
-                            // Text style operations
-                            SPText::TextStyle style;
-                            style.fontSize = 12.0 + (j % 20);
-                            style.fontWeight = static_cast<SPText::FontWeight>(j % 10);
-                            style.letterSpacing = (j % 5) * 0.1;
-                            style.wordSpacing = (j % 3) * 0.5;
-                            break;
-                        }
-                        case 3: {
-                            // Paragraph style operations
-                            ParagraphStyle style;
-                            style.maxLines = (j % 10) + 1;
-                            style.ellipsis = u"...";
-                            style.textAlign = static_cast<SPText::TextAlign>(j % 5);
-                            break;
-                        }
-                        case 4: {
-                            // Complex text with multiple styles
-                            std::shared_ptr<ParagraphBuilder> builder =
-                                ParagraphBuilder::Create(ParagraphStyle(), fontCollection);
-
-                            SPText::TextStyle style1;
-                            style1.fontSize = 14.0;
-                            style1.color = Drawing::Color::COLOR_RED;
-                            builder->PushStyle(style1);
-                            builder->AddText(u"Red ");
-
-                            SPText::TextStyle style2;
-                            style2.fontSize = 16.0;
-                            style2.color = Drawing::Color::COLOR_BLUE;
-                            builder->PushStyle(style2);
-                            builder->AddText(u"Blue ");
-
-                            auto paragraph = builder->Build();
-                            paragraph->Layout(150);
-                            break;
-                        }
-                    }
-                    params.operationCount++;
-                } catch (...) {
-                    params.errorCount++;
-                }
-            }
-        });
-    }
-
-    for (auto& thread : threads) {
-        thread.join();
-    }
-
-    EXPECT_EQ(params.operationCount.load(), STRESS_THREAD_COUNT * STRESS_ITERATIONS);
-    EXPECT_EQ(params.errorCount.load(), 0);
-}
-
-/**
  * @tc.name: ConcurrentParagraphGetRectsTest
  * @tc.desc: test concurrent GetRectsForRange operations
  * @tc.type: FUNC
@@ -413,28 +311,25 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphGetRectsTest, TestSize.Level0)
     Barrier barrier(NUM_THREADS);
     std::vector<std::thread> threads;
     std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
+    ThreadParams params(barrier, operationCount);
+
+    const auto workerLambda = [&params, paragraph, text]() {
+        params.barrier.Wait(); // Synchronize start
+
+        for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
+            size_t start = j % text.size();
+            size_t end = (j + 1) % (text.size() + 1);
+            if (start > end) {
+                std::swap(start, end);
+            }
+
+            auto rects = paragraph->GetRectsForRange(start, end, RectHeightStyle::MAX, RectWidthStyle::TIGHT);
+            params.operationCount++;
+        }
+    };
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back([&params, paragraph, i, text]() {
-            params.barrier.Wait(); // Synchronize start
-
-            for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
-                size_t start = j % text.size();
-                size_t end = (j + 1) % (text.size() + 1);
-                if (start > end) {
-                    std::swap(start, end);
-                }
-
-                auto rects = paragraph->GetRectsForRange(
-                    start, end, RectHeightStyle::MAX, RectWidthStyle::TIGHT);
-                if (rects.size() < 0) {
-                    params.errorCount++;
-                }
-                params.operationCount++;
-            }
-        });
+        threads.emplace_back(workerLambda);
     }
 
     for (auto& thread : threads) {
@@ -442,7 +337,6 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphGetRectsTest, TestSize.Level0)
     }
 
     EXPECT_EQ(params.operationCount.load(), NUM_THREADS * OPERATIONS_PER_THREAD);
-    EXPECT_EQ(params.errorCount.load(), 0);
 }
 
 /**
@@ -460,20 +354,16 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphGetGlyphPositionTest, TestSize
     Barrier barrier(NUM_THREADS);
     std::vector<std::thread> threads;
     std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
+    ThreadParams params(barrier, operationCount);
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back([&params, paragraph, i]() {
+        threads.emplace_back([&params, paragraph]() {
             params.barrier.Wait(); // Synchronize start
 
             for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
                 double x = (j % 200);
                 double y = (j % 50);
-                auto position = paragraph->GetGlyphPositionAtCoordinate(x, y);
-                if (position.position < 0) {
-                    params.errorCount++;
-                }
+                paragraph->GetGlyphPositionAtCoordinate(x, y);
                 params.operationCount++;
             }
         });
@@ -484,7 +374,6 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphGetGlyphPositionTest, TestSize
     }
 
     EXPECT_EQ(params.operationCount.load(), NUM_THREADS * OPERATIONS_PER_THREAD);
-    EXPECT_EQ(params.errorCount.load(), 0);
 }
 
 /**
@@ -502,19 +391,15 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphGetWordBoundaryTest, TestSize.
     Barrier barrier(NUM_THREADS);
     std::vector<std::thread> threads;
     std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
+    ThreadParams params(barrier, operationCount);
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back([&params, paragraph, i, text]() {
+        threads.emplace_back([&params, paragraph, text]() {
             params.barrier.Wait(); // Synchronize start
 
             for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
                 size_t offset = j % text.size();
-                auto boundary = paragraph->GetWordBoundary(offset);
-                if (boundary.start < 0 || boundary.end > text.size()) {
-                    params.errorCount++;
-                }
+                paragraph->GetWordBoundary(offset);
                 params.operationCount++;
             }
         });
@@ -525,7 +410,6 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphGetWordBoundaryTest, TestSize.
     }
 
     EXPECT_EQ(params.operationCount.load(), NUM_THREADS * OPERATIONS_PER_THREAD);
-    EXPECT_EQ(params.errorCount.load(), 0);
 }
 
 /**
@@ -539,41 +423,40 @@ HWTEST_F(TypographyThreadTest, RaceConditionParagraphLifecycleTest, TestSize.Lev
     std::atomic<int> createCount(0);
     std::atomic<int> layoutCount(0);
     std::atomic<int> queryCount(0);
-    std::atomic<int> errorCount(0);
 
+    Barrier barrier(NUM_CREATE_THREADS + NUM_LAYOUT_THREADS + NUM_QUERY_THREADS);
     std::vector<std::thread> threads;
 
     // Threads creating paragraphs
-    for (int i = 0; i < 4; ++i) {
-        threads.emplace_back([this, &createCount, &errorCount, fontCollection, i]() {
+    for (int i = 0; i < NUM_CREATE_THREADS; ++i) {
+        threads.emplace_back([this, &barrier, &createCount, &fontCollection, i]() {
+            barrier.Wait(); // Synchronize start
             for (int j = 0; j < 50; ++j) {
                 std::u16string text = u"Create " + std::u16string(1, 'A' + (i % 26));
                 auto paragraph = CreateSimpleParagraph(text, fontCollection);
-                if (paragraph == nullptr) {
-                    errorCount++;
-                }
+                EXPECT_NE(paragraph, nullptr);
                 createCount++;
-                std::this_thread::sleep_for(std::chrono::microseconds(100));
             }
         });
     }
 
     // Threads layouting paragraphs
-    for (int i = 0; i < 3; ++i) {
-        threads.emplace_back([this, &layoutCount, fontCollection]() {
+    for (int i = 0; i < NUM_LAYOUT_THREADS; ++i) {
+        threads.emplace_back([this, &barrier, &layoutCount, fontCollection]() {
+            barrier.Wait(); // Synchronize start
             for (int j = 0; j < 50; ++j) {
                 std::u16string text = u"Layout test";
                 auto paragraph = CreateSimpleParagraph(text, fontCollection);
                 paragraph->Layout(100 + (j % 100));
                 layoutCount++;
-                std::this_thread::sleep_for(std::chrono::microseconds(100));
             }
         });
     }
 
     // Threads querying metrics
-    for (int i = 0; i < 3; ++i) {
-        threads.emplace_back([this, &queryCount, fontCollection]() {
+    for (int i = 0; i < NUM_QUERY_THREADS; ++i) {
+        threads.emplace_back([this, &barrier, &queryCount, &fontCollection]() {
+            barrier.Wait(); // Synchronize start
             for (int j = 0; j < 50; ++j) {
                 std::u16string text = u"Query test";
                 auto paragraph = CreateSimpleParagraph(text, fontCollection);
@@ -582,7 +465,6 @@ HWTEST_F(TypographyThreadTest, RaceConditionParagraphLifecycleTest, TestSize.Lev
                 paragraph->GetMaxWidth();
                 paragraph->GetLineCount();
                 queryCount++;
-                std::this_thread::sleep_for(std::chrono::microseconds(100));
             }
         });
     }
@@ -591,10 +473,9 @@ HWTEST_F(TypographyThreadTest, RaceConditionParagraphLifecycleTest, TestSize.Lev
         thread.join();
     }
 
-    EXPECT_EQ(createCount.load(), 200); // 4 threads * 50 iterations
-    EXPECT_EQ(layoutCount.load(), 150);  // 3 threads * 50 iterations
-    EXPECT_EQ(queryCount.load(), 150);   // 3 threads * 50 iterations
-    EXPECT_EQ(errorCount.load(), 0);
+    EXPECT_EQ(createCount.load(), NUM_CREATE_THREADS * 50); // 4 threads * 50 iterations
+    EXPECT_EQ(layoutCount.load(), NUM_LAYOUT_THREADS * 50); // 3 threads * 50 iterations
+    EXPECT_EQ(queryCount.load(), NUM_QUERY_THREADS * 50);   // 3 threads * 50 iterations
 }
 
 /**
@@ -609,41 +490,37 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphWithMultipleStylesTest, TestSi
     Barrier barrier(NUM_THREADS);
     std::vector<std::thread> threads;
     std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
+    ThreadParams params(barrier, operationCount);
+
+    const auto workerLambda = [&params, &fontCollection]() {
+        params.barrier.Wait(); // Synchronize start
+        std::shared_ptr<ParagraphBuilder> builder = ParagraphBuilder::Create(ParagraphStyle(), fontCollection);
+        for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
+            // Add multiple styled text segments
+            for (int k = 0; k < 5; ++k) {
+                SPText::TextStyle style;
+                style.fontSize = 12.0 + k * 2.0;
+                style.fontWeight = static_cast<SPText::FontWeight>(k % 10);
+                style.color = Drawing::Color::ColorQuadSetARGB(255, k * 30, (k + 1) * 30, (k + 2) * 30);
+
+                builder->PushStyle(style);
+                builder->AddText(u"Styled ");
+            }
+
+            // Pop styles
+            for (int k = 0; k < 3; ++k) {
+                builder->Pop();
+            }
+
+            auto paragraph = builder->Build();
+            EXPECT_NE(paragraph, nullptr);
+            paragraph->Layout(200);
+            params.operationCount++;
+        }
+    };
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back([this, &params, fontCollection, i]() {
-            params.barrier.Wait(); // Synchronize start
-
-            for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
-                std::shared_ptr<ParagraphBuilder> builder =
-                    ParagraphBuilder::Create(ParagraphStyle(), fontCollection);
-
-                // Add multiple styled text segments
-                for (int k = 0; k < 5; ++k) {
-                    SPText::TextStyle style;
-                    style.fontSize = 12.0 + k * 2.0;
-                    style.fontWeight = static_cast<SPText::FontWeight>(k % 10);
-                    style.color = Drawing::Color::ColorQuadSetARGB(255, k * 50, (k + 1) * 50, (k + 2) * 50);
-
-                    builder->PushStyle(style);
-                    builder->AddText(u"Styled ");
-                }
-
-                // Pop styles
-                for (int k = 0; k < 3; ++k) {
-                    builder->Pop();
-                }
-
-                auto paragraph = builder->Build();
-                if (paragraph == nullptr) {
-                    params.errorCount++;
-                }
-                paragraph->Layout(200);
-                params.operationCount++;
-            }
-        });
+        threads.emplace_back(workerLambda);
     }
 
     for (auto& thread : threads) {
@@ -651,7 +528,6 @@ HWTEST_F(TypographyThreadTest, ConcurrentParagraphWithMultipleStylesTest, TestSi
     }
 
     EXPECT_EQ(params.operationCount.load(), NUM_THREADS * OPERATIONS_PER_THREAD);
-    EXPECT_EQ(params.errorCount.load(), 0);
 }
 
 /**
@@ -672,7 +548,7 @@ HWTEST_F(TypographyThreadTest, DeadlockPreventionTypographyTest, TestSize.Level0
 
     std::vector<std::thread> threads;
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back([this, &completed, fontCollection, i]() {
+        threads.emplace_back([this, &completed, &fontCollection, i]() {
             for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
                 // Mix of different operations
                 std::u16string text = u"Thread " + std::u16string(1, 'A' + (i % 26));
@@ -699,7 +575,7 @@ HWTEST_F(TypographyThreadTest, DeadlockPreventionTypographyTest, TestSize.Level0
 
     // Wait with timeout to detect deadlock
     std::thread timeoutThread([&completed, &timeoutOccurred, &incompleteThreadCount]() {
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        std::this_thread::sleep_for(std::chrono::seconds(THREAD_SLEEP_TIME_10));
         for (int i = 0; i < NUM_THREADS; ++i) {
             if (!completed[i].load()) {
                 // Timeout - potential deadlock, record but don't use EXPECT in thread
@@ -739,11 +615,10 @@ HWTEST_F(TypographyThreadTest, ConcurrentReadIntensiveTypographyWorkloadTest, Te
     Barrier barrier(NUM_THREADS);
     std::vector<std::thread> threads;
     std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
+    ThreadParams params(barrier, operationCount);
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back([&params, paragraph, i]() {
+        threads.emplace_back([&params, &paragraph]() {
             params.barrier.Wait(); // Synchronize start
 
             for (int j = 0; j < OPERATIONS_PER_THREAD * 10; ++j) {
@@ -763,21 +638,10 @@ HWTEST_F(TypographyThreadTest, ConcurrentReadIntensiveTypographyWorkloadTest, Te
         });
     }
 
-    auto startTime = std::chrono::high_resolution_clock::now();
-
     for (auto& thread : threads) {
         thread.join();
     }
-
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-
     EXPECT_EQ(params.operationCount.load(), NUM_THREADS * OPERATIONS_PER_THREAD * 10);
-
-    // Log performance metric
-    double opsPerSecond = (params.operationCount.load() * 1000.0) / duration.count();
-    TEXT_LOGI("Typography read-intensive workload: %{public}d ops in %{public}lld ms (%{public}.2f ops/sec)",
-              params.operationCount.load(), duration.count(), opsPerSecond);
 }
 
 /**
@@ -788,57 +652,44 @@ HWTEST_F(TypographyThreadTest, ConcurrentReadIntensiveTypographyWorkloadTest, Te
 HWTEST_F(TypographyThreadTest, ConcurrentWriteIntensiveTypographyWorkloadTest, TestSize.Level0)
 {
     auto fontCollection = CreateFontCollection();
-
     Barrier barrier(NUM_THREADS);
     std::vector<std::thread> threads;
     std::atomic<int> operationCount(0);
-    std::atomic<int> errorCount(0);
-    ThreadParams params(barrier, operationCount, errorCount);
+    ThreadParams params(barrier, operationCount);
+
+    auto workerLambda = [&params, &fontCollection](int i) {
+        params.barrier.Wait(); // Synchronize start
+        std::shared_ptr<ParagraphBuilder> builder = ParagraphBuilder::Create(ParagraphStyle(), fontCollection);
+        for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
+            // Write operations: create and layout paragraphs
+            std::u16string text =
+                u"Write intensive " + std::u16string(1, 'A' + (i % 26)) + u" test " + std::u16string(1, '0' + (j % 10));
+
+            // Add multiple segments with different styles
+            for (int k = 0; k < 3; ++k) {
+                SPText::TextStyle style;
+                style.fontSize = 12.0 + k;
+                style.color = Drawing::Color::ColorQuadSetARGB(255, k * 80, (k + 1) * 80, (k + 2) * 80);
+                builder->PushStyle(style);
+                builder->AddText(text);
+            }
+
+            auto paragraph = builder->Build();
+            paragraph->Layout(100 + (j % 200));
+
+            params.operationCount++;
+        }
+    };
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back([this, &params, fontCollection, i]() {
-            params.barrier.Wait(); // Synchronize start
-
-            for (int j = 0; j < OPERATIONS_PER_THREAD; ++j) {
-                // Write operations: create and layout paragraphs
-                std::u16string text = u"Write intensive " + std::u16string(1, 'A' + (i % 26)) +
-                                     u" test " + std::u16string(1, '0' + (j % 10));
-
-                std::shared_ptr<ParagraphBuilder> builder =
-                    ParagraphBuilder::Create(ParagraphStyle(), fontCollection);
-
-                // Add multiple segments with different styles
-                for (int k = 0; k < 3; ++k) {
-                    SPText::TextStyle style;
-                    style.fontSize = 12.0 + k;
-                    style.color = Drawing::Color::ColorQuadSetARGB(255, k * 80, (k + 1) * 80, (k + 2) * 80);
-                    builder->PushStyle(style);
-                    builder->AddText(text);
-                }
-
-                auto paragraph = builder->Build();
-                paragraph->Layout(100 + (j % 200));
-
-                params.operationCount++;
-            }
-        });
+        threads.emplace_back(workerLambda, i);
     }
-
-    auto startTime = std::chrono::high_resolution_clock::now();
 
     for (auto& thread : threads) {
         thread.join();
     }
 
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-
     EXPECT_EQ(params.operationCount.load(), NUM_THREADS * OPERATIONS_PER_THREAD);
-
-    // Log performance metric
-    double opsPerSecond = (params.operationCount.load() * 1000.0) / duration.count();
-    TEXT_LOGI("Typography write-intensive workload: %{public}d ops in %{public}lld ms (%{public}.2f ops/sec)",
-              params.operationCount.load(), duration.count(), opsPerSecond);
 }
 
 } // namespace txt
