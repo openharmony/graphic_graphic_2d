@@ -356,13 +356,8 @@ ani_object AniShaderEffect::CreateImageShader(ani_env* env, ani_object obj, ani_
     }
 
     TileMode modex;
-    if (!GetTileMode(env, aniTileX, modex)) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "AniShaderEffect::CreateImageShader get TileMode enum failed.");
-        return CreateAniUndefined(env);
-    }
     TileMode modey;
-    if (!GetTileMode(env, aniTileY, modey)) {
+    if (!GetTileMode(env, aniTileX, modex) || !GetTileMode(env, aniTileY, modey)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniShaderEffect::CreateImageShader get TileMode enum failed.");
         return CreateAniUndefined(env);

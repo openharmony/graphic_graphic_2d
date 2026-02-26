@@ -40,6 +40,7 @@ ani_status AniTypeface::AniInit(ani_env *env)
             reinterpret_cast<void*>(GetFamilyName) },
         ani_native_function { "isBold", nullptr, reinterpret_cast<void*>(IsBold) },
         ani_native_function { "isItalic", nullptr, reinterpret_cast<void*>(IsItalic) },
+        ani_native_function { "makeFromCurrent", nullptr, reinterpret_cast<void*>(MakeFromCurrent) },
     };
 
     std::array statitMethods = {
@@ -53,6 +54,8 @@ ani_status AniTypeface::AniInit(ani_env *env)
         ani_native_function { "typefaceTransferStaticNative", nullptr,
             reinterpret_cast<void*>(TypefaceTransferStatic) },
         ani_native_function { "getTypefaceAddr", nullptr, reinterpret_cast<void*>(GetTypefaceAddr) },
+        ani_native_function { "makeFromRawFileWithArguments", nullptr,
+            reinterpret_cast<void*>(MakeFromRawFileWithArguments) },
     };
 
     ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -217,6 +220,108 @@ ani_object AniTypeface::MakeFromRawFile(ani_env* env, ani_object obj, ani_object
 #else
     return CreateAniUndefined(env);
 #endif
+}
+
+ani_object AniTypeface::MakeFromRawFileWithArguments(ani_env* env, ani_object obj, ani_object resource,
+    ani_object argumentsObj)
+{
+#ifdef ROSEN_OHOS
+    std::unique_ptr<uint8_t[]> rawFileArrayBuffer;
+    size_t rawFileArrayBufferSize = 0;
+    ResourceInfo resourceInfo;
+    if (!AniTool::GetResourceInfo(env, resource, resourceInfo) ||
+        !AniTool::GetResourceRawFileDataBuffer(std::move(rawFileArrayBuffer), rawFileArrayBufferSize, resourceInfo)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniTypeface::makeFromRawFileWithArguments get rawfilebuffer failed.");
+        return CreateAniUndefined(env);
+    }
+    
+    auto memory_stream = std::make_unique<MemoryStream> ((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
+    auto aniTypefaceArguments = GetNativeFromObj<AniTypefaceArguments>(env, argumentsObj,
+        AniGlobalField::GetInstance().typefaceArgumentsNativeObj);
+    if (aniTypefaceArguments == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
+        return CreateAniUndefined(env);
+    }
+    FontArguments fontArguments;
+    AniTypefaceArguments::ConvertToFontArguments(aniTypefaceArguments->GetTypefaceArgumentsHelper(), fontArguments);
+
+    auto rawTypeface = Typeface::MakeFromStream(std::move(memory_stream), fontArguments);
+    if (rawTypeface == nullptr) {
+        ROSEN_LOGE("AniTypeface::makeFromRawFileWithArguments Create rawTypeface failed.");
+        return CreateAniUndefined(env);
+    }
+
+    AniTypeface* aniTypeface = new AniTypeface(rawTypeface);
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
+        bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface);
+        if (!ret) {
+            delete aniTypeface;
+            ROSEN_LOGE("AniTypeface::makeFromRawFileWithArguments MakeRegister Typeface failed!");
+            return CreateAniUndefined(env);
+        }
+    }
+
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
+        AniGlobalMethod::GetInstance().typefaceCtor);
+    if (ANI_OK != env->Object_SetField_Long(
+        aniObj, AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniTypeface))) {
+        delete aniTypeface;
+        ROSEN_LOGE("AniTypeface::makeFromRawFileWithArguments failed create aniTypeface");
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
+#else
+    return CreateAniUndefined(env);
+#endif
+}
+
+ani_object AniTypeface::MakeFromCurrent(ani_env* env, ani_object obj, ani_object argumentsObj)
+{
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj, AniGlobalField::GetInstance().typefaceNativeObj);
+    if (aniTypeface == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return CreateAniUndefined(env);
+    }
+
+    std::shared_ptr<Typeface> typeface = aniTypeface->GetTypeface();
+    if (typeface == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return CreateAniUndefined(env);
+    }
+
+    auto aniTypefaceArguments = GetNativeFromObj<AniTypefaceArguments>(env, argumentsObj,
+        AniGlobalField::GetInstance().typefaceArgumentsNativeObj);
+    if (aniTypefaceArguments == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
+        return CreateAniUndefined(env);
+    }
+    FontArguments fontArguments;
+    AniTypefaceArguments::ConvertToFontArguments(aniTypefaceArguments->GetTypefaceArgumentsHelper(), fontArguments);
+
+    auto rawTypeface = typeface->MakeClone(fontArguments);
+    if (rawTypeface == nullptr) {
+        ROSEN_LOGE("AniTypeface::MakeFromCurrent create rawTypeface failed.");
+        return nullptr;
+    }
+
+    AniTypeface* aniRawTypeface = new AniTypeface(rawTypeface);
+    if (rawTypeface->IsCustomTypeface() && Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
+        delete aniRawTypeface;
+        ROSEN_LOGE("AniTypeface::MakeFromCurrent MakeRegister Typeface failed.");
+        return nullptr;
+    }
+
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
+        AniGlobalMethod::GetInstance().typefaceCtor);
+    if (ANI_OK != env->Object_SetField_Long(
+        aniObj, AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniRawTypeface))) {
+        delete aniRawTypeface;
+        ROSEN_LOGE("AniTypeface::MakeFromCurrent failed create aniTypeface");
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
 }
 
 ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)

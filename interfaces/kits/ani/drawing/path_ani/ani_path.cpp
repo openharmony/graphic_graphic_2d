@@ -752,7 +752,7 @@ ani_object AniPath::Approximate(ani_env* env, ani_object obj, ani_double accepta
     if (acceptableErrorobj < 0.0) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniPath::approximate acceptableError is invaild.");
-        return CreateAniUndefined(env); 
+        return CreateAniUndefined(env);
     }
     std::vector<scalar> points;
     aniPath->GetPath()->Approximate(static_cast<scalar>(acceptableErrorobj), points);
@@ -868,10 +868,10 @@ ani_enum_item AniPath::GetFillType(ani_env* env, ani_object obj)
     }
 
     PathFillType fillType = aniPath->GetPath()->GetFillStyle();
-     if (!CreateAniEnumByEnumIndex(
+    if (!CreateAniEnumByEnumIndex(
         env, AniGlobalEnum::GetInstance().pathFillType, static_cast<ani_size>(fillType), value)) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Find enum for PathFillType failed.");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Find enum for PathFillType failed.");
         return value;
     }
     return value;

@@ -215,7 +215,7 @@ ani_object AniRegion::GetBoundaryPath(ani_env* env, ani_object obj)
     if (aniRegion == nullptr || aniRegion->GetRegion() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniRegion::GetBoundaryPath aniRegion is nullptr.");
-        return CreateAniUndefined(env);;
+        return CreateAniUndefined(env);
     }
     std::shared_ptr<Path> path = std::make_shared<Path>();
     aniRegion->GetRegion()->GetBoundaryPath(path.get());

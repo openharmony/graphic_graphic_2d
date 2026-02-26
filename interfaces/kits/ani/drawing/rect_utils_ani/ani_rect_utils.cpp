@@ -214,7 +214,7 @@ ani_double AniRectUtils::CenterX(ani_env* env, ani_object obj, ani_object aniRec
         return -1;
     }
 
-    return (ltrb[0] + ltrb[2]) / 2;
+    return (ltrb[ARGC_ZERO] + ltrb[ARGC_TWO]) / 2; // 2 represents the average of left and right
 }
  
 ani_double  AniRectUtils::CenterY(ani_env* env, ani_object obj, ani_object aniRectObj)
@@ -225,7 +225,7 @@ ani_double  AniRectUtils::CenterY(ani_env* env, ani_object obj, ani_object aniRe
             "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
         return -1;
     }
-    return (ltrb[ARGC_ONE] + ltrb[ARGC_THREE]) / 2;
+    return (ltrb[ARGC_ONE] + ltrb[ARGC_THREE]) / 2; // 2 represents the average of top and bottom
 }
  
 ani_object AniRectUtils::MakeCopy(ani_env* env, ani_object obj, ani_object aniSrcRectObj)
@@ -264,14 +264,14 @@ ani_boolean AniRectUtils::IsIntersect(ani_env* env, ani_object obj, ani_object a
     Drawing::Rect drawingRect;
     if (!GetRectFromAniRectObj(env, aniRectObj, drawingRect)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "AniRectUtils::IsIntersect Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "AniRectUtils::IsIntersect Incorrect parameter0 type. The type of value must be number.");
         return false;
     }
 
     Drawing::Rect otherRect;
     if (!GetRectFromAniRectObj(env, aniOtherRect, otherRect)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "AniRectUtils::IsIntersect Incorrect parameter1 type. The type of left, top, right and bottom must be number.");
+            "AniRectUtils::IsIntersect Incorrect parameter1 type. The type of value must be number.");
         return false;
     }
     bool isIntersect = drawingRect.IsIntersect(otherRect);
