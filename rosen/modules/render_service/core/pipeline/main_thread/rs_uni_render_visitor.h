@@ -315,6 +315,7 @@ private:
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void UpdateFilterRegionInSkippedSurfaceNode(const RSRenderNode& rootNode, RSDirtyRegionManager& dirtyManager);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
+    void UpdateVisibleEffectChildrenStatus(const RSRenderNode& rootNode);
     void CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(const RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager);
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
@@ -372,6 +373,8 @@ private:
     void UpdateFixedSize(RSLogicalDisplayRenderNode& node);
 
     void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
+
+    void PrepareColorPickerDrawable(RSRenderNode& node);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;

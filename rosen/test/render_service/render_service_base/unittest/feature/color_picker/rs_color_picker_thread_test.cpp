@@ -47,6 +47,9 @@ HWTEST_F(RSColorPickerThreadTest, PostTaskTest, TestSize.Level1)
     auto func = []() -> void {};
     RSColorPickerThread::Instance().PostTask(func);
     EXPECT_NE(RSColorPickerThread::Instance().handler_, nullptr);
+
+    RSColorPickerThread::Instance().PostTask(func, false);
+    EXPECT_NE(RSColorPickerThread::Instance().handler_, nullptr);
 }
 
 /**

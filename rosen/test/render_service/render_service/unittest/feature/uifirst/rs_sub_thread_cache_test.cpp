@@ -811,20 +811,23 @@ HWTEST_F(RSSubThreadCacheTest, InitCacheSurfaceTest, TestSize.Level1)
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext();
     DrawableV2::RsSubThreadCache::ClearCacheSurfaceFunc func;
     uint32_t threadIndex = 0;
-    surfaceDrawable_->GetRsSubThreadCache().InitCacheSurface(gpuContext, surfaceDrawable_, func, threadIndex);
-    ASSERT_FALSE(surfaceDrawable_->GetRsSubThreadCache().clearCacheSurfaceFunc_);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    subCache.InitCacheSurface(gpuContext, surfaceDrawable_, func, threadIndex);
+    ASSERT_FALSE(subCache.clearCacheSurfaceFunc_);
 
     func = [](std::shared_ptr<Drawing::Surface>&& oldSurface, std::shared_ptr<Drawing::Surface>&& newSurface,
                uint32_t width, uint32_t height) {};
-    surfaceDrawable_->GetRsSubThreadCache().InitCacheSurface(gpuContext, surfaceDrawable_, func, threadIndex);
-    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().clearCacheSurfaceFunc_);
+    surfaceDrawable_->uifirstRenderParams_ = nullptr;
+    subCache.InitCacheSurface(gpuContext, surfaceDrawable_, func, threadIndex);
+    ASSERT_TRUE(subCache.clearCacheSurfaceFunc_);
 
-    surfaceDrawable_->GetRsSubThreadCache().cacheSurface_ = std::make_shared<Drawing::Surface>();
-    surfaceDrawable_->GetRsSubThreadCache().InitCacheSurface(gpuContext, surfaceDrawable_, func, threadIndex);
+    subCache.cacheSurface_ = std::make_shared<Drawing::Surface>();
+    surfaceDrawable_->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    subCache.InitCacheSurface(gpuContext, surfaceDrawable_, func, threadIndex);
     delete gpuContext;
     gpuContext = nullptr;
-    surfaceDrawable_->GetRsSubThreadCache().InitCacheSurface(gpuContext, surfaceDrawable_, func, threadIndex);
-    ASSERT_FALSE(surfaceDrawable_->GetRsSubThreadCache().cacheSurface_);
+    subCache.InitCacheSurface(gpuContext, surfaceDrawable_, func, threadIndex);
+    ASSERT_FALSE(subCache.cacheSurface_);
 }
 
 /**

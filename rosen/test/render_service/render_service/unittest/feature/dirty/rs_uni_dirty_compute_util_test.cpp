@@ -130,6 +130,48 @@ public:
 };
 
 /**
+ * @tc.name: GetVisibleFilterRect_ColorPickerDrawable
+ * @tc.desc: test GetVisibleFilterRect skips color picker only nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, GetVisibleFilterRect_ColorPickerDrawable, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    surfaceNode->context_ = context;
+
+    // Create a filter node with only ColorPickerDrawable (no real filter)
+    NodeId colorPickerOnlyNodeId = 100;
+    auto colorPickerOnlyNode = std::make_shared<RSRenderNode>(colorPickerOnlyNodeId);
+    colorPickerOnlyNode->SetOldDirtyInSurface(RectI(100, 100, 500, 500));
+    surfaceNode->visibleFilterChild_.push_back(colorPickerOnlyNodeId);
+
+    // Create a ColorPicker drawable for the node
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+    colorPickerOnlyNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] =
+        colorPickerDrawable;
+
+    // Register the node in nodeMap
+    context->GetMutableNodeMap().RegisterRenderNode(colorPickerOnlyNode);
+
+    // GetVisibleFilterRect should skip color picker only nodes, resulting in empty rect
+    RectI filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);
+    ASSERT_TRUE(filterRect.IsEmpty());
+
+    // Now add a real filter to the node (background filter)
+    colorPickerOnlyNode->renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+
+    // GetVisibleFilterRect should now include the node since it has a real filter
+    filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);
+    ASSERT_FALSE(filterRect.IsEmpty());
+}
+
+/**
  * @tc.name: GetCurrentFrameVisibleDirty001
  * @tc.desc: test GetCurrentFrameVisibleDirty
  * @tc.type: FUNC
@@ -837,5 +879,35 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GetVisibleFilterRect_001, TestSize.Level1)
     context->GetMutableNodeMap().RegisterRenderNode(filterNode);
     filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);
     ASSERT_FALSE(filterRect.IsEmpty());
+}
+
+/**
+* @tc.name: HasMirrorDisplay001
+* @tc.desc: Test HasMirrorDisplay with multiple mirror displays
+* @tc.type: FUNC
+* @tc.require: issue22079
+*/
+HWTEST_F(RSUniDirtyComputeUtilTest, HasMirrorDisplay001, TestSize.Level1)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    NodeId displayId = 0;
+    RSDisplayNodeConfig config;
+
+    auto sourceNode = std::make_shared<RSLogicalDisplayRenderNode>(++displayId, config);
+    auto displayNode1 = std::make_shared<RSLogicalDisplayRenderNode>(++displayId, config);
+    auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(++displayId, config);
+    ASSERT_NE(sourceNode, nullptr);
+    ASSERT_NE(displayNode1, nullptr);
+    ASSERT_NE(displayNode2, nullptr);
+    displayNode1->SetIsMirrorDisplay(true);
+    displayNode1->SetMirrorSource(sourceNode);
+    displayNode2->SetMirrorSource(nullptr);
+
+    uint32_t index = 0;
+    nodeMap.logicalDisplayNodeMap_.emplace(index++, displayNode1);
+    nodeMap.logicalDisplayNodeMap_.emplace(index++, displayNode2);
+    nodeMap.logicalDisplayNodeMap_.emplace(index, nullptr);
+    EXPECT_TRUE(RSUniDirtyComputeUtil::HasMirrorDisplay());
+    nodeMap.logicalDisplayNodeMap_.clear();
 }
 } // namespace OHOS::Rosen
