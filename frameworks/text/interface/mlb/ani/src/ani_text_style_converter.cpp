@@ -283,7 +283,10 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
                 TEXT_LOGE("Failed to get filed value, ret %{public}d", ret);
                 return "";
             }
-            fontVariations.SetAxisValue(axis, static_cast<int>(valueDouble));
+            bool isNormalized = false;
+            AniTextUtils::ReadOptionalBoolField(env, obj,
+                AniGlobalMethod::GetInstance().fontVariationIsNormalized, isNormalized);
+            fontVariations.SetAxisValue(axis, static_cast<int>(valueDouble), isNormalized);
             return "";
         });
 }

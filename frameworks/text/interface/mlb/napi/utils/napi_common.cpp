@@ -255,7 +255,9 @@ void ReceiveFontVariation(napi_env env, napi_value argValue, TextStyle& textStyl
             TEXT_LOGE("Failed to get value, ret %{public}d", static_cast<int>(status));
             break;
         }
-        textStyle.fontVariations.SetAxisValue(axis, value);
+        bool isNormalized = false;
+        SetBoolValueFromJS(env, singleElementValue, "isNormalized", isNormalized);
+        textStyle.fontVariations.SetAxisValue(axis, value, isNormalized);
     }
     return;
 }

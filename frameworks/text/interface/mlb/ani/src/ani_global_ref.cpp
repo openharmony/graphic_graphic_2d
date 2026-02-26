@@ -200,6 +200,8 @@ constexpr CacheKey FONT_FEATURE_VALUE_KEY{ANI_INTERFACE_FONT_FEATURE, "<get>valu
 
 constexpr CacheKey FONT_VARIATION_AXIS_KEY{ANI_INTERFACE_FONT_VARIATION, "<get>axis", ANI_WRAP_RETURN_C(ANI_STRING)};
 constexpr CacheKey FONT_VARIATION_VALUE_KEY{ANI_INTERFACE_FONT_VARIATION, "<get>value", ":d"};
+constexpr CacheKey FONT_VARIATION_IS_NORMALIZED_KEY{
+    ANI_INTERFACE_FONT_VARIATION, "<get>isNormalized", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 
 constexpr CacheKey RECT_STYLE_COLOR_KEY{ANI_INTERFACE_RECT_STYLE, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR)};
 constexpr CacheKey RECT_STYLE_LEFT_TOP_RADIUS_KEY{ANI_INTERFACE_RECT_STYLE, "<get>leftTopRadius", ":d"};
@@ -550,6 +552,8 @@ void AniGlobalMethod::InitFontVariationMethod(ani_env* env)
     fontVariationCtor = AniClassFindMethod(env, AniGlobalClass::GetInstance().fontVariation, FONT_VARIATION_KEY);
     fontVariationAxis = AniClassFindMethod(env, AniGlobalClass::GetInstance().fontVariation, FONT_VARIATION_AXIS_KEY);
     fontVariationValue = AniClassFindMethod(env, AniGlobalClass::GetInstance().fontVariation, FONT_VARIATION_VALUE_KEY);
+    fontVariationIsNormalized =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().fontVariation, FONT_VARIATION_IS_NORMALIZED_KEY);
 }
 
 void AniGlobalMethod::InitRectStyleMethod(ani_env* env)
