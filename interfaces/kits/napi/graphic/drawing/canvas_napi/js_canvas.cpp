@@ -2002,7 +2002,9 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(ARGC_ONE) + " type.");
         }
-        drawingBrushPtr = jsBrush->GetBrush().get();
+        if (jsBrush->GetBrush() != nullptr) {
+            drawingBrushPtr = jsBrush->GetBrush().get();
+        }
     }
     ret = m_canvas->GetSaveCount();
     SaveLayerOps saveLayerOps = SaveLayerOps(drawingRectPtr, drawingBrushPtr);

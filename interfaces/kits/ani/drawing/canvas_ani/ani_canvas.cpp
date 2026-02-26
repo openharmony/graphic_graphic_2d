@@ -514,6 +514,10 @@ void AniCanvas::DrawBackground(ani_env* env, ani_object obj, ani_object brushObj
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawBackground brush is nullptr.");
         return;
     }
+    if (aniBrush->GetBrush() == nullptr) {
+        ROSEN_LOGE("AniCanvas::OnDrawBackground brush is nullptr");
+        return;
+    }
     aniCanvas->GetCanvas()->DrawBackground(*aniBrush->GetBrush());
     aniCanvas->NotifyDirty();
 }
@@ -1662,6 +1666,10 @@ void AniCanvas::AttachPen(ani_env* env, ani_object obj, ani_object penObj)
         AniThrowError(env, "Invalid params.");
         return;
     }
+    if (aniPen->GetPen() == nullptr) {
+        ROSEN_LOGE("AniCanvas::AttachPen pen is nullptr");
+        return;
+    }
     Canvas* canvas = aniCanvas->GetCanvas();
     canvas->AttachPen(*aniPen->GetPen());
 }
@@ -1726,7 +1734,7 @@ ani_long AniCanvas::SaveLayer(ani_env* env, ani_object obj, ani_object rectObj, 
 
     Drawing::AniBrush* aniBrush = GetNativeFromObj<AniBrush>(env, brushObj,
         AniGlobalField::GetInstance().brushNativeObj);
-    Drawing::Brush* drawingBrushPtr = aniBrush ? aniBrush->GetBrush().get() : nullptr;
+    Drawing::Brush* drawingBrushPtr = aniBrush && aniBrush->GetBrush() ? aniBrush->GetBrush().get() : nullptr;
 
     ani_long ret = canvas->GetSaveCount();
     SaveLayerOps saveLayerOps = SaveLayerOps(drawingRectPtr, drawingBrushPtr);
@@ -1909,6 +1917,10 @@ void AniCanvas::ConcatMatrix(ani_env* env, ani_object obj, ani_object matrixObj)
     auto aniMatrix = GetNativeFromObj<AniMatrix>(env, matrixObj, AniGlobalField::GetInstance().matrixNativeObj);
     if (aniMatrix == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::ConcatMatrix matrix is nullptr.");
+        return;
+    }
+    if (aniMatrix->GetMatrix() == nullptr) {
+        ROSEN_LOGE("AniCanvas::ConcatMatrix matrix is nullptr");
         return;
     }
 
@@ -2120,6 +2132,10 @@ void AniCanvas::SetMatrix(ani_env* env, ani_object obj, ani_object matrixObj)
     auto aniMatrix = GetNativeFromObj<AniMatrix>(env, matrixObj, AniGlobalField::GetInstance().matrixNativeObj);
     if (aniMatrix == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::SetMatrix matrix is nullptr.");
+        return;
+    }
+    if (aniMatrix->GetMatrix() == nullptr) {
+        ROSEN_LOGE("AniCanvas::SetMatrix matrix is nullptr");
         return;
     }
 
