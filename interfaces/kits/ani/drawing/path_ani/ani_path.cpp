@@ -796,7 +796,7 @@ void AniPath::ReWind(ani_env* env, ani_object obj)
     auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
-        return ;
+        return;
     }
     aniPath->GetPath()->ReWind();
 }
@@ -831,13 +831,13 @@ void AniPath::Set(ani_env* env, ani_object obj, ani_object srcobj)
     auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return ;
+        return;
     }
 
     auto srcPath = GetNativeFromObj<AniPath>(env, srcobj, AniGlobalField::GetInstance().pathNativeObj);
     if (srcPath == nullptr || srcPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param dst.");
-        return ;
+        return;
     }
     aniPath->GetPath()->SetPath(*srcPath->GetPath());
 }

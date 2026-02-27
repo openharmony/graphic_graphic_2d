@@ -551,6 +551,7 @@ void AniMatrix::OnSetMatrix(ani_env* env, ani_object obj, ani_object matrixArrya
     if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniMatrix::OnSetMatrix invalid params: otherMatrix. ");
+        return;
     }
             
     std::shared_ptr<Matrix> matrix = aniMatrix->GetMatrix();
@@ -599,12 +600,14 @@ void AniMatrix::SetConcat(ani_env* env, ani_object obj, ani_object matrixAobj, a
     if (aniMatrixA == nullptr || aniMatrixA->GetMatrix() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniMatrix::SetConcat invalid params: otherMatrix. ");
+        return;
     }
 
     auto aniMatrixB = GetNativeFromObj<AniMatrix>(env, matrixBobj, AniGlobalField::GetInstance().matrixNativeObj);
     if (aniMatrixB == nullptr || aniMatrixB->GetMatrix() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniMatrix::SetConcat invalid params: otherMatrix. ");
+        return;
     }
     std::shared_ptr<Matrix> matrixA = aniMatrixA->GetMatrix();
     std::shared_ptr<Matrix> matrixB = aniMatrixB->GetMatrix();
@@ -623,6 +626,7 @@ void AniMatrix::PostConcat(ani_env* env, ani_object obj, ani_object matrixobj)
     if (aniMatrixobj == nullptr || aniMatrixobj->GetMatrix() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniMatrix::SetConcat invalid params: otherMatrix. ");
+        return;
     }
 
     std::shared_ptr<Matrix> matrix = aniMatrixobj->GetMatrix();
