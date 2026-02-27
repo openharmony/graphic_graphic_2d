@@ -15,6 +15,13 @@
 
 #include "ani_shader_effect.h"
 #include "matrix_ani/ani_matrix.h"
+#include "pixel_map_taihe_ani.h"
+#include "image/image.h"
+#include "canvas_ani/ani_canvas.h"
+ 
+#ifdef ROSEN_OHOS
+#include "pixel_map.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -35,6 +42,8 @@ ani_status AniShaderEffect::AniInit(ani_env *env)
         ani_native_function { "createConicalGradient", nullptr, reinterpret_cast<void*>(CreateConicalGradient) },
         ani_native_function { "createSweepGradient", nullptr, reinterpret_cast<void*>(CreateSweepGradient) },
         ani_native_function { "createRadialGradient", nullptr, reinterpret_cast<void*>(CreateRadialGradient) },
+        ani_native_function { "createImageShader", nullptr, reinterpret_cast<void*>(CreateImageShader) },
+        ani_native_function { "createComposeShader", nullptr, reinterpret_cast<void*>(CreateComposeShader) },
     };
 
     ani_status ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
@@ -337,6 +346,87 @@ ani_object AniShaderEffect::CreateRadialGradient(ani_env* env, ani_object obj, a
     return CreateAniShaderEffect(env, shaderEffect);
 }
 
+ani_object AniShaderEffect::CreateImageShader(ani_env* env, ani_object obj, ani_object pixelmapObj,
+    ani_enum_item aniTileX, ani_enum_item aniTileY, ani_object samplingOptionsobj, ani_object aniMatrix)
+{
+#ifdef ROSEN_OHOS
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMapTaiheAni::GetNativePixelMap(env, pixelmapObj);
+    if (!pixelMap) {
+        ROSEN_LOGE("AniShaderEffect::CreateImageShader get pixelMap failed");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniShaderEffect::CreateImageShader pixelMap is nullptr.");
+        return CreateAniUndefined(env);
+    }
+    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMap);
+    if (image == nullptr) {
+        ROSEN_LOGE("AniShaderEffect::CreateImageShader image is nullptr");
+        return CreateAniUndefined(env);
+    }
+
+    TileMode modex;
+    TileMode modey;
+    if (!GetTileMode(env, aniTileX, modex) || !GetTileMode(env, aniTileY, modey)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniShaderEffect::CreateImageShader get TileMode enum failed.");
+        return CreateAniUndefined(env);
+    }
+
+    Drawing::SamplingOptions samplingOptions;
+    AniSamplingOptions* aniSamplingOptions = GetNativeFromObj<AniSamplingOptions>(env, samplingOptionsobj,
+        AniGlobalField::GetInstance().samplingOptionsNativeObj);
+    if (aniSamplingOptions == nullptr || aniSamplingOptions->GetSamplingOptions() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniShaderEffect::CreateImageShader samplingOptions is nullptr.");
+        return CreateAniUndefined(env);
+    }
+    samplingOptions = *(aniSamplingOptions->GetSamplingOptions());
+    
+    Drawing::Matrix drawingMatrix;
+    if (IsReferenceValid(env, aniMatrix)) {
+        auto aniMatrixObj = GetNativeFromObj<AniMatrix>(env, aniMatrix, AniGlobalField::GetInstance().matrixNativeObj);
+        if (aniMatrixObj == nullptr) {
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "AniShaderEffect::CreateImageShader get matrix failed.");
+            return CreateAniUndefined(env);
+        }
+        drawingMatrix = *aniMatrixObj->GetMatrix();
+    }
+    std::shared_ptr<ShaderEffect> imageShader = ShaderEffect::CreateImageShader(*image,
+        modex, modey, samplingOptions, drawingMatrix);
+    return CreateAniShaderEffect(env, imageShader);
+#endif
+    return nullptr;
+}
+
+ani_object AniShaderEffect::CreateComposeShader(ani_env* env, ani_object obj, ani_object dstShaderEffect,
+    ani_object srcShaderEffect, ani_enum_item blendModeobj)
+{
+    AniShaderEffect* aniDstShaderEffect = nullptr;
+    aniDstShaderEffect = GetNativeFromObj<AniShaderEffect>(env, dstShaderEffect,
+        AniGlobalField::GetInstance().shaderEffectNativeObj);
+    if (aniDstShaderEffect == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param shaderEffect.");
+        return CreateAniUndefined(env);
+    }
+
+    AniShaderEffect* aniSrcShaderEffect = nullptr;
+    aniSrcShaderEffect = GetNativeFromObj<AniShaderEffect>(env, srcShaderEffect,
+        AniGlobalField::GetInstance().shaderEffectNativeObj);
+    if (aniSrcShaderEffect == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param shaderEffect.");
+        return CreateAniUndefined(env);
+    }
+
+    ani_int blendMode;
+    if (ANI_OK != env->EnumItem_GetValue_Int(blendModeobj, &blendMode)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
+        return CreateAniUndefined(env);
+    }
+
+    std::shared_ptr<ShaderEffect> effectShader = ShaderEffect::CreateBlendShader(*aniDstShaderEffect->GetShaderEffect(),
+        *aniSrcShaderEffect->GetShaderEffect(), static_cast<BlendMode>(blendMode));
+    return CreateAniShaderEffect(env, effectShader);
+}
 
 AniShaderEffect::~AniShaderEffect()
 {

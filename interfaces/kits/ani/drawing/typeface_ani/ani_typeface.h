@@ -38,6 +38,9 @@ public:
     static ani_object MakeFromRawFile(ani_env* env, ani_object obj, ani_object resource);
     static ani_object MakeFromFileWithArguments(ani_env* env, ani_object obj, ani_string filePath,
         ani_object argumentsObj);
+    static ani_object MakeFromRawFileWithArguments(ani_env* env, ani_object obj, ani_object resource,
+        ani_object argumentsObj);
+    static ani_object MakeFromCurrent(ani_env* env, ani_object obj, ani_object argumentsObj);
 
     static std::shared_ptr<Typeface> GetZhCnTypeface();
 
