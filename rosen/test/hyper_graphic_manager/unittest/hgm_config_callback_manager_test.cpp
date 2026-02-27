@@ -1,17 +1,17 @@
 /*
-* Copyright (c) 2026 Huawei Device Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <gtest/gtest.h>
 #include <test_header.h>
@@ -302,3 +302,377 @@ HWTEST_F(HgmConfigCallbackManagerTest, SyncHgmConfigChangeCallback_WithExtraPid,
     auto manager = HgmConfigCallbackManager::GetInstance();
     manager->SyncHgmConfigChangeCallback(TEST_PID_1);
 }
+
+/**
+ * @tc.name: SyncHgmConfigChangeCallback_WithPidsMap
+ * @tc.desc: Verify SyncHgmConfigChangeCallback with pids map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncHgmConfigChangeCallback_WithPidsMap,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    auto callback = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    manager->RegisterHgmConfigChangeCallback(TEST_PID_1, callback);
+    callback->Reset();
+
+    std::unordered_map<pid_t, std::pair<int32_t, std::string>> pids;
+    pids[TEST_PID_1] = {1, "test_pkg"};
+    manager->SyncHgmConfigChangeCallback(pids, 0);
+    EXPECT_TRUE(callback->configChangedCalled_);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: SyncHgmConfigChangeCallback_WithPidsMapAndExtraPid
+ * @tc.desc: Verify SyncHgmConfigChangeCallback with pids map and extra pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncHgmConfigChangeCallback_WithPidsMapAndExtraPid,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    auto callback1 = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    auto callback2 = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    manager->RegisterHgmConfigChangeCallback(TEST_PID_1, callback1);
+    manager->RegisterHgmConfigChangeCallback(TEST_PID_2, callback2);
+    callback1->Reset();
+    callback2->Reset();
+
+    std::unordered_map<pid_t, std::pair<int32_t, std::string>> pids;
+    pids[TEST_PID_1] = {1, "test_pkg"};
+    manager->SyncHgmConfigChangeCallback(pids, TEST_PID_2);
+    EXPECT_TRUE(callback1->configChangedCalled_);
+    EXPECT_TRUE(callback2->configChangedCalled_);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_2);
+}
+
+/**
+ * @tc.name: SyncRefreshRateModeChangeCallback
+ * @tc.desc: Verify SyncRefreshRateModeChangeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncRefreshRateModeChangeCallback,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    auto callback = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    manager->RegisterHgmRefreshRateModeChangeCallback(TEST_PID_1, callback);
+    callback->Reset();
+
+    manager->SyncRefreshRateModeChangeCallback(TEST_REFRESH_RATE_MODE);
+    EXPECT_EQ(callback)refreshRateMode_, TEST_REFRESH_RATE_MODE);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: SyncRefreshRateUpdateCallback
+ * @tc.desc: Verify SyncRefreshRateUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncRefreshRateUpdateCallback,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    auto callback = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    manager->RegisterHgmRefreshRateUpdateCallback(TEST_PID_1, callback);
+    callback->Reset();
+
+    manager->SyncRefreshRateUpdateCallback(TEST_REFRESH_RATE);
+    EXPECT_EQ(callback->refreshRate_, TEST_REFRESH_RATE);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: SyncXComponentExpectedFrameRateCallback_Destroyed
+ * @tc.desc: Verify SyncXComponentExpectedFrameRateCallback with destroyed framerate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncXComponentExpectedFrameRateCallback_Destroyed,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    const std::string xcomponentId = "test_xcomponent";
+    auto callback = sptr<MockFrameRateLinkerExpectedFpsUpdateCallback>(
+        new MockFrameRateLinkerExpectedFpsUpdateCallback());
+    manager->RegisterXComponentExpectedFrameRateCallback(TEST_PID_1, TEST_PID_2, callback);
+    callback->Reset();
+
+    manager->SyncXComponentExpectedFrameRateCallback(TEST_PID_2, xcomponentId, -1);
+    EXPECT_TRUE(callback->callbackCalled_);
+    EXPECT_EQ(callback->expectedFps_, 0);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: SyncXComponentExpectedFrameRateCallback_InvalidFramerate
+ * @tc.desc: Verify SyncXComponentExpectedFrameRateCallback with invalid framerate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncXComponentExpectedFrameRateCallback_InvalidFramerate,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    const std::string xcomponentId = "test_xcomponent";
+    auto callback = sptr<MockFrameRateLinkerExpectedFpsUpdateCallback>(
+        new MockFrameRateLinkerExpectedFpsUpdateCallback());
+    manager->RegisterXComponentExpectedFrameRateCallback(TEST_PID_1, TEST_PID_2, callback);
+    callback->Reset();
+
+    manager->SyncXComponentExpectedFrameRateCallback(TEST_PID_2, xcomponentId, -2);
+    EXPECT_FALSE(callback->callbackCalled_);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: SyncXComponentExpectedFrameRateCallback_SameFramerate
+ * @tc.desc: Verify SyncXComponentExpectedFrameRateCallback with same framerate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncXComponentExpectedFrameRateCallback_SameFramerate,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    const std::string xcomponentId = "test_xcomponent";
+    auto callback = sptr<MockFrameRateLinkerExpectedFpsUpdateCallback>(
+        new MockFrameRateLinkerExpectedFpsUpdateCallback());
+    manager->RegisterXComponentExpectedFrameRateCallback(TEST_PID_1, TEST_PID_2, callback);
+    callback->Reset();
+
+    manager->SyncXComponentExpectedFrameRateCallback(TEST_PID_2, xcomponentId, TEST_REFRESH_RATE);
+    EXPECT_TRUE(callback->callbackCalled_);
+    callback->Reset();
+    manager->SyncXComponentExpectedFrameRateCallback(TEST_PID_2, xcomponentId, TEST_REFRESH_RATE);
+    EXPECT_FALSE(callback->callbackCalled_);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: SyncXComponentExpectedFrameRateCallback_ValidFramerate
+ * @tc.desc: Verify SyncXComponentExpectedFrameRateCallback with valid framerate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncXComponentExpectedFrameRateCallback_ValidFramerate,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    const std::string xcomponentId = "test_xcomponent";
+    auto callback = sptr<MockFrameRateLinkerExpectedFpsUpdateCallback>(
+        new MockFrameRateLinkerExpectedFpsUpdateCallback());
+    manager->RegisterXComponentExpectedFrameRateCallback(TEST_PID_1, TEST_PID_2, callback);
+    callback->Reset();
+
+    manager->SyncXComponentExpectedFrameRateCallback(TEST_PID_2, xcomponentId, TEST_REFRESH_RATE);
+    EXPECT_TRUE(callback->callbackCalled_);
+    EXPECT_EQ(callback->dstPid_, TEST_PID_2);
+    EXPECT_EQ(callback->xcomponentId_, xcomponentId);
+    EXPECT_EQ(callback->expectedFps_, TEST_REFRESH_RATE);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: SyncXComponentExpectedFrameRateCallback_MultipleCallbacks
+ * @tc.desc: Verify SyncXComponentExpectedFrameRateCallback with multiple callbacks
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncXComponentExpectedFrameRateCallback_MultipleCallbacks,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    const std::string xcomponentId = "test_xcomponent";
+    auto callback1 = sptr<MockFrameRateLinkerExpectedFpsUpdateCallback>(
+        new MockFrameRateLinkerExpectedFpsUpdateCallback());
+    auto callback2 = sptr<MockFrameRateLinkerExpectedFpsUpdateCallback>(
+        new MockFrameRateLinkerExpectedFpsUpdateCallback());
+    manager->RegisterXComponentExpectedFrameRateCallback(TEST_PID_2, TEST_PID_1, callback1);
+    manager->RegisterXComponentExpectedFrameRateCallback(TEST_PID_3, TEST_PID_1, callback2);
+    callback1->Reset();
+    callback2->Reset();
+
+    manager->SyncXComponentExpectedFrameRateCallback(TEST_PID_1, xcomponentId, TEST_REFRESH_RATE);
+    EXPECT_TRUE(callback1->callbackCalled_);
+    EXPECT_TRUE(callback2->callbackCalled_);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_2);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_3);
+}
+
+/**
+ * @tc.name: SyncXComponentExpectedFrameRateCallback_MaxXComponentIdNums
+ * @tc.desc: Verify SyncXComponentExpectedFrameRateCallback with max xcomponent id nums
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest,
+    SyncXComponentExpectedFrameRateCallback_MaxXComponentIdNums, Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    auto callback = sptr<MockFrameRateLinkerExpectedFpsUpdateCallback>(
+        new MockFrameRateLinkerExpectedFpsUpdateCallback());
+    manager->RegisterXComponentExpectedFrameRateCallback(TEST_PID_2, TEST_PID_1, callback);
+    callback->Reset();
+
+    for (int32_t i = 0; i < TEST_MAX_XCOMPONENT_ID_NUMS; i++) {
+        std::string xcomponentId = "test_xcomponent_" + std::to_string(i);
+        manager->SyncXComponentExpectedFrameRateCallback(TEST_PID_1, xcomponentId, TEST_REFRESH_RATE);
+    }
+
+    std::string xcomponentId = "test_xcomponent_50";
+    manager->SyncXComponentExpectedFrameRateCallback(TEST_PID_1, xcomponentId, TEST_REFRESH_RATE);
+    EXPECT_FALSE(callback->callbackCalled_);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_2);
+}
+
+/**
+ * @tc.name: UnRegisterHgmConfigChangeCallback
+ * @tc.desc: Verify UnRegisterHgmConfigChangeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, UnRegisterHgmConfigChangeCallback,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    auto callback = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    manager->RegisterHgmConfigChangeCallback(TEST_PID_1, callback);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: UnRegisterHgmConfigChangeCallback_AllTypes
+ * @tc.desc: Verify UnRegisterHgmConfigChangeCallback with all callback types
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, UnRegisterHgmConfigChangeCallback_AllTypes,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    auto callback1 = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    auto callback2 = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    auto callback3 = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    manager->RegisterHgmConfigChangeCallback(TEST_PID_1, callback1);
+    manager->RegisterHgmRefreshRateModeChangeCallback(TEST_PID_1, callback2);
+    manager->RegisterHgmRefreshRateUpdateCallback(TEST_PID_1, callback3);
+
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: UnRegisterHgmConfigChangeCallback_WithXComponent
+ * @tc.desc: Verify UnRegisterHgmConfigChangeCallback with xcomponent callbacks
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, UnRegisterHgmConfigChangeCallback_WithXComponent,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    const std::string xcomponentId = "test_xcomponent";
+    auto callback = sptr<MockFrameRateLinkerExpectedFpsUpdateCallback>(
+        new MockFrameRateLinkerExpectedFpsUpdateCallback());
+    manager->RegisterXComponentExpectedFrameRateCallback(TEST_PID_1, TEST_PID_2, callback);
+    manager->SyncXComponentExpectedFrameRateCallback(TEST_PID_2, xcomponentId, TEST_REFRESH_RATE);
+    callback->Reset();
+
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_2);
+    EXPECT_TRUE(callback->callbackCalled_);
+    EXPECT_EQ(callback->expectedFps_, 0);
+}
+
+/**
+ * @tc.name: SyncEnergyDataCallback_DefaultPid
+ * @tc.desc: Verify SyncEnergyDataCallback with default pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncEnergyDataCallback_DefaultPid,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    EnergyInfo energyInfo;
+    energyInfo.componentPid = 0;
+    manager->SyncEnergyDataCallback(energyInfo);
+}
+
+/**
+ * @tc.name: SyncEnergyDataCallback_ValidPid
+ * @tc.desc: Verify SyncEnergyDataCallback with valid pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncEnergyDataCallback_ValidPid,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    auto callback = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    manager->RegisterHgmConfigChangeCallback(TEST_PID_1, callback);
+    callback->Reset();
+
+    EnergyInfo energyInfo;
+    energyInfo.componentPid = TEST_PID_1;
+    energyInfo.componentName = "test_component";
+    energyInfo.componentDefaultFps = 60;
+    manager->SyncEnergyDataCallback(energyInfo);
+    EXPECT_TRUE(callback->configChangedCalled_);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: SyncEnergyDataCallback_UpdateEnergyInfo
+ * @tc.desc: Verify SyncEnergyDataCallback updates energy info
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncEnergyDataCallback_UpdateEnergyInfo,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    auto callback = sptr<MockHgmConfigChangeCallback>(new MockHgmConfigChangeCallback());
+    manager->RegisterHgmConfigChangeCallback(TEST_PID_1, callback);
+    callback->Reset();
+
+    EnergyInfo energyInfo1;
+    energyInfo1.componentPid = TEST_PID_1;
+    energyInfo1.componentName = "test_component1";
+    energyInfo1.componentDefaultFps = 60;
+    manager->SyncEnergyDataCallback(energyInfo1);
+    EXPECT_TRUE(callback->configChangedCalled_);
+    callback->Reset();
+
+    EnergyInfo energyInfo2;
+    energyInfo2.componentPid = 0;
+    energyInfo2.componentName = "test_component2";
+    energyInfo2.componentDefaultFps = 120;
+    manager->SyncEnergyDataCallback(energyInfo2);
+    EXPECT_FALSE(callback->configChangedCalled_);
+    manager->UnRegisterHgmConfigChangeCallback(TEST_PID_1);
+}
+
+/**
+ * @tc.name: SyncEnergyDataCallback_NoCallback
+ * @tc.desc: Verify SyncEnergyDataCallback when no callback registered
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmConfigCallbackManagerTest, SyncEnergyDataCallback_NoCallback,
+    Function | SmallTest | Level1)
+{
+    auto manager = HgmConfigCallbackManager::GetInstance();
+    EnergyInfo energyInfo;
+    energyInfo.componentPid = TEST_PID_1;
+    energyInfo.componentName = "test_component";
+    energyInfo.componentDefaultFps = 60;
+    manager->SyncEnergyDataCallback(energyInfo);
+}
+} // namespace Rosen
+} // namespace OHOS
