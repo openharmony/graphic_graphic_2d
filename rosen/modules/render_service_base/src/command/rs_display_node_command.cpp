@@ -151,7 +151,7 @@ void DisplayNodeCommandHelper::SetDisplayContentRect(RSContext& context, NodeId 
     const Rect& contentRect)
 {
     RS_LOGI("DisplayNodeCommandHelper::SetDisplayContentRect node:[%{public}" PRIu64 "], "
-             "rect:[%{public}f,%{public}f,%{public}f,%{public}f]",
+             "rect:[%{public}d,%{public}d,%{public}d,%{public}d]",
              id, contentRect.x, contentRect.y, contentRect.w, contentRect.h);
     if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {
         node->SetDisplayContentRect(contentRect);

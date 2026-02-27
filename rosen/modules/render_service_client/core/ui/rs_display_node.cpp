@@ -200,7 +200,7 @@ void RSDisplayNode::SetDisplayContentRect(const Rect& contentRect)
         std::make_unique<RSDisplayNodeSetDisplayContentRect>(GetId(), contentRect);
     AddCommand(command, true);
     HILOG_COMM_INFO("RSDisplayNode::SetDisplayContentRect, DisplayNode: %{public}" PRIu64
-        ", contentRect: [%{public}f, %{public}f, %{public}f, %{public}f]",
+        ", contentRect: [%{public}d, %{public}d, %{public}d, %{public}d]",
         GetId(), contentRect.x, contentRect.y, contentRect.w, contentRect.h);
 }
 
