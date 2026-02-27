@@ -86,15 +86,15 @@ private:
 
 class RS_EXPORT FontVariations {
 public:
-    void SetAxisValue(const std::string& tag, float value);
-    const std::map<std::string, float>& GetAxisValues() const;
+    void SetAxisValue(const std::string& tag, float value, bool isNormalization = false);
+    const std::map<std::string, std::pair<float, bool>>& GetAxisValues() const;
     FontVariations() = default;
     FontVariations(const FontVariations& other) = default;
     FontVariations& operator=(const FontVariations& other) = default;
     bool operator ==(const FontVariations& rhs) const;
     void Clear();
 private:
-    std::map<std::string, float> axis_;
+    std::map<std::string, std::pair<float, bool>> axis_;
 };
 
 struct RS_EXPORT TextShadow {
