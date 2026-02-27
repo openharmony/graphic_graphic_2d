@@ -465,19 +465,43 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
     desc = OH_Drawing_GetFontFullDescriptorByFullName(&fullNameStr, OH_Drawing_SystemFontType::ALL);
     EXPECT_EQ(desc, nullptr);
 
-    OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType::STYLISH;
-    OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
-    ASSERT_NE(fontList, nullptr);
-    size_t size = OH_Drawing_GetDrawingArraySize(fontList);
-    EXPECT_EQ(size, 1);
-    for (size_t i = 0; i < size; i++) {
-        const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
-        EXPECT_NE(fontFullName, nullptr);
-        const OH_Drawing_FontFullDescriptor *descriptor = OH_Drawing_GetFontFullDescriptorByFullName(fontFullName,
-            fontType);
-        EXPECT_NE(descriptor, nullptr);
-    }
-    OH_Drawing_DestroySystemFontFullNames(fontList);
+    std::string Existent = "Noto Sans Telugu Regular";
+    std::u16string u16Existent = OHOS::Str8ToStr16(Existent);
+    fullNameStr = {
+        .strData = reinterpret_cast<uint8_t*>(u16Existent.data()),
+        .strLen = static_cast<uint32_t>(u16Existent.length() * sizeof(char16_t))
+    };
+    desc = OH_Drawing_GetFontFullDescriptorByFullName(&fullNameStr, OH_Drawing_SystemFontType::ALL);
+
+    OH_Drawing_Array* axisArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_AXIS);
+    auto axis = OH_Drawing_GetFontVariationAxisByIndex(axisArray, 0);
+    EXPECT_NE(axis, nullptr);
+
+    OH_Drawing_String str;
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_KEY, &str);
+    std::string axisKey = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+        str.strLen / sizeof(char16_t)));
+    EXPECT_EQ(axisKey, "");
+    free(str.strData);
+
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_NAME, &str);
+    std::string axisName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+        str.strLen / sizeof(char16_t)));
+    EXPECT_EQ(axisName, SYMBOL_DESC.variationAxisRecords[0].name);
+    free(str.strData);
+
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_LOCAL_NAME, &str);
+    std::string axisLocalName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+        str.strLen / sizeof(char16_t)));
+    EXPECT_EQ(axisLocalName, SYMBOL_DESC.variationAxisRecords[0].localName);
+    free(str.strData);
+
+    double doubleValue;
+    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, &doubleValue);
+    EXPECT_EQ(doubleValue, 100);
+
+    OH_Drawing_DestroyFontVariationAxis(axisArray);
 }
 
 /*
