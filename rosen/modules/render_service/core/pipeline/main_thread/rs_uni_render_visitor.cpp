@@ -1153,6 +1153,9 @@ bool RSUniRenderVisitor::CheckSkipBackgroundSurfaceRenderNode(RSSurfaceRenderNod
 
 bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    if (!node.IsAppWindow()) {
+        return false;
+    }
     if (!isBgWindowTraversalStarted_) {
         auto windowType = node.GetSurfaceWindowType();
         if (windowType == SurfaceWindowType::DEFAULT_WINDOW || windowType == SurfaceWindowType::SCB_DESKTOP ||
@@ -1161,7 +1164,7 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
             return false;
         }
     }
-    if (!node.IsAppWindow() || !node.GetChildHardwareEnabledNodes().empty()) {
+    if (!node.GetChildHardwareEnabledNodes().empty()) {
         return false;
     }
     if (node.IsDirty() || node.IsForcePrepare() || node.HasSubSurfaceNodes()) {
@@ -1181,6 +1184,8 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
         // This ensures the drawable can updates the latest drawRegion, thus correctly skip drawing.
         if (curScreenNode_) {
             curScreenNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
+            curScreenNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirtyInSurface());
+            curScreenNode_->AddSurfaceNodePosByDescZOrder(node.GetId(), node.GetOldDirtyInSurface());
         }
         if (node.ChildHasVisibleFilter()) {
             if (const auto& curDirtyManager = node.GetDirtyManager()) {
