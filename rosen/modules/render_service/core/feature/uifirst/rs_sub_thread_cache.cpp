@@ -576,9 +576,9 @@ bool RsSubThreadCache::IsDirtyRecordCompleted()
     return isDirtyRecordCompleted;
 }
 
-void RsSubThreadCache::UpdateDirtyRecordCompletedState(bool isComplete)
+void RsSubThreadCache::UpdateDirtyRecordCompletedState(bool isCompleted)
 {
-    isDirtyRecordCompleted_ = isComplete;
+    isDirtyRecordCompleted_ = isCompleted;
 }
 
 void RsSubThreadCache::SetUifirstDirtyRegion(Drawing::Region dirtyRegion)
