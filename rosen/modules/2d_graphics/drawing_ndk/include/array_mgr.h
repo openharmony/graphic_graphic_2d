@@ -27,6 +27,8 @@ enum ObjectType {
     DRAWING_RECT = 3,
     FONT_FULL_DESCRIPTOR = 4,
     TEXT_RANGE = 5,
+    FONT_VARIATION_AXIS = 6,
+    FONT_VARIATION_INSTANCE = 7,
 };
 
 struct ObjectArray {

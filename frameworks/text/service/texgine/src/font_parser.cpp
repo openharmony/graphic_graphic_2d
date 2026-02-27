@@ -42,6 +42,7 @@
 #include "text/font_filetype.h"
 #include "text/font_metadata.h"
 #include "text/font_unicode_query.h"
+#include "text/font_variation_info.h"
 #include "utils/text_log.h"
 
 namespace OHOS {
@@ -617,6 +618,70 @@ void FontParser::FillFontDescriptorWithFallback(std::shared_ptr<Drawing::Typefac
     }
 }
 
+namespace {
+std::string ExtractEnglishName(const std::unordered_map<std::string, std::string>& nameMap)
+{
+    auto enIt = nameMap.find("en");
+    if (enIt != nameMap.end() && !enIt->second.empty()) {
+        return enIt->second;
+    }
+    if (!nameMap.empty()) {
+        return nameMap.begin()->second;
+    }
+    return "";
+}
+
+std::string ExtractLocalName(const std::unordered_map<std::string, std::string>& nameMap,
+    const std::vector<std::string>& bcpTagList)
+{
+    for (const auto& lang : bcpTagList) {
+        auto it = nameMap.find(lang);
+        if (it != nameMap.end() && !it->second.empty()) {
+            return it->second;
+        }
+    }
+    return "";
+}
+}
+
+void FontParser::FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Typeface> typeface,
+    FontDescriptor& desc, const std::vector<std::string>& bcpTagList)
+{
+    std::vector<std::string> combinedList = bcpTagList;
+    std::vector<std::string> defaultTags = {
+        "zh-Hant", "zh-TW", "zh-HK", "zh-MO", "zh-SG", "en-US", "en"
+    };
+    combinedList.insert(combinedList.end(), defaultTags.begin(), defaultTags.end());
+    auto axisInfoList = Drawing::FontVariationInfo::GenerateFontVariationAxisInfo(typeface, combinedList);
+
+    for (const auto& axisInfo : axisInfoList) {
+        FontVariationAxis axis;
+        axis.key = axisInfo.axisTag;
+        axis.minValue = axisInfo.minValue;
+        axis.maxValue = axisInfo.maxValue;
+        axis.defaultValue = axisInfo.defaultValue;
+        axis.flags = axisInfo.isHidden ? 1 : 0;
+        axis.name = ExtractEnglishName(axisInfo.axisTagMapForLanguage);
+        axis.localName = ExtractLocalName(axisInfo.axisTagMapForLanguage, bcpTagList);
+        desc.variationAxisRecords.push_back(axis);
+    }
+
+    auto instanceInfoList = Drawing::FontVariationInfo::GenerateFontVariationInstanceInfo(typeface, combinedList);
+
+    for (const auto& instanceInfo : instanceInfoList) {
+        FontVariationInstance instance;
+        instance.name = ExtractEnglishName(instanceInfo.subfamilyNameMapForLanguage);
+        instance.localName = ExtractLocalName(instanceInfo.subfamilyNameMapForLanguage, bcpTagList);
+        for (const auto& [axis, value] : instanceInfo.coordinates) {
+            FontVariation coord;
+            coord.axis = axis;
+            coord.value = value;
+            instance.coordinates.push_back(coord);
+        }
+        desc.variationInstanceRecords.push_back(instance);
+    }
+}
+
 void FontParser::FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc)
 {
     std::vector<std::string> bcpTagList = GetBcpTagList();
@@ -649,6 +714,7 @@ void FontParser::FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typefa
         desc.license = desc.license.empty() ? info.license : desc.license;
     }
 
+    FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
     FillFontDescriptorWithFallback(typeface, desc);
 }
 
@@ -670,6 +736,7 @@ std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
     const std::shared_ptr<Drawing::Typeface>& typeface, unsigned int languageId)
 {
     if (typeface == nullptr) {
+        TEXT_LOGE("typeface is nullptr");
         return nullptr;
     }
     FontDescriptor desc;
@@ -682,7 +749,9 @@ std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
     if (!ParseTable(typeface, desc)) {
         return nullptr;
     }
+
     FillFontDescriptorWithLocalInfo(typeface, desc);
+
     return std::make_shared<FontParser::FontDescriptor>(desc);
 }
 
