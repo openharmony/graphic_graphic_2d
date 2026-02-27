@@ -63,6 +63,7 @@ ohos_shared_library("text_engine_ani") {
     "./src/ani_text_line.cpp",
     "./src/ani_text_manager.cpp",
     "./src/ani_text_rect_converter.cpp",
+    "./src/ani_text_layout_result_converter.cpp",
     "./src/ani_text_style_converter.cpp",
     "./src/ani_text_utils.cpp",
     "./src/ani_transfer_util.cpp",

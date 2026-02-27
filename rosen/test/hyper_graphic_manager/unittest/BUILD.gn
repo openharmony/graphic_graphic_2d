@@ -24,6 +24,7 @@ hgm_test_deps = [
 
 hgm_test_external_deps = [
   "c_utils:utils",
+  "config_policy:configpolicy_util",
   "eventhandler:libeventhandler",
   "ffrt:libffrt",
   "googletest:gmock",

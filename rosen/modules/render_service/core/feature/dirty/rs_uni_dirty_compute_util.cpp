@@ -297,14 +297,12 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
 {
     bool effectNodeExpandDirty =
         filterNode.IsInstanceOf<RSEffectRenderNode>() && !filterNode.FirstFrameHasEffectChildren();
-    RectI filterSnapshotRect = filterNode.GetOldDirtyInSurface().JoinRect(
-        filterNode.GetFilterDrawableSnapshotRegion());
-    RectI filterDirtyRect = filterNode.GetOldDirtyInSurface().JoinRect(filterNode.GetFilterRegion());
+    RectI filterRect = filterNode.GetOldDirtyInSurface().JoinRect(filterNode.GetFilterRegion());
     auto filterRegion = effectNodeExpandDirty ?
-        GetVisibleEffectRegion(filterNode) : Occlusion::Region(Occlusion::Rect(filterSnapshotRect));
+        GetVisibleEffectRegion(filterNode) : Occlusion::Region(Occlusion::Rect(filterRect));
     auto dirtyRegion = effectNodeExpandDirty ?
         filterRegion.Or(Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()))) :
-        Occlusion::Region(Occlusion::Rect(filterDirtyRect));
+        Occlusion::Region(Occlusion::Rect(filterRect));
     if (filterNode.NeedDrawBehindWindow()) {
         filterRegion = Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()));
         dirtyRegion = filterRegion;
@@ -313,8 +311,8 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
     auto& filterProperties = filterNode.GetRenderProperties();
     FilterDirtyRegionInfo filterInfo = {
         .id_ = filterNode.GetId(),
-        .intersectRegion_ = filterRegion,
-        .filterDirty_ = dirtyRegion,
+        .intersectRegion_ = isSurface ? filterRegion : dirtyRegion,
+        .filterDirty_ = isSurface ? filterRegion : dirtyRegion,
         .alignedFilterDirty_ = dirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE),
         .belowDirty_ = preDirty.value_or(Occlusion::Region()),
         .isBackgroundFilterClean_ =
@@ -584,6 +582,20 @@ void RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(
     if (auto screenDirtyManager = screenDrawable.GetSyncDirtyManager()) {
         screenDirtyManager->ClearVirtualExpandScreenAccumulatedDirtyRegions();
     }
+}
+
+bool RSUniDirtyComputeUtil::HasMirrorDisplay()
+{
+    bool hasMirrorDisplay = false;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseLogicalDisplayNodes(
+        [&hasMirrorDisplay](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
+            if (displayRenderNode != nullptr && displayRenderNode->GetMirrorSource().lock()) {
+                hasMirrorDisplay = true;
+                return;
+            }
+    });
+    return hasMirrorDisplay;
 }
 } // namespace Rosen
 } // namespace OHOS

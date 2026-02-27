@@ -15,7 +15,6 @@
 
 #include "rs_client_to_render_connection_stub.h"
 #include <memory>
-#include <mutex>
 #include "ivsync_connection.h"
 #ifdef RES_SCHED_ENABLE
 #include "res_sched_client.h"
@@ -38,9 +37,10 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
+#include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "transaction/rs_unmarshal_thread.h"
-#include "transaction/rs_hrp_service.h"
+#include "transaction/rs_render_service_client_info.h"
 #include "render/rs_typeface_cache.h"
 #include "rs_trace.h"
 #include "rs_profiler.h"
@@ -59,7 +59,7 @@ constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
-constexpr const char* RS_BUNDLE_NAME = "render_service";
+constexpr const char* RS_BUNDLE_NAME = "client_to_render";
 #endif
 static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO),
@@ -838,7 +838,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
             // we temporarily add a white list to avoid abnormal functionality or abnormal display.
             // The white list will be removed after GetCallingPid interface can return real PID.
-            permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
+            permissions.selfCapture = ExtractPid(id) == callingPid ;
             TakeSurfaceCapture(id, cb, captureConfig, blurParam, specifiedAreaRect, permissions);
             break;
         }
@@ -1034,7 +1034,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            ret = FreezeScreen(id, isFreeze);
+            bool needSync { false };
+            if (!data.ReadBool(needSync)) {
+                RS_LOGE("RSClientToRenderConnectionStub::FREEZE_SCREEN read needSync failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ret = FreezeScreen(id, isFreeze, needSync);
             break;
         }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_POINTER_POSITION): {
@@ -1043,10 +1049,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToRenderConnectionStub::SET_POINTER_POSITION read nodeId failed!");
                 break;
             }
-            float positionX { 0.f };
-            float positionY { 0.f };
-            float positionZ { 0.f };
-            float positionW { 0.f };
+            float positionX {0.f};
+            float positionY {0.f};
+            float positionZ {0.f};
+            float positionW {0.f};
             if (!data.ReadFloat(positionX) || !data.ReadFloat(positionY) || !data.ReadFloat(positionZ) ||
                 !data.ReadFloat(positionW)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_POINTER_POSITION read position failed!");
@@ -1191,7 +1197,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             bool isTop{false};
             uint32_t topLayerZOrder = 0;
             if (!data.ReadUint64(nodeId) || !data.ReadBool(isTop) || !data.ReadUint32(topLayerZOrder)) {
-                RS_LOGE("RSRenderServiceConntionStub::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER Read parcel failed");
+                RS_LOGE("RSClientToRenderConnectionStub::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER Read parcel failed");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -1214,6 +1220,22 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             SetWindowContainer(nodeId, isEnabled);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY): {
+            ScreenId id = INVALID_SCREEN_ID;
+            int32_t gravity = 0;
+            if (!data.ReadUint64(id) || !data.ReadInt32(gravity)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SCREEN_FRAME_GRAVITY Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (gravity < 0 || gravity > static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SCREEN_FRAME_GRAVITY gravity is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetScreenFrameGravity(id, gravity);
+            break;
+        }
         case static_cast<uint32_t>(
             RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK): {
             uint64_t token = data.ReadUint64();
@@ -1231,7 +1253,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToRenderConnectionStub::OnRemoteRequest callback == nullptr");
                 break;
             }
-            RS_LOGD("RSRenderServiceConnectionStub: already decode unicode, timeStamp: %{public}"
+            RS_LOGD("RSClientToRenderConnectionStub: already decode unicode, timeStamp: %{public}"
                 PRIu64 " token: %{public}" PRIu64, timeStamp, token);
             RegisterTransactionDataCallback(token, timeStamp, callback);
             break;

@@ -72,7 +72,9 @@ HWTEST_F(RSNodeGetShowingPropertyAndCancelAnimationTest, Marshalling001, TestSiz
     Parcel parcel;
     auto property = std::make_shared<RSRenderProperty<bool>>();
     RSNodeGetShowingPropertyAndCancelAnimation animation(targetId, property);
+#ifdef RS_ENABLE_UNI_RENDER
     EXPECT_TRUE(animation.Marshalling(parcel) == false);
+#endif
 }
 
 /**

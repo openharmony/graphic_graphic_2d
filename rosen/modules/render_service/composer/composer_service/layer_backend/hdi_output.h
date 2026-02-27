@@ -195,7 +195,7 @@ private:
     void DumpLayerInfoForSplitRender(std::string& result) const;
 
     bool isActiveRectSwitching_ = false;
-    void DirtyRegions(uint32_t solidLayerCount, const std::shared_ptr<RSLayer>& rsLayer);
+    void DirtyRegions(const std::shared_ptr<RSLayer>& rsLayer);
     OnPrepareCompleteFunc onPrepareCompleteCb_ = nullptr;
     void* onPrepareCompleteCbData_ = nullptr;
     int32_t thirdFrameAheadPresentFenceFd_ = 0;

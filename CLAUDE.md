@@ -15,25 +15,17 @@ This project uses the **GN (Generate Ninja)** build system, which is part of Ope
 Build commands are typically run from the OpenHarmony root directory (not this repository root):
 
 ```bash
-# Build the entire graphic_2d component
-./build.sh --product-name <product> --ccache --build-target graphic_2d
-
-# Build specific modules
-./build.sh --product-name <product> --ccache --build-target librender_service_client
-./build.sh --product-name <product> --ccache --build-target librender_service_base
+hb build graphic_2d -i # full build of graphic_2d
+hb build graphic_2d -i --skip-download --build-target <target> # fast incremental build
 ```
-
-Common product names: `rk3568`, `hispark_taurus_standard`, `phone`, `tablet`
 
 ### Testing
 
 ```bash
 # Build all tests for graphic_2d
-./build.sh --product-name <product> --build-target graphic_common_test
-
-# Build specific test modules
-./build.sh --product-name <product> --build-target //foundation/graphic/graphic_2d/rosen/test/render_service:test
-./build.sh --product-name <product> --build-target //foundation/graphic/graphic_2d/rosen/test/2d_graphics:test
+hb build graphic_2d -t
+# Fast rebuild of specific target. Full path usually works, e.g. //foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline:RSUniRenderVisitorTest
+hb build graphic_2d -t --skip-download --build-target <target>
 ```
 
 ## Architecture
@@ -203,3 +195,23 @@ The build is controlled by feature flags in `graphic_config.gni`:
 - Interface files: `rs_i*.h` (e.g., `rs_irender_service.h`)
 - Stub files: `*_stub.h`, `*_proxy.h` for IPC
 - NDK headers: `native_*.h` for public C APIs
+
+## Code Style Guidelines
+
+### Formatting Rules (STRICT)
+The following rules **MUST** be followed for all code changes:
+
+1. **Line Length**: No line may exceed **120 characters**
+   - Break long strings, function calls, or statements across multiple lines
+   - Use appropriate indentation for continuation lines (typically 4 spaces)
+
+2. **Function Length**: No function may exceed **50 NBNC (Non-Blank, Non-Comment) lines**
+   - NBNC = lines that are neither blank nor comments
+   - Break large functions into smaller, focused helper functions
+   - This improves readability, testability, and maintainability
+
+3. **Magic Numbers**: No magic numbers other than **0** and **1** may be used directly
+   - Use `constexpr` or `const` variables to give meaning to numeric literals
+   - Exceptions: 0 and 1 are allowed (also -1 for error codes when appropriate)
+   - This improves code readability and makes maintenance easier
+

@@ -59,6 +59,9 @@ public:
     static RSGraphicTestDirector& Instance();
     std::pair<double, double> ReceiveProfilerTimeInfo();
     void ReleaseRootNode();
+    using FailureCallback = std::function<void()>;
+    void SetProfilerFailureCallback(FailureCallback callback);
+    void Reset();
 private:
     ScreenId screenId_ = 0;
     RectF screenBounds_;
@@ -74,6 +77,7 @@ private:
 
     std::shared_ptr<RSGraphicTestProfilerThread> profilerThread_;
 
+    FailureCallback pendingFailureCallback_;
     friend class RSGraphicTest;
     friend class TestDefManager;
 };

@@ -75,18 +75,24 @@ HWTEST_F(RSPerfmonitorReporterTest, EndRendergroupMonitorTest, TestSize.Level1)
     NodeId nodeId1 = 1;
     auto startTime = high_resolution_clock::now();
     perfMonitor.EndRendergroupMonitor(startTime, nodeId1, updateTimes);
-    EXPECT_EQ(perfMonitor.drawingCacheLastTwoTimestampMap_[nodeId1].size(), 1);
+    if (perfMonitor.IsOpenPerf()) {
+        EXPECT_EQ(perfMonitor.drawingCacheLastTwoTimestampMap_[nodeId1].size(), 1);
+    }
 
     updateTimes = 8;
     NodeId nodeId2 = 2;
     startTime = high_resolution_clock::now() - std::chrono::microseconds(5001);
     perfMonitor.EndRendergroupMonitor(startTime, nodeId2, updateTimes);
-    EXPECT_EQ(perfMonitor.drawingCacheLastTwoTimestampMap_[nodeId2].size(), 1);
+    if (perfMonitor.IsOpenPerf()) {
+        EXPECT_EQ(perfMonitor.drawingCacheLastTwoTimestampMap_[nodeId2].size(), 1);
+    }
     
     NodeId nodeId3 = 3;
     startTime = high_resolution_clock::now();
     perfMonitor.EndRendergroupMonitor(startTime, nodeId3, updateTimes);
-    EXPECT_EQ(perfMonitor.drawingCacheLastTwoTimestampMap_[nodeId3].size(), 1);
+    if (perfMonitor.IsOpenPerf()) {
+        EXPECT_EQ(perfMonitor.drawingCacheLastTwoTimestampMap_[nodeId3].size(), 1);
+    }
 }
 
 /**

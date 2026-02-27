@@ -19,6 +19,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_draw_window_cache.h"
 #include "params/rs_render_thread_params.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -289,6 +290,10 @@ HWTEST_F(RSDrawWindowCacheTest, DrawAndCacheWindowContent, TestSize.Level1)
     drawWindowCache.image_ = bmp.MakeImage();
     drawWindowCache.DrawAndCacheWindowContent(surfaceDrawable, canvas, bounds);
     ASSERT_TRUE(drawWindowCache.HasCache());
+
+    surfaceDrawable->SetNeedCacheRelatedSourceNode(true);
+    drawWindowCache.DrawAndCacheWindowContent(surfaceDrawable, canvas, bounds);
+    ASSERT_TRUE(drawWindowCache.HasCache());
 }
 
 /**
@@ -311,5 +316,81 @@ HWTEST_F(RSDrawWindowCacheTest, DrawCrossNodeOffscreenDFX, TestSize.Level1)
     Drawing::Color color(0, 128, 128, 128);
     drawWindowCache.image_ = std::make_shared<Drawing::Image>();
     drawWindowCache.DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParams, color);
+}
+
+/**
+ * @tc.name: DrawCache001
+ * @tc.desc: Test DrawCache
+ * @tc.type: FUNC
+ * @tc.require: issueIAVLLE
+ */
+HWTEST_F(RSDrawWindowCacheTest, DrawCache001, TestSize.Level1)
+{
+    RSDrawWindowCache drawWindowCache;
+    drawWindowCache.image_ = std::make_shared<Drawing::Image>();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSRenderThreadParams uniParams;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto surfaceDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(
+        DrawableV2::RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    int32_t width = 100;
+    int32_t height = 30;
+    bmp.Build(width, height, format);
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    auto image = bmp.MakeImage();
+    ASSERT_NE(image, nullptr);
+    RSSurfaceRenderParams surfaceParams(1);
+    RSDrawWindowCache::DrawCache(nullptr, canvas, surfaceParams, image);
+
+    ASSERT_NE(surfaceDrawable, nullptr);
+    RSDrawWindowCache::DrawCache(surfaceDrawable, canvas, surfaceParams, nullptr);
+}
+
+/**
+ * @tc.name: DealWithCachedWindow004
+ * @tc.desc: Test DealWithCachedWindow with virtual screen blacklist
+ * @tc.type: FUNC
+ * @tc.require: issue21885
+ */
+HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow004, TestSize.Level1)
+{
+    RSDrawWindowCache drawWindowCache;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSRenderThreadParams uniParams;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto surfaceDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(
+        DrawableV2::RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+
+    // Setup a valid cache image
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    int32_t width = 100;
+    int32_t height = 30;
+    bmp.Build(width, height, format);
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    drawWindowCache.image_ = bmp.MakeImage();
+
+    // Setup surface params with uifirst enabled to keep cache
+    RSSurfaceRenderParams surfaceParams(1);
+    surfaceParams.SetUifirstNodeEnableParam(MultiThreadCacheType::NONFOCUS_WINDOW);
+
+    // Test the branch: isMirror_ is true AND specialLayerManager has blacklist
+    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
+    surfaceParams.GetMultableSpecialLayerMgr().SetWithScreen(
+        RSUniRenderThread::GetCaptureParam().virtualScreenId_, SpecialLayerType::HAS_BLACK_LIST, true);
+
+    bool result = drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams);
+    ASSERT_TRUE(result);
+
+    // Reset capture params
+    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, false));
 }
 }

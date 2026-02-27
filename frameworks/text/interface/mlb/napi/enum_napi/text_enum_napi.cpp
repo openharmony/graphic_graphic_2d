@@ -18,6 +18,7 @@
 #include <map>
 #include <vector>
 #include "font_parser.h"
+#include "text/font_types.h"
 #include "text_global_config.h"
 #include "typography_types.h"
 #include "utils/text_log.h"
@@ -189,6 +190,12 @@ static const std::vector<struct JsEnumInt> TEXT_VERTICAL_ALIGN = {
     { "TOP", static_cast<size_t>(TextVerticalAlign::TOP) },
 };
 
+static const std::vector<struct JsEnumInt> FONT_EDGING = {
+    { "ALIAS", static_cast<size_t>(Drawing::FontEdging::ALIAS) },
+    { "ANTI_ALIAS", static_cast<size_t>(Drawing::FontEdging::ANTI_ALIAS) },
+    { "SUBPIXEL_ANTI_ALIAS", static_cast<size_t>(Drawing::FontEdging::SUBPIXEL_ANTI_ALIAS) },
+};
+
 const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_CLASS_MAP = {
     { "TextAlign", TEXT_ALIGN },
     { "TextDecorationStyle", TEXT_DECORATION_STYLE },
@@ -210,8 +217,9 @@ const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_
     { "TextHighContrast", TEXT_HIGH_CONTRAST },
     { "TextBadgeType", TEXT_BADGE_TYPE },
     { "TextUndefinedGlyphDisplay", TEXT_UNDEFINED_GLYPH_DISPLAY },
-    { "TextVerticalAlign", TEXT_VERTICAL_ALIGN},
-    { "LineHeightStyle", LINE_HEIGHT_STYLE},
+    { "TextVerticalAlign", TEXT_VERTICAL_ALIGN },
+    { "LineHeightStyle", LINE_HEIGHT_STYLE },
+    { "FontEdging", FONT_EDGING },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

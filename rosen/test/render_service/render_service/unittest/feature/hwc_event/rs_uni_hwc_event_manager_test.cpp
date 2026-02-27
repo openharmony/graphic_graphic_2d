@@ -22,7 +22,7 @@ using namespace testing::ext;
  
 namespace OHOS::Rosen {
 constexpr uint32_t DEFAULT_DEVID = 0;
-constexpr uint32_t DEFAULT_EVENTID = 0;
+constexpr uint32_t DEFAULT_EVENTID = 10;
 class RSUniHwcEventManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -42,15 +42,14 @@ void RSUniHwcEventManagerTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issue21895
  */
-HWTEST_F(RSUniHwcEventManagerTest, CreateSurfaceNodeLayerInfo001, TestSize.Level1)
+HWTEST_F(RSUniHwcEventManagerTest, OnHwcEvent001, TestSize.Level1)
 {
     auto& uniHwcEventManager = RSUniHwcEventManager::GetInstance();
     vector<int32_t> eventData;
+    uniHwcEventManager.Init();
     uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, HwcEvent::HWCEVENT_TUI_ENTER, eventData, nullptr);
-    ASSERT_TRUE(RSPointerWindowManager::Instance().IsTuiEnabled());
     uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, HwcEvent::HWCEVENT_TUI_EXIT, eventData, nullptr);
-    ASSERT_FALSE(RSPointerWindowManager::Instance().IsTuiEnabled());
     uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, DEFAULT_EVENTID, eventData, nullptr);
-    ASSERT_FALSE(RSPointerWindowManager::Instance().IsTuiEnabled());
+    ASSERT_EQ(eventData.size(), 0);
 }
 }

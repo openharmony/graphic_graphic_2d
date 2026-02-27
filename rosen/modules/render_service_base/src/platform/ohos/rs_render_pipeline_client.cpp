@@ -572,14 +572,14 @@ bool RSRenderPipelineClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
     return true;
 }
 
-bool RSRenderPipelineClient::FreezeScreen(NodeId id, bool isFreeze)
+bool RSRenderPipelineClient::FreezeScreen(NodeId id, bool isFreeze, bool needSync)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (clientToRender == nullptr) {
         ROSEN_LOGE("%{public}s clientToRender == nullptr!", __func__);
         return false;
     }
-    clientToRender->FreezeScreen(id, isFreeze);
+    clientToRender->FreezeScreen(id, isFreeze, needSync);
     return true;
 }
 

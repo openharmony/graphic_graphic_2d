@@ -138,7 +138,7 @@ bool RSRenderPipelineClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
     return true;
 }
 
-bool RSRenderPipelineClient::FreezeScreen(NodeId id, bool isFreeze)
+bool RSRenderPipelineClient::FreezeScreen(NodeId id, bool isFreeze, bool needSync)
 {
     return true;
 }

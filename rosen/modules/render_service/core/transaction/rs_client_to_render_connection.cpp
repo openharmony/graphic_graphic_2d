@@ -72,6 +72,7 @@
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
+#include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 
 #include "hgm_config_callback_manager.h"
 #include "render_server/rs_render_service.h"
@@ -419,12 +420,12 @@ ErrCode RSClientToRenderConnection::TakeSurfaceCaptureWithAllWindows(NodeId id,
         id, callback, captureConfig, checkDrmAndSurfaceLock, permissions);
 }
 
-ErrCode RSClientToRenderConnection::FreezeScreen(NodeId id, bool isFreeze)
+ErrCode RSClientToRenderConnection::FreezeScreen(NodeId id, bool isFreeze, bool needSync)
 {
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    return renderPipelineAgent_->FreezeScreen(id, isFreeze);
+    return renderPipelineAgent_->FreezeScreen(id, isFreeze, needSync);
 }
 
 ErrCode RSClientToRenderConnection::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
@@ -450,8 +451,8 @@ void RSClientToRenderConnection::TakeUICaptureInRange(
     renderPipelineAgent_->TakeUICaptureInRange(id, callback, captureConfig, permissions);
 }
 
-ErrCode RSClientToRenderConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
-    float positionZ, float positionW)
+ErrCode RSClientToRenderConnection::SetHwcNodeBounds(
+    int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW)
 {
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;

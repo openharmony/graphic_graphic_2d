@@ -71,6 +71,10 @@
 #include "res_sched_client.h"
 #include "res_type.h"
 
+#ifdef MHC_ENABLE
+#include "rs_mhc_manager.h"
+#endif
+
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_utils.h"
 #include "rs_parallel_manager.h"
@@ -211,6 +215,13 @@ void RSUniRenderThread::Inittcache()
     }
 }
 
+void RSUniRenderThread::InitMhc()
+{
+#ifdef MHC_ENABLE
+    RSMhcManager::Instance().RegisterCaptureStatusCallback(&RSUniRenderThread::IsInCaptureProcess);
+#endif
+}
+
 void RSUniRenderThread::InitDrawOpOverCallback(Drawing::GPUContext *gpuContext)
 {
     gpuContext->RegisterDrawOpOverCallback([this](int32_t drawOpCount) {
@@ -249,6 +260,7 @@ void RSUniRenderThread::Start(const std::shared_ptr<RSComposerClientManager>& co
         RSHpaeManager::GetInstance().InitHpaeBlurResource();
 #endif
         tid_ = gettid();
+        InitMhc();
 #ifdef RES_SCHED_ENABLE
         SubScribeSystemAbility();
 #endif

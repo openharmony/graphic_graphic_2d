@@ -556,6 +556,7 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
     int64_t frameOffset = 0;
     int64_t vsyncOffset = 0;
     int64_t idealPipelineOffset = 0;
+    int64_t idealPulse = 0;
     int64_t pipelineOffset = 0;
     int64_t expectCommitTime = 0;
     int64_t periodNum = 0;
@@ -573,7 +574,13 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         // 2 period for draw and composition, pipelineOffset = 2 * period
         frameOffset = 2 * period + vsyncOffset - static_cast<int64_t>(pipelineParam.fastComposeTimeStampDiff);
     } else {
-        idealPipelineOffset = hgmCore.GetIdealPipelineOffset();
+        if (hgmCore.GetSupportedMaxTE144() != 0 && currentRate == OLED_144_HZ) {
+            idealPipelineOffset = hgmCore.GetIdealPipelineOffset144();
+            idealPulse = IDEAL_PULSE144;
+        } else {
+            idealPipelineOffset = hgmCore.GetIdealPipelineOffset();
+            idealPulse = IDEAL_PULSE;
+        }
         pipelineOffset = hgmCore.GetPipelineOffset();
         vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
         periodNum = idealPeriod == 0 ? 0 : idealPipelineOffset / idealPeriod;
@@ -581,7 +588,7 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         if (vsyncOffset >= period) {
             vsyncOffset = 0;
         }
-        if (periodNum * idealPeriod + vsyncOffset + IDEAL_PULSE < idealPipelineOffset) {
+        if (periodNum * idealPeriod + vsyncOffset + idealPulse < idealPipelineOffset) {
             periodNum = periodNum + 1;
         }
         frameOffset = periodNum * idealPeriod + vsyncOffset

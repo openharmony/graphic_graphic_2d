@@ -384,11 +384,11 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
     frameVoter_.SetDragScene(finalRange.type_ & DRAG_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
-        auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
+        uto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
         auto allTypeDescription = finalRange.GetAllTypeDescription();
         HGM_LOGD("ltpo desc: %{public}s", allTypeDescription.c_str());
-        RS_TRACE_NAME_FMT("%s: isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d], desc: [%s]",
-            __func__, frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_, allTypeDescription.c_str());
+        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%u],"
+            " desc: [%s]", frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_, allTypeDescription.c_str());
         DeliverRefreshRateVote(
             { "VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo() }, ADD_VOTE);
     } else {
@@ -1389,6 +1389,18 @@ bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
     if (!voterTouchEffective_ || frameVoter_.GetVoterGamesEffective()) {
         surfaceData_.clear();
         return false;
+    }
+    std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeName;
+    for (auto iter = uiFwkDirtyNodes.begin(); iter != uiFwkDirtyNodes.end();) {
+        auto renderNode = iter->lock();
+        if (renderNode == nullptr) {
+            iter = uiFwkDirtyNodes.erase(iter);
+        } else {
+            if (renderNode->IsOnTheTree() && renderNode->IsDirty()) {
+                uiFrameworkDirtyNodeName[renderNode->GetNodeName()] = ExtractPid(renderNode->GetId());
+            }
+            ++iter;
+        }
     }
 
     if (uiFrameworkDirtyNodeNameMap.empty() && surfaceData_.empty() &&

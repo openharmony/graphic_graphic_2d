@@ -652,9 +652,11 @@ bool DoFreezeScreen()
 
     NodeId nodeId = GetData<NodeId>();
     bool isFreeze = GetData<bool>();
+    bool needSync = GetData<bool>();
     dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteBool(isFreeze);
+    dataParcel.WriteBool(needSync);
     dataParcel.RewindRead(0);
 
     option.SetFlags(MessageOption::TF_ASYNC);

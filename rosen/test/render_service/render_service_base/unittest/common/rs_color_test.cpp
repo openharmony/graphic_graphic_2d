@@ -413,8 +413,10 @@ HWTEST_F(RSColorTest, ConvertToSRGBColorSpaceTest, TestSize.Level1)
 HWTEST_F(RSColorTest, PlaceholderOperatorsTest, TestSize.Level1)
 {
     // construct placeholder colors using the explicit constructor
-    RSColor ph(ColorPlaceholder::SURFACE);
-    RSColor ph2(ColorPlaceholder::SURFACE_CONTRAST);
+    RSColor ph;
+    ph.placeholder_ = static_cast<uint16_t>(ColorPlaceholder::SURFACE);
+    RSColor ph2;
+    ph2.placeholder_ = static_cast<uint16_t>(ColorPlaceholder::SURFACE);
     RSColor normal(10, 11, 12, 13);
 
     // operator+ and operator- should early-return when either side is a placeholder

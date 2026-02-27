@@ -15,22 +15,20 @@
 
 #include "drawable/rs_misc_drawable.h"
 
-#include "feature/color_picker/color_pick_alt_manager.h"
-#include "feature/color_picker/rs_color_picker_manager.h"
+#include <chrono>
+
 #include "rs_profiler.h"
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
-#include "feature/color_picker/rs_color_picker_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -152,58 +150,6 @@ void RSChildrenDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* re
 #endif
         const auto& drawable = childrenDrawableVec_[i];
         drawable->Draw(*canvas);
-    }
-}
-
-// ==================== RSColorPickerDrawable =====================
-RSColorPickerDrawable::RSColorPickerDrawable(bool useAlt)
-{
-    if (useAlt) {
-        colorPickerManager_ = std::make_shared<ColorPickAltManager>();
-    } else {
-        colorPickerManager_ = std::make_shared<RSColorPickerManager>();
-    }
-}
-RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
-{
-    auto colorPicker = node.GetRenderProperties().GetColorPicker();
-    const bool useAlt = colorPicker ? colorPicker->strategy == ColorPickStrategyType::CLIENT_CALLBACK : false;
-    if (auto ret = std::make_shared<RSColorPickerDrawable>(useAlt); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-}
-
-bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)
-{
-    stagingNodeId_ = node.GetId();
-    stagingColorPicker_ = node.GetRenderProperties().GetColorPicker();
-    needSync_ = true;
-    return stagingColorPicker_ != nullptr;
-}
-
-void RSColorPickerDrawable::OnSync()
-{
-    if (!needSync_) {
-        return;
-    }
-    nodeId_ = stagingNodeId_;
-    params_ = stagingColorPicker_ ? *stagingColorPicker_ : ColorPickerParam();
-    needSync_ = false;
-}
-
-void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
-{
-    if (!colorPickerManager_) {
-        return;
-    }
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-    if (!paintFilterCanvas) {
-        return;
-    }
-    auto maybeColor = colorPickerManager_->GetColorPicked(*paintFilterCanvas, rect, nodeId_, params_);
-    if (maybeColor.has_value()) {
-        paintFilterCanvas->SetColorPicked(params_.placeholder, maybeColor.value());
     }
 }
 
@@ -360,6 +306,8 @@ void RSBeginBlenderDrawable::PostUpdate(const RSRenderNode& node)
 {
     enableEDREffect_ = node.GetRenderProperties().GetFgBrightnessEnableEDR();
     if (enableEDREffect_) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSBeginBlenderDrawable:PostUpdate node[%" PRIu64 "] has edr brightness", node.GetId());
         screenNodeId_ = node.GetScreenNodeId();
     }
 }
@@ -599,6 +547,5 @@ void RSCustomClipToFrameDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing:
 {
     canvas->ClipRect(customClipRect_);
 }
-
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

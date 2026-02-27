@@ -280,7 +280,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     auto& rsSubThreadCache = nodeDrawable->GetRsSubThreadCache();
     auto cacheSurface = rsSubThreadCache.GetCacheSurface(threadIndex_);
     bool isHdrSurface = false;
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
     if (surfaceParams != nullptr) {
         isHdrSurface = surfaceParams->GetHDRPresent();
     }
@@ -322,7 +322,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), acquireFence, optFenceWait);
     bufferGuard.SetAcquireFence(acquireFence);
-    rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable);
+    rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable, surfaceParams);
     rsSubThreadCache.UpdateBackendTexture();
     rsSubThreadCache.SetCacheBehindWindowData(rscanvas->GetCacheBehindWindowData());
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
@@ -369,10 +369,6 @@ void RSSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface)
 void RSSubThread::ReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
     if (!nodeDrawable) {
-        return;
-    }
-    const auto& param = nodeDrawable->GetRenderParams();
-    if (!param) {
         return;
     }
     NodeId nodeId = nodeDrawable->GetId();

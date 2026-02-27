@@ -295,6 +295,7 @@ void MemoryTrack::DumpMemoryStatistics(DfxString& log,
 
 void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log, bool isLite)
 {
+    RS_TRACE_NAME_FMT("MemoryTrack::DumpMemoryNodeStatistics pixlmap record size:%d", memPicRecord_.size());
     log.AppendFormat("\nRSRenderNode:\n");
     uint64_t totalSize = 0;
     int count = 0;
@@ -476,6 +477,7 @@ std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::stri
 void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     std::function<std::tuple<uint64_t, std::string, RectI, bool>(uint64_t)> func, bool isLite)
 {
+    RS_TRACE_NAME_FMT("MemoryTrack::DumpMemoryPicStatistics memPicRecord_ size:%d", memPicRecord_.size());
     log.AppendFormat("RSImageCache:\n");
     MemoryStats stats;
     if (!isLite) log.AppendFormat("%s:\n", GenerateDumpTitle().c_str());

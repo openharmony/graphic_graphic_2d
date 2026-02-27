@@ -17,6 +17,8 @@
 #include "typeface_ani/ani_typeface.h"
 #include "rosen_text/font_collection.h"
 #include "txt/platform.h"
+#include "image/image_info.h"
+#include "image/image.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -63,6 +65,125 @@ ani_status ThrowBusinessError(ani_env* env, DrawingErrorCode errorCode, const ch
     return ANI_OK;
 }
 
+#ifdef ROSEN_OHOS
+std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Media::ColorSpace colorSpace)
+{
+    switch (colorSpace) {
+        case Media::ColorSpace::DISPLAY_P3:
+            return Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+        case Media::ColorSpace::LINEAR_SRGB:
+            return Drawing::ColorSpace::CreateSRGBLinear();
+        case Media::ColorSpace::SRGB:
+            return Drawing::ColorSpace::CreateSRGB();
+        default:
+            return Drawing::ColorSpace::CreateSRGB();
+    }
+}
+
+Drawing::ColorType PixelFormatToDrawingColorType(Media::PixelFormat pixelFormat)
+{
+    switch (pixelFormat) {
+        case Media::PixelFormat::RGB_565:
+            return Drawing::ColorType::COLORTYPE_RGB_565;
+        case Media::PixelFormat::RGBA_8888:
+            return Drawing::ColorType::COLORTYPE_RGBA_8888;
+        case Media::PixelFormat::BGRA_8888:
+            return Drawing::ColorType::COLORTYPE_BGRA_8888;
+        case Media::PixelFormat::ALPHA_8:
+            return Drawing::ColorType::COLORTYPE_ALPHA_8;
+        case Media::PixelFormat::RGBA_F16:
+            return Drawing::ColorType::COLORTYPE_RGBA_F16;
+        case Media::PixelFormat::UNKNOWN:
+        case Media::PixelFormat::ARGB_8888:
+        case Media::PixelFormat::RGB_888:
+        case Media::PixelFormat::NV21:
+        case Media::PixelFormat::NV12:
+        case Media::PixelFormat::CMYK:
+        default:
+            return Drawing::ColorType::COLORTYPE_UNKNOWN;
+    }
+}
+
+Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType)
+{
+    switch (alphaType) {
+        case Media::AlphaType::IMAGE_ALPHA_TYPE_UNKNOWN:
+            return Drawing::AlphaType::ALPHATYPE_UNKNOWN;
+        case Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE:
+            return Drawing::AlphaType::ALPHATYPE_OPAQUE;
+        case Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL:
+            return Drawing::AlphaType::ALPHATYPE_PREMUL;
+        case Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL:
+            return Drawing::AlphaType::ALPHATYPE_UNPREMUL;
+        default:
+            return Drawing::AlphaType::ALPHATYPE_UNKNOWN;
+    }
+}
+
+struct PixelMapReleaseContext {
+    explicit PixelMapReleaseContext(std::shared_ptr<Media::PixelMap> pixelMap) : pixelMap_(pixelMap) {}
+
+    ~PixelMapReleaseContext()
+    {
+        pixelMap_ = nullptr;
+    }
+
+private:
+    std::shared_ptr<Media::PixelMap> pixelMap_;
+};
+
+static void PixelMapReleaseProc(const void* /* pixels */, void* context)
+{
+    PixelMapReleaseContext* ctx = static_cast<PixelMapReleaseContext*>(context);
+    if (ctx) {
+        delete ctx;
+        ctx = nullptr;
+    }
+}
+
+std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    if (!pixelMap) {
+        ROSEN_LOGE("Drawing_napi::pixelMap fail");
+        return nullptr;
+    }
+    Media::ImageInfo imageInfo;
+    pixelMap->GetImageInfo(imageInfo);
+    Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
+        PixelFormatToDrawingColorType(imageInfo.pixelFormat), AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
+        ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
+    Drawing::Pixmap imagePixmap(
+        drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
+    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
+    auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);
+    if (!image) {
+        ROSEN_LOGE("Drawing_napi :RSPixelMapUtil::ExtractDrawingImage fail");
+        delete releaseContext;
+        releaseContext = nullptr;
+    }
+    return image;
+}
+#endif
+
+std::string CreateStdString(ani_env* env, ani_string aniStr)
+{
+    ani_size aniStrSize = 0;
+    ani_status status = env->String_GetUTF8Size(aniStr, &aniStrSize);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("failed to get utf8 strsize");
+        return "";
+    }
+    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(aniStrSize + 1);
+    ani_size byteSize = 0;
+    status = env->String_GetUTF8(aniStr, buffer.get(), aniStrSize + 1, &byteSize);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("failed to get utf8 size");
+        return "";
+    }
+    buffer[byteSize] = '\0';
+    return std::string(buffer.get());
+}
+
 ani_status CreateStdStringUtf16(ani_env* env, const ani_string& str, std::u16string& utf16Str)
 {
     ani_size strSize;
@@ -85,6 +206,92 @@ ani_status CreateStdStringUtf16(ani_env* env, const ani_string& str, std::u16str
     utf16Buffer[bytesWritten] = '\0';
     utf16Str = std::u16string(reinterpret_cast<const char16_t*>(utf16Buffer), strSize - 1);
     return ANI_OK;
+}
+
+bool GetColor4fFromAniColor4fObj(ani_env* env, ani_object obj, Drawing::Color4f &color)
+{
+    ani_class colorCls = AniGlobalClass::GetInstance().color4fInterface;
+    if (colorCls == nullptr) {
+        ROSEN_LOGE("GetColor4fFromAniColor4fObj failed by cls is null");
+        return false;
+    }
+
+    ani_method colorGetAlpha = AniGlobalMethod::GetInstance().color4fGetAlpha;
+    ani_method colorGetRed = AniGlobalMethod::GetInstance().color4fGetRed;
+    ani_method colorGetGreen = AniGlobalMethod::GetInstance().color4fGetGreen;
+    ani_method colorGetBlue = AniGlobalMethod::GetInstance().color4fGetBlue;
+    if (colorGetAlpha == nullptr || colorGetRed == nullptr || colorGetGreen == nullptr || colorGetBlue == nullptr) {
+        ROSEN_LOGE("GetColor4fFromAniColor4fObj failed by cls method is null");
+        return false;
+    }
+
+    ani_boolean isColorClass;
+    env->Object_InstanceOf(obj, colorCls, &isColorClass);
+
+    if (!isColorClass) {
+        return false;
+    }
+
+    ani_double alpha;
+    ani_double red;
+    ani_double blue;
+    ani_double green;
+
+    if ((env->Object_CallMethod_Double(obj, colorGetAlpha, &alpha) != ANI_OK) ||
+        (env->Object_CallMethod_Double(obj, colorGetRed, &red) != ANI_OK) ||
+        (env->Object_CallMethod_Double(obj, colorGetGreen, &green) != ANI_OK) ||
+        (env->Object_CallMethod_Double(obj, colorGetBlue, &blue) != ANI_OK)) {
+        ROSEN_LOGE("GetColor4fFromAniColor4fObj failed by Color class");
+        return false;
+    }
+    
+    color.alphaF_ = static_cast<float>(alpha);
+    color.redF_ = static_cast<float>(red);
+    color.greenF_ = static_cast<float>(green);
+    color.blueF_ = static_cast<float>(blue);
+
+    return true;
+}
+
+bool GetValueFromAniRectObj(ani_env* env, ani_object obj, std::vector<double>& ltrb)
+{
+    ltrb.clear();
+    ani_class rectCls = AniGlobalClass::GetInstance().rectInterface;
+    if (rectCls == nullptr) {
+        ROSEN_LOGE("GetValueFromAniRectObj failed by cls is null");
+        return false;
+    }
+    ani_method rectGetLeft = AniGlobalMethod::GetInstance().rectGetLeft;
+    ani_method rectGetTop = AniGlobalMethod::GetInstance().rectGetTop;
+    ani_method rectGetRight = AniGlobalMethod::GetInstance().rectGetRight;
+    ani_method rectGetBottom = AniGlobalMethod::GetInstance().rectGetBottom;
+    if (rectGetLeft == nullptr || rectGetTop == nullptr || rectGetRight == nullptr || rectGetBottom == nullptr) {
+        ROSEN_LOGE("GetValueFromAniRectObj failed by cls method is null");
+        return false;
+    }
+
+    ani_boolean isRectClass;
+    env->Object_InstanceOf(obj, rectCls, &isRectClass);
+    if (!isRectClass) {
+        return false;
+    }
+
+    ani_double left = 0;
+    ani_double top = 0;
+    ani_double right = 0;
+    ani_double bottom = 0;
+    if ((env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetLeft, &left) != ANI_OK) ||
+        (env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetTop, &top) != ANI_OK) ||
+        (env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetRight, &right) != ANI_OK) ||
+        (env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetBottom, &bottom) != ANI_OK)) {
+        ROSEN_LOGE("GetValueFromAniRectObj failed");
+        return false;
+    }
+    ltrb.push_back(left);
+    ltrb.push_back(top);
+    ltrb.push_back(right);
+    ltrb.push_back(bottom);
+    return true;
 }
 
 ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err)
@@ -239,6 +446,17 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
     return true;
 }
 
+ani_status CreateColor4fObj(ani_env* env, const Drawing::Color4f& color, ani_object& obj)
+{
+    obj = CreateAniObject(env, AniGlobalClass::GetInstance().color4f, AniGlobalMethod::GetInstance().color4fCtor,
+        ani_double(color.alphaF_),
+        ani_double(color.redF_),
+        ani_double(color.greenF_),
+        ani_double(color.blueF_)
+    );
+    return ANI_OK;
+}
+
 ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& obj)
 {
     obj = CreateAniObject(env, AniGlobalClass::GetInstance().rect, AniGlobalMethod::GetInstance().rectCtor,
@@ -248,6 +466,64 @@ ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& ob
         ani_double(rect.bottom_)
     );
     return ANI_OK;
+}
+
+bool DrawingValueConvertToAniRect(ani_env* env, ani_object obj, ani_double left, ani_double top, ani_double right,
+    ani_double bottom)
+{
+    ani_method rectSetLeft = AniGlobalMethod::GetInstance().rectSetLeft;
+    ani_method rectSetTop = AniGlobalMethod::GetInstance().rectSetTop;
+    ani_method rectSetRight = AniGlobalMethod::GetInstance().rectSetRight;
+    ani_method rectSetBottom = AniGlobalMethod::GetInstance().rectSetBottom;
+    if (rectSetLeft == nullptr || rectSetTop == nullptr || rectSetRight == nullptr || rectSetBottom == nullptr) {
+        ROSEN_LOGE("DrawingRectConvertToAniRect failed by method is null");
+        return false;
+    }
+    if (env->Object_CallMethod_Void(obj, rectSetLeft, left) != ANI_OK ||
+        env->Object_CallMethod_Void(obj, rectSetTop, top) != ANI_OK ||
+        env->Object_CallMethod_Void(obj, rectSetRight, right) != ANI_OK ||
+        env->Object_CallMethod_Void(obj, rectSetBottom, bottom) != ANI_OK) {
+        ROSEN_LOGE("DrawingRectConvertToAniRect failed by Object_SetProperty_Double");
+        return false;
+    }
+    return true;
+}
+
+bool MakeFontFeaturesFromAniObjArray(ani_env* env, std::shared_ptr<Drawing::DrawingFontFeatures> fontfeatures,
+    uint32_t size, ani_array featuresobj)
+{
+    fontfeatures->clear();
+    for (uint32_t i = 0; i < size; ++i) {
+        ani_ref fontFeatureRef;
+        if (ANI_OK != env->Array_Get(featuresobj, static_cast<ani_size>(i), &fontFeatureRef)) {
+            ROSEN_LOGE("GetFontFeaturesRef get fontFeatureRef failed");
+            return false;
+        }
+        
+        ani_method fontFeatureGetName = AniGlobalMethod::GetInstance().fontFeatureGetName;
+        ani_ref nameRef = nullptr;
+        ani_status ret = env->Object_CallMethod_Ref(static_cast<ani_object>(fontFeatureRef),
+            fontFeatureGetName, &nameRef);
+        if (ret != ANI_OK) {
+            ROSEN_LOGE("Failed to get name, ret %{public}d", ret);
+            return false;
+        }
+        std::string name = CreateStdString(env, reinterpret_cast<ani_string>(nameRef));
+        if (name == "") {
+            ROSEN_LOGE("Failed to get CreateStdString");
+            return false;
+        }
+
+        ani_double valueDouble;
+        ret = env->Object_CallMethod_Double(static_cast<ani_object>(fontFeatureRef),
+            AniGlobalMethod::GetInstance().fontFeatureGetValue, &valueDouble);
+        if (ret != ANI_OK) {
+            ROSEN_LOGE("Failed to get value, ret %{public}d", ret);
+            return false;
+        }
+        fontfeatures->push_back({{name, valueDouble}});
+    }
+    return true;
 }
 
 ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& point)

@@ -19,6 +19,8 @@
 #include <memory>
 #include <mutex>
 
+#include "ge_shader_filter_params.h"
+#include "ge_shader_mask.h"
 #include "include/draw/canvas.h"
 #include "include/draw/surface.h"
 #include "include/effect/image_filter.h"
@@ -26,6 +28,7 @@
 #include "render_context/render_context.h"
 
 namespace OHOS::Rosen {
+
 enum class DrawingError {
     ERR_OK = 0,
     ERR_NOT_PREPARED,
@@ -70,7 +73,8 @@ public:
     ~EffectImageChain();
 
     DrawingError Prepare(const std::shared_ptr<Media::PixelMap>& srcPixelMap, bool forceCPU);
-
+    DrawingError PrepareNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+        std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer, bool forceCPU);
     DrawingError ApplyDrawingFilter(const std::shared_ptr<Drawing::ImageFilter>& filter);
     DrawingError ApplyBlur(float radius, const Drawing::TileMode& tileMode,
         bool isDirection = false, float angle = 0.0);
@@ -79,10 +83,17 @@ public:
     DrawingError ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,
         float maskRadiusX, float maskRadiusY, const std::vector<float> &positions, const std::vector<float> &degrees);
     DrawingError ApplySDFCreation(int spreadFactor, bool generateDerivs);
-
+    DrawingError ApplyMaskTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
+        const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse);
+    DrawingError ApplyWaterDropletTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
+        const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams);
+    DrawingError ApplyWaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& waterGlassDate);
+    DrawingError ApplyReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& reededGlassDate);
     DrawingError Draw();
+    DrawingError DrawNativeBuffer();
 
     std::shared_ptr<Media::PixelMap> GetPixelMap();
+    void Release();
 
 private:
     bool CheckPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
@@ -92,6 +103,7 @@ private:
         bool isDirection = false, float angle = 0.0);
     DrawingError ApplyHpsBlur(float radius);
     void DrawOnFilter();
+    std::shared_ptr<Drawing::Image> ConvertPixelMapToDrawingImage(const std::shared_ptr<Media::PixelMap>& pixelMap);
 
     std::mutex apiMutex_;
 

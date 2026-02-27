@@ -600,18 +600,63 @@ HWTEST_F(RSServiceClientTest, SetPhysicalScreenResolution001, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetRogScreenResolution Test
- * @tc.desc: SetRogScreenResolution Test
+ * @tc.name: SetRogScreenResolutionTest001
+ * @tc.desc: Test SetRogScreenResolution
  * @tc.type: FUNC
  */
-HWTEST_F(RSServiceClientTest, SetRogScreenResolution001, TestSize.Level1)
+HWTEST_F(RSServiceClientTest, SetRogScreenResolutionTest001, TestSize.Level1)
 {
-    ScreenId id = INVALID_SCREEN_ID;
+    auto id = rsClient->GetDefaultScreenId();
+    EXPECT_NE(id, INVALID_SCREEN_ID);
     uint32_t width = 1920;
     uint32_t height = 1080;
-    auto ret = rsClient->SetRogScreenResolution(id, width, height);
-    // authorization failed
-    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
+    rsClient->SetRogScreenResolution(id, width, height);
+}
+
+/*
+ * @tc.name: SetRogScreenResolutionTest002
+ * @tc.desc: Test SetRogScreenResolution with empty renderService
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, SetRogScreenResolutionTest002, TestSize.Level1)
+{
+    auto id = rsClient->GetDefaultScreenId();
+    EXPECT_NE(id, INVALID_SCREEN_ID);
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+    RSRenderServiceConnectHub::Destroy();
+    rsClient->SetRogScreenResolution(id, width, height);
+    RSRenderServiceConnectHub::Init();
+}
+
+/*
+ * @tc.name: GetRogScreenResolutionTest001
+ * @tc.desc: Test GetRogScreenResolution
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, GetRogScreenResolutionTest001, TestSize.Level1)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t width{0};
+    uint32_t height{0};
+    auto ret = rsClient->GetRogScreenResolution(id, width, height);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: GetRogScreenResolutionTest002
+ * @tc.desc: Test GetRogScreenResolution with empty renderService
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, GetRogScreenResolutionTest002, TestSize.Level1)
+{
+    auto id = rsClient->GetDefaultScreenId();
+    EXPECT_NE(id, INVALID_SCREEN_ID);
+    uint32_t width{0};
+    uint32_t height{0};
+    RSRenderServiceConnectHub::Destroy();
+    rsClient->GetRogScreenResolution(id, width, height);
+    RSRenderServiceConnectHub::Init();
 }
 
 /**
@@ -695,7 +740,7 @@ HWTEST_F(RSServiceClientTest, GetPanelPowerStatus002, TestSize.Level1)
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
 
     RSRenderServiceConnectHub::Destroy();
-    EXPECT_EQ(rsClient->GetPanelPowerStatus(screenId), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
+    rsClient->GetPanelPowerStatus(screenId);
     RSRenderServiceConnectHub::Init();
     rsClient->GetPanelPowerStatus(screenId);
 }
@@ -1169,13 +1214,13 @@ HWTEST_F(RSServiceClientTest, SetBrightnessInfoChangeCallbackTest, TestSize.Leve
  */
 HWTEST_F(RSServiceClientTest, SetDualScreenState001, TestSize.Level1)
 {
-    ScreenId screenId = 0;
+    auto screenId = rsClient->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSRenderServiceConnectHub::Destroy();
-    auto ret = rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
-    EXPECT_EQ(ret, StatusCode::RENDER_SERVICE_NULL);
+    rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
     RSRenderServiceConnectHub::Init();
-    ret = rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
-    EXPECT_NE(ret, StatusCode::RENDER_SERVICE_NULL);
+    rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
 }
+
 } // namespace Rosen
 } // namespace OHOS

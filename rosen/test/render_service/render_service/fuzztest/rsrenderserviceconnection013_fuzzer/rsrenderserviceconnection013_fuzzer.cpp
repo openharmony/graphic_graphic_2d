@@ -66,9 +66,8 @@ const uint8_t DO_GET_DISPLAY_IDENTIFICATION_DATA = 19;
 const uint8_t DO_RESIZE_VIRTUAL_SCREEN = 20;
 const uint8_t DO_CLEAN_VIRTUAL_SCREENS = 21;
 constexpr uint8_t DO_SET_ROG_SCREEN_RESOLUTION = 22;
-constexpr uint8_t DO_GET_ROG_SCREEN_RESOLUTION = 23;
-constexpr uint8_t DO_SET_SCREEN_SECURITY_MASK = 25;
-const uint8_t TARGET_SIZE = 26;
+constexpr uint8_t DO_SET_SCREEN_SECURITY_MASK = 23;
+const uint8_t TARGET_SIZE = 24;
 } // namespace
 
 auto g_pid = getpid();
@@ -239,9 +238,10 @@ void DoSetScreenSecurityMask(FuzzedDataProvider& fdp)
     std::shared_ptr<Media::PixelMap> securityMask = nullptr;
     g_toServiceConnection->SetScreenSecurityMask(id, securityMask);
 
-    g_toServiceConnection->screenManager_ = nullptr;
+    auto screenMgrAgent = g_toServiceConnection->screenManagerAgent_;
+    g_toServiceConnection->screenManagerAgent_ = nullptr;
     g_toServiceConnection->SetScreenSecurityMask(id, securityMask);
-    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
+    g_toServiceConnection->screenManagerAgent_ = screenMgrAgent;
 }
 
 void DoSetMirrorScreenVisibleRect(FuzzedDataProvider& fdp)
@@ -260,9 +260,10 @@ void DoSetMirrorScreenVisibleRect(FuzzedDataProvider& fdp)
     bool supportRotation = fdp.ConsumeBool();
     g_toServiceConnection->SetMirrorScreenVisibleRect(screenId, mainScreenRect, supportRotation);
 
-    g_toServiceConnection->screenManager_ = nullptr;
+    auto screenMgrAgent = g_toServiceConnection->screenManagerAgent_;
+    g_toServiceConnection->screenManagerAgent_ = nullptr;
     g_toServiceConnection->SetMirrorScreenVisibleRect(screenId, mainScreenRect, supportRotation);
-    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
+    g_toServiceConnection->screenManagerAgent_ = screenMgrAgent;
 }
 
 void DoSetScreenActiveMode(FuzzedDataProvider& fdp)
@@ -519,20 +520,11 @@ void DoResizeVirtualScreen(FuzzedDataProvider& fdp)
 
 void DoCleanVirtualScreens()
 {
-    g_toServiceConnection->screenManager_ = nullptr;
-    g_toServiceConnection->screenChangeCallback_ = nullptr;
+    auto screenManagerAgent = g_toServiceConnection->screenManagerAgent_;
+    g_toServiceConnection->screenManagerAgent_ = nullptr;
     g_toServiceConnection->CleanVirtualScreens();
 
-    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
-    g_toServiceConnection->screenChangeCallback_ = nullptr;
-    g_toServiceConnection->CleanVirtualScreens();
-
-    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
-    g_toServiceConnection->screenChangeCallback_ = sptr<RSIScreenChangeCallback>();
-    g_toServiceConnection->CleanVirtualScreens();
-
-    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
-    g_toServiceConnection->screenChangeCallback_ = nullptr;
+    g_toServiceConnection->screenManagerAgent_ = screenManagerAgent;
     g_toServiceConnection->CleanVirtualScreens();
 }
 

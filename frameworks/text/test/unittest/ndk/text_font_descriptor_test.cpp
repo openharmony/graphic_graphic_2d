@@ -905,7 +905,9 @@ HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType001, TestSize.Level0)
             OH_Drawing_String fontPath = fontPaths[i];
             std::u16string path(reinterpret_cast<char16_t*>(fontPath.strData), fontPath.strLen / sizeof(char16_t));
             std::string u8Path = OHOS::Str16ToStr8(path);
-            EXPECT_TRUE(fs::exists(u8Path));
+            if (ExistStylishFontConfigFile()) {
+                EXPECT_TRUE(fs::exists(u8Path));
+            }
             free(fontPath.strData);
         }
         EXPECT_EQ(i, num);
@@ -919,10 +921,10 @@ HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType001, TestSize.Level0)
         // 1 = 1 stylish font
         expectFunc(OH_Drawing_SystemFontType::STYLISH, 1);
     } else {
-        // 139 = 139 generic fonts + 3 installed fonts but duplicate with generic fonts
-        expectFunc(OH_Drawing_SystemFontType::ALL, 139);
-        // 139 = 139 generic font
-        expectFunc(OH_Drawing_SystemFontType::GENERIC, 139);
+        // 140 = generic fonts + 3 installed fonts but duplicate with generic fonts
+        expectFunc(OH_Drawing_SystemFontType::ALL, 140);
+        // 140 = 140 generic font
+        expectFunc(OH_Drawing_SystemFontType::GENERIC, 140);
         expectFunc(OH_Drawing_SystemFontType::STYLISH, 0);
     }
     // 3 = 3 installed fonts

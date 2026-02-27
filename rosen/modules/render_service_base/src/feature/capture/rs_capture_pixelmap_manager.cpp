@@ -91,7 +91,7 @@ void RSCapturePixelMapManager::LoadSetMemFunc()
 }
 
 bool RSCapturePixelMapManager::SetCapturePixelMapMem(const std::unique_ptr<Media::PixelMap>& pixelmap,
-    const SurfaceCaptureType& captureType, const UniRenderEnabledType& uniRenderEnabledType, bool useDma)
+    const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType& uniRenderEnabledType)
 {
     if (pixelmap == nullptr) {
         return false;
@@ -103,11 +103,11 @@ bool RSCapturePixelMapManager::SetCapturePixelMapMem(const std::unique_ptr<Media
         RSCapturePixelMapManager::LoadSetMemFunc();
     });
 
-    auto tempCaptureType = static_cast<uint32_t>(captureType);
+    auto tempCaptureType = static_cast<uint32_t>(captureConfig.captureType);
     auto tmpUniRenderType = static_cast<uint32_t>(uniRenderEnabledType);
     auto iter = funcHandle_.find(tmpUniRenderType);
     if (iter != funcHandle_.end() && iter->second.find(tempCaptureType) != iter->second.end()) {
-        return funcHandle_[tmpUniRenderType][tempCaptureType](pixelmap, useDma);
+        return funcHandle_[tmpUniRenderType][tempCaptureType](pixelmap, captureConfig.useDma);
     }
     return false;
 }
@@ -204,7 +204,7 @@ std::unique_ptr<Media::PixelMap> RSCapturePixelMapManager::GetClientCapturePixel
     if (pixelMap == nullptr) {
         return nullptr;
     }
-    if (!SetCapturePixelMapMem(pixelMap, captureConfig.captureType, uniRenderEnabledType, captureConfig.useDma)) {
+    if (!SetCapturePixelMapMem(pixelMap, captureConfig, uniRenderEnabledType)) {
         RS_LOGE("RSCapturePixelMapManager::GetClientCapturePixelMap SetCapturePixelMapMem failed");
         return nullptr;
     }

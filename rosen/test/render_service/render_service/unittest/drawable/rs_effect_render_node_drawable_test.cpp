@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_effect_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -284,5 +285,46 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired, TestSize.Level1)
     RSEffectRenderParams params(nodeId);
 
     ASSERT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+}
+
+/**
+ * @tc.name: GenerateEffectDataOnDemandWithColorPicker
+ * @tc.desc: Test GenerateEffectDataOnDemand with ColorPickerDrawable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectDataOnDemandWithColorPicker, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, nodeId);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at the COLOR_PICKER slot
+    node->GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)) = colorPickerDrawable;
+
+    // Create effect drawable
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(node);
+    ASSERT_NE(drawable, nullptr);
+
+    // Set up children index to pass the initial check
+    drawable->drawCmdIndex_.childrenIndex_ = 0;
+
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSEffectRenderParams params(nodeId);
+
+    // Set up params to pass IsBlurNotRequired check
+    params.SetHasEffectChildren(false);
+
+    Drawing::Rect bounds(0, 0, width, height);
+
+    // Call GenerateEffectDataOnDemand - should not crash and return true
+    EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, canvas, bounds, &paintFilterCanvas));
 }
 }

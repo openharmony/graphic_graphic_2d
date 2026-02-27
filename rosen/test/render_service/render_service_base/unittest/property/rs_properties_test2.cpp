@@ -317,11 +317,14 @@ HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest001, TestSize.Level1)
     RSProperties properties;
     EXPECT_EQ(properties.GetColorPicker(), nullptr);
 
-    properties.SetColorPickerNotifyThreshold(50);
+    // Pack thresholds: dark=30, light=50
+    int packed = (50 << 16) | 30;
+    properties.SetColorPickerNotifyThreshold(packed);
 
     auto colorPicker = properties.GetColorPicker();
     ASSERT_NE(colorPicker, nullptr);
-    EXPECT_EQ(colorPicker->notifyThreshold, 50);
+    EXPECT_EQ(colorPicker->notifyThreshold.first, 30);
+    EXPECT_EQ(colorPicker->notifyThreshold.second, 50);
 }
 
 /**
@@ -338,12 +341,16 @@ HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest002, TestSize.Level1)
 
     auto colorPicker = properties.GetColorPicker();
     ASSERT_NE(colorPicker, nullptr);
-    EXPECT_EQ(colorPicker->notifyThreshold, 0);
+    EXPECT_EQ(colorPicker->notifyThreshold.first, 150);  // default dark threshold
+    EXPECT_EQ(colorPicker->notifyThreshold.second, 220); // default light threshold
 
-    properties.SetColorPickerNotifyThreshold(100);
+    // Pack thresholds: dark=60, light=100
+    int packed = (100 << 16) | 60;
+    properties.SetColorPickerNotifyThreshold(packed);
 
     colorPicker = properties.GetColorPicker();
-    EXPECT_EQ(colorPicker->notifyThreshold, 100);
+    EXPECT_EQ(colorPicker->notifyThreshold.first, 60);
+    EXPECT_EQ(colorPicker->notifyThreshold.second, 100);
     EXPECT_EQ(colorPicker->placeholder, ColorPlaceholder::SURFACE);
     EXPECT_EQ(colorPicker->strategy, ColorPickStrategyType::AVERAGE);
     EXPECT_EQ(colorPicker->interval, 1000);
@@ -358,20 +365,90 @@ HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest003, TestSize.Level1)
 {
     RSProperties properties;
 
-    // Test value above 255 clamped to 255
-    properties.SetColorPickerNotifyThreshold(300);
-    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 255);
+    // Test value above 255 clamped to 255 for both thresholds
+    // Pack: dark=300 (should clamp to 255), light=350 (should clamp to 255)
+    int packed = (350 << 16) | 300;
+    properties.SetColorPickerNotifyThreshold(packed);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.first, 255);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.second, 255);
 
-    // Test valid value in range
-    properties.SetColorPickerNotifyThreshold(128);
-    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 128);
+    // Test valid values in range
+    // Pack: dark=50, light=128
+    packed = (128 << 16) | 50;
+    properties.SetColorPickerNotifyThreshold(packed);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.first, 50);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.second, 128);
 
     // Test boundary values
-    properties.SetColorPickerNotifyThreshold(0);
-    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 0);
+    // Pack: dark=0, light=0
+    packed = (0 << 16) | 0;
+    properties.SetColorPickerNotifyThreshold(packed);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.first, 0);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.second, 0);
 
-    properties.SetColorPickerNotifyThreshold(255);
-    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold, 255);
+    // Pack: dark=255, light=255
+    packed = (255 << 16) | 255;
+    properties.SetColorPickerNotifyThreshold(packed);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.first, 255);
+    EXPECT_EQ(properties.GetColorPicker()->notifyThreshold.second, 255);
+}
+
+/**
+ * @tc.name: SetColorPickerRectTest001
+ * @tc.desc: Test SetColorPickerRect with valid rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerRectTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetColorPicker(), nullptr);
+
+    // Valid rect: [left=0, top=0, right=100, bottom=100]
+    Vector4f rect(0.f, 0.f, 100.f, 100.f);
+    properties.SetColorPickerRect(rect);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    ASSERT_TRUE(colorPicker->rect.has_value());
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetLeft(), 0.f);
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetTop(), 0.f);
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetRight(), 100.f);
+    EXPECT_FLOAT_EQ(colorPicker->rect->GetBottom(), 100.f);
+}
+
+/**
+ * @tc.name: SetColorPickerRectTest002
+ * @tc.desc: Test SetColorPickerRect with invalid rect (left > right)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerRectTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    // Invalid rect: left=100, top=0, right=50, bottom=100 (left > right)
+    Vector4f rect(100.f, 0.f, 50.f, 100.f);
+    properties.SetColorPickerRect(rect);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_FALSE(colorPicker->rect.has_value());
+}
+
+/**
+ * @tc.name: SetColorPickerRectTest003
+ * @tc.desc: Test SetColorPickerRect with boundary case (left == right)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerRectTest003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::SURFACE));
+    // Boundary case: left=50, top=0, right=50, bottom=100 (left == right)
+    Vector4f rect(50.f, 0.f, 50.f, 100.f);
+    properties.SetColorPickerRect(rect);
+
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_FALSE(colorPicker->rect.has_value());
 }
 
 /**
@@ -686,39 +763,6 @@ HWTEST_F(PropertiesTest, SetCanvasNodeHDRBrightnessFactor002, TestSize.Level1)
     properties.SetCanvasNodeHDRBrightnessFactor(initialFactor);
     properties.SetCanvasNodeHDRBrightnessFactor(newFactor);
     EXPECT_EQ(properties.GetCanvasNodeHDRBrightnessFactor(), newFactor);
-}
-
-/**
- * @tc.name: SetEmitterUpdaterTest
- * @tc.desc: test results of SetEmitterUpdater
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetEmitterUpdaterTest, TestSize.Level1)
-{
-    RSProperties properties;
-    std::vector<std::shared_ptr<EmitterUpdater>> para;
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.GetEffect().emitterUpdater_.empty(), true);
-
-    auto emitter = std::make_shared<EmitterUpdater>(0);
-    para.push_back(emitter);
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.GetEffect().emitterUpdater_.empty(), false);
-
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
-    properties.backref_ = node;
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.GetEffect().emitterUpdater_.empty(), false);
-
-    auto renderNode = properties.backref_.lock();
-    PropertyId propertyId = 0;
-    AnimationId animationId = 0;
-    renderNode->animationManager_.particleAnimations_.insert({ propertyId, animationId });
-    auto renderAnimation = std::make_shared<RSRenderAnimation>();
-    renderNode->animationManager_.animations_.insert({ animationId, renderAnimation });
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(renderNode->animationManager_.animations_.empty(), false);
 }
 
 /**
@@ -1413,7 +1457,7 @@ HWTEST_F(PropertiesTest, SetColorPickerPlaceholderTest, TestSize.Level1)
 
     properties.SetColorPickerPlaceholder(-100); // below NONE
     ASSERT_NE(properties.GetColorPicker(), nullptr);
-    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::NONE);
+    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::MAX);
     EXPECT_TRUE(properties.IsDirty());
 
     properties.ResetDirty();

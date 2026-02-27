@@ -327,6 +327,7 @@ private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
     void Inittcache();
+    void InitMhc();
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
     void NotifyScreenNodeBufferReleased(ScreenId curScreenId);

@@ -47,6 +47,8 @@ ani_status AniColorFilter::AniInit(ani_env *env)
         ani_native_function { "createComposeColorFilter", nullptr, reinterpret_cast<void*>(CreateComposeColorFilter) },
         ani_native_function { "createLinearToSRGBGamma", nullptr, reinterpret_cast<void*>(CreateLinearToSRGBGamma) },
         ani_native_function { "createLumaColorFilter", nullptr, reinterpret_cast<void*>(CreateLumaColorFilter) },
+        ani_native_function { "createLightingColorFilter", nullptr,
+            reinterpret_cast<void*>(CreateLightingColorFilterWithColor) },
         ani_native_function { "createSRGBGammaToLinear", nullptr, reinterpret_cast<void*>(CreateSRGBGammaToLinear) },
     };
 
@@ -171,13 +173,13 @@ ani_object AniColorFilter::CreateLightingColorFilterWithColor(
     ani_env* env, [[maybe_unused]]ani_object obj, ani_object aniMultiplyColorObj, ani_object aniAddColorObj)
 {
     Drawing::ColorQuad multiplyColor;
-    if (!GetColorQuadFromColorObj(env, aniMultiplyColorObj, multiplyColor)) {
+    if (!GetColorQuadFromParam(env, aniMultiplyColorObj, multiplyColor)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param mutColor.");
         return CreateAniUndefined(env);
     }
 
     Drawing::ColorQuad addColor;
-    if (!GetColorQuadFromColorObj(env, aniAddColorObj, addColor)) {
+    if (!GetColorQuadFromParam(env, aniAddColorObj, addColor)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param addColor.");
         return CreateAniUndefined(env);
     }

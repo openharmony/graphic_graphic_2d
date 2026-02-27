@@ -70,9 +70,6 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
                     animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferredFps});
             }
         }
-        for (auto item : configData->appBufferList_) {
-            data->AddAppBuffer(std::move(item));
-        }
     }
 
     if (configData != nullptr) {
@@ -195,9 +192,6 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
                 data->AddAnimDynamicItem({
                     animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferredFps});
             }
-        }
-        for (auto item : configData->appBufferList_) {
-            data->AddAppBuffer(std::move(item));
         }
     }
 

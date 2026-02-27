@@ -663,6 +663,51 @@ HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest002, Function | 
 }
 
 /*
+ * Function: ChangeVSyncTETest
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Test ChangeVSyncTE for LTPO 144hz
+ */
+HWTEST_F(VSyncGeneratorTest, ChangeVSyncTETest, Function | MediumTest | Level0)
+{
+    // Test ChangeVSyncTE for LTPO 144hz config error, skip and not support
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    int64_t refreshRate = 144; // 144hz
+    int64_t rsVsyncCount = 0;
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_NOT_SUPPORT);
+    // Test ChangeVSyncTE for LTPO 144hz config ok, other to 144hz, change TE
+    ret = vsyncGenerator_->SetVSyncMaxTE144(432);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncGenerator_->GetVSyncMaxRefreshRate(), 432);
+    ASSERT_EQ(vsyncGenerator_->GetVSyncPulse(), 2314814);
+    // Test ChangeVSyncTE for LTPO 144hz config ok, 144hz to other, change TE back
+    refreshRate = 120; // 120hz
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncGenerator_->GetVSyncMaxRefreshRate(), 360);
+    ASSERT_EQ(vsyncGenerator_->GetVSyncPulse(), 2777777);
+    // Test ChangeVSyncTE for LTPO 144hz config ok, 120hz to 60hz, skip
+    refreshRate = 60; // 60hz
+    listenerPhaseOffset = {
+        .cb = rsController,
+        .phaseByPulseNum = 3,
+    };
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
 * Function: SetVSyncModeTest
 * Type: Function
 * Rank: Important(2)
@@ -707,6 +752,34 @@ HWTEST_F(VSyncGeneratorTest, SetVSyncMaxRefreshRateTest, Function | MediumTest| 
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
     uint32_t vsyncMaxRefreshRate = vsyncGenerator_->GetVSyncMaxRefreshRate();
     ASSERT_EQ(vsyncMaxRefreshRate, 240);
+}
+
+/*
+ * Function: SetVSyncMaxTETest
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Test SetVSyncMaxTETest and SetVSyncMaxTE144Test
+ */
+HWTEST_F(VSyncGeneratorTest, SetVSyncMaxTETest, Function | MediumTest | Level0)
+{
+    // set invalid value 30 smaller than VSYNC_MAX_REFRESHRATE_RANGE_MIN
+    VsyncError ret = vsyncGenerator_->SetVSyncMaxTE(30);
+    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+    ret = vsyncGenerator_->SetVSyncMaxTE144(30);
+    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+
+    // set invalid value 600 greater than VSYNC_MAX_REFRESHRATE_RANGE_MAX
+    ret = vsyncGenerator_->SetVSyncMaxTE(600);
+    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+    ret = vsyncGenerator_->SetVSyncMaxTE144(600);
+    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+
+    // set valid value
+    ret = vsyncGenerator_->SetVSyncMaxTE(360);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->SetVSyncMaxTE144(360);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
 }
 
 /*

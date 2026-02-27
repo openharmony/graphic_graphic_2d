@@ -21,6 +21,7 @@
 #include <string>
 #include <unistd.h>
 
+#include "config_policy_utils.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_frame_rate_manager.h"
 #include "hgm_log.h"
@@ -33,10 +34,28 @@ namespace OHOS::Rosen {
 namespace {
 constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MIN = -16000000; // ns
 constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MAX = 16000000; // ns
+constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 
 int64_t GetFixedVsyncOffset(int64_t value)
 {
     return (value >= RENDER_VSYNC_OFFSET_DELAY_MIN && value <= RENDER_VSYNC_OFFSET_DELAY_MAX) ? value : 0;
+}
+
+std::string GetXmlPath()
+{
+    std::string fileSuffix = "etc/graphic/hgm_policy_config.xml";
+    char pathBuff[MAX_PATH_LEN] = {'\0'};
+    char* flexConfigPath = GetOneCfgFile(fileSuffix.c_str(), pathBuff, MAX_PATH_LEN);
+    if (flexConfigPath == nullptr) {
+        return CONFIG_FILE_PRODUCT;
+    }
+    std::string resPath(flexConfigPath);
+    std::string targetPrefix("/sys_prod");
+    if (resPath.substr(0, targetPrefix.size()) == targetPrefix) {
+        HGM_LOGI("flex hgm config path is %{public}s", resPath.c_str());
+        return resPath;
+    }
+    return CONFIG_FILE_PRODUCT;
 }
 } // namespace
 
@@ -144,7 +163,8 @@ int32_t HgmCore::InitXmlConfig()
     if (!mParser_) {
         mParser_ = std::make_unique<XMLParser>();
     }
-    if (mParser_->LoadConfiguration(CONFIG_FILE_PRODUCT) != EXEC_SUCCESS) {
+
+    if (mParser_->LoadConfiguration(GetXmlPath().c_str()) != EXEC_SUCCESS) {
         HGM_LOGW("failed to load prod xml configuration file");
     }
     if (mParser_->Parse() != EXEC_SUCCESS) {
@@ -158,6 +178,33 @@ int32_t HgmCore::InitXmlConfig()
         mPolicyConfigVisitor_ = std::make_shared<PolicyConfigVisitorImpl>(*mPolicyConfigData_);
     }
     return EXEC_SUCCESS;
+}
+
+void HgmCore::SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSetting)
+{
+    const auto& ltpoConfig = curScreenSetting.ltpoConfig;
+    if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
+        maxTE_ = std::stoul(iter->second);
+        CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
+        CreateVSyncGenerator()->SetVSyncMaxTE(maxTE_);
+    } else {
+        maxTE_ = 0;
+        HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
+    }
+
+    if (auto iter = ltpoConfig.find("maxTE144"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
+        uint32_t maxTE144 = std::stoul(iter->second);
+        if (maxTE144 % OLED_144_HZ == 0) {
+            maxTE144_ = maxTE144;
+            CreateVSyncGenerator()->SetVSyncMaxTE144(maxTE144_);
+        } else {
+            maxTE144_ = 0;
+            HGM_LOGW("HgmCore TE 144 strategy for LTPO must be a multiple of 144");
+        }
+    } else {
+        maxTE144_ = 0;
+        HGM_LOGW("HgmCore failed to find TE 144 strategy for LTPO");
+    }
 }
 
 void HgmCore::SetASConfig(const PolicyConfigData::ScreenSetting& curScreenSetting)
@@ -227,13 +274,6 @@ void HgmCore::SetLtpoConfig()
         ltpoEnabled_ = 0;
         HGM_LOGW("failed to find switch strategy for LTPO");
     }
-    if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
-        maxTE_ = std::stoul(iter->second);
-        CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
-    } else {
-        maxTE_ = 0;
-        HGM_LOGW("failed to find TE strategy for LTPO");
-    }
     if (auto iter = ltpoConfig.find("alignRate"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
         alignRate_ = std::stoul(iter->second);
     } else {
@@ -248,15 +288,17 @@ void HgmCore::SetLtpoConfig()
         pipelineOffsetPulseNum_ = 0;
         HGM_LOGW("failed to find pipelineOffset strategy for LTPO");
     }
+    SetMaxTEConfig(curScreenSetting);
     isLtpoMode_.store(ltpoEnabled_ && (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate()));
     SetIdealPipelineOffset(pipelineOffsetPulseNum_);
+    SetIdealPipelineOffset144(pipelineOffsetPulseNum_);
     SetASConfig(curScreenSetting);
     SetScreenConstraintConfig(curScreenSetting);
     SetPerformanceConfig(curScreenSetting);
-    HILOG_COMM_INFO("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, "
-        "pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, "
+    HILOG_COMM_INFO("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, maxTE144: %{public}d, "
+        "alignRate: %{public}d, pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, "
         "lowRateToHighQuickSwitch: %{public}d, pluseNum_: %{public}d, isDelayMode_: %{public}d",
-        ltpoEnabled_, maxTE_, alignRate_, pipelineOffsetPulseNum_, vBlankIdleCorrectSwitch_.load(),
+        ltpoEnabled_, maxTE_, maxTE144_, alignRate_, pipelineOffsetPulseNum_, vBlankIdleCorrectSwitch_.load(),
         lowRateToHighQuickSwitch_.load(), pluseNum_, isDelayMode_);
 }
 

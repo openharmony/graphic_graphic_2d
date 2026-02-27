@@ -17,6 +17,7 @@
 
 #include <unordered_map>
 
+#include "common/rs_optional_trace.h"
 #include "effect/rs_render_mask_base.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
@@ -139,6 +140,7 @@ bool RSNGRenderShaderHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase
     auto current = shader;
     while (current) {
         if (RSEffectLuminanceManager::GetEnableHdrEffect(current)) {
+            RS_OPTIONAL_TRACE_NAME_FMT("CheckEnableEDR:find edr shader, type=%d", static_cast<int>(current->GetType()));
             return true;
         }
         current = current->nextEffect_;

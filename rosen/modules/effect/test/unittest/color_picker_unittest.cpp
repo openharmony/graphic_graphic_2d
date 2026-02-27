@@ -2035,7 +2035,7 @@ HWTEST_F(ColorPickerUnittest, Rgb2Gray, TestSize.Level1)
 {
     unsigned int color = 0xfedcba98; // normal value
     uint8_t ret = ColorExtract::Rgb2Gray(color, Media::PixelFormat::RGBA_1010102);
-    EXPECT_EQ(static_cast<uint32_t>(ret), 22); // 22: Result of converting to gray
+    EXPECT_EQ(ret, 22); // 22: Result of converting to gray
 }
 
 /**

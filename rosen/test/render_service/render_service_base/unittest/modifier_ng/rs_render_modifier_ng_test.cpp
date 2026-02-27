@@ -17,6 +17,8 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
+#include <vector>
+#include <string>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -24,6 +26,7 @@
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
+#include "modifier_ng/geometry/rs_bounds_render_modifier.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
@@ -230,6 +233,164 @@ HWTEST_F(RSRenderModifierNGTest, UnmarshallingTest, TestSize.Level1)
     EXPECT_TRUE(ret);
     auto renderModifier9 = ModifierNG::RSRenderModifier::Unmarshalling(parcel5);
     EXPECT_EQ(renderModifier9, nullptr);
+}
+
+/**
+ * @tc.name: EnableDeduplicationTest
+ * @tc.desc: test the function SetDeduplicationEnabled and IsDeduplicationEnabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, EnableDeduplicationTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    // Test default value (should be false)
+    EXPECT_FALSE(modifier->IsDeduplicationEnabled());
+
+    // Test SetDeduplicationEnabled with false
+    modifier->SetDeduplicationEnabled(false);
+    EXPECT_FALSE(modifier->IsDeduplicationEnabled());
+
+    // Test SetDeduplicationEnabled with true
+    modifier->SetDeduplicationEnabled(true);
+    EXPECT_TRUE(modifier->IsDeduplicationEnabled());
+}
+
+/**
+ * @tc.name: MarshallingWithEnableDeduplicationTest
+ * @tc.desc: test Marshalling and Unmarshalling with enableDeduplication field
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, MarshallingWithEnableDeduplicationTest, TestSize.Level1)
+{
+    // Test with enableDeduplication = true
+    auto modifier1 = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    modifier1->SetDeduplicationEnabled(true);
+
+    Parcel parcel1;
+    EXPECT_TRUE(modifier1->Marshalling(parcel1));
+
+    auto unmarshalled1 = ModifierNG::RSRenderModifier::Unmarshalling(parcel1);
+    EXPECT_NE(unmarshalled1, nullptr);
+    EXPECT_TRUE(unmarshalled1->IsDeduplicationEnabled());
+
+    // Test with enableDeduplication = false
+    auto modifier2 = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    modifier2->SetDeduplicationEnabled(false);
+
+    Parcel parcel2;
+    EXPECT_TRUE(modifier2->Marshalling(parcel2));
+
+    auto unmarshalled2 = ModifierNG::RSRenderModifier::Unmarshalling(parcel2);
+    EXPECT_NE(unmarshalled2, nullptr);
+    EXPECT_FALSE(unmarshalled2->IsDeduplicationEnabled());
+}
+
+/**
+ * @tc.name: DeduplicationSerializationStressTest
+ * @tc.desc: test deduplication serialization stability under repeated operations
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, DeduplicationSerializationStressTest, TestSize.Level1)
+{
+    // This test verifies that deduplication serialization remains stable
+    // under repeated serialization/deserialization cycles.
+    // Real-world scenario: High-frequency modifier updates in animation.
+    auto modifier = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    modifier->SetDeduplicationEnabled(true);
+
+    const int cycles = 100;
+    for (int i = 0; i < cycles; i++) {
+        Parcel parcel;
+        // Serialize
+        bool marshalResult = modifier->Marshalling(parcel);
+        ASSERT_TRUE(marshalResult) << "Marshalling failed at cycle " << i;
+
+        // Deserialize
+        auto unmarshalled = ModifierNG::RSRenderModifier::Unmarshalling(parcel);
+        ASSERT_NE(unmarshalled, nullptr) << "Unmarshalling failed at cycle " << i;
+        ASSERT_TRUE(unmarshalled->IsDeduplicationEnabled()) << "Deduplication state lost at cycle " << i;
+    }
+}
+
+/**
+ * @tc.name: DeduplicationSerializationDataIntegrityTest
+ * @tc.desc: test data integrity through serialization/deserialization round-trip
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, DeduplicationSerializationDataIntegrityTest, TestSize.Level1)
+{
+    // This test verifies that the deduplication flag maintains correct state
+    // through complete serialization/deserialization round-trip.
+    // Real-world scenario: IPC transmission between client and server processes.
+
+    // Test both true and false states in sequence
+    std::vector<bool> testValues = {true, false, true, false};
+
+    for (bool testValue : testValues) {
+        // Create and configure modifier
+        auto original = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+        original->SetDeduplicationEnabled(testValue);
+
+        // Serialize
+        Parcel parcel;
+        ASSERT_TRUE(original->Marshalling(parcel)) << "Marshalling failed for value=" << testValue;
+
+        // Verify parcel has data (non-empty)
+        ASSERT_GT(parcel.GetDataSize(), 0u) << "Parcel is empty after marshalling";
+
+        // Deserialize
+        auto restored = ModifierNG::RSRenderModifier::Unmarshalling(parcel);
+        ASSERT_NE(restored, nullptr) << "Unmarshalling returned nullptr for value=" << testValue;
+
+        // Verify data integrity
+        EXPECT_EQ(restored->IsDeduplicationEnabled(), testValue)
+            << "Deduplication flag mismatch: expected " << testValue
+            << ", got " << restored->IsDeduplicationEnabled();
+    }
+}
+
+/**
+ * @tc.name: DeduplicationSerializationBoundaryTest
+ * @tc.desc: test serialization behavior with multiple modifiers and different states
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, DeduplicationSerializationBoundaryTest, TestSize.Level1)
+{
+    // This test verifies serialization correctness when handling multiple modifiers
+    // with different deduplication states.
+    // Real-world scenario: Multiple nodes with different deduplication settings.
+
+    struct TestCase {
+        bool enabled;
+        std::string description;
+    };
+
+    std::vector<TestCase> testCases = {
+        {true, "enabled"},
+        {false, "disabled"},
+        {true, "enabled again"}
+    };
+
+    for (const auto& testCase : testCases) {
+        auto modifier = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+        modifier->SetDeduplicationEnabled(testCase.enabled);
+
+        Parcel parcel;
+        bool marshalResult = modifier->Marshalling(parcel);
+
+        // Verify marshalling succeeded
+        ASSERT_TRUE(marshalResult) << "Marshalling failed for " << testCase.description;
+
+        // Verify parcel contains valid data
+        size_t dataSize = parcel.GetDataSize();
+        ASSERT_GT(dataSize, 0u) << "Parcel size is 0 for " << testCase.description;
+
+        // Attempt to read back the data
+        auto restored = ModifierNG::RSRenderModifier::Unmarshalling(parcel);
+        ASSERT_NE(restored, nullptr) << "Unmarshalling failed for " << testCase.description;
+        EXPECT_EQ(restored->IsDeduplicationEnabled(), testCase.enabled)
+            << "State mismatch for " << testCase.description;
+    }
 }
 
 /**

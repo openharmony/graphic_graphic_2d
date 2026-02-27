@@ -290,7 +290,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
     HGM_LOGD("change power policy is %{public}s", lastAssuranceLog.c_str());
 }
 
-void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo& eventInfo)
+void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo &eventInfo)
 {
     if (isEnableVideoCall_.load() && !eventInfo.eventStatus) {
         videoCallVsyncName_ = "";

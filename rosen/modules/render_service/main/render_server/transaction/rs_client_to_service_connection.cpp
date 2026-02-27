@@ -21,11 +21,10 @@
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
-#include "rs_frame_report.h"
-#include "rs_trace.h"
-#include "rs_profiler.h"
 //blur predict
 #include "rs_frame_blur_predict.h"
+#include "rs_frame_report.h"
+#include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
 #include "command/rs_command_verify_helper.h"
@@ -33,7 +32,6 @@
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
-#include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/capture/rs_ui_capture.h"
@@ -43,17 +41,15 @@
 #include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
 #include "info_collection/rs_hdr_collection.h"
-#ifdef RS_ENABLE_GPU
-#include "feature/uifirst/rs_sub_thread_manager.h"
-#endif
-#include "feature/uifirst/rs_uifirst_manager.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #endif
@@ -61,13 +57,17 @@
 #include "monitor/self_drawing_node_monitor.h"
 #include "node_mem_release_param.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_pointer_window_manager.h"
+#include "pipeline/rs_render_node_gc.h"
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+#include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
+#endif
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
-#include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
@@ -79,7 +79,7 @@
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
-#include "graphic_feature_param_manager.h"
+#include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "screen_manager/touch_screen.h"
@@ -142,7 +142,6 @@ RSClientToServiceConnection::RSClientToServiceConnection(
 
 RSClientToServiceConnection::~RSClientToServiceConnection() noexcept
 {
-    RS_LOGI("~RSClientToServiceConnection remotePid:%{public}d", remotePid_);
     if (token_ && connDeathRecipient_) {
         token_->RemoveDeathRecipient(connDeathRecipient_);
     }
@@ -198,6 +197,10 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
 
     RS_LOGD("CleanAll() end.");
     RS_TRACE_NAME("RSClientToServiceConnection CleanAll end, remotePid: " + std::to_string(remotePid_));
+    {
+        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+        pidToBundleName_.clear();
+    }
 }
 
 RSClientToServiceConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(
@@ -237,10 +240,10 @@ ErrCode RSClientToServiceConnection::ExecuteSynchronousTask(const std::shared_pt
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnection::GetUniRenderEnabled(bool& enable)
+ErrCode RSClientToServiceConnection::GetUniRenderEnabled(bool& res)
 {
-    enable = RSUniRenderJudgement::IsUniRender();
-    return  ERR_OK;
+    res = RSUniRenderJudgement::IsUniRender();
+    return ERR_OK;
 }
 
 void RSClientToServiceConnection::GetSurfaceRootNodeId(NodeId& windowNodeId)
@@ -769,6 +772,41 @@ ErrCode RSClientToServiceConnection::GetRefreshInfoByPidAndUniqueId(pid_t pid, u
     return ERR_OK;
 }
 
+ErrCode RSClientToServiceConnection::GetRefreshInfoByPidAndUniqueId(pid_t pid, uint64_t uniqueId, std::string& enable)
+{
+    if (!mainThread_) {
+        enable = "";
+        return ERR_INVALID_VALUE;
+    }
+    auto& context = mainThread_->GetContext();
+    auto& nodeMap = context.GetMutableNodeMap();
+    std::string surfaceName = (uniqueId == 0 ? nodeMap.GetSelfDrawSurfaceNameByPid(pid)
+                                             : nodeMap.GetSelfDrawSurfaceNameByPidAndUniqueId(pid, uniqueId));
+    if (surfaceName.empty()) {
+        enable = "";
+        return ERR_INVALID_VALUE;
+    }
+    std::string dumpString;
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSRenderComposerManager::GetInstance().FpsDump(dumpString, surfaceName);
+#endif
+    } else {
+        mainThread_
+            ->ScheduleTask([weakThis = wptr<RSClientToServiceConnection>(this), &dumpString, &surfaceName]() {
+                sptr<RSClientToServiceConnection> connection = weakThis.promote();
+                if (connection == nullptr || connection->screenManager_ == nullptr) {
+                    return;
+                }
+                connection->screenManager_->FpsDump(dumpString, surfaceName);
+            })
+            .wait();
+    }
+    enable = dumpString;
+    return ERR_OK;
+}
+
 int32_t RSClientToServiceConnection::GetCurrentRefreshRateMode()
 {
     if (hgmContext_ == nullptr) {
@@ -889,8 +927,7 @@ int32_t RSClientToServiceConnection::SetDualScreenState(ScreenId id, DualScreenS
         RS_LOGE("%{public}s screenManager is null, id: %{public}" PRIu64, __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    // return screenManagerAgent_->SetDualScreenState(id, status);  todo car
-    return StatusCode::SCREEN_NOT_FOUND;
+    return screenManagerAgent_->SetDualScreenState(id, status);
 }
 
 RSVirtualScreenResolution RSClientToServiceConnection::GetVirtualScreenResolution(ScreenId id)
@@ -901,7 +938,7 @@ RSVirtualScreenResolution RSClientToServiceConnection::GetVirtualScreenResolutio
     return screenManagerAgent_->GetVirtualScreenResolution(id);;
 }
 
-ErrCode RSClientToServiceConnection::GetScreenActiveMode(uint64_t id, RSScreenModeInfo& screenModeInfo)
+ErrCode RSClientToServiceConnection::GetScreenActiveMode(uint64_t screenId, RSScreenModeInfo& screenModeInfo)
 {
     if (!screenManagerAgent_) {
         return ERR_INVALID_VALUE;
@@ -1031,7 +1068,7 @@ RSScreenData RSClientToServiceConnection::GetScreenData(ScreenId id)
     return screenManagerAgent_->GetScreenData(id);
 }
 
-ErrCode RSClientToServiceConnection::GetScreenBacklight(uint64_t id, int32_t& level)
+ErrCode RSClientToServiceConnection::GetScreenBacklight(uint64_t screenId, int32_t& level)
 {
     if (!screenManagerAgent_) {
         level = INVALID_BACKLIGHT_VALUE;
@@ -1062,7 +1099,8 @@ ErrCode RSClientToServiceConnection::GetPanelPowerStatus(ScreenId screenId, Pane
     return ERR_OK;
 }
 
-int32_t RSClientToServiceConnection::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
+int32_t RSClientToServiceConnection::GetScreenSupportedColorGamuts(ScreenId id,
+    std::vector<ScreenColorGamut>& mode)
 {
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
@@ -1218,8 +1256,8 @@ ErrCode RSClientToServiceConnection::GetScreenSupportedColorSpaces(
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnection::GetScreenColorSpace(
-    ScreenId id, GraphicCM_ColorSpaceType& colorSpace, int32_t& resCode)
+ErrCode RSClientToServiceConnection::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace,
+    int32_t& resCode)
 {
     if (!screenManagerAgent_) {
         resCode = StatusCode::SCREEN_NOT_FOUND;
@@ -1256,8 +1294,6 @@ bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
         return false;
     }
 
-    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
-
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
@@ -1274,10 +1310,11 @@ int32_t RSClientToServiceConnection::RegisterTypeface(Drawing::SharedTypeface& s
 {
     if (sharedTypeface.fd_ < 0 || sharedTypeface.size_ == 0) {
         RS_LOGE("RegisterTypeface: invalid parameters");
+        ::close(sharedTypeface.fd_);
         needUpdate = -1;
         return -1;
     }
-    uint32_t realSize = AshmemGetSize(sharedTypeface.fd_);
+    int realSize = AshmemGetSize(sharedTypeface.fd_);
     if (realSize < 0 || static_cast<uint32_t>(realSize) < sharedTypeface.size_) {
         RS_LOGE("RegisterTypeface, realSize < 0 or realSize < given size");
         ::close(sharedTypeface.fd_);
@@ -1317,7 +1354,7 @@ bool RSClientToServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return true;
+        return false;
     }
     bool result = true;
     for (auto conn : serviceToRenderConns) {
@@ -1828,7 +1865,7 @@ ErrCode RSClientToServiceConnection::SetTpFeatureConfig(int32_t feature, const c
     switch (tpFeatureConfigType) {
         case TpFeatureConfigType::DEFAULT_TP_FEATURE: {
             if (!TOUCH_SCREEN->IsSetFeatureConfigHandleValid()) {
-                RS_LOGW("SetTpFeatureConfig: SetFeatureConfigHandl is nullptr");
+                RS_LOGW("RSClientToServiceConnection::SetTpFeatureConfig: SetFeatureConfigHandl is nullptr");
                 return ERR_INVALID_VALUE;
             }
             if (TOUCH_SCREEN->SetFeatureConfig(feature, config) < 0) {
@@ -1839,7 +1876,7 @@ ErrCode RSClientToServiceConnection::SetTpFeatureConfig(int32_t feature, const c
         }
         case TpFeatureConfigType::AFT_TP_FEATURE: {
             if (!TOUCH_SCREEN->IsSetAftConfigHandleValid()) {
-                RS_LOGW("SetTpFeatureConfig: SetAftConfigHandl is nullptr");
+                RS_LOGW("RSClientToServiceConnection::SetTpFeatureConfig: SetAftConfigHandl is nullptr");
                 return ERR_INVALID_VALUE;
             }
             if (TOUCH_SCREEN->SetAftConfig(config) < 0) {
@@ -1951,7 +1988,7 @@ ErrCode RSClientToServiceConnection::SetVirtualScreenStatus(ScreenId id,
     return StatusCode::SUCCESS;
 }
 
-ErrCode RSClientToServiceConnection::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+ErrCode RSClientToServiceConnection::SetLayerTop(const std::string& nodeIdStr, bool isTop)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%s{public}s renderProcessManagerAgent_ is nullptr", __func__);
@@ -1970,7 +2007,7 @@ ErrCode RSClientToServiceConnection::SetLayerTop(const std::string &nodeIdStr, b
     return ret;
 }
 
-ErrCode RSClientToServiceConnection::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+ErrCode RSClientToServiceConnection::SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh)
 {
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.empty()) {
@@ -2207,7 +2244,7 @@ ErrCode RSClientToServiceConnection::GetBehindWindowFilterEnabled(bool& enabled)
     return ERR_OK;
 }
 
-int32_t RSClientToServiceConnection::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+int32_t RSClientToServiceConnection::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%s{public}s renderProcessManagerAgent_ is nullptr", __func__);

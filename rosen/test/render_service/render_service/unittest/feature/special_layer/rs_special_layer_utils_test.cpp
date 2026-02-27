@@ -17,6 +17,7 @@
 #include "common/rs_special_layer_manager.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "gtest/gtest.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_map.h"
@@ -697,6 +698,63 @@ HWTEST_F(RSSpecialLayerUtilsTest, DealWithSpecialLayer003, TestSize.Level2)
 
     RSSpecialLayerUtils::DealWithSpecialLayer(*surfaceNode, *displayNode, true);
     ASSERT_FALSE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
+}
+
+/**
+ * @tc.name: NeedProcessSecLayerInDisplay_SecurityExemptionTest
+ * @tc.desc: test NeedProcessSecLayerInDisplay when mirrorParam has security exemption
+ * @tc.type: FUNC
+ * @tc.require: issue22049
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, NeedProcessSecLayerInDisplay_SecurityExemptionTest, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSScreenRenderParams mirrorScreenParam(nodeId);
+    RSLogicalDisplayRenderParams mirrorParam(nodeId++);
+    RSLogicalDisplayRenderParams sourceParam(nodeId++);
+
+    mirrorParam.SetSecurityExemption(true);
+
+    bool result = RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(false, mirrorScreenParam, mirrorParam, sourceParam);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: NeedProcessSecLayerInDisplay_VirtualSecLayerOptionTest
+ * @tc.desc: test NeedProcessSecLayerInDisplay when virtual sec layer option is not zero
+ * @tc.type: FUNC
+ * @tc.require: issue22049
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, NeedProcessSecLayerInDisplay_VirtualSecLayerOptionTest, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSScreenRenderParams mirrorScreenParam(nodeId);
+    RSLogicalDisplayRenderParams mirrorParam(nodeId++);
+    RSLogicalDisplayRenderParams sourceParam(nodeId++);
+
+    mirrorParam.isSecurityDisplay_ = true;
+    // Set virtualSecLayerOption_ to non-zero value to trigger early return false
+    mirrorScreenParam.screenProperty_.virtualSecLayerOption_ = 1;
+
+    bool result = RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(false, mirrorScreenParam, mirrorParam, sourceParam);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: NeedProcessSecLayerInDisplay_SecurityDisplayTest
+ * @tc.desc: test NeedProcessSecLayerInDisplay when isn't security display
+ * @tc.type: FUNC
+ * @tc.require: issue22049
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, NeedProcessSecLayerInDisplay_SecurityDisplayTest, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSScreenRenderParams mirrorScreenParam(nodeId);
+    RSLogicalDisplayRenderParams mirrorParam(nodeId++);
+    RSLogicalDisplayRenderParams sourceParam(nodeId++);
+
+    bool result = RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(false, mirrorScreenParam, mirrorParam, sourceParam);
+    ASSERT_FALSE(result);
 }
 } // namespace Rosen
 

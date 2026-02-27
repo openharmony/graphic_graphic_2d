@@ -51,19 +51,6 @@ void RSMarshallingTest::TearDownTestCase() {}
 void RSMarshallingTest::SetUp() {}
 void RSMarshallingTest::TearDown() {}
 
-template<typename T>
-static void TestNullptrObjectSerialization(T& testObj)
-{
-    // test result of serialization
-    MessageParcel parcel;
-    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, testObj));
-
-    // test result of deserialization
-    T objUnmarshal;
-    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, objUnmarshal));
-    ASSERT_TRUE(objUnmarshal == nullptr);
-}
-
 static void TestDrawingDataSerialization(size_t size)
 {
     /**
@@ -144,32 +131,34 @@ static Drawing::Path CreateDrawingPath()
     return path;
 }
 
-template<typename T>
-static void TestCompatibleMarshalling(T value, bool isNewViersion)
+static void GenRSMarshallingParcelHeader(Parcel& parcel, bool isNewViersion)
 {
-    const T srcValue = value;
-
-    Parcel parcel;
-
     parcel.WriteInt32(0);
-
     if (isNewViersion) {
         parcel.WriteInt64(-1);
     }
-
     RSMarshallingHelper::MarshallingTransactionVer(parcel);
-    
     const auto headerLen = parcel.GetWritePosition();
     parcel.SkipBytes(headerLen);
+}
 
-    EXPECT_TRUE(RSMarshallingHelper::CompatibleMarshalling(parcel, value, 0));
-    EXPECT_TRUE(RSMarshallingHelper::CompatibleUnmarshalling(parcel, value, 0, 0));
+template<typename T>
+static void TestCompatibleMarshalling(T value, bool isNewViersion, uint16_t paramVersion = 0)
+{
+    const T srcValue = value;
+    T dstValue = 0;
+
+    Parcel parcel;
+    GenRSMarshallingParcelHeader(parcel, isNewViersion);
+
+    EXPECT_TRUE(RSMarshallingHelper::CompatibleMarshalling(parcel, srcValue, paramVersion));
+    EXPECT_TRUE(RSMarshallingHelper::CompatibleUnmarshalling(parcel, dstValue, 0, paramVersion));
 
     if constexpr (std::is_same_v<T, float> == true || std::is_same_v<T, double> == true) {
         constexpr auto eps = 0.001;
-        EXPECT_NEAR(value, srcValue, eps);
+        EXPECT_NEAR(dstValue, srcValue, eps);
     } else {
-        EXPECT_EQ(value, srcValue);
+        EXPECT_EQ(dstValue, srcValue);
     }
 }
 
@@ -196,51 +185,6 @@ static void TestCompatibleMarshallingObsolete(T value, bool isNewViersion)
     const auto valueSize = std::max<size_t>(sizeof(value), 4);
 
     EXPECT_EQ(parcel.GetWritePosition(), headerLen + valueSize);
-}
-
-/**
- * @tc.name: NullptrObjectSerialization001
- * @tc.desc: test results of serialization and deserialization of nullptr object
- * @tc.type:FUNC
- * @tc.require: issueI54AGD
- */
-HWTEST_F(RSMarshallingTest, NullptrObjectSerialization001, Function | MediumTest | Level2)
-{
-    std::shared_ptr<Drawing::Data> data;
-    TestNullptrObjectSerialization(data);
-
-    std::shared_ptr<Drawing::TextBlob> textBlob;
-    TestNullptrObjectSerialization(textBlob);
-
-    std::shared_ptr<Drawing::Image> image;
-    TestNullptrObjectSerialization(image);
-
-    std::shared_ptr<Drawing::Picture> picture;
-    TestNullptrObjectSerialization(picture);
-
-    std::shared_ptr<Drawing::Vertices> vertices;
-    TestNullptrObjectSerialization(vertices);
-
-    std::shared_ptr<Drawing::ImageFilter> imageFilter;
-    TestNullptrObjectSerialization(imageFilter);
-
-    std::shared_ptr<RSShader> rsShader;
-    TestNullptrObjectSerialization(rsShader);
-
-    std::shared_ptr<RSPath> rsPath;
-    TestNullptrObjectSerialization(rsPath);
-
-    std::shared_ptr<RSMask> rsMask;
-    TestNullptrObjectSerialization(rsMask);
-
-    std::shared_ptr<RSFilter> rsFilter;
-    TestNullptrObjectSerialization(rsFilter);
-
-    std::shared_ptr<RSImage> rsImage;
-    TestNullptrObjectSerialization(rsImage);
-
-    std::shared_ptr<Media::PixelMap> pixelMap;
-    TestNullptrObjectSerialization(pixelMap);
 }
 
 /**
@@ -393,6 +337,7 @@ HWTEST_F(RSMarshallingTest, RSImageSerialization001, Function | MediumTest | Lev
      * @tc.steps: step2. serialize RSImage
      */
     MessageParcel parcel;
+    GenRSMarshallingParcelHeader(parcel, false);
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, rsImage));
 
     /**
@@ -598,6 +543,51 @@ HWTEST_F(RSMarshallingTest, CompatibleMarshalling, Function | MediumTest | Level
 
     TestCompatibleMarshalling(565.76, true);
     TestCompatibleMarshalling(656.76, false);
+}
+
+/**
+ * @tc.name: CompatibleMarshallingWithParamVersion001
+ * @tc.desc: Verify function CompatibleMarshalling
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMarshallingTest, CompatibleMarshallingWithParamVersion001, Function | MediumTest | Level2)
+{
+    uint16_t paramVersion = RSPARCELVER_ADD_ISPROPDIRTY;
+    EXPECT_NE(paramVersion, RSPARCELVER_ALWAYS);
+
+    TestCompatibleMarshalling(true, true, paramVersion);
+    TestCompatibleMarshalling(true, false, paramVersion);
+
+    TestCompatibleMarshalling(static_cast<int8_t>(123), true, paramVersion);
+    TestCompatibleMarshalling(static_cast<int8_t>(56), false, paramVersion);
+
+    TestCompatibleMarshalling(static_cast<uint8_t>(132), true, paramVersion);
+    TestCompatibleMarshalling(static_cast<uint8_t>(21), false, paramVersion);
+
+    TestCompatibleMarshalling(static_cast<int16_t>(2342), true, paramVersion);
+    TestCompatibleMarshalling(static_cast<int16_t>(653), false, paramVersion);
+
+    TestCompatibleMarshalling(static_cast<uint16_t>(998), true, paramVersion);
+    TestCompatibleMarshalling(static_cast<uint16_t>(854), false, paramVersion);
+
+    TestCompatibleMarshalling(54432, true, paramVersion);
+    TestCompatibleMarshalling(5445, false, paramVersion);
+
+    TestCompatibleMarshalling(98123u, true, paramVersion);
+    TestCompatibleMarshalling(35323u, false, paramVersion);
+
+    TestCompatibleMarshalling(static_cast<int64_t>(653434), true, paramVersion);
+    TestCompatibleMarshalling(static_cast<int64_t>(453434), false, paramVersion);
+
+    TestCompatibleMarshalling(static_cast<uint64_t>(543495), true, paramVersion);
+    TestCompatibleMarshalling(static_cast<uint64_t>(443695), false, paramVersion);
+
+    TestCompatibleMarshalling(154.76f, true, paramVersion);
+    TestCompatibleMarshalling(54.76f, false, paramVersion);
+
+    TestCompatibleMarshalling(565.76, true, paramVersion);
+    TestCompatibleMarshalling(656.76, false, paramVersion);
 }
 
 /**

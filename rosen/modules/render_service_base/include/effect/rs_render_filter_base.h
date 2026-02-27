@@ -46,7 +46,6 @@ protected:
     std::shared_ptr<Drawing::GEVisualEffect> geFilter_;
     static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect>& src,
                                 std::shared_ptr<Drawing::GEVisualEffect>& dest);
- 
 
 private:
     friend class RSNGFilterBase;
@@ -66,7 +65,7 @@ public:
 
     void GenerateGEVisualEffect() override
     {
-        RS_OPTIONAL_TRACE_FMT("RSNGRenderFilterTemplate::GenerateGEVisualEffect, Type: %s paramStr: %s",
+        RS_OPTIONAL_TRACE_FMT("RSRenderFilter, Type: %s paramStr: %s",
             RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(),
             EffectTemplateBase::DumpProperties().c_str());
         auto geFilter = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
@@ -121,7 +120,7 @@ public:
 
 #include "effect/rs_render_filter_def.in"
 
-// Note: if the definition is inconsistent with the client, place it here instead of in the .in file
+// Note: if the definition is inconsistent with the client, place it here instead of in the .in file.
 DECLARE_FILTER(ColorGradient, COLOR_GRADIENT,
     ADD_PROPERTY_TAG(ColorGradient, Colors),
     ADD_PROPERTY_TAG(ColorGradient, Positions),

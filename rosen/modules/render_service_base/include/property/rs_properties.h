@@ -402,7 +402,8 @@ public:
     void SetColorPickerPlaceholder(int placeholder);
     void SetColorPickerStrategy(int strategy);
     void SetColorPickerInterval(int interval);
-    void SetColorPickerNotifyThreshold(int threshold);
+    void SetColorPickerNotifyThreshold(int packedThresholds); // packed: lower 16 bits = dark, upper 16 bits = light
+    void SetColorPickerRect(const Vector4f& rect); // [left, top, right, bottom]
     std::shared_ptr<ColorPickerParam> GetColorPicker() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
@@ -968,10 +969,10 @@ private:
         int colorBlendMode_ = 0;
         int colorBlendApplyType_ = 0;
         std::optional<Color> colorBlend_;
-        std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
-        std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
-        std::shared_ptr<RSNGRenderFilterBase> mtNGRenderFilter_ = nullptr;
-        std::shared_ptr<RSNGRenderFilterBase> cgNGRenderFilter_ = nullptr;
+        std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr; // for background render
+        std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr; // for foreground render
+        std::shared_ptr<RSNGRenderFilterBase> mtNGRenderFilter_ = nullptr; // for material filter render
+        std::shared_ptr<RSNGRenderFilterBase> cgNGRenderFilter_ = nullptr; // for compositing render
         std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
         std::shared_ptr<RSFilter> materialFilter_ = nullptr;

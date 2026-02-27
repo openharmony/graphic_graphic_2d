@@ -44,9 +44,6 @@ private:
     bool ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
     bool ReadAppInfo(AppInfo& info, MessageParcel& data);
     bool ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
-    bool ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
-    bool ReadSurfaceCaptureBlurParam(RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
-    bool ReadSurfaceCaptureAreaRect(Drawing::Rect& specifiedAreaRect, MessageParcel& data);
     void SetQos();
 
     RSRenderServiceSecurityUtils securityUtils_;

@@ -16,6 +16,7 @@
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 
 #include <memory>
+#include "parameters.h"
 #include <sys/mman.h>
 
 #include "draw/surface.h"
@@ -28,6 +29,9 @@
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
+#include "ge_render.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
@@ -40,6 +44,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
@@ -50,6 +55,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint32_t ALPHA_MASK = 0xFF000000;
 #ifdef RS_ENABLE_GPU
 inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
@@ -634,7 +640,19 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
     auto hpsParam = Drawing::HpsBlurParameter(Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight()),
         Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight()), blurRadius, 1.f, 1.f);
     auto filter = HpsBlurFilter::GetHpsBlurFilter();
-    filter.ApplyHpsBlur(canvas, image, hpsParam, 1.f);
+    if (!filter.ApplyHpsBlur(canvas, image, hpsParam, 1.f)) {
+        RS_LOGW("RSSurfaceCaptureTaskParallel::AddBlur ApplyHpsBlur failed, using MESA");
+        auto mesaFilter = RSMESABlurShaderFilter(blurRadius);
+        auto mesaContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+        mesaFilter.GenerateGEVisualEffect(mesaContainer);
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        auto outImage = geRender->ApplyImageEffect(canvas, *mesaContainer,
+            {image, Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight()),
+            Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight()), nullptr},
+            Drawing::SamplingOptions());
+        canvas.DrawImage(*outImage, 0, 0, Drawing::SamplingOptions());
+        RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::AddBlur ApplyHpsBlur failed, using MESA");
+    }
 }
 
 #ifdef RS_ENABLE_UNI_RENDER

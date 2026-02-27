@@ -78,6 +78,8 @@
 #include "vma_block_param.h"
 #include "spirv_cache_param_parse.h"
 #include "spirv_cache_param.h"
+#include "buffer_reclaim_param_parse.h"
+#include "buffer_reclaim_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -142,6 +144,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<VMABlockParam>(); }},
     {FEATURE_CONFIGS[SPIRV_CACHE], [] { return std::make_unique<SpirvCacheParamParse>(); },
         [] { return std::make_unique<SpirvCacheParam>(); }},
+    {FEATURE_CONFIGS[BUFFER_RECLAIM], [] { return std::make_unique<BufferReclaimParamParse>(); },
+        [] { return std::make_unique<BufferReclaimParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

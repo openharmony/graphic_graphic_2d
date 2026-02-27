@@ -44,6 +44,14 @@ void RSImageTest::TearDownTestCase() {}
 void RSImageTest::SetUp() {}
 void RSImageTest::TearDown() {}
 
+static void GenRSMarshallingParcelHeader(Parcel& parcel)
+{
+    parcel.WriteInt32(0);
+    RSMarshallingHelper::MarshallingTransactionVer(parcel);
+    const auto headerLen = parcel.GetWritePosition();
+    parcel.SkipBytes(headerLen);
+}
+
 /**
  * @tc.name: IsEqual001
  * @tc.desc:
@@ -529,6 +537,7 @@ HWTEST_F(RSImageTest, RSImageBase001, TestSize.Level1)
 
 #ifdef ROSEN_OHOS
     Parcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
     EXPECT_FALSE(imageBase.Marshalling(parcel));
     EXPECT_EQ(imageBase.Unmarshalling(parcel), nullptr);
 #endif
@@ -549,6 +558,7 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     rsImage->SetPixelMap(pixelMap);
 
     MessageParcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
     EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel, rsImage), true);
     std::shared_ptr<RSImage> newImage;
     EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
@@ -563,6 +573,7 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     canvas.DetachBrush();
 
     MessageParcel parcel2;
+    GenRSMarshallingParcelHeader(parcel2);
     EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel2, rsImage), true);
     std::shared_ptr<RSImage> newImage2;
     EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel2, newImage2), true);
@@ -580,6 +591,57 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(0);
     RSImageCache::Instance().pixelMapCache_.clear();
     RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
+}
+
+/**
+ * @tc.name: RSImageMarshallingTest001
+ * @tc.desc: Verify function Marshalling
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, RSImageMarshallingTest001, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    MessageParcel parcel;
+    EXPECT_TRUE(rsImage->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSImageMarshallingTest002
+ * @tc.desc: Verify function Marshalling
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, RSImageMarshallingTest002, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    auto pixelMap = CreatePixelMap(width, height);
+    EXPECT_TRUE(pixelMap != nullptr);
+    pixelMap->isPropertiesDirty_ = false;
+    rsImage->SetPixelMap(pixelMap);
+    MessageParcel parcel;
+    EXPECT_TRUE(rsImage->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSImageMarshallingTest003
+ * @tc.desc: Verify function Marshalling
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, RSImageMarshallingTest003, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    auto pixelMap = CreatePixelMap(width, height);
+    EXPECT_TRUE(pixelMap != nullptr);
+    pixelMap->MarkPropertiesDirty();
+    rsImage->SetPixelMap(pixelMap);
+    MessageParcel parcel;
+    EXPECT_TRUE(rsImage->Marshalling(parcel));
 }
 
 /**
@@ -726,8 +788,10 @@ HWTEST_F(RSImageTest, addImageMatrixMarshallingTest, TestSize.Level1)
     rsImage->SetFitMatrix(matrix);
 
     MessageParcel parcel;
-    EXPECT_EQ(rsImage->Marshalling(parcel), true);
-    EXPECT_EQ(rsImage->Unmarshalling(parcel), nullptr);
+    GenRSMarshallingParcelHeader(parcel);
+    EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel, rsImage), true);
+    std::shared_ptr<RSImage> newImage;
+    EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
 }
 
 /**
@@ -1338,28 +1402,6 @@ HWTEST_F(RSImageTest, DrawImageRepeatOffScreenTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSImage Marshalling
- * @tc.desc: RSImage Marshalling test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSImageTest, MarshallingTest, TestSize.Level1)
-{
-    auto rsImage = std::make_shared<RSImage>();
-    std::shared_ptr<Media::PixelMap> pixelMap;
-    int width = 200;
-    int height = 300;
-    pixelMap = CreatePixelMap(width, height);
-    
-    rsImage->SetPixelMap(nullptr);
-    MessageParcel parcel1;
-    EXPECT_EQ(rsImage->Marshalling(parcel1), true);
-
-    rsImage->SetPixelMap(pixelMap);
-    MessageParcel parcel2;
-    EXPECT_EQ(rsImage->Marshalling(parcel2), true);
-}
-
-/**
  * @tc.name: CalcRepeatBoundsTest002
  * @tc.desc: Verify function CalcRepeatBounds
  * @tc.type:FUNC
@@ -1417,5 +1459,354 @@ HWTEST_F(RSImageTest, CalcRepeatBoundsTest002, TestSize.Level1)
     EXPECT_EQ(maxX, 2);
     EXPECT_EQ(minY, 0);
     EXPECT_EQ(maxY, 2);
+}
+
+/**
+ * @tc.name: CalcRepeatBounds_ImageRepeatModes
+ * @tc.desc: Verify CalcRepeatBounds with all ImageRepeat modes (NO_REPEAT, REPEAT_X, REPEAT_Y, REPEAT)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBounds_ImageRepeatModes, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->dstRect_ = RectF(10, 10, 50, 50);
+    rsImage->frameRect_ = RectF(0, 0, 200, 200);
+    rsImage->rotateDegree_ = 0;
+
+    // Test NO_REPEAT
+    rsImage->imageRepeat_ = ImageRepeat::NO_REPEAT;
+    int minX = 99, maxX = 99, minY = 99, maxY = 99;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 99);
+    EXPECT_EQ(maxX, 99);
+    EXPECT_EQ(minY, 99);
+    EXPECT_EQ(maxY, 99);
+
+    // Test REPEAT_X
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT_X;
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -1);
+    EXPECT_EQ(maxX, 3);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    // Test REPEAT_Y
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT_Y;
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, -1);
+    EXPECT_EQ(maxY, 3);
+
+    // Test REPEAT (both X and Y)
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT;
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -1);
+    EXPECT_EQ(maxX, 3);
+    EXPECT_EQ(minY, -1);
+    EXPECT_EQ(maxY, 3);
+}
+
+/**
+ * @tc.name: CalcRepeatBounds_PositionScenarios
+ * @tc.desc: Verify CalcRepeatBounds with various position scenarios:
+ *           dstRect inside frameRect, dstRect outside left/top, negative coordinates
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBounds_PositionScenarios, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT;
+    rsImage->rotateDegree_ = 0;
+
+    // Scenario 1: dstRect completely inside frameRect
+    rsImage->dstRect_ = RectF(20, 20, 40, 40);
+    rsImage->frameRect_ = RectF(0, 0, 200, 200);
+    int minX = 0, maxX = 0, minY = 0, maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -1);
+    EXPECT_EQ(maxX, 4);
+    EXPECT_EQ(minY, -1);
+    EXPECT_EQ(maxY, 4);
+
+    // Scenario 2: dstRect starts outside frameRect (left and top)
+    rsImage->dstRect_ = RectF(-50, -50, 40, 40);
+    rsImage->frameRect_ = RectF(0, 0, 200, 200);
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 6);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 6);
+
+    // Scenario 3: Negative coordinates for both
+    rsImage->dstRect_ = RectF(-100, -100, 50, 50);
+    rsImage->frameRect_ = RectF(-50, -50, 100, 100);
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 2);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 2);
+
+    // Scenario 4: frame at positive coords, dst at negative
+    rsImage->dstRect_ = RectF(-50, -50, 30, 30);
+    rsImage->frameRect_ = RectF(0, 0, 100, 100);
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 4);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 4);
+}
+
+/**
+ * @tc.name: CalcRepeatBounds_SizeScenarios
+ * @tc.desc: Verify CalcRepeatBounds with various size scenarios:
+ *           frame smaller than dst, single pixel width, very small dst, large repeat count
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBounds_SizeScenarios, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT;
+    rsImage->rotateDegree_ = 0;
+
+    // Scenario 1: frameRect smaller than dstRect
+    rsImage->dstRect_ = RectF(0, 0, 100, 100);
+    rsImage->frameRect_ = RectF(0, 0, 50, 50);
+    int minX = 0, maxX = 0, minY = 0, maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    // Scenario 2: Single pixel width
+    rsImage->dstRect_ = RectF(0, 0, 1, 50);
+    rsImage->frameRect_ = RectF(0, 0, 200, 200);
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 199);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 3);
+
+    // Scenario 3: Very small dstRect
+    rsImage->dstRect_ = RectF(50, 50, 2, 2);
+    rsImage->frameRect_ = RectF(0, 0, 200, 200);
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -25);
+    EXPECT_EQ(maxX, 74);
+    EXPECT_EQ(minY, -25);
+    EXPECT_EQ(maxY, 74);
+
+    // Scenario 4: Large repeat count
+    rsImage->dstRect_ = RectF(10, 10, 10, 10);
+    rsImage->frameRect_ = RectF(0, 0, 1000, 1000);
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -1);
+    EXPECT_EQ(maxX, 98);
+    EXPECT_EQ(minY, -1);
+    EXPECT_EQ(maxY, 98);
+
+    // Scenario 5: Very small dstRect nearly zero
+    rsImage->dstRect_ = RectF(50, 50, 0.00001, 0.00001);
+    rsImage->frameRect_ = RectF(0, 0, 200, 200);
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -5000000);
+    EXPECT_EQ(maxX, 14999999);
+    EXPECT_EQ(minY, -5000000);
+    EXPECT_EQ(maxY, 14999999);
+}
+
+/**
+ * @tc.name: CalcRepeatBounds_RotationScenarios
+ * @tc.desc: Verify CalcRepeatBounds with rotation: 90°, -90°, combined with REPEAT_X/REPEAT_Y
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBounds_RotationScenarios, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->dstRect_ = RectF(10, 10, 50, 30);
+    rsImage->frameRect_ = RectF(0, 0, 200, 200);
+
+    // Test 90° rotation with REPEAT
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT;
+    rsImage->rotateDegree_ = 90;
+    int minX = 0, maxX = 0, minY = 0, maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -1);
+    EXPECT_EQ(maxX, 3);
+    EXPECT_EQ(minY, -1);
+    EXPECT_EQ(maxY, 6);
+
+    // Test -90° rotation with REPEAT
+    rsImage->rotateDegree_ = -90;
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -1);
+    EXPECT_EQ(maxX, 3);
+    EXPECT_EQ(minY, -1);
+    EXPECT_EQ(maxY, 6);
+
+    // Test 90° rotation with REPEAT_X (becomes REPEAT_Y after swap)
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT_X;
+    rsImage->rotateDegree_ = 90;
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, -1);
+    EXPECT_EQ(maxY, 6);
+
+    // Test 90° rotation with REPEAT_Y (becomes REPEAT_X after swap)
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT_Y;
+    rsImage->rotateDegree_ = 90;
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -1);
+    EXPECT_EQ(maxX, 3);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+}
+
+/**
+ * @tc.name: CalcRepeatBounds_AlignmentScenarios
+ * @tc.desc: Verify CalcRepeatBounds with edge alignment scenarios:
+ *           exact size match, left aligned, right aligned
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBounds_AlignmentScenarios, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT;
+    rsImage->rotateDegree_ = 0;
+
+    // Scenario 1: dstRect exact frameRect size
+    rsImage->dstRect_ = RectF(0, 0, 200, 200);
+    rsImage->frameRect_ = RectF(0, 0, 200, 200);
+    int minX = 0, maxX = 0, minY = 0, maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    // Scenario 2: dstRect left edge aligns with frameRect
+    rsImage->dstRect_ = RectF(0, 50, 40, 40);
+    rsImage->frameRect_ = RectF(0, 0, 200, 200);
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 4);
+    EXPECT_EQ(minY, -2);
+    EXPECT_EQ(maxY, 3);
+
+    // Scenario 3: dstRect right edge aligns with frameRect
+    rsImage->dstRect_ = RectF(160, 50, 40, 40);
+    rsImage->frameRect_ = RectF(0, 0, 200, 200);
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -4);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, -2);
+    EXPECT_EQ(maxY, 3);
+}
+
+/**
+ * @tc.name: CalcRepeatBounds_AspectRatioScenarios
+ * @tc.desc: Verify CalcRepeatBounds with different aspect ratios:
+ *           wide frame narrow dst, tall frame short dst, square both
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBounds_AspectRatioScenarios, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT;
+    rsImage->rotateDegree_ = 0;
+
+    // Scenario 1: Wide frame, narrow dst with REPEAT_X
+    rsImage->dstRect_ = RectF(0, 0, 20, 100);
+    rsImage->frameRect_ = RectF(0, 0, 500, 100);
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT_X;
+    int minX = 0, maxX = 0, minY = 0, maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 24);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    // Scenario 2: Tall frame, short dst with REPEAT_Y
+    rsImage->dstRect_ = RectF(0, 0, 100, 20);
+    rsImage->frameRect_ = RectF(0, 0, 100, 500);
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT_Y;
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 24);
+
+    // Scenario 3: Square image and frame
+    rsImage->dstRect_ = RectF(25, 25, 50, 50);
+    rsImage->frameRect_ = RectF(0, 0, 100, 100);
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT;
+    minX = maxX = minY = maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, -1);
+    EXPECT_EQ(maxX, 1);
+    EXPECT_EQ(minY, -1);
+    EXPECT_EQ(maxY, 1);
+}
+
+/**
+ * @tc.name: CalcRepeatBounds_EdgeCaseOnePixelOverflow
+ * @tc.desc: Verify CalcRepeatBounds when frame is just 1 pixel larger than dst
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBounds_EdgeCaseOnePixelOverflow, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->dstRect_ = RectF(0, 0, 100, 100);
+    rsImage->frameRect_ = RectF(0, 0, 101, 101);
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT;
+    rsImage->rotateDegree_ = 0;
+
+    int minX = 0, maxX = 0, minY = 0, maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 1);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 1);
+}
+
+/**
+ * @tc.name: CalcRepeatBounds_FloatingPointDimensions
+ * @tc.desc: Verify CalcRepeatBounds with non-integer (floating point) dimensions
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBounds_FloatingPointDimensions, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->dstRect_ = RectF(10.5f, 10.5f, 49.7f, 49.7f);
+    rsImage->frameRect_ = RectF(0.3f, 0.3f, 200.8f, 200.8f);
+    rsImage->imageRepeat_ = ImageRepeat::REPEAT;
+    rsImage->rotateDegree_ = 0;
+
+    int minX = 0, maxX = 0, minY = 0, maxY = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+
+    // Verify results are reasonable integers
+    EXPECT_GE(minX, -2);
+    EXPECT_LE(maxX, 5);
+    EXPECT_GE(minY, -2);
+    EXPECT_LE(maxY, 5);
 }
 } // namespace OHOS::Rosen

@@ -139,6 +139,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
+
     drawable->CheckCacheTypeAndDraw(canvas, params);
     params.childHasVisibleFilter_ = true;
     drawable->CheckCacheTypeAndDraw(canvas, params);
@@ -167,11 +168,6 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest001, TestSize.Level1
     params.SetShadowRect({0, 0, 10, 10});
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(drawable->HasFilterOrEffect(params));
-    RSRenderNodeDrawable::isOffScreenWithClipHole_ = true;
-    params.foregroundFilterCache_ = std::make_shared<RSFilter>();
-    drawable->CheckCacheTypeAndDraw(canvas, params);
-    RSRenderNodeDrawable::isOffScreenWithClipHole_ = false;
-    ASSERT_TRUE(params.GetForegroundFilterCache());
 
     drawable->SetCacheType(DrawableCacheType::NONE);
     drawable->CheckCacheTypeAndDraw(canvas, params);
@@ -249,16 +245,15 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(params.ChildHasVisibleFilter());
 
-    drawable->SetCacheType(DrawableCacheType::CONTENT);
-    drawable->isOffScreenWithClipHole_ = true;
-    drawable->CheckCacheTypeAndDraw(canvas, params);
-    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
-    EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), true);
-
-    drawable->SetCanceledByParentRenderGroup(true);
     drawable->isOffScreenWithClipHole_ = false;
     drawable->SetDrawBlurForCache(true);
     params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
+    drawable->CheckCacheTypeAndDraw(canvas, params);
+    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
+
+    drawable->SetCacheType(DrawableCacheType::CONTENT);
+    drawable->isOffScreenWithClipHole_ = false;
+    drawable->SetDrawBlurForCache(false);
     drawable->CheckCacheTypeAndDraw(canvas, params);
     EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
     EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), false);
@@ -516,7 +511,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest002, TestSize.Level
     params.SetHasChildExcludedFromNodeGroup(true);
     EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
 }
 
 /**
@@ -610,8 +605,13 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutNodeGroupCache, TestSize.Level1)
     auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
     drawable->SetDrawBlurForCache(true);
     drawable->curDrawingCacheRoot_ = rootDrawable;
+    drawable->SetCanceledByParentRenderGroup(false);
     drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
-    ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+    EXPECT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+
+    drawable->SetCanceledByParentRenderGroup(true);
+    drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
+    EXPECT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
 }
 
 /**
@@ -985,7 +985,8 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList001, TestSize.Level1)
     auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
     int width = 1024;
     int height = 1920;
-    Drawing::Canvas canvas(width, height);
+    Drawing::Canvas drawingCanvas(width, height);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     CaptureParam params;
     params.isMirror_ = true;
     std::unordered_set<NodeId> whiteList = {nodeId};
@@ -1042,7 +1043,8 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList002, TestSize.Level1)
     auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
     int width = 1024;
     int height = 1920;
-    Drawing::Canvas canvas(width, height);
+    Drawing::Canvas drawingCanvas(width, height);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     CaptureParam params;
     params.isMirror_ = true;
@@ -1090,7 +1092,8 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList003, TestSize.Level2)
     uniParams->SetSecurityDisplay(true);
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
 
-    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    Drawing::Canvas drawingCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
 }
 
@@ -1111,7 +1114,8 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList004, TestSize.Level2)
     // set render thread param
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
 
-    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    Drawing::Canvas drawingCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
 }
 
@@ -1165,6 +1169,74 @@ HWTEST_F(RSRenderNodeDrawableTest, ProcessedNodeCountTest, TestSize.Level1)
     ASSERT_EQ(drawable->GetProcessedNodeCount(), 0);
 }
 
+/**
+ * @tc.name: RemoveDrawableFromCacheWithNullDrawableTest001
+ * @tc.desc: Test RemoveDrawableFromCache when drawable is null (weak_ptr expired)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeDrawableTest, RemoveDrawableFromCacheWithNullDrawableTest001, TestSize.Level1)
+{
+    using DrawableV2::RSRenderNodeDrawableAdapter;
+    // Test Case 1: Remove drawable when cache entry exists but weak_ptr is expired
+    {
+        NodeId nodeId = 100;
+        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+        auto drawable1 = std::static_pointer_cast<RSRenderNodeDrawable>(
+            RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+        ASSERT_NE(drawable1, nullptr);
+        ASSERT_EQ(drawable1->GetId(), nodeId);
+        auto cachedDrawable = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cachedDrawable, drawable1);
+        drawable1.reset();
+        RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(nodeId);
+        auto cachedDrawable2 = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cachedDrawable2, nullptr);
+    }
+    // Test Case 2: Remove drawable when cache entry has valid drawable
+    {
+        NodeId nodeId = 200;
+        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+        auto drawable2 = std::static_pointer_cast<RSRenderNodeDrawable>(
+            RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+        ASSERT_NE(drawable2, nullptr);
+        auto cachedDrawable = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cachedDrawable, drawable2);
+        RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(nodeId);
+        auto cachedDrawable2 = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cachedDrawable2, nullptr);
+    }
+}
+
+/**
+ * @tc.name: RemoveDrawableFromCacheWithNullDrawableTest002
+ * @tc.desc: Test RemoveDrawableFromCache edge cases
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeDrawableTest, RemoveDrawableFromCacheWithNullDrawableTest002, TestSize.Level1)
+{
+    using DrawableV2::RSRenderNodeDrawableAdapter;
+    // Test Case 3: Remove non-existent drawable from cache
+    {
+        NodeId nodeId = 999;
+        RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(nodeId);
+        auto cachedDrawable = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cachedDrawable, nullptr);
+    }
+    // Test Case 4: Multiple removals of the same node
+    {
+        NodeId nodeId = 300;
+        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+        auto drawable3 = std::static_pointer_cast<RSRenderNodeDrawable>(
+            RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+        ASSERT_NE(drawable3, nullptr);
+        RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(nodeId);
+        auto cached1 = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cached1, nullptr);
+        RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(nodeId);
+        auto cached2 = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        ASSERT_EQ(cached2, nullptr);
+    }
+}
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 /**

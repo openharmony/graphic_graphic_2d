@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 
+#include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_service/core/transaction/rs_client_to_render_connection.h"
@@ -156,7 +157,6 @@ HWTEST_F(RSRenderServiceConnectionTest, CleanBrightnessInfoChangeCallbacksTest, 
         delete mainThread;
     }
 }
-#endif
 
 /**
  * @tc.name: GetBrightnessInfoTest
@@ -190,6 +190,7 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBrightnessInfoTest, TestSize.Level1)
         delete mainThread;
     }
 }
+#endif
 
 /**
  * @tc.name: UpdateAnimationOcclusionStatus001
@@ -202,6 +203,7 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
     RSMainThread* mainThread = new RSMainThread();
     ASSERT_NE(mainThread, nullptr);
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    bool& isAnimationOcclusion = RSUniDirtyOcclusionUtil::GetIsAnimationOcclusionRef().first;
 
     // case 1: mainThread null
     {
@@ -209,7 +211,7 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
             0, nullptr, nullptr, CreateOrGetScreenManager(), token->AsObject(), nullptr);
         string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
         connection->UpdateAnimationOcclusionStatus(sceneId, true);
-        ASSERT_EQ(mainThread->GetIsAnimationOcclusion(), false);
+        ASSERT_EQ(isAnimationOcclusion, false);
     }
 
     // case 2: mainThread not null
@@ -221,9 +223,9 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
         string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
         connection->UpdateAnimationOcclusionStatus(sceneId, false);
         sleep(1);
-        ASSERT_EQ(mainThread->GetIsAnimationOcclusion(), false);
-        delete mainThread;
+        ASSERT_EQ(isAnimationOcclusion, false);
     }
+    delete mainThread;
 }
 
 /**
@@ -234,6 +236,7 @@ HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestS
  */
 HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceSystemWatermarkTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     constexpr uint32_t defaultScreenWidth = 400;
     constexpr uint32_t defaultScreenHight = 320;
     auto mainThread = RSMainThread::Instance();
@@ -305,6 +308,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceSystemWatermarkTest001, TestSi
     mainThread->context_->nodeMap.UnregisterRenderNode(surfaceNodeId);
     mainThread->surfaceWatermarkHelper_.ClearSurfaceWatermark(pid, watermarkName, mainThread->GetContext(), true);
     EXPECT_EQ(mainThread->surfaceWatermarkHelper_.surfaceWatermarks_.size(), 0);
+#endif
 }
 
 /**

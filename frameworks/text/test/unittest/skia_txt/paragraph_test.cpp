@@ -861,4 +861,105 @@ HWTEST_F(ParagraphTest, ParagraphTestTextEffect001, TestSize.Level0)
     paragraphImpl->SetSkipTextBlobDrawing(true);
     EXPECT_TRUE(paragraphImpl->HasSkipTextBlobDrawing());
 }
+
+/*
+ * @tc.name: ParagraphTestCharacterIndexNullParaUtf8001
+ * @tc.desc: test for GetCharacterPositionAtCoordinate with null paragraph_ and UTF8 encoding
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestCharacterIndexNullParaUtf8001, TestSize.Level0)
+{
+    OHOS::Rosen::SPText::ParagraphImpl* paragraphImpl = GetParagraphImpl(paragraph_);
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    std::unique_ptr<skt::Paragraph> originalPara = nullptr;
+    paragraphImpl->paragraph_.swap(originalPara);
+
+    auto result = paragraphImpl->GetCharacterPositionAtCoordinate(50.0, 10.0, SPText::TextEncoding::UTF8);
+    EXPECT_EQ(result.position, 0);
+
+    paragraphImpl->paragraph_.swap(originalPara);
+}
+
+/*
+ * @tc.name: ParagraphTestCharRangeForGlyphNullParaWithActualRange001
+ * @tc.desc: test for GetCharacterRangeForGlyphRange with null paragraph_ and valid actualRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestCharRangeForGlyphNullParaWithActualRange001, TestSize.Level0)
+{
+    OHOS::Rosen::SPText::ParagraphImpl* paragraphImpl = GetParagraphImpl(paragraph_);
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    std::unique_ptr<skt::Paragraph> originalPara = nullptr;
+    paragraphImpl->paragraph_.swap(originalPara);
+
+    SPText::Range<size_t> actualRange;
+    auto result = paragraphImpl->GetCharacterRangeForGlyphRange(0, 5, &actualRange, SPText::TextEncoding::UTF8);
+    EXPECT_EQ(result.start, 0);
+    EXPECT_EQ(result.end, 0);
+
+    paragraphImpl->paragraph_.swap(originalPara);
+}
+
+/*
+ * @tc.name: ParagraphTestCharRangeForGlyphNullParaWithNullActualRange001
+ * @tc.desc: test for GetCharacterRangeForGlyphRange with null paragraph_ and nullptr actualRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestCharRangeForGlyphNullParaWithNullActualRange001, TestSize.Level0)
+{
+    OHOS::Rosen::SPText::ParagraphImpl* paragraphImpl = GetParagraphImpl(paragraph_);
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    std::unique_ptr<skt::Paragraph> originalPara = nullptr;
+    paragraphImpl->paragraph_.swap(originalPara);
+
+    auto result = paragraphImpl->GetCharacterRangeForGlyphRange(0, 5, nullptr, SPText::TextEncoding::UTF8);
+    EXPECT_EQ(result.start, 0);
+    EXPECT_EQ(result.end, 0);
+
+    paragraphImpl->paragraph_.swap(originalPara);
+}
+
+/*
+ * @tc.name: ParagraphTestGlyphRangeForCharNullParaWithActualRange001
+ * @tc.desc: test for GetGlyphRangeForCharacterRange with null paragraph_ and valid actualRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestGlyphRangeForCharNullParaWithActualRange001, TestSize.Level0)
+{
+    OHOS::Rosen::SPText::ParagraphImpl* paragraphImpl = GetParagraphImpl(paragraph_);
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    std::unique_ptr<skt::Paragraph> originalPara = nullptr;
+    paragraphImpl->paragraph_.swap(originalPara);
+
+    SPText::Range<size_t> actualRange;
+    auto result = paragraphImpl->GetGlyphRangeForCharacterRange(0, 5, &actualRange, SPText::TextEncoding::UTF8);
+    EXPECT_EQ(result.start, 0);
+    EXPECT_EQ(result.end, 0);
+
+    paragraphImpl->paragraph_.swap(originalPara);
+}
+
+/*
+ * @tc.name: ParagraphTestGlyphRangeForCharNullParaWithNullActualRange001
+ * @tc.desc: test for GetGlyphRangeForCharacterRange with null paragraph_ and nullptr actualRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestGlyphRangeForCharNullParaWithNullActualRange001, TestSize.Level0)
+{
+    OHOS::Rosen::SPText::ParagraphImpl* paragraphImpl = GetParagraphImpl(paragraph_);
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    std::unique_ptr<skt::Paragraph> originalPara = nullptr;
+    paragraphImpl->paragraph_.swap(originalPara);
+
+    auto result = paragraphImpl->GetGlyphRangeForCharacterRange(0, 5, nullptr, SPText::TextEncoding::UTF8);
+    EXPECT_EQ(result.start, 0);
+    EXPECT_EQ(result.end, 0);
+
+    paragraphImpl->paragraph_.swap(originalPara);
+}
 } // namespace txt

@@ -39,38 +39,7 @@ void RSUIContextTest::TearDownTestCase() {}
 void RSUIContextTest::SetUp() {}
 void RSUIContextTest::TearDown() {}
 
-/**
- * @tc.name: AnimationCallbackTest
- * @tc.desc: Test the cases of different envent for AnimationCallback
- * @tc.type:FUNC
- *
- */
-HWTEST_F(RSUIContextTest, AnimationCallbackTest, TestSize.Level1)
-{
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
-    AnimationId animationId = 1;
-    AnimationCallbackEvent event = AnimationCallbackEvent::FINISHED;
-    bool res = uiContext->AnimationCallback(animationId, event);
-    EXPECT_FALSE(res);
-
-    auto animation = std::make_shared<RSAnimation>();
-    uiContext->animations_.insert({ animationId, animation });
-    res = uiContext->AnimationCallback(animationId, event);
-    EXPECT_TRUE(res);
-
-    event = AnimationCallbackEvent::REPEAT_FINISHED;
-    res = uiContext->AnimationCallback(animationId, event);
-    EXPECT_TRUE(res);
-
-    event = AnimationCallbackEvent::LOGICALLY_FINISHED;
-    res = uiContext->AnimationCallback(animationId, event);
-    EXPECT_TRUE(res);
-
-    event = static_cast<AnimationCallbackEvent>(10000);
-    res = uiContext->AnimationCallback(animationId, event);
-    EXPECT_FALSE(res);
-}
-
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: PostDelayTaskTest001
  * @tc.desc: Test the case where the task runner is empty
@@ -109,7 +78,9 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
     uiContext2->rsTransactionHandler_ = nullptr;
     uiContext2->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
 }
+#endif
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: SetRequestVsyncCallback
  * @tc.desc:
@@ -142,6 +113,7 @@ HWTEST_F(RSUIContextTest, RequestVsyncCallback, TestSize.Level1)
     EXPECT_NE(uiContext->requestVsyncCallback_, nullptr);
     uiContext->RequestVsyncCallback();
 }
+#endif
 
 /**
  * @tc.name: DumpNodeTreeProcessorTest001

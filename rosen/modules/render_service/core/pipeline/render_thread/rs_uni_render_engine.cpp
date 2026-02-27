@@ -121,7 +121,11 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         DrawLayerPreProcess(canvas, layer, composerScreenInfo);
         // prepare BufferDrawParam
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
-        params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(), composerScreenInfo.GetRogHeightRatio());
+        // if rotation fixed or use hpae offline, no further scaling will be performed
+        bool rotationFixed = layer->GetRotationFixed() || layer->GetUseDeviceOffline();
+        if (!rotationFixed) {
+            params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(), composerScreenInfo.GetRogHeightRatio());
+        }
         params.screenId = composerScreenInfo.id;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         params.targetColorGamut = colorGamut;

@@ -83,6 +83,8 @@ public:
 
     float DetectIndents(size_t index) override;
 
+    bool isRunCombinated() { return paragraph_->isRunCombinated(); }
+
     void Layout(double width) override;
 
     void Paint(SkCanvas* canvas, double x, double y) override;
@@ -97,6 +99,15 @@ public:
     std::vector<TextBox> GetRectsForPlaceholders() override;
 
     PositionWithAffinity GetGlyphPositionAtCoordinate(double dx, double dy) override;
+
+    PositionWithAffinity GetCharacterPositionAtCoordinate(double dx, double dy,
+        TextEncoding encoding) const override;
+
+    Range<size_t> GetCharacterRangeForGlyphRange(size_t glyphStart, size_t glyphEnd,
+        Range<size_t>* actualGlyphRange, TextEncoding encoding) const override;
+
+    Range<size_t> GetGlyphRangeForCharacterRange(size_t charStart, size_t charEnd,
+        Range<size_t>* actualCharRange, TextEncoding encoding) const override;
 
     Range<size_t> GetWordBoundary(size_t offset) override;
 
@@ -135,8 +146,7 @@ public:
     std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const override;
     std::unique_ptr<Paragraph> CloneSelf() override;
     TextStyle SkStyleToTextStyle(const skt::TextStyle& skStyle) override;
-    void UpdateColor(size_t from, size_t to, const RSColor& color,
-        skia::textlayout::UtfEncodeType encodeType) override;
+    void UpdateColor(size_t from, size_t to, const RSColor& color, skia::textlayout::UtfEncodeType encodeType) override;
     Drawing::RectI GeneratePaintRegion(double x, double y) override;
     void UpdateForegroundBrush(const TextStyle& spTextStyle) override;
 
@@ -155,11 +165,11 @@ public:
 
     void SetSkipTextBlobDrawing(bool state) override;
 
-    bool isRunCombinated() { return paragraph_->isRunCombinated(); }
-
     bool CanPaintAllText() const override;
 
     std::string GetDumpInfo() const override;
+
+    TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) override;
 
 #ifdef ENABLE_OHOS_ENHANCE
     /**
@@ -202,6 +212,8 @@ private:
 
     void UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
         skt::InternalState& state, size_t index);
+
+    void BuildFitStrRange(std::vector<TextRange>& fitRanges);
 
     std::unique_ptr<skt::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;

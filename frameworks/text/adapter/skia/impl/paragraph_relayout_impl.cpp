@@ -452,7 +452,9 @@ namespace {
 
         [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextRange textRange = skiaBlock.fRange;
-            paragraph.UpdateColor(textRange.start, textRange.end, spTextStyle.color, skt::UtfEncodeType::kUtf16);
+            Drawing::Color rsColor(spTextStyle.color);
+            rsColor.SetPlaceholder(static_cast<ColorPlaceholder>(spTextStyle.colorPlaceholder));
+            paragraph.UpdateColor(textRange.start, textRange.end, rsColor, skt::UtfEncodeType::kUtf16);
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
@@ -480,6 +482,12 @@ namespace {
             std::ignore = skiaBlock;
             std::ignore = state;
             paragraph.UpdateForegroundBrush(spTextStyle);
+        },
+
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+            skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
+            skiaTextStyle.setFontEdging(spTextStyle.fontEdging);
+            state = std::min(skt::InternalState::kIndexed, state);
         },
     };
 

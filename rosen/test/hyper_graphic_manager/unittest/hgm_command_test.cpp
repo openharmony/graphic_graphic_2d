@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include <limits>
 #include <test_header.h>
 
@@ -25,8 +26,38 @@
 using namespace testing;
 using namespace testing::ext;
 
+#ifdef __cplusplus
+#if __cplusplus
+extern "C" {
+#endif
+#endif // __cplusplus
+ 
+#define MAX_CFG_POLICY_DIRS_CNT 32
+#define MAX_PATH_LEN    256  // max length of a filepath
+ 
+char* GetOneCfgFile(const char* pathSuffix, char* buf, unsigned int bufLength);
+ 
+#ifdef __cplusplus
+#if __cplusplus
+}
+#endif
+#endif // __cplusplus
+
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
+std::string g_mockStr = {CONFIG_FILE_PRODUCT};
+}
+ 
+extern "C" char* GetOneCfgFile(const char* pathSuffix, char* buf, unsigned int bufLength)
+{
+    if (!g_mockStr.size()) {
+        return nullptr;
+    }
+    return const_cast<char*>(g_mockStr.c_str());
+}
+
 class HgmCommandTest : public HgmTestBase {
 public:
     static void SetUpTestCase()
@@ -427,6 +458,27 @@ HWTEST_F(HgmCommandTest, SettingModeId2XmlModeId, Function | SmallTest | Level0)
         auto ret = visitor_->SettingModeId2XmlModeId(p.first);
         EXPECT_EQ(ret, p.second);
     }
+}
+
+/**
+ * @tc.name: InitXmlConfig
+ * @tc.desc: Verify the result of InitXmlConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, InitXmlConfig, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    g_mockStr = "";
+    EXPECT_EQ(hgmCore.InitXmlConfig(), EXEC_SUCCESS);
+
+    g_mockStr = "/sys_prod/variant/hw_oem/AAA-72/etc/graphic/hgm_policy_config.xml";
+    EXPECT_EQ(hgmCore.InitXmlConfig(), EXEC_SUCCESS);
+
+    g_mockStr = "/chip_prod/etc/graphic/hgm_policy_config.xml";
+    EXPECT_EQ(hgmCore.InitXmlConfig(), EXEC_SUCCESS);
+
+    g_mockStr = CONFIG_FILE_PRODUCT;
 }
 } // namespace Rosen
 } // namespace OHOS

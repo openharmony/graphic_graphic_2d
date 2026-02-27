@@ -51,6 +51,8 @@ public:
     const std::shared_ptr<RSRenderNode> GetAnimationFallbackNode() const;
 
 
+    std::string GetSelfDrawSurfaceNameByPidAndUniqueId(pid_t nodePid, uint64_t uniqueId);
+
     bool ContainPid(pid_t pid) const;
     // On remote died, the instance root node will be directly removed from the tree,
     // and the remaining subtree will be released in batches (this feature is enabled by default).

@@ -100,7 +100,7 @@ RSScreen::RSScreen(ScreenId id)
     capability_.props.clear();
 }
 
-RSScreen::RSScreen(const VirtualScreenConfigs &configs)
+RSScreen::RSScreen(const VirtualScreenConfigs& configs)
 {
     property_.SetIsVirtual(true);
     property_.SetId(configs.id);
@@ -218,7 +218,7 @@ void RSScreen::PhysicalScreenInit() noexcept
     property_.SetSupportedColorGamuts(supportedPhysicalColorGamuts_);
     backlightLevel_ = GetScreenBacklight();
 
-    if (id != 0 && MultiScreenParam::IsSkipFrameByActiveRefreshRate()) {
+    if (property_.GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL) {
         property_.SetSkipFrameOption(
             DEFAULT_SKIP_FRAME_INTERVAL, INVALID_EXPECTED_REFRESH_RATE, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
     }
@@ -453,13 +453,13 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     }
 
     if ((width == 0 || height == 0) ||
-        (width == property_.GetWidth() && height == property_.GetHeight()) ||
-        (width > property_.GetPhyWidth() || height > property_.GetPhyHeight())) {
+        (width == property_.GetWidth() && height == property_.GetHeight())) {
         RS_LOGD("%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
         return;
     }
 
-    if (hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
+    if (width < property_.GetPhyWidth() && height < property_.GetPhyHeight() &&
+        hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
         RS_LOGE("%{public}s: hdi set screen rog resolution failed.", __func__);
         return;
     }
@@ -576,7 +576,7 @@ std::optional<GraphicDisplayModeInfo> RSScreen::GetActiveMode() const
     }
 
     auto iter = std::find_if(supportedModes_.cbegin(), supportedModes_.cend(),
-        [modeId](const auto &mode) { return static_cast<uint32_t>(mode.id) == modeId; });
+        [modeId](const auto& mode) { return static_cast<uint32_t>(mode.id) == modeId; });
     if (iter == supportedModes_.cend()) {
         return {};
     }
@@ -963,7 +963,7 @@ int32_t RSScreen::GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKe
     return StatusCode::SUCCESS;
 }
 
-int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
+int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut& mode) const
 {
     if (IsVirtual()) {
         mode = supportedVirtualColorGamuts_[currentVirtualColorGamutIdx_];
@@ -1032,7 +1032,7 @@ int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
     return StatusCode::HDI_ERROR;
 }
 
-int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
+int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap& mode) const
 {
     if (IsVirtual()) {
         mode = property_.GetScreenGamutMap();

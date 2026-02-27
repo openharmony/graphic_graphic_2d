@@ -593,7 +593,7 @@ ErrCode RSRenderPipelineAgent::TakeSurfaceCaptureWithAllWindows(NodeId id,
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::FreezeScreen(NodeId id, bool isFreeze)
+ErrCode RSRenderPipelineAgent::FreezeScreen(NodeId id, bool isFreeze, bool needSync)
 {
     if (rsRenderPipeline_ == nullptr) {
         return ERR_INVALID_VALUE;
@@ -628,7 +628,11 @@ ErrCode RSRenderPipelineAgent::FreezeScreen(NodeId id, bool isFreeze)
         renderPipeline->GetMainThread()->PostTask(unfreezeScreenTask, taskName, MAX_FREEZE_SCREEN_TIME,
             AppExecFwk::EventQueue::Priority::IMMEDIATE);
     };
-    rsRenderPipeline_->PostMainThreadTask(setScreenFreezeTask);
+    if (needSync) {
+        rsRenderPipeline_->PostMainThreadSyncTask(setScreenFreezeTask);
+    } else {
+        rsRenderPipeline_->PostMainThreadTask(setScreenFreezeTask);
+    }
     return ERR_OK;
 }
 
@@ -1836,8 +1840,16 @@ void RSRenderPipelineAgent::OnScreenBacklightChanged(ScreenId screenId, uint32_t
         });
         return;
     }
-    if (rsRenderPipeline_->GetUniRenderThread() != nullptr) {
+    if (RSUniREnderJudgement::IsUniRender()) {
         rsRenderPipeline_->GetComposerClientManager()->SetScreenBacklight(screenId, level);
+    } else {
+        auto composerClient = rsRenderPipeline_->GetComposerClientManager()->GetComposerClient(screenId);
+        if (composerClient) {
+            auto output = composerClient->GetOutput();
+            if (output) {
+                output->SetScreenBacklight(level);
+            }
+        }
     }
 }
 

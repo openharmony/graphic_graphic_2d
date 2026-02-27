@@ -55,6 +55,8 @@ namespace OHOS {
 namespace Rosen {
 namespace DrawableV2 {
 class RSChildrenDrawable;
+class RSColorPickerDrawable;
+class RSFilterDrawable;
 class RSRenderNodeDrawableAdapter;
 class RSRenderNodeShadowDrawable;
 }
@@ -63,7 +65,6 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 class RSLayer;
-class RSCanvasDrawingRenderNode;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -76,9 +77,9 @@ enum class RSModifierType : uint16_t;
 struct SharedTransitionParam;
 
 struct CurFrameInfoDetail {
-    uint32_t curFramePrepareSeqNum = 0;
-    uint32_t curFramePostPrepareSeqNum = 0;
-    uint64_t curFrameVsyncId = 0;
+    uint16_t curFramePrepareSeqNum = 0;
+    uint16_t curFramePostPrepareSeqNum = 0;
+    uint32_t curFrameVsyncId = 0;
     bool curFrameSubTreeSkipped = false;
     bool curFrameReverseChildren = false;
 };
@@ -1066,6 +1067,11 @@ public:
     {
         rsLayersPerScreen_[screenId] = layer;
     }
+
+    std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
+    // returns true if color picker will execute this frame
+    bool PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode);
+
 protected:
     void ResetDirtyStatus();
 
@@ -1084,11 +1090,12 @@ protected:
 
     static void DumpNodeType(RSRenderNodeType nodeType, std::string& out);
 
-    virtual void DumpSubClassNode(std::string& out) const;
+    void DumpSubClassNode(std::string& out) const;
     void DumpDrawCmdModifiers(std::string& out) const;
     void DumpModifiers(std::string& out) const;
 
     virtual void OnTreeStateChanged();
+    void HandleNodeRemovedFromTree();
     void AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent);
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
@@ -1374,7 +1381,6 @@ private:
     void SetParent(WeakPtr parent);
     void ResetParent();
     void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
-    bool IsUifirstArkTsCardNode();
     virtual void OnResetParent() {}
 
     void GenerateFullChildrenList();

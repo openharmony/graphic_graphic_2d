@@ -16,6 +16,7 @@
 #include "ani_enum.h"
 
 #include "font_parser.h"
+#include "text/font_types.h"
 #include "text_global_config.h"
 #include "typography_create.h"
 #include "typography_types.h"
@@ -180,6 +181,12 @@ const std::vector<uint32_t> AniTextEnum::textVerticalAlign = {
 const std::vector<uint32_t> AniTextEnum::lineHeightStyle = {
     static_cast<uint32_t>(LineHeightStyle::kFontSize),
     static_cast<uint32_t>(LineHeightStyle::kFontHeight),
+};
+
+const std::vector<uint32_t> AniTextEnum::fontEdging = {
+    static_cast<uint32_t>(Drawing::FontEdging::ALIAS),
+    static_cast<uint32_t>(Drawing::FontEdging::ANTI_ALIAS),
+    static_cast<uint32_t>(Drawing::FontEdging::SUBPIXEL_ANTI_ALIAS),
 };
 
 std::optional<size_t> aniGetEnumIndex(const std::vector<uint32_t>& enumValues, uint32_t enumValue)

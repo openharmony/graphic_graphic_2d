@@ -22,6 +22,7 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_color_picker_drawable_test.cpp",
     "rs_drawable_test.cpp",
     "rs_misc_drawable_test.cpp",
     "rs_point_light_drawable_test.cpp",

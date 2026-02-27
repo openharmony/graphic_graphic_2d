@@ -80,6 +80,8 @@ public:
 protected:
     void DumpSubDrawableTree(std::string& out) const override;
 
+    void ClearCustomResource() override;
+
 private:
     explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_DRAWING_NODE, OnGenerate>;
@@ -92,8 +94,15 @@ private:
     bool GpuContextResetVK(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
     Drawing::TextureOrigin GetTextureOrigin();
     void DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds);
+    void ResetResource();
+    bool CreateCpuSurface(const Drawing::ImageInfo& imageInfo);
 #ifdef RS_ENABLE_VK
-    bool ReleaseSurfaceVK(int width, int height);
+    bool ReleaseSurfaceVK(int width, int height, bool& isDmaBackendTexture);
+
+    void CreateGpuSurface(const Drawing::ImageInfo& imageInfo, const std::shared_ptr<Drawing::GPUContext>& gpuContext,
+        bool& newVulkanCleanupHelper, bool needReleaseSurface);
+
+    bool CheckBackendTexture(bool needCreateFromGpu, int width, int height, pid_t pid);
 
 #ifdef ROSEN_OHOS
     bool CreateDmaBackendTexture(pid_t pid, int width, int height);

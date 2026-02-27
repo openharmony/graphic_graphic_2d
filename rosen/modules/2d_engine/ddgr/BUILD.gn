@@ -35,7 +35,9 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
     ldflags = ddgr_link_config_set.ldflags
     deps = [ ":ddgr_compiler_src_set" ]
     external_deps = ddgr_compiler_src_set.public_external_deps
-
+    if (current_os == "ohos") {
+      version_script = ddgr_compiler_src_set.version_script
+    }
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }

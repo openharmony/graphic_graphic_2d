@@ -142,7 +142,8 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
         shadows == rhs.shadows &&
         fontFeatures == rhs.fontFeatures &&
         fontVariations == rhs.fontVariations &&
-        badgeType == rhs.badgeType;
+        badgeType == rhs.badgeType &&
+        fontEdging == rhs.fontEdging;
 }
 
 bool TextStyle::EqualByFonts(const TextStyle &rhs) const
@@ -152,6 +153,7 @@ bool TextStyle::EqualByFonts(const TextStyle &rhs) const
         fontFamilies == rhs.fontFamilies &&
         fontFeatures == rhs.fontFeatures &&
         fontVariations == rhs.fontVariations &&
+        fontEdging == rhs.fontEdging &&
         Drawing::IsScalarAlmostEqual(letterSpacing, rhs.letterSpacing) &&
         Drawing::IsScalarAlmostEqual(wordSpacing, rhs.wordSpacing) &&
         Drawing::IsScalarAlmostEqual(heightScale, rhs.heightScale) &&
@@ -192,6 +194,7 @@ bool TextStyle::MatchOneAttribute(StyleType styleType, const TextStyle &rhs) con
             return fontStyle == rhs.fontStyle &&
                 locale == rhs.locale &&
                 fontFamilies == rhs.fontFamilies &&
+                fontEdging == rhs.fontEdging &&
                 Drawing::IsScalarAlmostEqual(fontSize, rhs.fontSize) &&
                 Drawing::IsScalarAlmostEqual(heightScale, rhs.heightScale) &&
                 halfLeading == rhs.halfLeading &&

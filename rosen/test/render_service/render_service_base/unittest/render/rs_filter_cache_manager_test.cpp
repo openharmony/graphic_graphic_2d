@@ -1127,8 +1127,10 @@ HWTEST_F(RSFilterCacheManagerTest, DrawCachedFilteredSnapShotTest002, TestSize.L
     manager->isHpaeCachedFilteredSnapshot_ = true;
     Drawing::RectI detRect;
     manager->DrawCachedFilteredSnapshot(canvas, detRect, filter);
-    EXPECT_TRUE(manager->cachedFilteredSnapshot_ != nullptr);
-    EXPECT_TRUE(manager->cachedFilteredSnapshot_->cachedImage_ != nullptr);
+    EXPECT_TRUE(manager->cachedFilteredSnapshot_ == nullptr);
+
+    manager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    manager->cachedFilteredSnapshot_->cachedImage_ = std::make_shared<Drawing::Image>();
 
     canvas.visibleRect_.right_ = 10;
     canvas.visibleRect_.bottom_ = 10;
@@ -1216,7 +1218,7 @@ HWTEST_F(RSFilterCacheManagerTest, ResetFilterCacheTest, TestSize.Level1)
     ASSERT_NE(cachedFilteredSnapshot, nullptr);
     rsFilterCacheManager->ResetFilterCache(cachedSnapshot, cachedFilteredSnapshot, region, true);
 
-    cachedFilteredSnapshot->cachedImage_ = std::shared_ptr<Drawing::Image>();
+    cachedFilteredSnapshot->cachedImage_ = std::make_shared<Drawing::Image>();
     ASSERT_NE(cachedFilteredSnapshot->cachedImage_, nullptr);
     rsFilterCacheManager->ResetFilterCache(cachedSnapshot, cachedFilteredSnapshot, region, true);
 }

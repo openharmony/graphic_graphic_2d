@@ -42,7 +42,11 @@ HWTEST_F(EglWrapperLayerTest, Init001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
     auto result = EglWrapperLayer::GetInstance().Init(&dispatchTable);
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
     EXPECT_TRUE(result);
+#else
+    EXPECT_FALSE(result);
+#endif
 }
 
 /**
@@ -97,7 +101,11 @@ HWTEST_F(EglWrapperLayerTest, LoadLayers001, Level1)
     EglWrapperDispatchTable dispatchTable;
 
     bool result = EglWrapperLayer::GetInstance().LoadLayers();
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
     ASSERT_TRUE(result);
+#else
+    ASSERT_FALSE(result);
+#endif
 }
 
 /**

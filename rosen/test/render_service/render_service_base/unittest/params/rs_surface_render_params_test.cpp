@@ -550,6 +550,30 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsRelated
+ * @tc.desc: Test function IsRelated
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, IsRelated, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(118);
+    auto result = params.IsRelated();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsRelatedSourceNode
+ * @tc.desc: Test function IsRelatedSourceNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, IsRelatedSourceNode, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(118);
+    auto result = params.IsRelatedSourceNode();
+    EXPECT_FALSE(result);
+}
+
+/**
  * @tc.name: SetAppRotationCorrectionTest
  * @tc.desc: SetAppRotationCorrection and GetAppRotationCorrection
  * @tc.type: FUNC
@@ -573,5 +597,23 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetRotationCorrectionDegreeTest, TestSize.Le
     params.SetRotationCorrectionDegree(270);
     EXPECT_EQ(params.GetRotationCorrectionDegree(), 270);
     params.SetRotationCorrectionDegree(270);
+}
+
+/**
+ * @tc.name: SetUifirstStartingWindowId
+ * @tc.desc: Test set uifirst starting window id
+ * @tc.type:FUNC
+ * @tc.require: issue21674
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetUifirstStartingWindowId, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    NodeId startingWindowId = 100;
+    params.SetUifirstStartingWindowId(startingWindowId);
+    EXPECT_EQ(params.GetUifirstStartingWindowId(), startingWindowId);
+
+    // Test setting multiple times
+    params.SetUifirstStartingWindowId(startingWindowId);
+    EXPECT_EQ(params.GetUifirstStartingWindowId(), startingWindowId);
 }
 } // namespace OHOS::Rosen

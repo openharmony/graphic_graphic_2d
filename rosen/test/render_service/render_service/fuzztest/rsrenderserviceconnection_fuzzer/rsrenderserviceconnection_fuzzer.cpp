@@ -1513,7 +1513,8 @@ bool DoFreezeScreen()
     }
     NodeId nodeId = GetData<NodeId>();
     bool isFreeze = GetData<bool>();
-    rsToRenderConn_->FreezeScreen(nodeId, isFreeze);
+    bool needSync = GetData<bool>();
+    rsToRenderConn_->FreezeScreen(nodeId, isFreeze, needSync);
     return true;
 }
 

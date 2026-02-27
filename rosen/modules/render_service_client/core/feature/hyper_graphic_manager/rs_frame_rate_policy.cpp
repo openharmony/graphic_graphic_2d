@@ -59,13 +59,12 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
     }
 
     pageNameList_ = configData->GetPageNameList();
+    auto data = configData->GetConfigData();
+    if (data.empty()) {
+        return;
+    }
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        appBufferList_ = configData->GetAppBufferList();
-        auto data = configData->GetConfigData();
-        if (data.empty()) {
-            return;
-        }
         ppi_ = configData->GetPpi();
         xDpi_ = configData->GetXDpi();
         yDpi_ = configData->GetYDpi();

@@ -32,6 +32,7 @@
 #include "common/rs_optional_trace.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
+#include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -1373,6 +1374,11 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", colorSpace: " + std::to_string(surfaceNode->GetColorSpace());
         out += ", uifirstColorGamut: " + std::to_string(surfaceNode->GetFirstLevelNodeColorGamut());
         out += ", isSurfaceBufferOpaque: " + std::to_string(surfaceNode->GetSurfaceBufferOpaque());
+        if (surfaceNode->IsCloneNode()) {
+            out += ", isCloneNode: " + std::to_string(surfaceNode->IsCloneNode());
+            out += ", isRelated: " + std::to_string(surfaceNode->IsRelated());
+            out += ", sourceNodeId: " + std::to_string(surfaceNode->GetClonedNodeId());
+        }
     } else if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
         out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
@@ -1387,6 +1393,10 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
     } else if (GetType() == RSRenderNodeType::WINDOW_KEYFRAME_NODE) {
         auto wndKeyframeNode = static_cast<const RSWindowKeyFrameRenderNode*>(this);
         out += ", linkedNodeId: " + std::to_string(wndKeyframeNode->GetLinkedNodeId());
+    } else if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto canvasDrawingNode = static_cast<const RSCanvasDrawingRenderNode*>(this);
+        out += ", lastResetSurfaceTime: " + std::to_string(canvasDrawingNode->lastResetSurfaceTime_);
+        out += ", opCountAfterReset: " + std::to_string(canvasDrawingNode->opCountAfterReset_);
     }
 }
 
@@ -1548,7 +1558,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%lu] filterInGlobal_[%d]",
             GetId(), filterInGlobal);
     }
-    // if clean without filter skip subtree
+    // if clean without filter / colorPicker skip subtree
     return ChildHasVisibleFilter() ? filterInGlobal : false;
 }
 
@@ -2032,7 +2042,6 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     __builtin_prefetch(&(properties.frameGeo_), 0, 2);
 #endif
     // 1. update self drawrect if dirty
-    UpdateFilterRectInfo();
     bool selfDrawRectChanged = IsDirty() ? UpdateSelfDrawRect() : false;
     if (selfDrawRectChanged) {
         UpdateChildrenOutOfRectFlag(!childrenRect_.ConvertTo<float>().IsInsideOf(selfDrawRect_));
@@ -2687,6 +2696,31 @@ bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
     return true;
 }
 #endif
+
+std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerDrawable() const
+{
+    if (auto& drawable = GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)]) {
+        return std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(drawable);
+    }
+    return nullptr;
+}
+
+bool RSRenderNode::PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode)
+{
+    auto colorPickerDrawable = GetColorPickerDrawable();
+    if (!colorPickerDrawable) {
+        return false;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "ColorPicker: Preparing in filter iteration node id:%" PRIu64, GetId());
+
+    const auto [needColorPick, needSync] = colorPickerDrawable->PrepareForExecution(vsyncTime, darkMode);
+    if (needSync) {
+        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COLOR_PICKER);
+    }
+    return needColorPick;
+}
+
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -3237,6 +3271,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     UpdateDrawableVecV2();
 
     UpdateFilterCacheWithBackgroundDirty();
+    UpdateFilterRectInfo();
 
     // update state
     dirtyTypesNG_.reset();
@@ -3835,14 +3870,7 @@ void RSRenderNode::OnTreeStateChanged()
     }
     // Clear fullChildrenList_ and RSChildrenDrawable of the parent node; otherwise, it may cause a memory leak.
     if (!isOnTheTree_) {
-        isFullChildrenListValid_ = false;
-        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
-        assignOrEraseOnAccess(GetDrawableVec(__func__),
-            static_cast<int8_t>(RSDrawableSlot::CHILDREN), nullptr);
-        stagingDrawCmdList_.clear();
-        RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync_); // false only when used for debugging
-        uifirstNeedSync_ = true;
-        AddToPendingSyncList();
+        HandleNodeRemovedFromTree();
     }
     SetParentTreeStateChangeDirty();
     auto& properties = GetMutableRenderProperties();
@@ -3852,6 +3880,22 @@ void RSRenderNode::OnTreeStateChanged()
         ProcessBehindWindowOnTreeStateChanged();
     }
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(shared_from_this());
+}
+
+void RSRenderNode::HandleNodeRemovedFromTree()
+{
+    isFullChildrenListValid_ = false;
+    std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+    assignOrEraseOnAccess(GetDrawableVec(__func__),
+        static_cast<int8_t>(RSDrawableSlot::CHILDREN), nullptr);
+    stagingDrawCmdList_.clear();
+    RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync_); // false only when used for debugging
+    uifirstNeedSync_ = true;
+    AddToPendingSyncList();
+    // Reset color picker memory when node goes off the tree
+    if (auto colorPickerDrawable = GetColorPickerDrawable()) {
+        colorPickerDrawable->ResetColorMemory();
+    }
 }
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const
@@ -4051,7 +4095,7 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 {
     if (childNode.GetRenderProperties().NeedFilter() || childNode.GetHwcRecorder().IsBlendWithBackground() ||
-        childNode.GetHwcRecorder().IsForegroundColorValid()) {
+        childNode.GetHwcRecorder().IsForegroundColorValid() || childNode.GetColorPickerDrawable()) {
         visibleFilterChild_.emplace_back(childNode.GetId());
     }
     auto& childFilterNodes = childNode.GetVisibleFilterChild();
@@ -4233,8 +4277,7 @@ void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr prePar
 {
     if (!selfAddForSubSurfaceCnt_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
-        subSurfaceCnt_ = (surfaceNode && (surfaceNode->IsLeashWindow() || surfaceNode->IsAppWindow())) ?
-            subSurfaceCnt_ + 1 : subSurfaceCnt_;
+        subSurfaceCnt_ = (surfaceNode && surfaceNode->IsLeashOrMainWindow()) ? subSurfaceCnt_ + 1 : subSurfaceCnt_;
         selfAddForSubSurfaceCnt_ = true;
     }
     if (subSurfaceCnt_ == 0) {
@@ -4619,7 +4662,12 @@ void RSRenderNode::UpdateDrawableEnableEDR()
 {
     bool hasEDREffect = std::any_of(edrDrawableSlots.begin(), edrDrawableSlots.end(), [this](auto slot) {
         auto drawable = findMapValueRef(this->GetDrawableVec(__func__), static_cast<int8_t>(slot));
-        return drawable && drawable->GetEnableEDR();
+        bool edrEnabled = drawable && drawable->GetEnableEDR();
+        if (edrEnabled) {
+            RS_TRACE_NAME_FMT("UpdateDrawableEnableEDR slot[%d] has EDR effect, nodeId:%" PRIu64,
+                static_cast<int>(slot), GetId());
+        }
+        return edrEnabled;
     });
     SetEnableHdrEffect(hasEDREffect);
 }
@@ -4979,7 +5027,23 @@ void RSRenderNode::AddModifier(
         ModifierNGContainer modifiers { modifier };
         modifiersNG_.emplace(type, modifiers);
     } else {
-        modifiersIt->second.emplace_back(modifier);
+        // Deduplication is disabled by default. Only apply deduplication logic when:
+        // modifier supports it (BOUNDS/FRAME) AND IsDeduplicationEnabled() returns true
+        if (modifier->IsDeduplicationEnabled()) {
+            // Apply deduplication: check if modifier with same ID exists
+            auto it = std::find_if(modifiersIt->second.begin(), modifiersIt->second.end(),
+                [modifier](const auto& m)->bool {return m->GetId() == modifier->GetId();});
+            if (it == modifiersIt->second.end()) {
+                modifiersIt->second.emplace_back(modifier);
+            } else {
+                ModifierNG::RSPropertyType propertyType = (type == ModifierNG::RSModifierType::BOUNDS
+                    ? ModifierNG::RSPropertyType::BOUNDS : ModifierNG::RSPropertyType::FRAME);
+                (*it)->Setter(propertyType, modifier->Getter(propertyType, Vector4f()));
+            }
+        } else {
+            // Default behavior: no deduplication, directly add modifier
+            modifiersIt->second.emplace_back(modifier);
+        }
     }
     modifier->OnAttachModifier(*this);
 }
@@ -5194,9 +5258,9 @@ void RSRenderNode::MapAndUpdateChildrenRect()
 void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
     const std::unordered_set<NodeId>& childHasProtectedNodeSet)
 {
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
-        IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
+        startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
     if (IsRenderGroupSubTreeDirty()) {
         SetDrawingCacheChanged(true);
         SetRenderGroupSubTreeDirty(false); // reset subtree dirty
@@ -5208,9 +5272,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
         if (parentNode) {
             parentNode->SetForceDisableNodeGroup(true);
         }
-    }
-    if (IsUifirstArkTsCardNode() || IsForceDisableNodeGroup()) {
-        // disable render group because cards will use uifirst cache.
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (isInBlackList) {
         stagingRenderParams_->SetNodeGroupHasChildInBlacklist(true);
@@ -5233,26 +5294,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
             GetId(), GetDrawingCacheType(), childHasVisibleFilter_, childHasVisibleEffect_);
     }
     AddToPendingSyncList();
-}
-
-bool RSRenderNode::IsUifirstArkTsCardNode()
-{
-    if (nodeGroupType_ == NodeGroupType::NONE) {
-        return false;
-    }
-    for (auto& child : *GetChildren()) {
-        if (!child) {
-            continue;
-        }
-        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (!surfaceChild) {
-            continue;
-        }
-        if (surfaceChild->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
-            return true;
-        }
-    }
-    return false;
 }
 
 void RSRenderNode::NodePostPrepare(

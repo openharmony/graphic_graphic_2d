@@ -37,6 +37,7 @@
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_gl.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1133,6 +1134,9 @@ HWTEST_F(RSRenderThreadVisitorTest, UpdateDirtyAndSetEGLDamageRegion001, TestSiz
     RSRenderThreadVisitor visitor;
     visitor.isEglSetDamageRegion_ = true;
     std::unique_ptr<RSSurfaceFrame> surfaceFrame = std::make_unique<RSSurfaceFrameOhosGl>(1, 1);
+    auto renderContext = std::make_shared<RenderContextGL>();
+    EXPECT_NE(renderContext, nullptr);
+    surfaceFrame->SetRenderContext(renderContext);
     visitor.curDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     visitor.UpdateDirtyAndSetEGLDamageRegion(surfaceFrame);
     EXPECT_TRUE(surfaceFrame);

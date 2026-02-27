@@ -308,6 +308,7 @@ public:
     }
 
     VkSemaphore RequireSemaphore();
+    VkSemaphore RequireTimelineSemaphore();
     void SendSemaphoreWithFd(VkSemaphore semaphore, int fenceFd);
     void DestroyAllSemaphoreFence();
     VulkanDeviceStatus GetVulkanDeviceStatus();

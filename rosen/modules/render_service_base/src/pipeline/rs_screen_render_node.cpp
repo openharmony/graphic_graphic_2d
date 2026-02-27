@@ -205,13 +205,6 @@ void RSScreenRenderNode::UpdateRenderParams()
     screenParams->screenProperty_ = screenProperty_;
     screenParams->logicalDisplayNodeDrawables_ = std::move(logicalDisplayNodeDrawables_);
     screenParams->SetHasMirroredScreenChanged(hasMirroredScreenChanged_);
-    screenParams->roundCornerSurfaceDrawables_.clear();
-    if (rcdSurfaceNodeTop_ && rcdSurfaceNodeTop_->GetRenderDrawable() != nullptr) {
-        screenParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeTop_->GetRenderDrawable());
-    }
-    if (rcdSurfaceNodeBottom_ && rcdSurfaceNodeBottom_->GetRenderDrawable() != nullptr) {
-        screenParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeBottom_->GetRenderDrawable());
-    }
     RSRenderNode::UpdateRenderParams();
 #endif
 }
@@ -709,5 +702,15 @@ void RSScreenRenderNode::ResetVideoHeadroomInfo()
     headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GAINMAP);
 }
 
+void RSScreenRenderNode::SetCloneNodeMap(
+    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap)
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::SetCloneNodeMap screenParams is null");
+        return;
+    }
+    screenParams->SetCloneNodeMap(cloneNodeMap);
+}
 } // namespace Rosen
 } // namespace OHOS

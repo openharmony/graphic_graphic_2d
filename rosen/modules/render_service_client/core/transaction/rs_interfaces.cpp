@@ -17,9 +17,7 @@
 #include <functional>
 
 #include "rs_interfaces.h"
-#include "rs_render_interface.h"
 #include "rs_trace.h"
-
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
@@ -31,6 +29,7 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
 #include "utils/typeface_map.h"
+
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
@@ -267,9 +266,9 @@ bool RSInterfaces::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNod
         node, callback, captureConfig, checkDrmAndSurfaceLock);
 }
 
-bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze)
+bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze, bool needSync)
 {
-    return renderInterface_->FreezeScreen(node, isFreeze);
+    return renderInterface_->FreezeScreen(node, isFreeze, needSync);
 }
 
 bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
@@ -362,8 +361,8 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
     bool isSync, const Drawing::Rect& specifiedAreaRect)
 {
-    return renderInterface_->TakeSurfaceCaptureForUI(
-        node, callback, scaleX, scaleY, isSync, specifiedAreaRect);
+    return renderInterface_->TakeSurfaceCaptureForUI(node, callback, scaleX, scaleY,
+        isSync, specifiedAreaRect);
 }
 
 bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
@@ -1095,10 +1094,10 @@ void RSInterfaces::NotifyPageName(const std::string& packageName, const std::str
     }
 }
 
-int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
 {
+    ROSEN_LOGI("RSInterfaces::GetpidGpuMemoryInMB called");
     auto ret = renderServiceClient_->GetPidGpuMemoryInMB(pid, gpuMemInMB);
-    ROSEN_LOGD("RSInterfaces::GetpidGpuMemoryInMB called!");
     return ret;
 }
 // LCOV_EXCL_START

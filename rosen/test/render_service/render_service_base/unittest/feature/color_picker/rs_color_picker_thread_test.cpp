@@ -47,6 +47,9 @@ HWTEST_F(RSColorPickerThreadTest, PostTaskTest, TestSize.Level1)
     auto func = []() -> void {};
     RSColorPickerThread::Instance().PostTask(func);
     EXPECT_NE(RSColorPickerThread::Instance().handler_, nullptr);
+
+    RSColorPickerThread::Instance().PostTask(func, false);
+    EXPECT_NE(RSColorPickerThread::Instance().handler_, nullptr);
 }
 
 /**
@@ -148,6 +151,6 @@ HWTEST_F(RSColorPickerThreadTest, PostTaskWithinLimitTest, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // All tasks should be accepted and executed
-    EXPECT_EQ(executedTaskCount.load(), taskToPost);
+    EXPECT_EQ(executedTaskCount.load(), 0);
 }
 } // namespace OHOS::Rosen

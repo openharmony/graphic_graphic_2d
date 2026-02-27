@@ -23,7 +23,6 @@ namespace OHOS::Rosen {
 namespace {
     constexpr uint32_t OLED_MIN_HZ = 0;
     constexpr uint32_t OLED_120_HZ = 120;
-    constexpr uint32_t OLED_90_HZ = 90;
     constexpr uint32_t OLED_60_HZ = 60;
     constexpr uint32_t OLED_30_HZ = 30;
     constexpr uint32_t INTERVAL_TIME = 50000; // us
@@ -220,7 +219,7 @@ HWTEST_F(RSUIDisplaySoloistTest, SetMainFrameRateLinkerEnable, TestSize.Level1)
 
 /**
  * @tc.name: IsCommonDivisor
- * @tc.desc:
+ * @tc.desc: Test IsCommonDivisor and FindMatchedRefreshRate functions with various inputs
  * @tc.type:FUNC
  */
 HWTEST_F(RSUIDisplaySoloistTest, IsCommonDivisor, TestSize.Level1)
@@ -228,22 +227,53 @@ HWTEST_F(RSUIDisplaySoloistTest, IsCommonDivisor, TestSize.Level1)
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
     std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
     int32_t soloistId = soloistIdObj->GetId();
-    std::vector<NodeInfo> tests = {
-        {90, 60, {90, 120, 144}, 45},
-        {90, 60, {30, 60, 60}, 45},
-        {90, 60, {30, 120, 60}, 45},
-        {60, 60, {90, 120, 144}, 60},
-        {60, 0, {90, 120, 144}, 60}
-    };
 
-    for (auto& test : tests) {
-        RATE_TO_FACTORS.clear();
-        RATE_TO_FACTORS.try_emplace(OLED_90_HZ, test.refreshRateList);
-        EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->FindMatchedRefreshRate(test.vsyncRate,
-            test.targetRate), test.result);
-    }
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 60), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 120), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 90), false);
+
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(60, 0), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(30, 0), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(120, 0), false);
 
     EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 0), false);
+
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(60, 120), true);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(30, 60), true);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(30, 120), true);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(24, 144), true);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(90, 90), true);
+
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(90, 60), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(45, 60), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(50, 120), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(70, 144), false);
+
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(120, 120), true);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(120, 90), false);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(15, 90), true);
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(15, 100), false);
+
+    std::vector<NodeInfo> findMatchedTests = {
+        {90, 60, {}, 45},
+        {60, 45, {}, 30},
+        {144, 90, {}, 72},
+        {90, 50, {}, 45},
+        {120, 60, {}, 60},
+        {60, 30, {}, 30},
+        {90, 90, {}, 90},
+        {90, 0, {}, 90},
+        {60, 0, {}, 60},
+        {60, 90, {}, 60},
+        {90, 120, {}, 90},
+    };
+
+    for (const auto& test : findMatchedTests) {
+        auto result = soloistManager.GetIdToSoloistMap()[soloistId]->FindMatchedRefreshRate(
+            test.vsyncRate, test.targetRate);
+        EXPECT_EQ(result, test.result);
+    }
+
     RSDisplaySoloist rsDisplaySoloist;
     rsDisplaySoloist.OnVsyncTimeOut();
     EXPECT_EQ(rsDisplaySoloist.hasRequestedVsync_, false);

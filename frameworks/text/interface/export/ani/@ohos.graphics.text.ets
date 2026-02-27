@@ -167,6 +167,7 @@ export default namespace text {
       this.cleaner = new Cleaner("Paragraph", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
+    native layoutWithConstraints(constraint: TextRectSize): TextLayoutResult;
     native layoutSync(width: double): void;
     async layout(width: double): Promise<void> {
       return taskpool.execute((): void => {
@@ -201,6 +202,9 @@ export default namespace text {
     private native nativeGetLineMetricsAt(lineNumber: int): LineMetrics | undefined;
     native updateColor(color: common2D.Color): void;
     native updateDecoration(decoration: Decoration): void;
+    native getCharacterRangeForGlyphRange(glyphRange: Range, encoding: drawing.TextEncoding): Array<Range>;
+    native getGlyphRangeForCharacterRange(characterRange: Range, encoding: drawing.TextEncoding): Array<Range>;
+    native getCharacterPositionAtCoordinate(x: double, y: double, encoding: drawing.TextEncoding): PositionWithAffinity;
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
@@ -369,6 +373,7 @@ export default namespace text {
     lineHeightMinimum?: double;
     lineHeightStyle?: LineHeightStyle;
     fontWidth?: FontWidth;
+    fontEdging?: drawing.FontEdging;
   }
 
   class TextStyleInternal implements TextStyle {
@@ -397,6 +402,7 @@ export default namespace text {
     lineHeightMinimum?: double;
     lineHeightStyle?: LineHeightStyle;
     fontWidth?: FontWidth;
+    fontEdging?: drawing.FontEdging;
     constructor(
       decoration: Decoration,
       color: common2D.Color,
@@ -421,7 +427,8 @@ export default namespace text {
       lineHeightMaximum: double,
       lineHeightMinimum: double,
       lineHeightStyle: LineHeightStyle,
-      fontWidth: FontWidth
+      fontWidth: FontWidth,
+      fontEdging: drawing.FontEdging
     ) {
       this.decoration = decoration;
       this.color = color;
@@ -447,6 +454,7 @@ export default namespace text {
       this.lineHeightMinimum = lineHeightMinimum;
       this.lineHeightStyle = lineHeightStyle;
       this.fontWidth = fontWidth;
+      this.fontEdging = fontEdging;
     }
   }
 
@@ -1039,4 +1047,35 @@ export default namespace text {
 
   export native function setTextUndefinedGlyphDisplay(noGlyphShow: TextUndefinedGlyphDisplay): void;
   export native function isFontSupported(fontURL: Resource | string): boolean;
+
+  export interface TextRectSize {
+    width: double;
+    height: double;
+  }
+
+  class TextRectSizeInternal implements TextRectSize {
+    width: double;
+    height: double;
+    constructor(width: double, height: double) {
+      this.width = width;
+      this.height = height;
+    }
+  }
+
+  export interface TextLayoutResult {
+    fitStrRange: Array<Range>;
+    correctRect: TextRectSize;
+  }
+
+  class TextLayoutResultInternal implements TextLayoutResult {
+    fitStrRange: Array<Range>;
+    correctRect: TextRectSize;
+    constructor(
+      fitStrRange: Array<Range>,
+      correctRect: TextRectSize
+    ) {
+      this.fitStrRange = fitStrRange;
+      this.correctRect = correctRect;
+    }
+  }
 }

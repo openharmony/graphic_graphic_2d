@@ -1290,6 +1290,109 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestGetRefreshInfoByPidAndUniqueId
 
 /**
  * @tc.name: TestGetRefreshInfoByPidAndUniqueId003
+HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStub032, TestSize.Level1)
+{
+    pid_t newPid = 1002;
+    NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    RSSurfaceRenderNodeConfig config = {
+        .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
+    };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    nodeMap.surfaceNodeMap_[nodeId] = node;
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt32(newPid);
+    data.WriteUint64(0);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    nodeMap.surfaceNodeMap_.erase(nodeId);
+    ASSERT_EQ(res, ERR_OK);
+}
+
+// /**
+//  * @tc.name: TestRSClientToServiceConnectionStub033
+//  * @tc.desc: Test
+//  * @tc.type: FUNC
+//  * @tc.require:
+//  */
+// HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStub033, TestSize.Level1)
+// {
+//     pid_t newPid = 1002;
+//     NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
+//     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+//     RSSurfaceRenderNodeConfig config = {
+//         .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
+//     };
+//     auto node = std::make_shared<RSSurfaceRenderNode>(config);
+//     nodeMap.surfaceNodeMap_[nodeId] = node;
+
+//     MessageParcel data;
+//     MessageParcel reply;
+//     MessageOption option;
+//     uint32_t code =
+//         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
+//     data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+//     data.WriteInt32(newPid);
+//     data.WriteUint64(1000);
+//     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+//     nodeMap.surfaceNodeMap_.erase(nodeId);
+//     ASSERT_EQ(res, ERR_OK);
+// }
+
+// /**
+//  * @tc.name: TestRSClientToServiceConnectionStub034
+//  * @tc.desc: Test
+//  * @tc.type: FUNC
+//  * @tc.require:
+//  */
+// HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStub034, TestSize.Level1)
+// {
+//     pid_t newPid = 1003;
+//     NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
+//     sptr<RSClientToServiceConnectionStub> clientToServiceConnectionStub = new RSClientToServiceConnection(
+//         0, nullptr, mainThread_, CreateOrGetScreenManager(), token_->AsObject(), nullptr);
+//     ASSERT_NE(clientToServiceConnectionStub, nullptr);
+//     sptr<RSClientToServiceConnection> clientToServiceConnection =
+//         iface_cast<RSClientToServiceConnection>(clientToServiceConnectionStub);
+//     ASSERT_NE(clientToServiceConnection, nullptr);
+//     auto mainThread = clientToServiceConnection->mainThread_;
+//     clientToServiceConnection->mainThread_ = nullptr;
+//     std::string result = "";
+//     int res = clientToServiceConnection->GetRefreshInfoByPidAndUniqueId(newPid, 0, result);
+//     ASSERT_EQ(res, ERR_INVALID_VALUE);
+
+//     auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+//     clientToServiceConnection->mainThread_ = mainThread;
+//     RSSurfaceRenderNodeConfig config = {
+//         .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
+//     };
+//     auto node = std::make_shared<RSSurfaceRenderNode>(config);
+//     nodeMap.surfaceNodeMap_[nodeId] = node;
+//     auto originRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+//     RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+//     if (!RSUniRenderJudgement::IsUniRender()) {
+//         auto screenMgr = clientToServiceConnection->screenManager_;
+//         clientToServiceConnection->screenManager_ = nullptr;
+//         result = "";
+//         res = clientToServiceConnection->GetRefreshInfoByPidAndUniqueId(newPid, 0, result);
+//         ASSERT_EQ(res, ERR_OK);
+
+//         clientToServiceConnection->screenManager_ = screenMgr;
+//         result = "";
+//         res = clientToServiceConnection->GetRefreshInfoByPidAndUniqueId(newPid, 0, result);
+//         ASSERT_EQ(res, ERR_OK);
+//     }
+//     RSUniRenderJudgement::uniRenderEnabledType_ = originRenderType;
+//     nodeMap.surfaceNodeMap_.erase(nodeId);
+// }
+
+/**
+ * @tc.name: TestGetRefreshInfoByPidAndUniqueId003
  * @tc.desc: Test Test
  * @tc.type: FUNC
  * @tc.require:
@@ -1871,18 +1974,14 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetPanelPowerStatus004, TestSize.L
 {
     constexpr uint64_t SCREEN_ID = 0;
 
-    sptr<RSClientToServiceConnectionStub> clientToServiceConnectionStub = new RSClientToServiceConnection(
-        0, nullptr, mainThread_, CreateOrGetScreenManager(), token_->AsObject(), nullptr);
-    ASSERT_NE(clientToServiceConnectionStub, nullptr);
-
     sptr<RSClientToServiceConnection> clientToServiceConnection =
-        iface_cast<RSClientToServiceConnection>(clientToServiceConnectionStub);
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
     ASSERT_NE(clientToServiceConnection, nullptr);
 
     // empty screen manager
     PanelPowerStatus status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
-    auto screenMgr = clientToServiceConnection->screenManager_;
-    clientToServiceConnection->screenManager_ = nullptr;
+    auto screenMgr = clientToServiceConnection->screenManagerAgent_;
+    clientToServiceConnection->screenManagerAgent_ = nullptr;
     int ret = clientToServiceConnection->GetPanelPowerStatus(SCREEN_ID, status);
     EXPECT_EQ(ret, ERR_INVALID_OPERATION);
 }
@@ -2988,8 +3087,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ShowWatermarkTest, TestSize.Level1
  */
 HWTEST_F(RSClientToServiceConnectionStubTest, SetDualScreenStateTest001, TestSize.Level1)
 {
-    sptr<RSClientToServiceConnectionStub> connectionStub =
-        new RSClientToServiceConnection(0, nullptr, mainThread_, screenManager_, token_->AsObject(), nullptr);
     uint32_t interfaceCode = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE);
 
     // case 1: only write descriptor
@@ -2998,7 +3095,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetDualScreenStateTest001, TestSiz
         MessageParcel reply;
         MessageOption option;
         data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
         EXPECT_EQ(res, ERR_INVALID_DATA);
     }
 
@@ -3009,7 +3106,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetDualScreenStateTest001, TestSiz
         MessageOption option;
         data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
         data.WriteUint64(hdiOutput_->GetScreenId());
-        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
         EXPECT_EQ(res, ERR_INVALID_DATA);
     }
 
@@ -3021,7 +3118,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetDualScreenStateTest001, TestSiz
         data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
         data.WriteUint64(hdiOutput_->GetScreenId());
         data.WriteUint64(static_cast<uint64_t>(DualScreenStatus::DUAL_SCREEN_STATUS_BUTT));
-        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
         EXPECT_EQ(res, ERR_INVALID_DATA);
     }
 
@@ -3034,7 +3131,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetDualScreenStateTest001, TestSiz
         data.WriteUint64(hdiOutput_->GetScreenId());
         data.WriteUint64(static_cast<uint64_t>(DualScreenStatus::DUAL_SCREEN_ENTER));
         reply.writable_ = false;
-        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
         EXPECT_EQ(res, ERR_INVALID_REPLY);
     }
 
@@ -3046,20 +3143,20 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetDualScreenStateTest001, TestSiz
         data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
         data.WriteUint64(hdiOutput_->GetScreenId());
         data.WriteUint64(static_cast<uint64_t>(DualScreenStatus::DUAL_SCREEN_ENTER));
-        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
         EXPECT_EQ(res, ERR_OK);
     }
 
     // case 6: empty screen manager
     {
         ScreenId id = hdiOutput_->GetScreenId();
-        sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub);
+        sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
         ASSERT_NE(connection, nullptr);
-        auto screenManager = connection->screenManager_;
-        connection->screenManager_ = nullptr;
+        auto screenManagerAgent = connection->screenManagerAgent_;
+        connection->screenManagerAgent_ = nullptr;
         int32_t res = connection->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
-        connection->screenManager_ = screenManager;
-        EXPECT_EQ(res, StatusCode::SCREEN_MANAGER_NULL);
+        connection->screenManagerAgent_ = screenManagerAgent;
+        EXPECT_EQ(res, StatusCode::SCREEN_NOT_FOUND);
     }
 }
 
@@ -3161,7 +3258,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest005, Te
     auto mainThread = clientToServiceConnection->mainThread_;
     clientToServiceConnection->mainThread_ = nullptr;
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
  
     clientToServiceConnection->mainThread_ = mainThread;
 }

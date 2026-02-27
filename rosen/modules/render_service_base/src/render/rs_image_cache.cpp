@@ -123,6 +123,7 @@ void RSImageCache::ReleaseUniqueIdList()
     for (const auto& uniqueId : clearList) {
         ReleasePixelMapCache(uniqueId);
     }
+    ReleaseEditablePixelMapCache();
 }
 
 bool RSImageCache::CheckUniqueIdIsEmpty()
@@ -184,6 +185,110 @@ bool RSImageCache::CheckRefCntAndReleaseImageCache(uint64_t uniqueId, std::share
         ReleaseDrawingImageCacheByPixelMapId(uniqueId);
     }
     return true;
+}
+
+void RSImageCache::CacheEditablePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    if (pixelMap && uniqueId > 0) {
+        std::lock_guard<std::mutex> lock(editablePixelMapCacheMutex_);
+        editablePixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
+    }
+}
+
+std::shared_ptr<Media::PixelMap> RSImageCache::GetEditablePixelMapCache(uint64_t uniqueId) const
+{
+    std::lock_guard<std::mutex> lock(editablePixelMapCacheMutex_);
+    auto it = editablePixelMapCache_.find(uniqueId);
+    if (it != editablePixelMapCache_.end()) {
+        return it->second.first;
+    }
+    return nullptr;
+}
+
+void RSImageCache::IncreaseEditablePixelMapCacheRefCount(uint64_t uniqueId)
+{
+    std::lock_guard<std::mutex> lock(editablePixelMapCacheMutex_);
+    auto it = editablePixelMapCache_.find(uniqueId);
+    if (it != editablePixelMapCache_.end()) {
+        it->second.second++;
+    }
+}
+
+void RSImageCache::DiscardEditablePixelMapCache(uint64_t uniqueId)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(editablePixelMapCacheMutex_);
+        auto it = editablePixelMapCache_.find(uniqueId);
+        if (it == editablePixelMapCache_.end()) {
+            return;
+        }
+        if (UNLIKELY(it->second.first == nullptr)) {
+            editablePixelMapCache_.erase(it);
+            return;
+        }
+        pixelMap = it->second.first;
+        editablePixelMapCache_.erase(it);
+    }
+    {
+        std::lock_guard<std::mutex> lock(editablePixelMapCacheToReleaseMutex_);
+        editablePixelMapCacheToRelease_.emplace_back(pixelMap);
+    }
+}
+
+void RSImageCache::DecreaseRefCountAndDiscardEditablePixelMapCache(uint64_t uniqueId)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(editablePixelMapCacheMutex_);
+        auto it = editablePixelMapCache_.find(uniqueId);
+        if (it == editablePixelMapCache_.end()) {
+            return;
+        }
+        if (UNLIKELY(it->second.first == nullptr)) {
+            editablePixelMapCache_.erase(it);
+            return;
+        }
+        if (--it->second.second == 0) {
+            pixelMap = it->second.first;
+            editablePixelMapCache_.erase(it);
+        }
+    }
+    if (pixelMap != nullptr) {
+        std::lock_guard<std::mutex> lock(editablePixelMapCacheToReleaseMutex_);
+        editablePixelMapCacheToRelease_.emplace_back(pixelMap);
+    }
+}
+
+void RSImageCache::DecreaseRefCountAndReleaseEditablePixelMapCache(uint64_t uniqueId)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(editablePixelMapCacheMutex_);
+        auto it = editablePixelMapCache_.find(uniqueId);
+        if (it == editablePixelMapCache_.end()) {
+            return;
+        }
+        if (UNLIKELY(it->second.first == nullptr)) {
+            editablePixelMapCache_.erase(it);
+            return;
+        }
+        if (--it->second.second == 0) {
+            pixelMap = it->second.first;
+            editablePixelMapCache_.erase(it);
+        }
+    }
+    pixelMap.reset();
+}
+
+void RSImageCache::ReleaseEditablePixelMapCache()
+{
+    std::vector<std::shared_ptr<Media::PixelMap>> editablePixelMapCacheToRelease;
+    {
+        std::lock_guard<std::mutex> lock(editablePixelMapCacheToReleaseMutex_);
+        std::swap(editablePixelMapCacheToRelease, editablePixelMapCacheToRelease_);
+    }
+    editablePixelMapCacheToRelease.clear();
 }
 
 void RSImageCache::CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId,

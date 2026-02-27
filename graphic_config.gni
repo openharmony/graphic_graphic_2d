@@ -99,6 +99,7 @@ gpu_defines = []
 accessibility_defines = []
 
 if (graphic_2d_feature_product == "phone" ||
+    graphic_2d_feature_product == "pc" ||
     graphic_2d_feature_enable_memory_downtree) {
   gpu_defines += ["RS_ENABLE_MEMORY_DOWNTREE"]
 }
@@ -169,7 +170,7 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 }
 
 if (graphic_2d_feature_rs_enable_uni_render) {
-  graphic_2d_feature_enable_sdf = true
+  graphic_2d_feature_enable_sdf = false
   if (graphic_2d_feature_product == "phone") {
     graphic_2d_feature_enable_chipset_vsync = true
   }

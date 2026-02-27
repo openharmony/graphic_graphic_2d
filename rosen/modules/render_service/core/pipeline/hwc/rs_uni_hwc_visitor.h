@@ -69,6 +69,7 @@ public:
         RSSurfaceRenderNode& hwcNode);
     void UpdateHwcNodeEnableByGlobalDirtyFilter(const std::vector<std::pair<NodeId, RectI>>& dirtyFilter,
         RSSurfaceRenderNode& hwcNode);
+    void UpdateHwcNodeEnableByColorPicker();
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void UpdatePrepareClip(RSRenderNode& node);
     void UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
@@ -122,6 +123,9 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcCleanFilter_;
     // record nodes which has transparent dirty filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcDirtyFilter_;
+
+    // Track surfaces that have ColorPicker tasks this frame with their rects for intersection checking
+    std::unordered_map<NodeId, RectI> colorPickerHwcDisabledSurfaces_;
 
     uint32_t curZOrderForHwcEnableByFilter_ = 0;
 

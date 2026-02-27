@@ -232,6 +232,7 @@ HWTEST_F(RsSubThreadTest, ReleaseSurfaceTest001, TestSize.Level1)
 HWTEST_F(RsSubThreadTest, DrawableCache001, TestSize.Level1)
 {
     std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    renderContext->Init();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     auto node = std::make_shared<const RSSurfaceRenderNode>(0);
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable = nullptr;
@@ -291,6 +292,7 @@ HWTEST_F(RsSubThreadTest, DrawableCache002, TestSize.Level1)
 HWTEST_F(RsSubThreadTest, DrawableCache003, TestSize.Level1)
 {
     auto renderContext = RenderContext::Create();
+    renderContext->Init();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable = nullptr;
@@ -337,6 +339,7 @@ HWTEST_F(RsSubThreadTest, DrawableCache003, TestSize.Level1)
 HWTEST_F(RsSubThreadTest, CreateShareGrContext001, TestSize.Level1)
 {
     std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    renderContext->Init();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     EXPECT_TRUE(curThread->CreateShareGrContext());
 }

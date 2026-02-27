@@ -174,6 +174,7 @@ HWTEST_F(RSEffectRenderNodeTest, CheckBlurFilterCacheNeedForceClearOrSaveTest, T
     rsEffectRenderNode.renderProperties_.SetBgImage(image);
     rsEffectRenderNode.CheckBlurFilterCacheNeedForceClearOrSave(false, false);
     rsEffectRenderNode.CheckBlurFilterCacheNeedForceClearOrSave(false, true);
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->stagingCacheManager_->stagingForceClearCache_ = false;
     filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
     rsEffectRenderNode.foldStatusChanged_ = true;
@@ -197,6 +198,7 @@ HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest001, TestSize
     EXPECT_EQ(rsEffectRenderNode.GetFilterDrawable(false), nullptr);
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     rsEffectRenderNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->stagingCacheManager_->stagingForceUseCache_ = true;
     rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
     filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
@@ -224,7 +226,7 @@ HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest002, TestSize
         std::make_unique<DrawableV2::RSFilterDrawable::FilterVisibleRectInfo>();
     backgroundFilterDrawable->stagingVisibleRectInfo_->snapshotRect_ = RectI(0, 0, 10, 10);
     rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
-    EXPECT_TRUE(rsEffectRenderNode.backgroundFilterRegionChanged_);
+    EXPECT_FALSE(rsEffectRenderNode.backgroundFilterRegionChanged_);
 }
 
 /**
@@ -303,7 +305,7 @@ HWTEST_F(RSEffectRenderNodeTest, OnFilterCacheStateChangedTest, TestSize.Level1)
     rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(rsEffectRenderNode.GetId());
     rsEffectRenderNode.OnFilterCacheStateChanged();
     auto effectParams = static_cast<RSEffectRenderParams*>(rsEffectRenderNode.stagingRenderParams_.get());
-    EXPECT_TRUE(effectParams->GetCacheValid());
+    EXPECT_FALSE(effectParams->GetCacheValid());
 }
 
 /**
@@ -321,6 +323,7 @@ HWTEST_F(RSEffectRenderNodeTest, MarkClearFilterCacheIfEffectChildrenChangedTest
         std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
     rsEffectRenderNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->stagingCacheManager_->stagingForceUseCache_ = true;
     filterDrawable->stagingCacheManager_->stagingForceClearCache_ = true;
     rsEffectRenderNode.MarkClearFilterCacheIfEffectChildrenChanged();

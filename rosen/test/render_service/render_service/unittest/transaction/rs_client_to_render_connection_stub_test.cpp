@@ -36,6 +36,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -928,6 +929,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data3.WriteUint64(1);
     data3.WriteBool(true);
+    data3.WriteBool(false);
     res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
     ASSERT_EQ(res, ERR_OK);
 
@@ -947,6 +949,26 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     res = connection->FreezeScreen(0, false);
     ASSERT_EQ(res, ERR_INVALID_VALUE);
     connection->renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+
+    NodeId displayNodeId = 1123;
+    NodeId screenNodeId = 4456;
+    ScreenId screenId = 1;
+    RSDisplayNodeConfig displayNodeConfig;
+    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
+        new RSLogicalDisplayRenderNode(displayNodeId, displayNodeConfig), RSRenderNodeGC::NodeDestructor);
+    ASSERT_NE(displayNode, nullptr);
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::shared_ptr<RSScreenRenderNode>(
+        new RSScreenRenderNode(screenNodeId, screenId), RSRenderNodeGC::NodeDestructor);
+    ASSERT_NE(screenNode, nullptr);
+    displayNode->SetParent(screenNode);
+    auto& nodeMap = connection->renderPipelineAgent_->rsRenderPipeline_->GetContext().GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(screenNode));
+    res = connection->FreezeScreen(displayNodeId, false);
+    usleep(TIME_OF_FREEZE_TASK);
+    ASSERT_EQ(res, ERR_OK);
+    nodeMap.UnregisterRenderNode(screenNode->GetId());
+    nodeMap.UnregisterRenderNode(displayNode->GetId());
 }
 
 /**
@@ -980,6 +1002,34 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
     ASSERT_EQ(res, ERR_OK);
     res = renderPipelineAgent_->FreezeScreen(displayNodeId, true);
     usleep(TIME_OF_FREEZE_TASK);
+    ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: FreezeScreenTest003
+ * @tc.desc: Test FreezeScreen sync
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest003, TestSize.Level2)
+{
+    ASSERT_NE(toRenderConnectionStub_, nullptr);
+    MessageParcel data1;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN);
+    data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data1.WriteUint64(1);
+    data1.WriteBool(true);
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data1, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data2.WriteUint64(1);
+    data2.WriteBool(true);
+    data2.WriteBool(true);
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data2, reply, option);
     ASSERT_EQ(res, ERR_OK);
 }
 
@@ -2581,5 +2631,30 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetLogicalCameraRotationCorrection0
     data.WriteUint64(0);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetHwcNodeBounds
+ * @tc.desc: Test SetHwcNodeBounds when isPointerEnableHwc_ is true or false
+ * @tc.type: FUNC
+ * @tc.require: issue22079
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetHwcNodeBounds, TestSize.Level1)
+{
+    ASSERT_NE(toRenderConnectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint64(0);
+    data.WriteFloat(0);
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    rsPointerWindowManager.SetIsPointerEnableHwc(false);
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+    rsPointerWindowManager.SetIsPointerEnableHwc(true);
 }
 } // namespace OHOS::Rosen

@@ -18,6 +18,7 @@
 #include "rs_graphic_test_profiler.h"
 #include "rs_parameter_parse.h"
 #include "rs_graphic_test_ext.h"
+#include "rs_graphic_errors.h"
 
 #include <iostream>
 #include <string>
@@ -32,6 +33,7 @@ constexpr size_t ARGS_THREE = 3;
 constexpr size_t ARGS_FOUR = 4;
 constexpr const char* DUMMY_TEST_FILTER = "DummyTest.NoOpTest";
 constexpr const char* GTEST_FILTER_FLAG = "--gtest_filter=";
+static std::atomic<bool> nodeTreeRestartRequested{false};
 
 const std::string GetDummyTestFilterArg()
 {
@@ -157,10 +159,16 @@ static int RunAllTest(int argc, char **argv)
 
 static int RunNodeTreeProfilerTest(int argc, char **argv)
 {
+    nodeTreeRestartRequested = false;
     if (argc != ARGS_THREE && argc != ARGS_FOUR) {
         cout << "nodetree failed : wrong param number" << endl;
         return 0;
     }
+
+    RSGraphicTestDirector::Instance().SetProfilerFailureCallback([]() {
+        nodeTreeRestartRequested = true;
+    });
+
     RSGraphicTestDirector::Instance().SetProfilerTest(true);
     RSGraphicTestDirector::Instance().Run();
     std::string path = argv[ARGS_TWO];
@@ -170,7 +178,13 @@ static int RunNodeTreeProfilerTest(int argc, char **argv)
     }
     RSGraphicTestProfiler engine;
     engine.SetUseBufferDump(useBufferDump);
-    return engine.RunNodeTreeTest(path);
+    engine.SetInterruptFlag(&nodeTreeRestartRequested);
+    int result = engine.RunNodeTreeTest(path);
+    if (nodeTreeRestartRequested) {
+        return NODETREE_RESTART;
+    }
+
+    return result;
 }
 
 static int RunPlaybackProfilerTest(int argc, char **argv)
@@ -229,6 +243,26 @@ int main(int argc, char **argv)
         { "-nodetree", RunNodeTreeProfilerTest },
         { "-playback", RunPlaybackProfilerTest }
     };
+
+    if (argc >= ARGS_TWO && string(argv[ARGS_ONE]) == "-nodetree") {
+        const int maxRestarts = 10;
+
+        for (int attempt = 0; attempt < maxRestarts; attempt++) {
+            int result = RunNodeTreeProfilerTest(argc, argv);
+            if (result == 0) {
+                return 0;
+            } else if (result == NODETREE_RESTART) {
+                std::cout << "[RESTART] Profiler requested restart. Attempt " <<
+                    (attempt + 1) << " of " << maxRestarts << std::endl;
+                continue;
+            } else {
+                return result;
+            }
+        }
+
+        std::cout << "[ERROR} Max restarts (" << maxRestarts << ") reached. Exiting." << std::endl;
+        return -1;
+    }
 
     if (argc >= ARGS_TWO) {
         size_t tblCnt = sizeof(funcTbl) / sizeof(funcTbl[0]);

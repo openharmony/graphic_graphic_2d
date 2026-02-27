@@ -14,9 +14,20 @@
  */
 
 #include "modifier_ng/geometry/rs_frame_render_modifier.h"
+#include "parcel.h"
 
 namespace OHOS::Rosen::ModifierNG {
 const RSFrameRenderModifier::LegacyPropertyApplierMap RSFrameRenderModifier::LegacyPropertyApplierMap_ = {
     { RSPropertyType::FRAME, RSRenderModifier::PropertyApplyHelper<Vector4f, &RSProperties::SetFrame> },
 };
+
+bool RSFrameRenderModifier::DeduplicationMarshalling(Parcel& parcel) const
+{
+    return RSMarshallingHelper::Marshalling(parcel, enableDeduplication_);
+}
+
+bool RSFrameRenderModifier::DeduplicationUnmarshalling(Parcel& parcel)
+{
+    return RSMarshallingHelper::Unmarshalling(parcel, enableDeduplication_);
+}
 } // namespace OHOS::Rosen::ModifierNG

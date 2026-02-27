@@ -409,8 +409,6 @@ public:
     static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
     static bool GetCanvasDrawingNodeRenderDmaEnabled();
 
-    static bool GetUnmarshalParallelEnabled();
-    static uint32_t GetUnmarshalParallelMinDataSize();
     static bool GetReleaseImageOneByOneFlag();
 
 private:

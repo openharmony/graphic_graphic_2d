@@ -23,6 +23,7 @@
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
+#include "rs_graphic_errors.h"
 
 #include <charconv>
 #include <chrono>
@@ -83,6 +84,11 @@ void RSGraphicTestProfiler::SetUseBufferDump(bool useBufferDump)
     useBufferDump_ = useBufferDump;
 }
 
+void RSGraphicTestProfiler::SetInterruptFlag(std::atomic<bool>* flag)
+{
+    interruptFlag_ = flag;
+}
+
 int RSGraphicTestProfiler::RunNodeTreeTest(const std::string& path)
 {
     if (!std::filesystem::exists(path)) {
@@ -95,6 +101,10 @@ int RSGraphicTestProfiler::RunNodeTreeTest(const std::string& path)
     rootPath_ = path;
     std::filesystem::path imagePath = GetImageSavePath();
     for (const auto& entry : std::filesystem::directory_iterator(rootPath_)) {
+        if (ShouldInterrupt()) {
+            std::cout << "Test interrupted by profiler failure" << std::endl;
+            return NODETREE_RESTART;
+        }
         const std::string fileName = entry.path().filename();
         if (fileName == SAVE_IMAGE_PATH_NAME) {
             continue;
@@ -378,6 +388,7 @@ void RSGraphicTestProfiler::LoadNodeTreeProfilerFile(const std::string& filePath
     std::cout << "                                                             " << std::endl;
     std::cout << "------------------------one testcase begin----------------------" << std::endl;
     auto timepoint1 = std::chrono::high_resolution_clock::now();
+    bool captureSuccess = true;
     runTestCaseNum_++;
     // NOT MODIFY THE COMMENTS
     cout << "[   RUN   ] " << filePath << std::endl;
@@ -401,12 +412,15 @@ void RSGraphicTestProfiler::LoadNodeTreeProfilerFile(const std::string& filePath
     if (useBufferDump_) {
         TestCaseBufferDump(true, savePath);
     } else {
-        TestCaseCapture(false, savePath);
+        captureSuccess = TestCaseCapture(false, savePath);
     }
 
     // 4.clear
     std::filesystem::remove(filePath);
-    RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear", NODETREE_TIMEOUT);
+    if (captureSuccess) {
+        RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear", NODETREE_TIMEOUT);
+        WaitTimeout(NODETREE_WAIT_TIME);
+    }
     WaitTimeout(NODETREE_WAIT_TIME);
     auto timepoint2 = std::chrono::high_resolution_clock::now();
     auto elapsed2 = std::chrono::duration_cast<std::chrono::microseconds>(timepoint2 - timepoint1);
@@ -447,7 +461,7 @@ void RSGraphicTestProfiler::LoadPlaybackProfilerFile(
     WaitTimeout(NORMAL_WAIT_TIME);
 }
 
-void RSGraphicTestProfiler::TestCaseCapture(bool isScreenshot, const std::string& savePath)
+bool RSGraphicTestProfiler::TestCaseCapture(bool isScreenshot, const std::string& savePath)
 {
     RS_TRACE_NAME("RSGraphicTestProfiler::TestCaseCapture");
     auto pixelMap = RSGraphicTestDirector::Instance().TakeScreenCaptureAndWait(
@@ -470,17 +484,20 @@ void RSGraphicTestProfiler::TestCaseCapture(bool isScreenshot, const std::string
                 if (!WriteToPngWithPixelMap(filename, *pixelMap)) {
                     // NOT MODIFY THE COMMENTS
                     cout << "[   FAILED   ] " << filename << std::endl;
-                    return;
+                    return false;
                 }
+                return true;
             },
             {},
             {});
         std::cout << "png write to " << filename << std::endl;
         // NOT MODIFY THE COMMENTS
         cout << "[   OK   ] " << filename << std::endl;
+        return true;
     } else {
         // NOT MODIFY THE COMMENTS
         cout << "[   FAILED   ] " << savePath << std::endl;
+        return false;
     }
 }
 
@@ -670,6 +687,11 @@ std::string RSGraphicTestProfiler::GetImageSavePath()
         }
     }
     return savePath.string();
+}
+
+bool RSGraphicTestProfiler::ShouldInterrupt() const
+{
+    return interruptFlag_ && interruptFlag_->load();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -25,30 +25,30 @@
 namespace OHOS {
 namespace Rosen {
 namespace RSEventName {
-    const std::string NO_DRAW = "NO_DRAW";
-    const std::string JANK_FRAME_SKIP = "JANK_FRAME_SKIP";
-    const std::string RS_COMPOSITION_TIMEOUT = "RS_COMPOSITION_TIMEOUT";
-    const std::string EPS_LCD_FREQ = "EPS_LCD_FREQ";
-    const std::string JANK_STATS_RS = "JANK_STATS_RS";
-    const std::string JANK_FRAME_RS = "JANK_FRAME_RS";
-    const std::string CALENDAR_ICON_TRANSPARENT = "CALENDAR_ICON_TRANSPARENT";
-    const std::string INTERACTION_RESPONSE_LATENCY = "INTERACTION_RESPONSE_LATENCY";
-    const std::string INTERACTION_COMPLETED_LATENCY = "INTERACTION_COMPLETED_LATENCY";
-    const std::string INTERACTION_RENDER_JANK = "INTERACTION_RENDER_JANK";
-    const std::string INTERACTION_HITCH_TIME_RATIO = "INTERACTION_HITCH_TIME_RATIO";
-    const std::string FIRST_FRAME_DRAWN = "FIRST_FRAME_DRAWN";
-    const std::string RS_NODE_LIMIT_EXCEEDED = "RS_NODE_LIMIT_EXCEEDED";
-    const std::string ANIMATION_CALLBACK_MISSING = "ANIMATION_CALLBACK_MISSING";
-    const std::string HGM_VOTER_INFO = "HGM_VOTER_INFO";
-    const std::string HGM_RETRY_UPDATE_RATE_OVERLIMIT = "HGM_RETRY_UPDATE_RATE_OVERLIMIT";
-    const std::string GPU_SUBHEALTH_MONITORING = "GPU_SUBHEALTH_MONITORING";
-    const std::string IPC_DATA_OVER_ERROR = "IPC_DATA_OVER_ERROR";
-    const std::string RENDER_MEMORY_OVER_WARNING = "RENDER_MEMORY_OVER_WARNING";
-    const std::string RENDER_MEMORY_OVER_ERROR = "RENDER_MEMORY_OVER_ERROR";
-    const std::string RS_HARDWARE_THREAD_LOAD_WARNING = "RS_HARDWARE_THREAD_LOAD_WARNING";
-    const std::string RENDER_DRAWABLE_MULTI_ACCESS = "RENDER_DRAWABLE_MULTI_ACCESS";
-    const std::string RS_RENDER_EXCEPTION = "RS_RENDER_EXCEPTION";
-    const std::string RNEDERFIT_TYPE_RT_MONITORING = "RNEDERFIT_TYPE_RT_MONITORING";
+    inline const std::string NO_DRAW = "NO_DRAW";
+    inline const std::string JANK_FRAME_SKIP = "JANK_FRAME_SKIP";
+    inline const std::string RS_COMPOSITION_TIMEOUT = "RS_COMPOSITION_TIMEOUT";
+    inline const std::string EPS_LCD_FREQ = "EPS_LCD_FREQ";
+    inline const std::string JANK_STATS_RS = "JANK_STATS_RS";
+    inline const std::string JANK_FRAME_RS = "JANK_FRAME_RS";
+    inline const std::string CALENDAR_ICON_TRANSPARENT = "CALENDAR_ICON_TRANSPARENT";
+    inline const std::string INTERACTION_RESPONSE_LATENCY = "INTERACTION_RESPONSE_LATENCY";
+    inline const std::string INTERACTION_COMPLETED_LATENCY = "INTERACTION_COMPLETED_LATENCY";
+    inline const std::string INTERACTION_RENDER_JANK = "INTERACTION_RENDER_JANK";
+    inline const std::string INTERACTION_HITCH_TIME_RATIO = "INTERACTION_HITCH_TIME_RATIO";
+    inline const std::string FIRST_FRAME_DRAWN = "FIRST_FRAME_DRAWN";
+    inline const std::string RS_NODE_LIMIT_EXCEEDED = "RS_NODE_LIMIT_EXCEEDED";
+    inline const std::string ANIMATION_CALLBACK_MISSING = "ANIMATION_CALLBACK_MISSING";
+    inline const std::string HGM_VOTER_INFO = "HGM_VOTER_INFO";
+    inline const std::string HGM_RETRY_UPDATE_RATE_OVERLIMIT = "HGM_RETRY_UPDATE_RATE_OVERLIMIT";
+    inline const std::string GPU_SUBHEALTH_MONITORING = "GPU_SUBHEALTH_MONITORING";
+    inline const std::string IPC_DATA_OVER_ERROR = "IPC_DATA_OVER_ERROR";
+    inline const std::string RENDER_MEMORY_OVER_WARNING = "RENDER_MEMORY_OVER_WARNING";
+    inline const std::string RENDER_MEMORY_OVER_ERROR = "RENDER_MEMORY_OVER_ERROR";
+    inline const std::string RS_HARDWARE_THREAD_LOAD_WARNING = "RS_HARDWARE_THREAD_LOAD_WARNING";
+    inline const std::string RENDER_DRAWABLE_MULTI_ACCESS = "RENDER_DRAWABLE_MULTI_ACCESS";
+    inline const std::string RS_RENDER_EXCEPTION = "RS_RENDER_EXCEPTION";
+    inline const std::string RNEDERFIT_TYPE_RT_MONITORING = "RNEDERFIT_TYPE_RT_MONITORING";
 } // namespace RSEventName
 
 enum RSEventType {

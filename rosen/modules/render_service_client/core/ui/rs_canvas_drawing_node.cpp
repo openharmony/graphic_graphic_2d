@@ -80,8 +80,17 @@ RSCanvasDrawingNode::~RSCanvasDrawingNode()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (preAllocateDmaCcm_ && (PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED)) {
+        auto id = GetId();
         // Unregister from callback router
-        RSCanvasCallbackRouter::GetInstance().UnregisterNode(GetId());
+        RSCanvasCallbackRouter::GetInstance().UnregisterNode(id);
+        if (resetSurfaceIndex_ > 0) {
+            ffrt::submit([id]() {
+                if (RSRenderInterface::GetInstance().SubmitCanvasPreAllocatedBuffer(id, nullptr, 0) !=
+                    StatusCode::SUCCESS) {
+                    RS_LOGE("Release RSCanvasDrawingNode, notify RS to clear DMA cache fail.");
+                }
+            });
+        }
         // Clear DMA buffer reference (releases DMA memory from app process)
         {
             std::lock_guard<ffrt::mutex> lock(*surfaceBufferMutex_);

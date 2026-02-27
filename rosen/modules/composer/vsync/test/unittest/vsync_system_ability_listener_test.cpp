@@ -46,7 +46,7 @@ HWTEST_F(VSyncSystemAbilityListenerTest, OnRemoveSystemAbility001, Function | Me
 {
     std::string deviceId("testDevice");
     vsyncAbilityListener_->OnRemoveSystemAbility(0, deviceId);
-    ASSERT_EQ(deviceId.compare("testDevice"), true);
+    ASSERT_EQ(deviceId.compare("testDevice"), 0);
 }
 
 /**
@@ -59,6 +59,6 @@ HWTEST_F(VSyncSystemAbilityListenerTest, OnAddSystemAbility001, Function | Mediu
 {
     std::string deviceId("testDevice");
     vsyncAbilityListener_->OnAddSystemAbility(0, deviceId);
-    ASSERT_EQ(deviceId.compare("testDevice"), true);
+    ASSERT_EQ(deviceId.compare("testDevice"), 0);
 }
 }

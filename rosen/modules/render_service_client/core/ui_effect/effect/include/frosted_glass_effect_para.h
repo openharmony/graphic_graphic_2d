@@ -20,6 +20,7 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
+#include "ui_effect/mask/include/mask_para.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -291,6 +292,16 @@ public:
         return materialColor_;
     }
 
+    void SetMask(std::shared_ptr<MaskPara> maskPara)
+    {
+        maskPara_ = maskPara;
+    }
+
+    const std::shared_ptr<MaskPara>& GetMask() const
+    {
+        return maskPara_;
+    }
+
 private:
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f);
@@ -323,6 +334,7 @@ private:
     Vector3f edLightPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+    std::shared_ptr<MaskPara> maskPara_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

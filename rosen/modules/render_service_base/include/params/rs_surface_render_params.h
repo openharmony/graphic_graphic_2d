@@ -238,18 +238,18 @@ public:
         needSync_ = true;
     }
 
-    void SetUifirstUseStarting(NodeId id)
+    void SetUifirstStartingWindowId(NodeId id)
     {
-        if (uifirstUseStarting_ == id) {
+        if (uifirstStartingWindowId_ == id) {
             return;
         }
-        uifirstUseStarting_ = id;
+        uifirstStartingWindowId_ = id;
         needSync_ = true;
     }
 
-    NodeId GetUifirstUseStarting() const
+    NodeId GetUifirstStartingWindowId() const
     {
-        return uifirstUseStarting_;
+        return uifirstStartingWindowId_;
     }
 
     void SetUifirstChildrenDirtyRectParam(const RectI& rect)
@@ -638,6 +638,23 @@ public:
     // [Attention] The function only used for unlocking screen for PC currently
     bool IsCloneNode() const;
 
+    bool IsRelated() const;
+
+    void SetRelated(bool value)
+    {
+        isRelated_ = value;
+    }
+
+    void SetRelatedSourceNode(bool value)
+    {
+        isRelatedSourceNode_ = value;
+    }
+
+    bool IsRelatedSourceNode() const
+    {
+        return isRelatedSourceNode_;
+    }
+
     bool GetIsHwcEnabledBySolidLayer() const
     {
         return isHwcEnabledBySolidLayer_;
@@ -818,7 +835,9 @@ private:
     bool isClonedNodeOnTheTree_ = false;
     bool isCrossNode_ = false;
     bool isCloneNode_ = false;
+    bool isRelated_ = false;
     bool clonedSourceNode_ = false;
+    bool isRelatedSourceNode_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;
@@ -826,7 +845,7 @@ private:
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
-    NodeId uifirstUseStarting_ = INVALID_NODEID;
+    NodeId uifirstStartingWindowId_ = INVALID_NODEID;
     RectI uiFirstVisibleFilterRect_;
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;

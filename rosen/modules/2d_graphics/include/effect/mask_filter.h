@@ -45,9 +45,11 @@ public:
      * @param style The Drawing::BlurStyle to use.
      * @param sigma Standard deviation of the Gaussian blur to apply. Must be > 0.
      * @param respectCTM if true the blur's sigma is modified by the CTM.
+     * @param disableSDF if true disable SDF for blur mask filter.
      * @return A shared pointer to MaskFilter
      */
-    static std::shared_ptr<MaskFilter> CreateBlurMaskFilter(BlurType blurType, scalar sigma, bool respectCTM = true);
+    static std::shared_ptr<MaskFilter> CreateBlurMaskFilter(BlurType blurType, scalar sigma, bool respectCTM = true,
+        bool disableSDF = false);
 
     virtual ~MaskFilter() = default;
     FilterType GetType() const;
@@ -62,7 +64,8 @@ public:
         return impl_->DowncastingTo<T>();
     }
 
-    MaskFilter(FilterType t, BlurType blurType, scalar sigma, bool respectCTM = true) noexcept;
+    MaskFilter(FilterType t, BlurType blurType, scalar sigma, bool respectCTM = true,
+        bool disableSDF = false) noexcept;
     MaskFilter(FilterType t) noexcept;
 
     std::shared_ptr<Data> Serialize() const;

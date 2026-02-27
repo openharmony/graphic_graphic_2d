@@ -43,6 +43,9 @@ public:
     static napi_value GetRectsForRange(napi_env env, napi_callback_info info);
     static napi_value GetRectsForPlaceholders(napi_env env, napi_callback_info info);
     static napi_value GetGlyphPositionAtCoordinate(napi_env env, napi_callback_info info);
+    static napi_value GetCharacterPositionAtCoordinate(napi_env env, napi_callback_info info);
+    static napi_value GetCharacterRangeForGlyphRange(napi_env env, napi_callback_info info);
+    static napi_value GetGlyphRangeForCharacterRange(napi_env env, napi_callback_info info);
     static napi_value GetWordBoundary(napi_env env, napi_callback_info info);
     static napi_value GetLineCount(napi_env env, napi_callback_info info);
     static napi_value GetLineHeight(napi_env env, napi_callback_info info);
@@ -62,6 +65,7 @@ public:
     static napi_value IsStrutStyleEqual(napi_env env, napi_callback_info info);
     static napi_value UpdateColor(napi_env env, napi_callback_info info);
     static napi_value UpdateDecoration(napi_env env, napi_callback_info info);
+    static napi_value LayoutWithConstraints(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnLayout(napi_env env, napi_callback_info info);
@@ -78,6 +82,9 @@ private:
     napi_value OnGetRectsForRange(napi_env env, napi_callback_info info);
     napi_value OnGetRectsForPlaceholders(napi_env env, napi_callback_info info);
     napi_value OnGetGlyphPositionAtCoordinate(napi_env env, napi_callback_info info);
+    napi_value OnGetCharacterPositionAtCoordinate(napi_env env, napi_callback_info info);
+    napi_value OnGetCharacterRangeForGlyphRange(napi_env env, napi_callback_info info);
+    napi_value OnGetGlyphRangeForCharacterRange(napi_env env, napi_callback_info info);
     napi_value OnGetWordBoundary(napi_env env, napi_callback_info info);
     napi_value OnGetLineCount(napi_env env, napi_callback_info info);
     napi_value OnGetLineHeight(napi_env env, napi_callback_info info);
@@ -93,6 +100,7 @@ private:
     napi_value OnLayoutAsync(napi_env env, napi_callback_info info);
     napi_value OnUpdateColor(napi_env env, napi_callback_info info);
     napi_value OnUpdateDecoration(napi_env env, napi_callback_info info);
+    napi_value OnLayoutWithConstraints(napi_env env, napi_callback_info info);
     static bool CreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;
     static std::mutex constructorMutex_;

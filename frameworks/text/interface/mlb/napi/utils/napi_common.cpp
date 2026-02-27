@@ -300,6 +300,12 @@ void SetTextStyleFontType(napi_env env, napi_value argValue, TextStyle& textStyl
         }
     }
 
+    napi_get_named_property(env, argValue, "fontEdging", &tempValue);
+    uint32_t fontEdging = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontEdging) == napi_ok) {
+        textStyle.fontEdging = Drawing::FontEdging(fontEdging);
+    }
+
     SetDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
 
     std::vector<std::string> fontFamilies;
@@ -407,6 +413,29 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     SetTextShadowProperty(env, argValue, textStyle);
     SetRectStyleFromJS(env, argValue, textStyle.backgroundRect);
     return true;
+}
+
+bool GetTextRectFromJS(napi_env env, napi_value argValue, TextRectSize& rect)
+{
+    napi_valuetype valueType = napi_undefined;
+    if (argValue == nullptr || napi_typeof(env, argValue, &valueType) != napi_ok || valueType != napi_object) {
+        return false;
+    }
+    SetDoubleValueFromJS(env, argValue, "width", rect.width);
+    SetDoubleValueFromJS(env, argValue, "height", rect.height);
+    return true;
+}
+
+napi_value CreateLayoutResultJsValue(napi_env env, const OHOS::Rosen::TextLayoutResult& layoutResult)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "fitStrRange",
+            CreateFitRangeArrayJsValue(env, layoutResult.fitStrRange));
+        napi_set_named_property(env, objValue, "correctRect", CreateLayoutRectJsValue(env, layoutResult.correctRect));
+    }
+    return objValue;
 }
 
 static void SetAlignValueForParagraphStyle(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
@@ -647,6 +676,40 @@ napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& line
     return objValue;
 }
 
+napi_value CreateLayoutRectJsValue(napi_env env, const OHOS::Rosen::TextRectSize& rect)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "width", CreateJsNumber(env, rect.width));
+        napi_set_named_property(env, objValue, "height", CreateJsNumber(env, rect.height));
+    }
+    return objValue;
+}
+
+napi_value CreateFitRangeArrayJsValue(napi_env env, const std::vector<OHOS::Rosen::TextRange>& fitRangeArr)
+{
+    napi_value returnFitRangeArr = nullptr;
+    NAPI_CALL(env, napi_create_array(env, &returnFitRangeArr));
+    int num = static_cast<int>(fitRangeArr.size());
+    for (int index = 0; index < num; ++index) {
+        napi_value tempValue = CreateFitRangeJsValue(env, fitRangeArr[index]);
+        napi_set_element(env, returnFitRangeArr, index, tempValue);
+    }
+    return returnFitRangeArr;
+}
+
+napi_value CreateFitRangeJsValue(napi_env env, const OHOS::Rosen::TextRange& fitRange)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "start", CreateJsNumber(env, (uint32_t)fitRange.start));
+        napi_set_named_property(env, objValue, "end", CreateJsNumber(env, (uint32_t)fitRange.end));
+    }
+    return objValue;
+}
+
 napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>& textShadows)
 {
     napi_value jsArray = nullptr;
@@ -678,7 +741,7 @@ napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>&
         }
         index++;
     }
-    
+
     return jsArray;
 }
 
@@ -794,6 +857,8 @@ napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
             env, static_cast<double>(textStyle.minLineHeight)));
         napi_set_named_property(env, objValue, "lineHeightStyle", CreateJsNumber(
             env, static_cast<size_t>(textStyle.lineHeightStyle)));
+        napi_set_named_property(env, objValue, "fontEdging", CreateJsNumber(
+            env, static_cast<size_t>(textStyle.fontEdging)));
     }
     return objValue;
 }
@@ -1110,7 +1175,7 @@ bool SplitAbsolutePath(std::string& absolutePath)
     std::string head = absolutePath.substr(0, iter);
     if ((head == "file" && absolutePath.size() > FILE_HEAD_LENGTH)) {
         absolutePath = absolutePath.substr(iter + 3); // 3 means skip "://"
-        // the file format is like "file:///system/fonts...",
+        // File path must start with 'file://', e.g., file:///path/to/font.ttf
         return true;
     }
 
@@ -1215,7 +1280,7 @@ bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontPathResourceC
     } else if (valueType == napi_string) {
         if (!ConvertFromJsValue(env, argv[argvPathNum], context->filePath)) {
             std::string errMessage("Failed to convert file path:");
-            errMessage += context->filePath;
+            errMessage += context->filePath.value_or("");
             context->status = napi_invalid_arg;
             context->errMessage = errMessage;
             (context)->errCode = static_cast<int32_t>(TextErrorCode::ERROR_INVALID_PARAM);

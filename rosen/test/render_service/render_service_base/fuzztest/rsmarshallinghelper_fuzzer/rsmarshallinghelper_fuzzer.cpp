@@ -202,7 +202,7 @@ bool DoMarshallingHelper003(const uint8_t* data, size_t size)
     dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
-    cmdListData.second = length - 1;
+    cmdListData.second = length;
     bool isCopy = GetData<bool>();
     static std::shared_ptr<MaskCmdList> maskCmdList = MaskCmdList::CreateFromData(cmdListData, isCopy);
     RSMarshallingHelper::Marshalling(parcel, maskCmdList);
@@ -212,7 +212,7 @@ bool DoMarshallingHelper003(const uint8_t* data, size_t size)
     auto imageData = std::make_shared<Data>();
     imageData->BuildUninitialized(MATH_TEN);
     maskCmdList->AddImageData(imageData->GetData(), imageData->GetSize());
-    maskCmdList->AddBitmapData(dataText, length - 1);
+    maskCmdList->AddBitmapData(dataText, length);
     RSMarshallingHelper::Marshalling(parcel2, maskCmdList);
     RSMarshallingHelper::Unmarshalling(parcel2, maskCmdList);
     if (dataText != nullptr) {

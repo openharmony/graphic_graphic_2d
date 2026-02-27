@@ -400,6 +400,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/capture/rs_capture_pixelmap_manager.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_node_command.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_render_node.cpp",
+    "src/feature/buffer_reclaim/rs_buffer_reclaim.cpp",
 
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",
@@ -410,6 +411,7 @@ ohos_source_set("render_service_base_src") {
   if (rs_enable_gpu) {
     sources += [
       #drawable
+      "src/drawable/rs_color_picker_drawable.cpp",
       "src/drawable/rs_drawable.cpp",
       "src/drawable/rs_misc_drawable.cpp",
       "src/drawable/rs_property_drawable.cpp",
@@ -588,6 +590,16 @@ ohos_source_set("render_service_base_src") {
       "$graphic_2d_root/utils/color_manager/export",
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
       "//foundation/graphic/graphics_effect/include",
+      "//foundation/graphic/graphics_effect/include/core",
+      "//foundation/graphic/graphics_effect/include/pipeline",
+      "//foundation/graphic/graphics_effect/include/hps",
+      "//foundation/graphic/graphics_effect/include/ext",
+      "//foundation/graphic/graphics_effect/include/effect",
+      "//foundation/graphic/graphics_effect/include/effect/filter",
+      "//foundation/graphic/graphics_effect/include/effect/shader",
+      "//foundation/graphic/graphics_effect/include/effect/mask",
+      "//foundation/graphic/graphics_effect/include/effect/shape",
+      "//foundation/graphic/graphics_effect/include/util",
       "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
     ]
   }
@@ -744,7 +756,6 @@ ohos_source_set("render_service_base_src") {
   if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
       player_framework_enable) {
     defines += [ "RS_PROFILER_ENABLED" ]
-    defines += [ "RS_PROFILER_BETA_ENABLED" ]
     sources += [
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_archive.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp",

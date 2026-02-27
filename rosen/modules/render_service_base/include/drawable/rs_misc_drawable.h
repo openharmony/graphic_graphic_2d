@@ -16,22 +16,21 @@
 #ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_MISC_DRAWABLE_H
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_MISC_DRAWABLE_H
 
+#include <atomic>
 #include <bitset>
 #include <cstdint>
 #include <functional>
 #include <memory>
 #include <set>
 #include <unordered_set>
-#include "feature/color_picker/i_color_picker_manager.h"
 
+#include "common/rs_macros.h"
 #include "drawable/rs_drawable.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
-class RSColorPickerManager;
-class ColorPickAltManager;
 namespace Drawing {
 class DrawCmdList;
 }
@@ -59,27 +58,6 @@ private:
     bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node);
     friend class RSRenderNode;
     friend class RSRenderNodeDrawableAdapter;
-};
-
-// RSColorPickerDrawable, pick color for current content of canvas
-class RSColorPickerDrawable : public RSDrawable {
-public:
-    explicit RSColorPickerDrawable(bool useAlt);
-    ~RSColorPickerDrawable() override = default;
-
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& content) override;
-    void OnSync() override;
-    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-
-private:
-    NodeId stagingNodeId_ = INVALID_NODEID;
-    NodeId nodeId_ = INVALID_NODEID;
-    std::shared_ptr<ColorPickerParam> stagingColorPicker_;
-    ColorPickerParam params_;
-
-    bool needSync_ = false;
-    std::shared_ptr<IColorPickerManager> colorPickerManager_;
 };
 
 // RSCustomModifierDrawable, for drawing custom modifiers

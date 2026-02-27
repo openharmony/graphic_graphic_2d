@@ -76,13 +76,20 @@ public:
     uint32_t GetAlignRate() const { return alignRate_; }
 
     int64_t GetIdealPipelineOffset() const { return idealPipelineOffset_; }
+    int64_t GetIdealPipelineOffset144() const { return idealPipelineOffset144_; }
     void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum);
+    void SetIdealPipelineOffset144(int32_t pipelineOffsetPulseNum)
+    {
+        idealPipelineOffset144_ = pipelineOffsetPulseNum * IDEAL_PULSE144;
+    }
 
     int64_t GetPipelineOffset() const { return pipelineOffsetPulseNum_ * CreateVSyncGenerator()->GetVSyncPulse(); }
     int32_t GetPipelineOffsetPulseNum() const { return pipelineOffsetPulseNum_; }
 
     uint32_t GetSupportedMaxTE() const { return maxTE_; }
+    uint32_t GetSupportedMaxTE144() const { return maxTE144_; }
     void SetSupportedMaxTE(uint32_t maxTE) { maxTE_ = maxTE; }
+    void SetSupportedMaxTE144(uint32_t maxTE144) { maxTE144_ = maxTE144; }
 
     int32_t GetPluseNum() const { return pluseNum_; }
 
@@ -147,11 +154,11 @@ private:
     void CheckCustomFrameRateModeValid();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(int32_t mode);
+    void SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
     void SetASConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
 
     bool IsEnabled() const;
 
-    static constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_ = nullptr;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
     std::shared_ptr<PolicyConfigVisitor> mPolicyConfigVisitor_ = nullptr;
@@ -180,8 +187,10 @@ private:
     bool ltpoEnabled_ = false;
     std::atomic<bool> isLtpoMode_{ false };
     uint32_t maxTE_ = 0;
+    uint32_t maxTE144_ = 0;
     uint32_t alignRate_ = 0;
     int64_t idealPipelineOffset_ = 0;
+    int64_t idealPipelineOffset144_ = 0;
     int32_t pluseNum_ = -1;
     int adaptiveSync_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;

@@ -734,7 +734,7 @@ bool RSSurfaceNode::GetBootAnimation() const
 
 void RSSurfaceNode::SetGlobalPositionEnabled(bool isEnabled)
 {
-    if (isGlobalPositionEnabled_ == isEnabled) {
+    if (isGlobalPositionEnabled_ == isEnabled && !IsAnyModifierDeduplicationEnabled()) {
         return;
     }
 
@@ -863,10 +863,10 @@ void RSSurfaceNode::SetForeground(bool isForeground)
     AddCommand(commandRT, false);
 }
 
-void RSSurfaceNode::SetClonedNodeInfo(NodeId nodeId, bool needOffscreen)
+void RSSurfaceNode::SetClonedNodeInfo(NodeId nodeId, bool needOffscreen, bool isRelated)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetClonedNodeId>(GetId(), nodeId, needOffscreen);
+        std::make_unique<RSSurfaceNodeSetClonedNodeId>(GetId(), nodeId, needOffscreen, isRelated);
     AddCommand(command, true);
 }
 

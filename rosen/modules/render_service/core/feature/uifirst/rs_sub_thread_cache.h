@@ -70,7 +70,8 @@ public:
     void UpdateCompletedCacheSurface();
     void ClearCacheSurfaceInThread();
     void ClearCacheSurfaceOnly();
-    void UpdateCacheSurfaceInfo(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
+    void UpdateCacheSurfaceInfo(std::shared_ptr<RSSurfaceRenderNodeDrawable> nodeDrawable,
+        RSSurfaceRenderParams* surfaceParams);
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex);
     bool NeedInitCacheSurface(RSSurfaceRenderParams* surfaceParams);
     std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex,
@@ -200,7 +201,7 @@ public:
     // uifirst dirtyRegion
     std::shared_ptr<RSDirtyRegionManager> GetSyncUifirstDirtyManager() const;
     bool UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-        bool hasCompletateCache, bool isLastFrameSkip);
+        bool hasCompleteCache, bool isLastFrameSkip);
     void UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable);
     void SetUifirstDirtyRegion(Drawing::Region dirtyRegion);
     Drawing::Region GetUifirstDirtyRegion() const;
@@ -215,9 +216,9 @@ public:
     void PushDirtyRegionToStack(RSPaintFilterCanvas& canvas, Drawing::Region& resultRegion);
     bool IsCacheValid() const;
     void UifirstDirtyRegionDfx(Drawing::Canvas& canvas, Drawing::RectI& surfaceDrawRect);
-    bool IsDirtyRecordCompletated();
-    void UpdateDirtyRecordCompletatedState(bool isCompletate);
-    void UpadteAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
+    bool IsDirtyRecordCompleted();
+    void UpdateDirtyRecordCompletedState(bool isComplete);
+    void UpdateAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
         bool isEnableDirtyRegion);
     void SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, Drawing::Canvas& canvas);
 
@@ -246,6 +247,11 @@ public:
         cacheReuseCount_ = 0;
     }
 
+    const std::unordered_set<NodeId>& GetAllDrawnSubSurfaceNodeIds() const
+    {
+        return cacheCompletedSurfaceInfo_.processedSubSurfaceNodeIds;
+    }
+
 private:
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
     bool DrawUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, RSPaintFilterCanvas& rscanvas,
@@ -271,6 +277,15 @@ private:
         int processedSurfaceCount = -1;
         int processedNodeCount = -1;
         float alpha = -1.f;
+        std::unordered_set<NodeId> processedSubSurfaceNodeIds;
+
+        void Reset()
+        {
+            processedSurfaceCount = -1;
+            processedNodeCount = -1;
+            alpha = -1.f;
+            processedSubSurfaceNodeIds.clear();
+        }
     };
     CacheSurfaceInfo cacheSurfaceInfo_;
     CacheSurfaceInfo cacheCompletedSurfaceInfo_;
@@ -301,7 +316,7 @@ private:
     static inline std::atomic<int> totalProcessedSurfaceCount_ = 0;
 
     std::shared_ptr<RSDirtyRegionManager> syncUifirstDirtyManager_ = nullptr;
-    bool isDirtyRecordCompletated_ = false;
+    bool isDirtyRecordCompleted_ = false;
     Drawing::Region uifirstDirtyRegion_;
     bool uifrstDirtyEnableFlag_ = false;
     Drawing::Region uifirstMergedDirtyRegion_;

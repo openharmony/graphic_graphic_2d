@@ -761,7 +761,7 @@ HWTEST_F(RSJankStatsTest, AvcodecVideoStartTest001, TestSize.Level1)
     RSJankStats::GetInstance().AvcodecVideoStart({2222}, {"surfaceName"}, 60, 20);
     RSJankStats::GetInstance().AvcodecVideoStart({1111}, {"surfaceName"}, 60, 20);
     RSJankStats::GetInstance().AvcodecVideoStop({1111}, {"surfaceName"}, 60);
-    EXPECT_FALSE(RSJankStats::GetInstance().avcodecVideoMap_.empty());
+    EXPECT_TRUE(RSJankStats::GetInstance().avcodecVideoMap_.empty());
     RSJankStats::GetInstance().AvcodecVideoStop({2222}, {"surfaceName"}, 60);
 }
 

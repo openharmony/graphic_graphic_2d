@@ -56,17 +56,18 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, float a
 std::shared_ptr<EffectImageFilter> EffectImageFilter::MapColorByBrightness(const std::vector<Vector4f>& colors,
     const std::vector<float>& positions)
 {
+    bool isInvalid = colors.empty() || positions.empty() || colors.size() != positions.size();
+    if (isInvalid) {
+        EFFECT_LOG_E("EffectImageFilter::MapColorByBrightness: params is invalid.");
+        return nullptr;
+    }
     std::vector<Vector4f> colorValues;
     std::vector<float> positionValues;
-    for (size_t i = 0; i < colors.size() && i < positions.size(); i++) {
+    for (size_t i = 0; i < colors.size(); i++) {
         Vector4f color = GetLimitedPara(colors[i], POSITIVE_MIN_THRESHOLD);
         float position = std::clamp(positions[i], COLOR_POSITION_LIMITS.first, COLOR_POSITION_LIMITS.second);
         colorValues.push_back(color);
         positionValues.push_back(position);
-    }
-    if (colorValues.empty()) {
-        EFFECT_LOG_E("EffectImageFilter::MapColorByBrightness: params is invalid.");
-        return nullptr;
     }
     return std::make_shared<OHOS::Rosen::EffectImageMapColorByBrightnessFilter>(colorValues, positionValues);
 }
@@ -102,6 +103,20 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Brightness(float degree)
     auto colorFilter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
     auto filter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
     return std::make_shared<EffectImageDrawingFilter>(filter);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::MaskTransition(
+    const std::shared_ptr<Media::PixelMap>& topLayerMap,
+    const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse)
+{
+    return std::make_shared<EffectImageMaskTransitionFilter>(topLayerMap, mask, factor, inverse);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::WaterDropletTransition(
+    const std::shared_ptr<OHOS::Media::PixelMap>& topLayerMap,
+    const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams)
+{
+    return std::make_shared<EffectImageWaterDropletTransitionFilter>(topLayerMap, geWaterDropletParams);
 }
 
 DrawingError EffectImageEllipticalGradientBlurFilter::Apply(const std::shared_ptr<EffectImageChain> &image)
@@ -197,6 +212,24 @@ DrawingError EffectImageSdfFromImageFilter::Apply(const std::shared_ptr<EffectIm
     return image->ApplySDFCreation(spreadFactor_, generateDerivs_);
 }
 
+DrawingError EffectImageMaskTransitionFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+ 
+    return image->ApplyMaskTransitionFilter(topLayerMap_, mask_, factor_, inverse_);
+}
+
+DrawingError EffectImageWaterDropletTransitionFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+ 
+    return image->ApplyWaterDropletTransitionFilter(topLayerMap_, waterDropletParams_);
+}
+
 DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
     const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU,
     std::shared_ptr<Media::PixelMap>& dstPixelMap)
@@ -204,8 +237,8 @@ DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& s
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageRender::Render");
 
     auto ret = DrawingError::ERR_OK;
+    auto effectImage = std::make_shared<EffectImageChain>();
     do {
-        auto effectImage = std::make_shared<EffectImageChain>();
         ret = effectImage->Prepare(srcPixelMap, forceCPU);
         if (ret != DrawingError::ERR_OK) {
             EFFECT_LOG_E("EffectImageRender::Render: Failed to prepare image, ret=%{public}d.", ret);
@@ -236,7 +269,79 @@ DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& s
         dstPixelMap = effectImage->GetPixelMap();
         dstPixelMap->MarkDirty();
     } while (false);
+    effectImage->Release();
 
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return ret;
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::WaterGlass(
+    const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params)
+{
+    return std::make_shared<EffectImageWaterGlassFilter>(params);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::ReededGlass(
+    const std::shared_ptr<Drawing::GEReededGlassDataParams>& params)
+{
+    return std::make_shared<EffectImageReededGlassFilter>(params);
+}
+
+DrawingError EffectImageWaterGlassFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+
+    return image->ApplyWaterGlass(waterGlassData_);
+}
+
+DrawingError EffectImageReededGlassFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+
+    return image->ApplyReededGlass(reededGlassData_);
+}
+
+DrawingError EffectImageRender::RenderDstNative(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+    std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer,
+    const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU)
+{
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageRender::Render");
+ 
+    auto ret = DrawingError::ERR_OK;
+    do {
+        auto effectImage = std::make_shared<EffectImageChain>();
+        ret = effectImage->PrepareNativeBuffer(srcPixelMap, dstNativeBuffer, forceCPU);
+        if (ret != DrawingError::ERR_OK) {
+            EFFECT_LOG_E("EffectImageRender::Render: Failed to prepare image, ret=%{public}d.", ret);
+            break;
+        }
+ 
+        for (const auto& filter : effectFilters) {
+            if (filter == nullptr) {
+                continue;
+            }
+ 
+            ret = filter->Apply(effectImage);
+            if (ret != DrawingError::ERR_OK) {
+                EFFECT_LOG_E("EffectImageRender::Render: Failed to apply filter, ret=%{public}d.", ret);
+                break;
+            }
+        }
+        if (ret != DrawingError::ERR_OK) {
+            EFFECT_LOG_E("EffectImageRender::Render: Break on filter");
+            break;
+        }
+        ret = effectImage->DrawNativeBuffer();
+        if (ret != DrawingError::ERR_OK) {
+            EFFECT_LOG_E("EffectImageRender::Render: Failed to draw image, ret=%{public}d.", ret);
+            break;
+        }
+    } while (false);
+ 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return ret;
 }

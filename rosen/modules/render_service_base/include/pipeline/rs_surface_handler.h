@@ -468,6 +468,27 @@ public:
         return sourceType_;
     }
 
+    void SetLastBufferId(const uint64_t bufferId) // must call thisFunc in rsMainThread
+    {
+        lastBufferId_ = bufferId;
+        lastBufferReclaimNum_ = 0;
+    }
+
+    void ResetLastBufferInfo() // must call thisFunc in rsMainThread
+    {
+        lastBufferId_ = 0;
+        lastBufferReclaimNum_ = 0;
+    }
+
+    bool IsNeedSwapLastBuffer() // must call thisFunc in rsMainThread
+    {
+        return lastBufferId_ != 0;
+    }
+
+    bool ReclaimLastBufferProcess();
+    bool ReclaimLastBufferPrepare();
+    void TryResumeLastBuffer();
+
     bool GetBufferSizeChanged()
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -564,6 +585,8 @@ private:
 
     // The IConsumerSurface::GetUniqueId() that has already been registered for delete-buffer notifications.
     uint64_t registeredConsumerDeleteListenerSurfaceId_ = 0;
+    uint64_t lastBufferId_ = 0;
+    uint32_t lastBufferReclaimNum_ = 0;
 };
 }
 }

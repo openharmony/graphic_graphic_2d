@@ -371,6 +371,7 @@ void RSProfiler::Init(RSRenderService* renderService)
     g_mainThread = g_renderService ? g_renderService->renderPipeline_->GetMainThread() : nullptr;
     context_ = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
+    RSSystemProperties::SetProfilerDisabled();
     RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(SYS_KEY_BETARECORDING, OnFlagChangedCallback, nullptr);
     bool isEnabled = RSSystemProperties::GetProfilerEnabled();
@@ -1051,7 +1052,12 @@ void RSProfiler::MarshalSelfDrawingBuffers(std::stringstream& data, bool isBetaR
                 requestConfig.width, requestConfig.height, surfaceNode->GetId(), GSErrorStr(ret).c_str());
             return;
         }
-
+        if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable() && surfaceNode->IsRosenWeb()) {
+            auto handler = surfaceNode->GetRSSurfaceHandler();
+            if (handler) {
+                handler->TryResumeLastBuffer();
+            }
+        }
         RenderToReadableBuffer(surfaceNode, readableBuffer);
         uint64_t ffmPixelMapId = Utils::PatchSelfDrawingImageId(surfaceNode->GetId());
         PixelMapStorage::Push(ffmPixelMapId, *readableBuffer);

@@ -412,7 +412,6 @@ bool RSRenderNodeMapFuzzerTest(const uint8_t* data, size_t size)
 
     pid_t pidnew = GetData<pid_t>();
     nodeMap->GetSelfDrawingNodeInProcess(pidnew);
-
     return true;
 }
 

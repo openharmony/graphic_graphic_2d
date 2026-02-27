@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,6 +54,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
@@ -62,7 +63,6 @@
 #include "feature/hwc_event/rs_uni_hwc_event_manager.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
-#include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -248,6 +248,7 @@ constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
 constexpr size_t MAX_SURFACE_OCCLUSION_LISTENERS_SIZE = std::numeric_limits<uint16_t>::max();
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 const std::string  FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
+constexpr uint32_t MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME = 1;
 
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE = 96 * (1 << 20);
@@ -323,7 +324,7 @@ void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::un
 
 class RSEventDumper : public AppExecFwk::Dumper {
 public:
-    void Dump(const std::string &message) override
+    void Dump(const std::string& message) override
     {
         dumpString.append(message);
     }
@@ -350,7 +351,7 @@ std::condition_variable g_dumpCond_;
 class AccessibilityObserver : public AccessibilityConfigObserver {
 public:
     AccessibilityObserver() = default;
-    void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
+    void OnConfigChanged(const CONFIG_ID id, const ConfigValue& value) override
     {
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
@@ -719,7 +720,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #if defined(ACCESSIBILITY_ENABLE)
     RS_LOGI("AccessibilityConfig init");
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
-    auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
+    auto& config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER, accessibilityObserver_);
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_INVERT_COLOR, accessibilityObserver_);
@@ -1674,11 +1675,38 @@ void RSMainThread::ProcessAllSyncTransactionData()
     RequestNextVSync();
 }
 
+void RSMainThread::PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode> &surfaceNode,
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler)
+{
+    if (!BufferReclaimParam::GetInstance().IsBufferReclaimEnable() || !surfaceNode->IsRosenWeb()) {
+        return;
+    }
+
+    if (curFrameBufferReclaimCount_ >= MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME) {
+        return;
+    }
+
+    if (!surfaceNode->IsOnTheTree() && surfaceHandler->IsNeedSwapLastBuffer()) {
+        if (CheckUICaptureNode(surfaceNode->GetId())) {
+            surfaceHandler->ResetLastBufferInfo();
+            return;
+        }
+        if (surfaceHandler->ReclaimLastBufferPrepare()) {
+            curFrameBufferReclaimCount_++;
+            auto task = [this, surfaceHandler]() {
+                surfaceHandler->ReclaimLastBufferProcess();
+            };
+            PostTask(task);
+        }
+    }
+}
+
 void RSMainThread::ConsumeAndUpdateAllNodes()
 {
     ResetHardwareEnabledState(isUniRender_);
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
     requestNextVsyncTime_ = -1;
+    curFrameBufferReclaimCount_ = 0;
     if (!isUniRender_) {
         dividedRenderbufferTimestamps_.clear();
     }
@@ -1720,6 +1748,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     hgmRenderContext_->UpdateSurfaceData(name, ExtractPid(surfaceNode->GetId()));
                 }
             }
+            PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
             surfaceHandler->ResetCurrentFrameBufferConsumed();
             auto parentNode = surfaceNode->GetParent().lock();
             RSBaseRenderUtil::DropFrameConfig dropFrameConfig;
@@ -2223,6 +2252,57 @@ void RSMainThread::SetFrameIsRender(bool isRender)
     }
 }
 
+void RSMainThread::AddUICaptureNode(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(nodeId);
+    auto iter1 = uiCaptureNodeMap_.find(pid);
+    if (iter1 == uiCaptureNodeMap_.end()) {
+        std::map<NodeId, uint32_t> nodeIdCountMap;
+        nodeIdCountMap[nodeId] = 1;
+        uiCaptureNodeMap_[pid] = nodeIdCountMap;
+        return;
+    }
+
+    auto& nodeIdCountMap = iter1->second;
+    auto iter2 = nodeIdCountMap.find(nodeId);
+    if (iter2 != nodeIdCountMap.end()) {
+        iter2->second++;
+    } else {
+        nodeIdCountMap[nodeId] = 1;
+    }
+}
+
+void RSMainThread::RemoveUICaptureNode(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(nodeId);
+    auto iter1 = uiCaptureNodeMap_.find(pid);
+    if (iter1 == uiCaptureNodeMap_.end()) {
+        return;
+    }
+
+    auto& nodeIdCountMap = iter1->second;
+    auto iter2 = nodeIdCountMap.find(nodeId);
+    if (iter2 != nodeIdCountMap.end()) {
+        iter2->second--;
+        if (iter2->second == 0) {
+            nodeIdCountMap.erase(iter2);
+        }
+    }
+
+    if (nodeIdCountMap.empty()) {
+        uiCaptureNodeMap_.erase(iter1);
+    }
+}
+
+bool RSMainThread::CheckUICaptureNode(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(id);
+    return (uiCaptureNodeMap_.find(pid) != uiCaptureNodeMap_.end());
+}
+
 void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
 {
     pendingUiCaptureTasks_.emplace_back(id, task);
@@ -2237,6 +2317,9 @@ void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
         if (isNeedSetTreeStateChangeDirty) {
             node->SetChildrenTreeStateChangeDirty();
             node->SetParentTreeStateChangeDirty(true);
+        }
+        if (!node->IsOnTheTree()) {
+            AddUICaptureNode(id);
         }
     }
     if (!IsRequestedNextVSync()) {
@@ -2281,9 +2364,11 @@ void RSMainThread::ProcessUiCaptureTasks()
         if (RSUiCaptureTaskParallel::GetCaptureCount() >= MAX_CAPTURE_COUNT) {
             return;
         }
+        NodeId nodeId = std::get<0>(uiCaptureTasks_.front());
         auto captureTask = std::get<1>(uiCaptureTasks_.front());
         uiCaptureTasks_.pop();
         captureTask();
+        RemoveUICaptureNode(nodeId);
     }
 #endif
 }
@@ -2476,7 +2561,7 @@ bool RSMainThread::IfStatusBarDirtyOnly()
 void RSMainThread::ProcessNeedAttachedNodes()
 {
     // Collect the nodes that need to be re-attached and call AfterTreeStateChanged
-    auto &mutablenodeMap = context_->GetMutableNodeMap();
+    auto& mutablenodeMap = context_->GetMutableNodeMap();
     auto needAttachedNodes = mutablenodeMap.GetNeedAttachedNode();
     if (needAttachedNodes.empty()) {
         return;
@@ -2822,9 +2907,10 @@ void RSMainThread::CheckSystemSceneStatus()
             break;
         }
     }
-    if (isAnimationOcclusion_.first == true &&
-        curTime - static_cast<uint64_t>(isAnimationOcclusion_.second) > MAX_SYSTEM_SCENE_STATUS_TIME) {
-        isAnimationOcclusion_.first = false;
+    auto& isAnimationOcclusion = RSUniDirtyOcclusionUtil::GetIsAnimationOcclusionRef();
+    if (isAnimationOcclusion.first == true &&
+        curTime - static_cast<uint64_t>(isAnimationOcclusion.second) > MAX_SYSTEM_SCENE_STATUS_TIME) {
+        isAnimationOcclusion.first = false;
     }
 }
 
@@ -3117,7 +3203,7 @@ void RSMainThread::SurfaceOcclusionCallback()
     std::list<std::pair<sptr<RSISurfaceOcclusionChangeCallback>, float>> callbackList;
     {
         std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
-        for (auto &listener : surfaceOcclusionListeners_) {
+        for (auto& listener : surfaceOcclusionListeners_) {
             if (!CheckSurfaceOcclusionNeedProcess(listener.first)) {
                 continue;
             }
@@ -3146,7 +3232,7 @@ void RSMainThread::SurfaceOcclusionCallback()
                 } else if (!vectorEmpty && ROSEN_EQ(visibleAreaRatio, 1.0f)) {
                     level = partitionVector.size();
                 } else if (!vectorEmpty && (visibleAreaRatio > 0.0f)) {
-                    for (const auto &point : partitionVector) {
+                    for (const auto& point : partitionVector) {
                         if (visibleAreaRatio > point) {
                             level += 1;
                             continue;
@@ -3165,7 +3251,7 @@ void RSMainThread::SurfaceOcclusionCallback()
             }
         }
     }
-    for (auto &callback : callbackList) {
+    for (auto& callback : callbackList) {
         if (callback.first) {
             callback.first->OnSurfaceOcclusionVisibleChanged(callback.second);
         }
@@ -3810,24 +3896,7 @@ bool RSMainThread::SurfaceOcclusionCallBackIfOnTreeStateChanged()
 
 void RSMainThread::SetAnimationOcclusionInfo(const std::string& sceneId, bool isStart)
 {
-    if (!DirtyRegionParam::IsAnimationOcclusionEnable() || !RSSystemProperties::GetAnimationOcclusionEnabled()) {
-        return;
-    }
-    int64_t curTime = static_cast<int64_t>(
-        std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-    auto id = RSUifirstFrameRateControl::Instance().GetSceneId(sceneId);
-    switch (id) {
-        // currently, occlusion is only enabled in these three animation scenes
-        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
-        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
-        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
-            isAnimationOcclusion_.first = isStart;
-            isAnimationOcclusion_.second = curTime;
-            break;
-        default:
-            break;
-    }
+    RSUniDirtyOcclusionUtil::SetAnimationOcclusionInfo(sceneId, isStart);
 }
 
 void RSMainThread::SendCommands()
@@ -4320,7 +4389,8 @@ bool RSMainThread::IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool
         return false;
     }
     // if vsynctimestamp updated but timestamp_ not, diff > 1/2 vsync， don't fastcompose
-    if (static_cast<uint64_t>(vsyncTimeStamp) - timestamp_ > REFRESH_PERIOD / 2) {
+    if (static_cast<uint64_t>(vsyncTimeStamp) > timestamp_ &&
+        static_cast<uint64_t>(vsyncTimeStamp) - timestamp_ > REFRESH_PERIOD / 2) { // 1/2 vsync
         return false;
     }
     // when buffer come near vsync time, difference value need to add offset before division
@@ -4873,6 +4943,15 @@ void RSMainThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface
 {
     std::lock_guard<std::mutex> lock(mutex_);
     tmpSurfaces_.push(std::move(surface));
+}
+
+void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
+{
+    RSUniRenderThread::Instance().PostSyncTask([&cpuMemSize, &gpuMemSize] {
+        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(
+            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+        cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
+    });
 }
 
 void RSMainThread::SubscribeAppState()

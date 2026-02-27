@@ -98,7 +98,10 @@ DATA_CALLBACKS_REGISTER(
 );
 }
 
-static std::vector<uint8_t> supportedParcelVerFlags = { RSPARCELVER_ADD_ANIMTOKEN };
+static std::vector<uint8_t> supportedParcelVerFlags = {
+    RSPARCELVER_ADD_ANIMTOKEN,
+    RSPARCELVER_ADD_ISPROPDIRTY,
+};
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const TYPE& val) \

@@ -174,7 +174,7 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
                 return;
             }
             if (nodeGCLevel_ == GCLevel::IMMEDIATE) {
-                ROSEN_LOGI("RSRenderNodeGC::ReleaseNodeMemory IMMEDIATE");
+                RS_LOGI_LIMIT("RSRenderNodeGC::ReleaseNodeMemory IMMEDIATE");
             }
             ReleaseNodeBucket();
             if (highPriority && drawableReleaseFunc_) {

@@ -119,17 +119,6 @@ private:
 
     bool modifiersApplied_ = false;
 
-    struct CachedReversedOpInfo {
-        std::vector<uint32_t> drawOpTypes;
-        int32_t width = 0;
-        int32_t height = 0;
-        size_t opItemSize = 0;
-        CachedReversedOpInfo() : drawOpTypes{}, width(0), height(0), opItemSize(0) {}
-    };
-    std::deque<CachedReversedOpInfo> cachedReversedOpTypes_;
-    void DumpSubClassNode(std::string& out) const override;
-    void GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList);
-
     friend class RSCanvasDrawingNodeCommandHelper;
     friend class RSRenderNode;
 };

@@ -50,10 +50,14 @@ constexpr uint32_t ONE_SECOND = 1000;
 constexpr uint32_t MAX_TASKS_PER_SECOND = 20;
 } // namespace
 
-void RSColorPickerThread::PostTask(const std::function<void()>& task, int64_t delayTime)
+bool RSColorPickerThread::PostTask(const std::function<void()>& task, bool limited, int64_t delayTime)
 {
     if (!handler_) {
-        return;
+        return false;
+    }
+    if (!limited) {
+        handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::HIGH);
+        return true;
     }
 
     const auto now =
@@ -72,10 +76,11 @@ void RSColorPickerThread::PostTask(const std::function<void()>& task, int64_t de
     uint32_t currentCount = taskCount_.fetch_add(1, std::memory_order_relaxed);
     if (currentCount >= MAX_TASKS_PER_SECOND) {
         RS_LOGD("RSColorPickerThread: Task dropped due to rate limit (count: %{public}u)", currentCount + 1);
-        return;
+        return false;
     }
 
-    handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::HIGH);
+    return true;
 }
 
 void RSColorPickerThread::RegisterNodeDirtyCallback(const NodeDirtyCallback& callback)
@@ -119,7 +124,7 @@ void RSColorPickerThread::InitRenderContext(std::shared_ptr<RenderContext> conte
         }
         gpuContext_->RegisterPostFunc(
             [](const std::function<void()>& task) { RSColorPickerThread::Instance().PostTask(task); });
-    });
+        }, false);
 }
 
 std::shared_ptr<Drawing::GPUContext> RSColorPickerThread::GetShareGPUContext() const

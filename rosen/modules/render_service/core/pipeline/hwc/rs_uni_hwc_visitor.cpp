@@ -169,7 +169,7 @@ bool RSUniHwcVisitor::CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& no
             return true;
         }
 
-        bool willNotDraw = node->IsPureBackgroundColor();
+        bool willNotDraw = node->IsPureBackgroundColor() && !node->HasDrawCmdModifiers();
         RS_LOGD("solidLayer: id:%{public}" PRIu64 ", willNotDraw: %{public}d", node->GetId(), willNotDraw);
         if (!willNotDraw) {
             RS_LOGD("solidLayer: presence drawing, id:%{public}" PRIu64, node->GetId());
@@ -566,6 +566,10 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
         }
     });
     PrintHiperfCounterLog("counter1", static_cast<uint64_t>(inputHwclayers));
+
+    // NEW: Apply ColorPicker disable
+    UpdateHwcNodeEnableByColorPicker();
+
     uniRenderVisitor_.PrevalidateHwcNode();
     UpdateHwcNodeEnableByNodeBelow();
     uniRenderVisitor_.UpdateAncoNodeHWCDisabledState(ancoNodes);
@@ -1038,6 +1042,45 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalDirtyFilter(
     }
 }
 
+namespace {
+void ColorPickerCheckHwcIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+    const RectI& colorPickerRect)
+{
+    if (!hwcNode || !hwcNode->IsOnTheTree() || hwcNode->IsHardwareForcedDisabled()) {
+        return;
+    }
+
+    RectI hwcNodeRect = hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+    if (!colorPickerRect.IntersectRect(hwcNodeRect).IsEmpty()) {
+        hwcNode->SetHardwareForcedDisabledState(true);
+        RS_OPTIONAL_TRACE_FMT("ColorPicker: rect [%d,%d,%d,%d] intersects node %s id:%" PRIu64
+            " (rect: [%d,%d,%d,%d]) - disabling",
+            colorPickerRect.left_, colorPickerRect.top_, colorPickerRect.width_, colorPickerRect.height_,
+            hwcNode->GetName().c_str(), hwcNode->GetId(), hwcNodeRect.left_, hwcNodeRect.top_,
+            hwcNodeRect.width_, hwcNodeRect.height_);
+    }
+}
+} // namespace
+
+void RSUniHwcVisitor::UpdateHwcNodeEnableByColorPicker()
+{
+    for (const auto& [_, colorPickerRect] : colorPickerHwcDisabledSurfaces_) {
+        auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
+        for (auto& surfaceNodePtr : curMainAndLeashSurfaces) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNodePtr);
+            if (!surfaceNode) {
+                continue;
+            }
+
+            const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
+            for (const auto& hwcNodeWeak : hwcNodes) {
+                auto hwcNode = hwcNodeWeak.lock();
+                ColorPickerCheckHwcIntersection(hwcNode, colorPickerRect);
+            }
+        }
+    }
+}
+
 bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
 {
     if (uniRenderVisitor_.curScreenNode_ == nullptr) {
@@ -1049,7 +1092,7 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
     if (uniRenderVisitor_.curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
         return true;
     }
-    
+
     // screenId equals 0 or 5 means primary screen normally
     if (uniRenderVisitor_.curScreenNode_->GetScreenId() != 0 && uniRenderVisitor_.curScreenNode_->GetScreenId() != 5) {
         return true;

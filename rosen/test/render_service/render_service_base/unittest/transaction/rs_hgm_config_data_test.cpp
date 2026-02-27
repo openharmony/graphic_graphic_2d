@@ -132,9 +132,9 @@ HWTEST_F(RSHgmConfigDataTest, MarshallingTest, TestSize.Level1)
     int minSpeed = 1;
     int maxSpeed = 2;
     int preferredFps = 3;
-    AnimDynamicItem item = {type, name, minSpeed, maxSpeed, preferredFps};
+    AnimDynamicItem item = { type, name, minSpeed, maxSpeed, preferredFps };
     rsHgmConfigData.AddAnimDynamicItem(item);
-    bool marshalling = rsHgmConfigData.Marshalling(parcel);
+    bool marshalling = rsHgmConfigData.MarshallingConfig(parcel);
     ASSERT_TRUE(marshalling);
 }
 } // namespace Rosen

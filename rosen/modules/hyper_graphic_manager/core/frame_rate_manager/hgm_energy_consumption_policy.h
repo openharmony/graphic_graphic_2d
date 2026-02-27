@@ -87,8 +87,8 @@ private:
     // concurrency protection <<<
     std::atomic<bool> dragSceneEnable_ = { true };
     std::atomic<pid_t> dragSceneDisablePid_ = { 0 };
-    const static std::unordered_map<EnergyEvent, std::function<void(const std::unordered_map<std::string, std::string> &)>>
-        commonDataMapFunc_;
+    const static std::unordered_map<EnergyEvent,
+        std::function<void(const std::unordered_map<std::string, std::string> &)>> commonDataMapFunc_;
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;

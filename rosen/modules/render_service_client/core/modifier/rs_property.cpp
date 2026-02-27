@@ -105,6 +105,12 @@ void RSPropertyBase::UpdateExtendModifierForGeometry(const std::shared_ptr<RSNod
         }
     }
 }
+ 
+bool RSPropertyBase::IsDeduplicationEnabled() const
+{
+    auto modifier = modifierNG_.lock();
+    return modifier && modifier->IsDeduplicationEnabled();
+}
 
 float RSPropertyBase::GetThresholdByThresholdType(ThresholdType thresholdType) const
 {

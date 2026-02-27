@@ -586,10 +586,12 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
     UpdateDisplayDirtyManager(curScreenDrawable.GetSyncDirtyManager(), bufferAge, false);
     auto extraDirty = curScreenDrawable.GetSyncDirtyManager()->GetDirtyRegion();
     mappedDamageRegion.OrSelf(Occlusion::Region(Occlusion::Rect(extraDirty)));
+    // Align all virtual mirror screen scenes.
+    mappedDamageRegion = mappedDamageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
 
     if (!virtualProcesser->GetDrawVirtualMirrorCopy()) {
         RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
-            mappedDamageRegion, mappedDamageRegion, *mirroredDrawable, canvasMatrix, false);
+            mappedDamageRegion, mappedDamageRegion, *mirroredDrawable, canvasMatrix, true);
     }
     auto mappedDamageRegionRects = mappedDamageRegion.GetRegionRectIs();
     if (!uniParam->IsVirtualDirtyDfxEnabled()) {
@@ -1119,13 +1121,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
         curCanvas_->SetOnMultipleScreen(true);
     }
     curCanvas_->SetDisableFilterCache(true);
-    auto hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
-    int32_t virtualSecLayerOption = curScreenParams->GetScreenProperty().GetVirtualSecLayerOption();
-    bool isSecurity = (!enableVisibleRect_ && hasSecSurface) ||
-                      (enableVisibleRect_ && params.HasSecLayerInVisibleRect());
-    bool securitySkip = (isSecurity && !uniParam.GetSecExemption() && !virtualSecLayerOption) ||
-        params.GetVirtualScreenMuteStatus();
-    if (securitySkip) {
+    if (params.GetVirtualScreenMuteStatus() || RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(
+        enableVisibleRect_, *curScreenParams, params, *mirroredParams)) {
 #ifdef RS_PROFILER_ENABLED
         if (auto canvas =
                 RSCaptureRecorder::GetInstance().TryInstantCapture(static_cast<float>(curCanvas_->GetWidth()),
