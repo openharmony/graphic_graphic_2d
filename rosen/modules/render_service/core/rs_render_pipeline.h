@@ -21,8 +21,8 @@
 #include <unordered_set>
 #include "common/rs_common_def.h"
 #include "common/rs_thread_handler.h"
-#include "dfx/rs_pipline_dump_manager.h"
-#include "dfx/rs_pipline_dumper.h"
+#include "dfx/rs_pipeline_dump_manager.h"
+#include "dfx/rs_pipeline_dumper.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "feature/image_enhance/image_enhance_manager.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
@@ -140,8 +140,8 @@ private:
     std::map<sptr<IRemoteObject>, sptr<RSIClientToRenderConnection>> renderConnections_ = {};
     mutable std::mutex renderConnectionMutex_;
     std::shared_ptr<ImageEnhanceManager> imageEnhanceManager_ = nullptr;
-    std::shared_ptr<RSPiplineDumper> rpDumper_ = nullptr;
-    std::shared_ptr<RSPiplineDumpManager> rpDumpManager_ = nullptr;
+    std::shared_ptr<RSPipelineDumper> rpDumper_ = nullptr;
+    std::shared_ptr<RSPipelineDumpManager> rpDumpManager_ = nullptr;
     std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
 
     friend class RSServiceToRenderConnection;

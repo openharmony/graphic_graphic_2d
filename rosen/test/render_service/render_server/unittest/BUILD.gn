@@ -422,5 +422,6 @@ group("unittest") {
         ":RSRenderServiceAgentTest",
         ":RSRenderProcessManagerAgentTest",
         ":RSRenderSingleProcessManagerTest",
+        "dfx:unittest",
     ]
 }

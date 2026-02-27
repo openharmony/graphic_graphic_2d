@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "rs_pipline_dumper.h"
+#include "rs_pipeline_dumper.h"
 
 #include <iservice_registry.h>
 #include <malloc.h>
@@ -36,7 +36,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
-#include "dfx/rs_pipline_dump_manager.h"
+#include "dfx/rs_pipeline_dump_manager.h"
 #include "graphic_feature_param_manager.h"
 
 namespace OHOS {
@@ -53,7 +53,7 @@ static EGLContext g_tmpContext = EGL_NO_CONTEXT;
 #endif
 }
 
-RSPiplineDumper::RSPiplineDumper(std::shared_ptr<AppExecFwk::EventHandler> mainHandler)
+RSPipelineDumper::RSPipelineDumper(std::shared_ptr<AppExecFwk::EventHandler> mainHandler)
     : mainHandler_(mainHandler) {}
 
 static bool IsNumber(const std::string& type)
@@ -126,15 +126,15 @@ static void DestroyGLES()
 }
 #endif
 
-uint32_t RSPiplineDumper::GenerateTaskId()
+uint32_t RSPipelineDumper::GenerateTaskId()
 {
     static std::atomic<uint32_t> id;
     return id.fetch_add(1, std::memory_order::memory_order_relaxed);
 }
 
-void RSPiplineDumper::RpDumpInit(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
+void RSPipelineDumper::RenderPipelineDumpInit(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
 {
-    // 用于renderProcess进程Dump初始化
+    // for renderPipeline dump init
     RegisterRSTreeFuncs(rpDumpManager);
     RegisterGpuFuncs(rpDumpManager);
     RegisterRSGfxFuncs(rpDumpManager);
@@ -143,7 +143,7 @@ void RSPiplineDumper::RpDumpInit(std::shared_ptr<RSPiplineDumpManager> rpDumpMan
     RegisterSurfaceInfoFuncs(rpDumpManager);
 }
 
-void RSPiplineDumper::RegisterRSGfxFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
+void RSPipelineDumper::RegisterRSGfxFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
 {
     // Event Param List
     RSDumpFunc rsEventParamFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
@@ -181,7 +181,7 @@ void RSPiplineDumper::RegisterRSGfxFuncs(std::shared_ptr<RSPiplineDumpManager> r
     rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::RegisterRSTreeFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
+void RSPipelineDumper::RegisterRSTreeFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
 {
     // RS not on Tree
     RSDumpFunc rsNotOnTreeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
@@ -233,7 +233,7 @@ void RSPiplineDumper::RegisterRSTreeFuncs(std::shared_ptr<RSPiplineDumpManager> 
     rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::RegisterMemFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
+void RSPipelineDumper::RegisterMemFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
 {
     // surface mem
     RSDumpFunc surfaceMemFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
@@ -263,7 +263,7 @@ void RSPiplineDumper::RegisterMemFuncs(std::shared_ptr<RSPiplineDumpManager> rpD
     rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::RegisterGpuFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
+void RSPipelineDumper::RegisterGpuFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
 {
 #ifdef RS_ENABLE_VK
     // vk texture Limit
@@ -283,7 +283,7 @@ void RSPiplineDumper::RegisterGpuFuncs(std::shared_ptr<RSPiplineDumpManager> rpD
     rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
+void RSPipelineDumper::RegisterBufferFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
 {
     RSDumpFunc currentFrameBufferFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                                std::string &dumpString) -> void {
@@ -310,7 +310,7 @@ void RSPiplineDumper::RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManager> 
     rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::RegisterSurfaceInfoFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager)
+void RSPipelineDumper::RegisterSurfaceInfoFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
 {
     // surface info
     RSDumpFunc surfaceInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
@@ -336,7 +336,7 @@ void RSPiplineDumper::RegisterSurfaceInfoFuncs(std::shared_ptr<RSPiplineDumpMana
     rpDumpManager->Register(handers);
 }
 
-void RSPiplineDumper::DumpNodesNotOnTheTree(std::string& dumpString) const
+void RSPipelineDumper::DumpNodesNotOnTheTree(std::string& dumpString) const
 {
     dumpString.append("\n");
     dumpString.append("-- Node Not On Tree\n");
@@ -359,7 +359,7 @@ void RSPiplineDumper::DumpNodesNotOnTheTree(std::string& dumpString) const
     });
 }
 
-void RSPiplineDumper::DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame) const
+void RSPipelineDumper::DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame) const
 {
     dumpString.append("\n");
     dumpString.append("-- RenderServiceTreeDump: \n");
@@ -368,7 +368,7 @@ void RSPiplineDumper::DumpRenderServiceTree(std::string& dumpString, bool forceD
 #endif
 }
 
-void RSPiplineDumper::DumpAllNodesMemSize(std::string& dumpString) const
+void RSPipelineDumper::DumpAllNodesMemSize(std::string& dumpString) const
 {
     dumpString.append("\n");
     dumpString.append("-- All Surfaces Memory Size\n");
@@ -390,14 +390,14 @@ void RSPiplineDumper::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
-void RSPiplineDumper::DumpRSEvenParam(std::string& dumpString) const
+void RSPipelineDumper::DumpRSEvenParam(std::string& dumpString) const
 {
     dumpString.append("\n");
     dumpString.append("-- EventParamListDump: \n");
     RSMainThread::Instance()->RsEventParamDump(dumpString);
 }
 
-void RSPiplineDumper::DumpJankStatsRs(std::string& dumpString) const
+void RSPipelineDumper::DumpJankStatsRs(std::string& dumpString) const
 {
     dumpString.append("\n");
     RSJankStats::GetInstance().ReportJankStats();
@@ -405,7 +405,7 @@ void RSPiplineDumper::DumpJankStatsRs(std::string& dumpString) const
 }
 
 #ifdef RS_ENABLE_VK
-void RSPiplineDumper::DumpVkTextureLimit(std::string& dumpString) const
+void RSPipelineDumper::DumpVkTextureLimit(std::string& dumpString) const
 {
     dumpString.append("\n");
     dumpString.append("-- vktextureLimit:\n");
@@ -421,7 +421,7 @@ void RSPiplineDumper::DumpVkTextureLimit(std::string& dumpString) const
 }
 #endif
 
-void RSPiplineDumper::DumpExistPidMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+void RSPipelineDumper::DumpExistPidMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
     if (!RSUniRenderJudgement::IsUniRender()) {
         dumpString.append("\n---------------\n Not in UniRender and no information");
@@ -441,7 +441,7 @@ void RSPiplineDumper::DumpExistPidMem(std::unordered_set<std::u16string>& argSet
     }
 }
 
-void RSPiplineDumper::DumpSurfaceNode(std::string& dumpString, NodeId id) const
+void RSPipelineDumper::DumpSurfaceNode(std::string& dumpString, NodeId id) const
 {
     dumpString.append("\n");
     dumpString.append("-- SurfaceNode\n");
@@ -490,7 +490,7 @@ void RSPiplineDumper::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     consumer->Dump(dumpString);
 }
 
-void RSPiplineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+void RSPipelineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
     if (!RSUniRenderJudgement::IsUniRender()) {
         dumpString.append("\n---------------\nNot in UniRender and no information");
@@ -512,13 +512,13 @@ void RSPiplineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std::
         });
 }
 
-void RSPiplineDumper::ScheduleTask(std::function<void()> task) const
+void RSPipelineDumper::ScheduleTask(std::function<void()> task) const
 {
     if (mainHandler_) {
         mainHandler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         return;
     }
-    RS_LOGE("RSPiplineDumper::ScheduleTask mainHandler_ is null");
+    RS_LOGE("RSPipelineDumper::ScheduleTask mainHandler_ is null");
 }
 } // Rosen
 } // OHOS

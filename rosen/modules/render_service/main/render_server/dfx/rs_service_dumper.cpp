@@ -108,7 +108,7 @@ static void DestroyGLES()
 
 void RSServiceDumper::RsDumpInit(std::shared_ptr<RSServiceDumpManager> rsDumpManager)
 {
-    // 用于renderService进程Dump初始化
+    // for renderService dump init
     RegisterGpuFuncs(rsDumpManager);
     RegisterMemFuncs(rsDumpManager);
     RegisterFpsFuncs(rsDumpManager);

@@ -34,7 +34,7 @@
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
 
-#include "dfx/rs_pipline_dumper.h"
+#include "dfx/rs_pipeline_dumper.h"
 #include "ge_mesa_blur_shader_filter.h"
 #include "ge_render.h"
 #include "graphic_feature_param_manager.h"
@@ -278,9 +278,9 @@ void RSRenderPipeline::InitUniRenderThread()
 
 void RSRenderPipeline::InitDumper(const std::shared_ptr<AppExecFwk::EventHandler>& handler)
 {
-    rpDumpManager_ = std::make_shared<RSPiplineDumpManager>();
-    rpDumper_ = std::make_shared<RSPiplineDumper>(handler);
-    rpDumper_->RpDumpInit(rpDumpManager_);
+    rpDumpManager_ = std::make_shared<RSPipelineDumpManager>();
+    rpDumper_ = std::make_shared<RSPipelineDumper>(handler);
+    rpDumper_->RenderPipelineDumpInit(rpDumpManager_);
 }
 
 bool RSRenderPipeline::RemoveConnection(const sptr<RSIConnectionToken>& token)

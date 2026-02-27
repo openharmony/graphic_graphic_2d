@@ -53,6 +53,7 @@ group("test") {
     "render_service/systemtest/pipeline:systemtest",
     "render_service/unittest/composer:unittest",
     "render_service/unittest/drawable:unittest",
+    "render_service/unittest/dfx:unittest",
     "render_service/unittest/feature:unittest",
     "render_service/unittest/feature_cfg:unittest",
     "render_service/unittest/memory:unittest",

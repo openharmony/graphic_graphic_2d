@@ -17,7 +17,7 @@
 #define RENDER_SERVICE_RS_PIPLINE_DUMPER_H
 #include <unordered_set>
 
-#include "rs_pipline_dump_manager.h"
+#include "rs_pipeline_dump_manager.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "vsync_controller.h"
 #include "vsync_distributor.h"
@@ -26,16 +26,16 @@ namespace OHOS {
 namespace Rosen {
 class RSMainThread;
 
-class RSPiplineDumper final {
+class RSPipelineDumper final {
 public:
-    RSPiplineDumper() {};
-    explicit RSPiplineDumper(std::shared_ptr<AppExecFwk::EventHandler> mainHandler);
-    ~RSPiplineDumper() {};
+    RSPipelineDumper() {};
+    explicit RSPipelineDumper(std::shared_ptr<AppExecFwk::EventHandler> mainHandler);
+    ~RSPipelineDumper() {};
 
-    RSPiplineDumper(const RSPiplineDumper&) = delete;
-    RSPiplineDumper& operator=(const RSPiplineDumper&) = delete;
+    RSPipelineDumper(const RSPipelineDumper&) = delete;
+    RSPipelineDumper& operator=(const RSPipelineDumper&) = delete;
 
-    void RpDumpInit(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
+    void RenderPipelineDumpInit(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
 
 private:
     void DumpNodesNotOnTheTree(std::string& dumpString) const;
@@ -52,12 +52,12 @@ private:
     uint32_t GenerateTaskId();
 
     // RS dump init
-    void RegisterRSGfxFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
-    void RegisterRSTreeFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
-    void RegisterMemFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
-    void RegisterGpuFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
-    void RegisterBufferFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
-    void RegisterSurfaceInfoFuncs(std::shared_ptr<RSPiplineDumpManager> rpDumpManager);
+    void RegisterRSGfxFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
+    void RegisterRSTreeFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
+    void RegisterMemFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
+    void RegisterGpuFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
+    void RegisterBufferFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
+    void RegisterSurfaceInfoFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
 
     void ScheduleTask(std::function<void()> task) const;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;

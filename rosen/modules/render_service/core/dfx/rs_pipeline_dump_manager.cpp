@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
-#include "rs_pipline_dump_manager.h"
+#include "rs_pipeline_dump_manager.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
-void RSPiplineDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out, sptr<RSIDumpCallback> callback)
+void RSPipelineDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets,
+    std::string &out, sptr<RSIDumpCallback> callback)
 {
     out += "\nRSProcessDump pid:";
     out += std::to_string(pid_);
@@ -31,12 +32,12 @@ void RSPiplineDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets, 
     callback->OnDumpResult(out);
 }
 
-void RSPiplineDumpManager::SetPid(int pid)
+void RSPipelineDumpManager::SetPid(int pid)
 {
     pid_ = pid;
 }
 
-void RSPiplineDumpManager::SetScreenId(unsigned long screenId)
+void RSPipelineDumpManager::SetScreenId(unsigned long screenId)
 {
     screenId_ = screenId;
 }

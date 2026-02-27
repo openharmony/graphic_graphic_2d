@@ -49,7 +49,7 @@
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #endif
-#include "core/dfx/rs_pipline_dump_manager.h"
+#include "core/dfx/rs_pipeline_dump_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"

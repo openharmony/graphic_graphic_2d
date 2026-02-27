@@ -2174,7 +2174,7 @@ private:
     friend class RSRenderNode;
     friend class RSRenderService;
     friend class RSHdrUtil;
-    friend class RSPiplineDumper;
+    friend class RSPipelineDumper;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

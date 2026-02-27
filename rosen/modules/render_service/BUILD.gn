@@ -291,8 +291,8 @@ ohos_shared_library("librender_service") {
   sources += [
     "core/drawable/dfx/rs_refresh_rate_dfx.cpp",
     "core/drawable/dfx/rs_skp_capture_dfx.cpp",
-    "core/dfx/rs_pipline_dump_manager.cpp",
-    "core/dfx/rs_pipline_dumper.cpp",
+    "core/dfx/rs_pipeline_dump_manager.cpp",
+    "core/dfx/rs_pipeline_dumper.cpp",
     "main/render_server/dfx/rs_service_dump_manager.cpp",
     "main/render_server/dfx/rs_service_dumper.cpp",
   ]
