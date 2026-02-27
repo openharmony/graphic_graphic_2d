@@ -320,6 +320,8 @@ public:
 
     void SetHDRPresent(bool hdrPresent);
 
+    bool GetHDRPresent() const;
+
     void SetBrightnessRatio(float brightnessRatio);
 
     void SetPixelFormat(const GraphicPixelFormat& pixelFormat)
