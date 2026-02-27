@@ -429,6 +429,24 @@ HWTEST_F(RSScreenRenderNodeTest, SetHDRPresentTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetHDRPresentTest
+ * @tc.desc: test results of GetHDRPresent
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, GetHDRPresentTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    ASSERT_EQ(node->stagingRenderParams_, nullptr);
+    EXPECT_EQ(node->GetHDRPresent(), false);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    node->SetHDRPresent(true);
+    node->stagingRenderParams_->SetNeedSync(true);
+    EXPECT_EQ(node->GetHDRPresent(), true);
+}
+
+/**
  * @tc.name: SetBrightnessRatioTest
  * @tc.desc: test results of SetBrightnessRatioTest
  * @tc.type:FUNC
