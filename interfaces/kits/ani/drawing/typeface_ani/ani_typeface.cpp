@@ -302,7 +302,7 @@ ani_object AniTypeface::MakeFromCurrent(ani_env* env, ani_object obj, ani_object
     auto rawTypeface = typeface->MakeClone(fontArguments);
     if (rawTypeface == nullptr) {
         ROSEN_LOGE("AniTypeface::MakeFromCurrent create rawTypeface failed.");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     AniTypeface* aniRawTypeface = new AniTypeface(rawTypeface);
@@ -310,7 +310,7 @@ ani_object AniTypeface::MakeFromCurrent(ani_env* env, ani_object obj, ani_object
         !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
         delete aniRawTypeface;
         ROSEN_LOGE("AniTypeface::MakeFromCurrent MakeRegister Typeface failed.");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,

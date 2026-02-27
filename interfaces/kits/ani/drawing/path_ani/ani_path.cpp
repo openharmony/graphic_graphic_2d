@@ -757,13 +757,13 @@ ani_object AniPath::Approximate(ani_env* env, ani_object obj, ani_double accepta
     std::vector<scalar> points;
     aniPath->GetPath()->Approximate(static_cast<scalar>(acceptableErrorobj), points);
 
-    uint32_t arrayLength = static_cast<uint32_t>(points.size());
+    int32_t arrayLength = static_cast<int32_t>(points.size());
     ani_array arrayObj = CreateAniArrayWithSize(env, arrayLength);
     if (arrayObj == nullptr) {
         return CreateAniUndefined(env);
     }
     
-    for (size_t i = 0; i < points.size(); ++i) {
+    for (int32_t i = 0; i < points.size(); ++i) {
         ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().doubleCls,
             AniGlobalMethod::GetInstance().doubleCtor, points[i]);
         if (IsUndefined(env, aniObj)) {

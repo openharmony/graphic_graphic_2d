@@ -147,19 +147,15 @@ ani_object AniImageFilter::createComposeImageFilter(ani_env* env, ani_object obj
 {
     AniImageFilter* aniCouterImageFilter = nullptr;
     AniImageFilter* aniCinnerImageFilter = nullptr;
-    if (!IsNull(env, cOuterImageFilterobj) && !IsUndefined(env, cOuterImageFilterobj) &&
-        !IsNull(env, cInnerImageFilterobj) && !IsUndefined(env, cInnerImageFilterobj)) {
-        aniCouterImageFilter = GetNativeFromObj<AniImageFilter>(env, cOuterImageFilterobj,
-            AniGlobalField::GetInstance().imageFilterNativeObj);
+    aniCouterImageFilter = GetNativeFromObj<AniImageFilter>(env, cOuterImageFilterobj,
+        AniGlobalField::GetInstance().imageFilterNativeObj);
 
-        aniCinnerImageFilter = GetNativeFromObj<AniImageFilter>(env, cInnerImageFilterobj,
-            AniGlobalField::GetInstance().imageFilterNativeObj);
-        if (aniCouterImageFilter == nullptr || aniCinnerImageFilter == nullptr) {
-            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param imageFilter.");
-            return CreateAniUndefined(env);
-        }
+    aniCinnerImageFilter = GetNativeFromObj<AniImageFilter>(env, cInnerImageFilterobj,
+        AniGlobalField::GetInstance().imageFilterNativeObj);
+    if (aniCouterImageFilter == nullptr || aniCinnerImageFilter == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param imageFilter.");
+        return CreateAniUndefined(env);
     }
-
     AniImageFilter* imageFilter = new AniImageFilter(ImageFilter::CreateComposeImageFilter(aniCouterImageFilter ?
         aniCouterImageFilter->GetImageFilter() : nullptr, aniCinnerImageFilter ?
         aniCinnerImageFilter->GetImageFilter() : nullptr));
@@ -179,19 +175,15 @@ ani_object AniImageFilter::createBlendImageFilter(ani_env* env, ani_object obj, 
 {
     AniImageFilter* anibackgroundImageFilter = nullptr;
     AniImageFilter* aniforegroundImageFilter = nullptr;
-    if (!IsNull(env, backgroundImageFilteObj) && !IsUndefined(env, backgroundImageFilteObj) &&
-        !IsNull(env, foregroundImageFilterobj) && !IsUndefined(env, foregroundImageFilterobj)) {
-        anibackgroundImageFilter = GetNativeFromObj<AniImageFilter>(env, backgroundImageFilteObj,
-            AniGlobalField::GetInstance().imageFilterNativeObj);
+    anibackgroundImageFilter = GetNativeFromObj<AniImageFilter>(env, backgroundImageFilteObj,
+        AniGlobalField::GetInstance().imageFilterNativeObj);
 
-        aniforegroundImageFilter = GetNativeFromObj<AniImageFilter>(env, foregroundImageFilterobj,
-            AniGlobalField::GetInstance().imageFilterNativeObj);
-        if (anibackgroundImageFilter == nullptr || aniforegroundImageFilter == nullptr) {
-            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param imageFilter.");
-            return CreateAniUndefined(env);
-        }
+    aniforegroundImageFilter = GetNativeFromObj<AniImageFilter>(env, foregroundImageFilterobj,
+        AniGlobalField::GetInstance().imageFilterNativeObj);
+    if (anibackgroundImageFilter == nullptr || aniforegroundImageFilter == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param imageFilter.");
+        return CreateAniUndefined(env);
     }
-
     ani_int blendMode;
     ani_status ret = env->EnumItem_GetValue_Int(blendModeobj, &blendMode);
     if (ret != ANI_OK) {
@@ -213,18 +205,13 @@ ani_object AniImageFilter::createBlendImageFilter(ani_env* env, ani_object obj, 
 }
 ani_object AniImageFilter::CreateFromShaderEffect(ani_env* env, ani_object obj, ani_object aniShaderEffectobj)
 {
-    ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(aniShaderEffectobj, &isNull);
     AniShaderEffect* aniShaderEffect = nullptr;
-    if (!isNull) {
-        aniShaderEffect = GetNativeFromObj<AniShaderEffect>(env, aniShaderEffectobj,
-            AniGlobalField::GetInstance().shaderEffectNativeObj);
-        if (aniShaderEffect == nullptr) {
-            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param shaderEffect.");
-            return CreateAniUndefined(env);
-        }
+    aniShaderEffect = GetNativeFromObj<AniShaderEffect>(env, aniShaderEffectobj,
+        AniGlobalField::GetInstance().shaderEffectNativeObj);
+    if (aniShaderEffect == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param shaderEffect.");
+        return CreateAniUndefined(env);
     }
-
     std::shared_ptr<ShaderEffect> shaderEffect = aniShaderEffect->GetShaderEffect();
     AniImageFilter* imageFilter = new AniImageFilter(ImageFilter::CreateShaderImageFilter(shaderEffect));
 
