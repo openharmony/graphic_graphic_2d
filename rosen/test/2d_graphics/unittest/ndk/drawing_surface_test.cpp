@@ -255,6 +255,35 @@ HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_Utils, TestSize.Leve
     EXPECT_EQ(ret, false);
     DrawingSurfaceUtils::RemoveSurface(surface.get());
 }
+
+/*
+ * @tc.name: NativeDrawingSurfaceTest_CreateOnScreen002
+ * @tc.desc: test the handling of the mismatch between the size of imageInfo and buffersize.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_CreateOnScreen002, TestSize.Level1)
+{
+    gpuContext_ = OH_Drawing_GpuContextCreate();
+    EXPECT_NE(gpuContext_, nullptr);
+    int fenceFd = -1;
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    OHNativeWindow *nativeWindow = reinterpret_cast<OHNativeWindow *>(window_);
+    auto res = NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
+    EXPECT_EQ(res, OHOS::GSERROR_OK);
+    OH_NativeBuffer* nativeBuffer = nullptr;
+    auto ret = OH_NativeBuffer_FromNativeWindowBuffer(nativeWindowBuffer, &nativeBuffer);
+    EXPECT_EQ(ret, OHOS::GSERROR_OK);
+    OH_NativeBuffer_Config config = {};
+    OH_NativeBuffer_GetConfig(nativeBuffer, &config);
+    const int32_t width = config.width + 100;
+    const int32_t height = config.height + 100;
+    OH_Drawing_Image_Info imageInfo = {width, height, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    surface_ = OH_Drawing_SurfaceCreateOnScreen(gpuContext_, imageInfo, window_);
+    EXPECT_EQ(surface_, nullptr);
+    OH_Drawing_SurfaceDestroy(surface_);
+    OH_Drawing_GpuContextDestroy(gpuContext_);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
