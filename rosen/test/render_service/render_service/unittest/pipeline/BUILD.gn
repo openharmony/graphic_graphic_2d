@@ -671,6 +671,11 @@ ohos_unittest("RSUniRenderVisitorTest") {
     "mock/mock_matrix.cpp",
     "mock/mock_rs_luminance_control.cpp",
   ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",

@@ -255,6 +255,7 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
+    hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     auto rsScreen = std::make_shared<RSScreen>(screenId_);
     screenManager_->MockHdiScreenConnected(rsScreen);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
@@ -278,10 +279,15 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
     renderProcessManagerAgent_ = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService_.renderProcessManager_);
     screenManagerAgent_ = new RSScreenManagerAgent(screenManager_);
 
+    renderService_.vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
+    renderService_.vsyncManager_->init(screenManager_);
+    renderService_.rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(renderService.handler_,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
     token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
     connectionStub_ =
         sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
-            renderProcessManagerAgent_, screenManagerAgent_, token_->AsObject(), nullptr);
+            renderProcessManagerAgent_, screenManagerAgent_, token_->AsObject(),
+            renderService_.vsyncManager_->GetVsyncManagerAgent());
 }
 
 void RSClientToServiceConnectionStubTest::TearDownTestCase()

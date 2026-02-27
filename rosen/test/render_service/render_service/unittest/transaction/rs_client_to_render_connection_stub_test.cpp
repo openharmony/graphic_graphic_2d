@@ -154,6 +154,7 @@ void RSClientToRenderConnectionStubTest::TearDownTestCase()
 
     renderPipeline_->mainThread_->handler_ = nullptr;
     renderPipeline_->mainThread_->receiver_ = nullptr;
+    renderPipeline_->mainThread_->content_ = nullptr;
 
     renderPipeline_->uniRenderThread_->handler_ = nullptr;
     renderPipeline_->uniRenderThread_->runner_ = nullptr;
@@ -163,6 +164,7 @@ void RSClientToRenderConnectionStubTest::TearDownTestCase()
     hdiDeviceMock_ = nullptr;
     token_ = nullptr;
     connectionStub_ = nullptr;
+    surfaceNode_ = nullptr;
 }
 
 void RSClientToRenderConnectionStubTest::SetUp() {}
@@ -1003,6 +1005,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
     res = renderPipelineAgent_->FreezeScreen(displayNodeId, true);
     usleep(TIME_OF_FREEZE_TASK);
     ASSERT_EQ(res, ERR_OK);
+    nodeMap.UnregisterRenderNode(displayNode->GetId());
+    nodeMap.UnregisterRenderNode(screenNode->GetId());
 }
 
 /**
@@ -1080,6 +1084,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
         displayNodeId, callback, captureConfig, true, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
+    nodeMap.UnregisterRenderNode(displayNode->GetId());
 }
 
 /**
@@ -1883,6 +1888,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureSoloTest001, Test
     data2.WriteBool(captureConfig.isSync);
     data2.WriteBool(captureConfig.isHdrCapture);
     data2.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data2.WriteBool(captureConfig.needErrorCode);
     data2.WriteFloat(captureConfig.mainScreenRect.left_);
     data2.WriteFloat(captureConfig.mainScreenRect.top_);
     data2.WriteFloat(captureConfig.mainScreenRect.right_);
@@ -1895,6 +1901,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureSoloTest001, Test
     data2.WriteFloat(captureConfig.specifiedAreaRect.right_);
     data2.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data2.WriteUint32(captureConfig.backGroundColor);
+    data2.WriteUint32(captureConfig.colorSpace.first);
+    data2.WriteBool(captureConfig.colorSpace.second);
+    data2.WriteUint32(captureConfig.dynamicRangeMode.first);
+    data2.WriteBool(captureConfig.dynamicRangeMode.second);
+    data2.WriteBool(captureConfig.isSyncRender);
 
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
@@ -1961,6 +1972,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest001, Test
     data2.WriteBool(captureConfig.isSync);
     data2.WriteBool(captureConfig.isHdrCapture);
     data2.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data2.WriteBool(captureConfig.needErrorCode);
     data2.WriteFloat(captureConfig.mainScreenRect.left_);
     data2.WriteFloat(captureConfig.mainScreenRect.top_);
     data2.WriteFloat(captureConfig.mainScreenRect.right_);
@@ -1973,7 +1985,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest001, Test
     data2.WriteFloat(captureConfig.specifiedAreaRect.right_);
     data2.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data2.WriteUint32(captureConfig.backGroundColor);
-
+    data2.WriteUint32(captureConfig.colorSpace.first);
+    data2.WriteBool(captureConfig.colorSpace.second);
+    data2.WriteUint32(captureConfig.dynamicRangeMode.first);
+    data2.WriteBool(captureConfig.dynamicRangeMode.second);
+    data2.WriteBool(captureConfig.isSyncRender);
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
 }
@@ -2073,6 +2089,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetWindowFreezeImmediatelyTest001, 
     data3.WriteBool(captureConfig.isSync);
     data3.WriteBool(captureConfig.isHdrCapture);
     data3.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data3.WriteBool(captureConfig.needErrorCode);
     data3.WriteFloat(captureConfig.mainScreenRect.left_);
     data3.WriteFloat(captureConfig.mainScreenRect.top_);
     data3.WriteFloat(captureConfig.mainScreenRect.right_);
@@ -2085,7 +2102,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetWindowFreezeImmediatelyTest001, 
     data3.WriteFloat(captureConfig.specifiedAreaRect.right_);
     data3.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data3.WriteUint32(captureConfig.backGroundColor);
-
+    data3.WriteUint32(captureConfig.colorSpace.first);
+    data3.WriteBool(captureConfig.colorSpace.second);
+    data3.WriteUint32(captureConfig.dynamicRangeMode.first);
+    data3.WriteBool(captureConfig.dynamicRangeMode.second);
+    data3.WriteBool(captureConfig.isSyncRender);
     // Write blurParam
     data3.WriteBool(false); // isNeedBlur
     data3.WriteFloat(0.0f); // blurRadius
@@ -2231,6 +2252,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest001, TestSi
     data2.WriteBool(captureConfig.isSync);
     data2.WriteBool(captureConfig.isHdrCapture);
     data2.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data3.WriteBool(captureConfig.needErrorCode);
     data2.WriteFloat(captureConfig.mainScreenRect.left_);
     data2.WriteFloat(captureConfig.mainScreenRect.top_);
     data2.WriteFloat(captureConfig.mainScreenRect.right_);
@@ -2243,7 +2265,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest001, TestSi
     data2.WriteFloat(captureConfig.specifiedAreaRect.right_);
     data2.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data2.WriteUint32(captureConfig.backGroundColor);
-
+    data2.WriteUint32(captureConfig.colorSpace.first);
+    data2.WriteBool(captureConfig.colorSpace.second);
+    data2.WriteUint32(captureConfig.dynamicRangeMode.first);
+    data2.WriteBool(captureConfig.dynamicRangeMode.second);
+    data2.WriteBool(captureConfig.isSyncRender);
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
 }
