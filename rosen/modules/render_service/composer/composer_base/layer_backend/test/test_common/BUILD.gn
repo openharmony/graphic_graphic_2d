@@ -39,7 +39,7 @@ ohos_static_library("layer_backend_test_impl") {
   }
 
   sanitize = {
-    cfi = true
+    cfi = false
     cfi_cross_dso = true
     debug = false
   }
