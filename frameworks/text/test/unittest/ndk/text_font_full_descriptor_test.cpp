@@ -28,6 +28,7 @@ constexpr const char* SYMBOL_FILE = "/system/fonts/HMSymbolVF.ttf";
 constexpr const char* SYMBOL_CONFIG_FILE = "/system/fonts/hm_symbol_config_next.json";
 constexpr const char* CJK_FILE = "/system/fonts/NotoSansCJK-Regular.ttc";
 constexpr const char* NOTO_SANS_FILE = "/system/fonts/NotoSans[wdth,wght].ttf";
+constexpr const char* FTTOKEN_FILE = "/system/fonts/FTToken.ttf";
 
 #define CJK_SANS_DESC(lower, upper)                                                                                    \
     {                                                                                                                  \
@@ -53,7 +54,66 @@ FontDesc SYMBOL_DESC = { .path = "",
     .width = 5,
     .italic = false,
     .monoSpace = false,
-    .symbolic = false };
+    .symbolic = false,
+    .variationAxisRecords = {
+        {
+            .key = "wght",
+            .minValue = 40.0,
+            .maxValue = 900.0,
+            .defaultValue = 400.0,
+            .flags = 0,
+            .name = "Weight",
+            .localName = "Weight",
+        }
+    },
+    .variationInstanceRecords = {
+        {
+            .name = "Thin",
+            .localName = "Thin",
+            .coordinates = {{.axis = "wght", .value = 100.0}},
+        },
+        {
+            .name = "UltraLight",
+            .localName = "UltraLight",
+            .coordinates = {{.axis = "wght", .value = 173.0}},
+        },
+        {
+            .name = "Light",
+            .localName = "Light",
+            .coordinates = {{.axis = "wght", .value = 247.0}},
+        },
+        {
+            .name = "Regular",
+            .localName = "Regular",
+            .coordinates = {{.axis = "wght", .value = 400.0}},
+        },
+        {
+            .name = "Medium",
+            .localName = "Medium",
+            .coordinates = {{.axis = "wght", .value = 500.0}},
+        },
+        {
+            .name = "SemiBold",
+            .localName = "SemiBold",
+            .coordinates = {{.axis = "wght", .value = 603.0}},
+        },
+        {
+            .name = "Bold",
+            .localName = "Bold",
+            .coordinates = {{.axis = "wght", .value = 706.0}},
+        },
+        {
+            .name = "Heavy",
+            .localName = "Heavy",
+            .coordinates = {{.axis = "wght", .value = 772.0}},
+        },
+        {
+            .name = "Black",
+            .localName = "Black",
+            .coordinates = {{.axis = "wght", .value = 844.0}},
+        },
+    }
+};
 
 FontDesc NOTO_SANS_DESC = {
     .path = "",
@@ -316,5 +376,279 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest006, TestSize.Level
     int32_t intAttr;
     OH_Drawing_GetFontFullDescriptorAttributeInt(desc, FULL_DESCRIPTOR_ATTR_I_INDEX, &intAttr);
     EXPECT_EQ(NOTO_SANS_DESC.index, intAttr);
+}
+
+/*
+ * @tc.name: NdkFontFullDescriptorTest007
+ * @tc.desc: test for OH_Drawing_GetFontFullDescriptorAttributeArray with HMSymbolVF variable font
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level0)
+{
+    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(SYMBOL_FILE);
+    EXPECT_NE(fontFullDescArr, nullptr);
+    size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
+    EXPECT_EQ(size, 1);
+    auto desc = OH_Drawing_GetFontFullDescriptorByIndex(fontFullDescArr, 0);
+    EXPECT_NE(desc, nullptr);
+
+    OH_Drawing_Array* axisArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_AXIS);
+    EXPECT_NE(axisArray, nullptr);
+    size_t axisSize = OH_Drawing_GetDrawingArraySize(axisArray);
+    EXPECT_EQ(axisSize, 1);
+
+    auto axis = OH_Drawing_GetFontVariationAxisByIndex(nullptr, 0);
+    EXPECT_EQ(axis, nullptr);
+    axis = OH_Drawing_GetFontVariationAxisByIndex(axisArray, 0);
+    EXPECT_NE(axis, nullptr);
+
+    OH_Drawing_String str;
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_KEY, &str);
+    std::string axisKey = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+        str.strLen / sizeof(char16_t)));
+    EXPECT_EQ(axisKey, SYMBOL_DESC.variationAxisRecords[0].key);
+    free(str.strData);
+
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_NAME, &str);
+    std::string axisName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+        str.strLen / sizeof(char16_t)));
+    EXPECT_EQ(axisName, SYMBOL_DESC.variationAxisRecords[0].name);
+    free(str.strData);
+
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_LOCAL_NAME, &str);
+    std::string axisLocalName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+        str.strLen / sizeof(char16_t)));
+    EXPECT_EQ(axisLocalName, SYMBOL_DESC.variationAxisRecords[0].localName);
+    free(str.strData);
+
+    double doubleValue;
+    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, &doubleValue);
+    EXPECT_EQ(doubleValue, SYMBOL_DESC.variationAxisRecords[0].minValue);
+    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_DEFAULT_VALUE,
+        &doubleValue);
+    EXPECT_EQ(doubleValue, SYMBOL_DESC.variationAxisRecords[0].defaultValue);
+    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_MAX_VALUE, &doubleValue);
+    EXPECT_EQ(doubleValue, SYMBOL_DESC.variationAxisRecords[0].maxValue);
+
+    int flag;
+    OH_Drawing_GetFontVariationAxisAttributeInt(axis, FONT_VARIATION_AXIS_ATTR_I_FLAGS, &flag);
+    EXPECT_EQ(flag, 0);
+
+    OH_Drawing_DestroyFontFullDescriptors(fontFullDescArr);
+    OH_Drawing_DestroyFontVariationAxis(axisArray);
+    // test null input for DestroyFontVariationAxis
+    OH_Drawing_DestroyFontVariationAxis(nullptr);
+}
+
+/*
+ * @tc.name: NdkFontFullDescriptorTest008
+ * @tc.desc: test for OH_Drawing_GetFontFullDescriptorByFullName with various parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level0)
+{
+    const OH_Drawing_FontFullDescriptor* desc = OH_Drawing_GetFontFullDescriptorByFullName(nullptr,
+        OH_Drawing_SystemFontType::ALL);
+    EXPECT_EQ(desc, nullptr);
+
+    OH_Drawing_String emptyStr = { .strData = nullptr, .strLen = 0 };
+    desc = OH_Drawing_GetFontFullDescriptorByFullName(&emptyStr, OH_Drawing_SystemFontType::ALL);
+    EXPECT_EQ(desc, nullptr);
+
+    std::string nonExistent = "NonExistentFontName12345";
+    std::u16string u16NonExistent = OHOS::Str8ToStr16(nonExistent);
+    OH_Drawing_String fullNameStr = {
+        .strData = reinterpret_cast<uint8_t*>(u16NonExistent.data()),
+        .strLen = static_cast<uint32_t>(u16NonExistent.length() * sizeof(char16_t))
+    };
+    desc = OH_Drawing_GetFontFullDescriptorByFullName(&fullNameStr, OH_Drawing_SystemFontType::ALL);
+    EXPECT_EQ(desc, nullptr);
+
+    std::string Existent = "Noto Sans Telugu Regular";
+    std::u16string u16Existent = OHOS::Str8ToStr16(Existent);
+    fullNameStr = {
+        .strData = reinterpret_cast<uint8_t*>(u16Existent.data()),
+        .strLen = static_cast<uint32_t>(u16Existent.length() * sizeof(char16_t))
+    };
+    desc = OH_Drawing_GetFontFullDescriptorByFullName(&fullNameStr, OH_Drawing_SystemFontType::ALL);
+
+    OH_Drawing_Array* axisArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_AXIS);
+    auto axis = OH_Drawing_GetFontVariationAxisByIndex(axisArray, 0);
+    EXPECT_NE(axis, nullptr);
+
+    OH_Drawing_String str;
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_KEY, &str);
+    std::string axisKey = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+        str.strLen / sizeof(char16_t)));
+    EXPECT_EQ(axisKey, "wght");
+    free(str.strData);
+
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_NAME, &str);
+    std::string axisName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+        str.strLen / sizeof(char16_t)));
+    EXPECT_EQ(axisName, SYMBOL_DESC.variationAxisRecords[0].name);
+    free(str.strData);
+
+    OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_LOCAL_NAME, &str);
+    std::string axisLocalName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+        str.strLen / sizeof(char16_t)));
+    EXPECT_EQ(axisLocalName, SYMBOL_DESC.variationAxisRecords[0].localName);
+    free(str.strData);
+
+    double doubleValue;
+    OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, &doubleValue);
+    EXPECT_EQ(doubleValue, 100);
+
+    OH_Drawing_DestroyFontVariationAxis(axisArray);
+}
+
+/*
+ * @tc.name: NdkFontFullDescriptorTest009
+ * @tc.desc: test for all variation instances weight values in HMSymbolVF variable font
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level0)
+{
+    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(SYMBOL_FILE);
+    auto desc = OH_Drawing_GetFontFullDescriptorByIndex(fontFullDescArr, 0);
+    EXPECT_NE(desc, nullptr);
+
+    OH_Drawing_Array* instanceArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_I_INDEX);
+    EXPECT_EQ(instanceArray, nullptr);
+
+    instanceArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_INSTANCE);
+    EXPECT_NE(instanceArray, nullptr);
+    size_t instanceSize = OH_Drawing_GetDrawingArraySize(instanceArray);
+    EXPECT_EQ(instanceSize, 9);
+
+    for (size_t i = 0; i < instanceSize; i++) {
+        auto instance = OH_Drawing_GetFontVariationInstanceByIndex(instanceArray, i);
+        EXPECT_NE(instance, nullptr);
+
+        OH_Drawing_String str;
+        OH_Drawing_GetFontVariationInstanceAttributeStr(instance, FONT_VARIATION_INSTANCE_ATTR_S_NAME, &str);
+        std::string instanceName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+            str.strLen / sizeof(char16_t)));
+        EXPECT_EQ(instanceName, SYMBOL_DESC.variationInstanceRecords[i].name);
+        free(str.strData);
+        OH_Drawing_GetFontVariationInstanceAttributeStr(instance, FONT_VARIATION_INSTANCE_ATTR_S_LOCAL_NAME, &str);
+        instanceName = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+            str.strLen / sizeof(char16_t)));
+        EXPECT_EQ(instanceName, SYMBOL_DESC.variationInstanceRecords[i].localName);
+        free(str.strData);
+        size_t coordLength = 0;
+        OH_Drawing_FontVariationInstanceCoordinate* coords =
+            OH_Drawing_GetFontVariationInstanceCoordinate(nullptr, &coordLength);
+        EXPECT_EQ(coords, nullptr);
+        coords = OH_Drawing_GetFontVariationInstanceCoordinate(instance, &coordLength);
+        EXPECT_NE(coords, nullptr);
+        EXPECT_EQ(coordLength, SYMBOL_DESC.variationInstanceRecords[i].coordinates.size());
+        for (size_t j = 0; j < coordLength; j++) {
+            EXPECT_EQ(std::string(coords[j].axisKey),
+                SYMBOL_DESC.variationInstanceRecords[i].coordinates[j].axis);
+            EXPECT_EQ(coords[j].value, SYMBOL_DESC.variationInstanceRecords[i].coordinates[j].value);
+        }
+        free(coords);
+    }
+
+    OH_Drawing_DestroyFontFullDescriptors(fontFullDescArr);
+    OH_Drawing_DestroyFontVariationInstance(instanceArray);
+    // test null input for DestroyFontVariationInstance
+    OH_Drawing_DestroyFontVariationInstance(nullptr);
+}
+
+/*
+ * @tc.name: NdkFontFullDescriptorTest010
+ * @tc.desc: test for unvariable font FTToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest010, TestSize.Level0)
+{
+    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(FTTOKEN_FILE);
+    EXPECT_NE(fontFullDescArr, nullptr);
+    size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
+    EXPECT_EQ(size, 1);
+    auto desc = OH_Drawing_GetFontFullDescriptorByIndex(fontFullDescArr, 0);
+    EXPECT_NE(desc, nullptr);
+
+    OH_Drawing_Array* instanceArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_INSTANCE);
+    EXPECT_EQ(instanceArray, nullptr);
+    instanceArray = OH_Drawing_GetFontFullDescriptorAttributeArray(nullptr,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_INSTANCE);
+    EXPECT_EQ(instanceArray, nullptr);
+    OH_Drawing_Array* axisArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_AXIS);
+    EXPECT_EQ(axisArray, nullptr);
+    axisArray = OH_Drawing_GetFontFullDescriptorAttributeArray(nullptr,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_AXIS);
+    EXPECT_EQ(axisArray, nullptr);
+    auto axis = OH_Drawing_GetFontVariationAxisByIndex(axisArray, 0);
+    EXPECT_EQ(axis, nullptr);
+    auto instance = OH_Drawing_GetFontVariationInstanceByIndex(instanceArray, 0);
+    EXPECT_EQ(instance, nullptr);
+}
+
+/*
+ * @tc.name: NdkFontFullDescriptorTest011
+ * @tc.desc: test error handling of OH_Drawing_GetFontVariationAxisAttributeDouble/Int/Str
+ *           and OH_Drawing_GetFontVariationInstanceAttributeStr (nullptr / invalid id)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest011, TestSize.Level0)
+{
+    OH_Drawing_Array* arr = OH_Drawing_GetFontFullDescriptorsFromPath(SYMBOL_FILE);
+    auto desc = OH_Drawing_GetFontFullDescriptorByIndex(arr, 0);
+    OH_Drawing_Array* axisArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_AXIS);
+    auto axis = OH_Drawing_GetFontVariationAxisByIndex(axisArray, 0);
+    OH_Drawing_Array* instanceArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_INSTANCE);
+    auto instance = OH_Drawing_GetFontVariationInstanceByIndex(instanceArray, 0);
+
+    double dVal;
+    int iVal;
+    OH_Drawing_String str = {nullptr, 0};
+
+    EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeDouble(nullptr,
+        FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, &dVal), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeDouble(axis,
+        FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeDouble(axis,
+        (OH_Drawing_FontVariationAxisAttributeId)999, &dVal), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+
+    EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeInt(nullptr,
+        FONT_VARIATION_AXIS_ATTR_I_FLAGS, &iVal), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeInt(axis,
+        FONT_VARIATION_AXIS_ATTR_I_FLAGS, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeInt(axis,
+        (OH_Drawing_FontVariationAxisAttributeId)999, &iVal), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+
+    EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeStr(nullptr,
+        FONT_VARIATION_AXIS_ATTR_S_KEY, &str), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    free(str.strData);
+    EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeStr(axis,
+        FONT_VARIATION_AXIS_ATTR_S_KEY, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    free(str.strData);
+    EXPECT_EQ(OH_Drawing_GetFontVariationAxisAttributeStr(axis,
+        (OH_Drawing_FontVariationAxisAttributeId)999, &str), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    free(str.strData);
+
+    EXPECT_EQ(OH_Drawing_GetFontVariationInstanceAttributeStr(nullptr,
+        FONT_VARIATION_INSTANCE_ATTR_S_NAME, &str), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    free(str.strData);
+    EXPECT_EQ(OH_Drawing_GetFontVariationInstanceAttributeStr(instance,
+        FONT_VARIATION_INSTANCE_ATTR_S_NAME, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    free(str.strData);
+    EXPECT_EQ(OH_Drawing_GetFontVariationInstanceAttributeStr(instance,
+        (OH_Drawing_FontVariationInstanceAttributeId)999, &str), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    free(str.strData);
+
+    OH_Drawing_DestroyFontVariationAxis(axisArray);
+    OH_Drawing_DestroyFontVariationInstance(instanceArray);
 }
 } // namespace OHOS
