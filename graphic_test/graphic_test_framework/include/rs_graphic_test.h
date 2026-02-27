@@ -26,6 +26,12 @@
 namespace OHOS {
 namespace Rosen {
 class RSGraphicRootNode;
+
+enum class CaptureScope : uint8_t {
+    MAIN_SURFACE = 0,
+    FULL_DISPLAY,
+};
+
 class RSGraphicTest : public testing::Test {
 public:
     std::shared_ptr<RSGraphicRootNode> GetRootNode() const;
@@ -36,6 +42,14 @@ public:
     void RegisterNode(std::shared_ptr<RSNode> node);
     void StartUIAnimation();
     void SetScreenSize(float width, float height);
+
+    // Sub-window convenience APIs
+    SubWindowId CreateSubWindow(const SubWindowOptions& options);
+    std::shared_ptr<RSSurfaceNode> GetSubWindow(SubWindowId id);
+    std::shared_ptr<RSSurfaceNode> GetSubWindowTestSurface(SubWindowId id);
+    bool AddChildToSubWindow(SubWindowId id, std::shared_ptr<RSNode> child, int childIndex = -1);
+    bool RemoveSubWindow(SubWindowId id);
+    void SetCaptureScope(CaptureScope scope);
 
     // overrides gtest functions
     static void SetUpTestCase();
@@ -63,6 +77,7 @@ private:
     std::vector<std::shared_ptr<RSNode>> nodes_;
     static uint32_t imageWriteId_;
     std::string imageSavePath_ = "";
+    CaptureScope captureScope_ = CaptureScope::MAIN_SURFACE;
 };
 } // namespace Rosen
 } // namespace OHOS

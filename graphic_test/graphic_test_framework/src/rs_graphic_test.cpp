@@ -179,8 +179,11 @@ void RSGraphicTest::TestCaseCapture(bool isScreenshot)
     const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
         testInfo->test_case_name(), testInfo->name());
 
+    bool useDisplayCapture = isScreenshot ||
+        (captureScope_ == CaptureScope::FULL_DISPLAY) ||
+        GetRootNode()->HasSubWindows();
     auto pixelMap = RSGraphicTestDirector::Instance().TakeScreenCaptureAndWait(
-        RSParameterParse::Instance().surfaceCaptureWaitTime, isScreenshot);
+        RSParameterParse::Instance().surfaceCaptureWaitTime, useDisplayCapture);
     if (pixelMap) {
         std::string filename = GetImageSavePath(extInfo->filePath);
         filename += testInfo->test_case_name();
@@ -204,6 +207,7 @@ void RSGraphicTest::TestCaseCapture(bool isScreenshot)
 void RSGraphicTest::TearDown()
 {
     if (!shouldRunTest_ || RSParameterParse::Instance().skipCapture_) {
+        GetRootNode()->ResetSubWindows();
         GetRootNode()->ResetTestSurface();
         nodes_.clear();
         return;
@@ -243,6 +247,7 @@ void RSGraphicTest::TearDown()
         PlaybackStop();
     }
 
+    GetRootNode()->ResetSubWindows();
     GetRootNode()->ResetTestSurface();
     nodes_.clear();
     RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear");
@@ -360,6 +365,37 @@ std::string RSGraphicTest::GetImageSavePath(const std::string path)
 void RSGraphicTest::StartUIAnimation()
 {
     RSGraphicTestDirector::Instance().StartRunUIAnimation();
+}
+
+SubWindowId RSGraphicTest::CreateSubWindow(const SubWindowOptions& options)
+{
+    return GetRootNode()->CreateSubWindow(options);
+}
+
+std::shared_ptr<RSSurfaceNode> RSGraphicTest::GetSubWindow(SubWindowId id)
+{
+    return GetRootNode()->GetSubWindow(id);
+}
+
+std::shared_ptr<RSSurfaceNode> RSGraphicTest::GetSubWindowTestSurface(SubWindowId id)
+{
+    return GetRootNode()->GetSubWindowTestSurface(id);
+}
+
+bool RSGraphicTest::AddChildToSubWindow(
+    SubWindowId id, std::shared_ptr<RSNode> child, int childIndex)
+{
+    return GetRootNode()->AddChildToSubWindow(id, child, childIndex);
+}
+
+bool RSGraphicTest::RemoveSubWindow(SubWindowId id)
+{
+    return GetRootNode()->RemoveSubWindow(id);
+}
+
+void RSGraphicTest::SetCaptureScope(CaptureScope scope)
+{
+    captureScope_ = scope;
 }
 } // namespace Rosen
 } // namespace OHOS

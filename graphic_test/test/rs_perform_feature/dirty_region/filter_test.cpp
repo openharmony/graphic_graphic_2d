@@ -540,4 +540,167 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter13)
     usleep(SLEEP_TIME_FOR_PROXY);
     TestCaseCapture();
 }
+/*
+ * @tc.name: MultiWindowFilter01
+ * @tc.desc: sub-window with background blur occludes main window content
+ * @tc.type: FUNC
+ * @tc.require: issueICP02F
+ */
+GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
+    RegisterNode(testNode);
+    GetRootNode()->AddChild(testNode);
+
+    auto movingNode = RSCanvasNode::Create();
+    RegisterNode(movingNode);
+    movingNode->SetBounds(DEFAULT_BOUNDS);
+    movingNode->SetTranslate({ 0, 0 });
+    movingNode->SetBackgroundColor(COLOR_RED);
+    DoAnimation(movingNode, DEFAULT_TRANSLATE);
+    testNode->AddChild(movingNode);
+
+    SubWindowOptions opts;
+    opts.bounds = { 200, 200, 600, 600 }; // sub-window offset and size
+    opts.order = SubWindowOrder::ABOVE_MAIN;
+    opts.contentBgColor = 0x80000000; // semi-transparent black background
+    auto subId = CreateSubWindow(opts);
+
+    auto blurNode = RSCanvasNode::Create();
+    RegisterNode(blurNode);
+    blurNode->SetBounds({ 0, 0, 300, 300 }); // partial coverage within sub-window
+    blurNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
+    blurNode->SetAlpha(DEFAULT_ALPHA);
+    blurNode->SetBackgroundColor(COLOR_BLUE);
+    GetRootNode()->AddChildToSubWindow(subId, blurNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: MultiWindowFilter02
+ * @tc.desc: main window foreground blur, sub-window behind main window
+ * @tc.type: FUNC
+ * @tc.require: issueICP02F
+ */
+GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter02)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
+    RegisterNode(testNode);
+    testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
+    GetRootNode()->AddChild(testNode);
+
+    SubWindowOptions opts;
+    opts.bounds = { 100, 100, 500, 500 }; // sub-window offset and size
+    opts.order = SubWindowOrder::BELOW_MAIN;
+    opts.contentBgColor = 0x80000000; // semi-transparent black background
+    auto subId = CreateSubWindow(opts);
+
+    auto subContent = RSCanvasNode::Create();
+    RegisterNode(subContent);
+    subContent->SetBounds({ 0, 0, 300, 300 }); // partial coverage within sub-window
+    subContent->SetBackgroundColor(COLOR_BLUE);
+    subContent->SetTranslate({ 0, 0 });
+    DoAnimation(subContent, DEFAULT_TRANSLATE);
+    GetRootNode()->AddChildToSubWindow(subId, subContent);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: MultiWindowFilter03
+ * @tc.desc: two sub-windows with blur overlapping each other
+ * @tc.type: FUNC
+ * @tc.require: issueICP02F
+ */
+GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
+    RegisterNode(testNode);
+    GetRootNode()->AddChild(testNode);
+
+    SubWindowOptions opts1;
+    opts1.bounds = { 0, 100, 600, 600 }; // sub-window 1 offset and size
+    opts1.order = SubWindowOrder::ABOVE_MAIN;
+    opts1.contentBgColor = 0x80000000; // semi-transparent black background
+    auto subId1 = CreateSubWindow(opts1);
+
+    auto blurNode1 = RSCanvasNode::Create();
+    RegisterNode(blurNode1);
+    blurNode1->SetBounds({ 0, 0, 300, 300 }); // partial coverage within sub-window
+    blurNode1->SetBackgroundBlurRadius(DEFAULT_RADIUS);
+    blurNode1->SetBackgroundColor(COLOR_RED);
+    blurNode1->SetAlpha(DEFAULT_ALPHA);
+    GetRootNode()->AddChildToSubWindow(subId1, blurNode1);
+
+    SubWindowOptions opts2;
+    opts2.bounds = { 300, 400, 600, 600 }; // sub-window 2 offset and size, overlaps with sub-window 1
+    opts2.order = SubWindowOrder::ABSOLUTE;
+    constexpr float subWindowZ = 1000002.0f;
+    opts2.absoluteZ = subWindowZ;
+    opts2.contentBgColor = 0x80000000; // semi-transparent black background
+    auto subId2 = CreateSubWindow(opts2);
+
+    auto blurNode2 = RSCanvasNode::Create();
+    RegisterNode(blurNode2);
+    blurNode2->SetBounds({ 0, 0, 300, 300 }); // partial coverage within sub-window
+    blurNode2->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
+    blurNode2->SetBackgroundColor(COLOR_BLUE);
+    blurNode2->SetAlpha(DEFAULT_ALPHA);
+    GetRootNode()->AddChildToSubWindow(subId2, blurNode2);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: MultiWindowFilter04
+ * @tc.desc: moving node in sub-window crossing main window blur region
+ * @tc.type: FUNC
+ * @tc.require: issueICP02F
+ */
+GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter04)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
+    RegisterNode(testNode);
+    testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
+    GetRootNode()->AddChild(testNode);
+
+    SubWindowOptions opts;
+    opts.bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    opts.order = SubWindowOrder::ABOVE_MAIN;
+    opts.contentBgColor = 0x80000000; // semi-transparent black background
+    auto subId = CreateSubWindow(opts);
+
+    auto movingNode = RSCanvasNode::Create();
+    RegisterNode(movingNode);
+    movingNode->SetBounds(DEFAULT_BOUNDS);
+    movingNode->SetTranslate({ 0, 0 });
+    movingNode->SetBackgroundColor(COLOR_RED);
+    DoAnimation(movingNode, DEFAULT_TRANSLATE);
+    GetRootNode()->AddChildToSubWindow(subId, movingNode);
+
+    Vector4f bounds3 = { 0, 800, 400, 400 }; // second moving node, below the first one
+    auto movingNode2 = RSCanvasNode::Create();
+    RegisterNode(movingNode2);
+    movingNode2->SetBounds(bounds3);
+    movingNode2->SetTranslate({ 0, 0 });
+    movingNode2->SetBackgroundColor(COLOR_BLUE);
+    DoAnimation(movingNode2, DEFAULT_TRANSLATE);
+    GetRootNode()->AddChildToSubWindow(subId, movingNode2);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
 } // namespace OHOS::Rosen

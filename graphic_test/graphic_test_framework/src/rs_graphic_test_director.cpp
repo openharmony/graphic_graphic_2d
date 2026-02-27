@@ -128,8 +128,11 @@ RSGraphicTestDirector& RSGraphicTestDirector::Instance()
 
 RSGraphicTestDirector::~RSGraphicTestDirector()
 {
-    if (rootNode_ && rootNode_->screenSurfaceNode_) {
-        rootNode_->screenSurfaceNode_->RemoveFromTree();
+    if (rootNode_) {
+        rootNode_->ResetSubWindows();
+        if (rootNode_->screenSurfaceNode_) {
+            rootNode_->screenSurfaceNode_->RemoveFromTree();
+        }
     }
 
     if (rsUiDirector_) {
@@ -150,6 +153,30 @@ void RetryProfilerSocketConnection()
     WaitTimeout(SOCKET_RETRY_TIME);
 }
 
+void RSGraphicTestDirector::InitProfilerThread()
+{
+    auto CreateAndStartProfilerThread = []() {
+        auto thread = std::make_shared<RSGraphicTestProfilerThread>();
+        thread->Start();
+        return thread;
+    };
+    auto WaitForThreadInit = [](std::shared_ptr<RSGraphicTestProfilerThread> thread) {
+        return thread->WaitForSocketResultWithTimeout(SOCKET_RETRY_TIME);
+    };
+
+    auto profilerThread = CreateAndStartProfilerThread();
+    if (WaitForThreadInit(profilerThread) != AGT_SUCCESS) {
+        RetryProfilerSocketConnection();
+        profilerThread = CreateAndStartProfilerThread();
+    }
+
+    profilerThread_ = profilerThread;
+
+    if (pendingFailureCallback_) {
+        profilerThread_->SetReconnectRequestCallback(pendingFailureCallback_);
+    }
+}
+
 void RSGraphicTestDirector::Run()
 {
     Reset();
@@ -168,26 +195,7 @@ void RSGraphicTestDirector::Run()
     runner_->Run();
 
     if (isProfilerTest_) {
-        auto CreateAndStartProfilerThread = []() {
-            auto thread = std::make_shared<RSGraphicTestProfilerThread>();
-            thread->Start();
-            return thread;
-        };
-        auto WaitForThreadInit = [](std::shared_ptr<RSGraphicTestProfilerThread> thread) {
-            return thread->WaitForSocketResultWithTimeout(SOCKET_RETRY_TIME);
-        };
-
-        auto profilerThread = CreateAndStartProfilerThread();
-        if (WaitForThreadInit(profilerThread) != AGT_SUCCESS) {
-            RetryProfilerSocketConnection();
-            profilerThread = CreateAndStartProfilerThread();
-        }
-        
-        profilerThread_ = profilerThread;
-
-        if (pendingFailureCallback_) {
-            profilerThread_->SetReconnectRequestCallback(pendingFailureCallback_);
-        }
+        InitProfilerThread();
     }
 
     screenId_ = RSInterfaces::GetInstance().GetDefaultScreenId();
@@ -202,6 +210,8 @@ void RSGraphicTestDirector::Run()
         rootNode_->screenSurfaceNode_->SetBackgroundColor(SCREEN_COLOR);
         rootNode_->screenSurfaceNode_->AttachToDisplay(screenId_);
         rootNode_->screenSurfaceNode_->SetPositionZ(TOP_LEVEL_Z);
+        rootNode_->SetScreenId(screenId_);
+        rootNode_->SetMainWindowZ(TOP_LEVEL_Z);
         rsUiDirector_->SetRSSurfaceNode(rootNode_->screenSurfaceNode_);
     }
     rsUiDirector_->SendMessages();
@@ -282,6 +292,11 @@ void RSGraphicTestDirector::ResetImagePath()
 std::shared_ptr<RSGraphicRootNode> RSGraphicTestDirector::GetRootNode() const
 {
     return rootNode_;
+}
+
+float RSGraphicTestDirector::GetMainWindowZ() const
+{
+    return rootNode_ ? rootNode_->GetMainWindowZ() : 0.0f;
 }
 
 Vector2f RSGraphicTestDirector::GetScreenSize() const
@@ -428,8 +443,11 @@ void RSGraphicTestDirector::Reset()
     }
 
     // 4. release rootNode
-    if (rootNode_ && rootNode_->screenSurfaceNode_) {
-        rootNode_->screenSurfaceNode_->RemoveFromTree();
+    if (rootNode_) {
+        rootNode_->ResetSubWindows();
+        if (rootNode_->screenSurfaceNode_) {
+            rootNode_->screenSurfaceNode_->RemoveFromTree();
+        }
     }
     rootNode_.reset();
 
