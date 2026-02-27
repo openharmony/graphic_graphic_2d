@@ -482,7 +482,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
     OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_KEY, &str);
     std::string axisKey = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
         str.strLen / sizeof(char16_t)));
-    EXPECT_EQ(axisKey, "");
+    EXPECT_EQ(axisKey, "wght");
     free(str.strData);
 
     OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_NAME, &str);
