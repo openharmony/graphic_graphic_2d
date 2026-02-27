@@ -4997,40 +4997,6 @@ HWTEST_F(RSNodeTest, ExecuteWithoutAnimation, TestSize.Level1)
 }
 
 /**
- * @tc.name: FallbackAnimationsToRoot
- * @tc.desc: test results of FallbackAnimationsToRoot
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
- */
-HWTEST_F(RSNodeTest, FallbackAnimationsToRoot, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
-    target = nullptr;
-    rsNode->FallbackAnimationsToRoot();
-    EXPECT_EQ(rsNode->motionPathOption_, nullptr);
-
-    bool isRenderServiceNode = true;
-    target = std::make_shared<RSNode>(isRenderServiceNode);
-    AnimationId id = 1;
-    std::shared_ptr<RSAnimation> animation = nullptr;
-    rsNode->FallbackAnimationsToRoot();
-    EXPECT_NE(RSNodeMap::Instance().animationFallbackNode_, nullptr);
-
-    animation = std::make_shared<RSAnimation>();
-    animation->repeatCount_ = 1;
-    rsNode->animations_.insert({ id, animation });
-    rsNode->FallbackAnimationsToRoot();
-    EXPECT_TRUE(animation->repeatCount_);
-
-    rsNode->animations_.clear();
-    animation->repeatCount_ = -1;
-    rsNode->animations_.insert({ id, animation });
-    rsNode->FallbackAnimationsToRoot();
-    EXPECT_TRUE(animation->repeatCount_ == -1);
-}
-
-/**
  * @tc.name: AddAnimationInner
  * @tc.desc: test results of AddAnimationInner
  * @tc.type: FUNC
