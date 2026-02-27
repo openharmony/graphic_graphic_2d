@@ -36,23 +36,23 @@ std::unique_ptr<CmdListImage> RSCmdListImageCollector::CollectCmdListImage(
     auto cmdListImages = std::make_unique<CmdListImage>();
     bool hasImages = false;
     if (!imageObjectVec.empty()) {
-        cmdListImages->imageObjectVec_ =
+        cmdListImages->imageObjectVec =
             std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageObject>>>(std::move(imageObjectVec));
         hasImages = true;
     }
     if (!imageBaseObjVec.empty()) {
-        cmdListImages->imageBaseObjVec_ =
+        cmdListImages->imageBaseObjVec =
             std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>>>(std::move(imageBaseObjVec));
         hasImages = true;
     }
     if (!imageNineObjectVec.empty()) {
-        cmdListImages->imageNineObjectVec_ =
+        cmdListImages->imageNineObjectVec =
             std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageNineObject>>>(
                 std::move(imageNineObjectVec));
         hasImages = true;
     }
     if (!imageLatticeObjectVec.empty()) {
-        cmdListImages->imageLatticeObjectVec_ =
+        cmdListImages->imageLatticeObjectVec =
             std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageLatticeObject>>>(
                 std::move(imageLatticeObjectVec));
         hasImages = true;

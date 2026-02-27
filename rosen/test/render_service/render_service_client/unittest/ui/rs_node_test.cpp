@@ -7705,13 +7705,13 @@ HWTEST_F(RSNodeTest, DumpModifiers, TestSize.Level1)
     rsNode->AddModifier(contentModifier);
     string out2;
     rsNode->DumpModifiers(out2);
-    ASSERT_EQ(out2, "Alpha[1.0],ContentStyle:[drawCmdList[]]");
+    ASSERT_EQ(out2, "Alpha[1.0],ContentStyle:[]");
     auto nodeModifier = std::make_shared<ModifierNG::RSNodeModifier>();
     rsNode->modifiersNG_[nodeModifier->GetId()] = nodeModifier;
     rsNode->modifiersNG_[0] = nullptr;
     string out3;
     rsNode->DumpModifiers(out3);
-    ASSERT_EQ(out3, "Alpha[1.0],ContentStyle:[drawCmdList[]]");
+    ASSERT_EQ(out3, "Alpha[1.0],ContentStyle:[]");
 }
 
 /**

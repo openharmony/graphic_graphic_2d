@@ -22,10 +22,10 @@ namespace OHOS {
 namespace Rosen {
 
 struct CmdListImage {
-    std::unique_ptr<std::vector<std::shared_ptr<Drawing::ExtendImageObject>>> imageObjectVec_ = nullptr;
-    std::unique_ptr<std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>>> imageBaseObjVec_ = nullptr;
-    std::unique_ptr<std::vector<std::shared_ptr<Drawing::ExtendImageNineObject>>> imageNineObjectVec_ = nullptr;
-    std::unique_ptr<std::vector<std::shared_ptr<Drawing::ExtendImageLatticeObject>>> imageLatticeObjectVec_ = nullptr;
+    std::unique_ptr<std::vector<std::shared_ptr<Drawing::ExtendImageObject>>> imageObjectVec = nullptr;
+    std::unique_ptr<std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>>> imageBaseObjVec = nullptr;
+    std::unique_ptr<std::vector<std::shared_ptr<Drawing::ExtendImageNineObject>>> imageNineObjectVec = nullptr;
+    std::unique_ptr<std::vector<std::shared_ptr<Drawing::ExtendImageLatticeObject>>> imageLatticeObjectVec = nullptr;
 };
 
 class RSCmdListImageCollector {
