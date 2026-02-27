@@ -97,6 +97,7 @@ private:
     struct SurfaceBufferInfoEntry {
         DrawingSurfaceBufferInfo info;
         uint32_t bufferId;
+        std::vector<uint8_t> bufferData;
         int32_t width;
         int32_t height;
         int32_t stride;

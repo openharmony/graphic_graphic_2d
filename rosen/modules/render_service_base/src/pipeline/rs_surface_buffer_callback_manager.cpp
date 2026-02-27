@@ -367,10 +367,8 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId
 
 void RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo(const DrawingSurfaceBufferInfo& info)
 {
-    if (!shouldCollectBuffers_.load(std::memory_order_acquire)) {
-        return;
-    }
     if (info.surfaceBuffer_ == nullptr) {
+        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: surfaceBuffer is nullptr, skipping");
         return;
     }
 
@@ -378,27 +376,28 @@ void RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo(const DrawingSurface
     uint64_t key = (static_cast<uint64_t>(info.pid_) << 32) | info.uid_;
     uint32_t bufferId = info.surfaceBuffer_->GetSeqNum();
 
-    auto& bufferList = surfaceBufferInfoMap_[key];
-
-    for (auto it = bufferList.begin(); it != bufferList.end(); ++it) {
-        if (it->bufferId == bufferId) {
-            bufferList.splice(bufferList.begin(), bufferList, it);
-            return;
-        }
+    std::vector<uint8_t> bufferData;
+    void* virAddr = info.surfaceBuffer_->GetVirAddr();
+    uint32_t bufferSize = info.surfaceBuffer_->GetSize();
+    if (virAddr != nullptr && bufferSize > 0) {
+        bufferData.resize(bufferSize);
+        memcpy(bufferData.data(), virAddr, bufferSize);
+        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
+                "Copied buffer data, size=%{public}u", bufferSize);
+    } else {
+        RS_LOGW("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
+                "Failed to copy buffer data, virAddr=%{public}p, size=%{public}u",
+                virAddr, bufferSize);
     }
-
-    bufferList.push_front({
+    surfaceBufferInfoMap_[key].push_front({
         .info = info,
         .bufferId = bufferId,
+        .bufferData = std::move(bufferData),
         .width = info.surfaceBuffer_->GetWidth(),
         .height = info.surfaceBuffer_->GetHeight(),
         .stride = info.surfaceBuffer_->GetStride(),
         .format = info.surfaceBuffer_->GetFormat()
     });
-
-    while (bufferList.size() > MAX_BUFFERS_PER_PROCESS) {
-        bufferList.pop_back();
-    }
 }
 
 void RSSurfaceBufferCallbackManager::RemoveSurfaceBufferInfo(uint32_t bufferId)
