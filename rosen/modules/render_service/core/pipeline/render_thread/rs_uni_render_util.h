@@ -49,7 +49,7 @@ public:
         int32_t bufferAge, ScreenInfo& screenInfo, RSDirtyRectsDfx& rsDirtyRectsDfx, RSScreenRenderParams& params);
     // isSecScreen means that special layers can be displayed on the screen, for example wired mirror screen.
     static std::vector<RectI> MergeDirtyHistoryInVirtual(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-        int32_t bufferAge, const ScreenInfo& screenInfo, bool isSecScreen = false);
+        int32_t bufferAge, const ScreenInfo& screenInfo, ScreenId screenId, bool isSecScreen = false);
     // merge history dirty region of current display node and its child surfacenode(app windows)
     // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
     static void MergeDirtyHistoryForDrawable(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
@@ -70,7 +70,7 @@ public:
     // isSecScreen means that special layers can be displayed on the screen, for example wired mirror screen.
     static Occlusion::Region MergeVisibleDirtyRegionInVirtual(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
-        RSScreenRenderParams& screenParams, bool isSecScreen = false);
+        RSScreenRenderParams& screenParams, ScreenId screenId, bool isSecScreen = false);
     // This is used for calculate matrix from buffer coordinate to window's relative coordinate
     static Drawing::Matrix GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node);
     static void SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer, RectF& localBounds);

@@ -269,7 +269,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams00
     ASSERT_NE(params, nullptr);
     params->SetMainAndLeashSurfaceDirty(true);
     params->SetHDRStatusChanged(true);
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, true);
     ASSERT_TRUE(params->GetAccumulatedDirty());
     ASSERT_TRUE(params->GetAccumulatedHdrStatusChanged());
 }
@@ -299,19 +299,19 @@ HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams00
     screenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
     screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, true);
 
     std::unordered_set<NodeId> blackListVector({1, 2, 3});
     params->SetLastBlackList(blackListVector);
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, true);
     std::unordered_set<NodeId> blackListVector2({});
     params->SetLastBlackList(blackListVector2);
     params->SetLastSecExemption(true);
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, true);
     screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
     displayDrawable->renderParams_ = nullptr;
     params->SetLastSecExemption(false);
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, true);
 }
 
 /**

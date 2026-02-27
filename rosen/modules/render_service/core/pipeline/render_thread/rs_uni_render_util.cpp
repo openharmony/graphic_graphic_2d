@@ -269,7 +269,7 @@ void RSUniRenderUtil::SetDrawRegionForQuickReject(
 
 std::vector<RectI> RSUniRenderUtil::MergeDirtyHistoryInVirtual(
     DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, int32_t bufferAge,
-    const ScreenInfo& screenInfo, bool isSecScreen)
+    const ScreenInfo& screenInfo, ScreenId screenId, bool isSecScreen)
 {
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
     auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
@@ -280,7 +280,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistoryInVirtual(
     auto dirtyManager = screenDrawable.GetSyncDirtyManager();
     RSUniRenderUtil::MergeDirtyHistoryInVirtual(screenDrawable, bufferAge);
     Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
-        curAllSurfaceDrawables, *params, isSecScreen);
+        curAllSurfaceDrawables, *params, screenId, isSecScreen);
 
     RectI rect = dirtyManager->GetRectFlipWithinSurface(dirtyManager->GetDirtyRegionInVirtual());
     auto rects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
@@ -371,7 +371,7 @@ void RSUniRenderUtil::MergeDirtyHistoryInVirtual(
 
 Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
-    RSScreenRenderParams& screenParams, bool isSecScreen)
+    RSScreenRenderParams& screenParams, ScreenId screenId, bool isSecScreen)
 {
     Occlusion::Region allSurfaceVisibleDirtyRegion;
     auto curBlackList = screenParams.GetScreenProperty().GetBlackList();
@@ -389,10 +389,8 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
         if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
             continue;
         }
-        if (surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP) && !isSecScreen) {
-            continue;
-        }
-        if (curBlackList.find(surfaceParams->GetId()) != curBlackList.end()) {
+        if (surfaceParams->GetSpecialLayerMgr().FindWithScreen(screenId, SpecialLayerType::IS_BLACK_LIST) ||
+            (surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP) && !isSecScreen)) {
             continue;
         }
         auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
