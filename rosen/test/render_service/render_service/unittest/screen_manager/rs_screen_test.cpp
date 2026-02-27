@@ -736,6 +736,42 @@ HWTEST_F(RSScreenTest, SetRogResolution_002, testing::ext::TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetRogResolution_003
+ * @tc.desc: SetRogResolution Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, SetRogResolution_003, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    uint32_t width = 100;
+    uint32_t height = 100;
+
+    rsScreen->property_.SetWidth(width + 1);
+    rsScreen->property_.SetHeight(height + 1);
+
+    rsScreen->property_.SetPhyWidth(width + 1);
+    rsScreen->property_.SetPhyHeight(height - 1);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
+    rsScreen->SetRogResolution(width, height);
+
+    rsScreen->property_.SetPhyWidth(width - 1);
+    rsScreen->property_.SetPhyHeight(height + 1);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
+    rsScreen->SetRogResolution(width, height);
+
+    rsScreen->property_.SetPhyWidth(width - 1);
+    rsScreen->property_.SetPhyHeight(height - 1);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
+    rsScreen->SetRogResolution(width, height);
+}
+
+/**
  * @tc.name: GetRogResolution_001
  * @tc.desc: test GetRogResolution with mock HDI device
  * @tc.type: FUNC
