@@ -50,12 +50,12 @@ private:
 // attributes of variable fonts.
 class FontVariations {
 public:
-    void SetAxisValue(std::string tag, float value);
+    void SetAxisValue(std::string tag, float value, bool isNormalization = false);
 
-    const std::map<std::string, float>& GetAxisValues() const;
+    const std::map<std::string, std::pair<float, bool>>& GetAxisValues() const;
 
 private:
-    std::map<std::string, float> axis_;
+    std::map<std::string, std::pair<float, bool>> axis_;
 };
 
 // TextShadow contains parameters that control

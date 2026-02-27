@@ -2400,6 +2400,17 @@ void OH_Drawing_TextStyleAddFontFeature(OH_Drawing_TextStyle*, const char* tag, 
 void OH_Drawing_TextStyleAddFontVariation(OH_Drawing_TextStyle*, const char* /* axis */, const float /* value */);
 
 /**
+ * @brief Add font variation with normalization data.
+ *
+ * @param style Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param axis Indicates the pointer to font variation axis.
+ * @param normalizedValue Indicates the font variation value to set.
+ * @since 24
+ */
+void OH_Drawing_TextStyleAddFontVariationWithNormalization(OH_Drawing_TextStyle* style,
+    const char* axis, const float normalizedValue);
+
+/**
  * @brief Get all font features.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
