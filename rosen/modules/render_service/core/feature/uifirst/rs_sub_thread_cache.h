@@ -217,7 +217,7 @@ public:
     bool IsCacheValid() const;
     void UifirstDirtyRegionDfx(Drawing::Canvas& canvas, Drawing::RectI& surfaceDrawRect);
     bool IsDirtyRecordCompleted();
-    void UpdateDirtyRecordCompletedState(bool isComplete);
+    void UpdateDirtyRecordCompletedState(bool isCompleted);
     void UpdateAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
         bool isEnableDirtyRegion);
     void SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, Drawing::Canvas& canvas);
