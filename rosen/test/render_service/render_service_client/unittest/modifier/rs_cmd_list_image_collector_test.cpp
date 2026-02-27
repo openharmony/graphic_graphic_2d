@@ -71,8 +71,8 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage003, TestSize.Level1)
     Drawing::CmdListHelper::AddImageObjectToCmdList(*drawCmdList, imageObject);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
     EXPECT_NE(result, nullptr);
-    EXPECT_NE(result->imageObjectVec_, nullptr);
-    EXPECT_GT(result->imageObjectVec_->size(), 0);
+    EXPECT_NE(result->imageObjectVec, nullptr);
+    EXPECT_GT(result->imageObjectVec->size(), 0);
 }
 
 /**
@@ -87,8 +87,8 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage004, TestSize.Level1)
     Drawing::CmdListHelper::AddImageBaseObjToCmdList(*drawCmdList, imageBaseObj);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
     EXPECT_NE(result, nullptr);
-    EXPECT_NE(result->imageBaseObjVec_, nullptr);
-    EXPECT_GT(result->imageBaseObjVec_->size(), 0);
+    EXPECT_NE(result->imageBaseObjVec, nullptr);
+    EXPECT_GT(result->imageBaseObjVec->size(), 0);
 }
 
 /**
@@ -103,8 +103,8 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage005, TestSize.Level1)
     Drawing::CmdListHelper::AddImageNineObjecToCmdList(*drawCmdList, imageNineObject);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
     EXPECT_NE(result, nullptr);
-    EXPECT_NE(result->imageNineObjectVec_, nullptr);
-    EXPECT_GT(result->imageNineObjectVec_->size(), 0);
+    EXPECT_NE(result->imageNineObjectVec, nullptr);
+    EXPECT_GT(result->imageNineObjectVec->size(), 0);
 }
 
 /**
@@ -119,7 +119,7 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage006, TestSize.Level1)
     Drawing::CmdListHelper::AddImageLatticeObjecToCmdList(*drawCmdList, imageLatticeObject);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
     EXPECT_NE(result, nullptr);
-    EXPECT_NE(result->imageLatticeObjectVec_, nullptr);
-    EXPECT_GT(result->imageLatticeObjectVec_->size(), 0);
+    EXPECT_NE(result->imageLatticeObjectVec, nullptr);
+    EXPECT_GT(result->imageLatticeObjectVec->size(), 0);
 }
 } // namespace OHOS::Rosen
