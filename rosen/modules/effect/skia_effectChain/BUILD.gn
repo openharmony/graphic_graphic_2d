@@ -88,8 +88,6 @@ if (is_arkui_x) {
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//foundation/arkui/ace_engine/adapter/${target_os}/build:libarkui_${target_os}",
       "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
-      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     ]
 
     if (target_os == "android") {
@@ -108,6 +106,10 @@ if (is_arkui_x) {
       if (rs_enable_gpu) {
         defines += [ "RS_ENABLE_GPU" ]
         defines += gpu_defines
+        public_deps += [
+          "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+          "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+        ]
       }
     }
 
