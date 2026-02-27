@@ -69,7 +69,7 @@ private:
     void ClearCanvasStencil(RSPaintFilterCanvas& canvas, const RSLogicalDisplayRenderParams& params,
         const RSRenderThreadParams& uniParam, const ScreenInfo& screenInfo);
     void CheckDirtyRefresh(CompositeType type, bool hasSecLayerInVisibleRect);
-    void UpdateMainSizeFromContentRect(RSLogicalDisplayRenderParams* params, uint32_t& mainWidth, uint32_t& mainHeight);
+    void UpdateMainSizeFromContentRect(RSLogicalDisplayRenderParams* params, float& mainWidth, float& mainHeight);
     void ScaleAndRotateMirrorForWiredScreen(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
     void RotateMirrorCanvas(ScreenRotation& rotation, float width, float height);
     void WiredScreenProjection(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
