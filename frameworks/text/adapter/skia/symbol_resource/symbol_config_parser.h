@@ -66,20 +66,15 @@ private:
     static void ParseSymbolAnimationParas(const cJSON* root,
         std::map<uint32_t, RSAnimationPara>& animationParas);
     static void ParseSymbolAnimationPara(const cJSON* root, RSAnimationPara& animationPara);
-    static void ParseSymbolCommonSubType(const char* key, const cJSON* root, RSAnimationPara& animationPara);
+    static void ParseSymbolCommonSubType(const cJSON* item, RSAnimationPara& animationPara);
     static void MatchCommonSubType(const std::string& subTypeStr, RSCommonSubType& commonSubType);
-    static void ParseSymbolGroupParas(const char* key, const cJSON* root, RSAnimationPara& animationPara);
+    static void ParseSymbolGroupParas(const cJSON* item, RSAnimationPara& animationPara);
     static void ParseSymbolPiecewisePara(const cJSON* root, RSPiecewiseParameter& piecewiseParameter);
-    static void PiecewiseParaCurveCase(const char* key, const cJSON* root,
-        RSPiecewiseParameter& piecewiseParameter);
-    static void PiecewiseParaDurationCase(const char* key, const cJSON* root,
-        RSPiecewiseParameter& piecewiseParameter);
-    static void PiecewiseParaDelayCase(const char* key, const cJSON* root,
-        RSPiecewiseParameter& piecewiseParameter);
-    static void ParseSymbolCurveArgs(const char* key, const cJSON* root,
-        RSPiecewiseParameter& piecewiseParameter);
-    static void ParseSymbolProperties(const char* key, const cJSON* root,
-        RSPiecewiseParameter& piecewiseParameter);
+    static void PiecewiseParaCurveCase(const cJSON* item, RSPiecewiseParameter& piecewiseParameter);
+    static void PiecewiseParaDurationCase(const cJSON* item, RSPiecewiseParameter& piecewiseParameter);
+    static void PiecewiseParaDelayCase(const cJSON* item, RSPiecewiseParameter& piecewiseParameter);
+    static void ParseSymbolCurveArgs(const cJSON* obj, RSPiecewiseParameter& piecewiseParameter);
+    static void ParseSymbolProperties(const cJSON* obj, RSPiecewiseParameter& piecewiseParameter);
 };
 } // namespace Symbol
 } // namespace Rosen

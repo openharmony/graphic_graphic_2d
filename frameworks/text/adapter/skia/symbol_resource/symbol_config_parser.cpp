@@ -164,9 +164,6 @@ bool SymbolConfigParser::ParseOneSymbolNativeCase(const char* key, const cJSON* 
 
 void SymbolConfigParser::ParseComponets(const cJSON* root, std::vector<size_t>& components)
 {
-    if (root == nullptr || !cJSON_IsArray(root)) {
-        return;
-    }
     int size = cJSON_GetArraySize(root);
     for (int i = 0; i < size; i++) {
         cJSON* item = cJSON_GetArrayItem(root, i);
@@ -187,9 +184,6 @@ void SymbolConfigParser::SymbolGlyphCase(const char* key, const cJSON* root,
 
 void SymbolConfigParser::ParseLayers(const cJSON* root, std::vector<std::vector<size_t>>& layers)
 {
-    if (root == nullptr || !cJSON_IsArray(root)) {
-        return;
-    }
     int size = cJSON_GetArraySize(root);
     for (int i = 0; i < size; i++) {
         cJSON* layerItem = cJSON_GetArrayItem(root, i);
@@ -228,9 +222,6 @@ void SymbolConfigParser::ParseOneSymbolRenderCase(const char* key, const cJSON* 
 void SymbolConfigParser::ParseRenderModes(const cJSON* root,
     std::map<RSSymbolRenderingStrategy, std::vector<RSRenderGroup>>& renderModesGroups)
 {
-    if (root == nullptr || !cJSON_IsArray(root)) {
-        return;
-    }
     int size = cJSON_GetArraySize(root);
     for (int i = 0; i < size; i++) {
         cJSON* item = cJSON_GetArrayItem(root, i);
@@ -261,9 +252,6 @@ void SymbolConfigParser::ParseRenderModes(const cJSON* root,
 
 void SymbolConfigParser::ParseRenderGroups(const cJSON* root, std::vector<RSRenderGroup>& renderGroups)
 {
-    if (root == nullptr || !cJSON_IsArray(root)) {
-        return;
-    }
     int size = cJSON_GetArraySize(root);
     for (int i = 0; i < size; i++) {
         cJSON* item = cJSON_GetArrayItem(root, i);
@@ -313,9 +301,6 @@ void SymbolConfigParser::ParseDefaultColor(const char* defaultColorStr, RSRender
 
 void SymbolConfigParser::ParseGroupIndexes(const cJSON* root, std::vector<RSGroupInfo>& groupInfos)
 {
-    if (root == nullptr || !cJSON_IsArray(root)) {
-        return;
-    }
     int size = cJSON_GetArraySize(root);
     for (int i = 0; i < size; i++) {
         cJSON* item = cJSON_GetArrayItem(root, i);
@@ -338,9 +323,6 @@ void SymbolConfigParser::ParseGroupIndexes(const cJSON* root, std::vector<RSGrou
 
 void SymbolConfigParser::ParseLayerOrMaskIndexes(const cJSON* root, std::vector<size_t>& indexes)
 {
-    if (root == nullptr || !cJSON_IsArray(root)) {
-        return;
-    }
     int size = cJSON_GetArraySize(root);
     for (int i = 0; i < size; i++) {
         cJSON* item = cJSON_GetArrayItem(root, i);
@@ -362,9 +344,6 @@ void SymbolConfigParser::ParseOneSymbolAnimateCase(const char* key, const cJSON*
 void SymbolConfigParser::ParseAnimationSettings(const cJSON* root,
     std::vector<RSAnimationSetting>& animationSettings)
 {
-    if (root == nullptr || !cJSON_IsArray(root)) {
-        return;
-    }
     int size = cJSON_GetArraySize(root);
     for (int i = 0; i < size; i++) {
         cJSON* item = cJSON_GetArrayItem(root, i);
@@ -379,10 +358,6 @@ void SymbolConfigParser::ParseAnimationSettings(const cJSON* root,
 
 void SymbolConfigParser::ParseAnimationSetting(const cJSON* root, RSAnimationSetting& animationSetting)
 {
-    if (root == nullptr) {
-        return;
-    }
-
     cJSON* animationTypesItem = cJSON_GetObjectItem(root, ANIMATION_TYPES);
     if (animationTypesItem != nullptr && cJSON_IsArray(animationTypesItem)) {
         ParseAnimationTypes(animationTypesItem, animationSetting.animationTypes);
@@ -407,9 +382,6 @@ void SymbolConfigParser::ParseAnimationSetting(const cJSON* root, RSAnimationSet
 
 void SymbolConfigParser::ParseAnimationTypes(const cJSON* root, std::vector<RSAnimationType>& animationTypes)
 {
-    if (root == nullptr || !cJSON_IsArray(root)) {
-        return;
-    }
     int size = cJSON_GetArraySize(root);
     for (int i = 0; i < size; i++) {
         cJSON* item = cJSON_GetArrayItem(root, i);
@@ -433,9 +405,6 @@ void SymbolConfigParser::ParseAnimationType(const std::string& animationTypeStr,
 
 void SymbolConfigParser::ParseGroupSettings(const cJSON* root, std::vector<RSGroupSetting>& groupSettings)
 {
-    if (root == nullptr || !cJSON_IsArray(root)) {
-        return;
-    }
     int size = cJSON_GetArraySize(root);
     for (int i = 0; i < size; i++) {
         cJSON* item = cJSON_GetArrayItem(root, i);
@@ -458,10 +427,6 @@ void SymbolConfigParser::MatchCommonSubType(const std::string& subTypeStr, RSCom
 
 void SymbolConfigParser::ParseGroupSetting(const cJSON* root, RSGroupSetting& groupSetting)
 {
-    if (root == nullptr) {
-        return;
-    }
-
     cJSON* groupIndexesItem = cJSON_GetObjectItem(root, GROUP_INDEXES);
     if (groupIndexesItem != nullptr && cJSON_IsArray(groupIndexesItem)) {
         ParseGroupIndexes(groupIndexesItem, groupSetting.groupInfos);
@@ -477,11 +442,6 @@ void SymbolConfigParser::ParseOneSymbol(const cJSON* root,
     std::unordered_map<uint16_t, RSSymbolLayersGroups>& symbolConfig)
 {
     if (root == nullptr) {
-        return;
-    }
-
-    cJSON* nativeGlyphIdItem = cJSON_GetObjectItem(root, NATIVE_GLYPH_ID);
-    if (nativeGlyphIdItem == nullptr) {
         return;
     }
 
@@ -562,9 +522,6 @@ bool SymbolConfigParser::ParseSymbolAnimations(const cJSON* root,
 void SymbolConfigParser::ParseSymbolAnimationParas(const cJSON* root,
     std::map<uint32_t, RSAnimationPara>& animationParas)
 {
-    if (root == nullptr || !cJSON_IsArray(root)) {
-        return;
-    }
     int size = cJSON_GetArraySize(root);
     for (int i = 0; i < size; i++) {
         cJSON* item = cJSON_GetArrayItem(root, i);
@@ -581,10 +538,6 @@ void SymbolConfigParser::ParseSymbolAnimationParas(const cJSON* root,
 
 void SymbolConfigParser::ParseSymbolAnimationPara(const cJSON* root, RSAnimationPara& animationPara)
 {
-    if (root == nullptr) {
-        return;
-    }
-
     std::vector<std::string> tags = {ANIMATION_MODE, COMMON_SUB_TYPE, GROUP_PARAMETERS};
     for (const auto& tag : tags) {
         const char* key = tag.c_str();
@@ -597,34 +550,22 @@ void SymbolConfigParser::ParseSymbolAnimationPara(const cJSON* root, RSAnimation
             if (cJSON_IsNumber(item)) {
                 animationPara.animationMode = static_cast<uint16_t>(item->valueint);
             }
-        } else if (strcmp(key, COMMON_SUB_TYPE) == 0) {
-            ParseSymbolCommonSubType(key, root, animationPara);
-        } else if (strcmp(key, GROUP_PARAMETERS) == 0) {
-            ParseSymbolGroupParas(key, root, animationPara);
+        } else if (strcmp(key, COMMON_SUB_TYPE) == 0 && cJSON_IsString(item)) {
+            ParseSymbolCommonSubType(item, animationPara);
+        } else if (strcmp(key, GROUP_PARAMETERS) == 0 && cJSON_IsArray(item)) {
+            ParseSymbolGroupParas(item, animationPara);
         }
     }
 }
 
-void SymbolConfigParser::ParseSymbolCommonSubType(const char* key, const cJSON* root,
-    RSAnimationPara& animationPara)
+void SymbolConfigParser::ParseSymbolCommonSubType(const cJSON* item, RSAnimationPara& animationPara)
 {
-    cJSON* item = cJSON_GetObjectItem(root, key);
-    if (item == nullptr || !cJSON_IsString(item)) {
-        return;
-    }
-
     std::string subTypeStr = item->valuestring;
     MatchCommonSubType(subTypeStr, animationPara.commonSubType);
 }
 
-void SymbolConfigParser::ParseSymbolGroupParas(const char* key, const cJSON* root,
-    RSAnimationPara& animationPara)
+void SymbolConfigParser::ParseSymbolGroupParas(const cJSON* item, RSAnimationPara& animationPara)
 {
-    cJSON* item = cJSON_GetObjectItem(root, key);
-    if (item == nullptr || !cJSON_IsArray(item)) {
-        return;
-    }
-
     int size = cJSON_GetArraySize(item);
     for (int i = 0; i < size; i++) {
         cJSON* groupItem = cJSON_GetArrayItem(item, i);
@@ -650,10 +591,6 @@ void SymbolConfigParser::ParseSymbolGroupParas(const char* key, const cJSON* roo
 
 void SymbolConfigParser::ParseSymbolPiecewisePara(const cJSON* root, RSPiecewiseParameter& piecewiseParameter)
 {
-    if (root == nullptr || !cJSON_IsObject(root)) {
-        return;
-    }
-
     std::vector<std::string> tags = {CURVE, CURVE_ARGS, DURATION, DELAY, PROPERTIES};
     for (const auto& tag : tags) {
         const char* key = tag.c_str();
@@ -663,23 +600,21 @@ void SymbolConfigParser::ParseSymbolPiecewisePara(const cJSON* root, RSPiecewise
         }
 
         if (strcmp(key, CURVE) == 0) {
-            PiecewiseParaCurveCase(key, root, piecewiseParameter);
+            PiecewiseParaCurveCase(item, piecewiseParameter);
         } else if (strcmp(key, CURVE_ARGS) == 0) {
-            ParseSymbolCurveArgs(key, root, piecewiseParameter);
+            ParseSymbolCurveArgs(item, piecewiseParameter);
         } else if (strcmp(key, DURATION) == 0) {
-            PiecewiseParaDurationCase(key, root, piecewiseParameter);
+            PiecewiseParaDurationCase(item, piecewiseParameter);
         } else if (strcmp(key, DELAY) == 0) {
-            PiecewiseParaDelayCase(key, root, piecewiseParameter);
+            PiecewiseParaDelayCase(item, piecewiseParameter);
         } else if (strcmp(key, PROPERTIES) == 0) {
-            ParseSymbolProperties(key, root, piecewiseParameter);
+            ParseSymbolProperties(item, piecewiseParameter);
         }
     }
 }
 
-void SymbolConfigParser::PiecewiseParaCurveCase(const char* key, const cJSON* root,
-    RSPiecewiseParameter& piecewiseParameter)
+void SymbolConfigParser::PiecewiseParaCurveCase(const cJSON* item, RSPiecewiseParameter& piecewiseParameter)
 {
-    cJSON* item = cJSON_GetObjectItem(root, key);
     if (item == nullptr || !cJSON_IsString(item)) {
         return;
     }
@@ -690,30 +625,24 @@ void SymbolConfigParser::PiecewiseParaCurveCase(const char* key, const cJSON* ro
     piecewiseParameter.curveType = CURVE_TYPES.at(curveTypeStr);
 }
 
-void SymbolConfigParser::PiecewiseParaDurationCase(const char* key, const cJSON* root,
-    RSPiecewiseParameter& piecewiseParameter)
+void SymbolConfigParser::PiecewiseParaDurationCase(const cJSON* item, RSPiecewiseParameter& piecewiseParameter)
 {
-    cJSON* item = cJSON_GetObjectItem(root, key);
     if (item == nullptr || !cJSON_IsNumber(item)) {
         return;
     }
     piecewiseParameter.duration = static_cast<uint32_t>(item->valuedouble);
 }
 
-void SymbolConfigParser::PiecewiseParaDelayCase(const char* key, const cJSON* root,
-    RSPiecewiseParameter& piecewiseParameter)
+void SymbolConfigParser::PiecewiseParaDelayCase(const cJSON* item, RSPiecewiseParameter& piecewiseParameter)
 {
-    cJSON* item = cJSON_GetObjectItem(root, key);
     if (item == nullptr || !cJSON_IsNumber(item)) {
         return;
     }
     piecewiseParameter.delay = static_cast<int>(item->valuedouble);
 }
 
-void SymbolConfigParser::ParseSymbolCurveArgs(const char* key, const cJSON* root,
-    RSPiecewiseParameter& piecewiseParameter)
+void SymbolConfigParser::ParseSymbolCurveArgs(const cJSON* obj, RSPiecewiseParameter& piecewiseParameter)
 {
-    cJSON* obj = cJSON_GetObjectItem(root, key);
     cJSON* item = nullptr;
     cJSON_ArrayForEach(item, obj) {
         const char* memberName = item->string;
@@ -723,10 +652,8 @@ void SymbolConfigParser::ParseSymbolCurveArgs(const char* key, const cJSON* root
     }
 }
 
-void SymbolConfigParser::ParseSymbolProperties(const char* key, const cJSON* root,
-    RSPiecewiseParameter& piecewiseParameter)
+void SymbolConfigParser::ParseSymbolProperties(const cJSON* obj, RSPiecewiseParameter& piecewiseParameter)
 {
-    cJSON* obj = cJSON_GetObjectItem(root, key);
     cJSON* item = nullptr;
     cJSON_ArrayForEach(item, obj) {
         const char* memberName = item->string;
