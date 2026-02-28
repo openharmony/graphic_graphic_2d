@@ -47,6 +47,7 @@ public:
     void SetProfilerTest(bool isProfilerTest);
     void SetDynamicTest(bool isDynamicTest);
     bool IsDynamicTest();
+    float GetMainWindowZ() const;
 
     void StartRunUIAnimation();
     bool HasUIRunningAnimation();
@@ -63,6 +64,7 @@ public:
     void SetProfilerFailureCallback(FailureCallback callback);
     void Reset();
 private:
+    void InitProfilerThread();
     ScreenId screenId_ = 0;
     RectF screenBounds_;
     bool isSingleTest_ = false;
