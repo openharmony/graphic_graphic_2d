@@ -17,6 +17,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("rosen_text_skia_txt_test") {
   module_out_path = text_ut_out_path
+
   configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
   sources = [
     "asset_font_manager_test.cpp",
@@ -33,6 +34,7 @@ ohos_unittest("rosen_text_skia_txt_test") {
     "text_bundle_config_parser_test.cpp",
     "text_line_base_test.cpp",
     "text_style_test.cpp",
+    "typography_thread_test.cpp",
     "typeface_font_asset_provider_test.cpp",
   ]
 
