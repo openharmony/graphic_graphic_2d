@@ -1248,6 +1248,16 @@ void RSLogicalDisplayRenderNodeDrawable::ScaleCanvasIfNeeded(const ScreenInfo& s
     curCanvas_->Scale(screenInfo.samplingScale, screenInfo.samplingScale);
 }
 
+void RSLogicalDisplayRenderNodeDrawable::UpdateMainSizeFromContentRect(
+    RSLogicalDisplayRenderParams* params, float& mainWidth, float& mainHeight)
+{
+    const Rect& contentRect = params->GetDisplayContentRect();
+    if (contentRect.w > 0 && contentRect.h > 0) {
+        mainWidth = static_cast<float>(contentRect.w);
+        mainHeight = static_cast<float>(contentRect.h);
+    }
+}
+
 void RSLogicalDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(
     RSLogicalDisplayRenderNodeDrawable& mirroredDrawable)
 {
@@ -1264,8 +1274,10 @@ void RSLogicalDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(
         return;
     }
 
-    auto mainWidth = enableVisibleRect_ ? curVisibleRect_.GetWidth() : mirroredParams->GetFixedWidth();
-    auto mainHeight = enableVisibleRect_ ? curVisibleRect_.GetHeight() : mirroredParams->GetFixedHeight();
+    float mainWidth = enableVisibleRect_ ? curVisibleRect_.GetWidth() : mirroredParams->GetFixedWidth();
+    float mainHeight = enableVisibleRect_ ? curVisibleRect_.GetHeight() : mirroredParams->GetFixedHeight();
+    UpdateMainSizeFromContentRect(mirroredParams, mainWidth, mainHeight);
+
     const auto& screenProperty = screenParam->GetScreenProperty();
     auto mirrorWidth = screenProperty.GetPhyWidth();
     auto mirrorHeight = screenProperty.GetPhyHeight();

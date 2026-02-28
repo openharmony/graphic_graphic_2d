@@ -216,6 +216,11 @@ bool RSUniRenderVirtualProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayR
 
     mirroredScreenWidth_ = mirroredParams->GetFixedWidth();
     mirroredScreenHeight_ = mirroredParams->GetFixedHeight();
+    const Rect& contentRect = mirroredParams->GetDisplayContentRect();
+    if (contentRect.w > 0 && contentRect.h > 0) {
+        mirroredScreenWidth_ = contentRect.w;
+        mirroredScreenHeight_ = contentRect.h;
+    }
     const auto& screenProperty = mirroredScreenParams->GetScreenProperty();
     if (screenProperty.GetIsSamplingOn()) {
         mirroredScreenWidth_ *= screenProperty.GetSamplingScale();
