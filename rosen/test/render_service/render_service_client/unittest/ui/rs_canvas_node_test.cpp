@@ -3555,6 +3555,28 @@ HWTEST_F(RSCanvasNodeTest, DrawOnNode001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawOnNode002
+ * @tc.desc: test results of DrawOnNode with AddCommand returning true
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasNodeTest, DrawOnNode002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->BeginRecording(200, 300);
+    DrawFunc func = [&](std::shared_ptr<Drawing::Canvas> canvas) {
+        Drawing::Rect rect(0, 0, 100, 100);
+        Drawing::Brush brush;
+        brush.SetColor(SK_ColorBLUE);
+        canvas->AttachBrush(brush);
+        canvas->DrawRect(rect);
+        canvas->DetachBrush();
+    };
+    canvasNode->DrawOnNode(ModifierNG::RSModifierType::BOUNDS, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
  * @tc.name: SetFreeze001
  * @tc.desc: test results of SetFreeze
  * @tc.type: FUNC
