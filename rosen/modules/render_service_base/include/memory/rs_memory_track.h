@@ -110,6 +110,8 @@ public:
     void RegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type);
     void UnRegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type);
     size_t GetNodeMemoryOfPid(const pid_t pid, MEMORY_TYPE type);
+    static void FilterAshmemInfoByPid(std::string& out, const std::string& info, const pid_t pid);
+    static void FilterDmaheapInfoByPid(std::string& out, const std::string& info, const pid_t pid);
 
 private:
     MemoryTrack() = default;

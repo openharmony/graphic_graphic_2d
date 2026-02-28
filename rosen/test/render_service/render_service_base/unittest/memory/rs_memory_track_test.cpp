@@ -1062,4 +1062,165 @@ HWTEST_F(RSMemoryTrackTest, GetNodeOnTreeStatusTest002, testing::ext::TestSize.L
     EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE);
 }
 #endif
+
+/**
+ * @tc.name: FilterAshmemInfoByPid_NormalCase
+ * @tc.desc: Test filtering ashmem log by pid with matching entries.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, FilterAshmemInfoByPid_NormalCase, testing::ext::TestSize.Level1)
+{
+    std::string input =
+        "Process ashmem overview info:\n"
+        "---------------------------------------------------------------------------------\n"
+        "Process_name Virtual_size Physical_size\n"
+        "Total ashmem  of [xxxxx] virtual size is  541, physical size is 4096\n"
+        "Process ashmem detail info:\n"
+        "---------------------------------------------------------------------------------\n"
+        "Process_name\tProcess_ID\tFd\tCnode_idx\tApplicant_Pid\tAshmem_name\tVirtual_size\tPhysical_size\tmagic\n"
+        "XXXXX\t815\t22\t328234\t816\tdev/ashmem/EXTRawData\t541\t4096\t7\n"
+        "XXXXX\t816\t22\t328234\t816\tdev/ashmem/EXTRawData\t541\t4096\t7\n"
+        "XXXXX\t817\t22\t328234\t816\tdev/ashmem/EXTRawData\t541\t4096\t7\n"
+        "---------------------------------------------------------------------------------\n";
+
+    std::string expectedOutput =
+        "Process ashmem overview info:\n"
+        "---------------------------------------------------------------------------------\n"
+        "Process_name Virtual_size Physical_size\n"
+        "Total ashmem  of [xxxxx] virtual size is  541, physical size is 4096\n"
+        "Process ashmem detail info:\n"
+        "---------------------------------------------------------------------------------\n"
+        "Process_name\tProcess_ID\tFd\tCnode_idx\tApplicant_Pid\tAshmem_name\tVirtual_size\tPhysical_size\tmagic\n"
+        "XXXXX\t816\t22\t328234\t816\tdev/ashmem/EXTRawData\t541\t4096\t7\n"
+        "---------------------------------------------------------------------------------\n";
+
+    std::string output;
+    MemoryTrack::FilterAshmemInfoByPid(output, input, 816);
+
+    ASSERT_EQ(output, expectedOutput);
+}
+
+/**
+ * @tc.name: FilterAshmemInfoByPid_EmptyInput
+ * @tc.desc: Test filtering ashmem log with empty input.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, FilterAshmemInfoByPid_EmptyInput, testing::ext::TestSize.Level1)
+{
+    std::string input = "";
+    std::string expectedOutput = "";
+    std::string output;
+    MemoryTrack::FilterAshmemInfoByPid(output, input, 816);
+
+    ASSERT_EQ(output, expectedOutput);
+}
+
+/**
+ * @tc.name: FilterAshmemInfoByPid_NoMatch
+ * @tc.desc: Test filtering ashmem log with no matching pid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, FilterAshmemInfoByPid_NoMatch, testing::ext::TestSize.Level1)
+{
+    std::string input =
+        "Process ashmem overview info:\n"
+        "---------------------------------------------------------------------------------\n"
+        "Process_name Virtual_size Physical_size\n"
+        "Total ashmem  of [xxxxx] virtual size is  541, physical size is 4096\n"
+        "Process ashmem detail info:\n"
+        "---------------------------------------------------------------------------------\n"
+        "Process_name\tProcess_ID\tFd\tCnode_idx\tApplicant_Pid\tAshmem_name\tVirtual_size\tPhysical_size\tmagic\n"
+        "XXXXX\t815\t22\t328234\t816\tdev/ashmem/EXTRawData\t541\t4096\t7\n"
+        "---------------------------------------------------------------------------------\n";
+
+    std::string expectedOutput =
+        "Process ashmem overview info:\n"
+        "---------------------------------------------------------------------------------\n"
+        "Process_name Virtual_size Physical_size\n"
+        "Total ashmem  of [xxxxx] virtual size is  541, physical size is 4096\n"
+        "Process ashmem detail info:\n"
+        "---------------------------------------------------------------------------------\n"
+        "Process_name\tProcess_ID\tFd\tCnode_idx\tApplicant_Pid\tAshmem_name\tVirtual_size\tPhysical_size\tmagic\n"
+        "---------------------------------------------------------------------------------\n";
+
+    std::string output;
+    MemoryTrack::FilterAshmemInfoByPid(output, input, 999);
+
+    ASSERT_EQ(output, expectedOutput);
+}
+
+/**
+ * @tc.name: FilterDmaheapInfoByPid_NormalCase
+ * @tc.desc: Test filtering dmaheap log by pid with matching entries.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, FilterDmaheapInfoByPid_NormalCase, testing::ext::TestSize.Level1)
+{
+    std::string input =
+        "Dma-buf objects usage of processes:\n"
+        "Process    pid    fd    size_bytes    ino    exp_pid    exp_task_comm    buf_name    exp_name\n"
+        "xxxxx    439    14    12288    2    439    xxxxx    NULL    vmalloc\n"
+        "xxxxx    439    17    12288    5    439    xxxxx    NULL    vmalloc\n"
+        "Total dmabuf size of xxxxx: 49152 bytes\n"
+        "yyyyy    500     12    3686400    1    500    yyyyy    NULL    vmalloc\n"
+        "yyyyy    500     20    3686400    42    499    yyyyy    525    vmalloc\n"
+        "Total dmabuf size of yyyyy: 25804800 bytes\n";
+
+    std::string expectedOutput =
+        "Dma-buf objects usage of processes:\n"
+        "Process    pid    fd    size_bytes    ino    exp_pid    exp_task_comm    buf_name    exp_name\n"
+        "yyyyy    500     12    3686400    1    500    yyyyy    NULL    vmalloc\n"
+        "yyyyy    500     20    3686400    42    499    yyyyy    525    vmalloc\n"
+        "Total dmabuf size of yyyyy: 25804800 bytes\n";
+
+    std::string output;
+    MemoryTrack::FilterDmaheapInfoByPid(output, input, 500);
+
+    ASSERT_EQ(output, expectedOutput);
+}
+
+/**
+ * @tc.name: FilterDmaheapInfoByPid_EmptyInput
+ * @tc.desc: Test filtering dmaheap log with empty input.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, FilterDmaheapInfoByPid_EmptyInput, testing::ext::TestSize.Level1)
+{
+    std::string input = "";
+    std::string expectedOutput = "";
+    std::string output;
+    MemoryTrack::FilterDmaheapInfoByPid(output, input, 500);
+
+    ASSERT_EQ(output, expectedOutput);
+}
+
+/**
+ * @tc.name: FilterDmaheapInfoByPid_NoMatch
+ * @tc.desc: Test filtering dmaheap log with no matching pid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, FilterDmaheapInfoByPid_NoMatch, testing::ext::TestSize.Level1)
+{
+    std::string input =
+        "Dma-buf objects usage of processes:\n"
+        "Process    pid    fd    size_bytes    ino    exp_pid    exp_task_comm    buf_name    exp_name\n"
+        "xxxxx    439    14    12288    2    439    xxxxx    NULL    vmalloc\n"
+        "Total dmabuf size of xxxxx: 49152 bytes\n";
+
+    std::string expectedOutput =
+        "Dma-buf objects usage of processes:\n"
+        "Process    pid    fd    size_bytes    ino    exp_pid    exp_task_comm    buf_name    exp_name\n";
+
+    std::string output;
+    MemoryTrack::FilterDmaheapInfoByPid(output, input, 999);
+
+    ASSERT_EQ(output, expectedOutput);
+}
+
 } // namespace OHOS::Rosen
