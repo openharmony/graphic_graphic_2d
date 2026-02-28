@@ -23,6 +23,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include <fstream>
+#include <sstream>
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -576,7 +577,7 @@ void MemoryTrack::FdOverReport(const pid_t pid, const std::string& reportName,
     if (ashmemInfoFile.is_open()) {
         std::stringstream ashmemInfoStream;
         ashmemInfoStream << ashmemInfoFile.rdbuf();
-        ashmemInfo = ashmemInfoStream.str();
+        FilterAshmemInfoByPid(ashmemInfo, ashmemInfoStream.str(), pid);
         ashmemInfoFile.close();
     } else {
         ashmemInfo = reportName;
@@ -589,7 +590,7 @@ void MemoryTrack::FdOverReport(const pid_t pid, const std::string& reportName,
     if (dmaBufInfoFile.is_open()) {
         std::stringstream dmaBufInfoStream;
         dmaBufInfoStream << dmaBufInfoFile.rdbuf();
-        dmaBufInfo = dmaBufInfoStream.str();
+        FilterDmaheapInfoByPid(dmaBufInfo, dmaBufInfoStream.str(), pid);
         dmaBufInfoFile.close();
     } else {
         dmaBufInfo = reportName;
@@ -697,5 +698,63 @@ void MemoryTrack::SetNodeOnTreeStatus(NodeId nodeId, bool rootNodeStatusChangeFl
     itr->second.isOnTree = isOnTree;
 }
 #endif
+
+void MemoryTrack::FilterAshmemInfoByPid(std::string& out, const std::string& info, const pid_t pid)
+{
+    std::string pidStr = std::to_string(pid);
+    std::istringstream iss(info);
+    std::string line;
+
+    while (std::getline(iss, line)) {
+        if (line.find("Process ashmem overview info:") != std::string::npos ||
+            line.find("Process ashmem detail info:") != std::string::npos ||
+            line.find("Process_name") != std::string::npos ||
+            line.find("Total ashmem") != std::string::npos ||
+            line.find("---") != std::string::npos) {
+            out += line + "\n";
+            continue;
+        }
+
+        std::istringstream lineStream(line);
+        std::string token;
+        std::getline(lineStream, token, '\t'); // discard first col
+        if (std::getline(lineStream, token, '\t') && (token == pidStr)) {
+            out += line + "\n";
+        }
+    }
+}
+
+void MemoryTrack::FilterDmaheapInfoByPid(std::string& out, const std::string& info, const pid_t pid)
+{
+    std::string pidStr = std::to_string(pid);
+    std::istringstream iss(info);
+    std::string line;
+    bool hasMatchingData = false;
+
+    while (std::getline(iss, line)) {
+        if (line.find("Dma-buf objects usage of processes:") != std::string::npos ||
+            line.find("Process") != std::string::npos) {
+            out += line + "\n";
+            continue;
+        }
+
+        if (line.find("Total dmabuf size") != std::string::npos) {
+            if (hasMatchingData) {
+                out += line + "\n";
+                hasMatchingData = false;
+                break;
+            }
+            continue;
+        }
+
+        std::istringstream lineStream(line);
+        std::string token;
+        lineStream >> token; // discard first col
+        if ((lineStream >> token) && (token == pidStr)) {
+            out += line + "\n";
+            hasMatchingData = true;
+        }
+    }
+}
 }
 }
