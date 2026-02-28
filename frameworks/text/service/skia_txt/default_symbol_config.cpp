@@ -21,11 +21,13 @@
 #include <climits>
 #include <cstddef>
 #endif
+#include <cJSON.h>
 #include <fstream>
 
 #include "src/ports/skia_ohos/HmSymbolConfig_ohos.h"
 #include "symbol_resource/symbol_config_parser.h"
 #include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -56,17 +58,18 @@ SymbolAutoRegister g_symbolAutoRegister;
 
 const uint32_t ONE_BYTE_BITS_LEN = 8;
 const int NO_ERROR = 0;                          // no error
-const int ERROR_CONFIG_NOT_FOUND = 1;            // the configuration document is not found
-const int ERROR_CONFIG_FORMAT_NOT_SUPPORTED = 2; // the formation of configuration is not supported
+const int ERROR_CONFIG_NOT_FOUND = 1;            // configuration document is not found
+const int ERROR_CONFIG_FORMAT_NOT_SUPPORTED = 2; // formation of configuration is not supported
 
 /* To get the data of font configuration file
- * \param fname the full name of the font configuration file
- * \param[out] size the size of data returned to the caller
- * \return The pointer of content of the file
- * \note The returned pointer should be freed by the caller
+ * \param fname full name of the font configuration file
+ * \param[out] size of data returned to caller
+ * \return The pointer of content of file
+ * \note The returned pointer should be freed by caller
  */
 std::unique_ptr<char[]> GetDataFromFile(const char* fname, std::streamsize& size)
 {
+    TEXT_TRACE_FUNC();
     char tmpPath[PATH_MAX] = {0};
     if (strlen(fname) >= PATH_MAX) {
         TEXT_LOGE("File path is too long, file: %{public}s", fname);
@@ -116,40 +119,37 @@ DefaultSymbolConfig* DefaultSymbolConfig::GetInstance()
     return &singleton;
 }
 
-/* check the system font configuration document
- * \param fname the full name of the font configuration document
+/* check system font configuration document
+ * \param fname full name of the font configuration document
  * \return NO_ERROR successful
  * \return ERROR_CONFIG_NOT_FOUND config document is not found
  * \return ERROR_CONFIG_FORMAT_NOT_SUPPORTED config document format is not supported
  */
-int DefaultSymbolConfig::CheckConfigFile(const char* fname, Json::Value& root)
+int CheckConfigFile(const char* fname, cJSON*& root)
 {
+    TEXT_TRACE_FUNC();
     std::streamsize size = 0;
     auto data = GetDataFromFile(fname, size);
     if (data == nullptr) {
         TEXT_LOGE("Config file is not found : %{public}s", fname);
         return ERROR_CONFIG_NOT_FOUND;
     }
-    JSONCPP_STRING errs;
-    Json::CharReaderBuilder charReaderBuilder;
-    std::unique_ptr<Json::CharReader> jsonReader(charReaderBuilder.newCharReader());
-    bool isJson = jsonReader->parse(data.get(), data.get() + size, &root, &errs);
-    if (!isJson) {
-        if (!errs.empty()) {
-            TEXT_LOGE("Error in config file:%{public}s", errs.c_str());
+    root = cJSON_Parse(data.get());
+    if (root == nullptr) {
+        const char* errorPtr = cJSON_GetErrorPtr();
+        if (errorPtr != nullptr) {
+            TEXT_LOGE("Error in config file:%{public}s", errorPtr);
         } else {
             TEXT_LOGE("The format of config file is not supported:%{public}s", fname);
         }
         return ERROR_CONFIG_FORMAT_NOT_SUPPORTED;
-    }
-    if (!errs.empty()) {
-        TEXT_LOGW("Warning in config file:%{public}s", errs.c_str());
     }
     return NO_ERROR;
 }
 
 int DefaultSymbolConfig::ParseConfigOfHmSymbol(const char* filePath)
 {
+    TEXT_TRACE_FUNC();
     std::unique_lock<std::shared_mutex> lock(mutex_);
     if (GetInit()) {
         return NO_ERROR;
@@ -158,26 +158,29 @@ int DefaultSymbolConfig::ParseConfigOfHmSymbol(const char* filePath)
         return ERROR_CONFIG_NOT_FOUND;
     }
     Clear();
-    Json::Value root;
+    cJSON* root = nullptr;
     int err = CheckConfigFile(filePath, root);
     if (err != NO_ERROR) {
-        root.clear();
+        if (root != nullptr) {
+            cJSON_Delete(root);
+        }
         return err;
     }
 
     if (!SymbolConfigParser::ParseSymbolConfig(root, hmSymbolConfig_, animationInfos_)) {
-        root.clear();
+        cJSON_Delete(root);
         TEXT_LOGW("Parse symbol config file failed");
         return ERROR_CONFIG_FORMAT_NOT_SUPPORTED;
     }
 
-    root.clear();
+    cJSON_Delete(root);
     SetInit(true);
     return NO_ERROR;
 }
 
 OHOS::Rosen::Drawing::DrawingSymbolLayersGroups DefaultSymbolConfig::GetSymbolLayersGroups(uint16_t glyphId)
 {
+    TEXT_TRACE_FUNC();
     std::shared_lock<std::shared_mutex> lock(mutex_);
     OHOS::Rosen::Drawing::DrawingSymbolLayersGroups symbolLayersGroups;
     auto iter = hmSymbolConfig_.find(glyphId);
@@ -190,7 +193,7 @@ OHOS::Rosen::Drawing::DrawingSymbolLayersGroups DefaultSymbolConfig::GetSymbolLa
 uint32_t DefaultSymbolConfig::EncodeAnimationAttribute(
     uint16_t groupSum, uint16_t animationMode, OHOS::Rosen::Drawing::DrawingCommonSubType commonSubType)
 {
-    // Ensure that the values do not exceed 0xFF
+    // Ensure that values do not exceed 0xFF
     groupSum = std::min(groupSum, static_cast<uint16_t>(0xFF));
     animationMode = std::min(animationMode, static_cast<uint16_t>(0xFF));
 
@@ -204,6 +207,7 @@ std::vector<std::vector<OHOS::Rosen::Drawing::DrawingPiecewiseParameter>> Defaul
     OHOS::Rosen::Drawing::DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode,
     OHOS::Rosen::Drawing::DrawingCommonSubType commonSubType)
 {
+    TEXT_TRACE_FUNC();
     std::shared_lock<std::shared_mutex> lock(mutex_);
     std::vector<std::vector<OHOS::Rosen::Drawing::DrawingPiecewiseParameter>> groupParametersOut;
     if (animationInfos_.empty()) {

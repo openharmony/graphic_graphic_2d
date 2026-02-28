@@ -16,7 +16,6 @@
 #ifndef DEFAULT_SYMBOL_CONFIG_H
 #define DEFAULT_SYMBOL_CONFIG_H
 
-#include <json/json.h>
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
@@ -63,7 +62,6 @@ private:
     std::unordered_map<OHOS::Rosen::Drawing::DrawingAnimationType, OHOS::Rosen::Drawing::DrawingAnimationInfo>
         animationInfos_;
 
-    int CheckConfigFile(const char* fname, Json::Value& root);
     uint32_t EncodeAnimationAttribute(
         uint16_t groupSum, uint16_t animationMode, OHOS::Rosen::Drawing::DrawingCommonSubType commonSubType);
 };
