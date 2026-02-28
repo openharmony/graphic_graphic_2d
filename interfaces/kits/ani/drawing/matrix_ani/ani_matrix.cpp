@@ -26,6 +26,45 @@ constexpr int32_t NUMBER_ZREO = 0;
 constexpr int32_t MATRIX_SIZE = 9;
 constexpr uint32_t POLY_POINT_COUNT_MAX = 4;
 
+static const std::array g_methods = {
+    ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(AniMatrix::Constructor) },
+    ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Matrix}:",
+        reinterpret_cast<void*>(AniMatrix::ConstructorWithMatrix) },
+    ani_native_function { "getValue", "i:d", reinterpret_cast<void*>(AniMatrix::GetValue) },
+    ani_native_function { "reset", ":", reinterpret_cast<void*>(AniMatrix::Reset) },
+    ani_native_function { "setTranslation", "dd:", reinterpret_cast<void*>(AniMatrix::SetTranslation) },
+    ani_native_function { "preConcat", "C{@ohos.graphics.drawing.drawing.Matrix}:",
+        reinterpret_cast<void*>(AniMatrix::preConcat)},
+    ani_native_function { "preRotate", nullptr, reinterpret_cast<void*>(AniMatrix::PreRotate) },
+    ani_native_function { "preScale", nullptr, reinterpret_cast<void*>(AniMatrix::PreScale) },
+    ani_native_function { "setRectToRect", nullptr, reinterpret_cast<void*>(AniMatrix::SetRectToRect) },
+    ani_native_function { "postScale", nullptr, reinterpret_cast<void*>(AniMatrix::PostScale) },
+    ani_native_function { "postTranslate", nullptr, reinterpret_cast<void*>(AniMatrix::PostTranslate) },
+    ani_native_function { "getAll", nullptr, reinterpret_cast<void*>(AniMatrix::GetAll) },
+    ani_native_function { "mapRect", nullptr, reinterpret_cast<void*>(AniMatrix::MapRect) },
+    ani_native_function { "postRotate", nullptr, reinterpret_cast<void*>(AniMatrix::PostRotate) },
+    ani_native_function { "invert", nullptr, reinterpret_cast<void*>(AniMatrix::Invert) },
+    ani_native_function { "isEqual", nullptr, reinterpret_cast<void*>(AniMatrix::IsEqual) },
+    ani_native_function { "setPolyToPoly", nullptr, reinterpret_cast<void*>(AniMatrix::SetPolyToPoly) },
+    ani_native_function { "isIdentity", nullptr, reinterpret_cast<void*>(AniMatrix::IsIdentity) },
+    ani_native_function { "mapPoints", nullptr, reinterpret_cast<void*>(AniMatrix::MapPoints) },
+    ani_native_function { "setRotation", nullptr, reinterpret_cast<void*>(AniMatrix::SetRotation) },
+    ani_native_function { "preTranslate", nullptr, reinterpret_cast<void*>(AniMatrix::PreTranslate) },
+    ani_native_function { "setScale", nullptr, reinterpret_cast<void*>(AniMatrix::SetScale) },
+    ani_native_function { "setMatrix", "C{std.core.Array}:", reinterpret_cast<void*>(AniMatrix::SetMatrix) },
+    ani_native_function { "setMatrix", "X{C{std.core.Array}C{@ohos.graphics.drawing.drawing.Matrix}}:",
+        reinterpret_cast<void*>(AniMatrix::SetMatrixWithObject) },
+    ani_native_function { "preSkew", nullptr, reinterpret_cast<void*>(AniMatrix::PreSkew) },
+    ani_native_function { "postSkew", nullptr, reinterpret_cast<void*>(AniMatrix::PostSkew) },
+    ani_native_function { "setSkew", nullptr, reinterpret_cast<void*>(AniMatrix::SetSkew) },
+    ani_native_function { "setSinCos", nullptr, reinterpret_cast<void*>(AniMatrix::SetSinCos) },
+    ani_native_function { "setConcat", nullptr, reinterpret_cast<void*>(AniMatrix::SetConcat) },
+    ani_native_function { "postConcat", nullptr, reinterpret_cast<void*>(AniMatrix::PostConcat) },
+    ani_native_function { "mapRadius", nullptr, reinterpret_cast<void*>(AniMatrix::MapRadius) },
+    ani_native_function { "rectStaysRect", nullptr, reinterpret_cast<void*>(AniMatrix::RectStaysRect) },
+    ani_native_function { "isAffine", nullptr, reinterpret_cast<void*>(AniMatrix::IsAffine) },
+};
+
 ani_status AniMatrix::AniInit(ani_env *env)
 {
     ani_class cls = AniGlobalClass::GetInstance().matrix;
@@ -34,35 +73,7 @@ ani_status AniMatrix::AniInit(ani_env *env)
         return ANI_NOT_FOUND;
     }
 
-    std::array methods = {
-        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Matrix}:",
-            reinterpret_cast<void*>(ConstructorWithMatrix) },
-        ani_native_function { "getValue", "i:d", reinterpret_cast<void*>(GetValue) },
-        ani_native_function { "reset", ":", reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setTranslation", "dd:", reinterpret_cast<void*>(SetTranslation) },
-        ani_native_function { "preConcat", "C{@ohos.graphics.drawing.drawing.Matrix}:",
-            reinterpret_cast<void*>(preConcat)},
-        ani_native_function { "preRotate", nullptr, reinterpret_cast<void*>(PreRotate) },
-        ani_native_function { "preScale", nullptr, reinterpret_cast<void*>(PreScale) },
-        ani_native_function { "setRectToRect", nullptr, reinterpret_cast<void*>(SetRectToRect) },
-        ani_native_function { "postScale", nullptr, reinterpret_cast<void*>(PostScale) },
-        ani_native_function { "postTranslate", nullptr, reinterpret_cast<void*>(PostTranslate) },
-        ani_native_function { "getAll", nullptr, reinterpret_cast<void*>(GetAll) },
-        ani_native_function { "setMatrix", nullptr, reinterpret_cast<void*>(SetMatrix) },
-        ani_native_function { "mapRect", nullptr, reinterpret_cast<void*>(MapRect) },
-        ani_native_function { "postRotate", nullptr, reinterpret_cast<void*>(PostRotate) },
-        ani_native_function { "invert", nullptr, reinterpret_cast<void*>(Invert) },
-        ani_native_function { "isEqual", nullptr, reinterpret_cast<void*>(IsEqual) },
-        ani_native_function { "setPolyToPoly", nullptr, reinterpret_cast<void*>(SetPolyToPoly) },
-        ani_native_function { "isIdentity", nullptr, reinterpret_cast<void*>(IsIdentity) },
-        ani_native_function { "mapPoints", nullptr, reinterpret_cast<void*>(MapPoints) },
-        ani_native_function { "setRotation", nullptr, reinterpret_cast<void*>(SetRotation) },
-        ani_native_function { "preTranslate", nullptr, reinterpret_cast<void*>(PreTranslate) },
-        ani_native_function { "setScale", nullptr, reinterpret_cast<void*>(SetScale) },
-    };
-
-    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: ret %{public}d %{public}s", ret, ANI_CLASS_MATRIX_NAME);
         return ANI_NOT_FOUND;
@@ -521,6 +532,146 @@ void AniMatrix::SetScale(ani_env* env, ani_object obj, ani_double sx, ani_double
         return;
     }
     aniMatrix->GetMatrix()->Scale(sx, sy, px, py);
+}
+
+ani_double AniMatrix::MapRadius(ani_env* env, ani_object obj, ani_double radius)
+{
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return 0;
+    }
+
+    return aniMatrix->GetMatrix()->MapRadius(radius);
+}
+
+void AniMatrix::OnSetMatrix(ani_env* env, ani_object obj, ani_object matrixArryaObj)
+{
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, matrixArryaObj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniMatrix::OnSetMatrix invalid params: otherMatrix. ");
+        return;
+    }
+            
+    std::shared_ptr<Matrix> matrix = aniMatrix->GetMatrix();
+    if (matrix == nullptr) {
+        ROSEN_LOGE("AniMatrix::SetMatrix get matrix failed.");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param matrix array element.");
+        return;
+    }
+    *matrix_ = *matrix;
+    return;
+}
+
+void AniMatrix::SetMatrixWithObject(ani_env* env, ani_object obj, ani_object matrixArryaObj)
+{
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid params.");
+        return;
+    }
+
+    ani_class matrixClass = AniGlobalClass::GetInstance().matrix;
+    if (matrixClass == nullptr) {
+        ROSEN_LOGE("AniMatrix::SetMatrix get matrixClass failed");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param matrix array element.");
+        return;
+    }
+
+    ani_boolean isMatrix;
+    env->Object_InstanceOf(matrixArryaObj, matrixClass, &isMatrix);
+    if (isMatrix) {
+        return aniMatrix->OnSetMatrix(env, obj, matrixArryaObj);
+    }
+    ani_array arrayObj = reinterpret_cast<ani_array>(matrixArryaObj);
+    return AniMatrix::SetMatrix(env, obj, arrayObj);
+}
+
+void AniMatrix::SetConcat(ani_env* env, ani_object obj, ani_object matrixAobj, ani_object matrixBobj)
+{
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid params.");
+        return;
+    }
+
+    auto aniMatrixA = GetNativeFromObj<AniMatrix>(env, matrixAobj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrixA == nullptr || aniMatrixA->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniMatrix::SetConcat invalid params: otherMatrix. ");
+        return;
+    }
+
+    auto aniMatrixB = GetNativeFromObj<AniMatrix>(env, matrixBobj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrixB == nullptr || aniMatrixB->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniMatrix::SetConcat invalid params: otherMatrix. ");
+        return;
+    }
+    std::shared_ptr<Matrix> matrixA = aniMatrixA->GetMatrix();
+    std::shared_ptr<Matrix> matrixB = aniMatrixB->GetMatrix();
+    aniMatrix->GetMatrix()->SetConcat(*matrixA, *matrixB);
+}
+
+void AniMatrix::PostConcat(ani_env* env, ani_object obj, ani_object matrixobj)
+{
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid params.");
+        return;
+    }
+
+    auto aniMatrixobj = GetNativeFromObj<AniMatrix>(env, matrixobj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrixobj == nullptr || aniMatrixobj->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniMatrix::SetConcat invalid params: otherMatrix. ");
+        return;
+    }
+
+    std::shared_ptr<Matrix> matrix = aniMatrixobj->GetMatrix();
+    aniMatrix->GetMatrix()->PostConcat(*matrix);
+}
+
+void AniMatrix::PreSkew(ani_env* env, ani_object obj, ani_double kx, ani_double ky, ani_double px, ani_double py)
+{
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid src array size.");
+        return;
+    }
+    aniMatrix->GetMatrix()->PreSkew(kx, ky, px, py);
+}
+
+void AniMatrix::PostSkew(ani_env* env, ani_object obj, ani_double kx, ani_double ky, ani_double px, ani_double py)
+{
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid src array size.");
+        return;
+    }
+    aniMatrix->GetMatrix()->PostSkew(kx, ky, px, py);
+}
+
+void AniMatrix::SetSkew(ani_env* env, ani_object obj, ani_double kx, ani_double ky, ani_double px, ani_double py)
+{
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid src array size.");
+        return;
+    }
+    aniMatrix->GetMatrix()->SetSkew(kx, ky, px, py);
+}
+
+void AniMatrix::SetSinCos(ani_env* env, ani_object obj, ani_double sinValue, ani_double cosValue, ani_double px,
+    ani_double py)
+{
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj, AniGlobalField::GetInstance().matrixNativeObj);
+    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid src array size.");
+        return;
+    }
+    aniMatrix->GetMatrix()->SetSinCos(sinValue, cosValue, px, py);
 }
 
 ani_object AniMatrix::MatrixTransferStatic(

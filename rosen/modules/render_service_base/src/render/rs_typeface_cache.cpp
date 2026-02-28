@@ -313,6 +313,35 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::UpdateDrawingTypefaceRef(Dra
     return nullptr;
 }
 
+int32_t RSTypefaceCache::InsertVariationTypeface(Drawing::SharedTypeface& sharedTypeface)
+{
+    auto variationTypeface = GetDrawingTypefaceCache(sharedTypeface.id_);
+    if (variationTypeface != nullptr) {
+        RS_LOGD("InsertVariationTypeface: variationTypefaceId found in cache");
+        return variationTypeface->GetFd();
+    }
+    RS_LOGD("InsertVariationTypeface: variationTypefaceId not found in cache");
+
+    // Validate source typefaceId
+    auto typeface = GetDrawingTypefaceCache(sharedTypeface.originId_);
+    if (typeface == nullptr) {
+        RS_LOGE("InsertVariationTypeface: originId_ not found in cache");
+        return -1;
+    }
+
+    Drawing::FontArguments fontArgs;
+    fontArgs.SetCollectionIndex(typeface->GetIndex());
+    fontArgs.SetVariationDesignPosition({sharedTypeface.coords_.data(), sharedTypeface.coords_.size()});
+    auto clonedTypeface = typeface->MakeClone(fontArgs);
+    if (clonedTypeface == nullptr) {
+        RS_LOGE("UpdateDrawingTypefaceRef: Typeface clone failed");
+        return -1;
+    }
+    clonedTypeface->SetFd(typeface->GetFd());
+    CacheDrawingTypeface(sharedTypeface.id_, clonedTypeface);
+    return clonedTypeface->GetFd();
+}
+
 void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::unordered_set<uint64_t>>& map)
 {
     // go through queued items;

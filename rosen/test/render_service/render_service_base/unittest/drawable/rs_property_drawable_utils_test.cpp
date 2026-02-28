@@ -667,7 +667,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
     Drawing::Path path;
     path.AddRect({0, 0, 5, 5});
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 1.f, false,
-        Color(255, 255, 255, 255));
+        Color(255, 255, 255, 255), false);
     ASSERT_TRUE(true);
 }
 

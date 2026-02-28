@@ -33,7 +33,21 @@ public:
 
     static ani_object CreateBlurImageFilter(ani_env* env, ani_object obj,
         ani_double sigmaX, ani_double sigmaY, ani_enum_item aniTileMode, ani_object aniImageFilterObj);
-    
+
+    static ani_object CreateOffsetImageFilter(ani_env* env, ani_object obj, ani_double dx, ani_double dy,
+        ani_object aniInputImageFilterobj);
+
+    static ani_object createComposeImageFilter(ani_env* env, ani_object obj, ani_object cOuterImageFilterobj,
+        ani_object cInnerImageFilterobj);
+
+    static ani_object createBlendImageFilter(ani_env* env, ani_object obj, ani_enum_item blendModeobj,
+        ani_object backgroundImageFilteObj, ani_object foregroundImageFilterobj);
+
+    static ani_object CreateFromShaderEffect(ani_env* env, ani_object obj, ani_object aniShaderEffectobj);
+
+    static ani_object CreateFromImage(ani_env* env, ani_object obj, ani_object pixelmapObj,
+        ani_object srcRectobj, ani_object dstRectobj);
+
     DRAWING_API std::shared_ptr<ImageFilter> GetImageFilter();
 private:
     std::shared_ptr<ImageFilter> imageFilter_ = nullptr;

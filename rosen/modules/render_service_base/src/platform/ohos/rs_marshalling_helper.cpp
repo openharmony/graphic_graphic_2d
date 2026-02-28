@@ -527,6 +527,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& v
 {
     bool success = true;
     success &= Marshalling(parcel, val.id_);
+    success &= Marshalling(parcel, val.originId_);
     success &= Marshalling(parcel, val.size_);
     success &= Marshalling(parcel, val.index_);
     success &= Marshalling(parcel, val.hash_);
@@ -552,6 +553,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
 {
     bool success = true;
     uint64_t id = 0;
+    uint64_t originId = 0;
     uint32_t size = 0;
     uint32_t index = 0;
     uint32_t hash = 0;
@@ -560,6 +562,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
 
     success &= Unmarshalling(parcel, id);
     if (success) { val.id_ = id; }
+    success &= Unmarshalling(parcel, originId);
+    if (success) { val.originId_ = originId; }
     success &= Unmarshalling(parcel, size);
     if (success) { val.size_ = size; }
     success &= Unmarshalling(parcel, index);

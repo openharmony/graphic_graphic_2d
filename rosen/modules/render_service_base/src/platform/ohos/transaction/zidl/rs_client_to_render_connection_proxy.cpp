@@ -71,7 +71,9 @@ ErrCode RSClientToRenderConnectionProxy::CommitTransaction(std::unique_ptr<RSTra
     std::vector<std::shared_ptr<MessageParcel>> parcelVector;
     auto func = [isUniMode, &parcelVector, &transactionData, this]() -> bool {
         if (isUniMode) {
-            ++transactionDataIndex_;
+            transactionData->SetIndex(transactionDataIndex_.fetch_add(1, std::memory_order_relaxed) + 1);
+        } else {
+            transactionData->SetIndex(transactionDataIndex_.load(std::memory_order_relaxed));
         }
         transactionData->SetIndex(transactionDataIndex_);
         std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();

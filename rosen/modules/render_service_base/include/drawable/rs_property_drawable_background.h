@@ -67,6 +67,8 @@ private:
     float stagingRadius_ = 0.0f;
     int colorStrategy_ = 0;
     int stagingColorStrategy_ = 0;
+    bool disableSDFBlur_ = false;
+    bool stagingDisableSDFBlur_ = false;
     Drawing::Path path_;
     Drawing::Path stagingPath_;
     Color color_;

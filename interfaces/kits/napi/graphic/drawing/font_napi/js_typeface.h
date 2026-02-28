@@ -61,6 +61,8 @@ private:
     napi_value OnIsBold(napi_env env, napi_callback_info info);
     napi_value OnIsItalic(napi_env env, napi_callback_info info);
 
+    static napi_value CreateJsTypefaceWithCache(napi_env env, const std::shared_ptr<Typeface>& rawTypeface);
+
     static thread_local napi_ref constructor_;
     std::shared_ptr<Typeface> m_typeface = nullptr;
 };

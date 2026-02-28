@@ -1487,6 +1487,15 @@ public:
     void SetShadowColorStrategy(int shadowColorStrategy);
 
     /**
+     * @brief Controls SDF blur optimization for shadow rendering (enabled by default).
+     *
+     * @details When enabled (default), SDF blur approximates Gaussian blur with better performance.
+     *          Disable only if higher visual quality or better consistency is required.
+     * @param disable Set to true to disable SDF blur (better quality), false to enable it (better performance).
+     */
+    void SetShadowDisableSDFBlur(bool disable);
+
+    /**
      * @brief Sets the gravity for the frame of this node.
      *
      * @param gravity The gravity value to apply.

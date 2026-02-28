@@ -410,6 +410,13 @@ public:
     int GetShadowColorStrategy() const;
 
     /**
+     * @brief Gets whether to disable SDF blur for shadow.
+     *
+     * @return true if SDF blur for shadow is diabled; false otherwise.
+     */
+    bool GetShadowDisableSDFBlur() const;
+
+    /**
      * @brief Gets the gravity of the frame.
      *
      * @return The gravity of the frame.

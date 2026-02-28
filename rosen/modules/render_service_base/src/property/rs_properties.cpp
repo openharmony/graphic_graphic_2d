@@ -2092,6 +2092,24 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     contentDirty_ = true;
 }
 
+void RSProperties::SetShadowDisableSDFBlur(bool disable)
+{
+    if (!GetShadow().has_value()) {
+        GetEffect().shadow_ = std::make_optional<RSShadow>();
+    }
+    GetEffect().shadow_->SetDisableSDFBlur(disable);
+    SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
+}
+
+bool RSProperties::GetShadowDisableSDFBlur() const
+{
+    const auto& shadow = GetShadow();
+    return shadow ? shadow->GetDisableSDFBlur() : false;
+}
+
 
 const Color& RSProperties::GetShadowColor() const
 {

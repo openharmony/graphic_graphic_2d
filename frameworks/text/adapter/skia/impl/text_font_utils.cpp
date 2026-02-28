@@ -68,18 +68,23 @@ void TextFontUtils::MakeFontArguments(skt::TextStyle& skStyle, const FontVariati
     constexpr size_t axisLen = 4;
 
     std::vector<SkFontArguments::VariationPosition::Coordinate> coordinates;
-    for (const auto& [axis, value] : fontVariations.GetAxisValues()) {
-        if (axis.length() == axisLen) {
-            coordinates.push_back({
-                SkSetFourByteTag(axis[0], axis[1], axis[2], axis[3]),
-                value,
-            });
+    std::vector<SkFourByteTag> normalizationList;
+    for (const auto& [axis, pairInfo] : fontVariations.GetAxisValues()) {
+        auto [value, isNormalization] = pairInfo;
+        if (axis.length() != axisLen) {
+            continue;
+        }
+        SkFourByteTag axisTag = SkSetFourByteTag(axis[0], axis[1], axis[2], axis[3]);
+        coordinates.push_back({axisTag, value});
+        if (isNormalization) {
+            normalizationList.push_back(axisTag);
         }
     }
     SkFontArguments::VariationPosition position = { coordinates.data(), static_cast<int>(coordinates.size()) };
 
     SkFontArguments arguments;
     arguments.setVariationDesignPosition(position);
+    arguments.setNormalizationList(normalizationList);
     skStyle.setFontArguments(arguments);
 }
 

@@ -2259,7 +2259,7 @@ namespace drawing {
      * @crossplatform
      * @since 20
      */
-    static native makeFromFileWithArguments(filePath: string, typefaceArguments: TypefaceArguments): Typeface;
+    static native makeFromFileWithArguments(filePath: string, typefaceArguments: TypefaceArguments): Typeface | undefined;
 
     /**
      * Checks if the typeface is bold.
@@ -2276,6 +2276,29 @@ namespace drawing {
      * @since 23
      */
     native isItalic(): boolean;
+
+
+    /**
+     * Generate typeface from Rawfile and TypefaceArguments.
+     *
+     * @param { Resource } rawfile - RawFile for typeface.
+     * @param { TypefaceArguments } typefaceArguments - TypefaceArguments for typeface.
+     * @returns { Typeface | undefined } Typeface.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24 static
+     */
+    static native makeFromRawFileWithArguments(rawfile: Resource, typefaceArguments: TypefaceArguments): Typeface | undefined;
+
+    /**
+     * Generate typeface from current typeface and TypefaceArguments.
+     *
+     * @param { TypefaceArguments } typefaceArguments - TypefaceArguments for typeface.
+     * @returns { Typeface | undefined } Typeface.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24 static
+     */
+    native makeFromCurrent(typefaceArguments: TypefaceArguments): Typeface | undefined;    
   }
 
   /**
@@ -3532,6 +3555,16 @@ namespace drawing {
      * @since 24
      */
     native rectStaysRect(): boolean;
+
+    /** 
+     * Sets matrix to the copy of anther matrix object. 
+     * @param { Array<double> | Matrix } matrix - Indicates the Matrix object to copy. 
+     * @syscap SystemCapability.Graphics.Drawing 
+     * @crossplatform 
+     * @since 20 dynamic 
+     * @since 23 static 
+    */ 
+    native setMatrix(matrix: Array<double> | Matrix): void;
 
     /**
      * Sets matrix to matrix constructed from skewing by (kx, ky) about pivot point (px, py), multiplied by matrix.
@@ -6081,6 +6114,35 @@ namespace drawing {
      */
     static native setLtrb(rect: common2D.Rect, left: double, top: double, right: double, bottom: double): void;
     
+    /** 
+     * Checks if one 2D rectangular object contains a specific point. 
+     * 
+     * @param { common2D.Rect } rect - The container Rect object. 
+     * @param { double } x - Indicates the X-coordinate of the point to check. 
+     * @param { double } y - Indicates the Y-coordinate of the point to check. 
+     * @returns { boolean } - Returns true if 'rect' contains the specified point; returns false otherwise. 
+     * @static 
+     * @syscap SystemCapability.Graphics.Drawing 
+     * @since 24 
+     */ 
+    static native contains(rect: common2D.Rect, x: double, y: double): boolean; 
+   
+    /** 
+     * Checks if one 2D rectangular object fully contains the specified boundary coordinates. 
+     * 
+     * @param { common2D.Rect } rect - The container Rect object. 
+     * @param { double } left - Indicates the left boundary of the target region. 
+     * @param { double } top - Indicates the top boundary of the target region. 
+     * @param { double } right - Indicates the right boundary of the target region. 
+     * @param { double } bottom - Indicates the bottom boundary of the target region. 
+     * @returns { boolean } - Returns true if 'rect' fully contains the specified boundary coordinates; 
+     *     returns false otherwise. 
+     * @static 
+     * @syscap SystemCapability.Graphics.Drawing 
+     * @since 24 
+     */ 
+    static native contains(rect: common2D.Rect, left: double, top: double, right: double, bottom: double): boolean;
+
     /**
      * Sets the boundary coordinates of a 2D rectangular object to zero.
      * @param { common2D.Rect } rect - Indicates the Rect object to be modified.

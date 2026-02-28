@@ -108,9 +108,9 @@ HWTEST_F(OHDrawingStyleCopyTest, OH_Drawing_CopyTextStyle002, TestSize.Level0)
 
     EXPECT_EQ(textStyleCopy.symbol.GetSymbolUid(), 1);
     EXPECT_FALSE(textStyleCopy.fontVariations.GetAxisValues().empty());
-    const std::map<std::string, float>& axisValues = textStyleCopy.fontVariations.GetAxisValues();
+    const auto& axisValues = textStyleCopy.fontVariations.GetAxisValues();
     ASSERT_TRUE(axisValues.find("test") != axisValues.end()) << "Key 'test' not found in font variations axis";
-    EXPECT_FLOAT_EQ(axisValues.at("test"), FLOAT_TEST_SIZE_NOT_DEFAULT);
+    EXPECT_FLOAT_EQ(axisValues.at("test").first, FLOAT_TEST_SIZE_NOT_DEFAULT);
     EXPECT_EQ(textStyleCopy.fontFeatures.GetFontFeatures().at(0).first, "frac");
     EXPECT_EQ(textStyleCopy.fontFeatures.GetFontFeatures().at(0).second, 1);
     EXPECT_EQ(textStyleCopy.fontFeatures.GetFontFeatures().at(1).first, "sups");

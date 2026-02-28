@@ -4472,6 +4472,30 @@ HWTEST_F(RSNodeTest, SetandGetShadowIsFilled002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetShadowDisableSDFBlur001
+ * @tc.desc: Test setting and getting shadow disable SDF blur property
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowDisableSDFBlur001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowDisableSDFBlur(true);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetShadowDisableSDFBlur(), true);
+}
+
+/**
+ * @tc.name: SetandGetShadowDisableSDFBlur002
+ * @tc.desc: Test setting and getting shadow disable SDF blur property
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowDisableSDFBlur002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowDisableSDFBlur(false);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetShadowDisableSDFBlur(), false);
+}
+
+/**
  * @tc.name: SetandGetForegroundEffectRadius001
  * @tc.desc:
  * @tc.type:FUNC
@@ -4981,40 +5005,6 @@ HWTEST_F(RSNodeTest, ExecuteWithoutAnimation, TestSize.Level1)
     rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
     EXPECT_NE(implicitAnimator, nullptr);
 }
-
-/**
- * @tc.name: FallbackAnimationsToRoot
- * @tc.desc: test results of FallbackAnimationsToRoot
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
- */
-// HWTEST_F(RSNodeTest, FallbackAnimationsToRoot, TestSize.Level1)
-// {
-//     auto rsNode = RSCanvasNode::Create();
-//     auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
-//     target = nullptr;
-//     rsNode->FallbackAnimationsToRoot();
-//     EXPECT_EQ(rsNode->motionPathOption_, nullptr);
-
-//     bool isRenderServiceNode = true;
-//     target = std::make_shared<RSNode>(isRenderServiceNode);
-//     AnimationId id = 1;
-//     std::shared_ptr<RSAnimation> animation = nullptr;
-//     rsNode->FallbackAnimationsToRoot();
-//     EXPECT_NE(RSNodeMap::Instance().animationFallbackNode_, nullptr);
-
-//     animation = std::make_shared<RSAnimation>();
-//     animation->repeatCount_ = 1;
-//     rsNode->animations_.insert({ id, animation });
-//     rsNode->FallbackAnimationsToRoot();
-//     EXPECT_TRUE(animation->repeatCount_);
-
-//     rsNode->animations_.clear();
-//     animation->repeatCount_ = -1;
-//     rsNode->animations_.insert({ id, animation });
-//     rsNode->FallbackAnimationsToRoot();
-//     EXPECT_TRUE(animation->repeatCount_ == -1);
-// }
 
 /**
  * @tc.name: AddAnimationInner

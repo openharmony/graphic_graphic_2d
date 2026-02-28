@@ -84,7 +84,7 @@ HWTEST_F(TextStyleTest, TextStyleTest003, TestSize.Level0)
     fontVariations.SetAxisValue("tag", 0.0);
     textStyle_->fontVariations = fontVariations;
     ASSERT_EQ(textStyle_->fontVariations.GetAxisValues().size(), 1);
-    EXPECT_EQ(textStyle_->fontVariations.GetAxisValues().at("tag"), fontVariations.GetAxisValues().at("tag"));
+    EXPECT_FLOAT_EQ(textStyle_->fontVariations.GetAxisValues().at("tag").first, 0.0);
 }
 
 /*

@@ -3669,6 +3669,16 @@ void OH_Drawing_TextStyleAddFontVariation(OH_Drawing_TextStyle* style, const cha
     }
 }
 
+void OH_Drawing_TextStyleAddFontVariationWithNormalization(OH_Drawing_TextStyle* style,
+    const char* axis, const float value)
+{
+    if (style == nullptr || axis == nullptr) {
+        return;
+    }
+    TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
+    convertStyle->fontVariations.SetAxisValue(axis, value, true);
+}
+
 OH_Drawing_TextTab* OH_Drawing_CreateTextTab(OH_Drawing_TextAlign alignment, float location)
 {
     TextAlign textAlign;

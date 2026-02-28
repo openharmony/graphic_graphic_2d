@@ -3863,6 +3863,52 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckHwcNodeIntersection005
+ * @tc.desc: Test CheckHwcNodeIntersection with arsr node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection005, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    // Set up screen node
+    auto rsContext = std::make_shared<RSContext>();
+    constexpr NodeId screenNodeId = 1;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    // Create surface node with a child node
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->isOnTheTree_ = true;
+
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->isOnTheTree_ = true;
+    // Set up absRect for the node so it intersects with colorPickerRect
+    RectI nodeRect(0, 0, 100, 100);
+    hwcNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = nodeRect;
+    auto bufferHandle = hwcNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
+    EXPECT_TRUE(hwcNode->CheckIfDoArsrPre());
+    surfaceNode->AddChildHardwareEnabledNode(hwcNode);
+    rsUniRenderVisitor->curScreenNode_->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
+
+    // Set up intersecting rect
+    RectI colorPickerRect(50, 50, 200, 200);
+    constexpr NodeId surfaceId = 1;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId] = colorPickerRect;
+
+    // Call UpdateHwcNodeEnableByColorPicker which internally calls CheckHwcNodeIntersection
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByColorPicker();
+    EXPECT_TRUE(hwcNode->isHardwareForcedDisabled_);
+}
+
+/**
  * @tc.name: UpdateHwcNodeEnableByColorPicker001
  * @tc.desc: Test UpdateHwcNodeEnableByColorPicker with empty map
  * @tc.type: FUNC

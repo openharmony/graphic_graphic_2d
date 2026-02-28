@@ -15,8 +15,13 @@
 
 #include "text/typeface.h"
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #ifdef ENABLE_OHOS_ENHANCE
 #include "ashmem.h"
+#include <sys/mman.h>
+#include <sys/stat.h>
 #endif
 #include "static_factory.h"
 
@@ -33,6 +38,52 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static const int MAX_CHUNK_SIZE = 20000;
+MappedFile::MappedFile(const std::string& path)
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    char realPath[PATH_MAX] = {0};
+    if (realpath(path.c_str(), realPath) == nullptr) {
+        LOGE("Invalid filePath, file path is %{public}s.", path.c_str());
+        return;
+    }
+    fd = open(realPath, O_RDONLY);
+    if (fd < 0) {
+        LOGE("Map file failed, file path is %{public}s.", path.c_str());
+        return;
+    }
+
+    struct stat st {};
+    if (fstat(fd, &st) < 0) {
+        LOGE("Map file fstat failed, file path is %{public}s.", path.c_str());
+        close(fd);
+        fd = -1;
+        return;
+    }
+    size = static_cast<size_t>(st.st_size);
+
+    void* ptr = mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (ptr == MAP_FAILED) {
+        LOGE("Map file mmap failed, file path is %{public}s.", path.c_str());
+        close(fd);
+        fd = -1;
+        return;
+    }
+    data = ptr;
+#endif
+}
+
+MappedFile::~MappedFile()
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    if (data != nullptr && data != MAP_FAILED) {
+        munmap(const_cast<void*>(data), size);
+    }
+    if (fd >= 0) {
+        close(fd);
+    }
+#endif
+}
 Typeface::Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept : typefaceImpl_(typefaceImpl) {}
 
 std::shared_ptr<Typeface> Typeface::MakeDefault()
@@ -259,6 +310,31 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(std::unique_ptr<MemoryStream>
     return tf;
 #else
     return Typeface::MakeFromStream(std::move(memoryStream), index);
+#endif
+}
+
+std::shared_ptr<Typeface> Typeface::MakeFromAshmem(std::unique_ptr<MemoryStream> memoryStream,
+    const FontArguments& fontArguments)
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    size_t size = 0;
+    const void* data = nullptr;
+    int32_t fd;
+    std::unique_ptr<MemoryStream> stream = StaticFactory::GenerateAshMemoryStream(
+        std::move(memoryStream), data, size, fd);
+    auto tf = Typeface::MakeFromStream(std::move(stream), fontArguments);
+    if (tf == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
+        return nullptr;
+    }
+    tf->SetFd(fd);
+    uint32_t hash = CalculateHash(static_cast<const uint8_t*>(data), size, fontArguments.GetCollectionIndex());
+    tf->SetHash(hash);
+    tf->SetSize(size);
+    tf->index_ = static_cast<uint32_t>(fontArguments.GetCollectionIndex());
+    return tf;
+#else
+    return Typeface::MakeFromStream(std::move(memoryStream), fontArguments);
 #endif
 }
 
@@ -535,6 +611,36 @@ uint32_t Typeface::CalculateHash(const uint8_t* data, size_t datalen, uint32_t i
 #endif
     }
     return hash + index;
+}
+
+uint32_t Typeface::CalculateFontArgsHash(const FontArguments::VariationPosition& coords)
+{
+    if (coords.coordinateCount <= 0 || coords.coordinates == nullptr) {
+        return 0;
+    }
+
+    size_t size = coords.coordinateCount * (sizeof(Drawing::FontArguments::VariationPosition::Coordinate));
+#ifdef USE_M133_SKIA
+    return SkChecksum::Hash32(coords.coordinates, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)));
+#else
+    return SkOpts::hash_fn(coords.coordinates, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)), 0);
+#endif
+}
+
+uint64_t Typeface::AssembleFullHash(uint32_t fontArgsHash, uint32_t baseHash)
+{
+    uint64_t fontArgsHash64 = static_cast<uint64_t>(fontArgsHash) << 32;
+    return (fontArgsHash64 | baseHash);
+}
+
+void Typeface::SetFullHash(uint64_t fullHash)
+{
+    fullHash_ = fullHash;
+}
+
+uint64_t Typeface::GetFullHash() const
+{
+    return fullHash_;
 }
 } // namespace Drawing
 } // namespace Rosen

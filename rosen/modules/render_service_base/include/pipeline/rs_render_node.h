@@ -1025,6 +1025,7 @@ public:
 
     // Enable HWCompose
     RSHwcRecorder& GetHwcRecorder() { return hwcRecorder_; }
+    const RSHwcRecorder& GetConstHwcRecorder() const { return hwcRecorder_; }
 
     RSOpincCache& GetOpincCache()
     {
@@ -1071,6 +1072,8 @@ public:
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
     // returns true if color picker will execute this frame
     bool PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode);
+    // returns true if node only has ColorPickerDrawable without any real filter
+    bool IsColorPickerOnlyNode() const;
 
 protected:
     void ResetDirtyStatus();

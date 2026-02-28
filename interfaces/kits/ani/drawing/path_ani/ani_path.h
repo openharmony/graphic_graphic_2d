@@ -77,6 +77,15 @@ public:
     static void Close(ani_env* env, ani_object obj);
     static ani_boolean IsInverseFillType(ani_env* env, ani_object obj);
     static void ToggleInverseFillType(ani_env* env, ani_object obj);
+    static ani_object Approximate(ani_env* env, ani_object obj, ani_double acceptableErrorobj);
+    static void SetLastPoint(ani_env* env, ani_object obj, ani_double x, ani_double y);
+    static void ReWind(ani_env* env, ani_object obj);
+    static ani_boolean Interpolate(ani_env* env, ani_object obj, ani_object otherobj, ani_double weight,
+        ani_object interpolatedPathobj);
+    static ani_boolean IsEmpty(ani_env* env, ani_object obj);
+    static void Set(ani_env* env, ani_object obj, ani_object srcobj);
+    static ani_boolean IsInterpolate(ani_env* env, ani_object obj, ani_object otherobj);
+    static ani_enum_item GetFillType(ani_env* env, ani_object obj);
 
     std::shared_ptr<Path> GetPath();
 

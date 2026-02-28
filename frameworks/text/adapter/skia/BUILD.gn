@@ -102,6 +102,7 @@ template("skia_libtxt") {
       "txt/text_bundle_config_parser.cpp",
       "txt/text_style.cpp",
       "txt/typeface_font_asset_provider.cpp",
+      "txt/variation_font_cache.cpp",
     ]
 
     deps = []

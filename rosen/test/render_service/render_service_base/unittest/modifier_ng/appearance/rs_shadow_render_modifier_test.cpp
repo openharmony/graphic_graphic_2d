@@ -65,6 +65,7 @@ HWTEST_F(RSShadowRenderModifierNGTypeTest, RSShadowRenderModifierTest, TestSize.
     EXPECT_EQ(properties.GetShadowMask(), false);
     EXPECT_EQ(properties.GetShadowColorStrategy(), static_cast<int>(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE));
     EXPECT_EQ(properties.GetShadowIsFilled(), false);
+    EXPECT_EQ(properties.GetShadowDisableSDFBlur(), false);
     EXPECT_EQ(properties.GetUseShadowBatching(), false);
 }
 } // namespace OHOS::Rosen

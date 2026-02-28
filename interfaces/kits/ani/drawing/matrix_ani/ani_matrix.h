@@ -44,6 +44,7 @@ public:
     static void PostTranslate(ani_env* env, ani_object obj, ani_double dx, ani_double dy);
     static ani_object GetAll(ani_env* env, ani_object obj);
     static void SetMatrix(ani_env* env, ani_object obj, ani_array aniValueArrayObj);
+    static void SetMatrixWithObject(ani_env* env, ani_object obj, ani_object matrixArryaObj);
     static ani_boolean MapRect(ani_env* env, ani_object obj, ani_object aniDstRectObj, ani_object aniSrcRectObj);
     static void PostRotate(ani_env* env, ani_object obj, ani_double degree, ani_double px, ani_double py);
     static ani_boolean Invert(ani_env* env, ani_object obj, ani_object aniMatrixObj);
@@ -56,6 +57,14 @@ public:
     static void SetRotation(ani_env* env, ani_object obj, ani_double degree, ani_double px, ani_double py);
     static void PreTranslate(ani_env* env, ani_object obj, ani_double dx, ani_double dy);
     static void SetScale(ani_env* env, ani_object obj, ani_double sx, ani_double sy, ani_double px, ani_double py);
+    static void PreSkew(ani_env* env, ani_object obj, ani_double kx, ani_double ky, ani_double px, ani_double py);
+    static void PostSkew(ani_env* env, ani_object obj, ani_double kx, ani_double ky, ani_double px, ani_double py);
+    static void SetSkew(ani_env* env, ani_object obj, ani_double kx, ani_double ky, ani_double px, ani_double py);
+    static void SetSinCos(ani_env* env, ani_object obj, ani_double sinValue, ani_double cosValue, ani_double px,
+        ani_double py);
+    static void SetConcat(ani_env* env, ani_object obj, ani_object matrixAobj, ani_object matrixBobj);
+    static void PostConcat(ani_env* env, ani_object obj, ani_object matrixobj);
+    static ani_double MapRadius(ani_env* env, ani_object obj, ani_double radius);
 
     std::shared_ptr<Matrix> GetMatrix();
 
@@ -63,6 +72,7 @@ private:
     static ani_object MatrixTransferStatic(
         ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
     static ani_long GetMatrixAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    void OnSetMatrix(ani_env* env, ani_object obj, ani_object matrixArryaObj);
     std::shared_ptr<Matrix>* GetMatrixPtrAddr();
     std::shared_ptr<Matrix> matrix_ = nullptr;
 };

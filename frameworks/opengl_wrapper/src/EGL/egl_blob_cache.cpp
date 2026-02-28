@@ -24,7 +24,15 @@
 
 namespace OHOS {
 static const char* CACHE_MAGIC = "OSOH";
-BlobCache* BlobCache::blobCache_;
+BlobCache* BlobCache::blobCache_ = nullptr;
+namespace {
+    struct CacheDataInfo {
+        bool initStatus;
+        std::string cacheDir;
+        std::string ddkCacheDir;
+    };
+    static CacheDataInfo g_dirInfo = {false, "", ""};
+}
 
 BlobCache* BlobCache::Get()
 {
@@ -81,7 +89,7 @@ void BlobCache::Terminate()
     if (blobCache_) {
         blobCache_->WriteToDisk();
     }
-    blobCache_ = nullptr;
+    delete blobCache_;
 }
 
 int BlobCache::GetMapSize() const
@@ -94,13 +102,14 @@ int BlobCache::GetMapSize() const
 
 void BlobCache::Init(EglWrapperDisplay* display)
 {
-    if (!initStatus_) {
+    if (!g_dirInfo.initStatus) {
         return;
     }
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
         table->egl.eglSetBlobCacheFuncsANDROID(display->GetEglDisplay(),
                                                BlobCache::SetBlobFunc, BlobCache::GetBlobFunc);
+        WLOGD("BlobCache Init at %s", g_dirInfo.cacheDir.c_str());
     } else {
         WLOGE("eglSetBlobCacheFuncsANDROID not found.");
     }
@@ -228,30 +237,30 @@ void BlobCache::SetCacheDir(const std::string dir)
     struct stat dirStat;
     if (stat(dir.c_str(), &dirStat) != 0) {
         WLOGE("inputdir not Create");
-        initStatus_ = false;
+        g_dirInfo.initStatus = false;
         return;
     }
 
     struct stat cachedirstat;
     struct stat ddkdirstat;
-    cacheDir_ = dir + std::string("/blobShader");
-    ddkCacheDir_ = dir + std::string("/ddkShader");
+    g_dirInfo.cacheDir = dir + std::string("/blobShader");
+    g_dirInfo.ddkCacheDir = dir + std::string("/ddkShader");
 
-    if (stat(cacheDir_.c_str(), &cachedirstat) != 0) {
-        initStatus_ = false;
-        int ret = mkdir(cacheDir_.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH);
+    if (stat(g_dirInfo.cacheDir.c_str(), &cachedirstat) != 0) {
+        g_dirInfo.initStatus = false;
+        int ret = mkdir(g_dirInfo.cacheDir.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH);
         if (ret == -1) {
-            initStatus_ = false;
+            g_dirInfo.initStatus = false;
             WLOGE("cacheDir_ not Create");
         } else {
-            initStatus_ = true;
+            g_dirInfo.initStatus = true;
         }
     } else {
-        initStatus_ = true;
+        g_dirInfo.initStatus = true;
     }
 
-    if (stat(ddkCacheDir_.c_str(), &ddkdirstat) != 0) {
-        int ret = mkdir(ddkCacheDir_.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH);
+    if (stat(g_dirInfo.ddkCacheDir.c_str(), &ddkdirstat) != 0) {
+        int ret = mkdir(g_dirInfo.ddkCacheDir.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH);
         if (ret == -1 && errno != EEXIST) {
             WLOGE("ddkCacheDir_ not Create");
         }
@@ -286,10 +295,10 @@ void BlobCache::WriteToDisk()
 {
     std::lock_guard<std::mutex> lock(blobmutex_);
     struct stat dirStat;
-    if (stat(cacheDir_.c_str(), &dirStat) != 0) {
+    if (stat(g_dirInfo.cacheDir.c_str(), &dirStat) != 0) {
         return;
     }
-    std::string storefile = cacheDir_ + fileName_;
+    std::string storefile = g_dirInfo.cacheDir + fileName_;
     int fd = open(storefile.c_str(), O_CREAT | O_EXCL | O_RDWR, 0);
     if (fd == -1) {
         if (errno == EEXIST) {
@@ -411,7 +420,7 @@ void BlobCache::ReadFromDisk()
 #ifdef PRELOAD_BLOB_CACHE
     BlobCacheReadFromDisk(PRESET_BLOB_CACHE_PATH);
 #endif
-    std::string storefile = cacheDir_ + fileName_;
+    std::string storefile = g_dirInfo.cacheDir + fileName_;
     BlobCacheReadFromDisk(storefile);
 }
 

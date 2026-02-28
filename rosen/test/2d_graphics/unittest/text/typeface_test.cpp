@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -319,6 +319,23 @@ HWTEST_F(TypefaceTest, MakeFromAshmemTest002, TestSize.Level1)
     EXPECT_EQ(sharedTypeface.coords_[0].value, coords[0].value);
     EXPECT_EQ(sharedTypeface.coords_[1].axis, coords[1].axis);
     EXPECT_EQ(sharedTypeface.coords_[1].value, coords[1].value);
+}
+
+/**
+ * @tc.name: MakeFromAshmemTest003
+ * @tc.desc: Test MakeFromAshmem
+ * @tc.type: FUNC
+ * @tc.require:22161
+ */
+HWTEST_F(TypefaceTest, MakeFromAshmemTest003, TestSize.Level1)
+{
+    auto stream = std::make_unique<MemoryStream>(ttfData_.get(), ttfLen_);
+    ASSERT_NE(stream, nullptr);
+    FontArguments args;
+    args.SetCollectionIndex(0);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(std::move(stream), args);
+    ASSERT_NE(typeface, nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen
