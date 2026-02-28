@@ -518,6 +518,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     auto bounds = node->GetRenderProperties().GetBoundsGeometry();
     boundsX_ = bounds->GetX();
     boundsY_ = bounds->GetY();
+    const Rect& contentRect = node->GetDisplayContentRect();
+    if (contentRect.w > 0 && contentRect.h > 0) {
+        pixmapWidth = static_cast<uint32_t>(contentRect.w);
+        pixmapHeight = static_cast<uint32_t>(contentRect.h);
+    }
 
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
     float rectWidth = rect.GetWidth();

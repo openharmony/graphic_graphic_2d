@@ -24,7 +24,6 @@
 #include "params/rs_logical_display_render_params.h"
 #include "pipeline/rs_render_node.h"
 
-
 namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSLogicalDisplayRenderNode : public RSRenderNode {
@@ -55,6 +54,16 @@ public:
     ScreenId GetScreenId() const
     {
         return screenId_;
+    }
+
+    void SetDisplayContentRect(const Rect& contentRect)
+    {
+        contentRect_ = contentRect;
+    }
+
+    const Rect& GetDisplayContentRect() const
+    {
+        return contentRect_;
     }
 
     bool IsValidScreenId() const
@@ -190,6 +199,7 @@ private:
     void InitRenderParams() override;
 
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    Rect contentRect_;
     std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
 
     // bounds rotation

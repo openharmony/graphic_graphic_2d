@@ -41,6 +41,9 @@ public:
     void SetScreenId(uint64_t screenId);
     uint64_t GetScreenId() const;
 
+    void SetDisplayContentRect(const Rect& contentRect);
+    const Rect& GetDisplayContentRect() const;
+
     void SetNeedOffscreen(bool needOffscreen);
     bool GetNeedOffscreen() const;
 
@@ -149,6 +152,7 @@ private:
     RSSpecialLayerManager specialLayerManager_;
     bool isSecurityExemption_ = false;
     uint64_t screenId_ = INVALID_SCREEN_ID;
+    Rect contentRect_ = {0, 0, 0, 0};
     bool needOffscreen_ = false;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
