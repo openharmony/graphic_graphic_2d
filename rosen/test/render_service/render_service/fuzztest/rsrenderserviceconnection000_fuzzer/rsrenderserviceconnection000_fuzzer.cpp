@@ -44,14 +44,20 @@
 #include <system_ability_definition.h>
 #include "vsync_iconnection_token.h"
 #include "iremote_proxy.h"
+#include "iremote_stub.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class MockVSyncIConnectionTokenProxy : public IRemoteProxy<VSyncIConnectionToken> {
+class MockVSyncIConnectionTokenStub : public IRemoteStub<VSyncIConnectionToken> {
 public:
-    explicit MockVSyncIConnectionTokenProxy() : IRemoteProxy<VSyncIConnectionToken>(nullptr) {};
-    virtual ~MockVSyncIConnectionTokenProxy() noexcept = default;
+    MockVSyncIConnectionTokenStub() = default;
+    virtual ~MockVSyncIConnectionTokenStub() noexcept = default;
+    
+    bool IsProxyObject() const override
+    {
+        return true;
+    }
 };
 
 int32_t g_pid;
@@ -482,9 +488,9 @@ void DoCreateVSyncConnection()
     std::string name = GetData<std::string>();
     bool fromXcomponent = GetData<bool>();
 
-    MockVSyncIConnectionTokenProxy mockProxy;
+    sptr<MockVSyncIConnectionTokenStub> mockStub = new MockVSyncIConnectionTokenStub();
     dataParcel.WriteString(name);
-    dataParcel.WriteRemoteObject(mockProxy.AsObject());
+    dataParcel.WriteRemoteObject(mockStub->AsObject());
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint64(windowNodeID);
     dataParcel.WriteBool(fromXcomponent);

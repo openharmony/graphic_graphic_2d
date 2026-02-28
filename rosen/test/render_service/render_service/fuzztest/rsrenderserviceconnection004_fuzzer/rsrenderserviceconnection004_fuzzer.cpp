@@ -54,14 +54,14 @@ sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToS
     g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 
 namespace {
-const uint8_t DO_SET_POINTER_COLOR_INVERSION_CONFIG = 1;
-const uint8_t DO_SET_POINTER_COLOR_INVERSION_ENABLED = 2;
-const uint8_t DO_REGISTER_POINTER_LUMINANCE_CALLBACK = 3;
-const uint8_t DO_UNREGISTER_POINTER_LUMINANCE_CALLBACK = 4;
-const uint8_t DO_REGISTER_APPLICATION_AGENT = 5;
-const uint8_t DO_SET_BUFFER_AVAILABLE_LISTENER = 6;
-const uint8_t DO_SET_BUFFER_CLEAR_LISTENER = 7;
-const uint8_t TARGET_SIZE = 8;
+const uint8_t DO_SET_POINTER_COLOR_INVERSION_CONFIG = 0;
+const uint8_t DO_SET_POINTER_COLOR_INVERSION_ENABLED = 1;
+const uint8_t DO_REGISTER_POINTER_LUMINANCE_CALLBACK = 2;
+const uint8_t DO_UNREGISTER_POINTER_LUMINANCE_CALLBACK = 3;
+const uint8_t DO_REGISTER_APPLICATION_AGENT = 4;
+const uint8_t DO_SET_BUFFER_AVAILABLE_LISTENER = 5;
+const uint8_t DO_SET_BUFFER_CLEAR_LISTENER = 6;
+const uint8_t TARGET_SIZE = 7;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;

@@ -136,9 +136,8 @@ void DoCreateNodeAndSurface()
     MessageParcel replyParcel;
     MessageOption option;
 
-    FuzzedDataProvider fdp(DATA, g_size);
-    uint8_t type = fdp.ConsumeIntegralInRange<uint8_t>(0, 13);
-    uint8_t surfaceWindowType = fdp.ConsumeIntegralInRange<uint8_t>(1, 6);
+    uint8_t type = GetData<uint8_t>() % 14;
+    uint8_t surfaceWindowType = GetData<uint8_t>() % 11;
     NodeId id = static_cast<NodeId>(g_pid) << 32;
     bool isTextureExportNode = GetData<bool>();
     bool isSync = GetData<bool>();
