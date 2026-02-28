@@ -197,8 +197,8 @@ void RSUniHwcComputeUtil::DealWithNodeGravityOldVersion(RSSurfaceRenderNode& nod
     (void)RSPropertiesPainter::GetGravityMatrix(frameGravity,
         RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix);
     // create a canvas to calculate new dstRect and new srcRect
-    int32_t screenWidth = screenInfo.phyWidth;
-    int32_t screenHeight = screenInfo.phyHeight;
+    int32_t screenWidth = screenInfo.width;
+    int32_t screenHeight = screenInfo.height;
     const auto screenRotation = screenInfo.rotation;
     if (screenRotation == ScreenRotation::ROTATION_90 || screenRotation == ScreenRotation::ROTATION_270) {
         std::swap(screenWidth, screenHeight);
