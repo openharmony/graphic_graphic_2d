@@ -152,7 +152,7 @@ private:
     RSSpecialLayerManager specialLayerManager_;
     bool isSecurityExemption_ = false;
     uint64_t screenId_ = INVALID_SCREEN_ID;
-    Rect contentRect_;
+    Rect contentRect_ = {0, 0, 0, 0};
     bool needOffscreen_ = false;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
