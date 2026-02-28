@@ -679,8 +679,6 @@ ErrCode RSClientToServiceConnection::GetPixelMapByProcessId(
         return ERR_INVALID_VALUE;
     }
 
-    RSSurfaceBufferCallbackManager::Instance().SetShouldCollectBuffers(true);
-
     std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
     std::function<void()> collectBuffersTask = [weakThis = wptr<RSClientToServiceConnection>(this),
                                                   &sfBufferInfoVector, pid]() -> void {
@@ -693,9 +691,6 @@ ErrCode RSClientToServiceConnection::GetPixelMapByProcessId(
     mainThread_->PostSyncTask(collectBuffersTask);
 
     ConvertBuffersToPixelMaps(sfBufferInfoVector, pixelMapInfoVector);
-
-    RSSurfaceBufferCallbackManager::Instance().SetShouldCollectBuffers(false);
-
     repCode = SUCCESS;
     return ERR_OK;
 }

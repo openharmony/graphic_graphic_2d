@@ -23,7 +23,9 @@
 namespace OHOS {
 namespace Rosen {
 constexpr uint64_t SURFACE_BUFFER_CALLBACK_LIMIT = 10000;
-constexpr size_t MAX_BUFFERS_PER_PROCESS = 10;
+#ifdef ROSEN_OHOS
+constexpr size_t MAX_BUFFERS_PER_PROCESS = 5;
+#endif
 RSSurfaceBufferCallbackManager& RSSurfaceBufferCallbackManager::Instance()
 {
     static RSSurfaceBufferCallbackManager surfaceBufferCallbackMgr;
@@ -101,7 +103,7 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
         return pair.first.first == pid;
     });
     lock.unlock();
-
+#ifdef ROSEN_OHOS
     std::lock_guard<std::mutex> bufferLock(surfaceBufferInfoMutex_);
     auto it = surfaceBufferInfoMap_.begin();
     while (it != surfaceBufferInfoMap_.end()) {
@@ -116,6 +118,7 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
             ++it;
         }
     }
+#endif
 }
 
 void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
@@ -133,8 +136,9 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, 
         surfaceBufferCallbacks_.erase(iter);
     }
     lock.unlock();
-
+#ifdef ROSEN_OHOS
     RemoveAllSurfaceBufferInfo(pid, uid);
+#endif
 }
 
 #ifdef ROSEN_OHOS
@@ -365,6 +369,7 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId
 }
 #endif
 
+#ifdef ROSEN_OHOS
 void RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo(const DrawingSurfaceBufferInfo& info)
 {
     if (info.surfaceBuffer_ == nullptr) {
@@ -376,29 +381,32 @@ void RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo(const DrawingSurface
     uint64_t key = (static_cast<uint64_t>(info.pid_) << 32) | info.uid_;
     uint32_t bufferId = info.surfaceBuffer_->GetSeqNum();
 
-    std::vector<uint8_t> bufferData;
-    void* virAddr = info.surfaceBuffer_->GetVirAddr();
-    uint32_t bufferSize = info.surfaceBuffer_->GetSize();
-    if (virAddr != nullptr && bufferSize > 0) {
-        bufferData.resize(bufferSize);
-        memcpy(bufferData.data(), virAddr, bufferSize);
-        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
-                "Copied buffer data, size=%{public}u", bufferSize);
-    } else {
-        RS_LOGW("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
-                "Failed to copy buffer data, virAddr=%{public}p, size=%{public}u",
-                virAddr, bufferSize);
+    auto& bufferList = surfaceBufferInfoMap_[key];
+
+    auto it = std::find_if(bufferList.begin(), bufferList.end(),
+        [bufferId](const SurfaceBufferInfoEntry& entry) {
+            return entry.bufferId == bufferId;
+        });
+
+    if (it != bufferList.end()) {
+        bufferList.erase(it);
     }
-    surfaceBufferInfoMap_[key].push_front({
-        .info = info,
-        .bufferId = bufferId,
-        .bufferData = std::move(bufferData),
-        .width = info.surfaceBuffer_->GetWidth(),
-        .height = info.surfaceBuffer_->GetHeight(),
-        .stride = info.surfaceBuffer_->GetStride(),
-        .format = info.surfaceBuffer_->GetFormat()
-    });
+
+    SurfaceBufferInfoEntry entry;
+    entry.surfaceBuffer = info.surfaceBuffer_;
+    entry.bufferId = bufferId;
+    entry.pid = info.pid_;
+    entry.uid = info.uid_;
+    entry.dstRect = info.dstRect_;
+    bufferList.push_front(entry);
+
+    while (bufferList.size() > MAX_BUFFERS_PER_PROCESS) {
+        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
+                "Removing oldest buffer, current count=%{public}zu", bufferList.size());
+        bufferList.pop_back();
+    }
 }
+
 
 void RSSurfaceBufferCallbackManager::RemoveSurfaceBufferInfo(uint32_t bufferId)
 {
@@ -409,9 +417,8 @@ void RSSurfaceBufferCallbackManager::RemoveSurfaceBufferInfo(uint32_t bufferId)
             [bufferId](const SurfaceBufferInfoEntry& entry) {
                 return entry.bufferId == bufferId;
             });
-
         if (it != bufferList.end()) {
-            RS_LOGD("RSSurfaceBufferCallbackManager::RemoveSurfaceBufferInfo: "
+            RS_LOGD("RSSurfaceBufferCallbackManager::RemoveSurfaceBufferInfo:"
                     "Removed bufferId=%{public}u", bufferId);
             bufferList.erase(it);
             break;
@@ -425,9 +432,8 @@ void RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo(pid_t pid, uint6
 
     uint64_t key = (static_cast<uint64_t>(pid) << 32) | uid;
     auto it = surfaceBufferInfoMap_.find(key);
-
     if (it != surfaceBufferInfoMap_.end()) {
-        RS_LOGD("RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo: "
+        RS_LOGD("RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo:"
                 "Removed %{public}zu buffers for pid=%{public}d, uid=%{public}llu",
                 it->second.size(), pid, uid);
         surfaceBufferInfoMap_.erase(it);
@@ -441,25 +447,20 @@ std::vector<DrawingSurfaceBufferInfo> RSSurfaceBufferCallbackManager::GetSurface
     std::vector<DrawingSurfaceBufferInfo> result;
     for (const auto& [key, bufferList] : surfaceBufferInfoMap_) {
         pid_t entryPid = static_cast<pid_t>(key >> 32);
-        if (entryPid == pid) {
-            for (const auto& entry : bufferList) {
-                if (entry.info.surfaceBuffer_ != nullptr) {
-                    result.push_back(entry.info);
-                }
+        if (entryPid == pid && !bufferList.empty()) {
+            const auto& entry = bufferList.front();
+            if (entry.surfaceBuffer != nullptr) {
+                DrawingSurfaceBufferInfo info;
+                info.surfaceBuffer_ = entry.surfaceBuffer;
+                info.pid_ = entry.pid;
+                info.uid_ = entry.uid;
+                info.dstRect_ = entry.dstRect;
+                result.push_back(info);
             }
         }
     }
     return result;
 }
-
-void RSSurfaceBufferCallbackManager::SetShouldCollectBuffers(bool shouldCollect)
-{
-    shouldCollectBuffers_.store(shouldCollect, std::memory_order_release);
-}
-
-bool RSSurfaceBufferCallbackManager::ShouldCollectBuffers() const
-{
-    return shouldCollectBuffers_.load(std::memory_order_acquire);
-}
+#endif
 } // namespace Rosen
 } // namespace OHOS

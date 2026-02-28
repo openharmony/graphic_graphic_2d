@@ -211,8 +211,8 @@ int main(int argc, char* argv[])
             cout << "pixelmap write to png sucess " << fileName << endl;
             cout << "pixelmap x: " << pixelMapInfoVector[i].location.x << " y: " << pixelMapInfoVector[i].location.y
                  << " z: " << pixelMapInfoVector[i].location.z << " width: " << pixelMapInfoVector[i].location.width
-                 << " height: " << pixelMapInfoVector[i].location.height << " nodeName: " << pixelMapInfoVector[i].nodeName
-                 << endl;
+                 << " height: " << pixelMapInfoVector[i].location.height
+                 << " nodeName: " << pixelMapInfoVector[i].nodeName << endl;
         }
         if (pixelMapInfoVector.size() == 0) {
             cout << "this pid doesn't have selfdrawingnode" << endl;
@@ -243,9 +243,9 @@ int main(int argc, char* argv[])
                 }
                 cout << "pixelmap write to png sucess " << fileName << endl;
                 cout << "pixelmap x: " << pixelMapInfoVector[i].location.x << " y: " << pixelMapInfoVector[i].location.y
-                 << " z: " << pixelMapInfoVector[i].location.z << " width: " << pixelMapInfoVector[i].location.width
-                 << " height: " << pixelMapInfoVector[i].location.height << " nodeName: " << pixelMapInfoVector[i].nodeName
-                 << endl;
+                     << " z: " << pixelMapInfoVector[i].location.z << " width: " << pixelMapInfoVector[i].location.width
+                     << " height: " << pixelMapInfoVector[i].location.height
+                     << " nodeName: " << pixelMapInfoVector[i].nodeName << endl;
             }
             if (pixelMapInfoVector.size() == 0) {
                 cout << "this pid doesn't have selfdrawingnode" << endl;
