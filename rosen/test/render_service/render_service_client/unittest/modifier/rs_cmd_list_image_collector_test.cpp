@@ -122,4 +122,80 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage006, TestSize.Level1)
     EXPECT_NE(result->imageLatticeObjectVec, nullptr);
     EXPECT_GT(result->imageLatticeObjectVec->size(), 0);
 }
+
+/**
+ * @tc.name: CollectCmdListImage007
+ * @tc.desc: Test CollectCmdListImage with imageObjectVec empty and others not empty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage007, TestSize.Level1)
+{
+    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto imageBaseObj = std::make_shared<RSExtendImageBaseObj>();
+    Drawing::CmdListHelper::AddImageBaseObjToCmdList(*drawCmdList, imageBaseObj);
+    auto result = RSCmdListImageCollector::CollectCmdListImage(draw);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->imageObjectVec, nullptr);
+    EXPECT_NE(result->imageBaseObjVec, nullptr);
+}
+
+/**
+ * @tc.name: CollectCmdListImage008
+ * @tc.desc: Test CollectCmdListImage with imageBaseObjVec empty and others not empty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage008, TestSize.Level1)
+{
+    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto imageObject = std::make_shared<RSExtendImageObject>();
+    Drawing::CmdListHelper::AddImageObjectToCmdList(*drawCmdList, imageObject);
+    auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
+    EXPECT_NE(result, nullptr);
+    EXPECT_NE(result->imageObjectVec, nullptr);
+    EXPECT_EQ(result->imageBaseObjVec, nullptr);
+}
+
+/**
+ * @tc.name: CollectCmdListImage009
+ * @tc.desc: Test CollectCmdListImage with imageNineObjectVec empty and others not empty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage009, TestSize.Level1)
+{
+    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto imageObject = std::make_shared<RSExtendImageObject>();
+    Drawing::CmdListHelper::AddImageObjectToCmdList(*drawCmdList, imageObject);
+    auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
+    EXPECT_NE(result, nullptr);
+    EXPECT_NE(result->imageObjectVec, nullptr);
+    EXPECT_EQ(result->imageNineObjectVec, nullptr);
+}
+
+/**
+ * @tc.name: CollectCmdListImage010
+ * @tc.desc: Test CollectCmdListImage with imageLatticeObjectVec empty and others not empty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage010, TestSize.Level1)
+{
+    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto imageObject = std::make_shared<RSExtendImageObject>();
+    Drawing::CmdListHelper::AddImageObjectToCmdList(*drawCmdList, imageObject);
+    auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
+    EXPECT_NE(result, nullptr);
+    EXPECT_NE(result->imageObjectVec, nullptr);
+    EXPECT_EQ(result->imageLatticeObjectVec, nullptr);
+}
+
+/**
+ * @tc.name: CollectCmdListImage011
+ * @tc.desc: Test CollectCmdListImage with all vectors empty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage011, TestSize.Level1)
+{
+    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
+    EXPECT_EQ(result, nullptr);
+}
 } // namespace OHOS::Rosen
