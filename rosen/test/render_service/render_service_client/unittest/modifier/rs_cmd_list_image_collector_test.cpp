@@ -66,7 +66,9 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage002, TestSize.Level1)
  */
 HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage003, TestSize.Level1)
 {
-    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto saveOpItem = std::make_shared<Drawing::SaveOpItem>();
+    drawCmdList->drawOpItems_.push_back(saveOpItem);
     auto imageObject = std::make_shared<RSExtendImageObject>();
     Drawing::CmdListHelper::AddImageObjectToCmdList(*drawCmdList, imageObject);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
@@ -82,7 +84,9 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage003, TestSize.Level1)
  */
 HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage004, TestSize.Level1)
 {
-    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto saveOpItem = std::make_shared<Drawing::SaveOpItem>();
+    drawCmdList->drawOpItems_.push_back(saveOpItem);
     auto imageBaseObj = std::make_shared<RSExtendImageBaseObj>();
     Drawing::CmdListHelper::AddImageBaseObjToCmdList(*drawCmdList, imageBaseObj);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
@@ -98,7 +102,9 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage004, TestSize.Level1)
  */
 HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage005, TestSize.Level1)
 {
-    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto saveOpItem = std::make_shared<Drawing::SaveOpItem>();
+    drawCmdList->drawOpItems_.push_back(saveOpItem);
     auto imageNineObject = std::make_shared<RSExtendImageNineObject>();
     Drawing::CmdListHelper::AddImageNineObjecToCmdList(*drawCmdList, imageNineObject);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
@@ -114,7 +120,9 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage005, TestSize.Level1)
  */
 HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage006, TestSize.Level1)
 {
-    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto saveOpItem = std::make_shared<Drawing::SaveOpItem>();
+    drawCmdList->drawOpItems_.push_back(saveOpItem);
     auto imageLatticeObject = std::make_shared<RSExtendImageLatticeObject>();
     Drawing::CmdListHelper::AddImageLatticeObjecToCmdList(*drawCmdList, imageLatticeObject);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
@@ -130,7 +138,9 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage006, TestSize.Level1)
  */
 HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage007, TestSize.Level1)
 {
-    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto saveOpItem = std::make_shared<Drawing::SaveOpItem>();
+    drawCmdList->drawOpItems_.push_back(saveOpItem);
     auto imageBaseObj = std::make_shared<RSExtendImageBaseObj>();
     Drawing::CmdListHelper::AddImageBaseObjToCmdList(*drawCmdList, imageBaseObj);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
@@ -146,7 +156,9 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage007, TestSize.Level1)
  */
 HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage008, TestSize.Level1)
 {
-    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto saveOpItem = std::make_shared<Drawing::SaveOpItem>();
+    drawCmdList->drawOpItems_.push_back(saveOpItem);
     auto imageObject = std::make_shared<RSExtendImageObject>();
     Drawing::CmdListHelper::AddImageObjectToCmdList(*drawCmdList, imageObject);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
@@ -162,7 +174,9 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage008, TestSize.Level1)
  */
 HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage009, TestSize.Level1)
 {
-    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto saveOpItem = std::make_shared<Drawing::SaveOpItem>();
+    drawCmdList->drawOpItems_.push_back(saveOpItem);
     auto imageObject = std::make_shared<RSExtendImageObject>();
     Drawing::CmdListHelper::AddImageObjectToCmdList(*drawCmdList, imageObject);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
@@ -178,7 +192,9 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage009, TestSize.Level1)
  */
 HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage010, TestSize.Level1)
 {
-    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto saveOpItem = std::make_shared<Drawing::SaveOpItem>();
+    drawCmdList->drawOpItems_.push_back(saveOpItem);
     auto imageObject = std::make_shared<RSExtendImageObject>();
     Drawing::CmdListHelper::AddImageObjectToCmdList(*drawCmdList, imageObject);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
@@ -194,7 +210,7 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage010, TestSize.Level1)
  */
 HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage011, TestSize.Level1)
 {
-    auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
     EXPECT_EQ(result, nullptr);
 }
