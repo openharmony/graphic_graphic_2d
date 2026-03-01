@@ -2035,6 +2035,7 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
 bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty,
     const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix)
 {
+    layerPartRenderDirtyFlag_ = IsDirty() || IsContentDirty();
     auto& properties = GetMutableRenderProperties();
 #ifdef RS_ENABLE_PREFETCH
     // The 2 is the cache level.
@@ -3757,6 +3758,41 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
         stagingRenderParams_->OpincSetIsSuggest(opincCache_.IsSuggestOpincNode());
     }
     SetDirty();
+}
+
+void RSRenderNode::MarkSuggestLayerPartRenderNode(bool isLayerPartRender)
+{
+    RS_LOGD("RSRenderNode::MarkSuggestLayerPartRenderNode id:%{public}" PRIu64" isLayerPartRender:%{public}d",
+        GetId(), isLayerPartRender);
+    // only support surface node mark
+    if (GetType() != RSRenderNodeType::SURFACE_NODE) {
+        return;
+    }
+    auto parent = GetParent().lock();
+    if (parent != nullptr && parent->GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto groundParent = parent->GetParent().lock();
+        if (groundParent != nullptr && groundParent->GetType() == RSRenderNodeType::CANVAS_NODE) {
+            groundParent->opincCache_.MarkSuggestLayerPartRenderNode(isLayerPartRender);
+            RS_TRACE_NAME_FMT("MarkSuggestLayerPartRender id:%" PRIu64 ", isLayerPartRender:%d",
+                groundParent->GetId(), isLayerPartRender);
+            if (!isLayerPartRender) {
+                groundParent->MarkNodeGroup(NodeGroupType::GROUPED_BY_USER, isLayerPartRender, false);
+            }
+        }
+    }
+}
+
+bool RSRenderNode::UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegionManager>& dirtyManager)
+{
+    if (dirtyManager == nullptr) {
+        return false;
+    }
+    if (layerPartRenderDirtyFlag_) {
+        RS_OPTIONAL_TRACE_FMT("UpdateLayerPartRenderDirtyRegion id:%" PRIu64 ", absDrawRect_:[%d,%d,%d,%d]",
+            GetId(), absDrawRect_.GetLeft(), absDrawRect_.GetTop(), absDrawRect_.GetRight(), absDrawRect_.GetBottom());
+        dirtyManager->MergeDirtyRect(absDrawRect_);
+    }
+    return true;
 }
 
 void RSRenderNode::CheckDrawingCacheType()

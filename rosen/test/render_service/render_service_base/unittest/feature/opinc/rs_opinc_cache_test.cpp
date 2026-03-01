@@ -416,5 +416,229 @@ HWTEST_F(RSOpincCacheTest, SetCurNodeTreeSupportFlag, TestSize.Level1)
     opincCache.SetCurNodeTreeSupportFlag(true);
     ASSERT_TRUE(opincCache.GetCurNodeTreeSupportFlag());
 }
+
+/**
+ * @tc.name: MarkSuggestLayerPartRenderNode001
+ * @tc.desc: test results of MarkSuggestLayerPartRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, MarkSuggestLayerPartRenderNode001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    opincCache.MarkSuggestLayerPartRenderNode(true);
+    ASSERT_TRUE(opincCache.IsSuggestLayerPartRenderNode());
+
+    opincCache.MarkSuggestLayerPartRenderNode(false);
+    ASSERT_FALSE(opincCache.IsSuggestLayerPartRenderNode());
+}
+
+/**
+ * @tc.name: IsSuggestLayerPartRenderNode001
+ * @tc.desc: test results of IsSuggestLayerPartRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, IsSuggestLayerPartRenderNode001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    ASSERT_FALSE(opincCache.IsSuggestLayerPartRenderNode());
+
+    opincCache.MarkSuggestLayerPartRenderNode(true);
+    ASSERT_TRUE(opincCache.IsSuggestLayerPartRenderNode());
+}
+
+/**
+ * @tc.name: SetLayerPartRender001
+ * @tc.desc: test results of SetLayerPartRender
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, SetLayerPartRender001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    opincCache.SetLayerPartRender(true);
+    ASSERT_TRUE(opincCache.IsLayerPartRender());
+
+    opincCache.SetLayerPartRender(false);
+    ASSERT_FALSE(opincCache.IsLayerPartRender());
+}
+
+/**
+ * @tc.name: IsLayerPartRender001
+ * @tc.desc: test results of IsLayerPartRender
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, IsLayerPartRender001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    ASSERT_FALSE(opincCache.IsLayerPartRender());
+
+    opincCache.SetLayerPartRender(true);
+    ASSERT_TRUE(opincCache.IsLayerPartRender());
+}
+
+/**
+ * @tc.name: IsLayerPartRenderUnchangeState001
+ * @tc.desc: test results of IsLayerPartRenderUnchangeState
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, IsLayerPartRenderUnchangeState001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    // count=0, 0<=3 -> false, count=1
+    ASSERT_FALSE(opincCache.IsLayerPartRenderUnchangeState());
+    // count=1, 1<=3 -> false, count=2
+    ASSERT_FALSE(opincCache.IsLayerPartRenderUnchangeState());
+    // count=2, 2<=3 -> false, count=3
+    ASSERT_FALSE(opincCache.IsLayerPartRenderUnchangeState());
+    // count=3, 3<=3 -> false, count=4
+    ASSERT_FALSE(opincCache.IsLayerPartRenderUnchangeState());
+    // count=4, 4>3 -> true
+    ASSERT_TRUE(opincCache.IsLayerPartRenderUnchangeState());
+}
+
+/**
+ * @tc.name: IsLayerPartRenderUnchangeState002
+ * @tc.desc: test results of IsLayerPartRenderUnchangeState after reset
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, IsLayerPartRenderUnchangeState002, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    for (int i = 0; i < 5; i++) {
+        opincCache.IsLayerPartRenderUnchangeState();
+    }
+    ASSERT_TRUE(opincCache.IsLayerPartRenderUnchangeState());
+
+    opincCache.ResetLayerPartRenderUnchangeState();
+
+    ASSERT_FALSE(opincCache.IsLayerPartRenderUnchangeState());
+}
+
+/**
+ * @tc.name: ResetLayerPartRenderUnchangeState001
+ * @tc.desc: test results of ResetLayerPartRenderUnchangeState
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, ResetLayerPartRenderUnchangeState001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    for (int i = 0; i < 5; i++) {
+        opincCache.IsLayerPartRenderUnchangeState();
+    }
+    ASSERT_TRUE(opincCache.IsLayerPartRenderUnchangeState());
+
+    opincCache.ResetLayerPartRenderUnchangeState();
+
+    // After reset, count=0, need 4 calls to reach count=4
+    ASSERT_FALSE(opincCache.IsLayerPartRenderUnchangeState());
+    ASSERT_FALSE(opincCache.IsLayerPartRenderUnchangeState());
+    ASSERT_FALSE(opincCache.IsLayerPartRenderUnchangeState());
+    ASSERT_FALSE(opincCache.IsLayerPartRenderUnchangeState());
+    ASSERT_TRUE(opincCache.IsLayerPartRenderUnchangeState());
+}
+
+/**
+ * @tc.name: GetLayerPartRenderDirtyManager001
+ * @tc.desc: test results of GetLayerPartRenderDirtyManager
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, GetLayerPartRenderDirtyManager001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    auto& dirtyManager = opincCache.GetLayerPartRenderDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+
+    auto& dirtyManager2 = opincCache.GetLayerPartRenderDirtyManager();
+    ASSERT_EQ(dirtyManager, dirtyManager2);
+}
+
+/**
+ * @tc.name: GetLayerPartRenderDirtyManager002
+ * @tc.desc: test GetLayerPartRenderDirtyManager returns same instance
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, GetLayerPartRenderDirtyManager002, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    auto& dirtyManager1 = opincCache.GetLayerPartRenderDirtyManager();
+    ASSERT_NE(dirtyManager1, nullptr);
+
+    auto& dirtyManager2 = opincCache.GetLayerPartRenderDirtyManager();
+    ASSERT_EQ(dirtyManager1.get(), dirtyManager2.get());
+}
+
+/**
+ * @tc.name: GetCacheChangeFlag001
+ * @tc.desc: test results of GetCacheChangeFlag
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
+ */
+HWTEST_F(RSOpincCacheTest, GetCacheChangeFlag001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    ASSERT_FALSE(opincCache.GetCacheChangeFlag());
+
+    opincCache.MarkSuggestOpincNode(true, true);
+    ASSERT_TRUE(opincCache.GetCacheChangeFlag());
+}
+
+/**
+ * @tc.name: GetNodeCacheState001
+ * @tc.desc: test results of GetNodeCacheState
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
+ */
+HWTEST_F(RSOpincCacheTest, GetNodeCacheState001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    ASSERT_EQ(opincCache.GetNodeCacheState(), NodeCacheState::STATE_INIT);
+
+    opincCache.MarkSuggestOpincNode(true, true);
+    ASSERT_EQ(opincCache.GetNodeCacheState(), NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: GetUnchangeCount001
+ * @tc.desc: test results of GetUnchangeCount
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
+ */
+HWTEST_F(RSOpincCacheTest, GetUnchangeCount001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    ASSERT_EQ(opincCache.GetUnchangeCount(), 0);
+}
 } // namespace Rosen
 } // namespace OHOS

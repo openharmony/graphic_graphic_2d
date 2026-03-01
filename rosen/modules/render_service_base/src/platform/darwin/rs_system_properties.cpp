@@ -638,6 +638,16 @@ bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetLayerPartRenderEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetLayerPartRenderDfxEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
 {
     return false;

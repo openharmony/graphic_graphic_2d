@@ -2002,6 +2002,10 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     if (isAccessibilityConfigChanged) {
         node.SetIsAccessibilityConfigChanged(true);
     }
+    
+    RSOpincManager::Instance().InitLayerPartRenderNode(OPIncParam::IsLayerPartRenderEnable(), node,
+        curLayerPartRenderDirtyManager_);
+
     UpdateDrawingCacheInfoBeforeChildren(node);
     UpdateOffscreenCanvasNodeId(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
@@ -2040,6 +2044,9 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_);
 
     PostPrepare(node, !isSubTreeNeedPrepare);
+
+    RSOpincManager::Instance().CalculateLayerPartRenderDirtyRegion(node, curLayerPartRenderDirtyManager_);
+
     prepareClipRect_ = prepareClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;
     dirtyFlag_ = dirtyFlag;
@@ -3383,6 +3390,7 @@ void RSUniRenderVisitor::DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNo
 
 CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
 {
+    node.UpdateLayerPartRenderDirtyRegion(curLayerPartRenderDirtyManager_);
     UpdateCurFrameInfoDetail(node, subTreeSkipped, true);
     if (const auto& sharedTransitionParam = node.GetSharedTransitionParam()) {
         sharedTransitionParam->GenerateDrawable(node);

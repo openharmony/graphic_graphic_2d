@@ -411,4 +411,66 @@ void RSOpincDrawCache::DrawOpincDisabledDfx(Drawing::Canvas& canvas, RSRenderPar
     canvas.DrawTextBlob(textBlob.get(), 10.f, 20.f);
     canvas.DetachBrush();
 }
+
+void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& params,
+    RSPaintFilterCanvas& canvas, int nodeCount)
+{
+    if (!params.GetLayerPartRenderEnabled()) {
+        return;
+    }
+    RectI currentFrameDirty = params.GetLayerPartRenderCurrentFrameDirtyRegion();
+    layerPartRenderDirtyRegion_.SetRect(Drawing::RectI(currentFrameDirty.GetLeft(), currentFrameDirty.GetTop(),
+        currentFrameDirty.GetRight(), currentFrameDirty.GetBottom()));
+    auto bounds = layerPartRenderDirtyRegion_.GetBounds();
+    RS_OPTIONAL_TRACE_NAME_FMT("id:%" PRIu64 ", LayerPartRenderNodeDirtyRegion:[%d %d %d %d], nodeCount:%d",
+        params.GetId(), bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom(), nodeCount);
+    canvas.PushLayerPartRenderDirtyRegion(layerPartRenderDirtyRegion_);
+}
+
+void RSOpincDrawCache::LayerPartRenderClipDirtyRegion(const RSRenderParams& params,
+    bool* isOffScreenWithClipHole, RSPaintFilterCanvas& canvas)
+{
+    if (!params.GetLayerPartRenderEnabled()) {
+        return;
+    }
+    *isOffScreenWithClipHole = false;
+    canvas.ClipRect(layerPartRenderDirtyRegion_.GetBounds());
+}
+
+void RSOpincDrawCache::PopLayerPartRenderDirtyRegion(const RSRenderParams& params,
+    RSPaintFilterCanvas& canvas)
+{
+    if (!params.GetLayerPartRenderEnabled()) {
+        return;
+    }
+    if (canvas.IsLayerPartRenderDirtyRegionStackEmpty()) {
+        return;
+    }
+    Drawing::RectI tempRect = layerPartRenderDirtyRegion_.GetBounds();
+    LayerDirtyRegionDfx(canvas, tempRect);
+    canvas.PopLayerPartRenderDirtyRegion();
+}
+
+void RSOpincDrawCache::LayerDirtyRegionDfx(RSPaintFilterCanvas& canvas, const Drawing::RectI& dirtyRect)
+{
+    if (!RSSystemProperties::GetLayerPartRenderDebugEnabled()) {
+        return;
+    }
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color(0x8090EE90));
+    brush.SetAntiAlias(true);
+    brush.SetAlphaF(RECT_PEN_ALPHA);
+    std::shared_ptr<Drawing::Typeface> typeFace = nullptr;
+    std::string position = "pos:[" + dirtyRect.ToString() + "]";
+    // font size 24
+    std::shared_ptr<Drawing::TextBlob> textBlob =
+        Drawing::TextBlob::MakeFromString(position.c_str(), Drawing::Font(typeFace, 24.0f, 0.6f, 0.0f));
+    canvas.AttachBrush(brush);
+    canvas.DrawRect(dirtyRect);
+    canvas.DetachBrush();
+    canvas.AttachBrush(Drawing::Brush());
+    canvas.DrawTextBlob(textBlob.get(), dirtyRect.GetLeft() + BORDER_WIDTH,
+        dirtyRect.GetTop() + MARGIN);
+    canvas.DetachBrush();
+}
 } // namespace OHOS::Rosen::DrawableV2

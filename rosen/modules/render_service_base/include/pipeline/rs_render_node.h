@@ -489,6 +489,7 @@ public:
     void UpdateSubTreeSkipDirtyForDFX(RSDirtyRegionManager& dirtyManager, const RectI& rect);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
+    bool UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegionManager>& dirtyManager);
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
         std::optional<RectI> clipRect = std::nullopt);
@@ -742,6 +743,7 @@ public:
 
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
+    void MarkSuggestLayerPartRenderNode(bool isLayerPartRender);
 
     /////////////////////////////////////////////
 
@@ -1206,6 +1208,9 @@ private:
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
+
+    // for layer part render
+    bool layerPartRenderDirtyFlag_ = false;
 
     bool isSubTreeDirty_ = false;
     bool isTreeStateChangeDirty_ = false;

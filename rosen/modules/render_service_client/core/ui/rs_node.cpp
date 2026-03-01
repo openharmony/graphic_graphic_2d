@@ -3597,6 +3597,29 @@ void RSNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     }
 }
 
+void RSNode::MarkLayerPartRender(bool isLayerPartRender)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    RS_TRACE_NAME_FMT("RSNode::MarkLayerPartRender id:%" PRIu64 ", isLayerPartRender:%d",
+        GetId(), isLayerPartRender);
+    RS_LOGD("RSNode::MarkLayerPartRender id:%{public}" PRIu64 ", isLayerPartRender:%{public}d",
+        GetId(), isLayerPartRender);
+    if (!RSSystemProperties::GetLayerPartRenderEnabled()) {
+        RS_TRACE_NAME_FMT("LayerPartRender is disabled, skip MarkLayerPartRender for node [%" PRIu64 "]",
+            GetId());
+        return;
+    }
+    isLayerPartRender_ = isLayerPartRender;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkLayerPartRender>(GetId(), isLayerPartRender);
+    AddCommand(command, IsRenderServiceNode());
+    if (isLayerPartRender_) {
+        SetDrawNode();
+        if (GetParent()) {
+            GetParent()->SetDrawNode();
+        }
+    }
+}
+
 void RSNode::MarkUifirstNode(bool isUifirstNode)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));

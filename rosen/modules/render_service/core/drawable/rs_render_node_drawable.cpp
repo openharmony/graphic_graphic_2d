@@ -1089,6 +1089,8 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         return;
     }
 
+    GetOpincDrawCache().PushLayerPartRenderDirtyRegion(params, *cacheCanvas,
+        RSRenderNodeDrawable::GetTotalProcessedNodeCount());
     // copy current canvas properties into cacheCanvas
     const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (renderEngine) {
@@ -1104,6 +1106,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     bool isOpDropped = isOpDropped_;
     isOpDropped_ = false;
     Drawing::AutoCanvasRestore arc(*cacheCanvas, true);
+    GetOpincDrawCache().LayerPartRenderClipDirtyRegion(params, &isOffScreenWithClipHole_, *cacheCanvas);
     cacheCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
     GetOpincDrawCache().OpincCanvasUnionTranslate(*cacheCanvas);
@@ -1125,6 +1128,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 
     isOpDropped_ = isOpDropped;
 
+    GetOpincDrawCache().PopLayerPartRenderDirtyRegion(params, *cacheCanvas);
     // get image & backend
     {
         std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);

@@ -15,6 +15,7 @@
 
 #include "feature/opinc/rs_opinc_manager.h"
 
+#include "common/rs_optional_trace.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
@@ -183,6 +184,80 @@ std::string RSOpincManager::QuickGetNodeDebugInfo(RSRenderNode& node)
         opincCache.GetUnchangeCount(), opincCache.IsSuggestOpincNode(), opincCache.GetCurNodeTreeSupportFlag(),
         opincCache.OpincGetRootFlag(), GetUnsupportReason(node));
     return ret;
+}
+
+void RSOpincManager::InitLayerPartRenderNode(bool isCCMLayerPartRenderEnabled, RSRenderNode& node,
+    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager)
+{
+    if (!isCCMLayerPartRenderEnabled) {
+        return;
+    }
+    auto& opincCache = node.GetOpincCache();
+    if (!opincCache.IsSuggestLayerPartRenderNode()) {
+        opincCache.SetLayerPartRender(false);
+        return;
+    }
+
+    layerPartRenderDirtyManager = opincCache.GetLayerPartRenderDirtyManager();
+    if (layerPartRenderDirtyManager != nullptr) {
+        layerPartRenderDirtyManager->Clear();
+    }
+    opincCache.SetLayerPartRender(true);
+}
+
+void RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
+    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, bool isDisableAnimation)
+{
+    if (layerPartRenderDirtyManager == nullptr) {
+        return;
+    }
+    auto& stagingRenderParams = node.GetStagingRenderParams();
+    if (stagingRenderParams == nullptr) {
+        return;
+    }
+    if (!node.GetOpincCache().IsLayerPartRender()) {
+        stagingRenderParams->SetLayerPartRenderEnabled(false);
+        return;
+    }
+    // node group is disable during the disable animation
+    if (isDisableAnimation) {
+        node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
+        stagingRenderParams->SetLayerPartRenderEnabled(false);
+        return;
+    }
+
+    auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
+    if (geoPtr == nullptr) {
+        return;
+    }
+    auto matrix = geoPtr->GetAbsMatrix();
+    Drawing::Matrix invertMatrix;
+    if (!matrix.Invert(invertMatrix)) {
+        return;
+    }
+
+    auto& opincCache = node.GetOpincCache();
+    if (node.GetNodeGroupType() != RSRenderNode::NodeGroupType::GROUPED_BY_USER) {
+        node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
+        opincCache.ResetLayerPartRenderUnchangeState();
+    }
+
+    RectI layerCurDirty = layerPartRenderDirtyManager->GetCurrentFrameDirtyRegion();
+    {
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty:[%d,%d,%d,%d]", node.GetId(),
+            layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetRight(), layerCurDirty.GetBottom());
+    }
+
+    if (!opincCache.IsLayerPartRenderUnchangeState()) {
+        layerCurDirty = node.GetAbsRect();
+    }
+    layerCurDirty = geoPtr->MapRect(layerCurDirty.ConvertTo<float>(), invertMatrix);
+    RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", convert to layerCurDirty:[%d,%d,%d,%d]", node.GetId(),
+        layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetRight(), layerCurDirty.GetBottom());
+
+    stagingRenderParams->SetLayerPartRenderEnabled(true);
+    stagingRenderParams->SetLayerPartRenderCurrentFrameDirtyRegion(layerCurDirty);
+    layerPartRenderDirtyManager = nullptr;
 }
 }
 }

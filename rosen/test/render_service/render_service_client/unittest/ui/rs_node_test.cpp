@@ -6873,6 +6873,51 @@ HWTEST_F(RSNodeTest, MarkSuggestOpincNode, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarkSuggestOpincNode002
+ * @tc.desc: test MarkSuggestOpincNode with isNeedCalculate false
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSNodeTest, MarkSuggestOpincNode002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkSuggestOpincNode(true, false);
+    EXPECT_TRUE(rsNode->isSuggestOpincNode_);
+}
+
+/**
+ * @tc.name: MarkSuggestOpincNode003
+ * @tc.desc: test MarkSuggestOpincNode with same value twice
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSNodeTest, MarkSuggestOpincNode003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkSuggestOpincNode(true, true);
+    EXPECT_TRUE(rsNode->isSuggestOpincNode_);
+
+    rsNode->MarkSuggestOpincNode(true, true);
+    EXPECT_TRUE(rsNode->isSuggestOpincNode_);
+}
+
+/**
+ * @tc.name: MarkSuggestOpincNode004
+ * @tc.desc: test MarkSuggestOpincNode with parent node
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSNodeTest, MarkSuggestOpincNode004, TestSize.Level1)
+{
+    auto parentNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create();
+    parentNode->AddChild(childNode);
+
+    childNode->MarkSuggestOpincNode(true, true);
+    EXPECT_TRUE(childNode->isSuggestOpincNode_);
+}
+
+/**
  * @tc.name: SetOutOfParent
  * @tc.desc: test results of SetOutOfParent
  * @tc.type: FUNC

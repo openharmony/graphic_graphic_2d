@@ -1501,6 +1501,29 @@ bool RSPaintFilterCanvas::IsDirtyRegionStackEmpty()
     return dirtyRegionStack_.empty();
 }
 
+void RSPaintFilterCanvas::PushLayerPartRenderDirtyRegion(Drawing::Region& dirtyRegion)
+{
+    layerPartRenderDirtyRegionStack_.push(std::move(dirtyRegion));
+}
+
+void RSPaintFilterCanvas::PopLayerPartRenderDirtyRegion()
+{
+    if (layerPartRenderDirtyRegionStack_.empty()) {
+        return;
+    }
+    layerPartRenderDirtyRegionStack_.pop();
+}
+
+Drawing::Region& RSPaintFilterCanvas::GetCurLayerPartRenderDirtyRegion()
+{
+    return layerPartRenderDirtyRegionStack_.top();
+}
+
+bool RSPaintFilterCanvas::IsLayerPartRenderDirtyRegionStackEmpty()
+{
+    return layerPartRenderDirtyRegionStack_.empty();
+}
+
 void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
 {
     brightnessRatio_ = other.brightnessRatio_;
