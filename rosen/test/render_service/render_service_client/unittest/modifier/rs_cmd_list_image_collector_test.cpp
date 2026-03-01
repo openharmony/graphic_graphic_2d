@@ -211,6 +211,8 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage010, TestSize.Level1)
 HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage011, TestSize.Level1)
 {
     auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto saveOpItem = std::make_shared<Drawing::SaveOpItem>();
+    drawCmdList->drawOpItems_.push_back(saveOpItem);
     auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
     EXPECT_EQ(result, nullptr);
 }
