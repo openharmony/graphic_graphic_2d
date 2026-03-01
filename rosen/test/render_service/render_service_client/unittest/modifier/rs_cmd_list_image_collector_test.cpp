@@ -133,7 +133,7 @@ HWTEST_F(RSCmdListImageCollectorTest, CollectCmdListImage007, TestSize.Level1)
     auto drawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     auto imageBaseObj = std::make_shared<RSExtendImageBaseObj>();
     Drawing::CmdListHelper::AddImageBaseObjToCmdList(*drawCmdList, imageBaseObj);
-    auto result = RSCmdListImageCollector::CollectCmdListImage(draw);
+    auto result = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->imageObjectVec, nullptr);
     EXPECT_NE(result->imageBaseObjVec, nullptr);
