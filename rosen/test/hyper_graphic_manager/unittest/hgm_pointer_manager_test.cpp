@@ -92,10 +92,11 @@ HWTEST_F(HgmPointerManagerTest, ChangeState, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmPointerManagerTest, Active2IdleState, Function | SmallTest | Level0)
 {
-    auto pointerManager = HgmPointerManager();
     const int32_t handleRsFrameUs = 1100000;
     const int32_t handleRsFrameNum = 2;
     const PointerState undefinedState = static_cast<PointerState>(100);
+
+    auto pointerManager = HgmPointerManager();
 
     // 1. 3000ms timeout
     pointerManager.ChangeState(PointerState::POINTER_ACTIVE_STATE);
@@ -132,11 +133,10 @@ HWTEST_F(HgmPointerManagerTest, Active2IdleState, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmPointerManagerTest, HandleTimerResetEvent, Function | SmallTest | Level0)
 {
-    auto pointerManager = HgmPointerManager();
     const int32_t activeTimeoutUs = 1300000;
     const int32_t handleTimerResetTime = 1000000;
 
-    // HandleMoveTimeOut"
+    auto pointerManager = HgmPointerManager();
     pointerManager.ChangeState(PointerState::POINTER_ACTIVE_STATE);
     usleep(waitTaskFinishNs);
     ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
@@ -160,10 +160,12 @@ HWTEST_F(HgmPointerManagerTest, HandleTimerResetEvent, Function | SmallTest | Le
  */
 HWTEST_F(HgmPointerManagerTest, HgmSetPointerActiveFPS, Function | SmallTest | Level0)
 {
-    HgmFrameRateManager frameRateMgr;
     constexpr uint32_t delay_1100Ms = 1100;
     constexpr uint32_t delay_1300Ms = 1300;
+
+    HgmFrameRateManager frameRateMgr;
     frameRateMgr.Init(nullptr, nullptr, nullptr, nullptr);
+
     frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_BUTTON_DOWN, touchCount,
         TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
@@ -199,10 +201,12 @@ HWTEST_F(HgmPointerManagerTest, HgmSetPointerActiveFPS, Function | SmallTest | L
  */
 HWTEST_F(HgmPointerManagerTest, HgmSetAxisActiveFPS, Function | SmallTest | Level1)
 {
-    HgmFrameRateManager frameRateMgr;
     constexpr uint32_t delay_1100Ms = 1100;
     constexpr uint32_t delay_200Ms = 200;
+
+    HgmFrameRateManager frameRateMgr;
     frameRateMgr.Init(nullptr, nullptr, nullptr, nullptr);
+
     frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_BEGIN, touchCount,
         TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
