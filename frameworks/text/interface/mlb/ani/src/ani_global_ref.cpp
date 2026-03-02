@@ -211,31 +211,11 @@ constexpr std::string_view FONT_VARIATION_AXIS_SIGN =
     "C{" ANI_STRING "}dddiC{" ANI_STRING "}C{" ANI_STRING "}:";
 constexpr CacheKey FONT_VARIATION_AXIS_KEY_CTOR{
     ANI_CLASS_FONT_VARIATION_AXIS, "<ctor>", FONT_VARIATION_AXIS_SIGN};
-constexpr CacheKey FONT_VARIATION_AXIS_KEY_GETTER{
-    ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>key", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey FONT_VARIATION_AXIS_MIN_VALUE_KEY{
-    ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>minValue", ":d"};
-constexpr CacheKey FONT_VARIATION_AXIS_MAX_VALUE_KEY{
-    ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>maxValue", ":d"};
-constexpr CacheKey FONT_VARIATION_AXIS_DEFAULT_VALUE_KEY{
-    ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>defaultValue", ":d"};
-constexpr CacheKey FONT_VARIATION_AXIS_FLAGS_KEY{
-    ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>flags", ":i"};
-constexpr CacheKey FONT_VARIATION_AXIS_NAME_KEY{
-    ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>name", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey FONT_VARIATION_AXIS_LOCAL_NAME_KEY{
-    ANI_INTERFACE_FONT_VARIATION_AXIS, "<get>localName", ANI_WRAP_RETURN_C(ANI_STRING)};
 
 constexpr std::string_view FONT_VARIATION_INSTANCE_SIGN =
     "C{" ANI_STRING "}C{" ANI_STRING "}C{" ANI_ARRAY "}:";
 constexpr CacheKey FONT_VARIATION_INSTANCE_KEY_CTOR{
     ANI_CLASS_FONT_VARIATION_INSTANCE, "<ctor>", FONT_VARIATION_INSTANCE_SIGN};
-constexpr CacheKey FONT_VARIATION_INSTANCE_NAME_KEY{
-    ANI_INTERFACE_FONT_VARIATION_INSTANCE, "<get>name", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey FONT_VARIATION_INSTANCE_LOCAL_NAME_KEY{
-    ANI_INTERFACE_FONT_VARIATION_INSTANCE, "<get>localName", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey FONT_VARIATION_INSTANCE_COORDINATES_KEY{
-    ANI_INTERFACE_FONT_VARIATION_INSTANCE, "<get>coordinates", ANI_WRAP_RETURN_C(ANI_ARRAY)};
 
 constexpr CacheKey RECT_STYLE_COLOR_KEY{ANI_INTERFACE_RECT_STYLE, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR)};
 constexpr CacheKey RECT_STYLE_LEFT_TOP_RADIUS_KEY{ANI_INTERFACE_RECT_STYLE, "<get>leftTopRadius", ":d"};
@@ -602,32 +582,12 @@ void AniGlobalMethod::InitFontVariationAxisMethod(ani_env* env)
 {
     fontVariationAxisCtor = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_KEY_CTOR);
-    fontVariationAxisKey = AniClassFindMethod(
-        env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_KEY_GETTER);
-    fontVariationAxisMinValue = AniClassFindMethod(
-        env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_MIN_VALUE_KEY);
-    fontVariationAxisMaxValue = AniClassFindMethod(
-        env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_MAX_VALUE_KEY);
-    fontVariationAxisDefaultValue = AniClassFindMethod(
-        env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_DEFAULT_VALUE_KEY);
-    fontVariationAxisFlags = AniClassFindMethod(
-        env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_FLAGS_KEY);
-    fontVariationAxisName = AniClassFindMethod(
-        env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_NAME_KEY);
-    fontVariationAxisLocalName = AniClassFindMethod(
-        env, AniGlobalClass::GetInstance().fontVariationAxis, FONT_VARIATION_AXIS_LOCAL_NAME_KEY);
 }
 
 void AniGlobalMethod::InitFontVariationInstanceMethod(ani_env* env)
 {
     fontVariationInstanceCtor = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().fontVariationInstance, FONT_VARIATION_INSTANCE_KEY_CTOR);
-    fontVariationInstanceName = AniClassFindMethod(
-        env, AniGlobalClass::GetInstance().fontVariationInstance, FONT_VARIATION_INSTANCE_NAME_KEY);
-    fontVariationInstanceLocalName = AniClassFindMethod(
-        env, AniGlobalClass::GetInstance().fontVariationInstance, FONT_VARIATION_INSTANCE_LOCAL_NAME_KEY);
-    fontVariationInstanceCoordinates = AniClassFindMethod(
-        env, AniGlobalClass::GetInstance().fontVariationInstance, FONT_VARIATION_INSTANCE_COORDINATES_KEY);
 }
 
 void AniGlobalMethod::InitRectStyleMethod(ani_env* env)
