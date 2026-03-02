@@ -145,8 +145,8 @@ template("skia_libtxt") {
     } else {
       external_deps += [
         "bounds_checking_function:libsec_shared",
+        "cJSON:cjson",
         "hilog:libhilog",
-        "jsoncpp:jsoncpp",
         "skia:skia_canvaskit",
       ]
       if (graphic_2d_feature_upgrade_skia) {

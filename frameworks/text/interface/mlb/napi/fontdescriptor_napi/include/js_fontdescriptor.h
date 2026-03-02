@@ -44,6 +44,10 @@ private:
     template <typename T>
     static bool CheckAndConvertProperty(napi_env env, napi_value obj, const std::string& fieldName, T& out);
     static bool CreateAndSetProperties(napi_env env, napi_value fontDescriptor, FontDescSharedPtr item);
+    static napi_value CreateVariationAxisArray(napi_env env,
+        const std::vector<TextEngine::FontParser::FontVariationAxis>& axes);
+    static napi_value CreateVariationInstanceArray(napi_env env,
+        const std::vector<TextEngine::FontParser::FontVariationInstance>& instances);
     static bool SetProperty(napi_env env, napi_value object, const char* name, napi_value value);
     static bool ParseFontDescWeight(napi_env env, napi_value obj, int& weight);
     static bool ConvertFontDescWeight(napi_env env, napi_value obj, int weight);

@@ -198,7 +198,7 @@ void RSUniHwcComputeUtil::DealWithNodeGravityOldVersion(RSSurfaceRenderNode& nod
     (void)RSPropertiesPainter::GetGravityMatrix(frameGravity,
         RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix);
     // create a canvas to calculate new dstRect and new srcRect
-    auto canvas = std::make_unique<Drawing::Canvas>(screenProperty.GetPhyWidth(), screenProperty.GetPhyHeight());
+    auto canvas = std::make_unique<Drawing::Canvas>(screenProperty.GetWidth(), screenProperty.GetHeight());
     canvas->ConcatMatrix(translateMatrix);
     canvas->ConcatMatrix(gravityMatrix);
     Drawing::Rect clipRect;

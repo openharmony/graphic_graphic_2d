@@ -75,6 +75,27 @@ public:
         CUSTOMIZED = 1 << 4
     };
 
+    struct FontVariation {
+        std::string axis;
+        double value{0.0};
+    };
+
+    struct FontVariationAxis {
+        std::string key;
+        double minValue{0.0};
+        double maxValue{0.0};
+        double defaultValue{0.0};
+        int flags{0};
+        std::string name;
+        std::string localName;
+    };
+
+    struct FontVariationInstance {
+        std::string name;
+        std::string localName;
+        std::vector<FontVariation> coordinates;
+    };
+
     struct FontDescriptor {
         std::string path;
         std::string postScriptName;
@@ -102,6 +123,8 @@ public:
         std::string trademark;
         std::string license;
         int32_t index{0};
+        std::vector<FontVariationAxis> variationAxisRecords;
+        std::vector<FontVariationInstance> variationInstanceRecords;
         FontDescriptor() = default;
         FontDescriptor(const FontDescriptor&) = default;
         FontDescriptor& operator=(const FontDescriptor& other) = default;
@@ -143,6 +166,8 @@ private:
         std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor, std::index_sequence<Is...>);
     static bool ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
     static void FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc);
+    static void FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Typeface> typeface,
+        FontDescriptor& desc, const std::vector<std::string>& bcpTagList);
     static void FillFontDescriptorWithFallback(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc);
     static std::vector<std::string> GetBcpTagList();
     bool SetFontDescriptor(const unsigned int languageId);

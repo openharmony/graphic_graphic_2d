@@ -655,6 +655,71 @@ export default namespace text {
     axis: string;
     value: double;
     isNormalized?: boolean;
+    constructor(
+      axis: string,
+      value: double
+    ) {
+      this.axis = axis;
+      this.value = value;
+    }
+  }
+
+  export interface FontVariationAxis {
+    key: string;
+    minValue: double;
+    maxValue: double;
+    defaultValue: double;
+    flags: int;
+    name: string;
+    localName: string;
+  }
+
+  class FontVariationAxisInternal implements FontVariationAxis {
+    key: string;
+    minValue: double;
+    maxValue: double;
+    defaultValue: double;
+    flags: int;
+    name: string;
+    localName: string;
+    constructor(
+      key: string,
+      minValue: double,
+      maxValue: double,
+      defaultValue: double,
+      flags: int,
+      name: string,
+      localName: string
+    ) {
+      this.key = key;
+      this.minValue = minValue;
+      this.maxValue = maxValue;
+      this.defaultValue = defaultValue;
+      this.flags = flags;
+      this.name = name;
+      this.localName = localName;
+    }
+  }
+
+  export interface FontVariationInstance {
+    name: string;
+    localName: string;
+    coordinates: Array<FontVariation>;
+  }
+
+  class FontVariationInstanceInternal implements FontVariationInstance {
+    name: string;
+    localName: string;
+    coordinates: Array<FontVariation>;
+    constructor(
+      name: string,
+      localName: string,
+      coordinates: Array<FontVariation>
+    ) {
+      this.name = name;
+      this.localName = localName;
+      this.coordinates = coordinates;
+    }
   }
 
   export interface TextBox {
@@ -960,6 +1025,8 @@ export default namespace text {
     trademark?: string;
     license?: string;
     index?: int;
+    variationAxisRecords?: Array<FontVariationAxis>;
+    variationInstanceRecords?: Array<FontVariationInstance>;
   }
 
   class FontDescriptorInternal implements FontDescriptor {
@@ -983,6 +1050,8 @@ export default namespace text {
     trademark?: string;
     license?: string;
     index?: int;
+    variationAxisRecords?: Array<FontVariationAxis>;
+    variationInstanceRecords?: Array<FontVariationInstance>;
     constructor(
       path: string,
       postScriptName: string,
@@ -1004,6 +1073,8 @@ export default namespace text {
       trademark: string,
       license: string,
       index: int,
+      variationAxisRecords?: Array<FontVariationAxis>,
+      variationInstanceRecords?: Array<FontVariationInstance>,
     ) {
       this.path = path;
       this.postScriptName = postScriptName;
@@ -1025,6 +1096,8 @@ export default namespace text {
       this.trademark = trademark;
       this.license = license;
       this.index = index;
+      this.variationAxisRecords = variationAxisRecords;
+      this.variationInstanceRecords = variationInstanceRecords;
     }
   }
 

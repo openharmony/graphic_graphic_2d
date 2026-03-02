@@ -52,6 +52,26 @@ public:
     void TearDown() override {};
 };
 
+class TestContentStyleModifier : public ModifierNG::RSContentStyleModifier {
+public:
+    TestContentStyleModifier() = default;
+    ~TestContentStyleModifier() = default;
+
+    void Draw(ModifierNG::RSDrawingContext& context) const override
+    {
+        float left = 0;
+        float top = 0;
+        float right = 100;
+        float bottom = 100;
+        Drawing::Rect rect(left, top, right, bottom);
+        Drawing::Brush brush;
+        brush.SetColor(SK_ColorBLUE);
+        context.canvas->AttachBrush(brush);
+        context.canvas->DrawRect(rect);
+        context.canvas->DetachBrush();
+    }
+};
+
 /**
  * @tc.name: CreateDrawingContextTest
  * @tc.desc: Test the function CreateDrawingContext
@@ -196,11 +216,11 @@ HWTEST_F(RSCustomModifierHelperTest, UpdatePropertyTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateToRenderTest
+ * @tc.name: UpdateToRenderTest001
  * @tc.desc: Test the function UpdateToRender
  * @tc.type: FUNC
  */
-HWTEST_F(RSCustomModifierHelperTest, UpdateToRenderTest, TestSize.Level1)
+HWTEST_F(RSCustomModifierHelperTest, UpdateToRenderTest001, TestSize.Level1)
 {
     auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
 
@@ -267,5 +287,51 @@ HWTEST_F(RSCustomModifierHelperTest, UpdateToRenderTest, TestSize.Level1)
     it = rsCustomModifier->properties_.find(type);
     ASSERT_NE(it, rsCustomModifier->properties_.end());
     ASSERT_TRUE(it->second);
+}
+
+/**
+ * @tc.name: UpdateToRenderTest002
+ * @tc.desc: Test the function UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, UpdateToRenderTest002, TestSize.Level1)
+{
+    auto modifier = std::make_shared<TestContentStyleModifier>();
+    std::shared_ptr<RSNode> node = RSCanvasNode::Create();
+    modifier->node_ = node;
+    ASSERT_TRUE(modifier->node_.lock());
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto property = std::make_shared<RSProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
+    modifier->properties_.emplace(modifier->GetInnerPropertyType(), property);
+    modifier->UpdateToRender();
+    ASSERT_NE(property->stagingValue_, nullptr);
+}
+
+/**
+ * @tc.name: ClearDrawCmdListTest
+ * @tc.desc: Test the function ClearDrawCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, ClearDrawCmdListTest, TestSize.Level1)
+{
+    auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+
+    // case1: property is null
+    rsCustomModifier->ClearDrawCmdList();
+
+    // case2: property exists
+    auto node = RSCanvasNode::Create();
+    rsCustomModifier->OnAttach(*node);
+    rsCustomModifier->UpdateDrawCmdList();
+    rsCustomModifier->ClearDrawCmdList();
+
+    auto type = rsCustomModifier->GetInnerPropertyType();
+    auto it = rsCustomModifier->properties_.find(type);
+    ASSERT_NE(it, rsCustomModifier->properties_.end());
+    if (it->second) {
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(it->second);
+        EXPECT_EQ(property->showingValue_, nullptr);
+        EXPECT_EQ(property->stagingValue_, nullptr);
+    }
 }
 } // namespace OHOS::Rosen

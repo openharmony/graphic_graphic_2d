@@ -148,6 +148,19 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
     }
 }
 
+void DisplayNodeCommandHelper::SetDisplayContentRect(RSContext& context, NodeId id,
+    const Rect& contentRect)
+{
+    RS_LOGI("DisplayNodeCommandHelper::SetDisplayContentRect node:[%{public}" PRIu64 "], "
+             "rect:[%{public}d,%{public}d,%{public}d,%{public}d]",
+             id, contentRect.x, contentRect.y, contentRect.w, contentRect.h);
+    if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {
+        node->SetDisplayContentRect(contentRect);
+    } else {
+        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
+    }
+}
+
 void DisplayNodeCommandHelper::SetForceCloseHdr(RSContext& context, NodeId id, bool isForceCloseHdr)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {

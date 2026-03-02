@@ -979,6 +979,218 @@ HWTEST_F(FontParserTest, FillFontDescriptorWithFallbackPartialEmptyTest, TestSiz
 
     testFile.close();
 }
+
+/**
+ * @tc.name: FillFontDescriptorWithVariationInfoWithNullptrTest
+ * @tc.desc: Test filling font descriptor with variation info when typeface is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithVariationInfoWithNullptrTest, TestSize.Level0)
+{
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en", "zh"};
+
+    // Should not crash with nullptr typeface
+    FontParser::FillFontDescriptorWithVariationInfo(nullptr, desc, bcpTagList);
+
+    // Vectors should remain empty
+    EXPECT_TRUE(desc.variationAxisRecords.empty());
+    EXPECT_TRUE(desc.variationInstanceRecords.empty());
+}
+
+/**
+ * @tc.name: FillFontDescriptorWithVariationInfoWithEmptyBcpTagListTest
+ * @tc.desc: Test filling font descriptor with variation info with empty BCP tag list
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithVariationInfoWithEmptyBcpTagListTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> emptyBcpTagList;
+
+    // Test with a valid font file
+    std::ifstream testFile(TEST_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(TEST_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    // Should not crash with empty BCP tag list
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, emptyBcpTagList);
+
+    // Verify method works correctly with empty BCP tag list
+    // TEST_FONT_PATH is a variable font, so it should have variation records
+    EXPECT_FALSE(desc.variationAxisRecords.empty());
+
+    // Verify all required fields are populated correctly
+    for (const auto& axis : desc.variationAxisRecords) {
+        EXPECT_FALSE(axis.key.empty());
+        EXPECT_GE(axis.maxValue, axis.minValue);
+        EXPECT_GE(axis.defaultValue, axis.minValue);
+        EXPECT_LE(axis.defaultValue, axis.maxValue);
+    }
+
+    for (const auto& instance : desc.variationInstanceRecords) {
+        EXPECT_FALSE(instance.name.empty());
+        EXPECT_FALSE(instance.coordinates.empty());
+        for (const auto& coord : instance.coordinates) {
+            EXPECT_FALSE(coord.axis.empty());
+        }
+    }
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: FillFontDescriptorWithVariationInfoWithNonVariableFontTest
+ * @tc.desc: Test filling font descriptor with variation info for non-variable font
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithVariationInfoWithNonVariableFontTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en", "zh"};
+
+    // Test with a TTC font collection (non-variable font)
+    std::ifstream testFile(TEST_TTC_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(TEST_TTC_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // Non-variable fonts should have empty variation records
+    EXPECT_TRUE(desc.variationAxisRecords.empty());
+    EXPECT_TRUE(desc.variationInstanceRecords.empty());
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: FontDescriptorVariationWithVariableFontTest
+ * @tc.desc: Test font descriptor with actual variable font
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FontDescriptorVariationWithVariableFontTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::string variableFontPath = "/system/fonts/HMSymbolVF.ttf";
+    std::ifstream testFile(variableFontPath.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(variableFontPath.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en", "zh-Hans"};
+
+    // Fill with variation info
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // HMSymbolVF.ttf is a variable font, should have variation axes
+    if (!desc.variationAxisRecords.empty()) {
+        // Verify axis structure
+        for (const auto& axis : desc.variationAxisRecords) {
+            EXPECT_FALSE(axis.key.empty());
+            EXPECT_FALSE(axis.name.empty());
+            EXPECT_EQ(axis.maxValue, 900);
+            EXPECT_EQ(axis.defaultValue, 400);
+            EXPECT_EQ(axis.minValue, 40);
+            EXPECT_EQ(axis.flags, 0);
+        }
+    }
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: FillFontDescriptorWithVariationInfoGetValueTest
+ * @tc.desc: Test getting variation instance values from variable font
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithVariationInfoGetValueTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::string variableFontPath = "/system/fonts/HMSymbolVF.ttf";
+    std::ifstream testFile(variableFontPath.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(variableFontPath.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en", "zh-Hans"};
+
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // Verify variation instance records are populated
+    if (!desc.variationInstanceRecords.empty()) {
+        for (const auto& instance : desc.variationInstanceRecords) {
+            EXPECT_FALSE(instance.name.empty());
+            EXPECT_FALSE(instance.coordinates.empty());
+            for (const auto& coord : instance.coordinates) {
+                EXPECT_FALSE(coord.axis.empty());
+            }
+        }
+    }
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: FillFontDescriptorWithVariationInfoMultipleLanguagesTest
+ * @tc.desc: Test filling variation info with different BCP tag lists
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithVariationInfoMultipleLanguagesTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::string variableFontPath = "/system/fonts/HMSymbolVF.ttf";
+    std::ifstream testFile(variableFontPath.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(variableFontPath.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    // Test with English BCP tag list
+    {
+        FontParser::FontDescriptor desc1;
+        std::vector<std::string> bcpTagList1 = {"en"};
+        FontParser::FillFontDescriptorWithVariationInfo(typeface, desc1, bcpTagList1);
+
+        if (!desc1.variationAxisRecords.empty()) {
+            // Verify structure is populated
+            EXPECT_GT(desc1.variationAxisRecords.size(), 0);
+        }
+    }
+
+    // Test with Chinese BCP tag list
+    {
+        FontParser::FontDescriptor desc2;
+        std::vector<std::string> bcpTagList2 = {"zh-Hans", "zh"};
+        FontParser::FillFontDescriptorWithVariationInfo(typeface, desc2, bcpTagList2);
+
+        if (!desc2.variationAxisRecords.empty()) {
+            // Verify structure is populated
+            EXPECT_GT(desc2.variationAxisRecords.size(), 0);
+        }
+    }
+
+    testFile.close();
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

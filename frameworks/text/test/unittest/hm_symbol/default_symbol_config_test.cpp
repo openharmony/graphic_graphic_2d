@@ -156,6 +156,83 @@ HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters004, TestSize.Level0)
         EXPECT_EQ(parameters2.size(), groups);
     }
 }
+
+/**
+ * @tc.name: GetGroupParameters005
+ * @tc.desc: Test GetGroupParameters with empty animation infos
+ * @tc.type: FUNC
+ */
+HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters005, TestSize.Level0)
+{
+    DefaultSymbolConfig::GetInstance()->Clear();
+    auto parameters = DefaultSymbolConfig::GetInstance()->GetGroupParameters(
+        OHOS::Rosen::Drawing::DrawingAnimationType::SCALE_TYPE, 1, 1);
+    EXPECT_TRUE(parameters.empty());
+}
+
+/**
+ * @tc.name: GetGroupParameters006
+ * @tc.desc: Test GetGroupParameters with non-existent animation type
+ * @tc.type: FUNC
+ */
+HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters006, TestSize.Level0)
+{
+    // Use a type that is unlikely to exist in config, 999
+    auto parameters = DefaultSymbolConfig::GetInstance()->GetGroupParameters(
+        static_cast<OHOS::Rosen::Drawing::DrawingAnimationType>(999), 1, 1);
+    EXPECT_TRUE(parameters.empty());
+}
+
+/**
+ * @tc.name: GetGroupParameters007
+ * @tc.desc: Test GetGroupParameters with non-existent animation parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters007, TestSize.Level0)
+{
+    // Use valid type but non-existent parameters, 999
+    auto parameters = DefaultSymbolConfig::GetInstance()->GetGroupParameters(
+        OHOS::Rosen::Drawing::DrawingAnimationType::SCALE_TYPE, 999, 999);
+    EXPECT_TRUE(parameters.empty());
+}
+
+/**
+ * @tc.name: ParseConfigOfHmSymbol001
+ * @tc.desc: Test ParseConfigOfHmSymbol with nullptr file path
+ * @tc.type: FUNC
+ */
+HWTEST_F(DefaultSymbolConfigTest, ParseConfigOfHmSymbol001, TestSize.Level0)
+{
+    DefaultSymbolConfig::GetInstance()->Clear();
+    int result = DefaultSymbolConfig::GetInstance()->ParseConfigOfHmSymbol(nullptr);
+    EXPECT_EQ(result, 1); // ERROR_CONFIG_NOT_FOUND
+}
+
+/**
+ * @tc.name: ParseConfigOfHmSymbol002
+ * @tc.desc: Test ParseConfigOfHmSymbol with empty file path
+ * @tc.type: FUNC
+ */
+HWTEST_F(DefaultSymbolConfigTest, ParseConfigOfHmSymbol002, TestSize.Level0)
+{
+    DefaultSymbolConfig::GetInstance()->Clear();
+    int result = DefaultSymbolConfig::GetInstance()->ParseConfigOfHmSymbol("");
+    EXPECT_EQ(result, 1); // ERROR_CONFIG_NOT_FOUND
+}
+
+/**
+ * @tc.name: GetSymbolLayersGroups003
+ * @tc.desc: Test GetSymbolLayersGroups with non-existent glyph ID
+ * @tc.type: FUNC
+ */
+HWTEST_F(DefaultSymbolConfigTest, GetSymbolLayersGroups003, TestSize.Level0)
+{
+    DefaultSymbolConfig::GetInstance()->Clear();
+    int result = DefaultSymbolConfig::GetInstance()->ParseConfigOfHmSymbol("/system/fonts/hm_symbol_config_next.json");
+    EXPECT_EQ(result, 0);
+    auto groups = DefaultSymbolConfig::GetInstance()->GetSymbolLayersGroups(UINT16_MAX); // non-existent GlyphID
+    EXPECT_EQ(groups.symbolGlyphId, 0);
+}
 } // namespace Symbol
 } // namespace Rosen
 } // namespace OHOS

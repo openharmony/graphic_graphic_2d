@@ -177,6 +177,93 @@ OH_Drawing_ErrorCode GetFontFullDescriptorLicense(
     return TranslateStringToOHDrawingString(fontFullDescriptor.license, value);
 }
 
+OH_Drawing_ErrorCode GetFontVariationAxisMinValue(
+    const Drawing::FontParser::FontVariationAxis& axis, double& value)
+{
+    value = axis.minValue;
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode GetFontVariationAxisMaxValue(
+    const Drawing::FontParser::FontVariationAxis& axis, double& value)
+{
+    value = axis.maxValue;
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode GetFontVariationAxisDefaultValue(
+    const Drawing::FontParser::FontVariationAxis& axis, double& value)
+{
+    value = axis.defaultValue;
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode GetFontVariationAxisFlags(
+    const Drawing::FontParser::FontVariationAxis& axis, int& value)
+{
+    value = axis.flags;
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode GetFontVariationAxisKey(
+    const Drawing::FontParser::FontVariationAxis& axis, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(axis.key, value);
+}
+
+OH_Drawing_ErrorCode GetFontVariationAxisName(
+    const Drawing::FontParser::FontVariationAxis& axis, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(axis.name, value);
+}
+
+OH_Drawing_ErrorCode GetFontVariationAxisLocalName(
+    const Drawing::FontParser::FontVariationAxis& axis, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(axis.localName, value);
+}
+
+OH_Drawing_ErrorCode GetFontVariationInstanceName(
+    const Drawing::FontParser::FontVariationInstance& instance, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(instance.name, value);
+}
+
+OH_Drawing_ErrorCode GetFontVariationInstanceLocalName(
+    const Drawing::FontParser::FontVariationInstance& instance, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(instance.localName, value);
+}
+
+static std::unordered_map<OH_Drawing_FontVariationAxisAttributeId,
+    OH_Drawing_ErrorCode(*)(const Drawing::FontParser::FontVariationAxis&, double&)>
+    g_fontVariationAxisDoubleGetters = {
+        { FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, GetFontVariationAxisMinValue },
+        { FONT_VARIATION_AXIS_ATTR_D_MAX_VALUE, GetFontVariationAxisMaxValue },
+        { FONT_VARIATION_AXIS_ATTR_D_DEFAULT_VALUE, GetFontVariationAxisDefaultValue },
+    };
+
+static std::unordered_map<OH_Drawing_FontVariationAxisAttributeId,
+    OH_Drawing_ErrorCode(*)(const Drawing::FontParser::FontVariationAxis&, int&)>
+    g_fontVariationAxisIntGetters = {
+        { FONT_VARIATION_AXIS_ATTR_I_FLAGS, GetFontVariationAxisFlags },
+    };
+
+static std::unordered_map<OH_Drawing_FontVariationAxisAttributeId,
+    OH_Drawing_ErrorCode(*)(const Drawing::FontParser::FontVariationAxis&, OH_Drawing_String&)>
+    g_fontVariationAxisStrGetters = {
+        { FONT_VARIATION_AXIS_ATTR_S_KEY, GetFontVariationAxisKey },
+        { FONT_VARIATION_AXIS_ATTR_S_NAME, GetFontVariationAxisName },
+        { FONT_VARIATION_AXIS_ATTR_S_LOCAL_NAME, GetFontVariationAxisLocalName },
+    };
+
+static std::unordered_map<OH_Drawing_FontVariationInstanceAttributeId,
+    OH_Drawing_ErrorCode(*)(const Drawing::FontParser::FontVariationInstance&, OH_Drawing_String&)>
+    g_fontVariationInstanceStrGetters = {
+        { FONT_VARIATION_INSTANCE_ATTR_S_NAME, GetFontVariationInstanceName },
+        { FONT_VARIATION_INSTANCE_ATTR_S_LOCAL_NAME, GetFontVariationInstanceLocalName },
+    };
+
 static std::unordered_map<OH_Drawing_FontFullDescriptorAttributeId, FontFullDescriptorIntGetter>
     g_fontFullDescriptorIntGetters = {
         { FULL_DESCRIPTOR_ATTR_I_WEIGHT, GetFontFullDescriptorWeight },
@@ -249,4 +336,57 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeString(const OH_Dr
     }
 
     return it->second(*reinterpret_cast<const Drawing::FontParser::FontDescriptor*>(descriptor), *str);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeDouble(
+    OH_Drawing_FontVariationAxis* variationAxis, OH_Drawing_FontVariationAxisAttributeId id, double* value)
+{
+    if (variationAxis == nullptr || value == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    auto it = Text::g_fontVariationAxisDoubleGetters.find(id);
+    if (it == Text::g_fontVariationAxisDoubleGetters.end()) {
+        return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
+    }
+    return it->second(*reinterpret_cast<const Drawing::FontParser::FontVariationAxis*>(variationAxis), *value);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeInt(
+    OH_Drawing_FontVariationAxis* variationAxis, OH_Drawing_FontVariationAxisAttributeId id, int* value)
+{
+    if (variationAxis == nullptr || value == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    auto it = Text::g_fontVariationAxisIntGetters.find(id);
+    if (it == Text::g_fontVariationAxisIntGetters.end()) {
+        return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
+    }
+    return it->second(*reinterpret_cast<const Drawing::FontParser::FontVariationAxis*>(variationAxis), *value);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetFontVariationAxisAttributeStr(
+    OH_Drawing_FontVariationAxis* variationAxis, OH_Drawing_FontVariationAxisAttributeId id, OH_Drawing_String* str)
+{
+    if (variationAxis == nullptr || str == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    auto it = Text::g_fontVariationAxisStrGetters.find(id);
+    if (it == Text::g_fontVariationAxisStrGetters.end()) {
+        return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
+    }
+    return it->second(*reinterpret_cast<const Drawing::FontParser::FontVariationAxis*>(variationAxis), *str);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetFontVariationInstanceAttributeStr(
+    OH_Drawing_FontVariationInstance* variationInstance, OH_Drawing_FontVariationInstanceAttributeId id,
+    OH_Drawing_String* str)
+{
+    if (variationInstance == nullptr || str == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    auto it = Text::g_fontVariationInstanceStrGetters.find(id);
+    if (it == Text::g_fontVariationInstanceStrGetters.end()) {
+        return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
+    }
+    return it->second(*reinterpret_cast<const Drawing::FontParser::FontVariationInstance*>(variationInstance), *str);
 }

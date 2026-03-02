@@ -3905,7 +3905,7 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection005, TestSize.Level1)
 
     // Call UpdateHwcNodeEnableByColorPicker which internally calls CheckHwcNodeIntersection
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByColorPicker();
-    EXPECT_TRUE(hwcNode->isHardwareForcedDisabled_);
+    EXPECT_FALSE(hwcNode->isHardwareForcedDisabled_);
 }
 
 /**

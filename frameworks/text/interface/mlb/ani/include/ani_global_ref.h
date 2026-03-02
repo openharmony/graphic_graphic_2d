@@ -79,6 +79,8 @@ public:
     ani_class rectStyle;
     ani_class fontFeature;
     ani_class fontVariation;
+    ani_class fontVariationAxis;
+    ani_class fontVariationInstance;
     ani_class typographicBounds;
     ani_class cleaner;
     ani_class canvas;
@@ -178,6 +180,8 @@ public:
     ani_method fontDescriptorGetItalic;
     ani_method fontDescriptorGetMonoSpace;
     ani_method fontDescriptorGetSymbolic;
+    ani_method fontDescriptorGetVariationAxisRecords;
+    ani_method fontDescriptorGetVariationInstanceRecords;
     ani_method positionWithAffinity;
     ani_method paragraphStyleMaxLines;
     ani_method paragraphStyleTextStyle;
@@ -253,6 +257,18 @@ public:
     ani_method fontVariationAxis;
     ani_method fontVariationValue;
     ani_method fontVariationIsNormalized;
+    ani_method fontVariationAxisCtor;
+    ani_method fontVariationAxisKey;
+    ani_method fontVariationAxisMinValue;
+    ani_method fontVariationAxisMaxValue;
+    ani_method fontVariationAxisDefaultValue;
+    ani_method fontVariationAxisFlags;
+    ani_method fontVariationAxisName;
+    ani_method fontVariationAxisLocalName;
+    ani_method fontVariationInstanceCtor;
+    ani_method fontVariationInstanceName;
+    ani_method fontVariationInstanceLocalName;
+    ani_method fontVariationInstanceCoordinates;
     ani_method rectStyleCtor;
     ani_method rectStyleColor;
     ani_method rectStyleLeftTopRadius;
@@ -300,6 +316,8 @@ private:
     void InitTextShadowMethod(ani_env* env);
     void InitFontFeatureMethod(ani_env* env);
     void InitFontVariationMethod(ani_env* env);
+    void InitFontVariationAxisMethod(ani_env* env);
+    void InitFontVariationInstanceMethod(ani_env* env);
     void InitRectStyleMethod(ani_env* env);
     void InitTextLayoutResultMethod(ani_env* env);
     void InitPlaceholderMethod(ani_env* env);
