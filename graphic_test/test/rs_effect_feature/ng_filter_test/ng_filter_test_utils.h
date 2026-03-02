@@ -424,6 +424,51 @@ const std::vector<std::array<Vector2f, GRID_WARP_ANGLE_PARAMS_COUNT>> gridWarpAn
     }
 };
 
+struct DisturbParam {
+    float progress;
+    Vector2f clickPos;
+    Vector2f waveRD;
+    Vector3f waveLWH;
+}
+const std::vector<DisturbParam> disturbanceParams = {
+    {
+        0.5f, // progress
+        Vector2f{-1.0f, -1.0f}, // clickPos
+        Vector2f{2.5f, 0.7f}, // waveRD
+        Vector3f{80.0f, 30.0f, 60.0f}, // waveLWH
+    },
+    {
+        0.0f, // progress
+        Vector2f{0.0f, 0.0f}, // clickPos
+        Vector2f{2.5f, 0.7f}, // waveRD
+        Vector3f{80.0f, 30.0f, 60.0f}, // waveLWH
+    },
+    {
+        0.5f, // progress
+        Vector2f{10.0f, 10.0f}, // clickPos
+        Vector2f{2.5f, 0.7f}, // waveRD
+        Vector3f{80.0f, 30.0f, 60.0f}, // waveLWH
+    },
+    {
+        1.5f, // progress
+        Vector2f{20.0f, 20.0f}, // clickPos
+        Vector2f{2.5f, 0.7f}, // waveRD
+        Vector3f{80.0f, 30.0f, 60.0f}, // waveLWH
+    },
+    {
+        -0.5f, // progress
+        Vector2f{10.0f, -10.0f}, // clickPos
+        Vector2f{2.5f, 0.7f}, // waveRD
+        Vector3f{80.0f, 30.0f, 60.0f}, // waveLWH
+    },
+    {
+        0.8f, // progress
+        Vector2f{30.0f, 30.0f}, // clickPos
+        Vector2f{0.5f, 1.7f}, // waveRD
+        Vector3f{50.0f, 10.0f, 40.0f}, // waveLWH
+    },
+}
+
 enum class TestDataGroupParamsType {
     INVALID_DATA_MIN,
     VALID_DATA1,

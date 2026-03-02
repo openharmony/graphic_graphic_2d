@@ -191,6 +191,23 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, EFFECT_TEST, Set_Default_Test)
     }
 }
 
+GRAPHIC_TEST(NGFilterFrostedGlassTest, EFFECT_TEST, Set_Wave_Disturb_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = disturbanceParams.size();
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (size_t i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = CreateDefaultFrostedGlassFilter();
+        auto waveMask = std::make_shared<RSNGWaveDisturbanceMask>();
+        waveMask->Setter<WaveDisturbanceMaskProgressTag>(disturbanceParams[i].progress);
+        waveMask->Setter<WaveDisturbanceMaskClickPosTag>(disturbanceParams[i].clickPos);
+        waveMask->Setter<WaveDisturbanceMaskWaveRDTag>(disturbanceParams[i].waveRD);
+        waveMask->Setter<WaveDisturbanceMaskWaveLWHTag>(disturbanceParams[i].waveLWH);
+        SetBgAndSdfChildNodes(i, columnCount, sizeX, sizeY, frostedGlassFilter);
+    }
+}
+
 GRAPHIC_TEST(NGFilterFrostedGlassTest, EFFECT_TEST, Set_BlurParams_Test)
 {
     const size_t columnCount = 2;
