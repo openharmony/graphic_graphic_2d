@@ -43,178 +43,148 @@ class HgmCore final {
 public:
     static HgmCore& Instance();
 
-    std::vector<ScreenId> GetScreenIds() const
-    {
+    std::vector<ScreenId> GetScreenIds() const {
         return screenIds_;
     }
 
-    int32_t GetScreenListSize() const
-    {
+    int32_t GetScreenListSize() const {
         return screenList_.size();
     }
 
-    ScreenId GetActiveScreenId() const
-    {
+    ScreenId GetActiveScreenId() const {
         if (hgmFrameRateMgr_ != nullptr) {
             return hgmFrameRateMgr_->GetCurScreenId();
         }
         return activeScreenId_.load();
     }
 
-    const std::shared_ptr<PolicyConfigData>& GetPolicyConfigData() const
-    {
+    const std::shared_ptr<PolicyConfigData>& GetPolicyConfigData() const {
         return mPolicyConfigData_;
     }
 
-    std::shared_ptr<PolicyConfigVisitor> GetPolicyConfigVisitor() const
-    {
+    std::shared_ptr<PolicyConfigVisitor> GetPolicyConfigVisitor() const {
         return mPolicyConfigVisitor_;
     }
 
-    const std::unordered_set<std::string>& GetImageEnhanceScene() const
-    {
+    const std::unordered_set<std::string>& GetImageEnhanceScene() const {
         return mImageEnhanceScene_;
     }
 
     // called by RSMainThread
-    void SetPendingScreenRefreshRate(uint32_t rate)
-    {
+    void SetPendingScreenRefreshRate(uint32_t rate) {
         pendingScreenRefreshRate_.store(rate);
     }
 
     // called by RSMainThread/RSUniRenderThread
-    uint32_t GetPendingScreenRefreshRate() const
-    {
+    uint32_t GetPendingScreenRefreshRate() const {
         return pendingScreenRefreshRate_.load();
     }
 
     // called by HgmThread
     // the rate takes effect at the latest hardware timing
-    void SetScreenRefreshRateImme(uint32_t rate)
-    {
+    void SetScreenRefreshRateImme(uint32_t rate) {
         screenRefreshRateImme_.store(rate);
     }
 
     // called by HardwareThread
-    uint32_t GetScreenRefreshRateImme()
-    {
+    uint32_t GetScreenRefreshRateImme() {
         // 0 means disenable
         return screenRefreshRateImme_.exchange(0);
     }
 
     // called by RSMainThread
-    void SetPendingConstraintRelativeTime(uint64_t relativeTime)
-    {
+    void SetPendingConstraintRelativeTime(uint64_t relativeTime) {
         pendingConstraintRelativeTime_.store(relativeTime);
     }
 
     // called by RSMainThread/RSUniRenderThread
-    uint64_t GetPendingConstraintRelativeTime() const
-    {
+    uint64_t GetPendingConstraintRelativeTime() const {
         return pendingConstraintRelativeTime_.load();
     }
 
     // called by RSMainThread
-    void SetTimestamp(uint64_t timestamp)
-    {
+    void SetTimestamp(uint64_t timestamp) {
         timestamp_.store(timestamp);
     }
 
     // called by RSMainThread/RSUniRenderThread
-    uint64_t GetCurrentTimestamp() const
-    {
+    uint64_t GetCurrentTimestamp() const {
         return timestamp_.load();
     }
 
     // called by RSMainThread
-    void SetActualTimestamp(int64_t timestamp)
-    {
+    void SetActualTimestamp(int64_t timestamp) {
         actualTimestamp_.store(timestamp);
     }
 
     // called by RSMainThread/RSUniRenderThread
-    int64_t GetActualTimestamp() const
-    {
+    int64_t GetActualTimestamp() const {
         return actualTimestamp_.load();
     }
 
     // called by RSMainThread
-    void SetVsyncId(uint64_t vsyncId)
-    {
+    void SetVsyncId(uint64_t vsyncId) {
         vsyncId_.store(vsyncId);
     }
 
     // called by RSMainThread/RSUniRenderThread
-    uint64_t GetVsyncId() const
-    {
+    uint64_t GetVsyncId() const {
         return vsyncId_.load();
     }
 
     // called by RSMainThread
-    void SetForceRefreshFlag(bool isForceRefresh)
-    {
+    void SetForceRefreshFlag(bool isForceRefresh) {
         isForceRefresh_.store(isForceRefresh);
     }
 
     // called by RSMainThread/RSUniRenderThread
-    bool GetForceRefreshFlag() const
-    {
+    bool GetForceRefreshFlag() const {
         return isForceRefresh_.load();
     }
 
     // called by RSMainThread
-    void SetFastComposeTimeStampDiff(uint64_t fastComposeTimeStampDiff)
-    {
+    void SetFastComposeTimeStampDiff(uint64_t fastComposeTimeStampDiff) {
         fastComposeTimeStampDiff_.store(fastComposeTimeStampDiff);
     }
 
     // called by RSMainThread/RSUniRenderThread
-    uint64_t GetFastComposeTimeStampDiff() const
-    {
+    uint64_t GetFastComposeTimeStampDiff() const {
         return fastComposeTimeStampDiff_.load();
     }
 
     // called by RSMainThread
-    bool SetHgmTaskFlag(bool value)
-    {
+    bool SetHgmTaskFlag(bool value) {
         return postHgmTaskFlag_.exchange(value);
     }
 
     bool GetLtpoEnabled() const { return isLtpoMode_.load(); }
 
-    bool GetAdaptiveSyncEnabled() const
-    {
+    bool GetAdaptiveSyncEnabled() const {
         return GetLtpoEnabled() && adaptiveSync_ == ADAPTIVE_SYNC_ENABLED;
     }
 
     // called by RSHardwareTHread
-    bool IsVBlankIdleCorrectEnabled() const
-    {
+    bool IsVBlankIdleCorrectEnabled() const {
         return vBlankIdleCorrectSwitch_.load();
     }
 
-    bool IsLowRateToHighQuickEnabled() const
-    {
+    bool IsLowRateToHighQuickEnabled() const {
         return lowRateToHighQuickSwitch_.load();
     }
 
-    bool IsLTPOSwitchOn() const
-    {
+    bool IsLTPOSwitchOn() const {
         return ltpoEnabled_;
     }
 
-    void SetLtpoEnabled(bool ltpoEnabled)
-    {
+    void SetLtpoEnabled(bool ltpoEnabled) {
         ltpoEnabled_ = ltpoEnabled;
     }
 
-    void SetImageEnhanceScene(const std::unordered_set<std::string>& imageEnhanceScene)
-    {
+    void SetImageEnhanceScene(const std::unordered_set<std::string>& imageEnhanceScene) {
         mImageEnhanceScene_ = imageEnhanceScene;
     }
 
-    uint32_t GetAlignRate() const
-    {
+    uint32_t GetAlignRate() const {
         return alignRate_;
     }
 
@@ -230,8 +200,7 @@ public:
 
     int64_t GetIdealPipelineOffset144() const { return idealPipelineOffset144_; }
 
-    int64_t GetPipelineOffset() const
-    {
+    int64_t GetPipelineOffset() const {
         auto pulse = CreateVSyncGenerator()->GetVSyncPulse();
         return pipelineOffsetPulseNum_ * pulse;
     }
@@ -293,48 +262,39 @@ public:
     int64_t GetIdealPeriod(uint32_t rate);
     void RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback);
     void RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback);
-    RefreshRateModeChangeCallback GetRefreshRateModeChangeCallback() const
-    {
+    RefreshRateModeChangeCallback GetRefreshRateModeChangeCallback() const {
         return refreshRateModeChangeCallback_;
     }
 
-    RefreshRateUpdateCallback GetRefreshRateUpdate() const
-    {
+    RefreshRateUpdateCallback GetRefreshRateUpdate() const {
         return refreshRateUpdateCallback_;
     }
 
-    void SetEnableDynamicMode(bool enableDynamicMode)
-    {
+    void SetEnableDynamicMode(bool enableDynamicMode) {
         enableDynamicMode_ = enableDynamicMode;
     }
 
-    bool GetEnableDynamicMode() const
-    {
+    bool GetEnableDynamicMode() const {
         return enableDynamicMode_;
     }
 
-    bool IsDelayMode() const
-    {
+    bool IsDelayMode() const {
         return isDelayMode_;
     }
 
-    int64_t GetRsPhaseOffset(const int64_t defaultValue) const
-    {
+    int64_t GetRsPhaseOffset(const int64_t defaultValue) const {
         return isVsyncOffsetCustomized_.load() ? rsPhaseOffset_.load() : defaultValue;
     }
 
-    int64_t GetAppPhaseOffset(const int64_t defaultValue) const
-    {
+    int64_t GetAppPhaseOffset(const int64_t defaultValue) const {
         return isVsyncOffsetCustomized_.load() ? appPhaseOffset_.load() : defaultValue;
     }
 
-    void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable)
-    {
+    void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable) {
         multiSelfOwnedScreenEnable_.store(multiSelfOwnedScreenEnable);
     }
 
-    bool GetMultiSelfOwnedScreenEnable() const
-    {
+    bool GetMultiSelfOwnedScreenEnable() const {
         return multiSelfOwnedScreenEnable_.load();
     }
 

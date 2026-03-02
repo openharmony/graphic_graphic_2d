@@ -60,7 +60,7 @@ void PolicyConfigVisitorImpl::SetXmlModeId(const std::string& xmlModeId)
         HGM_LOGE("SetXmlModeId %{public}s fail", xmlModeId.c_str());
         return;
     }
-    HILOG_COMM_INFO("SetXmlModeId : %{public}s -> settingModeId: %{public}d", xmlModeId.c_str(), settingModeId.value());
+    HILOG_COMM_INFO("SetXmlModeId: %{public}s -> settingModeId: %{public}d", xmlModeId.c_str(), settingModeId.value());
     xmlModeId_ = xmlModeId;
     settingModeId_ = settingModeId.value();
     OnUpdate();

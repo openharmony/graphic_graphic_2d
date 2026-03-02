@@ -65,8 +65,7 @@ public:
     std::string GetAppStrategyConfigName(const std::string& pkgName);
     HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);
     std::unordered_map<std::string, std::pair<pid_t, int32_t>> GetPidAppType() const { return pidAppTypeMap_; }
-    std::unordered_map<pid_t, std::pair<int32_t, std::string>> GetForegroundPidApp() const
-    {
+    std::unordered_map<pid_t, std::pair<int32_t, std::string>> GetForegroundPidApp() const {
         return foregroundPidAppMap_;
     }
     HgmLRUCache<pid_t> GetBackgroundPid() const { return backgroundPid_; }
