@@ -1,0 +1,141 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "getpixelmapstub_fuzzer.h"
+
+#include <fuzzer/FuzzedDataProvider.h>
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
+
+#include "message_parcel.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
+#include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "securec.h"
+
+#include "ipc_callbacks/hgm_config_change_callback_stub.h"
+#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
+#include "ipc_callbacks/rs_uiextension_callback_stub.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
+#include "platform/ohos/rs_irender_service.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_marshalling_helper.h"
+#include "transaction/rs_transaction_proxy.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
+
+namespace OHOS {
+namespace Rosen {
+
+int32_t g_pid;
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
+RSMainThread* mainThread_ = RSMainThread::Instance();
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+
+namespace {
+
+std::shared_ptr<Media::PixelMap> CreateTestPixelMap(FuzzedDataProvider& fdp)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = fdp.ConsumeIntegral<int32_t>();
+    opts.size.height = fdp.ConsumeIntegral<int32_t>();
+    opts.srcPixelFormat = static_cast<Media::PixelFormat>(fdp.ConsumeIntegral<int32_t>());
+    opts.pixelFormat = static_cast<Media::PixelFormat>(fdp.ConsumeIntegral<int32_t>());
+    opts.alphaType = static_cast<Media::AlphaType>(fdp.ConsumeIntegral<int32_t>());
+    opts.scaleMode = static_cast<Media::ScaleMode>(fdp.ConsumeIntegral<int32_t>());
+    opts.editable = fdp.ConsumeBool();
+    opts.useSourceIfMatch = fdp.ConsumeBool();
+
+    return Media::PixelMap::Create(opts);
+}
+
+void DoGetPixelmap(FuzzedDataProvider& fdp)
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP);
+
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+
+    NodeId id = fdp.ConsumeIntegral<NodeId>();
+    auto pixelmap = CreateTestPixelMap(fdp);
+    RectI rect;
+    rect.left_ = fdp.ConsumeIntegral<int32_t>();
+    rect.top_ = fdp.ConsumeIntegral<int32_t>();
+    rect.width_ = fdp.ConsumeIntegral<int32_t>();
+    rect.height_ = fdp.ConsumeIntegral<int32_t>();
+
+    size_t length = fdp.ConsumeIntegral<size_t>() % 5000 + 1;
+    char* obj = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        obj[i] = fdp.ConsumeIntegral<char>();
+    }
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(obj);
+    cmdListData.second = length;
+    bool isCopy = fdp.ConsumeBool();
+    auto drawCmdList = Drawing::DrawCmdList::CreateFromData(cmdListData, isCopy);
+
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!dataP.WriteUint64(id)) {
+        return;
+    }
+    if (!dataP.WriteParcelable(pixelmap.get())) {
+        return;
+    }
+    RSMarshallingHelper::Marshalling(dataP, rect);
+    RSMarshallingHelper::Marshalling(dataP, drawCmdList);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
+
+} // namespace
+} // namespace Rosen
+} // namespace OHOS
+
+extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
+{
+    OHOS::Rosen::g_pid = getpid();
+    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::RSScreenManager::GetInstance();
+    OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
+    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::mainThread_->handler_ =
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
+    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+    OHOS::Rosen::mainThread_->mainLoop_ = []() {};
+
+    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
+    auto generator = OHOS::Rosen::CreateVSyncGenerator();
+    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
+    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
+        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
+    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr,
+        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+    return 0;
+}
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+{
+    if (OHOS::Rosen::toServiceConnectionStub_ == nullptr || data == nullptr) {
+        return -1;
+    }
+
+    FuzzedDataProvider fdp(data, size);
+    OHOS::Rosen::DoGetPixelmap(fdp);
+    return 0;
+}
