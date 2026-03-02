@@ -81,6 +81,7 @@ ohos_source_set("rosen_text_skia") {
     ]
     deps += [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
+      "//third_party/cJSON:cjson_static",
     ]
     defines += [ "CROSS_PLATFORM" ]
   }

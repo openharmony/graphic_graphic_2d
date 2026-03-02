@@ -132,7 +132,7 @@ template("skia_libtxt") {
       deps += [
         "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
         "//third_party/bounds_checking_function:libsec_static",
-        "//third_party/jsoncpp:jsoncpp_static",
+        "//third_party/cJSON:cjson_static",
         "//third_party/skia:skia_$platform",
       ]
       if (graphic_2d_feature_upgrade_skia) {
@@ -146,7 +146,6 @@ template("skia_libtxt") {
       external_deps += [
         "bounds_checking_function:libsec_shared",
         "hilog:libhilog",
-        "jsoncpp:jsoncpp",
         "skia:skia_canvaskit",
       ]
       if (graphic_2d_feature_upgrade_skia) {
