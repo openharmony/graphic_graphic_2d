@@ -118,6 +118,8 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
     auto buffer = offlineResult ? offlineResult->buffer : surfaceHandler->GetBuffer();
     auto consumer = offlineResult ? offlineResult->consumer : surfaceHandler->GetConsumer();
     if (buffer == nullptr || consumer == nullptr) {
+        RS_LOGW("CreateLayer buffer or consumer is nullptr, name:%{public}s, id:%{public}" PRIu64,
+            node.GetName().c_str(), node.GetId());
         return;
     }
     auto& layerInfo = params.GetLayerInfo();
@@ -172,6 +174,8 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     auto& params = *(static_cast<RSSurfaceRenderParams*>(paramsSp.get()));
     auto buffer = offlineResult ? offlineResult->buffer : params.GetBuffer();
     if (buffer == nullptr) {
+        RS_LOGW("CreateLayerForRenderThread buffer is nullptr, name:%{public}s, id:%{public}" PRIu64,
+            surfaceDrawable.GetName().c_str(), surfaceDrawable.GetId());
         return;
     }
     auto& layerInfo = params.GetLayerInfo();

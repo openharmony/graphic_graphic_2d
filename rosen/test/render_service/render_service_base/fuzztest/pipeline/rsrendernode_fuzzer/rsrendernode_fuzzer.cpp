@@ -26,7 +26,6 @@
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_draw_cmd_list.h"
-#include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -46,7 +45,6 @@ size_t g_pos;
 uint32_t g_gcLevelLow = 30;
 uint32_t g_gcLevelMid = 100;
 uint32_t g_gcLevelHig = 700;
-constexpr size_t STR_LEN = 10;
 } // namespace
 
 /*
@@ -297,22 +295,6 @@ bool RSDrawCmdListFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSOcclusionConfigFuzzTest(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    RSOcclusionConfig config = RSOcclusionConfig::GetInstance();
-    std::string win = GetStringFromData(STR_LEN);
-    config.IsLeashWindow(win);
-    config.IsStartingWindow(win);
-    config.IsAlphaWindow(win);
-    config.IsDividerBar(win);
-
-    return true;
-}
-
 bool RSContextFuzzerTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -506,7 +488,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::RSDirtyRegionManagerFuzzTest(data, size);
     OHOS::Rosen::RSScreenRenderNodeFuzzTest(data, size);
     OHOS::Rosen::RSDrawCmdListFuzzTest(data, size);
-    OHOS::Rosen::RSOcclusionConfigFuzzTest(data, size);
 
     OHOS::Rosen::RSContextFuzzerTest(data, size);
     OHOS::Rosen::RSRenderNodeGcFuzzerTest(data, size);
