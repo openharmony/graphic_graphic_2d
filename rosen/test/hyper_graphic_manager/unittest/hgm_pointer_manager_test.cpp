@@ -122,7 +122,6 @@ HWTEST_F(HgmPointerManagerTest, Active2IdleState, Function | SmallTest | Level0)
     pointerManager.ExecuteCallback(nullptr);
     pointerManager.ExecuteCallback([]() { usleep(1); });
     pointerManager.ExecuteCallback(nullptr);
-
 }
 
 /**
