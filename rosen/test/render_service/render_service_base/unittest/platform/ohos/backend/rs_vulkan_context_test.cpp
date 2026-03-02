@@ -82,6 +82,7 @@ HWTEST_F(RSVulkanContextTest, CreateInstance001, TestSize.Level1)
 HWTEST_F(RSVulkanContextTest, SelectPhysicalDevice001, TestSize.Level1)
 {
     RsVulkanInterface rsVulkanInterface;
+    rsVulkanInterface.instance_ = nullptr;
     auto ret = rsVulkanInterface.SelectPhysicalDevice(true);
     EXPECT_TRUE(ret);
 }
