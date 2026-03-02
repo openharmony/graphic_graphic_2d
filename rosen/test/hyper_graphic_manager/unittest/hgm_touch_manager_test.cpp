@@ -41,6 +41,37 @@ public:
 };
 
 /**
+ * @tc.name: TestInitTouchManager
+ * @tc.desc: Verify the result of InitTouchManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmTouchManagerTest, TestInitTouchManager, Function | SmallTest | Level1)
+{
+    const int32_t upTimeUs = 120000;
+
+    HgmFrameRateManager mgr;
+    mgr.InitTouchManager();
+    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
+    EXPECT_EQ(mgr.voterTouchEffective_.load(), true);
+
+    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, true);
+
+    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, false);
+
+    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, true);
+
+    usleep(upTimeUs);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, false);
+
+    mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+    EXPECT_EQ(mgr.voterTouchEffective_, false);
+}
+
+/**
  * @tc.name: QuickTouch
  * @tc.desc: Verify the result of QuickTouch function
  * @tc.type: FUNC
@@ -67,36 +98,34 @@ HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level0)
 {
-    PART("CaseDescription") {
-        auto touchManager = HgmTouchManager();
-        ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+    auto touchManager = HgmTouchManager();
+    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
 
-        touchManager.ChangeState(TouchState::UP_STATE);
-        ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+    touchManager.ChangeState(TouchState::UP_STATE);
+    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
 
-        touchManager.ChangeState(TouchState::DOWN_STATE);
-        usleep(waitTaskFinishNs);
-        ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
+    touchManager.ChangeState(TouchState::DOWN_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
 
-        touchManager.ChangeState(TouchState::IDLE_STATE);
-        ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
+    touchManager.ChangeState(TouchState::IDLE_STATE);
+    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
 
-        touchManager.ChangeState(TouchState::UP_STATE);
-        usleep(waitTaskFinishNs);
-        ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+    touchManager.ChangeState(TouchState::UP_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
 
-        touchManager.ChangeState(TouchState::DOWN_STATE);
-        usleep(waitTaskFinishNs);
-        ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
+    touchManager.ChangeState(TouchState::DOWN_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
 
-        touchManager.ChangeState(TouchState::UP_STATE);
-        usleep(waitTaskFinishNs);
-        ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+    touchManager.ChangeState(TouchState::UP_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
 
-        touchManager.ChangeState(TouchState::IDLE_STATE);
-        usleep(waitTaskFinishNs);
-        ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
-    }
+    touchManager.ChangeState(TouchState::IDLE_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
 }
 
 /**
@@ -190,37 +219,6 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level0)
         }
     }
     sleep(1); // wait for task finished
-}
-
-/**
- * @tc.name: TestInitTouchManager
- * @tc.desc: Verify the result of InitTouchManager
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmTouchManagerTest, TestInitTouchManager, Function | SmallTest | Level1)
-{
-    const int32_t upTimeUs = 120000;
-
-    HgmFrameRateManager mgr;
-    mgr.InitTouchManager();
-    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
-    EXPECT_EQ(mgr.voterTouchEffective_.load(), true);
-
-    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
-    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, true);
-
-    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
-    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, false);
-
-    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
-    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, true);
-
-    usleep(upTimeUs);
-    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, false);
-
-    mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
-    EXPECT_EQ(mgr.voterTouchEffective_, false);
 }
 } // namespace Rosen
 } // namespace OHOS
