@@ -52,7 +52,7 @@ std::string g_mockStr = {CONFIG_FILE_PRODUCT};
  
 extern "C" char* GetOneCfgFile(const char* pathSuffix, char* buf, unsigned int bufLength)
 {
-    if (!g_mockStr.size()) {
+    if (g_mockStr.size()) {
         return nullptr;
     }
     return const_cast<char*>(g_mockStr.c_str());
