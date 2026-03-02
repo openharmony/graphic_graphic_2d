@@ -312,9 +312,9 @@ napi_value JsFontDescriptor::GetFontDescriptorsFromPath(napi_env env, napi_callb
 
     auto executor = [context]() {
         TEXT_ERROR_CHECK(context != nullptr, return, "Context is null");
-        if (!context->filePath.empty()) {
-            TEXT_ERROR_CHECK(SplitAbsolutePath(context->filePath), return, "Failed to split absolute font path");
-            context->fontDescriptersOutput = TextEngine::FontParser::ParserFontDescriptorsFromPath(context->filePath);
+        if (context->filePath.has_value() && !context->filePath->empty()) {
+            TEXT_ERROR_CHECK(SplitAbsolutePath(*context->filePath), return, "Failed to split absolute font path");
+            context->fontDescriptersOutput = TextEngine::FontParser::ParserFontDescriptorsFromPath(*context->filePath);
         } else {
             auto pathCB = [context](std::string& path) -> bool { return ProcessFontPath(context, path); };
             auto fileCB = [context](const void* data, size_t size) -> bool {
@@ -366,10 +366,10 @@ napi_value JsFontDescriptor::GetFontUnicodeSet(napi_env env, napi_callback_info 
 
     auto executor = [context]() {
         TEXT_ERROR_CHECK(context != nullptr, return, "Failed to executor, Context is null");
-        if (!context->filePath.empty()) {
-            TEXT_ERROR_CHECK(SplitAbsolutePath(context->filePath), return, "Failed to split absolute font path");
-            context->unicodeSetOutput = TextEngine::FontParser::GetFontTypefaceUnicode(
-                context->filePath, context->index);
+        if (context->filePath.has_value()) {
+            TEXT_ERROR_CHECK(SplitAbsolutePath(*context->filePath), return, "Failed to split absolute font path");
+            context->unicodeSetOutput =
+                TextEngine::FontParser::GetFontTypefaceUnicode(*context->filePath, context->index);
         } else {
             auto pathCB = [context](std::string& path) -> bool {
                 TEXT_ERROR_CHECK(SplitAbsolutePath(path), return false, "Failed to split absolute font path");

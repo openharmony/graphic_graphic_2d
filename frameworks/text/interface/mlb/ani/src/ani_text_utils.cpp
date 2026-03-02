@@ -244,7 +244,7 @@ bool AniTextUtils::SplitAbsoluteFontPath(std::string& absolutePath)
     std::string head = absolutePath.substr(0, iter);
     if ((head == "file" && absolutePath.size() > FILE_HEAD_LENGTH)) {
         absolutePath = absolutePath.substr(iter + 3); // 3 means skip "://"
-        // the file format is like "file://system/fonts...",
+        // File path must start with 'file://', e.g., file:///path/to/font.ttf
         return true;
     }
 
