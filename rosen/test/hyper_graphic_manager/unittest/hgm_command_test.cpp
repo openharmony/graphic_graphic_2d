@@ -84,8 +84,10 @@ void HgmCommandTest::LoadXmlContent1()
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
     parser->mParsedData_ = std::make_unique<PolicyConfigData>();
     ASSERT_NE(parser->mParsedData_, nullptr);
+
     parser->xmlDocument_ = StringToXmlDoc(TEST_XML_CONTENT_1);
     ASSERT_NE(parser->xmlDocument_, nullptr);
+
     parser->Parse();
     hgmCore.mPolicyConfigData_ = parser->GetParsedData();
     hgmCore.mParser_ = std::move(parser);
@@ -103,6 +105,7 @@ HWTEST_F(HgmCommandTest, UpdateRefreshRateForSettings001, Function | SmallTest |
     auto& hgmCore = HgmCore::Instance();
     hgmCore.InitXmlConfig();
     LoadXmlContent1();
+
     // padmode
     hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("padmode");
     const auto& settings = hgmCore.mPolicyConfigData_->refreshRateForSettings_;
@@ -113,6 +116,7 @@ HWTEST_F(HgmCommandTest, UpdateRefreshRateForSettings001, Function | SmallTest |
     for (size_t i = 0; i < settings.size(); ++i) {
         EXPECT_EQ(settings[i], padSettings[i]);
     }
+
     // pcmode
     hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("pcmode");
     std::vector<std::pair<int32_t, int32_t>> pcSettings = {
@@ -122,6 +126,7 @@ HWTEST_F(HgmCommandTest, UpdateRefreshRateForSettings001, Function | SmallTest |
     for (size_t i = 0; i < settings.size(); ++i) {
         EXPECT_EQ(settings[i], pcSettings[i]);
     }
+
     // test unknowmode
     auto originSettings = settings;
     hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("unknownMode");
@@ -157,6 +162,7 @@ HWTEST_F(HgmCommandTest, SysModeChangeProcess001, Function | SmallTest | Level0)
     auto& hgmCore = HgmCore::Instance();
     hgmCore.InitXmlConfig();
     ASSERT_NE(hgmCore.mPolicyConfigData_, nullptr);
+
     auto policyConfigData = reinterpret_cast<PolicyConfigData*>(hgmCore.mPolicyConfigData_.get());
     EXPECT_NE(policyConfigData, nullptr);
     HgmCore::SysModeChangeProcess("persist.sys.mode", "testmode", policyConfigData);
@@ -177,8 +183,9 @@ HWTEST_F(HgmCommandTest, SettingModeId2XmlModeId, Function | SmallTest | Level0)
     auto& hgmCore = HgmCore::Instance();
     hgmCore.InitXmlConfig();
     LoadXmlContent1();
-    // test when auto mode exists
     EXPECT_NE(hgmCore.mPolicyConfigData_, nullptr);
+
+    // test when auto mode exists
     hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("pcmode");
     vector<pair<int, optional<string>>> testConfig = {
         {-1, "-101"},
@@ -190,6 +197,7 @@ HWTEST_F(HgmCommandTest, SettingModeId2XmlModeId, Function | SmallTest | Level0)
         auto ret = visitor_->SettingModeId2XmlModeId(p.first);
         EXPECT_EQ(ret, p.second);
     }
+
     // no auto mode
     hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("testmode_no_auto");
     testConfig = {
@@ -480,6 +488,5 @@ HWTEST_F(HgmCommandTest, SetRefreshRateMode, Function | SmallTest | Level0)
         EXPECT_EQ(configVisitorImpl->xmlModeId_, xmlModeId);
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS
