@@ -93,6 +93,140 @@ void HgmCommandTest::LoadXmlContent1()
 }
 
 /**
+ * @tc.name: UpdateRefreshRateForSettings
+ * @tc.desc: Verify the result of UpdateRefreshRateForSettings function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, UpdateRefreshRateForSettings001, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+    LoadXmlContent1();
+    // padmode
+    hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("padmode");
+    const auto& settings = hgmCore.mPolicyConfigData_->refreshRateForSettings_;
+    std::vector<std::pair<int32_t, int32_t>> padSettings = {
+        {-1, -1}, {60, 1}, {120, 2}, {144, 3}
+    };
+    ASSERT_EQ(settings.size(), padSettings.size());
+    for (size_t i = 0; i < settings.size(); ++i) {
+        EXPECT_EQ(settings[i], padSettings[i]);
+    }
+    // pcmode
+    hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("pcmode");
+    std::vector<std::pair<int32_t, int32_t>> pcSettings = {
+        {-1, -101}, {60, 101}, {120, 102}
+    };
+    ASSERT_EQ(settings.size(), pcSettings.size());
+    for (size_t i = 0; i < settings.size(); ++i) {
+        EXPECT_EQ(settings[i], pcSettings[i]);
+    }
+    // test unknowmode
+    auto originSettings = settings;
+    hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("unknownMode");
+    ASSERT_EQ(settings.size(), originSettings.size());
+    for (size_t i = 0; i < settings.size(); ++i) {
+        EXPECT_EQ(settings[i], originSettings[i]);
+    }
+}
+
+/**
+ * @tc.name: AddParamWatcher
+ * @tc.desc: Verify the result of AddParamWatcher function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, AddParamWatcher001, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto ret = hgmCore.AddParamWatcher();
+    // 110 means already added in HgmCore::Instance()
+    EXPECT_EQ(ret, 110);
+}
+
+/**
+ * @tc.name: SysModeChangeProcess
+ * @tc.desc: Verify the result of SysModeChangeProcess function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, SysModeChangeProcess001, Function | SmallTest | Level0)
+{
+    int32_t delayTime = 100;
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+    ASSERT_NE(hgmCore.mPolicyConfigData_, nullptr);
+    auto policyConfigData = reinterpret_cast<PolicyConfigData*>(hgmCore.mPolicyConfigData_.get());
+    EXPECT_NE(policyConfigData, nullptr);
+    HgmCore::SysModeChangeProcess("persist.sys.mode", "testmode", policyConfigData);
+
+    HgmCore::SysModeChangeProcess("persist.sys.mode", "testmode", nullptr);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
+}
+
+/**
+ * @tc.name: SettingModeId2XmlModeId
+ * @tc.desc: Verify the result of SettingModeId2XmlModeId function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, SettingModeId2XmlModeId, Function | SmallTest | Level0)
+{
+    using namespace std;
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+    LoadXmlContent1();
+    // test when auto mode exists
+    EXPECT_NE(hgmCore.mPolicyConfigData_, nullptr);
+    hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("pcmode");
+    vector<pair<int, optional<string>>> testConfig = {
+        {-1, "-101"},
+        {-10, optional<string>()},
+        {10, optional<string>()},
+        {2, "102"}
+    };
+    for (const auto& p : testConfig) {
+        auto ret = visitor_->SettingModeId2XmlModeId(p.first);
+        EXPECT_EQ(ret, p.second);
+    }
+    // no auto mode
+    hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("testmode_no_auto");
+    testConfig = {
+        {-10, optional<string>()},
+        {-1, optional<string>()},
+        {10, optional<string>()},
+        {1, "101"},
+        {2, "102"}
+    };
+    for (const auto& p : testConfig) {
+        auto ret = visitor_->SettingModeId2XmlModeId(p.first);
+        EXPECT_EQ(ret, p.second);
+    }
+}
+
+/**
+ * @tc.name: InitXmlConfig
+ * @tc.desc: Verify the result of InitXmlConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, InitXmlConfig, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    g_mockStr = "";
+    EXPECT_EQ(hgmCore.InitXmlConfig(), EXEC_SUCCESS);
+
+    g_mockStr = "/sys_prod/variant/hw_oem/AAA-72/etc/graphic/hgm_policy_config.xml";
+    EXPECT_EQ(hgmCore.InitXmlConfig(), EXEC_SUCCESS);
+
+    g_mockStr = "/chip_prod/etc/graphic/hgm_policy_config.xml";
+    EXPECT_EQ(hgmCore.InitXmlConfig(), EXEC_SUCCESS);
+
+    g_mockStr = CONFIG_FILE_PRODUCT;
+}
+
+/**
  * @tc.name: Init001
  * @tc.desc: Verify the result of Init001 function
  * @tc.type: FUNC
@@ -347,138 +481,5 @@ HWTEST_F(HgmCommandTest, SetRefreshRateMode, Function | SmallTest | Level0)
     }
 }
 
-/**
- * @tc.name: UpdateRefreshRateForSettings
- * @tc.desc: Verify the result of UpdateRefreshRateForSettings function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmCommandTest, UpdateRefreshRateForSettings001, Function | SmallTest | Level0)
-{
-    auto& hgmCore = HgmCore::Instance();
-    hgmCore.InitXmlConfig();
-    LoadXmlContent1();
-    // padmode
-    hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("padmode");
-    const auto& settings = hgmCore.mPolicyConfigData_->refreshRateForSettings_;
-    std::vector<std::pair<int32_t, int32_t>> padSettings = {
-        {-1, -1}, {60, 1}, {120, 2}, {144, 3}
-    };
-    ASSERT_EQ(settings.size(), padSettings.size());
-    for (size_t i = 0; i < settings.size(); ++i) {
-        EXPECT_EQ(settings[i], padSettings[i]);
-    }
-    // pcmode
-    hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("pcmode");
-    std::vector<std::pair<int32_t, int32_t>> pcSettings = {
-        {-1, -101}, {60, 101}, {120, 102}
-    };
-    ASSERT_EQ(settings.size(), pcSettings.size());
-    for (size_t i = 0; i < settings.size(); ++i) {
-        EXPECT_EQ(settings[i], pcSettings[i]);
-    }
-    // test unknowmode
-    auto originSettings = settings;
-    hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("unknownMode");
-    ASSERT_EQ(settings.size(), originSettings.size());
-    for (size_t i = 0; i < settings.size(); ++i) {
-        EXPECT_EQ(settings[i], originSettings[i]);
-    }
-}
-
-/**
- * @tc.name: AddParamWatcher
- * @tc.desc: Verify the result of AddParamWatcher function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmCommandTest, AddParamWatcher001, Function | SmallTest | Level0)
-{
-    auto& hgmCore = HgmCore::Instance();
-    auto ret = hgmCore.AddParamWatcher();
-    // 110 means already added in HgmCore::Instance()
-    EXPECT_EQ(ret, 110);
-}
-
-/**
- * @tc.name: SysModeChangeProcess
- * @tc.desc: Verify the result of SysModeChangeProcess function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmCommandTest, SysModeChangeProcess001, Function | SmallTest | Level0)
-{
-    int32_t delayTime = 100;
-    auto& hgmCore = HgmCore::Instance();
-    hgmCore.InitXmlConfig();
-    ASSERT_NE(hgmCore.mPolicyConfigData_, nullptr);
-    auto policyConfigData = reinterpret_cast<PolicyConfigData*>(hgmCore.mPolicyConfigData_.get());
-    EXPECT_NE(policyConfigData, nullptr);
-    HgmCore::SysModeChangeProcess("persist.sys.mode", "testmode", policyConfigData);
-
-    HgmCore::SysModeChangeProcess("persist.sys.mode", "testmode", nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
-}
-
-/**
- * @tc.name: SettingModeId2XmlModeId
- * @tc.desc: Verify the result of SettingModeId2XmlModeId function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmCommandTest, SettingModeId2XmlModeId, Function | SmallTest | Level0)
-{
-    using namespace std;
-    auto& hgmCore = HgmCore::Instance();
-    hgmCore.InitXmlConfig();
-    LoadXmlContent1();
-    // test when auto mode exists
-    EXPECT_NE(hgmCore.mPolicyConfigData_, nullptr);
-    hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("pcmode");
-    vector<pair<int, optional<string>>> testConfig = {
-        {-1, "-101"},
-        {-10, optional<string>()},
-        {10, optional<string>()},
-        {2, "102"}
-    };
-    for (const auto& p : testConfig) {
-        auto ret = visitor_->SettingModeId2XmlModeId(p.first);
-        EXPECT_EQ(ret, p.second);
-    }
-    // no auto mode
-    hgmCore.mPolicyConfigData_->UpdateRefreshRateForSettings("testmode_no_auto");
-    testConfig = {
-        {-10, optional<string>()},
-        {-1, optional<string>()},
-        {10, optional<string>()},
-        {1, "101"},
-        {2, "102"}
-    };
-    for (const auto& p : testConfig) {
-        auto ret = visitor_->SettingModeId2XmlModeId(p.first);
-        EXPECT_EQ(ret, p.second);
-    }
-}
-
-/**
- * @tc.name: InitXmlConfig
- * @tc.desc: Verify the result of InitXmlConfig
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmCommandTest, InitXmlConfig, Function | SmallTest | Level0)
-{
-    auto& hgmCore = HgmCore::Instance();
-    g_mockStr = "";
-    EXPECT_EQ(hgmCore.InitXmlConfig(), EXEC_SUCCESS);
-
-    g_mockStr = "/sys_prod/variant/hw_oem/AAA-72/etc/graphic/hgm_policy_config.xml";
-    EXPECT_EQ(hgmCore.InitXmlConfig(), EXEC_SUCCESS);
-
-    g_mockStr = "/chip_prod/etc/graphic/hgm_policy_config.xml";
-    EXPECT_EQ(hgmCore.InitXmlConfig(), EXEC_SUCCESS);
-
-    g_mockStr = CONFIG_FILE_PRODUCT;
-}
 } // namespace Rosen
 } // namespace OHOS
