@@ -250,6 +250,8 @@ typedef struct {
  * @version 1.0
  */
 typedef struct {
+    /** the center position of the water droplet, The value range is [-10.0f, 10.0f], truncated beyond the range.*/
+    OH_Filter_Vec2 position;
     /** radius of water droplet, The value range is [0.0f, 10.0f], truncated beyond the range.*/
     float radius;
     /** water droplet transition fade width, The value range is [0.0f, 1.0f], truncated beyond the range. */

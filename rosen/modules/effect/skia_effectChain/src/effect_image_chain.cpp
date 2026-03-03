@@ -18,7 +18,6 @@
 #include "effect_utils.h"
 #include "ge_external_dynamic_loader.h"
 #include "ge_mask_transition_shader_filter.h"
-#include "ge_water_droplet_transition_filter.h"
 #include "ge_linear_gradient_shader_mask.h"
 #include "ge_mesa_blur_shader_filter.h"
 #include "ge_radial_gradient_shader_mask.h"
@@ -557,7 +556,7 @@ std::shared_ptr<GEShaderFilter> GenerateWaterDropletTransitionFilter(
         sizeof(Drawing::GEWaterDropletTransitionFilterParams),
         static_cast<void*>(params.get()));
     if (!object) {
-        return std::make_shared<GEWaterDropletTransitionFilter>(*params);
+        return nullptr;
     }
  
     std::shared_ptr<GEShaderFilter> dmShader(static_cast<GEShaderFilter*>(object));
