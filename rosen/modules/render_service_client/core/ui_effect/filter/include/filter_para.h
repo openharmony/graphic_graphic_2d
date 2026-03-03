@@ -39,7 +39,7 @@ enum class FilterQuality {
     ADAPTIVE = 1,
 };
 
-inline const std::map<std::string, TileMode> STRING_TO_JS_MAP = {
+const std::map<std::string, TileMode> STRING_TO_JS_MAP = {
     { "CLAMP", TileMode::CLAMP },
     { "REPEAT", TileMode::REPEAT },
     { "MIRROR", TileMode::MIRROR },
