@@ -2174,6 +2174,42 @@ HWTEST_F(RsRenderComposerTest, CalculateDelayTime, TestSize.Level1)
 }
 
 /**
+ * Function: CalculateDelayTime2
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. change TE settings
+ *                  3. call CalculateDelayTime
+ *                  4. check result
+ */
+HWTEST_F(RsRenderComposerTest, CalculateDelayTime2, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 1u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    RefreshRateParam param;
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.isLtpoMode_.store(true);
+    hgmCore.SetSupportedMaxTE144(0);
+    tmpRsRenderComposer->CalculateDelayTime(hgmCore, param, 0, -1);
+    EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
+    tmpRsRenderComposer->CalculateDelayTime(hgmCore, param, 144, -1);
+    EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
+    hgmCore.SetSupportedMaxTE144(432);
+    hgmCore.SetIdealPipelineOffset144(6);
+    tmpRsRenderComposer->CalculateDelayTime(hgmCore, param, 0, -1);
+    EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
+    tmpRsRenderComposer->CalculateDelayTime(hgmCore, param, 144, -1);
+    EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
  * Function: ExecuteSwitchRefreshRate
  * Type: Function
  * Rank: Important(2)
