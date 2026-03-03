@@ -387,7 +387,7 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, PaintFilterCanvasPopLayerPartRenderDirty
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, PaintFilterCanvasPopLayerPartRenderDirtyRegionWithNonEmptyStack, TestSize.Level1)
+HWTEST_F(RSOpincDrawCacheLayerPartTest, PaintFilterCanvasPopLayerPartRenderDirtyRegion, TestSize.Level1)
 {
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
