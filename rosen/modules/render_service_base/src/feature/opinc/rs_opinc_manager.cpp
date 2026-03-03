@@ -206,7 +206,7 @@ void RSOpincManager::InitLayerPartRenderNode(bool isCCMLayerPartRenderEnabled, R
 }
 
 void RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
-    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, bool isDisableAnimation)
+    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager)
 {
     if (layerPartRenderDirtyManager == nullptr) {
         return;
@@ -216,12 +216,6 @@ void RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
         return;
     }
     if (!node.GetOpincCache().IsLayerPartRender()) {
-        stagingRenderParams->SetLayerPartRenderEnabled(false);
-        return;
-    }
-    // node group is disable during the disable animation
-    if (isDisableAnimation) {
-        node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
         stagingRenderParams->SetLayerPartRenderEnabled(false);
         return;
     }
@@ -242,7 +236,7 @@ void RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
         opincCache.ResetLayerPartRenderUnchangeState();
     }
 
-    RectI layerCurDirty = layerPartRenderDirtyManager->GetCurrentFrameDirtyRegion();
+    RectI layerCurDirty = layerPartRenderDirtyManager->GetDirtyRegion();
     {
         RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty:[%d,%d,%d,%d]", node.GetId(),
             layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetRight(), layerCurDirty.GetBottom());

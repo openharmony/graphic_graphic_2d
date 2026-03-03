@@ -340,7 +340,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionSuccess
 
 /**
  * @tc.name: MarkSuggestLayerPartRenderNode001
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with non-surface node
+ * @tc.desc: Test MarkSuggestLayerPartRenderNode with non-SURFACE node
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
@@ -349,17 +349,17 @@ HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode001, TestSiz
     NodeId id = 20;
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
     ASSERT_NE(canvasNode, nullptr);
-
     ASSERT_NE(canvasNode->GetType(), RSRenderNodeType::SURFACE_NODE);
 
     canvasNode->MarkSuggestLayerPartRenderNode(true);
+    canvasNode->MarkSuggestLayerPartRenderNode(false);
 
     ASSERT_FALSE(canvasNode->GetOpincCache().IsSuggestLayerPartRenderNode());
 }
 
 /**
  * @tc.name: MarkSuggestLayerPartRenderNode002
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with surface node but no parent
+ * @tc.desc: Test MarkSuggestLayerPartRenderNode with SURFACE node but no parent
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
@@ -373,12 +373,12 @@ HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode002, TestSiz
 
     surfaceNode->MarkSuggestLayerPartRenderNode(true);
 
-    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_FALSE(surfaceNode->GetOpincCache().IsSuggestLayerPartRenderNode());
 }
 
 /**
  * @tc.name: MarkSuggestLayerPartRenderNode003
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with surface node and parent surface
+ * @tc.desc: Test MarkSuggestLayerPartRenderNode with SURFACE node but parent is not SURFACE
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
@@ -386,23 +386,21 @@ HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode003, TestSiz
 {
     NodeId id = 22;
     std::weak_ptr<RSContext> context;
-    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    auto childSurface = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
-    ASSERT_NE(parentSurface, nullptr);
-    ASSERT_NE(childSurface, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id + 1);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(canvasNode, nullptr);
 
-    childSurface->SetParent(parentSurface);
-    ASSERT_EQ(childSurface->GetParent().lock(), parentSurface);
+    surfaceNode->SetParent(canvasNode);
 
-    childSurface->MarkSuggestLayerPartRenderNode(true);
+    surfaceNode->MarkSuggestLayerPartRenderNode(true);
 
-    ASSERT_NE(parentSurface, nullptr);
-    ASSERT_NE(childSurface, nullptr);
+    ASSERT_FALSE(surfaceNode->GetOpincCache().IsSuggestLayerPartRenderNode());
 }
 
 /**
  * @tc.name: MarkSuggestLayerPartRenderNode004
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with false parameter
+ * @tc.desc: Test MarkSuggestLayerPartRenderNode with proper hierarchy but no ground parent
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
@@ -410,13 +408,105 @@ HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode004, TestSiz
 {
     NodeId id = 23;
     std::weak_ptr<RSContext> context;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(surfaceNode, nullptr);
-    ASSERT_EQ(surfaceNode->GetType(), RSRenderNodeType::SURFACE_NODE);
+    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto childSurface = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(parentSurface, nullptr);
+    ASSERT_NE(childSurface, nullptr);
 
-    surfaceNode->MarkSuggestLayerPartRenderNode(false);
+    childSurface->SetParent(parentSurface);
 
-    ASSERT_NE(surfaceNode, nullptr);
+    childSurface->MarkSuggestLayerPartRenderNode(true);
+
+    ASSERT_FALSE(childSurface->GetOpincCache().IsSuggestLayerPartRenderNode());
+}
+
+/**
+ * @tc.name: MarkSuggestLayerPartRenderNode005
+ * @tc.desc: Test MarkSuggestLayerPartRenderNode with proper hierarchy but ground parent is not CANVAS
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode005, TestSize.Level1)
+{
+    NodeId id = 24;
+    std::weak_ptr<RSContext> context;
+    auto grandParentSurface = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    auto childSurface = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    ASSERT_NE(grandParentSurface, nullptr);
+    ASSERT_NE(parentSurface, nullptr);
+    ASSERT_NE(childSurface, nullptr);
+
+    parentSurface->SetParent(grandParentSurface);
+    childSurface->SetParent(parentSurface);
+
+    childSurface->MarkSuggestLayerPartRenderNode(true);
+
+    ASSERT_FALSE(childSurface->GetOpincCache().IsSuggestLayerPartRenderNode());
+}
+
+/**
+ * @tc.name: MarkSuggestLayerPartRenderNode006
+ * @tc.desc: Test MarkSuggestLayerPartRenderNode with complete hierarchy and isLayerPartRender=true
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode006, TestSize.Level1)
+{
+    NodeId id = 25;
+    std::weak_ptr<RSContext> context;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
+    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    auto childSurface = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    ASSERT_NE(canvasNode, nullptr);
+    ASSERT_NE(parentSurface, nullptr);
+    ASSERT_NE(childSurface, nullptr);
+
+    parentSurface->SetParent(canvasNode);
+    childSurface->SetParent(parentSurface);
+
+    // Before marking, groundParent (canvasNode) should not be suggested
+    ASSERT_FALSE(canvasNode->GetOpincCache().IsSuggestLayerPartRenderNode());
+
+    childSurface->MarkSuggestLayerPartRenderNode(true);
+
+    // groundParent's (canvasNode's) opincCache should be marked, not childSurface's
+    ASSERT_TRUE(canvasNode->GetOpincCache().IsSuggestLayerPartRenderNode());
+    ASSERT_FALSE(childSurface->GetOpincCache().IsSuggestLayerPartRenderNode());
+    // When isLayerPartRender=true, MarkNodeGroup should NOT be called
+    ASSERT_NE(canvasNode->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
+}
+
+/**
+ * @tc.name: MarkSuggestLayerPartRenderNode007
+ * @tc.desc: Test MarkSuggestLayerPartRenderNode with complete hierarchy and isLayerPartRender=false
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode007, TestSize.Level1)
+{
+    NodeId id = 26;
+    std::weak_ptr<RSContext> context;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
+    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    auto childSurface = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    ASSERT_NE(canvasNode, nullptr);
+    ASSERT_NE(parentSurface, nullptr);
+    ASSERT_NE(childSurface, nullptr);
+
+    parentSurface->SetParent(canvasNode);
+    childSurface->SetParent(parentSurface);
+
+    // Before marking, groundParent (canvasNode) should not be suggested
+    ASSERT_FALSE(canvasNode->GetOpincCache().IsSuggestLayerPartRenderNode());
+
+    childSurface->MarkSuggestLayerPartRenderNode(false);
+
+    // groundParent's (canvasNode's) opincCache should be marked as false
+    ASSERT_FALSE(canvasNode->GetOpincCache().IsSuggestLayerPartRenderNode());
+    ASSERT_FALSE(childSurface->GetOpincCache().IsSuggestLayerPartRenderNode());
+    // When isLayerPartRender=false, MarkNodeGroup should be called on groundParent
+    ASSERT_EQ(canvasNode->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
 }
 
 /**

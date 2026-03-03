@@ -423,7 +423,7 @@ void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& para
         currentFrameDirty.GetRight(), currentFrameDirty.GetBottom()));
     auto bounds = layerPartRenderDirtyRegion_.GetBounds();
     RS_OPTIONAL_TRACE_NAME_FMT("id:%" PRIu64 ", LayerPartRenderNodeDirtyRegion:[%d %d %d %d], nodeCount:%d",
-        params.GetId(), bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom(), nodeCount);
+        params.GetId(), bounds.GetLeft(), bounds.GetTop(), bounds.GetWidth(), bounds.GetHeight(), nodeCount);
     canvas.PushLayerPartRenderDirtyRegion(layerPartRenderDirtyRegion_);
 }
 

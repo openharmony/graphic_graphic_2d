@@ -3791,6 +3791,7 @@ bool RSRenderNode::UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegio
         RS_OPTIONAL_TRACE_FMT("UpdateLayerPartRenderDirtyRegion id:%" PRIu64 ", absDrawRect_:[%d,%d,%d,%d]",
             GetId(), absDrawRect_.GetLeft(), absDrawRect_.GetTop(), absDrawRect_.GetRight(), absDrawRect_.GetBottom());
         dirtyManager->MergeDirtyRect(absDrawRect_);
+        dirtyManager->UpdateDirty();
     }
     return true;
 }

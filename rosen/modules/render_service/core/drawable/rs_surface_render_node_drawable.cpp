@@ -714,7 +714,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     const auto& absDrawRect = surfaceParams->GetAbsDrawRect();
     bool isUiFirstNode = rscanvas->GetIsParallelCanvas();
     bool disableFilterCache = rscanvas->GetDisableFilterCache();
-    if (!disableFilterCache && !isUiFirstNode && surfaceParams->GetOccludedByFilterCache()) {
+    bool shouldSkipForFilterCacheOcclusion = !disableFilterCache && !isUiFirstNode &&
+        surfaceParams->GetOccludedByFilterCache() && uniParam->IsOpDropped() && GetOpDropped();
+    if (shouldSkipForFilterCacheOcclusion) {
         SetDrawSkipType(DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d) filterCache occlusion skip, "
             "id:%" PRIu64 ", alpha:%f, currentFrameDirty(%d, %d, %d, %d)",
@@ -742,7 +744,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     Drawing::Region curSurfaceDrawRegion = GetSurfaceDrawRegion();
     if (!isUiFirstNode) {
-        if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
+        bool shouldSkipForOcclusion = uniParam->IsOpDropped() && GetOpDropped() &&
+            surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion);
+        if (shouldSkipForOcclusion) {
             SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
             RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d) occlusion skip, "
                 "id:%" PRIu64 ", alpha:%f, currentFrameDirty(%d, %d, %d, %d)",
