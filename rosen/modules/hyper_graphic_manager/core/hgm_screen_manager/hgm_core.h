@@ -103,7 +103,7 @@ public:
     void NotifyScreenRectFrameRateChange(ScreenId id, const Rect& activeRect);
 
     // screen interface
-    int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize, bool& isSelfOwnedScreen, 
+    int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize, bool& isSelfOwnedScreen,
         const std::vector<RSScreenModeInfo>& supportedModes = {});
     int32_t RemoveScreen(ScreenId id);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;

@@ -138,6 +138,7 @@ ohos_unittest("RSServiceToRenderConnectionStubTest") {
         "hitrace:hitrace_meter",
         "init:libbegetutil",
         "ipc:ipc_core",
+        "memmgr:memmgrclient",
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",

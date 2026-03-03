@@ -29,8 +29,8 @@ namespace Rosen {
 static constexpr int32_t MAX_RETRY_COUNT = 20;
 static constexpr int32_t RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
 
-RSRenderToComposerConnectionProxy::RSRenderToComposerConnectionProxy(const sptr<IRemoteObject>& impl) :
-    IRemoteProxy<IRSRenderToComposerConnection>(impl) {}
+RSRenderToComposerConnectionProxy::RSRenderToComposerConnectionProxy(const sptr<IRemoteObject>& impl)
+    : IRemoteProxy<IRSRenderToComposerConnection>(impl) {}
 
 bool RSRenderToComposerConnectionProxy::CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData)
 {

@@ -22,7 +22,6 @@
 #include "pipeline/mock/mock_hdi_device.h"
 #include "rs_render_composer.h"
 #include "rs_surface_layer.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen.h"
 #include "surface_buffer_impl.h"
 #include "transaction/rs_interfaces.h"
@@ -45,7 +44,6 @@ public:
         ScreenRotation rotation = ScreenRotation::ROTATION_0);
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
     static inline std::unique_ptr<RSComposerAdapter> composerAdapter_;
-    static inline sptr<RSScreenManager> screenManager_;
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
     float mirrorAdaptiveCoefficient = 1.0f;
     static uint32_t screenId_;
@@ -67,8 +65,6 @@ void RSComposerAdapterTest::SetUpTestCase()
     auto property = sptr<RSScreenProperty>::MakeSptr();
     rsRenderComposerManager->OnScreenConnected(hdiOutput_, property);
     auto screen = std::make_shared<RSScreen>(screenId_);
-    screenManager_ = sptr<RSScreenManager>::MakeSptr();
-    screenManager_->MockHdiScreenConnected(screen);
     composerAdapter_ = std::make_unique<RSComposerAdapter>();
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
@@ -80,7 +76,6 @@ void RSComposerAdapterTest::TearDownTestCase()
     rsRenderComposerManager->rsRenderComposerAgentMap_[screenId_]->rsRenderComposer_->uniRenderEngine_ = nullptr;
     hdiOutput_ = nullptr;
     composerAdapter_ = nullptr;
-    screenManager_ = nullptr;
     hdiDeviceMock_ = nullptr;
 }
 

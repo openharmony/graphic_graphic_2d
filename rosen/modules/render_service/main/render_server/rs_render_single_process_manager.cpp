@@ -32,8 +32,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& renderService) :
-    RSRenderProcessManager(renderService)
+RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& renderService)
+    : RSRenderProcessManager(renderService)
 {
     // step1: Create Vsync Connection and Receiver
     sptr<VSyncIConnectionToken> vsyncToken = new IRemoteStub<VSyncIConnectionToken>();

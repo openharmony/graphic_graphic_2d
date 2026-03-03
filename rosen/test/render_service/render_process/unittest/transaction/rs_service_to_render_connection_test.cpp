@@ -20,11 +20,11 @@
 #include "irs_render_to_composer_connection.h"
 #include "parameters.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 #include "rs_render_process_manager.h"
 #include "rs_render_service.h"
 #include "rs_render_to_composer_connection_proxy.h"
 #include "rs_render_single_process_manager.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_service_to_render_connection.h"
 
 using namespace testing;
@@ -32,7 +32,6 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-RSRenderService renderService;
 sptr<RSServiceToRenderConnection> g_rsConn = nullptr;
 }
 
@@ -47,11 +46,18 @@ public:
 void RSServiceToRenderConnectionTest::SetUpTestCase()
 {
     auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->imageEnhanceManager_ = std::make_shared<ImageEnhanceManager>();
+
+    auto runner1 = AppExecFwk::EventRunner::Create(true);
+    auto handler1 = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner1);
+    auto mainThread = RSMainThread::Instance();
+    renderPipeline->mainThread_ = mainThread;
+    renderPipeline->mainThread_->handler_ = handler1;
+
     renderPipeline->uniRenderThread_ = &(RSUniRenderThread::Instance());
-    auto runner = AppExecFwk::EventRunner::Create(true);
-    renderPipeline->uniRenderThread_->runner_ = runner;
-    renderPipeline->uniRenderThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    renderPipeline->uniRenderThread_->runner_ ->Run();
+    auto runner2 = AppExecFwk::EventRunner::Create(true);
+    renderPipeline->uniRenderThread_->runner_ = runner2;
+    renderPipeline->uniRenderThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner2);
 
     auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
     renderPipeline_->uniRenderThread_->uniRenderEngine_ = std::make_shared<OHOS::Rosen::RSRenderEngine>();
@@ -105,20 +111,20 @@ HWTEST_F(RSServiceToRenderConnectionTest, GetShowRefreshRateEnabledTest, TestSiz
     ASSERT_TRUE(g_rsConn);
 }
 
-// /**
-//  * @tc.name: NotifyPackageEventTest
-//  * @tc.desc: Test
-//  * @tc.type: FUNC
-//  * @tc.require: issueIBRN69
-//  */
-// HWTEST_F(RSServiceToRenderConnectionTest, NotifyPackageEventTest, TestSize.Level1)
-// {
-//     uint32_t listSize1 = 0;
-//     std::vector<std::string> package1;
-//     uint32_t listSize2 = 2;
-//     std::vector<std::string> package2 = {"package1", "package2"};
-//     g_rsConn->NotifyPackageEvent(listSize1, package1);
-//     g_rsConn->NotifyPackageEvent(listSize2, package2);
-//     ASSERT_TRUE(g_rsConn);
-// }
+/**
+ * @tc.name: NotifyPackageEventTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, NotifyPackageEventTest, TestSize.Level1)
+{
+    uint32_t listSize1 = 0;
+    std::vector<std::string> package1;
+    uint32_t listSize2 = 2;
+    std::vector<std::string> package2 = {"package1", "package2"};
+    g_rsConn->NotifyPackageEvent(listSize1, package1);
+    g_rsConn->NotifyPackageEvent(listSize2, package2);
+    ASSERT_TRUE(g_rsConn);
+}
 } // namespace OHOS::Rosen

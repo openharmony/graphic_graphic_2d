@@ -1252,6 +1252,17 @@ HWTEST_F(RSMemoryManagerTest, DumpMem003, TestSize.Level2)
     std::string type = "gpu";
     pid_t pid = 1;
     bool isLite = false;
+    NodeId id = 10000000000000;
+    auto ScreenId = 100;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{1, 2});
+    screenProperty.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(true);
+    screenProperty.Set<ScreenPropertyType::ID>(screenId);
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>({1000, 2000});
+    screenNode->SetScreenProperty(screenProperty);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().screenNodeMap_.emplace(id, screenNode);
     MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
     ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
 }

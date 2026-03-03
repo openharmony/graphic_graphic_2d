@@ -98,7 +98,7 @@ HWTEST(RSLayerMarshallingHelperTest, CmdPtr_Marshall_Fail_NullPtr, TestSize.Leve
     MessageParcel parcel;
     std::shared_ptr<RSRenderLayerCmd> nullCmd;
     // Guard against potential hang: run with timeout
-    auto fut = std::async(std::launch::async, [&]() {
+    auto fut = std::async(std::launch::async, [&parcel, &nullCmd]() {
         return RSLayerMarshallingHelper::Marshalling(parcel, nullCmd);
     });
     ASSERT_EQ(fut.wait_for(std::chrono::milliseconds(500)), std::future_status::ready)

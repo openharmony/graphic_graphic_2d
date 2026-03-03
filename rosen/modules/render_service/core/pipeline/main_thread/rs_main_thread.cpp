@@ -503,8 +503,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #endif
         }
         RenderFrameStart(timestamp_);
-        // TODO CAR
-        // RSRenderNodeGC::Instance().SetGCTaskEnable(true);
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
         ConsumeAndUpdateAllNodes();
@@ -762,8 +760,8 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
     hwcContext_ = std::make_shared<RSHwcContext>(
         HWCParam::GetSourceTuningForAppMap(), HWCParam::GetSolidColorLayerMap());
     hgmRenderContext_ = std::make_shared<HgmRenderContext>(renderToServiceConnection);
-    hgmRenderContext_->InitHgmConfig(hwcContext_->GetMutableSourceTuningConfig(), hwcContext_->GetMutableSolidLayerConfig(),
-        context_->GetMutableUiFrameworkTypeTable());
+    hgmRenderContext_->InitHgmConfig(hwcContext_->GetMutableSourceTuningConfig(),
+        hwcContext_->GetMutableSolidLayerConfig(), context_->GetMutableUiFrameworkTypeTable());
 
     RegisterScreenSwitchFinishCallback(renderToServiceConnection);
 
@@ -4520,11 +4518,10 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
 void RSMainThread::PostForceRefreshTask()
 {
     if (!IsRequestedNextVSync()) {
-        PostTask([this](){
+        PostTask([this]() {
             RS_TRACE_NAME("No RNV, ForceRefreshOneFrame");
             SetDirtyFlag();
-            RequestNextVSync();
-        }, FORCE_REFRESH_ONE_FRAME_TASK_NAME, 20); // delay 20ms
+            RequestNextVSync();}, FORCE_REFRESH_ONE_FRAME_TASK_NAME, 20); // delay 20ms
     }
 }
 

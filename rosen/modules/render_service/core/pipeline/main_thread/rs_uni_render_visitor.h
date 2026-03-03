@@ -34,7 +34,6 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "visitor/rs_node_visitor.h"
 #include "info_collection/rs_hdr_collection.h"
 

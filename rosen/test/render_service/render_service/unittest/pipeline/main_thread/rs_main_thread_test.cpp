@@ -64,8 +64,6 @@ namespace OHOS::Rosen {
 // constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVALID_VALUE = -1;
 // constexpr int32_t INVISBLE_WINDOW_RATE = 10;
-// constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
-// constexpr int32_t SCREEN_PHYSICAL_WIDTH = 10;
 // constexpr int32_t SIMI_VISIBLE_RATE = 2;
 // constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
@@ -266,17 +264,6 @@ std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode
     NodeId displayId = 1;
     auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, context);
 
-    // auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    // if (hdiOutput == nullptr) {
-    //     return screenNode;
-    // }
-    // auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
-    // if (rsScreen == nullptr) {
-    //     return screenNode;
-    // }
-
-    // rsScreen->property_.SetPhysicalModeParams(SCREEN_PHYSICAL_WIDTH, SCREEN_PHYSICAL_HEIGHT, 0);
-    // screenManager_->MockHdiScreenConnected(rsScreen);
     return screenNode;
 }
 
@@ -340,33 +327,6 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
 
     mainThread->ProcessCommandForDividedRender();
 }
-
-// /**
-//  * @tc.name: Start001
-//  * @tc.desc: Test RSMainThreadTest.Start
-//  * @tc.type: FUNC
-//  * @tc.require: issueI60QXK
-//  */
-// HWTEST_F(RSMainThreadTest, Start001, TestSize.Level1)
-// {
-//     auto mainThread = RSMainThread::Instance();
-//     ASSERT_NE(mainThread, nullptr);
-//     mainThread->Start();
-// }
-
-// /**
-//  * @tc.name: Start002
-//  * @tc.desc: Test RSMainThreadTest.Start
-//  * @tc.type: FUNC
-//  * @tc.require: issueI60QXK
-//  */
-// HWTEST_F(RSMainThreadTest, Start002, TestSize.Level1)
-// {
-//     auto mainThread = RSMainThread::Instance();
-//     ASSERT_NE(mainThread, nullptr);
-//     mainThread->runner_ = nullptr;
-//     mainThread->Start();
-// }
 
 // /**
 //  * @tc.name: ProcessCommand
@@ -2153,35 +2113,34 @@ HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly003, TestSize.Level1)
     system::SetParameter("persist.ace.testmode.enabled", "0");
 }
 
-// /**
-//  * @tc.name: IfStatusBarDirtyOnly004
-//  * @tc.desc: Test IfStatusBarDirtyOnly when all nodes have SCBStatusBar instance root
-//  * @tc.type: FUNC
-//  * @tc.require: issueICUBUG
-//  */
-// HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly004, TestSize.Level1)
-// {
-//     auto mainThread = RSMainThread::Instance();
-//     ASSERT_NE(mainThread, nullptr);
-//     auto& context = mainThread->GetContext();
+/**
+ * @tc.name: IfStatusBarDirtyOnly004
+ * @tc.desc: Test IfStatusBarDirtyOnly when all nodes have SCBStatusBar instance root
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& context = mainThread->GetContext();
+    auto& nodeMap = context.GetMutableNodeMap();
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> subMap1;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> subMap2;
 
-//     context.activeNodesInRoot_.clear();
-//     auto& nodeMap = context.GetMutableNodeMap();
-//     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> subMap1;
-//     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> subMap2;
+    RSSurfaceRenderNodeConfig scbConfig;
+    scbConfig.id = 1;
+    scbConfig.name = "SCBStatusBar_Index";
+    auto scbStatusBarRootNode = std::make_shared<RSSurfaceRenderNode>(scbConfig);
+    ASSERT_NE(scbStatusBarRootNode, nullptr);
+    nodeMap.RegisterRenderNode(scbStatusBarRootNode);
+    context.activeNodesInRoot_.clear();
+    context.activeNodesInRoot_.emplace(scbStatusBarRootNode->GetId(), subMap1);
 
-//     RSSurfaceRenderNodeConfig scbConfig;
-//     scbConfig.id = 1;
-//     scbConfig.name = "SCBStatusBar_Index";
-//     auto scbStatusBarRootNode = std::make_shared<RSSurfaceRenderNode>(scbConfig);
-//     ASSERT_NE(scbStatusBarRootNode, nullptr);
-//     nodeMap.RegisterRenderNode(scbStatusBarRootNode);
-//     context.activeNodesInRoot_.emplace(scbStatusBarRootNode->GetId(), subMap1);
-
-//     system::SetParameter("persist.ace.testmode.enabled", "1");
-//     EXPECT_TRUE(mainThread->IfStatusBarDirtyOnly());
-//     system::SetParameter("persist.ace.testmode.enabled", "0");
-// }
+    system::SetParameter("persist.ace.testmode.enabled", "1");
+    EXPECT_TRUE(mainThread->IfStatusBarDirtyOnly());
+    system::SetParameter("persist.ace.testmode.enabled", "0");
+}
 
 /**
  * @tc.name: IfStatusBarDirtyOnly005
@@ -3743,32 +3702,6 @@ HWTEST_F(RSMainThreadTest, PerfMultiWindow002, TestSize.Level1)
     mainThread->appWindowNum_ = appWindowNum;
 }
 
-// /**
-//  * @tc.name: RenderFrameStart
-//  * @tc.desc: RenderFrameStart Test
-//  * @tc.type: FUNC
-//  * @tc.require: issueI7HDVG
-//  */
-// HWTEST_F(RSMainThreadTest, RenderFrameStart, TestSize.Level1)
-// {
-//     auto mainThread = RSMainThread::Instance();
-//     ASSERT_NE(mainThread, nullptr);
-//     mainThread->RenderFrameStart(mainThread->timestamp_);
-// }
-
-/**
- * @tc.name: RenderFrameStart
- * @tc.desc: RenderFrameStart Test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, RenderFrameStart, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->RenderFrameStart(mainThread->timestamp_);
-}
-
 /**
  * @tc.name: SetSystemAnimatedScenes001
  * @tc.desc: SetSystemAnimatedScenes Test, case set 1
@@ -4949,13 +4882,11 @@ HWTEST_F(RSMainThreadTest, OnUniRenderDraw001, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     auto isUniRender = mainThread->isUniRender_;
     auto doDirectComposition = mainThread->doDirectComposition_;
-    mainThread->isUniRender_ = false;
-    mainThread->OnUniRenderDraw();
     mainThread->isUniRender_ = true;
-    mainThread->doDirectComposition_ = false;
-    mainThread->drawFrame_.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SYNC;
+    mainThread->doDirectComposition_ = true;
     mainThread->OnUniRenderDraw();
     mainThread->isUniRender_ = isUniRender;
     mainThread->doDirectComposition_ = doDirectComposition;
@@ -6233,28 +6164,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 }
 
 // todo
-// /**
-//  * @tc.name: RegisterHwcEvent
-//  * @tc.desc: test RegisterHwcEvent
-//  * @tc.type: FUNC
-//  * @tc.require: issueICTY7B
-//  */
-// HWTEST_F(RSMainThreadTest, RegisterHwcEvent001, TestSize.Level1)
-// {
-
-//     auto screenManagerImpl = static_cast<RSScreenManager*>(screenManager_.GetRefPtr());
-//     ASSERT_NE(screenManagerImpl, nullptr);
-//     auto mainThread = RSMainThread::Instance();
-//     ASSERT_NE(mainThread, nullptr);
-//     mainThread->RegisterHwcEvent();
-//     // test screenManager_ is nullptr
-//     screenManagerImpl->instance_ = nullptr;
-//     mainThread->RegisterHwcEvent();
-//     // reset screenManager_ in TearDownTestCase, so it can't be nullptr
-//     screenManagerImpl->instance_ = new RSScreenManager();
-// }
-
-// todo
 // /*
 //  * @tc.name: InitHgmTaskHandleThreadTest
 //  * @tc.desc: InitHgmTaskHandleThreadTest
@@ -6682,58 +6591,6 @@ HWTEST_F(RSMainThreadTest, NotifyPackageEvent001, TestSize.Level1)
 //     ASSERT_NE(mainThread, nullptr);
 //     uint64_t nodeId = 12345;
 //     mainThread->MarkScaledImageDirty(nodeId);
-// }
-
-// /**
-//  * @tc.name: IsReadyForSyncTask001
-//  * @tc.desc: Test RSMainThreadTest.IsReadyForSyncTask
-//  * @tc.type: FUNC
-//  * @tc.require:
-//  */
-// HWTEST_F(RSMainThreadTest, IsReadyForSyncTask001, TestSize.Level1)
-// {
-//     auto mainThread = RSMainThread::Instance();
-//     ASSERT_NE(mainThread, nullptr);
-//     mainThread->isRunning_ = false;
-//     EXPECT_FALSE(mainThread->IsReadyForSyncTask());
-//     mainThread->isRunning_ = true;
-//     EXPECT_TRUE(mainThread->IsReadyForSyncTask());
-// }
-
-// /**
-//  * @tc.name: IsReadyForSyncTask002
-//  * @tc.desc: Test RSMainThreadTest.IsReadyForSyncTask
-//  * @tc.type: FUNC
-//  * @tc.require:
-//  */
-// HWTEST_F(RSMainThreadTest, IsReadyForSyncTask, TestSize.Level1)
-// {
-//     auto mainThread = RSMainThread::Instance();
-//     ASSERT_NE(mainThread, nullptr);
-
-//     // launch multiple threads to read the state (expect false)
-//     mainThread->isRunning_ = false;
-//     const int numThreads = 11;
-//     std::thread threads[numThreads];
-//     for (int idx = 0; idx < numThreads; ++idx) {
-//         threads[idx] = std::thread([] () {
-//             EXPECT_FALSE(RSMainThread::Instance()->IsReadyForSyncTask());
-//         });
-//     }
-//     for (int idx = 0; idx < numThreads; ++idx) {
-//         threads[idx].join();
-//     }
-
-//     // launch multiple threads to read the state (expect true)
-//     mainThread->isRunning_ = true;
-//     for (int idx = 0; idx < numThreads; ++idx) {
-//         threads[idx] = std::thread([] () {
-//             EXPECT_TRUE(RSMainThread::Instance()->IsReadyForSyncTask());
-//         });
-//     }
-//     for (int idx = 0; idx < numThreads; ++idx) {
-//         threads[idx].join();
-//     }
 // }
 
 /**

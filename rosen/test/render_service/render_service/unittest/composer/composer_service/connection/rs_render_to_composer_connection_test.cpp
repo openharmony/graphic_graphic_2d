@@ -80,7 +80,7 @@ HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgentPtr, TestSi
     std::shared_ptr<RSRenderComposerAgent> agent = nullptr;
     RSRenderToComposerConnection conn("conn", 2u, agent);
 
-    std::unique_ptr<RSLayerTransactionData> tx(new RSLayerTransactionData());
+    std::unique_ptr<RSLayerTransactionData> tx = std::make_unique<RSLayerTransactionData>();
     conn.CommitLayers(tx);
     conn.ClearFrameBuffers();
     conn.CleanLayerBufferBySurfaceId(1u);
@@ -123,4 +123,4 @@ HWTEST_F(RSRenderToComposerConnectionTest, Connection_PreAllocProtectedFrameBuff
     ASSERT_NE(sb, nullptr);
 }
 } // namespace OHOS::Rosen
-#endif // ENABLE_SERVER_CONN_UT 
+#endif // ENABLE_SERVER_CONN_UT

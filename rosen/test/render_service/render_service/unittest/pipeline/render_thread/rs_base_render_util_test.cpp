@@ -1675,6 +1675,150 @@ HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParamTest001, TestSize.Level2)
     EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
 }
 
+/**
+ * @tc.name: GetRotationLockParam_NullScreenNodeTest001
+ * @tc.desc: Test GetRotationLockParam when screenRenderNode is nullptr
+ *           The if (screenRenderNode == nullptr) branch at line 1322 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_NullScreenNodeTest001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    node->InitRenderParams();
+
+    // Pass nullptr for screenRenderNode, should return early without crash
+    EXPECT_NO_FATAL_FAILURE(RSBaseRenderUtil::GetRotationLockParam(*node, nullptr));
+}
+
+/**
+ * @tc.name: GetRotationLockParam_NullScreenNodeParamsTest001
+ * @tc.desc: Test GetRotationLockParam when screenNodeParams is nullptr
+ *           The if (screenNodeParams == nullptr) branch at line 1328 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_NullScreenNodeParamsTest001, TestSize.Level2)
+{
+    NodeId id = 2;
+    ScreenId screenId = 0;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    node->InitRenderParams();
+
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    // Don't call InitRenderParams() so GetStagingRenderParams() will return nullptr
+
+    // Should return early without crash when screenNodeParams is nullptr
+    EXPECT_NO_FATAL_FAILURE(RSBaseRenderUtil::GetRotationLockParam(*node, screenNode));
+}
+
+/**
+ * @tc.name: GetRotationLockParam_NullSurfaceNodeParamsTest001
+ * @tc.desc: Test GetRotationLockParam when surfaceNodeParams is nullptr
+ *           The if (surfaceNodeParams == nullptr) branch at line 1334 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_NullSurfaceNodeParamsTest001, TestSize.Level2)
+{
+    NodeId id = 2;
+    ScreenId screenId = 0;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    // Don't call InitRenderParams() so GetStagingRenderParams() will return nullptr
+
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    screenNode->InitRenderParams();
+    screenNode->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_0));
+
+    // Should return early without crash when surfaceNodeParams is nullptr
+    EXPECT_NO_FATAL_FAILURE(RSBaseRenderUtil::GetRotationLockParam(*node, screenNode));
+}
+
+/**
+ * @tc.name: GetRotationLockParam_LogicalDegreeZeroTest001
+ * @tc.desc: Test GetRotationLockParam when logicalDegree is 0
+ *           The if (logicalDegree == 0) branch at line 1345 should be true
+ *           totalRotationCorrectionDegree should equal screenDegree
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_LogicalDegreeZeroTest001, TestSize.Level2)
+{
+    NodeId id = 2;
+    ScreenId screenId = 0;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    node->InitRenderParams();
+
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    screenNode->InitRenderParams();
+
+    // Set screen rotation to 90 degrees
+    screenNode->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_90));
+
+    // Set logical rotation to 0 (ROTATION_0)
+    auto screenNodeParams = static_cast<RSScreenRenderParams*>(screenNode->GetStagingRenderParams().get());
+    screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_0);
+
+    // Set app rotation to 180 degrees (should be ignored when logicalDegree is 0)
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+    surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode);
+
+    // When logicalDegree is 0, totalRotationCorrectionDegree should equal screenDegree (90)
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 90);
+}
+
+/**
+ * @tc.name: GetRotationLockParam_AllRotationTypesTest001
+ * @tc.desc: Test GetRotationLockParam with all ScreenRotation types
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_AllRotationTypesTest001, TestSize.Level2)
+{
+    NodeId id = 2;
+    ScreenId screenId = 0;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    node->InitRenderParams();
+
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    screenNode->InitRenderParams();
+
+    auto screenNodeParams = static_cast<RSScreenRenderParams*>(screenNode->GetStagingRenderParams().get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+
+    // Test ROTATION_270
+    screenNode->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_270));
+    screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
+    surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode);
+    // (270 + 90 + 180) % 360 = 540 % 360 = 180
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
+
+    // Test ROTATION_0
+    screenNode->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_0));
+    screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_0);
+    surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_0);
+
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode);
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 0);
+}
+
 /*
  * @tc.name: ColorGamutConversion_SRGB_To_DisplayP3_001
  * @tc.desc: Test GenOETF and GenEOTF through color gamut conversion (sRGB to DisplayP3)

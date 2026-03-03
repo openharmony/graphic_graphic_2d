@@ -190,12 +190,14 @@ HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_Alpha_Applied, TestSize.Level1
 HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_Type_And_Transform_Applied, TestSize.Level1)
 {
     auto layer = std::make_shared<RSRenderSurfaceLayer>();
-    auto propType = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerType>>(GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+    auto propType =
+        std::make_shared<RSRenderLayerCmdProperty<GraphicLayerType>>(GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
     auto cmdType = std::make_shared<RSRenderLayerTypeCmd>(propType);
     layer->UpdateRSLayerCmd(cmdType);
     EXPECT_EQ(layer->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
 
-    auto propTr = std::make_shared<RSRenderLayerCmdProperty<GraphicTransformType>>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    auto propTr =
+        std::make_shared<RSRenderLayerCmdProperty<GraphicTransformType>>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     auto cmdTr = std::make_shared<RSRenderLayerTransformCmd>(propTr);
     layer->UpdateRSLayerCmd(cmdTr);
     EXPECT_EQ(layer->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_NONE);
@@ -232,13 +234,13 @@ HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_LayerColor_And_Matrix_Applied,
 HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_Visible_And_Dirty_Regions_Applied, TestSize.Level1)
 {
     auto layer = std::make_shared<RSRenderSurfaceLayer>();
-    std::vector<GraphicIRect> vis { GraphicIRect{0,0,10,10} };
+    std::vector<GraphicIRect> vis { GraphicIRect{0, 0, 10, 10} };
     auto propV = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(vis);
     auto cmdV = std::make_shared<RSRenderLayerVisibleRegionsCmd>(propV);
     layer->UpdateRSLayerCmd(cmdV);
     ASSERT_EQ(layer->GetVisibleRegions().size(), 1u);
 
-    std::vector<GraphicIRect> dirty { GraphicIRect{1,1,5,5}, GraphicIRect{2,2,3,3} };
+    std::vector<GraphicIRect> dirty { GraphicIRect{1, 1, 5, 5}, GraphicIRect{2, 2, 3, 3} };
     auto propD = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(dirty);
     auto cmdD = std::make_shared<RSRenderLayerDirtyRegionsCmd>(propD);
     layer->UpdateRSLayerCmd(cmdD);
@@ -666,9 +668,11 @@ HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_CopiesSelectedFields, TestSize.Le
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerBoundSizeCmd>(
         std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(GraphicIRect{1, 2, 3, 4})));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerVisibleRegionsCmd>(
-        std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(std::vector<GraphicIRect>{{0, 0, 5, 5}})));
+        std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(
+            std::vector<GraphicIRect>{{0, 0, 5, 5}})));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerDirtyRegionsCmd>(
-        std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(std::vector<GraphicIRect>{{1, 1, 2, 2}})));
+        std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(
+            std::vector<GraphicIRect>{{1, 1, 2, 2}})));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerCropRectCmd>(
         std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(GraphicIRect{3, 4, 5, 6})));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerMatrixCmd>(
@@ -750,12 +754,14 @@ HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_CopiesSelectedFields, TestSize.Le
 HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_Composition_And_Blend_Applied, TestSize.Level1)
 {
     auto layer = std::make_shared<RSRenderSurfaceLayer>();
-    auto propComp = std::make_shared<RSRenderLayerCmdProperty<GraphicCompositionType>>(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    auto propComp = std::make_shared<RSRenderLayerCmdProperty<GraphicCompositionType>>(
+        GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     auto cmdComp = std::make_shared<RSRenderLayerCompositionTypeCmd>(propComp);
     layer->UpdateRSLayerCmd(cmdComp);
     EXPECT_EQ(layer->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
-    auto propBlend = std::make_shared<RSRenderLayerCmdProperty<GraphicBlendType>>(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
+    auto propBlend =
+        std::make_shared<RSRenderLayerCmdProperty<GraphicBlendType>>(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
     auto cmdBlend = std::make_shared<RSRenderLayerBlendTypeCmd>(propBlend);
     layer->UpdateRSLayerCmd(cmdBlend);
     EXPECT_EQ(layer->GetBlendType(), GraphicBlendType::GRAPHIC_BLEND_SRCOVER);

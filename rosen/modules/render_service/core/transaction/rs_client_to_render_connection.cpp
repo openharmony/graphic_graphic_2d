@@ -573,7 +573,7 @@ uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::s
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::SET_SURFACE_WATERMARK");
     return renderPipelineAgent_->SetSurfaceWatermark(pid, name, watermark,
-            nodeIdList, watermarkType, isSystemCalling);
+        nodeIdList, watermarkType, isSystemCalling);
 }
     
 void RSClientToRenderConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
@@ -635,25 +635,10 @@ std::string RSClientToRenderConnection::GetBundleName(pid_t pid)
 int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
     ScreenId screenId, ScreenRotation logicalCorrection)
 {
-    // if (!mainThread_) {
-    //     return INVALID_ARGUMENTS;
-    // }
-    // auto task = [weakThis = wptr<RSClientToRenderConnection>(this), screenId, logicalCorrection]() -> void {
-    //     sptr<RSClientToRenderConnection> connection = weakThis.promote();
-    //     if (connection == nullptr || connection->mainThread_ == nullptr) {
-    //         return;
-    //     }
-    //     auto& nodeMap = connection->mainThread_->GetContext().GetNodeMap();
-    //     nodeMap.TraverseScreenNodes([screenId, logicalCorrection](const std::shared_ptr<RSScreenRenderNode>& node) {
-    //         if (node && node->GetScreenId() == screenId) {
-    //             RS_LOGD("SetLogicalCameraRotationCorrection nodeId: %{public}" PRIu64 ", logicalCorrection: %{public}u",
-    //                 node->GetId(), logicalCorrection);
-    //             node->SetLogicalCameraRotationCorrection(logicalCorrection);
-    //         }
-    //     });
-    // };
-    // mainThread_->PostTask(task);
-    return SUCCESS;
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->SetLogicalCameraRotationCorrection(screenId, logicalCorrection);
 }
 } // namespace Rosen
 } // namespace OHOS

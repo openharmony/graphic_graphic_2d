@@ -1265,7 +1265,8 @@ void RSRenderComposer::UpdateTransactionData(std::shared_ptr<RSLayerTransactionD
     UpdateForSurfaceFps(transactionData->GetPipelineParam());
 }
 
-void RSRenderComposer::UpdateForSurfaceFps(const PipelineParam& pipelineParam) {
+void RSRenderComposer::UpdateForSurfaceFps(const PipelineParam& pipelineParam)
+{
     for (size_t i = 0; i < pipelineParam.GetSurfaceFpsOpNum(); i++) {
         if (pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType ==
             static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {

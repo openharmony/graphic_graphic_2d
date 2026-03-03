@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_processor_factory.h"
-#include "screen_manager/rs_screen_manager.h"
 
 using namespace testing;
 using namespace testing::ext;

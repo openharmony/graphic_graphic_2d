@@ -607,7 +607,9 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_CallbackNull_Line223_False, Function | 
     backend->onScreenHotplugCb_ = nullptr;
 
     backend->OnScreenHotplug(100, true);
-    // Should not crash
+    // connected is true, so output should NOT be erased
+    auto iter = backend->outputs_.find(100);
+    EXPECT_NE(iter, backend->outputs_.end());
 }
 
 /**
@@ -720,7 +722,8 @@ HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNull_Line194_False, Function | 
     backend->onScreenRefreshCb_ = nullptr;
 
     backend->OnScreenRefresh(0);
-    // Should not crash
+    // Callback should not be called when onScreenRefreshCb_ is nullptr
+    EXPECT_EQ(backend->onScreenRefreshCb_, nullptr);
 }
 
 /**
@@ -757,8 +760,9 @@ HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNotNull_Line194_True, Function 
  */
 HWTEST_F(HdiBackendTest, SetPendingMode_OutputNull_Line122_True, Function | MediumTest | Level3)
 {
-    hdiBackend_->SetPendingMode(nullptr, 1000, 2000);
-    // Should not crash
+    OutputPtr nullOutput = nullptr;
+    ASSERT_NE(hdiBackend_, nullptr);
+    hdiBackend_->SetPendingMode(nullOutput, 1000, 2000);
 }
 
 /**
@@ -773,8 +777,8 @@ HWTEST_F(HdiBackendTest, SetPendingMode_OutputNull_Line122_True, Function | Medi
 HWTEST_F(HdiBackendTest, SetPendingMode_OutputNotNull_Line122_False, Function | MediumTest | Level3)
 {
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
     hdiBackend_->SetPendingMode(output, 1000, 2000);
-    // Should not crash
 }
 
 /**
@@ -788,8 +792,9 @@ HWTEST_F(HdiBackendTest, SetPendingMode_OutputNotNull_Line122_False, Function | 
  */
 HWTEST_F(HdiBackendTest, StartSample_OutputNull_Line131_True, Function | MediumTest | Level3)
 {
-    hdiBackend_->StartSample(nullptr);
-    // Should not crash
+    OutputPtr nullOutput = nullptr;
+    ASSERT_NE(hdiBackend_, nullptr);
+    hdiBackend_->StartSample(nullOutput);
 }
 
 /**
@@ -804,8 +809,8 @@ HWTEST_F(HdiBackendTest, StartSample_OutputNull_Line131_True, Function | MediumT
 HWTEST_F(HdiBackendTest, StartSample_OutputNotNull_Line131_False, Function | MediumTest | Level3)
 {
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(hdiBackend_, nullptr);
     hdiBackend_->StartSample(output);
-    // Should not crash
 }
 
 /**
@@ -819,8 +824,9 @@ HWTEST_F(HdiBackendTest, StartSample_OutputNotNull_Line131_False, Function | Med
  */
 HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNull_Line140_True, Function | MediumTest | Level3)
 {
-    hdiBackend_->SetVsyncSamplerEnabled(nullptr, true);
-    // Should not crash
+    OutputPtr nullOutput = nullptr;
+    ASSERT_NE(hdiBackend_, nullptr);
+    hdiBackend_->SetVsyncSamplerEnabled(nullOutput, true);
 }
 
 /**
@@ -835,8 +841,8 @@ HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNull_Line140_True, Functio
 HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNotNull_Line140_False, Function | MediumTest | Level3)
 {
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
     hdiBackend_->SetVsyncSamplerEnabled(output, true);
-    // Should not crash
 }
 
 /**

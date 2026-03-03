@@ -63,7 +63,6 @@ public:
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
     void GetActiveScreenId(ScreenId& screenId) const;
 
-
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent);
     void NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
     ErrCode NotifyLightFactorStatus(pid_t pid, int32_t lightFactorStatus);

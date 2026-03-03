@@ -118,7 +118,7 @@ HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_AllBranches, TestSize.Level1
 {
     auto mgr = std::make_shared<RSBufferManager>();
 
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     // Prepare a concrete RSLayer and bufferOwnerCount
     auto layer = std::static_pointer_cast<RSSurfaceLayer>(RSSurfaceLayer::Create(0, ctx));
     layer->SetUniRenderFlag(true);
@@ -540,7 +540,7 @@ HWTEST_F(RSBufferManagerTest, AddPendingReleaseBuffer_WithoutConsumer_MergedFenc
 HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_NullLayerTest001, TestSize.Level2)
 {
     auto mgr = std::make_shared<RSBufferManager>();
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
     auto buffer = SurfaceBuffer::Create();
     BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
@@ -569,7 +569,7 @@ HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_NullLayerTest001, TestSize.L
 HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_UniRenderFlagFalseTest001, TestSize.Level2)
 {
     auto mgr = std::make_shared<RSBufferManager>();
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
     // UniRender flag is false, uniBufferCount should not be set
     layer->SetUniRenderFlag(false);
@@ -604,7 +604,7 @@ HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_UniRenderFlagFalseTest001, T
 HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_UniRenderFlagTrueTest001, TestSize.Level2)
 {
     auto mgr = std::make_shared<RSBufferManager>();
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
     // UniRender flag is true, uniBufferCount should be set
     layer->SetUniRenderFlag(true);
@@ -648,7 +648,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_NullLayerTest001, TestSize
     owner->InsertUniOnDrawSet(TEST_LAYER_ID, GenerateBufferId());
 
     // Create rsLayers with expired weak_ptr (layer has been released)
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
     rsLayers[TEST_LAYER_ID] = std::static_pointer_cast<RSLayer>(layer);
@@ -681,7 +681,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_DecedSetSkipTest001, TestS
     owner->InsertUniOnDrawSet(TEST_LAYER_ID, targetBufferId);
 
     // Create rsLayers
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
     rsLayers[TEST_LAYER_ID] = std::static_pointer_cast<RSLayer>(layer);
@@ -723,7 +723,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_NullBufferOwnerCountTest00
     owner->InsertUniOnDrawSet(TEST_LAYER_ID, targetBufferId);
 
     // Create rsLayers with valid layer
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
     rsLayers[TEST_LAYER_ID] = std::static_pointer_cast<RSLayer>(layer);
@@ -762,7 +762,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_NotLastUniBufferOwnerTest0
     owner->SetUniBufferOwner(GenerateBufferId(), TEST_SCREEN_ID);
 
     // Create rsLayers with valid layer
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
     rsLayers[TEST_LAYER_ID] = std::static_pointer_cast<RSLayer>(layer);
@@ -800,7 +800,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_CheckLastUniBufferOwnerTru
     owner->InsertUniOnDrawSet(TEST_LAYER_ID, targetBufferId);
 
     // Create rsLayers with valid layer
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
     rsLayers[TEST_LAYER_ID] = std::static_pointer_cast<RSLayer>(layer);
@@ -848,7 +848,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_CheckLastUniBufferOwnerMat
     owner->InsertUniOnDrawSet(TEST_LAYER_ID, targetBufferId);
 
     // Create rsLayers with valid layer
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
     rsLayers[TEST_LAYER_ID] = std::static_pointer_cast<RSLayer>(layer);
@@ -884,7 +884,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_CheckLastUniBufferOwnerMat
 HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_NullBufferOwnerCountTest001, TestSize.Level2)
 {
     auto mgr = std::make_shared<RSBufferManager>();
-    auto ctx = std::make_shared<RSRenderComposerContext>(nullptr);
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
     layer->SetUniRenderFlag(false);
 

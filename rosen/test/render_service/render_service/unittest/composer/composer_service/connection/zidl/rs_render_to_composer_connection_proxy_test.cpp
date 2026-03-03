@@ -52,7 +52,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.
     RSRenderToComposerConnectionProxy proxy(obj);
     ASSERT_NE(obj, nullptr);
 
-    std::unique_ptr<RSLayerTransactionData> tx(new RSLayerTransactionData());
+    std::unique_ptr<RSLayerTransactionData> tx = std::make_unique<RSLayerTransactionData>();
     tx->GetPayload().emplace_back(static_cast<uint64_t>(1u), std::shared_ptr<RSLayerParcel>(nullptr));
     EXPECT_FALSE(proxy.CommitLayers(tx));
 
@@ -160,7 +160,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_CommitLayers_MultipleParce
     sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
     RSRenderToComposerConnectionProxy proxy(stub->AsObject());
 
-    std::unique_ptr<RSLayerTransactionData> tx(new RSLayerTransactionData());
+    std::unique_ptr<RSLayerTransactionData> tx = std::make_unique<RSLayerTransactionData>();
     tx->GetPayload().emplace_back(static_cast<uint64_t>(101u), std::shared_ptr<RSLayerParcel>(nullptr));
     tx->GetPayload().emplace_back(static_cast<uint64_t>(102u), std::shared_ptr<RSLayerParcel>(nullptr));
 
@@ -237,7 +237,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_CleanLayerBufferBySurfaceI
     auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
     sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
     RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+    ASSERT_NE(stub->AsObject(), nullptr);
     proxy.CleanLayerBufferBySurfaceId(0u);
-    EXPECT_EQ(0u, 0u);
 }
 } // namespace OHOS::Rosen

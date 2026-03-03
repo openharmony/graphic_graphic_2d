@@ -132,7 +132,8 @@ void RSRenderService::CoreComponentsInit()
     }
 
     // composerManager init
-    rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(handler_, vsyncManager_->GetVsyncManagerAgent());
+    rsRenderComposerManager_ =
+        std::make_shared<RSRenderComposerManager>(handler_, vsyncManager_->GetVsyncManagerAgent());
 
     // hgm init
     HgmInit();
@@ -236,7 +237,8 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     return iter->second;
 }
 
-std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
+    RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
     if (!token) {
         RS_LOGE("CreateConnection failed, mainThread or token is nullptr");

@@ -115,12 +115,14 @@ HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_Alpha_Applied, TestSize.Lev
 HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_Type_Transform_Applied, TestSize.Level1)
 {
     auto layer = std::make_shared<RSRenderSurfaceRCDLayer>();
-    auto propType = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerType>>(GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+    auto propType =
+        std::make_shared<RSRenderLayerCmdProperty<GraphicLayerType>>(GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
     auto cmdType = std::make_shared<RSRenderLayerTypeCmd>(propType);
     layer->UpdateRSLayerCmd(cmdType);
     EXPECT_EQ(layer->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
 
-    auto propTr = std::make_shared<RSRenderLayerCmdProperty<GraphicTransformType>>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    auto propTr =
+        std::make_shared<RSRenderLayerCmdProperty<GraphicTransformType>>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     auto cmdTr = std::make_shared<RSRenderLayerTransformCmd>(propTr);
     layer->UpdateRSLayerCmd(cmdTr);
     EXPECT_EQ(layer->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_NONE);
@@ -136,13 +138,13 @@ HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_Type_Transform_Applied, Tes
 HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_Regions_And_Timestamp_Applied, TestSize.Level1)
 {
     auto layer = std::make_shared<RSRenderSurfaceRCDLayer>();
-    std::vector<GraphicIRect> vis { GraphicIRect{0,0,5,5} };
+    std::vector<GraphicIRect> vis { GraphicIRect{0, 0, 5, 5} };
     auto propV = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(vis);
     auto cmdV = std::make_shared<RSRenderLayerVisibleRegionsCmd>(propV);
     layer->UpdateRSLayerCmd(cmdV);
     ASSERT_EQ(layer->GetVisibleRegions().size(), 1u);
 
-    std::vector<GraphicIRect> dirty { GraphicIRect{1,1,2,2} };
+    std::vector<GraphicIRect> dirty { GraphicIRect{1, 1, 2, 2} };
     auto propD = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(dirty);
     auto cmdD = std::make_shared<RSRenderLayerDirtyRegionsCmd>(propD);
     layer->UpdateRSLayerCmd(cmdD);
@@ -158,7 +160,8 @@ HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_Regions_And_Timestamp_Appli
 HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_ColorSpace_And_Matrix_Applied, TestSize.Level1)
 {
     auto layer = std::make_shared<RSRenderSurfaceRCDLayer>();
-    auto propCs = std::make_shared<RSRenderLayerCmdProperty<GraphicColorDataSpace>>(GraphicColorDataSpace::GRAPHIC_GAMUT_DISPLAY_P3);
+    auto propCs = std::make_shared<RSRenderLayerCmdProperty<GraphicColorDataSpace>>(
+        GraphicColorDataSpace::GRAPHIC_GAMUT_DISPLAY_P3);
     auto cmdCs = std::make_shared<RSRenderLayerColorDataSpaceCmd>(propCs);
     layer->UpdateRSLayerCmd(cmdCs);
     EXPECT_EQ(layer->GetColorDataSpace(), GraphicColorDataSpace::GRAPHIC_GAMUT_DISPLAY_P3);

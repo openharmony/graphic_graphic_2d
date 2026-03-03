@@ -32,6 +32,8 @@
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "parameters.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_service.h"
 #include "transaction/rs_service_to_render_connection.h"
@@ -53,7 +55,6 @@ public:
     void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
 };
 
-RSRenderService renderService;
 sptr<RSServiceToRenderConnectionStub> g_connectionStub = nullptr;
 }
 
@@ -82,11 +83,18 @@ public:
 void RSServiceToRenderConnectionStubTest::SetUpTestCase()
 {
     auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->imageEnhanceManager_ = std::make_shared<ImageEnhanceManager>();
+
+    auto runner1 = AppExecFwk::EventRunner::Create(true);
+    auto handler1 = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner1);
+    auto mainThread = RSMainThread::Instance();
+    renderPipeline->mainThread_ = mainThread;
+    renderPipeline->mainThread_->handler_ = handler1;
+
     renderPipeline->uniRenderThread_ = &(RSUniRenderThread::Instance());
-    auto runner = AppExecFwk::EventRunner::Create(true);
-    renderPipeline->uniRenderThread_->runner_ = runner;
-    renderPipeline->uniRenderThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    renderPipeline->uniRenderThread_->runner_ ->Run();
+    auto runner2 = AppExecFwk::EventRunner::Create(true);
+    renderPipeline->uniRenderThread_->runner_ = runner2;
+    renderPipeline->uniRenderThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner2);
 
     auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
     renderPipeline_->uniRenderThread_->uniRenderEngine_ = std::make_shared<OHOS::Rosen::RSRenderEngine>();

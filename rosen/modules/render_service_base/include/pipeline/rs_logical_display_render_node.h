@@ -66,11 +66,6 @@ public:
         return contentRect_;
     }
 
-    bool IsValidScreenId() const
-    {
-        return screenId_ != INVALID_SCREEN_ID;
-    }
-
     void SetScreenRotation(const ScreenRotation& screenRotation)
     {
         screenRotation_ = screenRotation;

@@ -699,4 +699,91 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface_LayerNonNull_PositivePath
     EXPECT_NE(physical2->layers_.back(), nullptr);
     consumer->UnregisterConsumerListener();
 }
+
+/**
+ * @tc.name: Init_RenderEngineNull_ReturnsFalse
+ * @tc.desc: Test Init when renderEngine is nullptr under GPU enabled build
+ *           The RSProcessor::Init should fail when renderEngine is null
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, Init_RenderEngineNull_ReturnsFalse, TestSize.Level2)
+{
+#ifdef RS_ENABLE_GPU
+    // Prepare composer client manager and client
+    ScreenId screenId = 10;
+    auto& uniThread = RSUniRenderThread::Instance();
+    uniThread.composerClientManager_ = std::make_shared<RSComposerClientManager>();
+    sptr<IRSRenderToComposerConnection> conn = nullptr;
+    auto client = std::make_shared<RSComposerClient>(conn);
+    client->SetOutput(std::make_shared<HdiOutput>(screenId));
+    uniThread.composerClientManager_->AddComposerClient(screenId, client);
+
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, screenId);
+    ASSERT_NE(processor, nullptr);
+
+    NodeId nodeId = 100;
+    auto context = std::make_shared<RSContext>();
+    RSScreenRenderNode screenNode(nodeId, screenId, context);
+
+    // Init with nullptr renderEngine should return false under RS_ENABLE_GPU
+    bool ret = processor->Init(screenNode, nullptr);
+    EXPECT_FALSE(ret);
+#endif
+}
+
+/**
+ * @tc.name: Init_ComposerClientNull_ReturnsFalse
+ * @tc.desc: Test Init when composerClient_ is nullptr
+ *           The if (composerClient_ == nullptr) branch at line 37 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, Init_ComposerClientNull_ReturnsFalse, TestSize.Level2)
+{
+    // Don't set up composerClientManager, so composerClient_ will be nullptr
+    ScreenId screenId = 11;
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, screenId);
+    ASSERT_NE(processor, nullptr);
+
+    NodeId nodeId = 101;
+    auto context = std::make_shared<RSContext>();
+    RSScreenRenderNode screenNode(nodeId, screenId, context);
+    auto renderEngine = std::make_shared<RSUniRenderEngine>();
+
+    // Init should return false when composerClient_ is nullptr
+    bool ret = processor->Init(screenNode, renderEngine);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Init_WithValidComposerClient_And_NullOutput
+ * @tc.desc: Test Init when composerClient_ exists but GetOutput() returns nullptr
+ *           The composerAdapter_->Init should return false
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSPhysicalScreenProcessorTest, Init_WithValidComposerClient_And_NullOutput, TestSize.Level2)
+{
+    // Prepare composer client manager and client without setting output
+    ScreenId screenId = 12;
+    auto& uniThread = RSUniRenderThread::Instance();
+    uniThread.composerClientManager_ = std::make_shared<RSComposerClientManager>();
+    sptr<IRSRenderToComposerConnection> conn = nullptr;
+    auto client = std::make_shared<RSComposerClient>(conn);
+    // Don't set output - client->GetOutput() will return nullptr
+    uniThread.composerClientManager_->AddComposerClient(screenId, client);
+
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, screenId);
+    ASSERT_NE(processor, nullptr);
+
+    NodeId nodeId = 102;
+    auto context = std::make_shared<RSContext>();
+    RSScreenRenderNode screenNode(nodeId, screenId, context);
+    auto renderEngine = std::make_shared<RSUniRenderEngine>();
+
+    // Init should return false when GetOutput() returns nullptr
+    bool ret = processor->Init(screenNode, renderEngine);
+    EXPECT_FALSE(ret);
+}
 } // namespace OHOS::Rosen

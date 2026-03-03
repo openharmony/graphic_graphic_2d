@@ -22,7 +22,6 @@
 #include "rs_render_service_agent.h"
 #include "rs_render_process_manager.h"
 #include "rs_render_service.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "rs_render_to_composer_connection_proxy.h"
 #include "rs_render_to_composer_connection.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"

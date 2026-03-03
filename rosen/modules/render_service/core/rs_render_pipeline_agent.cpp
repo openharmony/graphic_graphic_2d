@@ -84,9 +84,8 @@ constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 }
 
-RSRenderPipelineAgent::RSRenderPipelineAgent(std::shared_ptr<RSRenderPipeline>& renderPipeline) :
-    rsRenderPipeline_(renderPipeline) {}
-
+RSRenderPipelineAgent::RSRenderPipelineAgent(std::shared_ptr<RSRenderPipeline>& renderPipeline)
+    : rsRenderPipeline_(renderPipeline) {}
 
 bool RSRenderPipelineAgent::RemoveConnection(const sptr<RSIConnectionToken>& token)
 {
@@ -106,9 +105,11 @@ ErrCode RSRenderPipelineAgent::CommitTransaction(pid_t callingPid, bool isTokenT
         return ERR_INVALID_VALUE;
     }
     if (transactionData && transactionData->GetDVSyncUpdate()) {
-        rsRenderPipeline_->GetMainThread()->DVSyncUpdate(transactionData->GetDVSyncTime(), transactionData->GetTimestamp());
+        rsRenderPipeline_->GetMainThread()->DVSyncUpdate(
+            transactionData->GetDVSyncTime(), transactionData->GetTimestamp());
     }
-    bool isProcessBySingleFrame = rsRenderPipeline_->GetMainThread()->IsNeedProcessBySingleFrameComposer(transactionData);
+    bool isProcessBySingleFrame =
+        rsRenderPipeline_->GetMainThread()->IsNeedProcessBySingleFrameComposer(transactionData);
     if (isProcessBySingleFrame) {
         rsRenderPipeline_->GetMainThread()->ProcessDataBySingleFrameComposer(transactionData);
     } else {
@@ -864,6 +865,25 @@ void RSRenderPipelineAgent::ClearUifirstCache(NodeId id)
     rsRenderPipeline_->PostMainThreadTask(task);
 }
 
+int32_t RSRenderPipelineAgent::SetLogicalCameraRotationCorrection(ScreenId screenId, ScreenRotation logicalCorrection)
+{
+    if (!rsRenderPipeline_) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = rsRenderPipeline_, screenId, logicalCorrection]() -> void {
+        auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetNodeMap();
+        nodeMap.TraverseScreenNodes([screenId, logicalCorrection](const std::shared_ptr<RSScreenRenderNode>& node) {
+            if (node && node->GetScreenId() == screenId) {
+                RS_LOGD("SetLogicalCameraRotationCorrection nodeId: %{public}" PRIu64 ", logicalCorrection: %{public}u",
+                    node->GetId(), logicalCorrection);
+                node->SetLogicalCameraRotationCorrection(logicalCorrection);
+            }
+        });
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSRenderPipelineAgent::RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback)
 {
@@ -1132,7 +1152,7 @@ ErrCode RSRenderPipelineAgent::AvcodecVideoGetRecent()
 }
 
 ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
-        bool unobscured)
+    bool unobscured)
 {
     if (!rsRenderPipeline_) {
         return ERR_INVALID_VALUE;
@@ -1266,8 +1286,9 @@ ErrCode RSRenderPipelineAgent::CreatePixelMapFromSurface(sptr<Surface> surface, 
             .width = srcRect.w,
             .height = srcRect.h,
         };
-        RSBackgroundThread::Instance().PostSyncTask(
-            [surface, rect, &pixelMap, transformEnabled]() { pixelMap = Rosen::CreatePixelMapFromSurface(surface, rect, transformEnabled); });
+        RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelMap, transformEnabled]() {
+            pixelMap = Rosen::CreatePixelMapFromSurface(surface, rect, transformEnabled);
+        });
         return ERR_OK;
     }
     return ERR_INVALID_VALUE;
@@ -1292,7 +1313,7 @@ ErrCode RSRenderPipelineAgent::GetMemoryGraphic(int pid, MemoryGraphic& memoryGr
             }
             auto context =
                 renderPipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-            memoryGraphic = MemoryManager::CountPidMemory(pid, context); 
+            memoryGraphic = MemoryManager::CountPidMemory(pid, context);
         });
     return ERR_OK;
 }
@@ -1377,7 +1398,8 @@ ErrCode RSRenderPipelineAgent::GetMemoryGraphics(std::vector<MemoryGraphic>& mem
     }
 }
 
-ErrCode RSRenderPipelineAgent::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
+ErrCode RSRenderPipelineAgent::GetPixelMapByProcessId(
+    std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
 {
     if (rsRenderPipeline_ == nullptr) {
         repCode = INVALID_ARGUMENTS;
@@ -1387,7 +1409,7 @@ ErrCode RSRenderPipelineAgent::GetPixelMapByProcessId(std::vector<PixelMapInfo>&
     std::function<void()> getSurfaceBufferByPidTask = [renderPipeline = rsRenderPipeline_,
         &sfBufferInfoVector, pid]() -> void {
         auto selfDrawingNodeVector =
-            renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);         
+            renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
         RS_TRACE_NAME_FMT("RSRenderPipelineAgent::GetPixelMapByProcessId getSurfaceBufferByPidTask pid: %d", pid);
         for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
             auto node = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(*iter);
@@ -1542,7 +1564,7 @@ void RSRenderPipelineAgent::SetVmaCacheStatus(bool flag)
     }
 #ifdef RS_ENABLE_GPU
     rsRenderPipeline_->GetUniRenderThread()->SetVmaCacheStatus(flag);
-#endif 
+#endif
 }
 
 void RSRenderPipelineAgent::SetBehindWindowFilterEnabled(bool enabled)
@@ -1910,7 +1932,7 @@ void RSRenderPipelineAgent::OnGlobalBlacklistChanged(const std::unordered_set<No
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return;
     }
-    auto task = [globalBlackList, mainThread = rsRenderPipeline_->GetMainThread()]() { 
+    auto task = [globalBlackList, mainThread = rsRenderPipeline_->GetMainThread()]() {
         ScreenSpecialLayerInfo::SetGlobalBlackList(globalBlackList);
         RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
     };

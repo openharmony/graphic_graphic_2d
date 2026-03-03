@@ -156,7 +156,8 @@ HWTEST_F(HdiFramebufferSurfaceTest, Dump_NoConsumer001, Function | MediumTest| L
     sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
     std::string result;
     fbSurface->Dump(result);
-    SUCCEED();
+    // When consumerSurface_ is nullptr, Dump should do nothing and result should be empty
+    ASSERT_EQ(result, "");
 }
 
 /**

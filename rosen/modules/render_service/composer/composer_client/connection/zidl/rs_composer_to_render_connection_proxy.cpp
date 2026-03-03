@@ -28,8 +28,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSComposerToRenderConnectionProxy::RSComposerToRenderConnectionProxy(const sptr<IRemoteObject>& impl) :
-    IRemoteProxy<IRSComposerToRenderConnection>(impl) {}
+RSComposerToRenderConnectionProxy::RSComposerToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
+    : IRemoteProxy<IRSComposerToRenderConnection>(impl) {}
 
 int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo)
 {
@@ -54,19 +54,19 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
         return -1;
     }
     for (uint32_t i = 0; i < vecSize; i++) {
-        if(!data.WriteUint64(std::get<0>(timestampVec[i]))) {
+        if (!data.WriteUint64(std::get<0>(timestampVec[i]))) {
             ROSEN_LOGE("%{public}s write RSLayerId failed", __func__);
             return -1;
         }
-        if(!data.WriteBool(std::get<1>(timestampVec[i]))) {
+        if (!data.WriteBool(std::get<1>(timestampVec[i]))) {
             ROSEN_LOGE("%{public}s write bool failed", __func__);
             return -1;
         }
-        if(!data.WriteUint32((std::get<2>(timestampVec[i])).type)) {
+        if (!data.WriteUint32((std::get<2>(timestampVec[i])).type)) {
             ROSEN_LOGE("%{public}s write timestamp failed", __func__);
             return -1;
         }
-        if(!data.WriteInt64((std::get<2>(timestampVec[i])).time)) {
+        if (!data.WriteInt64((std::get<2>(timestampVec[i])).time)) {
             ROSEN_LOGE("%{public}s write timestamp failed", __func__);
             return -1;
         }
@@ -77,7 +77,7 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
         return -1;
     }
     for (uint32_t i = 0; i < vecSize; i++) {
-        if(!data.WriteUint64(std::get<0>(releaseBufferFenceVec[i]))) {
+        if (!data.WriteUint64(std::get<0>(releaseBufferFenceVec[i]))) {
             ROSEN_LOGE("%{public}s write RSLayerId failed", __func__);
             return -1;
         }

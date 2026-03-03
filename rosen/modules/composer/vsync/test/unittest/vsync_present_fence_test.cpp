@@ -25,14 +25,21 @@ namespace Rosen {
 class VSyncPresentFenceTest : public testing::Test {
 public:
     static void SetUpTestCase();
+    static void TearDownTestCase();
     static void Reset();
 
     static inline sptr<VSyncSampler> vsyncSampler = nullptr;
+    static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 2;
 };
 
 void VSyncPresentFenceTest::SetUpTestCase()
 {
     vsyncSampler = CreateVSyncSampler();
+}
+
+void VSyncDistributorTest::TearDownTestCase()
+{
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 void VSyncPresentFenceTest::Reset()

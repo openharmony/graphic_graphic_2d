@@ -59,7 +59,7 @@ int RSConnectToRenderProcessStub::OnRemoteRequest(
             }
             break;
         }
-        default: 
+        default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
     return ret;

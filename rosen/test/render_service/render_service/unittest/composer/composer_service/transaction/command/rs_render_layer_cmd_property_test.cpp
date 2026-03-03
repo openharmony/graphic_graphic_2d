@@ -22,7 +22,7 @@ using namespace OHOS;
 using namespace testing;
 using namespace testing::ext;
 class RenderLayerCmdPropertyTest : public Test {};
-namespace OHOS::Rosen{
+namespace OHOS::Rosen {
 
 /**
  * Function: Marshall_Unmarshall_BasicType_Success

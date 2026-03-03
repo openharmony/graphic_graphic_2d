@@ -1437,7 +1437,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayer_WithBufferOwnerCountTest001, Test
         // Set bufferOwnerCount in params
         auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         bufferOwnerCount->bufferId_ = 9999ULL;
-        params->SetBufferOwnerCount(bufferOwnerCount);
+        params->bufferOwnerCount_ = bufferOwnerCount;
 
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
@@ -1580,7 +1580,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayer_AllBranchesCoveredTest001, TestSi
         // Set bufferOwnerCount
         auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         bufferOwnerCount->bufferId_ = 8888ULL;
-        params->SetBufferOwnerCount(bufferOwnerCount);
+        params->bufferOwnerCount_ = bufferOwnerCount;
 
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
@@ -1734,7 +1734,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread_WithBufferOwnerCou
         auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         bufferOwnerCount->bufferId_ = 7777ULL;
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-        params->SetBufferOwnerCount(bufferOwnerCount);
+        params->bufferOwnerCount_ = bufferOwnerCount;
 
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
@@ -1885,7 +1885,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread_AllBranchesCovered
         auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         bufferOwnerCount->bufferId_ = 6666ULL;
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-        params->SetBufferOwnerCount(bufferOwnerCount);
+        params->bufferOwnerCount_ = bufferOwnerCount;
 
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
@@ -1918,11 +1918,13 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_ComposerClientNullTest001, TestS
     auto ret = buffer->Alloc(cfg);
     ASSERT_EQ(ret, GSERROR_OK);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
 
     // Set composerClient_ to nullptr
     renderProcessor->composerClient_ = nullptr;
 
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, nullptr, consumer, nullptr);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -1947,8 +1949,10 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_HwcGlobalPositionDisabledTest001
     auto ret = buffer->Alloc(cfg);
     ASSERT_EQ(ret, GSERROR_OK);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
 
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, nullptr, consumer, nullptr);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_NE(result, nullptr);
 }
 
@@ -1973,8 +1977,10 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_TunnelLayerIdDisabledTest001, Te
     auto ret = buffer->Alloc(cfg);
     ASSERT_EQ(ret, GSERROR_OK);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
 
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, nullptr, consumer, nullptr);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_NE(result, nullptr);
     EXPECT_NE(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
@@ -2006,8 +2012,10 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_CursorLayerTypeTest001, TestSize
     auto ret = buffer->Alloc(cfg);
     ASSERT_EQ(ret, GSERROR_OK);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
 
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, nullptr, consumer, nullptr);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
     // Cursor layer should have rotation set to NONE
@@ -2046,7 +2054,10 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_WithOfflineResultTest001, TestSi
     offlineResult->bufferRect = {0, 0, 100, 100};
     offlineResult->taskSuccess = true;
 
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, nullptr, consumer, nullptr, offlineResult);
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence, offlineResult);
     EXPECT_NE(result, nullptr);
     EXPECT_TRUE(result->GetUseDeviceOffline());
 }
@@ -2072,7 +2083,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_NonCursorLayerTypeTest001, TestS
 
     RSSurfaceRenderParams params(0);
     RSLayerInfo layerInfo;
-    layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_NORMAL;
+    layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     layerInfo.dstRect = {0, 0, 100, 100};
     params.SetLayerInfo(layerInfo);
 
@@ -2082,8 +2093,10 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_NonCursorLayerTypeTest001, TestS
     auto ret = buffer->Alloc(cfg);
     ASSERT_EQ(ret, GSERROR_OK);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
 
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, nullptr, consumer, nullptr);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_NE(result, nullptr);
     EXPECT_NE(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
 }
@@ -2111,8 +2124,10 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_ProtectedLayerTest001, TestSize.
     auto ret = buffer->Alloc(cfg);
     ASSERT_EQ(ret, GSERROR_OK);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
 
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, nullptr, consumer, nullptr);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_NE(result, nullptr);
 }
 
@@ -2138,8 +2153,10 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_CornerRadiusInfoForDRMTest001, T
     auto ret = buffer->Alloc(cfg);
     ASSERT_EQ(ret, GSERROR_OK);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
 
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, nullptr, consumer, nullptr);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_NE(result, nullptr);
     EXPECT_FALSE(result->GetCornerRadiusInfoForDRM().empty());
 }
@@ -2164,7 +2181,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_AllBranchesCoveredTest001, TestS
 
     RSSurfaceRenderParams params(0);
     RSLayerInfo layerInfo;
-    layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_NORMAL;
+    layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     layerInfo.dstRect = {0, 0, 100, 100};
     layerInfo.srcRect = {0, 0, 100, 100};
     layerInfo.zOrder = 1;
@@ -2179,11 +2196,12 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_AllBranchesCoveredTest001, TestS
     auto ret = buffer->Alloc(cfg);
     ASSERT_EQ(ret, GSERROR_OK);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<SyncFence> acquireFence = new SyncFence(dup(STDOUT_FILENO));
 
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, nullptr, consumer, acquireFence);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_NORMAL);
+    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
     EXPECT_TRUE(result->GetIsNeedComposition());
 }
 }

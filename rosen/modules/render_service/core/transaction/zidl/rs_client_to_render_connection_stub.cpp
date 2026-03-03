@@ -1483,7 +1483,8 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             int32_t status = UnRegisterSurfaceOcclusionChangeCallback(id);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE(
-                    "RSClientToRenderConnectionStub::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Write status failed!");
+                    "RSClientToRenderConnectionStub::"
+                    "UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

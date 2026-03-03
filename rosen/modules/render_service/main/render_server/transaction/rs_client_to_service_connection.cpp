@@ -261,9 +261,9 @@ void RSClientToServiceConnection::GetSurfaceRootNodeId(NodeId& windowNodeId)
 }
 
 ErrCode RSClientToServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
-                                                         const std::string& name,
-                                                         const sptr<VSyncIConnectionToken>& token,
-                                                         VSyncConnParam vsyncConnParam)
+        const std::string& name,
+        const sptr<VSyncIConnectionToken>& token,
+        VSyncConnParam vsyncConnParam)
 {
     if (!vsyncManagerAgent_->IsVsyncAppDistributorExist()) {
         vsyncConn = nullptr;
@@ -899,7 +899,7 @@ RSVirtualScreenResolution RSClientToServiceConnection::GetVirtualScreenResolutio
     if (!screenManagerAgent_) {
         return RSVirtualScreenResolution();
     }
-    return screenManagerAgent_->GetVirtualScreenResolution(id);;
+    return screenManagerAgent_->GetVirtualScreenResolution(id);
 }
 
 ErrCode RSClientToServiceConnection::GetScreenActiveMode(uint64_t screenId, RSScreenModeInfo& screenModeInfo)
@@ -1072,7 +1072,8 @@ int32_t RSClientToServiceConnection::GetScreenSupportedColorGamuts(ScreenId id,
     return screenManagerAgent_->GetScreenSupportedColorGamuts(id, mode);
 }
 
-int32_t RSClientToServiceConnection::GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys)
+int32_t RSClientToServiceConnection::GetScreenSupportedMetaDataKeys(ScreenId id,
+    std::vector<ScreenHDRMetadataKey>& keys)
 {
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
@@ -1341,7 +1342,8 @@ int32_t RSClientToServiceConnection::GetDisplayIdentificationData(ScreenId id, u
     return screenManagerAgent_->GetDisplayIdentificationData(id, outPort, edidData);
 }
 
-ErrCode RSClientToServiceConnection::SetScreenSkipFrameInterval(uint64_t id, uint32_t skipFrameInterval, int32_t& resCode)
+ErrCode RSClientToServiceConnection::SetScreenSkipFrameInterval(uint64_t id,
+    uint32_t skipFrameInterval, int32_t& resCode)
 {
     if (!screenManagerAgent_) {
         resCode = StatusCode::SCREEN_NOT_FOUND;
@@ -2252,7 +2254,6 @@ int32_t RSClientToServiceConnection::GetPidGpuMemoryInMB(pid_t pid, float& gpuMe
         } else {
             gpuMemInMB += tmpGpuMemInMb;
         }
-
     }
     return ret;
 }

@@ -31,6 +31,7 @@ public:
     static inline sptr<VSyncDistributor> vsyncDistributor = nullptr;
     static inline sptr<VSyncGenerator> vsyncGenerator = nullptr;
     static inline sptr<VSyncConnection> vsyncConnection = nullptr;
+    static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 2;
 private:
     void InitConnParam(sptr<VSyncConnection> vsyncConnection, bool isRequestWithTimestampOnly,
         bool triggerThisTime, int64_t addTime, bool rate);
@@ -57,6 +58,7 @@ void VSyncDistributorTest::SetUpTestCase()
 
 void VSyncDistributorTest::TearDownTestCase()
 {
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
     vsyncGenerator = nullptr;
     DestroyVSyncGenerator();
     vsyncController = nullptr;
@@ -168,6 +170,7 @@ HWTEST_F(VSyncDistributorTest, CheckVsyncReceivedAndGetRelTs001, Function | Medi
 HWTEST_F(VSyncDistributorTest, RequestNextVSync001, Function | MediumTest| Level3)
 {
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(nullptr), VSYNC_ERROR_NULLPTR);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -181,6 +184,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync002, Function | MediumTest| Level
 {
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn), VSYNC_ERROR_INVALID_ARGUMENTS);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -196,6 +200,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync003, Function | MediumTest| Level
     VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -211,6 +216,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync004, Function | MediumTest| Level
     VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn, "unknown", 0), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -226,6 +232,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync005, Function | MediumTest| Level
 {
     sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
     ASSERT_EQ(conn->RequestNextVSync("unknown", 0), VSYNC_ERROR_NULLPTR);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -241,6 +248,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync006, Function | MediumTest| Level
     VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn, "UrgentSelfdrawing", 0), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -271,6 +279,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync007, Function | MediumTest| Level
         EXPECT_EQ(conn->requestVsyncTimestamp_.size(), 0);
         EXPECT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
     }
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -676,6 +685,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest004, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /**
@@ -726,6 +736,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest005, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /**
@@ -755,6 +766,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest006, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /**

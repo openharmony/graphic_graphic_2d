@@ -75,7 +75,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             sptr<RSIBrightnessInfoChangeCallback> callback = iface_cast<RSIBrightnessInfoChangeCallback>(remoteObject);
-            int32_t status = SetBrightnessInfoChangeCallback(pid, callback); 
+            int32_t status = SetBrightnessInfoChangeCallback(pid, callback);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK Write status failed!");
                 ret = ERR_INVALID_REPLY;
@@ -187,7 +187,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_REPLY;
             }
             break;
-        }        
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHICS): {
             std::vector<MemoryGraphic> memoryGraphics;
             if (GetMemoryGraphics(memoryGraphics) != ERR_OK ||

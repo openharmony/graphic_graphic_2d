@@ -65,7 +65,8 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest, TestSize.Level1)
     if (auto xmlDocument_ = xmlReadFile(HGM_CONFIG_PATH, nullptr, 0)) {
         EXPECT_EQ(hgmRenderContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
     } else {
-        EXPECT_EQ(hgmRenderContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), XML_FILE_LOAD_FAIL);
+        EXPECT_EQ(
+            hgmRenderContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), XML_FILE_LOAD_FAIL);
     }
     EXPECT_NE(hgmRenderContext.convertFrameRateFunc_, nullptr);
 }

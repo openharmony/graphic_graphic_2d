@@ -33,8 +33,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl) :
-    IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
+RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
+    : IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
 
 ErrCode RSServiceToRenderConnectionProxy::SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh)
 {
@@ -370,7 +370,8 @@ int32_t RSServiceToRenderConnectionProxy::RegisterUIExtensionCallback(pid_t pid,
         ROSEN_LOGE("RegisterUIExtensionCallback: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
     }
-    if (data.WriteInt32(pid) && data.WriteUint64(userId) && data.WriteRemoteObject(callback->AsObject()) && data.WriteBool(unobscured)) {
+    if (data.WriteInt32(pid) && data.WriteUint64(userId) &&
+        data.WriteRemoteObject(callback->AsObject()) && data.WriteBool(unobscured)) {
         uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK);
         int32_t err = Remote()->SendRequest(code, data, reply, option);
         if (err != NO_ERROR) {

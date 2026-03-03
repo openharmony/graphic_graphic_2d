@@ -45,7 +45,6 @@ class RSNode;
 class AnimationFinishCallback;
 class AnimationRepeatCallback;
 class RSRenderAnimation;
-class RSPropertyBase;
 
 class RSC_EXPORT RSAnimation : public RSAnimationTimingProtocol, public std::enable_shared_from_this<RSAnimation> {
 public:

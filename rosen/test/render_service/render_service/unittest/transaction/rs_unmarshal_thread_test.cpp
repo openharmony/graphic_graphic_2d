@@ -24,6 +24,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+#define USLEEP_TIME (110 * 1000)
 class RSUnmarshalThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -35,7 +36,10 @@ public:
 void RSUnmarshalThreadTest::SetUpTestCase() {}
 void RSUnmarshalThreadTest::TearDownTestCase() {}
 void RSUnmarshalThreadTest::SetUp() {}
-void RSUnmarshalThreadTest::TearDown() {}
+void RSUnmarshalThreadTest::TearDown()
+{
+    usleep(USLEEP_TIME);
+}
 
 /**
  * @tc.name: PostTask001

@@ -118,7 +118,10 @@ public:
     void SetBufferOwnerCount(const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& boc,
         bool needUpdate) override { bufferOwnerCount_ = boc; }
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) override
-    { (void)bufferId; return nullptr; }
+    {
+        (void)bufferId;
+        return nullptr;
+    }
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override
     { return bufferOwnerCount_; }
     std::string GetSurfaceName() const override { return surfaceName_; }
@@ -1372,7 +1375,8 @@ HWTEST_F(RsRenderComposerTest, RecordTimestamp, TestSize.Level1)
     config.name = "surface3";
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     csurf->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     rsSurfaceRenderNode->InitRenderParams();
@@ -2578,7 +2582,13 @@ HWTEST_F(RsRenderComposerTest, SurfaceDump_Branches, TestSize.Level1)
  */
 HWTEST_F(RsRenderComposerTest, SetScreenBacklight_Branches, TestSize.Level1)
 {
+    // Verify initial hdiOutput_ is not null
+    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+
+    // Call with valid hdiOutput_
     rsRenderComposer_->SetScreenBacklight(50);
+
+    // Call with null hdiOutput_
     auto backup = rsRenderComposer_->hdiOutput_;
     rsRenderComposer_->hdiOutput_ = nullptr;
     rsRenderComposer_->SetScreenBacklight(0);
@@ -3158,6 +3168,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ShouldDropFrameTrue, TestSiz
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     // Set up composer screen info to trigger shouldDropFrame = true
     tmpRsRenderComposer->composerScreenInfo_.activeRect = {100, 100, 100, 100};
@@ -3167,6 +3178,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ShouldDropFrameTrue, TestSiz
     layer->SetLayerSize({200, 200, 100, 100}); // Different from activeRect
     layer->SetUniRenderFlag(true);
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+    EXPECT_TRUE(layer->GetUniRenderFlag());
 
     PipelineParam param;
     uint32_t currentRate = 60;
@@ -3191,11 +3203,13 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ShouldDropFrameFalse, TestSi
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({100, 100, 100, 100});
     layer->SetUniRenderFlag(false);
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+    EXPECT_FALSE(layer->GetUniRenderFlag());
 
     PipelineParam param;
     uint32_t currentRate = 60;
@@ -3218,6 +3232,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_SuperFoldDisplayScreenId0, T
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     tmpRsRenderComposer->composerScreenInfo_.reviseRect = {100, 100, 100, 100};
     tmpRsRenderComposer->composerScreenInfo_.maskRect = {0, 0, 0, 0};
@@ -3225,6 +3240,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_SuperFoldDisplayScreenId0, T
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({100, 100, 100, 100});
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+    ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
     PipelineParam param;
     uint32_t currentRate = 60;
@@ -3248,10 +3264,12 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_NotSuperFoldDisplayOrScreenI
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({100, 100, 100, 100});
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+    ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
     PipelineParam param;
     uint32_t currentRate = 60;
@@ -3391,6 +3409,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_DoRepaintFalse_DropFrame, Te
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     tmpRsRenderComposer->composerScreenInfo_.activeRect = {100, 100, 100, 100};
 
@@ -3398,6 +3417,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_DoRepaintFalse_DropFrame, Te
     layer->SetLayerSize({200, 200, 100, 100}); // Different from activeRect
     layer->SetUniRenderFlag(true);
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+    ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
     PipelineParam param;
     uint32_t currentRate = 60;
@@ -3451,10 +3471,12 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_MissedFramesReport, TestSize
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({100, 100, 100, 100});
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+    ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
     // Set intervalTimePoints_ to trigger report condition
     tmpRsRenderComposer->intervalTimePoints_ = 0;
@@ -3509,10 +3531,12 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HasLppVideoTrue, TestSize.Le
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({100, 100, 100, 100});
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+    ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
     PipelineParam param;
     param.hasLppVideo = true;
@@ -3539,10 +3563,12 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HasLppVideoFalse, TestSize.L
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({100, 100, 100, 100});
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+    ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
     PipelineParam param;
     param.hasLppVideo = false;
@@ -3653,6 +3679,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_EmptyLayers, TestSize.Level1
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     // Clear any existing layers by creating a new empty context
     tmpRsRenderComposer->rsRenderComposerContext_ = std::make_shared<RSRenderComposerContext>();
@@ -3678,6 +3705,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_MultipleLayers, TestSize.Lev
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     // Add multiple layers
     for (int i = 0; i < 5; i++) {
@@ -3685,6 +3713,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_MultipleLayers, TestSize.Lev
         layer->SetLayerSize({100, 100, 100, 100});
         layer->SetZorder(i);
         tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(i, layer);
+        ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(i), nullptr);
     }
 
     PipelineParam param;
@@ -3708,16 +3737,17 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HasGameScene2, TestSize.Leve
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({100, 100, 100, 100});
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+    ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
     PipelineParam param;
     param.hasGameScene = true;
     uint32_t currentRate = 60;
     tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
 }
-
 } // namespace Rosen
 } // namespace OHOS

@@ -81,7 +81,8 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_CommitLayers_Unma
  *                  2. use non-null agent constructed with nullptr composer (returns false)
  *                  3. expect binder error
  */
-HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_CommitLayers_UnmarshallingSuccessButAgentReturnsFalse, TestSize.Level1)
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_CommitLayers_UnmarshallingSuccessButAgentReturnsFalse,
+    TestSize.Level1)
 {
     auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
     RSRenderToComposerConnection conn("ut", 0u, agent);
@@ -158,7 +159,8 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_ClearFrameBuffers
  *                  2. fail: write token only, missing surfaceId
  *                  3. cover both branches of GetCleanLayerBufferSurfaceId
  */
-HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_CleanLayerBufferBySurfaceId_SuccessAndFail, TestSize.Level1)
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_CleanLayerBufferBySurfaceId_SuccessAndFail,
+    TestSize.Level1)
 {
     RSRenderToComposerConnection conn("ut", 0u, nullptr);
     MessageParcel reply;
@@ -190,7 +192,8 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_CleanLayerBufferB
  * CaseDescription: 1. success: write token + bufferIds vector
  *                  2. fail: write token only (vector read fails)
  */
-HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_ClearRedrawGPUCompositionCache_SuccessAndFail, TestSize.Level1)
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_ClearRedrawGPUCompositionCache_SuccessAndFail,
+    TestSize.Level1)
 {
     RSRenderToComposerConnection conn("ut", 0u, nullptr);
     MessageParcel reply;
@@ -275,7 +278,8 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_DefaultCode_Retur
  * CaseDescription: 1. fail: write token + null remote object
  *                  2. success: write token + valid remote object
  */
-HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetComposerToRenderConnection_FailAndSuccess, TestSize.Level1)
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetComposerToRenderConnection_FailAndSuccess,
+    TestSize.Level1)
 {
     RSRenderToComposerConnection conn("ut", 0u, nullptr);
     MessageParcel reply;

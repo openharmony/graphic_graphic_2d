@@ -85,7 +85,6 @@ private:
     static inline sptr<RSClientToRenderConnectionStub> connectionStub_;
     static inline std::shared_ptr<RSRenderPipeline> renderPipeline_;
     static inline sptr<RSRenderPipelineAgent> renderPipelineAgent_;
-
 };
 
 uint32_t RSClientToRenderConnectionStubTest::screenId_ = 0;
@@ -94,7 +93,7 @@ std::shared_ptr<RSSurfaceRenderNode> RSClientToRenderConnectionStubTest::surface
 void RSClientToRenderConnectionStubTest::SetUpTestCase()
 {
     pid_t pid = SURFACE_NODE_ID;
-    surfaceNode_ =std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(((NodeId)pid << 32 | SURFACE_NODE_ID),
+    surfaceNode_ = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(((NodeId)pid << 32 | SURFACE_NODE_ID),
         std::make_shared<RSContext>(), true), RSRenderNodeGC::NodeDestructor);
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
@@ -109,7 +108,6 @@ void RSClientToRenderConnectionStubTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
     renderPipeline_ = std::make_shared<RSRenderPipeline>();
-
 
     mainThread_ = RSMainThread::Instance();
     mainThread_->handler_ =
@@ -455,7 +453,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
         static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK)), ERR_INVALID_STATE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HARDWARE_ENABLED)), ERR_INVALID_DATA);
-
 }
 
 /**
@@ -2682,5 +2679,122 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetHwcNodeBounds, TestSize.Level1)
     res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
     rsPointerWindowManager.SetIsPointerEnableHwc(true);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTaskTest001
+ * @tc.desc: Test ExecuteSynchronousTask when ReadInt16 fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteString("invalid"); // Not int16, will cause ReadInt16 to fail
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTaskTest002
+ * @tc.desc: Test ExecuteSynchronousTask with invalid type (not RS_NODE_SYNCHRONOUS_READ_PROPERTY or
+ * RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteInt16(999); // Invalid type (not 10 or 11)
+    data.WriteInt16(0);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTaskTest003
+ * @tc.desc: Test ExecuteSynchronousTask when GetUnmarshallingFunc returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteInt16(10); // RS_NODE_SYNCHRONOUS_READ_PROPERTY
+    data.WriteInt16(999); // Invalid subType that doesn't have a registered func
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTaskTest004
+ * @tc.desc: Test ExecuteSynchronousTask when unmarshalling returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteInt16(10); // RS_NODE_SYNCHRONOUS_READ_PROPERTY
+    data.WriteInt16(0);
+    data.WriteUint64(0); // Incomplete data for unmarshalling
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTaskTest005
+ * @tc.desc: Test ExecuteSynchronousTask with RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION type and invalid subType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteInt16(11); // RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION
+    data.WriteInt16(999); // Invalid subType
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTaskTest006
+ * @tc.desc: Test ExecuteSynchronousTask with RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION type and invalid subType (line 397
+ * branch)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest006, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteInt16(11); // RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION
+    data.WriteInt16(0); // subType that doesn't have registered func
+    data.WriteUint64(0); // Incomplete data
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 } // namespace OHOS::Rosen

@@ -107,7 +107,8 @@ HWTEST_F(HgmHardwareUtilsTest, UpdateRetrySetRateStatusTest, TestSize.Level1)
     hgmHardwareUtils->setRateRetryMap_.clear();
     hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SET_RATE_ERROR);
     EXPECT_TRUE(hgmHardwareUtils->setRateRetryMap_.empty());
-    auto [rateRetryMapIter, success] = hgmHardwareUtils->setRateRetryMap_.try_emplace(SCREEN_ID, std::make_pair(false, 0));
+    auto [rateRetryMapIter, success] =
+        hgmHardwareUtils->setRateRetryMap_.try_emplace(SCREEN_ID, std::make_pair(false, 0));
     auto& rateRetryData = rateRetryMapIter->second;
     EXPECT_EQ(rateRetryData.first, false);
     EXPECT_EQ(rateRetryData.second, 0);
@@ -162,8 +163,8 @@ HWTEST_F(HgmHardwareUtilsTest, PerformSetActiveModeTest, TestSize.Level1)
 
     hgmHardwareUtils->hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
     hgmHardwareUtils->setRateRetryMap_.erase(SCREEN_ID);
-    if (hgmCore.modeListToApply_ == nullptr) { 
-        hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>(); 
+    if (hgmCore.modeListToApply_ == nullptr) {
+        hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
     } 
     hgmCore.modeListToApply_->try_emplace(SCREEN_IDINVALID, 3);
     hgmHardwareUtils->PerformSetActiveMode(outputInvalid, screenManager);

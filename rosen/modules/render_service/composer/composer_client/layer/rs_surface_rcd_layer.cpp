@@ -24,8 +24,8 @@
 #define LOG_TAG "RSSurfaceRCDLayer"
 namespace OHOS {
 namespace Rosen {
-RSSurfaceRCDLayer::RSSurfaceRCDLayer(RSLayerId rsLayerId, std::shared_ptr<RSComposerContext> rsComposerContext) :
-    RSSurfaceLayer(rsLayerId, rsComposerContext)
+RSSurfaceRCDLayer::RSSurfaceRCDLayer(RSLayerId rsLayerId, std::shared_ptr<RSComposerContext> rsComposerContext)
+    : RSSurfaceLayer(rsLayerId, rsComposerContext)
 {
 }
 

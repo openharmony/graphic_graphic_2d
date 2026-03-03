@@ -24,7 +24,7 @@
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS::Rosen{
+namespace OHOS::Rosen {
 class RSLayerTransactionHandlerTest : public Test {};
 
 /**

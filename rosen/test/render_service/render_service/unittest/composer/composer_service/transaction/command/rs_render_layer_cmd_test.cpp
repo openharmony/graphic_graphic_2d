@@ -126,7 +126,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Enum_BlendType_Success, TestSiz
     auto out = RSRenderLayerCmd::Unmarshalling(parcel);
     ASSERT_NE(out, nullptr);
     EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::BLEND_TYPE);
-    auto outProp = std::static_pointer_cast<RSRenderLayerCmdProperty<GraphicBlendType>>(out->GetRSRenderLayerProperty());
+    auto outProp =
+        std::static_pointer_cast<RSRenderLayerCmdProperty<GraphicBlendType>>(out->GetRSRenderLayerProperty());
     ASSERT_NE(outProp, nullptr);
     EXPECT_EQ(outProp->Get(), GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
 }
@@ -177,7 +178,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Vector_Float_Success, TestSize.
     auto out = RSRenderLayerCmd::Unmarshalling(parcel);
     ASSERT_NE(out, nullptr);
     EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::COLOR_TRANSFORM);
-    auto outProp = std::static_pointer_cast<RSRenderLayerCmdProperty<std::vector<float>>>(out->GetRSRenderLayerProperty());
+    auto outProp =
+        std::static_pointer_cast<RSRenderLayerCmdProperty<std::vector<float>>>(out->GetRSRenderLayerProperty());
     ASSERT_NE(outProp, nullptr);
     ASSERT_EQ(outProp->Get().size(), 3u);
     EXPECT_FLOAT_EQ(outProp->Get()[0], 1.0f);
@@ -283,7 +285,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_U64_NodeId_Success, TestSize.Le
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Vector_VisibleRegions_Success, TestSize.Level1)
 {
-    std::vector<GraphicIRect> rects {{0,0,10,10}, {1,2,3,4}};
+    std::vector<GraphicIRect> rects {{0, 0, 10, 10}, {1, 2, 3, 4}};
     auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(rects);
     auto cmd = std::make_shared<RSRenderLayerVisibleRegionsCmd>(prop);
 
@@ -757,7 +759,8 @@ HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_ColorDataSpace_PayloadMissing, Test
 HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Type_Enums_Success, TestSize.Level1)
 {
     {
-        auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerType>>(GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+        auto prop
+            = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerType>>(GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
         auto cmd = std::make_shared<RSRenderLayerTypeCmd>(prop);
         MessageParcel parcel; ASSERT_TRUE(cmd->Marshalling(parcel));
         auto out = RSRenderLayerCmd::Unmarshalling(parcel);
@@ -765,7 +768,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Type_Enums_Success, TestSize.Le
         EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::TYPE);
     }
     {
-        auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicTransformType>>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+        auto prop
+            = std::make_shared<RSRenderLayerCmdProperty<GraphicTransformType>>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
         auto cmd = std::make_shared<RSRenderLayerTransformCmd>(prop);
         MessageParcel parcel; ASSERT_TRUE(cmd->Marshalling(parcel));
         auto out = RSRenderLayerCmd::Unmarshalling(parcel);
@@ -773,7 +777,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Type_Enums_Success, TestSize.Le
         EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::TRANSFORM);
     }
     {
-        auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicCompositionType>>(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+        auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicCompositionType>>(
+            GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
         auto cmd = std::make_shared<RSRenderLayerCompositionTypeCmd>(prop);
         MessageParcel parcel; ASSERT_TRUE(cmd->Marshalling(parcel));
         auto out = RSRenderLayerCmd::Unmarshalling(parcel);
@@ -792,7 +797,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Type_Enums_Success, TestSize.Le
 HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_ColorDataSpace_And_BackgroundColor_Success, TestSize.Level1)
 {
     {
-        auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicColorDataSpace>>(GraphicColorDataSpace::GRAPHIC_BT709_SRGB_FULL);
+        auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicColorDataSpace>>(
+            GraphicColorDataSpace::GRAPHIC_BT709_SRGB_FULL);
         auto cmd = std::make_shared<RSRenderLayerColorDataSpaceCmd>(prop);
         MessageParcel parcel; ASSERT_TRUE(cmd->Marshalling(parcel));
         auto out = RSRenderLayerCmd::Unmarshalling(parcel);
@@ -820,7 +826,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_ColorDataSpace_And_BackgroundCo
 HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Additional_Rects_Success, TestSize.Level1)
 {
     {
-        GraphicIRect r{5,6,7,8};
+        GraphicIRect r{5, 6, 7, 8};
         auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
         auto cmd = std::make_shared<RSRenderLayerBoundSizeCmd>(prop);
         MessageParcel parcel; ASSERT_TRUE(cmd->Marshalling(parcel));
@@ -829,7 +835,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Additional_Rects_Success, TestS
         EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::BOUND_SIZE);
     }
     {
-        GraphicIRect r{0,1,2,3};
+        GraphicIRect r{0, 1, 2, 3};
         auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
         auto cmd = std::make_shared<RSRenderLayerCropRectCmd>(prop);
         MessageParcel parcel; ASSERT_TRUE(cmd->Marshalling(parcel));
@@ -838,7 +844,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Additional_Rects_Success, TestS
         EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::CROP_RECT);
     }
     {
-        GraphicIRect r{9,9,9,9};
+        GraphicIRect r{9, 9, 9, 9};
         auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
         auto cmd = std::make_shared<RSRenderLayerAncoSrcRectCmd>(prop);
         MessageParcel parcel; ASSERT_TRUE(cmd->Marshalling(parcel));
@@ -847,7 +853,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Additional_Rects_Success, TestS
         EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::ANCO_SRC_RECT);
     }
     {
-        std::vector<GraphicIRect> rects{{2,2,2,2}};
+        std::vector<GraphicIRect> rects{{2, 2, 2, 2}};
         auto prop = std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(rects);
         auto cmd = std::make_shared<RSRenderLayerDirtyRegionsCmd>(prop);
         MessageParcel parcel; ASSERT_TRUE(cmd->Marshalling(parcel));
@@ -889,7 +895,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Additional_Floats_Success, Test
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: Round-trip TunnelLayerId/TunnelLayerProperty/AncoFlags/LayerSourceTuning/CycleBuffersNum/SurfaceUniqueId/RSLayerId
+ * CaseDescription: Round-trip
+ *  TunnelLayerId/TunnelLayerProperty/AncoFlags/LayerSourceTuning/CycleBuffersNum/SurfaceUniqueId/RSLayerId
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Additional_Ints_Success, TestSize.Level1)
 {
@@ -962,16 +969,36 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Additional_Bools_Success, TestS
 {
     struct BoolCmd { std::shared_ptr<RSRenderLayerCmd> cmd; RSLayerCmdType type; };
     std::vector<BoolCmd> cases;
-    cases.push_back({ std::make_shared<RSRenderLayerUniRenderFlagCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)), RSLayerCmdType::UNI_RENDER_FLAG });
-    cases.push_back({ std::make_shared<RSRenderLayerTunnelHandleChangeCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)), RSLayerCmdType::TUNNEL_HANDLE_CHANGE });
-    cases.push_back({ std::make_shared<RSRenderLayerRotationFixedCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(false)), RSLayerCmdType::ROTATION_FIXED });
-    cases.push_back({ std::make_shared<RSRenderLayerLayerArsrCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)), RSLayerCmdType::LAYER_ARSR });
-    cases.push_back({ std::make_shared<RSRenderLayerLayerCopybitCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(false)), RSLayerCmdType::LAYER_COPYBIT });
-    cases.push_back({ std::make_shared<RSRenderLayerNeedBilinearInterpolationCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)), RSLayerCmdType::NEED_BILINEAR_INTERPOLATION });
-    cases.push_back({ std::make_shared<RSRenderLayerIsMaskLayerCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)), RSLayerCmdType::IS_MASK_LAYER });
-    cases.push_back({ std::make_shared<RSRenderLayerIsNeedCompositionCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(false)), RSLayerCmdType::IS_NEED_COMPOSITION });
-    cases.push_back({ std::make_shared<RSRenderLayerUseDeviceOfflineCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)), RSLayerCmdType::USE_DEVICE_OFFLINE });
-    cases.push_back({ std::make_shared<RSRenderLayerIgnoreAlphaCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)), RSLayerCmdType::IGNORE_ALPHA });
+    cases.push_back(
+        { std::make_shared<RSRenderLayerUniRenderFlagCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)),
+            RSLayerCmdType::UNI_RENDER_FLAG });
+    cases.push_back(
+        { std::make_shared<RSRenderLayerTunnelHandleChangeCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)),
+            RSLayerCmdType::TUNNEL_HANDLE_CHANGE });
+    cases.push_back(
+        { std::make_shared<RSRenderLayerRotationFixedCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(false)),
+            RSLayerCmdType::ROTATION_FIXED });
+    cases.push_back(
+        { std::make_shared<RSRenderLayerLayerArsrCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)),
+            RSLayerCmdType::LAYER_ARSR });
+    cases.push_back(
+        { std::make_shared<RSRenderLayerLayerCopybitCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(false)),
+            RSLayerCmdType::LAYER_COPYBIT });
+    cases.push_back(
+        { std::make_shared<RSRenderLayerNeedBilinearInterpolationCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)),
+            RSLayerCmdType::NEED_BILINEAR_INTERPOLATION });
+    cases.push_back(
+        { std::make_shared<RSRenderLayerIsMaskLayerCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)),
+            RSLayerCmdType::IS_MASK_LAYER });
+    cases.push_back(
+        { std::make_shared<RSRenderLayerIsNeedCompositionCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(false)),
+            RSLayerCmdType::IS_NEED_COMPOSITION });
+    cases.push_back(
+        { std::make_shared<RSRenderLayerUseDeviceOfflineCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)),
+            RSLayerCmdType::USE_DEVICE_OFFLINE });
+    cases.push_back(
+        { std::make_shared<RSRenderLayerIgnoreAlphaCmd>(std::make_shared<RSRenderLayerCmdProperty<bool>>(true)),
+            RSLayerCmdType::IGNORE_ALPHA });
 
     for (auto& c : cases) {
         MessageParcel parcel; ASSERT_TRUE(c.cmd->Marshalling(parcel));
@@ -1116,7 +1143,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_LayerLinearMatrix_Success, Test
     auto out = RSRenderLayerCmd::Unmarshalling(parcel);
     ASSERT_NE(out, nullptr);
     EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::LAYER_LINEAR_MATRIX);
-    auto outProp = std::static_pointer_cast<RSRenderLayerCmdProperty<std::vector<float>>>(out->GetRSRenderLayerProperty());
+    auto outProp
+        = std::static_pointer_cast<RSRenderLayerCmdProperty<std::vector<float>>>(out->GetRSRenderLayerProperty());
     ASSERT_NE(outProp, nullptr);
     ASSERT_EQ(outProp->Get().size(), 3u);
     EXPECT_FLOAT_EQ(outProp->Get()[0], 1.0f);
@@ -1142,7 +1170,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_CornerRadiusInfoForDRM_Success,
     auto out = RSRenderLayerCmd::Unmarshalling(parcel);
     ASSERT_NE(out, nullptr);
     EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::CORNER_RADIUS_INFO_FOR_DRM);
-    auto outProp = std::static_pointer_cast<RSRenderLayerCmdProperty<std::vector<float>>>(out->GetRSRenderLayerProperty());
+    auto outProp
+        = std::static_pointer_cast<RSRenderLayerCmdProperty<std::vector<float>>>(out->GetRSRenderLayerProperty());
     ASSERT_NE(outProp, nullptr);
     ASSERT_EQ(outProp->Get().size(), 3u);
     EXPECT_FLOAT_EQ(outProp->Get()[0], 1.0f);
@@ -1939,7 +1968,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Alpha_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_Type_Fail, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerType>>(GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+    auto prop
+        = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerType>>(GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
     auto cmd = std::make_shared<RSRenderLayerTypeCmd>(prop);
     MessageParcel parcel;
     cmd->rsRenderLayerProperty_ = nullptr;
@@ -1955,7 +1985,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Type_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_Transform_Fail, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicTransformType>>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    auto prop
+        = std::make_shared<RSRenderLayerCmdProperty<GraphicTransformType>>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     auto cmd = std::make_shared<RSRenderLayerTransformCmd>(prop);
     MessageParcel parcel;
     cmd->rsRenderLayerProperty_ = nullptr;
@@ -1971,7 +2002,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Transform_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_CompositionType_Fail, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicCompositionType>>(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicCompositionType>>(
+        GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     auto cmd = std::make_shared<RSRenderLayerCompositionTypeCmd>(prop);
     MessageParcel parcel;
     cmd->rsRenderLayerProperty_ = nullptr;
@@ -2003,7 +2035,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Gravity_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_BlendType_Fail, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicBlendType>>(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
+    auto prop
+        = std::make_shared<RSRenderLayerCmdProperty<GraphicBlendType>>(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
     auto cmd = std::make_shared<RSRenderLayerBlendTypeCmd>(prop);
     MessageParcel parcel;
     cmd->rsRenderLayerProperty_ = nullptr;
@@ -2356,7 +2389,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_SurfaceUniqueId_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_LayerSize_Fail, TestSize.Level1)
 {
-    GraphicIRect r{0,0,0,0};
+    GraphicIRect r{0, 0, 0, 0};
     auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
     auto cmd = std::make_shared<RSRenderLayerLayerSizeCmd>(prop);
     MessageParcel parcel;
@@ -2373,7 +2406,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_LayerSize_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_BoundSize_Fail, TestSize.Level1)
 {
-    GraphicIRect r{0,0,0,0};
+    GraphicIRect r{0, 0, 0, 0};
     auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
     auto cmd = std::make_shared<RSRenderLayerBoundSizeCmd>(prop);
     MessageParcel parcel;
@@ -2390,7 +2423,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_BoundSize_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_CropRect_Fail, TestSize.Level1)
 {
-    GraphicIRect r{0,0,0,0};
+    GraphicIRect r{0, 0, 0, 0};
     auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
     auto cmd = std::make_shared<RSRenderLayerCropRectCmd>(prop);
     MessageParcel parcel;
@@ -2407,7 +2440,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_CropRect_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_AncoSrcRect_Fail, TestSize.Level1)
 {
-    GraphicIRect r{0,0,0,0};
+    GraphicIRect r{0, 0, 0, 0};
     auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(r);
     auto cmd = std::make_shared<RSRenderLayerAncoSrcRectCmd>(prop);
     MessageParcel parcel;
@@ -2458,7 +2491,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_DirtyRegions_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_Matrix_Fail, TestSize.Level1)
 {
-    GraphicMatrix m{1,0,0,0,1,0,0,0,1};
+    GraphicMatrix m{1, 0, 0, 0, 1, 0, 0, 0, 1};
     auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicMatrix>>(m);
     auto cmd = std::make_shared<RSRenderLayerMatrixCmd>(prop);
     MessageParcel parcel;
@@ -2526,7 +2559,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_CornerRadiusInfoForDRM_Fail, TestSize.Leve
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_LayerColor_Fail, TestSize.Level1)
 {
-    GraphicLayerColor c{1,2,3,4};
+    GraphicLayerColor c{1, 2, 3, 4};
     auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerColor>>(c);
     auto cmd = std::make_shared<RSRenderLayerLayerColorCmd>(prop);
     MessageParcel parcel;
@@ -2543,7 +2576,7 @@ HWTEST(RSRenderLayerCmdTest, Marshall_LayerColor_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_BackgroundColor_Fail, TestSize.Level1)
 {
-    GraphicLayerColor c{5,6,7,8};
+    GraphicLayerColor c{5, 6, 7, 8};
     auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicLayerColor>>(c);
     auto cmd = std::make_shared<RSRenderLayerBackgroundColorCmd>(prop);
     MessageParcel parcel;
@@ -2560,7 +2593,8 @@ HWTEST(RSRenderLayerCmdTest, Marshall_BackgroundColor_Fail, TestSize.Level1)
  */
 HWTEST(RSRenderLayerCmdTest, Marshall_ColorDataSpace_Fail, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicColorDataSpace>>(GraphicColorDataSpace::GRAPHIC_BT709_SRGB_FULL);
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicColorDataSpace>>(
+        GraphicColorDataSpace::GRAPHIC_BT709_SRGB_FULL);
     auto cmd = std::make_shared<RSRenderLayerColorDataSpaceCmd>(prop);
     MessageParcel parcel;
     cmd->rsRenderLayerProperty_ = nullptr;

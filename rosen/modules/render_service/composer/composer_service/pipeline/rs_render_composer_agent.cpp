@@ -70,8 +70,8 @@ bool RSRenderComposerAgent::ComposerProcess(const std::shared_ptr<RSLayerTransac
                 return;
             }
             renderComposerAgent->rsRenderComposer_->ComposerProcess(currentRate, transactionData);
-        }, delayTime
-    );
+        },
+        delayTime);
     return true;
 }
 

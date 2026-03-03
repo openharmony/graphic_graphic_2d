@@ -398,19 +398,6 @@ HWTEST_F(RSSpecialLayerUtilsTest, UpdateInfoWithGlobalBlackList004, TestSize.Lev
 }
 
 /**
- * @tc.name: DumpScreenSpecialLayer001
- * @tc.desc: test DumpScreenSpecialLayer with empty nodeIds
- * @tc.type: FUNC
- * @tc.require: issue41
- */
-HWTEST_F(RSSpecialLayerUtilsTest, DumpScreenSpecialLayer001, TestSize.Level2)
-{
-    std::unordered_set<NodeId> nodeIds;
-    RSSpecialLayerUtils::DumpScreenSpecialLayer(
-        "TestFunc", SpecialLayerType::IS_BLACK_LIST, GenerateScreenId(), nodeIds);
-}
-
-/**
  * @tc.name: UpdateScreenSpecialLayer001
  * @tc.desc: test UpdateScreenSpecialLayer with basic properties
  * @tc.type: FUNC

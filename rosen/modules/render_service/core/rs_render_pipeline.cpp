@@ -56,7 +56,7 @@
 #undef LOG_TAG
 #define LOG_TAG "RSRenderPipeline"
 
-namespace OHOS{
+namespace OHOS {
 namespace Rosen {
 
 std::shared_ptr<RSRenderPipeline> RSRenderPipeline::Create(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
@@ -147,9 +147,9 @@ void RSRenderPipeline::AddTransactionDataPidInfo(pid_t remotePid)
 }
 
 void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
-        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
-        const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
-        const std::shared_ptr<HdiOutput>& output)
+    const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+    const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
+    const std::shared_ptr<HdiOutput>& output)
 {
     RS_LOGI("RSRenderPipeline %{public}s, screen id: %{public}" PRIu64, __func__,
         rsScreenProperty ? rsScreenProperty->GetScreenId() : INVALID_SCREEN_ID);

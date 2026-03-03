@@ -103,6 +103,8 @@ public:
     ErrCode SetWindowContainer(NodeId nodeId, bool value);
     void ClearUifirstCache(NodeId id);
 
+    int32_t SetLogicalCameraRotationCorrection(ScreenId screenId, ScreenRotation logicalCorrection);
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback);
 

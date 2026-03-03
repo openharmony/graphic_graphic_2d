@@ -150,7 +150,7 @@ bool RSLayerTransactionData::Marshalling(std::shared_ptr<OHOS::MessageParcel>& p
             RS_LOGE("%{public}s rsLayerParcel is nullptr", __func__);
         } else if (rsLayerParcel->indexVerifier_ != marshallingIndex_) {
             parcel->WriteUint8(0);  // has not rsLayerParcel
-            RS_LOGE("%{public}s indexVerifier is wrong",__func__);
+            RS_LOGE("%{public}s indexVerifier is wrong", __func__);
         } else {
             parcel->WriteUint8(1);
             success = success && rsLayerParcel->Marshalling(*parcel);
@@ -185,7 +185,7 @@ RSLayerTransactionData* RSLayerTransactionData::Unmarshalling(OHOS::MessageParce
         transactionData->timestamp_ = std::min(now + MAX_ADVANCE_TIME, transactionData->timestamp_);
         return transactionData;
     }
-    RS_LOGE("%{public}s failed.",__func__);
+    RS_LOGE("%{public}s failed.", __func__);
     delete transactionData;
     return nullptr;
 }

@@ -1618,13 +1618,14 @@ void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
         hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
 }
 
-void HgmFrameRateManager::SetAdaptiveVsyncUpdateCallback(std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback)
+void HgmFrameRateManager::SetAdaptiveVsyncUpdateCallback(
+    std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback)
 {
     adaptiveVsyncUpdateCallback_ = std::move(adaptiveVsyncUpdateCallback);
 }
 
 void HgmFrameRateManager::TriggerHgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData,
-        bool ltpoEnabled, bool isDelayMode, int32_t pipelineOffsetPulseNum)
+    bool ltpoEnabled, bool isDelayMode, int32_t pipelineOffsetPulseNum)
 {
     if (hgmConfigUpdateCallback_) {
         hgmConfigUpdateCallback_(configData, ltpoEnabled, isDelayMode, pipelineOffsetPulseNum);

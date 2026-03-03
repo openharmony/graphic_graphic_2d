@@ -79,33 +79,6 @@ HWTEST_F(RSTransactionProxyTest, SetRenderThreadClient002, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
 }
 
-// /**
-//  * @tc.name: SetRenderServiceClient001
-//  * @tc.desc: test
-//  * @tc.type:FUNC
-//  * @tc.require:
-//  */
-// HWTEST_F(RSTransactionProxyTest, SetRenderServiceClient001, TestSize.Level1)
-// {
-//     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
-//     ASSERT_NE(renderServiceClient, nullptr);
-//     // RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
-// }
-
-// /**
-//  * @tc.name: SetRenderServiceClient002
-//  * @tc.desc: test
-//  * @tc.type:FUNC
-//  * @tc.require:
-//  */
-// HWTEST_F(RSTransactionProxyTest, SetRenderServiceClient002, TestSize.Level1)
-// {
-//     auto renderServiceClient = nullptr;
-//     auto rsTransactionProxy = RSTransactionProxy::GetInstance();
-//     ASSERT_NE(rsTransactionProxy, nullptr);
-//     rsTransactionProxy->SetRenderServiceClient(renderServiceClient);
-// }
-
 /**
  * @tc.name: FlushImplicitTransaction001
  * @tc.desc: test

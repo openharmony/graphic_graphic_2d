@@ -36,7 +36,7 @@ std::once_flag RsFrameReport::initFlag_;
 bool RsFrameReport::inited = false;
 
 static void GraphReportSchedEvent(OHOS::RME::FrameSchedEvent event,
-                                    const std::unordered_map<std::string, std::string> &payload)
+    const std::unordered_map<std::string, std::string> &payload)
 {
     OHOS::RME::FrameUiIntf::GetInstance().ReportSchedEvent(event, payload);
 }

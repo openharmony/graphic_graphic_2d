@@ -146,7 +146,8 @@ void HgmRenderContext::SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> ser
     hgmRPEnergy_->SetTouchState(serviceToProcessInfo->isPowerIdle);
 }
 
-void HgmRenderContext::UpdateSurfaceData(const std::string& surfaceName, pid_t pid) {
+void HgmRenderContext::UpdateSurfaceData(const std::string& surfaceName, pid_t pid)
+{
     surfaceData_.emplace_back(std::tuple<std::string, pid_t>({surfaceName, pid}));
 }
 } // namespace Rosen

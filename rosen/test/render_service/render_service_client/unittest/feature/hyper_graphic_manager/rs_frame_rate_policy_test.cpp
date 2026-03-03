@@ -81,7 +81,7 @@ HWTEST_F(RSFrameRatePolicyTest, HgmConfigChangeCallback, TestSize.Level1)
     instance->HgmConfigChangeCallback(configData);
     EXPECT_TRUE(configData == nullptr);
 
-   configData = std::make_shared<RSHgmConfigData>();
+    configData = std::make_shared<RSHgmConfigData>();
     instance->HgmConfigChangeCallback(configData);
     EXPECT_TRUE(configData->configData_.empty() == true);
 

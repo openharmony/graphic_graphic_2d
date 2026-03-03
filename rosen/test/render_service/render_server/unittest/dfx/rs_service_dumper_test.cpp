@@ -20,7 +20,6 @@
 #include "gtest/gtest.h"
 #include "dfx/rs_service_dumper.h"
 #include "dfx/rs_service_dump_manager.h"
-#include "screen_manager/rs_screen_manager.h"
 
 // Forward declarations
 namespace OHOS {
