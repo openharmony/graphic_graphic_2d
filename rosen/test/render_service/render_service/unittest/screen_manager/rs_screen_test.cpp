@@ -698,12 +698,12 @@ HWTEST_F(RSScreenTest, SetRogResolution_001, testing::ext::TestSize.Level1)
     ASSERT_NE(rsScreen, nullptr);
     uint32_t newWidth = 0;
     uint32_t newHeight = 0;
-    rsScreen->property_.SetWidth(newWidth + 1);
-    rsScreen->property_.SetHeight(newHeight + 1);
+    rsScreen->property_.SetWidth(100);
+    rsScreen->property_.SetHeight(100);
     rsScreen->SetRogResolution(newWidth, newHeight);
     ASSERT_NE(nullptr, rsScreen->hdiScreen_);
-    ASSERT_EQ(0, rsScreen->Width());
-    ASSERT_EQ(0, rsScreen->Height());
+    ASSERT_EQ(100, rsScreen->Width());
+    ASSERT_EQ(100, rsScreen->Height());
 }
 
 /**
