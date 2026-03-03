@@ -72,18 +72,16 @@ HWTEST_F(HgmPointerManagerTest, QuickClick, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmPointerManagerTest, ChangeState, Function | SmallTest | Level0)
 {
-    PART("CaseDescription") {
-        auto pointerManager = HgmPointerManager();
-        ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_IDLE_STATE);
+    auto pointerManager = HgmPointerManager();
+    ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_IDLE_STATE);
 
-        pointerManager.ChangeState(PointerState::POINTER_ACTIVE_STATE);
-        usleep(waitTaskFinishNs);
-        ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
+    pointerManager.ChangeState(PointerState::POINTER_ACTIVE_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
 
-        pointerManager.ChangeState(PointerState::POINTER_IDLE_STATE);
-        usleep(waitTaskFinishNs);
-        ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_IDLE_STATE);
-    }
+    pointerManager.ChangeState(PointerState::POINTER_IDLE_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_IDLE_STATE);
 }
 
 /**
@@ -94,38 +92,36 @@ HWTEST_F(HgmPointerManagerTest, ChangeState, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmPointerManagerTest, Active2IdleState, Function | SmallTest | Level0)
 {
-    PART("CaseDescription") {
-        auto pointerManager = HgmPointerManager();
-        const int32_t handleRsFrameUs = 1100000;
-        const int32_t handleRsFrameNum = 2;
-        const PointerState undefinedState = static_cast<PointerState>(100);
+    const int32_t handleRsFrameUs = 1100000;
+    const int32_t handleRsFrameNum = 2;
+    const PointerState undefinedState = static_cast<PointerState>(100);
 
-        STEP("1. 3000ms timeout") {
-            pointerManager.ChangeState(PointerState::POINTER_ACTIVE_STATE);
-            usleep(waitTaskFinishNs);
-            ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
+    auto pointerManager = HgmPointerManager();
 
-            for (int i = 0; i < handleRsFrameNum; i++) {
-                pointerManager.HandleRsFrame();
-                usleep(handleRsFrameUs);
-                ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
-            }
-            usleep(handleRsFrameUs);
-            ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_IDLE_STATE);
-        }
-        STEP("2. State2String") {
-            pointerManager.State2String(undefinedState);
-        }
-        STEP("3. CheckChangeStateValid") {
-            pointerManager.CheckChangeStateValid(PointerState::POINTER_IDLE_STATE, undefinedState);
-            pointerManager.CheckChangeStateValid(undefinedState, PointerState::POINTER_IDLE_STATE);
-        }
-        STEP("4. ExecuteCallback") {
-            pointerManager.ExecuteCallback(nullptr);
-            pointerManager.ExecuteCallback([]() { usleep(1); });
-            pointerManager.ExecuteCallback(nullptr);
-        }
+    // 1. 3000ms timeout
+    pointerManager.ChangeState(PointerState::POINTER_ACTIVE_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
+
+    for (int i = 0; i < handleRsFrameNum; i++) {
+        pointerManager.HandleRsFrame();
+        usleep(handleRsFrameUs);
+        ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
     }
+    usleep(handleRsFrameUs);
+    ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_IDLE_STATE);
+
+    // 2. State2String
+    pointerManager.State2String(undefinedState);
+
+    // 3. CheckChangeStateValid
+    pointerManager.CheckChangeStateValid(PointerState::POINTER_IDLE_STATE, undefinedState);
+    pointerManager.CheckChangeStateValid(undefinedState, PointerState::POINTER_IDLE_STATE);
+
+    // 4. ExecuteCallback
+    pointerManager.ExecuteCallback(nullptr);
+    pointerManager.ExecuteCallback([]() { usleep(1); });
+    pointerManager.ExecuteCallback(nullptr);
 }
 
 /**
@@ -136,27 +132,23 @@ HWTEST_F(HgmPointerManagerTest, Active2IdleState, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmPointerManagerTest, HandleTimerResetEvent, Function | SmallTest | Level0)
 {
-    PART("CaseDescription") {
-        auto pointerManager = HgmPointerManager();
-        const int32_t activeTimeoutUs = 1300000;
-        const int32_t handleTimerResetTime = 1000000;
+    const int32_t activeTimeoutUs = 1300000;
+    const int32_t handleTimerResetTime = 1000000;
 
-        STEP("HandleMoveTimeOut") {
-            pointerManager.ChangeState(PointerState::POINTER_ACTIVE_STATE);
-            usleep(waitTaskFinishNs);
-            ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
-            usleep(handleTimerResetTime - waitTaskFinishNs);
-            pointerManager.HandleTimerReset();
-            usleep(handleTimerResetTime);
-            ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
-            pointerManager.HandleTimerReset();
-            usleep(handleTimerResetTime);
-            ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
-            pointerManager.HandleTimerReset();
-            usleep(activeTimeoutUs);
-            ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_IDLE_STATE);
-        }
-    }
+    auto pointerManager = HgmPointerManager();
+    pointerManager.ChangeState(PointerState::POINTER_ACTIVE_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
+    usleep(handleTimerResetTime - waitTaskFinishNs);
+    pointerManager.HandleTimerReset();
+    usleep(handleTimerResetTime);
+    ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
+    pointerManager.HandleTimerReset();
+    usleep(handleTimerResetTime);
+    ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
+    pointerManager.HandleTimerReset();
+    usleep(activeTimeoutUs);
+    ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_IDLE_STATE);
 }
 
 /**
@@ -167,10 +159,12 @@ HWTEST_F(HgmPointerManagerTest, HandleTimerResetEvent, Function | SmallTest | Le
  */
 HWTEST_F(HgmPointerManagerTest, HgmSetPointerActiveFPS, Function | SmallTest | Level0)
 {
-    HgmFrameRateManager frameRateMgr;
     constexpr uint32_t delay_1100Ms = 1100;
     constexpr uint32_t delay_1300Ms = 1300;
+
+    HgmFrameRateManager frameRateMgr;
     frameRateMgr.Init(nullptr, nullptr, nullptr, nullptr);
+
     frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_BUTTON_DOWN, touchCount,
         TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
@@ -206,10 +200,12 @@ HWTEST_F(HgmPointerManagerTest, HgmSetPointerActiveFPS, Function | SmallTest | L
  */
 HWTEST_F(HgmPointerManagerTest, HgmSetAxisActiveFPS, Function | SmallTest | Level1)
 {
-    HgmFrameRateManager frameRateMgr;
     constexpr uint32_t delay_1100Ms = 1100;
     constexpr uint32_t delay_200Ms = 200;
+
+    HgmFrameRateManager frameRateMgr;
     frameRateMgr.Init(nullptr, nullptr, nullptr, nullptr);
+
     frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_BEGIN, touchCount,
         TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));

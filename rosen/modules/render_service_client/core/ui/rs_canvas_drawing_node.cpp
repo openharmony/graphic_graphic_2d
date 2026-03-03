@@ -83,19 +83,21 @@ RSCanvasDrawingNode::~RSCanvasDrawingNode()
         auto id = GetId();
         // Unregister from callback router
         RSCanvasCallbackRouter::GetInstance().UnregisterNode(id);
-        if (resetSurfaceIndex_ > 0) {
+        bool needReleaseDmaBuffer = false;
+        // Clear DMA buffer reference (releases DMA memory from app process)
+        {
+            std::lock_guard<ffrt::mutex> lock(*surfaceBufferMutex_);
+            needReleaseDmaBuffer = resetSurfaceIndex_ > 0;
+            canvasSurfaceBuffer_ = nullptr;
+            resetSurfaceIndex_ = 0;
+        }
+        if (needReleaseDmaBuffer) {
             ffrt::submit([id]() {
                 if (RSRenderInterface::GetInstance().SubmitCanvasPreAllocatedBuffer(id, nullptr, 0) !=
                     StatusCode::SUCCESS) {
                     RS_LOGE("Release RSCanvasDrawingNode, notify RS to clear DMA cache fail.");
                 }
             });
-        }
-        // Clear DMA buffer reference (releases DMA memory from app process)
-        {
-            std::lock_guard<ffrt::mutex> lock(*surfaceBufferMutex_);
-            canvasSurfaceBuffer_ = nullptr;
-            resetSurfaceIndex_ = 0;
         }
     }
 #endif
@@ -149,7 +151,8 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
         if (isNeverOnTree_) {
             resetSurfaceParams_ = std::make_unique<ResetSurfaceParams>(width, height, resetSurfaceIndex);
         } else {
-            auto weakNode = std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
+            std::weak_ptr<RSCanvasDrawingNode> weakNode =
+                std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
             ffrt::submit([weakNode, nodeId = GetId(), width, height, resetSurfaceIndex]() {
                 PreAllocateDMABuffer(weakNode, nodeId, width, height, resetSurfaceIndex);
             });
@@ -364,7 +367,8 @@ void RSCanvasDrawingNode::SetIsOnTheTree(bool onTheTree)
     if (isNeverOnTree_ && onTheTree) {
         isNeverOnTree_ = false;
         if (resetSurfaceParams_ != nullptr) {
-            auto weakNode = std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
+            std::weak_ptr<RSCanvasDrawingNode> weakNode =
+                std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
             ffrt::submit(
                 [weakNode, nodeId = GetId(), width = resetSurfaceParams_->width, height = resetSurfaceParams_->height,
                     resetSurfaceIndex = resetSurfaceParams_->resetSurfaceIndex]() {

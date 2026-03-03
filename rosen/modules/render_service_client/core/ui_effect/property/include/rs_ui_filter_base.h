@@ -32,7 +32,7 @@ class RSNGFilterBase : public RSNGEffectBase<RSNGFilterBase, RSNGRenderFilterBas
 public:
     virtual ~RSNGFilterBase() = default;
 
-    static std::shared_ptr<RSNGFilterBase> Create(RSNGEffectType type);
+    RSC_EXPORT static std::shared_ptr<RSNGFilterBase> Create(RSNGEffectType type);
 
     static std::shared_ptr<RSNGFilterBase> Create(std::shared_ptr<FilterPara> filterPara);
 };

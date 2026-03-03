@@ -1399,7 +1399,7 @@ public:
      *
      * @param compositingFilter Pointer to a Filter that defines the compositing filter effect.
      */
-    void SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter);
+    void SetCompositingNGFilter(const std::shared_ptr<RSNGFilterBase>& compositingFilter);
 
     /**
      * @brief Sets the shadow color.

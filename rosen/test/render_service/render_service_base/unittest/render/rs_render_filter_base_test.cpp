@@ -58,6 +58,22 @@ HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImpl001, TestSize.Level1
 }
 
 /**
+ * @tc.name: UpdateVisualEffectParamImpl002
+ * @tc.desc: Test the UpdateVisualEffectParamImpl
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImpl002, TestSize.Level1)
+{
+    auto testEffect = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_KAWASE_BLUR);
+    EXPECT_NE(testEffect, nullptr);
+
+    // 1 test value
+    RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(*testEffect, Drawing::GE_FILTER_KAWASE_BLUR_RADIUS, 1);
+    auto impl = testEffect->GetImpl();
+    EXPECT_EQ(impl->GetKawaseParams()->radius, 1);
+}
+
+/**
  * @tc.name: GenerateGEVisualEffect
  * @tc.desc: Test the GenerateGEVisualEffect method
  * @tc.type: FUNC
@@ -427,5 +443,19 @@ HWTEST_F(RSRenderFilterBaseTest, CalcRect001, TestSize.Level1)
     EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(filter1, bound, EffectRectType::SNAPSHOT), bound);
     EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(filter1, bound, EffectRectType::DRAW), bound);
     EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(filter1, bound, EffectRectType::TOTAL), RectF());
+}
+
+/**
+ * @tc.name: CalculatePropTagHashImplInt
+ * @tc.desc: test CalculatePropTagHashImpl(uint32_t& hash, int value)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, CalculatePropTagHashImplInt, TestSize.Level1)
+{
+    uint32_t hash1 = 0;
+    uint32_t hash2 = 0;
+    RSNGRenderEffectHelper::CalculatePropTagHashImpl(hash1, 1);
+    RSNGRenderEffectHelper::CalculatePropTagHashImpl(hash2, 2);
+    EXPECT_NE(hash1, hash2);
 }
 } // namespace OHOS::Rosen

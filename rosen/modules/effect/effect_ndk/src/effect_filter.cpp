@@ -358,17 +358,38 @@ EffectErrorCode OH_Filter_ReededGlass(OH_Filter* filter, OH_Filter_ReededGlassDa
     geReededparams->noiseFrequency = reededGlassParams->noiseFrequency;
     geReededparams->horizontalPatternNumber = reededGlassParams->horizontalPatternNumber;
     geReededparams->saturationFactor = reededGlassParams->saturationFactor;
-    geReededparams->borderLightStrength = reededGlassParams->borderLightStrength;
+
+    geReededparams->gridLightStrength = reededGlassParams->gridLightStrength;
+    geReededparams->gridLightPositionStart = reededGlassParams->gridLightPositionStart;
+    geReededparams->gridLightPositionEnd = reededGlassParams->gridLightPositionEnd;
+
+    geReededparams->gridShadowStrength = reededGlassParams->gridShadowStrength;
+    geReededparams->gridShadowPositionStart = reededGlassParams->gridShadowPositionStart;
+    geReededparams->gridShadowPositionEnd = reededGlassParams->gridShadowPositionEnd;
+
     geReededparams->pointLightColor.redF_ = reededGlassParams->pointLightColor.red;
     geReededparams->pointLightColor.greenF_ = reededGlassParams->pointLightColor.green;
     geReededparams->pointLightColor.blueF_ = reededGlassParams->pointLightColor.blue;
-    geReededparams->borderLightWidth = reededGlassParams->borderLightWidth;
     geReededparams->pointLight1Position.SetX(reededGlassParams->pointLight1Position.x);
     geReededparams->pointLight1Position.SetY(reededGlassParams->pointLight1Position.y);
     geReededparams->pointLight1Strength = reededGlassParams->pointLight1Strength;
     geReededparams->pointLight2Position.SetX(reededGlassParams->pointLight2Position.x);
     geReededparams->pointLight2Position.SetY(reededGlassParams->pointLight2Position.y);
     geReededparams->pointLight2Strength = reededGlassParams->pointLight2Strength;
+
+    geReededparams->portalLightSize.SetX(reededGlassParams->portalLightSize.x);
+    geReededparams->portalLightSize.SetY(reededGlassParams->portalLightSize.y);
+    geReededparams->portalLightTilt.SetX(reededGlassParams->portalLightTilt.x);
+    geReededparams->portalLightTilt.SetY(reededGlassParams->portalLightTilt.y);
+    geReededparams->portalLightPosition.SetX(reededGlassParams->portalLightPosition.x);
+    geReededparams->portalLightPosition.SetY(reededGlassParams->portalLightPosition.y);
+    geReededparams->portalLightDisperseAttenuation = reededGlassParams->portalLightDisperseAttenuation;
+    geReededparams->portalLightDisperse = reededGlassParams->portalLightDisperse;
+    geReededparams->portalLightSmoothBorder = reededGlassParams->portalLightSmoothBorder;
+    geReededparams->portalLightShadowBorder = reededGlassParams->portalLightShadowBorder;
+    geReededparams->portalLightShadowPositionShift = reededGlassParams->portalLightShadowPositionShift;
+    geReededparams->portalLightStrength = reededGlassParams->portalLightStrength;
+
     CastToFilter(filter)->ReededGlass(geReededparams);
 
     return EFFECT_SUCCESS;

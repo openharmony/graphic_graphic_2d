@@ -144,6 +144,14 @@ HWTEST(RSRenderNodeDrawableAdapterTest, OnGenerateTest, TestSize.Level1)
     retAdapter = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
     EXPECT_NE(retAdapter, nullptr);
     RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id + 3, 0);
+    auto adapterNode3 = std::make_shared<RSRenderNode>(screenNode->GetId());
+    auto adapter3 = std::make_shared<RSRenderNodeDrawable>(adapterNode3);
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(screenNode->GetId(), adapter3);
+    retAdapter = RSRenderNodeDrawableAdapter::OnGenerate(screenNode);
+    EXPECT_NE(retAdapter, nullptr);
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
 }
 
 /**

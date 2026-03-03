@@ -769,7 +769,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (surfaceParams->GetHardCursorStatus()) {
         SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hardcursor skip SurfaceName:%s", name_.c_str());
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hardcursor skip name:%s, id:%" PRIu64,
+            name_.c_str(), surfaceParams->GetId());
         return;
     }
 
@@ -1143,7 +1144,8 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if (surfaceParams->GetHardCursorStatus() &&
         (uniParam->HasPhysicMirror() || RSUniRenderThread::GetCaptureParam().isSnapshot_)) {
         SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture hardcursor skip SurfaceName:%s", name_.c_str());
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture hardcursor skip name:%s, id:%" PRIu64,
+            name_.c_str(), surfaceParams->GetId());
         return;
     }
 

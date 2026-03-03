@@ -170,6 +170,8 @@ void RSPointerWindowManager::HardCursorCreateLayer(std::shared_ptr<RSProcessor> 
 {
     auto hardCursorDrawable = GetHardCursorDrawable(screenNodeId);
     if (hardCursorDrawable == nullptr) {
+        RS_LOGD("RSPointerWindowManager::HardCursorCreateLayer no hardCursor screenNodeId:%{public}" PRIu64,
+            screenNodeId);
         return;
     }
     processor->CreateLayerForRenderThread(*hardCursorDrawable);
@@ -235,6 +237,9 @@ void RSPointerWindowManager::CollectAllHardCursor(
         auto surfaceNodeDrawable =
             std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(hardCursorNode.GetRenderDrawable());
         if (surfaceNodeDrawable && hardCursorNode.IsOnTheTree()) {
+            RS_LOGD("RSPointerWindowManager::CollectAllHardCursor, collect success, screenNodeId:%{public}" PRIu64
+                ", displayNodeId:%{public}" PRIu64 ", hardCursorNodeId:%{public}" PRIu64,
+                curScreenNode->GetId(), curDisplayNode->GetId(), hardCursorNode.GetId());
             hardCursorDrawableVec_.emplace_back(curScreenNode->GetId(),
                 curDisplayNode->GetId(), hardCursorNode.GetRenderDrawable());
         }
@@ -248,6 +253,8 @@ std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSPointerWindowManager:
         return nullptr;
     }
     auto& hardCursorDrawables = renderThreadParams->GetHardCursorDrawables();
+    RS_LOGD("RSPointerWindowManager::GetHardCursorDrawable, screenNodeId:%{public}" PRIu64 ","
+        " hardCursor size:%{public}zu", id, hardCursorDrawables.size());
     if (hardCursorDrawables.empty()) {
         return nullptr;
     }

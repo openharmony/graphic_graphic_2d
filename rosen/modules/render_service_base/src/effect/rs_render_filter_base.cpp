@@ -311,5 +311,23 @@ RectF RSNGRenderFilterHelper::CalcRect(const std::shared_ptr<RSNGRenderFilterBas
             return RectF();
     }
 }
+
+void RSNGRenderFilterHelper::GetDescription(std::shared_ptr<RSNGRenderFilterBase>& filter, std::string& filterString)
+{
+    if (!filter) {
+        return;
+    }
+    auto current = filter;
+    if (!filterString.empty()) {
+        filterString += "";
+    }
+    while (current) {
+        filterString += RSNGRenderEffectHelper::GetEffectTypeString(current->GetType());
+        current = current->nextEffect_;
+        if (current) {
+            filterString += "-";
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

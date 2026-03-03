@@ -433,15 +433,35 @@ typedef struct {
      */
     float saturationFactor;
 
-    /** Specifies the light intensity of grid gaps.
+    /** Specifies the light strength of every grid; 0.0f means no light, 1.0f means light smoothly fills the grid.
      *  Range: [0.0f, 1.0f]
      */
-    float borderLightStrength;
+    float gridLightStrength;
 
-    /** Specifies the light width of grid gaps; 0.0f means no light, 1.0f means light smoothly fills the grid.
+    /** Specifies the light start position of every grid;
      *  Range: [0.0f, 1.0f]
      */
-    float borderLightWidth;
+    float gridLightPositionStart;
+
+    /** Specifies the light end position of every grid;
+     *  Range: [0.0f, 1.0f]
+     */
+    float gridLightPositionEnd;
+
+    /** Specifies the shadow strength of every grid; 0.0f means no light, 1.0f means light smoothly fills the grid.
+     *  Range: [0.0f, 1.0f]
+     */
+    float gridShadowStrength;
+
+    /** Specifies the shadow start position of every grid;
+     *  Range: [0.0f, 1.0f]
+     */
+    float gridShadowPositionStart;
+
+    /** Specifies the shadow end position of every grid;
+     *  Range: [0.0f, 1.0f]
+     */
+    float gridShadowPositionEnd;
 
     /** Follows OH_Filter_Color; alpha is meaningless.
      *  Range: [0.0f, 1.0f]
@@ -469,6 +489,51 @@ typedef struct {
      *  Range: [0.0f, 1.0f]
      */
     float pointLight2Strength;
+
+    /** Specifies the size of portal light.
+     *  Range: [0.0, +∞]
+     */
+    OH_Filter_Vec2 portalLightSize;
+
+    /** Specifies the tilt strength of portal light.
+     *  Range: [0.0, 1.0]
+     */
+    OH_Filter_Vec2 portalLightTilt;
+
+    /** Specifies the position of point light.
+     *  Range: No limitation
+     */
+    OH_Filter_Vec2 portalLightPosition;
+
+    /** Specifies the disperse attenuation strength of point light.
+     *  Range: [0.0, +∞]
+     */
+    float portalLightDisperseAttenuation;
+
+    /** Specifies the disperse strength of point light.
+     *  Range: [0.0, +∞]
+     */
+    float portalLightDisperse;
+
+    /** Specifies the smooth border strength of point light.
+     *  Range: [0.0, +∞]
+     */
+    float portalLightSmoothBorder;
+
+    /** Specifies the shadow border strength of point light.
+     *  Range: [0.0, +∞]
+     */
+    float portalLightShadowBorder;
+
+    /** Specifies the shadow position shift strength of point light.
+     *  Range: [0.0, +∞]
+     */
+    float portalLightShadowPositionShift;
+
+    /** Specifies the portal light strength of point light.
+     *  Range: [0.0, +∞]
+     */
+    float portalLightStrength;
 } OH_Filter_ReededGlassDataParams;
 #ifdef __cplusplus
 }

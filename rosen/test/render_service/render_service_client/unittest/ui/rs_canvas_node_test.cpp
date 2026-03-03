@@ -3275,19 +3275,6 @@ HWTEST_F(RSCanvasNodeTest, SetBackgroundShader001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetCompositingFilter001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetCompositingFilter001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    ASSERT_NE(canvasNode, nullptr);
-    auto compositingFilter = RSFilter::CreateBlurFilter(0.0f, 0.0f);
-    canvasNode->SetCompositingFilter(compositingFilter);
-}
-
-/**
  * @tc.name: SetShadowPath001
  * @tc.desc:
  * @tc.type:FUNC

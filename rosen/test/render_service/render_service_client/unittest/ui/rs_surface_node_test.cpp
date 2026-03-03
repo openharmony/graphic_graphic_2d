@@ -829,54 +829,6 @@ HWTEST_F(RSSurfaceNodeTest, SetFilter003, TestSize.Level3)
 }
 
 /**
- * @tc.name: SetCompositingFilter001
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require: issueI5J8R1
- */
-HWTEST_F(RSSurfaceNodeTest, SetCompositingFilter001, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_TRUE(surfaceNode != nullptr);
-    auto compositingFilter = RSFilter::CreateBlurFilter(floatData[0],
-    floatData[1]);
-    surfaceNode->SetCompositingFilter(compositingFilter);
-}
-
-/**
- * @tc.name: SetCompositingFilter002
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require: issueI5J8R1
- */
-HWTEST_F(RSSurfaceNodeTest, SetCompositingFilter002, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_TRUE(surfaceNode != nullptr);
-    auto compositingFilter = RSFilter::CreateBlurFilter(floatData[1],
-    floatData[2]);
-    surfaceNode->SetCompositingFilter(compositingFilter);
-}
-
-/**
- * @tc.name: SetCompositingFilter003
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require: issueI5J8R1
- */
-HWTEST_F(RSSurfaceNodeTest, SetCompositingFilter003, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_TRUE(surfaceNode != nullptr);
-    auto compositingFilter = RSFilter::CreateBlurFilter(floatData[2],
-    floatData[3]);
-    surfaceNode->SetCompositingFilter(compositingFilter);
-}
-
-/**
  * @tc.name: SetShadowOffset001
  * @tc.desc:
  * @tc.type: FUNC

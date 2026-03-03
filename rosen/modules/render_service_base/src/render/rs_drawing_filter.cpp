@@ -139,7 +139,7 @@ std::string RSDrawingFilter::GetDescription()
                 break;
         }
     }
-
+    RSNGRenderFilterHelper::GetDescription(renderFilter_, filterString);
     return filterString;
 }
 

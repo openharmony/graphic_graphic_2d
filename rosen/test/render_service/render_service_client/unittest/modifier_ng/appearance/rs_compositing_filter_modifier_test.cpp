@@ -24,6 +24,7 @@
 
 #include "common/rs_vector4.h"
 #include "modifier_ng/appearance/rs_compositing_filter_modifier.h"
+#include "ui_effect/property/include/rs_ui_filter_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -133,5 +134,9 @@ HWTEST_F(RSCompositingFilterModifierNGTypeTest, RSCompositingFilterModifierTest,
     bool fgBlurDisableSystemAdaptationValue = true;
     modifier->SetFgBlurDisableSystemAdaptation(fgBlurDisableSystemAdaptationValue);
     EXPECT_EQ(modifier->GetFgBlurDisableSystemAdaptation(), fgBlurDisableSystemAdaptationValue);
+
+    auto filter = RSNGFilterHelper::CreateNGBlurFilter(0.5, 0.5);
+    modifier->SetNGFilterBase(filter);
+    EXPECT_EQ(modifier->GetNGFilterBase(), filter);
 }
 } // namespace OHOS::Rosen

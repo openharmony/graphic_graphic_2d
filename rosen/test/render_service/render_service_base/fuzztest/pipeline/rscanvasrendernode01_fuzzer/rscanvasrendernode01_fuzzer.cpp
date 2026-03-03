@@ -26,7 +26,6 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_draw_cmd_list.h"
-#include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"

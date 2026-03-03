@@ -20,44 +20,36 @@ namespace Rosen {
 std::unique_ptr<CmdListImage> RSCmdListImageCollector::CollectCmdListImage(
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
-    if (drawCmdList == nullptr) {
+    if (drawCmdList == nullptr || drawCmdList->IsEmpty()) {
         return nullptr;
     }
 
-    std::vector<std::shared_ptr<Drawing::ExtendImageObject>> imageObjectVec;
-    std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>> imageBaseObjVec;
-    std::vector<std::shared_ptr<Drawing::ExtendImageNineObject>> imageNineObjectVec;
-    std::vector<std::shared_ptr<Drawing::ExtendImageLatticeObject>> imageLatticeObjectVec;
-    drawCmdList->GetAllObject(imageObjectVec);
-    drawCmdList->GetAllBaseObj(imageBaseObjVec);
-    drawCmdList->GetAllImageNineObject(imageNineObjectVec);
-    drawCmdList->GetAllImageLatticeObject(imageLatticeObjectVec);
-
     auto cmdListImages = std::make_unique<CmdListImage>();
-    bool hasImages = false;
-    if (!imageObjectVec.empty()) {
-        cmdListImages->imageObjectVec =
-            std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageObject>>>(std::move(imageObjectVec));
-        hasImages = true;
+    cmdListImages->imageObjectVec = std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageObject>>>();
+    cmdListImages->imageBaseObjVec = std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>>>();
+    cmdListImages->imageNineObjectVec =
+        std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageNineObject>>>();
+    cmdListImages->imageLatticeObjectVec =
+        std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageLatticeObject>>>();
+    drawCmdList->GetAllObject(*cmdListImages->imageObjectVec);
+    drawCmdList->GetAllBaseObj(*cmdListImages->imageBaseObjVec);
+    drawCmdList->GetAllImageNineObject(*cmdListImages->imageNineObjectVec);
+    drawCmdList->GetAllImageLatticeObject(*cmdListImages->imageLatticeObjectVec);
+
+    if (cmdListImages->imageObjectVec->empty()) {
+        cmdListImages->imageObjectVec = nullptr;
     }
-    if (!imageBaseObjVec.empty()) {
-        cmdListImages->imageBaseObjVec =
-            std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>>>(std::move(imageBaseObjVec));
-        hasImages = true;
+    if (cmdListImages->imageBaseObjVec->empty()) {
+        cmdListImages->imageBaseObjVec = nullptr;
     }
-    if (!imageNineObjectVec.empty()) {
-        cmdListImages->imageNineObjectVec =
-            std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageNineObject>>>(
-                std::move(imageNineObjectVec));
-        hasImages = true;
+    if (cmdListImages->imageNineObjectVec->empty()) {
+        cmdListImages->imageNineObjectVec = nullptr;
     }
-    if (!imageLatticeObjectVec.empty()) {
-        cmdListImages->imageLatticeObjectVec =
-            std::make_unique<std::vector<std::shared_ptr<Drawing::ExtendImageLatticeObject>>>(
-                std::move(imageLatticeObjectVec));
-        hasImages = true;
+    if (cmdListImages->imageLatticeObjectVec->empty()) {
+        cmdListImages->imageLatticeObjectVec = nullptr;
     }
-    if (hasImages) {
+    if (cmdListImages->imageObjectVec || cmdListImages->imageBaseObjVec || cmdListImages->imageNineObjectVec ||
+        cmdListImages->imageLatticeObjectVec) {
         return cmdListImages;
     }
     return nullptr;

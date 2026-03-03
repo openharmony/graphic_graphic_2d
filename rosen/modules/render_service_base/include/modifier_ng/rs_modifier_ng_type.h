@@ -312,6 +312,7 @@ public:
             case RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";
             case RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR: return "BehindWindowFilterMaskColor";
             case RSPropertyType::FOREGROUND_SHADER: return "ForegroundShader";
+            case RSPropertyType::COMPOSITING_NG_FILTER: return "CompositingNGFilter";
             case RSPropertyType::USE_UNION: return "UseUnion";
             case RSPropertyType::UNION_SPACING: return "UnionSpacing";
             case RSPropertyType::SDF_SHAPE: return "SDFShape";

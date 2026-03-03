@@ -88,7 +88,6 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
-#include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/main_thread/rs_render_service_visitor.h"

@@ -63,6 +63,9 @@ const RSCompositingFilterRenderModifier::LegacyPropertyApplierMap
                 &RSProperties::GetForegroundBlurRadiusY> },
         { RSPropertyType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION,
             RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetFgBlurDisableSystemAdaptation> },
+        { RSPropertyType::COMPOSITING_NG_FILTER,
+            RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderFilterBase>,
+                &RSProperties::SetCompositingNGFilter> },
     };
 
 void RSCompositingFilterRenderModifier::ResetProperties(RSProperties& properties)
@@ -87,5 +90,6 @@ void RSCompositingFilterRenderModifier::ResetProperties(RSProperties& properties
     properties.SetForegroundBlurRadiusX(0.f);
     properties.SetForegroundBlurRadiusY(0.f);
     properties.SetFgBlurDisableSystemAdaptation(true);
+    properties.SetCompositingNGFilter(nullptr);
 }
 } // namespace OHOS::Rosen::ModifierNG

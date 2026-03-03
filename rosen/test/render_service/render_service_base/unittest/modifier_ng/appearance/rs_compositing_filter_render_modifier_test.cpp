@@ -78,5 +78,6 @@ HWTEST_F(RSCompositingFilterRenderModifierNGTest, RSCompositingFilterRenderModif
     EXPECT_EQ(properties.GetForegroundBlurRadiusX(), 0.0f);
     EXPECT_EQ(properties.GetForegroundBlurRadiusY(), 0.0f);
     EXPECT_EQ(properties.GetFgBlurDisableSystemAdaptation(), true);
+    EXPECT_EQ(properties.GetCompositingNGFilter(), nullptr);
 }
 } // namespace OHOS::Rosen

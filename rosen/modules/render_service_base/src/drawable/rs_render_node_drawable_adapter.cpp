@@ -101,21 +101,30 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
         RSRenderNodeGC::DrawableDestructor(ptr);
     };
     auto id = node->GetId();
+
     // Try to get a cached drawable if it exists.
+    SharedPtr drawableSptr = nullptr;
+    bool cacheHit = false;
     {
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
         if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
-            if (const auto ptr = cacheIt->second.lock()) {
-                ROSEN_LOGE("%{public}s, node id in Cache is %{public}" PRIu64
-                    ", nodeType: %{public}u, drawableType: %{public}u", __func__, id, node->GetType(),
-                    ptr->GetNodeType());
-                if (node->GetType() == ptr->GetNodeType()) {
-                    return ptr;
+            if ((drawableSptr = cacheIt->second.lock()) != nullptr) {
+                ROSEN_LOGE("%{public}s, nodeId in cache: %{public}" PRIu64 ", nodeType=%{public}u, "
+                    "drawableType=%{public}u", __func__, id, node->GetType(), drawableSptr->GetNodeType());
+                if (node->GetType() == drawableSptr->GetNodeType()) {
+                    cacheHit = true;
                 }
             }
-            RenderNodeDrawableCache_.erase(cacheIt);
+            if (!cacheHit) {
+                RenderNodeDrawableCache_.erase(cacheIt);
+            }
         }
     }
+    if (cacheHit) {
+        return drawableSptr;
+    }
+    drawableSptr = nullptr;
+
     // If we don't have a cached drawable, try to generate a new one and cache it.
     const auto it = GeneratorMap.find(node->GetType());
     if (it == GeneratorMap.end()) {
