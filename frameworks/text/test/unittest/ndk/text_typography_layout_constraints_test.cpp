@@ -1861,4 +1861,105 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 
     EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
+
+/**
+ * @tc.name: TypographyLayoutWithConstraintsTest054
+ * @tc.desc: Test LayoutWithConstraints when constraints height equals to actual height.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest054, TestSize.Level0)
+{
+    CreateTypographyHandler();
+    AddText("你H");
+    CreateTypography();
+
+    OH_Drawing_Array* rangeArray = nullptr;
+    size_t rangeCount = 0;
+
+    OH_Drawing_RectSize result = CallLayoutWithConstraints(LAYOUT_WIDTH_SMALL, DEFAULT_SINGLE_LINE_HEIGHT,
+                                                           &rangeArray, &rangeCount);
+
+    ASSERT_NE(rangeArray, nullptr);
+    EXPECT_EQ(rangeCount, 1);
+    const size_t rangeEnd = 2;
+    std::vector<std::pair<size_t, size_t>> expectedRanges = { {0, rangeEnd} };
+    VerifyAllRanges(expectedRanges, rangeArray, rangeCount);
+    const double expectRectWidth = 87.249923706054688;
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(GetTypography());
+    const size_t expectLineCnt = 1;
+    EXPECT_EQ(lineCnt, expectLineCnt);
+    VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
+    OH_Drawing_TypographyLayout(GetTypography(), LAYOUT_WIDTH_LARGE);
+    EXPECT_DOUBLE_EQ(result.width, OH_Drawing_TypographyGetLongestLineWithIndent(GetTypography()));
+
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+}
+
+/**
+ * @tc.name: TypographyLayoutWithConstraintsTest055
+ * @tc.desc: Test LayoutWithConstraints when constraints height equals to actual height and enter fastFath.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest055, TestSize.Level0)
+{
+    CreateTypographyHandler();
+    AddText(SHORT_TEXT);
+    CreateTypography();
+
+    OH_Drawing_Array* rangeArray = nullptr;
+    size_t rangeCount = 0;
+    const size_t expectLineCnt = 2;
+
+    OH_Drawing_RectSize result = CallLayoutWithConstraints(LAYOUT_WIDTH_SMALL,
+                                                           DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt,
+                                                           &rangeArray, &rangeCount);
+
+    ASSERT_NE(rangeArray, nullptr);
+    EXPECT_EQ(rangeCount, 1);
+    const size_t rangeEnd = 5;
+    std::vector<std::pair<size_t, size_t>> expectedRanges = { {0, rangeEnd} };
+    VerifyAllRanges(expectedRanges, rangeArray, rangeCount);
+    const double expectRectWidth = 88.499908447265625;
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(GetTypography());
+    EXPECT_EQ(lineCnt, expectLineCnt);
+    VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
+    OH_Drawing_TypographyLayout(GetTypography(), LAYOUT_WIDTH_LARGE);
+    EXPECT_DOUBLE_EQ(result.width, OH_Drawing_TypographyGetLongestLineWithIndent(GetTypography()));
+
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+}
+
+/**
+ * @tc.name: TypographyLayoutWithConstraintsTest056
+ * @tc.desc: Test LayoutWithConstraints when constraints height equals to actual height and breakStrategy is BALANCED.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest056, TestSize.Level0)
+{
+    OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
+    CreateTypographyHandler();
+    AddText(MEDIUM_TEXT);
+    CreateTypography();
+
+    OH_Drawing_Array* rangeArray = nullptr;
+    size_t rangeCount = 0;
+
+    OH_Drawing_RectSize result = CallLayoutWithConstraints(LAYOUT_WIDTH_LARGE, DEFAULT_SINGLE_LINE_HEIGHT,
+                                                           &rangeArray, &rangeCount);
+
+    ASSERT_NE(rangeArray, nullptr);
+    EXPECT_EQ(rangeCount, 1);
+    const size_t rangeEnd = 28;
+    const size_t expectLineCnt = 1;
+    std::vector<std::pair<size_t, size_t>> expectedRanges = { {0, rangeEnd} };
+    VerifyAllRanges(expectedRanges, rangeArray, rangeCount);
+    const double expectRectWidth = 577.29949951171875;
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(GetTypography());
+    EXPECT_EQ(lineCnt, expectLineCnt);
+    VerifyRectSize(expectRectWidth, DEFAULT_SINGLE_LINE_HEIGHT * expectLineCnt, result);
+    OH_Drawing_TypographyLayout(GetTypography(), LAYOUT_WIDTH_LARGE);
+    EXPECT_DOUBLE_EQ(result.width, OH_Drawing_TypographyGetLongestLineWithIndent(GetTypography()));
+
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+}
 } // namespace OHOS

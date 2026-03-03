@@ -233,6 +233,7 @@ ani_object AniParagraph::LayoutWithConstraints(
     ani_status ret = AniTextLayoutResultConverter::ParseTextRectSizeToNative(env, constraint, textRect);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse constraint, ret %{public}d", ret);
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid or undefined params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
 
