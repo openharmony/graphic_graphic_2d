@@ -311,8 +311,6 @@ public:
      */
     void SetClonedNodeInfo(NodeId nodeId, bool needOffscreen = true, bool isRelated = false);
     // Force enable UIFirst when set TRUE
-    bool CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> currentNode,
-        std::shared_ptr<RSSurfaceRenderNode> clonedNode);
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoFlags(uint32_t flags);
     void SetHDRPresent(bool hdrPresent, NodeId id);
