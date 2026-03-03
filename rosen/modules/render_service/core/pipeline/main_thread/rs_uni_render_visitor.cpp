@@ -1932,6 +1932,14 @@ void RSUniRenderVisitor::UpdateDrawingCacheInfoAfterChildren(RSRenderNode& node)
                 isInBlackList = true;
             }
         }
+        bool hasFilter = node.ChildHasVisibleFilter() || node.ChildHasVisibleEffect();
+        bool hasAncestorRenderGroup = HasAncestorRenderGroup(node.GetId());
+        // when renderGroup nested with blur,
+        // Disable inner renderGroup incase draw blur on ancestor renderGroup offScreen cache
+        if (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE && hasAncestorRenderGroup && hasFilter) {
+            node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+            RS_TRACE_NAME_FMT("Disable inner render group, id:%llu", node.GetId());
+        }
         node.UpdateDrawingCacheInfoAfterChildren(isInBlackList, childHasProtectedNodeSet_);
     }
 }
@@ -1952,6 +1960,12 @@ void RSUniRenderVisitor::PopRenderGroupCacheRoot(const RSCanvasRenderNode& node)
         RS_OPTIONAL_TRACE_NAME_FMT("PopRenderGroupCacheRoot id:%llu", node.GetId());
         renderGroupCacheRoots_.erase(iter);
     }
+}
+
+bool RSUniRenderVisitor::HasAncestorRenderGroup(NodeId nodeId) const
+{
+    return (renderGroupCacheRoots_.count(nodeId) > 0) ? renderGroupCacheRoots_.size() > 1
+                                                      : !renderGroupCacheRoots_.empty();
 }
 
 void RSUniRenderVisitor::SetRenderGroupSubTreeDirtyIfNeed(const RSRenderNode& node)

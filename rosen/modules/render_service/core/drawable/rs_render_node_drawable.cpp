@@ -251,7 +251,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
 
     // in case of with filter
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    if (needUpdateCache && !isOffScreenWithClipHole_) {
+    if (needUpdateCache) {
         // 1. update cache without filer/shadow/effect & clip hole
         auto canvasType = curCanvas->GetCacheType();
         // set canvas type as OFFSCREEN to not draw filter/shadow/filter
@@ -377,19 +377,6 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
         "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
         hasFilter, params.GetDrawingCacheType());
     auto originalCacheType = GetCacheType();
-    // for nested render group with filter, cancel the inner group
-    if (isOffScreenWithClipHole_ && hasFilter && GetCacheType() != DrawableCacheType::NONE) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu disable inner group drawable cache", nodeId_);
-        SetCacheType(DrawableCacheType::NONE);
-        SetCanceledByParentRenderGroup(true);
-    }
-    // resume the inner render group after outer render group is canceled
-    if (params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE && IsCanceledByParentRenderGroup() &&
-        !isOffScreenWithClipHole_ && !IsDrawingBlurForCache()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu resume inner group drawable cache", nodeId_);
-        SetCacheType(DrawableCacheType::CONTENT);
-        SetCanceledByParentRenderGroup(false);
-    }
     // can not draw cache because skipCacheLayer in capture process, such as security layers...
     if (GetCacheType() != DrawableCacheType::NONE && hasSkipCacheLayer_ && isInCapture) {
         SetCacheType(DrawableCacheType::NONE);
@@ -408,22 +395,10 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     }
     // in case of generating cache with filter in offscreen, clip hole for filter/shadow but drawing others
     if (isOffScreenWithClipHole_) {
-        if (params.IsExcludedFromNodeGroup()) {
-            RS_TRACE_NAME_FMT("Skip drawing excluded node on cache id:% " PRIu64, GetId());
-            auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-            Drawing::AutoCanvasRestore arc(*curCanvas, true);
-            curCanvas->ClipRect(params.GetBounds(), Drawing::ClipOp::INTERSECT, false);
-            curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-            UpdateFilterInfoForNodeGroup(curCanvas);
-            RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
-            return;
-        } else if (HasFilterOrEffect(params) && params.GetForegroundFilterCache() == nullptr) {
-            // clip hole for filter/shadow
-            Drawing::AutoCanvasRestore arc(canvas, true);
-            SkipDrawBackGroundAndClipHoleForBlur(canvas, params);
-            DrawContent(canvas, params.GetFrameRect());
-            DrawChildren(canvas, params.GetBounds());
-            DrawForegroundWithOutRestoreAll(canvas, params.GetBounds());
+        if (params.IsExcludedFromNodeGroup() ||
+            (HasFilterOrEffect(params) && params.GetForegroundFilterCache() == nullptr)) {
+            RS_TRACE_NAME_FMT("Skip draw excluded node or filter on cache id:% " PRIu64, GetId());
+            SkipDrawSubtreeAndClipHole(canvas, params);
             RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
             return;
         }
@@ -460,9 +435,7 @@ void RSRenderNodeDrawable::DrawWithoutNodeGroupCache(
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
-    if (!IsCanceledByParentRenderGroup()) {
-        SetCacheType(originalCacheType);
-    }
+    SetCacheType(originalCacheType);
 }
 
 void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const RSRenderParams& params)
@@ -549,38 +522,10 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithFilter(std::vector<FilterNodeIn
     }
     curDrawingCacheRoot_->SetLastDrawnFilterNodeId(GetId());
     curDrawingCacheRoot_->ReduceFilterNodeSize();
-    if (params.IsExcludedFromNodeGroup()) {
-        SetDrawExcludedSubTreeForCache(true);
-        RS_TRACE_NAME_FMT("Draw exclueded subtree id:%" PRIu64, GetId());
-        RSRenderNodeDrawable::OnDraw(canvas);
-        SetDrawExcludedSubTreeForCache(false);
-        return;
-    }
-    Drawing::AutoCanvasRestore arc(canvas, true);
-    DrawBackgroundWithOutSaveAll(canvas, params.GetBounds());
-    Drawing::Rect dst;
-    auto matrix = begin->matrix_;
-    matrix.MapRect(dst, params.GetBounds());
-    Drawing::RectI dstRect(static_cast<int>(dst.GetLeft()), static_cast<int>(dst.GetTop()),
-        static_cast<int>(dst.GetLeft() + dst.GetWidth()), static_cast<int>(dst.GetTop() + dst.GetHeight()));
-    begin++; // check isIntersect with undrawn filters
-    if (IsIntersectedWithFilter(begin, filterInfoVec, dstRect)) {
-        DrawContent(canvas, params.GetFrameRect());
-        DrawChildren(canvas, params.GetBounds());
-        // DrawChildren may reduce filterNodeSize, if still have filter in other subtree of
-        // curDrawingCacheRoot_, we should draw foreground here
-        if (curDrawingCacheRoot_->GetFilterNodeSize() > 0) {
-            auto filterBegin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
-                [nodeId = curDrawingCacheRoot_->GetLastDrawnFilterNodeId()](
-                    const auto& item) -> bool { return item.nodeId_ == nodeId; });
-            if (filterBegin != filterInfoVec.end()) {
-                filterBegin++; // check isIntersect with undrawn filters
-            }
-            if (IsIntersectedWithFilter(filterBegin, filterInfoVec, dstRect)) {
-                DrawForegroundWithOutRestoreAll(canvas, params.GetBounds());
-            }
-        }
-    }
+    SetDrawExcludedSubTreeForCache(true);
+    RS_TRACE_NAME_FMT("Draw exclueded subtree id:%" PRIu64, GetId());
+    RSRenderNodeDrawable::OnDraw(canvas);
+    SetDrawExcludedSubTreeForCache(false);
 }
 
 bool RSRenderNodeDrawable::IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
@@ -632,22 +577,6 @@ void RSRenderNodeDrawable::SetDrawExcludedSubTreeForCache(bool value)
 bool RSRenderNodeDrawable::IsDrawingExcludedSubTreeForCache()
 {
     return RSRenderGroupCacheDrawable::IsDrawingExcludedSubTreeForCache();
-}
-
-void RSRenderNodeDrawable::SetCanceledByParentRenderGroup(bool value)
-{
-    if (!renderGroupCache_) {
-        renderGroupCache_ = std::make_unique<RSRenderGroupCacheDrawable>();
-    }
-    renderGroupCache_->SetCanceledByParentRenderGroup(value);
-}
-
-bool RSRenderNodeDrawable::IsCanceledByParentRenderGroup()
-{
-    if (!renderGroupCache_) {
-        return false;
-    }
-    return renderGroupCache_->IsCanceledByParentRenderGroup();
 }
 
 void RSRenderNodeDrawable::UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id)
