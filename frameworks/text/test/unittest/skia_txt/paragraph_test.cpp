@@ -729,11 +729,15 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis015, TestSize.Level0)
 HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis016, TestSize.Level0)
 {
     size_t maxLines = 1;
-    PrepareMiddleEllipsis(maxLines, u"...", u"你好世界12312212\n你好世界");
-    paragraphMiddleEllipsis_->Layout(280);
+    std::u16string text = u"你好世界12312212\n你好世界";
+    PrepareMiddleEllipsis(maxLines, u"...", text);
+    paragraphMiddleEllipsis_->Layout(238);
     std::vector<TextBox> boxes =
-        paragraphMiddleEllipsis_->GetRectsForRange(0, text_.size(), RectHeightStyle::TIGHT, RectWidthStyle::TIGHT);
+        paragraphMiddleEllipsis_->GetRectsForRange(0, text.size(), RectHeightStyle::TIGHT, RectWidthStyle::TIGHT);
     EXPECT_EQ(boxes.size(), 3);
+    EXPECT_FLOAT_EQ(boxes[0].rect.right(), 119.99988);
+    EXPECT_FLOAT_EQ(boxes[1].rect.right(), 140.78986);
+    EXPECT_FLOAT_EQ(boxes[2].rect.right(), 226.28981);
 }
 
 OHOS::Rosen::SPText::ParagraphImpl* ProcessRelayout(std::shared_ptr<Paragraph> paragraph, std::optional<RSBrush> brush)
