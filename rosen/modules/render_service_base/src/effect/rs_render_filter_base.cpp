@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include "ge_visual_effect_impl.h"
 #include "ge_visual_effect_container.h"
 
+#include "common/rs_optional_trace.h"
 #include "effect/rs_render_mask_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "platform/common/rs_log.h"
@@ -238,6 +239,7 @@ bool RSNGRenderFilterHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase
     auto current = filter;
     while (current) {
         if (RSEffectLuminanceManager::GetEnableHdrEffect(current)) {
+            RS_OPTIONAL_TRACE_NAME_FMT("CheckEnableEDR:find edr filter, type=%d", static_cast<int>(current->GetType()));
             return true;
         }
         current = current->nextEffect_;
