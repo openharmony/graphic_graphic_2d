@@ -372,6 +372,15 @@ void HgmContext::NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
         RsFrameReport::ReportScbSceneInfo(eventInfo.description, eventInfo.eventStatus);
         return;
     }
+#ifdef RS_ENABLE_VK
+    if (GPU_FREQ_PREF == eventInfo.eventName) {
+        RS_LOGD("GPU frequency adjustment event occurs, isFullScreen[%{public}d] focusBundleName_=%{public}s",
+            eventInfo.eventStatus, eventInfo.description.c_str());
+        VkDevice device = RsVulkanContext::GetSingleton().GetRsVulkanInterface().GetDevice();
+        RsFrameReport::ReportWindowInfo(device, eventInfo.eventStatus, eventInfo.description.c_str());
+        return;
+    }
+#endif
 
     HgmTaskHandleThread::Instance().PostTask([frameRateManager = frameRateManager_, pid, eventInfo] {
         frameRateManager->HandleRefreshRateEvent(pid, eventInfo);

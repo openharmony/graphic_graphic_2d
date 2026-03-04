@@ -233,6 +233,7 @@ ani_object AniParagraph::LayoutWithConstraints(
     ani_status ret = AniTextLayoutResultConverter::ParseTextRectSizeToNative(env, constraint, textRect);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse constraint, ret %{public}d", ret);
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid or undefined params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
 
@@ -703,21 +704,27 @@ ani_object AniParagraph::GetCharacterRangeForGlyphRange(ani_env* env, ani_object
         AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, AniGlobalMethod::GetInstance().paragraphGetNative);
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     RectRange glyphRangeNative;
     if (AniTextRectConverter::ParseRangeToNative(env, glyphRange, glyphRangeNative) != ANI_OK) {
         TEXT_LOGE("Failed to parse glyph range");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     // Validate range: start should not be greater than or equal to end
     if (glyphRangeNative.start >= glyphRangeNative.end) {
         TEXT_LOGE("Invalid glyph range: start %{public}" PRId64 ", end %{public}" PRId64,
             glyphRangeNative.start, glyphRangeNative.end);
+        AniTextUtils::ThrowBusinessError(env,
+            static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid parameters");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     Drawing::TextEncoding encodeType;
     if (!ParseTextEncoding(env, encoding, encodeType)) {
+        AniTextUtils::ThrowBusinessError(env,
+            static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid parameters");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     Boundary actualGlyphRange = {0, 0};
@@ -747,21 +754,27 @@ ani_object AniParagraph::GetGlyphRangeForCharacterRange(ani_env* env, ani_object
         AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, AniGlobalMethod::GetInstance().paragraphGetNative);
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     RectRange charRangeNative;
     if (AniTextRectConverter::ParseRangeToNative(env, characterRange, charRangeNative) != ANI_OK) {
         TEXT_LOGE("Failed to parse character range");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     // Validate range: start should not be greater than or equal to end
     if (charRangeNative.start >= charRangeNative.end) {
         TEXT_LOGE("Invalid character range: start %{public}" PRId64 ", end %{public}" PRId64,
             charRangeNative.start, charRangeNative.end);
+        AniTextUtils::ThrowBusinessError(env,
+            static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid parameters");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     Drawing::TextEncoding encodeType;
     if (!ParseTextEncoding(env, encoding, encodeType)) {
+        AniTextUtils::ThrowBusinessError(env,
+            static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid parameters");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     Boundary actualCharRange = {0, 0};
@@ -791,10 +804,13 @@ ani_object AniParagraph::GetCharacterPositionAtCoordinate(ani_env* env, ani_obje
         AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, AniGlobalMethod::GetInstance().paragraphGetNative);
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
     Drawing::TextEncoding encodeType;
     if (!ParseTextEncoding(env, encoding, encodeType)) {
+        AniTextUtils::ThrowBusinessError(env,
+            static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid parameters");
         return AniTextUtils::CreateAniUndefined(env);
     }
     IndexAndAffinity indexAndAffinity = aniParagraph->typography_->GetCharacterIndexByCoordinate(

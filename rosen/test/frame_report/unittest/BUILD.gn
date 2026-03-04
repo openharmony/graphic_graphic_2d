@@ -20,7 +20,11 @@ ohos_unittest("graphic_2d_frame_report_test") {
   sources = [ "rs_frame_report_test.cpp" ]
 
   deps = [ "$graphic_2d_root/utils/test_header:test_header" ]
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "vulkan-headers:vulkan_headers",
+    "vulkan-loader:vulkan_loader",
+  ]
 
   if (current_os == "ohos") {
     sources += [ "$graphic_2d_root/rosen/modules/frame_report/src/rs_frame_report.cpp" ]

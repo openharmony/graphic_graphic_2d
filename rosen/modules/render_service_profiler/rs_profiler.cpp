@@ -378,6 +378,10 @@ void RSProfiler::Init(RSRenderService* renderService)
     bool isBetaRecord = RSSystemProperties::GetBetaRecordingMode() != 0;
     HRPI("Profiler flags changed enabled=%{public}d beta_record=%{public}d", isEnabled ? 1 : 0, isBetaRecord ? 1 : 0);
 
+    if (!isBetaRecord) {
+        ClearBetaRecordFiles();
+    }
+
     if (!IsEnabled()) {
         return;
     }

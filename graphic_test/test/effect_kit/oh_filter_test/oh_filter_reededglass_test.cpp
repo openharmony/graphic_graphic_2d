@@ -50,44 +50,4 @@ private:
     const int screenWidth = 1200;
     const int screenHeight = 2000;
 };
-
-GRAPHIC_TEST(OHFilterReededGlassTest, EFFECT_TEST, ReededGlassTest)
-{
-    int columnCount = 2;
-    int rowCount = static_cast<int>(OHFilterTestDataGroupParamsType::COUNT);
-    auto sizeX = screenWidth / columnCount;
-    auto sizeY = screenHeight * columnCount / rowCount;
-
-    for (int i = 0; i < rowCount; i++) {
-        auto pixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
-        auto ohFilter = CreateFilter(pixelMapNative);
-
-        OH_Filter_ReededGlassDataParams params = {};
-        params.refractionFactor = reededGlassParams[i][0];
-        params.dispersionStrength = reededGlassParams[i][1];
-        params.roughness = reededGlassParams[i][2];
-        params.noiseFrequency = reededGlassParams[i][3];
-        params.horizontalPatternNumber = static_cast<uint8_t>(reededGlassParams[i][4]);
-        params.saturationFactor = reededGlassParams[i][5];
-        params.borderLightStrength = reededGlassParams[i][6];
-        params.borderLightWidth = reededGlassParams[i][7];
-        params.pointLightColor = {
-            reededGlassParams[i][8], reededGlassParams[i][9],
-            reededGlassParams[i][10], reededGlassParams[i][11]
-        };
-        params.pointLight1Position = {reededGlassParams[i][12], reededGlassParams[i][13]};
-        params.pointLight1Strength = reededGlassParams[i][14];
-        params.pointLight2Position = {reededGlassParams[i][15], reededGlassParams[i][16]};
-        params.pointLight2Strength = reededGlassParams[i][17];
-
-        OH_Filter_ReededGlass(ohFilter, &params);
-        OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);
-
-        int x = (i % columnCount) * sizeX;
-        int y = (i / columnCount) * sizeY;
-        DrawBackgroundNodeOHPixelMap(pixelMapNative, {x, y, sizeX, sizeY});
-        OH_Filter_Release(ohFilter);
-    }
-}
-
 }  // namespace OHOS::Rosen

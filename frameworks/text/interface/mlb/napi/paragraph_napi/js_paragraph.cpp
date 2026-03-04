@@ -1158,7 +1158,8 @@ napi_value JsParagraph::OnLayoutWithConstraints(napi_env env, napi_callback_info
     }
     TextRectSize textRect;
     if (!GetTextRectFromJS(env, argv[0], textRect)) {
-        return NapiGetUndefined(env);
+        TEXT_LOGE("Failed to get parameter, invalid or undefined parameter");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid or undefined parameter.");
     }
     TextLayoutResult layoutResult = paragraph_->LayoutWithConstraints(textRect);
     return CreateLayoutResultJsValue(env, layoutResult);

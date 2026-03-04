@@ -31,6 +31,14 @@ namespace Rosen {
 #define LOG_TAG "OHOS::RS"
 #define LOGI(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 #define LOGE(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
+namespace {
+#ifdef RS_ENABLE_VK
+const std::string LIB_VULKAN_PATH = "/system/lib64/libvulkan.so";
+static std::atomic<bool> isInit{false};
+static PFN_vkSetFrontWindowStatusHUAWEI mSetFrontWindowStatusHUAWEI = nullptr;
+static PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr = nullptr;
+#endif
+}
 
 std::once_flag RsFrameReport::initFlag_;
 bool RsFrameReport::inited = false;
@@ -213,5 +221,56 @@ void RsFrameReport::ReportDelScreenId(const int screenId)
     std::call_once(initFlag_, &RsFrameReport::InitSched);
     GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DEL_SCREENID, {});
 }
+
+#ifdef RS_ENABLE_VK
+bool RsFrameReport::InitializeVulkanExtensions(VkDevice device)
+{
+    if (isInit.load()) {
+        return mSetFrontWindowStatusHUAWEI != nullptr;
+    }
+    if (device == nullptr) {
+        LOGE("Obtain vkdevice fail");
+        return false;
+    }
+
+    auto vkhandle = dlopen(LIB_VULKAN_PATH.c_str(), RTLD_NOW | RTLD_LOCAL);
+    if (vkhandle == nullptr) {
+        LOGE("Failed to load Vulkan library: %{public}s", dlerror());
+        return false;
+    }
+
+    vkGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(dlsym(vkhandle, "vkGetDeviceProcAddr"));
+    if (vkGetDeviceProcAddr == nullptr) {
+        LOGE("Failed to obtain vkGetDeviceProcAddr");
+        dlclose(vkhandle);
+        return false;
+    }
+
+    mSetFrontWindowStatusHUAWEI = reinterpret_cast<PFN_vkSetFrontWindowStatusHUAWEI>(
+        vkGetDeviceProcAddr(device, "vkSetFrontWindowStatusHUAWEI"));
+    if (mSetFrontWindowStatusHUAWEI == nullptr) {
+        LOGE("Failed to obtain vkSetFrontWindowStatusHUAWEI");
+        dlclose(vkhandle);
+        return false;
+    }
+
+    dlclose(vkhandle);
+    isInit.store(true);
+    return true;
+}
+
+void RsFrameReport::ReportWindowInfo(VkDevice device, bool isSingleFullScreenApp, const char* firstFrontBundleName)
+{
+    if (!InitializeVulkanExtensions(device)) {
+        LOGE("Failed to initialize Vulkan extensions");
+        return;
+    }
+    if (mSetFrontWindowStatusHUAWEI == nullptr) {
+        LOGE("vkSetFrontWindowStatusHUAWEI is null");
+        return;
+    }
+    mSetFrontWindowStatusHUAWEI(nullptr, isSingleFullScreenApp, firstFrontBundleName);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

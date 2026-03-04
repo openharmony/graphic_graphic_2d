@@ -764,6 +764,121 @@ HWTEST_F(RSScreenTest, GetVirtualScreenAutoRotationTest, testing::ext::TestSize.
 }
 
 /*
+ * @tc.name: SetRogResolution_001
+ * @tc.desc: SetRogResolution Test
+ * @tc.type: FUNC
+ * @tc.require: issueI8JJXW
+ */
+HWTEST_F(RSScreenTest, SetRogResolution_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));
+    ASSERT_NE(rsScreen, nullptr);
+    uint32_t newWidth = 0;
+    uint32_t newHeight = 0;
+    rsScreen->property_.SetWidth(100);
+    rsScreen->property_.SetHeight(100);
+    rsScreen->SetRogResolution(newWidth, newHeight);
+    ASSERT_NE(nullptr, rsScreen->hdiScreen_);
+    ASSERT_EQ(100, rsScreen->Width());
+    ASSERT_EQ(100, rsScreen->Height());
+}
+
+/**
+ * @tc.name: SetRogResolution_002
+ * @tc.desc: SetRogResolution Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, SetRogResolution_002, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    uint32_t width = 100;
+    uint32_t height = 100;
+
+    rsScreen->property_.SetWidth(width + 1);
+    rsScreen->property_.SetHeight(height + 1);
+
+    rsScreen->property_.SetPhyWidth(width + 1);
+    rsScreen->property_.SetPhyHeight(height + 1);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    // case 1: hdiScreen_->SetScreenOverlayResolution failed
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
+    rsScreen->SetRogResolution(width, height);
+
+    // case 2:hdiScreen_->SetScreenOverlayResolution success
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(0));
+    rsScreen->SetRogResolution(width, height);
+}
+
+/**
+ * @tc.name: SetRogResolution_003
+ * @tc.desc: SetRogResolution Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, SetRogResolution_003, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    uint32_t width = 100;
+    uint32_t height = 100;
+
+    rsScreen->property_.SetWidth(width + 1);
+    rsScreen->property_.SetHeight(height + 1);
+
+    rsScreen->property_.SetPhyWidth(width + 1);
+    rsScreen->property_.SetPhyHeight(height - 1);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
+    rsScreen->SetRogResolution(width, height);
+
+    rsScreen->property_.SetPhyWidth(width - 1);
+    rsScreen->property_.SetPhyHeight(height + 1);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
+    rsScreen->SetRogResolution(width, height);
+
+    rsScreen->property_.SetPhyWidth(width - 1);
+    rsScreen->property_.SetPhyHeight(height - 1);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
+    rsScreen->SetRogResolution(width, height);
+}
+
+/**
+ * @tc.name: GetRogResolution_001
+ * @tc.desc: test GetRogResolution with mock HDI device
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenTest, GetRogResolution_001, testing::ext::TestSize.Level1)
+{
+    ScreenId screenId = mockScreenId_;
+    uint32_t width{0};
+    uint32_t height{0};
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
+    
+    ASSERT_NE(nullptr, hdiDeviceMock_);
+    ASSERT_NE(nullptr, rsScreen);
+    ASSERT_NE(nullptr, rsScreen->hdiScreen_);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    // case 1: GetRogResolution without prior setup
+    ASSERT_EQ(rsScreen->GetRogResolution(width, height), StatusCode::INVALID_ARGUMENTS);
+
+    // case 2: GetRogResolution with prior setup
+    rsScreen->isRogResolution_ = true;
+    ASSERT_EQ(rsScreen->GetRogResolution(width, height), StatusCode::SUCCESS);
+}
+
+/*
  * @tc.name: ScreenCapabilityInit_001
  * @tc.desc: ScreenCapabilityInit Test, isVirtual_ = true
  * @tc.type: FUNC

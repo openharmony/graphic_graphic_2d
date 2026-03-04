@@ -19,6 +19,11 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#ifdef RS_ENABLE_VK
+#include "vulkan/vulkan_core.h"
+#include "vulkan/vulkan_xeg.h"
+#include "vulkan/vulkan.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -49,6 +54,9 @@ public:
     static void ReportAddScreenId(const int screenId);
     static void ReportDelScreenId(const int screenId);
     static bool IsInitSchedCompleted();
+#ifdef RS_ENABLE_VK
+    static void ReportWindowInfo(VkDevice device, bool isSingleFullScreenApp, const char* firstFrontBundleName);
+#endif
 private:
     static void InitSched();
     static std::once_flag initFlag_;

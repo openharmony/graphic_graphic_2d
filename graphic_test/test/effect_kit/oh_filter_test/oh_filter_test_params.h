@@ -46,6 +46,10 @@ const std::vector<float> waterDropletProgressParams = {
     0.0f, 10.0f, 0.2f, 0.4f, 0.6f, 1.8f
 };
 
+const std::vector<OH_Filter_Vec2> waterDropletPositionParams = {
+    {0.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 1.0f}, {0.5f, 0.5f}, {0.3f, 0.7f}
+};
+
 constexpr int WATER_GLASS_PARAMS_COUNT = 23;
 const std::vector<std::array<float, WATER_GLASS_PARAMS_COUNT>> waterGlassParams = {
     {-0.5f, -0.5f, -0.5f, -0.5f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f,

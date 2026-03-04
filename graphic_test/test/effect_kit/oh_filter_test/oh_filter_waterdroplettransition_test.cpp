@@ -65,6 +65,7 @@ GRAPHIC_TEST(OHFilterWaterDropletTransitionTest, EFFECT_TEST, WaterDropletTransi
         auto ohFilter = CreateFilter(bgPixelMapNative);
 
         OH_Filter_WaterDropletParams params = {};
+        params.position = waterDropletPositionParams[i];
         params.radius = waterDropletParams[i][0];
         params.transitionFadeWidth = waterDropletParams[i][1];
         params.distortionIntensity = waterDropletParams[i][2];
