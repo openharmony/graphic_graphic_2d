@@ -37,6 +37,7 @@ public:
     void ScheduleColorPick(
         RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params) override;
     void SetSystemDarkColorMode(bool isSystemDarkColorMode) override;
+    void ResetColorMemory() override {}
 
     void HandleColorUpdate(Drawing::ColorQuad newColor) override;
 

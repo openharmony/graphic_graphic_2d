@@ -113,7 +113,15 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
     if (drawCmdIndex_.childrenIndex_ == -1) {
         // case 0: No children, skip
         return false;
-    } else if (IsBlurNotRequired(effectParams, paintFilterCanvas)) {
+    }
+    // Draw ColorPickerDrawable slot before processing blur
+    if (auto node = renderNode_.lock()) {
+        if (auto colorPickerDrawable = node->GetColorPickerDrawable()) {
+            colorPickerDrawable->OnDraw(&canvas, &bounds);
+        }
+    }
+
+    if (IsBlurNotRequired(effectParams, paintFilterCanvas)) {
         // case 1: no blur or no need to blur, do nothing
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {
         // case 2: dynamic blur, blur the underlay content

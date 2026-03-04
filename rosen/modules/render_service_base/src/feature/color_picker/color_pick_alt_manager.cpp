@@ -95,4 +95,9 @@ void ColorPickAltManager::HandleColorUpdate(Drawing::ColorQuad newColor)
     RSColorPickerThread::Instance().NotifyClient(nodeId_, std::clamp(static_cast<uint32_t>(newLuminance), 0u, 255u));
 }
 
+void ColorPickAltManager::ResetColorMemory()
+{
+    pickedLuminance_.store(RGBA_MAX + 1, std::memory_order_relaxed);
+}
+
 } // namespace OHOS::Rosen

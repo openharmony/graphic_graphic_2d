@@ -3894,6 +3894,10 @@ void RSRenderNode::OnTreeStateChanged()
         RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync_); // false only when used for debugging
         uifirstNeedSync_ = true;
         AddToPendingSyncList();
+        // Reset color picker memory when node goes off the tree
+        if (auto colorPickerDrawable = GetColorPickerDrawable()) {
+            colorPickerDrawable->ResetColorMemory();
+        }
     }
     SetParentTreeStateChangeDirty();
     auto& properties = GetMutableRenderProperties();
