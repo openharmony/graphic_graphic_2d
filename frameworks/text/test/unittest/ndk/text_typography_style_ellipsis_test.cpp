@@ -18,6 +18,7 @@
 #include "drawing_font_collection.h"
 #include "drawing_text_typography.h"
 #include "gtest/gtest.h"
+#include "impl/paragraph_impl.h"
 #include "modules/skparagraph/src/ParagraphImpl.h"
 #include "rosen_text/typography.h"
 
@@ -104,6 +105,14 @@ void NdkTypographyStyleEllipsisTest::PrepareCreateParagraphWithMulTextStyle(vect
     typography_ = OH_Drawing_CreateTypography(handler_);
     ASSERT_NE(typography_, nullptr);
     OH_Drawing_TypographyLayout(typography_, layoutWidth);
+}
+
+skia::textlayout::ParagraphImpl* GetSkParagraph(OH_Drawing_Typography* typography)
+{
+    OHOS::Rosen::Typography* rosenTypography = reinterpret_cast<OHOS::Rosen::Typography*>(typography);
+    OHOS::Rosen::SPText::ParagraphImpl* paragraph =
+        reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(rosenTypography->GetParagraph());
+    return reinterpret_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());
 }
 
 void NdkTypographyStyleEllipsisTest::TearDown()
@@ -506,6 +515,50 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
     EXPECT_LT(lastLineWidth, DEFAULT_DOUBLE_MAXWIDTH);
     constexpr double realLastLineWidth = 64.1401367;
     EXPECT_NEAR(lastLineWidth, realLastLineWidth, FLOAT_DATA_EPSILON);
+}
+
+/*
+ * @tc.name: TypographyMultiHeadEllipsisStyleChange016
+ * @tc.desc: test for miltiline head ellipsis style: open vertical align.
+ * text has hardbreak.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange016, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 2);
+    const char* ellipsis = "...";
+    OH_Drawing_SetTypographyTextEllipsis(typoStyle, ellipsis);
+    OH_Drawing_SetTypographyVerticalAlignment(
+        typoStyle, OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_CENTER);
+    OH_Drawing_SetTypographyStyleAttributeInt(
+        typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_ELLIPSIS_MODAL,
+        OH_Drawing_EllipsisModal::ELLIPSIS_MODAL_MULTILINE_HEAD);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleFontSize(textStyle, 50);
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_GetFontCollectionGlobalInstance();
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, textStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, "还好还还好号好hello哈哈哈哈哈");
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, 300);
+    EXPECT_DOUBLE_EQ(OH_Drawing_TypographyGetLineWidth(typography, 1), 249.99971008300781);
+    skia::textlayout::ParagraphImpl* skParagraph = GetSkParagraph(typography);
+    auto lines = skParagraph->lines();
+    size_t ellipisisRunIndex = 0;
+    for (const auto& line : lines) {
+        if (!line.ellipsis()) {
+            continue;
+        }
+        ellipisisRunIndex = line.ellipsis()->index();
+    }
+    EXPECT_EQ(ellipisisRunIndex, 3);
+
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTextStyle(textStyle);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 
 /*
