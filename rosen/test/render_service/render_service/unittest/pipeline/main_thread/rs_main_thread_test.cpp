@@ -5828,6 +5828,25 @@ HWTEST_F(RSMainThreadTest, SetTaskEndWithTime001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NotifyRefreshRateEvent002
+ * @tc.desc: NotifyRefreshRateEvent002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, NotifyRefreshRateEvent002, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    auto mainThread = RSMainThread::Instance();
+    auto rSRenderServiceConnection = new RSClientToServiceConnection(10000, NULL, mainThread,
+                                                                   nullptr, nullptr, nullptr);
+    EventInfo eventInfo;
+    eventInfo.eventName = "GPU_FREQ_PREF";
+    rSRenderServiceConnection->NotifyRefreshRateEvent(eventInfo);
+    ASSERT_EQ(eventInfo.eventName, "GPU_FREQ_PREF");
+#endif
+}
+
+/**
  * @tc.name: CheckAdaptiveCompose001
  * @tc.desc: Test CheckAdaptiveCompose
  * @tc.type: FUNC

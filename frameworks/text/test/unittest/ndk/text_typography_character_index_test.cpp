@@ -645,4 +645,26 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRan
         fTypography, 0, 5, &actualGlyphRange, (OH_Drawing_TextEncoding)999);
     EXPECT_EQ(range, nullptr);
 }
+
+/*
+ * @tc.name: TypographyUTF16SurrogatePairFullEmojiTest001
+ * @tc.desc: Test getting glyph range for a complete emoji (both surrogate code units)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyCharacterIndexTest, TypographyUTF16SurrogatePairFullEmojiTest001, TestSize.Level0)
+{
+    SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
+    OH_Drawing_Range* actualCharacterRange = nullptr;
+    OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
+        fTypography, 6, 7, &actualCharacterRange, TEXT_ENCODING_UTF16);
+    ASSERT_NE(glyphRange, nullptr);
+    ASSERT_NE(actualCharacterRange, nullptr);
+    EXPECT_EQ(OH_Drawing_GetStartFromRange(glyphRange), 7);
+    EXPECT_EQ(OH_Drawing_GetEndFromRange(glyphRange), 8);
+    EXPECT_EQ(OH_Drawing_GetStartFromRange(actualCharacterRange), 6);
+    EXPECT_EQ(OH_Drawing_GetEndFromRange(actualCharacterRange), 14);
+
+    OH_Drawing_ReleaseRangeBuffer(glyphRange);
+    OH_Drawing_ReleaseRangeBuffer(actualCharacterRange);
+}
 } // namespace OHOS

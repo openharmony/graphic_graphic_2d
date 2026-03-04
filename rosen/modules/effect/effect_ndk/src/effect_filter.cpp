@@ -264,6 +264,7 @@ EffectErrorCode OH_Filter_WaterDropletTransition(OH_Filter* filter,
 
     geWaterDropletParams->inverse = inverse;
     geWaterDropletParams->progress = waterDropletParams->progress;
+    geWaterDropletParams->position = { waterDropletParams->position.x, waterDropletParams->position.y };
     geWaterDropletParams->radius = waterDropletParams->radius;
     geWaterDropletParams->transitionFadeWidth = waterDropletParams->transitionFadeWidth;
     geWaterDropletParams->distortionIntensity = waterDropletParams->distortionIntensity;
@@ -277,6 +278,10 @@ EffectErrorCode OH_Filter_WaterDropletTransition(OH_Filter* filter,
 
     geWaterDropletParams->progress = geWaterDropletParams->progress < 0.0f ? 0.0f : geWaterDropletParams->progress;
     geWaterDropletParams->radius = std::clamp(geWaterDropletParams->radius, 0.0f, WATER_DROPLET_RADIUS_MAX);
+    geWaterDropletParams->position.x_ = std::clamp(geWaterDropletParams->position.x_,
+        -WATER_DROPLET_RADIUS_MAX, WATER_DROPLET_RADIUS_MAX);
+        geWaterDropletParams->position.y_ = std::clamp(geWaterDropletParams->position.y_,
+        -WATER_DROPLET_RADIUS_MAX, WATER_DROPLET_RADIUS_MAX);
     geWaterDropletParams->transitionFadeWidth = std::clamp(geWaterDropletParams->transitionFadeWidth, 0.0f, 1.0f);
     geWaterDropletParams->distortionIntensity = std::clamp(geWaterDropletParams->distortionIntensity, 0.0f, 1.0f);
     geWaterDropletParams->distortionThickness = std::clamp(geWaterDropletParams->distortionThickness, 0.0f, 1.0f);

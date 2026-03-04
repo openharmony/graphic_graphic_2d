@@ -26,7 +26,11 @@ ohos_unittest("frame_report_test") {
   }
 
   deps = [ "$graphic_2d_root/utils/test_header:test_header" ]
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "vulkan-headers:vulkan_headers",
+    "vulkan-loader:vulkan_loader",
+    ]
 
   cflags = [
     "-Wall",

@@ -639,6 +639,7 @@ private:
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
     static void LaunchBetaRecordFileSplitThread();
+    static void ClearBetaRecordFiles();
     static bool OpenBetaRecordFile(RSFile& file);
     static bool SaveBetaRecordFile(RSFile& file);
     static void WriteBetaRecordMetrics(RSFile& file, double time);

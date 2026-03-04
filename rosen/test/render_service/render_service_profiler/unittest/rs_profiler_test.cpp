@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <fstream>
+
 #include "gtest/gtest.h"
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
@@ -414,6 +416,24 @@ HWTEST_F(RSProfilerTest, UnmarshalNodeModifiersTest, testing::ext::TestSize.Leve
     data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
     auto ret = RSProfiler::UnmarshalNodeModifiers(node, data, 0, node.GetType());
     EXPECT_EQ(ret, "");
+}
+
+/*
+ * @tc.name: ClearBetaRecordFilesTest
+ * @tc.desc: Test ClearBetaRecordFiles
+ * @tc.type: FUNC
+ * @tc.require: 22612
+ */
+HWTEST_F(RSProfilerTest, ClearBetaRecordFilesTest, TestSize.Level1)
+{
+    std::string fullPath = "/data/service/el0/render_service/file00.ohr";
+    auto file = Utils::FileOpen(fullPath, "wbe");
+    ASSERT_TRUE(file);
+    Utils::FileClose(file);
+    RSProfiler::ClearBetaRecordFiles();
+    std::ifstream stream(fullPath);
+    EXPECT_FALSE(stream.good());
+    stream.close();
 }
 
 /*

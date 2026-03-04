@@ -83,28 +83,6 @@ public:
         params.detailStrength = data[29]; // 29 index
         return true;
     }
-
-    bool SetupReededGlassParams(OH_Filter_ReededGlassDataParams& params, size_t index)
-    {
-        if (index >= reededGlassParams.size()) {
-            return false;
-        }
-        const auto& data = reededGlassParams[index];
-        params.refractionFactor = data[0];
-        params.dispersionStrength = data[1];
-        params.roughness = data[2];
-        params.noiseFrequency = data[3];
-        params.horizontalPatternNumber = static_cast<uint8_t>(data[4]);
-        params.saturationFactor = data[5];
-        params.borderLightStrength = data[6];
-        params.borderLightWidth = data[7];
-        params.pointLightColor = {data[8], data[9], data[10], data[11]};
-        params.pointLight1Position = {data[12], data[13]};
-        params.pointLight1Strength = data[14];
-        params.pointLight2Position = {data[15], data[16]};
-        params.pointLight2Strength = data[17];
-        return true;
-    }
 };
 
 /*
@@ -246,10 +224,6 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_ReededGlass_Test)
         OH_Filter_Blur(ohFilter, blurParams[i]);
 
         OH_Filter_ReededGlassDataParams reededGlassParams = {};
-        if (!SetupReededGlassParams(reededGlassParams, i)) {
-            OH_Filter_Release(ohFilter);
-            continue;
-        }
         OH_Filter_ReededGlass(ohFilter, &reededGlassParams);
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);
 

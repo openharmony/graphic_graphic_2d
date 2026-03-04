@@ -210,6 +210,19 @@ void RSProfiler::UpdateBetaRecord(const RSContext& context)
     g_animationCount = static_cast<int>(context.animatingNodeList_.size());
 }
 
+void RSProfiler::ClearBetaRecordFiles()
+{
+    constexpr uint32_t maxCacheFiles = 10u;
+    for (uint32_t i = 0; i < maxCacheFiles; i++) {
+        auto fullPath = GetBetaRecordFileName(i);
+        auto file = Utils::FileOpen(fullPath, "wbe");
+        if (Utils::IsFileValid(file)) {
+            Utils::FileClose(file);
+            remove(fullPath.c_str());
+        }
+    }
+}
+
 bool RSProfiler::OpenBetaRecordFile(RSFile& file)
 {
     if (!IsBetaRecordStarted()) {

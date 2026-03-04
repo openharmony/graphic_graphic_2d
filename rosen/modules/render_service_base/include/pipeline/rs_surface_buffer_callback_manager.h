@@ -17,15 +17,20 @@
 #define RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
 
 #include <functional>
+#include <list>
 #include <map>
 #include <mutex>
 #include <shared_mutex>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "common/rs_common_def.h"
+#include "pipeline/rs_draw_cmd.h"
 #include "refbase.h"
-
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#include "surface_buffer.h"
+#endif
 namespace OHOS {
 namespace Rosen {
 
@@ -70,6 +75,13 @@ public:
     void RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId);
 #endif
 
+#ifdef ROSEN_OHOS
+    void StoreSurfaceBufferInfo(const DrawingSurfaceBufferInfo& info);
+    void RemoveSurfaceBufferInfo(uint32_t bufferId);
+    void RemoveAllSurfaceBufferInfo(pid_t pid, uint64_t uid);
+    std::vector<DrawingSurfaceBufferInfo> GetSurfaceBufferInfoByPid(pid_t pid);
+#endif
+
     static RSSurfaceBufferCallbackManager& Instance();
 private:
     static constexpr size_t ROOTNODEIDS_POS = 3;
@@ -81,6 +93,15 @@ private:
 #endif
         std::vector<NodeId> rootNodeIds;
     };
+#ifdef ROSEN_OHOS
+    struct SurfaceBufferInfoEntry {
+        sptr<SurfaceBuffer> surfaceBuffer;
+        uint32_t bufferId;
+        pid_t pid;
+        uint64_t uid;
+        Drawing::Rect dstRect;
+    };
+#endif
     RSSurfaceBufferCallbackManager() = default;
     ~RSSurfaceBufferCallbackManager() noexcept = default;
 
@@ -110,6 +131,10 @@ private:
     std::map<pid_t, uint64_t> processCallbackCount_;
     mutable std::shared_mutex registerSurfaceBufferCallbackMutex_;
     std::mutex surfaceBufferOpItemMutex_;
+#ifdef ROSEN_OHOS
+    std::unordered_map<uint64_t, std::list<SurfaceBufferInfoEntry>> surfaceBufferInfoMap_;
+    std::mutex surfaceBufferInfoMutex_;
+#endif
     std::function<void(std::function<void()>)> runPolicy_ = [](auto task) {
         std::invoke(task);
     };

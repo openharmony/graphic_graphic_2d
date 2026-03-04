@@ -459,10 +459,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
     RSBaseRenderUtil::WritePixelMapToPng(*pixelMap_);
     RS_LOGI("RSUiCaptureTaskParallel::Capture DMADisable capture success nodeId:[%{public}" PRIu64
-            "], pixelMap width: %{public}d, height: %{public}d, colorspace: %{public}d",
-        nodeId_, pixelMap_->GetWidth(), pixelMap_->GetHeight(),
-        pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
-    errorCode_ = CaptureError::CAPTURE_OK;
+            "], pixelMap width: %{public}d, height: %{public}d, colorSpace:%{public}d",
+        nodeId_, pixelMap_->GetWidth(), pixelMap_->GetHeight(), pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
     ProcessUiCaptureCallback(callback, nodeId_, captureConfig_, pixelMap_.get(), errorCode_);
     return true;
 }
@@ -797,7 +795,8 @@ bool RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect()
     }
 
     endRect_ = endNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-    RS_LOGI("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect endRect %{public}s", endRect_.ToString().c_str());
+    RS_LOGI("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect endRect %{public}s, endNodeId: %{public}" PRIu64,
+        endRect_.ToString().c_str(), endNodeId);
     startMatrix_ = startNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
     endMatrix_ = endNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
 

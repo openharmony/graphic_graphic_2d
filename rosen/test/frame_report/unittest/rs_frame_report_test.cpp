@@ -218,5 +218,34 @@ HWTEST_F(RsFrameReportTest, ReportUnmarshalData001, TestSize.Level1)
     fr.ReportUnmarshalData(unmarshalTid, dataSize);
     EXPECT_EQ(fr.hardwareTid_, 1);
 }
+
+/**
+ * @tc.name: InitializeVulkanExtensions001
+ * @tc.desc: test InitializeVulkanExtensions with null device
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, InitializeVulkanExtensions001, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_FALSE(fr.InitializeVulkanExtensions(nullptr));
+#endif
+}
+ 
+/**
+ * @tc.name: ReportWindowInfo001
+ * @tc.desc: test ReportWindowInfo with null device
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, ReportWindowInfo001, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    fr.ReportWindowInfo(nullptr, false, "com.test.app");
+    fr.ReportWindowInfo(nullptr, true, "com.test2.app");
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS

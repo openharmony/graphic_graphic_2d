@@ -19,6 +19,11 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#ifdef RS_ENABLE_VK
+#include "vulkan/vulkan_core.h"
+#include "vulkan/vulkan_xeg.h"
+#include "vulkan/vulkan.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -75,6 +80,9 @@ public:
     void ReportDDGRTaskInfo();
     void ReportComposerInfo(const int screenId, const int composerTid);
     void ReportScbSceneInfo(const std::string& description, bool eventStatus);
+#ifdef RS_ENABLE_VK
+    static void ReportWindowInfo(VkDevice device, bool isSingleFullScreenApp, const char* firstFrontBundleName);
+#endif
 
 private:
     RsFrameReport();
@@ -82,6 +90,9 @@ private:
     bool LoadLibrary();
     void CloseLibrary();
     void *LoadSymbol(const char *symName);
+#ifdef RS_ENABLE_VK
+    bool InitializeVulkanExtensions(VkDevice device);
+#endif
 
     void *frameSchedHandle_ = nullptr;
     bool frameSchedSoLoaded_ = false;
