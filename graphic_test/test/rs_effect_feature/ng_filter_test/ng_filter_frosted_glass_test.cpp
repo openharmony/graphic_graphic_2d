@@ -198,12 +198,15 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, EFFECT_TEST, Set_Wave_Disturb_Test)
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (size_t i = 0; i < rowCount; i++) {
+        auto mask = CreateMask(RSNGEffectType::WAVE_DISTURBANCE_MASK);
+        auto waveMask = std::static_pointer_cast<RSNGWaveDisturbanceMask>(mask);
+        waveMask->Setter<WaveDisturbanceMaskProgressTag>(disturbanceParams[i][0]);
+        waveMask->Setter<WaveDisturbanceMaskClickPosTag>(Vector2f{disturbanceParams[i][1], disturbanceParams[i][2]});
+        waveMask->Setter<WaveDisturbanceMaskWaveRDTag>(Vector2f{disturbanceParams[i][3], disturbanceParams[i][4]});
+        waveMask->Setter<WaveDisturbanceMaskWaveLWHTag>(Vector3f{disturbanceParams[i][5],
+            disturbanceParams[i][6], disturbanceParams[i][7]});
         auto frostedGlassFilter = CreateDefaultFrostedGlassFilter();
-        auto waveMask = std::make_shared<RSNGWaveDisturbanceMask>();
-        waveMask->Setter<WaveDisturbanceMaskProgressTag>(disturbanceParams[i].progress);
-        waveMask->Setter<WaveDisturbanceMaskClickPosTag>(disturbanceParams[i].clickPos);
-        waveMask->Setter<WaveDisturbanceMaskWaveRDTag>(disturbanceParams[i].waveRD);
-        waveMask->Setter<WaveDisturbanceMaskWaveLWHTag>(disturbanceParams[i].waveLWH);
+        frostedGlassFilter->Setter<FrostedGlassWaveMaskTag>(mask);
         SetBgAndSdfChildNodes(i, columnCount, sizeX, sizeY, frostedGlassFilter);
     }
 }
