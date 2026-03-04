@@ -404,8 +404,8 @@ int32_t OH_NativeImage_GetColorSpace(OH_NativeImage* image, OH_NativeBuffer_Colo
 
 /**
  * @brief Acquire a latest <b>OHNativeWindowBuffer</b> through an <b>OH_NativeImage</b> instance for content consumer.\n
- * This method can get the latest <b>OHNativeWindowBuffer</b> and drop other <b>OHNativeWindowBuffers</b>, meanwhile
- * producer will receive buffer released callbacks of dropped buffers.\n
+ * This method can get the latest <b>OHNativeWindowBuffer</b> and drop other <b>OHNativeWindowBuffers</b>, but consumer
+ * can receive the callbacks of availabled buffers.\n
  * This method can not be used at the same time with <b>OH_NativeImage_UpdateSurfaceImage</b>.\n
  * This method will create an <b>OHNativeWindowBuffer</b>.\n
  * If there is a situation when <b>OHNativeWindowBuffer</b> is still used after calling
