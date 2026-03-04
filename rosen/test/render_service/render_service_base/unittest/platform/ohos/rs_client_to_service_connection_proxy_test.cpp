@@ -1083,9 +1083,9 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, UnRegisterTypeface, TestSize.Leve
     EXPECT_EQ(retryCount, 11);
     WaitNeedRegisterTypefaceReply(Drawing::REGISTERED, retryCount);
     EXPECT_EQ(retryCount, 12);
-    retryCount = 21;
+    retryCount = 30;
     WaitNeedRegisterTypefaceReply(Drawing::REGISTERING, retryCount);
-    EXPECT_EQ(retryCount, 21);
+    EXPECT_EQ(retryCount, 30);
 }
 
 /**
