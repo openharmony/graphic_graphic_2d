@@ -46,73 +46,59 @@ public:
     HgmScreen(ScreenId id, int32_t mode, ScreenSize& screenSize);
     virtual ~HgmScreen();
 
-    ScreenId GetId() const
-    {
+    ScreenId GetId() const {
         return id_;
     }
 
-    uint32_t GetActiveMode() const
-    {
+    uint32_t GetActiveMode() const {
         return activeModeId_;
     }
 
-    std::unordered_set<uint32_t> GetSupportedRates() const
-    {
+    std::unordered_set<uint32_t> GetSupportedRates() const {
         return supportedRefreshRates_;
     }
 
-    bool IsSupportRate(uint32_t rate) const
-    {
+    bool IsSupportRate(uint32_t rate) const {
         return supportedRefreshRates_.find(rate) != supportedRefreshRates_.end() ? true : false;
     }
 
-    int32_t GetActiveRefreshRateMode() const
-    {
+    int32_t GetActiveRefreshRateMode() const {
         return customFrameRateMode_;
     }
 
-    int32_t GetWidth() const
-    {
+    int32_t GetWidth() const {
         return width_;
     }
 
-    int32_t GetHeight() const
-    {
+    int32_t GetHeight() const {
         return height_;
     }
 
-    int32_t GetPhyWidth() const
-    {
+    int32_t GetPhyWidth() const {
         return phyWidth_;
     }
 
-    int32_t GetPhyHeight() const
-    {
+    int32_t GetPhyHeight() const {
         return phyHeight_;
     }
 
-    float GetPpi() const
-    {
+    float GetPpi() const {
         return ppi_;
     }
 
-    float GetXDpi() const
-    {
+    float GetXDpi() const {
         return xDpi_;
     }
 
-    float GetYDpi() const
-    {
+    float GetYDpi() const {
         return yDpi_;
     }
 
-    bool GetSelfOwnedScreenFlag() const
-    {
+    bool GetSelfOwnedScreenFlag() const {
         return isSelfOwnedScreenFlag_.load();
     }
 
-    void SetSelfOwnedScreenFlag(bool isSelfOwnedScreen)
-    {
+    void SetSelfOwnedScreenFlag(bool isSelfOwnedScreen) {
         isSelfOwnedScreenFlag_.store(isSelfOwnedScreen);
     }
 

@@ -238,13 +238,11 @@ private:
     void CheckRefreshRateChange(
         bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate);
     uint32_t UpdateFrameRateWithDelay(uint32_t refreshRate);
-    std::string GetGameNodeName() const
-    {
+    std::string GetGameNodeName() const {
         std::lock_guard<std::mutex> lock(pendingMutex_);
         return curGameNodeName_;
     }
-    void SetGameNodeName(std::string nodeName)
-    {
+    void SetGameNodeName(std::string nodeName) {
         std::lock_guard<std::mutex> lock(pendingMutex_);
         curGameNodeName_ = nodeName;
     }

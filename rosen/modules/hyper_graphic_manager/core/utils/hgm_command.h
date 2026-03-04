@@ -22,9 +22,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "animation/rs_frame_rate_range.h"
 #include "hgm_update_callback.h"
 #include "screen_manager/screen_types.h"
-#include "animation/rs_frame_rate_range.h"
 
 namespace OHOS::Rosen {
 
@@ -99,7 +99,7 @@ enum class DynamicModeType : int32_t {
     TOUCH_DISENABLED = 0,
     TOUCH_ENABLED = 1,
     TOUCH_EXT_ENABLED = 2, // touch extend program
-    TOUCH_EXT_ENABLED_LTPO_FIRST = 4, // diff with 2:touch up 100ms period if has VOTER_LTPO then skip VOTER_TOUCH
+    TOUCH_EXT_ENABLED_LTPO_FIRST = 4, // diff with 2: touch up 100ms period if has VOTER_LTPO then skip VOTER_TOUCH
 };
 
 enum class MultiAppStrategyType {
@@ -222,8 +222,7 @@ public:
     // vrate <"minifps", "1">
     std::unordered_map<std::string, std::string> vRateControlList_;
 
-    DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
-    {
+    DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode) {
         if (screenConfigs_.count(screenType) && screenConfigs_[screenType].count(settingMode)) {
             return screenConfigs_[screenType][settingMode].aceSceneDynamicSettings;
         } else {
@@ -231,8 +230,7 @@ public:
         }
     }
 
-    int32_t SettingModeId2XmlModeId(int32_t settingModeId) const
-    {
+    int32_t SettingModeId2XmlModeId(int32_t settingModeId) const {
         // return 0 when input is invalid
         bool hasAutoConfig = refreshRateForSettings_.size() > 0 &&
             refreshRateForSettings_.at(0).first == HGM_REFRESHRATE_MODE_AUTO;
@@ -253,10 +251,9 @@ public:
         return refreshRateForSettings_[settingModeId].second;
     }
 
-    int32_t XmlModeId2SettingModeId(const std::string& xmlModeId) const
-    {
+    int32_t XmlModeId2SettingModeId(const std::string& xmlModeId) const {
         auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
-            [=] (auto nameModeId) { return std::to_string(nameModeId.second) == xmlModeId; });
+            [&xmlModeId] (auto nameModeId) { return std::to_string(nameModeId.second) == xmlModeId; });
         if (iter == refreshRateForSettings_.end()) {
             return 0;
         }
@@ -273,18 +270,16 @@ public:
         }
     }
 
-    int32_t GetRefreshRateModeName(int32_t refreshRateModeId)
-    {
+    int32_t GetRefreshRateModeName(int32_t refreshRateModeId) {
         auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
-            [&](auto nameModeId) { return nameModeId.second == refreshRateModeId; });
+            [refreshRateModeId](auto nameModeId) { return nameModeId.second == refreshRateModeId; });
         if (iter != refreshRateForSettings_.end()) {
             return iter->first;
         }
         return 0;
     }
 
-    void UpdateRefreshRateForSettings(const std::string mode)
-    {
+    void UpdateRefreshRateForSettings(const std::string& mode) {
         auto it = refreshRateForSettingsMap_.find(mode);
         if (it != refreshRateForSettingsMap_.end()) {
             refreshRateForSettings_ = it->second;
@@ -308,8 +303,7 @@ public:
     virtual const PolicyConfigData::ScreenSetting& GetScreenSetting() const = 0;
     virtual const PolicyConfigData::DynamicSettingMap& GetAceSceneDynamicSettingMap() const = 0;
 
-    virtual HgmErrCode GetAppStrategyConfig(const std::string& pkgName,
-                                            int32_t appType,
+    virtual HgmErrCode GetAppStrategyConfig(const std::string& pkgName, int32_t appType,
                                             PolicyConfigData::StrategyConfig& strategyRes) const = 0;
 
     virtual HgmErrCode GetDynamicAppStrategyConfig(const std::string& pkgName,
@@ -334,8 +328,7 @@ public:
     const PolicyConfigData::ScreenSetting& GetScreenSetting() const override;
     const PolicyConfigData::DynamicSettingMap& GetAceSceneDynamicSettingMap() const override;
 
-    HgmErrCode GetAppStrategyConfig(const std::string& pkgName,
-                                    int32_t appType,
+    HgmErrCode GetAppStrategyConfig(const std::string& pkgName, int32_t appType,
                                     PolicyConfigData::StrategyConfig& strategyRes) const override;
 
     HgmErrCode GetDynamicAppStrategyConfig(const std::string& pkgName,
