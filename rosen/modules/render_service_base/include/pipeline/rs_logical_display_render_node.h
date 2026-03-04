@@ -86,6 +86,8 @@ public:
         return screenRotation_;
     }
 
+    bool IsOnlyHDRAnimation();
+
     void IncreaseHDRNode(NodeId id)
     {
         hdrNodeMap_[id]++;

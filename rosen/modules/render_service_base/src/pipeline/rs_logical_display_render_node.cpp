@@ -168,6 +168,36 @@ std::shared_ptr<RSBaseRenderNode> RSLogicalDisplayRenderNode::GetWindowContainer
     return windowContainer_;
 }
 
+bool RSLogicalDisplayRenderNode::IsOnlyHDRAnimation()
+{
+    auto modifiers = GetModifiersNG(ModifierNG::RSModifierType::HDR_BRIGHTNESS);
+    if (modifiers.empty()) {
+        return false;
+    }
+    const auto& animationsMap = GetAnimationManager().GetAnimations();
+    for (const auto& modifier : modifiers) {
+        if (!modifier) {
+            continue;
+        }
+        auto hdrBrightnessFactor = modifier->GetProperty(ModifierNG::RSPropertyType::HDR_BRIGHTNESS_FACTOR);
+        if (!hdrBrightnessFactor) {
+            continue;
+        }
+        PropertyId id = hdrBrightnessFactor->GetId();
+        for (const auto& [_, animation] : animationsMap) {
+            if (!animation) {
+                continue;
+            }
+            if (animation->GetPropertyId() != id) {
+                return false;
+            }
+        }
+        RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNode::IsOnlyHDRAnimation return true");
+        return true;
+    }
+    return false;
+}
+
 void RSLogicalDisplayRenderNode::SetScreenStatusNotifyTask(ScreenStatusNotifyTask task)
 {
     screenStatusNotifyTask_ = task;
