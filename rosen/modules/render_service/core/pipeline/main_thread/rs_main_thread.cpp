@@ -2107,7 +2107,7 @@ void RSMainThread::UpdateHgmSurfaceTime(const std::shared_ptr<RSSurfaceHandler>&
         if (auto sourceType = consumer->GetSurfaceSourceType();
             sourceType != OH_SURFACE_SOURCE_GAME &&
             sourceType != OH_SURFACE_SOURCE_CAMERA &&
-            sourceType ! =OH_SURFACE_SOURCE_VIDEO) {
+            sourceType != OH_SURFACE_SOURCE_VIDEO) {
             if (auto fwkType = consumer->GetSurfaceAppFrameworkType();
                 fwkType.rfind(FRAMEWORK_XWEB_NAME, 0) == 0) {
                 frameRateMgr->UpdateSurfaceTime(fwkType, ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
