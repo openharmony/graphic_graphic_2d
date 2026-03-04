@@ -1587,7 +1587,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 if (rsVSyncDistributor_ != nullptr) {
                     rsVSyncDistributor_->SetHasNativeBuffer();
                 }
-
                 UpdateHgmSurfaceTime(surfaceHandler, surfaceNode);
             }
             PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
