@@ -355,6 +355,34 @@ void RSRenderParams::OpincSetCacheChangeFlag(bool state, bool lastFrameSynced)
     }
 }
 
+void RSRenderParams::SetLayerPartRenderEnabled(bool enable)
+{
+    if (isLayerPartRenderEnable_ == enable) {
+        return;
+    }
+    isLayerPartRenderEnable_ = enable;
+    needSync_ = true;
+}
+
+bool RSRenderParams::GetLayerPartRenderEnabled() const
+{
+    return isLayerPartRenderEnable_;
+}
+
+void RSRenderParams::SetLayerPartRenderCurrentFrameDirtyRegion(const RectI& dirtyRegion)
+{
+    if (layerPartRenderCurrentFrameDirtyRegion_ == dirtyRegion) {
+        return;
+    }
+    layerPartRenderCurrentFrameDirtyRegion_ = dirtyRegion;
+    needSync_ = true;
+}
+
+const RectI& RSRenderParams::GetLayerPartRenderCurrentFrameDirtyRegion() const
+{
+    return layerPartRenderCurrentFrameDirtyRegion_;
+}
+
 void RSRenderParams::SetShadowRect(Drawing::Rect rect)
 {
     if (shadowRect_ == rect) {
@@ -601,6 +629,8 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isOpincSupportFlag_ = isOpincSupportFlag_;
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = target->isOpincStateChanged_ || isOpincStateChanged_;
+    target->isLayerPartRenderEnable_ = isLayerPartRenderEnable_;
+    target->layerPartRenderCurrentFrameDirtyRegion_ = layerPartRenderCurrentFrameDirtyRegion_;
     target->startingWindowFlag_ = startingWindowFlag_;
     target->freezeFlag_ = freezeFlag_;
     target->absDrawRect_ = absDrawRect_;

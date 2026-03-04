@@ -225,6 +225,11 @@ public:
     bool IsDirtyRegionStackEmpty();
     Drawing::Region& GetCurDirtyRegion();
 
+    void PushLayerPartRenderDirtyRegion(Drawing::Region& dirtyRegion);
+    void PopLayerPartRenderDirtyRegion();
+    bool IsLayerPartRenderDirtyRegionStackEmpty();
+    Drawing::Region& GetCurLayerPartRenderDirtyRegion();
+
     // alpha related
     void MultiplyAlpha(float alpha);
     void SetAlpha(float alpha);
@@ -575,6 +580,7 @@ private:
 
     // save every dirty region of the current surface for quick reject
     std::stack<Drawing::Region> dirtyRegionStack_;
+    std::stack<Drawing::Region> layerPartRenderDirtyRegionStack_;
 
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     // std::stack<bool> blendOffscreenStack_;

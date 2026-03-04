@@ -301,5 +301,138 @@ HWTEST_F(RsFrameBlurPredictTest, BlurPredictWorkflow002, TestSize.Level1)
     EXPECT_FALSE(RsFrameBlurPredict::GetInstance().isValidBlurFrame_.load());
     EXPECT_FALSE(RsFrameBlurPredict::GetInstance().predictBegin_.load());
 }
+
+/**
+ * @tc.name: PredictDrawLargeAreaBlur004
+ * @tc.desc: GetInstance
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameBlurPredictTest, PredictDrawLargeAreaBlur004, TestSize.Level1)
+{
+    std::shared_ptr<RsFrameBlurPredict> instance;
+    instance = std::shared_ptr<RsFrameBlurPredict>(
+        &RsFrameBlurPredict::GetInstance(),
+        [](RsFrameBlurPredict*) {}
+    );
+    EXPECT_TRUE(instance != nullptr);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: PredictDrawLargeAreaBlur005
+ * @tc.desc: AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameBlurPredictTest, PredictDrawLargeAreaBlur005, TestSize.Level1)
+{
+    std::shared_ptr<RsFrameBlurPredict> instance;
+    instance = std::shared_ptr<RsFrameBlurPredict>(
+        &RsFrameBlurPredict::GetInstance(),
+        [](RsFrameBlurPredict*) {}
+    );
+    instance->AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively();
+    EXPECT_FALSE(instance->isValidBlurFrame_);
+    instance->isValidBlurFrame_ = true;
+    instance->AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively();
+    EXPECT_FALSE(instance->predictDrawLargeAreaBlur_.first);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: PredictDrawLargeAreaBlur006
+ * @tc.desc: UpdateCurrentFrameDrawLargeAreaBlurFrequencyPrecisely
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameBlurPredictTest, PredictDrawLargeAreaBlur006, TestSize.Level1)
+{
+    std::shared_ptr<RsFrameBlurPredict> instance;
+    instance = std::shared_ptr<RsFrameBlurPredict>(
+        &RsFrameBlurPredict::GetInstance(),
+        [](RsFrameBlurPredict*) {}
+    );
+    instance->isValidBlurFrame_ = false;
+    instance->UpdateCurrentFrameDrawLargeAreaBlurFrequencyPrecisely();
+    EXPECT_FALSE(instance->isValidBlurFrame_);
+    instance->isValidBlurFrame_ = true;
+    instance->UpdateCurrentFrameDrawLargeAreaBlurFrequencyPrecisely();
+    EXPECT_FALSE(instance->predictDrawLargeAreaBlur_.second);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: PredictDrawLargeAreaBlur007
+ * @tc.desc: TakeEffectBlurScene
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameBlurPredictTest, PredictDrawLargeAreaBlur007, TestSize.Level1)
+{
+    std::shared_ptr<RsFrameBlurPredict> instance;
+    instance = std::shared_ptr<RsFrameBlurPredict>(
+        &RsFrameBlurPredict::GetInstance(),
+        [](RsFrameBlurPredict*) {}
+    );
+    const EventInfo eventInfo = {
+        "VOTER_THERMAL",
+        true,
+        60,
+        120,
+        "SCENE_APP_START_ANIMATION"
+    };
+    instance->TakeEffectBlurScene(eventInfo);
+    EXPECT_FALSE(instance->predictBegin_);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: PredictDrawLargeAreaBlur008
+ * @tc.desc: TakeEffectBlurScene
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameBlurPredictTest, PredictDrawLargeAreaBlur008, TestSize.Level1)
+{
+    std::shared_ptr<RsFrameBlurPredict> instance;
+    instance = std::shared_ptr<RsFrameBlurPredict>(
+        &RsFrameBlurPredict::GetInstance(),
+        [](RsFrameBlurPredict*) {}
+    );
+    const EventInfo eventInfo = {
+        "VOTER_THERMAL",
+        false,
+        60,
+        120,
+        "SCENE_APP_START_ANIMATION"
+    };
+    instance->TakeEffectBlurScene(eventInfo);
+    EXPECT_FALSE(instance->predictBegin_);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: PredictDrawLargeAreaBlur009
+ * @tc.desc: PredictDrawLargeAreaBlur
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameBlurPredictTest, PredictDrawLargeAreaBlur009, TestSize.Level1)
+{
+    std::shared_ptr<RsFrameBlurPredict> instance;
+    instance = std::shared_ptr<RsFrameBlurPredict>(
+        &RsFrameBlurPredict::GetInstance(),
+        [](RsFrameBlurPredict*) {}
+    );
+    instance->isValidBlurFrame_.store(false);
+    RSRenderNode node = RSRenderNode(0);
+    instance->PredictDrawLargeAreaBlur(node);
+    EXPECT_EQ(RsFrameBlurPredict::GetInstance().RS_BLUR_PREDICT_LONG, "1");
+    instance->isValidBlurFrame_.store(true);
+    instance->PredictDrawLargeAreaBlur(node);
+    EXPECT_EQ(RsFrameBlurPredict::GetInstance().RS_BLUR_PREDICT_LONG, "1");
+    SUCCEED();
+}
 } // namespace Rosen
 } // namespace OHOS

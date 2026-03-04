@@ -383,6 +383,12 @@ public:
         return state;
     }
 
+    void SetLayerPartRenderEnabled(bool enable);
+    bool GetLayerPartRenderEnabled() const;
+
+    void SetLayerPartRenderCurrentFrameDirtyRegion(const RectI& dirtyRegion);
+    const RectI& GetLayerPartRenderCurrentFrameDirtyRegion() const;
+
     void SetShadowRect(Drawing::Rect rect);
     Drawing::Rect GetShadowRect() const
     {
@@ -641,6 +647,8 @@ private:
     bool isOpincSupportFlag_ = false;
     bool isOpincRootFlag_ = false;
     bool isOpincStateChanged_ = false;
+    bool isLayerPartRenderEnable_ = false;
+    RectI layerPartRenderCurrentFrameDirtyRegion_;
     bool startingWindowFlag_ = false;
     bool needFilter_ = false;
     bool effectNodeShouldPaint_ = false;

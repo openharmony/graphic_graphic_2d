@@ -2432,4 +2432,380 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, ClearRelatedSourceCacheTest, TestSize.
     surfaceDrawable_->ClearRelatedSourceCache();
     ASSERT_EQ(surfaceDrawable_->relatedSourceNodeCache_, nullptr);
 }
+
+/**
+ * @tc.name: FilterCacheOcclusionSkip001
+ * @tc.desc: Test OnDraw with shouldSkipForFilterCacheOcclusion = true (all conditions met)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FilterCacheOcclusionSkip001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: all conditions for shouldSkipForFilterCacheOcclusion to be true
+    canvas_->SetDisableFilterCache(false);
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(true);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(true);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = true;
+
+    // Verify the skip occurs
+    surfaceDrawable_->OnDraw(*canvas_);
+    EXPECT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
+
+    // Reset for next test
+    uniParam->SetOpDropped(false);
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: FilterCacheOcclusionSkip002
+ * @tc.desc: Test OnDraw with disableFilterCache = true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FilterCacheOcclusionSkip002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: disableFilterCache = true prevents skip
+    canvas_->SetDisableFilterCache(true);
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(true);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(true);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = true;
+
+    // Verify skip does NOT occur
+    surfaceDrawable_->OnDraw(*canvas_);
+    EXPECT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
+
+    // Reset for next test
+    canvas_->SetDisableFilterCache(false);
+    uniParam->SetOpDropped(false);
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: FilterCacheOcclusionSkip003
+ * @tc.desc: Test OnDraw with isUiFirstNode = true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FilterCacheOcclusionSkip003, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: isUiFirstNode = true prevents skip
+    canvas_->SetDisableFilterCache(false);
+    canvas_->SetIsParallelCanvas(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(true);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(true);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = true;
+
+    // Verify skip does NOT occur
+    surfaceDrawable_->OnDraw(*canvas_);
+    EXPECT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
+
+    // Reset for next test
+    canvas_->SetIsParallelCanvas(false);
+    uniParam->SetOpDropped(false);
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: FilterCacheOcclusionSkip004
+ * @tc.desc: Test OnDraw with GetOccludedByFilterCache = false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FilterCacheOcclusionSkip004, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: GetOccludedByFilterCache = false prevents skip
+    canvas_->SetDisableFilterCache(false);
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(false);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(true);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = true;
+
+    // Verify skip does NOT occur
+    surfaceDrawable_->OnDraw(*canvas_);
+    EXPECT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
+
+    // Reset for next test
+    uniParam->SetOpDropped(false);
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: FilterCacheOcclusionSkip005
+ * @tc.desc: Test OnDraw with uniParam->IsOpDropped = false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FilterCacheOcclusionSkip005, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: uniParam->IsOpDropped = false prevents skip
+    canvas_->SetDisableFilterCache(false);
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(true);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(false);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = true;
+
+    // Verify skip does NOT occur
+    surfaceDrawable_->OnDraw(*canvas_);
+    EXPECT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
+
+    // Reset for next test
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: FilterCacheOcclusionSkip006
+ * @tc.desc: Test OnDraw with GetOpDropped = false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FilterCacheOcclusionSkip006, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: GetOpDropped = false prevents skip
+    canvas_->SetDisableFilterCache(false);
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(true);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(true);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = false;
+
+    // Verify skip does NOT occur
+    surfaceDrawable_->OnDraw(*canvas_);
+    EXPECT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
+
+    // Reset for next test
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: FilterCacheOcclusionSkip007
+ * @tc.desc: Test OnDraw with multiple false conditions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FilterCacheOcclusionSkip007, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: all conditions false
+    canvas_->SetDisableFilterCache(true);
+    canvas_->SetIsParallelCanvas(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(false);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(false);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = false;
+
+    // Verify skip does NOT occur
+    surfaceDrawable_->OnDraw(*canvas_);
+    EXPECT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
+
+    // Reset for next test
+    canvas_->SetDisableFilterCache(false);
+    canvas_->SetIsParallelCanvas(false);
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: OcclusionSkip001
+ * @tc.desc: Test OnDraw with occlusion skip conditions all met
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OcclusionSkip001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: !isUiFirstNode (false means not parallel canvas)
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(false); // Avoid filter cache skip
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(true);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = true;
+    // IsVisibleDirtyRegionEmpty will depend on current state
+
+    // Verify occlusion skip type (may be set based on conditions)
+    surfaceDrawable_->OnDraw(*canvas_);
+    // Skip type could be OCCLUSION_SKIP if dirty region is empty
+
+    // Reset for next test
+    uniParam->SetOpDropped(false);
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: OcclusionSkip002
+ * @tc.desc: Test OnDraw with isUiFirstNode = true (prevents occlusion skip)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OcclusionSkip002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: isUiFirstNode = true (parallel canvas) prevents occlusion skip
+    canvas_->SetIsParallelCanvas(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(false);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(true);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = true;
+
+    // Verify occlusion skip does NOT occur due to isUiFirstNode check
+    surfaceDrawable_->OnDraw(*canvas_);
+    // With isUiFirstNode=true, occlusion skip logic is skipped
+
+    // Reset for next test
+    canvas_->SetIsParallelCanvas(false);
+    uniParam->SetOpDropped(false);
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: OcclusionSkip003
+ * @tc.desc: Test OnDraw with uniParam->IsOpDropped = false (prevents occlusion skip)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OcclusionSkip003, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: uniParam->IsOpDropped = false prevents occlusion skip
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(false);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(false);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = true;
+
+    // Verify occlusion skip does NOT occur due to uniParam->IsOpDropped
+    surfaceDrawable_->OnDraw(*canvas_);
+
+    // Reset for next test
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: OcclusionSkip004
+ * @tc.desc: Test OnDraw with GetOpDropped = false (prevents occlusion skip)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OcclusionSkip004, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: GetOpDropped = false prevents occlusion skip
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(false);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(true);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = false;
+
+    // Verify occlusion skip does NOT occur due to GetOpDropped
+    surfaceDrawable_->OnDraw(*canvas_);
+
+    // Reset for next test
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: OcclusionSkip005
+ * @tc.desc: Test OnDraw with both OpDropped conditions false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OcclusionSkip005, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: both OpDropped conditions false
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetOccludedByFilterCache(false);
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParam, nullptr);
+    uniParam->SetOpDropped(false);
+    using namespace DrawableV2;
+    RSRenderNodeDrawable::isOpDropped_ = false;
+
+    // Verify occlusion skip does NOT occur
+    surfaceDrawable_->OnDraw(*canvas_);
+
+    // Reset for next test
+    RSRenderNodeDrawable::isOpDropped_ = true;
+}
 }

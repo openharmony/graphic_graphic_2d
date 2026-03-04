@@ -387,6 +387,7 @@ private:
     uint64_t focusedLeashWindowId_ = 0;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSDirtyRegionManager> curScreenDirtyManager_;
+    std::shared_ptr<RSDirtyRegionManager> curLayerPartRenderDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     std::shared_ptr<RSUnionRenderNode> curUnionNode_;
     RSSpecialLayerManager specialLayerManager_;

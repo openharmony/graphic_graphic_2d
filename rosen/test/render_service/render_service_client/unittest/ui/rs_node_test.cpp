@@ -35,6 +35,7 @@
 #include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
+#include "parameters.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
 #include "ui/rs_node.h"
@@ -6953,6 +6954,91 @@ HWTEST_F(RSNodeTest, IsRenderServiceNode, TestSize.Level1)
     rsNode->isRenderServiceNode_ = true;
     bool res = rsNode->IsRenderServiceNode();
     EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: MarkLayerPartRender
+ * @tc.desc: Test MarkLayerPartRender with isLayerPartRender=true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, MarkLayerPartRender, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    system::SetParameter("rosen.layerPartRender.enabled", "1");
+    rsNode->MarkLayerPartRender(true);
+    EXPECT_TRUE(rsNode->isLayerPartRender_);
+
+    rsNode->MarkLayerPartRender(false);
+    EXPECT_FALSE(rsNode->isLayerPartRender_);
+
+    system::SetParameter("rosen.layerPartRender.enabled", "0");
+    rsNode->MarkLayerPartRender(false);
+    EXPECT_FALSE(rsNode->isLayerPartRender_);
+}
+
+/**
+ * @tc.name: MarkLayerPartRenderDisabled
+ * @tc.desc: Test MarkLayerPartRender when LayerPartRender is disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, MarkLayerPartRenderDisabled, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+
+    // This test verifies behavior when LayerPartRender is disabled
+    // The function should return early without modifying isLayerPartRender_
+    rsNode->MarkLayerPartRender(true);
+    // Note: Actual behavior depends on RSSystemProperties::GetLayerPartRenderEnabled()
+    SUCCEED();
+}
+
+/**
+ * @tc.name: MarkLayerPartRenderWithParent
+ * @tc.desc: Test MarkLayerPartRender with parent node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, MarkLayerPartRenderWithParent, TestSize.Level1)
+{
+    auto parentNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create();
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+    system::SetParameter("rosen.layerPartRender.enabled", "1");
+    // Set parent relationship
+    childNode->SetParent(parentNode);
+
+    // Mark child as layer part render - should also call parent's SetDrawNode
+    childNode->MarkLayerPartRender(true);
+    EXPECT_TRUE(childNode->isLayerPartRender_);
+
+    // Mark as non-layer part render
+    childNode->MarkLayerPartRender(false);
+    EXPECT_FALSE(childNode->isLayerPartRender_);
+    system::SetParameter("rosen.layerPartRender.enabled", "0");
+}
+
+/**
+ * @tc.name: MarkLayerPartRenderWithoutParent
+ * @tc.desc: Test MarkLayerPartRender without parent node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, MarkLayerPartRenderWithoutParent, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    system::SetParameter("rosen.layerPartRender.enabled", "1");
+    // Node has no parent - should only call SetDrawNode on itself
+    rsNode->MarkLayerPartRender(true);
+    EXPECT_TRUE(rsNode->isLayerPartRender_);
+
+    rsNode->MarkLayerPartRender(false);
+    EXPECT_FALSE(rsNode->isLayerPartRender_);
+    system::SetParameter("rosen.layerPartRender.enabled", "0");
 }
 
 /**

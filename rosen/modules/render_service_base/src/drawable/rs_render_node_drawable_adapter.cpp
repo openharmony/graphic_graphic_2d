@@ -510,7 +510,11 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
             dst.ToString().c_str(), dst.RoundOut().ToString().c_str());
         return false;
     }
-    return !(paintFilterCanvas->GetCurDirtyRegion().IsIntersects(dstRegion));
+    if (!paintFilterCanvas->IsLayerPartRenderDirtyRegionStackEmpty()) {
+        auto& layerNodeDirtyRegion = paintFilterCanvas->GetCurLayerPartRenderDirtyRegion();
+        return !(layerNodeDirtyRegion.IsIntersects(dstRegion));
+    }
+    return !paintFilterCanvas->GetCurDirtyRegion().IsIntersects(dstRegion);
 }
 
 void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas)

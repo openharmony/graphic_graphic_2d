@@ -1012,4 +1012,45 @@ HWTEST_F(RSRenderParamsTest, SetCanvasDrawingResetSurfaceIndexTest, TestSize.Lev
     renderParams->SetCanvasDrawingResetSurfaceIndex(2);
     ASSERT_TRUE(renderParams->needSync_);
 }
+
+/**
+ * @tc.name: SetLayerPartRenderEnabledTest
+ * @tc.desc: Test SetLayerPartRenderEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderParamsTest, SetLayerPartRenderEnabledTest, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+
+    params.SetLayerPartRenderEnabled(true);
+    ASSERT_TRUE(params.GetLayerPartRenderEnabled());
+
+    params.SetLayerPartRenderEnabled(false);
+    ASSERT_FALSE(params.GetLayerPartRenderEnabled());
+}
+
+/**
+ * @tc.name: GetLayerPartRenderCurrentFrameDirtyRegionTest
+ * @tc.desc: Test GetLayerPartRenderCurrentFrameDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderParamsTest, GetLayerPartRenderCurrentFrameDirtyRegionTest, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+
+    RectI dirtyRect = params.GetLayerPartRenderCurrentFrameDirtyRegion();
+    ASSERT_TRUE(dirtyRect.IsEmpty());
+
+    RectI testRect = {10, 10, 100, 100};
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(testRect);
+    RectI result = params.GetLayerPartRenderCurrentFrameDirtyRegion();
+    ASSERT_EQ(result.GetLeft(), testRect.GetLeft());
+    ASSERT_EQ(result.GetTop(), testRect.GetTop());
+    ASSERT_EQ(result.GetWidth(), testRect.GetWidth());
+    ASSERT_EQ(result.GetHeight(), testRect.GetHeight());
+}
 } // namespace OHOS::Rosen

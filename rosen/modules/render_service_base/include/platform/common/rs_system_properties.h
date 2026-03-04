@@ -323,6 +323,8 @@ public:
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
     static bool GetOpincCacheMemThresholdEnabled();
+    static bool GetLayerPartRenderEnabled();
+    static bool GetLayerPartRenderDebugEnabled();
     static bool GetFilterCacheMemThresholdEnabled();
     static bool GetSkipDisplayIfScreenOffEnabled();
     static bool GetBatchRemovingOnRemoteDiedEnabled();

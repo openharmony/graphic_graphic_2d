@@ -100,6 +100,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSExcludedFromNodeGroup),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkNodeSingleFrameComposer),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkSuggestOpincNode),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkLayerPartRender),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSForceUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetUIFirstSwitch),

@@ -1918,6 +1918,13 @@ public:
      */
     void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
 
+    /**
+     * @brief Mark the node for layer part rendering optimization
+     *
+     * @param isLayerPartRender true to enable layer part rendering optimization; false to disable
+     */
+    void MarkLayerPartRender(bool isLayerPartRender);
+
 protected:
     explicit RSNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr,
@@ -2192,6 +2199,7 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+    bool isLayerPartRender_ = false;
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;

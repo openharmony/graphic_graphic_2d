@@ -2203,5 +2203,108 @@ HWTEST_F(RSPaintFilterCanvasTest, GetColorPicked, TestSize.Level1)
     EXPECT_EQ(color, Drawing::Color::COLOR_BLACK);
 }
 
+/**
+ * @tc.name: PopLayerPartRenderDirtyRegion001
+ * @tc.desc: Test PopLayerPartRenderDirtyRegion with empty stack
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, PopLayerPartRenderDirtyRegion001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    ASSERT_NE(filterCanvas, nullptr);
+
+    // Test pop when stack is empty - should return early
+    filterCanvas->PopLayerPartRenderDirtyRegion();
+    EXPECT_TRUE(filterCanvas->layerPartRenderDirtyRegionStack_.empty());
+}
+
+/**
+ * @tc.name: PushAndPopLayerPartRenderDirtyRegion002
+ * @tc.desc: Test PushLayerPartRenderDirtyRegion and PopLayerPartRenderDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, PushAndPopLayerPartRenderDirtyRegion002, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    ASSERT_NE(filterCanvas, nullptr);
+
+    // Test push and pop operations
+    Drawing::Region region1;
+    Drawing::Region region2;
+
+    // Push first region
+    filterCanvas->PushLayerPartRenderDirtyRegion(region1);
+    EXPECT_FALSE(filterCanvas->layerPartRenderDirtyRegionStack_.empty());
+
+    // Push second region
+    filterCanvas->PushLayerPartRenderDirtyRegion(region2);
+    EXPECT_FALSE(filterCanvas->layerPartRenderDirtyRegionStack_.empty());
+
+    // Pop second region
+    filterCanvas->PopLayerPartRenderDirtyRegion();
+    EXPECT_FALSE(filterCanvas->layerPartRenderDirtyRegionStack_.empty());
+
+    // Pop first region
+    filterCanvas->PopLayerPartRenderDirtyRegion();
+    EXPECT_TRUE(filterCanvas->layerPartRenderDirtyRegionStack_.empty());
+
+    // Pop when empty - should return early
+    filterCanvas->PopLayerPartRenderDirtyRegion();
+    EXPECT_TRUE(filterCanvas->layerPartRenderDirtyRegionStack_.empty());
+}
+
+/**
+ * @tc.name: GetCurLayerPartRenderDirtyRegion
+ * @tc.desc: Test GetCurLayerPartRenderDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, GetCurLayerPartRenderDirtyRegion, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    ASSERT_NE(filterCanvas, nullptr);
+
+    // Test getting current layer part render dirty region
+    Drawing::Region region;
+    filterCanvas->PushLayerPartRenderDirtyRegion(region);
+    EXPECT_FALSE(filterCanvas->layerPartRenderDirtyRegionStack_.empty());
+
+    auto& curRegion = filterCanvas->GetCurLayerPartRenderDirtyRegion();
+    EXPECT_EQ(&curRegion, &filterCanvas->layerPartRenderDirtyRegionStack_.top());
+
+    filterCanvas->PopLayerPartRenderDirtyRegion();
+    EXPECT_TRUE(filterCanvas->layerPartRenderDirtyRegionStack_.empty());
+}
+
+/**
+ * @tc.name: IsLayerPartRenderDirtyRegionStackEmpty
+ * @tc.desc: Test IsLayerPartRenderDirtyRegionStackEmpty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, IsLayerPartRenderDirtyRegionStackEmpty, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    ASSERT_NE(filterCanvas, nullptr);
+
+    // Test when stack is empty
+    EXPECT_TRUE(filterCanvas->IsLayerPartRenderDirtyRegionStackEmpty());
+
+    // Test after push
+    Drawing::Region region;
+    filterCanvas->PushLayerPartRenderDirtyRegion(region);
+    EXPECT_FALSE(filterCanvas->IsLayerPartRenderDirtyRegionStackEmpty());
+
+    // Test after pop
+    filterCanvas->PopLayerPartRenderDirtyRegion();
+    EXPECT_TRUE(filterCanvas->IsLayerPartRenderDirtyRegionStackEmpty());
+}
+
 } // namespace Rosen
 } // namespace OHOS
