@@ -78,8 +78,7 @@ public:
     int64_t GetIdealPipelineOffset() const { return idealPipelineOffset_; }
     int64_t GetIdealPipelineOffset144() const { return idealPipelineOffset144_; }
     void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum);
-    void SetIdealPipelineOffset144(int32_t pipelineOffsetPulseNum)
-    {
+    void SetIdealPipelineOffset144(int32_t pipelineOffsetPulseNum) {
         idealPipelineOffset144_ = pipelineOffsetPulseNum * IDEAL_PULSE144;
     }
 

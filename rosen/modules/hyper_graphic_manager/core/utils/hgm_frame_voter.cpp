@@ -186,7 +186,7 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
 }
 
 bool HgmFrameVoter::ProcessVoteIter(std::vector<std::string>::iterator& voterIter,
-    VoteInfo& resultVoteInfo, VoteRange& voteRange, bool &voterGamesEffective)
+    VoteInfo& resultVoteInfo, VoteRange& voteRange, bool& voterGamesEffective)
 {
     VoteRange range;
     VoteInfo info;
