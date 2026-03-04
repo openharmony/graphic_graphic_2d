@@ -3702,6 +3702,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, UpdateHgmSurfaceTime001, TestSize.
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(MakeNodeId(2, 2), mainThread->context_);
     ASSERT_NE(surfaceNode, nullptr);
     ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode->GetRSSurfaceHandler()->SetConsumer(IConsumerSurface::Create("surfaceNode"));
 
     auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     auto surfaceHandler2 = surfaceNode2->GetMutableRSSurfaceHandler();
@@ -3719,7 +3720,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, UpdateHgmSurfaceTime001, TestSize.
     HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
     mainThread->UpdateHgmSurfaceTime(surfaceHandler2, surfaceNode2);
     EXPECT_EQ(frameRateMgr->surfaceData_.size(), 0);
-    
+
     const auto& consumer = surfaceHandler->GetConsumer();
     ASSERT_NE(consumer, nullptr);
 
