@@ -492,7 +492,7 @@ void RSRenderNodeGC::ReleaseNodeMemNotOnTree()
                 nodeMap.erase(nodeIt++);
                 continue;
             }
-            if (cnt++ > NODE_MEM_RELEASE_LIMIT) {
+            if (cnt++ > NODE_MEM_RELEASE_LIMIT || isEnable_.load() == false) {
                 return;
             }
             node->ReleaseNodeMem();
