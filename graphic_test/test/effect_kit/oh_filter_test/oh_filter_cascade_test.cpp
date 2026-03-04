@@ -56,24 +56,31 @@ public:
             return false;
         }
         const auto& data = waterGlassParams[index];
-        params.waveCenter = {data[0], data[1]};
-        params.waveSourceXY = {data[2], data[3]};
-        params.waveDistortXY = {data[4], data[5]};
-        params.waveDensityXY = {data[6], data[7]};
-        params.waveStrength = data[8];
-        params.waveLightStrength = data[9];
-        params.waveRefraction = data[10];
-        params.waveSpecular = data[11];
-        params.waveFrequency = data[12];
-        params.waveShapeDistortion = data[13];
-        params.waveNoiseStrength = data[14];
-        params.waveMaskSize = {data[15], data[16]};
-        params.waveMaskRadius = data[17];
-        params.borderRadius = data[18];
-        params.borderThickness = data[19];
-        params.borderScope = data[20];
-        params.borderStrength = data[21];
-        params.progress = data[22];
+        params.speed = data[0]; // 0 index
+        params.distortSpeed = data[1]; // 1 index
+        params.refractionSpeed = { data[2],  data[3]}; // 2, 3 index
+        params.progress = data[4]; // 4 index
+        params.shakingDirection1 = {data[5], data[6]}; // 5, 6 index
+        params.shakingDirection2 = {data[7], data[8]}; // 7, 8 idnex
+        params.waveDensityXY = {data[9], data[10]}; // 9, 10 index
+        params.waveStrength = data[11]; // 11 index
+        params.waveRefraction = data[12]; // 12 index
+        params.waveSpecular = data[13]; // 13 index
+        params.waveFrequency = data[14]; // 14 index
+        params.waveShapeDistortion = data[15]; // 15 index
+        params.waveDistortionAngle = data[16]; // 16 index
+        params.rippleXWave = data[17]; // 17 index
+        params.rippleYWave = data[18]; // 18 index
+        params.borderRadius = data[19]; // 19 index
+        params.borderThickness = data[20]; // 20 index
+        params.waveInnerMaskXY = {data[21], data[22]}; // 21, 22 index
+        params.waveInnerMaskRadius = data[23]; // 23 index
+        params.waveInnerMaskSmoothness = data[24]; // 24 index
+        params.waveOuterMaskPadding = data[25]; // 25 index
+        params.waveSpecularPower = data[26]; // 26 index
+        params.refractionDetailDark = data[27]; // 27 index
+        params.refractionDetailWhite = data[28]; // 28 index
+        params.detailStrength = data[29]; // 29 index
         return true;
     }
 };

@@ -319,31 +319,31 @@ EffectErrorCode OH_Filter_WaterGlass(OH_Filter* filter, OH_Filter_WaterGlassData
     std::shared_ptr<Drawing::GEWaterGlassDataParams> geWaterParams =
         std::make_shared<Drawing::GEWaterGlassDataParams>();
 
-    static constexpr float waveRefractionK = 3.f;
-
-    geWaterParams->waveCenter.SetX(waterGlassParams->waveCenter.x);
-    geWaterParams->waveCenter.SetY(waterGlassParams->waveCenter.y);
-    geWaterParams->waveSourceXY.SetX(waterGlassParams->waveSourceXY.x);
-    geWaterParams->waveSourceXY.SetY(waterGlassParams->waveSourceXY.y);
-    geWaterParams->waveDistortXY.SetX(waterGlassParams->waveDistortXY.x);
-    geWaterParams->waveDistortXY.SetY(waterGlassParams->waveDistortXY.y);
-    geWaterParams->waveDensityXY.SetX(waterGlassParams->waveDensityXY.x);
-    geWaterParams->waveDensityXY.SetY(waterGlassParams->waveDensityXY.y);
+    geWaterParams->speed = waterGlassParams->speed;
+    geWaterParams->distortSpeed =waterGlassParams->distortSpeed;
+    geWaterParams->refractionSpeed = {waterGlassParams->refractionSpeed.x, waterGlassParams->refractionSpeed.y};
+    geWaterParams->progress = waterGlassParams->progress;
+    geWaterParams->shakingDirection1 = {waterGlassParams->shakingDirection1.x, waterGlassParams->shakingDirection1.y};
+    geWaterParams->shakingDirection2 = {waterGlassParams->shakingDirection2.x, waterGlassParams->shakingDirection2.y};
+    geWaterParams->waveDensityXY = {waterGlassParams->waveDensityXY.x, waterGlassParams->waveDensityXY.y};
     geWaterParams->waveStrength = waterGlassParams->waveStrength;
-    geWaterParams->waveLightStrength = waterGlassParams->waveLightStrength;
-    geWaterParams->waveRefraction = waterGlassParams->waveRefraction * waveRefractionK;
+    geWaterParams->waveRefraction = waterGlassParams->waveRefraction;
     geWaterParams->waveSpecular = waterGlassParams->waveSpecular;
     geWaterParams->waveFrequency = waterGlassParams->waveFrequency;
     geWaterParams->waveShapeDistortion = waterGlassParams->waveShapeDistortion;
-    geWaterParams->waveNoiseStrength = waterGlassParams->waveNoiseStrength;
-    geWaterParams->waveMaskSize.SetX(waterGlassParams->waveMaskSize.x);
-    geWaterParams->waveMaskSize.SetY(waterGlassParams->waveMaskSize.y);
-    geWaterParams->waveMaskRadius = waterGlassParams->waveMaskRadius;
+    geWaterParams->waveDistortionAngle = waterGlassParams->waveDistortionAngle;
+    geWaterParams->rippleXWave = waterGlassParams->rippleXWave;
+    geWaterParams->rippleYWave = waterGlassParams->rippleYWave;
     geWaterParams->borderRadius = waterGlassParams->borderRadius;
     geWaterParams->borderThickness = waterGlassParams->borderThickness;
-    geWaterParams->borderScope = waterGlassParams->borderScope;
-    geWaterParams->borderStrength = waterGlassParams->borderStrength;
-    geWaterParams->progress = waterGlassParams->progress;
+    geWaterParams->waveInnerMaskXY = {waterGlassParams->waveInnerMaskXY.x, waterGlassParams->waveInnerMaskXY.y};
+    geWaterParams->waveInnerMaskRadius = waterGlassParams->waveInnerMaskRadius;
+    geWaterParams->waveInnerMaskSmoothness = waterGlassParams->waveInnerMaskSmoothness;
+    geWaterParams->waveOuterMaskPadding = waterGlassParams->waveOuterMaskPadding;
+    geWaterParams->waveSpecularPower = waterGlassParams->waveSpecularPower;
+    geWaterParams->refractionDetailDark = waterGlassParams->refractionDetailDark;
+    geWaterParams->refractionDetailWhite = waterGlassParams->refractionDetailWhite;
+    geWaterParams->detailStrength = waterGlassParams->detailStrength;
     CastToFilter(filter)->WaterGlass(geWaterParams);
 
     return EFFECT_SUCCESS;
