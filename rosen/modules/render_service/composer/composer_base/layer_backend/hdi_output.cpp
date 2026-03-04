@@ -138,7 +138,7 @@ void HdiOutput::SetRSLayers(const std::vector<std::shared_ptr<RSLayer>>& rsLayer
             continue;
         }
         if (rsLayer->IsMaskLayer()) {
-            DirtyRegions(solidLayerCount, rsLayer);
+            DirtyRegions(rsLayer);
             continue;
         }
 
@@ -172,7 +172,7 @@ void HdiOutput::SetRSLayers(const std::vector<std::shared_ptr<RSLayer>>& rsLayer
     ResetLayerStatusLocked();
 }
 
-void HdiOutput::DirtyRegions(uint32_t solidLayerCount, const std::shared_ptr<RSLayer>& rsLayer)
+void HdiOutput::DirtyRegions(const std::shared_ptr<RSLayer>& rsLayer)
 {
     std::vector<GraphicIRect> dirtyRegions;
     if (maskLayer_) {
@@ -183,7 +183,7 @@ void HdiOutput::DirtyRegions(uint32_t solidLayerCount, const std::shared_ptr<RSL
         auto layerSize = rsLayer->GetLayerSize();
         dirtyRegions.emplace_back(layerSize);
         rsLayer->SetDirtyRegions(dirtyRegions);
-        CreateLayerLocked(solidLayerCount++, rsLayer);
+        CreateLayerLocked(rsLayer->GetZorder(), rsLayer);
     }
 }
 

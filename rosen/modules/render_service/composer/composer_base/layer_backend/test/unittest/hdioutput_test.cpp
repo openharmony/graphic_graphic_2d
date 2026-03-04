@@ -789,14 +789,12 @@ HWTEST_F(HdiOutputTest, DirtyRegions001, Function | MediumTest | Level1)
 {
     std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
     rsLayer->SetIsMaskLayer(false);
-    uint32_t solidLayerCount = 0;
-    HdiOutputTest::hdiOutput_->DirtyRegions(solidLayerCount, rsLayer);
+    HdiOutputTest::hdiOutput_->DirtyRegions(rsLayer);
     rsLayer->SetIsMaskLayer(true);
     auto preMaskLayer = HdiOutputTest::hdiOutput_->maskLayer_;
     std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(0);
     HdiOutputTest::hdiOutput_->maskLayer_ = hdiLayer;
-    solidLayerCount = 1;
-    HdiOutputTest::hdiOutput_->DirtyRegions(solidLayerCount, rsLayer);
+    HdiOutputTest::hdiOutput_->DirtyRegions(rsLayer);
     ASSERT_NE(static_cast<int32_t>(rsLayer->GetDirtyRegions().size()), 0);
     HdiOutputTest::hdiOutput_->maskLayer_ = preMaskLayer;
 }
