@@ -709,6 +709,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     }
     targetSurfaceParams->appRotationCorrection_ = appRotationCorrection_;
     targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
+    targetSurfaceParams->isParticipateInOcclusion_ = isParticipateInOcclusion_;
     RSRenderParams::OnSync(target);
 }
 
@@ -824,5 +825,19 @@ void RSSurfaceRenderParams::SetRotationCorrectionDegree(int32_t rotationCorrecti
 int32_t RSSurfaceRenderParams::GetRotationCorrectionDegree() const
 {
     return rotationCorrectionDegree_;
+}
+
+void RSSurfaceRenderParams::SetIsParticipateInOcclusion(bool isParticipateInOcclusion)
+{
+    if (isParticipateInOcclusion_ == isParticipateInOcclusion) {
+        return;
+    }
+    isParticipateInOcclusion_ = isParticipateInOcclusion;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetIsParticipateInOcclusion() const
+{
+    return isParticipateInOcclusion_;
 }
 } // namespace OHOS::Rosen

@@ -812,6 +812,8 @@ public:
     void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);
     int32_t GetRotationCorrectionDegree() const;
 
+    void SetIsParticipateInOcclusion(bool isParticipateInOcclusion);
+    bool GetIsParticipateInOcclusion() const;
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
@@ -950,6 +952,7 @@ private:
     bool isBufferFlushed_ = false;
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
+    bool isParticipateInOcclusion_ = false;
 
     // only used for window capture
     sptr<RSISurfaceCaptureCallback> captureCallback_;

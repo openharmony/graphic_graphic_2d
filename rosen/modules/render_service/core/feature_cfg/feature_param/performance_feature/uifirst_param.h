@@ -32,6 +32,7 @@ public:
     static int GetUIFirstType();
     static int GetClearCacheThreshold();
     static float GetSizeChangedThreshold();
+    static bool IsOcclusionEnabled();
 
 protected:
     static void SetUIFirstEnable(bool isEnable);
@@ -42,6 +43,7 @@ protected:
     static void SetUIFirstType(int uiFirstType);
     static void SetClearCacheThreshold(int threshold);
     static void SetSizeChangedThreshold(float threshold);
+    static void SetOcclusionEnabled(bool isEnable);
 
 private:
     inline static bool isUIFirstEnable_ = true;
@@ -52,6 +54,7 @@ private:
     inline static int uiFirstType_ = 1;
     inline static int clearCacheThreshold_ = 0;
     inline static float sizeChangedThreshold_ = 0.1f;
+    inline static bool isOcclusionEnabled_ = false;
 
     friend class UIFirstParamParse;
 };

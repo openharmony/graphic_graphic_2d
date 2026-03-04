@@ -196,6 +196,8 @@ public:
 
     std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 
+    void InsertOpaqueRegion(const std::vector<RectI>& opaqueRects) override;
+
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);

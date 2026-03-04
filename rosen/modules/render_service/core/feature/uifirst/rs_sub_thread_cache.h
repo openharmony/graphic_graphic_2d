@@ -197,6 +197,9 @@ public:
         RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
     bool DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, RSPaintFilterCanvas& canvas,
         const Vector2f& boundSize, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isUIFirst = false);
+    void InsertOpaqueRegion(RSPaintFilterCanvas& canvas, DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
+        std::vector<Drawing::RectI>& opaqueRects, const Drawing::Rect& imgDrawRect);
+    void DrawOpaqueRegionDfx(RSPaintFilterCanvas& canvas, const std::vector<Drawing::RectI>& opaqueRects);
 
     // uifirst dirtyRegion
     std::shared_ptr<RSDirtyRegionManager> GetSyncUifirstDirtyManager() const;

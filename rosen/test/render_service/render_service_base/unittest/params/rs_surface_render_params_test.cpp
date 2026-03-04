@@ -616,4 +616,31 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetUifirstStartingWindowId, TestSize.Level1)
     params.SetUifirstStartingWindowId(startingWindowId);
     EXPECT_EQ(params.GetUifirstStartingWindowId(), startingWindowId);
 }
+
+/**
+ * @tc.name: SetIsParticipateInOcclusionTest
+ * @tc.desc: Test SetIsParticipateInOcclusion and GetIsParticipateInOcclusion
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetIsParticipateInOcclusionTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+
+    // Test set to true - should trigger needSync
+    params.SetIsParticipateInOcclusion(true);
+    EXPECT_EQ(params.GetIsParticipateInOcclusion(), true);
+    EXPECT_EQ(params.needSync_, true);
+
+    // Test set to false - should trigger needSync
+    params.needSync_ = false;
+    params.SetIsParticipateInOcclusion(false);
+    EXPECT_EQ(params.GetIsParticipateInOcclusion(), false);
+    EXPECT_EQ(params.needSync_, true);
+
+    // Test set same value - should not trigger needSync
+    params.needSync_ = false;
+    params.SetIsParticipateInOcclusion(false);
+    EXPECT_EQ(params.needSync_, false);
+}
 } // namespace OHOS::Rosen
