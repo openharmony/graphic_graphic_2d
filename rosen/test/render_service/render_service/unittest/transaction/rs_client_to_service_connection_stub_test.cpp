@@ -3721,7 +3721,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, UpdateHgmSurfaceTime001, TestSize.
     mainThread->UpdateHgmSurfaceTime(surfaceHandler2, surfaceNode2);
     EXPECT_EQ(frameRateMgr->surfaceData_.size(), 0);
 
-    const auto& consumer = surfaceHandler->GetConsumer();
+    auto consumer = surfaceHandler->GetConsumer();
     ASSERT_NE(consumer, nullptr);
 
     consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_GAME);

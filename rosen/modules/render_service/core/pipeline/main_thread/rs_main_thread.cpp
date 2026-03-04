@@ -2100,18 +2100,17 @@ void RSMainThread::UpdateHgmSurfaceTime(const std::shared_ptr<RSSurfaceHandler>&
 {
     if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         LIKELY(frameRateMgr != nullptr)) {
-        const auto& consumer = surfaceHandler->GetConsumer();
+        auto consumer = surfaceHandler->GetConsumer();
         if (consumer == nullptr) {
             return;
         }
-        if (const auto& sourceType = consumer->GetSurfaceSourceType();
+        if (auto sourceType = consumer->GetSurfaceSourceType();
             sourceType != OH_SURFACE_SOURCE_GAME &&
             sourceType != OH_SURFACE_SOURCE_CAMERA &&
             sourceType != OH_SURFACE_SOURCE_VIDEO) {
-            if (const auto& appFrameworkType = consumer->GetSurfaceAppFrameworkType();
+            if (auto appFrameworkType = consumer->GetSurfaceAppFrameworkType();
                 appFrameworkType.rfind(FRAMEWORK_XWEB_NAME, 0) == 0) {
-                auto name = appFrameworkType;
-                frameRateMgr->UpdateSurfaceTime(name, ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
+                frameRateMgr->UpdateSurfaceTime(appFrameworkType, ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
             } else {
                 auto name = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
                 frameRateMgr->UpdateSurfaceTime(name, ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
