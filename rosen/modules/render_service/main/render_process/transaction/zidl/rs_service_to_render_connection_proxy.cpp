@@ -156,6 +156,25 @@ ErrCode RSServiceToRenderConnectionProxy::GetTotalAppMemSize(float& cpuMemSize, 
     return ERR_OK;
 }
 
+void RSServiceToRenderConnectionProxy::ForceRefreshOneFrameWithNextVSync()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::ForceRefreshOneFrameWithNextVSync: Send Request err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
+        return;
+    }
+}
+
 void RSServiceToRenderConnectionProxy::ReportDataBaseRs(
     MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info)
 {

@@ -34,6 +34,7 @@
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
@@ -192,7 +193,7 @@ void DoUnRegisterPointerLuminanceChangeCallback()
 void DoRegisterApplicationAgent()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_APPLICATION_AGENT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -214,7 +215,7 @@ public:
 void DoRegisterBufferAvailableListener()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -254,7 +255,7 @@ void DoRegisterBufferClearListener()
 
     dataP.WriteUint64(nodeId);
     dataP.WriteRemoteObject(rsBufferClearCallback->AsObject());
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER);
 
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }

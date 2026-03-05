@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
- #include "rs_dump_callback_proxy.h"
- #include "gfx/dump/rs_dump_manager.h"
+#include "rs_dump_callback_proxy.h"
+#include "gfx/dump/rs_dump_manager.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -1204,6 +1204,20 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, ReportDataBaseRs, TestSize.Level1
 }
 
 /**
+ * @tc.name: ReportRsSceneJankStart Test
+ * @tc.desc: ReportRsSceneJankStart Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, ReportRsSceneJankStart, TestSize.Level1)
+{
+    AppInfo info;
+    proxy->ReportRsSceneJankStart(info);
+    proxy->ReportRsSceneJankEnd(info);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+}
+
+/**
  * @tc.name: SetCacheEnabledForRotation Test
  * @tc.desc: SetCacheEnabledForRotation Test
  * @tc.type:FUNC

@@ -50,14 +50,14 @@ void RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker(FrameRateLinkerId id)
 
 void RSRenderFrameRateLinkerMap::FilterFrameRateLinkerByPid(pid_t pid)
 {
-    ROSEN_LOGD("%{public}s: removing all linker belong to pid %{public}d", __func__, pid);
-    // remove all nodes belong to given pid (by matching higher 32 bits of node id)
+    ROSEN_LOGD("%{public}s: removing all linker belong to pid %{public}d", __func__, static_cast<int32_t>(pid));
     EraseIf(frameRateLinkerMap_, [pid](const auto& pair) -> bool { return ExtractPid(pair.first) == pid; });
 }
 
 std::shared_ptr<RSRenderFrameRateLinker> RSRenderFrameRateLinkerMap::GetFrameRateLinker(FrameRateLinkerId id)
 {
-    if (auto iter = frameRateLinkerMap_.find(id); iter != frameRateLinkerMap_.end()) {
+    if (auto iter = frameRateLinkerMap_.find(id);
+        iter != frameRateLinkerMap_.end()) {
         return iter->second;
     }
     return nullptr;

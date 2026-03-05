@@ -42,6 +42,9 @@ const std::list<std::u16string> serviceDumpList = {
 const std::list<std::u16string> processDumpList = {
     u"nodeNotOnTree",
     u"surface",
+    u"fps",
+    u"fpsClear",
+    u"hitchs",
     u"allSurfacesMem",
     u"RSTree",
     u"MultiRSTrees",
@@ -85,8 +88,7 @@ private:
     bool IsDumpCompleted();
 };
 
-class RSDumpCallbackDirector : public RSDumpCallbackStub
-{
+class RSDumpCallbackDirector : public RSDumpCallbackStub {
 public:
     explicit RSDumpCallbackDirector(RSServiceDumpManager* rsDumpManger) : rsDumpManger_(rsDumpManger) {}
     ~RSDumpCallbackDirector() override {}

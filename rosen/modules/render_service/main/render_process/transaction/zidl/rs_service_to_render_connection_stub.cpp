@@ -623,6 +623,11 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             reply.WriteInt32(replyMessage);
             break;
         }
+        case static_cast<uint32_t>(
+            RSIServiceToRenderConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC): {
+            ForceRefreshOneFrameWithNextVSync();
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_COLOR_FOLLOW): {
             std::string nodeIdStr;
             bool isColorFollow { false };

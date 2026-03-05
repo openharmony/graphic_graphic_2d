@@ -84,7 +84,6 @@ void RSMarshallingHelperReliabilityTest::TearDownTestCase()
 void RSMarshallingHelperReliabilityTest::SetUp() {}
 void RSMarshallingHelperReliabilityTest::TearDown() {}
 
-#ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: ConsistencyWithSmallData
  * @tc.desc: Verify function marshal, unmarshal and skip is consistent.

@@ -20,7 +20,16 @@
 #include "ipc_callbacks/dfx/rs_dump_callback.h"
 #include "irs_render_to_composer_connection.h"
 #include "platform/ohos/transaction/rs_irender_connection_token.h"
+#include "ipc_callbacks/brightness_info_change_callback.h"
+#include "ipc_callbacks/rs_iself_drawing_node_rect_change_callback.h"
+#include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
+#include "info_collection/rs_gpu_dirty_region_collection.h"
+#include "transaction/rs_render_service_client_info.h"
+#include "info_collection/rs_layer_compose_collection.h"
 #include "screen_manager/rs_screen_property.h"
+#include "ipc_callbacks/rs_iuiextension_callback.h"
+#include "feature/capture/rs_ui_capture.h"
+#include "common/rs_self_draw_rect_change_callback_constraint.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -121,6 +130,7 @@ public:
     virtual ErrCode SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh) = 0;
     virtual int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;
+    virtual void ForceRefreshOneFrameWithNextVSync() = 0;
 };
 
 } // namespace Rosen

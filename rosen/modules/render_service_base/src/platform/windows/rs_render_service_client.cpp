@@ -474,29 +474,17 @@ void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offsetX, int32_
 {
 }
 
-void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
-}
-
-int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
-{
-    return {};
-}
-
-int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
-    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
-{
-    return {};
-}
-
-int32_t RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
-{
-    return {};
 }
 
 int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
 {
     return {};
+}
+
+void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
+{
 }
 
 int32_t RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback(
@@ -704,11 +692,6 @@ int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
 void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
 {
-}
-
-bool RSRenderServiceClient::GetHighContrastTextState()
-{
-    return false;
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

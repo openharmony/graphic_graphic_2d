@@ -294,7 +294,7 @@ bool DoAddVirtualScreenWhiteList()
         return false;
     }
  
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST);
     if (toServiceConnectionStub_ == nullptr) {
         return false;
     }
@@ -328,7 +328,7 @@ bool DoRemoveVirtualScreenWhiteList()
         return false;
     }
  
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST);
     if (toServiceConnectionStub_ == nullptr) {
         return false;
     }

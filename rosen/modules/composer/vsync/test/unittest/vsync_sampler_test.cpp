@@ -576,11 +576,11 @@ HWTEST_F(VSyncSamplerTest, RegSetScreenVsyncEnabledCallbackForRenderService, Fun
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. test RegSetScreenVsyncEnabledCallbackForRenderService when 
+* CaseDescription: 1. test RegSetScreenVsyncEnabledCallbackForRenderService when
                       updateVsyncEnabledScreenIdCallback_ is nullptr
- *                 2. test RegSetScreenVsyncEnabledCallbackForRenderService when 
+ *                 2. test RegSetScreenVsyncEnabledCallbackForRenderService when
                       updateVsyncEnabledScreenIdCallback_ return true
- *                 3. test RegSetScreenVsyncEnabledCallbackForRenderService when 
+ *                 3. test RegSetScreenVsyncEnabledCallbackForRenderService when
                       handler is nullptr
  */
 HWTEST_F(VSyncSamplerTest, RegSetScreenVsyncEnabledCallbackForRenderService002, Function | MediumTest| Level3)

@@ -176,11 +176,11 @@ void DoSetSurfaceWatermark()
     dataParcel.WriteParcelable(pixelmap.get());
     dataParcel.WriteUInt64Vector(nodeList);
     dataParcel.WriteUint8(watermarkType);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SURFACE_WATERMARK);
-    if (toServiceConnectionStub_ == nullptr) {
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SURFACE_WATERMARK);
+    if (toRenderConnectionStub_ == nullptr) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
 }
 
 void DoClearSurfaceWatermarkForNodes()
@@ -203,11 +203,11 @@ void DoClearSurfaceWatermarkForNodes()
     dataParcel.WriteInt32(pid);
     dataParcel.WriteString(name);
     dataParcel.WriteUInt64Vector(nodeList);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
-    if (toServiceConnectionStub_ == nullptr) {
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+    if (toRenderConnectionStub_ == nullptr) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
 }
 
 void DoClearSurfaceWatermark()
@@ -223,11 +223,11 @@ void DoClearSurfaceWatermark()
     std::string name = GetData<std::string>();
     dataParcel.WriteInt32(pid);
     dataParcel.WriteString(name);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK);
-    if (toServiceConnectionStub_ == nullptr) {
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK);
+    if (toRenderConnectionStub_ == nullptr) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
 }
 
 } // namespace Rosen

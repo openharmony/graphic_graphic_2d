@@ -85,7 +85,8 @@ void DVSyncLibManager::Shutdown()
     }
 }
 
-bool DVSyncLibManager::LoadAllFunctions() {
+bool DVSyncLibManager::LoadAllFunctions()
+{
     // load dvsync
     bool loadSuccess = true;
     loadSuccess &= LoadFunction("IsAppDVSyncOn", isAppDVSyncOnFunc_);
@@ -134,7 +135,8 @@ bool DVSyncLibManager::LoadAllFunctions() {
     return loadSuccess;
 }
 
-bool DVSyncLibManager::LoadDvsyncDelayFunctions() {
+bool DVSyncLibManager::LoadDvsyncDelayFunctions()
+{
     //load dvsync delay
     bool loadSuccess = true;
     loadSuccess &= LoadFunction("ToDelay", toDelayFunc_);
@@ -193,9 +195,7 @@ void DVSyncLibManager::ClearAllFunctions()
     getVsyncCountFunc_ = nullptr;
     initDvsyncControllerFunc_ = nullptr;
     setVSyncTimeUpdatedFunc_ = nullptr;
-
     ClearDvsyncDelayFunctions();
-
 }
 
 bool DVSyncLibManager::IsAppDVSyncOn()

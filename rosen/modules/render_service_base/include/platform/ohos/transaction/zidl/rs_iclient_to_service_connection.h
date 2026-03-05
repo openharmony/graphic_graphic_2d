@@ -156,6 +156,8 @@ public:
 
     virtual std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id) = 0;
 
+    virtual void ForceRefreshOneFrameWithNextVSync() = 0;
+
     virtual ErrCode GetShowRefreshRateEnabled(bool& enable) = 0;
 
     virtual void SetShowRefreshRateEnabled(bool enabled, int32_t type) = 0;

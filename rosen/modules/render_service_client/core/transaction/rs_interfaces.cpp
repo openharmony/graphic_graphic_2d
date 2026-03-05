@@ -496,7 +496,7 @@ void RSInterfaces::RepaintEverything()
 
 void RSInterfaces::ForceRefreshOneFrameWithNextVSync()
 {
-    renderInterface_->ForceRefreshOneFrameWithNextVSync();
+    renderServiceClient_->ForceRefreshOneFrameWithNextVSync();
 }
 
 void RSInterfaces::DisablePowerOffRenderControl(ScreenId id)

@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
- #ifndef ROSEN_RENDER_SERVICE_BASE_DUMP_CALLBACK_STUB_H
- #define ROSEN_RENDER_SERVICE_BASE_DUMP_CALLBACK_STUB_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_DUMP_CALLBACK_STUB_H
+#define ROSEN_RENDER_SERVICE_BASE_DUMP_CALLBACK_STUB_H
 
- #include <iremote_stub.h>
- #include "common/rs_macros.h"
- #include "ipc_callbacks/dfx/rs_dump_callback.h"
- #include "ipc_callbacks/dfx/rs_dump_callback_ipc_interface_code.h"
+#include <iremote_stub.h>
+#include "common/rs_macros.h"
+#include "ipc_callbacks/dfx/rs_dump_callback.h"
+#include "ipc_callbacks/dfx/rs_dump_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {

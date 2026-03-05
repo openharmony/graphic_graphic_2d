@@ -169,26 +169,6 @@ bool RSClientToRenderConnectionProxy::FillParcelWithTransactionData(
     return true;
 }
 
-ErrCode RSClientToRenderConnectionProxy::ForceRefreshOneFrameWithNextVSync()
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync: Send Request err.");
-        return ERR_INVALID_VALUE;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        return ERR_INVALID_VALUE;
-    }
-    return ERR_OK;
-}
-
 ErrCode RSClientToRenderConnectionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
     if (task == nullptr) {

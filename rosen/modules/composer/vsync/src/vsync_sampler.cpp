@@ -73,7 +73,7 @@ void VSyncSampler::RegSetScreenVsyncEnabledCallbackForRenderService(ScreenId vsy
     if (updateVsyncEnabledScreenIdCallback_ == nullptr) {
         return;
     }
-    if(!updateVsyncEnabledScreenIdCallback_(vsyncEnabledScreenId)) {
+    if (!updateVsyncEnabledScreenIdCallback_(vsyncEnabledScreenId)) {
         return;
     }
     SetVsyncEnabledScreenId(vsyncEnabledScreenId);

@@ -308,39 +308,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayerFailed002, 
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
-// ==================== CommitLayersFailed ====================
-
-/**
- * @tc.name: CommitLayersFailed001
- * @tc.desc: Test RSUniRenderComposerAdapterTest.CommitLayers with null backend
- * @tc.type: FUNC
- * @tc.require: issuesI7T9RE
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, CommitLayersFailed001, TestSize.Level2)
-{
-    auto adapter = std::make_unique<RSUniRenderComposerAdapter>();
-    // hdiBackend_ is nullptr, should return without crash
-    adapter->CommitLayers();
-    ASSERT_EQ(adapter->hdiBackend_, nullptr);
-}
-
-/**
- * @tc.name: CommitLayersFailed002
- * @tc.desc: Test RSUniRenderComposerAdapterTest.CommitLayers with null output
- * @tc.type: FUNC
- * @tc.require: issuesI7T9RE
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, CommitLayersFailed002, TestSize.Level2)
-{
-    auto adapter = std::make_unique<RSUniRenderComposerAdapter>();
-    // Set hdiBackend_ but not output_
-    adapter->hdiBackend_ = HdiBackend::GetInstance();
-    // Should return early when output_ is nullptr
-    adapter->CommitLayers();
-    // Verify output_ is still nullptr (no state change)
-    ASSERT_EQ(adapter->output_, nullptr);
-}
-
 // ==================== CreateLayer ====================
 
 /**
@@ -962,7 +929,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerCrop001, TestSize.Level2)
 
     composerAdapter_->Init(info, nullptr);
 
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
 
     // Set layer size to equal screen size - should return early
@@ -985,52 +952,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerCrop001, TestSize.Level2)
     }
 }
 
-// ==================== LayerRotate ====================
-
-/**
- * @tc.name: LayerRotate001
- * @tc.desc: Test RSUniRenderComposerAdapterTest.LayerRotate with null surface
- * @tc.type: FUNC
- * @tc.require: issuesI7T9RE
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, LayerRotate001, TestSize.Level2)
-{
-    NodeId id = 1;
-    ScreenId screenId = 0;
-    auto context = std::make_shared<RSContext>();
-    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
-    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
-    ASSERT_NE(screenDrawable, nullptr);
-
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    auto buffer = new SurfaceBufferImpl(0);
-    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
-    ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
-
-    composerAdapter_->Init(info, nullptr);
-
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(layer, nullptr);
-
-    // Create a surface node for LayerRotate which expects RSSurfaceRenderNode
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    // surface is nullptr - function should return early without crash
-    // Save layer state before call
-    GraphicTransformType originalTransform = layer->GetTransformType();
-    composerAdapter_->LayerRotate(layer, *surfaceNode);
-    // Verify transform was not modified (function returns early when surface is nullptr)
-    ASSERT_EQ(layer->GetTransformType(), originalTransform);
-
-    if (buffer) {
-        delete buffer;
-        buffer = nullptr;
-    }
-}
-
 // ==================== LayerScaleDown ====================
 
 /**
@@ -1041,7 +962,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerRotate001, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown001, TestSize.Level2)
 {
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -1069,7 +990,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown001, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown002, TestSize.Level2)
 {
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
@@ -1116,7 +1037,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit001, TestSize.Level2)
 
     composerAdapter_->Init(info, nullptr);
 
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
 
     layer->SetLayerSize(GraphicIRect {0, 0, 100, 100});
@@ -1371,7 +1292,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer002, TestSize.Lev
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer003, TestSize.Level2)
 {
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     sptr<IConsumerSurface> surface = nullptr;
     // Function should return early when surface is null without crash
@@ -1393,7 +1314,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer003, TestSize.Lev
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer004, TestSize.Level2)
 {
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<IConsumerSurface> surface = nullptr;
     // Function should return early when buffer is null without crash

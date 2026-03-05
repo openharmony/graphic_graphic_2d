@@ -44,6 +44,14 @@ private:
     void DumpRSEvenParam(std::string& dumpString) const;
     void DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame = true) const;
     void DumpJankStatsRs(std::string& dumpString) const;
+    void WindowHitchsDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
+        const std::u16string& arg) const;
+    void FPSDumpProcess(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
+        const std::u16string& arg) const;
+    void DumpFps(std::string& dumpString, std::string& layerName) const;
+    void FPSDumpClearProcess(std::unordered_set<std::u16string>& argSets,
+        std::string& dumpString, const std::u16string& arg) const;
+    void ClearFps(std::string& dumpString, std::string& layerName) const;
 #ifdef RS_ENABLE_VK
     void DumpVkTextureLimit(std::string& dumpString) const;
 #endif
@@ -58,6 +66,7 @@ private:
     void RegisterGpuFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
     void RegisterBufferFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
     void RegisterSurfaceInfoFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
+    void RegisterFpsFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
 
     void ScheduleTask(std::function<void()> task) const;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;

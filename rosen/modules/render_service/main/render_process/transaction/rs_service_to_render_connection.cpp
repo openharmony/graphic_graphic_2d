@@ -160,6 +160,11 @@ ErrCode RSServiceToRenderConnection::RepaintEverything()
     return errCode;
 }
 
+void RSServiceToRenderConnection::ForceRefreshOneFrameWithNextVSync()
+{
+    renderPipelineAgent_->ForceRefreshOneFrameWithNextVSync();
+}
+
 ErrCode RSServiceToRenderConnection::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     ErrCode errCode = renderPipelineAgent_->SetLayerTop(nodeIdStr, isTop);

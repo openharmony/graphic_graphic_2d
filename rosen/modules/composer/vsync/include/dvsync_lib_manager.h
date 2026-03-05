@@ -56,11 +56,11 @@ using NotifyPackageEventFunc = void (*)(const std::vector<std::string>& packageL
 using HandleTouchEventFunc = void (*)(int32_t touchStatus, int32_t touchCnt);
 using SetBufferInfoFunc = bool (*)(uint64_t id, const std::string& name, int32_t queueSize, int32_t bufferCount,
     int64_t lastConsumeTime);
-using IsAppRequestedFunc = bool (*)(); 
+using IsAppRequestedFunc = bool (*)();
 using GetVSyncConnectionAppFunc = void (*)(sptr<VSyncConnection>& connection);
 using NeedUpdateVSyncTimeFunc = bool (*)(int32_t& pid);
 using GetLastUpdateTimeFunc = int64_t (*)();
-using DVSyncUpdateFunc = void (*)(uint64_t dvsyncTime, uint64_t vsyncTime); 
+using DVSyncUpdateFunc = void (*)(uint64_t dvsyncTime, uint64_t vsyncTime);
 using ForceRsDVsyncFunc = void (*)(const std::string& sceneId);
 using UpdateReferenceTimeAndPeriodFunc = void (*)(bool& isLtpoNeedChange, int64_t& occurDvsyncReferenceTime,
     int64_t& dvsyncPeriodRecord);
@@ -95,7 +95,7 @@ public:
     uint64_t CheckVsyncReceivedAndGetRelTs(uint64_t timestamp);
     int64_t GetOccurPeriod();
     uint32_t GetOccurRefreshRate();
-    void RecordVSync(const sptr<VSyncDistributor>& distributor, int64_t now, int64_t period, 
+    void RecordVSync(const sptr<VSyncDistributor>& distributor, int64_t now, int64_t period,
         uint32_t refreshRate, bool isDVSyncController);
     void GetConnectionApp(sptr<VSyncConnection>& connection);
     void MarkRSRendering(bool isRender);
@@ -126,7 +126,7 @@ public:
     void GetVSyncConnectionApp(sptr<VSyncConnection>& connection);
     bool NeedUpdateVSyncTime(int32_t& pid);
     int64_t GetLastUpdateTime();
-    void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime); 
+    void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
     void ForceRsDVsync(const std::string& sceneId);
     void UpdateReferenceTimeAndPeriod(bool& isLtpoNeedChange, int64_t& occurDvsyncReferenceTime,
         int64_t& dvsyncPeriodRecord);

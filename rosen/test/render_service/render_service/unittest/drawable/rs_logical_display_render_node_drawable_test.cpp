@@ -721,8 +721,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest010, TestSize.Leve
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
     auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
     std::string name = "virtualScreen01";
     uint32_t width = 400;
     uint32_t height = 400;
@@ -732,9 +730,9 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest010, TestSize.Leve
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
     screenManager_->Init(nullptr);
-    auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    auto screenId = screenManager_->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, screenId);
-    screenManager->defaultScreenId_ = screenId;
+    screenManager_->defaultScreenId_ = screenId;
     params->SetScreenId(screenId);
     ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
     params->shouldPaint_ = true;
@@ -3391,16 +3389,16 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, UpdateSlrScale001, TestSize.Lev
     screenProperty.Set<ScreenPropertyType::SAMPLING_OPTION>({true, 0.f, 0.f, 1.f});
     system::SetParameter("rosen.SLRScale.enabled", "1");
     // when scaleManager is nullptr
-    displayDrawable_->UpdateSlrScale(screenProperty);
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0);
     ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
     // when scaleManager is not nullptr
     displayDrawable_->scaleManager_ = std::make_unique<RSSLRScaleFunction>(
         width, height, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    displayDrawable_->UpdateSlrScale(screenProperty);
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0);
     ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
 
     system::SetParameter("rosen.SLRScale.enabled", "0");
-    displayDrawable_->UpdateSlrScale(screenProperty);
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0);
     EXPECT_EQ(displayDrawable_->scaleManager_, nullptr);
     system::SetParameter("rosen.SLRScale.enabled", param);
 }
@@ -3423,7 +3421,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, UpdateSlrScale002, TestSize.Lev
     system::SetParameter("rosen.SLRScale.enabled", "1");
     // when params is not nullptr
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    displayDrawable_->UpdateSlrScale(screenProperty, screenParams);
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0, screenParams);
     ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
     // recover rosen.SLRScale.enabled
     system::SetParameter("rosen.SLRScale.enabled", param);
@@ -3921,8 +3919,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesTest002
 {
     Drawing::Canvas canvas;
     auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
     std::string name = "virtualScreen01";
     uint32_t width = 400;
     uint32_t height = 400;
@@ -3932,14 +3928,11 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesTest002
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
     screenManager_->Init(nullptr);
-    auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface);
-    ASSERT_NE(INVALID_SCREEN_ID, screenId);
-    screenManager->defaultScreenId_ = screenId;
+    auto screenId = screenManager_->CreateVirtualScreen(name, width, height, psurface);
+    screenManager_->defaultScreenId_ = screenId;
     params->SetScreenId(screenId);
     ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
 
-    sptr<Surface> producerSurface_ = screenManager->GetProducerSurface(screenId);
-    ASSERT_NE(producerSurface_, nullptr);
     params->shouldPaint_ = true;
     params->contentEmpty_ = false;
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();

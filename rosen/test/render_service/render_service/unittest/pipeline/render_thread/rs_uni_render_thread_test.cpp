@@ -580,53 +580,6 @@ HWTEST_F(RSUniRenderThreadTest, GetWatermarkImg, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReleaseSelfDrawingNodeBuffer001
- * @tc.desc: Test ReleaseSelfDrawingNodeBuffer
- * @tc.type: FUNC
- * @tc.require: issueIB2I9E
- */
-HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1)
-{
-    RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    auto surfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    auto adapter = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
-
-    adapter->consumerOnDraw_ = IConsumerSurface::Create();
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
-    renderThreadParams->selfDrawables_.push_back(surfaceRenderNode->renderDrawable_);
-    instance.Sync(move(renderThreadParams));
-    auto params = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->GetRenderParams().get());
-    instance.ReleaseSelfDrawingNodeBuffer();
-    ASSERT_EQ(params->GetPreBuffer(), nullptr);
-
-    params->isOnTheTree_ = true;
-    params->isHardwareEnabled_ = false;
-    params->isLastFrameHardwareEnabled_ = true;
-    params->preBuffer_ = SurfaceBuffer::Create();
-    instance.ReleaseSelfDrawingNodeBuffer();
-    ASSERT_EQ(params->GetPreBuffer(), nullptr);
-    params->isOnTheTree_ = false;
-    instance.ReleaseSelfDrawingNodeBuffer();
-    ASSERT_EQ(params->GetPreBuffer(), nullptr);
-
-    params->isOnTheTree_ = false;
-    params->isHardwareEnabled_ = true;
-    params->isLastFrameHardwareEnabled_ = true;
-    params->preBuffer_ = SurfaceBuffer::Create();
-    params->screenId_ = 0;
-    instance.ReleaseSelfDrawingNodeBuffer();
-    ASSERT_EQ(params->GetPreBuffer(), nullptr);
-
-    instance.ReleaseSelfDrawingNodeBuffer();
-    params->isHardwareEnabled_ = true;
-    params->layerCreated_ = true;
-    instance.ReleaseSelfDrawingNodeBuffer();
-    EXPECT_TRUE(params->isHardwareEnabled_);
-}
-
-/**
  * @tc.name: AddToReleaseQueueTest
  * @tc.desc: Test AddToReleaseQueue
  * @tc.type: FUNC

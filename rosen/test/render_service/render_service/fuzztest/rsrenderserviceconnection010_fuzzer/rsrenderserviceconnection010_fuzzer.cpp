@@ -131,7 +131,7 @@ void DoSetOverlayDisplayMode()
 
 bool DoGetBehindWindowFilterEnabled()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -145,7 +145,7 @@ bool DoGetBehindWindowFilterEnabled()
 bool DoNotifyXComponentExpectedFrameRate()
 {
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
+        RSIClientToServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -180,7 +180,7 @@ bool DoSetOptimizeCanvasDirtyPidList()
     }
 
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
     if (toServiceConnectionStub_ == nullptr) {
         return false;
     }
@@ -207,7 +207,7 @@ bool DoSetGpuCrcDirtyEnabledPidList()
         return false;
     }
  
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     if (toServiceConnectionStub_ == nullptr) {
         return false;
     }
@@ -233,7 +233,7 @@ bool DoSetVirtualScreenAutoRotation()
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION);
     if (toServiceConnectionStub_ == nullptr) {
         return false;
     }

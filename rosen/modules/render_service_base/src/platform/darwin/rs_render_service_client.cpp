@@ -478,20 +478,8 @@ uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& act
     return {};
 }
 
-int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
 {
-    return {};
-}
-
-int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
-    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
-{
-    return {};
-}
-
-int32_t RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
-{
-    return {};
 }
 
 int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)

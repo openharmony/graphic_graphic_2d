@@ -19,7 +19,7 @@
 #include <memory>
 
 #include "platform/drawing/rs_surface.h"
-#include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {

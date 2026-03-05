@@ -194,6 +194,17 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
         transformEnabled) == ERR_OK ? pixelMap : nullptr;
 }
 
+void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("ForceRefreshOneFrameWithNextVSync clientToService is nullptr, return");
+        return;
+    }
+
+    clientToService->ForceRefreshOneFrameWithNextVSync();
+}
+
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();

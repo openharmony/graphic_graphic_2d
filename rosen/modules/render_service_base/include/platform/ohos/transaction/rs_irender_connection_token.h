@@ -15,7 +15,7 @@
 #ifndef RENDER_SERVICE_BASE_PLATFORM_OHOS_TRANSACTION_RS_IRENDER_CONNECTION_TOKEN_H
 #define RENDER_SERVICE_BASE_PLATFORM_OHOS_TRANSACTION_RS_IRENDER_CONNECTION_TOKEN_H
 
-#include "zidl/rs_iclient_to_service_connection.h"
+#include <iremote_broker.h>
 
 namespace OHOS {
 namespace Rosen {

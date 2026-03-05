@@ -111,6 +111,7 @@ public:
     // Others
     ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) override;
     ErrCode RepaintEverything() override;
+    void ForceRefreshOneFrameWithNextVSync() override;
     ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) override;
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect& srcRect,
         std::shared_ptr<Media::PixelMap>& pixelMap, bool transformEnabled = false) override;

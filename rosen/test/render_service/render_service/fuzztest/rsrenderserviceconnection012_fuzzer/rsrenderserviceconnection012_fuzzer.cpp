@@ -104,7 +104,7 @@ void DoGetHighContrastTextState()
 void DoCommitTransaction()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -116,7 +116,7 @@ void DoCommitTransaction()
 
 void DoCreateNode()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -129,7 +129,7 @@ void DoCreateNode()
 
 void DoCreateNodeAndSurface()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -165,7 +165,7 @@ void DoSetHidePrivacyContent()
     option.SetFlags(MessageOption::TF_SYNC);
     dataP.WriteUint64(nodeId);
     dataP.WriteBool(needHidePrivacyContent);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
@@ -178,7 +178,7 @@ void DoSetHardwareEnabled()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HARDWARE_ENABLED);
     uint64_t id = static_cast<NodeId>(g_pid) << 32;
     bool isEnabled = GetData<bool>();
     uint8_t selfDrawingType = GetData<uint8_t>();
@@ -192,7 +192,7 @@ void DoSetHardwareEnabled()
 
 void DoExecuteSynchronousTask()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -217,7 +217,7 @@ void DoGetPixelmap()
         return;
     }
     dataP.WriteUint64(nodeId);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -226,7 +226,7 @@ void DoGetPixelmap()
 
 void DoGetBitmap()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_BITMAP);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;

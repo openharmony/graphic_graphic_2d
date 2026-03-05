@@ -439,6 +439,7 @@ HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo002, TestSize.Level0)
     rsLayer->SetType(GRAPHIC_LAYER_TYPE_OVERLAY);
     rsLayer->SetTransform(GRAPHIC_ROTATE_90);
     rsLayer->SetCompositionType(GRAPHIC_COMPOSITION_DEVICE);
+    EXPECT_EQ(rsLayer->GetCompositionType() == GRAPHIC_COMPOSITION_DEVICE, true);
 
     rsLayer->SetAlpha(alpha);
     rsLayer->SetZorder(1);
@@ -446,6 +447,7 @@ HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo002, TestSize.Level0)
     rsLayer->SetType(GRAPHIC_LAYER_TYPE_OVERLAY);
     rsLayer->SetTransform(GRAPHIC_ROTATE_90);
     rsLayer->SetCompositionType(GRAPHIC_COMPOSITION_DEVICE);
+    EXPECT_EQ(rsLayer->GetCompositionType() == GRAPHIC_COMPOSITION_DEVICE, true);
 
     std::vector<GraphicIRect> visibleRegions;
     GraphicIRect iRect = {1, 0, 1, 0};
@@ -568,6 +570,7 @@ HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo002, TestSize.Level0)
     rsLayer->SetSolidColorLayerProperty(solidColorLayerProperty);
     rsLayer->SetUseDeviceOffline(true);
     rsLayer->SetIgnoreAlpha(true);
+    EXPECT_EQ(rsLayer->GetIgnoreAlpha(), true);
     rsLayer->SetAncoSrcRect(iRect);
     rsLayer->SetSolidColorLayerProperty(solidColorLayerProperty);
     rsLayer->SetUseDeviceOffline(true);

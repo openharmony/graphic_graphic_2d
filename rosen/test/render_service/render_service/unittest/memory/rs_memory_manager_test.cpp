@@ -1253,7 +1253,7 @@ HWTEST_F(RSMemoryManagerTest, DumpMem003, TestSize.Level2)
     pid_t pid = 1;
     bool isLite = false;
     NodeId id = 10000000000000;
-    auto ScreenId = 100;
+    auto screenId = 100;
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     RSScreenProperty screenProperty;
@@ -1400,9 +1400,9 @@ HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump004, TestSize.Level1)
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp = 0;
     OHOS::sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
-    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
     OHOS::sptr<SurfaceBuffer> cbuffer = SurfaceBuffer::Create();
-    surfaceHandler->SetBuffer(cbuffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(cbuffer, acquireFence, damage, timestamp, nullptr);
 
     DfxString log;
     MemoryManager::RenderServiceAllSurfaceDump(log);

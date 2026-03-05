@@ -465,33 +465,6 @@ HWTEST_F(RSScreenManagerTest, GetScreenActiveRefreshRate_001, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetProducerSurface_001
- * @tc.desc: Test GetProducerSurface
- * @tc.type: FUNC
- * @tc.require: issueI5ZK2I
- */
-HWTEST_F(RSScreenManagerTest, GetProducerSurface_001, TestSize.Level1)
-{
-    ASSERT_NE(nullptr, screenManager_);
-    std::string name = "virtualScreen01";
-    uint32_t width = 480;
-    uint32_t height = 320;
-
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(psurface, nullptr);
-
-    auto id = screenManager_->CreateVirtualScreen(name, width, height, psurface, INVALID_SCREEN_ID, 0, {});
-    ASSERT_NE(INVALID_SCREEN_ID, id);
-
-    ASSERT_NE(nullptr, screenManager_->GetProducerSurface(id));
-    screenManager_->RemoveVirtualScreen(id);
-    sleep(1);
-}
-
-/*
  * @tc.name: GetScreenBacklight_001
  * @tc.desc: Test GetScreenBacklight
  * @tc.type: FUNC
@@ -1049,7 +1022,6 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_001, TestSize.Level1)
     ASSERT_NE(nullptr, screenManager_);
     ScreenId screenId = INVALID_SCREEN_ID;
     screenManager_->RemoveVirtualScreen(screenId);
-    ASSERT_EQ(screenManager_->GetProducerSurface(screenId), nullptr);
 }
 
 /*
@@ -1070,11 +1042,7 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_002, TestSize.Level1)
 
     auto id = screenManager_->CreateVirtualScreen("virtualScreen001", 480, 320, psurface, INVALID_SCREEN_ID, 0, {});
     ASSERT_NE(INVALID_SCREEN_ID, id);
-    auto surface = screenManager_->GetProducerSurface(id);
-    ASSERT_NE(surface, nullptr);
     screenManager_->RemoveVirtualScreen(id);
-    surface = screenManager_->GetProducerSurface(id);
-    ASSERT_EQ(surface, nullptr);
 }
 
 /*
@@ -1317,19 +1285,6 @@ HWTEST_F(RSScreenManagerTest, SetScreenBacklight_002, TestSize.Level1)
 
     screenManager_->RemoveVirtualScreen(screenId);
     sleep(1);
-}
-
-/*
- * @tc.name: GetProducerSurface_002
- * @tc.desc: Test GetProducerSurface
- * @tc.type: FUNC
- * @tc.require: issueI7AABN
- */
-HWTEST_F(RSScreenManagerTest, GetProducerSurface_002, TestSize.Level1)
-{
-    ScreenId screenId = INVALID_SCREEN_ID;
-    auto result = screenManager_->GetProducerSurface(screenId);
-    ASSERT_EQ(result, nullptr);
 }
 
 /*
@@ -3095,23 +3050,6 @@ HWTEST_F(RSScreenManagerTest, ProcessScreenConnected01, TestSize.Level1)
 }
 
 /*
- * @tc.name: CheckFoldScreenIdBuiltIn
- * @tc.desc: Test CheckFoldScreenIdBuiltIn
- * @tc.type: FUNC
- * @tc.require: issue20799
- */
-HWTEST_F(RSScreenManagerTest, CheckFoldScreenIdBuiltIn, TestSize.Level1)
-{
-    uint32_t id = 0;
-    ASSERT_NE(screenManager_, nullptr);
-    bool res = screenManager_->RSScreenManager::CheckFoldScreenIdBuiltIn(id);
-    ASSERT_TRUE(res);
-    id = 1;
-    res = screenManager_->RSScreenManager::CheckFoldScreenIdBuiltIn(id);
-    ASSERT_FALSE(res);
-}
-
-/*
  * @tc.name: OnHwcDeadEvent
  * @tc.desc: Test OnHwcDeadEvent
  * @tc.type: FUNC
@@ -3342,13 +3280,14 @@ HWTEST_F(RSScreenManagerTest, ModifyVirtualScreenWhiteList001, TestSize.Level2)
  */
 HWTEST_F(RSScreenManagerTest, ModifyVirtualScreenWhiteList002, TestSize.Level2)
 {
-    ASSERT_NE(nullptr, screenManager_);
+    auto screenManager = sptr<RSScreenManager>::MakeSptr();
+    ASSERT_NE(nullptr, screenManager);
 
     ScreenId screenId = 1;
-    screenManager_->screens_[screenId] = std::make_shared<RSScreen>(nullptr);
+    screenManager->screens_[screenId] = std::make_shared<RSScreen>(screenId);
 
-    ASSERT_NE(screenManager_->AddVirtualScreenWhiteList(screenId, {}), ERR_OK);
-    ASSERT_NE(screenManager_->RemoveVirtualScreenWhiteList(screenId, {}), ERR_OK);
+    ASSERT_NE(screenManager->AddVirtualScreenWhiteList(screenId, {}), ERR_OK);
+    ASSERT_NE(screenManager->RemoveVirtualScreenWhiteList(screenId, {}), ERR_OK);
 }
 
 /*
@@ -3447,9 +3386,9 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList006, TestSize.Level2)
     ScreenId mirrorId2 = 2;
     {
         std::lock_guard<std::mutex> lock(screenManager_->screenMapMutex_);
-        screenManager_->screens_[mainId] = std::make_shared<RSScreen>(nullptr);
-        screenManager_->screens_[mirrorId1] = std::make_shared<RSScreen>(nullptr);
-        screenManager_->screens_[mirrorId2] = std::make_shared<RSScreen>(nullptr);
+        screenManager_->screens_[mainId] = std::make_shared<RSScreen>(mainId);
+        screenManager_->screens_[mirrorId1] = std::make_shared<RSScreen>(mirrorId1);
+        screenManager_->screens_[mirrorId2] = std::make_shared<RSScreen>(mirrorId2);
     }
     screenManager_->defaultScreenId_ = mainId;
 

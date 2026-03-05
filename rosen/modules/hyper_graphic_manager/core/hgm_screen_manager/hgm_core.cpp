@@ -149,7 +149,8 @@ void HgmCore::CheckCustomFrameRateModeValid()
         if (!XMLParser::IsNumber(modeStr)) {
             continue;
         }
-        if (auto mode = std::stoi(modeStr); maxMode < mode) {
+        if (auto mode = std::stoi(modeStr);
+            maxMode < mode) {
             maxMode = mode;
         }
     }
@@ -617,7 +618,8 @@ sptr<HgmScreen> HgmCore::GetActiveScreen() const
 
 int64_t HgmCore::GetIdealPeriod(uint32_t rate)
 {
-    if (auto iter = IDEAL_PERIOD.find(rate); iter != IDEAL_PERIOD.end()) {
+    if (auto iter = IDEAL_PERIOD.find(rate);
+        iter != IDEAL_PERIOD.end()) {
         return iter->second;
     }
     return 0;

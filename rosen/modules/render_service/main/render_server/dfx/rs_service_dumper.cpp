@@ -281,9 +281,6 @@ void RSServiceDumper::DumpFps(std::string& dumpString, std::string& layerName) c
 #ifdef RS_ENABLE_GPU
         ScheduleTask([this, &dumpString, &layerName]() { rsRenderComposerManager_->FpsDump(dumpString, layerName); });
 #endif
-    } else {
-        // ScheduleTask(
-        //     [this, &dumpString, &layerName]() { return screenManager_->FpsDump(dumpString, layerName); }).wait();
     }
 }
 
@@ -320,11 +317,6 @@ void RSServiceDumper::ClearFps(std::string& dumpString, std::string& layerName) 
         ScheduleTask(
             [this, &dumpString, &layerName]() { rsRenderComposerManager_->ClearFpsDump(dumpString, layerName); });
 #endif
-    } else {
-        // RSMainThread::Instance()->ScheduleTask(
-        //     [this, &dumpString, &layerName]() {
-        //         return screenManager_->ClearFpsDump(dumpString, layerName);
-        //     }).wait();
     }
 }
 
@@ -402,9 +394,6 @@ void RSServiceDumper::WindowHitchsDump(
                 return rsRenderComposerManager_->HitchsDump(dumpString, layerArg);
             });
 #endif
-        } else {
-            // RSMainThread::Instance()->ScheduleTask(
-            //     [this, &dumpString, &layerArg]() { return screenManager_->HitchsDump(dumpString, layerArg); }).wait();
         }
     }
 }

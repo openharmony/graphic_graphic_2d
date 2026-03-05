@@ -54,7 +54,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext001, TestSize.Level1)
     rsNode->rsUIContext_ = nullptr;
     
     AnimationId id = 1;
-    auto animation = std::make_shared<RSDummyAnimation>();
+    auto animation = std::make_shared<RSDummyAnimation>(rsNode->rsUIContext_);
     rsNode->animations_.insert({ id, animation });
     
     // When rsUIContext is null, FallbackAnimationsToContext should return false
@@ -76,7 +76,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext002, TestSize.Level1)
     rsNode->rsUIContext_ = rsUIContext;
 
     AnimationId id = 1;
-    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext_);
+    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(1);
     rsNode->animations_.insert({ id, animation });
 
@@ -99,7 +99,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext003, TestSize.Level1)
     rsNode->rsUIContext_ = rsUIContext;
 
     AnimationId id = 1;
-    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext_);
+    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(-1);
     animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
     rsNode->animations_.insert({ id, animation });
@@ -125,16 +125,16 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext004, TestSize.Level1)
 
     // Create multiple animations
     AnimationId id1 = 1;
-    auto animation1 = std::make_shared<RSDummyAnimation>(rsUIContext_);
+    auto animation1 = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation1->SetRepeatCount(1);
 
     AnimationId id2 = 2;
-    auto animation2 = std::make_shared<RSDummyAnimation>(rsUIContext_);
+    auto animation2 = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation2->SetRepeatCount(-1);
     animation2->uiAnimation_ = std::make_shared<RSRenderAnimation>();
 
     AnimationId id3 = 3;
-    auto animation3 = std::make_shared<RSDummyAnimation>(rsUIContext_);
+    auto animation3 = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation3->SetRepeatCount(2);
 
     rsNode->animations_.insert({ id1, animation1 });
@@ -161,7 +161,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext005, TestSize.Level1)
     rsNode->rsUIContext_ = rsUIContext;
 
     AnimationId id = 1;
-    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext_);
+    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(-1);
     // No uiAnimation_ set, so IsUiAnimation() returns false
     rsNode->animations_.insert({ id, animation });
@@ -186,7 +186,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext006, TestSize.Level1)
     rsNode->rsUIContext_ = rsUIContext;
 
     AnimationId id = 1;
-    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext_);
+    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(1);
     animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
     rsNode->animations_.insert({ id, animation });

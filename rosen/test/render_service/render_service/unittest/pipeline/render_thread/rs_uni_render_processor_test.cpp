@@ -738,7 +738,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer001, TestSize.Level1)
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, renderEngine);
 
         renderProcessor->CreateSolidColorLayer(layer, *params);
         auto property = layer->GetSolidColorLayerProperty();
@@ -807,7 +807,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer003, TestSize.Level1)
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, renderEngine);
 
         renderProcessor->CreateSolidColorLayer(layer, *params);
         auto property = layer->GetSolidColorLayerProperty();
@@ -844,7 +844,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer004, TestSize.Level1)
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, renderEngine);
 
         renderProcessor->CreateSolidColorLayer(layer, *params);
         auto property = layer->GetSolidColorLayerProperty();
@@ -881,7 +881,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer005, TestSize.Level1)
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, renderEngine);
 
         renderProcessor->CreateSolidColorLayer(layer, *params);
         auto property = layer->GetSolidColorLayerProperty();
@@ -915,7 +915,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer006, TestSize.Level1)
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, renderEngine);
 
         for (const auto& colorCase : testColors) {
             // Create a new layer for each iteration
@@ -968,7 +968,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer007, TestSize.Level1)
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, renderEngine);
 
         for (const auto& rectCase : testRects) {
             // Create a new layer for each iteration
@@ -1017,7 +1017,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayer008, TestSize.Level1)
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, renderEngine);
 
         // Should handle null layer gracefully
         renderProcessor->CreateSolidColorLayer(layer, *params);

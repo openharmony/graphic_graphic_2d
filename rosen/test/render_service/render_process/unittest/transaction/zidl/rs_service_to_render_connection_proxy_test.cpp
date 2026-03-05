@@ -24,7 +24,8 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
-#include "transaction/zidl/rs_service_to_render_connection_proxy.h"
+#include "transaction/rs_service_to_render_connection.h"
+#include "transaction/rs_render_service_client_info.h"
 #include "memory/rs_memory_graphic.h"
 #include "feature/capture/rs_ui_capture.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
@@ -1045,4 +1046,119 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetBrightnessInfoChangeCallbackTe
     EXPECT_NE(proxy->SetBrightnessInfoChangeCallback(pid, callback), SUCCESS);
 }
 
+/**
+ * @tc.name: ReportEventJankFrame Test
+ * @tc.desc: ReportEventJankFrame Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportEventJankFrame, TestSize.Level1)
+{
+    DataBaseRs info;
+    proxy->ReportJankStats();
+    proxy->ReportEventResponse(info);
+    proxy->ReportEventComplete(info);
+    proxy->ReportEventJankFrame(info);
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: ReportDataBaseRs Test
+ * @tc.desc: ReportDataBaseRs Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportDataBaseRs, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    DataBaseRs info;
+    proxy->ReportDataBaseRs(data, reply, option, info);
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankStart Test
+ * @tc.desc: ReportRsSceneJankStart Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportRsSceneJankStart, TestSize.Level1)
+{
+    AppInfo info;
+    proxy->ReportRsSceneJankStart(info);
+    proxy->ReportRsSceneJankEnd(info);
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: AvcodecVideoStart Test
+ * @tc.desc: AvcodecVideoStart Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoStartTest, TestSize.Level1)
+{
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    uint64_t reportTime = 16;
+    proxy->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop Test
+ * @tc.desc: AvcodecVideoStop Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoStopTest, TestSize.Level1)
+{
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    proxy->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: AvcodecVideoGet Test
+ * @tc.desc: AvcodecVideoGet Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoGetTest, TestSize.Level1)
+{
+    uint64_t uniqueId = 1;
+    proxy->AvcodecVideoGet(uniqueId);
+    ASSERT_TRUE(proxy);
+}
+ 
+/**
+ * @tc.name: AvcodecVideoGetRecent Test
+ * @tc.desc: AvcodecVideoGetRecent Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoGetRecentTest, TestSize.Level1)
+{
+    proxy->AvcodecVideoGetRecent();
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: GetPidGpuMemoryInMBTest
+ * @tc.desc: test results of GetPidGpuMemoryInMB
+ * @tc.type: FUNC
+ * @tc.require: issuesICE0QR
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPidGpuMemoryInMBTest, TestSize.Level1)
+{
+    pid_t pid = 1001;
+    float gpuMemInMB = 0.0f;
+    int32_t res = proxy->GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    EXPECT_NE(res, ERR_OK);
+}
 } // namespace OHOS::Rosen

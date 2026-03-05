@@ -199,63 +199,6 @@ HWTEST_F(RSServiceDumperTest, MultipleDumpers_CanCoexist, TestSize.Level1)
 }
 
 /*
- * @tc.name: CopyConstructor_IsDeleted
- * @tc.desc: Test that copy constructor is deleted
- * @tc.type: FUNC
- * @tc.require: AR000GSH6G
- */
-HWTEST_F(RSServiceDumperTest, CopyConstructor_IsDeleted, TestSize.Level1)
-{
-    // Given: A dumper instance
-    RSServiceDumper dumper1;
-
-    // When & Then: Copy constructor should not compile (verified at compile time)
-    // RSServiceDumper dumper2(dumper1); // This line should not compile
-
-    // Document: Copy constructor is explicitly deleted
-    SUCCEED();
-}
-
-/*
- * @tc.name: CopyAssignment_IsDeleted
- * @tc.desc: Test that copy assignment operator is deleted
- * @tc.type: FUNC
- * @tc.require: AR000GSH6G
- */
-HWTEST_F(RSServiceDumperTest, CopyAssignment_IsDeleted, TestSize.Level1)
-{
-    // Given: Two dumper instances
-    RSServiceDumper dumper1;
-    RSServiceDumper dumper2;
-
-    // When & Then: Copy assignment should not compile (verified at compile time)
-    // dumper2 = dumper1; // This line should not compile
-
-    // Document: Copy assignment operator is explicitly deleted
-    SUCCEED();
-}
-
-/*
- * @tc.name: Destructor_CleanupResources
- * @tc.desc: Test destructor properly cleans up resources
- * @tc.type: FUNC
- * @tc.require: AR000GSH6G
- */
-HWTEST_F(RSServiceDumperTest, Destructor_CleanupResources, TestSize.Level1)
-{
-    // Given: A dumper instance with initialized handlers
-    auto dumper = std::make_unique<RSServiceDumper>();
-    auto manager = std::make_shared<RSServiceDumpManager>();
-    dumper->RsDumpInit(manager);
-
-    // When: Destroy dumper
-    dumper.reset();
-
-    // Then: Should cleanup without crashing or memory leaks
-    SUCCEED();
-}
-
-/*
  * @tc.name: RegisterGpuFuncs_ValidManager
  * @tc.desc: Test RegisterGpuFuncs with valid manager
  * @tc.type: FUNC

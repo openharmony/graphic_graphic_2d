@@ -60,7 +60,7 @@ static RSImageDetailEnhanceAlgoParams slrParams = {
 };
 static RSImageDetailEnhanceAlgoParams esrParams = {
     true,
-    {{ 1.0f, 2.0f, 0.3f }, { 2.0f, 4.0f, 0.2f }, { 4.0f, 5.0f, 0.15f },},
+    {{ 1.0f, 2.0f, 0.3f }, { 2.0f, 4.0f, 0.2f }, { 4.0f, 5.0f, 0.15f }},
     360000,
     9000000,
 };

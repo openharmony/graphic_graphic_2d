@@ -842,11 +842,11 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUITest, TestSize.Level1)
     auto canvasNode = RSCanvasNode::Create(false, true);
     bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
     RSSystemProperties::isUniRenderEnabled_ = true;
-    auto res = RSRenderInterface::GetInstance().TakeSurfaceCaptureForUI(canvasNode, callback, 1.f, 1.f, false);
+    auto res = RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(canvasNode, callback, 1.f, 1.f, false);
     EXPECT_EQ(res, true);
-    res = RSRenderInterface::GetInstance().TakeSurfaceCaptureForUI(canvasNode, callback, 1.f, 1.f, true);
+    res = RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(canvasNode, callback, 1.f, 1.f, true);
     EXPECT_EQ(res, true);
-    res = RSRenderInterface::GetInstance().TakeSurfaceCaptureForUI(nullptr, callback);
+    res = RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(nullptr, callback);
     EXPECT_EQ(res, false);
     RSSystemProperties::isUniRenderEnabled_ = backupProperty;
 }
@@ -872,13 +872,13 @@ HWTEST_F(RSInterfacesTest, TakeUICaptureInRangeTest, TestSize.Level1)
     auto canvasNodeEnd = RSCanvasNode::Create(false, true);
     bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
     RSSystemProperties::isUniRenderEnabled_ = true;
-    auto res = RSRenderInterface::GetInstance().TakeUICaptureInRange(
+    auto res = RSInterfaces::GetInstance().TakeUICaptureInRange(
         nullptr, canvasNodeEnd, false, callback, 1.f, 1.f, false);
     EXPECT_EQ(res, false);
-    res = RSRenderInterface::GetInstance().TakeUICaptureInRange(
+    res = RSInterfaces::GetInstance().TakeUICaptureInRange(
         canvasNodeBegin, canvasNodeEnd, false, callback, 1.f, 1.f, false);
     EXPECT_EQ(res, true);
-    res = RSRenderInterface::GetInstance().TakeUICaptureInRange(
+    res = RSInterfaces::GetInstance().TakeUICaptureInRange(
         canvasNodeBegin, canvasNodeEnd, false, callback, 1.f, 1.f, true);
     EXPECT_EQ(res, true);
     RSSystemProperties::isUniRenderEnabled_ = backupProperty;
@@ -1026,7 +1026,7 @@ HWTEST_F(RSInterfacesTest, ClearSurfaceWatermarkForNodes001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetLogicalCameraRotationCorrectionTest001, TestSize.Level1)
 {
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    RSInterfaces& instance = RSInterfaces::GetInstance();
     ScreenId screenId = 0;
     ScreenRotation logicalRotation = ScreenRotation::ROTATION_90;
     EXPECT_EQ(instance.SetLogicalCameraRotationCorrection(screenId, logicalRotation), SUCCESS);

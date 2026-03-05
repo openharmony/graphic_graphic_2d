@@ -44,12 +44,14 @@ constexpr uint32_t WAIT_FENCE_TIMEOUT_MS = 500;
 
 class BufferOwnerCountGuard {
 public:
-    explicit BufferOwnerCountGuard(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> count) : count_(count) {
+    explicit BufferOwnerCountGuard(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> count) : count_(count)
+    {
         if (count_) {
             count_->AddRef();
         }
     }
-    ~BufferOwnerCountGuard() {
+    ~BufferOwnerCountGuard()
+    {
         if (count_) {
             count_->DecRef();
         }

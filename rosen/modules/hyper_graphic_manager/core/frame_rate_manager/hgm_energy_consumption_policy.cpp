@@ -43,20 +43,16 @@ constexpr int32_t UNKNOWN_IDLE_FPS = -1;
 constexpr int64_t DESCISION_VIDEO_CALL_TIME = 500;
 }
 
-const std::unordered_map<EnergyEvent, std::function<void(const std::unordered_map<std::string, std::string>&)>>
-    HgmEnergyConsumptionPolicy::commonDataMapFunc_ = {
-        { EnergyEvent::VOTER_VIDEO_RATE, std::bind(&HgmEnergyConsumptionPolicy::VoterVideoFrameRate,
-                                             &HgmEnergyConsumptionPolicy::Instance(), std::placeholders::_1) },
-        { EnergyEvent::START_NEW_ANIMATION, std::bind(&HgmEnergyConsumptionPolicy::StartNewAnimation,
-                                                &HgmEnergyConsumptionPolicy::Instance(), std::placeholders::_1) },
-        { EnergyEvent::ANIMATION_EXEC_TIME, std::bind(&HgmEnergyConsumptionPolicy::StatisticAnimationTime,
-                                                &HgmEnergyConsumptionPolicy::Instance(), std::placeholders::_1) },
+#define BIND_HANDLER_TO_ENERGY_POLICY(func_name) \
+    std::bind(&HgmEnergyConsumptionPolicy::func_name, &HgmEnergyConsumptionPolicy::Instance(), std::placeholders::_1)
 
-    };
+const std::unordered_map<EnergyEvent, HandleRPFunc> HgmEnergyConsumptionPolicy::commonDataMapFunc_ = {
+    { EnergyEvent::VOTER_VIDEO_RATE, BIND_HANDLER_TO_ENERGY_POLICY(VoterVideoFrameRate) },
+    { EnergyEvent::START_NEW_ANIMATION, BIND_HANDLER_TO_ENERGY_POLICY(StartNewAnimation) },
+    { EnergyEvent::ANIMATION_EXEC_TIME, BIND_HANDLER_TO_ENERGY_POLICY(StatisticAnimationTime) }
+};
 
-HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
-{
-}
+HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy() {}
 
 HgmEnergyConsumptionPolicy& HgmEnergyConsumptionPolicy::Instance()
 {

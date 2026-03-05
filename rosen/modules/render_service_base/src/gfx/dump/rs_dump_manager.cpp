@@ -194,6 +194,7 @@ int RSDumpManager::ReadFileDescriptor(Parcel &parcel)
  
 bool RSDumpManager::WriteAshmemDataToParcel(Parcel &parcel, size_t size, const char* dataPtr)
 {
+#ifdef ROSEN_OHOS
     std::string name = "Parcel DumpString";
     int fd = AshmemCreate(name.c_str(), size);
     RS_LOGI("AshmemCreate:[%{public}d].", fd);
@@ -234,6 +235,9 @@ bool RSDumpManager::WriteAshmemDataToParcel(Parcel &parcel, size_t size, const c
     ::munmap(ptr, size);
     ::close(fd);
     return true;
+#else
+    return false;
+#endif
 }
  
 char *RSDumpManager::ReadAshmemDataFromParcel(Parcel &parcel, int32_t size)

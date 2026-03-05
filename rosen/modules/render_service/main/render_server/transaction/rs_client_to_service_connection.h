@@ -126,6 +126,8 @@ private:
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) override;
 
+    void ForceRefreshOneFrameWithNextVSync() override;
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
     
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;

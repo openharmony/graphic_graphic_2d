@@ -121,7 +121,11 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_TYPE,
     uint32_t, static_cast<uint32_t>(RSScreenType::UNKNOWN_TYPE_SCREEN));
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::CONNECTION_TYPE,
     uint32_t, static_cast<uint32_t>(ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE));
+#ifndef ROSEN_CROSS_PLATFORM
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::PRODUCER_SURFACE, sptr<Surface>, nullptr);
+#else
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::PRODUCER_SURFACE, void*, nullptr);
+#endif
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCALE_MODE, uint32_t, static_cast<uint32_t>(ScreenScaleMode::UNISCALE_MODE));
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_STATUS, uint32_t, static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION, int32_t, 0);

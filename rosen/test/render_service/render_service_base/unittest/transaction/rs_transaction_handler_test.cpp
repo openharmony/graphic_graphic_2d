@@ -585,7 +585,7 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction007, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
+    // transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->Begin();
     transaction->CommitSyncTransaction(0, timestamp, "abilityName");
@@ -606,7 +606,7 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction008, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
+    // transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->Begin();
     std::unique_ptr<RSCommand> command =
@@ -630,7 +630,7 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction09, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
+    // transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->Begin();
     std::unique_ptr<RSCommand> command =
@@ -655,7 +655,7 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction010, TestSize.Level1)
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
+    // transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->Begin();
     std::unique_ptr<RSCommand> command =

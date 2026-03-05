@@ -89,7 +89,8 @@ static void InitGLES()
         RS_LOGE("Failed to get default display.");
         return;
     }
-    EGLint major, minor;
+    EGLint major;
+    EGLint minor;
     if (eglInitialize(g_tmpDisplay, &major, &minor) == EGL_FALSE) {
         RS_LOGE("Failed to initialize EGL.");
         return;
@@ -141,6 +142,39 @@ void RSPipelineDumper::RenderPipelineDumpInit(std::shared_ptr<RSPipelineDumpMana
     RegisterMemFuncs(rpDumpManager);
     RegisterBufferFuncs(rpDumpManager);
     RegisterSurfaceInfoFuncs(rpDumpManager);
+    RegisterFpsFuncs(rpDumpManager);
+}
+
+void RSPipelineDumper::RegisterFpsFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return;
+    }
+    // fps info cmd, [windowname]/composer fps
+    RSDumpFunc fpsInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                    std::string &dumpString) -> void {
+        FPSDumpProcess(argSets, dumpString, cmd);
+    };
+
+    // fps clear cmd : [surface name]/composer fpsClear
+    RSDumpFunc fpsClearFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                     std::string &dumpString) -> void {
+        FPSDumpClearProcess(argSets, dumpString, cmd);
+    };
+
+    // [windowname] hitchs
+    RSDumpFunc hitchsFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                   std::string &dumpString) -> void {
+        WindowHitchsDump(argSets, dumpString, cmd);
+    };
+
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::FPS_INFO, fpsInfoFunc },   { RSDumpID::FPS_CLEAR, fpsClearFunc },
+        { RSDumpID::HITCHS, hitchsFunc },
+    };
+
+    rpDumpManager->Register(handers);
 }
 
 void RSPipelineDumper::RegisterRSGfxFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
@@ -510,6 +544,86 @@ void RSPipelineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std:
     ScheduleTask([this, &argSets, &dumpString, &type, &pid]() {
             return RSMainThread::Instance()->DumpMem(argSets, dumpString, type, pid);
         });
+}
+
+void RSPipelineDumper::WindowHitchsDump(
+    std::unordered_set<std::u16string>& argSets, std::string& dumpString, const std::u16string& arg) const
+{
+    auto iter = argSets.find(arg);
+    if (iter != argSets.end()) {
+        std::string layerArg;
+        argSets.erase(iter);
+        if (!argSets.empty()) {
+            layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+        }
+        ScheduleTask([this, &dumpString, &layerArg]() {
+            std::vector<std::shared_ptr<HdiOutput>> hdiOutputVec;
+            RSUniRenderThread::Instance().GetComposerClientManager()->GetAllScreenHdiOutput(hdiOutputVec);
+            for (auto iter = hdiOutputVec.begin(); iter != hdiOutputVec.end(); iter++) {
+                (*iter)->DumpHitchs(dumpString, layerArg);
+            }
+        });
+    }
+}
+
+void RSPipelineDumper::FPSDumpClearProcess(std::unordered_set<std::u16string>& argSets,
+    std::string& dumpString, const std::u16string& arg) const
+{
+    auto iter = argSets.find(arg);
+    if (iter == argSets.end()) {
+        return ;
+    }
+    argSets.erase(iter);
+    if (argSets.empty()) {
+        RS_LOGE("FPSDumpClearProcess layer name is not specified");
+        return ;
+    }
+    RS_TRACE_NAME("RSServiceDumper::FPSDumpClearProcess");
+    std::string option("");
+    std::string argStr("");
+    RSSurfaceFpsManager::GetInstance().ProcessParam(argSets, option, argStr);
+    ClearFps(dumpString, argStr);
+}
+
+void RSPipelineDumper::ClearFps(std::string& dumpString, std::string& layerName) const
+{
+    ScheduleTask([this, &dumpString, &layerName]() {
+        std::vector<std::shared_ptr<HdiOutput>> hdiOutputVec;
+        RSUniRenderThread::Instance().GetComposerClientManager()->GetAllScreenHdiOutput(hdiOutputVec);
+        for (auto iter = hdiOutputVec.begin(); iter != hdiOutputVec.end(); iter++) {
+            (*iter)->ClearFpsDump(dumpString, layerName);
+        }
+    });
+}
+
+void RSPipelineDumper::FPSDumpProcess(std::unordered_set<std::u16string>& argSets,
+    std::string& dumpString, const std::u16string& arg) const
+{
+    auto iter = argSets.find(arg);
+    if (iter == argSets.end()) {
+        return ;
+    }
+    argSets.erase(iter);
+    if (argSets.empty()) {
+        RS_LOGE("FPSDumpProcess layer name is not specified");
+        return ;
+    }
+    RS_TRACE_NAME("RSServiceDumper::FPSDumpProcess");
+    std::string option("");
+    std::string argStr("");
+    RSSurfaceFpsManager::GetInstance().ProcessParam(argSets, option, argStr);
+    DumpFps(dumpString, argStr);
+}
+
+void RSPipelineDumper::DumpFps(std::string& dumpString, std::string& layerName) const
+{
+    ScheduleTask([this, &dumpString, &layerName]() {
+        std::vector<std::shared_ptr<HdiOutput>> hdiOutputVec;
+        RSUniRenderThread::Instance().GetComposerClientManager()->GetAllScreenHdiOutput(hdiOutputVec);
+        for (auto iter = hdiOutputVec.begin(); iter != hdiOutputVec.end(); iter++) {
+            (*iter)->DumpFps(dumpString, layerName);
+        }
+    });
 }
 
 void RSPipelineDumper::ScheduleTask(std::function<void()> task) const

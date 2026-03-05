@@ -164,8 +164,6 @@ private:
 
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
 
-    ErrCode ForceRefreshOneFrameWithNextVSync() override;
-
     std::string GetBundleName(pid_t pid) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 

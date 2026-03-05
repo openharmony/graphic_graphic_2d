@@ -227,6 +227,22 @@ void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string 
 {
 }
 
+int32_t RSRenderPipelineClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderPipelineClient::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
+{
+    return {};
+}
+
+int32_t RSRenderPipelineClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    return {};
+}
+
 
 int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {

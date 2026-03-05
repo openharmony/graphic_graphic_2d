@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <functional>
 
-#include "rs_interfaces.h"
+#include "rs_interfaces.h" 
 #include "rs_trace.h"
 
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
@@ -38,8 +38,9 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr uint32_t WATERMARK_PIXELMAP_SIZE_LIMIT = 500 * 1024;
+#ifdef ROSEN_OHOS
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
+#endif
 
 RSRenderInterface::RSRenderInterface() : renderPipelineClient_(std::make_unique<RSRenderPipelineClient>())
 {
@@ -297,11 +298,6 @@ bool RSRenderInterface::RegisterTransactionDataCallback(
     RS_LOGD("RSRenderInterface::RegisterTransactionDataCallback, timeStamp: %{public}"
         PRIu64 " token: %{public}" PRIu64, timeStamp, token);
     return renderPipelineClient_->RegisterTransactionDataCallback(token, timeStamp, callback);
-}
-
-void RSRenderInterface::ForceRefreshOneFrameWithNextVSync()
-{
-    renderPipelineClient_->ForceRefreshOneFrameWithNextVSync();
 }
 
 void RSRenderInterface::ClearUifirstCache(NodeId id)

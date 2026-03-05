@@ -2779,6 +2779,25 @@ bool RSClientToServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     return result;
 }
 
+void RSClientToServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync: Send Request err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return;
+    }
+}
+
 int32_t RSClientToServiceConnectionProxy::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
 {
     MessageParcel data;

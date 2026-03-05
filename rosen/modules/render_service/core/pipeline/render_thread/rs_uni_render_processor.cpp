@@ -253,32 +253,14 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
 
 void RSUniRenderProcessor::CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRenderParams& params)
 {
-    // // color can be APP Node color or XCOM color
+    // color can be APP Node color or XCOM color
     auto color = params.GetSolidLayerColor();
     if (!params.GetIsHwcEnabledBySolidLayer()) {
         return;
-        // chang by jianghongxi
-        // GraphicSolidColorLayerProperty solidColorLayerProperty;
-        // if (layer->GetZorder() > 0) {
-        //     solidColorLayerProperty.zOrder = layer->GetZorder() - 1;
-        // } else {
-        //     RS_LOGW("CreateSolidColorLayer name:%{public}s Zorder error!", params.GetName().c_str());
-        // }
-        // solidColorLayerProperty.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-        // // auto dstRect = params.layerInfo_.dstRect;
-        // GraphicIRect layerRect = {dstRect.x, dstRect.y, dstRect.w, dstRect.h};
-        // RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayer name:%s id:%" PRIu64 " dst:[%d, %d, %d, %d] color:%08x",
-        //     params.GetName().c_str(), params.GetId(), dstRect.x, dstRect.y, dstRect.w, dstRect.h, color.AsArgbInt());
-        // solidColorLayerProperty.layerRect = layerRect;
-        // solidColorLayerProperty.compositionType = GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR;
-        // solidColorLayerProperty.layerColor = {color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha()};
-        // layer->SetSolidColorLayerProperty(solidColorLayerProperty);
     }
-
-
     GraphicSolidColorLayerProperty solidColorLayerProperty;
     if (layer->GetZorder() > 0) {
-        solidColorLayerProperty.zOrder = layer->GetZorder();
+        solidColorLayerProperty.zOrder = layer->GetZorder() - 1;
     }
     solidColorLayerProperty.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     auto dstRect = params.layerInfo_.dstRect;
@@ -295,40 +277,7 @@ void RSUniRenderProcessor::CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRend
     solidColorLayerProperty.layerRect = layerRect;
     solidColorLayerProperty.compositionType = GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR;
     solidColorLayerProperty.layerColor = {color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha()};
-    layer->SetSolidColorLayerProperty(solidColorLayerProperty);  
-
-/*  change by jianghongxi
-    auto solidColorLayer = RSSurfaceLayer::CreateLayer(composerClient_);
-    if (solidColorLayer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayer failed to create layer");
-        return;
-    }
-    solidColorLayer->SetNodeId(params.GetId());
-    solidColorLayer->CopyLayerInfo(layer);
-    if (layer->GetZorder() > 0) {
-        solidColorLayer->SetZorder(layer->GetZorder() - 1);
-    }
-    solidColorLayer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
-    auto dstRect = params.layerInfo_.dstRect;
-    auto rogWidthRatio = uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio();
-    auto rogHeightRatio = uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio();
-    GraphicIRect layerRect = { static_cast<int32_t>(std::floor(dstRect.x * rogWidthRatio)),
-        static_cast<int32_t>(std::floor(dstRect.y * rogHeightRatio)),
-        static_cast<int32_t>(std::ceil(dstRect.w * rogWidthRatio)),
-        static_cast<int32_t>(std::ceil(dstRect.h * rogHeightRatio)) };
-    RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayer name:%s id:%" PRIu64 " dst:[%d, %d, %d, %d] "
-        "adjustDst:[%d, %d, %d, %d] color:%08x",
-        params.GetName().c_str(), params.GetId(), dstRect.x, dstRect.y, dstRect.w, dstRect.h,
-        layerRect.x, layerRect.y, layerRect.w, layerRect.h, color.AsArgbInt());
-    solidColorLayer->SetLayerSize(layerRect);
-    solidColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
-    solidColorLayer->SetLayerColor({color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha()});
-    solidColorLayer->SetSurface({});
-    solidColorLayer->SetBuffer({}, {});
-    solidColorLayer->SetPreBuffer({});
-    solidColorLayer->SetMetaData({});
-    layers_.emplace_back(solidColorLayer);
-*/
+    layer->SetSolidColorLayerProperty(solidColorLayerProperty);
 }
 
 bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)

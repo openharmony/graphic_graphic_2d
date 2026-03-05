@@ -61,7 +61,7 @@ HWTEST_F(DVSyncLibManagerTest, Initialize001, Function | MediumTest| Level1)
     int64_t timeStamp = 0;
     uint64_t timestamp = 0;
     int64_t period = 0;
-    bool start = true; 
+    bool start = true;
     bool isNative = false;
     DVSyncFeatureParam dvsyncParam;
     std::vector<std::string> packageList;
@@ -172,7 +172,7 @@ HWTEST_F(DVSyncLibManagerTest, RecordVSync001, Function | MediumTest| Level1)
 HWTEST_F(DVSyncLibManagerTest, SetUiDVSyncConfig001, Function | MediumTest| Level1)
 {
     int32_t bufferCount = 1;
-    bool compositeSceneEnable = true; 
+    bool compositeSceneEnable = true;
     bool nativeDelayEnable = true;
     std::vector<std::string> rsDvsyncAnimationList;
     DVSyncLibManagerTest::dvsyncLibManager.SetUiDVSyncConfig(bufferCount, compositeSceneEnable,

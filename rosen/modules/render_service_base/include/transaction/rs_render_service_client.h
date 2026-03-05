@@ -158,6 +158,8 @@ public:
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
+    void ForceRefreshOneFrameWithNextVSync();
+
     int32_t GetCurrentRefreshRateMode();
 
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);

@@ -52,7 +52,8 @@ void CreateAnimateWithCurrentOptions(float endValue, RSCanvasNode::SharedPtr nod
     animationCustomModifier->SetTimeInterval(8.0f);
     animationCustomModifier->SetPointColor(Drawing::Color::COLOR_BLUE);
     float incrementValue = 300; // Increment the next animation's endpoint value by 300 from the previous one.
-    RSNode::AnimateWithCurrentOptions(GetRSUIContext(), [&]() { animationCustomModifier->SetPosition(endValue + incrementValue); },
+    RSNode::AnimateWithCurrentOptions(
+        GetRSUIContext(), [&]() { animationCustomModifier->SetPosition(endValue + incrementValue); },
         []() { std::cout << "Animation_CurrentOptions_Test_1 animation finish callback" << std::endl; }, true);
 }
 

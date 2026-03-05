@@ -85,12 +85,14 @@ struct PipelineParam {
     std::vector<SurfaceFpsOp> SurfaceFpsOpList;
     bool hasLppVideo = false;
 
-    void ResetSurfaceFpsOp() {
+    void ResetSurfaceFpsOp()
+    {
         SurfaceFpsOpNum = 0;
         SurfaceFpsOpList.clear();
     }
 
-    uint32_t GetSurfaceFpsOpNum() const {
+    uint32_t GetSurfaceFpsOpNum() const
+    {
         return (SurfaceFpsOpNum < SurfaceFpsOpList.size()) ? SurfaceFpsOpNum : SurfaceFpsOpList.size();
     }
 };

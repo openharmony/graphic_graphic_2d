@@ -392,7 +392,7 @@ HWTEST_F(HdiBackendTest, OnScreenRefresh, Function | MediumTest| Level3)
 }
 
 /**
- * Function: InitDevice_DeviceAlreadyExists_Line234_True
+ * Function: InitDevice_DeviceAlreadyExists_Skip
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -400,7 +400,7 @@ HWTEST_F(HdiBackendTest, OnScreenRefresh, Function | MediumTest| Level3)
  *                  2. call InitDevice
  *                  3. verify returns OK early (line 234 true)
  */
-HWTEST_F(HdiBackendTest, InitDevice_DeviceAlreadyExists_Line234_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, InitDevice_DeviceAlreadyExists_Skip, Function | MediumTest | Level3)
 {
     hdiBackend_->device_ = hdiDeviceMock_;
 
@@ -409,7 +409,7 @@ HWTEST_F(HdiBackendTest, InitDevice_DeviceAlreadyExists_Line234_True, Function |
 }
 
 /**
- * Function: SetHdiBackendDevice_DeviceNull_Line250_True
+ * Function: SetHdiBackendDevice_DeviceNull_Fail
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -417,13 +417,13 @@ HWTEST_F(HdiBackendTest, InitDevice_DeviceAlreadyExists_Line234_True, Function |
  *                  2. call SetHdiBackendDevice
  *                  3. verify returns ROSEN_ERROR_INVALID_ARGUMENTS
  */
-HWTEST_F(HdiBackendTest, SetHdiBackendDevice_DeviceNull_Line250_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, SetHdiBackendDevice_DeviceNull_Fail, Function | MediumTest | Level3)
 {
     ASSERT_EQ(hdiBackend_->SetHdiBackendDevice(nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
 }
 
 /**
- * Function: SetHdiBackendDevice_DeviceAlreadySet_Line255_True
+ * Function: SetHdiBackendDevice_DeviceAlreadySet_Skip
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -431,7 +431,7 @@ HWTEST_F(HdiBackendTest, SetHdiBackendDevice_DeviceNull_Line250_True, Function |
  *                  2. call SetHdiBackendDevice with valid device
  *                  3. verify returns ROSEN_ERROR_OK (line 255 true)
  */
-HWTEST_F(HdiBackendTest, SetHdiBackendDevice_DeviceAlreadySet_Line255_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, SetHdiBackendDevice_DeviceAlreadySet_Skip, Function | MediumTest | Level3)
 {
     hdiBackend_->device_ = hdiDeviceMock_;
 
@@ -440,7 +440,7 @@ HWTEST_F(HdiBackendTest, SetHdiBackendDevice_DeviceAlreadySet_Line255_True, Func
 }
 
 /**
- * Function: RegHwcEventCallback_RegHwcEventCallbackFail_Line276_True
+ * Function: RegHwcEventCallback_RegHwcEventCallbackFail_Fail
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -448,7 +448,7 @@ HWTEST_F(HdiBackendTest, SetHdiBackendDevice_DeviceAlreadySet_Line255_True, Func
  *                  2. call RegHwcEventCallback
  *                  3. verify returns ROSEN_ERROR_OK
  */
-HWTEST_F(HdiBackendTest, RegHwcEventCallback_RegHwcEventCallbackFail_Line276_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, RegHwcEventCallback_RegHwcEventCallbackFail_Fail, Function | MediumTest | Level3)
 {
     auto func = [](uint32_t devId, uint32_t envId, const std::vector<int32_t>& eventData, void* data) -> void {
         (void)devId;
@@ -465,7 +465,7 @@ HWTEST_F(HdiBackendTest, RegHwcEventCallback_RegHwcEventCallbackFail_Line276_Tru
 }
 
 /**
- * Function: OnHdiBackendHotPlugEvent_DataNotNull_Line171_True
+ * Function: OnHdiBackendHotPlugEvent_DataNotNull_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -473,7 +473,7 @@ HWTEST_F(HdiBackendTest, RegHwcEventCallback_RegHwcEventCallbackFail_Line276_Tru
  *                  2. call OnHdiBackendHotPlugEvent
  *                  3. verify uses data as hdiBackend (line 171 true)
  */
-HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_DataNotNull_Line171_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_DataNotNull_Processed, Function | MediumTest | Level3)
 {
     HdiBackend* data = HdiBackend::GetInstance();
     EXPECT_NE(data, nullptr);
@@ -484,7 +484,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_DataNotNull_Line171_True, Func
 }
 
 /**
- * Function: OnHdiBackendHotPlugEvent_DataNull_Line171_False
+ * Function: OnHdiBackendHotPlugEvent_DataNull_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -492,7 +492,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_DataNotNull_Line171_True, Func
  *                  2. call OnHdiBackendHotPlugEvent
  *                  3. verify uses GetInstance() (line 171 false, 174 true)
  */
-HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_DataNull_Line171_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_DataNull_Skipped, Function | MediumTest | Level3)
 {
     HdiBackend* backend = HdiBackend::GetInstance();
     EXPECT_NE(backend, nullptr);
@@ -503,7 +503,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_DataNull_Line171_False, Functi
 }
 
 /**
- * Function: OnHdiBackendConnected_ConnectedTrue_Line201_True
+ * Function: OnHdiBackendConnected_ConnectedTrue_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -511,7 +511,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_DataNull_Line171_False, Functi
  *                  2. call OnHdiBackendConnected
  *                  3. verify CreateHdiOutput is called (line 201 true)
  */
-HWTEST_F(HdiBackendTest, OnHdiBackendConnected_ConnectedTrue_Line201_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnHdiBackendConnected_ConnectedTrue_Processed, Function | MediumTest | Level3)
 {
     auto backend = HdiBackend::GetInstance();
     backend->outputs_.clear();
@@ -522,7 +522,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendConnected_ConnectedTrue_Line201_True, Funct
 }
 
 /**
- * Function: OnHdiBackendConnected_ConnectedFalse_Line201_False
+ * Function: OnHdiBackendConnected_ConnectedFalse_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -530,7 +530,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendConnected_ConnectedTrue_Line201_True, Funct
  *                  2. call OnHdiBackendConnected
  *                  3. verify CreateHdiOutput NOT called
  */
-HWTEST_F(HdiBackendTest, OnHdiBackendConnected_ConnectedFalse_Line201_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnHdiBackendConnected_ConnectedFalse_Skipped, Function | MediumTest | Level3)
 {
     auto backend = HdiBackend::GetInstance();
     backend->outputs_.clear();
@@ -541,7 +541,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendConnected_ConnectedFalse_Line201_False, Fun
 }
 
 /**
- * Function: OnScreenHotplug_ScreenIdNotFound_Line218_True
+ * Function: OnScreenHotplug_ScreenIdNotFound_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -549,7 +549,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendConnected_ConnectedFalse_Line201_False, Fun
  *                  2. call OnScreenHotplug
  *                  3. verify early return (line 218 true)
  */
-HWTEST_F(HdiBackendTest, OnScreenHotplug_ScreenIdNotFound_Line218_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnScreenHotplug_ScreenIdNotFound_Skipped, Function | MediumTest | Level3)
 {
     auto backend = HdiBackend::GetInstance();
     OutputPtr output = HdiOutput::CreateHdiOutput(100);
@@ -564,7 +564,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_ScreenIdNotFound_Line218_True, Function
 }
 
 /**
- * Function: OnScreenHotplug_CallbackNotNull_Line223_True
+ * Function: OnScreenHotplug_CallbackNotNull_Executed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -572,7 +572,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_ScreenIdNotFound_Line218_True, Function
  *                  2. call OnScreenHotplug
  *                  3. verify callback is called
  */
-HWTEST_F(HdiBackendTest, OnScreenHotplug_CallbackNotNull_Line223_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnScreenHotplug_CallbackNotNull_Executed, Function | MediumTest | Level3)
 {
     auto backend = HdiBackend::GetInstance();
     OutputPtr output = HdiOutput::CreateHdiOutput(100);
@@ -591,7 +591,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_CallbackNotNull_Line223_True, Function 
 }
 
 /**
- * Function: OnScreenHotplug_CallbackNull_Line223_False
+ * Function: OnScreenHotplug_CallbackNull_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -599,7 +599,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_CallbackNotNull_Line223_True, Function 
  *                  2. call OnScreenHotplug
  *                  3. verify callback is not called
  */
-HWTEST_F(HdiBackendTest, OnScreenHotplug_CallbackNull_Line223_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnScreenHotplug_CallbackNull_Skipped, Function | MediumTest | Level3)
 {
     auto backend = HdiBackend::GetInstance();
     OutputPtr output = HdiOutput::CreateHdiOutput(100);
@@ -613,7 +613,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_CallbackNull_Line223_False, Function | 
 }
 
 /**
- * Function: OnScreenHotplug_NotConnected_Line227_True
+ * Function: OnScreenHotplug_NotConnected_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -621,7 +621,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_CallbackNull_Line223_False, Function | 
  *                  2. call OnScreenHotplug
  *                  3. verify output is erased (line 227 true)
  */
-HWTEST_F(HdiBackendTest, OnScreenHotplug_NotConnected_Line227_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnScreenHotplug_NotConnected_Skipped, Function | MediumTest | Level3)
 {
     auto backend = HdiBackend::GetInstance();
     OutputPtr output = HdiOutput::CreateHdiOutput(100);
@@ -633,7 +633,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_NotConnected_Line227_True, Function | M
 }
 
 /**
- * Function: OnScreenHotplug_Connected_Line227_False
+ * Function: OnScreenHotplug_Connected_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -641,7 +641,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_NotConnected_Line227_True, Function | M
  *                  2. call OnScreenHotplug
  *                  3. verify output is NOT erased
  */
-HWTEST_F(HdiBackendTest, OnScreenHotplug_Connected_Line227_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnScreenHotplug_Connected_Processed, Function | MediumTest | Level3)
 {
     auto backend = HdiBackend::GetInstance();
     OutputPtr output = HdiOutput::CreateHdiOutput(100);
@@ -653,7 +653,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_Connected_Line227_False, Function | Med
 }
 
 /**
- * Function: ResetDevice_DeviceNull_Line159_False
+ * Function: ResetDevice_DeviceNull_Fail
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -661,7 +661,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_Connected_Line227_False, Function | Med
  *                  2. call ResetDevice
  *                  3. verify no crash, outputs cleared
  */
-HWTEST_F(HdiBackendTest, ResetDevice_DeviceNull_Line159_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, ResetDevice_DeviceNull_Fail, Function | MediumTest | Level3)
 {
     hdiBackend_->device_ = nullptr;
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
@@ -672,7 +672,7 @@ HWTEST_F(HdiBackendTest, ResetDevice_DeviceNull_Line159_False, Function | Medium
 }
 
 /**
- * Function: OnHdiBackendRefreshEvent_DataNotNull_Line183_True
+ * Function: OnHdiBackendRefreshEvent_DataNotNull_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -680,7 +680,7 @@ HWTEST_F(HdiBackendTest, ResetDevice_DeviceNull_Line159_False, Function | Medium
  *                  2. call OnHdiBackendRefreshEvent
  *                  3. verify uses data as hdiBackend (line 183 true)
  */
-HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent_DataNotNull_Line183_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent_DataNotNull_Processed, Function | MediumTest | Level3)
 {
     HdiBackend* data = HdiBackend::GetInstance();
     EXPECT_NE(data, nullptr);
@@ -690,7 +690,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent_DataNotNull_Line183_True, Func
 }
 
 /**
- * Function: OnHdiBackendRefreshEvent_DataNull_Line183_False
+ * Function: OnHdiBackendRefreshEvent_DataNull_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -698,7 +698,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent_DataNotNull_Line183_True, Func
  *                  2. call OnHdiBackendRefreshEvent
  *                  3. verify uses GetInstance() (line 183 false, 186 true)
  */
-HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent_DataNull_Line183_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent_DataNull_Skipped, Function | MediumTest | Level3)
 {
     HdiBackend* backend = HdiBackend::GetInstance();
     EXPECT_NE(backend, nullptr);
@@ -708,7 +708,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent_DataNull_Line183_False, Functi
 }
 
 /**
- * Function: OnScreenRefresh_CallbackNull_Line194_False
+ * Function: OnScreenRefresh_CallbackNull_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -716,7 +716,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent_DataNull_Line183_False, Functi
  *                  2. call OnScreenRefresh
  *                  3. verify callback is not called
  */
-HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNull_Line194_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNull_Skipped, Function | MediumTest | Level3)
 {
     HdiBackend* backend = HdiBackend::GetInstance();
     backend->onScreenRefreshCb_ = nullptr;
@@ -727,7 +727,7 @@ HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNull_Line194_False, Function | 
 }
 
 /**
- * Function: OnScreenRefresh_CallbackNotNull_Line194_True
+ * Function: OnScreenRefresh_CallbackNotNull_Executed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -735,7 +735,7 @@ HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNull_Line194_False, Function | 
  *                  2. call OnScreenRefresh
  *                  3. verify callback is called
  */
-HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNotNull_Line194_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNotNull_Executed, Function | MediumTest | Level3)
 {
     HdiBackend* backend = HdiBackend::GetInstance();
     std::atomic<bool> callbackCalled{false};
@@ -750,7 +750,7 @@ HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNotNull_Line194_True, Function 
 }
 
 /**
- * Function: SetPendingMode_OutputNull_Line122_True
+ * Function: SetPendingMode_OutputNull_Fail
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -758,7 +758,7 @@ HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNotNull_Line194_True, Function 
  *                  2. call SetPendingMode
  *                  3. verify early return (line 122 true)
  */
-HWTEST_F(HdiBackendTest, SetPendingMode_OutputNull_Line122_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, SetPendingMode_OutputNull_Fail, Function | MediumTest | Level3)
 {
     OutputPtr nullOutput = nullptr;
     ASSERT_NE(hdiBackend_, nullptr);
@@ -766,7 +766,7 @@ HWTEST_F(HdiBackendTest, SetPendingMode_OutputNull_Line122_True, Function | Medi
 }
 
 /**
- * Function: SetPendingMode_OutputNotNull_Line122_False
+ * Function: SetPendingMode_OutputNotNull_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -774,7 +774,7 @@ HWTEST_F(HdiBackendTest, SetPendingMode_OutputNull_Line122_True, Function | Medi
  *                  2. call SetPendingMode
  *                  3. verify SetPendingMode is called
  */
-HWTEST_F(HdiBackendTest, SetPendingMode_OutputNotNull_Line122_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, SetPendingMode_OutputNotNull_Processed, Function | MediumTest | Level3)
 {
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     ASSERT_NE(output, nullptr);
@@ -782,7 +782,7 @@ HWTEST_F(HdiBackendTest, SetPendingMode_OutputNotNull_Line122_False, Function | 
 }
 
 /**
- * Function: StartSample_OutputNull_Line131_True
+ * Function: StartSample_OutputNull_Fail
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -790,7 +790,7 @@ HWTEST_F(HdiBackendTest, SetPendingMode_OutputNotNull_Line122_False, Function | 
  *                  2. call StartSample
  *                  3. verify early return (line 131 true)
  */
-HWTEST_F(HdiBackendTest, StartSample_OutputNull_Line131_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, StartSample_OutputNull_Fail, Function | MediumTest | Level3)
 {
     OutputPtr nullOutput = nullptr;
     ASSERT_NE(hdiBackend_, nullptr);
@@ -798,7 +798,7 @@ HWTEST_F(HdiBackendTest, StartSample_OutputNull_Line131_True, Function | MediumT
 }
 
 /**
- * Function: StartSample_OutputNotNull_Line131_False
+ * Function: StartSample_OutputNotNull_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -806,7 +806,7 @@ HWTEST_F(HdiBackendTest, StartSample_OutputNull_Line131_True, Function | MediumT
  *                  2. call StartSample
  *                  3. verify StartVSyncSampler is called
  */
-HWTEST_F(HdiBackendTest, StartSample_OutputNotNull_Line131_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, StartSample_OutputNotNull_Processed, Function | MediumTest | Level3)
 {
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     ASSERT_NE(hdiBackend_, nullptr);
@@ -814,7 +814,7 @@ HWTEST_F(HdiBackendTest, StartSample_OutputNotNull_Line131_False, Function | Med
 }
 
 /**
- * Function: SetVsyncSamplerEnabled_OutputNull_Line140_True
+ * Function: SetVsyncSamplerEnabled_OutputNull_Fail
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -822,7 +822,7 @@ HWTEST_F(HdiBackendTest, StartSample_OutputNotNull_Line131_False, Function | Med
  *                  2. call SetVsyncSamplerEnabled
  *                  3. verify early return (line 140 true)
  */
-HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNull_Line140_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNull_Fail, Function | MediumTest | Level3)
 {
     OutputPtr nullOutput = nullptr;
     ASSERT_NE(hdiBackend_, nullptr);
@@ -830,7 +830,7 @@ HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNull_Line140_True, Functio
 }
 
 /**
- * Function: SetVsyncSamplerEnabled_OutputNotNull_Line140_False
+ * Function: SetVsyncSamplerEnabled_OutputNotNull_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -838,7 +838,7 @@ HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNull_Line140_True, Functio
  *                  2. call SetVsyncSamplerEnabled
  *                  3. verify SetVsyncSamplerEnabled is called
  */
-HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNotNull_Line140_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNotNull_Processed, Function | MediumTest | Level3)
 {
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     ASSERT_NE(output, nullptr);
@@ -846,7 +846,7 @@ HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNotNull_Line140_False, Fun
 }
 
 /**
- * Function: GetVsyncSamplerEnabled_OutputNull_Line149_True
+ * Function: GetVsyncSamplerEnabled_OutputNull_Fail
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -854,14 +854,14 @@ HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled_OutputNotNull_Line140_False, Fun
  *                  2. call GetVsyncSamplerEnabled
  *                  3. verify returns false (line 149 true)
  */
-HWTEST_F(HdiBackendTest, GetVsyncSamplerEnabled_OutputNull_Line149_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, GetVsyncSamplerEnabled_OutputNull_Fail, Function | MediumTest | Level3)
 {
     bool ret = hdiBackend_->GetVsyncSamplerEnabled(nullptr);
     EXPECT_EQ(ret, false);
 }
 
 /**
- * Function: GetVsyncSamplerEnabled_OutputNotNull_Line149_False
+ * Function: GetVsyncSamplerEnabled_OutputNotNull_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -869,7 +869,7 @@ HWTEST_F(HdiBackendTest, GetVsyncSamplerEnabled_OutputNull_Line149_True, Functio
  *                  2. call GetVsyncSamplerEnabled
  *                  3. verify returns output's value
  */
-HWTEST_F(HdiBackendTest, GetVsyncSamplerEnabled_OutputNotNull_Line149_False, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, GetVsyncSamplerEnabled_OutputNotNull_Processed, Function | MediumTest | Level3)
 {
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     hdiBackend_->SetVsyncSamplerEnabled(output, false);
@@ -944,7 +944,7 @@ HWTEST_F(HdiBackendTest, ResetDevice_ClearsOutputs, Function | MediumTest | Leve
 }
 
 /**
- * Function: InitDevice_AlreadyInitialized_Line234_True
+ * Function: InitDevice_AlreadyInitialized_Skip
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -952,7 +952,7 @@ HWTEST_F(HdiBackendTest, ResetDevice_ClearsOutputs, Function | MediumTest | Leve
  *                  2. call InitDevice
  *                  3. verify returns OK without reinitializing
  */
-HWTEST_F(HdiBackendTest, InitDevice_AlreadyInitialized_Line234_True, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, InitDevice_AlreadyInitialized_Skip, Function | MediumTest | Level3)
 {
     hdiBackend_->device_ = hdiDeviceMock_;
 

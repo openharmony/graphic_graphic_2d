@@ -237,14 +237,6 @@ ErrCode RSClientToRenderConnection::ExecuteSynchronousTask(const std::shared_ptr
     return renderPipelineAgent_->ExecuteSynchronousTask(task);
 }
 
-ErrCode RSClientToRenderConnection::ForceRefreshOneFrameWithNextVSync()
-{
-    if (renderPipelineAgent_ == nullptr) {
-        return ERR_INVALID_VALUE;
-    }
-    return renderPipelineAgent_->ForceRefreshOneFrameWithNextVSync();
-}
-
 ErrCode RSClientToRenderConnection::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {

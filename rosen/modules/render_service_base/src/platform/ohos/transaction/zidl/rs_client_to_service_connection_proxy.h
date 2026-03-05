@@ -73,6 +73,8 @@ public:
 
     ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
 
+    void ForceRefreshOneFrameWithNextVSync() override;
+
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 

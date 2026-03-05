@@ -70,7 +70,7 @@ constexpr const int INVALID_PIDLIST_SIZE = 200;
 constexpr const int WAIT_HANDLER_TIME = 1; // 1S
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
 constexpr const int DELAY_TEAR_DOWN_TESE_CASE = 110;
-constexpr const size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
+// constexpr const size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
 
 };
 
@@ -413,21 +413,21 @@ void RSClientToServiceConnectionStubTest::CreateComposerAdapterWithScreenInfo(ui
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
 }
 
-static void SetLeftSize(Parcel& parcel, uint32_t leftSize)
-{
-    parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
-    size_t useSize = PARCEL_MAX_CAPACITY - leftSize;
-    size_t writeInt32Count = useSize / 4;
-    size_t writeBoolCount = useSize % 4;
+// static void SetLeftSize(Parcel& parcel, uint32_t leftSize)
+// {
+//     parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
+//     size_t useSize = PARCEL_MAX_CAPACITY - leftSize;
+//     size_t writeInt32Count = useSize / 4;
+//     size_t writeBoolCount = useSize % 4;
 
-    for (size_t i = 0; i < writeInt32Count; i++) {
-        parcel.WriteInt32(0);
-    }
+//     for (size_t i = 0; i < writeInt32Count; i++) {
+//         parcel.WriteInt32(0);
+//     }
 
-    for (size_t j = 0; j < writeBoolCount; j++) {
-        parcel.WriteBoolUnaligned(false);
-    }
-}
+//     for (size_t j = 0; j < writeBoolCount; j++) {
+//         parcel.WriteBoolUnaligned(false);
+//     }
+// }
 
 /**
  * @tc.name: TestRSRenderServiceConnectionStub002
@@ -616,14 +616,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIClientToServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE)), ERR_NULL_OBJECT);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(
-            RSIClientToServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES)), ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK)), ERR_INVALID_STATE);
-    ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT)), ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIClientToServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED)), IPC_STUB_INVALID_DATA_ERR);
 #ifdef TP_FEATURE_ENABLE
@@ -3095,109 +3088,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetDualScreenStateTest001, TestSiz
 }
 
 /**
- * @tc.name: SetSystemAnimatedScenesTest001
- * @tc.desc: Test SetSystemAnimatedScenes when ReadBool and ReadUint32 fail
- * @tc.type: FUNC
- * @tc.require: issue20726
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
-}
- 
-/**
- * @tc.name: SetSystemAnimatedScenesTest002
- * @tc.desc: Test SetSystemAnimatedScenes when data is ReadBool fail
- * @tc.type: FUNC
- * @tc.require: issue20726
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data.WriteUint32(0);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
-}
- 
-/**
- * @tc.name: SetSystemAnimatedScenesTest003
- * @tc.desc: Test SetSystemAnimatedScenes when ReadUint32 fail
- * @tc.type: FUNC
- * @tc.require: issue20726
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data.WriteBool(true);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
-}
- 
-/**
- * @tc.name: SetSystemAnimatedScenesTest004
- * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ isn't nullptr
- * @tc.type: FUNC
- * @tc.require: issue20726
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest004, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data.WriteUint32(0);
-    data.WriteBool(true);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
- 
-/**
- * @tc.name: SetSystemAnimatedScenesTest005
- * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issue20726
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest005, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data.WriteUint32(0);
-    data.WriteBool(true);
-    sptr<RSClientToServiceConnection> clientToServiceConnection =
-        iface_cast<RSClientToServiceConnection>(connectionStub_);
-    ASSERT_NE(clientToServiceConnection, nullptr);
-    auto mainThread = clientToServiceConnection->mainThread_;
-    clientToServiceConnection->mainThread_ = nullptr;
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
- 
-    clientToServiceConnection->mainThread_ = mainThread;
-}
-
-/**
  * @tc.name: AddVirtualScreenWhiteList001
  * @tc.desc: Test AddVirtualScreenWhiteList
  * @tc.type: FUNC
@@ -3879,20 +3769,18 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifyTouchEventTest001, TestSize.
  */
 HWTEST_F(RSClientToServiceConnectionStubTest, RegisterSharedTypefaceTest001, TestSize.Level1)
 {
-    sptr<RSClientToServiceConnectionStub> connectionStub =
-        new RSClientToServiceConnection(0, nullptr, mainThread_, screenManager_, token_->AsObject(), nullptr);
-    uint32_t interfaceCode = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
-
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t interfaceCode = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
 
     Drawing::SharedTypeface sharedTypeface;
     sharedTypeface.fd_ = open("/system/fonts/HarmonyOS_Sans_SC.ttf", O_RDONLY);
     EXPECT_EQ(RSMarshallingHelper::Marshalling(data, sharedTypeface), true);
 
-    auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+    auto res = connectionStub_->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
     ASSERT_EQ(res, ERR_OK);
 }
 

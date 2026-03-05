@@ -47,7 +47,6 @@
 #include "render/rs_skia_filter.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_render_pipeline_client.h"
-#include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 #include "platform/ohos/transaction/rs_irender_connection_token.h"
 #include <iremote_stub.h>
 #include "visitor/rs_node_visitor.h"

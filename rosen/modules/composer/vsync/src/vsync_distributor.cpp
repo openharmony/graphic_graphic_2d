@@ -440,10 +440,7 @@ VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string
     (void)dvsyncParam;
 }
 
-VSyncDistributor::~VSyncDistributor()
-{
-
-}
+VSyncDistributor::~VSyncDistributor() {}
 
 VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connection, uint64_t windowNodeId)
 {
@@ -584,7 +581,7 @@ void VSyncDistributor::EnableVSync(bool isUrgent)
         RecordEnableVsync();
     }
     if (dvsyncController_!= nullptr && dvsyncControllerEnabled_ == false) {
-        ScopedBytrace func("dvsyncController enable");	
+        ScopedBytrace func("dvsyncController enable");
         dvsyncController_->SetCallback(this);
         dvsyncController_->SetEnable(true, dvsyncControllerEnabled_);
     }
@@ -1172,8 +1169,8 @@ void VSyncDistributor::ChangeConnsRateLocked(uint32_t vsyncMaxRefreshRate)
 // Start of DVSync
 void VSyncDistributor::DisableDVSyncController()
 {
-    if (dvsyncController_ != nullptr && dvsyncControllerEnabled_ == true) {	
-        dvsyncController_->SetEnable(false, dvsyncControllerEnabled_);	
+    if (dvsyncController_ != nullptr && dvsyncControllerEnabled_ == true) {
+        dvsyncController_->SetEnable(false, dvsyncControllerEnabled_);
     }
 }
 

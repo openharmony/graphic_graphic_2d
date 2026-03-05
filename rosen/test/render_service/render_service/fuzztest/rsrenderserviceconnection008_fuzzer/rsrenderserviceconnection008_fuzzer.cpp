@@ -351,7 +351,7 @@ void DoGetScreenHDRStatus()
 void DoSetLogicalCameraRotationCorrection()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;

@@ -91,6 +91,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPAINT_EVERYTHING),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP),
@@ -2907,6 +2908,10 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetGpuCrcDirtyEnabledPidList(pidList);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC): {
+            ForceRefreshOneFrameWithNextVSync();
             break;
         }
         case static_cast<uint32_t>(

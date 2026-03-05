@@ -420,6 +420,7 @@ HWTEST_F(RSDumpManagerTest, ReleaseMemory_NullParameters, TestSize.Level1)
     // When: Release memory with null parameters
     RSDumpManager::ReleaseMemory(allocType, addr, &fd, size);
 
+    ASSERT_EQ(addr, nullptr);
     // Then: Should not crash
     SUCCEED();
 }
@@ -460,10 +461,14 @@ HWTEST_F(RSDumpManagerTest, ReleaseMemory_ContextNull, TestSize.Level1)
 {
     // Given: null context
     constexpr int32_t allocType = SHARE_MEM_ALLOC;
+    void *addr = nullptr;
+    void *context = nullptr;
 
     // When: Release memory with null context
-    RSDumpManager::ReleaseMemory(allocType, nullptr, nullptr, 1024);
+    RSDumpManager::ReleaseMemory(allocType, addr, context, 1024);
 
+    ASSERT_EQ(addr, nullptr);
+    ASSERT_EQ(context, nullptr);
     // Then: Should not crash
     SUCCEED();
 }

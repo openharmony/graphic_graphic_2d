@@ -127,8 +127,7 @@ HWTEST_F(RSServiceDumpManagerTest, IsProcessDumpCmd_InvalidProcessCommand, TestS
 {
     // Given: A list of invalid commands
     std::vector<std::u16string> invalidCmds = {
-        u"invalid", u"screen", u"fpsClear",
-        u"hitchs", u"gles"
+        u"invalid", u"screen", u"gles"
     };
 
     // When & Then: None should be identified as process dump commands
@@ -240,6 +239,7 @@ HWTEST_F(RSServiceDumpManagerTest, CollectDump_SingleCollection, TestSize.Level1
     // When: Collect dump data
     dumpManager_->CollectDump(testData);
 
+    ASSERT_NE(dumpManager_, nullptr);
     // Then: Collection should succeed (verified by no crash)
     SUCCEED();
 }
@@ -263,6 +263,7 @@ HWTEST_F(RSServiceDumpManagerTest, CollectDump_MultipleCollections, TestSize.Lev
     dumpManager_->CollectDump(dump2);
     dumpManager_->CollectDump(dump3);
 
+    ASSERT_NE(dumpManager_, nullptr);
     // Then: All collections should succeed
     SUCCEED();
 }
@@ -282,6 +283,7 @@ HWTEST_F(RSServiceDumpManagerTest, CollectDump_EmptyString, TestSize.Level1)
     // When: Collect empty dump data
     dumpManager_->CollectDump(emptyData);
 
+    ASSERT_NE(dumpManager_, nullptr);
     // Then: Should handle empty string gracefully
     SUCCEED();
 }
@@ -417,6 +419,7 @@ HWTEST_F(RSServiceDumpManagerTest, InitProcessDumpTask_MultipleCalls, TestSize.L
     dumpManager_->InitProcessDumpTask(3);
     dumpManager_->InitProcessDumpTask(1);
 
+    EXPECT_EQ(dumpManager_->processCount_, 1);
     // Then: Should handle re-initialization gracefully
     SUCCEED();
 }

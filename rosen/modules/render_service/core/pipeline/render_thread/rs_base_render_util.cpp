@@ -983,8 +983,6 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     bool acqiureWithPTSEnable =
         RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
     if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
-        // todo car
-        // consumer->SetDropFrameLevel(dropFrameConfig.level);
         RS_LOGD("RsDebug RSBaseRenderUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
             "), set drop frame level=%{public}d", surfaceHandler.GetNodeId(), dropFrameConfig.level);
     }
@@ -1002,12 +1000,6 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
         IConsumerSurface::AcquireBufferReturnValue returnValue;
         int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
-
-        // Reset drop frame level after acquire to avoid affecting subsequent acquires
-        // TODO CAR
-        // if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
-        //     consumer->SetDropFrameLevel(0);
-        // }
 
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
@@ -1039,7 +1031,7 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         surfaceBuffer->timestamp = returnValue.timestamp;
         RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::ConsumeAndUpdateBuffer bufferId %" PRIu64,
             surfaceBuffer->buffer ? surfaceBuffer->buffer->GetBufferId() : 0);
-        surfaceBuffer->RegisterReleaseBufferListener([](uint64_t bufferId){
+        surfaceBuffer->RegisterReleaseBufferListener([](uint64_t bufferId) {
             RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
         });
         RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer,

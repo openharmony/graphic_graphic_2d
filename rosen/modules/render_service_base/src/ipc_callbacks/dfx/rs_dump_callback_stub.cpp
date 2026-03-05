@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
- #include "rs_dump_callback_stub.h"
- #include "gfx/dump/rs_dump_manager.h"
- #include "ipc_callbacks/dfx/rs_dump_callback_ipc_interface_code.h"
+#include "rs_dump_callback_stub.h"
+#include "gfx/dump/rs_dump_manager.h"
+#include "ipc_callbacks/dfx/rs_dump_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,7 +35,7 @@ int RSDumpCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data, Mess
                 return ERR_INVALID_STATE;
             }
             char *dataPtr = RSDumpManager::ReadAshmemDataFromParcel(data, size);
-            std::string dumpString = dataPtr != nullptr ? 
+            std::string dumpString = dataPtr != nullptr ?
                 std::string(static_cast<const char*>(dataPtr), size) : "";
             OnDumpResult(dumpString);
             break;

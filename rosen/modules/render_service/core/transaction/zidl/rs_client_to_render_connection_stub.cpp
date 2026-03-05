@@ -86,7 +86,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_CONTAINER),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS),
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE),
@@ -756,10 +755,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             if (!reply.WriteBool(highContrast)) {
                 ret = ERR_INVALID_REPLY;
             }
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC): {
-            ForceRefreshOneFrameWithNextVSync();
             break;
         }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO): {

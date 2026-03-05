@@ -19,16 +19,10 @@ namespace OHOS {
 namespace Rosen {
 RSVsyncManagerAgent::RSVsyncManagerAgent(sptr<VSyncGenerator> vsyncGenerator,
     sptr<VSyncDistributor> rsVsyncDistributor, sptr<VSyncDistributor> appVSyncDistributor)
-: vsyncGenerator_(vsyncGenerator), rsVsyncDistributor_(rsVsyncDistributor),
-    appVSyncDistributor_(appVSyncDistributor)
-{
+    : vsyncGenerator_(vsyncGenerator), rsVsyncDistributor_(rsVsyncDistributor),
+    appVSyncDistributor_(appVSyncDistributor) {}
 
-}
-
-RSVsyncManagerAgent::~RSVsyncManagerAgent()
-{
-
-}
+RSVsyncManagerAgent::~RSVsyncManagerAgent() {}
 
 void RSVsyncManagerAgent::ForceRsDVsync(const std::string& sceneId)
 {

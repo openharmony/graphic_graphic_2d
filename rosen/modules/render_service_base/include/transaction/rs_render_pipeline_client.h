@@ -160,6 +160,22 @@ public:
 
     void DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0);
 
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+    const std::vector<NodeId> &nodeIdList);
+
+    void ClearSurfaceWatermark(pid_t pid, const std::string &name);
+
+    ErrCode RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+        NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
+
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
+
     bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         std::shared_ptr<SurfaceBufferCallback> callback);
 
@@ -169,8 +185,6 @@ public:
 
     void ClearUifirstCache(NodeId id);
 
-    void ForceRefreshOneFrameWithNextVSync();
-
     bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -179,21 +193,6 @@ public:
     int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
 
-    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
-        const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
-        
-    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
-        const std::vector<NodeId> &nodeIdList);
-        
-    void ClearSurfaceWatermark(pid_t pid, const std::string &name);
-    
-    ErrCode RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
-
-    int32_t RegisterSurfaceOcclusionChangeCallback(
-        NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
-
-    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
 private:

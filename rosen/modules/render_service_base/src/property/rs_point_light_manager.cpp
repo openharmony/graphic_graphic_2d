@@ -36,7 +36,7 @@ const std::unique_ptr<RSPointLightManager>& RSPointLightManager::Instance(NodeId
 {
     std::lock_guard<std::mutex> lock(g_mutex);
     auto it = g_managersLUT.find(logicalDisplayNodeId);
-    if ( it != g_managersLUT.end() ) {
+    if (it != g_managersLUT.end()) {
         return it->second;
     }
     auto [itNew, _] = g_managersLUT.emplace(logicalDisplayNodeId, std::make_unique<RSPointLightManager>());

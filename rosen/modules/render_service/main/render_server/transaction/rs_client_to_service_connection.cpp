@@ -298,47 +298,47 @@ ErrCode RSClientToServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection
 void RSClientToServiceConnection::CollectSurfaceBuffersByProcessId(
     std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>>& sfBufferInfoVector, pid_t pid)
 {
-    RS_TRACE_NAME_FMT("RSClientToServiceConnection::CollectSurfaceBuffersByProcessId pid: %d", pid);
+    // RS_TRACE_NAME_FMT("RSClientToServiceConnection::CollectSurfaceBuffersByProcessId pid: %d", pid);
 
-    // Step 1: Get buffers from self-drawing nodes (existing logic)
-    auto selfDrawingNodeVector =
-        mainThread_->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
-    for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(*iter);
-        if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-            auto surfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-            auto surfaceBufferInfo = std::make_tuple(surfaceBuffer, surfaceNode->GetName(),
-                surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect());
-            sfBufferInfoVector.push_back(surfaceBufferInfo);
-        }
-    }
+    // // Step 1: Get buffers from self-drawing nodes (existing logic)
+    // auto selfDrawingNodeVector =
+    //     mainThread_->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
+    // for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
+    //     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(*iter);
+    //     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+    //         auto surfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    //         auto surfaceBufferInfo = std::make_tuple(surfaceBuffer, surfaceNode->GetName(),
+    //             surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect());
+    //         sfBufferInfoVector.push_back(surfaceBufferInfo);
+    //     }
+    // }
 
-    // Step 2: Get texture mode buffers from RSSurfaceBufferCallbackManager
-    auto textureBufferInfoList = RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferInfoByPid(pid);
-    for (const auto& bufferInfo : textureBufferInfoList) {
-        if (bufferInfo.surfaceBuffer_ != nullptr) {
-            // Generate surface name for texture mode
-            std::string surfaceName = "XComponent_Texture_" + std::to_string(bufferInfo.uid_);
+    // // Step 2: Get texture mode buffers from RSSurfaceBufferCallbackManager
+    // auto textureBufferInfoList = RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferInfoByPid(pid);
+    // for (const auto& bufferInfo : textureBufferInfoList) {
+    //     if (bufferInfo.surfaceBuffer_ != nullptr) {
+    //         // Generate surface name for texture mode
+    //         std::string surfaceName = "XComponent_Texture_" + std::to_string(bufferInfo.uid_);
 
-            // Create RectI from dstRect
-            RectI absRect(
-                static_cast<int>(bufferInfo.dstRect_.GetLeft()),
-                static_cast<int>(bufferInfo.dstRect_.GetTop()),
-                static_cast<int>(bufferInfo.dstRect_.GetWidth()),
-                static_cast<int>(bufferInfo.dstRect_.GetHeight())
-            );
+    //         // Create RectI from dstRect
+    //         RectI absRect(
+    //             static_cast<int>(bufferInfo.dstRect_.GetLeft()),
+    //             static_cast<int>(bufferInfo.dstRect_.GetTop()),
+    //             static_cast<int>(bufferInfo.dstRect_.GetWidth()),
+    //             static_cast<int>(bufferInfo.dstRect_.GetHeight())
+    //         );
 
-            auto surfaceBufferTuple = std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect);
-            sfBufferInfoVector.push_back(surfaceBufferTuple);
+    //         auto surfaceBufferTuple = std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect);
+    //         sfBufferInfoVector.push_back(surfaceBufferTuple);
 
-            RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}llu, "
-                    "bufferId=%{public}u, size=%{public}dx%{public}d",
-                    bufferInfo.pid_, bufferInfo.uid_,
-                    bufferInfo.surfaceBuffer_->GetSeqNum(),
-                    bufferInfo.surfaceBuffer_->GetWidth(),
-                    bufferInfo.surfaceBuffer_->GetHeight());
-        }
-    }
+    //         RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}llu, "
+    //                 "bufferId=%{public}u, size=%{public}dx%{public}d",
+    //                 bufferInfo.pid_, bufferInfo.uid_,
+    //                 bufferInfo.surfaceBuffer_->GetSeqNum(),
+    //                 bufferInfo.surfaceBuffer_->GetWidth(),
+    //                 bufferInfo.surfaceBuffer_->GetHeight());
+    //     }
+    // }
 }
 
 void RSClientToServiceConnection::ConvertBuffersToPixelMaps(
@@ -359,7 +359,8 @@ void RSClientToServiceConnection::ConvertBuffersToPixelMaps(
                 pixelMapInfoVector.emplace_back(PixelMapInfo { pixelmap,
                     { absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight(), i },
                     surfaceName,
-                    GetRotationInfoFromSurfaceBuffer(surfaceBuffer) });
+                    // GetRotationInfoFromSurfaceBuffer(surfaceBuffer) 
+                });
             } else {
                 RS_LOGE("ConvertBuffersToPixelMaps: pixelmap is null, nodeName:%{public}s", surfaceName.c_str());
             }
@@ -373,25 +374,37 @@ void RSClientToServiceConnection::ConvertBuffersToPixelMaps(
 ErrCode RSClientToServiceConnection::GetPixelMapByProcessId(
     std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
 {
-    if (mainThread_ == nullptr) {
-        repCode = INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
-    }
+    // if (mainThread_ == nullptr) {
+    //     repCode = INVALID_ARGUMENTS;
+    //     return ERR_INVALID_VALUE;
+    // }
 
-    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
-    std::function<void()> collectBuffersTask = [weakThis = wptr<RSClientToServiceConnection>(this),
-                                                  &sfBufferInfoVector, pid]() -> void {
-        sptr<RSClientToServiceConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            return;
-        }
-        connection->CollectSurfaceBuffersByProcessId(sfBufferInfoVector, pid);
-    };
-    mainThread_->PostSyncTask(collectBuffersTask);
+    // std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
+    // std::function<void()> collectBuffersTask = [weakThis = wptr<RSClientToServiceConnection>(this),
+    //                                               &sfBufferInfoVector, pid]() -> void {
+    //     sptr<RSClientToServiceConnection> connection = weakThis.promote();
+    //     if (connection == nullptr || connection->mainThread_ == nullptr) {
+    //         return;
+    //     }
+    //     connection->CollectSurfaceBuffersByProcessId(sfBufferInfoVector, pid);
+    // };
+    // mainThread_->PostSyncTask(collectBuffersTask);
 
-    ConvertBuffersToPixelMaps(sfBufferInfoVector, pixelMapInfoVector);
-    repCode = SUCCESS;
+    // ConvertBuffersToPixelMaps(sfBufferInfoVector, pixelMapInfoVector);
+    // repCode = SUCCESS;
     return ERR_OK;
+}
+
+void RSClientToServiceConnection::ForceRefreshOneFrameWithNextVSync()
+{
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    for (auto& conn : serviceToRenderConns) {
+        conn->ForceRefreshOneFrameWithNextVSync();
+    }
 }
 
 ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,

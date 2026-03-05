@@ -141,4 +141,33 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyPackageEventTest, TestSize.Level
     g_rsConn->NotifyPackageEvent(listSize2, package2);
     ASSERT_TRUE(g_rsConn);
 }
+
+/**
+ * @tc.name: GetRealtimeRefreshRateTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, GetRealtimeRefreshRateTest, TestSize.Level1)
+{
+    ASSERT_TRUE(g_rsConn);
+    auto result = g_rsConn->GetRealtimeRefreshRate(INVALID_SCREEN_ID);
+    EXPECT_GE(result, 0);
+}
+
+/**
+ * @tc.name: SetShowRefreshRateEnabledTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, SetShowRefreshRateEnabledTest, TestSize.Level1)
+{
+    bool enabled = true;
+    bool enabled1 = false;
+    int32_t type = 1;
+    g_rsConn->SetShowRefreshRateEnabled(enabled, type);
+    g_rsConn->SetShowRefreshRateEnabled(enabled1, type);
+    ASSERT_TRUE(g_rsConn);
+}
 } // namespace OHOS::Rosen

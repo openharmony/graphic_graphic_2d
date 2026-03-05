@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef HGM_RP_ENERGY_H
+#define HGM_RP_ENERGY_H
+
 #include "hgm_energy_consumption_policy.h"
 
 #include "transaction/rp_hgm_config_data.h"
@@ -41,3 +44,5 @@ private:
     std::unordered_map<std::string, int32_t> componentPowerConfig_;
 };
 }; // namespace OHOS::Rosen
+
+#endif // HGM_RP_ENERGY_H

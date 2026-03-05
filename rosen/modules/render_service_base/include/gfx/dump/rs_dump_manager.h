@@ -16,7 +16,9 @@
 #ifndef RENDER_SERVICE_BASE_GFX_RS_DUMP_MANAGER_H
 #define RENDER_SERVICE_BASE_GFX_RS_DUMP_MANAGER_H
 
+#ifdef ROSEN_OHOS
 #include "ashmem.h"
+#endif
 #include <sys/mman.h>
 #include <string>
 #include <vector>
@@ -152,8 +154,12 @@ public:
         if (fd < 0) {
             return false;
         }
+#ifdef ROSEN_OHOS
         int32_t ashmemSize = AshmemGetSize(fd);
         return isAstc || bufferSize == ashmemSize;
+#else
+        return false;
+#endif
     }
     
 private:

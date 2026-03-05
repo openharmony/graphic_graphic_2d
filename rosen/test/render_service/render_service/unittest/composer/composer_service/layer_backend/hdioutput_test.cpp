@@ -52,80 +52,80 @@ void HdiOutputTest::TearDownTestCase() {}
 namespace {
 
 /**
- * Function: GetFrameBufferSurface001
+ * Function: GetFrameBufferSurface_ReturnsNullptr
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call GetFrameBufferSurface()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, GetFrameBufferSurface001, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, GetFrameBufferSurface_ReturnsNullptr, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
 }
 
 /**
- * Function: GetFramebuffer001
+ * Function: GetFramebuffer_ReturnsNullptr
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call GetFramebuffer()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, GetFramebuffer001, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, GetFramebuffer_ReturnsNullptr, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFramebuffer(), nullptr);
 }
 
 /**
- * Function: GetScreenId001
+ * Function: GetScreenId_ReturnsZero
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call GetScreenId()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, GetScreenId001, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, GetScreenId_ReturnsZero, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetScreenId(), 0u);
 }
 
 /**
- * Function: Commit001
+ * Function: Commit_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call Commit()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, Commit001, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, Commit_Default, Function | MediumTest| Level1)
 {
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->Commit(fbFence), 0);
 }
 
 /**
- * Function: ClearFrameBuffer001
+ * Function: ClearFrameBuffer_ReturnsOk
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ClearFrameBuffer()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ClearFrameBuffer001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFrameBuffer_ReturnsOk, Function | MediumTest | Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->ClearFrameBuffer(), GSERROR_OK);
 }
 
 /**
- * Function: Init001
+ * Function: Init_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call Init()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, Init001, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, Init_Default, Function | MediumTest| Level1)
 {
     ASSERT_EQ(hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_), ROSEN_ERROR_OK);
     // device_ is already set
@@ -135,33 +135,33 @@ HWTEST_F(HdiOutputTest, Init001, Function | MediumTest| Level1)
 }
 
 /**
- * Function: GetFrameBufferSurface002
+ * Function: GetFrameBufferSurface_AfterInit
  * Type: Function
  * Rank: Important(3)
  * EnvConditions: N/A
  * CaseDescription: 1. call GetFrameBufferSurface
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, GetFrameBufferSurface002, Function | MediumTest| Level3)
+HWTEST_F(HdiOutputTest, GetFrameBufferSurface_AfterInit, Function | MediumTest| Level3)
 {
     ASSERT_NE(HdiOutputTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
 }
 
 /**
- * Function: GetFramebuffer002
+ * Function: GetFramebuffer_AfterInit
  * Type: Function
  * Rank: Important(3)
  * EnvConditions: N/A
  * CaseDescription: 1. call GetFramebuffer
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, GetFramebuffer002, Function | MediumTest| Level3)
+HWTEST_F(HdiOutputTest, GetFramebuffer_AfterInit, Function | MediumTest| Level3)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFramebuffer(), nullptr);
 }
 
 /**
- * Function: GetOutputDamage001
+ * Function: GetOutputDamage_SetAndGet
  * Type: Function
  * Rank: Important(3)
  * EnvConditions: N/A
@@ -169,7 +169,7 @@ HWTEST_F(HdiOutputTest, GetFramebuffer002, Function | MediumTest| Level3)
  *                  2. call GetOutputDamages()
  *                  3. check ret
  */
-HWTEST_F(HdiOutputTest, GetOutputDamage001, Function | MediumTest| Level3)
+HWTEST_F(HdiOutputTest, GetOutputDamage_SetAndGet, Function | MediumTest| Level3)
 {
     GraphicIRect iRect = {
         .x = 0,
@@ -189,14 +189,14 @@ HWTEST_F(HdiOutputTest, GetOutputDamage001, Function | MediumTest| Level3)
 }
 
 /**
- * Function: Commit002
+ * Function: Commit_WithMockDevice
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call Commit()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, Commit002, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, Commit_WithMockDevice, Function | MediumTest| Level1)
 {
     EXPECT_CALL(*hdiDeviceMock_, Commit(_, _)).WillRepeatedly(testing::Return(0));
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
@@ -204,27 +204,27 @@ HWTEST_F(HdiOutputTest, Commit002, Function | MediumTest| Level1)
 }
 
 /**
- * Function: ClearFrameBuffer002
+ * Function: ClearFrameBuffer_ReturnsDisconnected
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ClearFrameBuffer()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ClearFrameBuffer002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFrameBuffer_ReturnsDisconnected, Function | MediumTest | Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->ClearFrameBuffer(), GSERROR_CONSUMER_DISCONNECTED);
 }
 
 /**
- * Function: CommitAndGetReleaseFence001
+ * Function: CommitAndGetReleaseFence_ReturnsSuccess
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call CommitAndGetReleaseFence()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence_ReturnsSuccess, Function | MediumTest| Level1)
 {
     EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _, _)).WillRepeatedly(testing::Return(0));
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
@@ -235,14 +235,14 @@ HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Leve
 }
 
 /**
- * Function: CommitAndGetReleaseFence002
+ * Function: CommitAndGetReleaseFence_ReturnsFailure
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call CommitAndGetReleaseFence()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence002, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence_ReturnsFailure, Function | MediumTest| Level1)
 {
     EXPECT_CALL(*hdiDeviceMock_,
         CommitAndGetReleaseFence(_, _, _, _, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
@@ -268,14 +268,14 @@ HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence002, Function | MediumTest| Leve
 }
 
 /**
- * Function: CheckAndUpdateClientBufferCahce001
+ * Function: CheckAndUpdateClientBufferCache_BufferExists
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CheckAndUpdateClientBufferCahce()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCache_BufferExists, Function | MediumTest | Level1)
 {
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
     uint32_t index;
@@ -289,14 +289,14 @@ HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce001, Function | MediumTes
 }
 
 /**
- * Function: CheckAndUpdateClientBufferCahce002
+ * Function: CheckAndUpdateClientBufferCache_BufferNotExists
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CheckAndUpdateClientBufferCahce()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCache_BufferNotExists, Function | MediumTest | Level1)
 {
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
     uint32_t index;
@@ -309,14 +309,14 @@ HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce002, Function | MediumTes
 }
 
 /**
- * Function: CheckAndUpdateClientBufferCahce003
+ * Function: CheckAndUpdateClientBufferCache_CacheFull
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CheckAndUpdateClientBufferCahce()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce003, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCache_CacheFull, Function | MediumTest | Level1)
 {
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
     uint32_t index;
@@ -350,14 +350,14 @@ HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
 }
 
 /**
- * Function: ReorderLayerInfoLocked001
+ * Function: ReorderLayerInfoLocked_InvalidParam
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ReorderLayerInfoLocked() with invalid param
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, ReorderLayerInfoLocked001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReorderLayerInfoLocked_InvalidParam, Function | MediumTest | Level1)
 {
     std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
     ASSERT_NE(output, nullptr);
@@ -369,14 +369,14 @@ HWTEST_F(HdiOutputTest, ReorderLayerInfoLocked001, Function | MediumTest | Level
 }
 
 /**
- * Function: DumpFps001
+ * Function: DumpFps_InvalidParam
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call DumpFps() with invalid param
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, DumpFps001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpFps_InvalidParam, Function | MediumTest | Level1)
 {
     std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
     ASSERT_NE(output, nullptr);
@@ -391,14 +391,14 @@ HWTEST_F(HdiOutputTest, DumpFps001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: DeletePrevLayersLocked001
+ * Function: DeletePrevLayersLocked_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call DeletePrevLayersLocked()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, DeletePrevLayersLocked001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DeletePrevLayersLocked_Default, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     auto& surfaceIdMap = hdiOutput->surfaceIdMap_;
@@ -422,14 +422,14 @@ HWTEST_F(HdiOutputTest, DeletePrevLayersLocked001, Function | MediumTest | Level
 }
 
 /**
- * Function: RecordCompositionTime001
+ * Function: RecordCompositionTime_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call RecordCompositionTime()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, RecordCompositionTime001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, RecordCompositionTime_Default, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     int64_t timestamp = 100;
@@ -444,14 +444,14 @@ HWTEST_F(HdiOutputTest, RecordCompositionTime001, Function | MediumTest | Level1
 }
 
 /**
- * Function: CheckIfDoArsrPre001
+ * Function: CheckIfDoArsrPre_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CheckIfDoArsrPre()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, CheckIfDoArsrPre001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CheckIfDoArsrPre_Default, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
@@ -475,14 +475,14 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPre001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: CheckIfDoArsrPreForVm001
+ * Function: CheckIfDoArsrPreForVm_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CheckIfDoArsrPreForVm()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm_Default, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
@@ -498,14 +498,14 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm001, Function | MediumTest | Level1
 }
 
 /**
- * Function: ReleaseFramebuffer001
+ * Function: ReleaseFramebuffer_MultipleCases
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ReleaseFramebuffer()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ReleaseFramebuffer001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseFramebuffer_MultipleCases, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     sptr<SyncFence> fence = new SyncFence(0);
@@ -532,14 +532,14 @@ HWTEST_F(HdiOutputTest, ReleaseFramebuffer001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: GetBufferCacheSize001
+ * Function: GetBufferCacheSize_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call GetBufferCacheSize()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, GetBufferCacheSize001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, GetBufferCacheSize_Default, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     int res = hdiOutput->GetBufferCacheSize();
@@ -547,14 +547,14 @@ HWTEST_F(HdiOutputTest, GetBufferCacheSize001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: StartVSyncSampler
+ * Function: StartVSyncSampler_VaryingStates
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call StartVSyncSampler()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, StartVSyncSampler001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, StartVSyncSampler_VaryingStates, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     CreateVSyncSampler()->SetVsyncSamplerEnabled(false);
@@ -571,14 +571,14 @@ HWTEST_F(HdiOutputTest, StartVSyncSampler001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: ClearFpsDump001
+ * Function: ClearFpsDump_LayerNull
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ClearFpsDump()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ClearFpsDump001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFpsDump_LayerNull, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutput::CreateHdiOutput(0u);
     hdiOutput->Init();
@@ -603,14 +603,14 @@ HWTEST_F(HdiOutputTest, ClearFpsDump001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: GetComposeClientLayers001
+ * Function: GetComposeClientLayers_LayerNull
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call GetComposeClientLayers with layer is nullptr
  *                  2.check clientLayers size
  */
-HWTEST_F(HdiOutputTest, GetComposeClientLayers001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, GetComposeClientLayers_LayerNull, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     auto& layerIdMap = hdiOutput->layerIdMap_;
@@ -622,14 +622,14 @@ HWTEST_F(HdiOutputTest, GetComposeClientLayers001, Function | MediumTest | Level
 }
 
 /**
- * Function: GetComposeClientLayers002
+ * Function: GetComposeClientLayers_LayerInfoNull
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call GetComposeClientLayers with layerInfo is nullptr
  *                  2.check clientLayers size
  */
-HWTEST_F(HdiOutputTest, GetComposeClientLayers002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, GetComposeClientLayers_LayerInfoNull, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     auto& layerIdMap = hdiOutput->layerIdMap_;
@@ -643,14 +643,14 @@ HWTEST_F(HdiOutputTest, GetComposeClientLayers002, Function | MediumTest | Level
 }
 
 /**
- * Function: ReleaseFramebuffer002
+ * Function: ReleaseFramebuffer_NullLayerOrSurface
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ReleaseFramebuffer with layer or layerInfo or layer's cSurface is nullptr
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ReleaseFramebuffer002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseFramebuffer_NullLayerOrSurface, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     auto& layerIdMap = hdiOutput->layerIdMap_;
@@ -676,7 +676,7 @@ HWTEST_F(HdiOutputTest, ReleaseFramebuffer002, Function | MediumTest | Level1)
 }
 
 /**
- * Function: SetProtectedFrameBufferState
+ * Function: SetProtectedFrameBufferState_SetAndGet
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -684,7 +684,7 @@ HWTEST_F(HdiOutputTest, ReleaseFramebuffer002, Function | MediumTest | Level1)
  *                  2. operation: SetProtectedFrameBufferState and GetProtectedFrameBufferState
  *                  3. result: return ProtectedFrameBufferState
  */
-HWTEST_F(HdiOutputTest, SetProtectedFrameBufferState_001, testing::ext::TestSize.Level1)
+HWTEST_F(HdiOutputTest, SetProtectedFrameBufferState_SetAndGet, testing::ext::TestSize.Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     EXPECT_EQ(hdiOutput->GetProtectedFrameBufferState(), false);
@@ -700,7 +700,7 @@ HWTEST_F(HdiOutputTest, SetProtectedFrameBufferState_001, testing::ext::TestSize
  * CaseDescription: 1.call CleanLayerBufferBySurfaceId() with valid param, no crash
  *                  2.call CleanLayerBufferBySurfaceId() with invalid param, no crash
  */
-HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_001, testing::ext::TestSize.Level1)
+HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_MultipleIds, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
     ASSERT_NE(output, nullptr);
@@ -717,14 +717,14 @@ HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_001, testing::ext::TestSize.
 }
 
 /**
- * Function: SetRSLayers
+ * Function: SetRSLayers_VariousTypes
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call SetRSLayers()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, SetRSLayers001, Function | MediumTest | Level3)
+HWTEST_F(HdiOutputTest, SetRSLayers_VariousTypes, Function | MediumTest | Level3)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -766,14 +766,14 @@ HWTEST_F(HdiOutputTest, SetRSLayers001, Function | MediumTest | Level3)
 }
 
 /**
- * Function: DirtyRegions
+ * Function: DirtyRegions_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call DirtyRegions()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, DirtyRegions001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DirtyRegions_Default, Function | MediumTest | Level1)
 {
     std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetIsMaskLayer(false);
@@ -788,14 +788,14 @@ HWTEST_F(HdiOutputTest, DirtyRegions001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: CheckSupportCopybitMetadata
+ * Function: CheckSupportCopybitMetadata_AfterInit
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CheckSupportCopybitMetadata()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, CheckSupportCopybitMetadata001, Function | MediumTest | Level3)
+HWTEST_F(HdiOutputTest, CheckSupportCopybitMetadata_AfterInit, Function | MediumTest | Level3)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -807,14 +807,14 @@ HWTEST_F(HdiOutputTest, CheckSupportCopybitMetadata001, Function | MediumTest | 
 }
 
 /**
- * Function: RegPrepareComplete
+ * Function: RegPrepareComplete_NullParams
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call RegPrepareComplete()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, RegPrepareComplete001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, RegPrepareComplete_NullParams, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -828,14 +828,14 @@ HWTEST_F(HdiOutputTest, RegPrepareComplete001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: DeletePrevLayersLocked
+ * Function: DeletePrevLayersLocked_SolidSurfaceMap
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call DeletePrevLayersLocked()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, DeletePrevLayersLocked002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DeletePrevLayersLocked_SolidSurfaceMap, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -861,14 +861,14 @@ HWTEST_F(HdiOutputTest, DeletePrevLayersLocked002, Function | MediumTest | Level
 }
 
 /**
- * Function: ResetLayerStatusLocked
+ * Function: ResetLayerStatusLocked_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ResetLayerStatusLocked()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ResetLayerStatusLocked001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_Default, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
     std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(1);
@@ -884,14 +884,14 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked001, Function | MediumTest | Level
 }
 
 /**
- * Function: CreateLayerLocked
+ * Function: CreateLayerLocked_VaryingConfigs
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call DeletePrevLayersLocked()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, CreateLayerLocked001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CreateLayerLocked_VaryingConfigs, Function | MediumTest | Level1)
 {
     // hdiLayer init failed
     auto ret = HdiOutputTest::hdiOutput_->CreateLayerLocked(1, nullptr);
@@ -911,14 +911,14 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: FlushScreen
+ * Function: FlushScreen_VariousScenarios
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call FlushScreen()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, FlushScreen001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, FlushScreen_VariousScenarios, Function | MediumTest | Level1)
 {
     std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(1);
     ASSERT_NE(hdiLayer, nullptr);
@@ -975,14 +975,14 @@ HWTEST_F(HdiOutputTest, FlushScreen001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: FlushScreen
+ * Function: FlushScreen_BufferCacheIndex
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call FlushScreen()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, FlushScreen002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, FlushScreen_BufferCacheIndex, Function | MediumTest | Level1)
 {
     std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(1);
     ASSERT_NE(hdiLayer, nullptr);
@@ -1032,14 +1032,14 @@ HWTEST_F(HdiOutputTest, FlushScreen002, Function | MediumTest | Level1)
 }
 
 /**
- * Function: ReleaseLayers
+ * Function: ReleaseLayers_VariousLayerStates
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ReleaseLayers()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_VariousLayerStates, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->layersId_.clear();
     HdiOutputTest::hdiOutput_->fences_.clear();
@@ -1094,14 +1094,14 @@ HWTEST_F(HdiOutputTest, ReleaseLayers001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: GetLayersReleaseFenceLocked
+ * Function: GetLayersReleaseFenceLocked_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call GetLayersReleaseFenceLocked()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, GetLayersReleaseFenceLocked001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, GetLayersReleaseFenceLocked_Default, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->layersId_.clear();
     HdiOutputTest::hdiOutput_->fences_.clear();
@@ -1121,14 +1121,14 @@ HWTEST_F(HdiOutputTest, GetLayersReleaseFenceLocked001, Function | MediumTest | 
 }
 
 /**
- * Function: DumpHitchs
+ * Function: DumpHitchs_WithLayers
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call DumpHitchs()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, DumpHitchs001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpHitchs_WithLayers, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->layersId_.clear();
     HdiOutputTest::hdiOutput_->fences_.clear();
@@ -1161,14 +1161,14 @@ HWTEST_F(HdiOutputTest, DumpHitchs001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: DumpFps002
+ * Function: DumpFps_WithUniRenderFlags
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call DumpFps()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, DumpFps002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpFps_WithUniRenderFlags, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->layersId_.clear();
     HdiOutputTest::hdiOutput_->fences_.clear();
@@ -1216,14 +1216,14 @@ HWTEST_F(HdiOutputTest, DumpFps002, Function | MediumTest | Level1)
 }
 
 /**
- * Function: DumpFps003
+ * Function: DumpFps_WithWindowsName
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call DumpFps()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, DumpFps003, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpFps_WithWindowsName, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->layersId_.clear();
     HdiOutputTest::hdiOutput_->fences_.clear();
@@ -1262,14 +1262,14 @@ HWTEST_F(HdiOutputTest, DumpFps003, Function | MediumTest | Level1)
 }
 
 /**
- * Function: Dump002
+ * Function: Dump_WithSurface
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call Dump()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, Dump002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, Dump_WithSurface, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->layersId_.clear();
     HdiOutputTest::hdiOutput_->fences_.clear();
@@ -1299,14 +1299,14 @@ HWTEST_F(HdiOutputTest, Dump002, Function | MediumTest | Level1)
 }
 
 /**
- * Function: GetVsyncSamplerEnabled001
+ * Function: GetVsyncSamplerEnabled_NullSampler
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call GetVsyncSamplerEnabled()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, GetVsyncSamplerEnabled001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, GetVsyncSamplerEnabled_NullSampler, Function | MediumTest | Level1)
 {
     auto sampler = HdiOutputTest::hdiOutput_->sampler_;
     HdiOutputTest::hdiOutput_->sampler_ = nullptr;
@@ -1316,14 +1316,14 @@ HWTEST_F(HdiOutputTest, GetVsyncSamplerEnabled001, Function | MediumTest | Level
 }
 
 /**
- * Function: CheckIfDoArsrPre002
+ * Function: CheckIfDoArsrPre_VaryingFormatsAndSurfaces
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CheckIfDoArsrPre()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, CheckIfDoArsrPre002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CheckIfDoArsrPre_VaryingFormatsAndSurfaces, Function | MediumTest | Level1)
 {
     std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetIsSupportedPresentTimestamp(true);
@@ -1389,14 +1389,14 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPre002, Function | MediumTest | Level1)
 }
 
 /**
- * Function: ReorderRSLayers001
+ * Function: ReorderRSLayers_WithNullLayers
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ReorderRSLayers()
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, ReorderRSLayers001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReorderRSLayers_WithNullLayers, Function | MediumTest | Level1)
 {
     std::vector<std::shared_ptr<RSLayer>> newRSLayers;
     std::shared_ptr<RSLayer> rsLayer1 = nullptr;
@@ -1410,14 +1410,14 @@ HWTEST_F(HdiOutputTest, ReorderRSLayers001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: DeletePrevLayersLocked003
+ * Function: DeletePrevLayersLocked_MaskLayer
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call DeletePrevLayersLocked()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, DeletePrevLayersLocked003, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DeletePrevLayersLocked_MaskLayer, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -1441,14 +1441,14 @@ HWTEST_F(HdiOutputTest, DeletePrevLayersLocked003, Function | MediumTest | Level
 }
 
 /**
- * Function: GetRSLayers
+ * Function: GetRSLayers_WithLayers
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call GetRSLayers()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, GetRSLayers001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, GetRSLayers_WithLayers, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -1466,14 +1466,14 @@ HWTEST_F(HdiOutputTest, GetRSLayers001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: CheckAndUpdateClientBufferCahce004
+ * Function: CheckAndUpdateClientBufferCache_EmptyCache
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CheckAndUpdateClientBufferCahce()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce004, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCache_EmptyCache, Function | MediumTest | Level1)
 {
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
     uint32_t index = 0;
@@ -1484,14 +1484,14 @@ HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce004, Function | MediumTes
 }
 
 /**
- * Function: CheckIfDoArsrPreForVm002
+ * Function: CheckIfDoArsrPreForVm_WithWhitelist
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CheckIfDoArsrPreForVm()
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm_WithWhitelist, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     hdiOutput->vmArsrWhiteList_ = "xcomponentIdSurface;HdiOutputTest";
@@ -1514,14 +1514,14 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm002, Function | MediumTest | Level1
 }
 
 /**
- * Function: SetVsyncSamplerEnabled
+ * Function: SetVsyncSamplerEnabled_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call SetVsyncSamplerEnabled()
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, SetVsyncSamplerEnabled001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, SetVsyncSamplerEnabled_Default, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -1534,14 +1534,14 @@ HWTEST_F(HdiOutputTest, SetVsyncSamplerEnabled001, Function | MediumTest | Level
 }
 
 /**
- * Function: SetPendingMode
+ * Function: SetPendingMode_Default
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call SetPendingMode()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, SetPendingMode001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, SetPendingMode_Default, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -1554,14 +1554,14 @@ HWTEST_F(HdiOutputTest, SetPendingMode001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: ClearFpsDump002
+ * Function: ClearFpsDump_VariousSurfaceStates
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ClearFpsDump()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ClearFpsDump002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFpsDump_VariousSurfaceStates, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -1594,14 +1594,14 @@ HWTEST_F(HdiOutputTest, ClearFpsDump002, Function | MediumTest | Level1)
 }
 
 /**
- * Function: ClearBufferCache
+ * Function: ClearBufferCache_VariousStates
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ClearBufferCache()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ClearBufferCache001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearBufferCache_VariousStates, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -1643,14 +1643,14 @@ HWTEST_F(HdiOutputTest, ClearBufferCache001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: GetFrameBufferSurface003
+ * Function: GetFrameBufferSurface_NullProducerSurface
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call GetFrameBufferSurface()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, GetFrameBufferSurface003, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, GetFrameBufferSurface_NullProducerSurface, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->fbSurface_ = HdiFramebufferSurface::CreateFramebufferSurface();
     ASSERT_NE(HdiOutputTest::hdiOutput_->fbSurface_, nullptr);
@@ -1660,14 +1660,14 @@ HWTEST_F(HdiOutputTest, GetFrameBufferSurface003, Function | MediumTest | Level1
 }
 
 /**
- * Function: CheckSupportArsrPreMetadata001
+ * Function: CheckSupportArsrPreMetadata_AfterInit
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CheckSupportArsrPreMetadata()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, CheckSupportArsrPreMetadata001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CheckSupportArsrPreMetadata_AfterInit, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
@@ -1683,14 +1683,14 @@ HWTEST_F(HdiOutputTest, CheckSupportArsrPreMetadata001, Function | MediumTest | 
 }
 
 /**
- * Function: CreateLayerLocked003
+ * Function: CreateLayerLocked_WithArsrPreEnabledForVm
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CreateLayerLocked()
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, CreateLayerLocked003, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CreateLayerLocked_WithArsrPreEnabledForVm, Function | MediumTest | Level1)
 {
     auto preDevice = HdiOutputTest::hdiOutput_->device_;
 
@@ -1745,14 +1745,14 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked003, Function | MediumTest | Level1)
 }
 
 /**
- * Function: CreateLayerLocked004
+ * Function: CreateLayerLocked_WithArsrPreEnabled
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CreateLayerLocked()
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, CreateLayerLocked004, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CreateLayerLocked_WithArsrPreEnabled, Function | MediumTest | Level1)
 {
     auto preDevice = HdiOutputTest::hdiOutput_->device_;
 
@@ -1796,14 +1796,14 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked004, Function | MediumTest | Level1)
 }
 
 /**
- * Function: UpdateLayerCompType001
+ * Function: UpdateLayerCompType_VaryingLayerIds
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call UpdateLayerCompType()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, UpdateLayerCompType001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, UpdateLayerCompType_VaryingLayerIds, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->device_ = HdiDevice::GetInstance();
     ASSERT_NE(HdiOutputTest::hdiOutput_->device_, nullptr);
@@ -1841,14 +1841,14 @@ HWTEST_F(HdiOutputTest, UpdateLayerCompType001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: Repaint001
+ * Function: Repaint_FailureCases
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call Repaint()
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, Repaint001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, Repaint_FailureCases, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->device_ = HdiDevice::GetInstance();
     ASSERT_NE(HdiOutputTest::hdiOutput_->device_, nullptr);
@@ -1899,14 +1899,14 @@ HWTEST_F(HdiOutputTest, Repaint001, Function | MediumTest | Level1)
 }
 
 /**
- * Function: Repaint002
+ * Function: Repaint_MixedSuccessFailure
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call Repaint()
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, Repaint002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, Repaint_MixedSuccessFailure, Function | MediumTest | Level1)
 {
     HdiOutputTest::hdiOutput_->device_ = HdiDevice::GetInstance();
     ASSERT_NE(HdiOutputTest::hdiOutput_->device_, nullptr);
@@ -1992,14 +1992,14 @@ HWTEST_F(HdiOutputTest, UpdateInfosAfterCommitVerifyFramePresentFd, Function | M
 }
 
 /**
- * Function: GetDisplayClientTargetProperty001
+ * Function: GetDisplayClientTargetProperty_VaryingResults
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call GetDisplayClientTargetProperty()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, GetDisplayClientTargetProperty001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, GetDisplayClientTargetProperty_VaryingResults, Function | MediumTest | Level1)
 {
     int32_t pixelFormat = 0;
     int32_t dataspace = 0;
@@ -2223,14 +2223,64 @@ HWTEST_F(HdiOutputTest, PrepareCompleteIfNeed_FlushWhenClientLayersExist, Functi
 }
 
 /**
- * Function: ClearFrameBuffer_FrameBufferSurfaceNull_Line77_FalseBranch
+ * Function: PrepareCompleteIfNeed_NoClientLayers_NoFlush
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: no client layers, line 1085 condition false, line 1093 condition false
+ */
+HWTEST_F(HdiOutputTest, PrepareCompleteIfNeed_NoClientLayers_NoFlush, Function | MediumTest | Level1)
+{
+    auto out = HdiOutput::CreateHdiOutput(0);
+    out->layerIdMap_.clear();
+
+    // No client layers set up, so line 1085 condition is false (compClientLayers.size() == 0)
+    // needFlush param starts false and remains false, so line 1093 condition is also false
+    auto ret = out->PrepareCompleteIfNeed(false);
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: PrepareCompleteIfNeed_NeedFlushTrue_CallFlushScreen
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: needFlush param true, FlushScreen called
+ */
+HWTEST_F(HdiOutputTest, PrepareCompleteIfNeed_NeedFlushTrue_CallFlushScreen, Function | MediumTest | Level1)
+{
+    auto out = HdiOutput::CreateHdiOutput(0);
+    out->fbSurface_ = HdiFramebufferSurface::CreateFramebufferSurface();
+    out->layerIdMap_.clear();
+
+    // supply one framebuffer entry so FlushScreen can proceed
+    int64_t timestamp = 0;
+    Rect damage {};
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    while (!out->fbSurface_->availableBuffers_.empty()) {
+        out->fbSurface_->availableBuffers_.pop();
+    }
+    out->fbSurface_->availableBuffers_.push(std::make_unique<FrameBufferEntry>(buffer, acquireFence, timestamp, damage));
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientDamage(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    out->device_ = nullptr;
+    out->SetHdiOutputDevice(hdiDeviceMock_);
+
+    // needFlush param is true, so line 1093 condition is true, FlushScreen should be called
+    auto ret = out->PrepareCompleteIfNeed(true);
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: ClearFrameBuffer_FrameBufferSurfaceNull
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. fbSurface is nullptr so GetFrameBufferSurface returns nullptr
- *                  2. expect ClearFrameBuffer succeeds, line 77 condition is false (no CleanCache call)
+ *                  2. expect ClearFrameBuffer succeeds, no CleanCache call
  */
-HWTEST_F(HdiOutputTest, ClearFrameBuffer_FrameBufferSurfaceNull_Line77_FalseBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFrameBuffer_FrameBufferSurfaceNull, Function | MediumTest | Level1)
 {
     auto out = HdiOutput::CreateHdiOutput(0);
     // Save original fbSurface_
@@ -2249,14 +2299,14 @@ HWTEST_F(HdiOutputTest, ClearFrameBuffer_FrameBufferSurfaceNull_Line77_FalseBran
 }
 
 /**
- * Function: ClearFrameBuffer_CheckFbSurfaceFalse_Line77_FalseBranch
+ * Function: ClearFrameBuffer_CheckFbSurfaceFalse
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. make CheckFbSurface return false by invalidating fbSurface
- *                  2. expect ClearFrameBuffer returns early without error, line 77 not reached
+ *                  2. expect ClearFrameBuffer returns early without error
  */
-HWTEST_F(HdiOutputTest, ClearFrameBuffer_CheckFbSurfaceFalse_Line77_FalseBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFrameBuffer_CheckFbSurfaceFalse, Function | MediumTest | Level1)
 {
     auto out = HdiOutput::CreateHdiOutput(0);
     // Save original fbSurface_
@@ -2276,14 +2326,14 @@ HWTEST_F(HdiOutputTest, ClearFrameBuffer_CheckFbSurfaceFalse_Line77_FalseBranch,
 }
 
 /**
- * Function: ClearFrameBuffer_SurfaceGetSurfaceNull_Line77_FalseBranch
+ * Function: ClearFrameBuffer_SurfaceGetSurfaceNull
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. fbSurface exists but GetSurface() returns nullptr
- *                  2. expect ClearFrameBuffer succeeds, line 77 condition is false
+ *                  2. expect ClearFrameBuffer succeeds, no CleanCache call
  */
-HWTEST_F(HdiOutputTest, ClearFrameBuffer_SurfaceGetSurfaceNull_Line77_FalseBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFrameBuffer_SurfaceGetSurfaceNull, Function | MediumTest | Level1)
 {
     auto out = HdiOutput::CreateHdiOutput(0);
     // Save original fbSurface_
@@ -2305,14 +2355,14 @@ HWTEST_F(HdiOutputTest, ClearFrameBuffer_SurfaceGetSurfaceNull_Line77_FalseBranc
 }
 
 /**
- * Function: ClearFrameBuffer_MultipleCallsSurfaceNull_Line77_FalseBranch
+ * Function: ClearFrameBuffer_MultipleCallsSurfaceNull
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. multiple ClearFrameBuffer calls with null surface
- *                  2. expect all succeed, consistently hitting line 77 false branch
+ *                  2. expect all succeed
  */
-HWTEST_F(HdiOutputTest, ClearFrameBuffer_MultipleCallsSurfaceNull_Line77_FalseBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFrameBuffer_MultipleCallsSurfaceNull, Function | MediumTest | Level1)
 {
     auto out = HdiOutput::CreateHdiOutput(0);
     // Save original fbSurface_
@@ -2343,7 +2393,7 @@ HWTEST_F(HdiOutputTest, ClearFrameBuffer_MultipleCallsSurfaceNull_Line77_FalseBr
  * CaseDescription: 1. set isProtectedBufferAllocated_ to true before ClearFrameBuffer
  *                  2. expect ClearFrameBuffer succeeds, line 81 condition is true, state resets to false
  */
-HWTEST_F(HdiOutputTest, ClearFrameBuffer_ProtectedBufferAllocated_Line81_TrueBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFrameBuffer_ProtectedBufferAllocated, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2367,7 +2417,7 @@ HWTEST_F(HdiOutputTest, ClearFrameBuffer_ProtectedBufferAllocated_Line81_TrueBra
  * CaseDescription: 1. set protected buffer state, call ClearFrameBuffer, set again, call ClearFrameBuffer
  *                  2. expect both calls succeed, line 81 true branch triggered both times
  */
-HWTEST_F(HdiOutputTest, ClearFrameBuffer_ProtectedBufferAllocatedTwice_Line81_TrueBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFrameBuffer_ProtectedBufferAllocatedTwice, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2393,7 +2443,7 @@ HWTEST_F(HdiOutputTest, ClearFrameBuffer_ProtectedBufferAllocatedTwice_Line81_Tr
  * CaseDescription: 1. set protected buffer state to true immediately before ClearFrameBuffer
  *                  2. expect state resets to false after ClearFrameBuffer completes
  */
-HWTEST_F(HdiOutputTest, ClearFrameBuffer_SetTrueBeforeCall_Line81_TrueBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFrameBuffer_SetTrueBeforeCall, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2475,7 +2525,7 @@ HWTEST_F(HdiOutputTest, Init_NewOutputInstanceSuccess, Function | MediumTest | L
  * CaseDescription: 1. call Init on already initialized output
  *                  2. expect early return at line 89-91 without recreating fbSurface_
  */
-HWTEST_F(HdiOutputTest, Init_FbSurfaceAlreadyAllocated_Line89_EarlyReturn, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, Init_FbSurfaceAlreadyAllocated, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2564,7 +2614,7 @@ HWTEST_F(HdiOutputTest, Init_CreateFramebufferSurfaceFailure_DocumentationTest, 
  *                  2. call ResetLayerStatusLocked
  *                  3. verify line 255 condition is false (rsLayer == nullptr)
  */
-HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayerIdMapRsLayerNull_Line255_FalseBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayerIdMapRsLayerNull, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2600,7 +2650,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayerIdMapRsLayerNull_Line255_Fal
  *                  2. call ResetLayerStatusLocked
  *                  3. verify both branches work correctly
  */
-HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_MixedLayerIdMap_Line255_FalseBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_MixedLayerIdMap, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2638,7 +2688,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_MixedLayerIdMap_Line255_FalseBran
 }
 
 /**
- * Function: ResetLayerStatusLocked_LayersToBeReleaseWithRSLayer_Line262_TrueBranch
+ * Function: ResetLayerStatusLocked_LayersToBeReleaseWithRSLayer
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -2646,7 +2696,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_MixedLayerIdMap_Line255_FalseBran
  *                  2. call ResetLayerStatusLocked
  *                  3. verify line 262 condition is true (rsLayer != nullptr)
  */
-HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseWithRSLayer_Line262_TrueBranch,
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseWithRSLayer,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
@@ -2679,7 +2729,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseWithRSLayer_Line
 }
 
 /**
- * Function: ResetLayerStatusLocked_LayersToBeReleaseMultiple_Line262_TrueBranch
+ * Function: ResetLayerStatusLocked_LayersToBeReleaseMultiple
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -2687,8 +2737,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseWithRSLayer_Line
  *                  2. call ResetLayerStatusLocked
  *                  3. verify all layers processed correctly
  */
-HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMultiple_Line262_TrueBranch,
-    Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMultiple, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2730,7 +2779,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMultiple_Line262
  *                  3. call ResetLayerStatusLocked
  *                  4. verify all branches work correctly
  */
-HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_AllThreeMaps_Line255False_Line262True, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_AllThreeMaps, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2767,7 +2816,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_AllThreeMaps_Line255False_Line262
 }
 
 /**
- * Function: ResetLayerStatusLocked_LayersToBeReleaseMixed_Line262BothBranches
+ * Function: ResetLayerStatusLocked_LayersToBeReleaseMixed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -2775,8 +2824,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_AllThreeMaps_Line255False_Line262
  *                  2. call ResetLayerStatusLocked
  *                  3. verify both true and false branches handled correctly
  */
-HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMixed_Line262BothBranches,
-    Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMixed, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2822,7 +2870,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMixed_Line262Bot
  *                  2. call ReleaseLayers
  *                  3. verify line 742 condition is true (size == 0)
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_EmptyLayerIdMap_Line742_FalseBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_EmptyLayerIdMap, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2849,7 +2897,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_EmptyLayerIdMap_Line742_FalseBranch, Funct
  *                  2. call ReleaseLayers
  *                  3. verify line 742 condition is false (size != 0)
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_NonEmptyReleaseFence_Line742_FalseBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_NonEmptyReleaseFence, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2895,7 +2943,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_NonEmptyReleaseFence_Line742_FalseBranch, 
  *                  2. call ReleaseLayers
  *                  3. verify line 742 condition is false with multiple layers
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_MultipleLayersInReleaseFence_Line742_FalseBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_MultipleLayersInReleaseFence, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2938,7 +2986,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_MultipleLayersInReleaseFence_Line742_False
  *                  2. call ReleaseLayers
  *                  3. verify line 769 condition is true (skip)
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_LayersToBeReleaseNullRSLayer_Line769, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_LayersToBeReleaseNullRSLayer, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2966,7 +3014,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_LayersToBeReleaseNullRSLayer_Line769, Func
 }
 
 /**
- * Function: ReleaseLayers_LayersToBeReleaseValidRSLayer_Line769_False_Line772_True
+ * Function: ReleaseLayers_LayersToBeReleaseValidRSLayer
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -2974,8 +3022,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_LayersToBeReleaseNullRSLayer_Line769, Func
  *                  2. call ReleaseLayers
  *                  3. verify line 769 false, line 772 true (add to vec)
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_LayersToBeReleaseValidRSLayer_Line769_False_Line772_True,
-    Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_LayersToBeReleaseValidRSLayer, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3015,7 +3062,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_LayersToBeReleaseValidRSLayer_Line769_Fals
  *                  2. call ReleaseLayers
  *                  3. verify line 769 false, line 772 false (already in map)
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_LayerInBothMaps_Line769_False_Line772_False, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_LayerInBothMaps, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3061,7 +3108,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_LayerInBothMaps_Line769_False_Line772_Fals
  *                  2. call ReleaseLayers
  *                  3. verify all conditions in line 768 loop work correctly
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_MixedInLayersToBeRelease_AllLine768Conditions, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_MixedInLayersToBeRelease, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3120,7 +3167,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_MixedInLayersToBeRelease_AllLine768Conditi
  *                  2. call ReleaseLayers
  *                  3. verify line 742 false branch and all line 768 conditions
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_AllBranches_Line742False_AllLine768Conditions, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_AllBranches, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3178,7 +3225,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_AllBranches_Line742False_AllLine768Conditi
  *                  2. call ReleaseLayers
  *                  3. verify line 769 first condition (hdiLayer == nullptr)
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_NullptrHdiLayerInLayersToBeRelease_Line769_True, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_NullptrHdiLayerInLayersToBeRelease, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3207,7 +3254,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_NullptrHdiLayerInLayersToBeRelease_Line769
  * CaseDescription: 1. comprehensive test covering all paths
  *                  2. verify correct behavior across all conditions
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_CompleteFlow_Line742False_MultipleLine768Branches, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_CompleteFlow, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3283,7 +3330,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_EmptyMaps_AllIfConditions, F
 }
 
 /**
- * Function: DumpLayerInfoForSplitReander_ValidLayerInSurfaceIdMap_Line836_False
+ * Function: DumpLayerInfoForSplitRender_ValidLayerInSurfaceIdMap_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -3291,7 +3338,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_EmptyMaps_AllIfConditions, F
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify line 836 condition is false (layer processed)
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitReander_ValidLayerInSurfaceIdMap_Line836_False,
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ValidLayerInSurfaceIdMap_Processed,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
@@ -3316,13 +3363,13 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitReander_ValidLayerInSurfaceIdMap_Li
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
 
-    // Line 836 condition will be false (both hdiLayer and GetRSLayer() are non-null)
+    // layer and RSLayer are valid (both hdiLayer and GetRSLayer() are non-null)
     // Should contain layer info
     EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
 }
 
 /**
- * Function: DumpLayerInfoForSplitRender_NullHdiLayerInSurfaceIdMap_Line836_True
+ * Function: DumpLayerInfoForSplitRender_NullHdiLayerInSurfaceIdMap_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -3330,7 +3377,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitReander_ValidLayerInSurfaceIdMap_Li
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify line 836 condition is true (skipped)
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullHdiLayerInSurfaceIdMap_Line836_True,
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullHdiLayerInSurfaceIdMap_Skipped,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
@@ -3345,7 +3392,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullHdiLayerInSurfaceIdMap_L
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
 
-    // Line 836 condition will be true (hdiLayer == nullptr)
+    // hdiLayer is nullptr or GetRSLayer is nullptr (hdiLayer == nullptr)
     // Should not crash, only header added
     EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
     // Should NOT contain surface info for nullptr layer
@@ -3354,15 +3401,15 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullHdiLayerInSurfaceIdMap_L
 }
 
 /**
- * Function: DumpLayerInfoForSplitRender_LayerWithoutRSLayer_Line836_True
+ * Function: DumpLayerInfoForSplitRender_LayerWithoutRSLayer_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. add HdiLayer without RSLayer to surfaceIdMap_
  *                  2. call DumpLayerInfoForSplitRender
- *                  3. verify line 836 condition is true (skipped)
+ *                  3. verify layer is skipped (skipped)
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_LayerWithoutRSLayer_Line836_True, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_LayerWithoutRSLayer_Skipped, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3382,13 +3429,13 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_LayerWithoutRSLayer_Line836_
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
 
-    // Line 836 condition will be true (GetRSLayer() == nullptr)
+    // hdiLayer is nullptr or GetRSLayer is nullptr (GetRSLayer() == nullptr)
     // Should not crash
     EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
 }
 
 /**
- * Function: DumpLayerInfoForSplitRender_ValidLayerInSolidSurfaceIdMap_Line836_False
+ * Function: DumpLayerInfoForSplitRender_ValidLayerInSolidSurfaceIdMap_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -3396,7 +3443,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_LayerWithoutRSLayer_Line836_
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify line 836 condition is false
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ValidLayerInSolidSurfaceIdMap_Line836_False,
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ValidLayerInSolidSurfaceIdMap_Processed,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
@@ -3421,20 +3468,20 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ValidLayerInSolidSurfaceIdMa
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
 
-    // Line 836 condition will be false
+    // layer and RSLayer are valid
     EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
 }
 
 /**
- * Function: DumpLayerInfoForSplitReander_SurfaceNull_Line840_FalseBranch
+ * Function: DumpLayerInfoForSplitRender_SurfaceNull_DefaultName
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. add layer with nullptr Surface to surfaceIdMap_
  *                  2. call DumpLayerInfoForSplitRender
- *                  3. verify line 840 ternary returns "Layer Without Surface"
+ *                  3. verify surface name handling returns "Layer Without Surface"
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitReander_SurfaceNull_Line840_FalseBranch, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_SurfaceNull_DefaultName, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3513,7 +3560,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_MixedValidAndInvalidLayers_A
 }
 
 /**
- * Function: DumpLayerInfoForSplitReander_MultipleValidLayers_Line836_False
+ * Function: DumpLayerInfoForSplitRender_MultipleValidLayers_AllProcessed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -3521,7 +3568,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_MixedValidAndInvalidLayers_A
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify all valid layers processed
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitReander_MultipleValidLayers_Line836_False, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_MultipleValidLayers_AllProcessed, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3552,19 +3599,19 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitReander_MultipleValidLayers_Line836
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
 
-    // Line 836 will be false for all 5 valid layers
+    // All layers have valid hdiLayer and RSLayer for all 5 valid layers
     EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
 }
 
 /**
- * Function: DumpLayerInfoForSplitRender_ReorderLayerInfoLockedLine974_AllConditions
+ * Function: DumpLayerInfoForSplitRender_ReorderLayerInfoMixed_AllConditions
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. test ReorderLayerInfoLocked with mixed layers
  *                  2. verify line 974 and 986 conditions
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ReorderLayerInfoLockedLine974_AllConditions,
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ReorderLayerInfoMixed_AllConditions,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
@@ -3615,7 +3662,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ReorderLayerInfoLockedLine97
 }
 
 /**
- * Function: DumpLayerInfoForSplitReander_NullptrInSolidSurfaceIdMap_Line986_True
+ * Function: DumpLayerInfoForSplitRender_NullptrInSolidSurfaceIdMap_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -3623,7 +3670,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ReorderLayerInfoLockedLine97
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify line 986 condition is true (skipped)
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitReander_NullptrInSolidSurfaceIdMap_Line986_True,
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullptrInSolidSurfaceIdMap_Skipped,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
@@ -3638,21 +3685,21 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitReander_NullptrInSolidSurfaceIdMap_
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
 
-    // Line 986 condition will be true (solidLayer == nullptr)
+    // solid layer has invalid hdiLayer or RSLayer (solidLayer == nullptr)
     // Should not crash
     EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
 }
 
 /**
- * Function: DumpLayerInfoForSplitRender_SolidLayerWithoutRSLayer_Line986_True
+ * Function: DumpLayerInfoForSplitRender_SolidLayerWithoutRSLayer_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. add HdiLayer without RSLayer to solidSurfaceIdMap_
  *                  2. call DumpLayerInfoForSplitRender
- *                  3. verify line 986 condition is true (skipped)
+ *                  3. verify solid layer is skipped (skipped)
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_SolidLayerWithoutRSLayer_Line986_True,
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_SolidLayerWithoutRSLayer_Skipped,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
@@ -3673,7 +3720,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_SolidLayerWithoutRSLayer_Lin
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
 
-    // Line 986 condition will be true (GetRSLayer() == nullptr)
+    // solid layer has invalid hdiLayer or RSLayer (GetRSLayer() == nullptr)
     EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
 }
 
@@ -3702,7 +3749,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_AllMapsEmpty_NoLayerOutput, 
 }
 
 /**
- * Function: DumpLayerInfoForSplitReander_OnlyValidLayers_AllLine836False
+ * Function: DumpLayerInfoForSplitRender_OnlyValidLayers_AllProcessed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -3710,7 +3757,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_AllMapsEmpty_NoLayerOutput, 
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify all layers processed (line 836 false for all)
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitReander_OnlyValidLayers_AllLine836False, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_OnlyValidLayers_AllProcessed, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3739,7 +3786,153 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitReander_OnlyValidLayers_AllLine836F
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
 
-    // Line 836 will be false for all 3 layers
+    // All layers have valid hdiLayer and RSLayer for all 3 layers
+    EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
+}
+
+/*
+ * Function: DumpLayerInfoForSplitRender_AllNullLayers_AllSkipped
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add only nullptr HdiLayer to both maps
+ *                  2. call DumpLayerInfoForSplitRender
+ *                  3. verify all layers skipped (all layers skipped)
+ */
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_AllNullLayers_AllSkipped, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Add nullptr HdiLayer to surfaceIdMap_
+    hdiOutput->surfaceIdMap_[8001] = nullptr;
+    hdiOutput->surfaceIdMap_[8002] = nullptr;
+    hdiOutput->surfaceIdMap_[8003] = nullptr;
+
+    // Add nullptr HdiLayer to solidSurfaceIdMap_
+    hdiOutput->solidSurfaceIdMap_[9001] = nullptr;
+    hdiOutput->solidSurfaceIdMap_[9002] = nullptr;
+
+    std::string result;
+    hdiOutput->DumpLayerInfoForSplitRender(result);
+
+    // Should only contain header, no layer info (all skipped)
+    EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
+}
+
+/*
+ * Function: DumpLayerInfoForSplitRender_AlternatingNullLayers_MixedProcessing
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add alternating valid and nullptr layers
+ *                  2. call DumpLayerInfoForSplitRender
+ *                  3. verify valid layers processed, null layers skipped (null layers skipped)
+ */
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_AlternatingNullLayers_MixedProcessing, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Add alternating valid and nullptr layers
+    hdiOutput->surfaceIdMap_[8501] = nullptr;
+    hdiOutput->surfaceIdMap_[8502] = std::make_shared<HdiLayer>(1);
+    hdiOutput->surfaceIdMap_[8503] = nullptr;
+    hdiOutput->surfaceIdMap_[8504] = std::make_shared<HdiLayer>(2);
+
+    // Set RSLayer for valid layers
+    auto rsLayer1 = std::make_shared<RSSurfaceLayer>(1, nullptr);
+    auto rsLayer2 = std::make_shared<RSSurfaceLayer>(2, nullptr);
+    hdiOutput->surfaceIdMap_[8502]->UpdateRSLayer(rsLayer1);
+    hdiOutput->surfaceIdMap_[8504]->UpdateRSLayer(rsLayer2);
+
+    std::string result;
+    hdiOutput->DumpLayerInfoForSplitRender(result);
+
+    // Should contain header and process valid layers
+    EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
+}
+
+/*
+ * Function: DumpLayerInfoForSplitRender_LayerWithNullRSLayer_AfterValid_LayerSkipped
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add valid layer followed by layer with null RSLayer
+ *                  2. call DumpLayerInfoForSplitRender
+ *                  3. verify first layer processed, second skipped (second layer skipped)
+ */
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_LayerWithNullRSLayer_AfterValid_LayerSkipped, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Add valid layer first
+    auto hdiLayer1 = std::make_shared<HdiLayer>(1);
+    auto rsLayer1 = std::make_shared<RSSurfaceLayer>(1, nullptr);
+    hdiLayer1->UpdateRSLayer(rsLayer1);
+    hdiOutput->surfaceIdMap_[8801] = hdiLayer1;
+
+    // Add layer without RSLayer (condition true)
+    auto hdiLayer2 = std::make_shared<HdiLayer>(2);
+    hdiOutput->surfaceIdMap_[8802] = hdiLayer2;
+
+    std::string result;
+    hdiOutput->DumpLayerInfoForSplitRender(result);
+
+    // Should contain header and process first layer only
+    EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
+}
+
+/*
+ * Function: DumpLayerInfoForSplitRender_NullLayersInBetween_ValidProcessed
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add valid layers with null layers in between
+ *                  2. call DumpLayerInfoForSplitRender
+ *                  3. verify valid layers processed, null layers skipped (null layers skipped)
+ */
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullLayersInBetween_ValidProcessed, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Add valid layers with null layers in between
+    hdiOutput->surfaceIdMap_[8701] = nullptr;
+    hdiOutput->surfaceIdMap_[8702] = nullptr;
+
+    // Add valid layer
+    auto hdiLayer1 = std::make_shared<HdiLayer>(1);
+    auto rsLayer1 = std::make_shared<RSSurfaceLayer>(1, nullptr);
+    hdiLayer1->UpdateRSLayer(rsLayer1);
+    hdiOutput->surfaceIdMap_[8703] = hdiLayer1;
+
+    hdiOutput->surfaceIdMap_[8704] = nullptr;
+    hdiOutput->surfaceIdMap_[8705] = nullptr;
+
+    // Add another valid layer
+    auto hdiLayer2 = std::make_shared<HdiLayer>(2);
+    auto rsLayer2 = std::make_shared<RSSurfaceLayer>(2, nullptr);
+    hdiLayer2->UpdateRSLayer(rsLayer2);
+    hdiOutput->surfaceIdMap_[8706] = hdiLayer2;
+
+    std::string result;
+    hdiOutput->DumpLayerInfoForSplitRender(result);
+
+    // Should contain header and process valid layers
     EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
 }
 
@@ -3777,7 +3970,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_EmptyMaps_NoLayersProcessed, Func
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify line 873 condition is false (layer processed)
  */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ValidLayerWithSurface_Line873_False, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ValidLayerWithSurface, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3811,7 +4004,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ValidLayerWithSurface_Line873_Fal
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify line 873 condition is true (skipped)
  */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_NullHdiLayerInSurfaceIdMap_Line873_True, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_NullHdiLayerInSurfaceIdMap, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3836,7 +4029,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_NullHdiLayerInSurfaceIdMap_Line87
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify line 873 condition is true (skipped)
  */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_LayerWithoutRSLayer_Line873_True, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_LayerWithoutRSLayer, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -3859,7 +4052,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_LayerWithoutRSLayer_Line873_True,
 }
 
 /**
- * Function: DumpCurrentFrameLayers_NullRSLayerInSolidSurfaceIdMap_Line873_True
+ * Function: DumpCurrentFrameLayers_NullRSLayerInSolidSurfaceIdMap
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -3867,7 +4060,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_LayerWithoutRSLayer_Line873_True,
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify line 873 condition is true
  */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_NullRSLayerInSolidSurfaceIdMap_Line873_True,
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_NullRSLayerInSolidSurfaceIdMap,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
@@ -3884,7 +4077,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_NullRSLayerInSolidSurfaceIdMap_Li
 }
 
 /**
- * Function: DumpCurrentFrameLayers_MixedValidAndInvalidLayers_AllLine873Conditions
+ * Function: DumpCurrentFrameLayers_MixedValidAndInvalidLayers
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -3892,7 +4085,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_NullRSLayerInSolidSurfaceIdMap_Li
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify all conditions handled correctly
  */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MixedValidAndInvalidLayers_AllLine873Conditions,
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MixedValidAndInvalidLayers,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
@@ -3941,7 +4134,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MixedValidAndInvalidLayers_AllLin
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify all layers processed (no crash)
  */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MultipleValidLayers_Line873_False, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MultipleValidLayers, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     ASSERT_NE(hdiOutput, nullptr);
@@ -3987,7 +4180,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MultipleValidLayers_Line873_False
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify all skipped (line 873 true for all)
  */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_AllNullLayers_Line873_AllTrue, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_AllNullLayers, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -4021,7 +4214,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_AllNullLayers_Line873_AllTrue, Fu
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify all skipped (line 873 true for all)
  */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_AllLayersWithoutRSLayer_Line873_AllTrue, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_AllLayersWithoutRSLayer, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -4092,7 +4285,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ReorderLayerInfoCalled_VerifyLaye
  * CaseDescription: 1. comprehensive test with all possible layer states
  *                  2. verify all line 873 conditions work correctly
  */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ComprehensiveTest_AllLine873Branches, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ComprehensiveTest, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -4169,7 +4362,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MutexLock_VerifyThreadSafety, Fun
 }
 
 /**
- * Function: DumpCurrentFrameLayers_Line874_SurfaceNullCheck_True
+ * Function: DumpCurrentFrameLayers_SurfaceNullCheck_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -4177,7 +4370,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MutexLock_VerifyThreadSafety, Fun
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify line 874 third condition (GetSurface() == nullptr)
  */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_Line874_SurfaceNullCheck_True, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_SurfaceNullCheck_Skipped, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -4199,9 +4392,277 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_Line874_SurfaceNullCheck_True, Fu
     // Verify RSLayer's Surface is nullptr
     ASSERT_EQ(rsLayer->GetSurface(), nullptr);
 
-    // Line 874 third condition (GetSurface() == nullptr) will be true
+    // GetSurface() is nullptr
     // Should not crash
     hdiOutput->DumpCurrentFrameLayers();
+}
+
+/**
+ * Function: DumpCurrentFrameLayers_ValidLayerWithSurface_Line878False_Executed
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add HdiLayer with valid RSLayer and valid Surface to surfaceIdMap_
+ *                  2. call DumpCurrentFrameLayers
+ *                  3. verify line 878 condition is false, DumpCurrentFrameLayer is called
+ */
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ValidLayerWithSurface_Executed, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Create HdiLayer with RSLayer and valid Surface
+    uint64_t surfaceId = 5400;
+    uint32_t layerId = 5401;
+    std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(layerId);
+    std::shared_ptr<RSSurfaceLayer> rsLayer = std::make_shared<RSSurfaceLayer>(layerId, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+
+    // Create a valid IConsumerSurface
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create("TestSurface");
+    ASSERT_NE(surface, nullptr);
+    rsLayer->SetSurface(surface);
+
+    // Verify RSLayer's Surface is not nullptr
+    ASSERT_NE(rsLayer->GetSurface(), nullptr);
+
+    // Add to surfaceIdMap_
+    hdiOutput->surfaceIdMap_[surfaceId] = hdiLayer;
+
+    // Verify all three conditions in line 878 are false:
+    // 1. hdiLayer != nullptr
+    // 2. hdiLayer->GetRSLayer() != nullptr
+    // 3. hdiLayer->GetRSLayer()->GetSurface() != nullptr
+    ASSERT_NE(hdiLayer, nullptr);
+    ASSERT_NE(hdiLayer->GetRSLayer(), nullptr);
+    ASSERT_NE(hdiLayer->GetRSLayer()->GetSurface(), nullptr);
+
+    // Should call DumpCurrentFrameLayer() since line 878 condition is false
+    hdiOutput->DumpCurrentFrameLayers();
+
+    // Clean up
+    hdiOutput->surfaceIdMap_.clear();
+}
+
+/*
+ * Function: Dump_IsSplitRenderTrue_CallsDumpLayerInfoForSplitRender
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call Dump with isSplitRender = true
+ *                  2. verify DumpLayerInfoForSplitRender is called
+ */
+HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_CallsDumpLayerInfoForSplitRender, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Add valid layer to surfaceIdMap_
+    auto hdiLayer = std::make_shared<HdiLayer>(1);
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(1, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+    hdiOutput->surfaceIdMap_[6001] = hdiLayer;
+
+    // Call Dump with isSplitRender = true
+    std::string result;
+    hdiOutput->Dump(result, true);
+
+    // Verify DumpLayerInfoForSplitRender was called
+    EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
+}
+
+/*
+ * Function: Dump_IsSplitRenderTrue_NoLayers_OnlyHeader
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call Dump with isSplitRender = true, no layers
+ *                  2. verify only header is output
+ */
+HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_NoLayers_OnlyHeader, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Call Dump with isSplitRender = true
+    std::string result;
+    hdiOutput->Dump(result, true);
+
+    // Verify DumpLayerInfoForSplitRender was called
+    // Should contain header but no layer info
+    EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
+}
+
+/*
+ * Function: Dump_IsSplitRenderTrue_WithNullLayers_LayersSkipped
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call Dump with isSplitRender = true, add null layers
+ *                  2. verify DumpLayerInfoForSplitRender skips null layers
+ */
+HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_WithNullLayers_LayersSkipped, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Add nullptr HdiLayer to surfaceIdMap_
+    hdiOutput->surfaceIdMap_[6101] = nullptr;
+    hdiOutput->surfaceIdMap_[6102] = nullptr;
+
+    // Add valid layer
+    auto hdiLayer = std::make_shared<HdiLayer>(1);
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(1, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+    hdiOutput->surfaceIdMap_[6103] = hdiLayer;
+
+    // Call Dump with isSplitRender = true
+    std::string result;
+    hdiOutput->Dump(result, true);
+
+    // Verify DumpLayerInfoForSplitRender was called
+    EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
+}
+
+/*
+ * Function: Dump_IsSplitRenderFalse_SkipsDumpLayerInfoForSplitRender
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call Dump with isSplitRender = false
+ *                  2. verify DumpLayerInfoForSplitRender is not called
+ */
+HWTEST_F(HdiOutputTest, Dump_IsSplitRenderFalse_SkipsDumpLayerInfoForSplitRender, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Add valid layer
+    auto hdiLayer = std::make_shared<HdiLayer>(1);
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(1, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+    hdiOutput->surfaceIdMap_[6201] = hdiLayer;
+
+    // Call Dump with isSplitRender = false
+    std::string result;
+    hdiOutput->Dump(result, false);
+
+    // Verify DumpLayerInfoForSplitRender was not called
+    // Should NOT contain "LayerInfo ScreenId:"
+    EXPECT_EQ(result.find("LayerInfo ScreenId:"), std::string::npos);
+}
+
+/*
+ * Function: Dump_IsSplitRenderTrue_MultipleLayers_AllProcessed
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call Dump with isSplitRender = true, add multiple layers
+ *                  2. verify all valid layers are processed
+ */
+HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_MultipleLayers_AllProcessed, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Add multiple valid layers
+    for (int i = 0; i < 3; i++) {
+        auto hdiLayer = std::make_shared<HdiLayer>(i);
+        auto rsLayer = std::make_shared<RSSurfaceLayer>(i, nullptr);
+        hdiLayer->UpdateRSLayer(rsLayer);
+        hdiOutput->surfaceIdMap_[6300 + i] = hdiLayer;
+    }
+
+    // Call Dump with isSplitRender = true
+    std::string result;
+    hdiOutput->Dump(result, true);
+
+    // Verify DumpLayerInfoForSplitRender was called
+    EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
+}
+
+/*
+ * Function: Dump_IsSplitRenderTrue_ValidAndNullLayers_MixedProcessing
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call Dump with isSplitRender = true, add mix of valid and null layers
+ *                  2. verify valid layers processed, null layers skipped
+ */
+HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_ValidAndNullLayers_MixedProcessing, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Add mix of valid and null layers
+    hdiOutput->surfaceIdMap_[6401] = nullptr;
+    hdiOutput->surfaceIdMap_[6402] = std::make_shared<HdiLayer>(1);
+
+    auto rsLayer1 = std::make_shared<RSSurfaceLayer>(1, nullptr);
+    hdiOutput->surfaceIdMap_[6402]->UpdateRSLayer(rsLayer1);
+
+    hdiOutput->surfaceIdMap_[6403] = nullptr;
+    hdiOutput->surfaceIdMap_[6404] = std::make_shared<HdiLayer>(2);
+
+    auto rsLayer2 = std::make_shared<RSSurfaceLayer>(2, nullptr);
+    hdiOutput->surfaceIdMap_[6404]->UpdateRSLayer(rsLayer2);
+
+    // Call Dump with isSplitRender = true
+    std::string result;
+    hdiOutput->Dump(result, true);
+
+    // Verify DumpLayerInfoForSplitRender was called
+    EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
+}
+
+/*
+ * Function: Dump_IsSplitRenderTrue_NullHdiLayer_Skipped
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call Dump with isSplitRender = true, add layer without RSLayer
+ *                  2. verify layer without RSLayer is skipped
+ */
+HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_NullHdiLayer_Skipped, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing maps
+    hdiOutput->surfaceIdMap_.clear();
+    hdiOutput->solidSurfaceIdMap_.clear();
+
+    // Add layer without RSLayer
+    auto hdiLayer = std::make_shared<HdiLayer>(1);
+    hdiOutput->surfaceIdMap_[6501] = hdiLayer;
+
+    // Call Dump with isSplitRender = true
+    std::string result;
+    hdiOutput->Dump(result, true);
+
+    // Verify DumpLayerInfoForSplitRender was called
+    // Should contain header but layer info is skipped
+    EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
 }
 } // namespace
 } // namespace Rosen

@@ -314,12 +314,12 @@ HWTEST_F(RSSurfaceHandlerTest, TryReclaimLastBuffer001, TestSize.Level1)
     EXPECT_TRUE(rSSurfaceHandlerPtr_->ReclaimLastBufferPrepare());
     EXPECT_FALSE(rSSurfaceHandlerPtr_->ReclaimLastBufferProcess());
 
-    rSSurfaceHandlerPtr_->SetBuffer(nullptr, SyncFence::INVALID_FENCE, Rect(), 0);
+    rSSurfaceHandlerPtr_->SetBuffer(nullptr, SyncFence::INVALID_FENCE, Rect(), 0, nullptr);
     EXPECT_TRUE(rSSurfaceHandlerPtr_->ReclaimLastBufferPrepare());
     EXPECT_FALSE(rSSurfaceHandlerPtr_->ReclaimLastBufferProcess());
     rSSurfaceHandlerPtr_->TryResumeLastBuffer();
 
-    rSSurfaceHandlerPtr_->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
+    rSSurfaceHandlerPtr_->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0, nullptr);
     EXPECT_TRUE(rSSurfaceHandlerPtr_->ReclaimLastBufferPrepare());
     EXPECT_FALSE(rSSurfaceHandlerPtr_->ReclaimLastBufferProcess());
     rSSurfaceHandlerPtr_->TryResumeLastBuffer();

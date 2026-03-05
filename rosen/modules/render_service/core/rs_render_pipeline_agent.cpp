@@ -185,10 +185,11 @@ ErrCode RSRenderPipelineAgent::CreateNode(const RSDisplayNodeConfig& displayNode
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::ForceRefreshOneFrameWithNextVSync()
+void RSRenderPipelineAgent::ForceRefreshOneFrameWithNextVSync()
 {
     if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
+        RS_LOGW("%{public}s: rsRenderPipeline_ is nullptr, return.", __func__);
+        return;
     }
     auto task = [renderPipeline = rsRenderPipeline_]() -> void {
         RS_LOGI("ForceRefreshOneFrameWithNextVSync, setDirtyflag, forceRefresh in mainThread");
@@ -196,7 +197,6 @@ ErrCode RSRenderPipelineAgent::ForceRefreshOneFrameWithNextVSync()
         renderPipeline->GetMainThread()->RequestNextVSync();
     };
     rsRenderPipeline_->PostMainThreadTask(task);
-    return ERR_OK;
 }
 
 ErrCode RSRenderPipelineAgent::CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success)
@@ -1398,33 +1398,58 @@ ErrCode RSRenderPipelineAgent::GetMemoryGraphics(std::vector<MemoryGraphic>& mem
     }
 }
 
-ErrCode RSRenderPipelineAgent::GetPixelMapByProcessId(
-    std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
+void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>>& sfBufferInfoVector, pid_t pid)
 {
-    if (rsRenderPipeline_ == nullptr) {
-        repCode = INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
-    }
-    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
-    std::function<void()> getSurfaceBufferByPidTask = [renderPipeline = rsRenderPipeline_,
-        &sfBufferInfoVector, pid]() -> void {
-        auto selfDrawingNodeVector =
-            renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
-        RS_TRACE_NAME_FMT("RSRenderPipelineAgent::GetPixelMapByProcessId getSurfaceBufferByPidTask pid: %d", pid);
-        for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
-            auto node = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(*iter);
-            if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-                auto surfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-                auto surfaceBufferInfo = std::make_tuple(surfaceBuffer, surfaceNode->GetName(),
-                    surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect());
-                sfBufferInfoVector.push_back(surfaceBufferInfo);
-            }
-        }
-    };
-    rsRenderPipeline_->PostMainThreadSyncTask(getSurfaceBufferByPidTask);
+    RS_TRACE_NAME_FMT("RSClientToServiceConnection::CollectSurfaceBuffersByProcessId pid: %d", pid);
 
+    // Step 1: Get buffers from self-drawing nodes (existing logic)
+    auto selfDrawingNodeVector =
+            rsRenderPipeline_->GetMainThread()->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
+    for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
+        auto node = rsRenderPipeline_->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(*iter);
+        if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+            auto surfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+            auto surfaceBufferInfo = std::make_tuple(surfaceBuffer, surfaceNode->GetName(),
+                surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect());
+            sfBufferInfoVector.push_back(surfaceBufferInfo);
+        }
+    }
+
+    // Step 2: Get texture mode buffers from RSSurfaceBufferCallbackManager
+    auto textureBufferInfoList = RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferInfoByPid(pid);
+    for (const auto& bufferInfo : textureBufferInfoList) {
+        if (bufferInfo.surfaceBuffer_ != nullptr) {
+            // Generate surface name for texture mode
+            std::string surfaceName = "XComponent_Texture_" + std::to_string(bufferInfo.uid_);
+
+            // Create RectI from dstRect
+            RectI absRect(
+                static_cast<int>(bufferInfo.dstRect_.GetLeft()),
+                static_cast<int>(bufferInfo.dstRect_.GetTop()),
+                static_cast<int>(bufferInfo.dstRect_.GetWidth()),
+                static_cast<int>(bufferInfo.dstRect_.GetHeight())
+            );
+
+            auto surfaceBufferTuple = std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect);
+            sfBufferInfoVector.push_back(surfaceBufferTuple);
+
+            RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}llu, "
+                    "bufferId=%{public}u, size=%{public}dx%{public}d",
+                    bufferInfo.pid_, bufferInfo.uid_,
+                    bufferInfo.surfaceBuffer_->GetSeqNum(),
+                    bufferInfo.surfaceBuffer_->GetWidth(),
+                    bufferInfo.surfaceBuffer_->GetHeight());
+        }
+    }
+}
+
+void RSRenderPipelineAgent::ConvertBuffersToPixelMaps(
+    const std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>>& sfBufferInfoVector,
+    std::vector<PixelMapInfo>& pixelMapInfoVector)
+{
     for (uint32_t i = 0; i < sfBufferInfoVector.size(); i++) {
-        auto surfaceBuffer = std::get<0>(sfBufferInfoVector[i]);
+        const auto& surfaceBuffer = std::get<0>(sfBufferInfoVector[i]);
         const auto surfaceName = std::get<1>(sfBufferInfoVector[i]);
         const auto& absRect = std::get<2>(sfBufferInfoVector[i]);
         if (surfaceBuffer) {
@@ -1435,19 +1460,39 @@ ErrCode RSRenderPipelineAgent::GetPixelMapByProcessId(
             });
             if (pixelmap) {
                 pixelMapInfoVector.emplace_back(PixelMapInfo { pixelmap,
-                    { absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight(), i }, surfaceName,
+                    { absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight(), i },
+                    surfaceName,
                     GetRotationInfoFromSurfaceBuffer(surfaceBuffer) });
             } else {
-                RS_LOGE("RSRenderPipelineAgent::CreatePixelMapFromSurfaceBuffer pixelmap is null, nodeName:%{public}s",
-                    surfaceName.c_str());
+                RS_LOGE("ConvertBuffersToPixelMaps: pixelmap is null, nodeName:%{public}s", surfaceName.c_str());
             }
         } else {
-            RS_LOGE(
-                "RSRenderPipelineAgent::CreatePixelMapFromSurfaceBuffer surfaceBuffer is null, nodeName:%{public}s, "
-                "rect:%{public}s",
+            RS_LOGE("ConvertBuffersToPixelMaps: surfaceBuffer is null, nodeName:%{public}s, rect:%{public}s",
                 surfaceName.c_str(), absRect.ToString().c_str());
         }
     }
+}
+
+ErrCode RSRenderPipelineAgent::GetPixelMapByProcessId(
+    std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        repCode = INVALID_ARGUMENTS;
+        return ERR_INVALID_VALUE;
+    }
+
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
+    std::function<void()> collectBuffersTask = [weakThis = wptr<RSRenderPipelineAgent>(this),
+                                                  &sfBufferInfoVector, pid]() -> void {
+        sptr<RSRenderPipelineAgent> agent = weakThis.promote();
+        if (agent == nullptr || agent->rsRenderPipeline_ == nullptr) {
+            return;
+        }
+        agent->CollectSurfaceBuffersByProcessId(sfBufferInfoVector, pid);
+    };
+    rsRenderPipeline_->PostMainThreadSyncTask(collectBuffersTask);
+
+    ConvertBuffersToPixelMaps(sfBufferInfoVector, pixelMapInfoVector);
     repCode = SUCCESS;
     return ERR_OK;
 }

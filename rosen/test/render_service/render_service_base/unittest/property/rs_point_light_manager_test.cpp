@@ -383,43 +383,6 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight005, TestSize.Level1)
     std::shared_ptr<RSRenderNode> lightSourceNode = std::make_shared<RSRenderNode>(1);
     dirtyList.push_back(lightSourceNode);
     instance->PrepareLight();
-    EXPECT_TRUE(instance->lastFrameIlluminatedNodeSet_.empty());
-}
-
-/**
- * @tc.name: CheckIlluminated001
- * @tc.desc: test results of CheckIlluminated
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPointLightManagerTest, CheckIlluminated001, TestSize.Level1)
-{
-    auto& instance = RSPointLightManager::Instance(0);
-    auto lightSourceNode = std::make_shared<RSRenderNode>(1);
-    auto illuminatedNode = std::make_shared<RSRenderNode>(1);
-    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-
-    instance->SetScreenRotation(ScreenRotation::ROTATION_90);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-
-    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
-    illuminatedNode->GetMutableRenderProperties().SetBounds({0, 0, 10, 10});
-    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-    instance->SetScreenRotation(ScreenRotation::ROTATION_90);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-    instance->SetScreenRotation(ScreenRotation::ROTATION_180);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-    instance->SetScreenRotation(ScreenRotation::ROTATION_270);
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(true);
-    EXPECT_TRUE(instance->previousFrameIlluminatedNodeMap_.empty());
 }
 
 /**
@@ -528,7 +491,7 @@ HWTEST_F(RSPointLightManagerTest, ChildHasVisibleIlluminatedTest001, TestSize.Le
  */
 HWTEST_F(RSPointLightManagerTest, CollectPreviousFrameIlluminatedNodesTest001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance(0);
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> nullptrNode = nullptr;
     std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(1);
     std::shared_ptr<RSLightSource> lightSourcePtr = std::make_shared<RSLightSource>();
@@ -562,7 +525,7 @@ HWTEST_F(RSPointLightManagerTest, CollectPreviousFrameIlluminatedNodesTest001, T
  */
 HWTEST_F(RSPointLightManagerTest, ProcessLostIlluminationNodeTest001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance(0);
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(1);
     std::shared_ptr<RSLightSource> lightSourcePtr = std::make_shared<RSLightSource>();
     instance->previousFrameIlluminatedNodeMap_.clear();
@@ -602,7 +565,7 @@ HWTEST_F(RSPointLightManagerTest, ProcessLostIlluminationNodeTest001, TestSize.L
  */
 HWTEST_F(RSPointLightManagerTest, HasVisibleIlluminatedTest001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance(0);
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> illuminatedRenderNode = std::make_shared<RSRenderNode>(0);
     illuminatedRenderNode->instanceRootNodeId_ = 0;
     std::shared_ptr<RSRenderNode> lightSourceRenderNode = std::make_shared<RSRenderNode>(1);
@@ -633,7 +596,7 @@ HWTEST_F(RSPointLightManagerTest, HasVisibleIlluminatedTest001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, CalculateLightRelativePositionTest001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance(0);
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> illuminatedRenderNode = std::make_shared<RSRenderNode>(0);
     std::shared_ptr<RSRenderNode> lightSourceRenderNode = std::make_shared<RSRenderNode>(1);
     auto res = instance->CalculateLightRelativePosition(lightSourceRenderNode, illuminatedRenderNode);

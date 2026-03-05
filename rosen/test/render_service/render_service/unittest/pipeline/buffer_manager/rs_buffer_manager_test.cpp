@@ -15,9 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#define private public
 #include "pipeline/buffer_manager/rs_buffer_manager.h"
-#undef private
 #include "pipeline/rs_surface_handler.h"
 #include "iconsumer_surface.h"
 #include "surface.h"
@@ -149,7 +147,9 @@ HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_AllBranches, TestSize.Level1
     // id1 with buffer -> main path
     releaseVec.emplace_back(id1, buffer, fence);
 
-    mgr->OnReleaseLayerBuffers(rsLayers, releaseVec, /*screenId*/7);
+    uint64_t screenId = 7;
+    uint64_t bufferId = 2222ULL;
+    mgr->OnReleaseLayerBuffers(rsLayers, releaseVec, screenId);
 
     // Now cover ReleaseUniOnDrawBuffers branches for entries not in decedSet
     auto owner2 = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
@@ -158,12 +158,12 @@ HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_AllBranches, TestSize.Level1
     // insert unmatched uniOnDrawBufferMap_ entry to trigger SetBufferOwnerCount(false)
     owner->InsertUniOnDrawSet(id1, owner2->bufferId_);
     // Set last owner map to mismatch so CheckLastUniBufferOwner returns false
-    owner->SetUniBufferOwner(/*bufferId=*/2222ULL, /*screenId=*/7);
+    owner->SetUniBufferOwner(bufferId, screenId);
     // Put owner2 into layer so PopBufferOwnerCountById returns non-null
     layer->SetBufferOwnerCount(owner2, false);
     sptr<SyncFence> uniFence = new SyncFence(dup(STDERR_FILENO));
     std::set<uint32_t> decedSet{}; // empty so not skipped
-    mgr->ReleaseUniOnDrawBuffers(owner, uniFence, decedSet, rsLayers, /*screenId*/7);
+    mgr->ReleaseUniOnDrawBuffers(owner, uniFence, decedSet, rsLayers, screenId);
 
     // At least one release callback should fire
     EXPECT_GE(released.load(), 0);
@@ -316,6 +316,8 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_DecedSetSkip, TestSize.Lev
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
     sptr<SyncFence> uniFence = SyncFence::InvalidFence();
     mgr->ReleaseUniOnDrawBuffers(owner, uniFence, decedSet, rsLayers, 7);
+    // Verify pendingReleaseBuffers is empty since buffer was skipped
+    EXPECT_TRUE(mgr->pendingReleaseBuffers_.empty());
 }
 
 /**
@@ -470,6 +472,8 @@ HWTEST_F(RSBufferManagerTest, AddPendingReleaseBuffer_WithoutConsumer_NullFenceT
     auto mgr = std::make_shared<RSBufferManager>();
     // Fence is null, should return early with error log
     mgr->AddPendingReleaseBuffer(TEST_LAYER_ID, nullptr);
+    // Verify pendingReleaseBuffers is empty since fence was null
+    EXPECT_TRUE(mgr->pendingReleaseBuffers_.empty());
 }
 
 /**
@@ -488,6 +492,12 @@ HWTEST_F(RSBufferManagerTest, AddPendingReleaseBuffer_WithoutConsumer_MergeFence
     mgr->AddPendingReleaseBuffer(TEST_SCREEN_ID, f1);
     // Second add, mergedFence_ now valid, triggers merge branch
     mgr->AddPendingReleaseBuffer(TEST_SCREEN_ID, f2);
+    // Verify entry exists and has two fences merged
+    ASSERT_EQ(mgr->pendingReleaseBuffers_.size(), 1);
+    auto& info = mgr->pendingReleaseBuffers_[TEST_SCREEN_ID];
+    EXPECT_EQ(info.mergedFences_.size(), 2);
+    EXPECT_EQ(info.consumer_, nullptr);
+    EXPECT_EQ(info.buffer_, nullptr);
 }
 
 /**
@@ -505,6 +515,12 @@ HWTEST_F(RSBufferManagerTest, AddPendingReleaseBuffer_WithoutConsumer_SetFenceTe
     sptr<SyncFence> f = new SyncFence(dup(STDOUT_FILENO));
     // Second add, mergedFence_ is still invalid, set directly without merge
     mgr->AddPendingReleaseBuffer(TEST_LAYER_ID, f);
+    // Verify entry exists and has two fences (InvalidFence + valid fence)
+    ASSERT_EQ(mgr->pendingReleaseBuffers_.size(), 1);
+    auto& info = mgr->pendingReleaseBuffers_[TEST_LAYER_ID];
+    EXPECT_EQ(info.mergedFences_.size(), 2);
+    EXPECT_EQ(info.consumer_, nullptr);
+    EXPECT_EQ(info.buffer_, nullptr);
 }
 
 /**
@@ -636,6 +652,11 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_NullLayerTest001, TestSize
     sptr<SyncFence> uniFence = new SyncFence(dup(STDOUT_FILENO));
     // Call ReleaseUniOnDrawBuffers, should skip when layer == nullptr
     mgr->ReleaseUniOnDrawBuffers(owner, uniFence, decedSet, rsLayers, TEST_SCREEN_ID);
+
+    // Verify pendingReleaseBuffers is empty since layer was null and skipped
+    EXPECT_TRUE(mgr->pendingReleaseBuffers_.empty());
+    // Verify release callback was not called
+    EXPECT_FALSE(released.load());
 }
 
 /**

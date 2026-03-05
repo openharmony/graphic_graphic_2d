@@ -23,15 +23,9 @@ constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
 }
 
-RSVsyncManager::RSVsyncManager()
-{
+RSVsyncManager::RSVsyncManager() {}
 
-}
-
-RSVsyncManager::~RSVsyncManager()
-{
-
-}
+RSVsyncManager::~RSVsyncManager() {}
 
 void RSVsyncManager::SetScreenManager(sptr<RSScreenManager> screenManager)
 {
@@ -46,7 +40,7 @@ bool RSVsyncManager::init(sptr<RSScreenManager> screenManager)
 
 bool RSVsyncManager::VsyncComponentInit()
 {
-    if (screenManager_ == nullptr){
+    if (screenManager_ == nullptr) {
         return false;
     }
     vsyncGenerator_ = CreateVSyncGenerator();

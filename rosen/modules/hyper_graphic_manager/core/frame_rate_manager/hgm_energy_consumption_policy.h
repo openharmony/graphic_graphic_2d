@@ -32,6 +32,7 @@ namespace OHOS::Rosen {
 constexpr uint32_t DRAG_FRAME_RATE_TYPE = REFRESH_DRAG_FRAME_RATE_TYPE | SWIPER_DRAG_FRAME_RATE_TYPE |
     SCROLLABLE_DRAG_FRAME_RATE_TYPE | SCROLLBAR_DRAG_FRAME_RATE_TYPE | SPLIT_DRAG_FRAME_RATE_TYPE |
     PICKER_DRAG_FRAME_RATE_TYPE | SCROLLABLE_MULTI_TASK_FRAME_RATE_TYPE;
+using HandleRPFunc = std::function<void(const std::unordered_map<std::string, std::string>&)>;
 
 class HgmEnergyConsumptionPolicy {
 public:
@@ -43,7 +44,7 @@ public:
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
     void StatisticsVideoCallBufferCount(pid_t pid, const std::string& surfaceName);
-    
+
     bool GetUiIdleFps(FrameRateRange& rsRange, pid_t pid = 0);
     void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
     void PrintEnergyConsumptionLog(const FrameRateRange& rsRange);
@@ -55,7 +56,7 @@ public:
     bool GetVideoCallFrameRate(pid_t pid, const std::string& vsyncName, FrameRateRange& finalRange);
     void SetCurrentPkgName(const std::vector<std::string>& pkgs);
     void SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo);
-    void HandleEnergyCommonData(const EnergyCommonDataMap &commonData);
+    void HandleEnergyCommonData(const EnergyCommonDataMap& commonData);
     bool GetPowerIdle();
 
 private:
@@ -87,9 +88,7 @@ private:
     // concurrency protection <<<
     std::atomic<bool> dragSceneEnable_ = { true };
     std::atomic<pid_t> dragSceneDisablePid_ = { 0 };
-    const static std::unordered_map<EnergyEvent,
-                                    std::function<void(const std::unordered_map<std::string, std::string> &)>>
-        commonDataMapFunc_;
+    const static std::unordered_map<EnergyEvent, HandleRPFunc> commonDataMapFunc_;
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;
@@ -101,9 +100,9 @@ private:
     void SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps);
     int32_t GetComponentEnergyConsumptionConfig(const std::string& componentName);
 
-    void StartNewAnimation(const std::unordered_map<std::string, std::string> &commonData);
-    void VoterVideoFrameRate(const std::unordered_map<std::string, std::string> &commonData);
-    void StatisticAnimationTime(const std::unordered_map<std::string, std::string> &commonData);
+    void StartNewAnimation(const std::unordered_map<std::string, std::string>& commonData);
+    void VoterVideoFrameRate(const std::unordered_map<std::string, std::string>& commonData);
+    void StatisticAnimationTime(const std::unordered_map<std::string, std::string>& commonData);
     // called by hgm thread
     void VoterVideoCallFrameRate();
 };

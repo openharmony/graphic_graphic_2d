@@ -54,10 +54,6 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SURFACE_WATERMARK");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::CLEAR_SURFACE_WATERMARK_FOR_NODES): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CLEAR_SURFACE_WATERMARK_FOR_NODES");
             break;

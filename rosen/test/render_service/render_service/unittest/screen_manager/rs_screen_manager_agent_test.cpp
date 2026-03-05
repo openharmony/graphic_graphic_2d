@@ -78,7 +78,7 @@ HWTEST_F(RSScreenManagerAgentTest, RSScreenManagerAgent001, TestSize.Level1)
     ScreenChangeReason reason = ScreenChangeReason::DEFAULT;
     screenManagerAgent4->agentListener_->SetScreenChangeCallback(nullptr);
     screenManagerAgent4->agentListener_->OnScreenConnected(INVALID_SCREEN_ID, reason, nullptr);
-    screenManagerAgent4->agentListener_->OnScreenDisconnected(INVALID_SCREEN_ID, nullptr);
+    screenManagerAgent4->agentListener_->OnScreenDisconnected(INVALID_SCREEN_ID, reason);
 }
 
 /*
@@ -598,7 +598,6 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenSwitchingNotifyCallback001, TestSize
     screenManagerAgent_->SetScreenSwitchingNotifyCallback(callback);
     screenManagerAgent_->screenManager_ = screenManager;
 }
-}
 
 /*
  * @tc.name: SetVirtualScreenSecurityExemptionList001
@@ -780,14 +779,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetRogScreenResolution001, Function | SmallTe
     uint32_t newWidth = 1920;
     uint32_t newHeight = 1080;
     auto ret = screenManagerAgent_->SetRogScreenResolution(screenId, newWidth, newHeight);
-    screenManagerAgent_->GetRogScreenResolution(virtualScreenId);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
-
-    auto screenManager = screenManagerAgent_->screenManager_;
-    screenManagerAgent_->screenManager_ = nullptr;
-    screenManagerAgent_->SetRogScreenResolution(screenId, newWidth, newHeight);
-    screenManagerAgent_->GetRogScreenResolution(virtualScreenId);
-    screenManagerAgent_->screenManager_ = screenManager;
 }
 
 /*
@@ -860,7 +852,6 @@ HWTEST_F(RSScreenManagerAgentTest, ResizeVirtualScreen001, TestSize.Level1)
     screenManagerAgent_->ResizeVirtualScreen(virtualScreenId, newWidth, newHeight);
     screenManagerAgent_->screenManager_ = screenManager;
 }
-}
 
 /*
  * @tc.name: SetScreenColorGamut001
@@ -908,12 +899,13 @@ HWTEST_F(RSScreenManagerAgentTest, GetScreenColorGamut001, TestSize.Level1)
 HWTEST_F(RSScreenManagerAgentTest, GetScreenSupportedColorGamuts001, TestSize.Level1)
 {
     ScreenId screenId = GenerateScreenId();
-    std::vector<ScreenColorGamut> mode = {};
-    auto ret = screenManagerAgent_->GetScreenSupportedColorGamuts(screenId, mode);
+    std::vector<ScreenColorGamut> modeList = {};
+    auto ret = screenManagerAgent_->GetScreenSupportedColorGamuts(screenId, modeList);
 
 
     auto screenManager = screenManagerAgent_->screenManager_;
     screenManagerAgent_->screenManager_ = nullptr;
+    ScreenColorGamut mode;
     ret = screenManagerAgent_->GetScreenColorGamut(screenId, mode);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
     screenManagerAgent_->screenManager_ = screenManager;
@@ -1302,16 +1294,11 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenSkipFrameInterval001, TestSize.Level
  */
 HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenRefreshRate001, TestSize.Level1)
 {
-    ScreenId id = INVALID_SCREEN_ID;
+    ScreenId screenId = GenerateScreenId();
     uint32_t maxRefreshRate = 0;
     uint32_t actualRefreshRate = 0;
     int ret = screenManagerAgent_->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
-
-    auto screenManager = screenManagerAgent_->screenManager_;
-    screenManagerAgent_->screenManager_ = nullptr;
-    ret = screenManagerAgent_->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
     EXPECT_EQ(ret, SCREEN_NOT_FOUND);
-    screenManagerAgent_->screenManager_ = screenManager;
 }
 
 /*

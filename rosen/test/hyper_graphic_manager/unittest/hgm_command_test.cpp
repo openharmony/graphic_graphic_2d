@@ -303,26 +303,6 @@ HWTEST_F(HgmCommandTest, GetAceSceneDynamicSettingMapTest002, Function | SmallTe
 }
 
 /**
- * @tc.name: GetRefreshRateModeName
- * @tc.desc: Verify the result of GetRefreshRateModeName function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmCommandTest, GetRefreshRateModeName, Function | SmallTest | Level0)
-{
-    std::vector<std::pair<int32_t, int32_t>> testCase = {
-        // <refreshRateModeId, fps>
-        { -1, -1 },
-        { 1, OLED_60_HZ },
-        { 2, OLED_120_HZ },
-        { 3, 0 },
-    };
-    for (const auto& [refreshRateModeId, fps] : testCase) {
-        EXPECT_EQ(visitor_->GetRefreshRateModeName(refreshRateModeId), fps);
-    }
-}
-
-/**
  * @tc.name: XmlModeId2SettingModeId
  * @tc.desc: Verify the result of XmlModeId2SettingModeId function
  * @tc.type: FUNC

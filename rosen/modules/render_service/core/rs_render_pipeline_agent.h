@@ -143,6 +143,11 @@ public:
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics);
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode);
+    void CollectSurfaceBuffersByProcessId(
+        std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>>& sfBufferInfoVector, pid_t pid);
+    void ConvertBuffersToPixelMaps(
+        const std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>>& sfBufferInfoVector,
+        std::vector<PixelMapInfo>& pixelMapInfoVector);
     float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
     void SetVmaCacheStatus(bool flag);
     ErrCode SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
@@ -192,7 +197,7 @@ public:
     void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
-    ErrCode ForceRefreshOneFrameWithNextVSync();
+    void ForceRefreshOneFrameWithNextVSync();
     std::string GetBundleName(pid_t pid);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
     bool RemoveConnection(const sptr<RSIConnectionToken>& token);

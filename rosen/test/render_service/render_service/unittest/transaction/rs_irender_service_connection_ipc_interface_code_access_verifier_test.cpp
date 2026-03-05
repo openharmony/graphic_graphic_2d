@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include "platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code_access_verifier.h"
 #include "platform/ohos/transaction/rs_iclient_to_render_connection_ipc_interface_code_access_verifier.h"
+#include "mock/mock_accesstoken_kit.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -234,7 +235,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsStylusS
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsExfusionServiceCallingTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     const std::string callingCode = "exfusion_test";
 #ifdef ENABLE_IPC_SECURITY
     ASSERT_EQ(verifier->IsExfusionServiceCalling(callingCode), false);
@@ -338,9 +339,9 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, FreezeScr
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, SetLogicalCameraRotationCorrection,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+        RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, true);
 }

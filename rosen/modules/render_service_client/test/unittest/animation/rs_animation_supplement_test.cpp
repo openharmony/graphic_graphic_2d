@@ -49,7 +49,7 @@ class RSAnimationTest : public RSAnimationBaseTest {
 
 class RSAnimationMock : public RSAnimation {
 public:
-    RSAnimationMock(const std::shared_ptr<RSUIContext>& rsUIContext) : RSAnimation(rsUIContext) {}
+    explicit RSAnimationMock(const std::shared_ptr<RSUIContext>& rsUIContext) : RSAnimation(rsUIContext) {}
     ~RSAnimationMock() = default;
     void StartInner(const std::shared_ptr<RSNode>& target)
     {

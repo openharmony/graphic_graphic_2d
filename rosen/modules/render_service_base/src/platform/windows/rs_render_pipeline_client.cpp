@@ -29,10 +29,6 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 {
 }
 
-void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
-{
-}
-
 bool RSRenderPipelineClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     return {};
@@ -99,6 +95,38 @@ uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHideP
 bool RSRenderPipelineClient::GetHighContrastTextState()
 {
     return false;
+}
+
+uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+{
+    return 0;
+}
+
+void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+    const std::vector<NodeId> &nodeIdList)
+{
+}
+
+void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
+}
+
+int32_t RSRenderPipelineClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderPipelineClient::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
+{
+    return {};
+}
+
+int32_t RSRenderPipelineClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    return {};
 }
 
 void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
@@ -206,22 +234,6 @@ void RSRenderPipelineClient::SetWindowContainer(NodeId nodeId, bool value)
 }
 
 void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
-{
-}
-
-uint32_t RSRenderServiceClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
-    const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
-{
-    return 0;
-}
-    
-void RSRenderServiceClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
-    const std::vector<NodeId> &nodeIdList)
-{
-}
-    
-void RSRenderServiceClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
 {
 }
 

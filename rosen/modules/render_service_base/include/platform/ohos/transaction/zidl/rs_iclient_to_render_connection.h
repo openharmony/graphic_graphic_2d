@@ -141,8 +141,6 @@ public:
 
     virtual ErrCode FreezeScreen(NodeId id, bool isFreeze, bool needSync = false) = 0;
 
-    virtual ErrCode ForceRefreshOneFrameWithNextVSync() = 0;
-
     virtual void TakeUICaptureInRange(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
