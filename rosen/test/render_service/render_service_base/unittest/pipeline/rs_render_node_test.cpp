@@ -4310,6 +4310,7 @@ HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode003, TestSize.Level1)
 
     // Set a background filter to make DisableHWCForFilter return true
     node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.needFilter_ = true;
 
     // With both ColorPickerDrawable and a real filter, should return false
     EXPECT_FALSE(node.IsColorPickerOnlyNode());
