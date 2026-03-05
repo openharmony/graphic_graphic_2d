@@ -24,7 +24,6 @@
 #include "rs_base_render_util.h"
 #include "rs_composer_adapter.h"
 #include "rs_render_composer_manager.h"
-#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {

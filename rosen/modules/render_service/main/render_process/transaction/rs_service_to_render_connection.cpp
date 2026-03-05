@@ -315,10 +315,6 @@ void RSServiceToRenderConnection::OnScreenBacklightChanged(ScreenId screenId, ui
 
 void RSServiceToRenderConnection::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
 {
-    if (renderPipelineAgent_ == nullptr) {
-        RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
-        return;
-    }
     renderPipelineAgent_->OnGlobalBlacklistChanged(globalBlackList);
 }
 } // namespace Rosen

@@ -17,7 +17,6 @@
 #include "rs_screen_manager_agent.h"
 #include <cstdint>
 
-#include "screen_manager/rs_screen.h"
 #include "transaction/rs_client_to_render_connection.h"
 
 namespace OHOS {

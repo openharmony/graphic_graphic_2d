@@ -143,7 +143,6 @@ private:
     Drawing::Matrix canvasMatrix_;
     bool enableVisibleRect_ = false;
     Drawing::Rect visibleRect_;
-    sptr<RSScreenManager> screenManager_ = nullptr;
     ScreenId virtualScreenId_ = INVALID_SCREEN_ID;
     NodeId mirroredScreenNodeId_ = INVALID_NODEID;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;

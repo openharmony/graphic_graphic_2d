@@ -570,11 +570,11 @@ HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo002, TestSize.Level0)
     rsLayer->SetSolidColorLayerProperty(solidColorLayerProperty);
     rsLayer->SetUseDeviceOffline(true);
     rsLayer->SetIgnoreAlpha(true);
-    EXPECT_EQ(rsLayer->GetIgnoreAlpha(), true);
     rsLayer->SetAncoSrcRect(iRect);
     rsLayer->SetSolidColorLayerProperty(solidColorLayerProperty);
     rsLayer->SetUseDeviceOffline(true);
     rsLayer->SetIgnoreAlpha(true);
+    EXPECT_EQ(rsLayer->GetIgnoreAlpha(), true);
     rsLayer->SetAncoSrcRect(iRect);
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount =
         std::make_shared<RSSurfaceHandler::BufferOwnerCount>();

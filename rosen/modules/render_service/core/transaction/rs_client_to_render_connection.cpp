@@ -80,7 +80,6 @@
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 
 #ifdef TP_FEATURE_ENABLE

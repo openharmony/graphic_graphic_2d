@@ -68,7 +68,7 @@ public:
 
         ~BufferOwnerCount() {
             if (bufferReleaseCb_ != nullptr && bufferId_ != 0 && refCount_.load() != 0) {
-                // RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount bufferId %" PRIu64 " refCount_ %u",
+                // RS_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount bufferId %" PRIu64 " refCount_ %u",
                 //     bufferId_, refCount_.load());
                 bufferReleaseCb_(bufferId_);
                 bufferReleaseCb_ = nullptr;
@@ -84,7 +84,7 @@ public:
                     refCount_.load());
                 return;
             }
-            refCount_.fetch_add(1, std::memory_order_relaxed);
+            refCount_.fetch_add(1, std::memory_order_acq_rel);
         }
 
         void DecRef()

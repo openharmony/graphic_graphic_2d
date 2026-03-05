@@ -20,7 +20,6 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_render_composer_manager.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "sync_fence.h"
 namespace OHOS {
 namespace Rosen {

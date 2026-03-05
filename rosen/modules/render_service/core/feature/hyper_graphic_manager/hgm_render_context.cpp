@@ -27,6 +27,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
+constexpr const char* FRAMEWORK_XWEB_NAME = "oh_xweb_";
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 }
@@ -146,9 +148,25 @@ void HgmRenderContext::SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> ser
     hgmRPEnergy_->SetTouchState(serviceToProcessInfo->isPowerIdle);
 }
 
-void HgmRenderContext::UpdateSurfaceData(const std::string& surfaceName, pid_t pid)
+void HgmRenderContext::UpdateSurfaceData(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
+    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
-    surfaceData_.emplace_back(std::tuple<std::string, pid_t>({surfaceName, pid}));
+    auto consumer = surfaceHandler->GetConsumer();
+    if (consumer == nullptr) {
+        return;
+    }
+    if (auto sourceType = consumer->GetSurfaceSourceType();
+        sourceType != OH_SURFACE_SOURCE_GAME &&
+        sourceType != OH_SURFACE_SOURCE_CAMERA &&
+        sourceType != OH_SURFACE_SOURCE_VIDEO) {
+        if (auto fwkType = consumer->GetSurfaceAppFrameworkType();
+            fwkType.rfind(FRAMEWORK_XWEB_NAME, 0) == 0) {
+            surfaceData_.emplace_back(std::tuple<std::string, pid_t>({fwkType, ExtractPid(surfaceNode->GetId())}));
+        } else {
+            auto name = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
+            surfaceData_.emplace_back(std::tuple<std::string, pid_t>({name, ExtractPid(surfaceNode->GetId())}));
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

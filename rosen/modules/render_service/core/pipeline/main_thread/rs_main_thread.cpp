@@ -118,7 +118,6 @@
 #include "render/rs_typeface_cache.h"
 #include "rs_frame_rate_vote.h"
 #include "rs_render_composer_manager.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "singleton.h"
 #include "string_utils.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -238,10 +237,8 @@ constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status";
 constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
-constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
 constexpr const char* BUFFER_OVERFLOW = "Buffer Overflow";
-constexpr const char* FRAMEWORK_XWEB_NAME = "oh_xweb_";
 constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
 constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
@@ -1737,7 +1734,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
             auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
             if (surfaceHandler->GetAvailableBufferCount() > 0) {
-                UpdateHgmSurfaceTime(surfaceHandler, surfaceNode);
+                hgmRenderContext_->UpdateSurfaceData(surfaceHandler, surfaceNode);
             }
             PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
             surfaceHandler->ResetCurrentFrameBufferConsumed();
@@ -2240,27 +2237,6 @@ void RSMainThread::SetFrameIsRender(bool isRender)
 {
     if (rsVsyncManagerAgent_ != nullptr) {
         rsVsyncManagerAgent_->SetFrameIsRender(isRender);
-    }
-}
-
-void RSMainThread::UpdateHgmSurfaceTime(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
-{
-    auto consumer = surfaceHandler->GetConsumer();
-    if (consumer == nullptr) {
-        return;
-    }
-    if (auto sourceType = consumer->GetSurfaceSourceType();
-        sourceType != OH_SURFACE_SOURCE_GAME &&
-        sourceType != OH_SURFACE_SOURCE_CAMERA &&
-        sourceType != OH_SURFACE_SOURCE_VIDEO) {
-        if (auto fwkType = consumer->GetSurfaceAppFrameworkType();
-            fwkType.rfind(FRAMEWORK_XWEB_NAME, 0) == 0) {
-            hgmRenderContext_->UpdateSurfaceData(fwkType, ExtractPid(surfaceNode->GetId()));
-        } else {
-            auto name = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
-            hgmRenderContext_->UpdateSurfaceData(name, ExtractPid(surfaceNode->GetId()));
-        }
     }
 }
 

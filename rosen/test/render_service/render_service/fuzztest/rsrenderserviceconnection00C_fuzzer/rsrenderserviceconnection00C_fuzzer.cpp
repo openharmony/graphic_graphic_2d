@@ -26,6 +26,7 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
@@ -40,12 +41,13 @@
 namespace OHOS {
 namespace Rosen {
 
-int32_t g_pid;
+auto g_pid = getpid();
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
-RSMainThread* mainThread_ = RSMainThread::Instance();
+auto mainThread_ = RSMainThread::Instance();
+
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
-sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 namespace {
 const uint8_t DO_NOTIFY_TOUCH_EVENT = 0;
 const uint8_t TARGET_SIZE = 1;
@@ -83,35 +85,6 @@ bool Init(const uint8_t* data, size_t size)
 } // namespace
 
 namespace Mock {
-void CreateVirtualScreenStubbing(ScreenId screenId)
-{
-    uint32_t width = GetData<uint32_t>();
-    uint32_t height = GetData<uint32_t>();
-    int32_t flags = GetData<int32_t>();
-    std::string name = GetData<std::string>();
-    // Random name of IBufferProducer is not necessary
-    sptr<IBufferProducer> bp = IConsumerSurface::Create("DisplayNode")->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-
-    CONN->CreateVirtualScreen(name, width, height, pSurface, screenId, flags);
-}
-} // namespace Mock
-
-void DoExecuteSynchronousTask()
-{
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    MessageOption option;
-
-    option.SetFlags(MessageOption::TF_SYNC);
-    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
-    NodeId targetId = static_cast<NodeId>(g_pid) << 32;
-    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(targetId, property);
-    task->Marshalling(dataParcel);
-    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-}
 
 void DoNotifyTouchEvent()
 {
@@ -154,6 +127,7 @@ void DoSetHardwareEnabled()
     dataP.WriteBool(dynamicHardwareEnable);
     toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
+} // namespace Mock
 } // namespace Rosen
 } // namespace OHOS
 
@@ -189,17 +163,16 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
         new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
 
-    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
-        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
-
     OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
         OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
         screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
-
+    
+    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
+    
     OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
         new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
     OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
-    toRenderConnection->cleanDone_ = true;
 
     // reset recevier, otherwise maybe crash
     OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
@@ -220,7 +193,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     switch (tarPos) {
         case OHOS::Rosen::DO_NOTIFY_TOUCH_EVENT:
-            OHOS::Rosen::DoNotifyTouchEvent();
+            OHOS::Rosen::Mock::DoNotifyTouchEvent();
             break;
         default:
             return -1;

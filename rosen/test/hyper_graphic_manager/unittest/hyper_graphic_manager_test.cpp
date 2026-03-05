@@ -1035,5 +1035,72 @@ HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset144, Function | SmallTes
     hgmCore.SetIdealPipelineOffset144(pipelineOffsetPulseNum);
     EXPECT_EQ(hgmCore.GetIdealPipelineOffset144(), idealPipelineOffset144);
 }
+
+/**
+ * @tc.name: AddScreenAddScreenModeInfoFailed
+ * @tc.desc: Test AddScreen when AddScreenModeInfo fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, AddScreenModeFail, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    ScreenId screenId = 12;
+    bool isSelfOwnedScreen = false;
+    std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
+    modeList.push_back({0, 0, 0, 0});
+    modeList.push_back({width, height, 60, 0});
+    int32_t result = hgmCore.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen, modeList);
+    EXPECT_EQ(result, -1);
+}
+
+/**
+ * @tc.name: SetPerformanceConfigPiplineDelayModeEnable
+ * @tc.desc: Test SetPerformanceConfig with piplineDelayModeEnable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetPerformanceConfigPiplineDelayModeEnable, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    if (hgmCore.hgmFrameRateMgr_ == nullptr || hgmCore.mPolicyConfigData_ == nullptr) {
+        return;
+    }
+    auto curScreenStrategyId = hgmCore.hgmFrameRateMgr_->GetCurScreenStrategyId();
+    auto screenConfigsIter = hgmCore.mPolicyConfigData_->screenConfigs_.find(curScreenStrategyId);
+    if (screenConfigsIter == hgmCore.mPolicyConfigData_->screenConfigs_.end()) {
+        return;
+    }
+    auto screenStrategyIter = screenConfigsIter->second.find(std::to_string(hgmCore.customFrameRateMode_));
+    if (screenStrategyIter == screenConfigsIter->second.end()) {
+        return;
+    }
+    auto& curScreenSetting = screenStrategyIter->second;
+    bool orgIsDelayMode = hgmCore.isDelayMode_;
+    curScreenSetting.performanceConfig["piplineDelayModeEnable"] = "1";
+    hgmCore.SetPerformanceConfig(curScreenSetting);
+    EXPECT_TRUE(hgmCore.isDelayMode_);
+    curScreenSetting.performanceConfig["piplineDelayModeEnable"] = "0";
+    hgmCore.SetPerformanceConfig(curScreenSetting);
+    EXPECT_FALSE(hgmCore.isDelayMode_);
+    hgmCore.isDelayMode_ = orgIsDelayMode;
+}
+
+/**
+ * @tc.name: SetScreenRefreshRateNotEnabled
+ * @tc.desc: Test SetScreenRefreshRate when IsEnabled returns false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRateNotEnabled, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto mPolicyConfigData = hgmCore.mPolicyConfigData_;
+    hgmCore.mPolicyConfigData_ = nullptr;
+    ScreenId screenId = 10;
+    int32_t result = hgmCore.SetScreenRefreshRate(screenId, 0, 60);
+    EXPECT_EQ(result, -1);
+    hgmCore.mPolicyConfigData_ = mPolicyConfigData;
+}
 } // namespace Rosen
 } // namespace OHOS

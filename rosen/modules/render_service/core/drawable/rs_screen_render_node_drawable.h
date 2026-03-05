@@ -27,7 +27,6 @@
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "rs_composer_client_manager.h"
 
 namespace OHOS::Rosen {

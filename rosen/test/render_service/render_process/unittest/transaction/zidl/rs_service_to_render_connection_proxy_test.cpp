@@ -26,6 +26,7 @@
 
 #include "transaction/rs_service_to_render_connection.h"
 #include "transaction/rs_render_service_client_info.h"
+#include "transaction/zidl/rs_service_to_render_connection_proxy.h"
 #include "memory/rs_memory_graphic.h"
 #include "feature/capture/rs_ui_capture.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
@@ -1063,6 +1064,25 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportEventJankFrame, TestSize.Le
 }
 
 /**
+ * @tc.name: ReportEventJankFrame_SendRequestFail
+ * @tc.desc: Test ReportEventJankFrame when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportEventJankFrame_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+    
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Return(-1));
+    
+    DataBaseRs info;
+    ErrCode ret = mockProxy->ReportEventJankFrame(info);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
  * @tc.name: ReportDataBaseRs Test
  * @tc.desc: ReportDataBaseRs Test
  * @tc.type:FUNC
@@ -1079,6 +1099,26 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportDataBaseRs, TestSize.Level1
 }
 
 /**
+ * @tc.name: ReportDataBaseRs_FullParcel
+ * @tc.desc: ReportDataBaseRs with full MessageParcel
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportDataBaseRs_FullParcel, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    
+    std::vector<uint8_t> largeData(1024 * 1024, 0xFF);
+    data.WriteBuffer(largeData.data(), largeData.size());
+    
+    DataBaseRs info;
+    info.appPid = 1001;
+    proxy->ReportDataBaseRs(data, reply, option, info);
+}
+
+/**
  * @tc.name: ReportRsSceneJankStart Test
  * @tc.desc: ReportRsSceneJankStart Test
  * @tc.type:FUNC
@@ -1090,6 +1130,25 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportRsSceneJankStart, TestSize.
     proxy->ReportRsSceneJankStart(info);
     proxy->ReportRsSceneJankEnd(info);
     ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankStart_SendRequestFail
+ * @tc.desc: Test ReportRsSceneJankStart when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportRsSceneJankStart_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+    
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Return(-1));
+    
+    AppInfo info;
+    ErrCode ret = mockProxy->ReportRsSceneJankStart(info);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 
 /**
@@ -1109,6 +1168,28 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoStartTest, TestSize.L
 }
 
 /**
+ * @tc.name: AvcodecVideoStart_SendRequestFail
+ * @tc.desc: Test AvcodecVideoStart when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoStart_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+    
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Return(-1));
+    
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    uint64_t reportTime = 16;
+    ErrCode ret = mockProxy->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
  * @tc.name: AvcodecVideoStop Test
  * @tc.desc: AvcodecVideoStop Test
  * @tc.type:FUNC
@@ -1124,6 +1205,27 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoStopTest, TestSize.Le
 }
 
 /**
+ * @tc.name: AvcodecVideoStop_SendRequestFail
+ * @tc.desc: Test AvcodecVideoStop when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoStop_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+    
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Return(-1));
+    
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    ErrCode ret = mockProxy->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
  * @tc.name: AvcodecVideoGet Test
  * @tc.desc: AvcodecVideoGet Test
  * @tc.type:FUNC
@@ -1134,6 +1236,25 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoGetTest, TestSize.Lev
     uint64_t uniqueId = 1;
     proxy->AvcodecVideoGet(uniqueId);
     ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: AvcodecVideoGet_SendRequestFail
+ * @tc.desc: Test AvcodecVideoGet when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoGet_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+    
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Return(-1));
+    
+    uint64_t uniqueId = 1;
+    ErrCode ret = mockProxy->AvcodecVideoGet(uniqueId);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
  
 /**
@@ -1149,6 +1270,24 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoGetRecentTest, TestSi
 }
 
 /**
+ * @tc.name: AvcodecVideoGetRecent_SendRequestFail
+ * @tc.desc: Test AvcodecVideoGetRecent when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, AvcodecVideoGetRecent_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+    
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Return(-1));
+    
+    ErrCode ret = mockProxy->AvcodecVideoGetRecent();
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
  * @tc.name: GetPidGpuMemoryInMBTest
  * @tc.desc: test results of GetPidGpuMemoryInMB
  * @tc.type: FUNC
@@ -1160,5 +1299,114 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPidGpuMemoryInMBTest, TestSize
     float gpuMemInMB = 0.0f;
     int32_t res = proxy->GetPidGpuMemoryInMB(pid, gpuMemInMB);
     EXPECT_NE(res, ERR_OK);
+}
+
+/**
+ * @tc.name: GetPidGpuMemoryInMB_SendRequestFail
+ * @tc.desc: Test GetPidGpuMemoryInMB when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, GetPidGpuMemoryInMB_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+    
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Return(-1));
+    
+    pid_t pid = 1001;
+    float gpuMemInMB = 0.0f;
+    int32_t res = mockProxy->GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    EXPECT_EQ(res, -1);
+}
+
+/**
+ * @tc.name: GetBehindWindowFilterEnabledTest
+ * @tc.desc: Test GetBehindWindowFilterEnabled with normal case
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    ASSERT_TRUE(proxy);
+    bool enabled = false;
+    bool enabled1 = true;
+    proxy->GetBehindWindowFilterEnabled(enabled);
+    proxy->GetBehindWindowFilterEnabled(enabled1);
+}
+
+/**
+ * @tc.name: GetBehindWindowFilterEnabledTest002
+ * @tc.desc: Test GetBehindWindowFilterEnabled with IPC error (mock returns error)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, GetBehindWindowFilterEnabledTest002, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+
+    // Mock SendRequest to return error
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+
+    bool enabled = false;
+    ErrCode ret = mockProxy->GetBehindWindowFilterEnabled(enabled);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetBehindWindowFilterEnabledTest003
+ * @tc.desc: Test GetBehindWindowFilterEnabled with ReadBool failure
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, GetBehindWindowFilterEnabledTest003, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+
+    // Mock SendRequest to succeed but don't write bool to reply (causing ReadBool to fail)
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Invoke(
+            [](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) { return 0; }));
+
+    bool enabled = false;
+    ErrCode ret = mockProxy->GetBehindWindowFilterEnabled(enabled);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetBehindWindowFilterEnabledTest
+ * @tc.desc: Test SetBehindWindowFilterEnabled with normal case
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetBehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    ASSERT_TRUE(proxy);
+    bool enabled = false;
+    bool enabled1 = true;
+    proxy->SetBehindWindowFilterEnabled(enabled);
+    proxy->SetBehindWindowFilterEnabled(enabled1);
+}
+
+/**
+ * @tc.name: SetBehindWindowFilterEnabledTest002
+ * @tc.desc: Test SetBehindWindowFilterEnabled with IPC error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetBehindWindowFilterEnabledTest002, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+
+    // Mock SendRequest to return error
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+
+    // Function should return early without crash
+    mockProxy->SetBehindWindowFilterEnabled(true);
+    mockProxy->SetBehindWindowFilterEnabled(false);
 }
 } // namespace OHOS::Rosen

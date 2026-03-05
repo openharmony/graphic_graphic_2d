@@ -42,8 +42,6 @@
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
-#include "screen_manager/rs_screen_manager.h"
-#include "screen_manager/rs_screen_mode_info.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_client_to_service_connection.h"
 

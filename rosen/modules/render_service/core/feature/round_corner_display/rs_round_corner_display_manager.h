@@ -22,7 +22,7 @@
 
 #include "common/rs_common_def.h"
 #include "rs_round_corner_display.h"
-#include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_screen_property.h"
 
 namespace OHOS {
 namespace Rosen {

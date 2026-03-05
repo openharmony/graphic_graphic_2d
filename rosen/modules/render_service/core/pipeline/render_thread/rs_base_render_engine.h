@@ -27,6 +27,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "rs_layer.h"
 #include "sync_fence.h"
 #ifdef RS_ENABLE_VK
 #include "feature/gpuComposition/rs_vk_image_manager.h"

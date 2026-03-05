@@ -24,7 +24,6 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "rs_base_render_util.h"
-#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {

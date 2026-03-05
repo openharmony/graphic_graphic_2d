@@ -26,7 +26,7 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 class RSLayerContextProbe : public RSComposerContext {
 public:
-    RSLayerContextProbe(const sptr<IRSRenderToComposerConnection>& conn) : RSComposerContext(conn) {}
+    explicit RSLayerContextProbe(const sptr<IRSRenderToComposerConnection>& conn) : RSComposerContext(conn) {}
     using RSComposerContext::GetRSLayerTransaction;
     using RSComposerContext::AddRSLayer;
     using RSComposerContext::RemoveRSLayer;

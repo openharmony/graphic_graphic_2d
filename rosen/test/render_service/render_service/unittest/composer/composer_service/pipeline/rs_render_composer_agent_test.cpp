@@ -266,7 +266,7 @@ HWTEST_F(RsRenderComposerAgentTest, SetScreenBacklight_Branches, TestSize.Level1
  * EnvConditions: N/A
  * CaseDescription: 1. call CleanLayerBufferBySurfaceId / ClearRedrawGPUCompositionCache
  *                  2. call SurfaceDump/GetRefreshInfoToSP/FpsDump/
- *                     ClearFpsDump/HitchsDump/RefreshRateCounts/ClearRefreshRateCounts
+ *                      ClearFpsDump/HitchsDump/RefreshRateCounts/ClearRefreshRateCounts
  */
 HWTEST_F(RsRenderComposerAgentTest, MiscForwarding_WithNonNull_Composer, TestSize.Level1)
 {

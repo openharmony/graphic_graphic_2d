@@ -29,8 +29,6 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/drawing/rs_surface.h"
-#include "screen_manager/rs_screen_manager.h"
-#include "screen_manager/screen_types.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderServiceVisitor"

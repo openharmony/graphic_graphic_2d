@@ -74,7 +74,6 @@ private:
  * - DIP: Dependencies injected via callbacks
  * - RAII: Automatic resource management for GPU operations
  *
- * Based on AOSP's callback-driven pattern:
  * - Event-driven cleanup (via callbacks from graphic_surface)
  * - RAII-based lifecycle for GPU operations (GPUGuard)
  */

@@ -252,7 +252,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_Buffer
 {
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     bool receivedHasBufferFalse = false;
-    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo& info) {
         receivedHasBufferFalse =
             (info.releaseBufferFenceVec.size() == 1 && std::get<1>(info.releaseBufferFenceVec[0]) == nullptr);
     });

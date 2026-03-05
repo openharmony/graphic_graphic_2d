@@ -18,7 +18,6 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
-#include "common/rs_common_def.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
@@ -27,6 +26,7 @@
 #include "sync_fence.h"
 #endif
 
+#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
 #include "display_engine/rs_luminance_control.h"

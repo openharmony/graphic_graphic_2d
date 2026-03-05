@@ -107,7 +107,7 @@ HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
     PipelineParam pipelineParam;
     std::unordered_map<NodeId, int> vRateMap = { { 1, 60 }, { 2, 120 } };
     hgmRenderContext.rsCurrRange_.Set(0, 120, 60);
-    hgmRenderContext.UpdateSurfaceData("test", 1);
+    hgmRenderContext.surfaceData_.emplace_back(std::tuple<std::string, pid_t>({"test", 1}));
     rsContext->GetMutableFrameRateLinkerDestroyIds().insert(1);
     FrameRateLinkerUpdateInfo updateInfo = { { 0, 120, 60 }, 120 };
     rsContext->GetMutableFrameRateLinkerUpdateInfoMap().insert_or_assign(2, updateInfo);
@@ -260,5 +260,61 @@ HWTEST_F(HgmRenderContextTest, SetServiceToProcessInfoTest, TestSize.Level1)
     serviceToProcessInfo->hgmDataChangeTypes.set(HgmDataChangeType::HGM_CONFIG_DATA);
     hgmRenderContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
     EXPECT_EQ(hgmRenderContext.ltpoEnabled_, true);
+}
+
+/**
+ * @tc.name: UpdateSurfaceData001
+ * @tc.desc: Test UpdateSurfaceData with xweb framework node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, UpdateSurfaceData001, TestSize.Level1)
+{
+    std::string frameworkType = "oh_xweb_1";
+	sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(MakeNodeId(1, 1));
+    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(MakeNodeId(2, 2));
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode->GetRSSurfaceHandler()->SetConsumer(IConsumerSurface::Create("SurfaceNode"));
+
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    auto surfaceHandler2 = surfaceNode2->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    ASSERT_NE(surfaceHandler2, nullptr);
+    surfaceHandler2->consumer_ = nullptr;
+    hgmRenderContext.surfaceData_.clear();
+
+    hgmRenderContext.UpdateSurfaceData(surfaceHandler2, surfaceNode2);
+    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 0);
+
+    auto consumer = surfaceHandler->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+
+    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_GAME);
+    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
+    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 0);
+
+    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_CAMERA);
+    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
+    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 0);
+
+    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_VIDEO);
+    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
+    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 0);
+
+    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_DEFAULT);
+    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
+    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 1);
+    const auto& [surfaceName1, id1] = hgmRenderContext.surfaceData_[hgmRenderContext.surfaceData_.size() - 1];
+    EXPECT_NE(surfaceName1, frameworkType);
+
+    consumer->SetSurfaceAppFrameworkType(frameworkType);
+    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
+    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 2);
+    const auto& [surfaceName2, id2] = hgmRenderContext.surfaceData_[hgmRenderContext.surfaceData_.size() - 1];
+    EXPECT_EQ(surfaceName2, frameworkType);
 }
 } // namespace OHOS::Rosen

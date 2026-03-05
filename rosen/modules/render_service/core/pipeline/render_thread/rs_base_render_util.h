@@ -28,7 +28,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
 #include "rs_layer_transaction_data.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "sync_fence.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"

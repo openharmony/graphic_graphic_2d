@@ -66,8 +66,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
             }
         };
         DVSyncLibManager::DvsyncDelayInstance().ToDelay(taskFunc, name_, fileDescriptor);
-    }
-    else {
+    } else {
         HandleVsyncCallbacks(data, dataCount, fileDescriptor);
     }
 }

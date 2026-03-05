@@ -69,7 +69,6 @@
 #include "platform/ohos/rs_jank_stats_helper.h"
 #include "render/rs_filter_cache_memory_controller.h"
 #include "render/rs_pixel_map_util.h"
-#include "screen_manager/rs_screen_manager.h"
 // dfx
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"

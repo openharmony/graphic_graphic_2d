@@ -17,8 +17,8 @@
 #define RENDER_SERVICE_RS_PIPLINE_DUMPER_H
 #include <unordered_set>
 
+#include <event_handler.h>
 #include "rs_pipeline_dump_manager.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "vsync_controller.h"
 #include "vsync_distributor.h"
 
@@ -70,7 +70,6 @@ private:
 
     void ScheduleTask(std::function<void()> task) const;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
-    sptr<RSScreenManager> screenManager_;
 };
 } // Rosen
 } // OHOS

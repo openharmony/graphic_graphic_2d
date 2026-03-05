@@ -34,17 +34,21 @@
 
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "transaction/rs_client_to_render_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
-#include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "render_server/rs_render_service_agent.h"
+#include "render_server/rs_render_process_manager_agent.h"
+#include "screen_manager/public/rs_screen_manager_agent.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
-int32_t g_pid;
+auto g_pid = getpid();
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
-RSMainThread* mainThread_ = RSMainThread::Instance();
+auto mainThread_ = RSMainThread::Instance();
+
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;

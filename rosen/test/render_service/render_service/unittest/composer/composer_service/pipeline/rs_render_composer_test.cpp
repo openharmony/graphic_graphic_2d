@@ -2167,7 +2167,6 @@ HWTEST_F(RsRenderComposerTest, GetDisplayClientTargetProperty001, TestSize.Level
     EXPECT_FALSE(ret);
     rsRenderComposer_->hdiOutput_ = hdiOutput;
 }
-#endif
 
 /**
  * Function: Call_Interface_With_Null_Hdioutput
@@ -7746,7 +7745,7 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat016, TestSize.Level1)
     EXPECT_EQ(layers.size(), 3u);
     cSurface->UnregisterConsumerListener();
 }
-
+#endif
 /**
  * Function: ContextRegisterPostTask_VulkanConditionTrue
  * Type: Function

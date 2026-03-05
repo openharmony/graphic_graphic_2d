@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "screen_manager/screen_types.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_common.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/rs_screen_render_node.h"

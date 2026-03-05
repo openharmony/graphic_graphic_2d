@@ -512,8 +512,6 @@ private:
     void TraverseCanvasDrawingNodes();
 
     void SetFocusLeashWindowId();
-    void UpdateHgmSurfaceTime(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();

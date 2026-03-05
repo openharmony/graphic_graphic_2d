@@ -58,7 +58,6 @@
 #include "rs_layer_cmd_type.h"
 #include "rs_render_surface_layer.h"
 #include "rs_surface_layer.h"
-#include "screen_manager/rs_screen_manager.h"
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef USE_M133_SKIA
 #include "src/gpu/ganesh/gl/GrGLDefines.h"

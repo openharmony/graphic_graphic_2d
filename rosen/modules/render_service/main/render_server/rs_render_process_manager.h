@@ -21,7 +21,7 @@
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 #include "render_process/transaction/zidl/rs_iservice_to_render_connection.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
-#include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/public/rs_iscreen_manager_listener.h"
 #include "screen_manager/screen_types.h"
 
 namespace OHOS {

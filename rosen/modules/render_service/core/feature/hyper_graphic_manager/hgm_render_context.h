@@ -61,7 +61,8 @@ public:
     int32_t GetPipelineOffsetPulseNum() const { return pipelineOffsetPulseNum_; }
 
     FrameRateRange& GetRSCurrRangeRef() { return rsCurrRange_; }
-    void UpdateSurfaceData(const std::string& surfaceName, pid_t pid);
+    void UpdateSurfaceData(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
+        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
 
 private:
     void HandleGameNode(const RSRenderNodeMap& nodeMap);

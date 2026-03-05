@@ -16,6 +16,7 @@
 #ifndef RS_ISCREEN_MANAGER_LISTENER_H
 #define RS_ISCREEN_MANAGER_LISTENER_H
 
+#include <hdi_output.h>
 #include <iremote_object.h>
 #include <refbase.h>
 

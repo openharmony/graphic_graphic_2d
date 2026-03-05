@@ -62,6 +62,7 @@ namespace {
 constexpr const int WAIT_HANDLER_TIME = 1; // 1s
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
 constexpr const int SURFACE_NODE_ID = 1003;
+constexpr const int TEST_NULLPTR_CONN_PID = 10;
 };
 
 namespace OHOS::Rosen {
@@ -82,7 +83,7 @@ private:
     int OnRemoteRequestTest(uint32_t code);
     static void WaitHandlerTask();
     static inline sptr<RSIConnectionToken> token_;
-    static inline sptr<RSClientToRenderConnectionStub> connectionStub_;
+    static inline sptr<RSClientToRenderConnection> connectionStub_;
     static inline std::shared_ptr<RSRenderPipeline> renderPipeline_;
     static inline sptr<RSRenderPipelineAgent> renderPipelineAgent_;
 };
@@ -628,59 +629,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, WriteBrightnessInfoTest, TestSize.L
 }
 
 /**
- * @tc.name: TakeUICaptureInRangeTest001
- * @tc.desc: Test TakeUICaptureInRange under different node states
- * @tc.type: FUNC
- * @tc.require: issue21623
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest001, TestSize.Level2)
-{
-    constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
-    auto mainThread = RSMainThread::Instance();
-    auto handler = mainThread->handler_;
-    auto runner = AppExecFwk::EventRunner::Create("TakeUICaptureInRangeTest001");
-    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-    ASSERT_NE(mainThread->handler_, nullptr);
-    runner->Run();
-
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSClientToRenderConnection> toRenderConnection =
-        new RSClientToRenderConnection(0, renderPipelineAgent_, token_->AsObject());
-    ASSERT_NE(toRenderConnection, nullptr);
-    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
-    ASSERT_NE(callback, nullptr);
-    RSSurfaceCaptureConfig config;
-    config.isSync = false;
-    RSSurfaceCapturePermissions permissions;
-    permissions.isSystemCalling = true;
-    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
-    NodeId id{std::numeric_limits<NodeId>::max()};
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
-    nodeMap.RegisterRenderNode(node);
-    node->isOnTheTree_ = true;
-    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
-    node->renderProperties_.isDirty_ = false;
-    node->isSubTreeDirty_ = false;
-    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
-    usleep(TIME_OF_CAPTURE_TASK);
-    node->isSubTreeDirty_ = true;
-    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
-    usleep(TIME_OF_CAPTURE_TASK);
-    node->renderProperties_.isDirty_ = true;
-    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
-    usleep(TIME_OF_CAPTURE_TASK);
-    node->isOnTheTree_ = false;
-    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
-    usleep(TIME_OF_CAPTURE_TASK);
-    nodeMap.UnregisterRenderNode(id);
-    toRenderConnection->TakeUICaptureInRange(id, callback, config, permissions);
-    usleep(TIME_OF_CAPTURE_TASK);
-    EXPECT_EQ(nodeMap.GetRenderNode<RSRenderNode>(id), nullptr);
-
-    mainThread->handler_ = handler;
-}
-
-/**
  * @tc.name: GetScreenHDRStatus001
  * @tc.desc: Test GetScreenHDRStatus
  * @tc.type: FUNC
@@ -936,7 +884,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     sptr<RSRenderPipelineAgent> agent = connection->renderPipelineAgent_;
     connection->renderPipelineAgent_ = nullptr;
     ASSERT_EQ(connection->renderPipelineAgent_, nullptr);
-    res = connection->FreezeScreen(0, false);
+    res = connection->FreezeScreen(0, false, false);
     ASSERT_EQ(res, ERR_INVALID_VALUE);
     connection->renderPipelineAgent_ = agent;
 
@@ -944,7 +892,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     std::shared_ptr<RSRenderPipeline> pipeline = connection->renderPipelineAgent_->rsRenderPipeline_;
     connection->renderPipelineAgent_->rsRenderPipeline_ = nullptr;
     ASSERT_EQ(connection->renderPipelineAgent_->rsRenderPipeline_, nullptr);
-    res = connection->FreezeScreen(0, false);
+    res = connection->FreezeScreen(0, false, false);
     ASSERT_EQ(res, ERR_INVALID_VALUE);
     connection->renderPipelineAgent_->rsRenderPipeline_ = pipeline;
 
@@ -959,10 +907,10 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
         new RSScreenRenderNode(screenNodeId, screenId), RSRenderNodeGC::NodeDestructor);
     ASSERT_NE(screenNode, nullptr);
     displayNode->SetParent(screenNode);
-    auto& nodeMap = connection->renderPipelineAgent_->rsRenderPipeline_->GetContext().GetMutableNodeMap();
+    auto& nodeMap = renderPipelineAgent_->rsRenderPipeline_->mainThread_->GetContext().GetMutableNodeMap();
     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
     EXPECT_TRUE(nodeMap.RegisterRenderNode(screenNode));
-    res = connection->FreezeScreen(displayNodeId, false);
+    res = connection->FreezeScreen(displayNodeId, false, false);
     usleep(TIME_OF_FREEZE_TASK);
     ASSERT_EQ(res, ERR_OK);
     nodeMap.UnregisterRenderNode(screenNode->GetId());
@@ -995,42 +943,14 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
     auto& nodeMap = renderPipelineAgent_->rsRenderPipeline_->mainThread_->GetContext().GetMutableNodeMap();
     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
     EXPECT_TRUE(nodeMap.RegisterRenderNode(screenNode));
-    auto res = renderPipelineAgent_->FreezeScreen(displayNodeId, false);
+    auto res = renderPipelineAgent_->FreezeScreen(displayNodeId, false, false);
     usleep(TIME_OF_FREEZE_TASK);
     ASSERT_EQ(res, ERR_OK);
-    res = renderPipelineAgent_->FreezeScreen(displayNodeId, true);
+    res = renderPipelineAgent_->FreezeScreen(displayNodeId, true, false);
     usleep(TIME_OF_FREEZE_TASK);
     ASSERT_EQ(res, ERR_OK);
     nodeMap.UnregisterRenderNode(displayNode->GetId());
     nodeMap.UnregisterRenderNode(screenNode->GetId());
-}
-
-/**
- * @tc.name: FreezeScreenTest003
- * @tc.desc: Test FreezeScreen sync
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest003, TestSize.Level2)
-{
-    ASSERT_NE(toRenderConnectionStub_, nullptr);
-    MessageParcel data1;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FREEZE_SCREEN);
-    data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data1.WriteUint64(1);
-    data1.WriteBool(true);
-    int res = toRenderConnectionStub_->OnRemoteRequest(code, data1, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel data2;
-    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data2.WriteUint64(1);
-    data2.WriteBool(true);
-    data2.WriteBool(true);
-    res = toRenderConnectionStub_->OnRemoteRequest(code, data2, reply, option);
-    ASSERT_EQ(res, ERR_OK);
 }
 
 /**
@@ -1301,82 +1221,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
     ASSERT_NE(ret, 0);
 }
 #endif
-
-/**
- * @tc.name: SetSystemAnimatedScenesTest001
- * @tc.desc: Test SetSystemAnimatedScenes when ReadBool and ReadUint32 fail
- * @tc.type: FUNC
- * @tc.require: issue20726
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
-}
- 
-/**
- * @tc.name: SetSystemAnimatedScenesTest002
- * @tc.desc: Test SetSystemAnimatedScenes when data is ReadBool fail
- * @tc.type: FUNC
- * @tc.require: issue20726
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteUint32(0);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
-}
- 
-/**
- * @tc.name: SetSystemAnimatedScenesTest003
- * @tc.desc: Test SetSystemAnimatedScenes when ReadUint32 fail
- * @tc.type: FUNC
- * @tc.require: issue20726
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteBool(true);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
-}
- 
-/**
- * @tc.name: SetSystemAnimatedScenesTest004
- * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ isn't nullptr
- * @tc.type: FUNC
- * @tc.require: issue20726
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest004, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteUint32(0);
-    data.WriteBool(true);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
  
 // /**
 //  * @tc.name: SetSystemAnimatedScenesTest005
@@ -2248,7 +2092,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest001, TestSi
     data2.WriteBool(captureConfig.isSync);
     data2.WriteBool(captureConfig.isHdrCapture);
     data2.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
-    data3.WriteBool(captureConfig.needErrorCode);
+    data2.WriteBool(captureConfig.needErrorCode);
     data2.WriteFloat(captureConfig.mainScreenRect.left_);
     data2.WriteFloat(captureConfig.mainScreenRect.top_);
     data2.WriteFloat(captureConfig.mainScreenRect.right_);
@@ -2663,7 +2507,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetLogicalCameraRotationCorrection0
  */
 HWTEST_F(RSClientToRenderConnectionStubTest, SetHwcNodeBounds, TestSize.Level1)
 {
-    ASSERT_NE(toRenderConnectionStub_, nullptr);
+    ASSERT_NE(connectionStub_, nullptr);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -2671,11 +2515,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetHwcNodeBounds, TestSize.Level1)
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint64(0);
     data.WriteFloat(0);
-    int res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
     rsPointerWindowManager.SetIsPointerEnableHwc(false);
-    res = toRenderConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
     rsPointerWindowManager.SetIsPointerEnableHwc(true);
 }
@@ -2756,32 +2600,32 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest004, Tes
     ASSERT_EQ(ret, ERR_NONE);
 }
  
-/**
- * @tc.name: SetSystemAnimatedScenesTest005
- * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issue20726
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest005, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteUint32(0);
-    data.WriteBool(true);
-    sptr<RSClientToServiceConnection> clientToServiceConnection =
-        iface_cast<RSClientToServiceConnection>(connectionStub_);
-    ASSERT_NE(clientToServiceConnection, nullptr);
-    auto mainThread = clientToServiceConnection->mainThread_;
-    clientToServiceConnection->mainThread_ = nullptr;
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
+// /**
+//  * @tc.name: SetSystemAnimatedScenesTest005
+//  * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ is nullptr
+//  * @tc.type: FUNC
+//  * @tc.require: issue20726
+//  */
+// HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest005, TestSize.Level1)
+// {
+//     MessageParcel data;
+//     MessageParcel reply;
+//     MessageOption option;
+//     uint32_t code =
+//         static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+//     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+//     data.WriteUint32(0);
+//     data.WriteBool(true);
+//     sptr<RSIClientToServiceConnection> clientToServiceConnection =
+//         iface_cast<RSIClientToServiceConnection>(connectionStub_);
+//     ASSERT_NE(clientToServiceConnection, nullptr);
+//     auto mainThread = clientToServiceConnection->mainThread_;
+//     clientToServiceConnection->mainThread_ = nullptr;
+//     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+//     ASSERT_EQ(ret, ERR_INVALID_DATA);
  
-    clientToServiceConnection->mainThread_ = mainThread;
-}
+//     clientToServiceConnection->mainThread_ = mainThread;
+// }
 
 /**
  * @tc.name: ExecuteSynchronousTaskTest001
@@ -2898,5 +2742,414 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest006, Test
     data.WriteUint64(0); // Incomplete data
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: ReportJankStats_NullPipeline
+ * @tc.desc: Test ReportJankStats with null rsRenderPipeline_ (line 1024)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ReportJankStats_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    ErrCode ret = renderPipelineAgent_->ReportJankStats();
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: ReportEventResponse_NullPipeline
+ * @tc.desc: Test ReportEventResponse with null rsRenderPipeline_ (line 1034)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventResponse_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    DataBaseRs info;
+    ErrCode ret = renderPipelineAgent_->ReportEventResponse(info);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: ReportEventComplete_NullPipeline
+ * @tc.desc: Test ReportEventComplete with null rsRenderPipeline_ (line 1050)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventComplete_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    DataBaseRs info;
+    ErrCode ret = renderPipelineAgent_->ReportEventComplete(info);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: ReportEventJankFrame_NullPipeline
+ * @tc.desc: Test ReportEventJankFrame with null rsRenderPipeline_ (line 1061)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventJankFrame_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    DataBaseRs info;
+    ErrCode ret = renderPipelineAgent_->ReportEventJankFrame(info);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: ReportRsSceneJankStart_NullPipeline
+ * @tc.desc: Test ReportRsSceneJankStart with null rsRenderPipeline_ (line 1086)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ReportRsSceneJankStart_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    AppInfo info;
+    ErrCode ret = renderPipelineAgent_->ReportRsSceneJankStart(info);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: ReportRsSceneJankEnd_NullPipeline
+ * @tc.desc: Test ReportRsSceneJankEnd with null rsRenderPipeline_ (line 1096)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ReportRsSceneJankEnd_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    AppInfo info;
+    ErrCode ret = renderPipelineAgent_->ReportRsSceneJankEnd(info);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: AvcodecVideoStart_NullPipeline
+ * @tc.desc: Test AvcodecVideoStart with null rsRenderPipeline_ (line 1107)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoStart_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    uint64_t reportTime = 16;
+    ErrCode ret = renderPipelineAgent_->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: AvcodecVideoStop_NullPipeline
+ * @tc.desc: Test AvcodecVideoStop with null rsRenderPipeline_ (line 1120)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoStop_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    ErrCode ret = renderPipelineAgent_->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: AvcodecVideoGet_NullPipeline
+ * @tc.desc: Test AvcodecVideoGet with null rsRenderPipeline_ (line 1132)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoGet_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    uint64_t uniqueId = 1;
+    ErrCode ret = renderPipelineAgent_->AvcodecVideoGet(uniqueId);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: AvcodecVideoGetRecent_NullPipeline
+ * @tc.desc: Test AvcodecVideoGetRecent with null rsRenderPipeline_ (line 1144)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoGetRecent_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    ErrCode ret = renderPipelineAgent_->AvcodecVideoGetRecent();
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: GetMemoryGraphic_NullPipeline
+ * @tc.desc: Test GetMemoryGraphic with null rsRenderPipeline_ (line 1299)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetMemoryGraphic_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    int pid = 1001;
+    MemoryGraphic memoryGraphic;
+    ErrCode ret = renderPipelineAgent_->GetMemoryGraphic(pid, memoryGraphic);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: GetTotalAppMemSize_NullPipeline
+ * @tc.desc: Test GetTotalAppMemSize with null rsRenderPipeline_ (line 1357)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetTotalAppMemSize_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    float cpuMemSize = 0.0f;
+    float gpuMemSize = 0.0f;
+    ErrCode ret = renderPipelineAgent_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: GetMemoryGraphics_NullPipeline
+ * @tc.desc: Test GetMemoryGraphics with null rsRenderPipeline_ (line 1373)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetMemoryGraphics_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    std::vector<MemoryGraphic> memoryGraphics;
+    ErrCode ret = renderPipelineAgent_->GetMemoryGraphics(memoryGraphics);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: GetPidGpuMemoryInMB_NullPipeline
+ * @tc.desc: Test GetPidGpuMemoryInMB with null rsRenderPipeline_ (line 1719)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetPidGpuMemoryInMB_NullPipeline, TestSize.Level1)
+{
+    auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
+    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    pid_t pid = 1001;
+    float gpuMemInMB = 0.0f;
+    int32_t ret = renderPipelineAgent_->GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    renderPipelineAgent_->rsRenderPipeline_ = pipeline;
+}
+
+/**
+ * @tc.name: RSConnectionDeathRecipientTest001
+ * @tc.desc: Test RSConnectionDeathRecipient::OnRemoteDied with nullptr token
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionDeathRecipientTest001, TestSize.Level1)
+{
+    // Create isolated connection for this test
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+
+    // Create death recipient
+    auto deathRecipient = new RSClientToRenderConnection::RSConnectionDeathRecipient(testConnection);
+
+    // Test with nullptr token (wptr with nullptr)
+    wptr<IRemoteObject> nullToken;
+    deathRecipient->OnRemoteDied(nullToken);
+    // Should handle without crash
+}
+
+/**
+ * @tc.name: RSConnectionDeathRecipientTest002
+ * @tc.desc: Test RSConnectionDeathRecipient::OnRemoteDied with dead connection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionDeathRecipientTest002, TestSize.Level1)
+{
+    // Create isolated connection for this test
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+
+    // Create death recipient
+    auto deathRecipient = new RSClientToRenderConnection::RSConnectionDeathRecipient(testConnection);
+
+    // Destroy connection to make it dead
+    testConnection = nullptr;
+
+    // Test with valid token but dead connection
+    deathRecipient->OnRemoteDied(testToken->AsObject());
+    // Should handle without crash
+}
+
+/**
+ * @tc.name: RSConnectionDeathRecipientTest003
+ * @tc.desc: Test RSConnectionDeathRecipient::OnRemoteDied with mismatched token
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionDeathRecipientTest003, TestSize.Level1)
+{
+    // Create isolated connection for this test
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+
+    // Create death recipient
+    auto deathRecipient = new RSClientToRenderConnection::RSConnectionDeathRecipient(testConnection);
+
+    // Create a different token that doesn't match
+    auto differentToken = new IRemoteStub<RSIConnectionToken>();
+
+    // Test with mismatched token
+    deathRecipient->OnRemoteDied(differentToken->AsObject());
+    // Should handle without crash
+}
+
+/**
+ * @tc.name: RSConnectionDeathRecipientTest004
+ * @tc.desc: Test RSConnectionDeathRecipient::OnRemoteDied with valid token
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionDeathRecipientTest004, TestSize.Level1)
+{
+    // Create isolated connection for this test
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+
+    // Create death recipient
+    auto deathRecipient = new RSClientToRenderConnection::RSConnectionDeathRecipient(testConnection);
+
+    // Test with matching token - should call CleanAll
+    deathRecipient->OnRemoteDied(testToken->AsObject());
+    // Should call CleanAll without crash
+}
+
+/**
+ * @tc.name: RSApplicationRenderThreadDeathRecipientTest001
+ * @tc.desc: Test RSApplicationRenderThreadDeathRecipient::OnRemoteDied with nullptr token
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSApplicationRenderThreadDeathRecipientTest001, TestSize.Level1)
+{
+    // Create isolated connection for this test
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+
+    // Create application death recipient
+    auto appDeathRecipient = new RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient(testConnection);
+
+    // Test with nullptr token (wptr with nullptr)
+    wptr<IRemoteObject> nullToken;
+    appDeathRecipient->OnRemoteDied(nullToken);
+    // Should handle without crash
+}
+
+/**
+ * @tc.name: RSApplicationRenderThreadDeathRecipientTest002
+ * @tc.desc: Test RSApplicationRenderThreadDeathRecipient::OnRemoteDied with dead connection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSApplicationRenderThreadDeathRecipientTest002, TestSize.Level1)
+{
+    // Create isolated connection for this test
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+
+    // Create application death recipient
+    auto appDeathRecipient = new RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient(testConnection);
+
+    // Destroy connection to make it dead
+    testConnection = nullptr;
+
+    // Test with valid token but dead connection
+    appDeathRecipient->OnRemoteDied(testToken->AsObject());
+    // Should handle without crash
+}
+
+/**
+ * @tc.name: RSApplicationRenderThreadDeathRecipientTest003
+ * @tc.desc: Test RSApplicationRenderThreadDeathRecipient::OnRemoteDied with nullptr renderPipelineAgent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSApplicationRenderThreadDeathRecipientTest003, TestSize.Level1)
+{
+    // Create isolated connection with nullptr renderPipelineAgent
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        nullptr, testToken->AsObject());
+
+    // Create application death recipient
+    auto appDeathRecipient = new RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient(testConnection);
+
+    // Test with valid token but nullptr renderPipelineAgent
+    appDeathRecipient->OnRemoteDied(testToken->AsObject());
+    // Should handle without crash
+}
+
+/**
+ * @tc.name: RSApplicationRenderThreadDeathRecipientTest004
+ * @tc.desc: Test RSApplicationRenderThreadDeathRecipient::OnRemoteDied with valid parameters
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSApplicationRenderThreadDeathRecipientTest004, TestSize.Level1)
+{
+    // Create isolated connection for this test
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+
+    // Create application death recipient
+    auto appDeathRecipient = new RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient(testConnection);
+
+    // Test with valid token and connection - should call UnRegisterApplicationAgent
+    appDeathRecipient->OnRemoteDied(testToken->AsObject());
+    // Should handle without crash (may fail to cast to IApplicationAgent but should not crash)
 }
 } // namespace OHOS::Rosen

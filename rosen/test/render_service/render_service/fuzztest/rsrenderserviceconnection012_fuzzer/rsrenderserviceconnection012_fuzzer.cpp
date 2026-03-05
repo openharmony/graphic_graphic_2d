@@ -247,7 +247,7 @@ void DoGetMemoryGraphics()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 } // namespace Rosen

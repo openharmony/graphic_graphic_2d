@@ -567,7 +567,6 @@ bool DoTakeSurfaceCaptureWithAllWindows()
 {
     auto newPid = getpid();
     
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
     std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
@@ -641,7 +640,6 @@ bool DoFreezeScreen()
 {
     auto newPid = getpid();
     
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
     std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
@@ -688,7 +686,7 @@ bool DoGetScreenHDRStatus()
     std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
     sptr<RSRenderPipelineAgent> renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
     sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =
-    new RSClientToRenderConnection(newPid, renderPipelineAgent_, token_->AsObject());foundation/graphic/graphic_2d/rosen/test/render_service/render_service/fuzztest/rsrenderserviceconnection009_fuzzer/rsrenderserviceconnection009_fuzzer.cpp
+    new RSClientToRenderConnection(newPid, renderPipelineAgent_, token_->AsObject());
 
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -759,21 +757,6 @@ void DoSubmitCanvasPreAllocatedBuffer()
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-    OHOS::Rosen::g_pid = getpid();
-    OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
-    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
-    OHOS::Rosen::mainThread_->handler_ =
-        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
-    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
-    OHOS::Rosen::mainThread_->mainLoop_ = []() {};
-
-    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
-    auto generator = OHOS::Rosen::CreateVSyncGenerator();
-    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
-    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
-        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::Rosen::toRenderConnectionStub_ = new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, nullptr,
-        OHOS::Rosen::mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
     return 0;
 }
 

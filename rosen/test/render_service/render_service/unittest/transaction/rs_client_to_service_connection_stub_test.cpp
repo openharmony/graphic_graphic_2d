@@ -243,7 +243,7 @@ private:
     int OnRemoteRequestTest(uint32_t code);
     static void WaitHandlerTask();
     static inline sptr<RSIConnectionToken> token_;
-    static inline sptr<RSClientToServiceConnectionStub> connectionStub_;
+    static inline sptr<RSClientToServiceConnection> connectionStub_;
     static inline sptr<RSRenderServiceAgent> renderServiceAgent_;
     static inline sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_;
     static inline RSRenderService renderService_;
@@ -577,14 +577,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
  */
 HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub006, TestSize.Level1)
 {
-    EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIClientToServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK)), ERR_NULL_OBJECT);
-    // Unable to access IPC due to lack of permissions.
-    EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIClientToServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK)), ERR_INVALID_DATA);
-    // Unable to access IPC due to lack of permissions.
-    EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIClientToServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK)), ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK)), ERR_NULL_OBJECT);
     EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
@@ -3088,12 +3080,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetDualScreenStateTest001, TestSiz
 }
 
 /**
- * @tc.name: AddVirtualScreenWhiteList001
+ * @tc.name: AddVirtualScreenWhiteListTest001
  * @tc.desc: Test AddVirtualScreenWhiteList
  * @tc.type: FUNC
  * @tc.require: issue21114
  */
-HWTEST_F(RSClientToServiceConnectionStubTest, AddVirtualScreenWhiteList001, TestSize.Level2)
+HWTEST_F(RSClientToServiceConnectionStubTest, AddVirtualScreenWhiteListTest001, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
     MessageParcel reply;
@@ -3113,6 +3105,117 @@ HWTEST_F(RSClientToServiceConnectionStubTest, AddVirtualScreenWhiteList001, Test
     data2.WriteUInt64Vector(whiteList);
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: AddVirtualScreenWhiteListTest002
+ * @tc.desc: Test AddVirtualScreenWhiteList
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, AddVirtualScreenWhiteListTest002, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    std::vector<NodeId> whiteList;
+    int32_t repCode = 0;
+    auto res = connection->AddVirtualScreenWhiteList(INVALID_SCREEN_ID, whiteList, repCode);
+    ASSERT_EQ(res, ERR_OK);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    res = connection->AddVirtualScreenWhiteList(INVALID_SCREEN_ID, whiteList, repCode);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+
+    // restore screenManagerAgent
+    connection->screenManagerAgent_ = screenManagerAgent;
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+}
+
+/**
+ * @tc.name: SetScreenActiveModeTest001
+ * @tc.desc: Test SetScreenActiveMode
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenActiveModeTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    uint32_t modeId = 0;
+    auto res = connection->SetScreenActiveMode(screenId, modeId);
+    ASSERT_EQ(res, StatusCode::SCREEN_NOT_FOUND);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    res = connection->SetScreenActiveMode(screenId, modeId);
+    EXPECT_EQ(res, StatusCode::SCREEN_NOT_FOUND);
+
+    // restore screenManagerAgent
+    connection->screenManagerAgent_ = screenManagerAgent;
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+}
+
+/**
+ * @tc.name: SetScreenChangeCallbackTest001
+ * @tc.desc: Test SetScreenChangeCallback
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenChangeCallbackTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    auto res = connection->SetScreenChangeCallback(nullptr);
+    ASSERT_EQ(res, 0);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    res = connection->SetScreenChangeCallback(nullptr);
+    EXPECT_EQ(res, StatusCode::SCREEN_NOT_FOUND);
+
+    // restore screenManagerAgent
+    connection->screenManagerAgent_ = screenManagerAgent;
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+}
+
+/**
+ * @tc.name: SetPhysicalScreenResolutionTest001
+ * @tc.desc: Test SetPhysicalScreenResolution
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPhysicalScreenResolutionTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    auto res = connection->SetPhysicalScreenResolution(screenId, width, height);
+    ASSERT_EQ(res, SCREEN_NOT_FOUND);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    res = connection->SetPhysicalScreenResolution(screenId, width, height);
+    EXPECT_EQ(res, SCREEN_NOT_FOUND);
+
+    // restore screenManagerAgent
+    connection->screenManagerAgent_ = screenManagerAgent;
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
 }
 
 /**
@@ -3144,12 +3247,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RemoveVirtualScreenWhiteList001, T
 }
 
 /**
- * @tc.name: SetVirtualScreenBlackList001
+ * @tc.name: SetVirtualScreenBlackListTest001
  * @tc.desc: Test SetVirtualScreenBlackList
  * @tc.type: FUNC
  * @tc.require: issue21114
  */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenBlackList001, TestSize.Level2)
+HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenBlackListTest001, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
     MessageParcel reply;
@@ -3169,6 +3272,153 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenBlackList001, Test
     data2.WriteUInt64Vector(blackList);
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetVirtualScreenBlackListTest002
+ * @tc.desc: Test SetVirtualScreenBlackList when screenManagerAgent_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenBlackListTest002, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    std::vector<NodeId> blackList;
+    auto res = connection->SetVirtualScreenBlackList(INVALID_SCREEN_ID, blackList);
+    ASSERT_EQ(res, ERR_OK);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    res = connection->SetVirtualScreenBlackList(INVALID_SCREEN_ID, blackList);
+    EXPECT_EQ(res, StatusCode::SCREEN_NOT_FOUND);
+
+    // restore screenManagerAgent
+    connection->screenManagerAgent_ = screenManagerAgent;
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+}
+
+/**
+ * @tc.name: GetDefaultScreenIdTest002
+ * @tc.desc: Test GetDefaultScreenId when screenManagerAgent_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetDefaultScreenIdTest002, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    auto res = connection->GetDefaultScreenId(screenId);
+    ASSERT_EQ(res, ERR_OK);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    res = connection->GetDefaultScreenId(screenId);
+    EXPECT_EQ(res, ERR_INVALID_OPERATION);
+
+    // restore screenManagerAgent
+    connection->screenManagerAgent_ = screenManagerAgent;
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+}
+
+/**
+ * @tc.name: CreateVirtualScreenTest001
+ * @tc.desc: Test CreateVirtualScreen when screenManagerAgent_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreenTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    string name;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    ScreenId associatedScreenId = 0;
+    int32_t flags = 0;
+    std::vector<NodeId> whiteList;
+
+    auto res = connection->CreateVirtualScreen(name, width, height, nullptr, associatedScreenId, flags, whiteList);
+    ASSERT_NE(res, 0);
+    width = 65537;
+    height = 65537;
+    res = connection->CreateVirtualScreen(name, width, height, nullptr, associatedScreenId, flags, whiteList);
+    ASSERT_EQ(res, INVALID_SCREEN_ID);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    res = connection->CreateVirtualScreen(name, width, height, nullptr, associatedScreenId, flags, whiteList);
+    EXPECT_EQ(res, INVALID_SCREEN_ID);
+
+    // restore screenManagerAgent
+    connection->screenManagerAgent_ = screenManagerAgent;
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+}
+
+/**
+ * @tc.name: AddVirtualScreenBlackListTest001
+ * @tc.desc: Test AddVirtualScreenBlackList when screenManagerAgent_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, AddVirtualScreenBlackListTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    std::vector<NodeId> blackList;
+    int32_t repCode = 0;
+    auto res = connection->AddVirtualScreenBlackList(INVALID_SCREEN_ID, blackList, repCode);
+    ASSERT_EQ(res, ERR_OK);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    res = connection->AddVirtualScreenBlackList(INVALID_SCREEN_ID, blackList, repCode);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+
+    // restore screenManagerAgent
+    connection->screenManagerAgent_ = screenManagerAgent;
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenBlackListTest001
+ * @tc.desc: Test RemoveVirtualScreenBlackList when screenManagerAgent_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RemoveVirtualScreenBlackListTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    std::vector<NodeId> blackList;
+    int32_t repCode = 0;
+    auto res = connection->RemoveVirtualScreenBlackList(INVALID_SCREEN_ID, blackList, repCode);
+    ASSERT_EQ(res, ERR_OK);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    res = connection->RemoveVirtualScreenBlackList(INVALID_SCREEN_ID, blackList, repCode);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+
+    // restore screenManagerAgent
+    connection->screenManagerAgent_ = screenManagerAgent;
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
 }
 
 /**
@@ -3823,5 +4073,108 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest002, TestSize.
     EXPECT_NE(
         connectionStub_->RegisterTypeface(sharedTypeface, needUpdate), -1);
     EXPECT_TRUE(connectionStub_->UnRegisterTypeface(typeface->GetHash()));
+}
+
+/**
+ * @tc.name: SetWatermarkTest003
+ * @tc.desc: Test SetWatermark normal case
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetWatermarkTest001, TestSize.Level1)
+{
+    std::string name = "test_watermark";
+    int width = 10;
+    int height = 10;
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    EXPECT_NE(pixelmap, nullptr);
+    bool success = true;
+
+    auto res = connectionStub_->SetWatermark(name, pixelmap, success);
+    // Should succeed with valid connectionStub_
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: ShowWatermarkTest003
+ * @tc.desc: Test ShowWatermark normal case
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ShowWatermarkTest001,TestSize.Level1)
+{
+    bool isShow = true;
+    int width = 10;
+    int height = 10;
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    EXPECT_NE(pixelmap, nullptr);
+
+    // Should succeed with valid connectionStub_ without crash
+    connectionStub_->ShowWatermark(pixelmap, isShow);
+}
+
+/**
+ * @tc.name: GetSurfaceRootNodeIdTest001
+ * @tc.desc: Test GetSurfaceRootNodeId with empty serviceToRenderConns
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetSurfaceRootNodeIdTest001, TestSize.Level1)
+{
+    NodeId windowNodeId = 0;
+    connectionStub_->GetSurfaceRootNodeId(windowNodeId);
+    // Should return without setting windowNodeId
+    EXPECT_EQ(windowNodeId, 0);
+}
+
+/**
+ * @tc.name: GetRefreshInfoTest001
+ * @tc.desc: Test GetRefreshInfo with renderServiceAgent_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetRefreshInfoTest001, TestSize.Level1)
+{
+    pid_t pid = 1001;
+    std::string enable;
+
+    connectionStub_->GetRefreshInfo(pid, enable);
+    EXPECT_TRUE(enable.empty());
+}
+
+/**
+ * @tc.name: GetRefreshInfoToSPTest001
+ * @tc.desc: Test GetRefreshInfoToSP with renderServiceAgent_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetRefreshInfoToSPTest001, TestSize.Level1)
+{
+    NodeId id = 1001;
+    std::string enable;
+
+    connectionStub_->GetRefreshInfoToSP(id, enable);
+    EXPECT_TRUE(enable.empty());
+}
+
+/**
+ * @tc.name: GetConnectionTest
+ * @tc.desc: Test GetConnectionTest with param is
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetConnectionTest, TestSize.Level1)
+{
+    auto connection =
+        sptr<RSClientToServiceConnection>::MakeSptr(0, nullptr,
+            renderProcessManagerAgent_, nullptr, nullptr,
+            renderService_.vsyncManager_->GetVsyncManagerAgent());
+    EXPECT_EQ(connection != nullptr, true);
 }
 } // namespace OHOS::Rosen

@@ -43,7 +43,7 @@ void HdiOutputTest::SetUpTestCase()
     uint32_t screenId = 0;
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
-    hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    hdiOutput_->device_ = hdiDeviceMock_;
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
 }
 
@@ -65,69 +65,68 @@ HWTEST_F(HdiOutputTest, GetFrameBufferSurface_ReturnsNullptr, Function | MediumT
 }
 
 /**
- * Function: GetFramebuffer_ReturnsNullptr
+ * Function: GetFramebuffer001
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call GetFramebuffer()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, GetFramebuffer_ReturnsNullptr, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, GetFramebuffer001, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFramebuffer(), nullptr);
 }
 
 /**
- * Function: GetScreenId_ReturnsZero
+ * Function: GetScreenId001
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call GetScreenId()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, GetScreenId_ReturnsZero, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, GetScreenId001, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetScreenId(), 0u);
 }
 
 /**
- * Function: Commit_Default
+ * Function: Commit001
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call Commit()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, Commit_Default, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, Commit001, Function | MediumTest| Level1)
 {
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->Commit(fbFence), 0);
 }
 
 /**
- * Function: ClearFrameBuffer_ReturnsOk
+ * Function: ClearFrameBuffer001
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call ClearFrameBuffer()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, ClearFrameBuffer_ReturnsOk, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ClearFrameBuffer001, Function | MediumTest | Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->ClearFrameBuffer(), GSERROR_OK);
 }
 
 /**
- * Function: Init_Default
+ * Function: Init001
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call Init()
  *                  2. check ret
  */
-HWTEST_F(HdiOutputTest, Init_Default, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, Init001, Function | MediumTest| Level1)
 {
-    ASSERT_EQ(hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_), ROSEN_ERROR_OK);
     // device_ is already set
     ASSERT_EQ(HdiOutputTest::hdiOutput_->Init(), ROSEN_ERROR_OK);
     // fbSurface_ already initialized
@@ -900,10 +899,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked_VaryingConfigs, Function | MediumTest 
     std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetIsMaskLayer(true);
     rsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
-    auto preDevice = HdiOutputTest::hdiOutput_->device_;
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CreateLayerLocked(1, rsLayer), GRAPHIC_DISPLAY_SUCCESS);
-    HdiOutputTest::hdiOutput_->device_ = preDevice;
     auto arsrPreEnabledForVm = HdiOutputTest::hdiOutput_->arsrPreEnabledForVm_;
     HdiOutputTest::hdiOutput_->arsrPreEnabledForVm_ = true;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CreateLayerLocked(1, rsLayer), GRAPHIC_DISPLAY_SUCCESS);
@@ -952,16 +948,14 @@ HWTEST_F(HdiOutputTest, FlushScreen_VariousScenarios, Function | MediumTest | Le
 
     // setscreenclientdamage return error
     EXPECT_CALL(*hdiDeviceMock_, SetScreenClientDamage(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     HdiOutputTest::hdiOutput_->fbSurface_->availableBuffers_.push(
         std::make_unique<FrameBufferEntry>(buffer, acquireFence, timestamp, damage));
     ASSERT_NE(HdiOutputTest::hdiOutput_->FlushScreen(compClientLayers), 0);
 
     // setscreenclientdamage return ok
     EXPECT_CALL(*hdiDeviceMock_, SetScreenClientDamage(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
 
     // bufferCache is true, index == bufferCacheCountMax_
     HdiOutputTest::hdiOutput_->bufferCache_.clear();
@@ -1011,8 +1005,7 @@ HWTEST_F(HdiOutputTest, FlushScreen_BufferCacheIndex, Function | MediumTest | Le
     HdiOutputTest::hdiOutput_->bufferCache_.push_back(buffer);
     EXPECT_CALL(*hdiDeviceMock_,
         SetScreenClientBuffer(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     HdiOutputTest::hdiOutput_->fbSurface_->availableBuffers_.push(
         std::make_unique<FrameBufferEntry>(buffer, acquireFence, timestamp, damage));
     ASSERT_NE(HdiOutputTest::hdiOutput_->FlushScreen(compClientLayers), GRAPHIC_DISPLAY_SUCCESS);
@@ -1022,8 +1015,7 @@ HWTEST_F(HdiOutputTest, FlushScreen_BufferCacheIndex, Function | MediumTest | Le
     HdiOutputTest::hdiOutput_->bufferCache_.push_back(buffer);
     EXPECT_CALL(*hdiDeviceMock_,
         SetScreenClientBuffer(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     HdiOutputTest::hdiOutput_->fbSurface_->availableBuffers_.push(
         std::make_unique<FrameBufferEntry>(buffer, acquireFence, timestamp, damage));
     ASSERT_EQ(HdiOutputTest::hdiOutput_->FlushScreen(compClientLayers), GRAPHIC_DISPLAY_SUCCESS);
@@ -1614,18 +1606,15 @@ HWTEST_F(HdiOutputTest, ClearBufferCache_VariousStates, Function | MediumTest | 
     ASSERT_EQ(static_cast<int32_t>(HdiOutputTest::hdiOutput_->bufferCache_.size()), 0);
 
     // Test case 2: bufferCache_ is not empty, device_ is nullptr
-    auto preDevice = HdiOutputTest::hdiOutput_->device_;
     HdiOutputTest::hdiOutput_->bufferCache_.push_back(new SurfaceBufferImpl());
     ASSERT_NE(static_cast<int32_t>(HdiOutputTest::hdiOutput_->bufferCache_.size()), 0);
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
     HdiOutputTest::hdiOutput_->ClearBufferCache();
     ASSERT_EQ(static_cast<int32_t>(HdiOutputTest::hdiOutput_->bufferCache_.size()), 0);
 
     // Test case 3: bufferCache_ is not empty, device_ is not nullptr, ClearClientBuffer returns success
     EXPECT_CALL(*hdiDeviceMock_,
         ClearClientBuffer(_)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     HdiOutputTest::hdiOutput_->bufferCache_.push_back(new SurfaceBufferImpl());
     HdiOutputTest::hdiOutput_->ClearBufferCache();
     ASSERT_EQ(static_cast<int32_t>(HdiOutputTest::hdiOutput_->bufferCache_.size()), 0);
@@ -1633,13 +1622,10 @@ HWTEST_F(HdiOutputTest, ClearBufferCache_VariousStates, Function | MediumTest | 
     // Test case 4: bufferCache_ is not empty, device_ is not nullptr, ClearClientBuffer returns failure
     EXPECT_CALL(*hdiDeviceMock_,
         ClearClientBuffer(_)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     HdiOutputTest::hdiOutput_->bufferCache_.push_back(new SurfaceBufferImpl());
     HdiOutputTest::hdiOutput_->ClearBufferCache();
     ASSERT_EQ(static_cast<int32_t>(HdiOutputTest::hdiOutput_->bufferCache_.size()), 0);
-
-    HdiOutputTest::hdiOutput_->device_ = preDevice;
 }
 
 /**
@@ -1674,8 +1660,7 @@ HWTEST_F(HdiOutputTest, CheckSupportArsrPreMetadata_AfterInit, Function | Medium
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
 
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     static std::vector<std::string> ret = { "ArsrDoEnhance", "TryToDoCopybit" };
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(ret));
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CheckSupportArsrPreMetadata(), true);
@@ -1683,17 +1668,15 @@ HWTEST_F(HdiOutputTest, CheckSupportArsrPreMetadata_AfterInit, Function | Medium
 }
 
 /**
- * Function: CreateLayerLocked_WithArsrPreEnabledForVm
+ * Function: CreateLayerLocked003
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CreateLayerLocked()
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, CreateLayerLocked_WithArsrPreEnabledForVm, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CreateLayerLocked003, Function | MediumTest | Level1)
 {
-    auto preDevice = HdiOutputTest::hdiOutput_->device_;
-
     HdiOutputTest::hdiOutput_->arsrPreEnabledForVm_ = true;
     auto vmArsrWhiteList = HdiOutputTest::hdiOutput_->vmArsrWhiteList_;
     HdiOutputTest::hdiOutput_->vmArsrWhiteList_ = "HdiOutputTest";
@@ -1708,8 +1691,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked_WithArsrPreEnabledForVm, Function | Me
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(ret));
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerPerFrameParameter(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CreateLayerLocked(1, rsLayer), GRAPHIC_DISPLAY_SUCCESS);
 
     rsLayer->SetLayerCopybit(false);
@@ -1717,8 +1699,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked_WithArsrPreEnabledForVm, Function | Me
         SetLayerPerFrameParameter(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
     ret = { "ArsrDoEnhance" };
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(ret));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CreateLayerLocked(1, rsLayer), GRAPHIC_DISPLAY_SUCCESS);
 
     rsLayer->SetLayerCopybit(true);
@@ -1726,8 +1707,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked_WithArsrPreEnabledForVm, Function | Me
         SetLayerPerFrameParameter(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
     ret = { "ArsrDoEnhance" };
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(ret));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CreateLayerLocked(1, rsLayer), GRAPHIC_DISPLAY_SUCCESS);
 
     rsLayer->SetLayerCopybit(true);
@@ -1736,26 +1716,22 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked_WithArsrPreEnabledForVm, Function | Me
         GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(ret));
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerPerFrameParameter(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CreateLayerLocked(1, rsLayer), GRAPHIC_DISPLAY_SUCCESS);
 
     HdiOutputTest::hdiOutput_->vmArsrWhiteList_ = vmArsrWhiteList;
-    HdiOutputTest::hdiOutput_->device_ = preDevice;
 }
 
 /**
- * Function: CreateLayerLocked_WithArsrPreEnabled
+ * Function: CreateLayerLocked_004
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call CreateLayerLocked()
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, CreateLayerLocked_WithArsrPreEnabled, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, CreateLayerLocked_004, Function | MediumTest | Level1)
 {
-    auto preDevice = HdiOutputTest::hdiOutput_->device_;
-
     HdiOutputTest::hdiOutput_->arsrPreEnabledForVm_ = true;
     auto vmArsrWhiteList = HdiOutputTest::hdiOutput_->vmArsrWhiteList_;
     HdiOutputTest::hdiOutput_->vmArsrWhiteList_ = "HdiOutputTest";
@@ -1774,8 +1750,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked_WithArsrPreEnabled, Function | MediumT
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(ret));
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerPerFrameParameter(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CreateLayerLocked(1, rsLayer), GRAPHIC_DISPLAY_SUCCESS);
 
     HdiOutputTest::hdiOutput_->arsrPreEnabled_ = true;
@@ -1787,31 +1762,25 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked_WithArsrPreEnabled, Function | MediumT
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(ret));
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerPerFrameParameter(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CreateLayerLocked(1, rsLayer), GRAPHIC_DISPLAY_SUCCESS);
 
     HdiOutputTest::hdiOutput_->vmArsrWhiteList_ = vmArsrWhiteList;
-    HdiOutputTest::hdiOutput_->device_ = preDevice;
 }
 
 /**
- * Function: UpdateLayerCompType_VaryingLayerIds
+ * Function: UpdateLayerCompType001
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call UpdateLayerCompType()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, UpdateLayerCompType_VaryingLayerIds, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, UpdateLayerCompType001, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->device_ = HdiDevice::GetInstance();
-    ASSERT_NE(HdiOutputTest::hdiOutput_->device_, nullptr);
     EXPECT_CALL(*hdiDeviceMock_,
         GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
-    auto preDevice = HdiOutputTest::hdiOutput_->device_;
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     ASSERT_NE(HdiOutputTest::hdiOutput_->UpdateLayerCompType(), GRAPHIC_DISPLAY_SUCCESS);
 
     std::vector<uint32_t> layersIds = {1, 2, 3};
@@ -1821,8 +1790,7 @@ HWTEST_F(HdiOutputTest, UpdateLayerCompType_VaryingLayerIds, Function | MediumTe
             ::testing::SetArgReferee<2>(types),
             ::testing::Return(GRAPHIC_DISPLAY_SUCCESS)
         ));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     ASSERT_NE(HdiOutputTest::hdiOutput_->UpdateLayerCompType(), GRAPHIC_DISPLAY_SUCCESS);
 
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
@@ -1834,25 +1802,20 @@ HWTEST_F(HdiOutputTest, UpdateLayerCompType_VaryingLayerIds, Function | MediumTe
             ::testing::SetArgReferee<2>(types),
             ::testing::Return(GRAPHIC_DISPLAY_SUCCESS)
         ));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->UpdateLayerCompType(), GRAPHIC_DISPLAY_SUCCESS);
-    HdiOutputTest::hdiOutput_->device_ = preDevice;
 }
 
 /**
- * Function: Repaint_FailureCases
+ * Function: Repaint001
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1.call Repaint()
  *                  2.no crash
  */
-HWTEST_F(HdiOutputTest, Repaint_FailureCases, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, Repaint001, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->device_ = HdiDevice::GetInstance();
-    ASSERT_NE(HdiOutputTest::hdiOutput_->device_, nullptr);
-
     // preProcessLayersComp return success
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     std::shared_ptr<HdiLayer> layer = std::make_shared<HdiLayer>(0);
@@ -1877,8 +1840,7 @@ HWTEST_F(HdiOutputTest, Repaint_FailureCases, Function | MediumTest | Level1)
         ));
     // UpdateLayerCompType return GRAPHIC_DISPLAY_FAILURE
     EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     HdiOutputTest::hdiOutput_->Repaint();
 
     skipState = GRAPHIC_DISPLAY_FAILURE;
@@ -1893,8 +1855,7 @@ HWTEST_F(HdiOutputTest, Repaint_FailureCases, Function | MediumTest | Level1)
         ));
     // UpdateLayerCompType return GRAPHIC_DISPLAY_SUCCESS
     EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    HdiOutputTest::hdiOutput_->device_ = nullptr;
-    HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     HdiOutputTest::hdiOutput_->Repaint();
 }
 
@@ -1982,7 +1943,7 @@ public:
 };
 HWTEST_F(HdiOutputTest, UpdateInfosAfterCommitVerifyFramePresentFd, Function | MediumTest | Level1)
 {
-    sptr<MockSyncFence> fbFence = new MockSyncFence(1); //  Fd 1
+    sptr<MockSyncFence> fbFence = new MockSyncFence(-1);
     int64_t timeStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
     EXPECT_CALL(*fbFence, SyncFileReadTimestamp()).WillRepeatedly(testing::Return(timeStamp));
@@ -2026,7 +1987,7 @@ HWTEST_F(HdiOutputTest, SetActiveRectSwitchStatus_Toggle, Function | MediumTest 
     GraphicIRect rect {1, 2, 3, 4};
     EXPECT_CALL(*hdiDeviceMock_, SetScreenActiveRect(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     hdiOutput_->device_ = nullptr;
-    hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    hdiOutput_->device_ = hdiDeviceMock_;
     hdiOutput_->SetActiveRectSwitchStatus(true, rect);
     EXPECT_TRUE(hdiOutput_->isActiveRectSwitching_);
     hdiOutput_->SetActiveRectSwitchStatus(false, rect);
@@ -2116,7 +2077,7 @@ HWTEST_F(HdiOutputTest, FlushScreen_BufferCacheCountZero, Function | MediumTest 
     EXPECT_CALL(*hdiDeviceMock_, SetScreenClientBuffer(_, _, _, _))
         .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     hdiOutput_->device_ = nullptr;
-    hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    hdiOutput_->device_ = hdiDeviceMock_;
 
     std::vector<std::shared_ptr<HdiLayer>> compClientLayers;
     ASSERT_EQ(hdiOutput_->FlushScreen(compClientLayers), GRAPHIC_DISPLAY_SUCCESS);
@@ -2135,7 +2096,7 @@ HWTEST_F(HdiOutputTest, SetScreenBacklight_And_PowerOnChanged, Function | Medium
 {
     EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     hdiOutput_->device_ = nullptr;
-    hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    hdiOutput_->device_ = hdiDeviceMock_;
     hdiOutput_->SetScreenBacklight(80u);
 }
 
@@ -2737,7 +2698,8 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseWithRSLayer,
  *                  2. call ResetLayerStatusLocked
  *                  3. verify all layers processed correctly
  */
-HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMultiple, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMultiple,
+        Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2770,7 +2732,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMultiple, Functi
 }
 
 /**
- * Function: ResetLayerStatusLocked_AllThreeMaps_Line255False_Line262True
+ * Function: ResetLayerStatusLocked_AllThreeMaps
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -2824,7 +2786,8 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_AllThreeMaps, Function | MediumTe
  *                  2. call ResetLayerStatusLocked
  *                  3. verify both true and false branches handled correctly
  */
-HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMixed, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMixed,
+    Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
@@ -2862,7 +2825,7 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMixed, Function 
 }
 
 /**
- * Function: ReleaseLayers_EmptyLayerIdMap_Line742_FalseBranch
+ * Function: ReleaseLayers_EmptyLayerIdMap
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -2889,7 +2852,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_EmptyLayerIdMap, Function | MediumTest | L
 }
 
 /**
- * Function: ReleaseLayers_NonEmptyReleaseFence_Line742_FalseBranch
+ * Function: ReleaseLayers_NonEmptyReleaseFence
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -3022,7 +2985,8 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_LayersToBeReleaseNullRSLayer, Function | M
  *                  2. call ReleaseLayers
  *                  3. verify line 769 false, line 772 true (add to vec)
  */
-HWTEST_F(HdiOutputTest, ReleaseLayers_LayersToBeReleaseValidRSLayer, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReleaseLayers_LayersToBeReleaseValidRSLayer,
+    Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
