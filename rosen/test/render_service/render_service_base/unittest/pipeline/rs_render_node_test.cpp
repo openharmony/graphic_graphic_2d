@@ -2853,7 +2853,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     renderNodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
     renderNodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
     std::shared_ptr<DrawableTest> drawableTest1 = std::make_shared<DrawableTest>();
-    renderNodeTest->GetDrawableVec(__func__).at(1) = drawableTest1;
+    renderNodeTest->GetDrawableVec(__func__)[1] = drawableTest1;
     EXPECT_TRUE(renderNodeTest->dirtySlots_.empty());
 
     renderNodeTest->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
@@ -3967,6 +3967,7 @@ HWTEST_F(RSRenderNodeTest, UpdateShadowRectTest001, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
 
     auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
     drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
@@ -3975,7 +3976,7 @@ HWTEST_F(RSRenderNodeTest, UpdateShadowRectTest001, TestSize.Level1)
     nodeTest->UpdateShadowRect();
 
     // case 2 : non-nullptr + COLOR_STRATEGY_NONE
-    nodeTest->GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::SHADOW)) = drawable;
+    nodeTest->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = drawable;
     nodeTest->UpdateShadowRect();
 
     // case 3 : non-nullptr + COLOR_STRATEGY_AVERAGE

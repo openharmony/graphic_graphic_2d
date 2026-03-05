@@ -328,6 +328,7 @@ private:
     void PopRenderGroupCacheRoot(const RSCanvasRenderNode& node);
     void SetRenderGroupSubTreeDirtyIfNeed(const RSRenderNode& node);
     bool IsOnRenderGroupExcludedSubTree() const;
+    bool HasAncestorRenderGroup(NodeId nodeId) const;
     // !used for renderGroup
 
     /* Check whether gpu overdraw buffer feature can be enabled on the RenderNode
