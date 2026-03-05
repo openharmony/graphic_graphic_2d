@@ -41,11 +41,13 @@ public:
     Drawing::Rect GetImageBounds() const override;
     float GetTypographicBounds(float* ascent, float* descent, float* leading) const override;
     void Paint(Drawing::Canvas *canvas, double x, double y) override;
+    TextStyle GetTextStyle() const override;
 
     void SetSpRunBase(std::unique_ptr<SPText::Run>& run) { run_ = std::move(run); }
 
 private:
     std::unique_ptr<SPText::Run> run_ = nullptr;
+    TextStyle textStyle_;
 };
 } // namespace AdapterTxt
 } // namespace Rosen
