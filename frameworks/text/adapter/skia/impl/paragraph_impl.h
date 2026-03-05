@@ -27,6 +27,7 @@
 #include "txt/paint_record.h"
 #include "txt/paragraph.h"
 #include "txt/paragraph_style.h"
+#include "txt/sp_convert.h"
 #include "txt/text_style.h"
 
 #ifdef USE_M133_SKIA
@@ -171,6 +172,12 @@ public:
 
     TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) override;
 
+    ParagraphStyle GetParagraphStyle() const override;
+
+    TextProcessState GetProcessState() const override;
+
+    TextDisplayState GetTextDisplayState() const override;
+
 #ifdef ENABLE_OHOS_ENHANCE
     /**
      * Get the text path image by index.
@@ -193,8 +200,6 @@ private:
 
     void SymbolStyleUpdater(const HMSymbolTxt& symbolStyle, std::vector<std::shared_ptr<HMSymbolRun>>& hmSymbolRuns,
         skt::InternalState& state);
-
-    void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& textStyle);
 
     void ApplyParagraphStyleChanges(const ParagraphStyle& style);
 #ifdef USE_M133_SKIA

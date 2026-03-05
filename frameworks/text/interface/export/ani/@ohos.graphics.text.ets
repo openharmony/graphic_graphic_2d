@@ -202,6 +202,9 @@ export default namespace text {
     private native nativeGetLineMetricsAt(lineNumber: int): LineMetrics | undefined;
     native updateColor(color: common2D.Color): void;
     native updateDecoration(decoration: Decoration): void;
+    native getProcessState(): TextProcessState;
+    native getTextDisplayState(): TextDisplayState;
+    native getParagraphStyle(): ParagraphStyle;
     native getCharacterRangeForGlyphRange(glyphRange: Range, encoding: drawing.TextEncoding): Array<Range>;
     native getGlyphRangeForCharacterRange(characterRange: Range, encoding: drawing.TextEncoding): Array<Range>;
     native getCharacterPositionAtCoordinate(x: double, y: double, encoding: drawing.TextEncoding): PositionWithAffinity;
@@ -1118,6 +1121,23 @@ export default namespace text {
   export enum TextUndefinedGlyphDisplay {
     USE_DEFAULT,
     USE_TOFU,
+  }
+
+  export enum TextProcessState {
+    INIT = 0,
+    INDEXED = 1,
+    SHAPED = 2,
+    LINE_BROKEN = 3,
+    FORMATTED = 4,
+    PAINT = 5,
+    UPDATE_ATTRIBUTE = 6,
+  }
+
+  export enum TextDisplayState {
+    UNKNOWN = 0,
+    ALL = 1,
+    CLIP = 2,
+    OMITTED = 3,
   }
 
   export native function setTextUndefinedGlyphDisplay(noGlyphShow: TextUndefinedGlyphDisplay): void;

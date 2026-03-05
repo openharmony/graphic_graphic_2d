@@ -59,6 +59,9 @@ private:
     static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_int lineNumber);
     static void UpdateColor(ani_env* env, ani_object object, ani_object color);
     static void UpdateDecoration(ani_env* env, ani_object object, ani_object decoration);
+    static ani_object GetProcessState(ani_env* env, ani_object object);
+    static ani_object GetTextDisplayState(ani_env* env, ani_object object);
+    static ani_object GetParagraphStyle(ani_env* env, ani_object object);
     static ani_object GetCharacterRangeForGlyphRange(ani_env* env, ani_object object,
         ani_object glyphRange, ani_object encoding);
     static ani_object GetGlyphRangeForCharacterRange(ani_env* env, ani_object object,

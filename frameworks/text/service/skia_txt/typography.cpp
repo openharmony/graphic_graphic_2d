@@ -623,6 +623,33 @@ std::string Typography::GetDumpInfo() const
     return paragraph_->GetDumpInfo();
 }
 
+TextProcessState Typography::GetProcessState() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return TextProcessState::INIT;
+    }
+    return paragraph_->GetProcessState();
+}
+
+TextDisplayState Typography::GetTextDisplayState() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return TextDisplayState::UNKNOWN;
+    }
+    return paragraph_->GetTextDisplayState();
+}
+
+TypographyStyle Typography::GetParagraphStyle() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return typographyStyle_;
+    }
+    return Convert(paragraph_->GetParagraphStyle());
+}
+
 #ifdef ENABLE_OHOS_ENHANCE
 std::shared_ptr<OHOS::Media::PixelMap> Typography::GetTextPathImageByIndex(
     size_t start, size_t end, const ImageOptions& options, bool fill) const

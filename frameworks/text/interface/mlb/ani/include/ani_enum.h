@@ -47,6 +47,8 @@ public:
     static const std::vector<uint32_t> textUndefinedGlyphDisplay;
     static const std::vector<uint32_t> textVerticalAlign;
     static const std::vector<uint32_t> lineHeightStyle;
+    static const std::vector<uint32_t> textProcessState;
+    static const std::vector<uint32_t> textDisplayState;
     static const std::vector<uint32_t> fontEdging;
 };
 

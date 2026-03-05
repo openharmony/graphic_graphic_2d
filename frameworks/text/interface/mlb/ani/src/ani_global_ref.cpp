@@ -360,6 +360,8 @@ void AniGlobalEnum::Init(ani_env* env)
     textDecorationStyle = AniFindEnum(env, ANI_ENUM_TEXT_DECORATION_STYLE);
     textBadgeType = AniFindEnum(env, ANI_ENUM_TEXT_BADGE_TYPE);
     lineHeightStyle = AniFindEnum(env, ANI_ENUM_TEXT_LINE_HEIGHT_STYLE_TYPE);
+    textProcessState = AniFindEnum(env, ANI_ENUM_TEXT_PROCESS_STATE);
+    textDisplayState = AniFindEnum(env, ANI_ENUM_TEXT_DISPLAY_STATE);
 }
 
 void AniGlobalMethod::Init(ani_env* env)

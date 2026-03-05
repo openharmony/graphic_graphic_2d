@@ -124,6 +124,8 @@ public:
     ani_enum textDecorationStyle;
     ani_enum textBadgeType;
     ani_enum lineHeightStyle;
+    ani_enum textProcessState;
+    ani_enum textDisplayState;
 
 private:
     AniGlobalEnum() = default;

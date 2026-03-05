@@ -171,4 +171,11 @@ void AniParagraphStyleConverter::ParseFontFamiliesToNative(
         }
     }
 }
+
+void AniParagraphStyleConverter::ParseTypographyStyleToAni(
+    ani_env* env, const OHOS::Rosen::TypographyStyle& style, ani_object& obj)
+{
+    obj = AniTextUtils::CreateAniObject(
+        env, AniGlobalClass::GetInstance().paragraphStyle, AniGlobalMethod::GetInstance().paragraph);
+}
 } // namespace OHOS::Text::ANI
