@@ -3501,6 +3501,7 @@ void RSUniRenderVisitor::MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> 
 void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
     const RSRenderNode& rootNode, RSDirtyRegionManager& dirtyManager)
 {
+    auto rotationStatus = GetRotationStatus();
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (auto& child : rootNode.GetVisibleFilterChild()) {
         auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
@@ -3517,6 +3518,8 @@ void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
         }
 
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateFilterRegionInSkippedSurfaceNode node[%" PRIu64 "]", filterNode->GetId());
+        filterNode->CheckBlurFilterCacheNeedForceClearOrSave(
+            rotationStatus.rotationChanged, rotationStatus.rotationStatusChanged);
         RectI filterRect;
         filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect,
             prepareClipRect_, prepareFilterClipRect_);
@@ -3528,10 +3531,7 @@ void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
 void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
     const RSRenderNode& rootNode, RSDirtyRegionManager& dirtyManager)
 {
-    bool rotationChanged = curLogicalDisplayNode_ ?
-        curLogicalDisplayNode_->IsRotationChanged() || curLogicalDisplayNode_->IsLastRotationChanged() : false;
-    bool rotationStatusChanged = curLogicalDisplayNode_ ?
-        curLogicalDisplayNode_->GetPreRotationStatus() != curLogicalDisplayNode_->GetCurRotationStatus() : false;
+    auto rotationStatus = GetRotationStatus();
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (auto& child : rootNode.GetVisibleFilterChild()) {
         auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
@@ -3556,7 +3556,8 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
             RSHpaeManager::GetInstance().RegisterHpaeCallback(*filterNode, curScreenNode_);
         }
 #endif
-        filterNode->CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
+        filterNode->CheckBlurFilterCacheNeedForceClearOrSave(
+            rotationStatus.rotationChanged, rotationStatus.rotationStatusChanged);
         filterNode->MarkClearFilterCacheIfEffectChildrenChanged();
         if (filterNode->GetRenderProperties().GetMaterialFilter()) {
             filterNode->UpdateFilterCacheWithBelowDirty(
@@ -3599,6 +3600,7 @@ void RSUniRenderVisitor::UpdateVisibleEffectChildrenStatus(const RSRenderNode& r
 void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
     const RSRenderNode& rootNode, RSDirtyRegionManager& dirtyManager)
 {
+    auto rotationStatus = GetRotationStatus();
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     // calculate visibleEffectChild oldDirtyInSurface for effectNode
     for (auto& child : rootNode.GetVisibleEffectChild()) {
@@ -3628,6 +3630,8 @@ void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
         if (effectNode == nullptr) {
             continue;
         }
+        effectNode->CheckBlurFilterCacheNeedForceClearOrSave(
+            rotationStatus.rotationChanged, rotationStatus.rotationStatusChanged);
         effectNode->UpdateChildHasVisibleEffectWithoutEmptyRect();
         effectNode->MarkClearFilterCacheIfEffectChildrenChanged();
         RectI filterRect;
@@ -4234,6 +4238,15 @@ RSSubTreePrepareController::~RSSubTreePrepareController()
     if (condition_) {
         isSubTreeForcePrepare_ = false;
     }
+}
+
+RSUniRenderVisitor::RotationStatus RSUniRenderVisitor::GetRotationStatus() const
+{
+    bool rotationChanged = curLogicalDisplayNode_ ?
+        curLogicalDisplayNode_->IsRotationChanged() || curLogicalDisplayNode_->IsLastRotationChanged() : false;
+    bool rotationStatusChanged = curLogicalDisplayNode_ ?
+        curLogicalDisplayNode_->GetPreRotationStatus() != curLogicalDisplayNode_->GetCurRotationStatus() : false;
+    return {rotationChanged, rotationStatusChanged};
 }
 } // namespace Rosen
 } // namespace OHOS

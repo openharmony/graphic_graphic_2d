@@ -146,6 +146,11 @@ public:
 
 private:
     /* Prepare relevant calculation */
+    struct RotationStatus {
+        bool rotationChanged;
+        bool rotationStatusChanged;
+    };
+    RotationStatus GetRotationStatus() const;
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
     // restore node's flag and filter dirty collection
