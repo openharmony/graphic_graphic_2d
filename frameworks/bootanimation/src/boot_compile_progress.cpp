@@ -104,6 +104,7 @@ void BootCompileProgress::Init(const std::string& configPath, const BootAnimatio
         TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? RADIUS * DOUBLE_TIMES : RADIUS);
 
     timeLimitSec_ = system::GetIntParameter<int32_t>(OTA_COMPILE_TIME_LIMIT, OTA_COMPILE_TIME_LIMIT_DEFAULT);
+    SkFontMgr::SetSymbolLoadMode(SymbolLoadMode::NONE);
     tf_ = Rosen::Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Rosen::Drawing::FontStyle());
 
     std::string defaultDisplayInfo = OTA_COMPILE_DISPLAY_INFO_DEFAULT;

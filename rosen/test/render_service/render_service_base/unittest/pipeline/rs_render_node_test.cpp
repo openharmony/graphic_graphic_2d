@@ -2436,11 +2436,13 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest001, TestSize.
 
     childNode->SetLastFrameUifirstFlag(MultiThreadCacheType::ARKTS_CARD);
     // ArkTsCard disable render group
+    nodeTest->SetForceDisableNodeGroup(true);
     nodeTest->UpdateDrawingCacheInfoAfterChildren();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 
     childNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
     nodeTest->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
+    nodeTest->SetForceDisableNodeGroup(false);
     nodeTest->UpdateDrawingCacheInfoAfterChildren();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
 }
@@ -3513,6 +3515,9 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, T
         = backgroundFilterDrawable;
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     renderNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
+    auto backgroundColorDrawable = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
+    renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]
+        = backgroundColorDrawable;
     renderNode->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
     renderNode->MarkForceClearFilterCacheWithInvisible();
     renderNode->UpdateFilterCacheWithBackgroundDirty();
@@ -4307,6 +4312,7 @@ HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode003, TestSize.Level1)
 
     // Set a background filter to make DisableHWCForFilter return true
     node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.needFilter_ = true;
 
     // With both ColorPickerDrawable and a real filter, should return false
     EXPECT_FALSE(node.IsColorPickerOnlyNode());

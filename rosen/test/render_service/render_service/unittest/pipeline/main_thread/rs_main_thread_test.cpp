@@ -3642,6 +3642,32 @@ HWTEST_F(RSMainThreadTest, AddTransactionDataPidInfo002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateAnimateNodeFlagTest
+ * @tc.desc: UpdateAnimateNodeFlag Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, UpdateAnimateNodeFlagTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto& context = mainThread->context_;
+    NodeId id1 = 1; // for test
+    auto node1 = std::make_shared<RSRenderNode>(id1);
+    NodeId id2 = 2; // for test
+    std::shared_ptr<RSRenderNode> node2 = nullptr;
+    context->curFrameAnimatingNodeList_[id1] = node1;
+    context->curFrameAnimatingNodeList_[id2] = node2;
+    NodeId displayId = 3;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayId, config);
+    context->curFrameAnimatingNodeList_[displayId] = displayNode;
+    EXPECT_EQ(displayNode->GetCurFrameHasAnimation(), false);
+    mainThread->UpdateAnimateNodeFlag();
+}
+
+/**
  * @tc.name: PerfAfterAnim001
  * @tc.desc: PerfAfterAnim Test, not UniRender, needRequestNextVsync
  * @tc.type: FUNC

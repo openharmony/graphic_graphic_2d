@@ -4895,7 +4895,12 @@ void RSMainThread::UpdateAnimateNodeFlag()
         context_->animatingNodeList_.end());
     for (auto& item : context_->curFrameAnimatingNodeList_) {
         auto node = item.second.lock();
-        if (node) {
+        if (!node) {
+            continue;
+        }
+        auto displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+        bool needSetCurFrameHasAnimation = !displayNode || !displayNode->IsOnlyHDRAnimation();
+        if (needSetCurFrameHasAnimation) {
             node->SetCurFrameHasAnimation(true);
         }
     }

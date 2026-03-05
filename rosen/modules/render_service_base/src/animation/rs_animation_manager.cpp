@@ -223,6 +223,11 @@ const FrameRateRange& RSAnimationManager::GetFrameRateRange() const
     return rsRange_;
 }
 
+const std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>>& RSAnimationManager::GetAnimations() const
+{
+    return animations_;
+}
+
 const std::shared_ptr<RSRenderAnimation> RSAnimationManager::GetAnimation(AnimationId id) const
 {
     auto animationItr = animations_.find(id);
