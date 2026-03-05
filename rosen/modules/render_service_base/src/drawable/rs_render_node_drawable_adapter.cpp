@@ -104,7 +104,6 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
 
     // Try to get a cached drawable if it exists.
     SharedPtr drawableSptr = nullptr;
-    bool cacheHit = false;
     {
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
         if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
@@ -112,16 +111,11 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
                 ROSEN_LOGE("%{public}s, nodeId in cache: %{public}" PRIu64 ", nodeType=%{public}u, "
                     "drawableType=%{public}u", __func__, id, node->GetType(), drawableSptr->GetNodeType());
                 if (node->GetType() == drawableSptr->GetNodeType()) {
-                    cacheHit = true;
+                    return drawableSptr;
                 }
             }
-            if (!cacheHit) {
-                RenderNodeDrawableCache_.erase(cacheIt);
-            }
+            RenderNodeDrawableCache_.erase(cacheIt);
         }
-    }
-    if (cacheHit) {
-        return drawableSptr;
     }
     drawableSptr = nullptr;
 
