@@ -83,6 +83,41 @@ public:
         params.detailStrength = data[29]; // 29 index
         return true;
     }
+
+    bool SetupReededGlassParams(OH_Filter_ReededGlassDataParams& params, size_t index)
+    {
+        if (index >= reededGlassParams.size()) {
+            return false;
+        }
+        const auto& data = reededGlassParams[index];
+        params.refractionFactor = data[0];
+        params.dispersionStrength = data[1];
+        params.roughness = data[2];
+        params.noiseFrequency = data[3];
+        params.horizontalPatternNumber = static_cast<uint8_t>(data[4]);
+        params.saturationFactor = data[5];
+        params.gridLightStrength = data[6];
+        params.gridLightPositionStart = data[7];
+        params.gridLightPositionEnd = data[8];
+        params.gridShadowStrength = data[9];
+        params.gridShadowPositionStart = data[10];
+        params.gridShadowPositionEnd = data[11];
+        params.pointLightColor = {data[12], data[13], data[14], data[15]};
+        params.pointLight1Position = {data[16], data[17]};
+        params.pointLight1Strength = data[18];
+        params.pointLight2Position = {data[19], data[20]};
+        params.pointLight2Strength = data[21];
+        params.portalLightSize = {data[22], data[23]};
+        params.portalLightTilt = {data[24], data[25]};
+        params.portalLightPosition = {data[26], data[27]};
+        params.portalLightDisperseAttenuation = data[28];
+        params.portalLightDisperse = data[29];
+        params.portalLightSmoothBorder = data[30];
+        params.portalLightShadowBorder = data[31];
+        params.portalLightShadowPositionShift = data[32];
+        params.portalLightStrength = data[33];
+        return true;
+    }
 };
 
 /*
@@ -124,6 +159,13 @@ GRAPHIC_TEST(OHFilterCascadeTest, EFFECT_TEST, All_Effects_Cascade_Test)
             continue;
         }
         OH_Filter_WaterGlass(ohFilter, &waterGlassParams);
+
+        OH_Filter_ReededGlassDataParams reededGlassParams = {};
+        if (!SetupReededGlassParams(reededGlassParams, i)) {
+            OH_Filter_Release(ohFilter);
+            continue;
+        }
+        OH_Filter_ReededGlass(ohFilter, &reededGlassParams);
 
         auto fgPixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         if (!fgPixelMapNative) {
