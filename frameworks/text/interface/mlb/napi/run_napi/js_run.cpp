@@ -93,6 +93,7 @@ bool JsRun::CreateConstructor(napi_env env)
         DECLARE_NAPI_FUNCTION("paint", JsRun::Paint),
         DECLARE_NAPI_FUNCTION("getTextDirection", JsRun::GetTextDirection),
         DECLARE_NAPI_FUNCTION("getAdvances", JsRun::GetAdvances),
+        DECLARE_NAPI_FUNCTION("getTextStyle", JsRun::GetTextStyle),
     };
 
     napi_value constructor = nullptr;
@@ -508,5 +509,22 @@ napi_value JsRun::OnGetTypographicBounds(napi_env env, napi_callback_info info)
     float leading = 0.0;
     float width = run_->GetTypographicBounds(&ascent, &descent, &leading);
     return GetTypographicBoundsAndConvertToJsValue(env, ascent, descent, leading, width);
+}
+
+napi_value JsRun::GetTextStyle(napi_env env, napi_callback_info info)
+{
+    JsRun* me = CheckParamsAndGetThis<JsRun>(env, info);
+    return (me != nullptr) ? me->OnGetTextStyle(env, info) : nullptr;
+}
+
+napi_value JsRun::OnGetTextStyle(napi_env env, napi_callback_info info)
+{
+    if (!run_) {
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiGetUndefined(env);
+    }
+
+    const TextStyle& textStyle = run_->GetTextStyle();
+    return CreateTextStyleJsValue(env, textStyle);
 }
 } // namespace OHOS::Rosen

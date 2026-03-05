@@ -18,6 +18,7 @@
 
 #include "txt/text_types.h"
 #include "draw/canvas.h"
+#include "txt/text_style.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -40,6 +41,7 @@ public:
     virtual Drawing::Rect GetImageBounds() const = 0;
     virtual float GetTypographicBounds(float* ascent, float* descent, float* leading) const = 0;
     virtual void Paint(Drawing::Canvas* canvas, double x, double y) = 0;
+    virtual TextStyle GetTextStyle() const = 0;
 };
 } // namespace SPText
 } // namespace Rosen

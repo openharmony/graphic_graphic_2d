@@ -44,6 +44,7 @@ public:
     Drawing::Rect GetImageBounds() const override;
     float GetTypographicBounds(float* ascent, float* descent, float* leading) const override;
     void Paint(Drawing::Canvas* canvas, double x, double y) override;
+    TextStyle GetTextStyle() const override;
 
 private:
     std::unique_ptr<skia::textlayout::RunBase> runBase_;
