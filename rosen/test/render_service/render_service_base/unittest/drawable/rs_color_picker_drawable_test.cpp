@@ -332,40 +332,6 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable010, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSColorPickerDrawable011
- * @tc.desc: Test Prepare with task scheduling
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable011, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-
-    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
-    ASSERT_NE(drawable, nullptr);
-
-    // Create a ColorPickerParam with 1000ms interval
-    auto params = std::make_shared<ColorPickerParam>();
-    params->strategy = ColorPickStrategyType::DOMINANT;
-    params->placeholder = ColorPlaceholder::FOREGROUND;
-    params->interval = 1000;
-    drawable->stagingColorPicker_ = params;
-    drawable->lastUpdateTime_ = 1000;
-    drawable->isTaskScheduled_ = false;
-
-    // vsyncTime is 1500ms, interval not elapsed (1500 < 1000 + 1000) so task should be scheduled
-    uint64_t vsyncTime = 1500000000;
-    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
-
-    // Task should be scheduled (isTaskScheduled_ set to true)
-    // Note: We can't easily verify the actual task was posted without mocking
-    EXPECT_FALSE(needColorPick);
-    EXPECT_FALSE(needSync); // stagingNeedColorPick_ stays false, darkMode unchanged
-    EXPECT_TRUE(drawable->isTaskScheduled_);
-}
-
-/**
  * @tc.name: RSColorPickerDrawable012
  * @tc.desc: Test OnDraw with needColorPick logic and OnSync
  * @tc.type:FUNC

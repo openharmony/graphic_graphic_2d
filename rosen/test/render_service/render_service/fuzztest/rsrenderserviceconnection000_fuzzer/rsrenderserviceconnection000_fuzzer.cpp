@@ -43,9 +43,23 @@
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
 #include <system_ability_definition.h>
+#include "vsync_iconnection_token.h"
+#include "iremote_proxy.h"
+#include "iremote_stub.h"
 
 namespace OHOS {
 namespace Rosen {
+
+class MockVSyncIConnectionTokenStub : public IRemoteStub<VSyncIConnectionToken> {
+public:
+    MockVSyncIConnectionTokenStub() = default;
+    virtual ~MockVSyncIConnectionTokenStub() noexcept = default;
+    
+    bool IsProxyObject() const override
+    {
+        return true;
+    }
+};
 
 int32_t g_pid;
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
@@ -474,13 +488,14 @@ void DoCreateVSyncConnection()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
 
-    sptr<VSyncIConnectionToken> vsyncIConnectionToken_ = new IRemoteStub<VSyncIConnectionToken>();
     uint64_t id = GetData<uint64_t>();
     NodeId windowNodeID = GetData<NodeId>();
     std::string name = GetData<std::string>();
-    dataParcel.WriteString(name);
     bool fromXcomponent = GetData<bool>();
-    dataParcel.WriteRemoteObject(vsyncIConnectionToken_->AsObject());
+
+    sptr<MockVSyncIConnectionTokenStub> mockStub = new MockVSyncIConnectionTokenStub();
+    dataParcel.WriteString(name);
+    dataParcel.WriteRemoteObject(mockStub->AsObject());
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint64(windowNodeID);
     dataParcel.WriteBool(fromXcomponent);

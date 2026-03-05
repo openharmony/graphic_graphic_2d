@@ -47,6 +47,7 @@ auto mainThread_ = RSMainThread::Instance();
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
+
 namespace {
 const uint8_t DO_GET_HIGH_CONTRAST_TEXT_STATE = 0;
 const uint8_t DO_COMMIT_TRANSACTION = 1;
@@ -57,7 +58,8 @@ const uint8_t DO_SET_HARDWARE_ENABLED = 5;
 const uint8_t DO_EXECUTE_SYNCHRONOUS_TASK = 6;
 const uint8_t DO_GET_PIXELMAP = 7;
 const uint8_t DO_GET_BITMAP = 8;
-const uint8_t TARGET_SIZE = 9;
+const uint8_t DO_GET_MEMORY_GRAPHICS = 9;
+const uint8_t TARGET_SIZE = 10;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -134,9 +136,8 @@ void DoCreateNodeAndSurface()
     MessageParcel replyParcel;
     MessageOption option;
 
-    FuzzedDataProvider fdp(DATA, g_size);
-    uint8_t type = fdp.ConsumeIntegralInRange<uint8_t>(0, 13);
-    uint8_t surfaceWindowType = fdp.ConsumeIntegralInRange<uint8_t>(1, 6);
+    uint8_t type = GetData<uint8_t>() % 14;
+    uint8_t surfaceWindowType = GetData<uint8_t>() % 11;
     NodeId id = static_cast<NodeId>(g_pid) << 32;
     bool isTextureExportNode = GetData<bool>();
     bool isSync = GetData<bool>();
@@ -236,6 +237,19 @@ void DoGetBitmap()
     dataParcel.WriteUint64(id);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
+
+void DoGetMemoryGraphics()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -327,6 +341,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_BITMAP:
             OHOS::Rosen::DoGetBitmap();
+            break;
+        case OHOS::Rosen::DO_GET_MEMORY_GRAPHICS:
+            OHOS::Rosen::DoGetMemoryGraphics();
             break;
         default:
             return -1;

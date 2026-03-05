@@ -68,8 +68,7 @@ private:
     bool needColorPick_ = false;
     bool stagingIsSystemDarkColorMode_ = false;
     bool needSync_ = false;
-    bool isTaskScheduled_ = false; // Flag to indicate if a task is already scheduled during cooldown
-    uint64_t lastUpdateTime_ = 0;  // Set in Prepare
+    uint64_t lastUpdateTime_ = 0;  // Only used in Prepare
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

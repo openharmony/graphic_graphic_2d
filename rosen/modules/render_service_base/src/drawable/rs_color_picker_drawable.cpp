@@ -61,14 +61,6 @@ std::pair<bool, bool> RSColorPickerDrawable::PrepareForExecution(uint64_t vsyncT
     if (vsyncTimeMs >= interval + lastUpdateTime_) {
         stagingNeedColorPick_ = true;
         lastUpdateTime_ = vsyncTimeMs;
-        isTaskScheduled_ = false; // Reset flag when processing a new frame
-    } else if (!isTaskScheduled_) {
-        // Schedule a postponed task to catch frames rendered during cooldown
-        uint64_t remainingDelay = (interval + lastUpdateTime_) - vsyncTimeMs;
-        isTaskScheduled_ = true;
-        RSColorPickerThread::Instance().PostTask(
-            [nodeId = stagingNodeId_]() { RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); }, false,
-            static_cast<int64_t>(remainingDelay));
     }
     return { stagingNeedColorPick_, prev != stagingNeedColorPick_ || darkModeChanged };
 }

@@ -50,14 +50,14 @@ sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 
 namespace {
-const uint8_t DO_SET_POINTER_COLOR_INVERSION_CONFIG = 1;
-const uint8_t DO_SET_POINTER_COLOR_INVERSION_ENABLED = 2;
-const uint8_t DO_REGISTER_POINTER_LUMINANCE_CALLBACK = 3;
-const uint8_t DO_UNREGISTER_POINTER_LUMINANCE_CALLBACK = 4;
-const uint8_t DO_REGISTER_APPLICATION_AGENT = 5;
-const uint8_t DO_SET_BUFFER_AVAILABLE_LISTENER = 6;
-const uint8_t DO_SET_BUFFER_CLEAR_LISTENER = 7;
-const uint8_t TARGET_SIZE = 8;
+const uint8_t DO_SET_POINTER_COLOR_INVERSION_CONFIG = 0;
+const uint8_t DO_SET_POINTER_COLOR_INVERSION_ENABLED = 1;
+const uint8_t DO_REGISTER_POINTER_LUMINANCE_CALLBACK = 2;
+const uint8_t DO_UNREGISTER_POINTER_LUMINANCE_CALLBACK = 3;
+const uint8_t DO_REGISTER_APPLICATION_AGENT = 4;
+const uint8_t DO_SET_BUFFER_AVAILABLE_LISTENER = 5;
+const uint8_t DO_SET_BUFFER_CLEAR_LISTENER = 6;
+const uint8_t TARGET_SIZE = 7;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -190,6 +190,17 @@ void DoUnRegisterPointerLuminanceChangeCallback()
 #endif
 }
 
+class ApplicationAgentImpl : public IRemoteStub<IApplicationAgent> {
+public:
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override
+    {
+        return 0;
+    }
+    void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override
+    {
+    }
+};
+
 void DoRegisterApplicationAgent()
 {
     uint32_t code =
@@ -198,7 +209,8 @@ void DoRegisterApplicationAgent()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
 
-    dataParcel.WriteRemoteObject(nullptr);
+    sptr<ApplicationAgentImpl> agent = new ApplicationAgentImpl();
+    dataParcel.WriteRemoteObject(agent);
     dataParcel.RewindRead(0);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
@@ -224,7 +236,7 @@ void DoRegisterBufferAvailableListener()
     sptr<RSIBufferAvailableCallback> rsIBufferAvailableCallback_ = new CustomTestBufferAvailableCallback();
     auto nodeId = static_cast<NodeId>(g_pid) << 32;
     bool isFromRenderThread = GetData<bool>();
-    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteRemoteObject(rsIBufferAvailableCallback_->AsObject());
     dataParcel.WriteBool(isFromRenderThread);
