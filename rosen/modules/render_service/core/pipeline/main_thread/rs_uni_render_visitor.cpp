@@ -350,6 +350,7 @@ bool RSUniRenderVisitor::IsWiredMirrorScreen(RSScreenRenderNode& node)
 
 void RSUniRenderVisitor::HandleWiredMirrorScreenColorGamut(RSScreenRenderNode& node)
 {
+    
     if (!MultiScreenParam::IsMirrorDisplayCloseP3()) {
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
         if (!mirrorNode) {
