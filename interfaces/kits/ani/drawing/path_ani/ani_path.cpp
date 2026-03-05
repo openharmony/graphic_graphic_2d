@@ -816,7 +816,7 @@ ani_boolean AniPath::Interpolate(ani_env* env, ani_object obj, ani_object othero
         return false;
     }
     
-    if (weight < 0. || weight > 1.0) { // 0. and 1.0 is the restricitions of weight
+    if (weight < 0. || weight > 1.0) { // 1.0: upper limit of weight; 0.: lower limit of weight
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "weight is Invalid.");
         return false;
     }
