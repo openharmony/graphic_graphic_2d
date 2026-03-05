@@ -255,6 +255,13 @@ void RSColorPickerDrawable::SetIsSystemDarkColorMode(bool isSystemDarkColorMode)
     }
 }
 
+void RSColorPickerDrawable::ResetColorMemory()
+{
+    if (colorPickerManager_) {
+        colorPickerManager_->ResetColorMemory();
+    }
+}
+
 // ==================== RSCustomModifierDrawable ===================
 RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, ModifierNG::RSModifierType type)
 {

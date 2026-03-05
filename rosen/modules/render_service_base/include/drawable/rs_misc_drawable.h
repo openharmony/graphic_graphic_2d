@@ -88,6 +88,7 @@ public:
      * needSync indicates if @c needColorPick are updated and need to be synced to render thread
      */
     RSB_EXPORT std::pair<bool, bool> PrepareForExecution(uint64_t vsyncTime, bool darkMode);
+    void ResetColorMemory();
 
 private:
     NodeId stagingNodeId_ = INVALID_NODEID;
