@@ -41,6 +41,7 @@ public:
         SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds);
     static bool NeedProcessSecLayerInDisplay(bool enableVisibleRect, RSScreenRenderParams& mirrorScreenParam,
         RSLogicalDisplayRenderParams& mirrorParam, RSLogicalDisplayRenderParams& sourceParam);
+    static bool HasMirrorDisplay(const RSRenderNodeMap& nodeMap);
 private:
     static bool CheckCurrentTypeIntersectVisibleRect(const std::unordered_set<NodeId>& nodeIds,
         uint32_t currentType, const RectI& visibleRect);

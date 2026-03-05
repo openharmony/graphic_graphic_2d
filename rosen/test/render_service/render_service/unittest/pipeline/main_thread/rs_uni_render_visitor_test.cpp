@@ -9018,5 +9018,106 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClea
 
     // Color picker only node should be skipped without errors
 }
+
+/**
+ * @tc.name: UpdateBlackListRecord_HasMirrorUsedInSpecialLayerTest
+ * @tc.desc: Test UpdateBlackListRecord when hasMirrorUsedInSpecialLayer_ is true
+ * @tc.type: FUNC
+ * @tc.require: issue22589
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_HasMirrorUsedInSpecialLayerTest, TestSize.Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->screenState_ = ScreenState::UNKNOWN;
+    rsUniRenderVisitor->screenManager_ = screenManager;
+    rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_ = true;
+
+    rsUniRenderVisitor->UpdateBlackListRecord(*node);
+    ASSERT_TRUE(screenManager->GetBlackListVirtualScreenByNode(node->GetId()).empty());
+}
+
+/**
+ * @tc.name: UpdateBlackListRecord_NoMirrorUsedInSpecialLayerTest
+ * @tc.desc: Test UpdateBlackListRecord when hasMirrorUsedInSpecialLayer_ is false
+ * @tc.type: FUNC
+ * @tc.require: issue22589
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_NoMirrorUsedInSpecialLayerTest, TestSize.Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->screenState_ = ScreenState::UNKNOWN;
+    rsUniRenderVisitor->screenManager_ = screenManager;
+    rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_ = false;
+
+    rsUniRenderVisitor->UpdateBlackListRecord(*node);
+    ASSERT_TRUE(screenManager->GetBlackListVirtualScreenByNode(node->GetId()).empty());
+}
+
+/**
+ * @tc.name: UpdateBlackListRecord_NullScreenManagerTest
+ * @tc.desc: Test UpdateBlackListRecord when screenManager_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue22589
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_NullScreenManagerTest, TestSize.Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNode();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->screenState_ = ScreenState::UNKNOWN;
+    rsUniRenderVisitor->screenManager_ = nullptr;
+    rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_ = true;
+
+    // Setup curLogicalDisplayNode_ with initial state for verification
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+        std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+
+    // Verify IS_BLACK_LIST is not set before the call
+    ASSERT_FALSE(rsUniRenderVisitor->curLogicalDisplayNode_->GetSpecialLayerMgr().Find(
+        SpecialLayerType::IS_BLACK_LIST));
+
+    rsUniRenderVisitor->UpdateBlackListRecord(*node);
+
+    // Verify IS_BLACK_LIST is still not set after the call
+    // Since UpdateBlackListRecord should return early when screenManager_ is nullptr,
+    // curLogicalDisplayNode_->GetMultableSpecialLayerMgr().AddIdsWithScreen() should not be executed
+    ASSERT_FALSE(rsUniRenderVisitor->curLogicalDisplayNode_->GetSpecialLayerMgr().Find(
+        SpecialLayerType::IS_BLACK_LIST));
+}
+
+/**
+ * @tc.name: UpdateBlackListRecord_VirtualDisplayWithMirrorTest
+ * @tc.desc: Test UpdateBlackListRecord with virtual display and hasMirrorUsedInSpecialLayer_
+ * @tc.type: FUNC
+ * @tc.require: issue22589
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_VirtualDisplayWithMirrorTest, TestSize.Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->screenState_ = ScreenState::PRODUCER_SURFACE_ENABLE;
+    rsUniRenderVisitor->screenManager_ = screenManager;
+    rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_ = true;
+
+    rsUniRenderVisitor->UpdateBlackListRecord(*node);
+    ASSERT_TRUE(screenManager->GetBlackListVirtualScreenByNode(node->GetId()).empty());
+}
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

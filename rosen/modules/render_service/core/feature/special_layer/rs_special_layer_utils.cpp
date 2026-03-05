@@ -148,5 +148,18 @@ bool RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(bool enableVisibleRect, R
     return enableVisibleRect ? sourceParam.HasSecLayerInVisibleRect() :
         sourceParam.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
 }
+
+bool RSSpecialLayerUtils::HasMirrorDisplay(const RSRenderNodeMap& nodeMap)
+{
+    bool hasMirrorDisplay = false;
+    nodeMap.TraverseLogicalDisplayNodes(
+        [&hasMirrorDisplay](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
+            if (displayRenderNode != nullptr && displayRenderNode->GetMirrorSource().lock()) {
+                hasMirrorDisplay = true;
+            }
+        }
+    );
+    return hasMirrorDisplay;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -456,6 +456,7 @@ private:
     bool isOcclusionEnabled_ = false;
     bool hasMirrorDisplay_ = false;
     bool hasMirrorUsedInDirtyRegion_ = false;
+    bool hasMirrorUsedInSpecialLayer_ = false;
     Drawing::Rect boundsRect_ {};
     Gravity frameGravity_ = Gravity::DEFAULT;
     // vector of current displaynode mainwindow surface visible info
