@@ -353,7 +353,7 @@ void RSUniRenderVisitor::HandleWiredMirrorScreenColorGamut(RSScreenRenderNode& n
     std::vector<ScreenColorGamut> mode{};
     int32_t ret = screenManager_->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
     if (ret != SUCCESS) {
-        RS_LOGD("HandleWiredExtendedScreenColorGamut GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
+        RS_LOGD("HandleWiredMirrorScreenColorGamut GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
     }
     if (!MultiScreenParam::IsMirrorDisplayCloseP3()) {
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
