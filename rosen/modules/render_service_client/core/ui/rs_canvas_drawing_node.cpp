@@ -202,7 +202,11 @@ void RSCanvasDrawingNode::PreAllocateDMABuffer(
         return;
     }
 
-    auto node = weakNode.lock(); // After CheckNodeAndSurfaceBufferState, node not be nullptr
+    auto node = weakNode.lock();
+    if (node == nullptr) {
+        RS_LOGE("PreAllocateDMABuffer: null node, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
     if (result == StatusCode::SUCCESS) {
         std::lock_guard<ffrt::mutex> lock(*node->surfaceBufferMutex_);
         node->canvasSurfaceBuffer_ = buffer;
