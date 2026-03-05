@@ -539,6 +539,29 @@ void RSRenderNodeDrawableAdapter::CollectInfoForUnobscuredUEC(Drawing::Canvas& c
     }
 }
 
+void RSRenderNodeDrawableAdapter::AlignRectToDevicePixels(
+    const Drawing::Matrix& matrix, Drawing::Rect& rect)
+{
+    // 方案：直接对齐设备坐标，映射回本地坐标
+    // 这样可以确保在设备空间是整数像素，且与绘制时使用的矩阵一致
+    
+    Drawing::Rect deviceRect;
+    matrix.MapRect(deviceRect, rect);
+    
+    // 在设备坐标空间取整
+    deviceRect.SetLeft(std::floor(deviceRect.GetLeft()));
+    deviceRect.SetTop(std::floor(deviceRect.GetTop()));
+    deviceRect.SetRight(std::ceil(deviceRect.GetRight()));
+    deviceRect.SetBottom(std::ceil(deviceRect.GetBottom()));
+    
+    // 将取整后的设备坐标映射回本地坐标
+    Drawing::Matrix inverseMatrix;
+    if (!matrix.Invert(inverseMatrix)) {
+        return;
+    }
+    inverseMatrix.MapRect(rect, deviceRect);
+}
+
 void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
     Drawing::Canvas& canvas, const RSRenderParams& params)
 {
@@ -553,6 +576,11 @@ void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
     RS_OPTIONAL_TRACE_NAME_FMT(
         "ClipHoleForBlurOrExcludedSubtree Rect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
     Drawing::AutoCanvasRestore arc(*curCanvas, true);
+    auto matrix = canvas.GetTotalMatrix();
+    AlignRectToDevicePixels(matrix, filterRect);
+    matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    canvas.SetMatrix(matrix);
     curCanvas->ResetClip();
     curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
     curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);

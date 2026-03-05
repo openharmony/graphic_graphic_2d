@@ -1228,6 +1228,102 @@ HWTEST_F(RSRenderNodeDrawableTest, RemoveDrawableFromCacheWithNullDrawableTest00
     }
 }
 
+/**
+ * @tc.name: DrawCachedImageWithScaleBranchTest001
+ * @tc.desc: Test DrawCachedImage scale branch (OpincMark=true, freezeFlag=false)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({100.0f, 100.0f});
+    params.SetRSFreezeFlag(false);
+
+    drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
+    ASSERT_NE(drawable->cachedSurface_, nullptr);
+
+    drawable->opincDrawCache_.isOpincMarkCached_ = true;
+    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize(), nullptr, false);
+    ASSERT_NE(drawable->cachedSurface_, nullptr);
+}
+
+/**
+ * @tc.name: DrawCachedImageWithScaleBranchTest002
+ * @tc.desc: Test DrawCachedImage scale branch (OpincMark=false, freezeFlag=true)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest002, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({100.0f, 100.0f});
+    params.SetRSFreezeFlag(true);
+
+    drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
+    ASSERT_NE(drawable->cachedSurface_, nullptr);
+
+    drawable->opincDrawCache_.isOpincMarkCached_ = false;
+    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize(), nullptr, true);
+    ASSERT_NE(drawable->cachedSurface_, nullptr);
+}
+
+/**
+ * @tc.name: DrawCachedImageWithScaleBranchTest003
+ * @tc.desc: Test DrawCachedImage scale branch (OpincMark=true, freezeFlag=true)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest003, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({100.0f, 100.0f});
+    params.SetRSFreezeFlag(true);
+
+    drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
+    ASSERT_NE(drawable->cachedSurface_, nullptr);
+
+    drawable->opincDrawCache_.isOpincMarkCached_ = true;
+    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize(), nullptr, true);
+    ASSERT_NE(drawable->cachedSurface_, nullptr);
+}
+
+/**
+ * @tc.name: DrawCachedImageWithScaleBranchTest004
+ * @tc.desc: Test DrawCachedImage scale branch (OpincMark=false, freezeFlag=false)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest004, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({100.0f, 100.0f});
+    params.SetRSFreezeFlag(false);
+
+    drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
+    ASSERT_NE(drawable->cachedSurface_, nullptr);
+
+    drawable->opincDrawCache_.isOpincMarkCached_ = false;
+    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize(), nullptr, false);
+    ASSERT_NE(drawable->cachedSurface_, nullptr);
+}
+
 #ifdef SUBTREE_PARALLEL_ENABLE
 /**
  * @tc.name: OnDrawTest

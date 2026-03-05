@@ -328,6 +328,7 @@ protected:
     void CollectInfoForUnobscuredUEC(Drawing::Canvas& canvas);
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     Drawing::Rect GetFilterRelativeRect(const Drawing::Rect& rect) const;
+    void AlignRectToDevicePixels(const Drawing::Matrix& matrix, Drawing::Rect& rect);
 
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
