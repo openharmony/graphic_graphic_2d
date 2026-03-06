@@ -1154,6 +1154,218 @@ HWTEST_F(RSUniRenderVisitorTest, CollectSubTreeAndProcessOcclusion001, TestSize.
     ASSERT_EQ(rsUniRenderVisitor->curOcclusionHandler_, nullptr);
 }
 
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildren_CloseInnerGroup001
+ * @tc.desc: Test closing inner render group - condition: [true, true, true]
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildren_CloseInnerGroup001, TestSize.Level2)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    
+    auto ancestorNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(ancestorNode, nullptr);
+    ancestorNode->InitRenderParams();
+    ancestorNode->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    
+    auto testNode = std::make_shared<RSCanvasRenderNode>(2);
+    ASSERT_NE(testNode, nullptr);
+    testNode->InitRenderParams();
+    testNode->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    testNode->SetChildHasVisibleFilter(true);
+    
+    visitor->isDrawingCacheEnabled_ = true;
+    visitor->AddRenderGroupCacheRoot(*ancestorNode);
+    visitor->UpdateDrawingCacheInfoAfterChildren(*testNode);
+    
+    EXPECT_EQ(testNode->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildren_NoCloseNoFilter002
+ * @tc.desc: Test not closing inner render group - condition: [true, true, false]
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildren_NoCloseNoFilter002, TestSize.Level2)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    
+    auto ancestorNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(ancestorNode, nullptr);
+    ancestorNode->InitRenderParams();
+    ancestorNode->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    
+    auto testNode = std::make_shared<RSCanvasRenderNode>(2);
+    ASSERT_NE(testNode, nullptr);
+    testNode->InitRenderParams();
+    testNode->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    testNode->SetChildHasVisibleFilter(false);
+    testNode->SetChildHasVisibleEffect(false);
+    
+    visitor->isDrawingCacheEnabled_ = true;
+    visitor->AddRenderGroupCacheRoot(*ancestorNode);
+    visitor->UpdateDrawingCacheInfoAfterChildren(*testNode);
+    
+    EXPECT_NE(testNode->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildren_NoCloseNoAncestor003
+ * @tc.desc: Test not closing inner render group - condition: [true, false, true]
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildren_NoCloseNoAncestor003, TestSize.Level2)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    
+    auto testNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(testNode, nullptr);
+    testNode->InitRenderParams();
+    testNode->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    testNode->SetChildHasVisibleFilter(true);
+    
+    visitor->isDrawingCacheEnabled_ = true;
+    visitor->UpdateDrawingCacheInfoAfterChildren(*testNode);
+    
+    EXPECT_NE(testNode->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildren_NoCloseNoAncestorNoFilter004
+ * @tc.desc: Test not closing inner render group - condition: [true, false, false]
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildren_NoCloseNoAncestorNoFilter004, TestSize.Level2)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    
+    auto testNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(testNode, nullptr);
+    testNode->InitRenderParams();
+    testNode->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    testNode->SetChildHasVisibleFilter(false);
+    testNode->SetChildHasVisibleEffect(false);
+    
+    visitor->isDrawingCacheEnabled_ = true;
+    visitor->UpdateDrawingCacheInfoAfterChildren(*testNode);
+    
+    EXPECT_NE(testNode->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildren_NoCloseAlreadyDisabled005
+ * @tc.desc: Test not closing inner render group - condition: [false, true, true]
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildren_NoCloseAlreadyDisabled005, TestSize.Level2)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    
+    auto ancestorNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(ancestorNode, nullptr);
+    ancestorNode->InitRenderParams();
+    ancestorNode->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    
+    auto testNode = std::make_shared<RSCanvasRenderNode>(2);
+    ASSERT_NE(testNode, nullptr);
+    testNode->InitRenderParams();
+    testNode->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    testNode->SetChildHasVisibleFilter(true);
+    
+    visitor->isDrawingCacheEnabled_ = true;
+    visitor->AddRenderGroupCacheRoot(*ancestorNode);
+    visitor->UpdateDrawingCacheInfoAfterChildren(*testNode);
+    
+    EXPECT_EQ(testNode->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildren_NoCloseDisabledNoFilter006
+ * @tc.desc: Test not closing inner render group - condition: [false, true, false]
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildren_NoCloseDisabledNoFilter006, TestSize.Level2)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    
+    auto ancestorNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(ancestorNode, nullptr);
+    ancestorNode->InitRenderParams();
+    ancestorNode->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    
+    auto testNode = std::make_shared<RSCanvasRenderNode>(2);
+    ASSERT_NE(testNode, nullptr);
+    testNode->InitRenderParams();
+    testNode->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    testNode->SetChildHasVisibleFilter(false);
+    testNode->SetChildHasVisibleEffect(false);
+    
+    visitor->isDrawingCacheEnabled_ = true;
+    visitor->AddRenderGroupCacheRoot(*ancestorNode);
+    visitor->UpdateDrawingCacheInfoAfterChildren(*testNode);
+    
+    EXPECT_EQ(testNode->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildren_NoCloseDisabledNoAncestor007
+ * @tc.desc: Test not closing inner render group - condition: [false, false, true]
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildren_NoCloseDisabledNoAncestor007, TestSize.Level2)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    
+    auto testNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(testNode, nullptr);
+    testNode->InitRenderParams();
+    testNode->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    testNode->SetChildHasVisibleFilter(true);
+    
+    visitor->isDrawingCacheEnabled_ = true;
+    visitor->UpdateDrawingCacheInfoAfterChildren(*testNode);
+    
+    EXPECT_EQ(testNode->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildren_NoCloseAllFalse008
+ * @tc.desc: Test not closing inner render group - condition: [false, false, false]
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildren_NoCloseAllFalse008, TestSize.Level2)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    
+    auto testNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(testNode, nullptr);
+    testNode->InitRenderParams();
+    testNode->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    testNode->SetChildHasVisibleFilter(false);
+    testNode->SetChildHasVisibleEffect(false);
+    
+    visitor->isDrawingCacheEnabled_ = true;
+    visitor->UpdateDrawingCacheInfoAfterChildren(*testNode);
+    
+    EXPECT_EQ(testNode->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+}
+
 /*
  * @tc.name: SetSurfafaceGlobalDirtyRegion
  * @tc.desc: Add two surfacenode child to test global dirty region

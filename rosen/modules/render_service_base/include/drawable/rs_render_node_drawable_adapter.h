@@ -320,7 +320,7 @@ protected:
     void DrawAfterCacheWithForegroundFilter(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
     // used for render group
-    void SkipDrawBackGroundAndClipHoleForBlur(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void SkipDrawSubtreeAndClipHole(Drawing::Canvas& canvas, const RSRenderParams& params);
     void DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;

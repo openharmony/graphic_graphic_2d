@@ -524,22 +524,19 @@ void RSRenderNodeDrawableAdapter::CollectInfoForUnobscuredUEC(Drawing::Canvas& c
     }
 }
 
-void RSRenderNodeDrawableAdapter::SkipDrawBackGroundAndClipHoleForBlur(
+void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
     Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    if (drawCmdList_.empty()) {
-        return;
-    }
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!curCanvas) {
-        RS_LOGD("RSRenderNodeDrawableAdapter::SkipDrawBackGroundAndClipHoleForBlur curCanvas is null");
+        RS_LOGD("RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole curCanvas is null");
         return;
     }
     auto shadowRect = params.GetShadowRect();
     auto filterRect = GetFilterRelativeRect(params.GetBounds());
     filterRect.Join(shadowRect);
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "ClipHoleForBlur filterRect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
+        "ClipHoleForBlurOrExcludedSubtree filterRect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
     Drawing::AutoCanvasRestore arc(*curCanvas, true);
     curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
     curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
