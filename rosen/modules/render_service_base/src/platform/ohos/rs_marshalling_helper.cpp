@@ -54,6 +54,7 @@
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
+#include "platform/ohos/rs_iclient_to_service_connection.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"
@@ -3553,25 +3554,59 @@ bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
     return true;
 }
 
+size_t CommitTransactionFlagsOffset()
+{
+    MessageParcel parcel;
+    parcel.WriteInt32(0);
+    return parcel.GetWritePosition();
+}
+
+size_t CommitTransactionWithTokenFlagsOffset()
+{
+    MessageParcel parcel;
+    parcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    parcel.WriteInt32(0);
+    return parcel.GetWritePosition();
+}
+
+size_t RemoteRequestFlagsOffset()
+{
+    MessageParcel parcel;
+    parcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    return parcel.GetWritePosition();
+}
+
 bool RSMarshallingHelper::TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag)
 {
-    constexpr size_t startPositionOffset = 4;
+    // 1. token flag 2. transaction flag 3. remote request flag
+    static const uint32_t flagNum = 3;
+    static const size_t flagsOffset[flagNum] = { CommitTransactionWithTokenFlagsOffset(),
+        CommitTransactionFlagsOffset(), RemoteRequestFlagsOffset() };
 
-    size_t offset = parcel.GetReadPosition();
-    parcel.RewindRead(startPositionOffset);
-    int64_t headerCode = parcel.ReadInt64();
-    if (headerCode == -1) {
-        uint64_t flags = 0;
-        constexpr uint8_t bitsPerUint64 = 64;
-        int numReads = supportedFlag / bitsPerUint64 + 1;
-        for (int i = 0; i < numReads; i++) {
-            flags = parcel.ReadUint64();
-        }
+    const auto offset = parcel.GetReadPosition();
+
+    bool hasFlags = false;
+    for (const auto& offset : flagsOffset) {
         parcel.RewindRead(offset);
-        return flags & (static_cast<uint64_t>(1) << (supportedFlag % bitsPerUint64));
+        if (parcel.ReadInt64() == -1) {
+            hasFlags = true;
+            break;
+        }
+    }
+
+    if (!hasFlags) {
+        parcel.RewindRead(offset);
+        return false;
+    }
+
+    uint64_t flags = 0;
+    constexpr uint8_t bitsPerUint64 = 64;
+    const int numReads = supportedFlag / bitsPerUint64 + 1;
+    for (int i = 0; i < numReads; i++) {
+        flags = parcel.ReadUint64();
     }
     parcel.RewindRead(offset);
-    return false;
+    return flags & (static_cast<uint64_t>(1) << (supportedFlag % bitsPerUint64));
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSRenderParticleVector& val)

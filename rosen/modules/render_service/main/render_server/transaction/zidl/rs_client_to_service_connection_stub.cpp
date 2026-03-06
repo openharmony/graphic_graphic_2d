@@ -2297,6 +2297,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP): {
+            RSMarshallingHelper::UnmarshallingTransactionVer(data);
             NodeId id{0};
             if (!data.ReadUint64(id)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_PIXELMAP Read id failed!");

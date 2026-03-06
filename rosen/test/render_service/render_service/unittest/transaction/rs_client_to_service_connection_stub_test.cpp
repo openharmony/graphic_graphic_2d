@@ -3775,4 +3775,22 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterSharedTypefaceTest001, Tes
     auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
     ASSERT_EQ(res, ERR_OK);
 }
+
+/**
+ * @tc.name: GetPixelMapTest
+ * @tc.desc: Test GetPixelMap
+ * @tc.type: FUNC
+ * @tc.require: 2267
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetPixelMapTest, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteBool(false);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP);
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_NE(res, ERR_OK);
+}
 } // namespace OHOS::Rosen
