@@ -338,10 +338,14 @@ void RSTransactionHandler::CommitSyncTransaction(uint64_t syncId, uint64_t times
     if (renderThreadClient_) {
         ProcessSyncTransactionStack(implicitCommonTransactionDataStack_, *renderThreadClient_,
             syncId, timestamp, tid, abilityName);
+    } else {
+        std::stack<std::unique_ptr<RSTransactionData>>().swap(implicitCommonTransactionDataStack_);
     }
     if (renderServiceClient_) {
         ProcessSyncTransactionStack(implicitRemoteTransactionDataStack_, *renderServiceClient_,
             syncId, timestamp, tid, "");
+    } else {
+        std::stack<std::unique_ptr<RSTransactionData>>().swap(implicitRemoteTransactionDataStack_);
     }
 }
 
