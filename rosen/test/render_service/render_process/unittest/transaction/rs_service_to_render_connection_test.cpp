@@ -32,6 +32,10 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
+constexpr const int WAIT_HANDLER_TIME = 1; // 1S
+constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
+
+std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
 sptr<RSServiceToRenderConnection> g_rsConn = nullptr;
 }
 
@@ -41,32 +45,73 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static void WaitHandlerTask();
 };
 
 void RSServiceToRenderConnectionTest::SetUpTestCase()
 {
-    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline = std::make_shared<RSRenderPipeline>();
     renderPipeline->imageEnhanceManager_ = std::make_shared<ImageEnhanceManager>();
 
     auto runner1 = AppExecFwk::EventRunner::Create(true);
     auto handler1 = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner1);
     auto mainThread = RSMainThread::Instance();
+    mainThread->hwcContext_ =
+        std::make_shared<RSHwcContext>(HWCParam::GetSourceTuningForAppMap(), HWCParam::GetSolidColorLayerMap());
     renderPipeline->mainThread_ = mainThread;
     renderPipeline->mainThread_->handler_ = handler1;
+    runner1->Run();
 
     renderPipeline->uniRenderThread_ = &(RSUniRenderThread::Instance());
     auto runner2 = AppExecFwk::EventRunner::Create(true);
     renderPipeline->uniRenderThread_->runner_ = runner2;
     renderPipeline->uniRenderThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner2);
+    runner2->Run();
 
     auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
     renderPipeline->uniRenderThread_->uniRenderEngine_ = std::make_shared<OHOS::Rosen::RSRenderEngine>();
     renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = OHOS::Rosen::RenderContext::Create();
     g_rsConn = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
 }
-void RSServiceToRenderConnectionTest::TearDownTestCase() {}
+
+void RSServiceToRenderConnectionTest::TearDownTestCase()
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(110));
+
+    WaitHandlerTask();
+    renderPipeline->mainThread_->handler_->eventRunner_->Stop();
+    renderPipeline->uniRenderThread_->runner_->Stop();
+
+    renderPipeline->mainThread_->handler_ = nullptr;
+    renderPipeline->mainThread_->receiver_ = nullptr;
+    renderPipeline->mainThread_->renderEngine_ = nullptr;
+
+    renderPipeline->uniRenderThread_->handler_ = nullptr;
+    renderPipeline->uniRenderThread_->runner_ = nullptr;
+    renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+    renderPipeline->uniRenderThread_->uniRenderEngine_ = nullptr;
+    renderPipeline->uniRenderThread_ = nullptr;
+    renderPipeline = nullptr;
+
+    g_rsConn = nullptr;
+}
+
 void RSServiceToRenderConnectionTest::SetUp() {}
 void RSServiceToRenderConnectionTest::TearDown() {}
+
+void RSServiceToRenderConnectionTest::WaitHandlerTask()
+{
+    auto count = 0;
+    auto isMainThreadRunning = !renderPipeline->mainThread_->handler_->IsIdle();
+    auto isUniRenderThreadRunning = !renderPipeline->uniRenderThread_->handler_->IsIdle();
+    while (count < WAIT_HANDLER_TIME_COUNT && (isMainThreadRunning || isUniRenderThreadRunning)) {
+        std::this_thread::sleep_for(std::chrono::seconds(WAIT_HANDLER_TIME));
+    }
+    if (count >= WAIT_HANDLER_TIME_COUNT) {
+        renderPipeline->mainThread_->handler_->RemoveAllEvents();
+        renderPipeline->uniRenderThread_->handler_->RemoveAllEvents();
+    }
+}
 
 /**
  * @tc.name: HgmForceUpdateTaskTest

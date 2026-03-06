@@ -69,6 +69,7 @@ constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
 constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
+constexpr uint32_t WAIT_HANDLER_TIME = 10000;
 class RSSingleRenderProcessManagerMock : public RSRenderProcessManager {
 
 public:
@@ -82,9 +83,8 @@ public:
         auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService.screenManager_);
 
         renderToServiceConnection_ =
-            sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
-        renderToServiceConnection_ =
-            sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
+            sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent,
+                renderProcessManagerAgent, screenManagerAgent);
         renderService.renderPipeline_ = std::make_shared<RSRenderPipeline>();
         
         auto mainThread = RSMainThread::Instance();
@@ -170,6 +170,7 @@ public:
     static inline sptr<RSRenderServiceAgent> renderServiceAgent_;
     static inline sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_;
     static inline RSRenderService renderService_;
+    static inline sptr<RSVsyncManager> vsyncManager_;
 
 private:
     static inline BufferRequestConfig requestConfig = {
@@ -224,16 +225,31 @@ void RSMainThreadTest::SetUpTestCase()
     renderService_.renderProcessManager_ = mockRenderProcessManager;
     RSMainThread::Instance()->hgmRenderContext_ = 
         std::make_shared<HgmRenderContext>(mockRenderProcessManager->renderToServiceConnection_);
-    auto vsyncManager = sptr<RSVsyncManager>::MakeSptr();
-    vsyncManager->init(screenManager_);
-    RSMainThread::Instance()->rsVsyncManagerAgent_ = vsyncManager->GetVsyncManagerAgent();
+    vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
+    vsyncManager_->init(screenManager_);
+    RSMainThread::Instance()->rsVsyncManagerAgent_ = vsyncManager_->GetVsyncManagerAgent();
 }
 
 void RSMainThreadTest::TearDownTestCase()
 {
-
+    std::this_thread::sleep_for(std::chrono::seconds(WAIT_HANDLER_TIME));
+    RSMainThread::Instance()->hgmRenderContext_ = nullptr;
+    RSMainThread::Instance()->rsVsyncManagerAgent_ = nullptr;
     ASSERT_NE(nullptr, screenManager_);
     screenManager_->defaultScreenId_ = INVALID_SCREEN_ID;
+
+    vsyncManager_->vsyncGenerator_ = nullptr;
+    vsyncManager_->vsyncSampler_ = nullptr;
+    vsyncManager_->rsVSyncController_ = nullptr;
+    vsyncManager_->appVSyncController_ = nullptr;
+    vsyncManager_->rsVSyncDistributor_ = nullptr;
+    vsyncManager_->appVSyncDistributor_ = nullptr;
+    vsyncManager_->screenManager_ = nullptr;
+    vsyncManager_->rsVsyncManagerAgent_ = nullptr;
+
+    renderService_.screenManager_ = nullptr;
+    renderService_.renderProcessManager_ = nullptr;
+    renderService_.renderPipeline_ = nullptr;
 }
 
 void RSMainThreadTest::SetUp() {}

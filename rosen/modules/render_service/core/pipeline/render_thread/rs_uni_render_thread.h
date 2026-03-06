@@ -291,7 +291,9 @@ public:
 
         ~BufferManagerGuard()
         {
-            RSUniRenderThread::Instance().bufferManager_.OnDrawEnd(fence_);
+            // Set to true to enable dump of pendingReleaseBuffers_ after each frame
+            constexpr bool DEBUG_DUMP_BUFFER_MANAGER = false;
+            RSUniRenderThread::Instance().bufferManager_.OnDrawEnd(fence_, DEBUG_DUMP_BUFFER_MANAGER);
         }
 
         void SetAcquireFence(sptr<SyncFence> fence)

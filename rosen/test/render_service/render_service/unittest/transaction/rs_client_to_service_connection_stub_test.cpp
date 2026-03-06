@@ -4104,7 +4104,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetWatermarkTest001, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientToServiceConnectionStubTest, ShowWatermarkTest001,TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionStubTest, ShowWatermarkTest001, TestSize.Level1)
 {
     bool isShow = true;
     int width = 10;

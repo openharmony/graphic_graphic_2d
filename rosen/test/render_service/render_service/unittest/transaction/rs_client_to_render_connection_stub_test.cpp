@@ -201,6 +201,12 @@ public:
     bool isProxyObject_ = true;
 };
 #endif
+class BrightnessInfoChangeCallbackStubMock : public RSBrightnessInfoChangeCallbackStub {
+public:
+    BrightnessInfoChangeCallbackStubMock() = default;
+    ~BrightnessInfoChangeCallbackStubMock() noexcept override = default;
+    void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
+};
 
 class RSApplicationAgentStubMock : public RSApplicationAgentStub {
 public:
@@ -368,8 +374,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, 
     res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
     EXPECT_LE(res, ERR_NULL_OBJECT);
 
-    constexpr uint32_t TIME_OF_CAPTURE_TASK_REMAIN = 1000000;
-    usleep(TIME_OF_CAPTURE_TASK_REMAIN);
     nodeMap.UnregisterRenderNode(id);
 }
 
@@ -1221,33 +1225,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
     ASSERT_NE(ret, 0);
 }
 #endif
- 
-// /**
-//  * @tc.name: SetSystemAnimatedScenesTest005
-//  * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ is nullptr
-//  * @tc.type: FUNC
-//  * @tc.require: issue20726
-//  */
-// HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest005, TestSize.Level1)
-// {
-//     MessageParcel data;
-//     MessageParcel reply;
-//     MessageOption option;
-//     uint32_t code =
-//         static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-//     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-//     data.WriteUint32(0);
-//     data.WriteBool(true);
-//     sptr<RSClientToRenderConnection> clientToRenderConnection =
-//         iface_cast<RSClientToRenderConnection>(connectionStub_);
-//     ASSERT_NE(clientToRenderConnection, nullptr);
-//     auto mainThread = clientToRenderConnection->mainThread_;
-//     clientToRenderConnection->mainThread_ = nullptr;
-//     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-//     ASSERT_EQ(ret, ERR_NONE);
- 
-//     clientToRenderConnection->mainThread_ = mainThread;
-// }
 
 /**
  * @tc.name: SetSurfaceWatermarkSub001
@@ -2746,7 +2723,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest006, Test
 
 /**
  * @tc.name: ReportJankStats_NullPipeline
- * @tc.desc: Test ReportJankStats with null rsRenderPipeline_ (line 1024)
+ * @tc.desc: Test ReportJankStats with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2761,7 +2738,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportJankStats_NullPipeline, TestS
 
 /**
  * @tc.name: ReportEventResponse_NullPipeline
- * @tc.desc: Test ReportEventResponse with null rsRenderPipeline_ (line 1034)
+ * @tc.desc: Test ReportEventResponse with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2777,7 +2754,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventResponse_NullPipeline, T
 
 /**
  * @tc.name: ReportEventComplete_NullPipeline
- * @tc.desc: Test ReportEventComplete with null rsRenderPipeline_ (line 1050)
+ * @tc.desc: Test ReportEventComplete with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2793,7 +2770,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventComplete_NullPipeline, T
 
 /**
  * @tc.name: ReportEventJankFrame_NullPipeline
- * @tc.desc: Test ReportEventJankFrame with null rsRenderPipeline_ (line 1061)
+ * @tc.desc: Test ReportEventJankFrame with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2809,7 +2786,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventJankFrame_NullPipeline, 
 
 /**
  * @tc.name: ReportRsSceneJankStart_NullPipeline
- * @tc.desc: Test ReportRsSceneJankStart with null rsRenderPipeline_ (line 1086)
+ * @tc.desc: Test ReportRsSceneJankStart with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2825,7 +2802,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportRsSceneJankStart_NullPipeline
 
 /**
  * @tc.name: ReportRsSceneJankEnd_NullPipeline
- * @tc.desc: Test ReportRsSceneJankEnd with null rsRenderPipeline_ (line 1096)
+ * @tc.desc: Test ReportRsSceneJankEnd with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2841,7 +2818,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportRsSceneJankEnd_NullPipeline, 
 
 /**
  * @tc.name: AvcodecVideoStart_NullPipeline
- * @tc.desc: Test AvcodecVideoStart with null rsRenderPipeline_ (line 1107)
+ * @tc.desc: Test AvcodecVideoStart with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2860,7 +2837,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoStart_NullPipeline, Tes
 
 /**
  * @tc.name: AvcodecVideoStop_NullPipeline
- * @tc.desc: Test AvcodecVideoStop with null rsRenderPipeline_ (line 1120)
+ * @tc.desc: Test AvcodecVideoStop with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2878,7 +2855,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoStop_NullPipeline, Test
 
 /**
  * @tc.name: AvcodecVideoGet_NullPipeline
- * @tc.desc: Test AvcodecVideoGet with null rsRenderPipeline_ (line 1132)
+ * @tc.desc: Test AvcodecVideoGet with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2894,7 +2871,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoGet_NullPipeline, TestS
 
 /**
  * @tc.name: AvcodecVideoGetRecent_NullPipeline
- * @tc.desc: Test AvcodecVideoGetRecent with null rsRenderPipeline_ (line 1144)
+ * @tc.desc: Test AvcodecVideoGetRecent with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2909,7 +2886,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoGetRecent_NullPipeline,
 
 /**
  * @tc.name: GetMemoryGraphic_NullPipeline
- * @tc.desc: Test GetMemoryGraphic with null rsRenderPipeline_ (line 1299)
+ * @tc.desc: Test GetMemoryGraphic with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2926,7 +2903,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetMemoryGraphic_NullPipeline, Test
 
 /**
  * @tc.name: GetTotalAppMemSize_NullPipeline
- * @tc.desc: Test GetTotalAppMemSize with null rsRenderPipeline_ (line 1357)
+ * @tc.desc: Test GetTotalAppMemSize with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2943,7 +2920,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetTotalAppMemSize_NullPipeline, Te
 
 /**
  * @tc.name: GetMemoryGraphics_NullPipeline
- * @tc.desc: Test GetMemoryGraphics with null rsRenderPipeline_ (line 1373)
+ * @tc.desc: Test GetMemoryGraphics with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2959,7 +2936,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetMemoryGraphics_NullPipeline, Tes
 
 /**
  * @tc.name: GetPidGpuMemoryInMB_NullPipeline
- * @tc.desc: Test GetPidGpuMemoryInMB with null rsRenderPipeline_ (line 1719)
+ * @tc.desc: Test GetPidGpuMemoryInMB with null rsRenderPipeline_
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3151,5 +3128,1018 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RSApplicationRenderThreadDeathRecip
     // Test with valid token and connection - should call UnRegisterApplicationAgent
     appDeathRecipient->OnRemoteDied(testToken->AsObject());
     // Should handle without crash (may fail to cast to IApplicationAgent but should not crash)
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest001
+ * @tc.desc: Test TakeSurfaceCapture with nullptr rsRenderPipeline_ (branch: rsRenderPipeline_ == nullptr)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest001, TestSize.Level1)
+{
+    // Create agent with nullptr pipeline
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test with nullptr pipeline - should return early without crash
+    NodeId nodeId = 12345;
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    ASSERT_NE(agent, nullptr);
+    agent->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+    // Should return without crash
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest002
+ * @tc.desc: Test TakeSurfaceCapture with UICAPTURE type and no permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest002, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    NodeId nodeId = 12345;
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = false;
+    permissions.selfCapture = false;
+    ASSERT_NE(callback, nullptr);
+    // Test UICAPTURE without permission - should return nullptr via callback
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
+        captureConfig, blurParam, specifiedAreaRect, permissions);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest003
+ * @tc.desc: Test TakeSurfaceCapture with UICAPTURE type and selfCapture permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest003, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    NodeId nodeId = surfaceNode_->GetId();
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    captureConfig.isSync = true;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 100.f, 100.f);
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = false;
+    permissions.selfCapture = true;
+    ASSERT_NE(callback, nullptr);
+    // Test UICAPTURE with selfCapture permission - should proceed
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest004
+ * @tc.desc: Test TakeSurfaceCapture with UICAPTURE type and system calling permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest004, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    NodeId nodeId = 12345;
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    permissions.selfCapture = false;
+    ASSERT_NE(callback, nullptr);
+    // Test UICAPTURE with system calling permission - should proceed
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest005
+ * @tc.desc: Test TakeSurfaceCapture with nullptr node (branch: node == nullptr)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest005, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    NodeId nodeId = 99999; // Non-existent node
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    permissions.screenCapturePermission = true;
+    ASSERT_NE(callback, nullptr);
+    // Test with non-existent node - should return nullptr via callback
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
+        captureConfig, blurParam, specifiedAreaRect, permissions);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest006
+ * @tc.desc: Test TakeSurfaceCapture with LOGICAL_DISPLAY_NODE and no permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest006, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    // Create a LOGICAL_DISPLAY_NODE using proper constructor
+    pid_t pid = 2001;
+    NodeId nodeId = ((NodeId)pid << 32 | 2001);
+    RSDisplayNodeConfig config;
+    config.screenId = 0;
+    auto displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
+        new RSLogicalDisplayRenderNode(nodeId, config, std::weak_ptr<RSContext>(), false),
+        RSRenderNodeGC::NodeDestructor);
+
+    // Register node
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.RegisterRenderNode(displayNode);
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = false;
+    permissions.screenCapturePermission = false;
+    ASSERT_NE(callback, nullptr);
+    // Test LOGICAL_DISPLAY_NODE without permission - should return nullptr via callback
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
+        captureConfig, blurParam, specifiedAreaRect, permissions);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest007
+ * @tc.desc: Test TakeSurfaceCapture with LOGICAL_DISPLAY_NODE and permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest007, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    // Create a LOGICAL_DISPLAY_NODE using proper constructor
+    pid_t pid = 2002;
+    NodeId nodeId = ((NodeId)pid << 32 | 2002);
+    RSDisplayNodeConfig config;
+    config.screenId = 0;
+    auto displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
+        new RSLogicalDisplayRenderNode(nodeId, config, std::weak_ptr<RSContext>(), false),
+        RSRenderNodeGC::NodeDestructor);
+
+    // Register node
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.RegisterRenderNode(displayNode);
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    permissions.screenCapturePermission = true;
+    ASSERT_NE(callback, nullptr);
+    // Test LOGICAL_DISPLAY_NODE with permission - should proceed
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
+        captureConfig, blurParam, specifiedAreaRect, permissions);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest008
+ * @tc.desc: Test TakeSurfaceCapture with SURFACE_NODE, blurParam and no permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest008, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    // Register surfaceNode
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.RegisterRenderNode(surfaceNode_);
+
+    NodeId nodeId = surfaceNode_->GetId();
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    blurParam.isNeedBlur = true;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = false;
+    permissions.selfCapture = false;
+    ASSERT_NE(callback, nullptr);
+    // Test SURFACE_NODE with blur but no permission - should return nullptr via callback
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
+        captureConfig, blurParam, specifiedAreaRect, permissions);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest009
+ * @tc.desc: Test TakeSurfaceCapture with SURFACE_NODE, blurParam and selfCapture permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest009, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    // Register surfaceNode
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.RegisterRenderNode(surfaceNode_);
+
+    NodeId nodeId = surfaceNode_->GetId();
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    blurParam.isNeedBlur = true;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = false;
+    permissions.selfCapture = true;
+    ASSERT_NE(callback, nullptr);
+    // Test SURFACE_NODE with blur and selfCapture permission - should proceed
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
+        captureConfig, blurParam, specifiedAreaRect, permissions);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest010
+ * @tc.desc: Test TakeSurfaceCapture with SURFACE_NODE, no blur and no permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest010, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    // Register surfaceNode
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.RegisterRenderNode(surfaceNode_);
+
+    NodeId nodeId = surfaceNode_->GetId();
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    blurParam.isNeedBlur = false;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = false;
+    permissions.selfCapture = false;
+    ASSERT_NE(callback, nullptr);
+    // Test SURFACE_NODE without blur and no permission - should return nullptr via callback
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
+        captureConfig, blurParam, specifiedAreaRect, permissions);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest011
+ * @tc.desc: Test TakeSurfaceCapture with specifiedAreaRect parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest011, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    // Register surfaceNode
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.RegisterRenderNode(surfaceNode_);
+
+    NodeId nodeId = surfaceNode_->GetId();
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect(10.0f, 20.0f, 100.0f, 200.0f);
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    permissions.selfCapture = true;
+    ASSERT_NE(callback, nullptr);
+    // Test with specified area rect - should proceed
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId,
+        callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest012
+ * @tc.desc: Test TakeSurfaceCapture with SURFACE_NODE marked as dirty (IsDirty branch)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest012, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    // Register surfaceNode and mark it as dirty
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.RegisterRenderNode(surfaceNode_);
+
+    NodeId nodeId = surfaceNode_->GetId();
+    surfaceNode_->SetDirty(true);
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    permissions.selfCapture = true;
+    ASSERT_NE(callback, nullptr);
+    // Test with dirty SURFACE_NODE - should set hasDirtyContentInSurfaceCapture = true
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
+        captureConfig, blurParam, specifiedAreaRect, permissions);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest013
+ * @tc.desc: Test TakeSurfaceCapture with SURFACE_NODE subtree marked as dirty (IsSubTreeDirty branch)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest013, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+
+    // Register surfaceNode and mark subtree as dirty
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.RegisterRenderNode(surfaceNode_);
+
+    NodeId nodeId = surfaceNode_->GetId();
+    surfaceNode_->SetSubTreeDirty(true);
+
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    permissions.selfCapture = true;
+    ASSERT_NE(callback, nullptr);
+    // Test with subtree dirty SURFACE_NODE - should set hasDirtyContentInSurfaceCapture = true
+    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
+        captureConfig, blurParam, specifiedAreaRect, permissions);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest001
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (ErrCode return type)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest001, TestSize.Level1)
+{
+    // Create agent with nullptr pipeline
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test CommitTransaction
+    std::unique_ptr<RSTransactionData> transactionData = nullptr;
+    ErrCode ret = agent->CommitTransaction(0, false, false, transactionData);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test ExecuteSynchronousTask
+    ret = agent->ExecuteSynchronousTask(nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetGlobalDarkColorMode
+    ret = agent->SetGlobalDarkColorMode(false);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetCurtainScreenUsingStatus
+    ret = agent->SetCurtainScreenUsingStatus(false);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test ForceRefreshOneFrameWithNextVSync
+    agent->ForceRefreshOneFrameWithNextVSync();
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest002
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Node-related functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test CreateNode with RSDisplayNodeConfig
+    RSDisplayNodeConfig displayConfig;
+    bool success = false;
+    ErrCode ret = agent->CreateNode(displayConfig, 123, success);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test CreateNode with RSSurfaceRenderNodeConfig
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    ret = agent->CreateNode(surfaceConfig, success);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetHardwareEnabled
+    ret = agent->SetHardwareEnabled(123, true, SelfDrawingNodeType::DEFAULT, false);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetHidePrivacyContent
+    uint32_t resCode = 0;
+    ret = agent->SetHidePrivacyContent(123, true, resCode);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetWindowContainer
+    ret = agent->SetWindowContainer(123, true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetHwcNodeBounds
+    ret = agent->SetHwcNodeBounds(123, 0.0f, 0.0f, 0.0f, 0.0f);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest003
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Buffer and Callback functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest003, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test RegisterBufferClearListener
+    sptr<RSIBufferClearCallback> clearCallback = new RSBufferClearCallbackStubMock();
+    ErrCode ret = agent->RegisterBufferClearListener(123, clearCallback);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test RegisterBufferAvailableListener
+    sptr<RSIBufferAvailableCallback> availableCallback = new RSBufferAvailableCallbackStubMock();
+    ret = agent->RegisterBufferAvailableListener(123, availableCallback, false);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test RegisterSurfaceBufferCallback
+    sptr<RSISurfaceBufferCallback> surfaceCallback = new RSSurfaceBufferCallbackStubMock();
+    ret = agent->RegisterSurfaceBufferCallback(100, 12345, surfaceCallback);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test UnregisterSurfaceBufferCallback
+    ret = agent->UnregisterSurfaceBufferCallback(100, 12345);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test RegisterTransactionDataCallback
+    sptr<RSITransactionDataCallback> transactionCallback = nullptr;
+    agent->RegisterTransactionDataCallback(12345, 0, transactionCallback);
+    // Should return without crash
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest004
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Application Agent functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest004, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test RegisterApplicationAgent
+    sptr<IApplicationAgent> appAgent = new RSApplicationAgentStubMock();
+    agent->RegisterApplicationAgent(100, appAgent);
+    // Should return without crash
+
+    // Test UnRegisterApplicationAgent
+    agent->UnRegisterApplicationAgent(appAgent);
+    // Should return without crash
+
+    // Test SetFocusAppInfo
+    FocusAppInfo info;
+    int32_t repCode = 0;
+    ErrCode ret = agent->SetFocusAppInfo(info, repCode);
+    EXPECT_EQ(ret, INVALID_ARGUMENTS);
+    bool success = false;
+    // Test SetSystemAnimatedScenes
+    ret = agent->SetSystemAnimatedScenes(SystemAnimatedScenes::OTHERS, false, success);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest005
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Screen and Display functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest005, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test GetScreenHDRStatus
+    HdrStatus hdrStatus;
+    int32_t resCode = 0;
+    ErrCode ret = agent->GetScreenHDRStatus(0, hdrStatus, resCode);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    bool needSync = false;
+    // Test FreezeScreen
+    ret = agent->FreezeScreen(123, true, needSync);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetLayerTopForHWC
+    ret = agent->SetLayerTopForHWC(123, true, 0);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetAncoForceDoDirect
+    bool res = false;
+    ret = agent->SetAncoForceDoDirect(true, res);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test DropFrameByPid
+    std::vector<int32_t> pidList = {100, 200};
+    ret = agent->DropFrameByPid(pidList, 1);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest006
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Capture and PixelMap functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest006, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test TakeSelfSurfaceCapture
+    NodeId nodeId = 123;
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    agent->TakeSelfSurfaceCapture(nodeId, callback, captureConfig, true);
+    // Should return without crash
+
+    // Test TakeSurfaceCaptureWithAllWindows
+    RSSurfaceCapturePermissions permissions;
+    ErrCode ret = agent->TakeSurfaceCaptureWithAllWindows(nodeId, callback,
+        captureConfig, false, permissions);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test TakeUICaptureInRange
+    agent->TakeUICaptureInRange(nodeId, callback, captureConfig, permissions);
+    // Should return without crash
+
+    // Test GetBitmap
+    Drawing::Bitmap bitmap;
+    bool success = false;
+    ret = agent->GetBitmap(nodeId, bitmap, success);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test CreatePixelMapFromSurface
+    sptr<Surface> surface = nullptr;
+    Rect srcRect;
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    ret = agent->CreatePixelMapFromSurface(surface, srcRect, pixelMap, false);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest007
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Window Freeze functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest007, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test SetWindowFreezeImmediately
+    NodeId nodeId = 123;
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureBlurParam blurParam;
+    ErrCode ret = agent->SetWindowFreezeImmediately(nodeId, true, callback, captureConfig, blurParam, true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest008
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Memory and Stats functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest008, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test GetMemoryGraphic
+    MemoryGraphic memoryGraphic;
+    ErrCode ret = agent->GetMemoryGraphic(100, memoryGraphic);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test GetMemoryGraphics
+    std::vector<MemoryGraphic> memoryGraphics;
+    ret = agent->GetMemoryGraphics(memoryGraphics);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test GetTotalAppMemSize
+    float cpuMemSize = 0.0f;
+    float gpuMemSize = 0.0f;
+    ret = agent->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test ReportJankStats
+    ret = agent->ReportJankStats();
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test ReportEventResponse
+    DataBaseRs info;
+    ret = agent->ReportEventResponse(info);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test ReportEventComplete
+    ret = agent->ReportEventComplete(info);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test ReportEventJankFrame
+    ret = agent->ReportEventJankFrame(info);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test ReportRsSceneJankStart
+    AppInfo appInfo;
+    ret = agent->ReportRsSceneJankStart(appInfo);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test ReportRsSceneJankEnd
+    ret = agent->ReportRsSceneJankEnd(appInfo);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest009
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Video and Media functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest009, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test AvcodecVideoStart
+    std::vector<uint64_t> uniqueIdList = {123, 456};
+    std::vector<std::string> surfaceNameList = {"surface1", "surface2"};
+    ErrCode ret = agent->AvcodecVideoStart(uniqueIdList, surfaceNameList, 60, 0);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test AvcodecVideoStop
+    ret = agent->AvcodecVideoStop(uniqueIdList, surfaceNameList, 60);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test CreateNodeAndSurface
+    RSSurfaceRenderNodeConfig config;
+    sptr<Surface> surface = nullptr;
+    ret = agent->CreateNodeAndSurface(config, surface);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest010
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Brightness and Occlusion functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest010, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test SetBrightnessInfoChangeCallback
+    sptr<RSIBrightnessInfoChangeCallback> brightnessCallback = new BrightnessInfoChangeCallbackStubMock();
+    int32_t ret = agent->SetBrightnessInfoChangeCallback(100, brightnessCallback);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test RegisterOcclusionChangeCallback
+    sptr<RSIOcclusionChangeCallback> occlusionCallback = nullptr;
+    ret = agent->RegisterOcclusionChangeCallback(100, occlusionCallback);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test RegisterSurfaceOcclusionChangeCallback
+    sptr<RSISurfaceOcclusionChangeCallback> surfaceOcclusionCallback = nullptr;
+    std::vector<float> partitionPoints;
+    ret = agent->RegisterSurfaceOcclusionChangeCallback(123, 100, surfaceOcclusionCallback, partitionPoints);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test UnRegisterSurfaceOcclusionChangeCallback
+    ret = agent->UnRegisterSurfaceOcclusionChangeCallback(123);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest011
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (bool return type functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest011, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test GetHighContrastTextState
+    bool ret = agent->GetHighContrastTextState();
+    EXPECT_EQ(ret, false);
+
+    // Test RegisterTypeface
+    uint64_t globalUniqueId = 12345;
+    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
+    ret = agent->RegisterTypeface(globalUniqueId, typeface);
+    EXPECT_EQ(ret, false);
+
+    // Test UnRegisterTypeface
+    ret = agent->UnRegisterTypeface(globalUniqueId);
+    EXPECT_EQ(ret, false);
+
+    // Test GetBehindWindowFilterEnabled
+    ret = agent->GetBehindWindowFilterEnabled();
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest012
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (void return type functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest012, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test ClearUifirstCache
+    agent->ClearUifirstCache(123);
+    // Should return without crash
+
+    // Test SetVmaCacheStatus
+    agent->SetVmaCacheStatus(true);
+    // Should return without crash
+
+    // Test SetBehindWindowFilterEnabled
+    agent->SetBehindWindowFilterEnabled(true);
+    // Should return without crash
+
+    // Test ShowWatermark
+    std::shared_ptr<Media::PixelMap> watermarkImg = nullptr;
+    agent->ShowWatermark(watermarkImg, true);
+    // Should return without crash
+
+    // Test SetFreeMultiWindowStatus
+    agent->SetFreeMultiWindowStatus(true);
+    // Should return without crash
+
+    // Test HgmForceUpdateTask
+    agent->HgmForceUpdateTask(true, "test");
+    // Should return without crash
+
+    // Test NotifyPackageEvent
+    std::vector<std::string> packageList = {"com.example.test"};
+    agent->NotifyPackageEvent(packageList);
+    // Should return without crash
+
+    // Test OnScreenBacklightChanged
+    agent->OnScreenBacklightChanged(0, 100);
+    // Should return without crash
+
+    // Test OnGlobalBlacklistChanged
+    std::unordered_set<NodeId> globalBlackList;
+    agent->OnGlobalBlacklistChanged(globalBlackList);
+    // Should return without crash
+
+    // Test NotifyHwcEventToRender
+    std::vector<int32_t> eventData;
+    agent->NotifyHwcEventToRender(0, 0, eventData);
+    // Should return without crash
+
+    // Test CleanAll
+    agent->CleanAll(100);
+    // Should return without crash
+
+    // Test AddTransactionDataPidInfo
+    agent->AddTransactionDataPidInfo(100);
+    // Should return without crash
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest013
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Additional ErrCode functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest013, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test SetLayerTop
+    ErrCode ret = agent->SetLayerTop("123", true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetWatermark
+    std::shared_ptr<Media::PixelMap> watermark = nullptr;
+    bool success = false;
+    ret = agent->SetWatermark(100, "test", watermark, success);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetForceRefresh
+    ret = agent->SetForceRefresh("123", true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetColorFollow
+    ret = agent->SetColorFollow("123", true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test RepaintEverything
+    ret = agent->RepaintEverything();
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test GetShowRefreshRateEnabled
+    bool enabled = false;
+    ret = agent->GetShowRefreshRateEnabled(enabled);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetGpuCrcDirtyEnabledPidList
+    std::vector<int32_t> pidList = {100};
+    ret = agent->SetGpuCrcDirtyEnabledPidList(pidList);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test GetHdrOnDuration
+    int64_t duration = 0;
+    ret = agent->GetHdrOnDuration(duration);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetOptimizeCanvasDirtyPidList
+    ret = agent->SetOptimizeCanvasDirtyPidList(pidList);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest014
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (uint32_t and int32_t return type functions)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest014, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test GetRealtimeRefreshRate
+    uint32_t ret = agent->GetRealtimeRefreshRate(0);
+    EXPECT_EQ(ret, 0);
+
+    // Test NotifyScreenRefresh
+    int32_t ret2 = agent->NotifyScreenRefresh(0);
+    EXPECT_EQ(ret2, ERR_INVALID_VALUE);
+
+    // Test GetPidGpuMemoryInMB
+    float gpuMemInMB = 0.0f;
+    ret2 = agent->GetPidGpuMemoryInMB(100, gpuMemInMB);
+    EXPECT_EQ(ret2, ERR_INVALID_VALUE);
+
+    // Test SetShowRefreshRateEnabled
+    agent->SetShowRefreshRateEnabled(true, 0);
+    // Should return without crash
+
+    // Test SetSurfaceWatermark
+    std::shared_ptr<Media::PixelMap> watermark = nullptr;
+    std::vector<NodeId> nodeIdList = {123, 456};
+    uint32_t ret3 = agent->SetSurfaceWatermark(100, "test", watermark, nodeIdList,
+        SurfaceWatermarkType::SYSTEM_WATER_MARK, true);
+    EXPECT_EQ(ret3, WATER_MARK_IPC_ERROR);
+
+    // Test ClearSurfaceWatermark
+    agent->ClearSurfaceWatermark(100, "test", true);
+    // Should return without crash
+
+    // Test ClearSurfaceWatermarkForNodes
+    agent->ClearSurfaceWatermarkForNodes(100, "test", nodeIdList, true);
+    // Should return without crash
+
+    // Test RegisterUIExtensionCallback
+    sptr<RSIUIExtensionCallback> uiCallback = nullptr;
+    int32_t ret4 = agent->RegisterUIExtensionCallback(100, 12345, uiCallback, false);
+    EXPECT_EQ(ret4, ERR_INVALID_VALUE);
+
+    // Test RegisterSelfDrawingNodeRectChangeCallback
+    sptr<RSISelfDrawingNodeRectChangeCallback> rectCallback = nullptr;
+    RectConstraint constraint;
+    ret4 = agent->RegisterSelfDrawingNodeRectChangeCallback(100, constraint, rectCallback);
+    EXPECT_EQ(ret4, ERR_INVALID_VALUE);
+
+    // Test UnRegisterSelfDrawingNodeRectChangeCallback
+    ret4 = agent->UnRegisterSelfDrawingNodeRectChangeCallback(100);
+    EXPECT_EQ(ret4, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest015
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (GetPixelmap and CreateNode related)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest015, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test GetPixelmap
+    NodeId nodeId = 123;
+    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+    Drawing::Rect rect;
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
+    bool success = false;
+    ErrCode ret = agent->GetPixelmap(nodeId, pixelmap, &rect, drawCmdList, success);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test GetPixelMapByProcessId
+    std::vector<PixelMapInfo> pixelMapInfoVector;
+    int32_t repCode = 0;
+    ret = agent->GetPixelMapByProcessId(pixelMapInfoVector, 100, repCode);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test GetSurfaceRootNodeId
+    NodeId windowNodeId = 0;
+    agent->GetSurfaceRootNodeId(windowNodeId);
+    // Should return without crash
+
+    // Test DoDump
+    std::unordered_set<std::u16string> argSets;
+    sptr<RSIDumpCallback> dumpCallback = nullptr;
+    agent->DoDump(argSets, dumpCallback);
+    // Should return without crash
+}
+
+/**
+ * @tc.name: RenderPipelineAgentNullptrTest016
+ * @tc.desc: Test RSRenderPipelineAgent methods with nullptr pipeline (Connection and Token related)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest016, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+
+    // Test AddConnection
+    sptr<IRemoteObject> remoteObj = token_->AsObject();
+    sptr<RSIClientToRenderConnection> connection = nullptr;
+    agent->AddConnection(remoteObj, connection);
+    // Should return without crash
+
+    // Test FindClientToRenderConnection
+    sptr<RSIClientToRenderConnection> foundConnection = agent->FindClientToRenderConnection(token_->AsObject());
+    EXPECT_EQ(foundConnection, nullptr);
 }
 } // namespace OHOS::Rosen

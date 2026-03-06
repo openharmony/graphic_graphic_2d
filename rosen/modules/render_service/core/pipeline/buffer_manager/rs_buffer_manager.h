@@ -76,11 +76,16 @@ public:
             bufferCollector_->OnCanvasDrawBuffer(consumer, buffer, bufferOwnerCount);
         }
     }
-    void OnDrawEnd(sptr<SyncFence> canvasAcquireFence)
+    void OnDrawEnd(sptr<SyncFence> canvasAcquireFence, bool needDump = false)
     {
         if (bufferCollector_ != nullptr) {
             bufferCollector_->SetAcquireFence(canvasAcquireFence);
             bufferCollector_.reset();
+        }
+        if (needDump) {
+            std::string output;
+            DumpPendingReleaseBuffers(output);
+            RS_LOGD("%{public}s", output.c_str());
         }
     }
 
@@ -88,9 +93,13 @@ public:
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec,
         uint64_t screenId);
     void ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& uniBufferCount,
-        sptr<SyncFence>& uniFence, std::set<uint32_t>& decedSet,
+        sptr<SyncFence>& uniFence, std::set<uint64_t>& decedSet,
         std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers, uint64_t screenId);
     void ReleaseBufferById(uint64_t bufferId);
+
+#ifndef ROSEN_CROSS_PLATFORM
+    void DumpPendingReleaseBuffers(std::string& output);
+#endif
 
 private:
     struct PendingReleaseBufferInfo {

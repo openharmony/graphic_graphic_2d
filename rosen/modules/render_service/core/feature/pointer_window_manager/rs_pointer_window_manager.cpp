@@ -286,7 +286,7 @@ void RSPointerWindowManager::CheckHardCursorValid(const RSSurfaceRenderNode& nod
     }
     // DSS Hardware don't support the synthesis of layers with length and width not larger than 2
     auto srcRect = node.GetSrcRect();
-    if (srcRect.GetWidth() <= MIN_LAYER_WIDTH || srcRect.GetHeight() <= MIN_LAYER_WIDTH) {
+    if (srcRect.GetWidth() <= MIN_LAYER_WIDTH || srcRect.GetHeight() <= MIN_LAYER_HEIGHT) {
         const auto& property = node.GetRenderProperties();
         auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
         if (buffer == nullptr) {

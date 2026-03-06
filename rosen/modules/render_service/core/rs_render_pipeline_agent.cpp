@@ -41,6 +41,7 @@
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#include "feature/hwc_event/rs_uni_hwc_event_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -488,6 +489,14 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
             captureParam.config = captureConfig;
             captureParam.isSystemCalling = isSystemCalling;
             captureParam.blurParam = blurParam;
+            bool needSyncSurface = false;
+            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow, &needSyncSurface);
+            if (node->GetType() == RSRenderNodeType::SURFACE_NODE &&
+                (needSyncSurface || node->IsDirty() || node->IsSubTreeDirty())) {
+                captureParam.hasDirtyContentInSurfaceCapture = true;
+                RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCapture surfaceCap dirtyFlag = true,"
+                    " nodeId:[%" PRIu64 "]", id);
+            }
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
             RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 #endif
@@ -1588,7 +1597,7 @@ void RSRenderPipelineAgent::NotifyHwcEventToRender(
     if (rsRenderPipeline_ == nullptr) {
         return;
     }
-    RSUniHwcPrevalidateUtil::GetInstance().HandleHwcEvent(deviceId, eventId, eventData);
+    RSUniHwcEventManager::GetInstance().OnHwcEvent(deviceId, eventId, eventData);
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

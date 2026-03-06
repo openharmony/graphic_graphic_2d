@@ -271,7 +271,7 @@ HWTEST_F(HgmRenderContextTest, SetServiceToProcessInfoTest, TestSize.Level1)
 HWTEST_F(HgmRenderContextTest, UpdateSurfaceData001, TestSize.Level1)
 {
     std::string frameworkType = "oh_xweb_1";
-	sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
     HgmRenderContext hgmRenderContext(renderToServiceConnection);
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(MakeNodeId(1, 1));

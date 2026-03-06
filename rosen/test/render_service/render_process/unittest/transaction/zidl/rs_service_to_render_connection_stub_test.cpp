@@ -46,6 +46,8 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 constexpr const size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
+constexpr const int WAIT_HANDLER_TIME = 1; // 1S
+constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
 
 class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
 public:
@@ -55,6 +57,7 @@ public:
     void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
 };
 
+std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
 sptr<RSServiceToRenderConnectionStub> g_connectionStub = nullptr;
 }
 
@@ -64,6 +67,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static void WaitHandlerTask();
 };
 
 class RSIOcclusionChangeCallbackMock : public RSOcclusionChangeCallbackStub {
@@ -82,19 +86,20 @@ public:
 
 void RSServiceToRenderConnectionStubTest::SetUpTestCase()
 {
-    auto renderPipeline = std::make_shared<RSRenderPipeline>();
-    renderPipeline->imageEnhanceManager_ = std::make_shared<ImageEnhanceManager>();
+    renderPipeline = std::make_shared<RSRenderPipeline>();
 
     auto runner1 = AppExecFwk::EventRunner::Create(true);
     auto handler1 = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner1);
     auto mainThread = RSMainThread::Instance();
     renderPipeline->mainThread_ = mainThread;
     renderPipeline->mainThread_->handler_ = handler1;
+    runner1->Run();
 
     renderPipeline->uniRenderThread_ = &(RSUniRenderThread::Instance());
     auto runner2 = AppExecFwk::EventRunner::Create(true);
     renderPipeline->uniRenderThread_->runner_ = runner2;
     renderPipeline->uniRenderThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner2);
+    runner2->Run();
 
     auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
     renderPipeline->uniRenderThread_->uniRenderEngine_ = std::make_shared<OHOS::Rosen::RSRenderEngine>();
@@ -105,6 +110,23 @@ void RSServiceToRenderConnectionStubTest::SetUpTestCase()
 void RSServiceToRenderConnectionStubTest::TearDownTestCase()
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(110));
+
+    WaitHandlerTask();
+    renderPipeline->mainThread_->handler_->eventRunner_->Stop();
+    renderPipeline->uniRenderThread_->runner_->Stop();
+
+    renderPipeline->mainThread_->handler_ = nullptr;
+    renderPipeline->mainThread_->receiver_ = nullptr;
+    renderPipeline->mainThread_->renderEngine_ = nullptr;
+
+    renderPipeline->uniRenderThread_->handler_ = nullptr;
+    renderPipeline->uniRenderThread_->runner_ = nullptr;
+    renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+    renderPipeline->uniRenderThread_->uniRenderEngine_ = nullptr;
+    renderPipeline->uniRenderThread_ = nullptr;
+    renderPipeline = nullptr;
+
+    g_connectionStub = nullptr;
 }
 
 void RSServiceToRenderConnectionStubTest::SetUp() {}
@@ -123,6 +145,20 @@ static void SetLeftSize(Parcel& parcel, uint32_t leftSize)
 
     for (size_t j = 0; j < writeBoolCount; j++) {
         parcel.WriteBoolUnaligned(false);
+    }
+}
+
+void RSServiceToRenderConnectionStubTest::WaitHandlerTask()
+{
+    auto count = 0;
+    auto isMainThreadRunning = !renderPipeline->mainThread_->handler_->IsIdle();
+    auto isUniRenderThreadRunning = !renderPipeline->uniRenderThread_->handler_->IsIdle();
+    while (count < WAIT_HANDLER_TIME_COUNT && (isMainThreadRunning || isUniRenderThreadRunning)) {
+        std::this_thread::sleep_for(std::chrono::seconds(WAIT_HANDLER_TIME));
+    }
+    if (count >= WAIT_HANDLER_TIME_COUNT) {
+        renderPipeline->mainThread_->handler_->RemoveAllEvents();
+        renderPipeline->uniRenderThread_->handler_->RemoveAllEvents();
     }
 }
 
@@ -195,406 +231,670 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStu
     ASSERT_TRUE(g_connectionStub);
 }
 
-// /**
-//  * @tc.name: SetGpuCrcDirtyEnabledPidList001
-//  * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is invalid
-//  * @tc.type: FUNC
-//  * @tc.require: issueIBRN69
-//  */
-// HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList001, TestSize.Level1)
-// {
-//     MessageParcel data;
-//     MessageParcel reply;
-//     MessageOption option;
-//     option.SetFlags(MessageOption::TF_ASYNC);
-//     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-//         return;
-//     }
-//     data.WriteInt32(-1);
-//     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-//     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-//     ASSERT_EQ(ret, ERR_INVALID_DATA);
-// }
-
-// /**
-//  * @tc.name: SetGpuCrcDirtyEnabledPidList002
-//  * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is valid
-//  * @tc.type: FUNC
-//  * @tc.require: issueIBRN69
-//  */
-// HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList002, TestSize.Level1)
-// {
-//     MessageParcel data;
-//     MessageParcel reply;
-//     MessageOption option;
-//     option.SetFlags(MessageOption::TF_ASYNC);
-//     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-//         return;
-//     }
-//     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-//     std::vector<int32_t> pidList;
-//     data.WriteInt32Vector(pidList);
-//     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-//     ASSERT_EQ(ret, ERR_NONE);
-// }
-
 /**
- * @tc.name: HgmForceUpdateTaskTest
- * @tc.desc: Test HgmForceUpdateTask
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, HgmForceUpdateTaskTest, TestSize.Level1)
-{
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HGM_FORCE_UPDATE_TASK);
-    MessageParcel reply;
-    MessageOption option;
-
-    MessageParcel data;
-    data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor());
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-
-    MessageParcel data2;
-    data2.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor());
-    data2.WriteBool(true);
-    ret = g_connectionStub->OnRemoteRequest(code, data2, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-
-    MessageParcel data3;
-    data3.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor());
-    data3.WriteBool(true);
-    data3.WriteString("test");
-    ret = g_connectionStub->OnRemoteRequest(code, data3, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: GetShowRefreshRateEnabled001
- * @tc.desc: Test GetShowRefreshRateEnabled
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, GetShowRefreshRateEnabled001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
-    g_connectionStub->OnRemoteRequest(code, data, reply, option);
-}
-
-/**
- * @tc.name: GetShowRefreshRateEnabled002
- * @tc.desc: Test GetShowRefreshRateEnabled when reply.WriteBool fails.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, GetShowRefreshRateEnabled002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
-    // Set reply capacity to 0 to make WriteBool fail
-    SetLeftSize(reply, 0);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: SetShowRefreshRateEnabled001
- * @tc.desc: Test SetShowRefreshRateEnabled when ReadBool fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetShowRefreshRateEnabled001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
-    // Not writing enabled or type, causing ReadBool to fail
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: SetShowRefreshRateEnabled002
- * @tc.desc: Test SetShowRefreshRateEnabled when ReadInt32 fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetShowRefreshRateEnabled002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
-    bool enabled = true;
-    data.WriteBool(enabled);
-    // Not writing type, causing ReadInt32 to fail
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: SetShowRefreshRateEnabled003
- * @tc.desc: Test SetShowRefreshRateEnabled with enabled=true, type=0
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetShowRefreshRateEnabled003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
-    bool enabled = true;
-    int32_t type = 0;
-    data.WriteBool(enabled);
-    data.WriteInt32(type);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: GetRealtimeRefreshRate001
- * @tc.desc: Test GetRealtimeRefreshRate when ReadUint64 fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
-    // Not writing screenId, causing ReadUint64 to fail
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: GetRealtimeRefreshRate002
- * @tc.desc: Test GetRealtimeRefreshRate when reply.WriteUint32 fails.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
-    uint64_t screenId = 100;
-    data.WriteUint64(screenId);
-    // Set reply capacity to 0 to make WriteUint32 fail
-    SetLeftSize(reply, 0);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: GetRealtimeRefreshRate003
- * @tc.desc: Test GetRealtimeRefreshRate with valid screenId
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
-    uint64_t screenId = 100;
-    data.WriteUint64(screenId);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
-
-    // Verify the response contains a valid refresh rate
-    uint32_t refreshRate = 0;
-    EXPECT_TRUE(reply.ReadUint32(refreshRate));
-}
-
-/**
- * @tc.name: SetBrightnessInfoChangeCallbackTest
- * @tc.desc: Test SetBrightnessInfoChangeCallback
+ * @tc.name: SetGpuCrcDirtyEnabledPidList001
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is invalid
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level2)
-{
-    // case 1: no data
-    {
-        MessageParcel data;
-        MessageParcel reply;
-        MessageOption option;
-        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-        auto interfaceCode = RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
-        auto res = g_connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
-        EXPECT_EQ(res, ERR_INVALID_STATE);
-    }
-
-    // case 2: remoteObject null
-    {
-        MessageParcel data;
-        MessageParcel reply;
-        MessageOption option;
-        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-        data.WriteInt32(getpid());
-        data.WriteRemoteObject(nullptr);
-        auto interfaceCode = RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
-        auto res = g_connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
-        EXPECT_EQ(res, ERR_INVALID_STATE);
-    }
-
-    // case 3: remoteObject not null
-    {
-        MessageParcel data;
-        MessageParcel reply;
-        MessageOption option;
-        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-        data.WriteInt32(getpid());
-        MockRSBrightnessInfoChangeCallback callback;
-        data.WriteRemoteObject(callback.AsObject());
-        auto interfaceCode = RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
-        auto res = g_connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
-        EXPECT_EQ(res, ERR_INVALID_STATE);
-    }
-}
-
-/**
- * @tc.name: GetBehindWindowFilterEnabled001
- * @tc.desc: Test GetBehindWindowFilterEnabled
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, GetBehindWindowFilterEnabled001, TestSize.Level1)
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList001, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED);
-    g_connectionStub->OnRemoteRequest(code, data, reply, option);
-}
-
-/**
- * @tc.name: GetBehindWindowFilterEnabled002
- * @tc.desc: Test GetBehindWindowFilterEnabled when reply.WriteBool fails.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, GetBehindWindowFilterEnabled002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED);
-    // Set reply capacity to 0 to make WriteBool fail
-    SetLeftSize(reply, 0);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: SetBehindWindowFilterEnabled001
- * @tc.desc: Test SetBehindWindowFilterEnabled when ReadBool fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetBehindWindowFilterEnabled001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
-    // Not writing enabled or type, causing ReadBool to fail
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: SetBehindWindowFilterEnabled002
- * @tc.desc: Test SetBehindWindowFilterEnabled when ReadInt32 fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetBehindWindowFilterEnabled002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
-    bool enabled = true;
-    data.WriteBool(enabled);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: OnGlobalBlacklistChangedStubTest001
- * @tc.desc: Test OnGlobalBlacklistChanged stub with ReadUInt64Vector failure
- * @tc.type: FUNC
- * @tc.require: issue41
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, OnGlobalBlacklistChangedStubTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         return;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::ON_GLOBAL_BLACKLIST_CHANGED);
+    data.WriteInt32(-1);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**
- * @tc.name: OnGlobalBlacklistChangedStubTest002
- * @tc.desc: Test OnGlobalBlacklistChanged stub with empty blacklist
+ * @tc.name: SetGpuCrcDirtyEnabledPidList002
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is valid
  * @tc.type: FUNC
- * @tc.require: issue41
+ * @tc.require: issueIBRN69
  */
-HWTEST_F(RSServiceToRenderConnectionStubTest, OnGlobalBlacklistChangedStubTest002, TestSize.Level1)
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList002, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         return;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::ON_GLOBAL_BLACKLIST_CHANGED);
-    std::vector<NodeId> globalBlackList;
-    data.WriteUInt64Vector(globalBlackList);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    std::vector<int32_t> pidList;
+    data.WriteInt32Vector(pidList);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportJankStats001
+ * @tc.desc: Test ReportJankStats interface code
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportJankStats001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_JANK_STATS);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportEventResponse001
+ * @tc.desc: Test ReportEventResponse when ReadDataBaseRs fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventResponse001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_RESPONSE);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ReportEventResponse002
+ * @tc.desc: Test ReportEventResponse with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventResponse002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_RESPONSE);
+    data.WriteInt32(100);
+    data.WriteInt32(1);
+    data.WriteInt32(1);
+    data.WriteInt64(1000);
+    data.WriteInt64(2000);
+    data.WriteInt64(3000);
+    data.WriteBool(false);
+    data.WriteString("scene1");
+    data.WriteString("1.0");
+    data.WriteString("bundle");
+    data.WriteString("process");
+    data.WriteString("ability");
+    data.WriteString("page");
+    data.WriteString("source");
+    data.WriteString("note");
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportEventComplete001
+ * @tc.desc: Test ReportEventComplete when ReadDataBaseRs fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventComplete001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_COMPLETE);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ReportEventComplete002
+ * @tc.desc: Test ReportEventComplete with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventComplete002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_COMPLETE);
+    data.WriteInt32(100);
+    data.WriteInt32(1);
+    data.WriteInt32(1);
+    data.WriteInt64(1000);
+    data.WriteInt64(2000);
+    data.WriteInt64(3000);
+    data.WriteBool(false);
+    data.WriteString("scene1");
+    data.WriteString("1.0");
+    data.WriteString("bundle");
+    data.WriteString("process");
+    data.WriteString("ability");
+    data.WriteString("page");
+    data.WriteString("source");
+    data.WriteString("note");
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportEventJankFrame001
+ * @tc.desc: Test ReportEventJankFrame when ReadDataBaseRs fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventJankFrame001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ReportEventJankFrame002
+ * @tc.desc: Test ReportEventJankFrame with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventJankFrame002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME);
+    data.WriteInt32(100);
+    data.WriteInt32(1);
+    data.WriteInt32(1);
+    data.WriteInt64(1000);
+    data.WriteInt64(2000);
+    data.WriteInt64(3000);
+    data.WriteBool(false);
+    data.WriteString("scene1");
+    data.WriteString("1.0");
+    data.WriteString("bundle");
+    data.WriteString("process");
+    data.WriteString("ability");
+    data.WriteString("page");
+    data.WriteString("source");
+    data.WriteString("note");
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankStart001
+ * @tc.desc: Test ReportRsSceneJankStart when ReadAppInfo fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankStart001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankStart002
+ * @tc.desc: Test ReportRsSceneJankStart with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankStart002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
+    data.WriteInt64(1000);
+    data.WriteInt64(2000);
+    data.WriteInt32(100);
+    data.WriteString("1.0");
+    data.WriteInt32(1);
+    data.WriteString("bundle");
+    data.WriteString("process");
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankEnd001
+ * @tc.desc: Test ReportRsSceneJankEnd when ReadAppInfo fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankEnd001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankEnd002
+ * @tc.desc: Test ReportRsSceneJankEnd with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankEnd002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
+    data.WriteInt64(1000);
+    data.WriteInt64(2000);
+    data.WriteInt32(100);
+    data.WriteString("1.0");
+    data.WriteInt32(1);
+    data.WriteString("bundle");
+    data.WriteString("process");
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: AvcodecVideoStart001
+ * @tc.desc: Test AvcodecVideoStart when reading data fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStart002
+ * @tc.desc: Test AvcodecVideoStart when reply.WriteInt32 fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    std::vector<uint64_t> uniqueIdList = {1000, 2000};
+    std::vector<std::string> surfaceNameList = {"surface1", "surface2"};
+    uint32_t fps = 60;
+    uint64_t reportTime = 1000;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    data.WriteUint64(reportTime);
+    SetLeftSize(reply, 0);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: AvcodecVideoStart003
+ * @tc.desc: Test AvcodecVideoStart with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    std::vector<uint64_t> uniqueIdList = {1000, 2000};
+    std::vector<std::string> surfaceNameList = {"surface1", "surface2"};
+    uint32_t fps = 60;
+    uint64_t reportTime = 1000;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    data.WriteUint64(reportTime);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop001
+ * @tc.desc: Test AvcodecVideoStop when reading data fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop002
+ * @tc.desc: Test AvcodecVideoStop when reply.WriteInt32 fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    std::vector<uint64_t> uniqueIdList = {1000, 2000};
+    std::vector<std::string> surfaceNameList = {"surface1", "surface2"};
+    uint32_t fps = 60;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    SetLeftSize(reply, 0);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop003
+ * @tc.desc: Test AvcodecVideoStop with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    std::vector<uint64_t> uniqueIdList = {1000, 2000};
+    std::vector<std::string> surfaceNameList = {"surface1", "surface2"};
+    uint32_t fps = 60;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: AvcodecVideoGet001
+ * @tc.desc: Test AvcodecVideoGet when reading data fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGet001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_GET);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoGet002
+ * @tc.desc: Test AvcodecVideoGet when reply.WriteInt32 fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGet002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_GET);
+    uint64_t uniqueId = 1000;
+    data.WriteUint64(uniqueId);
+    SetLeftSize(reply, 0);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: AvcodecVideoGet003
+ * @tc.desc: Test AvcodecVideoGet with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGet003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_GET);
+    uint64_t uniqueId = 1000;
+    data.WriteUint64(uniqueId);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: AvcodecVideoGetRecent001
+ * @tc.desc: Test AvcodecVideoGetRecent when reply.WriteInt32 fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGetRecent001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT);
+    SetLeftSize(reply, 0);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: AvcodecVideoGetRecent002
+ * @tc.desc: Test AvcodecVideoGetRecent with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGetRecent002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetMemoryGraphics001
+ * @tc.desc: Test GetMemoryGraphics when reply.WriteUint64 fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphics001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
+    SetLeftSize(reply, 0);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: GetMemoryGraphics002
+ * @tc.desc: Test GetMemoryGraphics with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphics002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetTotalAppMemSize001
+ * @tc.desc: Test GetTotalAppMemSize when reply.WriteFloat fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetTotalAppMemSize001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE);
+    SetLeftSize(reply, 0);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: GetTotalAppMemSize002
+ * @tc.desc: Test GetTotalAppMemSize with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetTotalAppMemSize002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetMemoryGraphic001
+ * @tc.desc: Test GetMemoryGraphic when reading pid fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHIC);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetMemoryGraphic002
+ * @tc.desc: Test GetMemoryGraphic when reply.WriteParcelable fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHIC);
+    int32_t pid = 100;
+    data.WriteInt32(pid);
+    SetLeftSize(reply, 0);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: GetMemoryGraphic003
+ * @tc.desc: Test GetMemoryGraphic with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHIC);
+    int32_t pid = 100;
+    data.WriteInt32(pid);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
 }
 } // namespace OHOS::Rosen

@@ -18,6 +18,7 @@
 
 #include "rs_buffer_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include <sstream>
 
 namespace OHOS {
 namespace Rosen {
@@ -153,7 +154,7 @@ void RSBufferManager::OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::w
 {
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> uniBufferCount = nullptr;
     sptr<SyncFence> uniFence = nullptr;
-    std::set<uint32_t> decedSet = {};
+    std::set<uint64_t> decedSet = {};
     for (const auto& [id, buffer, fence] : releaseBufferFenceVec) {
         auto iter = rsLayers.find(id);
         if (iter == rsLayers.end()) {
@@ -190,7 +191,7 @@ void RSBufferManager::OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::w
 }
 
 void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& uniBufferCount,
-    sptr<SyncFence>& uniFence, std::set<uint32_t>& decedSet,
+    sptr<SyncFence>& uniFence, std::set<uint64_t>& decedSet,
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers, uint64_t screenId)
 {
     if (uniBufferCount == nullptr) {
@@ -254,6 +255,66 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     consumer->ReleaseBuffer(info.buffer_, mergedFence);
     pendingReleaseBuffers_.erase(iter);
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+void RSBufferManager::DumpPendingReleaseBuffers(std::string& output)
+{
+    std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
+    std::ostringstream oss;
+
+    oss << "\n=== RSBufferManager::pendingReleaseBuffers_ Dump ===\n";
+    oss << "Total entries: " << pendingReleaseBuffers_.size() << "\n";
+
+    if (pendingReleaseBuffers_.empty()) {
+        oss << "(empty)\n";
+    } else {
+        oss << "BufferID\t\tConsumerID\t\tBuffer\t\tWidth\tHeight\tSeqNum\tFenceCount\n";
+        oss << "--------\t\t--------\t\t------\t\t-----\t------\t------\t----------\n";
+        for (const auto& [bufferId, info] : pendingReleaseBuffers_) {
+            oss << bufferId << "\t\t";
+
+            // Consumer info
+            if (info.consumer_) {
+                oss << info.consumer_->GetUniqueId() << "\t\t";
+            } else {
+                oss << "null\t\t";
+            }
+
+            // Buffer info
+            if (info.buffer_) {
+                oss << "valid\t\t";
+                oss << info.buffer_->GetWidth() << "\t";
+                oss << info.buffer_->GetHeight() << "\t";
+                oss << info.buffer_->GetSeqNum() << "\t";
+            } else {
+                oss << "null\t\t";
+                oss << "-\t";
+                oss << "-\t";
+                oss << "-\t";
+            }
+
+            oss << info.mergedFences_.size() << "\n";
+
+            // Dump fence details
+            for (size_t i = 0; i < info.mergedFences_.size(); ++i) {
+                auto& fence = info.mergedFences_[i];
+                oss << "  [" << i << "] fence_fd=" << (fence ? fence->Get() : -1);
+                if (fence && fence->Get() != -1) {
+                    oss << " (valid)";
+                } else if (fence) {
+                    oss << " (invalid)";
+                } else {
+                    oss << " (null)";
+                }
+                oss << "\n";
+            }
+        }
+    }
+    oss << "=== End Dump ===\n";
+
+    output = oss.str();
+}
+#endif
 
 } // OHOS
 } // Rosen

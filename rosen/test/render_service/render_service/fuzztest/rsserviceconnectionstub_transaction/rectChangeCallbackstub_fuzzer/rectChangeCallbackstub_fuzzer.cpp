@@ -66,8 +66,8 @@ private:
 
 void DoRegisterSelfDrawingNodeRectChangeCallback(FuzzedDataProvider& fdp)
 {
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
 
     MessageParcel dataP;
     MessageParcel reply;

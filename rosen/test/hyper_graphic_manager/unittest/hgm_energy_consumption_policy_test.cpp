@@ -544,5 +544,400 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, VoterVideoCallFrameRate001, TestSize.Le
     HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
     ASSERT_NE(HgmCore::Instance().GetFrameRateMgr(), nullptr);
 }
+
+/**
+ * @tc.name: StatisticAnimationTimeTest1
+ * @tc.desc: Test isAnimationEnergyAssuranceEnable_ = false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest1, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(false);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, false);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData;
+
+    HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(commonData);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StatisticAnimationTimeTest2
+ * @tc.desc: Test isAnimationEnergyConsumptionAssuranceMode_ = false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest2, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, true);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(false);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyConsumptionAssuranceMode_, false);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData;
+
+    HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(commonData);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StatisticAnimationTimeTest3
+ * @tc.desc: Test commonData is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest3, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, true);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyConsumptionAssuranceMode_, true);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData;
+
+    HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(commonData);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StatisticAnimationTimeTest4
+ * @tc.desc: Test commonData not empty but no STATIC_ANIMATION_TIME key
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest4, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, true);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyConsumptionAssuranceMode_, true);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData = { { "OTHER_KEY", "OTHER_VALUE" } };
+
+    HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(commonData);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StatisticAnimationTimeTest5
+ * @tc.desc: Test can find STATIC_ANIMATION_TIME key
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest5, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, true);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyConsumptionAssuranceMode_, true);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData = { { "STATIC_ANIMATION_TIME", "1719544265071" } };
+
+    HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(commonData);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StartNewAnimationTest1
+ * @tc.desc: Test commonData is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest1, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(true);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_ = testTimestamp;
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData;
+
+    HgmEnergyConsumptionPolicy::Instance().StartNewAnimation(commonData);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_.load(), testTimestamp);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StartNewAnimationTest2
+ * @tc.desc: Test commonData not empty but no COMPONENT_NAME key, componentName is empty, idleFps == UNKNOWN_IDLE_FPS
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest2, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(true);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_ = testTimestamp;
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData = { { "OTHER_KEY", "OTHER_VALUE" } };
+
+    HgmEnergyConsumptionPolicy::Instance().StartNewAnimation(commonData);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_.load(), testTimestamp);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StartNewAnimationTest3
+ * @tc.desc: Test idleFps != UNKNOWN_IDLE_FPS, enable == true, mode == true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest3, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(true);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_ = testTimestamp;
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData = { { "COMPONENT_NAME", "SWIPER_FLING" } };
+
+    HgmEnergyConsumptionPolicy::Instance().StartNewAnimation(commonData);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_.load(), testTimestamp);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StartNewAnimationTest4
+ * @tc.desc: Test idleFps == UNKNOWN_IDLE_FPS, enable == true, mode == true
+ * @tc.type: FUNC
+ * @tc.require:
+HW */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest4, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(true);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_ = testTimestamp;
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData = { { "COMPONENT_NAME", "OTHER_COMPONENT" } };
+
+    HgmEnergyConsumptionPolicy::Instance().StartNewAnimation(commonData);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_.load(), testTimestamp);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StartNewAnimationTest5
+ * @tc.desc: Test idleFps == UNKNOWN_IDLE_FPS, enable == false, mode == true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest5, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(false);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_ = testTimestamp;
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData = { { "COMPONENT_NAME", "OTHER_COMPONENT" } };
+
+    HgmEnergyConsumptionPolicy::Instance().StartNewAnimation(commonData);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_.load(), testTimestamp);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StartNewAnimationTest6
+ * @tc.desc: Test idleFps == UNKNOWN_IDLE_FPS, enable == true, mode == false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest6, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(true);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(false);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_ = testTimestamp;
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData = { { "COMPONENT_NAME", "OTHER_COMPONENT" } };
+
+    HgmEnergyConsumptionPolicy::Instance().StartNewAnimation(commonData);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_.load(), testTimestamp);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: StartNewAnimationTest7
+ * @tc.desc: Test idleFps == UNKNOWN_IDLE_FPS, enable == false, mode == false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest7, TestSize.Level0)
+{
+    HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_.store(false);
+    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(false);
+    uint64_t testTimestamp = 1719544264071;
+    HgmCore::Instance().SetTimestamp(testTimestamp);
+    HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_ = testTimestamp;
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = testTimestamp;
+    std::unordered_map<std::string, std::string> commonData = { { "COMPONENT_NAME", "OTHER_COMPONENT" } };
+
+    HgmEnergyConsumptionPolicy::Instance().StartNewAnimation(commonData);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().firstAnimationTimestamp_.load(), testTimestamp);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_.load(), testTimestamp);
+}
+
+/**
+ * @tc.name: HandleEnergyCommonDataTest1
+ * @tc.desc: Test commonData is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, HandleEnergyCommonDataTest1, TestSize.Level0)
+{
+    EnergyCommonDataMap commonData;
+    HgmEnergyConsumptionPolicy::Instance().HandleEnergyCommonData(commonData);
+    ASSERT_TRUE(commonData.empty());
+}
+
+/**
+ * @tc.name: HandleEnergyCommonDataTest2
+ * @tc.desc: Test commonData not empty and energyDataFunc != commonDataMapFunc_.end()
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, HandleEnergyCommonDataTest2, TestSize.Level0)
+{
+    EnergyCommonDataMap commonData;
+    std::unordered_map<std::string, std::string> testData = { { "TEST_KEY", "TEST_VALUE" } };
+    commonData[EnergyEvent::START_NEW_ANIMATION] = testData;
+
+    HgmEnergyConsumptionPolicy::Instance().HandleEnergyCommonData(commonData);
+    ASSERT_FALSE(commonData.empty());
+}
+
+/**
+ * @tc.name: HandleEnergyCommonDataTest3
+ * @tc.desc: Test commonData not empty and energyDataFunc == commonDataMapFunc_.end()
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, HandleEnergyCommonDataTest3, TestSize.Level0)
+{
+    EnergyCommonDataMap commonData;
+    std::unordered_map<std::string, std::string> testData = { { "INVALID_KEY", "INVALID_VALUE" } };
+    commonData[static_cast<EnergyEvent>(999)] = testData; // Use an invalid event type
+
+    HgmEnergyConsumptionPolicy::Instance().HandleEnergyCommonData(commonData);
+    ASSERT_FALSE(commonData.empty());
+}
+
+/**
+ * @tc.name: VoterVideoFrameRateTest1
+ * @tc.desc: Test pidIter == commonData.end()
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, VoterVideoFrameRateTest1, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> commonData;
+    HgmEnergyConsumptionPolicy::Instance().VoterVideoFrameRate(commonData);
+    ASSERT_TRUE(commonData.empty());
+}
+
+/**
+ * @tc.name: VoterVideoFrameRateTest2
+ * @tc.desc: Test !XMLParser::IsNumber(pidIter->second)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, VoterVideoFrameRateTest2, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> commonData = { { "PID", "NOT_A_NUMBER" } };
+    HgmEnergyConsumptionPolicy::Instance().VoterVideoFrameRate(commonData);
+    ASSERT_FALSE(commonData.empty());
+}
+
+/**
+ * @tc.name: VoterVideoFrameRateTest3
+ * @tc.desc: Test eventNameIter == commonData.end()
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, VoterVideoFrameRateTest3, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> commonData = { { "PID", "12345" } };
+    HgmEnergyConsumptionPolicy::Instance().VoterVideoFrameRate(commonData);
+    ASSERT_FALSE(commonData.empty());
+}
+
+/**
+ * @tc.name: VoterVideoFrameRateTest4
+ * @tc.desc: Test eventStatusIter == commonData.end()
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, VoterVideoFrameRateTest4, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> commonData = { { "PID", "12345" }, { "EVENT_NAME", "TEST_EVENT" } };
+    HgmEnergyConsumptionPolicy::Instance().VoterVideoFrameRate(commonData);
+    ASSERT_FALSE(commonData.empty());
+}
+
+/**
+ * @tc.name: VoterVideoFrameRateTest5
+ * @tc.desc: Test refreshRateIter == commonData.end()
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, VoterVideoFrameRateTest5, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> commonData = { { "PID", "12345" }, { "EVENT_NAME", "TEST_EVENT" },
+        { "EVENT_STATUS", "true" } };
+    HgmEnergyConsumptionPolicy::Instance().VoterVideoFrameRate(commonData);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    ASSERT_FALSE(commonData.empty());
+}
+
+/**
+ * @tc.name: VoterVideoFrameRateTest6
+ * @tc.desc: Test !XMLParser::IsNumber(refreshRateIter->second)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, VoterVideoFrameRateTest6, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> commonData = { { "PID", "12345" }, { "EVENT_NAME", "TEST_EVENT" },
+        { "EVENT_STATUS", "true" }, { "REFRESH_RATE", "NOT_A_NUMBER" } };
+    HgmEnergyConsumptionPolicy::Instance().VoterVideoFrameRate(commonData);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    ASSERT_FALSE(commonData.empty());
+}
+
+/**
+ * @tc.name: VoterVideoFrameRateTest7
+ * @tc.desc: Test  XMLParser::IsNumber(refreshRateIter->second)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, VoterVideoFrameRateTest7, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> commonData = { { "PID", "12345" }, { "EVENT_NAME", "TEST_EVENT" },
+        { "EVENT_STATUS", "true" }, { "REFRESH_RATE", "60" } };
+    HgmEnergyConsumptionPolicy::Instance().VoterVideoFrameRate(commonData);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    ASSERT_FALSE(commonData.empty());
+}
 } // namespace Rosen
 } // namespace OHOS

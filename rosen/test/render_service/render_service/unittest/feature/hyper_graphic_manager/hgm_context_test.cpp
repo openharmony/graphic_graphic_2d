@@ -699,34 +699,6 @@ HWTEST_F(HgmContextTest, NotifyXComponentExpectedFrameRateTest001, TestSize.Leve
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
 }
 
-// /**
-//  * @tc.name: RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest001
-//  * @tc.desc: test RegisterFrameRateLinkerExpectedFpsUpdateCallback when dstpid is 0
-//  * @tc.type: FUNC
-//  * @tc.require:
-//  */
-// HWTEST_F(HgmContextTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest001, TestSize.Level1)
-// {
-//     auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
-//     ASSERT_NE(hgmContext, nullptr);
-//     EXPECT_EQ(
-//         hgmContext->RegisterFrameRateLinkerExpectedFpsUpdateCallback(0, 0, nullptr), StatusCode::INVALID_ARGUMENTS);
-// }
-
-// /**
-//  * @tc.name: RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest002
-//  * @tc.desc: test RegisterFrameRateLinkerExpectedFpsUpdateCallback when dstpid is not 0
-//  * @tc.type: FUNC
-//  * @tc.require:
-//  */
-// HWTEST_F(HgmContextTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest002, TestSize.Level1)
-// {
-//     auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
-//     ASSERT_NE(hgmContext, nullptr);
-//     EXPECT_EQ(hgmContext->RegisterFrameRateLinkerExpectedFpsUpdateCallback(0, 1, nullptr), StatusCode::SUCCESS);
-
-//     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
-// }
 
 /**
  * @tc.name: GetRSFrameRateLinkerTest001

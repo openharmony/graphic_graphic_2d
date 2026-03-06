@@ -32,23 +32,8 @@ RSUniHwcEventManager& RSUniHwcEventManager::GetInstance()
     return instance;
 }
 
-void RSUniHwcEventManager::Init()
-{
-    RS_LOGI("[%{public}s]:register OnHwcEvent Func", __func__);
-    RSPointerWindowManager::Instance().SetTuiEnabled(false);
-    auto hdiBackend = HdiBackend::GetInstance();
-    if (!hdiBackend) {
-        RS_LOGW("[%{public}s]:hdiBackend is nullptr", __func__);
-        return;
-    }
-    if (hdiBackend->RegHwcEventCallback(&RSUniHwcEventManager::OnHwcEvent, this) != 0) {
-        RS_LOGW("[%{public}s]:Failed to register OnHwcEvent Func", __func__);
-        return;
-    }
-}
-
 void RSUniHwcEventManager::OnHwcEvent(
-    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data)
+    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
     RS_LOGI("RSUniHwcEventManager::OnHwcEvent: deviceId is %{public}u, eventId is %{public}u", devId, eventId);
     switch (eventId) {

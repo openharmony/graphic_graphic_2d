@@ -53,6 +53,7 @@ group("unittest") {
     ":RSUniRenderVisitorTest",
     ":RSVirtualScreenProcessorTest",
     ":RSRenderPipelineTest",
+    ":RSRenderPipelineAgentTest",
   ]
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [ ":RSRenderTaskTest" ]
@@ -132,6 +133,47 @@ ohos_unittest("RSRenderPipelineTest") {
   module_out_path = module_output_path
   sources = [
     "main_thread/rs_render_pipeline_test.cpp",
+  ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+## Build RSRenderPipelineAgentTest
+ohos_unittest("RSRenderPipelineAgentTest") {
+  module_out_path = module_output_path
+  sources = [
+    "main_thread/rs_render_pipeline_agent_test.cpp",
   ]
   deps = [
     ":rs_test_common",

@@ -162,7 +162,7 @@ HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_AllBranches, TestSize.Level1
     // Put owner2 into layer so PopBufferOwnerCountById returns non-null
     layer->SetBufferOwnerCount(owner2, false);
     sptr<SyncFence> uniFence = new SyncFence(dup(STDERR_FILENO));
-    std::set<uint32_t> decedSet{}; // empty so not skipped
+    std::set<uint64_t> decedSet{}; // empty so not skipped
     mgr->ReleaseUniOnDrawBuffers(owner, uniFence, decedSet, rsLayers, screenId);
 
     // At least one release callback should fire
@@ -310,7 +310,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_DecedSetSkip, TestSize.Lev
     auto mgr = std::make_shared<RSBufferManager>();
     auto owner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     owner->bufferId_ = 2222ULL;
-    std::set<uint32_t> decedSet;
+    std::set<uint64_t> decedSet;
     decedSet.insert(3333U);
     owner->InsertUniOnDrawSet(1U, 3333U);
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
@@ -648,7 +648,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_NullLayerTest001, TestSize
     // Reset layer to make weak_ptr expired, lock() will return nullptr
     layer.reset();
 
-    std::set<uint32_t> decedSet{};
+    std::set<uint64_t> decedSet{};
     sptr<SyncFence> uniFence = new SyncFence(dup(STDOUT_FILENO));
     // Call ReleaseUniOnDrawBuffers, should skip when layer == nullptr
     mgr->ReleaseUniOnDrawBuffers(owner, uniFence, decedSet, rsLayers, TEST_SCREEN_ID);
@@ -690,7 +690,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_DecedSetSkipTest001, TestS
     layer->SetBufferOwnerCount(bufferOwnerCount, false);
 
     // Set targetBufferId into decedSet to trigger skip branch
-    std::set<uint32_t> decedSet{};
+    std::set<uint64_t> decedSet{};
     decedSet.insert(static_cast<uint32_t>(targetBufferId));
 
     sptr<SyncFence> uniFence = new SyncFence(dup(STDOUT_FILENO));
@@ -728,7 +728,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_NullBufferOwnerCountTest00
 
     // Do NOT put bufferOwnerCount into layer, so PopBufferOwnerCountById returns nullptr
 
-    std::set<uint32_t> decedSet{};
+    std::set<uint64_t> decedSet{};
     sptr<SyncFence> uniFence = new SyncFence(dup(STDOUT_FILENO));
     // Call ReleaseUniOnDrawBuffers, should skip when bufferOwnerCount == nullptr
     mgr->ReleaseUniOnDrawBuffers(owner, uniFence, decedSet, rsLayers, TEST_SCREEN_ID);
@@ -770,7 +770,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_NotLastUniBufferOwnerTest0
     bufferOwnerCount->bufferId_ = targetBufferId;
     layer->SetBufferOwnerCount(bufferOwnerCount, false);
 
-    std::set<uint32_t> decedSet{};
+    std::set<uint64_t> decedSet{};
     sptr<SyncFence> uniFence = new SyncFence(dup(STDOUT_FILENO));
     // Call ReleaseUniOnDrawBuffers, CheckLastUniBufferOwner returns false so SetBufferOwnerCount(false) called
     mgr->ReleaseUniOnDrawBuffers(owner, uniFence, decedSet, rsLayers, TEST_SCREEN_ID);
@@ -808,7 +808,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_CheckLastUniBufferOwnerTru
     bufferOwnerCount->bufferId_ = targetBufferId;
     layer->SetBufferOwnerCount(bufferOwnerCount, false);
 
-    std::set<uint32_t> decedSet{};
+    std::set<uint64_t> decedSet{};
     sptr<SyncFence> uniFence = new SyncFence(dup(STDOUT_FILENO));
     // Do NOT call SetUniBufferOwner, so CheckLastUniBufferOwner returns true
     // (screenId not found in uniBufferOwnerSeqNumMap_)
@@ -856,7 +856,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_CheckLastUniBufferOwnerMat
     bufferOwnerCount->bufferId_ = targetBufferId;
     layer->SetBufferOwnerCount(bufferOwnerCount, false);
 
-    std::set<uint32_t> decedSet{};
+    std::set<uint64_t> decedSet{};
     sptr<SyncFence> uniFence = new SyncFence(dup(STDOUT_FILENO));
     // Set matching bufferId so CheckLastUniBufferOwner returns true (iter->second == bufferId)
     owner->SetUniBufferOwner(targetBufferId, TEST_SCREEN_ID);
