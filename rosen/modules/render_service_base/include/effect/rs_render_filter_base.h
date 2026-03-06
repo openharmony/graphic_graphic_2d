@@ -112,6 +112,8 @@ public:
 
     static RectF CalcRect(const std::shared_ptr<RSNGRenderFilterBase>& filter, const RectF& bound,
         EffectRectType rectType);
+
+    static void GetDescription(std::shared_ptr<RSNGRenderFilterBase>& filter, std::string& filterString);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
