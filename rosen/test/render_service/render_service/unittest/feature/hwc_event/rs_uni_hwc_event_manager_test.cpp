@@ -46,7 +46,6 @@ HWTEST_F(RSUniHwcEventManagerTest, OnHwcEvent001, TestSize.Level1)
 {
     auto& uniHwcEventManager = RSUniHwcEventManager::GetInstance();
     vector<int32_t> eventData;
-    uniHwcEventManager.Init();
     uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, HwcEvent::HWCEVENT_TUI_ENTER, eventData);
     uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, HwcEvent::HWCEVENT_TUI_EXIT, eventData);
     uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, DEFAULT_EVENTID, eventData);

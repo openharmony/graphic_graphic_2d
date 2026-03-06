@@ -4142,4 +4142,178 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest016, 
     sptr<RSIClientToRenderConnection> foundConnection = agent->FindClientToRenderConnection(token_->AsObject());
     EXPECT_EQ(foundConnection, nullptr);
 }
+
+/**
+ * @tc.name: CommitTransaction_NullPipeline_001
+ * @tc.desc: Test CommitTransaction with null pipeline
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_NullPipeline_001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> nullAgent = new RSRenderPipelineAgent(renderPipeline);
+    std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+
+    nullAgent->CommitTransaction(1234, true, false, transactionData);
+    EXPECT_NE(transactionData, nullptr);
+}
+
+/**
+ * @tc.name: CommitTransaction_NullTransactionData_002
+ * @tc.desc: Test CommitTransaction with null transaction data
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_NullTransactionData_002, TestSize.Level1)
+{
+    std::unique_ptr<RSTransactionData> transactionData = nullptr;
+
+    renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
+    EXPECT_EQ(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.size(), 0);
+}
+
+/**
+ * @tc.name: CommitTransaction_NormalCase_003
+ * @tc.desc: Test CommitTransaction with normal transaction data
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_NormalCase_003, TestSize.Level1)
+{
+    std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+    transactionData->SetTimestamp(1234567890);
+
+    renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+}
+
+/**
+ * @tc.name: CommitTransaction_WithDVSyncUpdate_004
+ * @tc.desc: Test CommitTransaction with DVSync update flag set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_WithDVSyncUpdate_004, TestSize.Level1)
+{
+    std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+    transactionData->SetTimestamp(1234567890);
+
+    renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+}
+
+/**
+ * @tc.name: CommitTransaction_NonSystemApp_005
+ * @tc.desc: Test CommitTransaction with non-system app calling
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_NonSystemApp_005, TestSize.Level1)
+{
+    std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+    transactionData->SetTimestamp(1234567890);
+
+    renderPipelineAgent_->CommitTransaction(1234, true, true, transactionData);
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+}
+
+/**
+ * @tc.name: CommitTransaction_InvalidTokenType_006
+ * @tc.desc: Test CommitTransaction with invalid token type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_InvalidTokenType_006, TestSize.Level1)
+{
+    std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+    transactionData->SetTimestamp(1234567890);
+
+    renderPipelineAgent_->CommitTransaction(1234, false, false, transactionData);
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+}
+
+/**
+ * @tc.name: CommitTransaction_EmptyTransactionData_007
+ * @tc.desc: Test CommitTransaction with empty transaction data
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_EmptyTransactionData_007, TestSize.Level1)
+{
+    std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+
+    renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+}
+
+/**
+ * @tc.name: CommitTransaction_MultipleCalls_008
+ * @tc.desc: Test multiple consecutive CommitTransaction calls
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_MultipleCalls_008, TestSize.Level1)
+{
+    for (int i = 0; i < 3; ++i) {
+        std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+        transactionData->SetTimestamp(1234567890 + i);
+
+        renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
+    }
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+}
+
+/**
+ * @tc.name: CommitTransaction_DifferentPids_009
+ * @tc.desc: Test CommitTransaction with different calling PIDs
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_DifferentPids_009, TestSize.Level1)
+{
+    std::vector<pid_t> testPids = { 1000, 2000, 3000, 9999 };
+
+    for (pid_t pid : testPids) {
+        std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+        transactionData->SetTimestamp(1234567890);
+
+        renderPipelineAgent_->CommitTransaction(pid, true, false, transactionData);
+    }
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+}
+
+/**
+ * @tc.name: CommitTransaction_WithMainThread_010
+ * @tc.desc: Test CommitTransaction ensures main thread is properly set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_WithMainThread_010, TestSize.Level1)
+{
+    std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+    transactionData->SetTimestamp(1234567890);
+
+    renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+}
+
+/**
+ * @tc.name: CommitTransaction_LargeTimestamp_011
+ * @tc.desc: Test CommitTransaction with large timestamp value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_LargeTimestamp_011, TestSize.Level1)
+{
+    std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+    transactionData->SetTimestamp(UINT64_MAX);
+
+    renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+}
+
+/**
+ * @tc.name: CommitTransaction_ZeroPid_012
+ * @tc.desc: Test CommitTransaction with zero PID
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_ZeroPid_012, TestSize.Level1)
+{
+    std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
+    transactionData->SetTimestamp(1234567890);
+
+    renderPipelineAgent_->CommitTransaction(0, true, false, transactionData);
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+}
+
 } // namespace OHOS::Rosen

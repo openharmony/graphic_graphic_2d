@@ -296,11 +296,9 @@ private:
         if (specialLayerMgr.Find(IS_GENERAL_SPECIAL) || isSkipDrawInVirtualScreen_) {
             return false; // surface is special layer
         }
-        if (!allWhiteList_.empty()) {
-            return false; // white list is not empty
-        }
-        if (!specialLayerMgr.FindScreenHasType(SpecialLayerType::IS_BLACK_LIST).empty()) {
-            return false; // surface is in black list
+        if (!specialLayerMgr.FindScreenHasType(SpecialLayerType::IS_BLACK_LIST).empty() ||
+            !allWhiteList_.empty()) {
+            return false; // surface is in black list or white list is not empty
         }
         return true;
     }

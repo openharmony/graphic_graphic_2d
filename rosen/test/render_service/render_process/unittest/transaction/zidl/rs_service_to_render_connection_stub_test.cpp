@@ -897,4 +897,507 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic003, TestSize.Leve
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
 }
+
+/**
+ * @tc.name: GetPixelMapByProcessId001
+ * @tc.desc: Test GetPixelMapByProcessId when ReadUint64 fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetPixelMapByProcessId001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetPixelMapByProcessId002
+ * @tc.desc: Test GetPixelMapByProcessId when reply.WriteInt32 fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetPixelMapByProcessId002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID);
+    uint64_t pid = 12345;
+    data.WriteUint64(pid);
+    SetLeftSize(reply, 0);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: GetPixelMapByProcessId003
+ * @tc.desc: Test GetPixelMapByProcessId with valid pid
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetPixelMapByProcessId003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID);
+    uint64_t pid = 12345;
+    data.WriteUint64(pid);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: ShowWatermark001
+ * @tc.desc: Test ShowWatermark when ReadBool fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ShowWatermark001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ShowWatermark002
+ * @tc.desc: Test ShowWatermark with watermarkImg nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ShowWatermark002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK);
+    data.WriteParcelable(nullptr);
+    bool isShow = true;
+    data.WriteBool(isShow);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ShowWatermark003
+ * @tc.desc: Test ShowWatermark with valid PixelMap and isShow=true
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ShowWatermark003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK);
+    
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    data.WriteParcelable(pixelMap.get());
+    bool isShow = true;
+    data.WriteBool(isShow);
+    
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ShowWatermark004
+ * @tc.desc: Test ShowWatermark with valid PixelMap and isShow=false
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, ShowWatermark004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK);
+    
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    data.WriteParcelable(pixelMap.get());
+    bool isShow = false;
+    data.WriteBool(isShow);
+    
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetSurfaceRootNode001
+ * @tc.desc: Test GetSurfaceRootNode when ReadUint64 fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetSurfaceRootNode001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetSurfaceRootNode002
+ * @tc.desc: Test GetSurfaceRootNode when reply.WriteUint64 fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetSurfaceRootNode002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE);
+    uint64_t windowNodeId = 12345;
+    data.WriteUint64(windowNodeId);
+    SetLeftSize(reply, 0);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: GetSurfaceRootNode003
+ * @tc.desc: Test GetSurfaceRootNode with valid windowNodeId
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetSurfaceRootNode003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE);
+    uint64_t windowNodeId = 12345;
+    data.WriteUint64(windowNodeId);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetWatermark001
+ * @tc.desc: Test SetWatermark when watermark feature disabled
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetWatermark001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK);
+    pid_t callingPid = 12345;
+    std::string name = "test_watermark";
+    data.WriteInt32(callingPid);
+    data.WriteString(name);
+    
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    data.WriteParcelable(pixelMap.get());
+    
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetWatermark002
+ * @tc.desc: Test SetWatermark when ReadInt32 fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetWatermark002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetWatermark003
+ * @tc.desc: Test SetWatermark when ReadString fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetWatermark003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK);
+    pid_t callingPid = 12345;
+    data.WriteInt32(callingPid);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetWatermark004
+ * @tc.desc: Test SetWatermark when watermark is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetWatermark004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK);
+    pid_t callingPid = 12345;
+    std::string name = "test_watermark";
+    data.WriteInt32(callingPid);
+    data.WriteString(name);
+    data.WriteParcelable(nullptr);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NULL_OBJECT);
+}
+
+/**
+ * @tc.name: RegisterSelfDrawingNodeRectChangeCallback001
+ * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when ReadInt32(remotePid) fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: RegisterSelfDrawingNodeRectChangeCallback002
+ * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when ReadUint32(size) fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    pid_t remotePid = 12345;
+    data.WriteInt32(remotePid);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: RegisterSelfDrawingNodeRectChangeCallback003
+ * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when size exceeds MAX_PID_SIZE_NUMBER
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    pid_t remotePid = 12345;
+    data.WriteInt32(remotePid);
+    uint32_t size = 200000;
+    data.WriteUint32(size);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: RegisterSelfDrawingNodeRectChangeCallback004
+ * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when ReadInt32(pid) fails in loop
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    pid_t remotePid = 12345;
+    data.WriteInt32(remotePid);
+    uint32_t size = 1;
+    data.WriteUint32(size);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: RegisterSelfDrawingNodeRectChangeCallback005
+ * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when ReadInt32(constraint) fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    pid_t remotePid = 12345;
+    data.WriteInt32(remotePid);
+    uint32_t size = 0;
+    data.WriteUint32(size);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: RegisterSelfDrawingNodeRectChangeCallback006
+ * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when remoteObject is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback006, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    pid_t remotePid = 12345;
+    data.WriteInt32(remotePid);
+    uint32_t size = 0;
+    data.WriteUint32(size);
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt32(1000);
+    data.WriteInt32(1000);
+    data.WriteRemoteObject(nullptr);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NULL_OBJECT);
+}
+
+/**
+ * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallback001
+ * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback when ReadInt32 fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSelfDrawingNodeRectChangeCallback001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallback002
+ * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback when reply.WriteInt32 fails
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSelfDrawingNodeRectChangeCallback002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    pid_t remotePid = 12345;
+    data.WriteInt32(remotePid);
+    SetLeftSize(reply, 0);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallback003
+ * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback with valid remotePid
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSelfDrawingNodeRectChangeCallback003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    pid_t remotePid = 12345;
+    data.WriteInt32(remotePid);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
 } // namespace OHOS::Rosen
