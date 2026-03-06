@@ -4765,6 +4765,8 @@ HWTEST_F(NdkTypographyTest, TextStyleAddFontVariationNormalizedTest001, TestSize
     ASSERT_NE(textStyle, nullptr);
     const char* fontFamilies[] = {"Noto Sans"};
     OH_Drawing_SetTextStyleFontFamilies(textStyle, 1, fontFamilies);
+    OH_Drawing_TextStyleAddFontVariationWithNormalization(textStyle, nullptr, 0);
+    OH_Drawing_TextStyleAddFontVariationWithNormalization(nullptr, "wdth", 0);
     OH_Drawing_TextStyleAddFontVariationWithNormalization(textStyle, "wdth", -1);
     OH_Drawing_TextStyleAddFontVariationWithNormalization(textStyle, "wght", 1);
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
