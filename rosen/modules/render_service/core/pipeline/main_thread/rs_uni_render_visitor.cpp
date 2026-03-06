@@ -361,7 +361,7 @@ void RSUniRenderVisitor::HandleWiredMirrorScreenColorGamut(RSScreenRenderNode& n
             return;
         }
         bool isSupportedDisplayP3 =
-            std::any_of(modes.begin(), modes.end(), [](const auto gamut) { return gamut == COLOR_GAMUT_DISPLAY_P3; });
+            std::any_of(mode.begin(), mode.end(), [](const auto gamut) { return gamut == COLOR_GAMUT_DISPLAY_P3; });
         if (isSupportedDisplayP3) {
             // wired mirror and mirror support P3, mirror gamut = main gamut
             node.SetColorSpace(mirrorNode->GetColorSpace());
